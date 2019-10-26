@@ -35,19 +35,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibtk/LinearSolver.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "CoarseFineBoundary.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
-#include "ibtk/LinearSolver.h"
-#include "ibtk/ibtk_utilities.h"
+#include "tbox/Pointer.h"
+
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -170,7 +172,8 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -299,6 +302,11 @@ protected:
     int d_level_num = IBTK::invalid_level_number;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_level;
     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
+
+    /*!
+     * \brief Scratch data.
+     */
+    SAMRAIDataCache d_cached_eulerian_data;
 
     /*!
      * \name PETSc objects.

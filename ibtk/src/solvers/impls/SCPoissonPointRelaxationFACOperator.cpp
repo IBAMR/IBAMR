@@ -32,38 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include "ArrayData.h"
-#include "Box.h"
-#include "BoxList.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CoarsenOperator.h"
-#include "HierarchySideDataOpsReal.h"
 #include "IBTK_config.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "Patch.h"
-#include "PatchDescriptor.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "PoissonSpecifications.h"
-#include "ProcessorMapping.h"
-#include "SAMRAIVectorReal.h"
-#include "SideData.h"
-#include "SideDataFactory.h"
-#include "SideGeometry.h"
-#include "SideVariable.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "VariableFillPattern.h"
+
 #include "ibtk/CartSideDoubleCubicCoarsen.h"
 #include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"
@@ -81,6 +51,31 @@
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
+#include "ArrayData.h"
+#include "Box.h"
+#include "BoxList.h"
+#include "CartesianGridGeometry.h"
+#include "CartesianPatchGeometry.h"
+#include "CoarsenOperator.h"
+#include "HierarchySideDataOpsReal.h"
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
+#include "Patch.h"
+#include "PatchDescriptor.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "PoissonSpecifications.h"
+#include "ProcessorMapping.h"
+#include "SAMRAIVectorReal.h"
+#include "SideData.h"
+#include "SideDataFactory.h"
+#include "SideGeometry.h"
+#include "SideVariable.h"
+#include "Variable.h"
+#include "VariableContext.h"
+#include "VariableDatabase.h"
+#include "VariableFillPattern.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MemoryDatabase.h"
@@ -89,6 +84,13 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -105,76 +107,77 @@
 #endif
 
 // Function interfaces
-extern "C" {
-void GS_SMOOTH_FC(double* U,
-                  const int& U_gcw,
-                  const double& alpha,
-                  const double& beta,
-                  const double* F,
-                  const int& F_gcw,
-                  const int& ilower0,
-                  const int& iupper0,
-                  const int& ilower1,
-                  const int& iupper1,
+extern "C"
+{
+    void GS_SMOOTH_FC(double* U,
+                      const int& U_gcw,
+                      const double& alpha,
+                      const double& beta,
+                      const double* F,
+                      const int& F_gcw,
+                      const int& ilower0,
+                      const int& iupper0,
+                      const int& ilower1,
+                      const int& iupper1,
 #if (NDIM == 3)
-                  const int& ilower2,
-                  const int& iupper2,
+                      const int& ilower2,
+                      const int& iupper2,
 #endif
-                  const double* dx);
+                      const double* dx);
 
-void GS_SMOOTH_MASK_FC(double* U,
-                       const int& U_gcw,
-                       const double& alpha,
-                       const double& beta,
-                       const double* F,
-                       const int& F_gcw,
-                       const int* mask,
-                       const int& mask_gcw,
-                       const int& ilower0,
-                       const int& iupper0,
-                       const int& ilower1,
-                       const int& iupper1,
+    void GS_SMOOTH_MASK_FC(double* U,
+                           const int& U_gcw,
+                           const double& alpha,
+                           const double& beta,
+                           const double* F,
+                           const int& F_gcw,
+                           const int* mask,
+                           const int& mask_gcw,
+                           const int& ilower0,
+                           const int& iupper0,
+                           const int& ilower1,
+                           const int& iupper1,
 #if (NDIM == 3)
-                       const int& ilower2,
-                       const int& iupper2,
+                           const int& ilower2,
+                           const int& iupper2,
 #endif
-                       const double* dx);
+                           const double* dx);
 
-void RB_GS_SMOOTH_FC(double* U,
-                     const int& U_gcw,
-                     const double& alpha,
-                     const double& beta,
-                     const double* F,
-                     const int& F_gcw,
-                     const int& ilower0,
-                     const int& iupper0,
-                     const int& ilower1,
-                     const int& iupper1,
+    void RB_GS_SMOOTH_FC(double* U,
+                         const int& U_gcw,
+                         const double& alpha,
+                         const double& beta,
+                         const double* F,
+                         const int& F_gcw,
+                         const int& ilower0,
+                         const int& iupper0,
+                         const int& ilower1,
+                         const int& iupper1,
 #if (NDIM == 3)
-                     const int& ilower2,
-                     const int& iupper2,
+                         const int& ilower2,
+                         const int& iupper2,
 #endif
-                     const double* dx,
-                     const int& red_or_black);
+                         const double* dx,
+                         const int& red_or_black);
 
-void RB_GS_SMOOTH_MASK_FC(double* U,
-                          const int& U_gcw,
-                          const double& alpha,
-                          const double& beta,
-                          const double* F,
-                          const int& F_gcw,
-                          const int* mask,
-                          const int& mask_gcw,
-                          const int& ilower0,
-                          const int& iupper0,
-                          const int& ilower1,
-                          const int& iupper1,
+    void RB_GS_SMOOTH_MASK_FC(double* U,
+                              const int& U_gcw,
+                              const double& alpha,
+                              const double& beta,
+                              const double* F,
+                              const int& F_gcw,
+                              const int* mask,
+                              const int& mask_gcw,
+                              const int& ilower0,
+                              const int& iupper0,
+                              const int& ilower1,
+                              const int& iupper1,
 #if (NDIM == 3)
-                          const int& ilower2,
-                          const int& iupper2,
+                              const int& ilower2,
+                              const int& iupper2,
 #endif
-                          const double* dx,
-                          const int& red_or_black);
+                              const double* dx,
+                              const int& red_or_black);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -254,7 +257,7 @@ do_local_data_update(SmootherType smoother_type)
         return false;
     }
 } // do_local_data_update
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -364,8 +367,7 @@ SCPoissonPointRelaxationFACOperator::setCoarseSolverType(const std::string& coar
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setCoarseSolverType():\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
     if (d_coarse_solver_type != coarse_solver_type) d_coarse_solver.setNull();
     d_coarse_solver_type = coarse_solver_type;
@@ -511,8 +513,8 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                         const Box<NDIM>& overlap = pair.second;
                         Pointer<Patch<NDIM> > src_patch = level->getPatch(src_patch_num);
                         Pointer<SideData<NDIM, double> > src_error_data = error.getComponentPatchData(0, *src_patch);
-                        error_data->getArrayData(axis)
-                            .copy(src_error_data->getArrayData(axis), overlap, IntVector<NDIM>(0));
+                        error_data->getArrayData(axis).copy(
+                            src_error_data->getArrayData(axis), overlap, IntVector<NDIM>(0));
                     }
                 }
             }
@@ -722,10 +724,11 @@ SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
     // Compute the residual, r = f - A*u.
     if (!d_level_math_ops[finest_level_num])
     {
-        std::ostringstream stream;
-        stream << d_object_name << "::hier_math_ops_" << finest_level_num;
         d_level_math_ops[finest_level_num] =
-            new HierarchyMathOps(stream.str(), d_hierarchy, coarsest_level_num, finest_level_num);
+            new HierarchyMathOps(d_object_name + "::hier_math_ops_" + std::to_string(finest_level_num),
+                                 d_hierarchy,
+                                 coarsest_level_num,
+                                 finest_level_num);
     }
     d_level_math_ops[finest_level_num]->laplace(
         res_idx, res_var, d_poisson_spec, sol_idx, sol_var, nullptr, d_solution_time);
@@ -762,12 +765,8 @@ SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     {
         TBOX_ERROR("SCPoissonPointRelaxationFACOperator::initializeOperatorState()\n"
                    << "  solution and rhs vectors must have the same data depths\n"
-                   << "  solution data depth = "
-                   << solution_pdat_fac->getDefaultDepth()
-                   << "\n"
-                   << "  rhs      data depth = "
-                   << rhs_pdat_fac->getDefaultDepth()
-                   << std::endl);
+                   << "  solution data depth = " << solution_pdat_fac->getDefaultDepth() << "\n"
+                   << "  rhs      data depth = " << rhs_pdat_fac->getDefaultDepth() << std::endl);
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();

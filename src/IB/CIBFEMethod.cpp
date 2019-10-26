@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of The University of North Carolina nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,12 +33,15 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/CIBFEMethod.h"
-#include "VisItDataWriter.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/namespaces.h"
+
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include "VisItDataWriter.h"
+
 #include "libmesh/equation_systems.h"
 #include "libmesh/petsc_matrix.h"
 #include "libmesh/system.h"
@@ -51,7 +54,7 @@ namespace
 {
 // Version of CIBFEMethod restart file data.
 static const int CIBFE_METHOD_VERSION = 1;
-}
+} // namespace
 
 const std::string CIBFEMethod::CONSTRAINT_VELOCITY_SYSTEM_NAME = "IB constrained velocity system";
 
@@ -207,7 +210,7 @@ CIBFEMethod::preprocessIntegrateData(double current_time, double new_time, int n
                 d_rot_vel_half[part][2] = rot_vel_half[2];
                 d_rot_vel_new[part][2] = rot_vel_new[2];
             }
-#elif(NDIM == 3)
+#elif (NDIM == 3)
             for (int d = 0; d < NDIM; ++d)
             {
                 if (!solve_dofs[3 + d])
@@ -350,12 +353,12 @@ CIBFEMethod::interpolateVelocity(const int u_data_idx,
             X_vec->localize(*X_ghost_vec);
             if (d_compute_L2_projection)
             {
-                d_fe_data_managers[part]->interp(
+                d_active_fe_data_managers[part]->interp(
                     u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time);
             }
             else if (!d_compute_L2_projection)
             {
-                d_fe_data_managers[part]->interpWeighted(
+                d_active_fe_data_managers[part]->interpWeighted(
                     u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time);
             }
         }
@@ -523,8 +526,7 @@ void
 CIBFEMethod::trapezoidalStep(const double /*current_time*/, const double /*new_time*/)
 {
     TBOX_ERROR("CIBFEMethod does not support trapezoidal time-stepping rule for position update."
-               << " Only midpoint rule is supported for position update."
-               << std::endl);
+               << " Only midpoint rule is supported for position update." << std::endl);
 } // trapezoidalStep
 
 void
@@ -581,8 +583,7 @@ CIBFEMethod::getConstraintForce(Vec* L, const double data_time)
     else
     {
         TBOX_ERROR("Warning CIBFEMethod::getConstraintForce() : constraint force "
-                   << "enquired at some other time than current or new time."
-                   << std::endl);
+                   << "enquired at some other time than current or new time." << std::endl);
     }
 } // getConstraintForce
 
@@ -735,7 +736,7 @@ CIBFEMethod::computeMobilityRegularization(Vec D, Vec L, const double scale)
         for (unsigned part = 0; part < d_num_rigid_parts; ++part)
         {
             std::pair<LinearSolver<double>*, SparseMatrix<double>*> filter =
-                d_fe_data_managers[part]->buildL2ProjectionSolver(VELOCITY_SYSTEM_NAME);
+                d_active_fe_data_managers[part]->buildL2ProjectionSolver(VELOCITY_SYSTEM_NAME);
             Mat mat = static_cast<PetscMatrix<double>*>(filter.second)->mat();
             MatMult(mat, vL[part], vD[part]);
         }
@@ -839,7 +840,7 @@ CIBFEMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rig
             }
 #if (NDIM == 2)
             F[NDIM] += (L_qp[1] * (X_qp[0] - X_com[0]) - L_qp[0] * (X_qp[1] - X_com[1])) * JxW_L[qp];
-#elif(NDIM == 3)
+#elif (NDIM == 3)
             F[NDIM] += (L_qp[2] * (X_qp[1] - X_com[1]) - L_qp[1] * (X_qp[2] - X_com[2])) * JxW_L[qp];
             F[NDIM + 1] += (L_qp[0] * (X_qp[2] - X_com[2]) - L_qp[2] * (X_qp[0] - X_com[0])) * JxW_L[qp];
             F[NDIM + 2] += (L_qp[1] * (X_qp[0] - X_com[0]) - L_qp[0] * (X_qp[1] - X_com[1])) * JxW_L[qp];
@@ -1021,7 +1022,7 @@ CIBFEMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector&
 #if (NDIM == 2)
         W(0, 1) = -U[2];
         W(1, 0) = U[2];
-#elif(NDIM == 3)
+#elif (NDIM == 3)
         W(0, 1) = -U[5];
         W(1, 0) = U[5];
         W(0, 2) = U[4];
@@ -1054,7 +1055,7 @@ CIBFEMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector&
     if (!d_compute_L2_projection)
     {
         std::pair<LinearSolver<double>*, SparseMatrix<double>*> filter =
-            d_fe_data_managers[part]->buildL2ProjectionSolver(VELOCITY_SYSTEM_NAME);
+            d_active_fe_data_managers[part]->buildL2ProjectionSolver(VELOCITY_SYSTEM_NAME);
         Mat mat = static_cast<PetscMatrix<double>*>(filter.second)->mat();
         MatMult(mat, U_k.vec(), vV[part]);
     }
@@ -1087,7 +1088,7 @@ CIBFEMethod::initializeFEData()
 
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
-        EquationSystems& equation_systems = *d_fe_data_managers[part]->getEquationSystems();
+        EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
         computeCOMOfStructure(d_center_of_mass_initial[part], &equation_systems);
     }
 
@@ -1284,9 +1285,8 @@ CIBFEMethod::getFromRestart()
     }
     else
     {
-        TBOX_ERROR("CIBFEMethod::getFromRestart(): Restart database corresponding to " << d_object_name
-                                                                                       << " not found in restart file."
-                                                                                       << std::endl);
+        TBOX_ERROR("CIBFEMethod::getFromRestart(): Restart database corresponding to "
+                   << d_object_name << " not found in restart file." << std::endl);
     }
 
     int ver = db->getInteger("CIBFE_METHOD_VERSION");
@@ -1309,7 +1309,7 @@ CIBFEMethod::getFromRestart()
         d_quaternion_current[part].x() = Q_coeffs[1];
         d_quaternion_current[part].y() = Q_coeffs[2];
         d_quaternion_current[part].z() = Q_coeffs[3];
-        d_quaternion_current[part].normalized();
+        d_quaternion_current[part].normalize();
     }
 } // getFromRestart
 

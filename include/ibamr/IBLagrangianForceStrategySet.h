@@ -35,11 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
-
 #include "ibamr/IBLagrangianForceStrategy.h"
-#include "petscmat.h"
+
 #include "tbox/Pointer.h"
+
+#include "petscmat.h"
+
+#include <vector>
 
 namespace IBTK
 {
@@ -71,8 +73,7 @@ public:
      * \brief Constructor.
      */
     template <typename InputIterator>
-    IBLagrangianForceStrategySet(InputIterator first, InputIterator last)
-        : d_strategy_set(first, last)
+    IBLagrangianForceStrategySet(InputIterator first, InputIterator last) : d_strategy_set(first, last)
     {
         // intentionally blank
         return;

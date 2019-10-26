@@ -32,20 +32,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <memory>
-#include <ostream>
-#include <set>
-#include <string>
-#include <vector>
-
-#include "boost/multi_array.hpp"
 #include "ibamr/IBFECentroidPostProcessor.h"
 #include "ibamr/IBFEMethod.h"
 #include "ibamr/IBFEPostProcessor.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/libmesh_utilities.h"
+
+#include "tbox/Utilities.h"
+
 #include "libmesh/dof_map.h"
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
@@ -63,7 +61,16 @@
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
-#include "tbox/Utilities.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "boost/multi_array.hpp"
+IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <memory>
+#include <ostream>
+#include <set>
+#include <string>
+#include <vector>
 
 namespace libMesh
 {
@@ -103,7 +110,7 @@ get_x_and_FF(libMesh::VectorValue<double>& x,
     }
     return;
 }
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -226,9 +233,9 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
     const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
         fe.getGradVarInterpolation();
 
-    std::vector<std::vector<const std::vector<double> *> > scalar_var_data(num_scalar_vars),
+    std::vector<std::vector<const std::vector<double>*> > scalar_var_data(num_scalar_vars),
         vector_var_data(num_vector_vars), tensor_var_data(num_tensor_vars);
-    std::vector<std::vector<const std::vector<VectorValue<double> > *> > scalar_grad_var_data(num_scalar_vars),
+    std::vector<std::vector<const std::vector<VectorValue<double> >*> > scalar_grad_var_data(num_scalar_vars),
         vector_grad_var_data(num_vector_vars), tensor_grad_var_data(num_tensor_vars);
 
     // Reconstruct the variables via simple function evaluation.

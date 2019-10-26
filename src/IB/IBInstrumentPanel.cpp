@@ -32,15 +32,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <algorithm>
-#include <cmath>
-#include <fstream>
-#include <limits>
-#include <map>
-#include <string>
-#include <utility>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/IBInstrumentPanel.h"
+#include "ibamr/IBInstrumentationSpec.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/LData.h"
+#include "ibtk/LDataManager.h"
+#include "ibtk/LMesh.h"
+#include "ibtk/LNode.h"
+#include "ibtk/ibtk_macros.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchLevel.h"
 #include "Box.h"
@@ -49,8 +55,6 @@
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
-#include "Eigen/Geometry" // IWYU pragma: keep
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
@@ -58,19 +62,6 @@
 #include "PatchLevel.h"
 #include "SideData.h"
 #include "SideIndex.h"
-#include "boost/multi_array.hpp"
-#include "ibamr/IBInstrumentPanel.h"
-#include "ibamr/IBInstrumentationSpec.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/LData.h"
-#include "ibtk/LDataManager.h"
-#include "ibtk/LMesh.h"
-#include "ibtk/LNode.h"
-#include "ibtk/ibtk_utilities.h"
-#include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
@@ -80,6 +71,26 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include "petscvec.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "boost/multi_array.hpp"
+IBTK_ENABLE_EXTRA_WARNINGS
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "Eigen/Geometry" // IWYU pragma: keep
+IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <fstream>
+#include <limits>
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 #if defined(IBAMR_HAVE_SILO)
 #include <silo.h>
@@ -266,9 +277,7 @@ build_meter_web(DBfile* dbfile,
     if (DBSetDir(dbfile, dirname.c_str()) == -1)
     {
         TBOX_ERROR("IBInstrumentPanel::build_meter_web():\n"
-                   << "  Could not set directory "
-                   << dirname
-                   << std::endl);
+                   << "  Could not set directory " << dirname << std::endl);
     }
 
     // Write out the variables.
@@ -308,9 +317,7 @@ build_meter_web(DBfile* dbfile,
     if (DBSetDir(dbfile, "..") == -1)
     {
         TBOX_ERROR("IBInstrumentPanel::build_meter_web():\n"
-                   << "  Could not return to the base directory from subdirectory "
-                   << dirname
-                   << std::endl);
+                   << "  Could not return to the base directory from subdirectory " << dirname << std::endl);
     }
     return;
 } // build_meter_web
@@ -347,22 +354,21 @@ linear_interp(const Point& X,
                                      ,
                                      X_cell[2] + static_cast<double>(i_shift2) * dx[2]
 #endif
-                                     );
+                );
                 const double wgt =
                     (((X[0] < X_center[0] ? X[0] - (X_center[0] - dx[0]) : (X_center[0] + dx[0]) - X[0]) / dx[0]) *
                      ((X[1] < X_center[1] ? X[1] - (X_center[1] - dx[1]) : (X_center[1] + dx[1]) - X[1]) / dx[1])
 #if (NDIM == 3)
-                     *
-                     ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
+                     * ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
 #endif
-                         );
+                    );
                 const Index<NDIM> i(i_shift0 + i_cell(0),
                                     i_shift1 + i_cell(1)
 #if (NDIM == 3)
                                         ,
                                     i_shift2 + i_cell(2)
 #endif
-                                        );
+                );
                 const CellIndex<NDIM> i_c(i);
                 U += v(i_c) * wgt;
             }
@@ -408,22 +414,21 @@ linear_interp(const Point& X,
                                      ,
                                      X_cell[2] + static_cast<double>(i_shift2) * dx[2]
 #endif
-                                     );
+                );
                 const double wgt =
                     (((X[0] < X_center[0] ? X[0] - (X_center[0] - dx[0]) : (X_center[0] + dx[0]) - X[0]) / dx[0]) *
                      ((X[1] < X_center[1] ? X[1] - (X_center[1] - dx[1]) : (X_center[1] + dx[1]) - X[1]) / dx[1])
 #if (NDIM == 3)
-                     *
-                     ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
+                     * ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
 #endif
-                         );
+                    );
                 const Index<NDIM> i(i_shift0 + i_cell(0),
                                     i_shift1 + i_cell(1)
 #if (NDIM == 3)
                                         ,
                                     i_shift2 + i_cell(2)
 #endif
-                                        );
+                );
                 const CellIndex<NDIM> i_c(i);
                 for (int k = 0; k < N; ++k)
                 {
@@ -480,22 +485,21 @@ linear_interp(const Point& X,
                                        ,
                                        X_cell[2] + (static_cast<double>(i_shift2) + (axis == 2 ? -0.5 : 0.0)) * dx[2]
 #endif
-                                       );
+                    );
                     const double wgt =
                         (((X[0] < X_side[0] ? X[0] - (X_side[0] - dx[0]) : (X_side[0] + dx[0]) - X[0]) / dx[0]) *
                          ((X[1] < X_side[1] ? X[1] - (X_side[1] - dx[1]) : (X_side[1] + dx[1]) - X[1]) / dx[1])
 #if (NDIM == 3)
-                         *
-                         ((X[2] < X_side[2] ? X[2] - (X_side[2] - dx[2]) : (X_side[2] + dx[2]) - X[2]) / dx[2])
+                         * ((X[2] < X_side[2] ? X[2] - (X_side[2] - dx[2]) : (X_side[2] + dx[2]) - X[2]) / dx[2])
 #endif
-                             );
+                        );
                     const Index<NDIM> i(i_shift0 + i_cell(0),
                                         i_shift1 + i_cell(1)
 #if (NDIM == 3)
                                             ,
                                         i_shift2 + i_cell(2)
 #endif
-                                            );
+                    );
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                     U[axis] += v(i_s) * wgt;
                 }
@@ -506,7 +510,7 @@ linear_interp(const Point& X,
     }
     return U;
 } // linear_interp
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -581,8 +585,7 @@ IBInstrumentPanel::isInstrumented() const
     if (!d_initialized)
     {
         TBOX_WARNING(d_object_name << "::isInstrumented():\n"
-                                   << "  instrument data has not been initialized."
-                                   << std::endl);
+                                   << "  instrument data has not been initialized." << std::endl);
         return false;
     }
     return (d_num_meters > 0);
@@ -654,8 +657,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarc
     {
         TBOX_WARNING(d_object_name << "::initializeHierarchyIndependentData():\n"
                                    << "  instrument names are not initialized\n"
-                                   << "  using default names"
-                                   << std::endl);
+                                   << "  using default names" << std::endl);
         d_instrument_names.resize(d_num_meters);
         for (unsigned int m = 0; m < d_num_meters; ++m)
         {
@@ -950,21 +952,16 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     if (timestep_num != d_instrument_read_timestep_num)
     {
         TBOX_ERROR(d_object_name << "::readInstrumentData():\n"
-                                 << "  time step number: "
-                                 << timestep_num
-                                 << " is != instrumentation time step number: "
-                                 << d_instrument_read_timestep_num
+                                 << "  time step number: " << timestep_num
+                                 << " is != instrumentation time step number: " << d_instrument_read_timestep_num
                                  << std::endl);
     }
 
     if (!MathUtilities<double>::equalEps(data_time, d_instrument_read_time))
     {
         TBOX_ERROR(d_object_name << "::readInstrumentData():\n"
-                                 << "  data read time: "
-                                 << data_time
-                                 << " is != instrumentation data read time: "
-                                 << d_instrument_read_time
-                                 << std::endl);
+                                 << "  data read time: " << data_time
+                                 << " is != instrumentation data read time: " << d_instrument_read_time << std::endl);
     }
 
     // Reset the instrument values.
@@ -1008,7 +1005,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                                            ,
                                        x_lower[2] + dx[2] * (static_cast<double>(i(2) - patch_lower(2)) + 0.5)
 #endif
-                                           );
+                    );
                     if (U_cc_data)
                     {
                         for (auto it = patch_range.first; it != patch_range.second; ++it)
@@ -1058,7 +1055,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                                            ,
                                        x_lower[2] + dx[2] * (static_cast<double>(i(2) - patch_lower(2)) + 0.5)
 #endif
-                                           );
+                    );
                     if (P_cc_data)
                     {
                         for (auto it = centroid_range.first; it != centroid_range.second; ++it)
@@ -1216,18 +1213,14 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
     if (timestep_num != d_instrument_read_timestep_num)
     {
         TBOX_ERROR(d_object_name << "::writePlotData():\n"
-                                 << "  time step number: "
-                                 << timestep_num
-                                 << " is != last time step number: "
-                                 << d_instrument_read_timestep_num
-                                 << std::endl);
+                                 << "  time step number: " << timestep_num
+                                 << " is != last time step number: " << d_instrument_read_timestep_num << std::endl);
     }
 
     if (d_plot_directory_name.empty())
     {
         TBOX_ERROR(d_object_name << "::writePlotData():\n"
-                                 << "  dump directory name is empty"
-                                 << std::endl);
+                                 << "  dump directory name is empty" << std::endl);
     }
 
     char temp_buf[SILO_NAME_BUFSIZE];
@@ -1252,9 +1245,7 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
     if (!(dbfile = DBCreate(current_file_name.c_str(), DB_CLOBBER, DB_LOCAL, nullptr, DB_PDB)))
     {
         TBOX_ERROR(d_object_name + "::writePlotData():\n"
-                   << "  Could not create DBfile named "
-                   << current_file_name
-                   << std::endl);
+                   << "  Could not create DBfile named " << current_file_name << std::endl);
     }
 
     // Output the web data on the available MPI processes.
@@ -1266,9 +1257,7 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
             if (DBMkDir(dbfile, dirname.c_str()) == -1)
             {
                 TBOX_ERROR(d_object_name + "::writePlotData():\n"
-                           << "  Could not create directory named "
-                           << dirname
-                           << std::endl);
+                           << "  Could not create directory named " << dirname << std::endl);
             }
             build_meter_web(dbfile, dirname, d_X_web[meter], d_dA_web[meter], timestep_num, simulation_time);
         }
@@ -1286,9 +1275,7 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
         if (!(dbfile = DBCreate(summary_file_name.c_str(), DB_CLOBBER, DB_LOCAL, nullptr, DB_PDB)))
         {
             TBOX_ERROR(d_object_name + "::writePlotData():\n"
-                       << "  Could not create DBfile named "
-                       << summary_file_name
-                       << std::endl);
+                       << "  Could not create DBfile named " << summary_file_name << std::endl);
         }
 
         int cycle = timestep_num;
@@ -1320,9 +1307,7 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
             if (DBMkDir(dbfile, meter_name.c_str()) == -1)
             {
                 TBOX_ERROR(d_object_name + "::writePlotData():\n"
-                           << "  Could not create directory named "
-                           << meter_name
-                           << std::endl);
+                           << "  Could not create directory named " << meter_name << std::endl);
             }
 
             std::string varname = current_file_name + ":" + d_instrument_names[meter] + "/scaled_normal";

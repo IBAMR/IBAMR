@@ -35,13 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <vector>
-
 #include "BasePatchLevel.h"
 #include "IntVector.h"
 #include "StandardTagAndInitStrategy.h"
 #include "tbox/Pointer.h"
+
+#include <ostream>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -101,8 +101,9 @@ public:
     /*!
      * Determine time increment to advance data on level.
      */
-    double
-    getLevelDt(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > level, double dt_time, bool initial_time) override;
+    double getLevelDt(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > level,
+                      double dt_time,
+                      bool initial_time) override;
 
     /*!
      * Advance data on all patches on specified patch level from current time

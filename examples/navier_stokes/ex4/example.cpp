@@ -30,6 +30,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -46,6 +47,7 @@
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -72,7 +74,7 @@ run_example(int argc, char* argv[])
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
-    // Initialize variable to store error in u to aid in testing 
+    // Initialize variable to store error in u to aid in testing
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -180,12 +182,8 @@ run_example(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                ostringstream bc_coefs_name_stream;
-                bc_coefs_name_stream << "u_bc_coefs_" << d;
-                const string bc_coefs_name = bc_coefs_name_stream.str();
-                ostringstream bc_coefs_db_name_stream;
-                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
-                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+                const std::string bc_coefs_name = "u_bc_coefs_" + std::to_string(d);
+                const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
                 u_bc_coefs[d] = new muParserRobinBcCoefs(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
             }
@@ -221,12 +219,8 @@ run_example(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                ostringstream bc_coefs_name_stream;
-                bc_coefs_name_stream << "U_adv_diff_bc_coefs_" << d;
-                const string bc_coefs_name = bc_coefs_name_stream.str();
-                ostringstream bc_coefs_db_name_stream;
-                bc_coefs_db_name_stream << "AdvDiffBcCoefs_" << d;
-                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+                const std::string bc_coefs_name = "U_adv_diff_bc_coefs_" + std::to_string(d);
+                const std::string bc_coefs_db_name = "AdvDiffBcCoefs_" + std::to_string(d);
                 U_adv_diff_bc_coefs[d] = new muParserRobinBcCoefs(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
             }
@@ -360,7 +354,6 @@ run_example(int argc, char* argv[])
                  << "  L1-norm:  " << hier_cc_data_ops.L1Norm(u_idx, wgt_cc_idx) << "\n"
                  << "  L2-norm:  " << hier_cc_data_ops.L2Norm(u_idx, wgt_cc_idx) << "\n"
                  << "  max-norm: " << hier_cc_data_ops.maxNorm(u_idx, wgt_cc_idx) << "\n";
-                
         }
 
         Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
@@ -371,7 +364,6 @@ run_example(int argc, char* argv[])
                  << "  L1-norm:  " << hier_sc_data_ops.L1Norm(u_idx, wgt_sc_idx) << "\n"
                  << "  L2-norm:  " << hier_sc_data_ops.L2Norm(u_idx, wgt_sc_idx) << "\n"
                  << "  max-norm: " << hier_sc_data_ops.maxNorm(u_idx, wgt_sc_idx) << "\n";
-                
         }
 
         hier_cc_data_ops.subtract(p_idx, p_idx, p_cloned_idx);

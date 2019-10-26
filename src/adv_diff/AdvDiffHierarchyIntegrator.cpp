@@ -32,15 +32,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <deque>
-#include <iterator>
-#include <limits>
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CCLaplaceOperator.h"
+#include "ibtk/CCPoissonSolverManager.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/CartGridFunctionSet.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/LaplaceOperator.h"
+#include "ibtk/PoissonSolver.h"
 
 #include "BasePatchHierarchy.h"
 #include "Box.h"
@@ -57,7 +64,6 @@
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -71,19 +77,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CCLaplaceOperator.h"
-#include "ibtk/CCPoissonSolverManager.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/CartGridFunctionSet.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/LaplaceOperator.h"
-#include "ibtk/PoissonSolver.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/MemoryDatabase.h"
@@ -91,6 +84,16 @@
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <deque>
+#include <iterator>
+#include <limits>
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace SAMRAI
 {

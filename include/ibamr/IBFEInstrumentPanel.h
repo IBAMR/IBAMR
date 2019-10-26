@@ -35,21 +35,28 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <fstream>
-#include <memory>
-
-#include "boost/multi_array.hpp"
 #include "ibamr/IBFEMethod.h"
+
 #include "ibtk/FEDataManager.h"
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/mesh.h"
 #include "libmesh/point.h"
 #include "libmesh/serial_mesh.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "boost/multi_array.hpp"
+IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <fstream>
+#include <memory>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -227,14 +234,14 @@ private:
     std::vector<std::vector<libMesh::dof_id_type> > d_node_dof_IDs;
 
     /*!
-     * \brief Equation systems for the meter meshes.
-     */
-    std::vector<std::unique_ptr<libMesh::EquationSystems> > d_meter_systems;
-
-    /*!
      * \brief vector of meter meshes.
      */
     std::vector<std::unique_ptr<libMesh::SerialMesh> > d_meter_meshes;
+
+    /*!
+     * \brief Equation systems for the meter meshes.
+     */
+    std::vector<std::unique_ptr<libMesh::EquationSystems> > d_meter_systems;
 
     /*!
      * \brief names for each meter mesh.

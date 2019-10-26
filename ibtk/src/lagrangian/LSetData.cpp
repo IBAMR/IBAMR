@@ -32,13 +32,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/LSetData.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
+
 #include "Box.h"
 #include "IndexData.h"
 #include "IndexDataFactory.h"
 #include "IndexVariable.h"
 #include "IntVector.h"
-#include "ibtk/LSetData.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

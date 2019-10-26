@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
+#include "ibamr/StaggeredStokesSolver.h"
 
 #include "PoissonSpecifications.h"
-#include "ibamr/StaggeredStokesSolver.h"
 #include "tbox/Pointer.h"
+
+#include <vector>
 
 namespace IBAMR
 {
@@ -126,7 +127,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    KrylovLinearSolverStaggeredStokesSolverInterface(const KrylovLinearSolverStaggeredStokesSolverInterface& from) = delete;
+    KrylovLinearSolverStaggeredStokesSolverInterface(const KrylovLinearSolverStaggeredStokesSolverInterface& from) =
+        delete;
 
     /*!
      * \brief Assignment operator.

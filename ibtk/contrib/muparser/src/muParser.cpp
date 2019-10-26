@@ -34,7 +34,7 @@
 /** \brief Pi (what else?). */
 #define PARSER_CONST_PI  3.141592653589793238462643
 
-/** \brief The eulerian number. */
+/** \brief The Eulerian number. */
 #define PARSER_CONST_E   2.718281828459045235360287
 
 using namespace std;
@@ -129,15 +129,13 @@ namespace mu
   }
 
   //---------------------------------------------------------------------------
-  /** \brief Callback for old-style if-then-else expressions.
-      \param [in] a_afArg Vector with the function arguments
-      \param [in] a_iArgc The size of a_afArg
+  /** \brief Callback for the unary minus operator.
+      \param v The value to negate
+      \return -v
   */
-  value_type Parser::IfThenElse(const mu::value_type *a_afArg, int a_iArgc)
-  {
-    if (a_iArgc != 3)
-      throw mu::ParserBase::exception_type(_T("incorrect number of arguments for function if."));
-    return a_afArg[0] ? a_afArg[1] : a_afArg[2];
+  value_type Parser::UnaryPlus(value_type v) 
+  { 
+    return v; 
   }
 
   //---------------------------------------------------------------------------
@@ -296,7 +294,7 @@ namespace mu
       // Logarithm functions
       DefineFun(_T("log2"), Log2);
       DefineFun(_T("log10"), Log10);
-      DefineFun(_T("log"), Log10);
+      DefineFun(_T("log"), Ln);
       DefineFun(_T("ln"), Ln);
       // misc
       DefineFun(_T("exp"), Exp);
@@ -305,7 +303,6 @@ namespace mu
       DefineFun(_T("rint"), Rint);
       DefineFun(_T("abs"), Abs);
       // Functions with variable number of arguments
-      DefineFun(_T("if"), IfThenElse);
       DefineFun(_T("sum"), Sum);
       DefineFun(_T("avg"), Avg);
       DefineFun(_T("min"), Min);
@@ -316,7 +313,7 @@ namespace mu
   //---------------------------------------------------------------------------
   /** \brief Initialize constants.
   
-    By default the parser recognizes two constants. Pi ("pi") and the eulerian
+    By default the parser recognizes two constants. Pi ("pi") and the Eulerian
     number ("_e").
   */
   void Parser::InitConst()
@@ -333,6 +330,7 @@ namespace mu
   void Parser::InitOprt()
   {
     DefineInfixOprt(_T("-"), UnaryMinus);
+    DefineInfixOprt(_T("+"), UnaryPlus);
   }
 
   //---------------------------------------------------------------------------
@@ -382,7 +380,7 @@ namespace mu
                f[4] = {0,0,0,0},
                fEpsilon(a_fEpsilon);
 
-    // Backwards compatible calculation of epsilon inc case the user doesnt provide
+    // Backwards compatible calculation of epsilon inc case the user doesn't provide
     // his own epsilon
     if (fEpsilon==0)
       fEpsilon = (a_fPos==0) ? (value_type)1e-10 : (value_type)1e-7 * a_fPos;

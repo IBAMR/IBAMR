@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
 #include "ibamr/ibamr_enums.h"
+
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include <string>
 
 namespace SAMRAI
 {
@@ -124,7 +125,8 @@ public:
      *
      * \see initializeOperatorState
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
 
     //\}
 

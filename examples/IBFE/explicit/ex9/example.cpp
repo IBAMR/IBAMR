@@ -30,6 +30,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -45,23 +46,25 @@
 #include <libmesh/boundary_info.h>
 #include <libmesh/boundary_mesh.h>
 #include <libmesh/equation_systems.h>
-#include <libmesh/explicit_system.h>
 #include <libmesh/exodusII_io.h>
+#include <libmesh/explicit_system.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
 #include <libmesh/mesh_triangle_interface.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+#include <boost/multi_array.hpp>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -72,12 +75,12 @@ namespace ModelData
 // Tether (penalty) force functions.
 static double kappa_s = 1.0e6;
 static double eta_s = 0.0;
-System* x_solid_system, * u_solid_system;
+System *x_solid_system, *u_solid_system;
 void
 tether_force_function(VectorValue<double>& F,
                       const TensorValue<double>& /*FF*/,
-                      const libMesh::Point& x_bndry,  // x_bndry gives current   coordinates on the boundary mesh
-                      const libMesh::Point& X_bndry,  // X_bndry gives reference coordinates on the boundary mesh
+                      const libMesh::Point& x_bndry, // x_bndry gives current   coordinates on the boundary mesh
+                      const libMesh::Point& X_bndry, // X_bndry gives reference coordinates on the boundary mesh
                       Elem* const elem,
                       const vector<const vector<double>*>& var_data,
                       const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
@@ -109,7 +112,7 @@ tether_force_function(VectorValue<double>& F,
     }
     return;
 } // tether_force_function
-}
+} // namespace ModelData
 using namespace ModelData;
 
 /*******************************************************************************
@@ -124,7 +127,8 @@ using namespace ModelData;
  *                                                                             *
  *******************************************************************************/
 
-bool run_example(int argc, char** argv)
+bool
+run_example(int argc, char** argv)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -214,12 +218,12 @@ bool run_example(int argc, char** argv)
             Elem* const elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                const bool at_mesh_bdry = !elem->neighbor(side);
+                const bool at_mesh_bdry = !elem->neighbor_ptr(side);
                 if (!at_mesh_bdry) continue;
                 for (unsigned int k = 0; k < elem->n_nodes(); ++k)
                 {
                     if (!elem->is_node_on_side(k, side)) continue;
-                    Node& n = *elem->get_node(k);
+                    Node& n = elem->node_ref(k);
                     n = R * n.unit();
                 }
             }
@@ -299,15 +303,11 @@ bool run_example(int argc, char** argv)
         FEFamily family = LAGRANGE;
         for (int d = 0; d < NDIM; ++d)
         {
-            std::ostringstream os;
-            os << "X_" << d;
-            x_solid_system->add_variable(os.str(), order, family);
+            x_solid_system->add_variable("X_" + std::to_string(d), order, family);
         }
         for (int d = 0; d < NDIM; ++d)
         {
-            std::ostringstream os;
-            os << "U_" << d;
-            u_solid_system->add_variable(os.str(), order, family);
+            u_solid_system->add_variable("U_" + std::to_string(d), order, family);
         }
         solid_equation_systems->init();
 
@@ -374,13 +374,9 @@ bool run_example(int argc, char** argv)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                ostringstream bc_coefs_name_stream;
-                bc_coefs_name_stream << "u_bc_coefs_" << d;
-                const string bc_coefs_name = bc_coefs_name_stream.str();
+                const std::string bc_coefs_name = "u_bc_coefs_" + std::to_string(d);
 
-                ostringstream bc_coefs_db_name_stream;
-                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
-                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+                const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
 
                 u_bc_coefs[d] = new muParserRobinBcCoefs(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
@@ -510,10 +506,14 @@ bool run_example(int argc, char** argv)
                 }
                 if (uses_exodus)
                 {
-                    exodus_solid_io->write_timestep(
-                        exodus_solid_filename, *solid_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
-                    exodus_bndry_io->write_timestep(
-                        exodus_bndry_filename, *bndry_equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                    exodus_solid_io->write_timestep(exodus_solid_filename,
+                                                    *solid_equation_systems,
+                                                    iteration_num / viz_dump_interval + 1,
+                                                    loop_time);
+                    exodus_bndry_io->write_timestep(exodus_bndry_filename,
+                                                    *bndry_equation_systems,
+                                                    iteration_num / viz_dump_interval + 1,
+                                                    loop_time);
                 }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))

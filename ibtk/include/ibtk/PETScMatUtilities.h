@@ -35,15 +35,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
-#include <vector>
+#include "ibtk/ibtk_enums.h"
 
 #include "PoissonSpecifications.h"
-#include "ibtk/ibtk_enums.h"
+#include "tbox/Pointer.h"
+
 #include "petscao.h"
 #include "petscmat.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+
+#include <cmath>
+#include <vector>
 
 namespace SAMRAI
 {

@@ -35,20 +35,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <string>
-#include <vector>
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SideVariable.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <array>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -189,7 +191,8 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredStabilizedPPMConvectiveOperator& operator=(const INSStaggeredStabilizedPPMConvectiveOperator& that) = delete;
+    INSStaggeredStabilizedPPMConvectiveOperator&
+    operator=(const INSStaggeredStabilizedPPMConvectiveOperator& that) = delete;
 
     // Operator configuration.
     std::string d_stabilization_type = "UPWIND";

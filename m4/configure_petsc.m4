@@ -6,8 +6,6 @@ echo "=================================="
 echo "Configuring required package PETSc"
 echo "=================================="
 
-PACKAGE_SETUP_ENVIRONMENT
-
 AC_ARG_VAR(PETSC_DIR,[the location of the PETSc installation that is to be used.  Note that multiple versions of PETSc may be installed within the same filesystem, with each version corresponding to a different value of PETSC_DIR.])
 AC_ARG_VAR(PETSC_ARCH,[the PETSc configuration that is to be used, corresponding to the configuration located in ${PETSC_DIR}/${PETSC_ARCH}.  Note that multiple configurations of PETSc can be installed for a particular version of the PETSc library.  Each configuration will correspond to a different value of PETSC_ARCH.])
 AC_SUBST(PETSC_DIR,$PETSC_DIR)
@@ -42,15 +40,16 @@ if test "$PETSC_VERSION_VALID" = no; then
   AC_MSG_ERROR([invalid PETSc version detected: please use PETSc 3.7 or newer])
 fi
 
-LIBS_PREPEND($PETSC_EXTERNAL_LIB_BASIC)
-AC_LIB_HAVE_LINKFLAGS([petsc])
-if test "$HAVE_LIBPETSC" = no ; then
-  AC_MSG_ERROR([could not find working libpetsc])
+PETSC_LDFLAGS=""
+if test -d "${PETSC_DIR}/${PETSC_ARCH}/lib" ; then
+  PETSC_LDFLAGS="-L${PETSC_DIR}/${PETSC_ARCH}/lib"
+else
+  AC_MSG_ERROR([Unable to find lib directory for PETSc: ${PETSC_DIR}/${PETSC_ARCH}/lib does not exist.])
 fi
 
-PACKAGE_CPPFLAGS_PREPEND($PETSC_CC_INCLUDES)
-PACKAGE_LIBS_PREPEND($PETSC_WITH_EXTERNAL_LIB)
-
-PACKAGE_RESTORE_ENVIRONMENT
-
+LDFLAGS_PREPEND($PETSC_LDFLAGS)
+LIBS_PREPEND($PETSC_EXTERNAL_LIB_BASIC)
+AC_CHECK_LIB([petsc], VecAssemblyBegin, [],
+             [AC_MSG_ERROR([could not find working libpetsc])])
+ADD_RPATH_LDFLAG(${PETSC_DIR}/${PETSC_ARCH}/lib)
 ])

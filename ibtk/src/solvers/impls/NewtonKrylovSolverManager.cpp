@@ -32,20 +32,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-
 #include "ibtk/NewtonKrylovSolver.h"
 #include "ibtk/NewtonKrylovSolverManager.h"
 #include "ibtk/PETScNewtonKrylovSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/Utilities.h"
+
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -96,9 +97,7 @@ NewtonKrylovSolverManager::allocateSolver(const std::string& solver_type,
     if (it == d_solver_maker_map.end())
     {
         TBOX_ERROR("NewtonKrylovSolverManager::allocateSolver():\n"
-                   << "  unrecognized solver type: "
-                   << solver_type
-                   << "\n");
+                   << "  unrecognized solver type: " << solver_type << "\n");
     }
     return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
 } // allocateSolver

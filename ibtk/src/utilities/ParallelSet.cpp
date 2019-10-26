@@ -32,14 +32,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/ParallelSet.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
+
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
+
 #include <ostream>
 #include <set>
 #include <vector>
-
-#include "ibtk/ParallelSet.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -49,7 +50,8 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-ParallelSet& ParallelSet::operator=(const ParallelSet& that)
+ParallelSet&
+ParallelSet::operator=(const ParallelSet& that)
 {
     if (this != &that)
     {

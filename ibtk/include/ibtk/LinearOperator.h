@@ -35,9 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
 #include "ibtk/GeneralOperator.h"
+
+#include <string>
 
 namespace SAMRAI
 {

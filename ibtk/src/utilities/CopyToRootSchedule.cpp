@@ -32,9 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <utility>
-#include <vector>
+#include "ibtk/CopyToRootSchedule.h"
+#include "ibtk/CopyToRootTransaction.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BoxArray.h"
 #include "GridGeometry.h"
@@ -43,14 +43,15 @@
 #include "PatchDataFactory.h"
 #include "PatchDescriptor.h"
 #include "PatchLevel.h"
-#include "ibtk/CopyToRootSchedule.h"
-#include "ibtk/CopyToRootTransaction.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Schedule.h"
 #include "tbox/Transaction.h"
 #include "tbox/Utilities.h"
+
+#include <ostream>
+#include <utility>
+#include <vector>
 
 namespace SAMRAI
 {

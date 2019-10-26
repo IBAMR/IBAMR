@@ -35,12 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
-
-#include "PoissonSpecifications.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+
 #include "ibtk/GeneralSolver.h"
+
+#include "LocationIndexRobinBcCoefs.h"
+#include "PoissonSpecifications.h"
 #include "tbox/Pointer.h"
+
+#include <vector>
 
 namespace SAMRAI
 {
@@ -70,7 +73,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~StaggeredStokesSolver();
+    ~StaggeredStokesSolver() = default;
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
@@ -111,9 +114,9 @@ public:
 protected:
     // Problem specification.
     SAMRAI::solv::PoissonSpecifications d_U_problem_coefs;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_U_bc_coef;
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_U_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_P_bc_coef;
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_P_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
 
     // Boundary condition helper object.

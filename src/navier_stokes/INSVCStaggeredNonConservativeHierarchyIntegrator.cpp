@@ -32,13 +32,52 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <cmath>
-#include <deque>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/INSIntermediateVelocityBcCoef.h"
+#include "ibamr/INSProjectionBcCoef.h"
+#include "ibamr/INSStaggeredConvectiveOperatorManager.h"
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredPressureBcCoef.h"
+#include "ibamr/INSVCStaggeredVelocityBcCoef.h"
+#include "ibamr/PETScKrylovStaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesBlockPreconditioner.h"
+#include "ibamr/StaggeredStokesFACPreconditioner.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/VCStaggeredStokesOperator.h"
+#include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CCPoissonSolverManager.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/CartSideDoubleDivPreservingRefine.h"
+#include "ibtk/CartSideDoubleRT0Refine.h"
+#include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/CellNoCornersFillPattern.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/KrylovLinearSolver.h"
+#include "ibtk/LinearSolver.h"
+#include "ibtk/NewtonKrylovSolver.h"
+#include "ibtk/PETScKrylovPoissonSolver.h"
+#include "ibtk/PoissonSolver.h"
+#include "ibtk/SCPoissonSolverManager.h"
+#include "ibtk/SideDataSynchronization.h"
+#include "ibtk/VCSCViscousOpPointRelaxationFACOperator.h"
+#include "ibtk/VCSCViscousOperator.h"
+#include "ibtk/ibtk_enums.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "ArrayData.h"
 #include "BasePatchHierarchy.h"
@@ -66,7 +105,6 @@
 #include "HierarchyFaceDataOpsReal.h"
 #include "HierarchyNodeDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
@@ -90,49 +128,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/INSIntermediateVelocityBcCoef.h"
-#include "ibamr/INSProjectionBcCoef.h"
-#include "ibamr/INSStaggeredConvectiveOperatorManager.h"
-#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredPressureBcCoef.h"
-#include "ibamr/INSVCStaggeredVelocityBcCoef.h"
-#include "ibamr/PETScKrylovStaggeredStokesSolver.h"
-#include "ibamr/StaggeredStokesBlockPreconditioner.h"
-#include "ibamr/StaggeredStokesFACPreconditioner.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/StaggeredStokesSolverManager.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/VCStaggeredStokesOperator.h"
-#include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CCPoissonSolverManager.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/CartSideDoubleDivPreservingRefine.h"
-#include "ibtk/CartSideDoubleSpecializedConstantRefine.h"
-#include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/CellNoCornersFillPattern.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/KrylovLinearSolver.h"
-#include "ibtk/LinearSolver.h"
-#include "ibtk/NewtonKrylovSolver.h"
-#include "ibtk/PETScKrylovPoissonSolver.h"
-#include "ibtk/PoissonSolver.h"
-#include "ibtk/SCPoissonSolverManager.h"
-#include "ibtk/SideDataSynchronization.h"
-#include "ibtk/VCSCViscousOpPointRelaxationFACOperator.h"
-#include "ibtk/VCSCViscousOperator.h"
-#include "ibtk/ibtk_enums.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -141,6 +136,14 @@
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <cmath>
+#include <deque>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -274,8 +277,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
                          d_rho_scratch_idx,
                          d_rho_var,
                          cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
+                         d_rho_coarsen_type,
+                         d_rho_refine_type,
                          d_rho_init_fcn);
     }
     else
@@ -555,8 +558,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
         {
             Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
             Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-            Pointer<CoarsenOperator<NDIM> > coarsen_op =
-                grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
+            Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
             coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
             coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
             getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]->coarsenData();
@@ -781,7 +783,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
         d_hier_sc_data_ops->resetLevels(coarsest_ln, finest_ln);
     }
 
-    if (d_enable_logging)
+    if (d_enable_logging && d_enable_logging_solver_iterations)
         plog << d_object_name
              << "::integrateHierarchy(): stokes solve number of iterations = " << d_stokes_solver->getNumIterations()
              << "\n";
@@ -894,13 +896,6 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::postprocessIntegrateHierarchy(
 } // postprocessIntegrateHierarchy
 
 void
-INSVCStaggeredNonConservativeHierarchyIntegrator::regridHierarchy()
-{
-    INSVCStaggeredHierarchyIntegrator::regridHierarchy();
-    return;
-} // regridHierarchy
-
-void
 INSVCStaggeredNonConservativeHierarchyIntegrator::removeNullSpace(
     const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec)
 {
@@ -961,10 +956,10 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::resetHierarchyConfigurationSpe
     {
         // These options are chosen to ensure that information is propagated conservatively from the coarse cells only
         InterpolationTransactionComponent rho_bc_component(d_rho_scratch_idx,
-                                                           "CONSERVATIVE_LINEAR_REFINE",
+                                                           d_rho_refine_type,
                                                            false,
-                                                           "CONSERVATIVE_COARSEN",
-                                                           "CONSTANT",
+                                                           d_rho_refine_type,
+                                                           d_rho_bdry_extrap_type,
                                                            false,
                                                            d_rho_bc_coef);
         d_rho_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
@@ -1059,8 +1054,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
         int rho_current_idx;
         if (d_adv_diff_hier_integrator && d_rho_adv_diff_var)
         {
-            rho_current_idx =
-                var_db->mapVariableAndContextToIndex(d_rho_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
+            rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_adv_diff_var,
+                                                                   d_adv_diff_hier_integrator->getCurrentContext());
         }
         else
         {
@@ -1103,13 +1098,13 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
         d_side_synch_op->resetTransactionComponent(p_coef_synch_transaction);
         d_side_synch_op->synchronizeData(d_integrator_time);
         SynchronizationTransactionComponent default_synch_transaction =
-            SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+            SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
         d_side_synch_op->resetTransactionComponent(default_synch_transaction);
         regrid_projection_spec.setDPatchDataId(d_pressure_D_idx);
     }
     else
     {
-        regrid_projection_spec.setDConstant(-1.0/d_problem_coefs.getRho());
+        regrid_projection_spec.setDConstant(-1.0 / d_problem_coefs.getRho());
     }
 
     LocationIndexRobinBcCoefs<NDIM> Phi_bc_coef;
@@ -1147,7 +1142,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
 
     // Solve the projection pressure-Poisson problem.
     regrid_projection_solver->solveSystem(sol_vec, rhs_vec);
-    if (d_enable_logging)
+    if (d_enable_logging && d_enable_logging_solver_iterations)
         plog << d_object_name << "::regridProjection(): regrid projection solve number of iterations = "
              << regrid_projection_solver->getNumIterations() << "\n";
     if (d_enable_logging)
@@ -1160,7 +1155,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
                                                        DATA_REFINE_TYPE,
                                                        USE_CF_INTERPOLATION,
                                                        DATA_COARSEN_TYPE,
-                                                       d_bdry_extrap_type,
+                                                       d_bdry_extrap_type, // TODO: update variable name
                                                        CONSISTENT_TYPE_2_BDRY,
                                                        &Phi_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
@@ -1185,16 +1180,16 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
     else
     {
         d_hier_math_ops->grad(d_U_current_idx,
-                          d_U_var,
-                          /*synch_cf_bdry*/ true,
-                          -1.0/d_problem_coefs.getRho(),
-                          d_P_scratch_idx,
-                          d_P_var,
-                          d_no_fill_op,
-                          d_integrator_time,
-                          +1.0,
-                          d_U_current_idx,
-                          d_U_var);
+                              d_U_var,
+                              /*synch_cf_bdry*/ true,
+                              -1.0 / d_problem_coefs.getRho(),
+                              d_P_scratch_idx,
+                              d_P_var,
+                              d_no_fill_op,
+                              d_integrator_time,
+                              +1.0,
+                              d_U_current_idx,
+                              d_U_var);
     }
 
     // Deallocate scratch data.
@@ -1348,7 +1343,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
         d_side_synch_op->resetTransactionComponent(p_coef_synch_transaction);
         d_side_synch_op->synchronizeData(d_integrator_time);
         SynchronizationTransactionComponent default_synch_transaction =
-            SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+            SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
         d_side_synch_op->resetTransactionComponent(default_synch_transaction);
         P_problem_coefs.setDPatchDataId(d_pressure_D_idx);
     }
@@ -1551,7 +1546,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
                 Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
                 Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
                 Pointer<CoarsenOperator<NDIM> > coarsen_op =
-                    grid_geom->lookupCoarsenOperator(d_U_var, "CONSERVATIVE_COARSEN");
+                    grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
                 coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
                 coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
                 getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]->coarsenData();
@@ -1666,15 +1661,15 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
     // Synchronize solution and right-hand-side data before solve.
     using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
     SynchronizationTransactionComponent sol_synch_transaction =
-        SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), d_U_coarsen_type);
     d_side_synch_op->resetTransactionComponent(sol_synch_transaction);
     d_side_synch_op->synchronizeData(current_time);
     SynchronizationTransactionComponent rhs_synch_transaction =
-        SynchronizationTransactionComponent(rhs_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(rhs_vec->getComponentDescriptorIndex(0), d_F_coarsen_type);
     d_side_synch_op->resetTransactionComponent(rhs_synch_transaction);
     d_side_synch_op->synchronizeData(current_time);
     SynchronizationTransactionComponent default_synch_transaction =
-        SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
     d_side_synch_op->resetTransactionComponent(default_synch_transaction);
     return;
 } // setupSolverVectors
@@ -1695,10 +1690,10 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::resetSolverVectors(
     // Synchronize solution data after solve.
     using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
     SynchronizationTransactionComponent sol_synch_transaction =
-        SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), d_U_coarsen_type);
     d_side_synch_op->synchronizeData(current_time);
     SynchronizationTransactionComponent default_synch_transaction =
-        SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
     d_side_synch_op->resetTransactionComponent(default_synch_transaction);
 
     // Pull out solution components.

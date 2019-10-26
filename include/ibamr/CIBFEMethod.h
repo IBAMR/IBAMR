@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of The University of North Carolina nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -35,21 +35,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <set>
-#include <string>
-#include <vector>
+#include "ibamr/CIBStrategy.h"
+#include "ibamr/IBFEMethod.h"
+
+#include "ibtk/FEDataManager.h"
+#include "ibtk/libmesh_utilities.h"
 
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
-#include "ibamr/CIBStrategy.h"
-#include "ibamr/IBFEMethod.h"
-#include "ibtk/FEDataManager.h"
-#include "ibtk/libmesh_utilities.h"
+#include "tbox/Pointer.h"
+
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
-#include "tbox/Pointer.h"
+
+#include <set>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {
@@ -460,8 +463,8 @@ private:
      * FE data vectors.
      */
     std::vector<libMesh::System*> d_U_constrained_systems;
-    std::vector<libMesh::PetscVector<double> *> d_U_constrained_current_vecs, d_U_constrained_half_vecs;
-    std::vector<libMesh::PetscVector<double> *> d_F_current_vecs, d_F_new_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_U_constrained_current_vecs, d_U_constrained_half_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_F_current_vecs, d_F_new_vecs;
 
     /*!
      * Booleans to control spreading constraint force and interpolating

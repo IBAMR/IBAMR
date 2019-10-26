@@ -35,10 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibamr/StaggeredStokesFACPreconditioner.h"
+#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/CartCellRobinPhysBdryOp.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/FACPreconditionerStrategy.h"
 
 #include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
@@ -51,18 +56,16 @@
 #include "SAMRAIVectorReal.h"
 #include "VariableContext.h"
 #include "VariableFillPattern.h"
-#include "ibamr/StaggeredStokesFACPreconditioner.h"
-#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/CartCellRobinPhysBdryOp.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "ibtk/FACPreconditionerStrategy.h"
-#include "petscao.h"
-#include "petscmat.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include "petscao.h"
+#include "petscmat.h"
+
+#include <array>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace IBAMR
 {
@@ -284,7 +287,8 @@ private:
      *
      * \return A reference to this object.
      */
-    StaggeredStokesIBLevelRelaxationFACOperator& operator=(const StaggeredStokesIBLevelRelaxationFACOperator& that) = delete;
+    StaggeredStokesIBLevelRelaxationFACOperator&
+    operator=(const StaggeredStokesIBLevelRelaxationFACOperator& that) = delete;
 
     /*
      * Whether we re-discretize the Stokes operator on coarser level or are
@@ -349,7 +353,7 @@ private:
     std::vector<std::vector<std::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_side_bc_box_overlap;
     std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
 };
-} // namespace IBTK
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

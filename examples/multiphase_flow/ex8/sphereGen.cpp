@@ -1,8 +1,9 @@
+#include <math.h>
+
 #include <cassert>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <math.h>
 #include <vector>
 
 // Set sphere related parameters.

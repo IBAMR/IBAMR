@@ -35,11 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <vector>
-
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include <map>
+#include <vector>
 
 namespace IBTK
 {

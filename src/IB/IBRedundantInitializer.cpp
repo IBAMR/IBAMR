@@ -32,6 +32,50 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/IBAnchorPointSpec.h"
+#include "ibamr/IBBeamForceSpec.h"
+#include "ibamr/IBInstrumentationSpec.h"
+#include "ibamr/IBRedundantInitializer.h"
+#include "ibamr/IBRodForceSpec.h"
+#include "ibamr/IBSourceSpec.h"
+#include "ibamr/IBSpringForceSpec.h"
+#include "ibamr/IBStandardSourceGen.h"
+#include "ibamr/IBTargetPointForceSpec.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/LData.h"
+#include "ibtk/LIndexSetData.h"
+#include "ibtk/LNode.h"
+#include "ibtk/LNodeSet.h"
+#include "ibtk/LNodeSetData.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "ibtk/Streamable.h"
+#include "ibtk/ibtk_macros.h"
+#include "ibtk/ibtk_utilities.h"
+
+#include "Box.h"
+#include "CartesianGridGeometry.h"
+#include "CartesianPatchGeometry.h"
+#include "CellData.h"
+#include "CellIndex.h"
+#include "IntVector.h"
+#include "Patch.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "tbox/Database.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+#include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "boost/math/special_functions/round.hpp"
+#include "boost/multi_array.hpp"
+IBTK_ENABLE_EXTRA_WARNINGS
+
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -46,44 +90,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "Box.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIndex.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "boost/math/special_functions/round.hpp"
-#include "boost/multi_array.hpp"
-#include "ibamr/IBAnchorPointSpec.h"
-#include "ibamr/IBBeamForceSpec.h"
-#include "ibamr/IBInstrumentationSpec.h"
-#include "ibamr/IBRedundantInitializer.h"
-#include "ibamr/IBRodForceSpec.h"
-#include "ibamr/IBSourceSpec.h"
-#include "ibamr/IBSpringForceSpec.h"
-#include "ibamr/IBStandardSourceGen.h"
-#include "ibamr/IBTargetPointForceSpec.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/LData.h"
-#include "ibtk/LIndexSetData.h"
-#include "ibtk/LNode.h"
-#include "ibtk/LNodeSet.h"
-#include "ibtk/LNodeSetData.h"
-#include "ibtk/LSiloDataWriter.h"
-#include "ibtk/Streamable.h"
-#include "ibtk/ibtk_utilities.h"
-#include "tbox/Database.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
 
 namespace IBTK
 {
@@ -333,8 +339,8 @@ IBRedundantInitializer::initializeStructurePosition()
 #if !defined(NDEBUG)
             if (d_vertex_posn[ln][j].size() != std::size_t(d_num_vertex[ln][j]))
             {
-                TBOX_ERROR(d_object_name << ":\n Invalid number of vertices " << d_vertex_posn[ln][j].size() << " of structure "
-                                         << j << " on level " << ln << ".\n"
+                TBOX_ERROR(d_object_name << ":\n Invalid number of vertices " << d_vertex_posn[ln][j].size()
+                                         << " of structure " << j << " on level " << ln << ".\n"
                                          << "Expected " << d_num_vertex[ln][j] << " vertices.");
             }
 #endif

@@ -13,8 +13,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -35,20 +35,21 @@
 
 //////////////////////////////////INCLUDES///////////////////////////////////////////////
 
+#include "ibtk/CartGridFunction.h"
+
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "Variable.h"
-#include "ibtk/CartGridFunction.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK
 {
 /*!
-        * \brief CartGridBodyForce class.
-        *
-        * This class is a concrete implementation of IBTK::CartGridFunction class and is used to set the
-        * body force on patches for the fluid solver.
-        */
+ * \brief CartGridBodyForce class.
+ *
+ * This class is a concrete implementation of IBTK::CartGridFunction class and is used to set the
+ * body force on patches for the fluid solver.
+ */
 
 class CartGridBodyForce : public IBTK::CartGridFunction
 {

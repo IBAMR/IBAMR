@@ -30,6 +30,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -44,6 +45,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -70,10 +72,9 @@ run_example(int argc, char* argv[], std::vector<double>& U_err)
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
-    
-    //resize U_err to hold error data
-    U_err.resize(3);
 
+    // resize U_err to hold error data
+    U_err.resize(3);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -158,12 +159,8 @@ run_example(int argc, char* argv[], std::vector<double>& U_err)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                ostringstream bc_coefs_name_stream;
-                bc_coefs_name_stream << "u_bc_coefs_" << d;
-                const string bc_coefs_name = bc_coefs_name_stream.str();
-                ostringstream bc_coefs_db_name_stream;
-                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
-                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+                const std::string bc_coefs_name = "u_bc_coefs_" + std::to_string(d);
+                const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
                 u_bc_coefs[d] = new muParserRobinBcCoefs(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
             }
@@ -292,15 +289,13 @@ run_example(int argc, char* argv[], std::vector<double>& U_err)
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(U_idx, U_idx, U_cloned_idx);
         pout << "Error in U at time " << loop_time << ":\n"
-             << "  L1-norm:  " 
-             << std::setprecision(10) << hier_cc_data_ops.L1Norm(U_idx, wgt_cc_idx) << "\n"
+             << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(U_idx, wgt_cc_idx) << "\n"
              << "  L2-norm:  " << hier_cc_data_ops.L2Norm(U_idx, wgt_cc_idx) << "\n"
              << "  max-norm: " << hier_cc_data_ops.maxNorm(U_idx, wgt_cc_idx) << "\n";
 
-             U_err[0] = hier_cc_data_ops.L1Norm(U_idx, wgt_cc_idx);
-             U_err[1] = hier_cc_data_ops.L2Norm(U_idx, wgt_cc_idx);
-             U_err[2] = hier_cc_data_ops.maxNorm(U_idx, wgt_cc_idx);
-
+        U_err[0] = hier_cc_data_ops.L1Norm(U_idx, wgt_cc_idx);
+        U_err[1] = hier_cc_data_ops.L2Norm(U_idx, wgt_cc_idx);
+        U_err[2] = hier_cc_data_ops.maxNorm(U_idx, wgt_cc_idx);
 
         if (dump_viz_data && uses_visit)
         {

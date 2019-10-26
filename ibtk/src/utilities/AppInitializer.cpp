@@ -32,15 +32,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
-#include <vector>
-
-#include "VisItDataWriter.h"
 #include "ibtk/AppInitializer.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
+#include "VisItDataWriter.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/InputDatabase.h"
@@ -52,6 +49,10 @@
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -187,7 +188,11 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     {
         viz_writers_key_name = "viz_writers";
     }
-    viz_writers_arr = main_db->getStringArray(viz_writers_key_name);
+
+    if (!viz_writers_key_name.empty())
+    {
+        viz_writers_arr = main_db->getStringArray(viz_writers_key_name);
+    }
     if (viz_writers_arr.size() > 0)
     {
         d_viz_writers = std::vector<std::string>(viz_writers_arr.getPointer(),
@@ -469,12 +474,10 @@ AppInitializer::getLSiloDataWriter() const
 std::string
 AppInitializer::getExodusIIFilename(const std::string& prefix) const
 {
-    std::string exodus_filename = "";
+    std::string exodus_filename;
     if (!d_exodus_filename.empty())
     {
-        std::ostringstream exodus_filename_stream;
-        exodus_filename_stream << d_viz_dump_dirname << "/" << prefix << d_exodus_filename;
-        exodus_filename = exodus_filename_stream.str();
+        exodus_filename = d_viz_dump_dirname + "/" + prefix + d_exodus_filename;
     }
     return exodus_filename;
 } // getExodusIIFilename
@@ -482,12 +485,10 @@ AppInitializer::getExodusIIFilename(const std::string& prefix) const
 std::string
 AppInitializer::getGMVFilename(const std::string& prefix) const
 {
-    std::string gmv_filename = "";
+    std::string gmv_filename;
     if (!d_gmv_filename.empty())
     {
-        std::ostringstream gmv_filename_stream;
-        gmv_filename_stream << d_viz_dump_dirname << "/" << prefix << d_gmv_filename;
-        gmv_filename = gmv_filename_stream.str();
+        gmv_filename = d_viz_dump_dirname + "/" + prefix + d_gmv_filename;
     }
     return gmv_filename;
 } // getGMVFilename

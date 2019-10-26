@@ -35,8 +35,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibtk/LinearSolver.h"
+#include "ibtk/PoissonSolver.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "Box.h"
 #include "CoarseFineBoundary.h"
@@ -45,11 +46,11 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
-#include "ibtk/LinearSolver.h"
-#include "ibtk/PoissonSolver.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -194,7 +195,8 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -286,7 +288,7 @@ private:
     void setupHypreSolver();
     bool solveSystem(int x_idx, int b_idx);
     void copyToHypre(HYPRE_SStructVector vector,
-                     const SAMRAI::pdat::SideData<NDIM, double>& src_data,
+                     SAMRAI::pdat::SideData<NDIM, double>& src_data,
                      const SAMRAI::hier::Box<NDIM>& box);
     void copyFromHypre(SAMRAI::pdat::SideData<NDIM, double>& dst_data,
                        HYPRE_SStructVector vector,

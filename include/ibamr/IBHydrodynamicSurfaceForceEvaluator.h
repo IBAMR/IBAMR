@@ -33,15 +33,21 @@
 #ifndef included_IBHydrodynamicSurfaceForceEvaluator
 #define included_IBHydrodynamicSurfaceForceEvaluator
 
-#include <map>
-#include <vector>
+#include "ibtk/ibtk_macros.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "Box.h"
+#include "CellVariable.h"
+#include "RobinBcCoefStrategy.h"
+#include "tbox/DescribedClass.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Core"
 #include "Eigen/Geometry"
-#include "RobinBcCoefStrategy.h"
-#include "ibtk/ibtk_utilities.h"
-#include "tbox/DescribedClass.h"
+IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <map>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 namespace IBAMR
@@ -107,6 +113,8 @@ public:
      *
      * \note The users should call this routine if the hydrodynamic forces need to be computed just
      * as a postprocessing step.
+     *
+     * @note This function uses 3D vectors even in 2D so that the torque makes sense.
      */
     virtual void computeHydrodynamicForceTorque(IBTK::Vector3d& pressure_force,
                                                 IBTK::Vector3d& viscous_force,
@@ -117,6 +125,8 @@ public:
     /*!
      * \brief Compute the hydrodynamic force via surface integration while the integration of
      * variables is happening during a given timestep.
+     *
+     * @note This function uses 3D vectors even in 2D so that the torque makes sense.
      */
     virtual void computeHydrodynamicForceTorque(IBTK::Vector3d& pressure_force,
                                                 IBTK::Vector3d& viscous_force,
@@ -168,7 +178,7 @@ private:
      */
     void fillPatchData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
                        double fill_time,
-                       bool use_cuurent_ctx,
+                       bool use_current_ctx,
                        bool use_new_ctx);
 
     /*!
@@ -179,7 +189,7 @@ private:
     /*!
      * \brief Level set variable for the immersed body
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >  d_ls_solid_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_solid_var;
 
     /*!
      * \brief Pointer to advection-diffusion solver.

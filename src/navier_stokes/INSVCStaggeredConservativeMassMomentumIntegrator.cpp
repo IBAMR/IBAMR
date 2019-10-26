@@ -32,18 +32,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/PhysicalBoundaryUtilities.h"
 
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "FaceData.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchySideDataOpsReal.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -57,16 +61,15 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/PhysicalBoundaryUtilities.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <array>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -1578,7 +1581,7 @@ INSVCStaggeredConservativeMassMomentumIntegrator::initializeTimeIntegrator(
     const IntVector<NDIM>& max_ghost_width = CF_GHOST_WIDTH;
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        d_cf_boundary[ln] = new CoarseFineBoundary<NDIM>(*d_hierarchy, ln, max_ghost_width);
+        d_cf_boundary[ln] = CoarseFineBoundary<NDIM>(*d_hierarchy, ln, max_ghost_width);
     }
 
     // Allocate data.
@@ -1636,11 +1639,6 @@ INSVCStaggeredConservativeMassMomentumIntegrator::deallocateTimeIntegrator()
     }
 
     // Deallocate coarse-fine boundary object.
-    for (auto& cf_boundary : d_cf_boundary)
-    {
-        delete cf_boundary;
-        cf_boundary = nullptr;
-    }
     d_cf_boundary.clear();
 
     // Deallocate hierarchy math operations object.
@@ -2645,8 +2643,7 @@ INSVCStaggeredConservativeMassMomentumIntegrator::enforceDivergenceFreeCondition
             Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(U_idx);
             const int patch_ln = patch->getPatchLevelNumber();
             const int patch_num = patch->getPatchNumber();
-            const Array<BoundaryBox<NDIM> >& cf_bdry_codim1_boxes =
-                d_cf_boundary[patch_ln]->getBoundaries(patch_num, 1);
+            const Array<BoundaryBox<NDIM> >& cf_bdry_codim1_boxes = d_cf_boundary[patch_ln].getBoundaries(patch_num, 1);
             const int n_cf_bdry_codim1_boxes = cf_bdry_codim1_boxes.size();
             if (n_cf_bdry_codim1_boxes == 0) continue;
 

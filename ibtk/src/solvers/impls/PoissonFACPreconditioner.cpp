@@ -32,11 +32,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/PoissonFACPreconditioner.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/GeneralSolver.h"
+#include "ibtk/PoissonFACPreconditioner.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
 #include "tbox/Database.h"
 
 namespace SAMRAI

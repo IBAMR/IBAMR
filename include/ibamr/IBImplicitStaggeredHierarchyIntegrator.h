@@ -35,23 +35,25 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
-#include "IntVector.h"
-#include "SAMRAIVectorReal.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBImplicitStrategy.h"
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
 #include "ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h"
 #include "ibamr/StaggeredStokesOperator.h"
 #include "ibamr/StaggeredStokesSolver.h"
+
+#include "IntVector.h"
+#include "SAMRAIVectorReal.h"
+#include "tbox/Pointer.h"
+
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscpc.h"
 #include "petscsnes.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+
+#include <string>
 
 namespace IBAMR
 {
@@ -138,8 +140,9 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    void
+    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Returns the number of cycles to perform for the present time step.

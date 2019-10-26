@@ -32,13 +32,27 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <algorithm>
-#include <cmath>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibamr/IMPMethod.h"
+#include "ibamr/MaterialPointSpec.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/LData.h"
+#include "ibtk/LDataManager.h"
+#include "ibtk/LEInteractor.h"
+#include "ibtk/LIndexSetData.h"
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LMesh.h"
+#include "ibtk/LNode.h"
+#include "ibtk/LNodeSet.h"
+#include "ibtk/LNodeSetData.h"
+#include "ibtk/LSet.h"
+#include "ibtk/LSetData.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_macros.h"
+#include "ibtk/libmesh_utilities.h"
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -65,32 +79,6 @@
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
-#include "boost/math/special_functions/round.hpp"
-#include "boost/multi_array.hpp"
-#include "ibamr/IMPMethod.h"
-#include "ibamr/MaterialPointSpec.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/LData.h"
-#include "ibtk/LDataManager.h"
-#include "ibtk/LEInteractor.h"
-#include "ibtk/LIndexSetData.h"
-#include "ibtk/LInitStrategy.h"
-#include "ibtk/LMesh.h"
-#include "ibtk/LNode.h"
-#include "ibtk/LNodeSet.h"
-#include "ibtk/LNodeSetData.h"
-#include "ibtk/LSet.h"
-#include "ibtk/LSetData.h"
-#include "ibtk/LSiloDataWriter.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/libmesh_utilities.h"
-#include "libmesh/tensor_value.h"
-#include "libmesh/type_tensor.h"
-#include "libmesh/type_vector.h"
-#include "libmesh/vector_value.h"
-#include "petscvec.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -98,6 +86,26 @@
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
+
+#include "libmesh/tensor_value.h"
+#include "libmesh/type_tensor.h"
+#include "libmesh/type_vector.h"
+#include "libmesh/vector_value.h"
+
+#include "petscvec.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "boost/math/special_functions/round.hpp"
+#include "boost/multi_array.hpp"
+IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {
@@ -172,7 +180,7 @@ kernel(const double X,
 
 // Version of IMPMethod restart file data.
 static const int IMP_METHOD_VERSION = 1;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -403,7 +411,7 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
     TBOX_ASSERT(sc_data);
 
     // Synchronize Eulerian and Lagrangian values.
-    std::vector<Pointer<LData> > *U_data, *Grad_U_data, *X_data;
+    std::vector<Pointer<LData> >*U_data, *Grad_U_data, *X_data;
     bool* X_needs_ghost_fill;
     getVelocityData(&U_data, &Grad_U_data, data_time);
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
@@ -542,7 +550,7 @@ IMPMethod::forwardEulerStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> > *U_data, *Grad_U_data;
+    std::vector<Pointer<LData> >*U_data, *Grad_U_data;
     getVelocityData(&U_data, &Grad_U_data, current_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -599,7 +607,7 @@ IMPMethod::midpointStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> > *U_data, *Grad_U_data;
+    std::vector<Pointer<LData> >*U_data, *Grad_U_data;
     getVelocityData(&U_data, &Grad_U_data, current_time + 0.5 * dt);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -653,7 +661,7 @@ IMPMethod::trapezoidalStep(const double current_time, const double new_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    std::vector<Pointer<LData> > *U_current_data, *U_new_data, *Grad_U_current_data, *Grad_U_new_data;
+    std::vector<Pointer<LData> >*U_current_data, *U_new_data, *Grad_U_current_data, *Grad_U_new_data;
     getVelocityData(&U_current_data, &Grad_U_current_data, current_time);
     getVelocityData(&U_new_data, &Grad_U_new_data, new_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -711,7 +719,7 @@ IMPMethod::computeLagrangianForce(const double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> > *X_data, *F_data;
+    std::vector<Pointer<LData> >*X_data, *F_data;
     bool* X_needs_ghost_fill;
     getPositionData(&X_data, &X_needs_ghost_fill, data_time);
     getDeformationGradientData(&F_data, data_time);
@@ -1249,8 +1257,7 @@ IMPMethod::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
     int ver = db->getInteger("IMP_METHOD_VERSION");
     if (ver != IMP_METHOD_VERSION)

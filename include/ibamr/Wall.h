@@ -35,10 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "tbox/Array.h"
+#include "ibamr/IBLagrangianForceStrategy.h"
+
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
-#include "ibamr/IBLagrangianForceStrategy.h"
+
+#include "tbox/Array.h"
+
 #include "muParser.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

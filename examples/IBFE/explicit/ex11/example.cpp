@@ -33,6 +33,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -52,17 +53,19 @@
 #include <libmesh/mesh_triangle_interface.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEDirectForcingKinematics.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+#include <boost/multi_array.hpp>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -233,12 +236,12 @@ run_example(int argc, char** argv)
             Elem* const elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                const bool at_mesh_bdry = !elem->neighbor(side);
+                const bool at_mesh_bdry = !elem->neighbor_ptr(side);
                 if (!at_mesh_bdry) continue;
                 for (unsigned int k = 0; k < elem->n_nodes(); ++k)
                 {
                     if (!elem->is_node_on_side(k, side)) continue;
-                    Node& n = *elem->get_node(k);
+                    Node& n = elem->node_ref(k);
                     n = R * n.unit();
                 }
             }
@@ -328,13 +331,9 @@ run_example(int argc, char** argv)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                ostringstream bc_coefs_name_stream;
-                bc_coefs_name_stream << "u_bc_coefs_" << d;
-                const string bc_coefs_name = bc_coefs_name_stream.str();
+                const std::string bc_coefs_name = "u_bc_coefs_" + std::to_string(d);
 
-                ostringstream bc_coefs_db_name_stream;
-                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
-                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+                const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
 
                 u_bc_coefs[d] = new muParserRobinBcCoefs(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);

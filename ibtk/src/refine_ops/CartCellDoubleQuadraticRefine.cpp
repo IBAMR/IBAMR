@@ -32,10 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibtk/CartCellDoubleQuadraticRefine.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
@@ -45,11 +44,13 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
-#include "ibtk/CartCellDoubleQuadraticRefine.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <array>
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -89,7 +90,7 @@ coarsen(const Index<NDIM>& index, const IntVector<NDIM>& ratio)
     }
     return coarse_index;
 } // coarsen
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -161,9 +162,8 @@ CartCellDoubleQuadraticRefine::refine(Patch<NDIM>& fine,
 
         // Determine the interpolation weights.
         static const int degree = 2;
-        std::array<std::array<double, degree + 1>, NDIM> wgts(
-            array_constant<std::array<double, degree + 1>, NDIM>(
-                std::array<double, degree + 1>(array_constant<double, degree + 1>(0.0))));
+        std::array<std::array<double, degree + 1>, NDIM> wgts(array_constant<std::array<double, degree + 1>, NDIM>(
+            std::array<double, degree + 1>(array_constant<double, degree + 1>(0.0))));
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             const double X =

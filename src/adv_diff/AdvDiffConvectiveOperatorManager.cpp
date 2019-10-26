@@ -32,13 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include "CellVariable.h"
 #include "ibamr/AdvDiffCUIConvectiveOperator.h"
 #include "ibamr/AdvDiffCenteredConvectiveOperator.h"
 #include "ibamr/AdvDiffConvectiveOperatorManager.h"
@@ -47,11 +40,19 @@
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "CellVariable.h"
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/Utilities.h"
+
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -115,9 +116,7 @@ AdvDiffConvectiveOperatorManager::allocateOperator(const std::string& operator_t
     if (it == d_operator_maker_map.end())
     {
         TBOX_ERROR("AdvDiffConvectiveOperatorManager::allocateOperator():\n"
-                   << "  unrecognized operator type: "
-                   << operator_type
-                   << "\n");
+                   << "  unrecognized operator type: " << operator_type << "\n");
     }
     return (it->second)(operator_object_name, Q_var, input_db, difference_form, bc_coefs);
 } // allocateOperator

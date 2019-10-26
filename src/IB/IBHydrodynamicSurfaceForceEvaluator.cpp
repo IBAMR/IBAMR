@@ -31,7 +31,15 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include <utility>
+#include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
+#include "ibamr/INSStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSStaggeredPressureBcCoef.h"
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredPressureBcCoef.h"
+#include "ibamr/namespaces.h"
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/IndexUtilities.h"
 
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
@@ -40,16 +48,10 @@
 #include "PatchHierarchy.h"
 #include "SideData.h"
 #include "SideIndex.h"
-#include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
-#include "ibamr/INSStaggeredHierarchyIntegrator.h"
-#include "ibamr/INSStaggeredPressureBcCoef.h"
-#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredPressureBcCoef.h"
-#include "ibamr/namespaces.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/IndexUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
+
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -153,7 +155,8 @@ IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
         d_mu_is_const = p_vc_ins_hier_integrator->muIsConstant();
         if (!d_mu_is_const)
         {
-            Pointer<CellVariable<NDIM, double> > mu_adv_diff_var = p_vc_ins_hier_integrator->getTransportedViscosityVariable();
+            Pointer<CellVariable<NDIM, double> > mu_adv_diff_var =
+                p_vc_ins_hier_integrator->getTransportedViscosityVariable();
             Pointer<CellVariable<NDIM, double> > mu_ins_var = p_vc_ins_hier_integrator->getViscosityVariable();
             Pointer<VariableContext> mu_ctx = var_db->getContext(d_object_name + "::mu_ctx");
             if (mu_adv_diff_var)
@@ -190,9 +193,10 @@ IBHydrodynamicSurfaceForceEvaluator::~IBHydrodynamicSurfaceForceEvaluator()
     var_db->removePatchDataIndex(d_ls_solid_idx);
     var_db->removePatchDataIndex(d_u_idx);
     var_db->removePatchDataIndex(d_p_idx);
-    var_db->removePatchDataIndex(d_mu_idx);
-    delete d_hydro_force_stream;
-    delete d_hydro_torque_stream;
+    if (!d_mu_is_const)
+    {
+        var_db->removePatchDataIndex(d_mu_idx);
+    }
 
     return;
 } // ~IBHydrodynamicSurfaceForceEvaluator
@@ -256,7 +260,10 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
         patch_hierarchy->getPatchLevel(ln)->allocatePatchData(d_ls_solid_idx, time);
         patch_hierarchy->getPatchLevel(ln)->allocatePatchData(d_u_idx, time);
         patch_hierarchy->getPatchLevel(ln)->allocatePatchData(d_p_idx, time);
-        patch_hierarchy->getPatchLevel(ln)->allocatePatchData(d_mu_idx, time);
+        if (!d_mu_is_const)
+        {
+            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(d_mu_idx, time);
+        }
     }
 
     // Fill patch data and ghost cells
@@ -294,6 +301,8 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
             Pointer<CellData<NDIM, double> > mu_data;
             if (!d_mu_is_const) mu_data = patch->getPatchData(d_mu_idx);
 
+            auto signof = [](const double x) { return x > 0.0 ? 1.0 : (x < 0.0 ? -1.0 : 0.0); };
+
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 // Compute the required area element
@@ -308,19 +317,26 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
                     const double phi_upper = (*ls_solid_data)(c_u);
 
                     // If not within a band near the body, do not use this cell in the force calculation
-                    if (sign((phi_lower - d_surface_contour_value) * (phi_upper - d_surface_contour_value)) >= 0.0)
-                        continue;
+                    if ((phi_lower - d_surface_contour_value) * (phi_upper - d_surface_contour_value) >= 0.0) continue;
 
                     // Compute the required unit normal
                     IBTK::Vector3d n = IBTK::Vector3d::Zero();
-                    n(axis) = sign(phi_upper - phi_lower);
+                    n(axis) = signof(phi_upper - phi_lower);
+
+                    // Get the relative coordinate from X0
+                    const IBTK::VectorNd side_center = IndexUtilities::getSideCenter(*patch, s_i);
+                    IBTK::Vector3d r_vec = IBTK::Vector3d::Zero();
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        r_vec[d] = side_center[d] - X0[d];
+                    }
 
                     // Get the relative coordinate from X0
                     get_physical_coordinate(r_vec, patch, s_i);
                     r_vec -= X0;
 
                     // Compute pressure on the face using simple averaging (n. -p I) * dA
-                    IBTK::Vector3d pn = 0.5 * n * ((*p_data)(c_l) + (*p_data)(c_u));
+                    const IBTK::Vector3d pn = 0.5 * n * ((*p_data)(c_l) + (*p_data)(c_u));
 
                     // Compute the viscosity on the face using harmonic averaging, or setting to constant
                     const double mu_side =
@@ -353,9 +369,7 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
                                     ((*u_data)(SideIndex<NDIM>(c_u, d, SideIndex<NDIM>::Upper)) +
                                      (*u_data)(SideIndex<NDIM>(c_u, d, SideIndex<NDIM>::Lower)) -
                                      (*u_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Upper)) -
-                                     (*u_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Lower))
-
-                                    );
+                                     (*u_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Lower)));
                         }
                     }
 
@@ -363,6 +377,8 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
                     // and pressure torques r X n.(-pI)dS
                     pressure_force += (-pn * dS);
                     pressure_torque += (r_vec.cross(-pn)) * dS;
+
+                    pressure_torque += r_vec.cross(-pn) * dS;
 
                     // Add up the viscous forces n.(mu*(grad U + grad U)^T)dS
                     // and viscous torque r X n.(mu*(grad U + grad U)^T)dS
@@ -373,10 +389,10 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
         }
     }
     // Sum the net force and torque across processors.
-    SAMRAI_MPI::sumReduction(pressure_force.data(), 3);
-    SAMRAI_MPI::sumReduction(viscous_force.data(), 3);
-    SAMRAI_MPI::sumReduction(pressure_torque.data(), 3);
-    SAMRAI_MPI::sumReduction(viscous_torque.data(), 3);
+    SAMRAI_MPI::sumReduction(pressure_force.data(), NDIM);
+    SAMRAI_MPI::sumReduction(viscous_force.data(), NDIM);
+    SAMRAI_MPI::sumReduction(pressure_torque.data(), NDIM);
+    SAMRAI_MPI::sumReduction(viscous_torque.data(), NDIM);
 
     // Deallocate patch data
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -384,7 +400,10 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
         patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_ls_solid_idx);
         patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_u_idx);
         patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_p_idx);
-        patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_mu_idx);
+        if (!d_mu_is_const)
+        {
+            patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_mu_idx);
+        }
     }
 
     return;
@@ -452,7 +471,8 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
     const int ls_solid_idx =
         use_current_ctx ?
             var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getCurrentContext()) :
-            use_new_ctx ? var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext()) : -1;
+            use_new_ctx ? var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext()) :
+                          IBTK::invalid_index;
     InterpolationTransactionComponent ls_solid_transaction(d_ls_solid_idx,
                                                            ls_solid_idx,
                                                            /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
@@ -469,10 +489,10 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
 
     // Fill ghost cells for velocity
     Pointer<SideVariable<NDIM, double> > u_var = d_fluid_solver->getVelocityVariable();
-    const int u_idx =
-        use_current_ctx ?
-            var_db->mapVariableAndContextToIndex(u_var, d_fluid_solver->getCurrentContext()) :
-            use_new_ctx ? var_db->mapVariableAndContextToIndex(u_var, d_fluid_solver->getNewContext()) : -1;
+    const int u_idx = use_current_ctx ?
+                          var_db->mapVariableAndContextToIndex(u_var, d_fluid_solver->getCurrentContext()) :
+                          use_new_ctx ? var_db->mapVariableAndContextToIndex(u_var, d_fluid_solver->getNewContext()) :
+                                        IBTK::invalid_index;
     InterpolationTransactionComponent u_transaction(d_u_idx,
                                                     u_idx,
                                                     /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
@@ -495,17 +515,18 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
 #if !defined(NDEBUG)
         TBOX_ASSERT(p_vc_ins_hier_integrator);
 #endif
-        Pointer<CellVariable<NDIM, double> > mu_adv_diff_var = p_vc_ins_hier_integrator->getTransportedViscosityVariable();
+        Pointer<CellVariable<NDIM, double> > mu_adv_diff_var =
+            p_vc_ins_hier_integrator->getTransportedViscosityVariable();
         Pointer<CellVariable<NDIM, double> > mu_ins_var = p_vc_ins_hier_integrator->getViscosityVariable();
         RobinBcCoefStrategy<NDIM>* mu_bc_coef = nullptr;
-        int mu_idx = -1;
+        int mu_idx = IBTK::invalid_index;
         if (mu_adv_diff_var)
         {
             mu_idx = use_current_ctx ?
                          var_db->mapVariableAndContextToIndex(mu_adv_diff_var, d_adv_diff_solver->getCurrentContext()) :
                          use_new_ctx ?
                          var_db->mapVariableAndContextToIndex(mu_adv_diff_var, d_adv_diff_solver->getNewContext()) :
-                         -1;
+                         IBTK::invalid_index;
             mu_bc_coef = (d_adv_diff_solver->getPhysicalBcCoefs(mu_adv_diff_var)).front();
         }
         else if (mu_ins_var)
@@ -514,7 +535,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
                          var_db->mapVariableAndContextToIndex(mu_ins_var, d_fluid_solver->getCurrentContext()) :
                          use_new_ctx ?
                          var_db->mapVariableAndContextToIndex(mu_ins_var, d_fluid_solver->getNewContext()) :
-                         -1;
+                         IBTK::invalid_index;
             auto p_vc_ins_hier_integrator =
                 dynamic_cast<INSVCStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
             mu_bc_coef = p_vc_ins_hier_integrator->getViscosityBoundaryConditions();
@@ -541,10 +562,10 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
 
     // Fill ghost cells for pressure
     Pointer<CellVariable<NDIM, double> > p_var = d_fluid_solver->getPressureVariable();
-    const int p_idx =
-        use_current_ctx ?
-            var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getCurrentContext()) :
-            use_new_ctx ? var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getNewContext()) : -1;
+    const int p_idx = use_current_ctx ?
+                          var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getCurrentContext()) :
+                          use_new_ctx ? var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getNewContext()) :
+                                        IBTK::invalid_index;
     auto p_ins_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
     auto p_vc_ins_bc_coef =
         dynamic_cast<INSVCStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());

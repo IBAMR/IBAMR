@@ -35,17 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibtk/ibtk_utilities.h"
 
 #include "CartesianGridGeometry.h"
 #include "CoarsenAlgorithm.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

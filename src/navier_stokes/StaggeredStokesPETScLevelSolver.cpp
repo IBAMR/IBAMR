@@ -32,9 +32,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibamr/StaggeredStokesPETScLevelSolver.h"
+#include "ibamr/StaggeredStokesPETScMatUtilities.h"
+#include "ibamr/StaggeredStokesPETScVecUtilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/GeneralSolver.h"
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/PETScLevelSolver.h"
+#include "ibtk/PoissonUtilities.h"
 
 #include "CellVariable.h"
 #include "HierarchyDataOpsInteger.h"
@@ -49,20 +55,17 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/StaggeredStokesPETScLevelSolver.h"
-#include "ibamr/StaggeredStokesPETScMatUtilities.h"
-#include "ibamr/StaggeredStokesPETScVecUtilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/GeneralSolver.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/PETScLevelSolver.h"
-#include "ibtk/PoissonUtilities.h"
-#include "petscmat.h"
-#include "petscsys.h"
-#include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
+
+#include "petscmat.h"
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -76,7 +79,7 @@ namespace
 static const int CELLG = 1;
 static const int SIDEG = 1;
 static const int NOGHOST = 0;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -194,7 +197,6 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
                                                                      d_level);
     d_petsc_pc = d_petsc_mat;
 
-
     // Set pressure nullspace if the level covers the entire domain.
     if (d_has_pressure_nullspace)
     {
@@ -284,13 +286,8 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     const int p_idx = x.getComponentDescriptorIndex(1);
     const int f_idx = b.getComponentDescriptorIndex(0);
     const int h_idx = b.getComponentDescriptorIndex(1);
-    Pointer<SideVariable<NDIM, double> > f_var = b.getComponentVariable(0);
-    Pointer<CellVariable<NDIM, double> > h_var = b.getComponentVariable(1);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int f_adj_idx = var_db->registerClonedPatchDataIndex(f_var, f_idx);
-    int h_adj_idx = var_db->registerClonedPatchDataIndex(h_var, h_idx);
-    d_level->allocatePatchData(f_adj_idx);
-    d_level->allocatePatchData(h_adj_idx);
+    const auto f_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(f_idx);
+    const auto h_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(h_idx);
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
@@ -326,11 +323,6 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
 
     StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
         petsc_b, f_adj_idx, d_u_dof_index_idx, h_adj_idx, d_p_dof_index_idx, d_level);
-
-    d_level->deallocatePatchData(f_adj_idx);
-    d_level->deallocatePatchData(h_adj_idx);
-    var_db->removePatchDataIndex(f_adj_idx);
-    var_db->removePatchDataIndex(h_adj_idx);
 
     copyToPETScVec(petsc_b, b);
     return;

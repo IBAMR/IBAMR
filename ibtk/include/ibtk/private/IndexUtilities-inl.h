@@ -35,10 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
-
-#include "boost/math/special_functions/round.hpp"
 #include "ibtk/IndexUtilities.h"
+#include "ibtk/ibtk_macros.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "boost/math/special_functions/round.hpp"
+IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <cmath>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -89,6 +93,31 @@ IndexUtilities::getCellIndex(const DoubleArray& X,
     }
     return idx;
 } // getCellIndex
+
+inline IBTK::VectorNd
+IndexUtilities::getSideCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::pdat::SideIndex<NDIM>& side_idx)
+{
+    const int axis = side_idx.getAxis();
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
+    const double* patch_X_lower = patch_geom->getXLower();
+    const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
+    const SAMRAI::hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
+    const double* const patch_dx = patch_geom->getDx();
+
+    IBTK::VectorNd side_coord;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        if (d == axis)
+        {
+            side_coord[d] = patch_X_lower[d] + patch_dx[d] * (side_idx(d) - patch_lower_idx(d));
+        }
+        else
+        {
+            side_coord[d] = patch_X_lower[d] + patch_dx[d] * (double(side_idx(d) - patch_lower_idx(d)) + 0.5);
+        }
+    }
+    return side_coord;
+} // getSideCenter
 
 template <class DoubleArray>
 inline SAMRAI::hier::Index<NDIM>
@@ -147,10 +176,10 @@ IndexUtilities::mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
 
 #if (NDIM == 1)
     return (idx(0) - domain_lower(0) + depth * n_cells(0) + offset);
-#elif(NDIM == 2)
+#elif (NDIM == 2)
     return (idx(0) - domain_lower(0) + (idx(1) - domain_lower(1)) * n_cells(0) + depth * n_cells(0) * n_cells(1) +
             offset);
-#elif(NDIM == 3)
+#elif (NDIM == 3)
     return (idx(0) - domain_lower(0) + (idx(1) - domain_lower(1)) * n_cells(0) +
             (idx(2) - domain_lower(2)) * n_cells(0) * n_cells(1) + depth * n_cells(0) * n_cells(1) * n_cells(2) +
             offset);

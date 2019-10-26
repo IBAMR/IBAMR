@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of The University of North Carolina nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -35,7 +35,9 @@
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h"
+
 #include "ibtk/ibtk_utilities.h"
+
 #include "tbox/MathUtilities.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
@@ -116,14 +118,13 @@ CIBStrategy::getNumberOfRigidStructures() const
 void
 CIBStrategy::setInitialCenterOfMass(const unsigned int part, const Eigen::Vector3d& XCOM_0)
 {
-
 #if !defined(NDEBUG)
     TBOX_ASSERT(part < d_num_rigid_parts);
 #endif
     d_center_of_mass_initial[part] = XCOM_0;
     d_compute_center_of_mass_initial[part] = false;
 
-}// setInitialCenterOfMass
+} // setInitialCenterOfMass
 
 void
 CIBStrategy::setSolveRigidBodyVelocity(const unsigned int part, const FreeRigidDOFVector& solve_rigid_vel)
@@ -747,7 +748,7 @@ CIBStrategy::eigenToRDV(const Eigen::Vector3d& U, const Eigen::Vector3d& W, Rigi
 
 #if (NDIM == 2)
     UW[2] = W[2];
-#elif(NDIM == 3)
+#elif (NDIM == 3)
     for (unsigned d = 0; d < NDIM; ++d)
     {
         UW[3 + d] = W[d];
@@ -768,7 +769,7 @@ CIBStrategy::rdvToEigen(const RigidDOFVector& UW, Eigen::Vector3d& U, Eigen::Vec
 #if (NDIM == 2)
     W.setZero();
     W[2] = UW[2];
-#elif(NDIM == 3)
+#elif (NDIM == 3)
     for (unsigned d = 0; d < NDIM; ++d)
     {
         W[d] = UW[3 + d];

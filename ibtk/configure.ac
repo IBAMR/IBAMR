@@ -55,6 +55,7 @@ AC_PROG_GREP
 AC_PROG_SED
 CHECK_BUILTIN_EXPECT
 CHECK_BUILTIN_PREFETCH
+CHECK_PRAGMA_KEYWORD
 CONFIGURE_DOXYGEN
 CONFIGURE_DOT
 
@@ -70,19 +71,50 @@ AC_MSG_NOTICE([first check for a system Boost library; if not found, revert to b
 BOOST_REQUIRE([1.57.0],[
   AC_MSG_WARN([could not find system Boost library, using bundled Boost library])
   USING_BUNDLED_BOOST=yes])
-CONFIGURE_BOOST("$ABSOLUTE_SRCDIR/contrib/boost","\$(abs_top_builddir)/contrib/boost")
+
+# Configure libraries that manage other dependencies of IBAMR:
+dnl libMesh must be first since it will override PETSc settings (in the case
+dnl that libMesh uses one version of PETSc and another version of PETSc was
+dnl provided by argument)
 CONFIGURE_LIBMESH
+CONFIGURE_PETSC
+# Configure other libraries that are not themselves dependencies:
+CONFIGURE_BOOST("$ABSOLUTE_SRCDIR/contrib/boost","\$(abs_top_builddir)/contrib/boost")
 CONFIGURE_EIGEN("$ABSOLUTE_SRCDIR/contrib/eigen","\$(abs_top_builddir)/contrib/eigen")
 CONFIGURE_HDF5
 CONFIGURE_HYPRE
-CONFIGURE_MUPARSER("$ABSOLUTE_SRCDIR/contrib/muparser","\$(abs_top_builddir)/contrib/muparser")
-CONFIGURE_PETSC
-CONFIGURE_SAMRAI
-CONFIGURE_SILO
 CONFIGURE_GSL
 CONFIGURE_GTEST
+CONFIGURE_MUPARSER("$ABSOLUTE_SRCDIR/contrib/muparser","\$(abs_top_builddir)/contrib/muparser")
+# configure dependencies of dependencies:
+CONFIGURE_SILO
+CONFIGURE_SAMRAI
 PACKAGE_SETUP_ENVIRONMENT
 LIBS="$LIBS $PACKAGE_CONTRIB_LIBS"
+
+# Check that SAMRAI and LIBMESH have mutually compatible debug settings:
+if test "$LIBMESH_ENABLED" = yes; then
+    if test "$SAMRAI_DEBUG_CHECK_ASSERTIONS" = true; then
+        if test "$LIBMESH_METHOD" = dbg || test "$LIBMESH_METHOD" = devel; then
+        : # do nothing
+        else
+            AC_MSG_ERROR([The detected SAMRAI library was compiled with debugging support enabled but the detected libMesh library was not. This incompatibility is not allowed since different debug macros can lead to linkage errors. Please reconfigure IBAMR with either a devel or debug libMesh method.])
+        fi
+        else # SAMRAI is in release mode
+        if test "$LIBMESH_METHOD" = dbg || test "$LIBMESH_METHOD" = devel; then
+            AC_MSG_ERROR([The detected SAMRAI library was compiled without debugging support enabled but the detected libMesh library was. This incompatibility is not allowed since different debug macros can lead to linkage errors. Please reconfigure IBAMR with either an opt, pro, or oprof libMesh method.])
+        fi
+    fi
+fi
+
+
+###########################################################################
+# Additional header configuration.
+###########################################################################
+dnl We have to use a funny name for the key to guarantee that it comes after
+dnl all constant definitions.
+AH_VERBATIM(Z_INCLUDE_MACRO_HEADER, [/* Define IBTK-specific macros. */
+#include <ibtk/ibtk_macros.h>])
 
 ###########################################################################
 # Output files.
@@ -91,44 +123,45 @@ echo
 echo "================"
 echo "Outputting files"
 echo "================"
+
 AC_CONFIG_FILES([
-  Makefile
-  examples/Makefile
-  examples/CCLaplace/Makefile
-  examples/CCPoisson/Makefile
-  examples/PETScOps/Makefile
-  examples/PETScOps/ProlongationMat/Makefile
-  examples/PhysBdryOps/Makefile
-  examples/SCLaplace/Makefile
-  examples/SCPoisson/Makefile
-  examples/VCLaplace/Makefile
-  examples/VCViscousSolver/Makefile
-  lib/Makefile
-  scripts/Makefile
-  src/Makefile
-  src/boundary/Makefile
-  src/boundary/cf_interface/Makefile
-  src/boundary/cf_interface/fortran/Makefile
-  src/boundary/physical_boundary/Makefile
-  src/boundary/physical_boundary/fortran/Makefile
-  src/coarsen_ops/Makefile
-  src/coarsen_ops/fortran/Makefile
-  src/fortran/Makefile
-  src/lagrangian/Makefile
-  src/lagrangian/fortran/Makefile
-  src/math/Makefile
-  src/math/fortran/Makefile
-  src/refine_ops/Makefile
-  src/refine_ops/fortran/Makefile
-  src/solvers/Makefile
-  src/solvers/impls/Makefile
-  src/solvers/impls/fortran/Makefile
-  src/solvers/interfaces/Makefile
-  src/solvers/wrappers/Makefile
-  src/utilities/Makefile
-  contrib/Makefile
+Makefile
+examples/Makefile
+examples/CCLaplace/Makefile
+examples/CCPoisson/Makefile
+examples/PETScOps/Makefile
+examples/PETScOps/ProlongationMat/Makefile
+examples/PhysBdryOps/Makefile
+examples/SCLaplace/Makefile
+examples/SCPoisson/Makefile
+examples/VCLaplace/Makefile
+examples/VCViscousSolver/Makefile
+lib/Makefile
+scripts/Makefile
+src/Makefile
+src/boundary/Makefile
+src/boundary/cf_interface/Makefile
+src/boundary/cf_interface/fortran/Makefile
+src/boundary/physical_boundary/Makefile
+src/boundary/physical_boundary/fortran/Makefile
+src/coarsen_ops/Makefile
+src/coarsen_ops/fortran/Makefile
+src/fortran/Makefile
+src/lagrangian/Makefile
+src/lagrangian/fortran/Makefile
+src/math/Makefile
+src/math/fortran/Makefile
+src/refine_ops/Makefile
+src/refine_ops/fortran/Makefile
+src/solvers/Makefile
+src/solvers/impls/Makefile
+src/solvers/impls/fortran/Makefile
+src/solvers/interfaces/Makefile
+src/solvers/wrappers/Makefile
+src/utilities/Makefile
+contrib/Makefile
+contrib/muparser/Makefile
+contrib/muparser/src/Makefile
 ])
-if test "$USING_BUNDLED_MUPARSER" = yes ; then
-  AC_CONFIG_SUBDIRS([contrib/muparser])
-fi
+
 AC_OUTPUT

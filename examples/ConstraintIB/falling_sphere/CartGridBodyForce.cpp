@@ -13,8 +13,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -27,7 +27,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include "CartGridBodyForce.h"
 
@@ -35,15 +35,16 @@
 
 #include <IBTK_config.h>
 
-#include <SAMRAI_config.h>
+#include "ibamr/namespaces.h"
 
 #include "CellData.h"
 #include "CellVariable.h"
 #include "SideData.h"
 #include "SideVariable.h"
 #include "VariableDatabase.h"
-#include "ibamr/namespaces.h"
 #include "tbox/Utilities.h"
+
+#include <SAMRAI_config.h>
 
 namespace IBTK
 {
@@ -103,8 +104,7 @@ CartGridBodyForce::setDataOnPatch(const int data_idx,
     else
     {
         TBOX_ERROR("CartGridBodyForce::setDataOnPatch() "
-                   << "UNKNOWN DATA TYPE ENCOUNTERED"
-                   << std::endl);
+                   << "UNKNOWN DATA TYPE ENCOUNTERED" << std::endl);
     }
 
     return;

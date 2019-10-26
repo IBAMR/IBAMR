@@ -35,15 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/IBLagrangianForceStrategy.h"
+#include "ibamr/IBSpringForceFunctions.h"
+
+#include "ibtk/ibtk_utilities.h"
+
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
+#include "petscmat.h"
+
 #include <map>
 #include <set>
 #include <vector>
-
-#include "ibamr/IBLagrangianForceStrategy.h"
-#include "ibamr/IBSpringForceFunctions.h"
-#include "ibtk/ibtk_utilities.h"
-#include "petscmat.h"
-#include "tbox/Pointer.h"
 
 namespace IBTK
 {
@@ -217,7 +221,7 @@ private:
     struct TargetPointData
     {
         std::vector<int> petsc_node_idxs, petsc_global_node_idxs;
-        std::vector<const double *> kappa, eta;
+        std::vector<const double*> kappa, eta;
         std::vector<const IBTK::Point*> X0;
     };
     std::vector<TargetPointData> d_target_point_data;

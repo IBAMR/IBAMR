@@ -32,10 +32,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
-#include <iosfwd>
-#include <ostream>
-#include <string>
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/StaggeredStokesOpenBoundaryStabilizer.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "Box.h"
 #include "BoxArray.h"
@@ -49,15 +52,14 @@
 #include "SideIndex.h"
 #include "Variable.h"
 #include "VariableContext.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/StaggeredStokesOpenBoundaryStabilizer.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <cmath>
+#include <iosfwd>
+#include <ostream>
+#include <string>
 
 namespace SAMRAI
 {
@@ -81,7 +83,7 @@ smooth_kernel(const double r)
 {
     return std::abs(r) < 1.0 ? 0.5 * (std::cos(M_PI * r) + 1.0) : 0.0;
 } // smooth_kernel
-}
+} // namespace
 
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -123,9 +125,7 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
                     TBOX_ERROR(
                         "StaggeredStokesOpenBoundaryStabilizer::"
                         "StaggeredStokesOpenBoundaryStabilizer():\n"
-                        << "  unsupported stabilization type: ``"
-                        << stabilization_type
-                        << "''\n"
+                        << "  unsupported stabilization type: ``" << stabilization_type << "''\n"
                         << "  supported values are: ``INFLOW'', ``OUTFLOW'', or ``NONE''\n");
                 }
             }

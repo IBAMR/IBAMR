@@ -32,10 +32,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/ExtendedRobinBcCoefStrategy.h"
+#include "ibtk/FACPreconditionerStrategy.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/PoissonFACPreconditionerStrategy.h"
+#include "ibtk/RefinePatchStrategySet.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "CartesianGridGeometry.h"
 #include "CoarsenAlgorithm.h"
@@ -59,21 +65,16 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "ibtk/ExtendedRobinBcCoefStrategy.h"
-#include "ibtk/FACPreconditionerStrategy.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/PoissonFACPreconditionerStrategy.h"
-#include "ibtk/RefinePatchStrategySet.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -89,7 +90,7 @@ static Timer* t_prolong_error;
 static Timer* t_prolong_error_and_correct;
 static Timer* t_initialize_operator_state;
 static Timer* t_deallocate_operator_state;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -102,7 +103,7 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(std::string o
       d_poisson_spec(d_object_name + "::poisson_spec"),
       d_default_bc_coef(
           new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_bc_coef", Pointer<Database>(nullptr))),
-      d_bc_coefs(1, d_default_bc_coef),
+      d_bc_coefs(1, d_default_bc_coef.get()),
       d_gcw(ghost_cell_width),
       d_coarse_solver_default_options_prefix(default_options_prefix + "_coarse")
 {
@@ -112,9 +113,9 @@ PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(std::string o
 
     // Setup a default boundary condition object that specifies homogeneous
     // Dirichlet boundary conditions.
+    auto p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef.get());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefs<NDIM>*>(d_default_bc_coef);
         p_default_bc_coef->setBoundaryValue(2 * d, 0.0);
         p_default_bc_coef->setBoundaryValue(2 * d + 1, 0.0);
     }
@@ -172,11 +173,8 @@ PoissonFACPreconditionerStrategy::~PoissonFACPreconditionerStrategy()
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::~PoissonFACPreconditionerStrategy()\n"
-                                 << "  subclass must call deallocateOperatorState in subclass destructor"
-                                 << std::endl);
+                                 << "  subclass must call deallocateOperatorState in subclass destructor" << std::endl);
     }
-    delete d_default_bc_coef;
-    d_default_bc_coef = nullptr;
     return;
 } // ~PoissonFACPreconditionerStrategy
 
@@ -206,7 +204,7 @@ PoissonFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<RobinBcCo
         }
         else
         {
-            d_bc_coefs[l] = d_default_bc_coef;
+            d_bc_coefs[l] = d_default_bc_coef.get();
         }
     }
     return;
@@ -253,8 +251,7 @@ PoissonFACPreconditionerStrategy::setProlongationMethod(const std::string& prolo
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setProlongationMethod()\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
     d_prolongation_method = prolongation_method;
     return;
@@ -266,8 +263,7 @@ PoissonFACPreconditionerStrategy::setRestrictionMethod(const std::string& restri
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setRestrictionMethod()\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
     d_restriction_method = restriction_method;
     return;

@@ -35,8 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <functional>
-#include <vector>
+#include "ibtk/ibtk_utilities.h"
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
@@ -44,6 +43,9 @@
 #include "CellIndex.h"
 #include "Index.h"
 #include "IntVector.h"
+
+#include <functional>
+#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -56,14 +58,12 @@ struct IndexOrder
     {
         return (lhs(0) < rhs(0)
 #if (NDIM > 1)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+                || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
 #if (NDIM > 2)
-                ||
-                (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+                || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
-                    );
+        );
     }
 };
 
@@ -143,6 +143,16 @@ public:
                  const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
+     * \return The spatial coordinate of the given side center.
+     *
+     * @param patch The patch on which the cell lives.
+     *
+     * @param side_idx The SideIndex describing the current side.
+     */
+    static IBTK::VectorNd getSideCenter(const SAMRAI::hier::Patch<NDIM>& patch,
+                                        const SAMRAI::pdat::SideIndex<NDIM>& side_idx);
+
+    /*!
      * \brief Map (i,j,k,d) index for a DOF defined for a SAMRAI variable
      * on a particular patch level to a positive integer. Such a mapping can
      * be useful for creating an application ordering (AO) between SAMRAI and
@@ -197,6 +207,7 @@ public:
                                                            const SAMRAI::hier::Box<NDIM>& patch_box,
                                                            const SAMRAI::hier::IntVector<NDIM>& box_size,
                                                            const SAMRAI::hier::IntVector<NDIM>& overlap_size);
+
 private:
     /*!
      * \brief Default constructor.

@@ -32,13 +32,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
-
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -53,19 +46,30 @@
 #include "ibtk/PETScSNESJacobianJOWrapper.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "mpi.h"
-#include "petscerror.h"
-#include "petscksp.h"
-#include "petscmat.h"
-#include "petscsnes.h"
-#include "petscsys.h"
-#include "petscvec.h"
+
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
+#include "PatchHierarchy.h"
+#include "SAMRAIVectorReal.h"
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include "petscerror.h"
+#include "petscksp.h"
+#include "petscmat.h"
+#include "petscsnes.h"
+#include "petscsys.h"
+#include "petscvec.h"
+#include "petscversion.h"
+
+#include <mpi.h>
+
+#include <ostream>
+#include <string>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -79,7 +83,7 @@ namespace
 static Timer* t_solve_system;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -269,44 +273,38 @@ PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, doub
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have the same number of components"
-                                 << std::endl);
+                                 << "  vectors must have the same number of components" << std::endl);
     }
 
     const Pointer<PatchHierarchy<NDIM> >& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have the same hierarchy"
-                                 << std::endl);
+                                 << "  vectors must have the same hierarchy" << std::endl);
     }
 
     const int coarsest_ln = x.getCoarsestLevelNumber();
     if (coarsest_ln < 0)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  coarsest level number must not be negative"
-                                 << std::endl);
+                                 << "  coarsest level number must not be negative" << std::endl);
     }
     if (coarsest_ln != b.getCoarsestLevelNumber())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have same coarsest level number"
-                                 << std::endl);
+                                 << "  vectors must have same coarsest level number" << std::endl);
     }
 
     const int finest_ln = x.getFinestLevelNumber();
     if (finest_ln < coarsest_ln)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  finest level number must be >= coarsest level number"
-                                 << std::endl);
+                                 << "  finest level number must be >= coarsest level number" << std::endl);
     }
     if (finest_ln != b.getFinestLevelNumber())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have same finest level number"
-                                 << std::endl);
+                                 << "  vectors must have same finest level number" << std::endl);
     }
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -314,10 +312,7 @@ PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, doub
         if (!patch_hierarchy->getPatchLevel(ln))
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                     << "  hierarchy level "
-                                     << ln
-                                     << " does not exist"
-                                     << std::endl);
+                                     << "  hierarchy level " << ln << " does not exist" << std::endl);
         }
     }
 #endif
@@ -479,12 +474,13 @@ PETScNewtonKrylovSolver::reportSNESConvergedReason(const SNESConvergedReason& re
     case SNES_CONVERGED_ITS:
         os << d_object_name << ": converged: maximum number of iterations reached.\n";
         break;
+#if PETSC_VERSION_LT(3, 12, 0)
     case SNES_CONVERGED_TR_DELTA:
         os << d_object_name << ": converged: trust-region delta.\n";
         break;
+#endif
     case SNES_DIVERGED_FUNCTION_DOMAIN:
-        os << d_object_name << ": diverged: new x location passed to the function is not in "
-                               "the function domain.\n";
+        os << d_object_name << ": diverged: new x location passed to the function is not in the function domain.\n";
         break;
     case SNES_DIVERGED_FUNCTION_COUNT:
         os << d_object_name << ": diverged: exceeded maximum number of function evaluations.\n";
@@ -507,6 +503,11 @@ PETScNewtonKrylovSolver::reportSNESConvergedReason(const SNESConvergedReason& re
     case SNES_DIVERGED_LOCAL_MIN:
         os << d_object_name << ": diverged: attained non-zero local minimum.\n";
         break;
+#if PETSC_VERSION_GE(3, 12, 0)
+    case SNES_DIVERGED_TR_DELTA:
+        os << d_object_name << ": diverged: trust-region delta.\n";
+        break;
+#endif
     case SNES_CONVERGED_ITERATING:
         os << d_object_name << ": iterating.\n";
         break;

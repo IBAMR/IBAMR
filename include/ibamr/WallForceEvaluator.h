@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/IBLagrangianForceStrategy.h"
+#include "ibamr/Wall.h"
+
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LNodeSetData.h"
-#include "ibamr/IBLagrangianForceStrategy.h"
-#include "ibamr/Wall.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

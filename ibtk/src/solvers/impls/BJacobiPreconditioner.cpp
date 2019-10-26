@@ -32,23 +32,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
 #include "ibtk/BJacobiPreconditioner.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
+#include "PatchHierarchy.h"
+#include "SAMRAIVectorReal.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -126,14 +127,13 @@ BJacobiPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVect
     {
         // Setup a SAMRAIVectorReal to correspond to the individual vector
         // component.
-        std::ostringstream str;
-        str << comp;
-
-        SAMRAIVectorReal<NDIM, double> x_comp(x_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
+        SAMRAIVectorReal<NDIM, double> x_comp(
+            x_name + "_component_" + std::to_string(comp), hierarchy, coarsest_ln, finest_ln);
         x_comp.addComponent(
             x.getComponentVariable(comp), x.getComponentDescriptorIndex(comp), x.getControlVolumeIndex(comp));
 
-        SAMRAIVectorReal<NDIM, double> b_comp(b_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
+        SAMRAIVectorReal<NDIM, double> b_comp(
+            b_name + "_component_" + std::to_string(comp), hierarchy, coarsest_ln, finest_ln);
         b_comp.addComponent(
             b.getComponentVariable(comp), b.getComponentDescriptorIndex(comp), b.getControlVolumeIndex(comp));
 
@@ -210,8 +210,7 @@ BJacobiPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
     if (initial_guess_nonzero)
     {
         TBOX_ERROR("BJacobiPreconditioner::setInitialGuessNonzero()\n"
-                   << "  class IBTK::BJacobiPreconditioner requires a zero initial guess"
-                   << std::endl);
+                   << "  class IBTK::BJacobiPreconditioner requires a zero initial guess" << std::endl);
     }
     d_initial_guess_nonzero = initial_guess_nonzero;
     return;
@@ -223,8 +222,7 @@ BJacobiPreconditioner::setMaxIterations(int max_iterations)
     if (max_iterations > 1)
     {
         TBOX_ERROR("BJacobiPreconditioner::setMaxIterations()\n"
-                   << "  class IBTK::BJacobiPreconditioner requires max_iterations == 1"
-                   << std::endl);
+                   << "  class IBTK::BJacobiPreconditioner requires max_iterations == 1" << std::endl);
     }
     d_max_iterations = max_iterations;
     return;

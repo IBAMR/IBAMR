@@ -35,24 +35,30 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <fstream>
-#include <string>
-#include <vector>
-
-#include "Eigen/Dense"
-#include "LocationIndexRobinBcCoefs.h"
-#include "PoissonSpecifications.h"
-#include "VariableContext.h"
 #include "ibamr/ConstraintIBKinematics.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBMethod.h"
+
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/FACPreconditioner.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/PETScKrylovPoissonSolver.h"
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include "LocationIndexRobinBcCoefs.h"
+#include "PoissonSpecifications.h"
+#include "VariableContext.h"
 #include "tbox/Pointer.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "Eigen/Dense"
+IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <fstream>
+#include <string>
+#include <vector>
 
 namespace IBAMR
 {
@@ -213,7 +219,7 @@ public:
     inline void setVolumeElement(std::vector<double> vol_element)
     {
 #if !defined(NDEBUG)
-        TBOX_ASSERT(vol_element.size() == ((size_t) d_no_structures)) ;
+        TBOX_ASSERT(vol_element.size() == ((size_t)d_no_structures));
 #endif
         d_vol_element = vol_element;
         d_vol_element_is_set = std::vector<bool>(d_no_structures, true);
@@ -588,7 +594,7 @@ private:
      * introduced via FuRMoRP algorithm.
      */
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_velcorrection_projection_bc_coef;
-    SAMRAI::solv::PoissonSpecifications* d_velcorrection_projection_spec;
+    std::unique_ptr<SAMRAI::solv::PoissonSpecifications> d_velcorrection_projection_spec;
     SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> d_velcorrection_projection_op;
     SAMRAI::tbox::Pointer<IBTK::PETScKrylovPoissonSolver> d_velcorrection_projection_solver;
     SAMRAI::tbox::Pointer<IBTK::CCPoissonPointRelaxationFACOperator> d_velcorrection_projection_fac_op;
@@ -598,8 +604,8 @@ private:
     /*!
      * File streams associated for the output.
      */
-    std::vector<std::ofstream *> d_trans_vel_stream, d_rot_vel_stream, d_drag_force_stream, d_moment_of_inertia_stream,
-        d_torque_stream, d_position_COM_stream, d_power_spent_stream;
+    std::vector<std::unique_ptr<std::ofstream> > d_trans_vel_stream, d_rot_vel_stream, d_drag_force_stream,
+        d_moment_of_inertia_stream, d_torque_stream, d_position_COM_stream, d_power_spent_stream;
 
     /*!
      * Stream for calculating Eulerian momentum.
@@ -608,10 +614,12 @@ private:
 
     /*!
      * Pre and post fluid solve call back functions and contexts.
+     *
+     * TODO: Update these to use std::function.
      */
-    std::vector<void (*)(const double, const double, const int, void *)> d_prefluidsolve_callback_fns,
+    std::vector<void (*)(const double, const double, const int, void*)> d_prefluidsolve_callback_fns,
         d_postfluidsolve_callback_fns;
-    std::vector<void *> d_prefluidsolve_callback_fns_ctx, d_postfluidsolve_callback_fns_ctx;
+    std::vector<void*> d_prefluidsolve_callback_fns_ctx, d_postfluidsolve_callback_fns_ctx;
 
     // Velocity boundary operator.
     IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op = nullptr;

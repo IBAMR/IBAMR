@@ -1,0 +1,25 @@
+
+size of MPI type = 8
+sizeof(double) = 8
+
+size of MPI type = 4
+sizeof(int) = 4
+
+size of MPI type = 4
+sizeof(float) = 4
+
+size of MPI type = 1
+sizeof(char) = 1
+
+size of MPI type = 8
+sizeof(std::pair<float, int>) = 8
+sizeof(struct {float a; int b;}) = 8
+
+size of MPI type = 12
+sizeof(std::pair<double, int>) = 16
+sizeof(struct {double a; int b;}) = 16
+
+size of MPI type = 8
+sizeof(std::pair<int, int>) = 8
+sizeof(struct {int a; int b;}) = 8
+OK

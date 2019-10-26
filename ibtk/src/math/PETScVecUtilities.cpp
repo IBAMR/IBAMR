@@ -32,12 +32,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <algorithm>
-#include <numeric>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/PETScVecUtilities.h"
+#include "ibtk/SideSynchCopyFillPattern.h"
+#include "ibtk/compiler_hints.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "BoxList.h"
@@ -60,17 +60,19 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/PETScVecUtilities.h"
-#include "ibtk/SideSynchCopyFillPattern.h"
-#include "ibtk/compiler_hints.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "ibtk/IndexUtilities.h"
-#include "petscsys.h"
-#include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include <algorithm>
+#include <array>
+#include <numeric>
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -123,9 +125,7 @@ PETScVecUtilities::copyToPatchLevelVec(Vec& vec,
     else
     {
         TBOX_ERROR("PETScVecUtilities::copyToPatchLevelVec():\n"
-                   << "  unsupported data centering type for variable "
-                   << data_var->getName()
-                   << "\n");
+                   << "  unsupported data centering type for variable " << data_var->getName() << "\n");
     }
     return;
 } // copyToPatchLevelVec
@@ -175,9 +175,7 @@ PETScVecUtilities::copyFromPatchLevelVec(Vec& vec,
     else
     {
         TBOX_ERROR("PETScVecUtilities::copyFromPatchLevelVec():\n"
-                   << "  unsupported data centering type for variable "
-                   << data_var->getName()
-                   << "\n");
+                   << "  unsupported data centering type for variable " << data_var->getName() << "\n");
     }
     if (ghost_fill_sched)
     {
@@ -216,9 +214,7 @@ PETScVecUtilities::constructDataSynchSchedule(const int data_idx, Pointer<PatchL
     else
     {
         TBOX_ERROR("PETScVecUtilities::constructDataSynchSchedule():\n"
-                   << "  unsupported data centering type for variable "
-                   << data_var->getName()
-                   << "\n");
+                   << "  unsupported data centering type for variable " << data_var->getName() << "\n");
     }
     return data_synch_sched;
 } // constructDataSynchSchedule
@@ -252,9 +248,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices(std::vector<int>& num_dofs_per_
     else
     {
         TBOX_ERROR("PETScVecUtilities::constructPatchLevelDOFIndices():\n"
-                   << "  unsupported data centering type for variable "
-                   << dof_index_var->getName()
-                   << "\n");
+                   << "  unsupported data centering type for variable " << dof_index_var->getName() << "\n");
     }
     return;
 } // constructPatchLevelDOFIndices
@@ -282,9 +276,7 @@ PETScVecUtilities::constructPatchLevelAO(AO& ao,
     else
     {
         TBOX_ERROR("PETScVecUtilities::constructPatchLevelAO():\n"
-                   << "  unsupported data centering type for variable "
-                   << dof_index_var->getName()
-                   << "\n");
+                   << "  unsupported data centering type for variable " << dof_index_var->getName() << "\n");
     }
 
 } // constructPatchLevelAO

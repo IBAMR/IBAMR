@@ -35,15 +35,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <unistd.h>
-#include <vector>
-
 #include "ibamr/IBRodForceSpec.h"
-#include "petscmat.h"
+
 #include "tbox/Database.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include "petscmat.h"
+
+#include <unistd.h>
+
+#include <array>
+#include <vector>
 
 namespace IBTK
 {

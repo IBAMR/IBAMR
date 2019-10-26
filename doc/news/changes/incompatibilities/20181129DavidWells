@@ -1,4 +1,0 @@
-Changed: IBAMR now requires that libMesh be built in such a way that
-<code>libMesh::UniquePtr</code> is the same class as
-<code>std::unique_ptr</code>.
-(David Wells, 2018/11/29)

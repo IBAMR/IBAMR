@@ -75,7 +75,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp \
 ../src/refine_ops/CartCellDoubleQuadraticRefine.cpp \
 ../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp \
-../src/refine_ops/CartSideDoubleSpecializedConstantRefine.cpp \
+../src/refine_ops/CartSideDoubleRT0Refine.cpp \
 ../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp \
 ../src/refine_ops/LMarkerRefine.cpp \
 ../src/solvers/impls/BGaussSeidelPreconditioner.cpp \
@@ -135,6 +135,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/utilities/FaceSynchCopyFillPattern.cpp \
 ../src/utilities/FixedSizedStream.cpp \
 ../src/utilities/HierarchyIntegrator.cpp \
+../src/utilities/IBTK_MPI.cpp \
 ../src/utilities/IndexUtilities.cpp \
 ../src/utilities/LMarkerUtilities.cpp \
 ../src/utilities/NodeDataSynchronization.cpp \
@@ -145,6 +146,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/utilities/ParallelSet.cpp \
 ../src/utilities/PartitioningBox.cpp \
 ../src/utilities/RefinePatchStrategySet.cpp \
+../src/utilities/SAMRAIDataCache.cpp \
 ../src/utilities/SideDataSynchronization.cpp \
 ../src/utilities/SideNoCornersFillPattern.cpp \
 ../src/utilities/SideSynchCopyFillPattern.cpp \
@@ -159,6 +161,19 @@ DIM_INDEPENDENT_SOURCES += \
 ../src/lagrangian/FEDataInterpolation.cpp \
 ../src/lagrangian/FEDataManager.cpp \
 ../src/utilities/libmesh_utilities.cpp
+endif
+
+if USING_BUNDLED_MUPARSER
+DIM_INDEPENDENT_SOURCES += \
+../contrib/muparser/src/muParserDLL.cpp \
+../contrib/muparser/src/muParserTokenReader.cpp \
+../contrib/muparser/src/muParserError.cpp \
+../contrib/muparser/src/muParserCallback.cpp \
+../contrib/muparser/src/muParserBytecode.cpp \
+../contrib/muparser/src/muParserBase.cpp \
+../contrib/muparser/src/muParserInt.cpp \
+../contrib/muparser/src/muParserTest.cpp \
+../contrib/muparser/src/muParser.cpp
 endif
 
 pkg_include_HEADERS += \
@@ -185,7 +200,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/CartSideDoubleDivPreservingRefine.h \
 ../include/ibtk/CartSideDoubleQuadraticCFInterpolation.h \
 ../include/ibtk/CartSideDoubleRT0Coarsen.h \
-../include/ibtk/CartSideDoubleSpecializedConstantRefine.h \
+../include/ibtk/CartSideDoubleRT0Refine.h \
 ../include/ibtk/CartSideDoubleSpecializedLinearRefine.h \
 ../include/ibtk/CartSideRobinPhysBdryOp.h \
 ../include/ibtk/CellNoCornersFillPattern.h \
@@ -207,6 +222,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/HierarchyGhostCellInterpolation.h \
 ../include/ibtk/HierarchyIntegrator.h \
 ../include/ibtk/HierarchyMathOps.h \
+../include/ibtk/IBTK_MPI.h \
 ../include/ibtk/IndexUtilities.h \
 ../include/ibtk/JacobianOperator.h \
 ../include/ibtk/KrylovLinearSolver.h \
@@ -283,6 +299,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/PoissonUtilities.h \
 ../include/ibtk/RefinePatchStrategySet.h \
 ../include/ibtk/RobinPhysBdryPatchStrategy.h \
+../include/ibtk/SAMRAIDataCache.h \
 ../include/ibtk/SCLaplaceOperator.h \
 ../include/ibtk/SCPoissonHypreLevelSolver.h \
 ../include/ibtk/SCPoissonPETScLevelSolver.h \

@@ -32,12 +32,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <deque>
-#include <map>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h"
+#include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
+#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/LaplaceOperator.h"
+#include "ibtk/PoissonSolver.h"
 
 #include "BaseGriddingAlgorithm.h"
 #include "BasePatchHierarchy.h"
@@ -67,18 +74,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h"
-#include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
-#include "ibamr/AdvectorExplicitPredictorPatchOps.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/LaplaceOperator.h"
-#include "ibtk/PoissonSolver.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/NullDatabase.h"
@@ -86,6 +81,13 @@
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <deque>
+#include <map>
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -115,7 +117,7 @@ namespace
 {
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -124,8 +126,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchy
     Pointer<Database> input_db,
     Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
     bool register_for_restart)
-    : AdvDiffHierarchyIntegrator(object_name, input_db, register_for_restart),
-      d_explicit_predictor(explicit_predictor)
+    : AdvDiffHierarchyIntegrator(object_name, input_db, register_for_restart), d_explicit_predictor(explicit_predictor)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!object_name.empty());
@@ -160,8 +161,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchy
     default:
         TBOX_ERROR(d_object_name << "::AdvDiffPredictorCorrectorHierarchyIntegrator():\n"
                                  << "  unsupported default diffusion time stepping type: "
-                                 << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type)
-                                 << " \n"
+                                 << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type) << " \n"
                                  << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
     return;
@@ -316,12 +316,11 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
     const int expected_num_cycles = getNumberOfCycles();
     if (d_current_num_cycles != expected_num_cycles)
     {
-        IBAMR_DO_ONCE(
-            {
-                pout << "AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy():\n"
-                     << "  WARNING: num_cycles = " << d_current_num_cycles
-                     << " but expected num_cycles = " << expected_num_cycles << ".\n";
-            });
+        IBAMR_DO_ONCE({
+            pout << "AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy():\n"
+                 << "  WARNING: num_cycles = " << d_current_num_cycles
+                 << " but expected num_cycles = " << expected_num_cycles << ".\n";
+        });
     }
 
     // Reset time-dependent data when necessary.
@@ -528,8 +527,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
         default:
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                                      << "  unsupported diffusion time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type)
-                                     << " \n"
+                                     << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
                                      << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
         }
         PoissonSpecifications solver_spec(d_object_name + "::solver_spec::" + Q_var->getName());
@@ -594,7 +592,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
         // Solve for Q(n+1).
         helmholtz_solver->solveSystem(*d_sol_vecs[l], *d_rhs_vecs[l]);
         d_hier_cc_data_ops->copyData(Q_new_idx, Q_scratch_idx);
-        if (d_enable_logging)
+        if (d_enable_logging && d_enable_logging_solver_iterations)
             plog << d_object_name << "::integrateHierarchy(): linear solve number of iterations = "
                  << helmholtz_solver->getNumIterations() << "\n";
         if (d_enable_logging)

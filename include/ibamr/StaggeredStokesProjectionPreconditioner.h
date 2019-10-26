@@ -35,15 +35,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
-#include "CellVariable.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/StaggeredStokesSolver.h"
+
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include "CellVariable.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <string>
 
 namespace SAMRAI
 {
@@ -100,7 +102,8 @@ public:
     /*!
      * \brief Compute the action of the preconditioner.
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.

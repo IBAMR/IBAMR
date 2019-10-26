@@ -35,10 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "boost/multi_array.hpp"
 #include "ibtk/FEDataManager.h"
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/libmesh_utilities.h"
+
 #include "libmesh/equation_systems.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "boost/multi_array.hpp"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -53,12 +58,12 @@ class FEDataInterpolation
 public:
     FEDataInterpolation(unsigned int dim, FEDataManager* const fe_data_manager);
 
-    ~FEDataInterpolation();
+    ~FEDataInterpolation() = default;
 
     inline void attachQuadratureRule(libMesh::QBase* qrule)
     {
         d_qrule = qrule;
-        for (auto fe : d_fe)
+        for (auto& fe : d_fe)
         {
             if (fe)
             {
@@ -71,7 +76,7 @@ public:
     inline void attachQuadratureRuleFace(libMesh::QBase* qrule_face)
     {
         d_qrule_face = qrule_face;
-        for (auto fe_face : d_fe_face)
+        for (auto& fe_face : d_fe_face)
         {
             if (fe_face)
             {
@@ -347,10 +352,10 @@ private:
 
     // Data associated with FETypes.
     std::vector<libMesh::FEType> d_fe_types;
-    std::vector<SAMRAI::tbox::Pointer<libMesh::FEBase> > d_fe, d_fe_face;
+    std::vector<std::unique_ptr<libMesh::FEBase> > d_fe, d_fe_face;
     std::vector<bool> d_eval_phi, d_eval_dphi;
-    std::vector<const std::vector<std::vector<double> > *> d_phi, d_phi_face;
-    std::vector<const std::vector<std::vector<libMesh::VectorValue<double> > > *> d_dphi, d_dphi_face;
+    std::vector<const std::vector<std::vector<double> >*> d_phi, d_phi_face;
+    std::vector<const std::vector<std::vector<libMesh::VectorValue<double> > >*> d_dphi, d_dphi_face;
 
     // Data associated with the current element.
     const libMesh::Elem* d_current_elem = nullptr;

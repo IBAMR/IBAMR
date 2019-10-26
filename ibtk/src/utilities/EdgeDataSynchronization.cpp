@@ -32,9 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibtk/EdgeDataSynchronization.h"
+#include "ibtk/EdgeSynchCopyFillPattern.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "CartesianGridGeometry.h"
 #include "CoarsenAlgorithm.h"
@@ -50,11 +50,12 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "ibtk/EdgeDataSynchronization.h"
-#include "ibtk/EdgeSynchCopyFillPattern.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -155,8 +156,7 @@ EdgeDataSynchronization::initializeOperatorState(
             if (!ec_var)
             {
                 TBOX_ERROR("EdgeDataSynchronization::initializeOperatorState():\n"
-                           << "  only double-precision edge-centered data is supported."
-                           << std::endl);
+                           << "  only double-precision edge-centered data is supported." << std::endl);
             }
             Pointer<RefineOperator<NDIM> > refine_op = nullptr;
             Pointer<VariableFillPattern<NDIM> > fill_pattern = new EdgeSynchCopyFillPattern(axis);
@@ -260,8 +260,7 @@ EdgeDataSynchronization::resetTransactionComponents(
             if (!ec_var)
             {
                 TBOX_ERROR("EdgeDataSynchronization::resetTransactionComponents():\n"
-                           << "  only double-precision edge-centered data is supported."
-                           << std::endl);
+                           << "  only double-precision edge-centered data is supported." << std::endl);
             }
             Pointer<RefineOperator<NDIM> > refine_op = nullptr;
             Pointer<VariableFillPattern<NDIM> > fill_pattern = new EdgeSynchCopyFillPattern(axis);

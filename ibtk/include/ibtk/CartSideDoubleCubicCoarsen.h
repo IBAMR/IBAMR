@@ -35,13 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
 #include "Box.h"
 #include "CartesianSideDoubleWeightedAverage.h"
 #include "CoarsenOperator.h"
 #include "IntVector.h"
 #include "tbox/Pointer.h"
+
+#include <string>
 
 namespace SAMRAI
 {

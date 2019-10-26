@@ -69,22 +69,9 @@ AC_DEFINE_UNQUOTED(VERSION_MINOR, $ibamr_version_minor, [Minor version of IBAMR.
 AC_DEFINE_UNQUOTED(VERSION_SUBMINOR, $ibamr_version_subminor, [Subminor version of IBAMR.])
 
 dnl We have to use a funny name for the key to guarantee that it comes after
-dnl IBAMR_VERSION_SUBMINOR.
-dnl
-dnl TODO: Our code ignores backslashes when placing ifdef/endif guards around
-dnl individual macros: i.e., autoheader writes
-dnl     #define IBAMR_VERSION_GTE(...) ... \
-dnl     #endif
-dnl     ..... \
-dnl     .....
-dnl
-dnl which doesn't make any sense. Get around this by just putting everything on
-dnl one line. It is probably possible to fix this by editing
-dnl m4/ax_prefix_config_h.m4, circa line 173.
-AH_VERBATIM(VERSION_T_CHECK, [/* Version check macro. */
-#define VERSION_GTE(major, minor, subminor) ((IBAMR_VERSION_MAJOR*10000 + IBAMR_VERSION_MINOR*100 + IBAMR_VERSION_SUBMINOR) >= (major)*10000 + (minor)*100 + (subminor))])
-
-
+dnl all constant definitions.
+AH_VERBATIM(Z_INCLUDE_MACRO_HEADER, [/* Define IBAMR-specific macros. */
+#include <ibamr/ibamr_macros.h>])
 
 ###########################################################################
 # Checks for optional and required third-party libraries.
@@ -98,19 +85,44 @@ AC_MSG_NOTICE([first check for a system Boost library; if not found, revert to b
 BOOST_REQUIRE([1.57.0],[
   AC_MSG_WARN([could not find system Boost library, using bundled Boost library])
   USING_BUNDLED_BOOST=yes])
-CONFIGURE_BOOST("$ABSOLUTE_SRCDIR/ibtk/contrib/boost","\$(abs_top_builddir)/ibtk/contrib/boost")
+
+# Configure libraries that manage other dependencies of IBAMR:
+dnl libMesh must be first since it will override PETSc settings (in the case
+dnl that libMesh uses one version of PETSc and another version of PETSc was
+dnl provided by argument)
 CONFIGURE_LIBMESH
+CONFIGURE_PETSC
+# Configure other libraries that are not themselves dependencies:
+CONFIGURE_BOOST("$ABSOLUTE_SRCDIR/ibtk/contrib/boost","\$(abs_top_builddir)/ibtk/contrib/boost")
 CONFIGURE_EIGEN("$ABSOLUTE_SRCDIR/ibtk/contrib/eigen","\$(abs_top_builddir)/ibtk/contrib/eigen")
+CONFIGURE_GSL
+CONFIGURE_GTEST
 CONFIGURE_HDF5
 CONFIGURE_HYPRE
 CONFIGURE_MUPARSER("$ABSOLUTE_SRCDIR/ibtk/contrib/muparser","\$(abs_top_builddir)/ibtk/contrib/muparser")
-CONFIGURE_PETSC
-CONFIGURE_SAMRAI
+# configure dependencies of dependencies:
 CONFIGURE_SILO
-CONFIGURE_GSL
-CONFIGURE_GTEST
+CONFIGURE_SAMRAI
 PACKAGE_SETUP_ENVIRONMENT
 LIBS="$LIBS $PACKAGE_CONTRIB_LIBS"
+
+# Check that SAMRAI and LIBMESH have mutually compatible debug settings:
+if test "$LIBMESH_ENABLED" = yes; then
+    if test "$SAMRAI_DEBUG_CHECK_ASSERTIONS" = true; then
+        if test "$LIBMESH_METHOD" = dbg || test "$LIBMESH_METHOD" = devel; then
+        : # do nothing
+        else
+            AC_MSG_ERROR([The detected SAMRAI library was compiled with debugging support enabled but the detected libMesh library was not. This incompatibility is not allowed since different debug macros can lead to linkage errors. Please reconfigure IBAMR with either a devel or debug libMesh method.])
+        fi
+        else # SAMRAI is in release mode
+        if test "$LIBMESH_METHOD" = dbg || test "$LIBMESH_METHOD" = devel; then
+            AC_MSG_ERROR([The detected SAMRAI library was compiled without debugging support enabled but the detected libMesh library was. This incompatibility is not allowed since different debug macros can lead to linkage errors. Please reconfigure IBAMR with either an opt, pro, or oprof libMesh method.])
+        fi
+    fi
+fi
+
+AC_SUBST(MPIEXEC)
+AC_SUBST(NUMDIFF)
 
 ###########################################################################
 # Output files.
@@ -225,12 +237,15 @@ AC_CONFIG_FILES([
   src/tools/Makefile
   src/wave_tank/Makefile
   tests/Makefile
-  tests/Stokes/Makefile
-  tests/Stokes/test0/Makefile
-  tests/Stokes-IB/Makefile
-  tests/Stokes-IB/test0/Makefile
-  tests/Stokes-IB/test1/Makefile
-  tests/Stokes-IB/test2/Makefile
+  tests/adv_diff/Makefile
+  tests/advect/Makefile
+  tests/IB/Makefile
+  tests/IBFE/Makefile
+  tests/IBTK/Makefile
+  tests/multiphase_flow/Makefile
+  tests/physical_boundary/Makefile
+  tests/refine/Makefile
+  tests/spread/Makefile
 ])
 AC_CONFIG_SUBDIRS([ibtk])
 AC_OUTPUT

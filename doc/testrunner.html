@@ -1,0 +1,87 @@
+<h1>Using <code>attest</code>, IBAMR's test suite runner</h1>
+
+<h2>Introduction</h2>
+IBAMR includes a test suite consisting of both unit tests (tests of individual
+functionality implemented in IBAMR) and integration tests (tests of codes
+written using IBAMR). These tests range from simply printing some output on an
+8x8 grid to running a three-dimensional problem with MPI. The goal is to
+ultimately implement unit or integration tests for all features in IBAMR.
+
+<h2>Design Goals</h2>
+The goal of the test suite is to design a system that lets IBAMR developers
+easily write unit tests for small pieces of functionality. The tests should be
+compiled by the build system like other example programs. The test runner should
+be completely separate from the build system and should be able to run tests in
+parallel and, when requested, use multiple MPI processes for each test.
+
+<h2>Requirements</h2>
+The test runner, <code>attest</code>, requires Python 3.5 or newer and
+numdiff. The variables <code>MPIEXEC</code> and <code>NUMDIFF</code> must be
+provided to the <code>configure</code> script (they can also be added later to
+the <code>attest.conf</code> file) so that the test runner can run tests that
+use MPI and also compare output against known output files while accounting for
+roundoff errors. This can be done by, e.g., running configure with
+<pre>
+  ./configure \
+  MPIEXEC=$HOME/sfw/mpi/bin/mpiexec \
+  NUMDIFF=/usr/local/numdiff \
+  (additional configuration flags go here)
+</pre>
+where the paths should be replaced by the actual paths to the two executables.
+
+After compiling the library, run <code>make tests</code> to compile all test
+executables. Like other parts of IBAMR, its usually best to run this in
+parallel, e.g., run <code>make -j4 tests</code> if your computer has four cores.
+
+<h2>Files</h2>
+The test suite consists of three components:
+
+<ol>
+  <li>Test executables: these are executables compiled and linked against IBAMR
+  by the build system. They are implemented in nearly the same way as the
+  example programs. All source files for the test executables are located in
+  subdirectories of <code>tests/</code> in the top directory.</li>
+  <li>The test input and output files: IBAMR's test suite assumes that each test
+  corresponds to exactly one pair of input and output files. The file names for
+  the input and output file starts with the name of the required test executable
+  followed by a period, with additional data separated by periods. For example:
+  the test executable <code>interpolate_velocity_01</code> is used in eight
+  tests since there are eight input and eight output files starting
+  with <code>interpolate_velocity_01.<code> (though each has different text
+  after the period). The number of MPI processes is encoded into the test input
+  and output files by writing, e.g., <code>.mpirun=42.</code> in the
+  filename. The build system will create symbolic links to these files inside
+  the build directory.</li>
+  <li>The test runner: this is the python script <code>attest</code> in the
+  top-level directory. The build system creates a symbolic link to this script
+  and generates a configuration file, <code>attest.conf</code>, inside the build
+  directory.
+</ol>
+
+<h2>attest</h2>
+The program that finds and executes tests is the test
+runner: <code>attest</code>. <code>attest</code> is very similar, aside from
+being decoupled from the build system, to <code>ctest</code>, and supports many
+of the same options. All options can be displayed by running <code>./attest
+  --help</code>: a few common options include
+<ol>
+  <li><code>-j,--jobs N<code> Running <code>attest -j4</code> or <code>attest
+  --jobs 4</code> will run four job processes at once. This could be one test
+  with 4 MPI processes, two tests each using two MPI processes, etc.</li>
+  <li><code>-R,--tests-regex TEST_REGEX</code> Running <code>attest -R
+  interp</code> will filter the tests and only run the tests
+  with <code>interp</code> in their names.</li>
+  <li><code>-N,--show-only</code> Running <code>attest -N</code> will disable
+  the actual execution of tests, but will print the names of all tests that
+  would have been run.</li>
+</ol>
+
+Since the build system compiles the executables and links input and output files
+into the build directory, <code>attest</code> simply looks for tests in
+the <code>tests/<code> directory in which it is run. Hence, running
+<pre>
+  make -j8 tests
+  ./attest -j8
+</pre>
+from the top build directory will compile and run the whole test suite while
+using eight processors.

@@ -32,9 +32,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <ostream>
-#include <string>
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/IBStrategy.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartCellRobinPhysBdryOp.h"
+#include "ibtk/CartExtrapPhysBdryOp.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/CartGridFunctionSet.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/LMarkerSetVariable.h"
+#include "ibtk/LMarkerUtilities.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -58,21 +71,6 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/IBStrategy.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartCellRobinPhysBdryOp.h"
-#include "ibtk/CartExtrapPhysBdryOp.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/CartGridFunctionSet.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/LMarkerSetVariable.h"
-#include "ibtk/LMarkerUtilities.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -80,6 +78,10 @@
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <ostream>
+#include <string>
 
 namespace SAMRAI
 {
@@ -100,7 +102,7 @@ namespace
 {
 // Version of IBHierarchyIntegrator restart file data.
 static const int IB_HIERARCHY_INTEGRATOR_VERSION = 2;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -194,8 +196,7 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
         if (d_error_on_dt_change)
         {
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():  Time step size change encountered.\n"
-                                     << "Aborting."
-                                     << std::endl);
+                                     << "Aborting." << std::endl);
         }
         if (d_warn_on_dt_change)
         {
@@ -436,8 +437,10 @@ IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > h
     return;
 } // initializePatchHierarchy
 
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
 void
-IBHierarchyIntegrator::regridHierarchy()
+IBHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {
     // This must be done here since (if a load balancer is used) it effects
     // the distribution of patches.
@@ -452,11 +455,16 @@ IBHierarchyIntegrator::regridHierarchy()
     // Before regridding, begin Lagrangian data movement.
     if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement\n";
     d_ib_method_ops->beginDataRedistribution(d_hierarchy, d_gridding_alg);
-
-    // Use the INSHierarchyIntegrator to handle Eulerian data management.
     if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): regridding the patch hierarchy\n";
-    d_ins_hier_integrator->regridHierarchy();
 
+    // TODO: Should this be moved into the base class?
+    d_ins_hier_integrator->regridHierarchy();
+    return;
+} // regridHierarchyBeginSpecialized
+
+void
+IBHierarchyIntegrator::regridHierarchyEndSpecialized()
+{
     // After regridding, finish Lagrangian data movement.
     if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement\n";
     d_ib_method_ops->endDataRedistribution(d_hierarchy, d_gridding_alg);
@@ -476,9 +484,7 @@ IBHierarchyIntegrator::regridHierarchy()
     // Reset the regrid CFL estimate.
     d_regrid_cfl_estimate = 0.0;
     return;
-} // regridHierarchy
-
-/////////////////////////////// PROTECTED ////////////////////////////////////
+} // regridHierarchyEndSpecialized
 
 IBHierarchyIntegrator::IBHierarchyIntegrator(const std::string& object_name,
                                              Pointer<Database> input_db,
@@ -681,8 +687,7 @@ IBHierarchyIntegrator::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
     int ver = db->getInteger("IB_HIERARCHY_INTEGRATOR_VERSION");
     if (ver != IB_HIERARCHY_INTEGRATOR_VERSION)

@@ -13,8 +13,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -27,21 +27,22 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef included_KnifeFishKinematics
 #define included_KnifeFishKinematics
 
 ///////////////////////////////////////// INCLUDES //////////////////////////////////////////
 
-#include <map>
-#include <vector>
+#include "ibamr/ConstraintIBKinematics.h"
 
 #include "PatchHierarchy.h"
-#include "ibamr/ConstraintIBKinematics.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <map>
+#include <vector>
 
 namespace IBAMR
 {
@@ -139,8 +140,8 @@ private:
     std::vector<double> d_vec_radius, d_vec_theta, d_vec_coord;
 
     /*!
-    * Name of the object.
-    */
+     * Name of the object.
+     */
     std::string d_body_name;
 
     /*!
@@ -160,6 +161,6 @@ private:
 
 }; // KnifeFishKinematics
 
-} // IBAMR
+} // namespace IBAMR
 
 #endif // included_KnifeFishKinematics

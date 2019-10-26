@@ -13,8 +13,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -27,7 +27,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef included_OscillatingCylinderKinematics
 #define included_OscillatingCylinderKinematics
@@ -136,8 +136,8 @@ private:
     void setOscillatingCylinderSpecificVelocity(const double time);
 
     /*!
-    * New and current kinematics velocity. New shape of the body.
-    */
+     * New and current kinematics velocity. New shape of the body.
+     */
     std::vector<std::vector<std::vector<double> > > d_new_kinematics_vel, d_current_kinematics_vel;
     std::vector<std::vector<double> > d_new_shape;
 
@@ -158,6 +158,6 @@ private:
 
 }; // OscillatingCylinderKinematics
 
-} // IBAMR
+} // namespace IBAMR
 
 #endif // included_OscillatingCylinderKinematics

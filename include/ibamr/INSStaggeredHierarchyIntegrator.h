@@ -35,8 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/SideDataSynchronization.h"
 
 #include "CellVariable.h"
 #include "HierarchyCellDataOpsReal.h"
@@ -46,14 +51,11 @@
 #include "MultiblockDataTranslator.h"
 #include "SAMRAIVectorReal.h"
 #include "SideVariable.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/StaggeredStokesSolverManager.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/SideDataSynchronization.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace IBAMR
 {
@@ -100,7 +102,7 @@ public:
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    INSStaggeredHierarchyIntegrator(const std::string& object_name,
+    INSStaggeredHierarchyIntegrator(std::string object_name,
                                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                     bool register_for_restart = true);
 
@@ -162,8 +164,9 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    void
+    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Initialize the AMR patch hierarchy and data defined on the hierarchy at
@@ -201,11 +204,6 @@ public:
                                        int num_cycles = 1) override;
 
     /*!
-     * Regrid the patch hierarchy.
-     */
-    void regridHierarchy() override;
-
-    /*!
      * Setup solution and RHS vectors using state data maintained by the
      * integrator.
      */
@@ -232,6 +230,34 @@ public:
     void removeNullSpace(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec);
 
 protected:
+    /*!
+     * L1 norm of the discrete divergence of the fluid velocity before regridding.
+     */
+    double d_div_U_norm_1_pre = 0.0;
+
+    /*!
+     * L2 norm of the discrete divergence of the fluid velocity before regridding.
+     */
+    double d_div_U_norm_2_pre = 0.0;
+
+    /*!
+     * L-infinity norm of the discrete divergence of the fluid velocity before regridding.
+     */
+    double d_div_U_norm_oo_pre = 0.0;
+
+    /*!
+     * Prepare the current hierarchy for regridding. Here we calculate the divergence.
+     */
+    void regridHierarchyBeginSpecialized() override;
+
+    /*!
+     * Update the current hierarchy data after regridding. Here we recalculate
+     * the divergence and, if it has grown by a factor more than
+     * d_regrid_max_div_growth_factor, we then project the velocity field onto
+     * a divergence-free set of grid functions.
+     */
+    void regridHierarchyEndSpecialized() override;
+
     /*!
      * Determine the largest stable timestep on an individual patch.
      */
@@ -273,6 +299,11 @@ protected:
      */
     void setupPlotDataSpecialized() override;
 
+    /*!
+     * Project the velocity field following a regridding operation.
+     */
+    void regridProjection() override;
+
 private:
     /*!
      * \brief Default constructor.
@@ -311,11 +342,6 @@ private:
      * Reinitialize the operators and solvers used by the hierarchy integrator.
      */
     void reinitializeOperatorsAndSolvers(double current_time, double new_time);
-
-    /*!
-     * Project the velocity field following a regridding operation.
-     */
-    void regridProjection();
 
     /*!
      * Determine the convective time stepping type for the current time step and
@@ -382,17 +408,21 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_EE_var;
 
+    std::string d_N_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_N_refine_type = "CONSERVATIVE_LINEAR_REFINE";
+
     /*
      * Patch data descriptor indices for all "state" variables managed by the
      * integrator.
      *
      * State variables have three contexts: current, scratch, and new.
      */
-    int d_U_current_idx, d_U_new_idx, d_U_scratch_idx;
-    int d_P_current_idx, d_P_new_idx, d_P_scratch_idx;
-    int d_F_current_idx, d_F_new_idx, d_F_scratch_idx;
-    int d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx;
-    int d_N_old_current_idx, d_N_old_new_idx, d_N_old_scratch_idx;
+    int d_U_current_idx = IBTK::invalid_index, d_U_new_idx = IBTK::invalid_index, d_U_scratch_idx = IBTK::invalid_index;
+    int d_P_current_idx = IBTK::invalid_index, d_P_new_idx = IBTK::invalid_index, d_P_scratch_idx = IBTK::invalid_index;
+    int d_F_current_idx = IBTK::invalid_index, d_F_new_idx = IBTK::invalid_index, d_F_scratch_idx = IBTK::invalid_index;
+    int d_Q_current_idx = IBTK::invalid_index, d_Q_new_idx = IBTK::invalid_index, d_Q_scratch_idx = IBTK::invalid_index;
+    int d_N_old_current_idx = IBTK::invalid_index, d_N_old_new_idx = IBTK::invalid_index,
+        d_N_old_scratch_idx = IBTK::invalid_index;
 
     /*
      * Patch data descriptor indices for all "plot" variables managed by the
@@ -400,7 +430,8 @@ private:
      *
      * Plot variables have one context: current.
      */
-    int d_U_cc_idx, d_F_cc_idx, d_Omega_idx, d_Div_U_idx, d_EE_idx;
+    int d_U_cc_idx = IBTK::invalid_index, d_F_cc_idx = IBTK::invalid_index, d_Omega_idx = IBTK::invalid_index,
+        d_Div_U_idx = IBTK::invalid_index, d_EE_idx = IBTK::invalid_index;
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the
@@ -408,7 +439,36 @@ private:
      *
      * Scratch variables have only one context: scratch.
      */
-    int d_Omega_Norm_idx, d_U_regrid_idx, d_U_src_idx, d_indicator_idx, d_F_div_idx;
+    int d_Omega_Norm_idx = IBTK::invalid_index, d_U_regrid_idx = IBTK::invalid_index, d_U_src_idx = IBTK::invalid_index,
+        d_indicator_idx = IBTK::invalid_index, d_F_div_idx = IBTK::invalid_index;
+
+    /*
+     * Data for tracking mean flow quantities and computing turbulent kinetic energy and Reynolds stresses.
+     */
+    unsigned int d_flow_averaging_interval = 0;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_U_mean_var;
+    std::string d_U_mean_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_U_mean_refine_type = "BOUNDS_PRESERVING_CONSERVATIVE_LINEAR_REFINE";
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_UU_mean_var;
+    std::string d_UU_mean_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_UU_mean_refine_type = "BOUNDS_PRESERVING_CONSERVATIVE_LINEAR_REFINE";
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_UU_fluct_var;
+    std::string d_UU_fluct_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_UU_fluct_refine_type = "BOUNDS_PRESERVING_CONSERVATIVE_LINEAR_REFINE";
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_k_var;
+    std::string d_k_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_k_refine_type = "BOUNDS_PRESERVING_CONSERVATIVE_LINEAR_REFINE";
+
+    int d_U_mean_current_idx = IBTK::invalid_index, d_U_mean_new_idx = IBTK::invalid_index,
+        d_U_mean_scratch_idx = IBTK::invalid_index;
+    int d_UU_mean_current_idx = IBTK::invalid_index, d_UU_mean_new_idx = IBTK::invalid_index,
+        d_UU_mean_scratch_idx = IBTK::invalid_index;
+    int d_UU_fluct_current_idx = IBTK::invalid_index, d_UU_fluct_new_idx = IBTK::invalid_index,
+        d_UU_fluct_scratch_idx = IBTK::invalid_index;
+    int d_k_current_idx = IBTK::invalid_index, d_k_new_idx = IBTK::invalid_index, d_k_scratch_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR
 

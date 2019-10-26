@@ -35,12 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
-
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"
-#include "libmesh/id_types.h"
+
 #include "tbox/Pointer.h"
+
+#include "libmesh/id_types.h"
+
+#include <vector>
 
 namespace SAMRAI
 {

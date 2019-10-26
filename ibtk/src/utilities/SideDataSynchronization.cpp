@@ -32,9 +32,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibtk/CartSideDoubleCubicCoarsen.h"
+#include "ibtk/SideDataSynchronization.h"
+#include "ibtk/SideSynchCopyFillPattern.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "CartesianGridGeometry.h"
 #include "CoarsenAlgorithm.h"
@@ -50,13 +52,12 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "ibtk/CartSideDoubleCubicCoarsen.h"
-#include "ibtk/SideDataSynchronization.h"
-#include "ibtk/SideSynchCopyFillPattern.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -158,8 +159,7 @@ SideDataSynchronization::initializeOperatorState(
         if (!sc_var)
         {
             TBOX_ERROR("SideDataSynchronization::initializeOperatorState():\n"
-                       << "  only double-precision side-centered data is supported."
-                       << std::endl);
+                       << "  only double-precision side-centered data is supported." << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = nullptr;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new SideSynchCopyFillPattern();
@@ -260,8 +260,7 @@ SideDataSynchronization::resetTransactionComponents(
         if (!sc_var)
         {
             TBOX_ERROR("SideDataSynchronization::resetTransactionComponents():\n"
-                       << "  only double-precision side-centered data is supported."
-                       << std::endl);
+                       << "  only double-precision side-centered data is supported." << std::endl);
         }
         Pointer<RefineOperator<NDIM> > refine_op = nullptr;
         Pointer<VariableFillPattern<NDIM> > fill_pattern = new SideSynchCopyFillPattern();

@@ -35,25 +35,28 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <set>
-#include <string>
-#include <vector>
+#include "ibamr/IBFEDirectForcingKinematics.h"
+#include "ibamr/IBStrategy.h"
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/FEDataManager.h"
+#include "ibtk/libmesh_utilities.h"
 
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
 #include "LoadBalancer.h"
 #include "PatchHierarchy.h"
-#include "ibamr/IBFEDirectForcingKinematics.h"
-#include "ibamr/IBStrategy.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/FEDataManager.h"
-#include "ibtk/libmesh_utilities.h"
+#include "tbox/Pointer.h"
+
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/explicit_system.h"
-#include "tbox/Pointer.h"
+
+#include <array>
+#include <set>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {
@@ -105,6 +108,19 @@ namespace IBAMR
  *
  * By default, the libMesh data is partitioned once at the beginning of the
  * computation by libMesh's default partitioner.
+ *
+ * <h2>Options Controlling Finite Element Vector Data Layout</h2>
+ * IBFEMethod performs an L2 projection to transfer the velocity of the fluid
+ * from the Eulerian grid to the finite element representation. The parallel
+ * performance of this operation can be substantially improved by doing
+ * assembly into the ghost region of each vector (instead of accumulating into
+ * an internal PETSc object). By default this class will use the 'accumulate
+ * into the ghost region' assembly strategy. The assembly strategy can be
+ * selected by changing the database variable vector_assembly_accumulation
+ * from <code>GHOSTED</code>, the default, to <code>CACHE</code>, which will
+ * use PETSc's VecCache object to distribute data.
+ *
+ * <h2>Options Controlling Partitioning</h2>
  *
  * This class can repartition libMesh data in a way that matches SAMRAI's
  * distribution of patches; put another way, if a certain region of space on
@@ -448,30 +464,6 @@ public:
     LagBodySourceFcnData getLagBodySourceFunction(unsigned int part = 0) const;
 
     /*!
-     * Use tether forces to constrain the motion of a pair of parts.
-     */
-    void constrainPartOverlap(unsigned int part1,
-                              unsigned int part2,
-                              double kappa,
-                              libMesh::QBase* qrule1 = nullptr,
-                              libMesh::QBase* qrule2 = nullptr);
-
-    /*!
-     * Always reset the velocity of the nodes of part1 that overlap part2 to
-     * equal the velocity of part2.
-     */
-    void registerOverlappingVelocityReset(unsigned int part1, unsigned int part2);
-
-    /*!
-     * Set up forces to penalize relative motion between part1 and part2.
-     */
-    void registerOverlappingForceConstraint(unsigned int part1,
-                                            unsigned int part2,
-                                            double kappa,
-                                            libMesh::QBase* qrule1 = nullptr,
-                                            libMesh::QBase* qrule2 = nullptr);
-
-    /*!
      * Register the (optional) direct forcing kinematics object with the finite
      * element mesh.
      */
@@ -731,33 +723,6 @@ protected:
                                          unsigned int part);
 
     /*!
-     * \brief Reset positions in overlap regions.
-     */
-    void resetOverlapNodalValues(const std::string& system_name,
-                                 const std::vector<libMesh::NumericVector<double>*>& F_vecs);
-
-    /*!
-     * \brief Reset positions in overlap regions.
-     */
-    void resetOverlapNodalValues(const std::string& system_name,
-                                 const std::vector<libMesh::PetscVector<double>*>& F_vecs);
-
-    /*!
-     * \brief Reset values in the specified part to equal the
-     * corresponding velocities of the overlapping part.
-     */
-    void resetOverlapNodalValues(unsigned int part,
-                                 const std::string& system_name,
-                                 libMesh::NumericVector<double>* F_vec,
-                                 libMesh::NumericVector<double>* F_master_vec);
-
-    /*!
-     * \brief Compute constraint forces between pairs of overlapping bodies.
-     */
-    void computeOverlapConstraintForceDensity(std::vector<libMesh::PetscVector<double>*>& G_vec,
-                                              std::vector<libMesh::PetscVector<double>*>& X_vec);
-
-    /*!
      * \brief Spread the transmission force density along the physical boundary
      * of the Lagrangian structure.
      */
@@ -803,6 +768,12 @@ protected:
     bool d_do_log = false;
 
     /*
+     * Boolean controlling whether or not the scratch hierarchy should be
+     * used.
+     */
+    bool d_use_scratch_hierarchy = false;
+
+    /*
      * Pointers to the patch hierarchy and gridding algorithm objects associated
      * with this object.
      */
@@ -817,37 +788,114 @@ protected:
            d_new_time = std::numeric_limits<double>::quiet_NaN(),
            d_half_time = std::numeric_limits<double>::quiet_NaN();
 
-    /*
+    /*!
      * FE data associated with this object.
      */
     std::vector<libMesh::MeshBase*> d_meshes;
     int d_max_level_number;
-    std::vector<std::unique_ptr<libMesh::EquationSystems>> d_equation_systems;
+    std::vector<std::unique_ptr<libMesh::EquationSystems> > d_equation_systems;
 
+    /// Number of parts owned by the present object.
     const unsigned int d_num_parts = 1;
-    std::vector<IBTK::FEDataManager*> d_fe_data_managers;
+
+    /// FEDataManager objects associated with the primary hierarchy (i.e.,
+    /// d_hierarchy). These are used by some other objects (such as
+    /// IBFEPostProcessor); IBFEMethod keeps them up to date (i.e.,
+    /// reinitializing data after regrids).
+    std::vector<IBTK::FEDataManager*> d_primary_fe_data_managers;
+
+    /// FEDataManager objects that use the scratch hierarchy instead of
+    /// d_hierarchy. These are only used internally by IBFEMethod and are not
+    /// intended to be accessed by any other object.
+    std::vector<IBTK::FEDataManager*> d_scratch_fe_data_managers;
+
+    /// The FEDataManager objects that are actually used in computations. This
+    /// vector will be equal to either d_primary_fe_data_managers or
+    /// d_scratch_fe_data_managers, dependent on which is actually used in IB
+    /// calculations.
+    std::vector<IBTK::FEDataManager*> d_active_fe_data_managers;
+
+    /// Minimum ghost cell width.
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
+
+    /// Vectors of pointers to the systems for each part (for position, velocity, force
+    /// density, sources, and body stress normalization).
     std::vector<libMesh::ExplicitSystem*> d_X_systems, d_U_systems, d_F_systems, d_Q_systems, d_Phi_systems;
+
+    /*!
+     * Vectors of pointers to the position vectors (both solutions and
+     * RHS). All of these vectors are owned by the libMesh::System objects
+     * except for the ones in d_X_IB_ghost_vecs, which are owned by the
+     * FEDataManager objects.
+     */
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_rhs_vecs, d_X_new_vecs, d_X_half_vecs,
         d_X_IB_ghost_vecs;
+
+    /// Vector of pointers to the velocity vectors (both solutions and RHS).
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_rhs_vecs, d_U_new_vecs, d_U_half_vecs;
+
+    /*!
+     * Vectors of pointers to the body force vectors (both solutions and
+     * RHS). All of these vectors are owned by the libMesh::System objects
+     * except for the ones in d_F_IB_ghost_vecs, which are owned by the
+     * FEDataManager objects.
+     */
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_rhs_vecs, d_F_tmp_vecs, d_F_IB_ghost_vecs;
+
+    /*!
+     * Vectors of pointers to the fluid source or sink density vectors. All of
+     * these vectors are owned by the libMesh::System objects except for the
+     * ones in d_Q_IB_ghost_vecs, which are owned by the FEDataManager
+     * objects.
+     */
     std::vector<libMesh::PetscVector<double>*> d_Q_half_vecs, d_Q_rhs_vecs, d_Q_IB_ghost_vecs;
+
+    /// Vector of pointers to body stress normalization vectors (both solutions and RHS).
     std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs, d_Phi_rhs_vecs;
 
-    bool d_fe_equation_systems_initialized = false, d_fe_data_initialized = false;
+    /**
+     * Vectors containing entries for relevant IB ghost data: see
+     * FEDataManager::buildIBGhostedVector.
+     *
+     * Unlike the other vectors, d_U_IB_rhs_vecs is for assembly and may not
+     * be used: see the main documentation of this class for more information.
+     */
+    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_F_IB_solution_vecs;
+    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_Q_IB_solution_vecs;
+    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_U_IB_rhs_vecs;
+    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_X_IB_solution_vecs;
 
     /*
+     * Whether or not to use the ghost region for velocity assembly. See the
+     * main documentation of this class for more information.
+     */
+    bool d_use_ghosted_velocity_rhs = true;
+
+    /*!
+     * Whether or not the libMesh equation systems objects have been
+     * initialized (i.e., whether or not initializeFEEquationSystems has been
+     * called).
+     */
+    bool d_fe_equation_systems_initialized = false;
+
+    /*!
+     * Whether or not all finite element data (including that initialized by
+     * initializeFEEquationSystems), such system matrices, is available.
+     */
+    bool d_fe_data_initialized = false;
+
+    /*!
      * Type of partitioner to use. See the main documentation of this class
      * for more information.
      */
     LibmeshPartitionerType d_libmesh_partitioner_type = AUTOMATIC;
 
     /*
-     * Method paramters.
+     * Method parameters.
      */
     IBTK::FEDataManager::InterpSpec d_default_interp_spec;
     IBTK::FEDataManager::SpreadSpec d_default_spread_spec;
+    IBTK::FEDataManager::WorkloadSpec d_default_workload_spec;
     std::vector<IBTK::FEDataManager::WorkloadSpec> d_workload_spec;
     std::vector<IBTK::FEDataManager::InterpSpec> d_interp_spec;
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
@@ -865,27 +913,6 @@ protected:
     double d_epsilon = 0.0;
     bool d_has_stress_normalization_parts = false;
     std::vector<bool> d_is_stress_normalization_part;
-
-    /*
-     * Data related to constraining overlaps between pairs of parts.
-     */
-    double d_overlap_tolerance = 0.0;
-
-    bool d_has_overlap_velocity_parts = false;
-    std::vector<bool> d_is_overlap_velocity_part, d_is_overlap_velocity_master_part;
-    std::vector<int> d_overlap_velocity_master_part;
-    std::vector<std::map<libMesh::dof_id_type, libMesh::dof_id_type> > d_overlap_velocity_part_node_to_elem_map;
-    std::vector<std::set<libMesh::dof_id_type> > d_overlap_velocity_part_ghost_idxs;
-
-    bool d_has_overlap_force_parts = false;
-    std::vector<bool> d_is_overlap_force_part;
-    std::vector<std::set<libMesh::dof_id_type> > d_overlap_force_part_ghost_idxs;
-    std::vector<std::array<unsigned int, 2> > d_overlap_force_part_idxs;
-    std::vector<std::array<std::map<libMesh::dof_id_type, std::map<unsigned int, libMesh::dof_id_type> >, 2> >
-        d_overlapping_elem_map;
-    std::vector<double> d_overlap_force_part_kappa;
-    std::vector<std::array<libMesh::QBase*, 2> > d_overlap_force_part_qrule; // \todo let's try to fix this when we switch to C++11!
-    std::vector<std::vector<double> > d_overlap_force_part_max_displacement;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
@@ -1009,6 +1036,11 @@ private:
      * being up to date, as is the direct forcing kinematic data.
      */
     void doInitializeFEData(const bool use_present_data);
+
+    /*!
+     * Update the caches of IB-ghosted vectors.
+     */
+    void updateCachedIBGhostedVectors();
 };
 } // namespace IBAMR
 

@@ -35,8 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/SideDataSynchronization.h"
+#include "ibtk/ibtk_enums.h"
 
 #include "CellVariable.h"
 #include "EdgeVariable.h"
@@ -50,15 +56,11 @@
 #include "NodeVariable.h"
 #include "SAMRAIVectorReal.h"
 #include "SideVariable.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/StaggeredStokesSolverManager.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/SideDataSynchronization.h"
-#include "ibtk/ibtk_enums.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace IBAMR
 {
@@ -213,8 +215,9 @@ public:
      * such that it is possible to step through time via the advanceHierarchy()
      * function.
      */
-    virtual void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                          SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    virtual void
+    initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                             SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Pure virtual method to project the velocity field following a regridding operation.
@@ -233,11 +236,6 @@ public:
                                                double new_time,
                                                bool skip_synchronize_new_state_data,
                                                int num_cycles = 1) override;
-
-    /*!
-     * Virtual method to regrid the patch hierarchy.
-     */
-    virtual void regridHierarchy() override;
 
     /*!
      * Explicitly remove nullspace components from a solution vector.
@@ -427,6 +425,34 @@ public:
 
 protected:
     /*!
+     * L1 norm of the discrete divergence of the fluid velocity before regridding.
+     */
+    double d_div_U_norm_1_pre = 0.0;
+
+    /*!
+     * L2 norm of the discrete divergence of the fluid velocity before regridding.
+     */
+    double d_div_U_norm_2_pre = 0.0;
+
+    /*!
+     * L-infinity norm of the discrete divergence of the fluid velocity before regridding.
+     */
+    double d_div_U_norm_oo_pre = 0.0;
+
+    /*!
+     * Prepare the current hierarchy for regridding. Here we calculate the divergence.
+     */
+    void regridHierarchyBeginSpecialized() override;
+
+    /*!
+     * Update the current hierarchy data after regridding. Here we recalculate
+     * the divergence and, if it has grown by a factor more than
+     * d_regrid_max_div_growth_factor, we then project the velocity field onto
+     * a divergence-free set of grid functions.
+     */
+    void regridHierarchyEndSpecialized() override;
+
+    /*!
      * Determine the largest stable timestep on an individual patch.
      */
     double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const override;
@@ -566,6 +592,17 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_velocity_rhs_C_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_N_full_var;
+
+    std::string d_N_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_N_refine_type = "CONSERVATIVE_LINEAR_REFINE";
+
+    std::string d_mu_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_mu_refine_type = "CONSERVATIVE_LINEAR_REFINE";
+    std::string d_mu_bdry_extrap_type = "CONSTANT";
+
+    std::string d_rho_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_rho_refine_type = "CONSERVATIVE_LINEAR_REFINE";
+    std::string d_rho_bdry_extrap_type = "CONSTANT";
 
     /*!
      * Interpolated material property variables.

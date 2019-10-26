@@ -1,0 +1,4 @@
+Main {
+   log_file_name               = "output"
+   log_all_nodes               = FALSE
+}

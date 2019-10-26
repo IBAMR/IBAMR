@@ -35,11 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LNodeSet.h"
+#include "ibtk/LNodeSetVariable.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ParallelSet.h"
+#include "ibtk/SAMRAIDataCache.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchLevel.h"
 #include "CartesianGridGeometry.h"
@@ -55,16 +57,17 @@
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "VisItDataWriter.h"
-#include "ibtk/LInitStrategy.h"
-#include "ibtk/LNodeSet.h"
-#include "ibtk/LNodeSetVariable.h"
-#include "ibtk/LSiloDataWriter.h"
-#include "ibtk/ParallelSet.h"
-#include "ibtk/ibtk_utilities.h"
-#include "petscao.h"
-#include "petscvec.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
+
+#include "petscao.h"
+#include "petscvec.h"
+
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace IBTK
 {
@@ -913,8 +916,7 @@ public:
      * Register user defined Lagrangian data to be maintained
      *
      */
-    void registerUserDefinedLData(const std::string& data_name,
-                                  int depth);
+    void registerUserDefinedLData(const std::string& data_name, int depth);
 
 protected:
     /*!
@@ -1059,6 +1061,11 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
+
+    /*
+     * Cached Eulerian data to reduce the number of allocations/deallocations.
+     */
+    SAMRAIDataCache d_cached_eulerian_data;
 
     /*
      * We cache a pointer to the visualization data writers to register plot

@@ -43,11 +43,12 @@ define(REAL,`double precision')dnl
 define(INTEGER,`integer')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 define(coarsen_index,`dnl
-         if ($1.lt.0) then
-            $2=($1+1)/$3-1
+if ($1.lt.0) then
+            $2=($1+1)/$4-1
          else
-            $2=$1/$3
+            $2=$1/$4
          endif
+         $3=$2*$4
 ')dnl'
 define(d_dx0_C,0.5d0*($1($2+1,$3)-$1($2-1,$3)))dnl
 define(d_dx0_L,($1($2,$3)-$1($2-1,$3)))dnl
@@ -68,12 +69,11 @@ minmod3(
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Perform specialized refine operation that employs constant
-c     prolongation followed by linear interpolation.
+c     Perform side-centered refine operation based on RT0 interpolation.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine cart_side_specialized_constant_refine2d(
+      subroutine cart_side_rt0_refine2d(
      &     u0_f,u1_f,u_f_gcw,
      &     flower0,fupper0,
      &     flower1,fupper1,
@@ -82,8 +82,6 @@ c
      &     clower1,cupper1,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
-     &     fill_lower0,fill_upper0,
-     &     fill_lower1,fill_upper1,
      &     ratio)
 c
       implicit none
@@ -98,8 +96,6 @@ c
       INTEGER clower1,cupper1
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
-      INTEGER fill_lower0,fill_upper0
-      INTEGER fill_lower1,fill_upper1
       INTEGER ratio(0:NDIM-1)
 
       REAL u0_c(SIDE2d0(clower,cupper,u_c_gcw))
@@ -114,17 +110,19 @@ c     Local variables.
 c
       INTEGER i0,i1
       INTEGER i_c0,i_c1
+      INTEGER i_f0,i_f1
       REAL w0,w1
 c
 c     Refine data.
 c
-      do i1=fill_lower1,fill_upper1
-         coarsen_index(i1,i_c1,ratio(1))
-         do i0=fill_lower0,fill_upper0+1
-            coarsen_index(i0,i_c0,ratio(0))
-            if ( i0 .ge. ilower0 .and. i0 .le. iupper0+1 .and.
-     &           i1 .ge. ilower1 .and. i1 .le. iupper1   ) then
-               w1 = dble(i0-ratio(0)*i_c0)/dble(ratio(0))
+      do i1=ilower1,iupper1
+         coarsen_index(i1,i_c1,i_f1,ratio(1))
+         do i0=ilower0,iupper0+1
+            coarsen_index(i0,i_c0,i_f0,ratio(0))
+            if ( i0 .eq. i_f0 ) then
+               u0_f(i0,i1) = u0_c(i_c0,i_c1)
+            else
+               w1 = dble(i0-i_f0)/dble(ratio(0))
                w0 = 1.d0-w1
                u0_f(i0,i1) =
      &              w0*u0_c(i_c0  ,i_c1) +
@@ -133,13 +131,14 @@ c
          enddo
       enddo
 
-      do i1=fill_lower1,fill_upper1+1
-         coarsen_index(i1,i_c1,ratio(1))
-         do i0=fill_lower0,fill_upper0
-            coarsen_index(i0,i_c0,ratio(0))
-            if ( i0 .ge. ilower0 .and. i0 .le. iupper0   .and.
-     &           i1 .ge. ilower1 .and. i1 .le. iupper1+1 ) then
-               w1 = dble(i1-ratio(1)*i_c1)/dble(ratio(1))
+      do i1=ilower1,iupper1+1
+         coarsen_index(i1,i_c1,i_f1,ratio(1))
+         do i0=ilower0,iupper0
+            coarsen_index(i0,i_c0,i_f0,ratio(0))
+            if ( i1 .eq. i_f1 ) then
+               u1_f(i0,i1) = u1_c(i_c0,i_c1)
+            else
+               w1 = dble(i1-i_f1)/dble(ratio(1))
                w0 = 1.d0-w1
                u1_f(i0,i1) =
      &              w0*u1_c(i_c0,i_c1  ) +
@@ -211,12 +210,10 @@ c
       dx1 = dble(ratio(1))
 
       do i1=ilower1,iupper1
+         coarsen_index(i1,i_c1,i_f1,ratio(1))
          do i0=ilower0,iupper0+1
-            coarsen_index(i0,i_c0,ratio(0))
-            coarsen_index(i1,i_c1,ratio(1))
-
+            coarsen_index(i0,i_c0,i_f0,ratio(0))
             i_f0 = i_c0*ratio(0)
-            i_f1 = i_c1*ratio(1)
 
             w0 = 1.d0-dble(i0-i_f0)/dx0
             w1 = dble(i1-i_f1)+0.5d0-0.5d0*dx1
@@ -232,12 +229,9 @@ c
       enddo
 
       do i1=ilower1,iupper1+1
+         coarsen_index(i1,i_c1,i_f1,ratio(1))
          do i0=ilower0,iupper0
-            coarsen_index(i0,i_c0,ratio(0))
-            coarsen_index(i1,i_c1,ratio(1))
-
-            i_f0 = i_c0*ratio(0)
-            i_f1 = i_c1*ratio(1)
+            coarsen_index(i0,i_c0,i_f0,ratio(0))
 
             w0 = dble(i0-i_f0)+0.5d0-0.5d0*dx0
             w1 = 1.d0-dble(i1-i_f1)/dx1

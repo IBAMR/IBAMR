@@ -35,18 +35,23 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/ibtk_macros.h"
+#include "ibtk/ibtk_utilities.h"
+
+#include "Index.h"
+#include "IntVector.h"
+#include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "boost/multi_array.hpp"
+IBTK_ENABLE_EXTRA_WARNINGS
+
 #include <functional>
 #include <iosfwd>
 #include <map>
 #include <string>
 #include <vector>
-
-#include "Index.h"
-#include "IntVector.h"
-#include "boost/multi_array.hpp"
-#include "ibtk/ibtk_utilities.h"
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
 
 namespace IBTK
 {
@@ -249,14 +254,12 @@ private:
         {
             return (lhs(0) < rhs(0)
 #if (NDIM > 1)
-                    ||
-                    (lhs(0) == rhs(0) && lhs(1) < rhs(1))
+                    || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
 #if (NDIM > 2)
-                    ||
-                    (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
+                    || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
 #endif
 #endif
-                        );
+            );
         } // operator()
     };
 

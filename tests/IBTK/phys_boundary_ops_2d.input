@@ -1,0 +1,36 @@
+N = 8
+
+Main {
+// log file parameters
+   log_file_name = "phys_boundary_ops_2d.output"
+   log_all_nodes = FALSE
+
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2d"
+   visit_number_procs_per_file = 1
+}
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (N - 1,N - 1)]
+   x_lo               = 0, 0  // lower end of computational domain.
+   x_up               = 1, 1  // upper end of computational domain.
+   periodic_dimension = 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+
+   largest_patch_size {
+      level_0 = 512, 512
+   }
+
+   smallest_patch_size {
+      level_0 =   4,   4
+   }
+}
+
+StandardTagAndInitialize {
+}
+
+LoadBalancer {
+}

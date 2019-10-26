@@ -35,19 +35,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibtk/PETScLevelSolver.h"
+#include "ibtk/PoissonSolver.h"
+#include "ibtk/SAMRAIDataCache.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "CellVariable.h"
 #include "IntVector.h"
 #include "RefineSchedule.h"
 #include "VariableContext.h"
-#include "ibtk/PETScLevelSolver.h"
-#include "ibtk/PoissonSolver.h"
-#include "ibtk/ibtk_utilities.h"
-#include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include "petscvec.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -137,7 +140,8 @@ protected:
     /*!
      * \brief Generate IS/subdomains for Schwartz type preconditioners.
      */
-    void generateASMSubdomains(std::vector<std::set<int> >& overlap_is, std::vector<std::set<int> >& nonoverlap_is) override;
+    void generateASMSubdomains(std::vector<std::set<int> >& overlap_is,
+                               std::vector<std::set<int> >& nonoverlap_is) override;
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
      */

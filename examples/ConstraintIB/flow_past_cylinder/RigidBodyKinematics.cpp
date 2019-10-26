@@ -13,8 +13,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -27,7 +27,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include "RigidBodyKinematics.h"
 
@@ -73,9 +73,7 @@ RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
     // Read-in kinematics velocity functions
     for (int d = 0; d < NDIM; ++d)
     {
-        std::ostringstream stream;
-        stream << "_function_" << d;
-        const std::string postfix = stream.str();
+        const std::string postfix = "_function_" + std::to_string(d);
         std::string key_name = "kinematics_velocity" + postfix;
 
         if (input_db->isString(key_name))
@@ -108,9 +106,7 @@ RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
         (*cit)->DefineVar("t", &d_parser_time);
         for (int d = 0; d < NDIM; ++d)
         {
-            std::ostringstream stream;
-            stream << d;
-            const std::string postfix = stream.str();
+            const std::string postfix = std::to_string(d);
             (*cit)->DefineVar("X" + postfix, d_parser_posn.data() + d);
             (*cit)->DefineVar("x" + postfix, d_parser_posn.data() + d);
             (*cit)->DefineVar("X_" + postfix, d_parser_posn.data() + d);

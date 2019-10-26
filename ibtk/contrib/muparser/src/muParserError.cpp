@@ -27,12 +27,11 @@
 
 namespace mu
 {
-  const ParserErrorMsg ParserErrorMsg::m_Instance;
-
   //------------------------------------------------------------------------------
   const ParserErrorMsg& ParserErrorMsg::Instance()
   {
-    return m_Instance;
+    static const ParserErrorMsg instance;
+    return instance;
   }
 
   //------------------------------------------------------------------------------
@@ -40,23 +39,6 @@ namespace mu
   {
     return (a_iIdx<m_vErrMsg.size()) ? m_vErrMsg[a_iIdx] : string_type();
   }
-
-  //---------------------------------------------------------------------------
-  ParserErrorMsg::~ParserErrorMsg()
-  {}
-
-  //---------------------------------------------------------------------------
-  /** \brief Assignement operator is deactivated.
-  */
-  ParserErrorMsg& ParserErrorMsg::operator=(const ParserErrorMsg& )
-  {
-    assert(false);
-    return *this;
-  }
-
-  //---------------------------------------------------------------------------
-  ParserErrorMsg::ParserErrorMsg(const ParserErrorMsg&)
-  {}
 
   //---------------------------------------------------------------------------
   ParserErrorMsg::ParserErrorMsg()
@@ -97,10 +79,11 @@ namespace mu
     m_vErrMsg[ecSTR_RESULT]             = _T("Function result is a string.");
     m_vErrMsg[ecGENERIC]                = _T("Parser error.");
     m_vErrMsg[ecLOCALE]                 = _T("Decimal separator is identic to function argument separator.");
-    m_vErrMsg[ecUNEXPECTED_CONDITIONAL] = _T("The \"$TOK$\" operator must be preceeded by a closing bracket.");
+    m_vErrMsg[ecUNEXPECTED_CONDITIONAL] = _T("The \"$TOK$\" operator must be preceded by a closing bracket.");
     m_vErrMsg[ecMISSING_ELSE_CLAUSE]    = _T("If-then-else operator is missing an else clause");
     m_vErrMsg[ecMISPLACED_COLON]        = _T("Misplaced colon at position $POS$");
-
+    m_vErrMsg[ecUNREASONABLE_NUMBER_OF_COMPUTATIONS] = _T("Number of computations to small for bulk mode. (Vectorisation overhead too costly)");
+    
     #if defined(_DEBUG)
       for (int i=0; i<ecCOUNT; ++i)
         if (!m_vErrMsg[i].length())
@@ -159,7 +142,7 @@ namespace mu
       \param [in] a_iErrc the error code.
       \param [in] sTok The token string related to this error.
       \param [in] sExpr The expression related to the error.
-      \param [in] a_iPos the position in the expression where the error occured. 
+      \param [in] a_iPos the position in the expression where the error occurred. 
   */
   ParserError::ParserError( EErrorCodes iErrc,
                             const string_type &sTok,
@@ -182,7 +165,7 @@ namespace mu
   //------------------------------------------------------------------------------
   /** \brief Construct an error object. 
       \param [in] iErrc the error code.
-      \param [in] iPos the position in the expression where the error occured. 
+      \param [in] iPos the position in the expression where the error occurred. 
       \param [in] sTok The token string related to this error.
   */
   ParserError::ParserError(EErrorCodes iErrc, int iPos, const string_type &sTok) 
@@ -252,7 +235,7 @@ namespace mu
   {}
 
   //------------------------------------------------------------------------------
-  /** \brief Replace all ocuurences of a substring with another string. 
+  /** \brief Replace all occurrences of a substring with another string. 
       \param strFind The string that shall be replaced.
       \param strReplaceWith The string that should be inserted instead of strFind
   */
@@ -315,7 +298,7 @@ namespace mu
 
     If the error is not related to a distinct position this will return -1
   */
-  std::size_t ParserError::GetPos() const
+  int ParserError::GetPos() const
   {
     return m_iPos;
   }

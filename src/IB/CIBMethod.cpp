@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of The University of North Carolina nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -37,8 +37,9 @@
 #include "ibamr/MobilityFunctions.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/namespaces.h"
-#include "ibtk/ibtk_utilities.h"
+
 #include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ibtk_utilities.h"
 
 namespace IBAMR
 {
@@ -242,7 +243,7 @@ CIBMethod::preprocessIntegrateData(double current_time, double new_time, int num
                 d_rot_vel_half[part][2] = rot_vel_half[2];
                 d_rot_vel_new[part][2] = rot_vel_new[2];
             }
-#elif(NDIM == 3)
+#elif (NDIM == 3)
             for (int d = 0; d < NDIM; ++d)
             {
                 if (!solve_dofs[NDIM + d])
@@ -591,7 +592,7 @@ CIBMethod::interpolateVelocity(const int u_data_idx,
 #if !defined(NDEBUG)
         TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
-        std::vector<Pointer<LData> > *U_half_data, *X_half_data;
+        std::vector<Pointer<LData> >*U_half_data, *X_half_data;
         bool* X_half_needs_ghost_fill;
         getVelocityData(&U_half_data, d_half_time);
         getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
@@ -879,8 +880,7 @@ void
 CIBMethod::trapezoidalStep(double /*current_time*/, double /*new_time*/)
 {
     TBOX_ERROR("CIBMethod does not support trapezoidal time-stepping rule for position update."
-               << " Only mid-point rule is supported."
-               << std::endl);
+               << " Only mid-point rule is supported." << std::endl);
 
     return;
 } // trapezoidalStep
@@ -1137,7 +1137,7 @@ CIBMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U
 #if (NDIM == 2)
                 V_node[0] = U[0] - U[2] * R_dr[1];
                 V_node[1] = U[1] + U[2] * R_dr[0];
-#elif(NDIM == 3)
+#elif (NDIM == 3)
                 V_node[0] = U[0] + U[4] * R_dr[2] - U[5] * R_dr[1];
                 V_node[1] = U[1] + U[5] * R_dr[0] - U[3] * R_dr[2];
                 V_node[2] = U[2] + U[3] * R_dr[1] - U[4] * R_dr[0];
@@ -1195,7 +1195,7 @@ CIBMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rigid
             F[d] += P[d];
         }
         F[2] += P[1] * R_dr[0] - P[0] * R_dr[1];
-#elif(NDIM == 3)
+#elif (NDIM == 3)
         for (int d = 0; d < NDIM; ++d)
         {
             F[d] += P[d];
@@ -1531,7 +1531,7 @@ CIBMethod::constructGeometricMatrix(const std::string& /*mat_name*/,
 #if (NDIM == 2)
                 geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM] = -R_dr[1];    //(1,3)
                 geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM + 1] = R_dr[0]; //(2,3)
-#elif(NDIM == 3)
+#elif (NDIM == 3)
                 geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM] = 0.0;      //(1,3)
                 geometric_mat_data[/*col*/ (i * block_size + 3) * row_size + /*row*/ q * NDIM] = 0.0;      //(1,4)
                 geometric_mat_data[/*col*/ (i * block_size + 4) * row_size + /*row*/ q * NDIM] = R_dr[2];  //(1,5)
@@ -1570,10 +1570,7 @@ CIBMethod::rotateArray(double* array,
     if (!(depth == NDIM || depth == s_max_free_dofs))
     {
         TBOX_ERROR("CIBMethod::rotateArray(). Data depth of the array to be rotated should either be "
-                   << NDIM
-                   << " (type nodal velocity) or "
-                   << s_max_free_dofs
-                   << " (type body free DOFs)."
+                   << NDIM << " (type nodal velocity) or " << s_max_free_dofs << " (type body free DOFs)."
                    << std::endl);
     }
 #endif
@@ -1702,9 +1699,8 @@ CIBMethod::getFromRestart()
     }
     else
     {
-        TBOX_ERROR("CIBMethod::getFromRestart(): Restart database corresponding to " << d_object_name
-                                                                                     << " not found in restart file."
-                                                                                     << std::endl);
+        TBOX_ERROR("CIBMethod::getFromRestart(): Restart database corresponding to "
+                   << d_object_name << " not found in restart file." << std::endl);
     }
 
     for (unsigned int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
@@ -1728,7 +1724,8 @@ CIBMethod::getFromRestart()
 } // getFromRestart
 
 void
-CIBMethod::computeCOMOfStructures(IBTK::EigenAlignedVector<Eigen::Vector3d>& center_of_mass, std::vector<Pointer<LData> >& X_data)
+CIBMethod::computeCOMOfStructures(IBTK::EigenAlignedVector<Eigen::Vector3d>& center_of_mass,
+                                  std::vector<Pointer<LData> >& X_data)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1826,13 +1823,11 @@ CIBMethod::setRegularizationWeight(const int level_number)
         }
 
         // Read weights from file and set it.
-        std::ifstream reg_filestream(d_reg_filename[struct_no].c_str(), std::ifstream::in);
+        std::ifstream reg_filestream(d_reg_filename[struct_no]);
         if (!reg_filestream.is_open())
         {
             TBOX_ERROR("CIBMethod::setRegularizationWeight()"
-                       << "could not open file"
-                       << d_reg_filename[struct_no]
-                       << std::endl);
+                       << " could not open file " << d_reg_filename[struct_no] << std::endl);
         }
 
         std::string line_f;
@@ -1844,16 +1839,13 @@ CIBMethod::setRegularizationWeight(const int level_number)
             if (lag_pts != (lag_idx_range.second - lag_idx_range.first))
             {
                 TBOX_ERROR("CIBMethod::setRegularizationWeight() Total no. of Lagrangian points in the weight file "
-                           << d_reg_filename[struct_no]
-                           << " not equal to corresponding vertex file."
-                           << std::endl);
+                           << d_reg_filename[struct_no] << " not equal to corresponding vertex file." << std::endl);
             }
         }
         else
         {
             TBOX_ERROR("CIBMethod::setRegularizationWeight() Error in the input regularization file "
-                       << d_reg_filename[struct_no]
-                       << " at line number 0. Total number of Lagrangian  points required."
+                       << d_reg_filename[struct_no] << " at line number 0. Total number of Lagrangian  points required."
                        << std::endl);
         }
 
@@ -1868,10 +1860,7 @@ CIBMethod::setRegularizationWeight(const int level_number)
             else
             {
                 TBOX_ERROR("CIBMethod::setRegularizationWeight() Error in the input regularization file "
-                           << d_reg_filename[struct_no]
-                           << " at line number "
-                           << k + 1
-                           << std::endl);
+                           << d_reg_filename[struct_no] << " at line number " << k + 1 << std::endl);
             }
         }
 
@@ -1927,13 +1916,11 @@ CIBMethod::setInitialLambda(const int level_number)
         const std::pair<int, int> lag_idx_range = d_struct_lag_idx_range[struct_no];
         if (d_lambda_filename[struct_no].empty()) continue;
 
-        std::ifstream lambda_filestream(d_lambda_filename[struct_no].c_str(), std::ifstream::in);
+        std::ifstream lambda_filestream(d_lambda_filename[struct_no]);
         if (!lambda_filestream.is_open())
         {
             TBOX_ERROR("CIBMethod::setInitialLambda()"
-                       << "could not open file"
-                       << d_lambda_filename[struct_no]
-                       << std::endl);
+                       << " could not open file " << d_lambda_filename[struct_no] << std::endl);
         }
 
         std::string line_f;
@@ -1946,16 +1933,13 @@ CIBMethod::setInitialLambda(const int level_number)
             if (lag_pts != (lag_idx_range.second - lag_idx_range.first))
             {
                 TBOX_ERROR("CIBMethod::setInitialLambda() Total no. of Lagrangian points in the lambda file "
-                           << d_lambda_filename[struct_no]
-                           << " not equal to corresponding vertex file."
-                           << std::endl);
+                           << d_lambda_filename[struct_no] << " not equal to corresponding vertex file." << std::endl);
             }
         }
         else
         {
             TBOX_ERROR("CIBMethod::::setInitialLambda() Error in the input lambda file "
-                       << d_lambda_filename[struct_no]
-                       << " at line number 0. Total number of Lag pts. required."
+                       << d_lambda_filename[struct_no] << " at line number 0. Total number of Lag pts. required."
                        << std::endl);
         }
 
@@ -1970,10 +1954,7 @@ CIBMethod::setInitialLambda(const int level_number)
             else
             {
                 TBOX_ERROR("CIBMethod::setInitialLambda() Error in the input lambda file "
-                           << d_lambda_filename[struct_no]
-                           << " at line number "
-                           << k + 1
-                           << std::endl);
+                           << d_lambda_filename[struct_no] << " at line number " << k + 1 << std::endl);
             }
         }
 

@@ -14,7 +14,7 @@ EXAMPLES += main2d
 if GTEST_ENABLED
 GTESTS   += test2d
 endif
-EXTRA_PROGRAMS += $(GTESTS) $(EXAMPLES)
+EXTRA_PROGRAMS += $(GTESTS) $(EXAMPLES) cylinderGen
 endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -25,10 +25,16 @@ test2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 test2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 test2d_SOURCES = $(GTEST_DRIVER)
 
-examples: $(EXAMPLES)
+cylinderGen_CXXFLAGS = $(AM_CXXFLAGS)
+cylinderGen_LDADD =
+cylinderGen_SOURCES = cylinderGen.cpp
+
+cylinder2d.vertex: cylinderGen
+	./cylinderGen
+
+examples: $(EXAMPLES) cylinder2d.vertex
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[2]d* $(PWD) ; \
-	  cp -f $(srcdir)/cylinder2d.vertex $(PWD) ; \
 	  cp -f $(srcdir)/Cylinder2d_cubic.m $(PWD) ; \
 	fi ;
 
@@ -36,11 +42,10 @@ if GTEST_ENABLED
 gtest: $(GTESTS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input2d.test $(PWD) ; \
-	  cp -f $(srcdir)/cylinder2d.vertex $(PWD) ; \
 	fi ;
 	./test2d input2d.test
 
-gtest-long: 
+gtest-long:
 	make gtest
 
 else
@@ -61,5 +66,6 @@ clean-local:
 	  rm -f $(builddir)/input2d.flow ; \
 	  rm -f $(builddir)/input2d.full ; \
 	  rm -f $(builddir)/cylinder2d.vertex ; \
+	  rm -f $(builddir)/cylinderGen ; \
 	  rm -f $(builddir)/Cylinder2d_cubic.m ; \
 	fi ;

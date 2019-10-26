@@ -32,25 +32,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
-#include <ostream>
-#include <string>
-#include <vector>
-
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "SAMRAIVectorReal.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PETScLevelSolver.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "SAMRAIVectorReal.h"
 #include "petsc/private/petscimpl.h"
-#include "petscksp.h"
-#include "petscmat.h"
-#include "petscsys.h"
-#include "petscvec.h"
 #include "petscviewerhdf5.h"
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
@@ -58,6 +50,16 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include "petscksp.h"
+#include "petscmat.h"
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include <cmath>
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -122,7 +124,7 @@ generate_petsc_is_from_std_is(std::vector<std::set<int> >& overlap_std,
 
     return;
 } // generate_petsc_is_from_std_is
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -151,8 +153,7 @@ PETScLevelSolver::~PETScLevelSolver()
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::~PETScLevelSolver()\n"
-                                 << "  subclass must call deallocateSolverState in subclass destructor"
-                                 << std::endl);
+                                 << "  subclass must call deallocateSolverState in subclass destructor" << std::endl);
     }
 
     int ierr;
@@ -265,44 +266,38 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
     if (x.getNumberOfComponents() != b.getNumberOfComponents())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have the same number of components"
-                                 << std::endl);
+                                 << "  vectors must have the same number of components" << std::endl);
     }
 
     const Pointer<PatchHierarchy<NDIM> >& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have the same hierarchy"
-                                 << std::endl);
+                                 << "  vectors must have the same hierarchy" << std::endl);
     }
 
     const int coarsest_ln = x.getCoarsestLevelNumber();
     if (coarsest_ln < 0)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  coarsest level number must not be negative"
-                                 << std::endl);
+                                 << "  coarsest level number must not be negative" << std::endl);
     }
     if (coarsest_ln != b.getCoarsestLevelNumber())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have same coarsest level number"
-                                 << std::endl);
+                                 << "  vectors must have same coarsest level number" << std::endl);
     }
 
     const int finest_ln = x.getFinestLevelNumber();
     if (finest_ln < coarsest_ln)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  finest level number must be >= coarsest level number"
-                                 << std::endl);
+                                 << "  finest level number must be >= coarsest level number" << std::endl);
     }
     if (finest_ln != b.getFinestLevelNumber())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  vectors must have same finest level number"
-                                 << std::endl);
+                                 << "  vectors must have same finest level number" << std::endl);
     }
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -310,18 +305,14 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         if (!patch_hierarchy->getPatchLevel(ln))
         {
             TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                     << "  hierarchy level "
-                                     << ln
-                                     << " does not exist"
-                                     << std::endl);
+                                     << "  hierarchy level " << ln << " does not exist" << std::endl);
         }
     }
 
     if (coarsest_ln != finest_ln)
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
-                                 << "  coarsest_ln != finest_ln in PETScLevelSolver"
-                                 << std::endl);
+                                 << "  coarsest_ln != finest_ln in PETScLevelSolver" << std::endl);
     }
 #endif
     // Deallocate the solver state if the solver is already initialized.
@@ -336,6 +327,10 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
     {
         d_cf_boundary = new CoarseFineBoundary<NDIM>(*d_hierarchy, d_level_num, IntVector<NDIM>(1));
     }
+
+    // Setup data cache.
+    d_cached_eulerian_data.setPatchHierarchy(d_hierarchy);
+    d_cached_eulerian_data.resetLevels(d_level_num, d_level_num);
 
     // Perform specialized operations to initialize solver state();
     initializeSolverStateSpecialized(x, b);
@@ -464,7 +459,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         }
 
         // Get the local submatrices.
-#if PETSC_VERSION_GE(3,8,0)
+#if PETSC_VERSION_GE(3, 8, 0)
         ierr = MatCreateSubMatrices(
             d_petsc_mat, d_n_local_subdomains, &d_overlap_is[0], &d_overlap_is[0], MAT_INITIAL_MATRIX, &d_sub_mat);
 #else
@@ -564,7 +559,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
             ierr = ISCreateStride(PETSC_COMM_WORLD, n_hi - n_lo, n_lo, 1, &local_idx);
             IBTK_CHKERRQ(ierr);
             std::vector<IS> local_idxs(d_n_local_subdomains, local_idx);
-#if PETSC_VERSION_GE(3,8,0)
+#if PETSC_VERSION_GE(3, 8, 0)
             ierr = MatCreateSubMatrices(d_petsc_mat,
                                         d_n_local_subdomains,
                                         d_n_local_subdomains ? &d_overlap_is[0] : nullptr,

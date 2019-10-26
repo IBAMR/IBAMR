@@ -14,7 +14,7 @@ EXAMPLES += main3d
 if GTEST_ENABLED
 GTESTS   += test3d
 endif
-EXTRA_PROGRAMS += $(GTESTS) $(EXAMPLES)
+EXTRA_PROGRAMS += $(GTESTS) $(EXAMPLES) rectangleGen
 endif
 
 main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
@@ -25,17 +25,23 @@ test3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 test3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 test3d_SOURCES = $(GTEST_DRIVER)
 
-examples: $(EXAMPLES)
+rectangleGen_CXXFLAGS = $(AM_CXXFLAGS)
+rectangleGen_LDADD =
+rectangleGen_SOURCES = rectangleGen.cpp
+
+rectangle3d.vertex: rectangleGen
+	./rectangleGen
+
+examples: $(EXAMPLES) rectangle3d.vertex
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[3]d* $(PWD) ; \
-	  cp -f $(srcdir)/rectangle3d.vertex $(PWD) ; \
 	  cp -f $(srcdir)/Rectangle3d.m $(PWD) ; \
 	fi ;
 
 if GTEST_ENABLED
 gtest: $(GTESTS)
 
-gtest-long: 
+gtest-long:
 	make gtest
 
 else
@@ -54,5 +60,6 @@ clean-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input3d ; \
 	  rm -f $(builddir)/rectangle3d.vertex ; \
+	  rm -f $(builddir)/rectangleGen ; \
 	  rm -f $(builddir)/Rectangle3d.m ; \
 	fi ;

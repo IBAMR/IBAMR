@@ -32,22 +32,23 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
-
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
 #include "ibtk/FACPreconditioner.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/ibtk_enums.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
+#include "PatchHierarchy.h"
+#include "SAMRAIVectorReal.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <ostream>
+#include <string>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -162,10 +163,8 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorRe
             break;
         default:
             TBOX_ERROR(d_object_name << "::solveSystem():\n"
-                                     << "  unsupported FAC cycle type: "
-                                     << enum_to_string<MGCycleType>(d_cycle_type)
-                                     << "."
-                                     << std::endl);
+                                     << "  unsupported FAC cycle type: " << enum_to_string<MGCycleType>(d_cycle_type)
+                                     << "." << std::endl);
         }
         d_f->deallocateVectorData();
         d_r->deallocateVectorData();
@@ -245,8 +244,7 @@ FACPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
     if (initial_guess_nonzero)
     {
         TBOX_ERROR(d_object_name << "::setInitialGuessNonzero()\n"
-                                 << "  class IBTK::FACPreconditioner requires a zero initial guess"
-                                 << std::endl);
+                                 << "  class IBTK::FACPreconditioner requires a zero initial guess" << std::endl);
     }
     return;
 } // setInitialGuessNonzero
@@ -257,8 +255,7 @@ FACPreconditioner::setMaxIterations(int max_iterations)
     if (max_iterations != 1)
     {
         TBOX_ERROR(d_object_name << "::setMaxIterations()\n"
-                                 << "  class IBTK::FACPreconditioner only performs a single iteration"
-                                 << std::endl);
+                                 << "  class IBTK::FACPreconditioner only performs a single iteration" << std::endl);
     }
     return;
 } // setMaxIterations

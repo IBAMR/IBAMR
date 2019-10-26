@@ -34,11 +34,11 @@
 #define included_BrinkmanPenalizationStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include <limits>
-#include <string>
-#include <utility>
 
 #include "tbox/Serializable.h"
+
+#include <limits>
+#include <string>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -50,7 +50,6 @@ namespace IBAMR
  */
 class BrinkmanPenalizationStrategy : public SAMRAI::tbox::Serializable
 {
-    ////////////////////////////// PUBLIC ////////////////////////////////////////
 public:
     /*
      * \brief Constructor of the class.
@@ -152,8 +151,6 @@ protected:
      * Brinkman coefficient.
      */
     double d_chi = 1e8;
-
-    /////////////////////////////// PROTECTED ////////////////////////////////////
 
 private:
     /*!

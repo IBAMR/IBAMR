@@ -35,8 +35,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <set>
-#include <vector>
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 
 #include "Box.h"
 #include "CartesianCellDoubleLinearRefine.h"
@@ -44,8 +43,10 @@
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "RefineOperator.h"
-#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "tbox/Pointer.h"
+
+#include <set>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -254,8 +255,8 @@ private:
      * Cached hierarchy-related information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM>*> d_cf_boundary;
-    std::vector<SAMRAI::hier::BoxArray<NDIM>*> d_domain_boxes;
+    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
+    std::vector<SAMRAI::hier::BoxArray<NDIM> > d_domain_boxes;
     std::vector<SAMRAI::hier::IntVector<NDIM> > d_periodic_shift;
 };
 } // namespace IBTK

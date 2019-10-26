@@ -35,15 +35,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
+#include "ibtk/GeneralOperator.h"
 
 #include "IntVector.h"
 #include "SAMRAIVectorReal.h"
-#include "ibtk/GeneralOperator.h"
+#include "tbox/Pointer.h"
+
 #include "petscsnes.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Pointer.h"
+
+#include <string>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -124,7 +126,8 @@ public:
      * \param x input
      * \param y output: y=F[x]
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
+    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=F[x].

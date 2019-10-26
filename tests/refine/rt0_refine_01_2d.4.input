@@ -1,0 +1,81 @@
+constant_function {
+   function_0 = "3"
+   function_1 = "4"
+}
+
+linear_x {
+   function_0 = "1 - X_0"
+   function_1 = "0.0"
+}
+
+linear_y {
+   function_0 = "0.0"
+   function_1 = "1.0 - X_1"
+}
+
+both_linear {
+   function_0 = "1.0 - X_0"
+   function_1 = "2.0 + X_1"
+}
+
+non_rt {
+   function_0 = "X_0*X_0 + X_1*X_1"
+   function_1 = "X_0*X_0 - X_1*X_1 + X_0*X_1"
+}
+
+Main {
+// log file parameters
+   log_file_name = "output"
+   log_all_nodes = FALSE
+
+// visualization dump parameters
+   viz_writer                  = "VisIt"
+   viz_dump_interval           = 2
+   viz_dump_dirname            = "viz_advect2d"
+   visit_number_procs_per_file = 1
+
+}
+
+N = 4
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (N - 1,N - 1)]
+   x_lo               = 0, 0   // lower end of computational domain.
+   x_up               = 1, 1   // upper end of computational domain.
+}
+
+GriddingAlgorithm {
+   max_levels = 5                 // Maximum number of levels in hierarchy.
+
+   ratio_to_coarser {
+      level_1 = 4, 4           // vector ratio to next coarser level
+   }
+
+   largest_patch_size {
+      level_0 = 4^8, 4^8     // largest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 =   1,   1     // smallest patch allowed in hierarchy
+                             // all finer levels will use same values as level_0...
+   }
+
+   efficiency_tolerance = 0.70e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller
+                                  // boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(0, 0), (N - 1, N - 1)]
+      level_1 = [(0, 0), (4^1*N - 1, 4^1*N - 1)]
+      level_2 = [(0, 0), (4^2*N - 1, 4^2*N - 1)]
+      level_3 = [(0, 0), (4^3*N - 1, 4^3*N - 1)]
+      level_4 = [(0, 0), (4^4*N - 1, 4^4*N - 1)]
+      level_5 = [(0, 0), (4^5*N - 1, 4^5*N - 1)]
+   }
+}
+
+LoadBalancer {}

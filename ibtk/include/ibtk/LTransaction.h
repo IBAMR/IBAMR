@@ -35,15 +35,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <iosfwd>
-#include <vector>
-
 #include "ibtk/LMarker.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/LSet.h"
 #include "ibtk/ibtk_utilities.h"
+
 #include "tbox/Transaction.h"
+
+#include <iosfwd>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -79,7 +80,8 @@ public:
         /*!
          * \brief Default constructor.
          */
-        inline LTransactionComponent(const typename LSet<T>::value_type& item = nullptr, const Point& posn = Point::Zero())
+        inline LTransactionComponent(const typename LSet<T>::value_type& item = nullptr,
+                                     const Point& posn = Point::Zero())
             : item(item), posn(posn)
         {
             // intentionally blank

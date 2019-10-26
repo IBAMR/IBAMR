@@ -8,6 +8,27 @@ lib: all
 examples: lib
 	@(cd examples && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
 
+MPIEXEC = @MPIEXEC@
+NUMDIFF = @NUMDIFF@
+# attest uses parameters set in attest.conf; said parameters are overridden by
+# command line arguments. Use configuration info to set up the path to mpirun:
+attest.conf:
+	@printf "# attest default configuration file\n" > attest.conf-tmp
+	@printf "[attest]\n" >> attest.conf-tmp
+	@printf "jobs = 1\n" >> attest.conf-tmp
+	@printf "keep_work_directories = False\n"  >> attest.conf-tmp
+	@printf "mpiexec = ${MPIEXEC}\n" >> attest.conf-tmp
+	@printf "numdiff = ${NUMDIFF}\n" >> attest.conf-tmp
+	@printf "show_only = False\n" >> attest.conf-tmp
+	@printf "test_directory = /tests/\n" >> attest.conf-tmp
+	@printf "test_regex = .*\n" >> attest.conf-tmp
+	@mv attest.conf-tmp attest.conf
+
+tests: lib attest.conf
+	ln -f -s $(top_srcdir)/attest $(abs_builddir)
+	@cd $@ && $(MAKE) $(AM_MAKEFLAGS) $@
+.PHONY: tests
+
 install-exec-local:
 	@echo "===================================================================="
 	@echo "===================================================================="

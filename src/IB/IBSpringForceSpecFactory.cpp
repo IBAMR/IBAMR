@@ -32,14 +32,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
-
 #include "ibamr/IBSpringForceSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
+
 #include "tbox/AbstractStream.h"
 #include "tbox/Pointer.h"
+
+#include <vector>
 
 namespace SAMRAI
 {

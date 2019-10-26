@@ -35,21 +35,23 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <string>
-#include <vector>
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <map>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {
@@ -437,8 +439,9 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    void
+    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -459,14 +462,17 @@ public:
     /*!
      * \brief Register a reset callback function for a specified variable.
      */
-    void registerResetFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var, ResetPropertiesFcnPtr callback, void* ctx);
+    void registerResetFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                               ResetPropertiesFcnPtr callback,
+                               void* ctx);
 
     /*
      * \brief Set a reset priority for a particular variable.
      *
      * \note Variables will be reset sequentially accordint to their priority, from lowest to highest.
-     * The reset functions registered to each variable will be called according to the order in which they were registered.
-     * If no priority is set for a variable, its reset functions will be called after those with priority, in no particular order.
+     * The reset functions registered to each variable will be called according to the order in which they were
+     * registered. If no priority is set for a variable, its reset functions will be called after those with priority,
+     * in no particular order.
      */
     void setResetPriority(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var, int priority);
 
@@ -502,9 +508,7 @@ protected:
      *
      * The method initializes variables that may require the full grid hierarchy to be already created.
      */
-    void initializeCompositeHierarchyDataSpecialized(
-        double init_data_time,
-        bool initial_time) override;
+    void initializeCompositeHierarchyDataSpecialized(double init_data_time, bool initial_time) override;
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -605,8 +609,9 @@ protected:
     /*!
      * Objects to keep track of the resetting functions.
      */
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<ResetPropertiesFcnPtr> > d_Q_reset_fcns;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<void *> > d_Q_reset_fcns_ctx;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<ResetPropertiesFcnPtr> >
+        d_Q_reset_fcns;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<void*> > d_Q_reset_fcns_ctx;
     std::vector<int> d_Q_reset_priority;
 
     /*

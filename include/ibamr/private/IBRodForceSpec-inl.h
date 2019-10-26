@@ -35,12 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-
 #include "ibamr/IBRodForceSpec.h"
+
 #include "ibtk/StreamableManager.h"
+
 #include "tbox/PIO.h"
 #include "tbox/Utilities.h"
+
+#include <array>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

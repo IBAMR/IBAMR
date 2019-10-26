@@ -8,7 +8,7 @@ EXTRA_DIST     = input2d input2d.test input3d
 
 EXAMPLES =
 GTESTS   =
-EXTRA_PROGRAMS =
+EXTRA_PROGRAMS = wedgeGen
 if SAMRAI2D_ENABLED
 EXAMPLES += main2d
 if GTEST_ENABLED
@@ -40,23 +40,29 @@ test3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 test3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 test3d_SOURCES = $(GTEST_DRIVER)
 
-examples: $(EXAMPLES)
+wedgeGen_CXXFLAGS = $(AM_CXXFLAGS)
+wedgeGen_LDADD =
+wedgeGen_SOURCES = wedgeGen.cpp
+
+# wedgeGen creates both 2d and 3d input files
+wedge2d.vertex: wedgeGen
+	./wedgeGen
+
+wedge3d.vertex: wedge2d.vertex
+
+examples: $(EXAMPLES) wedge2d.vertex wedge3d.vertex
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d* $(PWD) ; \
-	  cp -f $(srcdir)/wedge2d.vertex $(PWD) ; \
-	  cp -f $(srcdir)/Wedge2d.m $(PWD) ; \
-	  cp -f $(srcdir)/Wedge3d.m $(PWD) ; \
 	fi ;
 
 if GTEST_ENABLED
 gtest: $(GTESTS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input2d.test $(PWD) ; \
-	  cp -f $(srcdir)/wedge2d.vertex $(PWD) ; \
 	fi ;
 	./test2d input2d.test
 
-gtest-long: 
+gtest-long:
 	make gtest
 
 else

@@ -90,10 +90,11 @@ host_triplet = @host@
 EXTRA_PROGRAMS = $(am__EXEEXT_5)
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
 @GTEST_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_2 = test2d
-@SAMRAI2D_ENABLED_TRUE@am__append_3 = $(GTESTS) $(EXAMPLES)
+@SAMRAI2D_ENABLED_TRUE@am__append_3 = $(GTESTS) $(EXAMPLES) cylinderGen
 subdir = examples/multiphase_flow/ex9
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
+	$(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
 	$(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/ax_prog_cc_mpi.m4 \
 	$(top_srcdir)/m4/ax_prog_cxx_mpi.m4 $(top_srcdir)/m4/boost.m4 \
@@ -127,7 +128,18 @@ CONFIG_CLEAN_VPATH_FILES =
 am__EXEEXT_2 = $(am__EXEEXT_1)
 @SAMRAI2D_ENABLED_TRUE@am__EXEEXT_3 = main2d$(EXEEXT)
 am__EXEEXT_4 = $(am__EXEEXT_3)
-@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_5 = $(am__EXEEXT_2) $(am__EXEEXT_4)
+@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_5 = $(am__EXEEXT_2) $(am__EXEEXT_4) \
+@SAMRAI2D_ENABLED_TRUE@	cylinderGen$(EXEEXT)
+am_cylinderGen_OBJECTS = cylinderGen-cylinderGen.$(OBJEXT)
+cylinderGen_OBJECTS = $(am_cylinderGen_OBJECTS)
+cylinderGen_DEPENDENCIES =
+AM_V_lt = $(am__v_lt_@AM_V@)
+am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
+am__v_lt_0 = --silent
+am__v_lt_1 = 
+cylinderGen_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(cylinderGen_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__objects_1 = main2d-ex_main.$(OBJEXT) \
 	main2d-SetFluidGasSolidDensity.$(OBJEXT) \
 	main2d-SetFluidGasSolidViscosity.$(OBJEXT) \
@@ -141,10 +153,6 @@ am__objects_1 = main2d-ex_main.$(OBJEXT) \
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-AM_V_lt = $(am__v_lt_@AM_V@)
-am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
-am__v_lt_0 = --silent
-am__v_lt_1 = 
 main2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
@@ -179,7 +187,8 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/main2d-FlowGravityForcing.Po \
+am__depfiles_remade = ./$(DEPDIR)/cylinderGen-cylinderGen.Po \
+	./$(DEPDIR)/main2d-FlowGravityForcing.Po \
 	./$(DEPDIR)/main2d-GravityForcing.Po \
 	./$(DEPDIR)/main2d-LSLocateCircularInterface.Po \
 	./$(DEPDIR)/main2d-LSLocateGasInterface.Po \
@@ -218,8 +227,9 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(main2d_SOURCES) $(test2d_SOURCES)
-DIST_SOURCES = $(main2d_SOURCES) $(test2d_SOURCES)
+SOURCES = $(cylinderGen_SOURCES) $(main2d_SOURCES) $(test2d_SOURCES)
+DIST_SOURCES = $(cylinderGen_SOURCES) $(main2d_SOURCES) \
+	$(test2d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -292,17 +302,12 @@ HAVE_CXX11 = @HAVE_CXX11@
 HAVE_LIBGSL = @HAVE_LIBGSL@
 HAVE_LIBGSLCBLAS = @HAVE_LIBGSLCBLAS@
 HAVE_LIBGTEST = @HAVE_LIBGTEST@
-HAVE_LIBHDF5 = @HAVE_LIBHDF5@
-HAVE_LIBHDF5_HL = @HAVE_LIBHDF5_HL@
-HAVE_LIBHYPRE = @HAVE_LIBHYPRE@
 HAVE_LIBMESH_DBG = @HAVE_LIBMESH_DBG@
 HAVE_LIBMESH_DEVEL = @HAVE_LIBMESH_DEVEL@
 HAVE_LIBMESH_OPROF = @HAVE_LIBMESH_OPROF@
 HAVE_LIBMESH_OPT = @HAVE_LIBMESH_OPT@
 HAVE_LIBMESH_PROF = @HAVE_LIBMESH_PROF@
 HAVE_LIBMUPARSER = @HAVE_LIBMUPARSER@
-HAVE_LIBNETCDF = @HAVE_LIBNETCDF@
-HAVE_LIBPETSC = @HAVE_LIBPETSC@
 HAVE_LIBSAMRAI = @HAVE_LIBSAMRAI@
 HAVE_LIBSAMRAI2D_ALGS = @HAVE_LIBSAMRAI2D_ALGS@
 HAVE_LIBSAMRAI2D_APPU = @HAVE_LIBSAMRAI2D_APPU@
@@ -322,8 +327,6 @@ HAVE_LIBSAMRAI3D_MESH = @HAVE_LIBSAMRAI3D_MESH@
 HAVE_LIBSAMRAI3D_PDAT_STD = @HAVE_LIBSAMRAI3D_PDAT_STD@
 HAVE_LIBSAMRAI3D_SOLV = @HAVE_LIBSAMRAI3D_SOLV@
 HAVE_LIBSAMRAI3D_XFER = @HAVE_LIBSAMRAI3D_XFER@
-HAVE_LIBSILO = @HAVE_LIBSILO@
-HAVE_LIBSILOH5 = @HAVE_LIBSILOH5@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -337,12 +340,6 @@ LIBGSLCBLAS_PREFIX = @LIBGSLCBLAS_PREFIX@
 LIBGSL_PREFIX = @LIBGSL_PREFIX@
 LIBGTEST = @LIBGTEST@
 LIBGTEST_PREFIX = @LIBGTEST_PREFIX@
-LIBHDF5 = @LIBHDF5@
-LIBHDF5_HL = @LIBHDF5_HL@
-LIBHDF5_HL_PREFIX = @LIBHDF5_HL_PREFIX@
-LIBHDF5_PREFIX = @LIBHDF5_PREFIX@
-LIBHYPRE = @LIBHYPRE@
-LIBHYPRE_PREFIX = @LIBHYPRE_PREFIX@
 LIBMESH_CONFIG = @LIBMESH_CONFIG@
 LIBMESH_DBG = @LIBMESH_DBG@
 LIBMESH_DBG_PREFIX = @LIBMESH_DBG_PREFIX@
@@ -356,11 +353,7 @@ LIBMESH_PROF = @LIBMESH_PROF@
 LIBMESH_PROF_PREFIX = @LIBMESH_PROF_PREFIX@
 LIBMUPARSER = @LIBMUPARSER@
 LIBMUPARSER_PREFIX = @LIBMUPARSER_PREFIX@
-LIBNETCDF = @LIBNETCDF@
-LIBNETCDF_PREFIX = @LIBNETCDF_PREFIX@
 LIBOBJS = @LIBOBJS@
-LIBPETSC = @LIBPETSC@
-LIBPETSC_PREFIX = @LIBPETSC_PREFIX@
 LIBS = @LIBS@
 LIBSAMRAI = @LIBSAMRAI@
 LIBSAMRAI2D_ALGS = @LIBSAMRAI2D_ALGS@
@@ -400,28 +393,19 @@ LIBSAMRAI3D_SOLV_PREFIX = @LIBSAMRAI3D_SOLV_PREFIX@
 LIBSAMRAI3D_XFER = @LIBSAMRAI3D_XFER@
 LIBSAMRAI3D_XFER_PREFIX = @LIBSAMRAI3D_XFER_PREFIX@
 LIBSAMRAI_PREFIX = @LIBSAMRAI_PREFIX@
-LIBSILO = @LIBSILO@
-LIBSILOH5 = @LIBSILOH5@
-LIBSILOH5_PREFIX = @LIBSILOH5_PREFIX@
-LIBSILO_PREFIX = @LIBSILO_PREFIX@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBGSL = @LTLIBGSL@
 LTLIBGSLCBLAS = @LTLIBGSLCBLAS@
 LTLIBGTEST = @LTLIBGTEST@
-LTLIBHDF5 = @LTLIBHDF5@
-LTLIBHDF5_HL = @LTLIBHDF5_HL@
-LTLIBHYPRE = @LTLIBHYPRE@
 LTLIBMESH_DBG = @LTLIBMESH_DBG@
 LTLIBMESH_DEVEL = @LTLIBMESH_DEVEL@
 LTLIBMESH_OPROF = @LTLIBMESH_OPROF@
 LTLIBMESH_OPT = @LTLIBMESH_OPT@
 LTLIBMESH_PROF = @LTLIBMESH_PROF@
 LTLIBMUPARSER = @LTLIBMUPARSER@
-LTLIBNETCDF = @LTLIBNETCDF@
 LTLIBOBJS = @LTLIBOBJS@
-LTLIBPETSC = @LTLIBPETSC@
 LTLIBSAMRAI = @LTLIBSAMRAI@
 LTLIBSAMRAI2D_ALGS = @LTLIBSAMRAI2D_ALGS@
 LTLIBSAMRAI2D_APPU = @LTLIBSAMRAI2D_APPU@
@@ -441,8 +425,6 @@ LTLIBSAMRAI3D_MESH = @LTLIBSAMRAI3D_MESH@
 LTLIBSAMRAI3D_PDAT_STD = @LTLIBSAMRAI3D_PDAT_STD@
 LTLIBSAMRAI3D_SOLV = @LTLIBSAMRAI3D_SOLV@
 LTLIBSAMRAI3D_XFER = @LTLIBSAMRAI3D_XFER@
-LTLIBSILO = @LTLIBSILO@
-LTLIBSILOH5 = @LTLIBSILOH5@
 LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 M4 = @M4@
 MAINT = @MAINT@
@@ -451,19 +433,18 @@ MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
 MPICC = @MPICC@
 MPICXX = @MPICXX@
+MPIEXEC = @MPIEXEC@
 NM = @NM@
 NMEDIT = @NMEDIT@
+NUMDIFF = @NUMDIFF@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 OTOOL = @OTOOL@
 OTOOL64 = @OTOOL64@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
-PACKAGE_CFLAGS = @PACKAGE_CFLAGS@
 PACKAGE_CONTRIB_LIBS = @PACKAGE_CONTRIB_LIBS@
 PACKAGE_CPPFLAGS = @PACKAGE_CPPFLAGS@
-PACKAGE_CXXFLAGS = @PACKAGE_CXXFLAGS@
-PACKAGE_FCFLAGS = @PACKAGE_FCFLAGS@
 PACKAGE_LDFLAGS = @PACKAGE_LDFLAGS@
 PACKAGE_LIBS = @PACKAGE_LIBS@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -556,6 +537,9 @@ main2d_SOURCES = $(EXAMPLE_DRIVER)
 test2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 test2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 test2d_SOURCES = $(GTEST_DRIVER)
+cylinderGen_CXXFLAGS = $(AM_CXXFLAGS)
+cylinderGen_LDADD = 
+cylinderGen_SOURCES = cylinderGen.cpp
 all: all-am
 
 .SUFFIXES:
@@ -591,6 +575,10 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
+cylinderGen$(EXEEXT): $(cylinderGen_OBJECTS) $(cylinderGen_DEPENDENCIES) $(EXTRA_cylinderGen_DEPENDENCIES) 
+	@rm -f cylinderGen$(EXEEXT)
+	$(AM_V_CXXLD)$(cylinderGen_LINK) $(cylinderGen_OBJECTS) $(cylinderGen_LDADD) $(LIBS)
+
 main2d$(EXEEXT): $(main2d_OBJECTS) $(main2d_DEPENDENCIES) $(EXTRA_main2d_DEPENDENCIES) 
 	@rm -f main2d$(EXEEXT)
 	$(AM_V_CXXLD)$(main2d_LINK) $(main2d_OBJECTS) $(main2d_LDADD) $(LIBS)
@@ -605,6 +593,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cylinderGen-cylinderGen.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-FlowGravityForcing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-GravityForcing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LSLocateCircularInterface.Po@am__quote@ # am--include-marker
@@ -655,6 +644,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
+
+cylinderGen-cylinderGen.o: cylinderGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cylinderGen_CXXFLAGS) $(CXXFLAGS) -MT cylinderGen-cylinderGen.o -MD -MP -MF $(DEPDIR)/cylinderGen-cylinderGen.Tpo -c -o cylinderGen-cylinderGen.o `test -f 'cylinderGen.cpp' || echo '$(srcdir)/'`cylinderGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/cylinderGen-cylinderGen.Tpo $(DEPDIR)/cylinderGen-cylinderGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cylinderGen.cpp' object='cylinderGen-cylinderGen.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cylinderGen_CXXFLAGS) $(CXXFLAGS) -c -o cylinderGen-cylinderGen.o `test -f 'cylinderGen.cpp' || echo '$(srcdir)/'`cylinderGen.cpp
+
+cylinderGen-cylinderGen.obj: cylinderGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cylinderGen_CXXFLAGS) $(CXXFLAGS) -MT cylinderGen-cylinderGen.obj -MD -MP -MF $(DEPDIR)/cylinderGen-cylinderGen.Tpo -c -o cylinderGen-cylinderGen.obj `if test -f 'cylinderGen.cpp'; then $(CYGPATH_W) 'cylinderGen.cpp'; else $(CYGPATH_W) '$(srcdir)/cylinderGen.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/cylinderGen-cylinderGen.Tpo $(DEPDIR)/cylinderGen-cylinderGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cylinderGen.cpp' object='cylinderGen-cylinderGen.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cylinderGen_CXXFLAGS) $(CXXFLAGS) -c -o cylinderGen-cylinderGen.obj `if test -f 'cylinderGen.cpp'; then $(CYGPATH_W) 'cylinderGen.cpp'; else $(CYGPATH_W) '$(srcdir)/cylinderGen.cpp'; fi`
 
 main2d-ex_main.o: ex_main.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-ex_main.o -MD -MP -MF $(DEPDIR)/main2d-ex_main.Tpo -c -o main2d-ex_main.o `test -f 'ex_main.cpp' || echo '$(srcdir)/'`ex_main.cpp
@@ -1067,7 +1070,8 @@ clean: clean-am
 clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/main2d-FlowGravityForcing.Po
+		-rm -f ./$(DEPDIR)/cylinderGen-cylinderGen.Po
+	-rm -f ./$(DEPDIR)/main2d-FlowGravityForcing.Po
 	-rm -f ./$(DEPDIR)/main2d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/main2d-LSLocateCircularInterface.Po
 	-rm -f ./$(DEPDIR)/main2d-LSLocateGasInterface.Po
@@ -1132,7 +1136,8 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/main2d-FlowGravityForcing.Po
+		-rm -f ./$(DEPDIR)/cylinderGen-cylinderGen.Po
+	-rm -f ./$(DEPDIR)/main2d-FlowGravityForcing.Po
 	-rm -f ./$(DEPDIR)/main2d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/main2d-LSLocateCircularInterface.Po
 	-rm -f ./$(DEPDIR)/main2d-LSLocateGasInterface.Po
@@ -1191,21 +1196,22 @@ uninstall-am:
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
-examples: $(EXAMPLES)
+cylinder2d.vertex: cylinderGen
+	./cylinderGen
+
+examples: $(EXAMPLES) cylinder2d.vertex
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[2]d* $(PWD) ; \
-	  cp -f $(srcdir)/cylinder2d.vertex $(PWD) ; \
 	  cp -f $(srcdir)/Cylinder2d_cubic.m $(PWD) ; \
 	fi ;
 
 @GTEST_ENABLED_TRUE@gtest: $(GTESTS)
 @GTEST_ENABLED_TRUE@	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 @GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/input2d.test $(PWD) ; \
-@GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/cylinder2d.vertex $(PWD) ; \
 @GTEST_ENABLED_TRUE@	fi ;
 @GTEST_ENABLED_TRUE@	./test2d input2d.test
 
-@GTEST_ENABLED_TRUE@gtest-long: 
+@GTEST_ENABLED_TRUE@gtest-long:
 @GTEST_ENABLED_TRUE@	make gtest
 
 @GTEST_ENABLED_FALSE@gtest:
@@ -1224,6 +1230,7 @@ clean-local:
 	  rm -f $(builddir)/input2d.flow ; \
 	  rm -f $(builddir)/input2d.full ; \
 	  rm -f $(builddir)/cylinder2d.vertex ; \
+	  rm -f $(builddir)/cylinderGen ; \
 	  rm -f $(builddir)/Cylinder2d_cubic.m ; \
 	fi ;
 

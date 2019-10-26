@@ -35,13 +35,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
-
 #include "ibamr/IBLagrangianSourceStrategy.h"
+
 #include "ibtk/ibtk_utilities.h"
+
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
+
+#include <string>
+#include <vector>
 
 namespace IBTK
 {

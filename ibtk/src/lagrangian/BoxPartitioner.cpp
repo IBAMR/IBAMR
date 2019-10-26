@@ -35,19 +35,19 @@
 #include <ibtk/PartitioningBox.h>
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
+#include <tbox/PIO.h>
+#include <tbox/SAMRAI_MPI.h>
+
 #include <libmesh/elem.h>
 #include <libmesh/mesh_base.h>
 #include <libmesh/node.h>
 #include <libmesh/numeric_vector.h>
 #include <libmesh/point.h>
 
-#include <tbox/PIO.h>
-#include <tbox/SAMRAI_MPI.h>
+#include <mpi.h>
 
 #include <algorithm>
 #include <vector>
-
-#include <mpi.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -147,8 +147,11 @@ BoxPartitioner::writePartitioning(const std::string& file_name) const
 void
 BoxPartitioner::_do_partition(MeshBase& mesh, const unsigned int n)
 {
-    // We assume every cell is on every processor
+    // We assume every cell is on every processor: this function is only in
+    // libMesh 1.2.0 and newer
+#if 1 < LIBMESH_MINOR_VERSION
     TBOX_ASSERT(mesh.is_replicated());
+#endif
     // only implemented when we use SAMRAI's partitioning
     TBOX_ASSERT(n == static_cast<unsigned int>(SAMRAI_MPI::getNodes()));
 
@@ -299,12 +302,12 @@ BoxPartitioner::_do_partition(MeshBase& mesh, const unsigned int n)
     for (const dof_id_type id : local_elem_ids)
     {
         TBOX_ASSERT(id < elem_ids.size());
-        TBOX_ASSERT(elem_ids[id] == current_rank + 1);
+        TBOX_ASSERT(elem_ids[id] == dof_id_type(current_rank + 1));
     }
     for (const dof_id_type id : local_node_ids)
     {
         TBOX_ASSERT(id < node_ids.size());
-        TBOX_ASSERT(node_ids[id] == current_rank + 1);
+        TBOX_ASSERT(node_ids[id] == dof_id_type(current_rank + 1));
     }
 
     TBOX_ASSERT(std::find(elem_ids.begin(), elem_ids.end(), 0) == elem_ids.end());

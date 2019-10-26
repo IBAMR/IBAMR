@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of The University of North Carolina nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -35,11 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
 #include "ibamr/StaggeredStokesOperator.h"
-#include "petscvec.h"
+
 #include "tbox/Pointer.h"
+
+#include "petscvec.h"
+
+#include <string>
 
 namespace IBAMR
 {
@@ -151,7 +153,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    CIBStaggeredStokesOperator(const CIBStaggeredStokesOperator& from)= delete;
+    CIBStaggeredStokesOperator(const CIBStaggeredStokesOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.

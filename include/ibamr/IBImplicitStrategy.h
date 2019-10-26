@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
-
 #include "ibamr/IBStrategy.h"
-#include "petscvec.h"
+
 #include "petscmat.h"
+#include "petscvec.h"
+
+#include <vector>
 
 namespace IBTK
 {

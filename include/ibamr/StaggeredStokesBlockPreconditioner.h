@@ -35,18 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
+#include "ibamr/StaggeredStokesSolver.h"
+
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/LinearSolver.h"
+#include "ibtk/PoissonSolver.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "HierarchyDataOpsReal.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "PoissonSpecifications.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/LinearSolver.h"
-#include "ibtk/PoissonSolver.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
+
+#include <vector>
 
 namespace SAMRAI
 {

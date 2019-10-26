@@ -35,23 +35,26 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <iosfwd>
-#include <string>
-#include <vector>
+#include "ibtk/KrylovLinearSolver.h"
+#include "ibtk/LinearSolver.h"
 
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "SAMRAIVectorReal.h"
-#include "ibtk/KrylovLinearSolver.h"
-#include "ibtk/LinearSolver.h"
-#include "mpi.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscpc.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+
+#include <mpi.h>
+
+#include <iosfwd>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {
@@ -247,7 +250,8 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.

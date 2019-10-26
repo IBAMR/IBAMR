@@ -35,11 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/LinearOperator.h"
+#include "ibtk/LinearSolver.h"
 
 #include "IntVector.h"
 #include "SAMRAIVectorReal.h"
-#include "ibtk/LinearOperator.h"
-#include "ibtk/LinearSolver.h"
 #include "tbox/Pointer.h"
 
 namespace IBTK

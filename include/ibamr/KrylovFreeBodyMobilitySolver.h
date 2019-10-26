@@ -16,8 +16,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of The University of North Carolina nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -36,12 +36,13 @@
 #define included_IBAMR_KrylovFreeBodyMobilitySolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include <vector>
-
-#include "petscksp.h"
 #include "tbox/Database.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include "petscksp.h"
+
+#include <vector>
 
 namespace IBAMR
 {
@@ -49,7 +50,7 @@ class CIBStrategy;
 class CIBMobilitySolver;
 class StokesSpecifications;
 class DirectMobilitySolver;
-}
+} // namespace IBAMR
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

@@ -35,10 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+
 #include <string>
 #include <vector>
-
-#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 
 namespace IBAMR
 {
@@ -103,8 +103,9 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    void
+    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Initialize the AMR patch hierarchy and data defined on the hierarchy at
@@ -145,11 +146,6 @@ public:
                                        double new_time,
                                        bool skip_synchronize_new_state_data,
                                        int num_cycles = 1) override;
-
-    /*!
-     * Regrid the patch hierarchy.
-     */
-    void regridHierarchy() override;
 
     /*!
      * Explicitly remove nullspace components from a solution vector.
@@ -223,7 +219,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSVCStaggeredNonConservativeHierarchyIntegrator(const INSVCStaggeredNonConservativeHierarchyIntegrator& from) = delete;
+    INSVCStaggeredNonConservativeHierarchyIntegrator(const INSVCStaggeredNonConservativeHierarchyIntegrator& from) =
+        delete;
 
     /*!
      * \brief Assignment operator.

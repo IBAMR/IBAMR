@@ -32,25 +32,26 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
-
-#include "IntVector.h"
-#include "PatchHierarchy.h"
-#include "SAMRAIVectorReal.h"
 #include "ibtk/BGaussSeidelPreconditioner.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "SAMRAIVectorReal.h"
 #include "tbox/ConstPointer.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -365,10 +366,8 @@ BGaussSeidelPreconditioner::getComponentVectors(const ConstPointer<SAMRAIVectorR
     std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > > x_comps(ncomps);
     for (int comp = 0; comp < ncomps; ++comp)
     {
-        std::ostringstream str;
-        str << comp;
-        x_comps[comp] =
-            new SAMRAIVectorReal<NDIM, double>(x_name + "_component_" + str.str(), hierarchy, coarsest_ln, finest_ln);
+        x_comps[comp] = new SAMRAIVectorReal<NDIM, double>(
+            x_name + "_component_" + std::to_string(comp), hierarchy, coarsest_ln, finest_ln);
         x_comps[comp]->addComponent(
             x->getComponentVariable(comp), x->getComponentDescriptorIndex(comp), x->getControlVolumeIndex(comp));
     }

@@ -32,9 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <set>
-#include <vector>
+#include "IBTK_config.h"
+
+#include "ibtk/CartCellDoubleLinearCFInterpolation.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BoundaryBox.h"
 #include "Box.h"
@@ -45,18 +46,19 @@
 #include "CoarseFineBoundary.h"
 #include "ComponentSelector.h"
 #include "GridGeometry.h"
-#include "IBTK_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "RefineOperator.h"
-#include "ibtk/CartCellDoubleLinearCFInterpolation.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <ostream>
+#include <set>
+#include <vector>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -67,21 +69,22 @@
 #endif
 
 // Function interfaces
-extern "C" {
-void CC_LINEAR_NORMAL_INTERPOLATION_FC(double* U,
-                                       const int& U_gcw,
-                                       const int& ilower0,
-                                       const int& iupper0,
-                                       const int& ilower1,
-                                       const int& iupper1,
+extern "C"
+{
+    void CC_LINEAR_NORMAL_INTERPOLATION_FC(double* U,
+                                           const int& U_gcw,
+                                           const int& ilower0,
+                                           const int& iupper0,
+                                           const int& ilower1,
+                                           const int& iupper1,
 #if (NDIM == 3)
-                                       const int& ilower2,
-                                       const int& iupper2,
+                                           const int& ilower2,
+                                           const int& iupper2,
 #endif
-                                       const int& loc_index,
-                                       const int& ratio,
-                                       const int* blower,
-                                       const int* bupper);
+                                           const int& loc_index,
+                                           const int& ratio,
+                                           const int* blower,
+                                           const int* bupper);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -94,7 +97,7 @@ namespace
 {
 static const int REFINE_OP_STENCIL_WIDTH = 1;
 static const int GHOST_WIDTH_TO_FILL = 1;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -199,7 +202,7 @@ CartCellDoubleLinearCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy<ND
     const IntVector<NDIM>& max_ghost_width = getRefineOpStencilWidth();
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        d_cf_boundary[ln] = new CoarseFineBoundary<NDIM>(*d_hierarchy, ln, max_ghost_width);
+        d_cf_boundary[ln] = CoarseFineBoundary<NDIM>(*d_hierarchy, ln, max_ghost_width);
     }
 
     Pointer<GridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
@@ -211,8 +214,8 @@ CartCellDoubleLinearCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy<ND
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         const IntVector<NDIM>& ratio = level->getRatio();
-        d_domain_boxes[ln] = new BoxArray<NDIM>(domain_boxes);
-        d_domain_boxes[ln]->refine(ratio);
+        d_domain_boxes[ln] = BoxArray<NDIM>(domain_boxes);
+        d_domain_boxes[ln].refine(ratio);
         d_periodic_shift[ln] = grid_geom->getPeriodicShift(ratio);
     }
     return;
@@ -222,17 +225,7 @@ void
 CartCellDoubleLinearCFInterpolation::clearPatchHierarchy()
 {
     d_hierarchy.setNull();
-    for (auto& cf_boundary : d_cf_boundary)
-    {
-        delete cf_boundary;
-        cf_boundary = nullptr;
-    }
     d_cf_boundary.clear();
-    for (auto& domain_box : d_domain_boxes)
-    {
-        delete domain_box;
-        domain_box = nullptr;
-    }
     d_domain_boxes.clear();
     d_periodic_shift.clear();
     return;
@@ -260,7 +253,7 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch<NDIM>& patch,
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(patch_level_num);
     TBOX_ASSERT(&patch == level->getPatch(patch_num).getPointer());
 #endif
-    const Array<BoundaryBox<NDIM> >& cf_bdry_codim1_boxes = d_cf_boundary[patch_level_num]->getBoundaries(patch_num, 1);
+    const Array<BoundaryBox<NDIM> >& cf_bdry_codim1_boxes = d_cf_boundary[patch_level_num].getBoundaries(patch_num, 1);
     const int n_cf_bdry_codim1_boxes = cf_bdry_codim1_boxes.size();
 
     // Check to see if there are any co-dimension 1 coarse-fine boundary boxes
@@ -279,8 +272,7 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(Patch<NDIM>& patch,
         if (U_ghosts != (data->getGhostCellWidth()).min())
         {
             TBOX_ERROR("CartCellDoubleLinearCFInterpolation::computeNormalExtension():\n"
-                       << "   patch data does not have uniform ghost cell widths"
-                       << std::endl);
+                       << "   patch data does not have uniform ghost cell widths" << std::endl);
         }
 #endif
         const int data_depth = data->getDepth();

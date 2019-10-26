@@ -35,8 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 
 #include "CellVariable.h"
 #include "FaceVariable.h"
@@ -45,10 +47,10 @@
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "SAMRAIVectorReal.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace IBAMR
 {
@@ -100,7 +102,7 @@ public:
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    INSCollocatedHierarchyIntegrator(const std::string& object_name,
+    INSCollocatedHierarchyIntegrator(std::string object_name,
                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                      bool register_for_restart = true);
 
@@ -145,8 +147,9 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    void
+    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Initialize the AMR patch hierarchy and data defined on the hierarchy at
@@ -183,12 +186,14 @@ public:
                                        bool skip_synchronize_new_state_data,
                                        int num_cycles = 1) override;
 
-    /*!
-     * Regrid the patch hierarchy.
-     */
-    void regridHierarchy() override;
-
 protected:
+    /*
+     * Since (unlike the staggered case) there is no local divergence-preserving
+     * interpolation scheme for collocated velocity fields, the velocity must
+     * always be projected onto the grid after regridding. Do that here.
+     */
+    void regridHierarchyEndSpecialized() override;
+
     /*!
      * Determine the largest stable timestep on an individual patch.
      */
@@ -230,6 +235,11 @@ protected:
      */
     void setupPlotDataSpecialized() override;
 
+    /*!
+     * Project the velocity field following a regridding operation.
+     */
+    void regridProjection() override;
+
 private:
     /*!
      * \brief Default constructor.
@@ -268,11 +278,6 @@ private:
      * Reinitialize the operators and solvers used by the hierarchy integrator.
      */
     void reinitializeOperatorsAndSolvers(double current_time, double new_time);
-
-    /*!
-     * Project the velocity field following a regridding operation.
-     */
-    void regridProjection();
 
     /*!
      * Value determining the type of projection method to use.
@@ -326,6 +331,12 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Grad_Phi_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_Grad_Phi_fc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_F_div_var;
+
+    std::string d_u_ADV_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_u_ADV_refine_type = "CONSERVATIVE_LINEAR_REFINE";
+
+    std::string d_N_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_N_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the

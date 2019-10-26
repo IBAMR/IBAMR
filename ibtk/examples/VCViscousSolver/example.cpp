@@ -30,6 +30,7 @@
 
 // Config files
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc objects
@@ -147,33 +148,25 @@ run_example(int argc, char* argv[])
         visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "VECTOR", u_cc_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            ostringstream stream;
-            stream << d;
-            visit_data_writer->registerPlotQuantity(u_cc_var->getName() + stream.str(), "SCALAR", u_cc_idx, d);
+            visit_data_writer->registerPlotQuantity(u_cc_var->getName() + std::to_string(d), "SCALAR", u_cc_idx, d);
         }
 
         visit_data_writer->registerPlotQuantity(f_cc_var->getName(), "VECTOR", f_cc_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            ostringstream stream;
-            stream << d;
-            visit_data_writer->registerPlotQuantity(f_cc_var->getName() + stream.str(), "SCALAR", f_cc_idx, d);
+            visit_data_writer->registerPlotQuantity(f_cc_var->getName() + std::to_string(d), "SCALAR", f_cc_idx, d);
         }
 
         visit_data_writer->registerPlotQuantity(e_cc_var->getName(), "VECTOR", e_cc_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            ostringstream stream;
-            stream << d;
-            visit_data_writer->registerPlotQuantity(e_cc_var->getName() + stream.str(), "SCALAR", e_cc_idx, d);
+            visit_data_writer->registerPlotQuantity(e_cc_var->getName() + std::to_string(d), "SCALAR", e_cc_idx, d);
         }
 
         visit_data_writer->registerPlotQuantity(r_cc_var->getName(), "VECTOR", r_cc_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            ostringstream stream;
-            stream << d;
-            visit_data_writer->registerPlotQuantity(r_cc_var->getName() + stream.str(), "SCALAR", r_cc_idx, d);
+            visit_data_writer->registerPlotQuantity(r_cc_var->getName() + std::to_string(d), "SCALAR", r_cc_idx, d);
         }
 
 #if (NDIM == 2)
@@ -285,9 +278,7 @@ run_example(int argc, char* argv[])
 
             for (unsigned int k = 0; k < NDIM; ++k)
             {
-                std::ostringstream stream;
-                stream << k;
-                U_nul_vecs[k] = f_vec.cloneVector("nul_vec_U_" + stream.str());
+                U_nul_vecs[k] = f_vec.cloneVector("nul_vec_U_" + std::to_string(k));
                 U_nul_vecs[k]->allocateVectorData(/*0.0*/);
                 U_nul_vecs[k]->setToScalar(0.0);
                 for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
@@ -307,13 +298,9 @@ run_example(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                ostringstream bc_coefs_name_stream;
-                bc_coefs_name_stream << "u_bc_coefs_" << d;
-                const string bc_coefs_name = bc_coefs_name_stream.str();
+                const std::string bc_coefs_name = "u_bc_coefs_" + std::to_string(d);
 
-                ostringstream bc_coefs_db_name_stream;
-                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
-                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+                const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
 
                 Pointer<Database> bc_coefs_db = app_initializer->getComponentDatabase(bc_coefs_db_name);
                 u_bc_coefs[d] = new muParserRobinBcCoefs(bc_coefs_name, bc_coefs_db, grid_geometry);
@@ -346,9 +333,14 @@ run_example(int argc, char* argv[])
                                                       VCSCViscousOpPointRelaxationFACOperator::allocate_solver);
         solver_manager->registerSolverFactoryFunction("VC_VELOCITY_PETSC_LEVEL_SOLVER",
                                                       VCSCViscousPETScLevelSolver::allocate_solver);
-        Pointer<PoissonSolver> poisson_solver = solver_manager->allocateSolver(
-            solver_type, "vc_velocity_solver", solver_db, "vc_velocity_", precond_type, "vc_velocity_precond",
-           precond_db, "vc_velocity_pc_");
+        Pointer<PoissonSolver> poisson_solver = solver_manager->allocateSolver(solver_type,
+                                                                               "vc_velocity_solver",
+                                                                               solver_db,
+                                                                               "vc_velocity_",
+                                                                               precond_type,
+                                                                               "vc_velocity_precond",
+                                                                               precond_db,
+                                                                               "vc_velocity_pc_");
         /*Pointer<PoissonSolver> poisson_solver = solver_manager->allocateSolver(solver_type,
                                                                                "vc_velocity_solver",
                                                                                solver_db,
@@ -465,13 +457,13 @@ run_example(int argc, char* argv[])
                     double avg_mu = 0.0;
                     for (int axis = 0; axis < NDIM; ++axis)
                     {
-                        for(EdgeIterator<NDIM> e(edge_box, axis); e; e++)
+                        for (EdgeIterator<NDIM> e(edge_box, axis); e; e++)
                         {
                             EdgeIndex<NDIM> ei(e());
                             avg_mu += (*mu_ec_data)(ei);
                         }
                     }
-                    (*mu_cc_data)(ci) = avg_mu/12.0;
+                    (*mu_cc_data)(ci) = avg_mu / 12.0;
                 }
             }
         }

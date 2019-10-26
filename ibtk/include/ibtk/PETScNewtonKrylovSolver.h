@@ -35,17 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <iosfwd>
-#include <string>
-
 #include "ibtk/NewtonKrylovSolver.h"
-#include "mpi.h"
+
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
 #include "petscmat.h"
 #include "petscsnes.h"
 #include "petscsys.h"
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+
+#include <mpi.h>
+
+#include <iosfwd>
+#include <string>
 
 namespace IBTK
 {
@@ -229,7 +232,8 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving

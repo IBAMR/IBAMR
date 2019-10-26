@@ -35,8 +35,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/FACPreconditionerStrategy.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
@@ -49,11 +51,10 @@
 #include "SAMRAIVectorReal.h"
 #include "VariableContext.h"
 #include "VariableFillPattern.h"
-#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "ibtk/FACPreconditionerStrategy.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace IBTK
 {
@@ -360,7 +361,7 @@ protected:
      * Problem specification.
      */
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_bc_coef;
+    std::unique_ptr<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > d_default_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
 
     /*

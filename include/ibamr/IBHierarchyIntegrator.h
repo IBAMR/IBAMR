@@ -35,8 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibamr/IBStrategy.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/LMarkerSetVariable.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "CellVariable.h"
 #include "CoarsenAlgorithm.h"
@@ -50,14 +56,10 @@
 #include "RefineOperator.h"
 #include "Variable.h"
 #include "VariableContext.h"
-#include "ibamr/IBStrategy.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/LMarkerSetVariable.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace IBTK
 {
@@ -168,8 +170,9 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    void
+    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Initialize the AMR patch hierarchy and data defined on the hierarchy at
@@ -187,12 +190,18 @@ public:
     void initializePatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                   SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
-    /*!
-     * Regrid the hierarchy.
-     */
-    void regridHierarchy() override;
-
 protected:
+    /*!
+     * Perform necessary data movement, workload estimation, and logging prior
+     * to regridding.
+     */
+    void regridHierarchyBeginSpecialized() override;
+
+    /*!
+     * Perform necessary data movement and logging after regridding.
+     */
+    void regridHierarchyEndSpecialized() override;
+
     /*!
      * The constructor for class IBHierarchyIntegrator sets some default values,
      * reads in configuration information from input and restart databases, and

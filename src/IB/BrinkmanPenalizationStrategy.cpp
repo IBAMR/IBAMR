@@ -33,6 +33,7 @@
 
 #include "ibamr/BrinkmanPenalizationStrategy.h"
 #include "ibamr/namespaces.h"
+
 #include "tbox/RestartManager.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

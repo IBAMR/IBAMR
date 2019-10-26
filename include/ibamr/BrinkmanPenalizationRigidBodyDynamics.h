@@ -35,11 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/BrinkmanPenalizationStrategy.h"
+
+#include "ibtk/ibtk_utilities.h"
+
+#include "tbox/Pointer.h"
+
 #include "Eigen/Core"
 #include "Eigen/Geometry"
-#include "ibamr/BrinkmanPenalizationStrategy.h"
-#include "ibtk/ibtk_utilities.h"
-#include "tbox/Pointer.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -65,11 +68,25 @@ namespace IBAMR
 /*!
  * \brief BrinkmanPenalizationRigidBodyDynamics provides an implementation of Brinkman penalization
  * body force for a rigid body motion in the momentum equation.
+ *
+ * The penalization force is taken to be \f$ \frac{\chi}{\kappa}(\bm{u}_b
+ * - \bm{u}^{n+1}) \f$. The class computes the coefficient \f$
+ * \frac{\chi}{\kappa}$ of the fluid velocity \f$ \bm{u}^{n+1} \f$ for the
+ * variable-coefficient INS solvers of INSVCStaggeredHierarchyIntegrator. This
+ * is done in the BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone
+ * method. Here \f$ \chi \f$ is the body indicator function and \f$\kappa \sim
+ * \Delta t/ \rho \ll 1 \f$ is the vanishing permeability of the body. The
+ * rigid body velocity \f$\bm{u}_b\f$ is computed through Newton's law of
+ * motion by netting the hydrodynamic and external forces and torques on the
+ * body in the BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity
+ * method. A simple forward-Euler scheme is employed for the second-law of
+ * motion.
+ *
+ * For further information on applications of this class see
+ * https://arxiv.org/abs/1904.04078.
  */
 class BrinkmanPenalizationRigidBodyDynamics : public BrinkmanPenalizationStrategy
 {
-    ////////////////////////////// PUBLIC ////////////////////////////////////////
-
 public:
     /*
      * \brief Constructor of the class.
@@ -84,7 +101,7 @@ public:
     /*
      * \brief Destructor of the class.
      */
-    ~BrinkmanPenalizationRigidBodyDynamics();
+    ~BrinkmanPenalizationRigidBodyDynamics() = default;
 
     /*!
      * \brief Set initial conditions for the rigid body.
@@ -102,8 +119,7 @@ public:
     /*!
      * \brief Typedef specifying interface for specifying rigid body velocities.
      */
-    using KinematicsFcnPtr =
-        void (*)(double data_time, int cycle_num, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* ctx);
+    using KinematicsFcnPtr = void (*)(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* ctx);
 
     /*
      * \brief Kinematics function data.
@@ -137,8 +153,7 @@ public:
     /*!
      * \brief Typedef specifying interface for specifying additional rigid body force and torque.
      */
-    using ExternalForceTorqueFcnPtr =
-        void (*)(double data_time, int cycle_num, Eigen::Vector3d& F, Eigen::Vector3d& T, void* ctx);
+    using ExternalForceTorqueFcnPtr = void (*)(double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T, void* ctx);
 
     /*
      * \brief External force/torque function data.
@@ -267,8 +282,6 @@ public:
         return;
     } // getHydrodynamicForceTorque
 
-    /////////////////////////////// PROTECTED ////////////////////////////////////
-
 protected:
     // Center of mass.
     Eigen::Vector3d d_center_of_mass_initial = Eigen::Vector3d::Zero(),
@@ -309,8 +322,6 @@ protected:
     // Routines to get prescribed kinematics and additional external forces and torques.
     KinematicsFcnData d_kinematics_fcn_data;
     ExternalForceTorqueFcnData d_ext_force_torque_fcn_data;
-
-    /////////////////////////////// PROTECTED ////////////////////////////////////
 
 private:
     /*!

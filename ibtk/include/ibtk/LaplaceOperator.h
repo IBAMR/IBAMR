@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibtk/LinearOperator.h"
 
 #include "PoissonSpecifications.h"
-#include "ibtk/LinearOperator.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -67,9 +68,9 @@ public:
     LaplaceOperator(std::string object_name, bool homogeneous_bc = false);
 
     /*!
-     * \brief Destructor.
+     * \brief Default destructor.
      */
-    ~LaplaceOperator();
+    ~LaplaceOperator() = default;
 
     /*!
      * \brief Set the SAMRAI::solv::PoissonSpecifications object used to specify
@@ -117,7 +118,7 @@ public:
 protected:
     // Problem specification.
     SAMRAI::solv::PoissonSpecifications d_poisson_spec;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_bc_coef;
+    std::unique_ptr<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > d_default_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
 
 private:

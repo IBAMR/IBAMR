@@ -50,3 +50,48 @@ SpacesInSquareBrackets: false
 Standard: Cpp03
 TabWidth: 8
 UseTab: Never
+
+IncludeBlocks: Regroup
+IncludeCategories:
+# first our config files:
+  - Regex: "(IBTK|IBAMR)_config.h"
+    Priority: -1
+# then the library:
+  - Regex: "ibamr/.*\\.h.$"
+    Priority: 10
+  - Regex: "ibtk/.*\\.h.$"
+    Priority: 20
+# silo has a limited number of headers so just hard-code it:
+  - Regex: "[<\"](ioperf\\.h|lite_pdb\\.h|lite_score\\.h|pmpio\\.h|silo_exports\\.h|silo\\.h)[\">]"
+    Priority: 700
+# libMesh:
+  - Regex: "libmesh/"
+    Priority: 200
+# PETSc:
+  - Regex: "[<\"]petsc[a-z]*\\.h[>\"]$"
+    Priority: 300
+# other standardized headers:
+  - Regex: "<[A-Za-z_]*\\.h>"
+    Priority: 1000
+# boost:
+  - Regex: "boost/"
+    Priority: 400
+# eigen:
+  - Regex: "Eigen/"
+    Priority: 500
+# muParser:
+  - Regex: "muParser"
+    Priority: 600
+# standard library stuff
+  - Regex: "[\"<][a-z_]*[\">]"
+    Priority: 2000
+# SAMRAI (which goes after IBAMR). This is last since we have headers that are
+# not in a folder starting with the library's name:
+  - Regex: "[<\"][A-Z].*\\.h[>\"]$"
+    Priority: 100
+  - Regex: "[<\"]tbox/[A-Z].*\\.h[>\"]$"
+    Priority: 110
+
+SortIncludes: true
+# don't place the header corresponding to the source file first
+IncludeIsMainRegex: "^$"

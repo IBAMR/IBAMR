@@ -35,15 +35,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/StreamableManager.h"
+
+#include "SAMRAI_config.h"
+#include "tbox/AbstractStream.h"
+#include "tbox/Utilities.h"
+
 #include <unistd.h>
+
 #include <ostream>
 #include <string>
 #include <vector>
-
-#include "SAMRAI_config.h"
-#include "ibtk/StreamableManager.h"
-#include "tbox/AbstractStream.h"
-#include "tbox/Utilities.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

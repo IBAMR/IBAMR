@@ -13,8 +13,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of New York University nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -27,20 +27,22 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE
+// POSSIBILITY OF SUCH DAMAGE.
 
 //////////////////////////// INCLUDES /////////////////////////////////////////
-#include <cmath>
-#include <fstream>
-#include <iostream>
+#include "ibamr/namespaces.h"
 
 #include "CartesianPatchGeometry.h"
 #include "PatchLevel.h"
 #include "RigidBodyKinematics.h"
-#include "ibamr/namespaces.h"
-#include "muParser.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/SAMRAI_MPI.h"
+
+#include "muParser.h"
+
+#include <cmath>
+#include <fstream>
+#include <iostream>
 
 namespace IBAMR
 {
@@ -133,8 +135,7 @@ RigidBodyKinematics::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
 
     d_current_time = db->getDouble("d_current_time");

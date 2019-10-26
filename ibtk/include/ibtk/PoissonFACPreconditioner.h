@@ -35,13 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
-
-#include "PoissonSpecifications.h"
 #include "ibtk/FACPreconditioner.h"
 #include "ibtk/PoissonSolver.h"
+
+#include "PoissonSpecifications.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -70,7 +71,7 @@ namespace IBTK
 /*!
  * \brief Class PoissonFACPreconditioner is a FACPreconditioner that has been
  * specialized for Poisson problems.
-*/
+ */
 class PoissonFACPreconditioner : public FACPreconditioner, public PoissonSolver
 {
 public:

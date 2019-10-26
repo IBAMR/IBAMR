@@ -31,6 +31,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -44,7 +45,6 @@
 #include <VariableDatabase.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <boost/multi_array.hpp>
 #include <ibamr/CIBMethod.h>
 #include <ibamr/CIBMobilitySolver.h>
 #include <ibamr/CIBSaddlePointSolver.h>
@@ -58,11 +58,14 @@
 #include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/KrylovMobilitySolver.h>
 #include <ibamr/app_namespaces.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+#include <boost/multi_array.hpp>
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -276,13 +279,9 @@ run_example(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                ostringstream bc_coefs_name_stream;
-                bc_coefs_name_stream << "u_bc_coefs_" << d;
-                const string bc_coefs_name = bc_coefs_name_stream.str();
+                const std::string bc_coefs_name = "u_bc_coefs_" + std::to_string(d);
 
-                ostringstream bc_coefs_db_name_stream;
-                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
-                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+                const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
 
                 Pointer<Database> bc_coefs_db = app_initializer->getComponentDatabase(bc_coefs_db_name);
                 u_bc_coefs[d] = new muParserRobinBcCoefs(bc_coefs_name, bc_coefs_db, grid_geometry);

@@ -32,16 +32,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <algorithm>
-#include <fstream>
-#include <limits>
-#include <map>
-#include <cmath>
-#include <sstream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/IBFEInstrumentPanel.h"
+#include "ibamr/IBFEMethod.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/FEDataManager.h"
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/LData.h"
+#include "ibtk/LDataManager.h"
+#include "ibtk/LMesh.h"
+#include "ibtk/LNode.h"
+#include "ibtk/ibtk_macros.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchLevel.h"
 #include "Box.h"
@@ -50,8 +56,6 @@
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
-#include "Eigen/Geometry" // IWYU pragma: keep
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
@@ -59,19 +63,14 @@
 #include "PatchLevel.h"
 #include "SideData.h"
 #include "SideIndex.h"
-#include "boost/multi_array.hpp"
-#include "ibamr/IBFEInstrumentPanel.h"
-#include "ibamr/IBFEMethod.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/FEDataManager.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/LData.h"
-#include "ibtk/LDataManager.h"
-#include "ibtk/LMesh.h"
-#include "ibtk/LNode.h"
-#include "ibtk/ibtk_utilities.h"
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
+#include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Timer.h"
+#include "tbox/TimerManager.h"
+#include "tbox/Utilities.h"
+
 #include "libmesh/boundary_info.h"
 #include "libmesh/dense_vector.h"
 #include "libmesh/enum_quadrature_type.h"
@@ -85,14 +84,27 @@
 #include "libmesh/quadrature_grid.h"
 #include "libmesh/serial_mesh.h"
 #include "libmesh/string_to_enum.h"
+
 #include "petscvec.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "boost/multi_array.hpp"
+IBTK_ENABLE_EXTRA_WARNINGS
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "Eigen/Geometry" // IWYU pragma: keep
+IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <fstream>
+#include <limits>
+#include <map>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 using namespace libMesh;
 
@@ -314,7 +326,6 @@ IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Dat
     }
 }
 
-
 void
 IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_ops)
 {
@@ -338,7 +349,17 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     std::vector<std::set<dof_id_type> > temp_node_dof_ID_sets;
     std::vector<std::vector<libMesh::Point> > temp_nodes;
     std::vector<libMesh::Point> meter_centroids;
+    // new API in 1.4.0
+#if 1 <= LIBMESH_MAJOR_VERSION && 4 <= LIBMESH_MINOR_VERSION
+    const std::vector<std::tuple<dof_id_type, boundary_id_type> > node_list = boundary_info.build_node_list();
+    for (const std::tuple<dof_id_type, boundary_id_type>& pair : node_list)
+    {
+        nodes.push_back(std::get<0>(pair));
+        bcs.push_back(std::get<1>(pair));
+    }
+#else
     boundary_info.build_node_list(nodes, bcs);
+#endif
 
     // check to make sure there are node sets to work with
     if (nodes.size() == 0 || bcs.size() == 0 || (nodes.size() != bcs.size()))

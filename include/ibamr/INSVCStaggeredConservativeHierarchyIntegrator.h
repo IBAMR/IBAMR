@@ -35,11 +35,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+
 #include <string>
 #include <vector>
-
-#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
 
 namespace IBTK
 {
@@ -82,7 +82,7 @@ public:
      * databases, and registers the integrator object with the restart manager
      * when requested.
      */
-    INSVCStaggeredConservativeHierarchyIntegrator(const std::string& object_name,
+    INSVCStaggeredConservativeHierarchyIntegrator(std::string object_name,
                                                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                                   bool register_for_restart = true);
 
@@ -102,8 +102,9 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    void
+    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
      * Initialize the AMR patch hierarchy and data defined on the hierarchy at
@@ -144,11 +145,6 @@ public:
                                        double new_time,
                                        bool skip_synchronize_new_state_data,
                                        int num_cycles = 1) override;
-
-    /*!
-     * Regrid the patch hierarchy.
-     */
-    void regridHierarchy() override;
 
     /*!
      * Explicitly remove nullspace components from a solution vector.
@@ -251,7 +247,8 @@ private:
      *
      * \return A reference to this object.
      */
-    INSVCStaggeredConservativeHierarchyIntegrator& operator=(const INSVCStaggeredConservativeHierarchyIntegrator& that) = delete;
+    INSVCStaggeredConservativeHierarchyIntegrator&
+    operator=(const INSVCStaggeredConservativeHierarchyIntegrator& that) = delete;
 
     /*!
      * Update the operators and solvers to account for changes due to time-dependent coefficients

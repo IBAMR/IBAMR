@@ -35,24 +35,26 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/PoissonSolver.h"
 
 #include "FaceVariable.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "Variable.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/PoissonSolver.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -361,6 +363,15 @@ protected:
      * values, reads in configuration information from input and restart
      * databases, and registers the integrator object with the restart manager
      * when requested.
+     *
+     * This constructor sets the default coarsen and refine operator types to:
+     *
+     * - "CONSERVATIVE_COARSEN" and "CONSERVATIVE_LINEAR_REFINE" for U
+     * - "CONSERVATIVE_COARSEN" and "LINEAR_REFINE" for P
+     * - "CONSERVATIVE_COARSEN" and "CONSERVATIVE_LINEAR_REFINE" for F
+     * - "CONSERVATIVE_COARSEN" and "CONSTANT_REFINE" for Q
+     *
+     * The other constructor allows these default values to be overridden.
      */
     INSHierarchyIntegrator(std::string object_name,
                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
@@ -369,6 +380,33 @@ protected:
                            SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > F_var,
                            SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > Q_var,
                            bool register_for_restart);
+
+    /*!
+     * The constructor for class INSHierarchyIntegrator sets some default
+     * values, reads in configuration information from input and restart
+     * databases, and registers the integrator object with the restart manager
+     * when requested.
+     */
+    INSHierarchyIntegrator(std::string object_name,
+                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > U_var,
+                           std::string U_default_coarsen_type,
+                           std::string U_default_refine_type,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > P_var,
+                           std::string P_default_coarsen_type,
+                           std::string P_default_refine_type,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > F_var,
+                           std::string F_default_coarsen_type,
+                           std::string F_default_refine_type,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > Q_var,
+                           std::string Q_default_coarsen_type,
+                           std::string Q_default_refine_type,
+                           bool register_for_restart);
+
+    /*!
+     * Pure virtual method to project the velocity field following a regridding operation.
+     */
+    virtual void regridProjection() = 0;
 
     /*!
      * Return the maximum stable time step size.
@@ -481,7 +519,21 @@ protected:
     /*!
      * Fluid solver variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_U_var, d_P_var, d_F_var, d_Q_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_U_var;
+    std::string d_U_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_U_refine_type = "CONSERVATIVE_LINEAR_REFINE";
+
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_P_var;
+    std::string d_P_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_P_refine_type = "LINEAR_REFINE";
+
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_F_var;
+    std::string d_F_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_F_refine_type = "CONSERVATIVE_LINEAR_REFINE";
+
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_Q_var;
+    std::string d_Q_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_Q_refine_type = "CONSTANT_REFINE";
 
     /*!
      * Objects to set initial conditions, boundary conditions, body forces, and
@@ -489,9 +541,9 @@ protected:
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_U_init, d_P_init;
     SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_bc_coefs;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM> *> d_bc_coefs, d_U_bc_coefs, d_U_star_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs, d_U_bc_coefs, d_U_star_bc_coefs;
     TractionBcType d_traction_bc_type = TRACTION;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM> *d_P_bc_coef, *d_Phi_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>*d_P_bc_coef, *d_Phi_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_P_bdry_bc_fill_op,
         d_Q_bdry_bc_fill_op, d_no_fill_op;

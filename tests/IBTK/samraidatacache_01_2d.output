@@ -1,0 +1,606 @@
+adding double variables
+patch descriptor configuration:
+max_number_registered_components = 11
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Patch Data Index = 0
+Patch Data Factory Name = GriddingAlgorithm__tag-interior##Internal_SAMRAI_Variable
+Patch Data Index = 1
+Patch Data Factory Name = GriddingAlgorithm__tag-buffer##Internal_SAMRAI_Variable
+Patch Data Index = 2
+Patch Data Factory Name = cc_double##context
+Patch Data Index = 3
+Patch Data Factory Name = ec_double##context
+Patch Data Index = 4
+Patch Data Factory Name = fc_double##context
+Patch Data Index = 5
+Patch Data Factory Name = nc_double##context
+Patch Data Index = 6
+Patch Data Factory Name = oec_double##context
+Patch Data Index = 7
+Patch Data Factory Name = ofc_double##context
+Patch Data Index = 8
+Patch Data Factory Name = onc_double##context
+Patch Data Index = 9
+Patch Data Factory Name = osc_double##context
+Patch Data Index = 10
+Patch Data Factory Name = sc_double##context
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+adding float variables
+patch descriptor configuration:
+max_number_registered_components = 20
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Patch Data Index = 0
+Patch Data Factory Name = GriddingAlgorithm__tag-interior##Internal_SAMRAI_Variable
+Patch Data Index = 1
+Patch Data Factory Name = GriddingAlgorithm__tag-buffer##Internal_SAMRAI_Variable
+Patch Data Index = 2
+Patch Data Factory Name = cc_double##context
+Patch Data Index = 3
+Patch Data Factory Name = ec_double##context
+Patch Data Index = 4
+Patch Data Factory Name = fc_double##context
+Patch Data Index = 5
+Patch Data Factory Name = nc_double##context
+Patch Data Index = 6
+Patch Data Factory Name = oec_double##context
+Patch Data Index = 7
+Patch Data Factory Name = ofc_double##context
+Patch Data Index = 8
+Patch Data Factory Name = onc_double##context
+Patch Data Index = 9
+Patch Data Factory Name = osc_double##context
+Patch Data Index = 10
+Patch Data Factory Name = sc_double##context
+Patch Data Index = 11
+Patch Data Factory Name = cc_float##context
+Patch Data Index = 12
+Patch Data Factory Name = ec_float##context
+Patch Data Index = 13
+Patch Data Factory Name = fc_float##context
+Patch Data Index = 14
+Patch Data Factory Name = nc_float##context
+Patch Data Index = 15
+Patch Data Factory Name = oec_float##context
+Patch Data Index = 16
+Patch Data Factory Name = ofc_float##context
+Patch Data Index = 17
+Patch Data Factory Name = onc_float##context
+Patch Data Index = 18
+Patch Data Factory Name = osc_float##context
+Patch Data Index = 19
+Patch Data Factory Name = sc_float##context
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+adding int variables
+patch descriptor configuration:
+max_number_registered_components = 29
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Patch Data Index = 0
+Patch Data Factory Name = GriddingAlgorithm__tag-interior##Internal_SAMRAI_Variable
+Patch Data Index = 1
+Patch Data Factory Name = GriddingAlgorithm__tag-buffer##Internal_SAMRAI_Variable
+Patch Data Index = 2
+Patch Data Factory Name = cc_double##context
+Patch Data Index = 3
+Patch Data Factory Name = ec_double##context
+Patch Data Index = 4
+Patch Data Factory Name = fc_double##context
+Patch Data Index = 5
+Patch Data Factory Name = nc_double##context
+Patch Data Index = 6
+Patch Data Factory Name = oec_double##context
+Patch Data Index = 7
+Patch Data Factory Name = ofc_double##context
+Patch Data Index = 8
+Patch Data Factory Name = onc_double##context
+Patch Data Index = 9
+Patch Data Factory Name = osc_double##context
+Patch Data Index = 10
+Patch Data Factory Name = sc_double##context
+Patch Data Index = 11
+Patch Data Factory Name = cc_float##context
+Patch Data Index = 12
+Patch Data Factory Name = ec_float##context
+Patch Data Index = 13
+Patch Data Factory Name = fc_float##context
+Patch Data Index = 14
+Patch Data Factory Name = nc_float##context
+Patch Data Index = 15
+Patch Data Factory Name = oec_float##context
+Patch Data Index = 16
+Patch Data Factory Name = ofc_float##context
+Patch Data Index = 17
+Patch Data Factory Name = onc_float##context
+Patch Data Index = 18
+Patch Data Factory Name = osc_float##context
+Patch Data Index = 19
+Patch Data Factory Name = sc_float##context
+Patch Data Index = 20
+Patch Data Factory Name = cc_int##context
+Patch Data Index = 21
+Patch Data Factory Name = ec_int##context
+Patch Data Index = 22
+Patch Data Factory Name = fc_int##context
+Patch Data Index = 23
+Patch Data Factory Name = nc_int##context
+Patch Data Index = 24
+Patch Data Factory Name = oec_int##context
+Patch Data Index = 25
+Patch Data Factory Name = ofc_int##context
+Patch Data Index = 26
+Patch Data Factory Name = onc_int##context
+Patch Data Index = 27
+Patch Data Factory Name = osc_int##context
+Patch Data Index = 28
+Patch Data Factory Name = sc_int##context
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+cloning pass 0
+patch descriptor configuration:
+max_number_registered_components = 56
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Patch Data Index = 0
+Patch Data Factory Name = GriddingAlgorithm__tag-interior##Internal_SAMRAI_Variable
+Patch Data Index = 1
+Patch Data Factory Name = GriddingAlgorithm__tag-buffer##Internal_SAMRAI_Variable
+Patch Data Index = 2
+Patch Data Factory Name = cc_double##context
+Patch Data Index = 3
+Patch Data Factory Name = ec_double##context
+Patch Data Index = 4
+Patch Data Factory Name = fc_double##context
+Patch Data Index = 5
+Patch Data Factory Name = nc_double##context
+Patch Data Index = 6
+Patch Data Factory Name = oec_double##context
+Patch Data Index = 7
+Patch Data Factory Name = ofc_double##context
+Patch Data Index = 8
+Patch Data Factory Name = onc_double##context
+Patch Data Index = 9
+Patch Data Factory Name = osc_double##context
+Patch Data Index = 10
+Patch Data Factory Name = sc_double##context
+Patch Data Index = 11
+Patch Data Factory Name = cc_float##context
+Patch Data Index = 12
+Patch Data Factory Name = ec_float##context
+Patch Data Index = 13
+Patch Data Factory Name = fc_float##context
+Patch Data Index = 14
+Patch Data Factory Name = nc_float##context
+Patch Data Index = 15
+Patch Data Factory Name = oec_float##context
+Patch Data Index = 16
+Patch Data Factory Name = ofc_float##context
+Patch Data Index = 17
+Patch Data Factory Name = onc_float##context
+Patch Data Index = 18
+Patch Data Factory Name = osc_float##context
+Patch Data Index = 19
+Patch Data Factory Name = sc_float##context
+Patch Data Index = 20
+Patch Data Factory Name = cc_int##context
+Patch Data Index = 21
+Patch Data Factory Name = ec_int##context
+Patch Data Index = 22
+Patch Data Factory Name = fc_int##context
+Patch Data Index = 23
+Patch Data Factory Name = nc_int##context
+Patch Data Index = 24
+Patch Data Factory Name = oec_int##context
+Patch Data Index = 25
+Patch Data Factory Name = ofc_int##context
+Patch Data Index = 26
+Patch Data Factory Name = onc_int##context
+Patch Data Index = 27
+Patch Data Factory Name = osc_int##context
+Patch Data Index = 28
+Patch Data Factory Name = sc_int##context
+Patch Data Index = 29
+Patch Data Factory Name = cc_double##context-clone_of_id=0002
+Patch Data Index = 30
+Patch Data Factory Name = ec_double##context-clone_of_id=0003
+Patch Data Index = 31
+Patch Data Factory Name = fc_double##context-clone_of_id=0004
+Patch Data Index = 32
+Patch Data Factory Name = nc_double##context-clone_of_id=0005
+Patch Data Index = 33
+Patch Data Factory Name = oec_double##context-clone_of_id=0006
+Patch Data Index = 34
+Patch Data Factory Name = ofc_double##context-clone_of_id=0007
+Patch Data Index = 35
+Patch Data Factory Name = onc_double##context-clone_of_id=0008
+Patch Data Index = 36
+Patch Data Factory Name = osc_double##context-clone_of_id=0009
+Patch Data Index = 37
+Patch Data Factory Name = sc_double##context-clone_of_id=0010
+Patch Data Index = 38
+Patch Data Factory Name = cc_float##context-clone_of_id=0011
+Patch Data Index = 39
+Patch Data Factory Name = ec_float##context-clone_of_id=0012
+Patch Data Index = 40
+Patch Data Factory Name = fc_float##context-clone_of_id=0013
+Patch Data Index = 41
+Patch Data Factory Name = nc_float##context-clone_of_id=0014
+Patch Data Index = 42
+Patch Data Factory Name = oec_float##context-clone_of_id=0015
+Patch Data Index = 43
+Patch Data Factory Name = ofc_float##context-clone_of_id=0016
+Patch Data Index = 44
+Patch Data Factory Name = onc_float##context-clone_of_id=0017
+Patch Data Index = 45
+Patch Data Factory Name = osc_float##context-clone_of_id=0018
+Patch Data Index = 46
+Patch Data Factory Name = sc_float##context-clone_of_id=0019
+Patch Data Index = 47
+Patch Data Factory Name = cc_int##context-clone_of_id=0020
+Patch Data Index = 48
+Patch Data Factory Name = ec_int##context-clone_of_id=0021
+Patch Data Index = 49
+Patch Data Factory Name = fc_int##context-clone_of_id=0022
+Patch Data Index = 50
+Patch Data Factory Name = nc_int##context-clone_of_id=0023
+Patch Data Index = 51
+Patch Data Factory Name = oec_int##context-clone_of_id=0024
+Patch Data Index = 52
+Patch Data Factory Name = ofc_int##context-clone_of_id=0025
+Patch Data Index = 53
+Patch Data Factory Name = onc_int##context-clone_of_id=0026
+Patch Data Index = 54
+Patch Data Factory Name = osc_int##context-clone_of_id=0027
+Patch Data Index = 55
+Patch Data Factory Name = sc_int##context-clone_of_id=0028
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+cloning pass 1
+patch descriptor configuration:
+max_number_registered_components = 83
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Patch Data Index = 0
+Patch Data Factory Name = GriddingAlgorithm__tag-interior##Internal_SAMRAI_Variable
+Patch Data Index = 1
+Patch Data Factory Name = GriddingAlgorithm__tag-buffer##Internal_SAMRAI_Variable
+Patch Data Index = 2
+Patch Data Factory Name = cc_double##context
+Patch Data Index = 3
+Patch Data Factory Name = ec_double##context
+Patch Data Index = 4
+Patch Data Factory Name = fc_double##context
+Patch Data Index = 5
+Patch Data Factory Name = nc_double##context
+Patch Data Index = 6
+Patch Data Factory Name = oec_double##context
+Patch Data Index = 7
+Patch Data Factory Name = ofc_double##context
+Patch Data Index = 8
+Patch Data Factory Name = onc_double##context
+Patch Data Index = 9
+Patch Data Factory Name = osc_double##context
+Patch Data Index = 10
+Patch Data Factory Name = sc_double##context
+Patch Data Index = 11
+Patch Data Factory Name = cc_float##context
+Patch Data Index = 12
+Patch Data Factory Name = ec_float##context
+Patch Data Index = 13
+Patch Data Factory Name = fc_float##context
+Patch Data Index = 14
+Patch Data Factory Name = nc_float##context
+Patch Data Index = 15
+Patch Data Factory Name = oec_float##context
+Patch Data Index = 16
+Patch Data Factory Name = ofc_float##context
+Patch Data Index = 17
+Patch Data Factory Name = onc_float##context
+Patch Data Index = 18
+Patch Data Factory Name = osc_float##context
+Patch Data Index = 19
+Patch Data Factory Name = sc_float##context
+Patch Data Index = 20
+Patch Data Factory Name = cc_int##context
+Patch Data Index = 21
+Patch Data Factory Name = ec_int##context
+Patch Data Index = 22
+Patch Data Factory Name = fc_int##context
+Patch Data Index = 23
+Patch Data Factory Name = nc_int##context
+Patch Data Index = 24
+Patch Data Factory Name = oec_int##context
+Patch Data Index = 25
+Patch Data Factory Name = ofc_int##context
+Patch Data Index = 26
+Patch Data Factory Name = onc_int##context
+Patch Data Index = 27
+Patch Data Factory Name = osc_int##context
+Patch Data Index = 28
+Patch Data Factory Name = sc_int##context
+Patch Data Index = 29
+Patch Data Factory Name = cc_double##context-clone_of_id=0002
+Patch Data Index = 30
+Patch Data Factory Name = ec_double##context-clone_of_id=0003
+Patch Data Index = 31
+Patch Data Factory Name = fc_double##context-clone_of_id=0004
+Patch Data Index = 32
+Patch Data Factory Name = nc_double##context-clone_of_id=0005
+Patch Data Index = 33
+Patch Data Factory Name = oec_double##context-clone_of_id=0006
+Patch Data Index = 34
+Patch Data Factory Name = ofc_double##context-clone_of_id=0007
+Patch Data Index = 35
+Patch Data Factory Name = onc_double##context-clone_of_id=0008
+Patch Data Index = 36
+Patch Data Factory Name = osc_double##context-clone_of_id=0009
+Patch Data Index = 37
+Patch Data Factory Name = sc_double##context-clone_of_id=0010
+Patch Data Index = 38
+Patch Data Factory Name = cc_float##context-clone_of_id=0011
+Patch Data Index = 39
+Patch Data Factory Name = ec_float##context-clone_of_id=0012
+Patch Data Index = 40
+Patch Data Factory Name = fc_float##context-clone_of_id=0013
+Patch Data Index = 41
+Patch Data Factory Name = nc_float##context-clone_of_id=0014
+Patch Data Index = 42
+Patch Data Factory Name = oec_float##context-clone_of_id=0015
+Patch Data Index = 43
+Patch Data Factory Name = ofc_float##context-clone_of_id=0016
+Patch Data Index = 44
+Patch Data Factory Name = onc_float##context-clone_of_id=0017
+Patch Data Index = 45
+Patch Data Factory Name = osc_float##context-clone_of_id=0018
+Patch Data Index = 46
+Patch Data Factory Name = sc_float##context-clone_of_id=0019
+Patch Data Index = 47
+Patch Data Factory Name = cc_int##context-clone_of_id=0020
+Patch Data Index = 48
+Patch Data Factory Name = ec_int##context-clone_of_id=0021
+Patch Data Index = 49
+Patch Data Factory Name = fc_int##context-clone_of_id=0022
+Patch Data Index = 50
+Patch Data Factory Name = nc_int##context-clone_of_id=0023
+Patch Data Index = 51
+Patch Data Factory Name = oec_int##context-clone_of_id=0024
+Patch Data Index = 52
+Patch Data Factory Name = ofc_int##context-clone_of_id=0025
+Patch Data Index = 53
+Patch Data Factory Name = onc_int##context-clone_of_id=0026
+Patch Data Index = 54
+Patch Data Factory Name = osc_int##context-clone_of_id=0027
+Patch Data Index = 55
+Patch Data Factory Name = sc_int##context-clone_of_id=0028
+Patch Data Index = 56
+Patch Data Factory Name = cc_double##context-clone_of_id=0002
+Patch Data Index = 57
+Patch Data Factory Name = ec_double##context-clone_of_id=0003
+Patch Data Index = 58
+Patch Data Factory Name = fc_double##context-clone_of_id=0004
+Patch Data Index = 59
+Patch Data Factory Name = nc_double##context-clone_of_id=0005
+Patch Data Index = 60
+Patch Data Factory Name = oec_double##context-clone_of_id=0006
+Patch Data Index = 61
+Patch Data Factory Name = ofc_double##context-clone_of_id=0007
+Patch Data Index = 62
+Patch Data Factory Name = onc_double##context-clone_of_id=0008
+Patch Data Index = 63
+Patch Data Factory Name = osc_double##context-clone_of_id=0009
+Patch Data Index = 64
+Patch Data Factory Name = sc_double##context-clone_of_id=0010
+Patch Data Index = 65
+Patch Data Factory Name = cc_float##context-clone_of_id=0011
+Patch Data Index = 66
+Patch Data Factory Name = ec_float##context-clone_of_id=0012
+Patch Data Index = 67
+Patch Data Factory Name = fc_float##context-clone_of_id=0013
+Patch Data Index = 68
+Patch Data Factory Name = nc_float##context-clone_of_id=0014
+Patch Data Index = 69
+Patch Data Factory Name = oec_float##context-clone_of_id=0015
+Patch Data Index = 70
+Patch Data Factory Name = ofc_float##context-clone_of_id=0016
+Patch Data Index = 71
+Patch Data Factory Name = onc_float##context-clone_of_id=0017
+Patch Data Index = 72
+Patch Data Factory Name = osc_float##context-clone_of_id=0018
+Patch Data Index = 73
+Patch Data Factory Name = sc_float##context-clone_of_id=0019
+Patch Data Index = 74
+Patch Data Factory Name = cc_int##context-clone_of_id=0020
+Patch Data Index = 75
+Patch Data Factory Name = ec_int##context-clone_of_id=0021
+Patch Data Index = 76
+Patch Data Factory Name = fc_int##context-clone_of_id=0022
+Patch Data Index = 77
+Patch Data Factory Name = nc_int##context-clone_of_id=0023
+Patch Data Index = 78
+Patch Data Factory Name = oec_int##context-clone_of_id=0024
+Patch Data Index = 79
+Patch Data Factory Name = ofc_int##context-clone_of_id=0025
+Patch Data Index = 80
+Patch Data Factory Name = onc_int##context-clone_of_id=0026
+Patch Data Index = 81
+Patch Data Factory Name = osc_int##context-clone_of_id=0027
+Patch Data Index = 82
+Patch Data Factory Name = sc_int##context-clone_of_id=0028
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+allowing the cache to go out of scope
+patch descriptor configuration:
+max_number_registered_components = 83
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Patch Data Index = 0
+Patch Data Factory Name = GriddingAlgorithm__tag-interior##Internal_SAMRAI_Variable
+Patch Data Index = 1
+Patch Data Factory Name = GriddingAlgorithm__tag-buffer##Internal_SAMRAI_Variable
+Patch Data Index = 2
+Patch Data Factory Name = cc_double##context
+Patch Data Index = 3
+Patch Data Factory Name = ec_double##context
+Patch Data Index = 4
+Patch Data Factory Name = fc_double##context
+Patch Data Index = 5
+Patch Data Factory Name = nc_double##context
+Patch Data Index = 6
+Patch Data Factory Name = oec_double##context
+Patch Data Index = 7
+Patch Data Factory Name = ofc_double##context
+Patch Data Index = 8
+Patch Data Factory Name = onc_double##context
+Patch Data Index = 9
+Patch Data Factory Name = osc_double##context
+Patch Data Index = 10
+Patch Data Factory Name = sc_double##context
+Patch Data Index = 11
+Patch Data Factory Name = cc_float##context
+Patch Data Index = 12
+Patch Data Factory Name = ec_float##context
+Patch Data Index = 13
+Patch Data Factory Name = fc_float##context
+Patch Data Index = 14
+Patch Data Factory Name = nc_float##context
+Patch Data Index = 15
+Patch Data Factory Name = oec_float##context
+Patch Data Index = 16
+Patch Data Factory Name = ofc_float##context
+Patch Data Index = 17
+Patch Data Factory Name = onc_float##context
+Patch Data Index = 18
+Patch Data Factory Name = osc_float##context
+Patch Data Index = 19
+Patch Data Factory Name = sc_float##context
+Patch Data Index = 20
+Patch Data Factory Name = cc_int##context
+Patch Data Index = 21
+Patch Data Factory Name = ec_int##context
+Patch Data Index = 22
+Patch Data Factory Name = fc_int##context
+Patch Data Index = 23
+Patch Data Factory Name = nc_int##context
+Patch Data Index = 24
+Patch Data Factory Name = oec_int##context
+Patch Data Index = 25
+Patch Data Factory Name = ofc_int##context
+Patch Data Index = 26
+Patch Data Factory Name = onc_int##context
+Patch Data Index = 27
+Patch Data Factory Name = osc_int##context
+Patch Data Index = 28
+Patch Data Factory Name = sc_int##context
+Patch Data Index = 29
+Patch Data Factory is null
+Patch Data Index = 30
+Patch Data Factory is null
+Patch Data Index = 31
+Patch Data Factory is null
+Patch Data Index = 32
+Patch Data Factory is null
+Patch Data Index = 33
+Patch Data Factory is null
+Patch Data Index = 34
+Patch Data Factory is null
+Patch Data Index = 35
+Patch Data Factory is null
+Patch Data Index = 36
+Patch Data Factory is null
+Patch Data Index = 37
+Patch Data Factory is null
+Patch Data Index = 38
+Patch Data Factory is null
+Patch Data Index = 39
+Patch Data Factory is null
+Patch Data Index = 40
+Patch Data Factory is null
+Patch Data Index = 41
+Patch Data Factory is null
+Patch Data Index = 42
+Patch Data Factory is null
+Patch Data Index = 43
+Patch Data Factory is null
+Patch Data Index = 44
+Patch Data Factory is null
+Patch Data Index = 45
+Patch Data Factory is null
+Patch Data Index = 46
+Patch Data Factory is null
+Patch Data Index = 47
+Patch Data Factory is null
+Patch Data Index = 48
+Patch Data Factory is null
+Patch Data Index = 49
+Patch Data Factory is null
+Patch Data Index = 50
+Patch Data Factory is null
+Patch Data Index = 51
+Patch Data Factory is null
+Patch Data Index = 52
+Patch Data Factory is null
+Patch Data Index = 53
+Patch Data Factory is null
+Patch Data Index = 54
+Patch Data Factory is null
+Patch Data Index = 55
+Patch Data Factory is null
+Patch Data Index = 56
+Patch Data Factory is null
+Patch Data Index = 57
+Patch Data Factory is null
+Patch Data Index = 58
+Patch Data Factory is null
+Patch Data Index = 59
+Patch Data Factory is null
+Patch Data Index = 60
+Patch Data Factory is null
+Patch Data Index = 61
+Patch Data Factory is null
+Patch Data Index = 62
+Patch Data Factory is null
+Patch Data Index = 63
+Patch Data Factory is null
+Patch Data Index = 64
+Patch Data Factory is null
+Patch Data Index = 65
+Patch Data Factory is null
+Patch Data Index = 66
+Patch Data Factory is null
+Patch Data Index = 67
+Patch Data Factory is null
+Patch Data Index = 68
+Patch Data Factory is null
+Patch Data Index = 69
+Patch Data Factory is null
+Patch Data Index = 70
+Patch Data Factory is null
+Patch Data Index = 71
+Patch Data Factory is null
+Patch Data Index = 72
+Patch Data Factory is null
+Patch Data Index = 73
+Patch Data Factory is null
+Patch Data Index = 74
+Patch Data Factory is null
+Patch Data Index = 75
+Patch Data Factory is null
+Patch Data Index = 76
+Patch Data Factory is null
+Patch Data Index = 77
+Patch Data Factory is null
+Patch Data Index = 78
+Patch Data Factory is null
+Patch Data Index = 79
+Patch Data Factory is null
+Patch Data Index = 80
+Patch Data Factory is null
+Patch Data Index = 81
+Patch Data Factory is null
+Patch Data Index = 82
+Patch Data Factory is null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -32,19 +32,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <limits>
-#include <ostream>
-#include <string>
-#include <utility>
+#include "ibtk/FACPreconditioner.h"
+#include "ibtk/FACPreconditionerStrategy.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
-#include "ibtk/FACPreconditioner.h"
-#include "ibtk/FACPreconditionerStrategy.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/ConstPointer.h"
 #include "tbox/Pointer.h"
+
+#include <limits>
+#include <ostream>
+#include <string>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -160,10 +161,8 @@ FACPreconditionerStrategy::deallocateScratchData()
 Pointer<SAMRAIVectorReal<NDIM, double> >
 FACPreconditionerStrategy::getLevelSAMRAIVectorReal(const SAMRAIVectorReal<NDIM, double>& vec, int level_num) const
 {
-    std::ostringstream name_str;
-    name_str << vec.getName() << "::level_" << level_num;
-    Pointer<SAMRAIVectorReal<NDIM, double> > level_vec =
-        new SAMRAIVectorReal<NDIM, double>(name_str.str(), vec.getPatchHierarchy(), level_num, level_num);
+    Pointer<SAMRAIVectorReal<NDIM, double> > level_vec = new SAMRAIVectorReal<NDIM, double>(
+        vec.getName() + "::level_" + std::to_string(level_num), vec.getPatchHierarchy(), level_num, level_num);
     for (int comp = 0; comp < vec.getNumberOfComponents(); ++comp)
     {
         level_vec->addComponent(

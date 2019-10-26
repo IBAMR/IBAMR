@@ -32,20 +32,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <cmath>
-#include <limits>
-#include <sstream>
-#include <utility>
-
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "HierarchyDataOpsManager.h"
-#include "PatchHierarchy.h"
-#include "VariableDatabase.h"
 #include "ibamr/ConstraintIBMethod.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/namespaces.h"
+
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/FACPreconditioner.h"
@@ -54,10 +44,22 @@
 #include "ibtk/PETScKrylovLinearSolver.h"
 #include "ibtk/SideDataSynchronization.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include "CartesianGridGeometry.h"
+#include "CartesianPatchGeometry.h"
+#include "HierarchyDataOpsManager.h"
+#include "PatchHierarchy.h"
+#include "VariableDatabase.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <sstream>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -210,8 +212,8 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
             d_velcorrection_projection_bc_coef.setBoundarySlope(2 * d + 1, 0.0);
         }
 
-        d_velcorrection_projection_spec =
-            new PoissonSpecifications(d_object_name + "::ConstraintIBMethodProjection::Spec");
+        d_velcorrection_projection_spec.reset(
+            new PoissonSpecifications(d_object_name + "::ConstraintIBMethodProjection::Spec"));
         d_velcorrection_projection_op =
             new CCLaplaceOperator(d_object_name + "ConstraintIBMethodProjection::PoissonOperator", true);
         d_velcorrection_projection_op->setPoissonSpecifications(*d_velcorrection_projection_spec);
@@ -278,53 +280,53 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
             const std::string struct_no_str = std::to_string(struct_no);
 
             if (from_restart)
-                d_trans_vel_stream[struct_no] = new std::ofstream(
-                    d_base_output_filename + "_Trans_vel_struct_no_" + struct_no_str, std::fstream::app);
+                d_trans_vel_stream[struct_no].reset(new std::ofstream(
+                    d_base_output_filename + "_Trans_vel_struct_no_" + struct_no_str, std::fstream::app));
             else
-                d_trans_vel_stream[struct_no] = new std::ofstream(
-                    d_base_output_filename + "_Trans_vel_struct_no_" + struct_no_str, std::fstream::out);
+                d_trans_vel_stream[struct_no].reset(new std::ofstream(
+                    d_base_output_filename + "_Trans_vel_struct_no_" + struct_no_str, std::fstream::out));
 
             if (from_restart)
-                d_rot_vel_stream[struct_no] = new std::ofstream(
-                    d_base_output_filename + "_Rot_vel_struct_no_" + struct_no_str, std::fstream::app);
+                d_rot_vel_stream[struct_no].reset(new std::ofstream(
+                    d_base_output_filename + "_Rot_vel_struct_no_" + struct_no_str, std::fstream::app));
             else
-                d_rot_vel_stream[struct_no] = new std::ofstream(
-                    d_base_output_filename + "_Rot_vel_struct_no_" + struct_no_str, std::fstream::out);
+                d_rot_vel_stream[struct_no].reset(new std::ofstream(
+                    d_base_output_filename + "_Rot_vel_struct_no_" + struct_no_str, std::fstream::out));
 
             if (from_restart)
-                d_drag_force_stream[struct_no] = new std::ofstream(
-                    d_base_output_filename + "_Drag_force_struct_no_" + struct_no_str, std::fstream::app);
+                d_drag_force_stream[struct_no].reset(new std::ofstream(
+                    d_base_output_filename + "_Drag_force_struct_no_" + struct_no_str, std::fstream::app));
             else
-                d_drag_force_stream[struct_no] = new std::ofstream(
-                    d_base_output_filename + "_Drag_force_struct_no_" + struct_no_str, std::fstream::out);
+                d_drag_force_stream[struct_no].reset(new std::ofstream(
+                    d_base_output_filename + "_Drag_force_struct_no_" + struct_no_str, std::fstream::out));
 
             if (from_restart)
-                d_moment_of_inertia_stream[struct_no] =
-                    new std::ofstream(d_base_output_filename + "_MOI_struct_no_" + struct_no_str, std::fstream::app);
+                d_moment_of_inertia_stream[struct_no].reset(
+                    new std::ofstream(d_base_output_filename + "_MOI_struct_no_" + struct_no_str, std::fstream::app));
             else
-                d_moment_of_inertia_stream[struct_no] =
-                    new std::ofstream(d_base_output_filename + "_MOI_struct_no_" + struct_no_str, std::fstream::out);
+                d_moment_of_inertia_stream[struct_no].reset(
+                    new std::ofstream(d_base_output_filename + "_MOI_struct_no_" + struct_no_str, std::fstream::out));
 
             if (from_restart)
-                d_torque_stream[struct_no] =
-                    new std::ofstream(d_base_output_filename + "_Torque_struct_no_" + struct_no_str, std::fstream::app);
+                d_torque_stream[struct_no].reset(new std::ofstream(
+                    d_base_output_filename + "_Torque_struct_no_" + struct_no_str, std::fstream::app));
             else
-                d_torque_stream[struct_no] =
-                    new std::ofstream(d_base_output_filename + "_Torque_struct_no_" + struct_no_str, std::fstream::out);
+                d_torque_stream[struct_no].reset(new std::ofstream(
+                    d_base_output_filename + "_Torque_struct_no_" + struct_no_str, std::fstream::out));
 
             if (from_restart)
-                d_position_COM_stream[struct_no] = new std::ofstream(
-                    d_base_output_filename + "_COM_coordinates_struct_no_" + struct_no_str, std::fstream::app);
+                d_position_COM_stream[struct_no].reset(new std::ofstream(
+                    d_base_output_filename + "_COM_coordinates_struct_no_" + struct_no_str, std::fstream::app));
             else
-                d_position_COM_stream[struct_no] = new std::ofstream(
-                    d_base_output_filename + "_COM_coordinates_struct_no_" + struct_no_str, std::fstream::out);
+                d_position_COM_stream[struct_no].reset(new std::ofstream(
+                    d_base_output_filename + "_COM_coordinates_struct_no_" + struct_no_str, std::fstream::out));
 
             if (from_restart)
-                d_power_spent_stream[struct_no] = new std::ofstream(
-                    d_base_output_filename + "_Power_spent_struct_no_" + struct_no_str, std::fstream::app);
+                d_power_spent_stream[struct_no].reset(new std::ofstream(
+                    d_base_output_filename + "_Power_spent_struct_no_" + struct_no_str, std::fstream::app));
             else
-                d_power_spent_stream[struct_no] = new std::ofstream(
-                    d_base_output_filename + "_Power_spent_struct_no_" + struct_no_str, std::fstream::out);
+                d_power_spent_stream[struct_no].reset(new std::ofstream(
+                    d_base_output_filename + "_Power_spent_struct_no_" + struct_no_str, std::fstream::out));
         }
 
         // Output Eulerian momentum.
@@ -360,22 +362,6 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
 
 ConstraintIBMethod::~ConstraintIBMethod()
 {
-    delete d_velcorrection_projection_spec;
-
-    if (!SAMRAI_MPI::getRank() && d_print_output)
-    {
-        for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
-        {
-            delete (d_trans_vel_stream[struct_no]);
-            delete (d_rot_vel_stream[struct_no]);
-            delete (d_drag_force_stream[struct_no]);
-            delete (d_moment_of_inertia_stream[struct_no]);
-            delete (d_torque_stream[struct_no]);
-            delete (d_position_COM_stream[struct_no]);
-            delete (d_power_spent_stream[struct_no]);
-        }
-    }
-
     // Deallocate the scratch fluid solve variable.
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -384,8 +370,7 @@ ConstraintIBMethod::~ConstraintIBMethod()
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_u_fluidSolve_cib_idx)) level->deallocatePatchData(d_u_fluidSolve_cib_idx);
-        if (!d_rho_is_const && level->checkAllocated(d_rho_scratch_idx))
-            level->deallocatePatchData(d_rho_scratch_idx);
+        if (!d_rho_is_const && level->checkAllocated(d_rho_scratch_idx)) level->deallocatePatchData(d_rho_scratch_idx);
     }
 
     return;
@@ -594,11 +579,11 @@ ConstraintIBMethod::registerEulerianVariables()
 #if !defined(NDEBUG)
             TBOX_ASSERT(d_rho_ins_idx >= 0);
 #endif
-                d_rho_var = new SideVariable<NDIM, double>(d_object_name + "::rho");
-                d_rho_scratch_idx =
-                    var_db->registerVariableAndContext(d_rho_var, d_scratch_context, getMinimumGhostCellWidth());
-            }
+            d_rho_var = new SideVariable<NDIM, double>(d_object_name + "::rho");
+            d_rho_scratch_idx =
+                var_db->registerVariableAndContext(d_rho_var, d_scratch_context, getMinimumGhostCellWidth());
         }
+    }
 
     return;
 } // registerEulerianVariables
@@ -629,11 +614,8 @@ ConstraintIBMethod::registerConstraintIBKinematics(const std::vector<Pointer<Con
     if (ib_kinematics.size() != static_cast<unsigned int>(d_no_structures))
     {
         TBOX_ERROR("ConstraintIBMethod::registerConstraintIBKinematics(). No of structures "
-                   << ib_kinematics.size()
-                   << " in vector passed to this method is not equal to no. of structures "
-                   << d_no_structures
-                   << " registered with this class"
-                   << std::endl);
+                   << ib_kinematics.size() << " in vector passed to this method is not equal to no. of structures "
+                   << d_no_structures << " registered with this class" << std::endl);
     }
     else
     {
@@ -814,8 +796,7 @@ ConstraintIBMethod::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
@@ -1922,7 +1903,7 @@ ConstraintIBMethod::applyProjection()
     }
     else
     {
-        d_velcorrection_projection_spec->setDConstant(-1.0/d_rho_fluid);
+        d_velcorrection_projection_spec->setDConstant(-1.0 / d_rho_fluid);
     }
 
     d_velcorrection_projection_op->setPoissonSpecifications(*d_velcorrection_projection_spec);
@@ -1978,7 +1959,7 @@ ConstraintIBMethod::applyProjection()
         getHierarchyMathOps()->grad(d_u_fluidSolve_idx,
                                     Pointer<SideVariable<NDIM, double> >(d_u_var),
                                     U_scratch_cf_bdry_synch,
-                                    -1.0/d_rho_fluid,
+                                    -1.0 / d_rho_fluid,
                                     d_phi_idx,
                                     d_phi_var,
                                     d_no_fill_op,
@@ -2193,8 +2174,9 @@ ConstraintIBMethod::updateStructurePositionMidPointStep()
                         {
                             X_new[d] = d_center_of_mass_current[location_struct_handle][d] +
                                        new_shape[d][lag_idx - offset] +
-                                       dt * 0.5 * (d_rigid_trans_vel_current[location_struct_handle][d] +
-                                                   d_rigid_trans_vel_new[location_struct_handle][d]);
+                                       dt * 0.5 *
+                                           (d_rigid_trans_vel_current[location_struct_handle][d] +
+                                            d_rigid_trans_vel_new[location_struct_handle][d]);
                         }
                     }
                     else if (position_update_method == "CONSTRAINT_EXPT_POSITION")

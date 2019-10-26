@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
-
-#include "petscvec.h"
-#include "petscao.h"
 #include "tbox/Pointer.h"
+
+#include "petscao.h"
+#include "petscvec.h"
+
+#include <vector>
 
 namespace SAMRAI
 {

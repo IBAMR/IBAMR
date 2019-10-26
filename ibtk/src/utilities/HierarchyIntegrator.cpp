@@ -32,16 +32,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <deque>
-#include <limits>
-#include <list>
-#include <map>
-#include <ostream>
-#include <set>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibtk/CartExtrapPhysBdryOp.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/RefinePatchStrategySet.h"
+#include "ibtk/ibtk_enums.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -72,13 +69,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
-#include "ibtk/CartExtrapPhysBdryOp.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/RefinePatchStrategySet.h"
-#include "ibtk/ibtk_enums.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -86,6 +76,17 @@
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <deque>
+#include <limits>
+#include <list>
+#include <map>
+#include <ostream>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -148,21 +149,6 @@ HierarchyIntegrator::~HierarchyIntegrator()
     {
         RestartManager::getManager()->unregisterRestartItem(d_object_name);
         d_registered_for_restart = false;
-    }
-
-    for (const auto& ghostfill_strategy : d_ghostfill_strategies)
-    {
-        delete ghostfill_strategy.second;
-    }
-
-    for (const auto& prolong_strategy : d_prolong_strategies)
-    {
-        delete prolong_strategy.second;
-    }
-
-    for (const auto& coarsen_strategy : d_coarsen_strategies)
-    {
-        delete coarsen_strategy.second;
     }
     return;
 } // ~HierarchyIntegrator
@@ -318,9 +304,8 @@ HierarchyIntegrator::advanceHierarchy(double dt)
     {
         if (d_enable_logging && d_current_num_cycles != 1)
         {
-            if (d_enable_logging)
-                plog << d_object_name << "::advanceHierarchy(): executing cycle " << cycle_num + 1 << " of "
-                     << d_current_num_cycles << "\n";
+            plog << d_object_name << "::advanceHierarchy(): executing cycle " << cycle_num + 1 << " of "
+                 << d_current_num_cycles << "\n";
         }
         integrateHierarchy(current_time, new_time, cycle_num);
     }
@@ -418,8 +403,21 @@ HierarchyIntegrator::regridHierarchy()
 {
     const int coarsest_ln = 0;
 
+    if (d_parent_integrator != nullptr)
+    {
+        TBOX_WARNING(d_object_name << "::regridHierarchy():\n"
+                                   << "  Calling regridHierarchy() on integrators with parent integrators is\n"
+                                   << "  deprecated and will not be permitted in a future version of IBAMR.");
+    }
+
     bool check_volume_change = !d_parent_integrator && d_hierarchy_is_initialized;
     const double old_volume = check_volume_change ? d_hier_math_ops->getVolumeOfPhysicalDomain() : 0.0;
+
+    regridHierarchyBeginSpecialized();
+    for (const auto& child_integrator : d_child_integrators)
+    {
+        child_integrator->regridHierarchyBeginSpecialized();
+    }
 
     // Regrid the hierarchy.
     switch (d_regrid_mode)
@@ -449,6 +447,12 @@ HierarchyIntegrator::regridHierarchy()
                           << "    old volume = " << old_volume << "\n"
                           << "    new volume = " << new_volume << "\n"
                           << "  this may indicate overlapping patches in the AMR grid hierarchy.");
+    }
+
+    regridHierarchyEndSpecialized();
+    for (const auto& child_integrator : d_child_integrators)
+    {
+        child_integrator->regridHierarchyEndSpecialized();
     }
 
     // Reinitialize composite grid data.
@@ -881,7 +885,7 @@ HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarch
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
             d_ghostfill_scheds[ghostfill_alg.first][ln] = ghostfill_alg.second->createSchedule(
-                level, ln - 1, hierarchy, d_ghostfill_strategies[ghostfill_alg.first]);
+                level, ln - 1, hierarchy, d_ghostfill_strategies[ghostfill_alg.first].get());
         }
     }
 
@@ -893,7 +897,7 @@ HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarch
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
             d_prolong_scheds[prolong_alg.first][ln] = prolong_alg.second->createSchedule(
-                level, Pointer<PatchLevel<NDIM> >(), ln - 1, hierarchy, d_prolong_strategies[prolong_alg.first]);
+                level, Pointer<PatchLevel<NDIM> >(), ln - 1, hierarchy, d_prolong_strategies[prolong_alg.first].get());
         }
     }
 
@@ -906,7 +910,7 @@ HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarch
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
             Pointer<PatchLevel<NDIM> > coarser_level = hierarchy->getPatchLevel(ln - 1);
             d_coarsen_scheds[coarsen_alg.first][ln] =
-                coarsen_alg.second->createSchedule(coarser_level, level, d_coarsen_strategies[coarsen_alg.first]);
+                coarsen_alg.second->createSchedule(coarser_level, level, d_coarsen_strategies[coarsen_alg.first].get());
         }
     }
 
@@ -1158,6 +1162,7 @@ HierarchyIntegrator::putToDatabase(Pointer<Database> db)
     db->putInteger("d_regrid_interval", d_regrid_interval);
     db->putString("d_regrid_mode", enum_to_string<RegridMode>(d_regrid_mode));
     db->putBool("d_enable_logging", d_enable_logging);
+    db->putBool("d_enable_logging_solver_iterations", d_enable_logging_solver_iterations);
     db->putIntegerArray("d_tag_buffer", d_tag_buffer);
     db->putString("d_bdry_extrap_type", d_bdry_extrap_type);
     putToDatabaseSpecialized(db);
@@ -1165,6 +1170,16 @@ HierarchyIntegrator::putToDatabase(Pointer<Database> db)
 } // putToDatabase
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+HierarchyIntegrator::regridHierarchyBeginSpecialized()
+{
+} // regridHierarchyBeginSpecialized
+
+void
+HierarchyIntegrator::regridHierarchyEndSpecialized()
+{
+} // regridHierarchyEndSpecialized
 
 double
 HierarchyIntegrator::getMinimumTimeStepSizeSpecialized()
@@ -1416,6 +1431,7 @@ HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const Pointer<Base
     return;
 } // executeApplyGradientDetectorCallbackFcns
 
+// TODO: Should ghostfill_patch_strategy be a unique_ptr?
 void
 HierarchyIntegrator::registerGhostfillRefineAlgorithm(const std::string& name,
                                                       Pointer<RefineAlgorithm<NDIM> > ghostfill_alg,
@@ -1425,9 +1441,10 @@ HierarchyIntegrator::registerGhostfillRefineAlgorithm(const std::string& name,
     TBOX_ASSERT(d_ghostfill_algs.find(name) == d_ghostfill_algs.end());
 #endif
     d_ghostfill_algs[name] = ghostfill_alg;
-    d_ghostfill_strategies[name] = ghostfill_patch_strategy;
+    d_ghostfill_strategies[name].reset(ghostfill_patch_strategy);
 } // registerGhostfillRefineAlgorithm
 
+// TODO: Should prolong_patch_strategy be a unique_ptr?
 void
 HierarchyIntegrator::registerProlongRefineAlgorithm(const std::string& name,
                                                     Pointer<RefineAlgorithm<NDIM> > prolong_alg,
@@ -1437,9 +1454,10 @@ HierarchyIntegrator::registerProlongRefineAlgorithm(const std::string& name,
     TBOX_ASSERT(d_prolong_algs.find(name) == d_prolong_algs.end());
 #endif
     d_prolong_algs[name] = prolong_alg;
-    d_prolong_strategies[name] = prolong_patch_strategy;
+    d_prolong_strategies[name].reset(prolong_patch_strategy);
 } // registerProlongRefineAlgorithm
 
+// TODO: Should coarsen_patch_strategy be a unique_ptr?
 void
 HierarchyIntegrator::registerCoarsenAlgorithm(const std::string& name,
                                               Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg,
@@ -1449,7 +1467,7 @@ HierarchyIntegrator::registerCoarsenAlgorithm(const std::string& name,
     TBOX_ASSERT(d_coarsen_algs.find(name) == d_coarsen_algs.end());
 #endif
     d_coarsen_algs[name] = coarsen_alg;
-    d_coarsen_strategies[name] = coarsen_patch_strategy;
+    d_coarsen_strategies[name].reset(coarsen_patch_strategy);
 } // registerCoarsenAlgorithm
 
 Pointer<RefineAlgorithm<NDIM> >
@@ -1593,7 +1611,18 @@ HierarchyIntegrator::getFromInput(Pointer<Database> db, bool is_from_restart)
     if (db->keyExists("num_cycles")) d_num_cycles = db->getInteger("num_cycles");
     if (db->keyExists("regrid_interval")) d_regrid_interval = db->getInteger("regrid_interval");
     if (db->keyExists("regrid_mode")) d_regrid_mode = string_to_enum<RegridMode>(db->getString("regrid_mode"));
-    if (db->keyExists("enable_logging")) d_enable_logging = db->getBool("enable_logging");
+    if (db->keyExists("enable_logging"))
+    {
+        d_enable_logging = db->getBool("enable_logging");
+        if (db->keyExists("enable_logging_solver_iterations"))
+        {
+            d_enable_logging_solver_iterations = db->getBool("enable_logging_solver_iterations");
+        }
+        else
+        {
+            d_enable_logging_solver_iterations = d_enable_logging;
+        }
+    }
     if (db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = db->getString("bdry_extrap_type");
     if (db->keyExists("tag_buffer")) d_tag_buffer = db->getIntegerArray("tag_buffer");
     return;
@@ -1641,6 +1670,7 @@ HierarchyIntegrator::getFromRestart()
     d_regrid_interval = db->getInteger("d_regrid_interval");
     d_regrid_mode = string_to_enum<RegridMode>(db->getString("d_regrid_mode"));
     d_enable_logging = db->getBool("d_enable_logging");
+    d_enable_logging_solver_iterations = db->getBool("d_enable_logging_solver_iterations");
     d_bdry_extrap_type = db->getString("d_bdry_extrap_type");
     d_tag_buffer = db->getIntegerArray("d_tag_buffer");
     return;

@@ -35,11 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-
 #include "ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h"
+
 #include "ibtk/PETScKrylovLinearSolver.h"
+
 #include "tbox/Pointer.h"
+
+#include <string>
 
 namespace SAMRAI
 {

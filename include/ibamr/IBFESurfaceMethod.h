@@ -35,21 +35,24 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <set>
-#include <string>
-#include <vector>
+#include "ibamr/IBStrategy.h"
+
+#include "ibtk/FEDataManager.h"
+#include "ibtk/libmesh_utilities.h"
 
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
 #include "LoadBalancer.h"
 #include "PatchHierarchy.h"
-#include "ibamr/IBStrategy.h"
-#include "ibtk/FEDataManager.h"
-#include "ibtk/libmesh_utilities.h"
+#include "tbox/Pointer.h"
+
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
-#include "tbox/Pointer.h"
+
+#include <set>
+#include <string>
+#include <vector>
 
 namespace IBTK
 {
@@ -527,7 +530,8 @@ protected:
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
     std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_DP_systems;
-    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs, d_X_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
+        d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;

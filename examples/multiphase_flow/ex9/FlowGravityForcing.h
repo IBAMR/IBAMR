@@ -1,7 +1,7 @@
 // Filename: FlowGravityForcing.h
 // Created on 26 Nov 2018 by Nishant Nangia
 //
-// Copyright (c) 2002-2019, Amneet Bhalla and Nishant Nangia
+// Copyright (c) 2002-2014, Boyce Griffith
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without

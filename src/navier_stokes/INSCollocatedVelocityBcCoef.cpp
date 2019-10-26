@@ -32,10 +32,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <limits>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibamr/INSCollocatedHierarchyIntegrator.h"
+#include "ibamr/INSCollocatedVelocityBcCoef.h"
+#include "ibamr/StokesBcCoefStrategy.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/ExtendedRobinBcCoefStrategy.h"
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -43,16 +47,14 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "RobinBcCoefStrategy.h"
-#include "ibamr/INSCollocatedHierarchyIntegrator.h"
-#include "ibamr/INSCollocatedVelocityBcCoef.h"
-#include "ibamr/StokesBcCoefStrategy.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <limits>
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -313,8 +315,7 @@ INSCollocatedVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef
                         "INSCollocatedVelocityBcCoef::setBcCoefs(): unrecognized or "
                         "unsupported "
                         "traction boundary condition type: "
-                        << enum_to_string<TractionBcType>(d_traction_bc_type)
-                        << "\n");
+                        << enum_to_string<TractionBcType>(d_traction_bc_type) << "\n");
                 }
                 }
             }

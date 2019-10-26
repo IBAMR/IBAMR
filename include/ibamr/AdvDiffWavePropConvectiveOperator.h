@@ -35,8 +35,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/AdvDiffPhysicalBoundaryUtilities.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartExtrapPhysBdryOp.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "BoundaryBox.h"
 #include "Box.h"
@@ -50,7 +61,6 @@
 #include "CoarsenSchedule.h"
 #include "FaceData.h"
 #include "FaceVariable.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -65,20 +75,13 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/AdvDiffPhysicalBoundaryUtilities.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartExtrapPhysBdryOp.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/PhysicalBoundaryUtilities.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -235,7 +238,6 @@ private:
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_var;
-    unsigned int d_Q_data_depth = 0;
     int d_Q_scratch_idx = 0;
 
     const std::vector<RobinBcCoefStrategy<NDIM>*> d_conc_bc_coefs;

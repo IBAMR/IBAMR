@@ -33,16 +33,19 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "IBAMR_config.h"
-#include "Eigen/Dense"
+
 #include "ibamr/IBFEPatchRecoveryPostProcessor.h"
-#include "SAMRAI_config.h"
-#include "boost/multi_array.hpp"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/libmesh_utilities.h"
+
+#include "SAMRAI_config.h"
+
 #include "libmesh/boundary_info.h"
 #include "libmesh/dense_vector.h"
 #include "libmesh/dof_map.h"
@@ -50,11 +53,19 @@
 #include "libmesh/fe_base.h"
 #include "libmesh/fe_interface.h"
 #include "libmesh/mesh.h"
-#include "libmesh/petsc_vector.h"
-#include "libmesh/quadrature.h"
 #include "libmesh/periodic_boundaries.h"
 #include "libmesh/periodic_boundary.h"
+#include "libmesh/petsc_vector.h"
+#include "libmesh/quadrature.h"
 #include "libmesh/string_to_enum.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "boost/multi_array.hpp"
+IBTK_ENABLE_EXTRA_WARNINGS
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "Eigen/Dense"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 using namespace libMesh;
 
@@ -152,7 +163,7 @@ evaluate_polynomial_basis_fcns(Eigen::VectorXd& P,
     }
     return;
 } // evaluate_polynomial_basis_fcns
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -225,7 +236,7 @@ IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const
         for (unsigned int n = 0; n < elem->n_nodes(); ++n)
         {
             // Only set up patches for local nodes.
-            const Node* const node = elem->get_node(n);
+            const Node* const node = elem->get_node_ptr(n);
             if (node->processor_id() != mpi_rank) continue;
 
             // Only set up patches once for each node.
@@ -255,7 +266,7 @@ IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const
                     TBOX_ASSERT(elem->contains_point(p));
                     for (unsigned int i = 0; i < elem->n_neighbors(); ++i)
                     {
-                        if (!elem->neighbor(i))
+                        if (!elem->neighbor_ptr(i))
                         {
                             const std::vector<boundary_id_type>& boundary_ids =
                                 d_mesh->boundary_info->boundary_ids(elem, i);
@@ -270,7 +281,7 @@ IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const
                                 {
                                     const libMesh::Point periodic_image = periodic_boundary->get_corresponding_pos(p);
                                     const Elem* neighbor =
-                                        d_periodic_boundaries->neighbor(boundary_id, *point_locator, elem, i);
+                                        d_periodic_boundaries->neighbor_ptr(boundary_id, *point_locator, elem, i);
                                     if (elem->level() < neighbor->level())
                                     {
                                         neighbor = neighbor->parent();
@@ -398,8 +409,7 @@ IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const
                 "IBFEPatchRecoveryPostProcessor could not construct L2 reconstruction for "
                 "element "
                 "patch associated with node "
-                << node_id
-                << "\n");
+                << node_id << "\n");
         }
     }
     return;

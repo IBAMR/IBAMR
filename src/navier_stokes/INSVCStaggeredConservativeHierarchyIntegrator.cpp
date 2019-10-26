@@ -32,13 +32,50 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <cmath>
-#include <deque>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/INSIntermediateVelocityBcCoef.h"
+#include "ibamr/INSProjectionBcCoef.h"
+#include "ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredPressureBcCoef.h"
+#include "ibamr/INSVCStaggeredVelocityBcCoef.h"
+#include "ibamr/PETScKrylovStaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesBlockPreconditioner.h"
+#include "ibamr/StaggeredStokesFACPreconditioner.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/VCStaggeredStokesOperator.h"
+#include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CCPoissonSolverManager.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/CartSideDoubleDivPreservingRefine.h"
+#include "ibtk/CartSideDoubleRT0Refine.h"
+#include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/CellNoCornersFillPattern.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/KrylovLinearSolver.h"
+#include "ibtk/LinearSolver.h"
+#include "ibtk/NewtonKrylovSolver.h"
+#include "ibtk/PETScKrylovPoissonSolver.h"
+#include "ibtk/PoissonSolver.h"
+#include "ibtk/SCPoissonSolverManager.h"
+#include "ibtk/SideDataSynchronization.h"
+#include "ibtk/VCSCViscousOpPointRelaxationFACOperator.h"
+#include "ibtk/VCSCViscousOperator.h"
+#include "ibtk/VCSCViscousPETScLevelSolver.h"
+#include "ibtk/ibtk_enums.h"
 
 #include "ArrayData.h"
 #include "BasePatchHierarchy.h"
@@ -66,7 +103,6 @@
 #include "HierarchyFaceDataOpsReal.h"
 #include "HierarchyNodeDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
@@ -90,48 +126,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/BrinkmanPenalizationStrategy.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/INSIntermediateVelocityBcCoef.h"
-#include "ibamr/INSProjectionBcCoef.h"
-#include "ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredPressureBcCoef.h"
-#include "ibamr/INSVCStaggeredVelocityBcCoef.h"
-#include "ibamr/PETScKrylovStaggeredStokesSolver.h"
-#include "ibamr/StaggeredStokesBlockPreconditioner.h"
-#include "ibamr/StaggeredStokesFACPreconditioner.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/StaggeredStokesSolverManager.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/VCStaggeredStokesOperator.h"
-#include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CCPoissonSolverManager.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/CartSideDoubleDivPreservingRefine.h"
-#include "ibtk/CartSideDoubleSpecializedConstantRefine.h"
-#include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/CellNoCornersFillPattern.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/KrylovLinearSolver.h"
-#include "ibtk/LinearSolver.h"
-#include "ibtk/NewtonKrylovSolver.h"
-#include "ibtk/PETScKrylovPoissonSolver.h"
-#include "ibtk/PoissonSolver.h"
-#include "ibtk/SCPoissonSolverManager.h"
-#include "ibtk/SideDataSynchronization.h"
-#include "ibtk/VCSCViscousOpPointRelaxationFACOperator.h"
-#include "ibtk/VCSCViscousOperator.h"
-#include "ibtk/VCSCViscousPETScLevelSolver.h"
-#include "ibtk/ibtk_enums.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -140,6 +134,14 @@
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <cmath>
+#include <deque>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -165,11 +167,11 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarchyIntegrator(
-    const std::string& object_name,
-    Pointer<Database> input_db,
-    bool register_for_restart)
-    : INSVCStaggeredHierarchyIntegrator(object_name, input_db, register_for_restart), d_rho_sc_bc_coefs(NDIM, nullptr)
+INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarchyIntegrator(std::string object_name,
+                                                                                             Pointer<Database> input_db,
+                                                                                             bool register_for_restart)
+    : INSVCStaggeredHierarchyIntegrator(std::move(object_name), input_db, register_for_restart),
+      d_rho_sc_bc_coefs(NDIM, nullptr)
 {
     if (!(d_convective_difference_form == CONSERVATIVE))
     {
@@ -223,8 +225,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
                          d_rho_sc_scratch_idx,
                          d_rho_sc_var,
                          side_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
+                         d_rho_coarsen_type,
+                         d_rho_refine_type,
                          d_rho_init_fcn);
     }
     else
@@ -683,11 +685,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
     // Synchronize newest density
     using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
     SynchronizationTransactionComponent rho_scratch_synch_transaction =
-        SynchronizationTransactionComponent(d_rho_sc_scratch_idx, "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(d_rho_sc_scratch_idx, d_rho_coarsen_type);
     d_side_synch_op->resetTransactionComponent(rho_scratch_synch_transaction);
     d_side_synch_op->synchronizeData(d_integrator_time);
     SynchronizationTransactionComponent default_synch_transaction =
-        SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
     d_side_synch_op->resetTransactionComponent(default_synch_transaction);
 
     // Store the density for later use
@@ -756,7 +758,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
         d_hier_sc_data_ops->resetLevels(coarsest_ln, finest_ln);
     }
 
-    if (d_enable_logging)
+    if (d_enable_logging && d_enable_logging_solver_iterations)
         plog << d_object_name
              << "::integrateHierarchy(): stokes solve number of iterations = " << d_stokes_solver->getNumIterations()
              << "\n";
@@ -843,13 +845,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::postprocessIntegrateHierarchy(con
 
     return;
 } // postprocessIntegrateHierarchy
-
-void
-INSVCStaggeredConservativeHierarchyIntegrator::regridHierarchy()
-{
-    INSVCStaggeredHierarchyIntegrator::regridHierarchy();
-    return;
-} // regridHierarchy
 
 void
 INSVCStaggeredConservativeHierarchyIntegrator::removeNullSpace(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec)
@@ -1048,7 +1043,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
     d_side_synch_op->resetTransactionComponent(p_coef_synch_transaction);
     d_side_synch_op->synchronizeData(d_integrator_time);
     SynchronizationTransactionComponent default_synch_transaction =
-        SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
     d_side_synch_op->resetTransactionComponent(default_synch_transaction);
 
     regrid_projection_spec.setDPatchDataId(d_pressure_D_idx);
@@ -1088,7 +1083,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
 
     // Solve the projection pressure-Poisson problem.
     regrid_projection_solver->solveSystem(sol_vec, rhs_vec);
-    if (d_enable_logging)
+    if (d_enable_logging && d_enable_logging_solver_iterations)
         plog << d_object_name << "::regridProjection(): regrid projection solve number of iterations = "
              << regrid_projection_solver->getNumIterations() << "\n";
     if (d_enable_logging)
@@ -1101,7 +1096,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
                                                        DATA_REFINE_TYPE,
                                                        USE_CF_INTERPOLATION,
                                                        DATA_COARSEN_TYPE,
-                                                       d_bdry_extrap_type,
+                                                       d_bdry_extrap_type, // TODO: update variable name
                                                        CONSISTENT_TYPE_2_BDRY,
                                                        &Phi_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
@@ -1227,7 +1222,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     d_side_synch_op->resetTransactionComponent(p_coef_synch_transaction);
     d_side_synch_op->synchronizeData(d_integrator_time);
     SynchronizationTransactionComponent default_synch_transaction =
-        SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
     d_side_synch_op->resetTransactionComponent(default_synch_transaction);
     P_problem_coefs.setDPatchDataId(d_pressure_D_idx);
 
@@ -1445,15 +1440,15 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
     // Synchronize solution and right-hand-side data before solve.
     using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
     SynchronizationTransactionComponent sol_synch_transaction =
-        SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), d_U_coarsen_type);
     d_side_synch_op->resetTransactionComponent(sol_synch_transaction);
     d_side_synch_op->synchronizeData(current_time);
     SynchronizationTransactionComponent rhs_synch_transaction =
-        SynchronizationTransactionComponent(rhs_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(rhs_vec->getComponentDescriptorIndex(0), d_F_coarsen_type);
     d_side_synch_op->resetTransactionComponent(rhs_synch_transaction);
     d_side_synch_op->synchronizeData(current_time);
     SynchronizationTransactionComponent default_synch_transaction =
-        SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
     d_side_synch_op->resetTransactionComponent(default_synch_transaction);
 
     return;
@@ -1473,10 +1468,10 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
     // Synchronize solution data after solve.
     using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
     SynchronizationTransactionComponent sol_synch_transaction =
-        SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), d_U_coarsen_type);
     d_side_synch_op->synchronizeData(current_time);
     SynchronizationTransactionComponent default_synch_transaction =
-        SynchronizationTransactionComponent(d_U_scratch_idx, "CONSERVATIVE_COARSEN");
+        SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
     d_side_synch_op->resetTransactionComponent(default_synch_transaction);
 
     // Pull out solution components.

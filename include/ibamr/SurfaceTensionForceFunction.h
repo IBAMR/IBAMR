@@ -35,15 +35,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/CartGridFunction.h"
 
 #include "CartesianGridGeometry.h"
 #include "IntVector.h"
 #include "PatchLevel.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/CartGridFunction.h"
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
+
+#include <string>
 
 namespace IBAMR
 {

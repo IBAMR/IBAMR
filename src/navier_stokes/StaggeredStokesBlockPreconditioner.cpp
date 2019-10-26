@@ -32,9 +32,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibamr/StaggeredStokesBlockPreconditioner.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/LinearSolver.h"
+#include "ibtk/PoissonSolver.h"
 
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
@@ -43,16 +48,13 @@
 #include "PatchHierarchy.h"
 #include "PoissonSpecifications.h"
 #include "SAMRAIVectorReal.h"
-#include "ibamr/StaggeredStokesBlockPreconditioner.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/LinearSolver.h"
-#include "ibtk/PoissonSolver.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -90,11 +92,10 @@ StaggeredStokesBlockPreconditioner::needsVelocitySubdomainSolver() const
 void
 StaggeredStokesBlockPreconditioner::setVelocitySubdomainSolver(Pointer<PoissonSolver> velocity_solver)
 {
-    IBAMR_DO_ONCE(if (!needsVelocitySubdomainSolver())
-                  {
-                      pout << d_object_name << "::setVelocitySubdomainSolver():\n"
-                           << "WARNING: implementation does not require velocity subdomain solver\n";
-                  });
+    IBAMR_DO_ONCE(if (!needsVelocitySubdomainSolver()) {
+        pout << d_object_name << "::setVelocitySubdomainSolver():\n"
+             << "WARNING: implementation does not require velocity subdomain solver\n";
+    });
     d_velocity_solver = velocity_solver;
     return;
 } // setVelocitySubdomainSolver
@@ -116,11 +117,10 @@ StaggeredStokesBlockPreconditioner::needsPressureSubdomainSolver() const
 void
 StaggeredStokesBlockPreconditioner::setPressureSubdomainSolver(Pointer<PoissonSolver> pressure_solver)
 {
-    IBAMR_DO_ONCE(if (!needsPressureSubdomainSolver())
-                  {
-                      pout << d_object_name << "::setPressureSubdomainSolver():\n"
-                           << "WARNING: implementation does not require pressure subdomain solver\n";
-                  });
+    IBAMR_DO_ONCE(if (!needsPressureSubdomainSolver()) {
+        pout << d_object_name << "::setPressureSubdomainSolver():\n"
+             << "WARNING: implementation does not require pressure subdomain solver\n";
+    });
     d_pressure_solver = pressure_solver;
     return;
 } // setPressureSubdomainSolver

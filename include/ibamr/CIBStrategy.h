@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of The University of North Carolina nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -35,22 +35,28 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <vector>
-
-#include "Eigen/Core"
-#include "Eigen/Geometry"
 #include "ibamr/ibamr_enums.h"
+
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include "tbox/DescribedClass.h"
+
 #include "petscmat.h"
 #include "petscvec.h"
-#include "tbox/DescribedClass.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "Eigen/Core"
+#include "Eigen/Geometry"
+IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <map>
+#include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
-
 /*!
  * \brief Class CIBStrategy is a lightweight abstract strategy class which
  * provides support for constraint based IB methods for rigid bodies.

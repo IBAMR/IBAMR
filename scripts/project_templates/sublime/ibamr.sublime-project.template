@@ -1,0 +1,49 @@
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+    "build_systems":
+    [
+        {
+            "name": "IBAMR",
+            "shell_cmd": "make",
+            "working_dir": "${project_path}/../ibamr-objs-dbg",
+        }
+    ],
+    "settings":
+    {
+        "tab_size": 4,
+        "translate_tabs_to_spaces": true,
+        "detect_indentation": true,
+        "indent_to_bracket": true,
+        "compile_commands": "${project_path}",
+        "SublimeLinter.linters.clang++.args": "-std=gnu++11 -Wall -DNDIM=2",
+        "SublimeLinter.linters.clang++.I":
+        [
+            "${HOME}/code/IBAMR/include",
+            "${HOME}/code/IBAMR/ibtk/include",
+            "${HOME}/code/IBAMR/ibtk/contrib/eigen",
+            "${HOME}/code/IBAMR/ibtk/contrib/muParser",
+            "${HOME}/code/IBAMR/ibtk/contrib/muParser/include",
+            "${HOME}/code/ibamr-objs-dbg",
+            "${HOME}/code/ibamr-objs-dbg/config",
+            "${HOME}/code/ibamr-objs-dbg/ibtk",
+            "${HOME}/code/ibamr-objs-dbg/ibtk/config",
+            "${HOME}/sfw/libmesh/darwin-clang-dbg",
+            "${HOME}/sfw/libmesh/darwin-clang-dbg/include",
+            "${HOME}/sfw/petsc/petsc-maint",
+            "${HOME}/sfw/petsc/petsc-maint/include",
+            "${HOME}/sfw/petsc/petsc-maint/darwin-dbg",
+            "${HOME}/sfw/petsc/petsc-maint/darwin-dbg/include",
+            "${HOME}/sfw/samrai/2.4.4/darwin-clang-dbg",
+            "${HOME}/sfw/samrai/2.4.4/darwin-clang-dbg/include",
+        ],
+        "SublimeLinter.linters.cppcheck.disable": false,
+        "SublimeLinter.linters.cppcheck.args": "--language=c++",
+        "SublimeLinter.linters.cppcheck.enable": "information,performance,portability,style,warning",
+        "SublimeLinter.linters.cppcheck.std": "c++11",
+    }
+}

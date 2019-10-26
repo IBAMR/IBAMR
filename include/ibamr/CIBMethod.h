@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of The University of North Carolina nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -35,12 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "RobinBcCoefStrategy.h"
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/IBMethod.h"
+
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include "RobinBcCoefStrategy.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -226,9 +228,9 @@ public:
         bool initial_time) override;
 
     /*!
-    * \brief Interpolate the Eulerian velocity to the curvilinear mesh at the
-    * specified time within the current time interval.
-    */
+     * \brief Interpolate the Eulerian velocity to the curvilinear mesh at the
+     * specified time within the current time interval.
+     */
     void interpolateVelocity(
         int u_data_idx,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,

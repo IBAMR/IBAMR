@@ -33,6 +33,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -45,26 +46,28 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for basic libMesh objects
+#include <libmesh/boundary_mesh.h>
 #include <libmesh/equation_systems.h>
 #include <libmesh/exodusII_io.h>
 #include <libmesh/mesh.h>
-#include <libmesh/boundary_mesh.h>
 #include <libmesh/mesh_generation.h>
 #include <libmesh/mesh_triangle_interface.h>
 #include <libmesh/petsc_matrix.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include <boost/multi_array.hpp>
-#include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/CIBFEMethod.h>
-#include <ibamr/CIBStaggeredStokesSolver.h>
 #include <ibamr/CIBSaddlePointSolver.h>
+#include <ibamr/CIBStaggeredStokesSolver.h>
+#include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+#include <boost/multi_array.hpp>
 
 // Various model parameters and functions.
 namespace ModelData
@@ -130,7 +133,7 @@ ConstrainedNodalVel(libMesh::NumericVector<double>& U_k,
 #if (NDIM == 2)
     W(0, 1) = -U[2];
     W(1, 0) = U[2];
-#elif(NDIM == 3)
+#elif (NDIM == 3)
     W(0, 1) = -U[5];
     W(1, 0) = U[5];
     W(0, 2) = U[4];
@@ -168,7 +171,7 @@ ConstrainedCOMVel(double /*data_time*/, Eigen::Vector3d& U_com, Eigen::Vector3d&
 
     return;
 } // ConstrainedCOMVel
-}
+} // namespace ModelData
 using namespace ModelData;
 
 // Function prototypes
@@ -393,13 +396,9 @@ run_example(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                ostringstream bc_coefs_name_stream;
-                bc_coefs_name_stream << "u_bc_coefs_" << d;
-                const string bc_coefs_name = bc_coefs_name_stream.str();
+                const std::string bc_coefs_name = "u_bc_coefs_" + std::to_string(d);
 
-                ostringstream bc_coefs_db_name_stream;
-                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
-                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+                const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
 
                 u_bc_coefs[d] = new muParserRobinBcCoefs(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);

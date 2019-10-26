@@ -30,6 +30,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -44,6 +45,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -172,13 +174,9 @@ run_example(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                ostringstream bc_coefs_name_stream;
-                bc_coefs_name_stream << "u_bc_coefs_" << d;
-                const string bc_coefs_name = bc_coefs_name_stream.str();
+                const std::string bc_coefs_name = "u_bc_coefs_" + std::to_string(d);
 
-                ostringstream bc_coefs_db_name_stream;
-                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
-                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+                const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
 
                 u_bc_coefs[d] = new muParserRobinBcCoefs(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
@@ -209,13 +207,9 @@ run_example(int argc, char* argv[])
         }
         else
         {
-            ostringstream bc_coefs_name_stream;
-            bc_coefs_name_stream << "rho_bc_coef";
-            const string bc_coef_name = bc_coefs_name_stream.str();
+            const std::string bc_coef_name = "rho_bc_coef";
 
-            ostringstream bc_coef_db_name_stream;
-            bc_coef_db_name_stream << "DensityBcCoef";
-            const string bc_coef_db_name = bc_coef_db_name_stream.str();
+            const std::string bc_coef_db_name = "DensityBcCoef";
 
             if (input_db->keyExists(bc_coef_db_name))
             {
@@ -232,13 +226,9 @@ run_example(int argc, char* argv[])
         }
         else
         {
-            ostringstream bc_coefs_name_stream;
-            bc_coefs_name_stream << "mu_bc_coef";
-            const string bc_coef_name = bc_coefs_name_stream.str();
+            const std::string bc_coef_name = "mu_bc_coef";
 
-            ostringstream bc_coef_db_name_stream;
-            bc_coef_db_name_stream << "ViscosityBcCoef";
-            const string bc_coef_db_name = bc_coef_db_name_stream.str();
+            const std::string bc_coef_db_name = "ViscosityBcCoef";
 
             if (input_db->keyExists(bc_coef_db_name))
             {

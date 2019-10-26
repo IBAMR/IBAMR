@@ -32,10 +32,18 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibtk/CartCellDoubleCubicCoarsen.h"
+#include "ibtk/CartCellDoubleQuadraticCFInterpolation.h"
+#include "ibtk/CartCellRobinPhysBdryOp.h"
+#include "ibtk/CartExtrapPhysBdryOp.h"
+#include "ibtk/CartSideDoubleCubicCoarsen.h"
+#include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/RefinePatchStrategySet.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "CartesianGridGeometry.h"
 #include "CellVariable.h"
@@ -59,22 +67,15 @@
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "ibtk/CartCellDoubleCubicCoarsen.h"
-#include "ibtk/CartCellDoubleQuadraticCFInterpolation.h"
-#include "ibtk/CartCellRobinPhysBdryOp.h"
-#include "ibtk/CartExtrapPhysBdryOp.h"
-#include "ibtk/CartSideDoubleCubicCoarsen.h"
-#include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/RefinePatchStrategySet.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <ostream>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -106,7 +107,7 @@ static Timer* t_fill_data;
 static Timer* t_fill_data_coarsen;
 static Timer* t_fill_data_refine;
 static Timer* t_fill_data_set_physical_bcs;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -220,7 +221,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(src_ln);
             Pointer<PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(src_ln - 1);
-            d_coarsen_scheds[src_ln] = d_coarsen_alg->createSchedule(coarser_level, level, d_coarsen_strategy);
+            d_coarsen_scheds[src_ln] = d_coarsen_alg->createSchedule(coarser_level, level, d_coarsen_strategy.get());
         }
     }
 
@@ -235,6 +236,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     {
         const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
         const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
+        const std::string& phys_bdry_type = d_transaction_comps[comp_idx].d_phys_bdry_type;
         Pointer<Variable<NDIM> > var;
         var_db->mapIndexToVariable(src_data_idx, var);
         Pointer<CellVariable<NDIM, double> > cc_var = var;
@@ -323,25 +325,27 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         }
         if (!null_bc_coefs && cc_var)
         {
-            d_cc_robin_bc_ops[comp_idx] = new CartCellRobinPhysBdryOp(dst_data_idx, robin_bc_coefs, d_homogeneous_bc);
+            d_cc_robin_bc_ops[comp_idx] =
+                new CartCellRobinPhysBdryOp(dst_data_idx, robin_bc_coefs, d_homogeneous_bc, phys_bdry_type);
         }
         if (!null_bc_coefs && sc_var)
         {
 #if !defined(NDEBUG)
             TBOX_ASSERT(robin_bc_coefs.size() == NDIM);
 #endif
-            d_sc_robin_bc_ops[comp_idx] = new CartSideRobinPhysBdryOp(dst_data_idx, robin_bc_coefs, d_homogeneous_bc);
+            d_sc_robin_bc_ops[comp_idx] =
+                new CartSideRobinPhysBdryOp(dst_data_idx, robin_bc_coefs, d_homogeneous_bc, phys_bdry_type);
         }
     }
 
-    d_refine_strategy =
-        new RefinePatchStrategySet(refine_patch_strategies.begin(), refine_patch_strategies.end(), false);
+    d_refine_strategy.reset(
+        new RefinePatchStrategySet(refine_patch_strategies.begin(), refine_patch_strategies.end(), false));
 
     d_refine_scheds.resize(d_finest_ln + 1);
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(dst_ln);
-        d_refine_scheds[dst_ln] = d_refine_alg->createSchedule(level, dst_ln - 1, d_hierarchy, d_refine_strategy);
+        d_refine_scheds[dst_ln] = d_refine_alg->createSchedule(level, dst_ln - 1, d_hierarchy, d_refine_strategy.get());
     }
 
     // Setup physical BC type.
@@ -560,12 +564,10 @@ HierarchyGhostCellInterpolation::deallocateOperatorState()
 
     // Clear cached communication schedules.
     d_coarsen_alg.setNull();
-    delete d_coarsen_strategy;
     d_coarsen_strategy = nullptr;
     d_coarsen_scheds.clear();
 
     d_refine_alg.setNull();
-    delete d_refine_strategy;
     d_refine_strategy = nullptr;
     d_refine_scheds.clear();
 

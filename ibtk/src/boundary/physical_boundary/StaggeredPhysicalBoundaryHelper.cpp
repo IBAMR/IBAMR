@@ -32,11 +32,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <map>
-#include <ostream>
-#include <utility>
-#include <vector>
+#include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/StaggeredPhysicalBoundaryHelper.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -52,13 +50,16 @@
 #include "SideData.h"
 #include "SideIndex.h"
 #include "Variable.h"
-#include "ibtk/PhysicalBoundaryUtilities.h"
-#include "ibtk/StaggeredPhysicalBoundaryHelper.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <map>
+#include <ostream>
+#include <utility>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

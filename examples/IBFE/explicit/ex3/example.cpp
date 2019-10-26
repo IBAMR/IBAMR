@@ -30,6 +30,7 @@
 // Config files
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -54,6 +55,7 @@
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+
 #include <ibtk/AppInitializer.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -98,7 +100,7 @@ PK1_dil_stress_function(TensorValue<double>& PP,
     PP = 2.0 * (-p0_s + beta_s * log(FF.det())) * tensor_inverse_transpose(FF, NDIM);
     return;
 } // PK1_dil_stress_function
-}
+} // namespace ModelData
 using namespace ModelData;
 
 // Function prototypes
@@ -122,7 +124,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *                                                                             *
  *******************************************************************************/
 
-bool run_example(int argc, char** argv)
+bool
+run_example(int argc, char** argv)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -191,7 +194,7 @@ bool run_example(int argc, char** argv)
             Elem* const elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
-                const bool at_mesh_bdry = !elem->neighbor(side);
+                const bool at_mesh_bdry = !elem->neighbor_ptr(side);
                 if (at_mesh_bdry)
                 {
                     BoundaryInfo* boundary_info = mesh.boundary_info.get();
@@ -330,13 +333,9 @@ bool run_example(int argc, char** argv)
         vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            ostringstream bc_coefs_name_stream;
-            bc_coefs_name_stream << "u_bc_coefs_" << d;
-            const string bc_coefs_name = bc_coefs_name_stream.str();
+            const std::string bc_coefs_name = "u_bc_coefs_" + std::to_string(d);
 
-            ostringstream bc_coefs_db_name_stream;
-            bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
-            const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+            const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
 
             u_bc_coefs[d] = new muParserRobinBcCoefs(
                 bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);

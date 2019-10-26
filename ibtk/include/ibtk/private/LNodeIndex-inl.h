@@ -36,6 +36,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/LNodeIndex.h"
+
 #include "tbox/AbstractStream.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -95,7 +96,8 @@ inline LNodeIndex::~LNodeIndex()
     return;
 } // ~LNodeIndex
 
-inline LNodeIndex& LNodeIndex::operator=(const LNodeIndex& that)
+inline LNodeIndex&
+LNodeIndex::operator=(const LNodeIndex& that)
 {
     if (this != &that)
     {

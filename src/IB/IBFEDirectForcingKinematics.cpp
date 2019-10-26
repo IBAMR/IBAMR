@@ -35,7 +35,9 @@
 #include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBFEMethod.h"
 #include "ibamr/namespaces.h"
+
 #include "ibtk/IBTK_CHKERRQ.h"
+
 #include "libmesh/equation_systems.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -906,6 +908,6 @@ IBFEDirectForcingKinematics::computeMixedLagrangianForceDensity(PetscVector<doub
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-} // namespace
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

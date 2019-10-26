@@ -32,16 +32,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <map>
-#include <ostream>
-
 #include "ibtk/StreamableFactory.h"
 #include "ibtk/StreamableManager.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
+
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/Utilities.h"
+
+#include <map>
+#include <ostream>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

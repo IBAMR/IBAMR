@@ -35,10 +35,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "tbox/Array.h"
+#include "ibamr/IBLagrangianForceStrategy.h"
+
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
-#include "ibamr/IBLagrangianForceStrategy.h"
+
+#include "tbox/Array.h"
+
 #include "muParser.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -89,9 +92,6 @@ private:
 
     // Assignment operator, not implemented.
     NonbondedForceEvaluator& operator=(const NonbondedForceEvaluator& that) = delete;
-
-    // type of force to use:
-    int d_force_type;
 
     // interaction radius:
     double d_interaction_radius;

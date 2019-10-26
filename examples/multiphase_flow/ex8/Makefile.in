@@ -93,10 +93,11 @@ EXTRA_PROGRAMS = $(am__EXEEXT_7) $(am__EXEEXT_8)
 @SAMRAI2D_ENABLED_TRUE@am__append_3 = $(GTESTS) $(EXAMPLES)
 @GTEST_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_4 = test3d
 @SAMRAI3D_ENABLED_TRUE@am__append_5 = main3d
-@SAMRAI3D_ENABLED_TRUE@am__append_6 = $(GTESTS) $(EXAMPLES)
+@SAMRAI3D_ENABLED_TRUE@am__append_6 = $(GTESTS) $(EXAMPLES) sphereGen
 subdir = examples/multiphase_flow/ex8
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
+	$(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
 	$(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/ax_prog_cc_mpi.m4 \
 	$(top_srcdir)/m4/ax_prog_cxx_mpi.m4 $(top_srcdir)/m4/boost.m4 \
@@ -134,7 +135,8 @@ am__EXEEXT_3 = $(am__EXEEXT_1) $(am__EXEEXT_2)
 @SAMRAI3D_ENABLED_TRUE@am__EXEEXT_5 = main3d$(EXEEXT)
 am__EXEEXT_6 = $(am__EXEEXT_4) $(am__EXEEXT_5)
 @SAMRAI2D_ENABLED_TRUE@am__EXEEXT_7 = $(am__EXEEXT_3) $(am__EXEEXT_6)
-@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_8 = $(am__EXEEXT_3) $(am__EXEEXT_6)
+@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_8 = $(am__EXEEXT_3) $(am__EXEEXT_6) \
+@SAMRAI3D_ENABLED_TRUE@	sphereGen$(EXEEXT)
 am__objects_1 = main2d-ex_main.$(OBJEXT) \
 	main2d-SetFluidGasSolidDensity.$(OBJEXT) \
 	main2d-SetFluidGasSolidViscosity.$(OBJEXT) \
@@ -168,6 +170,12 @@ main3d_OBJECTS = $(am_main3d_OBJECTS)
 main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 main3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main3d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_sphereGen_OBJECTS = sphereGen-sphereGen.$(OBJEXT)
+sphereGen_OBJECTS = $(am_sphereGen_OBJECTS)
+sphereGen_DEPENDENCIES =
+sphereGen_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(sphereGen_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__objects_3 = test2d-test_main.$(OBJEXT) \
 	test2d-SetFluidGasSolidDensity.$(OBJEXT) \
@@ -232,6 +240,7 @@ am__depfiles_remade = ./$(DEPDIR)/main2d-GravityForcing.Po \
 	./$(DEPDIR)/main3d-SetLSProperties.Po \
 	./$(DEPDIR)/main3d-TagLSRefinementCells.Po \
 	./$(DEPDIR)/main3d-ex_main.Po \
+	./$(DEPDIR)/sphereGen-sphereGen.Po \
 	./$(DEPDIR)/test2d-GravityForcing.Po \
 	./$(DEPDIR)/test2d-LSLocateCircularInterface.Po \
 	./$(DEPDIR)/test2d-LSLocateGasInterface.Po \
@@ -269,10 +278,10 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(main2d_SOURCES) $(main3d_SOURCES) $(test2d_SOURCES) \
-	$(test3d_SOURCES)
-DIST_SOURCES = $(main2d_SOURCES) $(main3d_SOURCES) $(test2d_SOURCES) \
-	$(test3d_SOURCES)
+SOURCES = $(main2d_SOURCES) $(main3d_SOURCES) $(sphereGen_SOURCES) \
+	$(test2d_SOURCES) $(test3d_SOURCES)
+DIST_SOURCES = $(main2d_SOURCES) $(main3d_SOURCES) \
+	$(sphereGen_SOURCES) $(test2d_SOURCES) $(test3d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -345,17 +354,12 @@ HAVE_CXX11 = @HAVE_CXX11@
 HAVE_LIBGSL = @HAVE_LIBGSL@
 HAVE_LIBGSLCBLAS = @HAVE_LIBGSLCBLAS@
 HAVE_LIBGTEST = @HAVE_LIBGTEST@
-HAVE_LIBHDF5 = @HAVE_LIBHDF5@
-HAVE_LIBHDF5_HL = @HAVE_LIBHDF5_HL@
-HAVE_LIBHYPRE = @HAVE_LIBHYPRE@
 HAVE_LIBMESH_DBG = @HAVE_LIBMESH_DBG@
 HAVE_LIBMESH_DEVEL = @HAVE_LIBMESH_DEVEL@
 HAVE_LIBMESH_OPROF = @HAVE_LIBMESH_OPROF@
 HAVE_LIBMESH_OPT = @HAVE_LIBMESH_OPT@
 HAVE_LIBMESH_PROF = @HAVE_LIBMESH_PROF@
 HAVE_LIBMUPARSER = @HAVE_LIBMUPARSER@
-HAVE_LIBNETCDF = @HAVE_LIBNETCDF@
-HAVE_LIBPETSC = @HAVE_LIBPETSC@
 HAVE_LIBSAMRAI = @HAVE_LIBSAMRAI@
 HAVE_LIBSAMRAI2D_ALGS = @HAVE_LIBSAMRAI2D_ALGS@
 HAVE_LIBSAMRAI2D_APPU = @HAVE_LIBSAMRAI2D_APPU@
@@ -375,8 +379,6 @@ HAVE_LIBSAMRAI3D_MESH = @HAVE_LIBSAMRAI3D_MESH@
 HAVE_LIBSAMRAI3D_PDAT_STD = @HAVE_LIBSAMRAI3D_PDAT_STD@
 HAVE_LIBSAMRAI3D_SOLV = @HAVE_LIBSAMRAI3D_SOLV@
 HAVE_LIBSAMRAI3D_XFER = @HAVE_LIBSAMRAI3D_XFER@
-HAVE_LIBSILO = @HAVE_LIBSILO@
-HAVE_LIBSILOH5 = @HAVE_LIBSILOH5@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -390,12 +392,6 @@ LIBGSLCBLAS_PREFIX = @LIBGSLCBLAS_PREFIX@
 LIBGSL_PREFIX = @LIBGSL_PREFIX@
 LIBGTEST = @LIBGTEST@
 LIBGTEST_PREFIX = @LIBGTEST_PREFIX@
-LIBHDF5 = @LIBHDF5@
-LIBHDF5_HL = @LIBHDF5_HL@
-LIBHDF5_HL_PREFIX = @LIBHDF5_HL_PREFIX@
-LIBHDF5_PREFIX = @LIBHDF5_PREFIX@
-LIBHYPRE = @LIBHYPRE@
-LIBHYPRE_PREFIX = @LIBHYPRE_PREFIX@
 LIBMESH_CONFIG = @LIBMESH_CONFIG@
 LIBMESH_DBG = @LIBMESH_DBG@
 LIBMESH_DBG_PREFIX = @LIBMESH_DBG_PREFIX@
@@ -409,11 +405,7 @@ LIBMESH_PROF = @LIBMESH_PROF@
 LIBMESH_PROF_PREFIX = @LIBMESH_PROF_PREFIX@
 LIBMUPARSER = @LIBMUPARSER@
 LIBMUPARSER_PREFIX = @LIBMUPARSER_PREFIX@
-LIBNETCDF = @LIBNETCDF@
-LIBNETCDF_PREFIX = @LIBNETCDF_PREFIX@
 LIBOBJS = @LIBOBJS@
-LIBPETSC = @LIBPETSC@
-LIBPETSC_PREFIX = @LIBPETSC_PREFIX@
 LIBS = @LIBS@
 LIBSAMRAI = @LIBSAMRAI@
 LIBSAMRAI2D_ALGS = @LIBSAMRAI2D_ALGS@
@@ -453,28 +445,19 @@ LIBSAMRAI3D_SOLV_PREFIX = @LIBSAMRAI3D_SOLV_PREFIX@
 LIBSAMRAI3D_XFER = @LIBSAMRAI3D_XFER@
 LIBSAMRAI3D_XFER_PREFIX = @LIBSAMRAI3D_XFER_PREFIX@
 LIBSAMRAI_PREFIX = @LIBSAMRAI_PREFIX@
-LIBSILO = @LIBSILO@
-LIBSILOH5 = @LIBSILOH5@
-LIBSILOH5_PREFIX = @LIBSILOH5_PREFIX@
-LIBSILO_PREFIX = @LIBSILO_PREFIX@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBGSL = @LTLIBGSL@
 LTLIBGSLCBLAS = @LTLIBGSLCBLAS@
 LTLIBGTEST = @LTLIBGTEST@
-LTLIBHDF5 = @LTLIBHDF5@
-LTLIBHDF5_HL = @LTLIBHDF5_HL@
-LTLIBHYPRE = @LTLIBHYPRE@
 LTLIBMESH_DBG = @LTLIBMESH_DBG@
 LTLIBMESH_DEVEL = @LTLIBMESH_DEVEL@
 LTLIBMESH_OPROF = @LTLIBMESH_OPROF@
 LTLIBMESH_OPT = @LTLIBMESH_OPT@
 LTLIBMESH_PROF = @LTLIBMESH_PROF@
 LTLIBMUPARSER = @LTLIBMUPARSER@
-LTLIBNETCDF = @LTLIBNETCDF@
 LTLIBOBJS = @LTLIBOBJS@
-LTLIBPETSC = @LTLIBPETSC@
 LTLIBSAMRAI = @LTLIBSAMRAI@
 LTLIBSAMRAI2D_ALGS = @LTLIBSAMRAI2D_ALGS@
 LTLIBSAMRAI2D_APPU = @LTLIBSAMRAI2D_APPU@
@@ -494,8 +477,6 @@ LTLIBSAMRAI3D_MESH = @LTLIBSAMRAI3D_MESH@
 LTLIBSAMRAI3D_PDAT_STD = @LTLIBSAMRAI3D_PDAT_STD@
 LTLIBSAMRAI3D_SOLV = @LTLIBSAMRAI3D_SOLV@
 LTLIBSAMRAI3D_XFER = @LTLIBSAMRAI3D_XFER@
-LTLIBSILO = @LTLIBSILO@
-LTLIBSILOH5 = @LTLIBSILOH5@
 LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 M4 = @M4@
 MAINT = @MAINT@
@@ -504,19 +485,18 @@ MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
 MPICC = @MPICC@
 MPICXX = @MPICXX@
+MPIEXEC = @MPIEXEC@
 NM = @NM@
 NMEDIT = @NMEDIT@
+NUMDIFF = @NUMDIFF@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 OTOOL = @OTOOL@
 OTOOL64 = @OTOOL64@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
-PACKAGE_CFLAGS = @PACKAGE_CFLAGS@
 PACKAGE_CONTRIB_LIBS = @PACKAGE_CONTRIB_LIBS@
 PACKAGE_CPPFLAGS = @PACKAGE_CPPFLAGS@
-PACKAGE_CXXFLAGS = @PACKAGE_CXXFLAGS@
-PACKAGE_FCFLAGS = @PACKAGE_FCFLAGS@
 PACKAGE_LDFLAGS = @PACKAGE_LDFLAGS@
 PACKAGE_LIBS = @PACKAGE_LIBS@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -609,6 +589,9 @@ main2d_SOURCES = $(EXAMPLE_DRIVER)
 main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 main3d_SOURCES = $(EXAMPLE_DRIVER)
+sphereGen_CXXFLAGS = $(AM_CXXFLAGS)
+sphereGen_LDADD = 
+sphereGen_SOURCES = sphereGen.cpp
 test2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 test2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 test2d_SOURCES = $(GTEST_DRIVER)
@@ -658,6 +641,10 @@ main3d$(EXEEXT): $(main3d_OBJECTS) $(main3d_DEPENDENCIES) $(EXTRA_main3d_DEPENDE
 	@rm -f main3d$(EXEEXT)
 	$(AM_V_CXXLD)$(main3d_LINK) $(main3d_OBJECTS) $(main3d_LDADD) $(LIBS)
 
+sphereGen$(EXEEXT): $(sphereGen_OBJECTS) $(sphereGen_DEPENDENCIES) $(EXTRA_sphereGen_DEPENDENCIES) 
+	@rm -f sphereGen$(EXEEXT)
+	$(AM_V_CXXLD)$(sphereGen_LINK) $(sphereGen_OBJECTS) $(sphereGen_LDADD) $(LIBS)
+
 test2d$(EXEEXT): $(test2d_OBJECTS) $(test2d_DEPENDENCIES) $(EXTRA_test2d_DEPENDENCIES) 
 	@rm -f test2d$(EXEEXT)
 	$(AM_V_CXXLD)$(test2d_LINK) $(test2d_OBJECTS) $(test2d_LDADD) $(LIBS)
@@ -690,6 +677,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-SetLSProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-TagLSRefinementCells.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-ex_main.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sphereGen-sphereGen.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-GravityForcing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-LSLocateCircularInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-LSLocateGasInterface.Po@am__quote@ # am--include-marker
@@ -990,6 +978,20 @@ main3d-GravityForcing.obj: GravityForcing.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='GravityForcing.cpp' object='main3d-GravityForcing.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-GravityForcing.obj `if test -f 'GravityForcing.cpp'; then $(CYGPATH_W) 'GravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/GravityForcing.cpp'; fi`
+
+sphereGen-sphereGen.o: sphereGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sphereGen_CXXFLAGS) $(CXXFLAGS) -MT sphereGen-sphereGen.o -MD -MP -MF $(DEPDIR)/sphereGen-sphereGen.Tpo -c -o sphereGen-sphereGen.o `test -f 'sphereGen.cpp' || echo '$(srcdir)/'`sphereGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sphereGen-sphereGen.Tpo $(DEPDIR)/sphereGen-sphereGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='sphereGen.cpp' object='sphereGen-sphereGen.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sphereGen_CXXFLAGS) $(CXXFLAGS) -c -o sphereGen-sphereGen.o `test -f 'sphereGen.cpp' || echo '$(srcdir)/'`sphereGen.cpp
+
+sphereGen-sphereGen.obj: sphereGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sphereGen_CXXFLAGS) $(CXXFLAGS) -MT sphereGen-sphereGen.obj -MD -MP -MF $(DEPDIR)/sphereGen-sphereGen.Tpo -c -o sphereGen-sphereGen.obj `if test -f 'sphereGen.cpp'; then $(CYGPATH_W) 'sphereGen.cpp'; else $(CYGPATH_W) '$(srcdir)/sphereGen.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sphereGen-sphereGen.Tpo $(DEPDIR)/sphereGen-sphereGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='sphereGen.cpp' object='sphereGen-sphereGen.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sphereGen_CXXFLAGS) $(CXXFLAGS) -c -o sphereGen-sphereGen.obj `if test -f 'sphereGen.cpp'; then $(CYGPATH_W) 'sphereGen.cpp'; else $(CYGPATH_W) '$(srcdir)/sphereGen.cpp'; fi`
 
 test2d-test_main.o: test_main.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-test_main.o -MD -MP -MF $(DEPDIR)/test2d-test_main.Tpo -c -o test2d-test_main.o `test -f 'test_main.cpp' || echo '$(srcdir)/'`test_main.cpp
@@ -1392,6 +1394,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/main3d-SetLSProperties.Po
 	-rm -f ./$(DEPDIR)/main3d-TagLSRefinementCells.Po
 	-rm -f ./$(DEPDIR)/main3d-ex_main.Po
+	-rm -f ./$(DEPDIR)/sphereGen-sphereGen.Po
 	-rm -f ./$(DEPDIR)/test2d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/test2d-LSLocateCircularInterface.Po
 	-rm -f ./$(DEPDIR)/test2d-LSLocateGasInterface.Po
@@ -1473,6 +1476,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/main3d-SetLSProperties.Po
 	-rm -f ./$(DEPDIR)/main3d-TagLSRefinementCells.Po
 	-rm -f ./$(DEPDIR)/main3d-ex_main.Po
+	-rm -f ./$(DEPDIR)/sphereGen-sphereGen.Po
 	-rm -f ./$(DEPDIR)/test2d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/test2d-LSLocateCircularInterface.Po
 	-rm -f ./$(DEPDIR)/test2d-LSLocateGasInterface.Po
@@ -1530,12 +1534,14 @@ uninstall-am:
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
-examples: $(EXAMPLES)
+sphere3d.vertex: sphereGen
+	./sphereGen
+
+examples: $(EXAMPLES) sphere3d.vertex
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d* $(PWD) ; \
 	  cp -f $(srcdir)/cylinder2d.vertex $(PWD) ; \
 	  cp -f $(srcdir)/Cylinder2d_cubic.m $(PWD) ; \
-	  cp -f $(srcdir)/sphereGen.cpp $(PWD) ; \
 	fi ;
 
 @GTEST_ENABLED_TRUE@gtest: $(GTESTS)
@@ -1545,7 +1551,7 @@ examples: $(EXAMPLES)
 @GTEST_ENABLED_TRUE@	fi ;
 @GTEST_ENABLED_TRUE@	./test2d input2d.test
 
-@GTEST_ENABLED_TRUE@gtest-long: 
+@GTEST_ENABLED_TRUE@gtest-long:
 @GTEST_ENABLED_TRUE@	make gtest
 
 @GTEST_ENABLED_FALSE@gtest:

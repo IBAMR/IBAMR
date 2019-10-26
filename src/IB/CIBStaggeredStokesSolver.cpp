@@ -14,8 +14,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of The University of North Carolina nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -38,7 +38,9 @@
 #include "ibamr/IBStrategy.h"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
+
 #include "ibtk/PETScSAMRAIVectorReal.h"
+
 #include "tbox/Database.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -310,7 +312,8 @@ CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIV
     double half_time = 0.5 * (d_new_time + d_current_time);
     pout << "\n"
          << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
-         << "Interpolating velocity on structure at time  " << half_time << "....\n" << std::endl;
+         << "Interpolating velocity on structure at time  " << half_time << "....\n"
+         << std::endl;
 
     RefineAlgorithm<NDIM> ghost_fill_alg;
     ghost_fill_alg.registerRefine(d_wide_u_idx, d_wide_u_idx, d_wide_u_idx, nullptr);

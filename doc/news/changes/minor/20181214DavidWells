@@ -1,5 +1,0 @@
-New: IBTK gained two new functions, IBTK::write_elem_partitioning() and
-IBTK::write_node_partitioning(), that save the subdomain ids of a libMesh system
-to a file for visualization.
-<br>
-(David Wells, 2018/12/14)

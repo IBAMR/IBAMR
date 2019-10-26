@@ -35,13 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibtk/CartGridFunction.h"
 
 #include "IntVector.h"
 #include "PatchLevel.h"
-#include "ibtk/CartGridFunction.h"
 #include "tbox/Pointer.h"
+
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {

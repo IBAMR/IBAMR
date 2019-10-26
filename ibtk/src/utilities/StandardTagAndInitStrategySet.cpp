@@ -32,9 +32,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <limits>
-#include <vector>
+#include "ibtk/StandardTagAndInitStrategySet.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -42,9 +41,11 @@
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "StandardTagAndInitStrategy.h"
-#include "ibtk/StandardTagAndInitStrategySet.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Pointer.h"
+
+#include <algorithm>
+#include <limits>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

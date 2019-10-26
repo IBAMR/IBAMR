@@ -32,10 +32,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "IBTK_config.h"
+
+#include "ibtk/CartCellRobinPhysBdryOp.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/PatchMathOps.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayDataBasicOps.h"
 #include "BasePatchLevel.h"
@@ -61,7 +66,6 @@
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyFaceDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
-#include "IBTK_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -88,18 +92,16 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibtk/CartCellRobinPhysBdryOp.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/PatchMathOps.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
+
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -110,30 +112,31 @@
 #endif
 
 // Function interfaces
-extern "C" {
-void S_TO_C_INTERP_SPECIAL_FC(const int& direction,
-                              double* U,
-                              const int& U_gcw,
-                              const double& alpha,
-                              const double* v0,
-                              const double* v1,
+extern "C"
+{
+    void S_TO_C_INTERP_SPECIAL_FC(const int& direction,
+                                  double* U,
+                                  const int& U_gcw,
+                                  const double& alpha,
+                                  const double* v0,
+                                  const double* v1,
 #if (NDIM == 3)
-                              const double* v2,
+                                  const double* v2,
 #endif
-                              const int& v_gcw,
-                              const double& beta,
-                              const double* W,
-                              const int& W_gcw,
-                              const int& ilower0,
-                              const int& iupper0,
-                              const int& ilower1,
-                              const int& iupper1
+                                  const int& v_gcw,
+                                  const double& beta,
+                                  const double* W,
+                                  const int& W_gcw,
+                                  const int& ilower0,
+                                  const int& iupper0,
+                                  const int& ilower1,
+                                  const int& iupper1
 #if (NDIM == 3)
-                              ,
-                              const int& ilower2,
-                              const int& iupper2
+                                  ,
+                                  const int& ilower2,
+                                  const int& iupper2
 #endif
-                              );
+    );
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -194,7 +197,7 @@ HierarchyMathOps::HierarchyMathOps(std::string name,
     {
         d_sc_idx = var_db->registerVariableAndContext(d_sc_var, d_context, ghosts);
     }
-    
+
     if (var_db->checkVariableExists(d_of_var->getName()))
     {
         d_of_var = var_db->getVariable(d_of_var->getName());
@@ -275,6 +278,7 @@ HierarchyMathOps::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
     // Reset the hierarchy.
     d_hierarchy = hierarchy;
     d_grid_geom = hierarchy->getGridGeometry();
+    d_cached_eulerian_data.setPatchHierarchy(d_hierarchy);
 
     // Obtain the hierarchy data operations objects.
     HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
@@ -304,6 +308,7 @@ HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
     // Reset the level numbers.
     d_coarsest_ln = coarsest_ln;
     d_finest_ln = finest_ln;
+    d_cached_eulerian_data.resetLevels(d_coarsest_ln, d_finest_ln);
     d_hier_cc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
     d_hier_fc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
     d_hier_sc_data_ops->resetLevels(d_coarsest_ln, d_finest_ln);
@@ -706,8 +711,7 @@ HierarchyMathOps::curl(const int dst_idx,
 {
 #if (NDIM != 2)
     TBOX_ERROR("HierarchyMathOps::curl():\n"
-               << "  not implemented for NDIM != 2"
-               << std::endl);
+               << "  not implemented for NDIM != 2" << std::endl);
 #endif
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
@@ -739,8 +743,7 @@ HierarchyMathOps::curl(const int dst_idx,
 {
 #if (NDIM != 3)
     TBOX_ERROR("HierarchyMathOps::curl():\n"
-               << "  not implemented for NDIM != 3"
-               << std::endl);
+               << "  not implemented for NDIM != 3" << std::endl);
 #endif
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
@@ -773,8 +776,7 @@ HierarchyMathOps::rot(int dst_idx,
 {
 #if (NDIM != 2)
     TBOX_ERROR("HierarchyMathOps::rot():\n"
-               << "  not implemented for NDIM != 2"
-               << std::endl);
+               << "  not implemented for NDIM != 2" << std::endl);
 #endif
     CartSideRobinPhysBdryOp robin_bc_op;
     const bool has_bc_coefs = !bc_coefs.empty();
@@ -816,8 +818,7 @@ HierarchyMathOps::rot(int dst_idx,
 {
 #if (NDIM != 2)
     TBOX_ERROR("HierarchyMathOps::rot():\n"
-               << "  not implemented for NDIM != 2"
-               << std::endl);
+               << "  not implemented for NDIM != 2" << std::endl);
 #endif
     CartSideRobinPhysBdryOp robin_bc_op;
     const bool has_bc_coefs = !bc_coefs.empty();
@@ -859,8 +860,7 @@ HierarchyMathOps::rot(int dst_idx,
 {
 #if (NDIM != 3)
     TBOX_ERROR("HierarchyMathOps::rot():\n"
-               << "  not implemented for NDIM != 3"
-               << std::endl);
+               << "  not implemented for NDIM != 3" << std::endl);
 #endif
     CartSideRobinPhysBdryOp robin_bc_op;
     const bool has_bc_coefs = !bc_coefs.empty();
@@ -1174,14 +1174,8 @@ HierarchyMathOps::grad(const int dst_idx,
 
         if (beta != 0.0)
         {
-            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-            int cc_idx = var_db->registerClonedPatchDataIndex(dst_var, dst_idx);
+            const auto cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
             const Pointer<CellVariable<NDIM, double> > cc_var = dst_var;
-
-            for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-            {
-                d_hierarchy->getPatchLevel(ln)->allocatePatchData(cc_idx);
-            }
 
             interp(cc_idx,
                    cc_var,
@@ -1196,14 +1190,6 @@ HierarchyMathOps::grad(const int dst_idx,
                                           cc_idx,    // src1
                                           beta,      // beta
                                           src2_idx); // src2
-
-            for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-            {
-                d_hierarchy->getPatchLevel(ln)->deallocatePatchData(cc_idx);
-            }
-
-            var_db->removePatchDataIndex(cc_idx);
-            cc_idx = -1;
         }
         else
         {
@@ -1380,14 +1366,8 @@ HierarchyMathOps::grad(const int dst_idx,
 
     if (beta != 0.0)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        int cc_idx = var_db->registerClonedPatchDataIndex(dst_var, dst_idx);
+        const auto cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
         const Pointer<CellVariable<NDIM, double> > cc_var = dst_var;
-
-        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-        {
-            d_hierarchy->getPatchLevel(ln)->allocatePatchData(cc_idx);
-        }
 
         interp(cc_idx,
                cc_var,
@@ -1402,14 +1382,6 @@ HierarchyMathOps::grad(const int dst_idx,
                                       cc_idx,    // src1
                                       beta,      // beta
                                       src2_idx); // src2
-
-        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-        {
-            d_hierarchy->getPatchLevel(ln)->deallocatePatchData(cc_idx);
-        }
-
-        var_db->removePatchDataIndex(cc_idx);
-        cc_idx = -1;
     }
     else
     {
@@ -1467,14 +1439,8 @@ HierarchyMathOps::grad(const int dst_idx,
 
     if (beta != 0.0)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        int cc_idx = var_db->registerClonedPatchDataIndex(dst_var, dst_idx);
+        const auto cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
         const Pointer<CellVariable<NDIM, double> > cc_var = dst_var;
-
-        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-        {
-            d_hierarchy->getPatchLevel(ln)->allocatePatchData(cc_idx);
-        }
 
         interp(cc_idx,
                cc_var,
@@ -1489,14 +1455,6 @@ HierarchyMathOps::grad(const int dst_idx,
                                       cc_idx,    // src1
                                       beta,      // beta
                                       src2_idx); // src2
-
-        for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-        {
-            d_hierarchy->getPatchLevel(ln)->deallocatePatchData(cc_idx);
-        }
-
-        var_db->removePatchDataIndex(cc_idx);
-        cc_idx = -1;
     }
     else
     {
@@ -2298,15 +2256,9 @@ HierarchyMathOps::laplace(const int dst_idx,
         }
         else
         {
-            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-            int cc_idx = var_db->registerClonedPatchDataIndex(dst_var, dst_idx);
+            const auto cc_idx = d_cached_eulerian_data.getCachedPatchDataIndex(dst_idx);
             const Pointer<CellVariable<NDIM, double> > cc_var = dst_var;
             const int cc_depth = dst_depth;
-
-            for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-            {
-                d_hierarchy->getPatchLevel(ln)->allocatePatchData(cc_idx);
-            }
 
             div(cc_idx,
                 cc_var,
@@ -2324,14 +2276,6 @@ HierarchyMathOps::laplace(const int dst_idx,
 
             pointwiseMultiply(
                 dst_idx, dst_var, gamma, src2_idx, src2_var, 1.0, cc_idx, cc_var, dst_depth, src2_depth, cc_depth);
-
-            for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-            {
-                d_hierarchy->getPatchLevel(ln)->deallocatePatchData(cc_idx);
-            }
-
-            var_db->removePatchDataIndex(cc_idx);
-            cc_idx = -1;
         }
 
         // Deallocate temporary data.
@@ -2400,8 +2344,7 @@ HierarchyMathOps::laplace(const int dst_idx,
     {
         TBOX_WARNING("HierarchyMathOps::laplace():\n"
                      << "  recommended usage for side-centered Laplace operator is\n"
-                     << "  src1_var->fineBoundaryRepresentsVariable() == true"
-                     << std::endl);
+                     << "  src1_var->fineBoundaryRepresentsVariable() == true" << std::endl);
     }
 
     Pointer<SideDataFactory<NDIM, double> > dst_factory = dst_var->getPatchDataFactory();
@@ -2409,8 +2352,7 @@ HierarchyMathOps::laplace(const int dst_idx,
     if (dst_factory->getDefaultDepth() != 1 || src1_factory->getDefaultDepth() != 1)
     {
         TBOX_ERROR("HierarchyMathOps::laplace():\n"
-                   << "  side-centered Laplacian requires scalar-valued data"
-                   << std::endl);
+                   << "  side-centered Laplacian requires scalar-valued data" << std::endl);
     }
     if (src2_var)
     {
@@ -2418,8 +2360,7 @@ HierarchyMathOps::laplace(const int dst_idx,
         if (src2_factory->getDefaultDepth() != 1)
         {
             TBOX_ERROR("HierarchyMathOps::laplace():\n"
-                       << "  side-centered Laplacian requires scalar-valued data"
-                       << std::endl);
+                       << "  side-centered Laplacian requires scalar-valued data" << std::endl);
         }
     }
 
@@ -2500,8 +2441,7 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
     if (dst_factory->getDefaultDepth() != 1 || src1_factory->getDefaultDepth() != 1)
     {
         TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
-                   << "  side-centered variable-coefficient Laplacian requires scalar-valued data"
-                   << std::endl);
+                   << "  side-centered variable-coefficient Laplacian requires scalar-valued data" << std::endl);
     }
     if (src2_var)
     {
@@ -2509,16 +2449,14 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
         if (src2_factory->getDefaultDepth() != 1)
         {
             TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
-                       << "  side-centered variable-coefficient Laplacian requires scalar-valued data"
-                       << std::endl);
+                       << "  side-centered variable-coefficient Laplacian requires scalar-valued data" << std::endl);
         }
     }
     if (coef1_interp_type != VC_HARMONIC_INTERP && coef1_interp_type != VC_AVERAGE_INTERP)
     {
         TBOX_ERROR("HierarchyMathOps()::vc_laplace\n"
                    << "  unsupported variable coefficient interpolation type: "
-                   << enum_to_string<VCInterpType>(coef1_interp_type)
-                   << " \n"
+                   << enum_to_string<VCInterpType>(coef1_interp_type) << " \n"
                    << "  valid choices are: VC_HARMONIC_INTERP, VC_AVERAGE_INTERP\n");
     }
     const bool use_harmonic_interp = (coef1_interp_type == VC_HARMONIC_INTERP);
@@ -2605,8 +2543,7 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
     if (dst_factory->getDefaultDepth() != 1 || src1_factory->getDefaultDepth() != 1)
     {
         TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
-                   << "  side-centered variable-coefficient Laplacian requires scalar-valued data"
-                   << std::endl);
+                   << "  side-centered variable-coefficient Laplacian requires scalar-valued data" << std::endl);
     }
     if (src2_var)
     {
@@ -2614,16 +2551,14 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
         if (src2_factory->getDefaultDepth() != 1)
         {
             TBOX_ERROR("HierarchyMathOps::vc_laplace():\n"
-                       << "  side-centered variable-coefficient Laplacian requires scalar-valued data"
-                       << std::endl);
+                       << "  side-centered variable-coefficient Laplacian requires scalar-valued data" << std::endl);
         }
     }
     if (coef1_interp_type != VC_HARMONIC_INTERP && coef1_interp_type != VC_AVERAGE_INTERP)
     {
         TBOX_ERROR("HierarchyMathOps()::vc_laplace\n"
                    << "  unsupported variable coefficient interpolation type: "
-                   << enum_to_string<VCInterpType>(coef1_interp_type)
-                   << " \n"
+                   << enum_to_string<VCInterpType>(coef1_interp_type) << " \n"
                    << "  valid choices are: VC_HARMONIC_INTERP, VC_AVERAGE_INTERP\n");
     }
     const bool use_harmonic_interp = (coef1_interp_type == VC_HARMONIC_INTERP);

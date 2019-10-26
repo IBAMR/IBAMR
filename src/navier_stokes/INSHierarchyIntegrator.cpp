@@ -32,12 +32,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <deque>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <vector>
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/INSIntermediateVelocityBcCoef.h"
+#include "ibamr/INSProjectionBcCoef.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/CartGridFunctionSet.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/PoissonSolver.h"
 
 #include "FaceVariable.h"
 #include "IntVector.h"
@@ -48,19 +56,6 @@
 #include "PatchLevel.h"
 #include "RobinBcCoefStrategy.h"
 #include "Variable.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/INSIntermediateVelocityBcCoef.h"
-#include "ibamr/INSProjectionBcCoef.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/CartGridFunctionSet.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/PoissonSolver.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -70,6 +65,13 @@
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <deque>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -81,7 +83,7 @@ namespace
 {
 // Version of INSHierarchyIntegrator restart file data.
 static const int INS_HIERARCHY_INTEGRATOR_VERSION = 2;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -418,11 +420,52 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
                                                Pointer<Variable<NDIM> > F_var,
                                                Pointer<Variable<NDIM> > Q_var,
                                                bool register_for_restart)
+    : INSHierarchyIntegrator(std::move(object_name),
+                             input_db,
+                             U_var,
+                             "CONSERVATIVE_COARSEN",
+                             "CONSERVATIVE_LINEAR_REFINE",
+                             P_var,
+                             "CONSERVATIVE_COARSEN",
+                             "LINEAR_REFINE",
+                             F_var,
+                             "CONSERVATIVE_COARSEN",
+                             "CONSERVATIVE_LINEAR_REFINE",
+                             Q_var,
+                             "CONSERVATIVE_COARSEN",
+                             "CONSTANT_REFINE",
+                             register_for_restart)
+{
+}
+
+INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
+                                               Pointer<Database> input_db,
+                                               Pointer<Variable<NDIM> > U_var,
+                                               std::string U_default_coarsen_type,
+                                               std::string U_default_refine_type,
+                                               Pointer<Variable<NDIM> > P_var,
+                                               std::string P_default_coarsen_type,
+                                               std::string P_default_refine_type,
+                                               Pointer<Variable<NDIM> > F_var,
+                                               std::string F_default_coarsen_type,
+                                               std::string F_default_refine_type,
+                                               Pointer<Variable<NDIM> > Q_var,
+                                               std::string Q_default_coarsen_type,
+                                               std::string Q_default_refine_type,
+                                               bool register_for_restart)
     : HierarchyIntegrator(std::move(object_name), input_db, register_for_restart),
       d_U_var(U_var),
+      d_U_coarsen_type(std::move(U_default_coarsen_type)),
+      d_U_refine_type(std::move(U_default_refine_type)),
       d_P_var(P_var),
+      d_P_coarsen_type(std::move(P_default_coarsen_type)),
+      d_P_refine_type(std::move(P_default_refine_type)),
       d_F_var(F_var),
+      d_F_coarsen_type(std::move(F_default_coarsen_type)),
+      d_F_refine_type(std::move(F_default_refine_type)),
       d_Q_var(Q_var),
+      d_Q_coarsen_type(std::move(Q_default_coarsen_type)),
+      d_Q_refine_type(std::move(Q_default_refine_type)),
       d_default_bc_coefs(d_object_name + "::default_bc_coefs", Pointer<Database>(nullptr)),
       d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr))
 {
@@ -719,6 +762,10 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
     }
     if (!d_regrid_projection_sub_precond_db)
         d_regrid_projection_sub_precond_db = new MemoryDatabase("regrid_projection_sub_precond_db");
+    if (db->keyExists("U_coarsen_type")) d_U_coarsen_type = db->getString("U_coarsen_type");
+    if (db->keyExists("P_coarsen_type")) d_P_coarsen_type = db->getString("P_coarsen_type");
+    if (db->keyExists("F_coarsen_type")) d_F_coarsen_type = db->getString("F_coarsen_type");
+    if (db->keyExists("Q_coarsen_type")) d_Q_coarsen_type = db->getString("Q_coarsen_type");
     return;
 } // getFromInput
 
@@ -734,8 +781,7 @@ INSHierarchyIntegrator::getFromRestart()
     else
     {
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
-                                 << " not found in restart file."
-                                 << std::endl);
+                                 << " not found in restart file." << std::endl);
     }
     int ver = db->getInteger("INS_HIERARCHY_INTEGRATOR_VERSION");
     if (ver != INS_HIERARCHY_INTEGRATOR_VERSION)

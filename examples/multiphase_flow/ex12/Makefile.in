@@ -87,7 +87,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = $(am__EXEEXT_7) $(am__EXEEXT_8)
+EXTRA_PROGRAMS = wedgeGen$(EXEEXT) $(am__EXEEXT_7) $(am__EXEEXT_8)
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
 @GTEST_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_2 = test2d
 @SAMRAI2D_ENABLED_TRUE@am__append_3 = $(GTESTS) $(EXAMPLES)
@@ -96,7 +96,8 @@ EXTRA_PROGRAMS = $(am__EXEEXT_7) $(am__EXEEXT_8)
 @SAMRAI3D_ENABLED_TRUE@am__append_6 = $(GTESTS) $(EXAMPLES)
 subdir = examples/multiphase_flow/ex12
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
+	$(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
 	$(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/ax_prog_cc_mpi.m4 \
 	$(top_srcdir)/m4/ax_prog_cxx_mpi.m4 $(top_srcdir)/m4/boost.m4 \
@@ -199,6 +200,12 @@ test3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 test3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(test3d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_wedgeGen_OBJECTS = wedgeGen-wedgeGen.$(OBJEXT)
+wedgeGen_OBJECTS = $(am_wedgeGen_OBJECTS)
+wedgeGen_DEPENDENCIES =
+wedgeGen_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(wedgeGen_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -249,7 +256,8 @@ am__depfiles_remade = ./$(DEPDIR)/main2d-GravityForcing.Po \
 	./$(DEPDIR)/test3d-SetFluidGasSolidViscosity.Po \
 	./$(DEPDIR)/test3d-SetLSProperties.Po \
 	./$(DEPDIR)/test3d-TagLSRefinementCells.Po \
-	./$(DEPDIR)/test3d-test_main.Po
+	./$(DEPDIR)/test3d-test_main.Po \
+	./$(DEPDIR)/wedgeGen-wedgeGen.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -270,9 +278,9 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(main2d_SOURCES) $(main3d_SOURCES) $(test2d_SOURCES) \
-	$(test3d_SOURCES)
+	$(test3d_SOURCES) $(wedgeGen_SOURCES)
 DIST_SOURCES = $(main2d_SOURCES) $(main3d_SOURCES) $(test2d_SOURCES) \
-	$(test3d_SOURCES)
+	$(test3d_SOURCES) $(wedgeGen_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -345,17 +353,12 @@ HAVE_CXX11 = @HAVE_CXX11@
 HAVE_LIBGSL = @HAVE_LIBGSL@
 HAVE_LIBGSLCBLAS = @HAVE_LIBGSLCBLAS@
 HAVE_LIBGTEST = @HAVE_LIBGTEST@
-HAVE_LIBHDF5 = @HAVE_LIBHDF5@
-HAVE_LIBHDF5_HL = @HAVE_LIBHDF5_HL@
-HAVE_LIBHYPRE = @HAVE_LIBHYPRE@
 HAVE_LIBMESH_DBG = @HAVE_LIBMESH_DBG@
 HAVE_LIBMESH_DEVEL = @HAVE_LIBMESH_DEVEL@
 HAVE_LIBMESH_OPROF = @HAVE_LIBMESH_OPROF@
 HAVE_LIBMESH_OPT = @HAVE_LIBMESH_OPT@
 HAVE_LIBMESH_PROF = @HAVE_LIBMESH_PROF@
 HAVE_LIBMUPARSER = @HAVE_LIBMUPARSER@
-HAVE_LIBNETCDF = @HAVE_LIBNETCDF@
-HAVE_LIBPETSC = @HAVE_LIBPETSC@
 HAVE_LIBSAMRAI = @HAVE_LIBSAMRAI@
 HAVE_LIBSAMRAI2D_ALGS = @HAVE_LIBSAMRAI2D_ALGS@
 HAVE_LIBSAMRAI2D_APPU = @HAVE_LIBSAMRAI2D_APPU@
@@ -375,8 +378,6 @@ HAVE_LIBSAMRAI3D_MESH = @HAVE_LIBSAMRAI3D_MESH@
 HAVE_LIBSAMRAI3D_PDAT_STD = @HAVE_LIBSAMRAI3D_PDAT_STD@
 HAVE_LIBSAMRAI3D_SOLV = @HAVE_LIBSAMRAI3D_SOLV@
 HAVE_LIBSAMRAI3D_XFER = @HAVE_LIBSAMRAI3D_XFER@
-HAVE_LIBSILO = @HAVE_LIBSILO@
-HAVE_LIBSILOH5 = @HAVE_LIBSILOH5@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -390,12 +391,6 @@ LIBGSLCBLAS_PREFIX = @LIBGSLCBLAS_PREFIX@
 LIBGSL_PREFIX = @LIBGSL_PREFIX@
 LIBGTEST = @LIBGTEST@
 LIBGTEST_PREFIX = @LIBGTEST_PREFIX@
-LIBHDF5 = @LIBHDF5@
-LIBHDF5_HL = @LIBHDF5_HL@
-LIBHDF5_HL_PREFIX = @LIBHDF5_HL_PREFIX@
-LIBHDF5_PREFIX = @LIBHDF5_PREFIX@
-LIBHYPRE = @LIBHYPRE@
-LIBHYPRE_PREFIX = @LIBHYPRE_PREFIX@
 LIBMESH_CONFIG = @LIBMESH_CONFIG@
 LIBMESH_DBG = @LIBMESH_DBG@
 LIBMESH_DBG_PREFIX = @LIBMESH_DBG_PREFIX@
@@ -409,11 +404,7 @@ LIBMESH_PROF = @LIBMESH_PROF@
 LIBMESH_PROF_PREFIX = @LIBMESH_PROF_PREFIX@
 LIBMUPARSER = @LIBMUPARSER@
 LIBMUPARSER_PREFIX = @LIBMUPARSER_PREFIX@
-LIBNETCDF = @LIBNETCDF@
-LIBNETCDF_PREFIX = @LIBNETCDF_PREFIX@
 LIBOBJS = @LIBOBJS@
-LIBPETSC = @LIBPETSC@
-LIBPETSC_PREFIX = @LIBPETSC_PREFIX@
 LIBS = @LIBS@
 LIBSAMRAI = @LIBSAMRAI@
 LIBSAMRAI2D_ALGS = @LIBSAMRAI2D_ALGS@
@@ -453,28 +444,19 @@ LIBSAMRAI3D_SOLV_PREFIX = @LIBSAMRAI3D_SOLV_PREFIX@
 LIBSAMRAI3D_XFER = @LIBSAMRAI3D_XFER@
 LIBSAMRAI3D_XFER_PREFIX = @LIBSAMRAI3D_XFER_PREFIX@
 LIBSAMRAI_PREFIX = @LIBSAMRAI_PREFIX@
-LIBSILO = @LIBSILO@
-LIBSILOH5 = @LIBSILOH5@
-LIBSILOH5_PREFIX = @LIBSILOH5_PREFIX@
-LIBSILO_PREFIX = @LIBSILO_PREFIX@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBGSL = @LTLIBGSL@
 LTLIBGSLCBLAS = @LTLIBGSLCBLAS@
 LTLIBGTEST = @LTLIBGTEST@
-LTLIBHDF5 = @LTLIBHDF5@
-LTLIBHDF5_HL = @LTLIBHDF5_HL@
-LTLIBHYPRE = @LTLIBHYPRE@
 LTLIBMESH_DBG = @LTLIBMESH_DBG@
 LTLIBMESH_DEVEL = @LTLIBMESH_DEVEL@
 LTLIBMESH_OPROF = @LTLIBMESH_OPROF@
 LTLIBMESH_OPT = @LTLIBMESH_OPT@
 LTLIBMESH_PROF = @LTLIBMESH_PROF@
 LTLIBMUPARSER = @LTLIBMUPARSER@
-LTLIBNETCDF = @LTLIBNETCDF@
 LTLIBOBJS = @LTLIBOBJS@
-LTLIBPETSC = @LTLIBPETSC@
 LTLIBSAMRAI = @LTLIBSAMRAI@
 LTLIBSAMRAI2D_ALGS = @LTLIBSAMRAI2D_ALGS@
 LTLIBSAMRAI2D_APPU = @LTLIBSAMRAI2D_APPU@
@@ -494,8 +476,6 @@ LTLIBSAMRAI3D_MESH = @LTLIBSAMRAI3D_MESH@
 LTLIBSAMRAI3D_PDAT_STD = @LTLIBSAMRAI3D_PDAT_STD@
 LTLIBSAMRAI3D_SOLV = @LTLIBSAMRAI3D_SOLV@
 LTLIBSAMRAI3D_XFER = @LTLIBSAMRAI3D_XFER@
-LTLIBSILO = @LTLIBSILO@
-LTLIBSILOH5 = @LTLIBSILOH5@
 LT_SYS_LIBRARY_PATH = @LT_SYS_LIBRARY_PATH@
 M4 = @M4@
 MAINT = @MAINT@
@@ -504,19 +484,18 @@ MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
 MPICC = @MPICC@
 MPICXX = @MPICXX@
+MPIEXEC = @MPIEXEC@
 NM = @NM@
 NMEDIT = @NMEDIT@
+NUMDIFF = @NUMDIFF@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 OTOOL = @OTOOL@
 OTOOL64 = @OTOOL64@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
-PACKAGE_CFLAGS = @PACKAGE_CFLAGS@
 PACKAGE_CONTRIB_LIBS = @PACKAGE_CONTRIB_LIBS@
 PACKAGE_CPPFLAGS = @PACKAGE_CPPFLAGS@
-PACKAGE_CXXFLAGS = @PACKAGE_CXXFLAGS@
-PACKAGE_FCFLAGS = @PACKAGE_FCFLAGS@
 PACKAGE_LDFLAGS = @PACKAGE_LDFLAGS@
 PACKAGE_LIBS = @PACKAGE_LIBS@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -615,6 +594,9 @@ test2d_SOURCES = $(GTEST_DRIVER)
 test3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 test3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 test3d_SOURCES = $(GTEST_DRIVER)
+wedgeGen_CXXFLAGS = $(AM_CXXFLAGS)
+wedgeGen_LDADD = 
+wedgeGen_SOURCES = wedgeGen.cpp
 all: all-am
 
 .SUFFIXES:
@@ -666,6 +648,10 @@ test3d$(EXEEXT): $(test3d_OBJECTS) $(test3d_DEPENDENCIES) $(EXTRA_test3d_DEPENDE
 	@rm -f test3d$(EXEEXT)
 	$(AM_V_CXXLD)$(test3d_LINK) $(test3d_OBJECTS) $(test3d_LDADD) $(LIBS)
 
+wedgeGen$(EXEEXT): $(wedgeGen_OBJECTS) $(wedgeGen_DEPENDENCIES) $(EXTRA_wedgeGen_DEPENDENCIES) 
+	@rm -f wedgeGen$(EXEEXT)
+	$(AM_V_CXXLD)$(wedgeGen_LINK) $(wedgeGen_OBJECTS) $(wedgeGen_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -708,6 +694,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-SetLSProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-TagLSRefinementCells.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-test_main.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/wedgeGen-wedgeGen.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -1243,6 +1230,20 @@ test3d-GravityForcing.obj: GravityForcing.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-GravityForcing.obj `if test -f 'GravityForcing.cpp'; then $(CYGPATH_W) 'GravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/GravityForcing.cpp'; fi`
 
+wedgeGen-wedgeGen.o: wedgeGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wedgeGen_CXXFLAGS) $(CXXFLAGS) -MT wedgeGen-wedgeGen.o -MD -MP -MF $(DEPDIR)/wedgeGen-wedgeGen.Tpo -c -o wedgeGen-wedgeGen.o `test -f 'wedgeGen.cpp' || echo '$(srcdir)/'`wedgeGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/wedgeGen-wedgeGen.Tpo $(DEPDIR)/wedgeGen-wedgeGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='wedgeGen.cpp' object='wedgeGen-wedgeGen.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wedgeGen_CXXFLAGS) $(CXXFLAGS) -c -o wedgeGen-wedgeGen.o `test -f 'wedgeGen.cpp' || echo '$(srcdir)/'`wedgeGen.cpp
+
+wedgeGen-wedgeGen.obj: wedgeGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wedgeGen_CXXFLAGS) $(CXXFLAGS) -MT wedgeGen-wedgeGen.obj -MD -MP -MF $(DEPDIR)/wedgeGen-wedgeGen.Tpo -c -o wedgeGen-wedgeGen.obj `if test -f 'wedgeGen.cpp'; then $(CYGPATH_W) 'wedgeGen.cpp'; else $(CYGPATH_W) '$(srcdir)/wedgeGen.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/wedgeGen-wedgeGen.Tpo $(DEPDIR)/wedgeGen-wedgeGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='wedgeGen.cpp' object='wedgeGen-wedgeGen.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wedgeGen_CXXFLAGS) $(CXXFLAGS) -c -o wedgeGen-wedgeGen.obj `if test -f 'wedgeGen.cpp'; then $(CYGPATH_W) 'wedgeGen.cpp'; else $(CYGPATH_W) '$(srcdir)/wedgeGen.cpp'; fi`
+
 mostlyclean-libtool:
 	-rm -f *.lo
 
@@ -1410,6 +1411,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/test3d-SetLSProperties.Po
 	-rm -f ./$(DEPDIR)/test3d-TagLSRefinementCells.Po
 	-rm -f ./$(DEPDIR)/test3d-test_main.Po
+	-rm -f ./$(DEPDIR)/wedgeGen-wedgeGen.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1491,6 +1493,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/test3d-SetLSProperties.Po
 	-rm -f ./$(DEPDIR)/test3d-TagLSRefinementCells.Po
 	-rm -f ./$(DEPDIR)/test3d-test_main.Po
+	-rm -f ./$(DEPDIR)/wedgeGen-wedgeGen.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -1530,22 +1533,24 @@ uninstall-am:
 .f.m4.f:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
-examples: $(EXAMPLES)
+# wedgeGen creates both 2d and 3d input files
+wedge2d.vertex: wedgeGen
+	./wedgeGen
+
+wedge3d.vertex: wedge2d.vertex
+
+examples: $(EXAMPLES) wedge2d.vertex wedge3d.vertex
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d* $(PWD) ; \
-	  cp -f $(srcdir)/wedge2d.vertex $(PWD) ; \
-	  cp -f $(srcdir)/Wedge2d.m $(PWD) ; \
-	  cp -f $(srcdir)/Wedge3d.m $(PWD) ; \
 	fi ;
 
 @GTEST_ENABLED_TRUE@gtest: $(GTESTS)
 @GTEST_ENABLED_TRUE@	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 @GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/input2d.test $(PWD) ; \
-@GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/wedge2d.vertex $(PWD) ; \
 @GTEST_ENABLED_TRUE@	fi ;
 @GTEST_ENABLED_TRUE@	./test2d input2d.test
 
-@GTEST_ENABLED_TRUE@gtest-long: 
+@GTEST_ENABLED_TRUE@gtest-long:
 @GTEST_ENABLED_TRUE@	make gtest
 
 @GTEST_ENABLED_FALSE@gtest:

@@ -15,8 +15,8 @@
 //      notice, this list of conditions and the following disclaimer in the
 //      documentation and/or other materials provided with the distribution.
 //
-//    * Neither the name of The University of North Carolina nor the names of its
-//      contributors may be used to endorse or promote products derived from
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
 //      this software without specific prior written permission.
 //
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,8 +33,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <limits>
-
 #include "ibamr/CIBMobilitySolver.h"
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/DirectMobilitySolver.h"
@@ -43,9 +41,13 @@
 #include "ibamr/KrylovMobilitySolver.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h"
+
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/ibtk_utilities.h"
+
 #include "tbox/TimerManager.h"
+
+#include <limits>
 
 namespace IBAMR
 {
@@ -58,7 +60,7 @@ static Timer* t_solve_mobility_system;
 static Timer* t_solve_body_mobility_system;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
-}
+} // namespace
 
 ////////////////////////////// PUBLIC ////////////////////////////////////////
 
@@ -342,8 +344,7 @@ CIBMobilitySolver::deallocateSolverState()
         else
         {
             TBOX_ERROR("CIBMobilitySolver::deallocateSolverState() Unknown mobility "
-                       << " solver type encountered."
-                       << std::endl);
+                       << " solver type encountered." << std::endl);
         }
 
         if (d_has_free_parts)

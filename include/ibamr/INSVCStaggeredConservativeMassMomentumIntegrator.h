@@ -35,24 +35,26 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <string>
-#include <vector>
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/ibamr_enums.h"
+
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "CoarseFineBoundary.h"
 #include "HierarchySideDataOpsReal.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SideVariable.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/ibtk_utilities.h"
 #include "tbox/Database.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+
+#include <array>
+#include <string>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -248,7 +250,8 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSVCStaggeredConservativeMassMomentumIntegrator(const INSVCStaggeredConservativeMassMomentumIntegrator& from) = delete;
+    INSVCStaggeredConservativeMassMomentumIntegrator(const INSVCStaggeredConservativeMassMomentumIntegrator& from) =
+        delete;
 
     /*!
      * \brief Assignment operator.
@@ -265,12 +268,12 @@ private:
     /*!
      * \brief Compute the advection velocity using simple averages
      */
-    void computeAdvectionVelocity(
-        std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > U_data,
-        const SAMRAI::hier::IntVector<NDIM>& patch_lower,
-        const SAMRAI::hier::IntVector<NDIM>& patch_upper,
-        const std::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes);
+    void
+    computeAdvectionVelocity(std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
+                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > U_data,
+                             const SAMRAI::hier::IntVector<NDIM>& patch_lower,
+                             const SAMRAI::hier::IntVector<NDIM>& patch_upper,
+                             const std::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes);
 
     /*!
      * \brief Compute the interpolation of a quantity Q onto Q_half, faces of the velocity DOF centered control volumes
@@ -391,8 +394,8 @@ private:
            d_solution_time = std::numeric_limits<double>::quiet_NaN(), d_dt = std::numeric_limits<double>::quiet_NaN(),
            d_dt_prev = -1.0;
 
-    // Coarse-fine boundary object
-    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM>*> d_cf_boundary;
+    // Coarse-fine boundary objects.
+    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
 };
 } // namespace IBAMR
 

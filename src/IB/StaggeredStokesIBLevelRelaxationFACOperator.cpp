@@ -32,13 +32,33 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <cstring>
-#include <limits>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h"
+#include "ibamr/StaggeredStokesPETScLevelSolver.h"
+#include "ibamr/StaggeredStokesPETScMatUtilities.h"
+#include "ibamr/StaggeredStokesPETScVecUtilities.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/StaggeredStokesSolverManager.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/CartCellDoubleCubicCoarsen.h"
+#include "ibtk/CartCellDoubleQuadraticCFInterpolation.h"
+#include "ibtk/CartCellRobinPhysBdryOp.h"
+#include "ibtk/CartSideDoubleCubicCoarsen.h"
+#include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
+#include "ibtk/CartSideRobinPhysBdryOp.h"
+#include "ibtk/CellNoCornersFillPattern.h"
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/FACPreconditionerStrategy.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/PETScMatUtilities.h"
+#include "ibtk/PETScVecUtilities.h"
+#include "ibtk/RefinePatchStrategySet.h"
+#include "ibtk/SideNoCornersFillPattern.h"
+#include "ibtk/SideSynchCopyFillPattern.h"
 
 #include "CartesianGridGeometry.h"
 #include "CellVariable.h"
@@ -64,38 +84,21 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h"
-#include "ibamr/StaggeredStokesPETScLevelSolver.h"
-#include "ibamr/StaggeredStokesPETScMatUtilities.h"
-#include "ibamr/StaggeredStokesPETScVecUtilities.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/StaggeredStokesSolverManager.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/CartCellDoubleCubicCoarsen.h"
-#include "ibtk/CartCellDoubleQuadraticCFInterpolation.h"
-#include "ibtk/CartCellRobinPhysBdryOp.h"
-#include "ibtk/CartSideDoubleCubicCoarsen.h"
-#include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/CellNoCornersFillPattern.h"
-#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "ibtk/FACPreconditionerStrategy.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/PETScMatUtilities.h"
-#include "ibtk/PETScVecUtilities.h"
-#include "ibtk/RefinePatchStrategySet.h"
-#include "ibtk/SideNoCornersFillPattern.h"
-#include "ibtk/SideSynchCopyFillPattern.h"
-#include "petscksp.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include "petscksp.h"
+
+#include <algorithm>
+#include <cstring>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -109,7 +112,7 @@ namespace
 static const int SIDEG = 1;
 static const int CELLG = 1;
 static const int NOGHOST = 0;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -203,8 +206,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::setIBForceJacobian(Mat& A)
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setIBForceJacobian()\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(A);
@@ -219,8 +221,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::setIBInterpOp(Mat& J)
     if (d_is_initialized)
     {
         TBOX_ERROR(d_object_name << "::setIBInterpOp()\n"
-                                 << "  cannot be called while operator state is initialized"
-                                 << std::endl);
+                                 << "  cannot be called while operator state is initialized" << std::endl);
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(J);
@@ -451,10 +452,10 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, 
                     Pointer<SideData<NDIM, double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
                     for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
-                        U_error_data->getArrayData(axis)
-                            .copy(U_scratch_data->getArrayData(axis),
-                                  d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
-                                  IntVector<NDIM>(0));
+                        U_error_data->getArrayData(axis).copy(
+                            U_scratch_data->getArrayData(axis),
+                            d_patch_side_bc_box_overlap[level_num][patch_counter][axis],
+                            IntVector<NDIM>(0));
                     }
 
                     Pointer<CellData<NDIM, double> > P_error_data = error.getComponentPatchData(1, *patch);

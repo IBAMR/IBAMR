@@ -32,16 +32,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <algorithm>
-#include <array>
-#include <cmath>
-#include <limits>
-#include <memory>
-#include <ostream>
-#include <set>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibamr/IBFESurfaceMethod.h"
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/FEDataInterpolation.h"
+#include "ibtk/FEDataManager.h"
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/LEInteractor.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/ibtk_macros.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/libmesh_utilities.h"
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -62,21 +67,15 @@
 #include "SideIndex.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
-#include "boost/math/special_functions/round.hpp"
-#include "boost/multi_array.hpp"
-#include "ibamr/IBFESurfaceMethod.h"
-#include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/FEDataInterpolation.h"
-#include "ibtk/FEDataManager.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/LEInteractor.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/libmesh_utilities.h"
+#include "tbox/Array.h"
+#include "tbox/Database.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+#include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
+
 #include "libmesh/boundary_info.h"
 #include "libmesh/compare_types.h"
 #include "libmesh/dense_vector.h"
@@ -106,15 +105,24 @@
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
+
 #include "petscvec.h"
-#include "tbox/Array.h"
-#include "tbox/Database.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "boost/math/special_functions/round.hpp"
+#include "boost/multi_array.hpp"
+IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <limits>
+#include <memory>
+#include <ostream>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -890,14 +898,15 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         }
         NumericVector<double>& X0_vec = X_system.get_vector("INITIAL_COORDINATES");
 
-        System* DP_system;
-        const DofMap* DP_dof_map;
-        FEDataManager::SystemDofMapCache* DP_dof_map_cache;
+        // silence some warnings by giving DP_dof_map_cache a bogus, but
+        // valid, value if we don't use jump conditions
+        FEDataManager::SystemDofMapCache* DP_dof_map_cache =
+            d_use_jump_conditions ? d_fe_data_managers[part]->getDofMapCache(PRESSURE_JUMP_SYSTEM_NAME) : nullptr;
+        const System* DP_system =
+            d_use_jump_conditions ? &equation_systems->get_system(PRESSURE_JUMP_SYSTEM_NAME) : nullptr;
+        const DofMap* DP_dof_map = d_use_jump_conditions ? &DP_system->get_dof_map() : nullptr;
         if (d_use_jump_conditions)
         {
-            DP_system = &equation_systems->get_system(PRESSURE_JUMP_SYSTEM_NAME);
-            DP_dof_map = &DP_system->get_dof_map();
-            DP_dof_map_cache = d_fe_data_managers[part]->getDofMapCache(PRESSURE_JUMP_SYSTEM_NAME);
             FEType DP_fe_type = DP_dof_map->variable_type(0);
             TBOX_ASSERT(DP_fe_type == X_fe_type);
             TBOX_ASSERT(DP_fe_type == F_fe_type);

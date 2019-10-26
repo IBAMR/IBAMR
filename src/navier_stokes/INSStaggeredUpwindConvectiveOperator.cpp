@@ -32,11 +32,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <array>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "IBAMR_config.h"
+
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/INSStaggeredUpwindConvectiveOperator.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 
 #include "ArrayData.h"
 #include "Box.h"
@@ -44,7 +49,6 @@
 #include "FaceData.h"
 #include "FaceIndex.h"
 #include "FaceIterator.h"
-#include "IBAMR_config.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -58,18 +62,17 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibamr/ConvectiveOperator.h"
-#include "ibamr/INSStaggeredUpwindConvectiveOperator.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-#include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <array>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -95,211 +98,212 @@ class RobinBcCoefStrategy;
 #define SKEW_SYM_DERIVATIVE_FC IBAMR_FC_FUNC_(skew_sym_derivative3d, SKEW_SYM_DERIVATIVE3D)
 #endif
 
-extern "C" {
-void ADVECT_DERIVATIVE_FC(const double*,
+extern "C"
+{
+    void ADVECT_DERIVATIVE_FC(const double*,
 #if (NDIM == 2)
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const int&,
-                          const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const int&,
+                              const int&,
 #endif
 #if (NDIM == 3)
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const int&,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const double*,
-                          const int&,
-                          const int&,
-                          const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const double*,
+                              const int&,
+                              const int&,
+                              const int&,
 #endif
-                          double*);
+                              double*);
 
-void CONVECT_DERIVATIVE_FC(const double*,
+    void CONVECT_DERIVATIVE_FC(const double*,
 #if (NDIM == 2)
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const double*,
-                           const double*,
-                           const double*,
-                           const double*,
-                           const int&,
-                           const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const double*,
+                               const double*,
+                               const double*,
+                               const double*,
+                               const int&,
+                               const int&,
 #endif
 #if (NDIM == 3)
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const int&,
-                           const double*,
-                           const double*,
-                           const double*,
-                           const double*,
-                           const double*,
-                           const double*,
-                           const int&,
-                           const int&,
-                           const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const int&,
+                               const double*,
+                               const double*,
+                               const double*,
+                               const double*,
+                               const double*,
+                               const double*,
+                               const int&,
+                               const int&,
+                               const int&,
 #endif
-                           double*);
+                               double*);
 
-void NAVIER_STOKES_INTERP_COMPS_FC(
+    void NAVIER_STOKES_INTERP_COMPS_FC(
 #if (NDIM == 2)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*
 #endif
 #if (NDIM == 3)
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const double*,
-    const double*,
-    const double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    const int&,
-    double*,
-    double*,
-    double*
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        double*,
+        double*,
+        double*
 #endif
     );
 
-void SKEW_SYM_DERIVATIVE_FC(const double*,
+    void SKEW_SYM_DERIVATIVE_FC(const double*,
 #if (NDIM == 2)
-                            const int&,
-                            const int&,
-                            const int&,
-                            const int&,
-                            const int&,
-                            const int&,
-                            const int&,
-                            const int&,
-                            const double*,
-                            const double*,
-                            const double*,
-                            const double*,
-                            const int&,
-                            const int&,
+                                const int&,
+                                const int&,
+                                const int&,
+                                const int&,
+                                const int&,
+                                const int&,
+                                const int&,
+                                const int&,
+                                const double*,
+                                const double*,
+                                const double*,
+                                const double*,
+                                const int&,
+                                const int&,
 #endif
 #if (NDIM == 3)
-                            const int&,
-                            const int&,
-                            const int&,
-                            const int&,
-                            const int&,
-                            const int&,
-                            const int&,
-                            const int&,
-                            const int&,
-                            const int&,
-                            const int&,
-                            const int&,
-                            const double*,
-                            const double*,
-                            const double*,
-                            const double*,
-                            const double*,
-                            const double*,
-                            const int&,
-                            const int&,
-                            const int&,
+                                const int&,
+                                const int&,
+                                const int&,
+                                const int&,
+                                const int&,
+                                const int&,
+                                const int&,
+                                const int&,
+                                const int&,
+                                const int&,
+                                const int&,
+                                const int&,
+                                const double*,
+                                const double*,
+                                const double*,
+                                const double*,
+                                const double*,
+                                const double*,
+                                const int&,
+                                const int&,
+                                const int&,
 #endif
-                            double*);
+                                double*);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -320,7 +324,7 @@ static Timer* t_apply_convective_operator;
 static Timer* t_apply;
 static Timer* t_initialize_operator_state;
 static Timer* t_deallocate_operator_state;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -335,8 +339,7 @@ INSStaggeredUpwindConvectiveOperator::INSStaggeredUpwindConvectiveOperator(
     {
         TBOX_ERROR("INSStaggeredUpwindConvectiveOperator::INSStaggeredUpwindConvectiveOperator():\n"
                    << "  unsupported differencing form: "
-                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
-                   << " \n"
+                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
@@ -682,8 +685,7 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
                 default:
                     TBOX_ERROR("INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator():\n"
                                << "  unsupported differencing form: "
-                               << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
-                               << " \n"
+                               << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
                                << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
                 }
             }

@@ -32,8 +32,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <string>
-#include <vector>
+#include "ibtk/CCPoissonPETScLevelSolver.h"
+#include "ibtk/GeneralSolver.h"
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/PETScLevelSolver.h"
+#include "ibtk/PETScMatUtilities.h"
+#include "ibtk/PETScVecUtilities.h"
+#include "ibtk/PoissonUtilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "CellData.h"
 #include "CellDataFactory.h"
@@ -50,20 +56,16 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "ibtk/CCPoissonPETScLevelSolver.h"
-#include "ibtk/GeneralSolver.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/PETScLevelSolver.h"
-#include "ibtk/PETScMatUtilities.h"
-#include "ibtk/PETScVecUtilities.h"
-#include "ibtk/PoissonUtilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "petscmat.h"
-#include "petscsys.h"
-#include "petscvec.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
+
+#include "petscmat.h"
+#include "petscsys.h"
+#include "petscvec.h"
+
+#include <string>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -75,7 +77,7 @@ namespace
 {
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
-}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -193,10 +195,7 @@ CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     const bool level_zero = (d_level_num == 0);
     const int x_idx = x.getComponentDescriptorIndex(0);
     const int b_idx = b.getComponentDescriptorIndex(0);
-    Pointer<CellVariable<NDIM, double> > b_var = b.getComponentVariable(0);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int b_adj_idx = var_db->registerClonedPatchDataIndex(b_var, b_idx);
-    d_level->allocatePatchData(b_adj_idx);
+    const auto b_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(b_idx);
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
@@ -222,8 +221,6 @@ CCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         }
     }
     PETScVecUtilities::copyToPatchLevelVec(petsc_b, b_adj_idx, d_dof_index_idx, d_level);
-    d_level->deallocatePatchData(b_adj_idx);
-    var_db->removePatchDataIndex(b_adj_idx);
     return;
 } // setupKSPVecs
 

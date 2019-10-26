@@ -35,11 +35,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <vector>
+#include "ibamr/IBStrategy.h"
 
 #include "IntVector.h"
-#include "ibamr/IBStrategy.h"
 #include "tbox/Pointer.h"
+
+#include <vector>
 
 namespace IBTK
 {
@@ -98,8 +99,7 @@ public:
      * \brief Constructor.
      */
     template <typename InputIterator>
-    IBStrategySet(InputIterator first, InputIterator last)
-        : d_strategy_set(first, last)
+    IBStrategySet(InputIterator first, InputIterator last) : d_strategy_set(first, last)
     {
         // intentionally blank
         return;

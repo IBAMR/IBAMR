@@ -35,13 +35,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <set>
-#include <vector>
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
 
 #include "ComponentSelector.h"
 #include "IntVector.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "tbox/Array.h"
+
+#include <set>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -102,11 +103,14 @@ public:
      * \param patch_data_index  Patch data index requiring ghost cell filling.
      * \param bc_coefs          Robin boundary conditions to use with this class.
      * \param homogeneous_bc    Whether to employ the homogeneous form of the boundary
-     *conditions.
+     * conditions.
+     * \param type              Type of interpolation to use. Valid options are "LINEAR"
+     * or "QUADRATIC". Defaults to "LINEAR".
      */
     CartSideRobinPhysBdryOp(int patch_data_index,
                             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                            bool homogeneous_bc = false);
+                            bool homogeneous_bc = false,
+                            std::string type = "LINEAR");
 
     /*!
      * \brief Constructor to fill boundary conditions for vector-valued
@@ -114,14 +118,17 @@ public:
      * vector component.
      *
      * \param patch_data_indices  Collection of patch data indices which require ghost cell
-     *filling.
+     * filling.
      * \param bc_coefs            Robin boundary conditions to use with this class.
      * \param homogeneous_bc      Whether to employ the homogeneous form of the boundary
-     *conditions.
+     * conditions.
+     * \param type              Type of interpolation to use. Valid options are "LINEAR"
+     * or "QUADRATIC". Defaults to "LINEAR".
      */
     CartSideRobinPhysBdryOp(const std::set<int>& patch_data_indices,
                             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                            bool homogeneous_bc = false);
+                            bool homogeneous_bc = false,
+                            std::string type = "LINEAR");
 
     /*!
      * \brief Constructor to fill boundary conditions for vector-valued
@@ -129,14 +136,17 @@ public:
      * vector component.
      *
      * \param patch_data_indices  Collection of patch data indices which require ghost cell
-     *filling.
+     * filling.
      * \param bc_coefs            Robin boundary conditions to use with this class.
      * \param homogeneous_bc      Whether to employ the homogeneous form of the boundary
-     *conditions.
+     * conditions.
+     * \param type              Type of interpolation to use. Valid options are "LINEAR"
+     * or "QUADRATIC". Defaults to "LINEAR".
      */
     CartSideRobinPhysBdryOp(const SAMRAI::hier::ComponentSelector& patch_data_indices,
                             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-                            bool homogeneous_bc = false);
+                            bool homogeneous_bc = false,
+                            std::string type = "LINEAR");
 
     /*!
      * \brief Destructor.
@@ -158,8 +168,7 @@ public:
      * \param patch                Patch on which to fill boundary data.
      * \param fill_time            Double simulation time for boundary filling.
      * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over
-     *all
-     *registered scratch components.
+     * all registered scratch components.
      */
     void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
                                        double fill_time,
@@ -183,8 +192,7 @@ public:
      * \param patch                Patch on which to fill boundary data.
      * \param fill_time            Double simulation time for boundary filling.
      * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over
-     *all
-     *registered scratch components.
+     * all registered scratch components.
      */
     void accumulateFromPhysicalBoundaryData(SAMRAI::hier::Patch<NDIM>& patch,
                                             double fill_time,
@@ -255,6 +263,8 @@ private:
                                    const SAMRAI::hier::Patch<NDIM>& patch,
                                    bool adjoint_op);
 #endif
+
+    std::string d_type = "LINEAR";
 };
 } // namespace IBTK
 

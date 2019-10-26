@@ -32,16 +32,31 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <cmath>
-#include <algorithm>
-#include <limits>
-#include <map>
-#include <numeric>
-#include <ostream>
-#include <set>
-#include <string>
-#include <utility>
-#include <vector>
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/LData.h"
+#include "ibtk/LDataManager.h"
+#include "ibtk/LEInteractor.h"
+#include "ibtk/LIndexSetData.h"
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LMesh.h"
+#include "ibtk/LNode.h"
+#include "ibtk/LNodeIndex.h"
+#include "ibtk/LNodeSet.h"
+#include "ibtk/LNodeSetData.h"
+#include "ibtk/LNodeSetVariable.h"
+#include "ibtk/LNodeTransaction.h"
+#include "ibtk/LSet.h"
+#include "ibtk/LSetData.h"
+#include "ibtk/LSetDataIterator.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "ibtk/LTransaction.h"
+#include "ibtk/ParallelSet.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/compiler_hints.h"
+#include "ibtk/ibtk_macros.h"
+#include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -84,36 +99,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
-#include "boost/math/special_functions/round.hpp"
-#include "boost/multi_array.hpp"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/LData.h"
-#include "ibtk/LDataManager.h"
-#include "ibtk/LEInteractor.h"
-#include "ibtk/LIndexSetData.h"
-#include "ibtk/LInitStrategy.h"
-#include "ibtk/LMesh.h"
-#include "ibtk/LNode.h"
-#include "ibtk/LNodeIndex.h"
-#include "ibtk/LNodeSet.h"
-#include "ibtk/LNodeSetData.h"
-#include "ibtk/LNodeSetVariable.h"
-#include "ibtk/LNodeTransaction.h"
-#include "ibtk/LSet.h"
-#include "ibtk/LSetData.h"
-#include "ibtk/LSetDataIterator.h"
-#include "ibtk/LSiloDataWriter.h"
-#include "ibtk/LTransaction.h"
-#include "ibtk/ParallelSet.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/compiler_hints.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
-#include "petscao.h"
-#include "petscis.h"
-#include "petscsys.h"
-#include "petscvec.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -126,6 +111,27 @@
 #include "tbox/TimerManager.h"
 #include "tbox/Transaction.h"
 #include "tbox/Utilities.h"
+
+#include "petscao.h"
+#include "petscis.h"
+#include "petscsys.h"
+#include "petscvec.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "boost/math/special_functions/round.hpp"
+#include "boost/multi_array.hpp"
+IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <algorithm>
+#include <cmath>
+#include <limits>
+#include <map>
+#include <numeric>
+#include <ostream>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace SAMRAI
 {
@@ -170,7 +176,7 @@ static const double TOL = std::sqrt(std::numeric_limits<double>::epsilon());
 
 // Version of LDataManager restart file data.
 static const int LDATA_MANAGER_VERSION = 1;
-}
+} // namespace
 
 const std::string LDataManager::POSN_DATA_NAME = "X";
 const std::string LDataManager::INIT_POSN_DATA_NAME = "X0";
@@ -235,6 +241,7 @@ LDataManager::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
     // Reset the hierarchy.
     d_hierarchy = hierarchy;
     d_grid_geom = hierarchy->getGridGeometry();
+    d_cached_eulerian_data.setPatchHierarchy(hierarchy);
     return;
 } // setPatchHierarchy
 
@@ -274,6 +281,7 @@ LDataManager::setPatchLevels(const int coarsest_ln, const int finest_ln)
     // Reset the level numbers.
     d_coarsest_ln = coarsest_ln;
     d_finest_ln = finest_ln;
+    d_cached_eulerian_data.resetLevels(coarsest_ln, finest_ln);
 
     // Resize some arrays.
     d_level_contains_lag_data.resize(d_finest_ln + 1);
@@ -423,12 +431,6 @@ LDataManager::spread(const int f_data_idx,
 
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
-
-    // Zero inactivated components.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        zeroInactivatedComponents(F_data[ln], ln);
-    }
 
     // Compute F*ds.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -582,9 +584,15 @@ LDataManager::spread(const int f_data_idx,
 
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    // Zero inactivated components.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        zeroInactivatedComponents(F_data[ln], ln);
+    }
 
     // Determine the type of data centering.
+    auto var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
     Pointer<CellVariable<NDIM, double> > f_cc_var = f_var;
@@ -598,12 +606,7 @@ LDataManager::spread(const int f_data_idx,
     TBOX_ASSERT(cc_data || ec_data || nc_data || sc_data);
 
     // Make a copy of the Eulerian data.
-    const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(f_copy_data_idx);
-    }
+    const auto f_copy_data_idx = d_cached_eulerian_data.getCachedPatchDataIndex(f_data_idx);
     Pointer<HierarchyDataOpsReal<NDIM, double> > f_data_ops =
         HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
@@ -677,12 +680,6 @@ LDataManager::spread(const int f_data_idx,
     // Accumulate data.
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(f_copy_data_idx);
-    }
-    var_db->removePatchDataIndex(f_copy_data_idx);
 
     IBTK_TIMER_STOP(t_spread);
     return;
@@ -1549,9 +1546,7 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
         {
             TBOX_WARNING("LDataManager::endDataRedistribution():\n"
                          << "\tLData is already synchronized with LNodeSetData.\n"
-                         << "\tlevel = "
-                         << level_number
-                         << "\n");
+                         << "\tlevel = " << level_number << "\n");
         }
     }
 
@@ -1905,9 +1900,8 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
         {
             ghost_nodes[k] = &(*d_local_and_ghost_nodes[level_number])[num_local_nodes + k];
         }
-        std::ostringstream name_stream;
-        name_stream << d_object_name << "::mesh::level_" << level_number;
-        d_lag_mesh[level_number] = new LMesh(name_stream.str(), local_nodes, ghost_nodes);
+        d_lag_mesh[level_number] =
+            new LMesh(d_object_name + "::mesh::level_" + std::to_string(level_number), local_nodes, ghost_nodes);
     }
 
     // End scattering data, reset LData objects, and destroy the VecScatter
@@ -2099,9 +2093,7 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hiera
         if (patch_overlaps[k])
         {
             TBOX_ERROR(d_object_name << "::initializeLevelData()\n"
-                                     << "  patch "
-                                     << k
-                                     << " overlaps another patch!\n");
+                                     << "  patch " << k << " overlaps another patch!\n");
         }
     }
 #endif
@@ -2176,12 +2168,8 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hiera
         {
             TBOX_ERROR("LDataManager::initializeLevelData()"
                        << "\n"
-                       << "  num_global_nodes    = "
-                       << num_global_nodes
-                       << "\n"
-                       << "  sum num_local_nodes = "
-                       << sum_num_local_nodes
-                       << "\n");
+                       << "  num_global_nodes    = " << num_global_nodes << "\n"
+                       << "  sum num_local_nodes = " << sum_num_local_nodes << "\n");
         }
 
         d_local_lag_indices[level_number].resize(num_local_nodes, -1);
@@ -2207,7 +2195,6 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hiera
         {
             createLData(cit->first, level_number, cit->second, maintain_data);
         }
-
 
         // 3. Initialize the Lagrangian data.
         d_lag_init->initializeStructureIndexingOnPatchLevel(d_strct_id_to_strct_name_map[level_number],
@@ -2260,18 +2247,14 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hiera
         {
             TBOX_ERROR("LDataManager::initializeLevelData()"
                        << "\n"
-                       << "  num_local_nodes             = "
-                       << num_local_nodes
-                       << "\n"
-                       << "  num_initialized_local_nodes = "
-                       << num_initialized_local_nodes
-                       << "\n");
+                       << "  num_local_nodes             = " << num_local_nodes << "\n"
+                       << "  num_initialized_local_nodes = " << num_initialized_local_nodes << "\n");
         }
 
         // 4. Compute the initial distribution (indexing) data.
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
         const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
-        std::set<LNode *, LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
+        std::set<LNode*, LNodeIndexLocalPETScIndexComp> local_nodes, ghost_nodes;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -2302,12 +2285,8 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hiera
                     {
                         TBOX_ERROR("LDataManager::initializeLevelData()"
                                    << "\n"
-                                   << "  local_idx       = "
-                                   << local_idx
-                                   << "\n"
-                                   << "  num_local_nodes = "
-                                   << num_local_nodes
-                                   << "\n");
+                                   << "  local_idx       = " << local_idx << "\n"
+                                   << "  num_local_nodes = " << num_local_nodes << "\n");
                     }
                     d_local_lag_indices[level_number][local_idx] = lag_idx;
                     d_local_petsc_indices[level_number][local_idx] = local_idx + d_node_offset[level_number];
@@ -2321,17 +2300,11 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hiera
         {
             TBOX_ERROR("LDataManager::initializeLevelData()"
                        << "\n"
-                       << "  num_nodes[level_number] = "
-                       << d_num_nodes[level_number]
-                       << "\n"
-                       << "  num_initialized_global_nodes = "
-                       << num_initialized_global_nodes
-                       << "\n");
+                       << "  num_nodes[level_number] = " << d_num_nodes[level_number] << "\n"
+                       << "  num_initialized_global_nodes = " << num_initialized_global_nodes << "\n");
         }
 
-        std::ostringstream name_stream;
-        name_stream << d_object_name << "::mesh::level_" << level_number;
-        d_lag_mesh[level_number] = new LMesh(name_stream.str(),
+        d_lag_mesh[level_number] = new LMesh(d_object_name + "::mesh::level_" + std::to_string(level_number),
                                              std::vector<LNode*>(local_nodes.begin(), local_nodes.end()),
                                              std::vector<LNode*>(ghost_nodes.begin(), ghost_nodes.end()));
 
@@ -2538,9 +2511,7 @@ LDataManager::putToDatabase(Pointer<Database> db)
     // Write out data that is stored on a level-by-level basis.
     for (int level_number = d_coarsest_ln; level_number <= d_finest_ln; ++level_number)
     {
-        std::ostringstream stream;
-        stream << "level_" << level_number;
-        const std::string level_db_name = stream.str();
+        const std::string level_db_name = "level_" + std::to_string(level_number);
         Pointer<Database> level_db = db->putDatabase(level_db_name);
 
         level_db->putBool("d_level_contains_lag_data", d_level_contains_lag_data[level_number]);
@@ -2629,8 +2600,7 @@ LDataManager::putToDatabase(Pointer<Database> db)
 } // putToDatabase
 
 void
-LDataManager::registerUserDefinedLData(const std::string& data_name,
-                                       int depth)
+LDataManager::registerUserDefinedLData(const std::string& data_name, int depth)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!data_name.empty());
@@ -3007,15 +2977,9 @@ LDataManager::computeNodeDistribution(AO& ao,
     {
         TBOX_ERROR("LDataManager::computeNodeDistribution()"
                    << "\n"
-                   << "  local_offset       = "
-                   << local_offset
-                   << "\n"
-                   << "  num_local_nodes    = "
-                   << num_local_nodes
-                   << "\n"
-                   << "  num_nonlocal_nodes = "
-                   << num_nonlocal_nodes
-                   << "\n");
+                   << "  local_offset       = " << local_offset << "\n"
+                   << "  num_local_nodes    = " << num_local_nodes << "\n"
+                   << "  num_nonlocal_nodes = " << num_nonlocal_nodes << "\n");
     }
 
     computeNodeOffsets(num_nodes, node_offset, num_local_nodes);
@@ -3152,9 +3116,7 @@ LDataManager::getFromRestart()
     // Read in data that is stored on a level-by-level basis.
     for (int level_number = d_coarsest_ln; level_number <= d_finest_ln; ++level_number)
     {
-        std::ostringstream stream;
-        stream << "level_" << level_number;
-        const std::string level_db_name = stream.str();
+        const std::string level_db_name = "level_" + std::to_string(level_number);
         Pointer<Database> level_db = db->getDatabase(level_db_name);
 
         d_level_contains_lag_data[level_number] = level_db->getBool("d_level_contains_lag_data");

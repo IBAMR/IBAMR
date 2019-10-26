@@ -35,20 +35,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/IBRedundantInitializer.h"
+#include "ibamr/IBRodForceSpec.h"
+
+#include "ibtk/LInitStrategy.h"
+#include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ibtk_utilities.h"
+
+#include "IntVector.h"
+#include "tbox/Pointer.h"
+
 #include <array>
 #include <functional>
 #include <map>
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "IntVector.h"
-#include "ibamr/IBRedundantInitializer.h"
-#include "ibamr/IBRodForceSpec.h"
-#include "ibtk/LInitStrategy.h"
-#include "ibtk/LSiloDataWriter.h"
-#include "ibtk/ibtk_utilities.h"
-#include "tbox/Pointer.h"
 
 namespace IBTK
 {
@@ -438,6 +440,15 @@ public:
 
     /*!
      * \brief Initialize structure specific configurations.
+     *
+     * This function will attempt to load, in sequence, the vertex, spring,
+     * xspring, beam, rod, target point, anchor point, boundary mass,
+     * director, instrumentation, and source files. Of these, only the vertex
+     * files are required. The instrumentation and source files will only be
+     * loaded if both enable_instrumentation or enable_sources are enabled on
+     * the input database and the input files exist. The rest will only be
+     * loaded if files with matching suffixes (e.g., <code>.beam</code>) are
+     * in the current working directory.
      */
     void init() override;
 

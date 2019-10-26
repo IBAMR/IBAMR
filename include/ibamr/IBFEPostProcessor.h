@@ -35,17 +35,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "boost/tuple/tuple.hpp"
 #include "ibamr/IBFEMethod.h"
+
 #include "ibtk/FEDataManager.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/libmesh_utilities.h"
+
 #include "libmesh/mesh.h"
+#include "libmesh/periodic_boundary.h"
 #include "libmesh/petsc_vector.h"
 #include "libmesh/point.h"
 #include "libmesh/system.h"
 #include "libmesh/vector_value.h"
-#include "libmesh/periodic_boundary.h"
+
 #include "petscsys.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -189,7 +192,7 @@ public:
         libMesh::VectorValue<double> f0;
         for (unsigned int d = 0; d < NDIM; ++d) f0(d) = (*system_var_data[0])[d];
         const libMesh::VectorValue<double> f = FF * f0;
-        lambda = f.size() / f0.size();
+        lambda = f.norm() / f0.norm();
         return;
     } // material_axis_stretch_fcn
 

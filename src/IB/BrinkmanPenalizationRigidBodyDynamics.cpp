@@ -31,11 +31,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/BrinkmanPenalizationRigidBodyDynamics.h"
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/BrinkmanPenalizationRigidBodyDynamics.h"
 #include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/namespaces.h"
+
+#include "ibtk/IndexUtilities.h"
+
 #include "tbox/RestartManager.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -73,29 +76,8 @@ set_rotation_matrix(const Eigen::Vector3d& rot_vel,
 inline Eigen::Vector3d
 solve_3x3_system(const Eigen::Vector3d& L, const Eigen::Matrix3d& T)
 {
-    const double a1 = T(0, 0);
-    const double a2 = T(0, 1);
-    const double a3 = T(0, 2);
-    const double b1 = T(1, 0);
-    const double b2 = T(1, 1);
-    const double b3 = T(1, 2);
-    const double c1 = T(2, 0);
-    const double c2 = T(2, 1);
-    const double c3 = T(2, 2);
-
-    const double d1 = L[0];
-    const double d2 = L[1];
-    const double d3 = L[2];
-
-    const double dnr = (a3 * b2 * c1 - a2 * b3 * c1 - a3 * b1 * c2 + a1 * b3 * c2 + a2 * b1 * c3 - a1 * b2 * c3);
-
-    Eigen::Vector3d W;
-
-    W[0] = (b3 * c2 * d1 - b2 * c3 * d1 - a3 * c2 * d2 + a2 * c3 * d2 + a3 * b2 * d3 - a2 * b3 * d3) / dnr;
-    W[1] = -(b3 * c1 * d1 - b1 * c3 * d1 - a3 * c1 * d2 + a1 * c3 * d2 + a3 * b1 * d3 - a1 * b3 * d3) / dnr;
-    W[2] = (b2 * c1 * d1 - b1 * c2 * d1 - a2 * c1 * d2 + a1 * c2 * d2 + a2 * b1 * d3 - a1 * b2 * d3) / dnr;
-
-    return W;
+    Eigen::FullPivLU<Eigen::Matrix3d> lu(T);
+    return lu.solve(L);
 } // solve_3x3_system
 
 inline void
@@ -122,7 +104,6 @@ get_physical_coordinate(Eigen::Vector3d& side_coord, Pointer<Patch<NDIM> > patch
     }
     return;
 } // get_physical_coordinate
-
 } // namespace
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
@@ -148,17 +129,11 @@ BrinkmanPenalizationRigidBodyDynamics::BrinkmanPenalizationRigidBodyDynamics(
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, from_restart);
-    
+
     d_hydro_force_eval->setSurfaceContourLevel(d_contour_level);
 
     return;
 } // BrinkmanPenalizationRigidBodyDynamics
-
-BrinkmanPenalizationRigidBodyDynamics::~BrinkmanPenalizationRigidBodyDynamics()
-{
-    // intentionally left blank.
-    return;
-} // ~BrinkmanPenalizationStrategy
 
 void
 BrinkmanPenalizationRigidBodyDynamics::setInitialConditions(const Eigen::Vector3d& X_com,
@@ -291,12 +266,15 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     set_rotation_matrix(d_rot_vel_new, d_quaternion_current, d_quaternion_new, R, dt);
     Eigen::Vector3d T_rigid = d_hydro_torque_pressure + d_hydro_torque_viscous + d_ext_torque;
     d_rot_vel_new.setZero();
-#if (NDIM == 2)
-    d_rot_vel_new(2) = d_rot_vel_current(2) + (dt * T_rigid(2)) / d_inertia_tensor_initial(2, 2);
-#elif (NDIM == 3)
-    Eigen::Vector3d T0_rigid = solve_3x3_system((R.transpose()) * T_rigid, d_inertia_tensor_initial);
-    d_rot_vel_new = d_rot_vel_current + dt * R * T0_rigid;
-#endif
+    if (NDIM == 2)
+    {
+        d_rot_vel_new(2) = d_rot_vel_current(2) + (dt * T_rigid(2)) / d_inertia_tensor_initial(2, 2);
+    }
+    else if (NDIM == 3)
+    {
+        const Eigen::Vector3d T0_rigid = solve_3x3_system((R.transpose()) * T_rigid, d_inertia_tensor_initial);
+        d_rot_vel_new = d_rot_vel_current + dt * R * T0_rigid;
+    }
     for (unsigned s = NDIM; s < s_max_free_dofs; ++s)
     {
         if (!d_solve_rigid_vel(s))
@@ -385,6 +363,8 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(time, d_new_time));
+#else
+    NULL_USE(time);
 #endif
 
     const double dt = d_new_time - d_current_time;
@@ -505,7 +485,7 @@ BrinkmanPenalizationRigidBodyDynamics::getFromInput(Pointer<Database> input_db, 
     {
         d_chi = input_db->getDouble("chi");
     }
-    
+
     if (input_db->keyExists("contour_level"))
     {
         d_contour_level = input_db->getDouble("contour_level");

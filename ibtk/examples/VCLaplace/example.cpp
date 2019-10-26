@@ -29,6 +29,7 @@
 
 // Config files
 #include <IBTK_config.h>
+
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -129,25 +130,19 @@ run_example(int argc, char* argv[])
         visit_data_writer->registerPlotQuantity(u_cell_var->getName(), "VECTOR", u_cell_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            ostringstream stream;
-            stream << d;
-            visit_data_writer->registerPlotQuantity(u_cell_var->getName() + stream.str(), "SCALAR", u_cell_idx, d);
+            visit_data_writer->registerPlotQuantity(u_cell_var->getName() + std::to_string(d), "SCALAR", u_cell_idx, d);
         }
 
         visit_data_writer->registerPlotQuantity(f_cell_var->getName(), "VECTOR", f_cell_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            ostringstream stream;
-            stream << d;
-            visit_data_writer->registerPlotQuantity(f_cell_var->getName() + stream.str(), "SCALAR", f_cell_idx, d);
+            visit_data_writer->registerPlotQuantity(f_cell_var->getName() + std::to_string(d), "SCALAR", f_cell_idx, d);
         }
 
         visit_data_writer->registerPlotQuantity(e_cell_var->getName(), "VECTOR", e_cell_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            ostringstream stream;
-            stream << d;
-            visit_data_writer->registerPlotQuantity(e_cell_var->getName() + stream.str(), "SCALAR", e_cell_idx, d);
+            visit_data_writer->registerPlotQuantity(e_cell_var->getName() + std::to_string(d), "SCALAR", e_cell_idx, d);
         }
 
 #if (NDIM == 2)
@@ -291,13 +286,13 @@ run_example(int argc, char* argv[])
                     double avg_mu = 0.0;
                     for (int axis = 0; axis < NDIM; ++axis)
                     {
-                        for(EdgeIterator<NDIM> e(edge_box, axis); e; e++)
+                        for (EdgeIterator<NDIM> e(edge_box, axis); e; e++)
                         {
                             EdgeIndex<NDIM> ei(e());
                             avg_mu += (*mu_ec_data)(ei);
                         }
                     }
-                    (*mu_cc_data)(ci) = avg_mu/12.0;
+                    (*mu_cc_data)(ci) = avg_mu / 12.0;
                 }
             }
         }
