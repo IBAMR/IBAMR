@@ -1122,6 +1122,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(scratch_idxs);
     }
+
+    // Synchronize data on the patch hierarchy.
+    synchronizeHierarchyData(CURRENT_DATA);
     return;
 } // regridProjection
 

@@ -548,7 +548,6 @@ IBHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double /*init
         // Finish Lagrangian data movement.
         d_ib_method_ops->endDataRedistribution(d_hierarchy, d_gridding_alg);
     }
-
     return;
 } // initializeCompositeHierarchyDataSpecialized
 

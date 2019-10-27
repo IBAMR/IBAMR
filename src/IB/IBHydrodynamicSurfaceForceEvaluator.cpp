@@ -64,12 +64,6 @@ static const int GLEVELSETG = 1;
 static const int GVELOCITYG = 1;
 static const int GPRESSUREG = 1;
 static const int GVISCOSITYG = 1;
-
-inline int
-sign(const double X)
-{
-    return ((X > 0) ? 1 : ((X < 0) ? -1 : 0));
-} // sign
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -248,7 +242,6 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
     viscous_force.setZero();
     pressure_torque.setZero();
     viscous_torque.setZero();
-    IBTK::Vector3d r_vec = IBTK::Vector3d::Zero();
 
     // Loop over side-centered DoFs of the computational domain to compute sum of n.(-pI + mu*(grad U + grad U)^T)
     // Note: n points outward from the solid into the fluid domain, which makes the above expression the force of the
