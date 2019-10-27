@@ -63,7 +63,6 @@ namespace IBAMR
  */
 class HydroForceEval
 {
-    /////////////////////////////// PUBLIC ///////////////////////////////////////
 public:
     /*!
      * \brief Default constructor.
@@ -89,9 +88,6 @@ public:
                         const double time,
                         const int iteration_num);
 
-    /////////////////////////////// PROTECTED ////////////////////////////////////
-
-    /////////////////////////////// PRIVATE //////////////////////////////////////
 private:
     /*!
      * \brief Get values from input file.

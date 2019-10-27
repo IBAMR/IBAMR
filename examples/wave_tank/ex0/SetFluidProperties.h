@@ -98,8 +98,6 @@ public:
                                const double current_time,
                                const double new_time);
 
-    //////////////// PRIVATE /////////////////////////////
-
 private:
     /*!
      * Default constructor is not implemented and should not be used.

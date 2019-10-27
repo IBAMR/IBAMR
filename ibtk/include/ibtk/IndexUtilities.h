@@ -149,6 +149,16 @@ public:
      *
      * @param side_idx The SideIndex describing the current side.
      */
+    template <typename Vector>
+    static Vector getSideCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::pdat::SideIndex<NDIM>& side_idx);
+
+    /*!
+     * \return The spatial coordinate of the given side center.
+     *
+     * @param patch The patch on which the cell lives.
+     *
+     * @param side_idx The SideIndex describing the current side.
+     */
     static IBTK::VectorNd getSideCenter(const SAMRAI::hier::Patch<NDIM>& patch,
                                         const SAMRAI::pdat::SideIndex<NDIM>& side_idx);
 

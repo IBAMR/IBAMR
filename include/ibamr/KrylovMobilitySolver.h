@@ -76,7 +76,6 @@ namespace IBAMR
  */
 class KrylovMobilitySolver : public SAMRAI::tbox::DescribedClass
 {
-    ////////////////////////////// PUBLIC ////////////////////////////////////////
 public:
     /*!
      * \brief Constructor for mobility solver that employs the
@@ -210,7 +209,6 @@ public:
      */
     void setNormalizeSpreadForce(const bool normalize_force);
 
-    /////////////////////////////// PRIVATE //////////////////////////////////////
 private:
     /*!
      * \brief Copy constructor.

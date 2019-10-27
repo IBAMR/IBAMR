@@ -70,31 +70,6 @@ sign(const double X)
 {
     return ((X > 0) ? 1 : ((X < 0) ? -1 : 0));
 } // sign
-
-inline void
-get_physical_coordinate(IBTK::Vector3d& side_coord, Pointer<Patch<NDIM> > patch, const SideIndex<NDIM>& side_idx)
-{
-    const int axis = side_idx.getAxis();
-    Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-    const double* patch_X_lower = patch_geom->getXLower();
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Index<NDIM>& patch_lower_idx = patch_box.lower();
-    const double* const patch_dx = patch_geom->getDx();
-
-    for (int d = 0; d < NDIM; ++d)
-    {
-        if (d == axis)
-        {
-            side_coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(side_idx(d) - patch_lower_idx(d)));
-        }
-        else
-        {
-            side_coord[d] =
-                patch_X_lower[d] + patch_dx[d] * (static_cast<double>(side_idx(d) - patch_lower_idx(d)) + 0.5);
-        }
-    }
-    return;
-} // get_physical_coordinate
 }
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -323,7 +298,7 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
                     n(axis) = signof(phi_upper - phi_lower);
 
                     // Get the relative coordinate from X0
-                    const IBTK::VectorNd side_center = IndexUtilities::getSideCenter(*patch, s_i);
+                    const IBTK::VectorNd side_center = IBTK::IndexUtilities::getSideCenter(*patch, s_i);
                     IBTK::Vector3d r_vec = IBTK::Vector3d::Zero();
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -331,7 +306,7 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
                     }
 
                     // Get the relative coordinate from X0
-                    get_physical_coordinate(r_vec, patch, s_i);
+                    r_vec = IBTK::IndexUtilities::getSideCenter<IBTK::Vector3d>(*patch, s_i);
                     r_vec -= X0;
 
                     // Compute pressure on the face using simple averaging (n. -p I) * dA

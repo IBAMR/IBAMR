@@ -100,8 +100,6 @@ public:
                               const double time,
                               const bool initial_time);
 
-    //////////////// PRIVATE /////////////////////////////
-
 private:
     /*!
      * Default constructor is not implemented and should not be used.

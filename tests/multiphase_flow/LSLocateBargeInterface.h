@@ -96,7 +96,6 @@ public:
         return;
     } // setLevelSetPatchData
 
-    /////////////////////////////// PRIVATE //////////////////////////////////////
 private:
     LSLocateBargeInterface();
     LSLocateBargeInterface& operator=(const LSLocateBargeInterface& that);

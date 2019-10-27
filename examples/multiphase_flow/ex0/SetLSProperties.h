@@ -89,8 +89,6 @@ public:
                         const bool initial_time,
                         const bool regrid_time);
 
-    //////////////// PRIVATE /////////////////////////////
-
 private:
     /*!
      * Default constructor is not implemented and should not be used.

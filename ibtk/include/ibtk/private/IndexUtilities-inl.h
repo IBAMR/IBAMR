@@ -94,7 +94,8 @@ IndexUtilities::getCellIndex(const DoubleArray& X,
     return idx;
 } // getCellIndex
 
-inline IBTK::VectorNd
+template <typename Vector>
+inline Vector
 IndexUtilities::getSideCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::pdat::SideIndex<NDIM>& side_idx)
 {
     const int axis = side_idx.getAxis();
@@ -104,7 +105,7 @@ IndexUtilities::getSideCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMR
     const SAMRAI::hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
     const double* const patch_dx = patch_geom->getDx();
 
-    IBTK::VectorNd side_coord;
+    Vector side_coord;
     for (int d = 0; d < NDIM; ++d)
     {
         if (d == axis)
@@ -118,6 +119,12 @@ IndexUtilities::getSideCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMR
     }
     return side_coord;
 } // getSideCenter
+
+inline VectorNd
+IndexUtilities::getSideCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::pdat::SideIndex<NDIM>& side_idx)
+{
+    return getSideCenter<VectorNd>(patch, side_idx);
+}// getSideCenter
 
 template <class DoubleArray>
 inline SAMRAI::hier::Index<NDIM>

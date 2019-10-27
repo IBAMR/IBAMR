@@ -127,8 +127,6 @@ public:
         return std::make_pair(d_new_time, d_current_time);
     } // getCurrentTimeInterval
 
-    /////////////////////////////// PROTECTED ////////////////////////////////////
-
 protected:
     /*!
      * Book-keeping.

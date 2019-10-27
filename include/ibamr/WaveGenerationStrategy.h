@@ -68,8 +68,8 @@ void callStokesWaveRelaxationCallbackFunction(double current_time,
                                               void* ctx);
 } // namespace WaveGenerationFunctions
 
-/*! Struct for generating waves based on relaxation method.
- *
+/*!
+ * Struct for generating waves based on relaxation method.
  */
 struct WaveGenerationStrategy
 {
@@ -152,6 +152,8 @@ public:
     } // getGravity
 
 protected:
+
+
     /*!
      * Book-keeping.
      */

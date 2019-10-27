@@ -146,8 +146,6 @@ public:
                                             const libMesh::Point& vert1,
                                             const libMesh::Point& vert2);
 
-    //////////////// PRIVATE /////////////////////////////
-
 private:
     /*!
      * Default constructor is not implemented and should not be used.

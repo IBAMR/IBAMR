@@ -79,31 +79,6 @@ solve_3x3_system(const Eigen::Vector3d& L, const Eigen::Matrix3d& T)
     Eigen::FullPivLU<Eigen::Matrix3d> lu(T);
     return lu.solve(L);
 } // solve_3x3_system
-
-inline void
-get_physical_coordinate(Eigen::Vector3d& side_coord, Pointer<Patch<NDIM> > patch, const SideIndex<NDIM>& side_idx)
-{
-    const int axis = side_idx.getAxis();
-    Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-    const double* patch_X_lower = patch_geom->getXLower();
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Index<NDIM>& patch_lower_idx = patch_box.lower();
-    const double* const patch_dx = patch_geom->getDx();
-
-    for (int d = 0; d < NDIM; ++d)
-    {
-        if (d == axis)
-        {
-            side_coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(side_idx(d) - patch_lower_idx(d)));
-        }
-        else
-        {
-            side_coord[d] =
-                patch_X_lower[d] + patch_dx[d] * (static_cast<double>(side_idx(d) - patch_lower_idx(d)) + 0.5);
-        }
-    }
-    return;
-} // get_physical_coordinate
 } // namespace
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
@@ -344,7 +319,7 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
                 }
                 if (phi <= alpha)
                 {
-                    get_physical_coordinate(r, patch, s_i);
+                    r = IBTK::IndexUtilities::getSideCenter<Eigen::Vector3d>(*patch, s_i);
                     dr = r - d_center_of_mass_new;
                     Wxdr = d_rot_vel_new.cross(dr);
                     const double penalty = (*rho_data)(s_i) / dt;
