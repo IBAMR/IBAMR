@@ -586,6 +586,29 @@ interpolate(libMesh::TypeVector<double>& U,
     return;
 } // interpolate
 
+/**
+ * Compute the jacobian with respect to the initial configuration in the deformed configuration
+ * @p X_node at quadrature point number @qp.
+ *
+ * \f[ 
+ * J(qp) = \sum_{i = 1}^n \xi_i \otimes \nabla_X \phi_i(qp) 
+ * \f]
+ *
+ * @param[out] dX_ds Tensor containing the output of this function of size 3x3.
+ *
+ * @param[in] qp Number of the quadrature point at which we will compute the
+ * solution value.
+ *
+ * @param[in] X_node Values of the shape functions of the structure
+ * location field (i.e., X): for interpolatory finite elements (e.g.,
+ * libMesh::LAGRANGE) these the actual coordinates of the node (since shape
+ * functions will either be one or zero at nodes). @p X_node is assumed to be
+ * a two-dimensional array whose rows correspond to node number and whose
+ * columns correspond to x, y, and (in 3D) z coordinates.
+ *
+ * @param[in] dphi Reference values of the gradient of the shape functions indexed in the
+ * usual way (first by basis function number and then by quadrature point number).
+ */
 template <class MultiArray>
 inline void
 jacobian(libMesh::TypeTensor<double>& dX_ds,
