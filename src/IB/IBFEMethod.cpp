@@ -541,8 +541,8 @@ IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDI
     for (int i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        const int gcw = d_active_fe_data_managers[part]->getGhostCellWidth().max();
-        const int tag_ln = d_active_fe_data_managers[part]->getLevelNumber() - 1;
+        const int gcw = d_primary_fe_data_managers[part]->getGhostCellWidth().max();
+        const int tag_ln = d_primary_fe_data_managers[part]->getLevelNumber() - 1;
         if (tag_ln >= 0 && tag_ln < finest_hier_ln)
         {
             tag_buffer[tag_ln] = std::max(tag_buffer[tag_ln], gcw);
@@ -978,7 +978,7 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
     {
         if (!d_lag_body_source_part[part]) continue;
 
-        EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
+        EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
         const MeshBase& mesh = equation_systems.get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
 
@@ -986,13 +986,13 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         auto& Q_system = equation_systems.get_system<ExplicitSystem>(SOURCE_SYSTEM_NAME);
         const DofMap& Q_dof_map = Q_system.get_dof_map();
         FEDataManager::SystemDofMapCache& Q_dof_map_cache =
-            *d_active_fe_data_managers[part]->getDofMapCache(SOURCE_SYSTEM_NAME);
+            *d_primary_fe_data_managers[part]->getDofMapCache(SOURCE_SYSTEM_NAME);
         FEType Q_fe_type = Q_dof_map.variable_type(0);
         auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
-        FEDataInterpolation fe(dim, d_active_fe_data_managers[part]);
+        FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]);
         std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, FIFTH);
         fe.attachQuadratureRule(qrule.get());
         fe.evalQuadraturePoints();
@@ -1062,7 +1062,7 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
 
         // Solve for Q.
         NumericVector<double>& Q_vec = *d_Q_half_vecs[part];
-        d_active_fe_data_managers[part]->computeL2Projection(
+        d_primary_fe_data_managers[part]->computeL2Projection(
             Q_vec, *Q_rhs_vec, SOURCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
     }
 }
@@ -1683,7 +1683,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                                        const unsigned int part)
 {
     // Extract the mesh.
-    EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
+    EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems.get_mesh();
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
@@ -1694,7 +1694,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     auto& Phi_system = equation_systems.get_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
     const DofMap& Phi_dof_map = Phi_system.get_dof_map();
     FEDataManager::SystemDofMapCache& Phi_dof_map_cache =
-        *d_active_fe_data_managers[part]->getDofMapCache(PHI_SYSTEM_NAME);
+        *d_primary_fe_data_managers[part]->getDofMapCache(PHI_SYSTEM_NAME);
     FEType Phi_fe_type = Phi_dof_map.variable_type(0);
     std::vector<int> Phi_vars(1, 0);
 
@@ -1702,7 +1702,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     std::vector<int> X_vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) X_vars[d] = d;
 
-    FEDataInterpolation fe(dim, d_active_fe_data_managers[part]);
+    FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]);
     std::unique_ptr<QBase> qrule_face = QBase::build(QGAUSS, dim - 1, FIFTH);
     fe.attachQuadratureRuleFace(qrule_face.get());
     fe.evalNormalsFace();
@@ -1899,7 +1899,7 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
                                             const unsigned int part)
 {
     // Extract the mesh.
-    EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
+    EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems.get_mesh();
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
@@ -1919,7 +1919,7 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
         // Extract the FE systems and DOF maps, and setup the FE object.
         const DofMap& G_dof_map = G_system.get_dof_map();
         FEDataManager::SystemDofMapCache& G_dof_map_cache =
-            *d_active_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
+            *d_primary_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
         FEType G_fe_type = G_dof_map.variable_type(0);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -1929,7 +1929,7 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
-        FEDataInterpolation fe(dim, d_active_fe_data_managers[part]);
+        FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]);
         std::unique_ptr<QBase> qrule =
             QBase::build(d_PK1_stress_fcn_data[part][k].quad_type, dim, d_PK1_stress_fcn_data[part][k].quad_order);
         std::unique_ptr<QBase> qrule_face =
@@ -2098,7 +2098,7 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
     // Extract the FE systems and DOF maps, and setup the FE objects.
     const DofMap& G_dof_map = G_system.get_dof_map();
     FEDataManager::SystemDofMapCache& G_dof_map_cache =
-        *d_active_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
+        *d_primary_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
     FEType G_fe_type = G_dof_map.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -2111,7 +2111,7 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
     std::vector<int> Phi_vars(1, 0);
     std::vector<int> no_vars;
 
-    FEDataInterpolation fe(dim, d_active_fe_data_managers[part]);
+    FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]);
     std::unique_ptr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
     std::unique_ptr<QBase> qrule_face = QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
     fe.attachQuadratureRule(qrule.get());
@@ -2370,7 +2370,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
     // Extract the mesh.
-    EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
+    EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems.get_mesh();
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
@@ -2388,7 +2388,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
-    FEDataInterpolation fe(dim, d_active_fe_data_managers[part]);
+    FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]);
     std::unique_ptr<QBase> default_qrule_face =
         QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
     fe.attachQuadratureRuleFace(default_qrule_face.get());
@@ -2427,8 +2427,8 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     // Loop over the patches to spread the transmission elastic force density
     // onto the grid.
     const std::vector<std::vector<Elem*> >& active_patch_element_map =
-        d_active_fe_data_managers[part]->getActivePatchElementMap();
-    const int level_num = d_active_fe_data_managers[part]->getLevelNumber();
+        d_primary_fe_data_managers[part]->getActivePatchElementMap();
+    const int level_num = d_primary_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> F, F_s, n, x;
     double P;
@@ -2604,7 +2604,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
 
         // Spread the boundary forces to the grid.
         const std::string& spread_kernel_fcn = d_spread_spec[part].kernel_fcn;
-        const hier::IntVector<NDIM>& ghost_width = d_active_fe_data_managers[part]->getGhostCellWidth();
+        const hier::IntVector<NDIM>& ghost_width = d_primary_fe_data_managers[part]->getGhostCellWidth();
         const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), ghost_width);
         Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
         LEInteractor::spread(f_data, T_bdry, NDIM, x_bdry, NDIM, patch, spread_box, spread_kernel_fcn);
@@ -2642,7 +2642,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     if (!integrate_normal_force) return;
 
     // Extract the mesh.
-    EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
+    EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems.get_mesh();
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
@@ -2663,7 +2663,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
     std::vector<int> no_vars;
 
-    FEDataInterpolation fe(dim, d_active_fe_data_managers[part]);
+    FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]);
     std::unique_ptr<QBase> qrule_face = QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
     fe.attachQuadratureRuleFace(qrule_face.get());
     fe.evalQuadraturePointsFace();
@@ -2701,8 +2701,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     // are determined from the interior and transmission elastic force
     // densities.
     const std::vector<std::vector<Elem*> >& active_patch_element_map =
-        d_active_fe_data_managers[part]->getActivePatchElementMap();
-    const int level_num = d_active_fe_data_managers[part]->getLevelNumber();
+        d_primary_fe_data_managers[part]->getActivePatchElementMap();
+    const int level_num = d_primary_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> G, F, F_s, n, x;
     std::vector<libMesh::Point> X_node_cache, x_node_cache;
@@ -2990,7 +2990,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 void
 IBFEMethod::initializeCoordinates(const unsigned int part)
 {
-    EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
+    EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     MeshBase& mesh = equation_systems.get_mesh();
     auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
@@ -3024,7 +3024,7 @@ IBFEMethod::initializeCoordinates(const unsigned int part)
 void
 IBFEMethod::updateCoordinateMapping(const unsigned int part)
 {
-    EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
+    EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     MeshBase& mesh = equation_systems.get_mesh();
     auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
@@ -3055,7 +3055,7 @@ IBFEMethod::updateCoordinateMapping(const unsigned int part)
 void
 IBFEMethod::initializeVelocity(const unsigned int part)
 {
-    EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
+    EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     MeshBase& mesh = equation_systems.get_mesh();
     auto& U_system = equation_systems.get_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
     const unsigned int U_sys_num = U_system.number();
