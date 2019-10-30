@@ -1594,21 +1594,14 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
 } // endDataRedistribution
 
 void
-IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                int level_number,
-                                double init_data_time,
-                                bool can_be_refined,
-                                bool initial_time,
-                                Pointer<BasePatchLevel<NDIM> > old_level,
-                                bool allocate_data)
+IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+                                int /*level_number*/,
+                                double /*init_data_time*/,
+                                bool /*can_be_refined*/,
+                                bool /*initial_time*/,
+                                Pointer<BasePatchLevel<NDIM> > /*old_level*/,
+                                bool /*allocate_data*/)
 {
-    const int finest_hier_level = hierarchy->getFinestLevelNumber();
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        d_primary_fe_data_managers[part]->setPatchHierarchy(hierarchy);
-        d_primary_fe_data_managers[part]->setPatchLevels(0, finest_hier_level);
-    }
-    return;
 } // initializeLevelData
 
 void

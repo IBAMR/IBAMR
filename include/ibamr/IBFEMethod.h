@@ -658,8 +658,16 @@ public:
                                SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
-     * Initialize data on a new level after it is inserted into an AMR patch
-     * hierarchy by the gridding algorithm.
+     * this function only exists for compatibility with the base class and
+     * does nothing: data reinitialization is handled by
+     * endDataRedistribution() instead.
+     *
+     * The reasoning is this: since this class stores data only on particular
+     * levels (at the present time, the structure is always on the finest
+     * level) setting up level data is nontrivial when generating the initial
+     * grid (i.e., when tagging cells that contain interaction points for
+     * refinement). In a sense there is no level data to compute until we are
+     * done regridding.
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
