@@ -324,7 +324,7 @@ run_example(int argc, char* argv[])
         const double x_zone_end = input_db->getDouble("X_ZONE_END");
         const double depth = input_db->getDouble("DEPTH");
         const double alpha = input_db->getDouble("ALPHA");
-        WaveDampingStrategy wave_damper;
+        WaveDampingData wave_damper;
         wave_damper.d_x_zone_start = x_zone_start;
         wave_damper.d_x_zone_end = x_zone_end;
         wave_damper.d_depth = depth;

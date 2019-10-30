@@ -56,7 +56,7 @@ namespace IBAMR
  * should be registered with an appropriate hierarchy integrator via
  * registerPostprocessIntegrateHierarchyCallback.
  *
- * \param ctx is the pointer to WaveDampingStrategy struct.
+ * \param ctx is the pointer to WaveDampingData struct.
  */
 
 namespace WaveDampingFunctions
@@ -77,7 +77,7 @@ void callConservedWaveAbsorbingCallbackFunction(double current_time,
 /*!
  * A struct holding the required information used by the wave damping function.
  */
-struct WaveDampingStrategy
+struct WaveDampingData
 {
     /*
      * Pointers to the fluid and advection-diffusion integrators.
@@ -89,6 +89,12 @@ struct WaveDampingStrategy
      * Pointer to the level set variable representing the wave interface.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_phi_var;
+
+    /*
+     *  Pointer to phi variable's new context.
+     *  \note We modify the phi value after the end of each timestep.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_phi_new_ctx;
 
     /*
      * Start and end coordinates of the damping zone, water depth, and damping coefficient.
@@ -111,7 +117,7 @@ struct MassConservationFunctor
     int d_phi_current_idx;
     int d_I_idx;
     int d_dI_idx;
-    WaveDampingStrategy* d_ptr_wave_damper;
+    WaveDampingData* d_ptr_wave_damper;
     static double s_newton_guess, s_newton_min, s_newton_max;
 };
 } // namespace IBAMR

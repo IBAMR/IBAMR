@@ -407,7 +407,7 @@ run_example(int argc, char* argv[])
         const double x_zone_end = input_db->getDouble("X_ZONE_END");
         const double depth = input_db->getDouble("DEPTH");
         const double alpha = input_db->getDouble("ALPHA");
-        WaveDampingStrategy wave_damper;
+        WaveDampingData wave_damper;
         wave_damper.d_x_zone_start = x_zone_start;
         wave_damper.d_x_zone_end = x_zone_end;
         wave_damper.d_depth = depth;
@@ -415,6 +415,7 @@ run_example(int argc, char* argv[])
         wave_damper.d_ins_hier_integrator = navier_stokes_integrator;
         wave_damper.d_adv_diff_hier_integrator = adv_diff_integrator;
         wave_damper.d_phi_var = phi_var_gas;
+        wave_damper.d_phi_new_ctx = adv_diff_integrator->getNewContext();
         time_integrator->registerPostprocessIntegrateHierarchyCallback(
             &WaveDampingFunctions::callRelaxationZoneCallbackFunction, static_cast<void*>(&wave_damper));
 

@@ -56,7 +56,7 @@ namespace IBAMR
  * should be registered with an appropriate hierarchy integrator via
  * registerPostprocessIntegrateHierarchyCallback.
  *
- * \param ctx is the pointer to WaveGenerationStrategy struct.
+ * \param ctx is the pointer to the relevant wave generator object.
  */
 
 namespace WaveGenerationFunctions
@@ -71,7 +71,7 @@ void callStokesWaveRelaxationCallbackFunction(double current_time,
 /*!
  * Struct for generating waves based on relaxation method.
  */
-struct WaveGenerationStrategy
+struct WaveGenerationData
 {
     /*
      * Pointers to the fluid and advection-diffusion integrators.
@@ -83,6 +83,12 @@ struct WaveGenerationStrategy
      * Pointer to the level set variable representing the wave interface.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_phi_var;
+
+    /*
+     *  Pointer to phi variable's new context.
+     *  \note We modify the phi value after the end of each timestep.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_phi_new_ctx;
 
     /*
      * Start and end coordinates of the damping zone, and the damping coefficient.
@@ -100,7 +106,7 @@ struct WaveGenerationStrategy
 /*!
  * Base class for generating Stokes wave.
  */
-class StokesWaveGenerator : public WaveGenerationStrategy
+class StokesWaveGenerator
 {
 public:
     /*!
@@ -150,6 +156,11 @@ public:
     {
         return d_gravity;
     } // getGravity
+
+    /*
+     * \brief WaveGeneration data object.
+     */
+    WaveGenerationData d_wave_gen_data;
 
 protected:
 

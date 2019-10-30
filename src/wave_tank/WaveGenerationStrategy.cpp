@@ -52,25 +52,26 @@ callStokesWaveRelaxationCallbackFunction(double /*current_time*/,
                                          void* ctx)
 {
     auto stokes_wave_generator = static_cast<StokesWaveGenerator*>(ctx);
-    const double x_zone_start = stokes_wave_generator->d_x_zone_start;
-    const double x_zone_end = stokes_wave_generator->d_x_zone_end;
-    const double alpha = stokes_wave_generator->d_alpha;
-    const double sign_gas = stokes_wave_generator->d_sign_gas_phase;
+    const double x_zone_start = stokes_wave_generator->d_wave_gen_data.d_x_zone_start;
+    const double x_zone_end = stokes_wave_generator->d_wave_gen_data.d_x_zone_end;
+    const double alpha = stokes_wave_generator->d_wave_gen_data.d_alpha;
+    const double sign_gas = stokes_wave_generator->d_wave_gen_data.d_sign_gas_phase;
     const double depth = stokes_wave_generator->getWaterDepth();
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = stokes_wave_generator->d_ins_hier_integrator->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
+        stokes_wave_generator->d_wave_gen_data.d_ins_hier_integrator->getPatchHierarchy();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int u_new_idx =
-        var_db->mapVariableAndContextToIndex(stokes_wave_generator->d_ins_hier_integrator->getVelocityVariable(),
-                                             stokes_wave_generator->d_ins_hier_integrator->getNewContext());
+    int u_new_idx = var_db->mapVariableAndContextToIndex(
+        stokes_wave_generator->d_wave_gen_data.d_ins_hier_integrator->getVelocityVariable(),
+        stokes_wave_generator->d_wave_gen_data.d_ins_hier_integrator->getNewContext());
 
-    Pointer<CellVariable<NDIM, double> > phi_cc_var = stokes_wave_generator->d_phi_var;
+    Pointer<CellVariable<NDIM, double> > phi_cc_var = stokes_wave_generator->d_wave_gen_data.d_phi_var;
     if (!phi_cc_var)
     {
         TBOX_ERROR("callFifthOrderStokesWaveRelaxationCallbackFunction(): Level set variable must be cell centered!");
     }
     int phi_new_idx = var_db->mapVariableAndContextToIndex(
-        phi_cc_var, stokes_wave_generator->d_adv_diff_hier_integrator->getNewContext());
+        phi_cc_var, stokes_wave_generator->d_wave_gen_data.d_adv_diff_hier_integrator->getNewContext());
     static const int dir = NDIM == 2 ? 1 : 2;
 
     const int coarsest_ln = 0;
@@ -93,8 +94,8 @@ callStokesWaveRelaxationCallbackFunction(double /*current_time*/,
             // Compute a representative grid spacing
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-            auto beta =
-                stokes_wave_generator->d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+            auto beta = stokes_wave_generator->d_wave_gen_data.d_num_interface_cells *
+                        std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
             for (int axis = 0; axis < NDIM; ++axis)
             {
@@ -305,7 +306,7 @@ StokesWaveGenerator::getFromInput(Pointer<Database> input_db)
     d_gravity = wave_db->getDouble("gravitational_constant");
     d_wave_number = wave_db->getDouble("wave_number");
     d_amplitude = wave_db->getDouble("amplitude");
-    d_num_interface_cells = wave_db->getDouble("num_interface_cells");
+    d_wave_gen_data.d_num_interface_cells = wave_db->getDouble("num_interface_cells");
     d_deep_water_limit = wave_db->getBoolWithDefault("deep_water_limit", d_deep_water_limit);
 
     return;

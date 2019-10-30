@@ -58,7 +58,7 @@ callRelaxationZoneCallbackFunction(double /*current_time*/,
                                    int /*num_cycles*/,
                                    void* ctx)
 {
-    auto ptr_wave_damper = static_cast<WaveDampingStrategy*>(ctx);
+    auto ptr_wave_damper = static_cast<WaveDampingData*>(ctx);
     const double x_zone_start = ptr_wave_damper->d_x_zone_start;
     const double x_zone_end = ptr_wave_damper->d_x_zone_end;
     const double depth = ptr_wave_damper->d_depth;
@@ -169,7 +169,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
                                            void* ctx)
 {
     // Reference: Hu Zhe, et al., "Numerical Wave Tank Based on A Conserved Wave-Absorbing Method"
-    auto ptr_wave_damper = static_cast<WaveDampingStrategy*>(ctx);
+    auto ptr_wave_damper = static_cast<WaveDampingData*>(ctx);
     const double x_zone_start = ptr_wave_damper->d_x_zone_start;
     const double x_zone_end = ptr_wave_damper->d_x_zone_end;
     const double depth = ptr_wave_damper->d_depth;
