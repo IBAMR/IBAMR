@@ -421,6 +421,7 @@ public:
                const SpreadSpec& default_spread_spec,
                const WorkloadSpec& default_workload_spec,
                const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
+               std::shared_ptr<SAMRAIDataCache> eulerian_data_cache = nullptr,
                bool register_for_restart = true);
 
     /*!
@@ -441,6 +442,7 @@ public:
                const SpreadSpec& default_spread_spec,
                const WorkloadSpec& default_workload_spec,
                const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
+               std::shared_ptr<SAMRAIDataCache> eulerian_data_cache = nullptr,
                bool register_for_restart = true);
 
     /*!
@@ -961,6 +963,7 @@ protected:
                   SpreadSpec default_spread_spec,
                   WorkloadSpec default_workload_spec,
                   SAMRAI::hier::IntVector<NDIM> ghost_width,
+                  std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
                   bool register_for_restart = true);
 
     /*!
@@ -973,6 +976,7 @@ protected:
                   SpreadSpec default_spread_spec,
                   WorkloadSpec default_workload_spec,
                   SAMRAI::hier::IntVector<NDIM> ghost_width,
+                  std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
                   bool register_for_restart = true);
 
     /*!
@@ -1109,7 +1113,7 @@ private:
     /*
      * Cached Eulerian data to reduce the number of allocations/deallocations.
      */
-    SAMRAIDataCache d_cached_eulerian_data;
+    std::shared_ptr<SAMRAIDataCache> d_eulerian_data_cache;
 
     /*
      * SAMRAI::hier::VariableContext object used for data management.

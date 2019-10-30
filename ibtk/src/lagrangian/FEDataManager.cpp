@@ -39,6 +39,7 @@
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
@@ -337,6 +338,7 @@ FEDataManager::getManager(std::shared_ptr<FEData> fe_data,
                           const FEDataManager::SpreadSpec& default_spread_spec,
                           const FEDataManager::WorkloadSpec& default_workload_spec,
                           const IntVector<NDIM>& min_ghost_width,
+                          std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
                           bool register_for_restart)
 {
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
@@ -351,6 +353,7 @@ FEDataManager::getManager(std::shared_ptr<FEData> fe_data,
                                                            default_spread_spec,
                                                            default_workload_spec,
                                                            ghost_width,
+                                                           eulerian_data_cache,
                                                            register_for_restart);
     }
     if (!s_registered_callback)
@@ -367,6 +370,7 @@ FEDataManager::getManager(const std::string& name,
                           const FEDataManager::SpreadSpec& default_spread_spec,
                           const FEDataManager::WorkloadSpec& default_workload_spec,
                           const IntVector<NDIM>& min_ghost_width,
+                          std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
                           bool register_for_restart)
 {
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
@@ -375,8 +379,13 @@ FEDataManager::getManager(const std::string& name,
             min_ghost_width,
             IntVector<NDIM>(std::max(LEInteractor::getMinimumGhostWidth(default_interp_spec.kernel_fcn),
                                      LEInteractor::getMinimumGhostWidth(default_spread_spec.kernel_fcn))));
-        s_data_manager_instances[name] = new FEDataManager(
-            name, default_interp_spec, default_spread_spec, default_workload_spec, ghost_width, register_for_restart);
+        s_data_manager_instances[name] = new FEDataManager(name,
+                                                           default_interp_spec,
+                                                           default_spread_spec,
+                                                           default_workload_spec,
+                                                           ghost_width,
+                                                           eulerian_data_cache,
+                                                           register_for_restart);
     }
     if (!s_registered_callback)
     {
@@ -393,7 +402,8 @@ FEDataManager::getManager(const std::string& name,
                           const IntVector<NDIM>& min_ghost_width,
                           bool register_for_restart)
 {
-    return getManager(name, default_interp_spec, default_spread_spec, {}, min_ghost_width, register_for_restart);
+    return getManager(
+        name, default_interp_spec, default_spread_spec, {}, min_ghost_width, nullptr, register_for_restart);
 } // getManager
 
 void
@@ -453,7 +463,8 @@ FEDataManager::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
     // Reset the hierarchy.
     TBOX_ASSERT(hierarchy);
     d_hierarchy = hierarchy;
-    d_cached_eulerian_data.setPatchHierarchy(hierarchy);
+    TBOX_ASSERT(d_eulerian_data_cache);
+    d_eulerian_data_cache->setPatchHierarchy(hierarchy);
     return;
 } // setPatchHierarchy
 
@@ -471,7 +482,8 @@ FEDataManager::setPatchLevels(const int coarsest_ln, const int finest_ln)
     TBOX_ASSERT((coarsest_ln >= 0) && (finest_ln >= coarsest_ln) && (finest_ln <= d_hierarchy->getFinestLevelNumber()));
     d_coarsest_ln = coarsest_ln;
     d_finest_ln = finest_ln;
-    d_cached_eulerian_data.resetLevels(coarsest_ln, finest_ln);
+    TBOX_ASSERT(d_eulerian_data_cache);
+    d_eulerian_data_cache->resetLevels(coarsest_ln, finest_ln);
     return;
 } // setPatchLevels
 
@@ -808,7 +820,7 @@ FEDataManager::spread(const int f_data_idx,
     TBOX_ASSERT(cc_data || sc_data);
 
     // Make a copy of the Eulerian data.
-    const auto f_copy_data_idx = d_cached_eulerian_data.getCachedPatchDataIndex(f_data_idx);
+    const auto f_copy_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
     Pointer<HierarchyDataOpsReal<NDIM, double> > f_data_ops =
         HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
@@ -2723,11 +2735,13 @@ FEDataManager::FEDataManager(std::shared_ptr<FEData> fe_data,
                              FEDataManager::SpreadSpec default_spread_spec,
                              FEDataManager::WorkloadSpec default_workload_spec,
                              IntVector<NDIM> ghost_width,
+                             std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
                              bool register_for_restart)
     : d_fe_data(fe_data),
       COORDINATES_SYSTEM_NAME(d_fe_data->d_coordinates_system_name),
       d_object_name(std::move(object_name)),
       d_registered_for_restart(register_for_restart),
+      d_eulerian_data_cache(eulerian_data_cache),
       d_default_workload_spec(default_workload_spec),
       d_default_interp_spec(default_interp_spec),
       d_default_spread_spec(default_spread_spec),
@@ -2753,6 +2767,9 @@ FEDataManager::FEDataManager(std::shared_ptr<FEData> fe_data,
     // Register the node count variable with the VariableDatabase.
     d_qp_count_var = new CellVariable<NDIM, double>(d_object_name + "::qp_count");
     d_qp_count_idx = var_db->registerVariableAndContext(d_qp_count_var, d_context, 0);
+
+    // Create a data caching object if one was not provided to the constructor.
+    if (!d_eulerian_data_cache) d_eulerian_data_cache.reset(new SAMRAIDataCache());
 
     // Setup Timers.
     IBTK_DO_ONCE(
@@ -2786,6 +2803,7 @@ FEDataManager::FEDataManager(std::string object_name,
                              FEDataManager::SpreadSpec default_spread_spec,
                              FEDataManager::WorkloadSpec default_workload_spec,
                              IntVector<NDIM> ghost_width,
+                             std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
                              bool register_for_restart)
     : FEDataManager(std::make_shared<FEData>(object_name + "::fe_data", register_for_restart),
                     object_name,
@@ -2793,6 +2811,7 @@ FEDataManager::FEDataManager(std::string object_name,
                     default_spread_spec,
                     default_workload_spec,
                     ghost_width,
+                    eulerian_data_cache,
                     register_for_restart)
 {
 } // FEDataManager
