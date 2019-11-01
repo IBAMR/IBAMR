@@ -40,6 +40,7 @@
 #include "ibamr/ibamr_enums.h"
 
 #include "ibtk/FEDataManager.h"
+#include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/libmesh_utilities.h"
 
 #include "GriddingAlgorithm.h"
@@ -780,6 +781,17 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
     bool d_is_initialized = false;
+
+    /*
+     * Scratch data caching objects.
+     *
+     * These are shared by all of the FEDataManagers associated with this class.
+     *
+     * Note that SAMRAIDataCache objects are associated with only a single
+     * PatchHierarchy object, and so different scratch data caching objects are
+     * needed for the regular and scratch patch hierarchies.
+     */
+    std::shared_ptr<IBTK::SAMRAIDataCache> d_eulerian_data_cache, d_scratch_eulerian_data_cache;
 
     /*
      * The current time step interval.

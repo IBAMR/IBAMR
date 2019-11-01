@@ -44,6 +44,7 @@
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
@@ -1169,11 +1170,18 @@ IBFESurfaceMethod::initializeFEEquationSystems()
     // parts and the Cartesian grid.
     d_equation_systems.resize(d_num_parts, nullptr);
     d_fe_data_managers.resize(d_num_parts, nullptr);
+    IntVector<NDIM> min_ghost_width(0);
+    if (!d_eulerian_data_cache) d_eulerian_data_cache.reset(new SAMRAIDataCache());
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Create FE data managers.
         const std::string manager_name = "IBFESurfaceMethod FEDataManager::" + std::to_string(part);
-        d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_spec[part], d_spread_spec[part]);
+        d_fe_data_managers[part] = FEDataManager::getManager(manager_name,
+                                                             d_interp_spec[part],
+                                                             d_spread_spec[part],
+                                                             d_default_workload_spec,
+                                                             min_ghost_width,
+                                                             d_eulerian_data_cache);
         d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
 
         // Create FE equation systems objects and corresponding variables.

@@ -1143,19 +1143,28 @@ IBFEMethod::initializeFEEquationSystems()
     d_primary_fe_data_managers.resize(d_num_parts, nullptr);
     d_scratch_fe_data_managers.resize(d_num_parts, nullptr);
     d_active_fe_data_managers.resize(d_num_parts, nullptr);
+    IntVector<NDIM> min_ghost_width(0);
+    if (!d_eulerian_data_cache) d_eulerian_data_cache.reset(new SAMRAIDataCache());
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Create FE data managers.
         const std::string manager_name = "IBFEMethod FEDataManager::" + std::to_string(part);
-        d_primary_fe_data_managers[part] =
-            FEDataManager::getManager(manager_name, d_interp_spec[part], d_spread_spec[part], d_workload_spec[part]);
+        d_primary_fe_data_managers[part] = FEDataManager::getManager(manager_name,
+                                                                     d_interp_spec[part],
+                                                                     d_spread_spec[part],
+                                                                     d_workload_spec[part],
+                                                                     min_ghost_width,
+                                                                     d_eulerian_data_cache);
         if (d_use_scratch_hierarchy)
         {
+            if (!d_scratch_eulerian_data_cache) d_scratch_eulerian_data_cache.reset(new SAMRAIDataCache());
             d_scratch_fe_data_managers[part] = FEDataManager::getManager(d_primary_fe_data_managers[part]->getFEData(),
                                                                          manager_name + "::scratch",
                                                                          d_interp_spec[part],
                                                                          d_spread_spec[part],
-                                                                         d_workload_spec[part]);
+                                                                         d_workload_spec[part],
+                                                                         min_ghost_width,
+                                                                         d_scratch_eulerian_data_cache);
             d_active_fe_data_managers[part] = d_scratch_fe_data_managers[part];
         }
         else

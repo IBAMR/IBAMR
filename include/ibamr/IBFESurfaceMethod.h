@@ -513,6 +513,11 @@ protected:
     bool d_is_initialized = false;
 
     /*
+     * Scratch data caching objects.
+     */
+    std::shared_ptr<IBTK::SAMRAIDataCache> d_eulerian_data_cache;
+
+    /*
      * The current time step interval.
      */
     double d_current_time = std::numeric_limits<double>::quiet_NaN(),
@@ -545,6 +550,7 @@ protected:
      */
     IBTK::FEDataManager::InterpSpec d_default_interp_spec;
     IBTK::FEDataManager::SpreadSpec d_default_spread_spec;
+    IBTK::FEDataManager::WorkloadSpec d_default_workload_spec;
     std::vector<IBTK::FEDataManager::InterpSpec> d_interp_spec;
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
     bool d_use_jump_conditions = false;
