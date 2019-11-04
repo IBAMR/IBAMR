@@ -1207,6 +1207,13 @@ private:
      * Update the caches of IB-ghosted vectors.
      */
     void updateCachedIBGhostedVectors();
+
+    /*!
+     * At the present time this class and FEDataManager assume that the finite
+     * element mesh is always on the finest grid level. This function
+     * explicitly asserts that this condition is met.
+     */
+    void assertStructureOnFinestLevel() const;
 };
 } // namespace IBAMR
 
