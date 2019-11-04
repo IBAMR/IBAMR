@@ -273,7 +273,7 @@ AdvDiffHierarchyIntegrator::getAdvectionVelocityFunction(Pointer<FaceVariable<ND
 } // getAdvectionVelocityFunction
 
 void
-AdvDiffHierarchyIntegrator::registerSourceTerm(Pointer<CellVariable<NDIM, double> > F_var)
+AdvDiffHierarchyIntegrator::registerSourceTerm(Pointer<CellVariable<NDIM, double> > F_var, const bool F_output)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(F_var);
@@ -283,6 +283,7 @@ AdvDiffHierarchyIntegrator::registerSourceTerm(Pointer<CellVariable<NDIM, double
 
     // Set default values.
     d_F_fcn[F_var] = nullptr;
+    d_F_output[F_var] = F_output;
     return;
 } // registerSourceTerm
 
@@ -327,7 +328,7 @@ AdvDiffHierarchyIntegrator::getSourceTermFunction(Pointer<CellVariable<NDIM, dou
 } // getSourceTermFunction
 
 void
-AdvDiffHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariable<NDIM, double> > Q_var)
+AdvDiffHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariable<NDIM, double> > Q_var, bool output_Q)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(Q_var);
@@ -354,6 +355,7 @@ AdvDiffHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariable<NDI
     d_Q_bc_coef[Q_var] =
         std::vector<RobinBcCoefStrategy<NDIM>*>(Q_depth, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr));
     d_Q_reset_priority.push_back(std::numeric_limits<int>::max());
+    d_Q_output[Q_var] = output_Q;
     return;
 } // registerTransportedQuantity
 
@@ -1155,7 +1157,8 @@ AdvDiffHierarchyIntegrator::registerVariables()
                          d_Q_init[Q_var]);
         Pointer<CellDataFactory<NDIM, double> > Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
-        if (d_visit_writer)
+        const bool Q_data_output = d_Q_output[Q_var];
+        if (d_visit_writer && Q_data_output)
             d_visit_writer->registerPlotQuantity(Q_var->getName(), Q_depth == 1 ? "SCALAR" : "VECTOR", Q_current_idx);
     }
     for (const auto& F_var : d_F_var)
@@ -1171,7 +1174,8 @@ AdvDiffHierarchyIntegrator::registerVariables()
                          d_F_fcn[F_var]);
         Pointer<CellDataFactory<NDIM, double> > F_factory = F_var->getPatchDataFactory();
         const int F_depth = F_factory->getDefaultDepth();
-        if (d_visit_writer)
+        const bool F_data_output = d_F_output[F_var];
+        if (d_visit_writer && F_data_output)
             d_visit_writer->registerPlotQuantity(F_var->getName(), F_depth == 1 ? "SCALAR" : "VECTOR", F_current_idx);
     }
     for (const auto& D_var : d_diffusion_coef_var)
