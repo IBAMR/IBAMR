@@ -164,11 +164,13 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 ../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
 ../src/utilities/ConvectiveOperator.cpp \
+../src/wave_tank/FifthOrderStokesWaveGenerator.cpp \
 ../src/wave_tank/StokesFifthOrderWaveBcCoef.cpp \
 ../src/wave_tank/StokesFirstOrderWaveBcCoef.cpp \
 ../src/wave_tank/StokesSecondOrderWaveBcCoef.cpp \
-../src/wave_tank/WaveDampingStrategy.cpp \
-../src/wave_tank/WaveGenerationStrategy.cpp
+../src/wave_tank/StokesWaveGeneratorStrategy.cpp \
+../src/wave_tank/WaveDampingFunctions.cpp \
+../src/wave_tank/WaveGenerationFunctions.cpp
 
 if LIBMESH_ENABLED
   DIM_INDEPENDENT_SOURCES += \
@@ -213,6 +215,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/GeneralizedIBMethod.h \
 ../include/ibamr/DirectMobilitySolver.h \
 ../include/ibamr/FastSweepingLSMethod.h \
+../include/ibamr/FifthOrderStokesWaveGenerator.h \
 ../include/ibamr/IBAnchorPointSpec.h \
 ../include/ibamr/IBBeamForceSpec.h \
 ../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -298,13 +301,14 @@ pkg_include_HEADERS += \
 ../include/ibamr/StokesFirstOrderWaveBcCoef.h \
 ../include/ibamr/StokesSecondOrderWaveBcCoef.h \
 ../include/ibamr/StokesSpecifications.h \
+../include/ibamr/StokesWaveGeneratorStrategy.h \
 ../include/ibamr/SurfaceTensionForceFunction.h \
 ../include/ibamr/VCStaggeredStokesOperator.h \
 ../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
 ../include/ibamr/Wall.h \
 ../include/ibamr/WallForceEvaluator.h \
-../include/ibamr/WaveDampingStrategy.h \
-../include/ibamr/WaveGenerationStrategy.h
+../include/ibamr/WaveDampingFunctions.h \
+../include/ibamr/WaveGenerationFunctions.h
 
 if LIBMESH_ENABLED
   pkg_include_HEADERS += \

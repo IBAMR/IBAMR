@@ -44,7 +44,6 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include "ibtk/IndexUtilities.h"
 #include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/ConstraintIBMethod.h>
@@ -58,8 +57,10 @@
 #include <ibamr/StokesFirstOrderWaveBcCoef.h>
 #include <ibamr/StokesSecondOrderWaveBcCoef.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
-#include <ibamr/WaveDampingStrategy.h>
+#include <ibamr/WaveDampingFunctions.h>
 #include <ibamr/app_namespaces.h>
+
+#include "ibtk/IndexUtilities.h"
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
 #include <ibtk/LData.h>

@@ -1,4 +1,4 @@
-// Filename: WaveDampingStrategy.cpp
+// Filename: WaveDampingFunctions.cpp
 // Created on 30 Jan 2019 by Nishant Nangia and Amneet Bhalla
 //
 // Copyright (c) 2002-2019, Nishant Nangia and Amneet Bhalla
@@ -32,10 +32,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/WaveDampingStrategy.h"
-#include "CartesianGridGeometry.h"
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+#include "ibamr/WaveDampingFunctions.h"
 #include "ibamr/app_namespaces.h"
+
 #include "ibtk/HierarchyMathOps.h"
+
+#include "CartesianGridGeometry.h"
+
 #include <boost/cstdint.hpp>
 #include <boost/math/tools/roots.hpp>
 
@@ -43,9 +48,161 @@ namespace IBAMR
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
 
+namespace
+{
+/*!
+ * A struct holding the required information used by the variable alpha damping method
+ */
+struct MassConservationFunctor
+{
+    std::pair<double, double> operator()(const double& alpha);
+    double d_dt;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > d_patch_hierarchy;
+    int d_u_idx;
+    int d_phi_new_idx;
+    int d_phi_current_idx;
+    int d_I_idx;
+    int d_dI_idx;
+    WaveDampingData* d_ptr_wave_damper;
+    static double s_newton_guess, s_newton_min, s_newton_max;
+};
+
 double MassConservationFunctor::s_newton_guess = 0.0;
 double MassConservationFunctor::s_newton_min = 0.0;
 double MassConservationFunctor::s_newton_max = 3.0;
+
+// Functor returning the value and 1st derviative.
+std::pair<double, double>
+MassConservationFunctor::operator()(const double& alpha)
+{
+    // Zone and wave parameters
+    const double x_zone_start = d_ptr_wave_damper->d_x_zone_start;
+    const double x_zone_end = d_ptr_wave_damper->d_x_zone_end;
+    const double depth = d_ptr_wave_damper->d_depth;
+
+    // Compute the integrad
+    const int coarsest_ln = 0;
+    const int finest_ln = d_patch_hierarchy->getFinestLevelNumber();
+    static const int dir = NDIM == 2 ? 1 : 2;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_patch_hierarchy->getPatchLevel(ln);
+        Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+        const double* const grid_X_lower = grid_geom->getXLower();
+        const double* const grid_X_upper = grid_geom->getXUpper();
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_dx = patch_geom->getDx();
+            const double* const patch_x_lower = patch_geom->getXLower();
+            const Box<NDIM>& patch_box = patch->getBox();
+            const IntVector<NDIM>& patch_lower = patch_box.lower();
+
+            Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(d_u_idx);
+            Pointer<CellData<NDIM, double> > phi_new_data = patch->getPatchData(d_phi_new_idx);
+            Pointer<CellData<NDIM, double> > phi_current_data = patch->getPatchData(d_phi_current_idx);
+            Pointer<CellData<NDIM, double> > I_data = patch->getPatchData(d_I_idx);
+            Pointer<CellData<NDIM, double> > dI_data = patch->getPatchData(d_dI_idx);
+
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                SAMRAI::hier::Index<NDIM> i = it();
+                CellIndex<NDIM> ci(it());
+                CellIndex<NDIM> cl = ci;
+                CellIndex<NDIM> cu = ci;
+                cl(0) -= 1;
+                cu(0) += 1;
+                const SideIndex<NDIM> sl(ci, /*axis*/ 0, SideIndex<NDIM>::Lower);
+                const SideIndex<NDIM> su(ci, /*axis*/ 0, SideIndex<NDIM>::Upper);
+
+                // Note: assumes (0,0) in bottom left corner, and water phase denoted by negative level set
+                const double phi_new = (*phi_new_data)(ci);
+                const double phi_current = (*phi_current_data)(ci);
+                const double phi_new_sc_lower = 0.5 * (phi_new + (*phi_new_data)(cl));
+                const double phi_new_sc_upper = 0.5 * (phi_new + (*phi_new_data)(cu));
+                const double u_sc_lower = (*u_data)(sl);
+                const double u_sc_upper = (*u_data)(su);
+
+                const auto x_posn = patch_x_lower[0] + patch_dx[0] * (static_cast<double>(i(0) - patch_lower(0)) + 0.5);
+
+                const auto z_posn =
+                    patch_x_lower[dir] + patch_dx[dir] * (static_cast<double>(i(dir) - patch_lower(dir)) + 0.5);
+
+                // Indicator for absorption region
+                const bool within_damping = (x_zone_start <= x_posn && x_posn <= x_zone_end);
+
+                if (!within_damping)
+                {
+                    (*I_data)(ci) = 0.0;
+                    (*dI_data)(ci) = 0.0;
+                }
+                else
+                {
+                    // 1 - Heaviside
+                    double theta_new_sc_lower, theta_new_sc_upper;
+                    double vol_cell = 1.0;
+                    for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
+                    auto beta = 1.0 * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+                    if (phi_new_sc_lower < -beta)
+                    {
+                        theta_new_sc_lower = 1.0;
+                    }
+                    else if (std::abs(phi_new_sc_lower) <= beta)
+                    {
+                        theta_new_sc_lower = 1.0 - (0.5 + 0.5 * phi_new_sc_lower / beta +
+                                                    1.0 / (2.0 * M_PI) * std::sin(M_PI * phi_new_sc_lower / beta));
+                    }
+                    else
+                    {
+                        theta_new_sc_lower = 0.0;
+                    }
+                    if (phi_new_sc_upper < -beta)
+                    {
+                        theta_new_sc_upper = 1.0;
+                    }
+                    else if (std::abs(phi_new_sc_upper) <= beta)
+                    {
+                        theta_new_sc_upper = 1.0 - (0.5 + 0.5 * phi_new_sc_upper / beta +
+                                                    1.0 / (2.0 * M_PI) * std::sin(M_PI * phi_new_sc_upper / beta));
+                    }
+                    else
+                    {
+                        theta_new_sc_upper = 0.0;
+                    }
+
+                    // NDIM - 1 area
+                    double area = 1.0;
+                    for (int d = 1; d < NDIM; ++d) area *= (grid_X_upper[d] - grid_X_lower[d]);
+
+                    const double fac = 5;
+                    const double xtilde = (x_posn - x_zone_start) / (x_zone_end - x_zone_start);
+                    const double xalph = std::pow(1.0 - xtilde, alpha);
+                    const double gamma = 1.0 - exp(-fac * xalph);
+                    const double eta_new = -phi_new + (z_posn - depth);
+                    const double eta_current = -phi_current + (z_posn - depth);
+                    const double dtu_dx =
+                        (theta_new_sc_upper * u_sc_upper - theta_new_sc_lower * u_sc_lower) / patch_dx[0];
+                    const double dgamma_dalpha = fac * exp(-fac * xalph) * xalph * log(1.0 - xtilde);
+                    (*I_data)(ci) = d_dt * gamma * dtu_dx + (gamma * eta_new - eta_current) / area;
+                    (*dI_data)(ci) = dgamma_dalpha * (d_dt * dtu_dx + eta_new / area);
+                }
+            }
+        }
+    }
+    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_patch_hierarchy, coarsest_ln, finest_ln);
+    HierarchyMathOps hier_math_ops("HierarchyMathOps", d_patch_hierarchy);
+    hier_math_ops.setPatchHierarchy(d_patch_hierarchy);
+    hier_math_ops.resetLevels(coarsest_ln, finest_ln);
+    const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
+    const double val = hier_cc_data_ops.integral(d_I_idx, wgt_cc_idx);
+    const double dval = hier_cc_data_ops.integral(d_dI_idx, wgt_cc_idx);
+    TBOX_ASSERT(!std::isnan(val));
+    TBOX_ASSERT(!std::isnan(dval));
+    return std::make_pair(val, dval);
+} // MassConservationFunctor::operator()
+
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -144,7 +301,7 @@ callRelaxationZoneCallbackFunction(double /*current_time*/,
                 const auto dir_posn =
                     patch_x_lower[dir] + patch_dx[dir] * (static_cast<double>(i(dir) - patch_lower(dir)) + 0.5);
 
-                const double dir_surface = sign_gas*(dir_posn - depth);
+                const double dir_surface = sign_gas * (dir_posn - depth);
 
                 if (x_posn >= x_zone_start && x_posn <= x_zone_end)
                 {
@@ -174,7 +331,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
     const double x_zone_end = ptr_wave_damper->d_x_zone_end;
     const double depth = ptr_wave_damper->d_depth;
     const double sign_gas = ptr_wave_damper->d_sign_gas_phase;
-    
+
     // Initialize the required variables
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const std::string var_name = "callConservedWaveAbsorbingCallbackFunction::I_var";
@@ -328,7 +485,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
 
                 const auto dir_posn =
                     patch_x_lower[dir] + patch_dx[dir] * (static_cast<double>(i(dir) - patch_lower(dir)) + 0.5);
-                const double dir_surface = sign_gas*(dir_posn - depth);
+                const double dir_surface = sign_gas * (dir_posn - depth);
 
                 if (x_posn >= x_zone_start && x_posn <= x_zone_end)
                 {
@@ -359,136 +516,4 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
 
 } // namespace WaveDampingFunctions
 
-// Functor returning the value and 1st derviative.
-std::pair<double, double>
-MassConservationFunctor::operator()(const double& alpha)
-{
-    // Zone and wave parameters
-    const double x_zone_start = d_ptr_wave_damper->d_x_zone_start;
-    const double x_zone_end = d_ptr_wave_damper->d_x_zone_end;
-    const double depth = d_ptr_wave_damper->d_depth;
-
-    // Compute the integrad
-    const int coarsest_ln = 0;
-    const int finest_ln = d_patch_hierarchy->getFinestLevelNumber();
-    static const int dir = NDIM == 2 ? 1 : 2;
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_patch_hierarchy->getPatchLevel(ln);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
-        const double* const grid_X_lower = grid_geom->getXLower();
-        const double* const grid_X_upper = grid_geom->getXUpper();
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const patch_dx = patch_geom->getDx();
-            const double* const patch_x_lower = patch_geom->getXLower();
-            const Box<NDIM>& patch_box = patch->getBox();
-            const IntVector<NDIM>& patch_lower = patch_box.lower();
-
-            Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(d_u_idx);
-            Pointer<CellData<NDIM, double> > phi_new_data = patch->getPatchData(d_phi_new_idx);
-            Pointer<CellData<NDIM, double> > phi_current_data = patch->getPatchData(d_phi_current_idx);
-            Pointer<CellData<NDIM, double> > I_data = patch->getPatchData(d_I_idx);
-            Pointer<CellData<NDIM, double> > dI_data = patch->getPatchData(d_dI_idx);
-
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
-            {
-                SAMRAI::hier::Index<NDIM> i = it();
-                CellIndex<NDIM> ci(it());
-                CellIndex<NDIM> cl = ci;
-                CellIndex<NDIM> cu = ci;
-                cl(0) -= 1;
-                cu(0) += 1;
-                const SideIndex<NDIM> sl(ci, /*axis*/ 0, SideIndex<NDIM>::Lower);
-                const SideIndex<NDIM> su(ci, /*axis*/ 0, SideIndex<NDIM>::Upper);
-
-                // Note: assumes (0,0) in bottom left corner, and water phase denoted by negative level set
-                const double phi_new = (*phi_new_data)(ci);
-                const double phi_current = (*phi_current_data)(ci);
-                const double phi_new_sc_lower = 0.5 * (phi_new + (*phi_new_data)(cl));
-                const double phi_new_sc_upper = 0.5 * (phi_new + (*phi_new_data)(cu));
-                const double u_sc_lower = (*u_data)(sl);
-                const double u_sc_upper = (*u_data)(su);
-
-                const auto x_posn = patch_x_lower[0] + patch_dx[0] * (static_cast<double>(i(0) - patch_lower(0)) + 0.5);
-
-                const auto z_posn =
-                    patch_x_lower[dir] + patch_dx[dir] * (static_cast<double>(i(dir) - patch_lower(dir)) + 0.5);
-
-                // Indicator for absorption region
-                const bool within_damping = (x_zone_start <= x_posn && x_posn <= x_zone_end);
-
-                if (!within_damping)
-                {
-                    (*I_data)(ci) = 0.0;
-                    (*dI_data)(ci) = 0.0;
-                }
-                else
-                {
-                    // 1 - Heaviside
-                    double theta_new_sc_lower, theta_new_sc_upper;
-                    double vol_cell = 1.0;
-                    for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-                    auto beta = 1.0 * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
-                    if (phi_new_sc_lower < -beta)
-                    {
-                        theta_new_sc_lower = 1.0;
-                    }
-                    else if (std::abs(phi_new_sc_lower) <= beta)
-                    {
-                        theta_new_sc_lower = 1.0 - (0.5 + 0.5 * phi_new_sc_lower / beta +
-                                                    1.0 / (2.0 * M_PI) * std::sin(M_PI * phi_new_sc_lower / beta));
-                    }
-                    else
-                    {
-                        theta_new_sc_lower = 0.0;
-                    }
-                    if (phi_new_sc_upper < -beta)
-                    {
-                        theta_new_sc_upper = 1.0;
-                    }
-                    else if (std::abs(phi_new_sc_upper) <= beta)
-                    {
-                        theta_new_sc_upper = 1.0 - (0.5 + 0.5 * phi_new_sc_upper / beta +
-                                                    1.0 / (2.0 * M_PI) * std::sin(M_PI * phi_new_sc_upper / beta));
-                    }
-                    else
-                    {
-                        theta_new_sc_upper = 0.0;
-                    }
-
-                    // NDIM - 1 area
-                    double area = 1.0;
-                    for (int d = 1; d < NDIM; ++d) area *= (grid_X_upper[d] - grid_X_lower[d]);
-
-                    const double fac = 5;
-                    const double xtilde = (x_posn - x_zone_start) / (x_zone_end - x_zone_start);
-                    const double xalph = std::pow(1.0 - xtilde, alpha);
-                    const double gamma = 1.0 - exp(-fac * xalph);
-                    const double eta_new = -phi_new + (z_posn - depth);
-                    const double eta_current = -phi_current + (z_posn - depth);
-                    const double dtu_dx =
-                        (theta_new_sc_upper * u_sc_upper - theta_new_sc_lower * u_sc_lower) / patch_dx[0];
-                    const double dgamma_dalpha = fac * exp(-fac * xalph) * xalph * log(1.0 - xtilde);
-                    (*I_data)(ci) = d_dt * gamma * dtu_dx + (gamma * eta_new - eta_current) / area;
-                    (*dI_data)(ci) = dgamma_dalpha * (d_dt * dtu_dx + eta_new / area);
-                }
-            }
-        }
-    }
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_patch_hierarchy, coarsest_ln, finest_ln);
-    HierarchyMathOps hier_math_ops("HierarchyMathOps", d_patch_hierarchy);
-    hier_math_ops.setPatchHierarchy(d_patch_hierarchy);
-    hier_math_ops.resetLevels(coarsest_ln, finest_ln);
-    const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
-    const double val = hier_cc_data_ops.integral(d_I_idx, wgt_cc_idx);
-    const double dval = hier_cc_data_ops.integral(d_dI_idx, wgt_cc_idx);
-    TBOX_ASSERT(!std::isnan(val));
-    TBOX_ASSERT(!std::isnan(dval));
-    return std::make_pair(val, dval);
-} // MassConservationFunctor::operator()
 } // namespace IBAMR
-
-//////////////////////////////////////////////////////////////////////////////

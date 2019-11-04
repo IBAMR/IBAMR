@@ -1,4 +1,4 @@
-// Filename: WaveDampingStrategy.h
+// Filename: WaveDampingFunctions.h
 // Created on 30 Jan 2019 by Nishant Nangia and Amneet Bhalla
 //
 // Copyright (c) 2002-2019, Nishant Nangia and Amneet Bhalla
@@ -32,17 +32,12 @@
 
 /////////////////////// INCLUDE GUARD ////////////////////////////////////
 
-#ifndef included_WaveDampingStrategy
-#define included_WaveDampingStrategy
+#ifndef included_WaveDampingFunctions
+#define included_WaveDampingFunctions
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
-#include <string>
 
-#include "Variable.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibtk/ibtk_utilities.h"
-#include "tbox/Pointer.h"
+#include "ibamr/WaveUtilities.h"
 
 namespace IBAMR
 {
@@ -74,52 +69,6 @@ void callConservedWaveAbsorbingCallbackFunction(double current_time,
                                                 void* ctx);
 } // namespace WaveDampingFunctions
 
-/*!
- * A struct holding the required information used by the wave damping function.
- */
-struct WaveDampingData
-{
-    /*
-     * Pointers to the fluid and advection-diffusion integrators.
-     */
-    SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredHierarchyIntegrator> d_ins_hier_integrator;
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
-
-    /*
-     * Pointer to the level set variable representing the wave interface.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_phi_var;
-
-    /*
-     *  Pointer to phi variable's new context.
-     *  \note We modify the phi value after the end of each timestep.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_phi_new_ctx;
-
-    /*
-     * Start and end coordinates of the damping zone, water depth, and damping coefficient.
-     */
-    double d_x_zone_start, d_x_zone_end, d_depth;
-    double d_alpha;
-    int d_sign_gas_phase = 1;
-};
-
-/*!
- * A struct holding the required information used by the variable alpha damping method
- */
-struct MassConservationFunctor
-{
-    std::pair<double, double> operator()(const double& alpha);
-    double d_dt;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > d_patch_hierarchy;
-    int d_u_idx;
-    int d_phi_new_idx;
-    int d_phi_current_idx;
-    int d_I_idx;
-    int d_dI_idx;
-    WaveDampingData* d_ptr_wave_damper;
-    static double s_newton_guess, s_newton_min, s_newton_max;
-};
 } // namespace IBAMR
 
-#endif // #ifndef included_WaveDampingStrategy
+#endif // #ifndef included_WaveDampingFunctions
