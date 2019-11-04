@@ -791,7 +791,7 @@ protected:
      * PatchHierarchy object, and so different scratch data caching objects are
      * needed for the regular and scratch patch hierarchies.
      */
-    std::shared_ptr<IBTK::SAMRAIDataCache> d_eulerian_data_cache, d_scratch_eulerian_data_cache;
+    std::shared_ptr<IBTK::SAMRAIDataCache> d_primary_eulerian_data_cache, d_scratch_eulerian_data_cache;
 
     /*
      * The current time step interval.
