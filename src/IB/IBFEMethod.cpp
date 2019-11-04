@@ -1818,7 +1818,8 @@ IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hiera
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_primary_fe_data_managers[part]->setPatchHierarchy(hierarchy);
-        d_primary_fe_data_managers[part]->setPatchLevels(0, hierarchy->getFinestLevelNumber());
+        d_primary_fe_data_managers[part]->setPatchLevels(hierarchy->getFinestLevelNumber(),
+                                                         hierarchy->getFinestLevelNumber());
     }
     return;
 } // resetHierarchyConfiguration
