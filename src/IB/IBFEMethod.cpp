@@ -51,6 +51,7 @@
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
+#include "BergerRigoutsos.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "CellIndex.h"
@@ -64,8 +65,10 @@
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
+#include "RefineOperator.h"
 #include "SideData.h"
 #include "SideIndex.h"
+#include "StandardTagAndInitialize.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "tbox/Array.h"
@@ -541,8 +544,8 @@ IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDI
     for (int i = tsize; i < finest_hier_ln; ++i) tag_buffer[i] = 0;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        const int gcw = d_active_fe_data_managers[part]->getGhostCellWidth().max();
-        const int tag_ln = d_active_fe_data_managers[part]->getLevelNumber() - 1;
+        const int gcw = d_primary_fe_data_managers[part]->getGhostCellWidth().max();
+        const int tag_ln = d_primary_fe_data_managers[part]->getLevelNumber() - 1;
         if (tag_ln >= 0 && tag_ln < finest_hier_ln)
         {
             tag_buffer[tag_ln] = std::max(tag_buffer[tag_ln], gcw);
@@ -744,6 +747,20 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                 const double data_time)
 {
+    // Communicate ghost data.
+    for (const auto& u_ghost_fill_sched : u_ghost_fill_scheds)
+    {
+        if (u_ghost_fill_sched) u_ghost_fill_sched->fillData(data_time);
+    }
+
+    if (d_use_scratch_hierarchy)
+    {
+        assertStructureOnFinestLevel();
+        getPrimaryToScratchSchedule(
+            d_hierarchy->getFinestLevelNumber(), u_data_idx, d_ib_solver->getVelocityPhysBdryOp())
+            .fillData(data_time);
+    }
+
     std::vector<PetscVector<double>*> U_vecs(d_num_parts), X_vecs(d_num_parts);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -765,11 +782,6 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         }
     }
 
-    // Communicate ghost data.
-    for (const auto& u_ghost_fill_sched : u_ghost_fill_scheds)
-    {
-        if (u_ghost_fill_sched) u_ghost_fill_sched->fillData(data_time);
-    }
     std::vector<Pointer<RefineSchedule<NDIM> > > no_fill(u_ghost_fill_scheds.size(), nullptr);
 
     batch_vec_copy(X_vecs, d_X_IB_ghost_vecs);
@@ -787,6 +799,11 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                                         /*close_F*/ false,
                                                         /*close_X*/ false);
     }
+
+    // Note that FEDataManager only reads (and does not modify) Eulerian data
+    // during interpolation so nothing needs to be transferred back to
+    // d_hierarchy from d_scratch_hierarchy.
+
     if (d_use_ghosted_velocity_rhs)
     {
         batch_vec_ghost_update(d_U_rhs_vecs, ADD_VALUES, SCATTER_REVERSE);
@@ -929,6 +946,13 @@ IBFEMethod::spreadForce(const int f_data_idx,
     batch_vec_copy({ d_X_half_vecs, d_F_half_vecs }, { d_X_IB_ghost_vecs, d_F_IB_ghost_vecs });
     batch_vec_ghost_update({ d_X_IB_ghost_vecs, d_F_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
+    if (d_use_scratch_hierarchy)
+    {
+        assertStructureOnFinestLevel();
+        // TODO: we don't need a RefinePatchStrategy here, right?
+        getPrimaryToScratchSchedule(d_hierarchy->getFinestLevelNumber(), f_data_idx).fillData(data_time);
+    }
+
     // Spread interior force density values.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -942,6 +966,13 @@ IBFEMethod::spreadForce(const int f_data_idx,
                                                 data_time,
                                                 /*close_F*/ false,
                                                 /*close_X*/ false);
+    }
+
+    if (d_use_scratch_hierarchy)
+    {
+        assertStructureOnFinestLevel();
+        // TODO: we don't need a RefinePatchStrategy here, right?
+        getScratchToPrimarySchedule(d_hierarchy->getFinestLevelNumber(), f_data_idx).fillData(data_time);
     }
 
     // Handle any transmission conditions.
@@ -978,7 +1009,7 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
     {
         if (!d_lag_body_source_part[part]) continue;
 
-        EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
+        EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
         const MeshBase& mesh = equation_systems.get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
 
@@ -986,13 +1017,13 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         auto& Q_system = equation_systems.get_system<ExplicitSystem>(SOURCE_SYSTEM_NAME);
         const DofMap& Q_dof_map = Q_system.get_dof_map();
         FEDataManager::SystemDofMapCache& Q_dof_map_cache =
-            *d_active_fe_data_managers[part]->getDofMapCache(SOURCE_SYSTEM_NAME);
+            *d_primary_fe_data_managers[part]->getDofMapCache(SOURCE_SYSTEM_NAME);
         FEType Q_fe_type = Q_dof_map.variable_type(0);
         auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
-        FEDataInterpolation fe(dim, d_active_fe_data_managers[part]);
+        FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]);
         std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, FIFTH);
         fe.attachQuadratureRule(qrule.get());
         fe.evalQuadraturePoints();
@@ -1062,7 +1093,7 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
 
         // Solve for Q.
         NumericVector<double>& Q_vec = *d_Q_half_vecs[part];
-        d_active_fe_data_managers[part]->computeL2Projection(
+        d_primary_fe_data_managers[part]->computeL2Projection(
             Q_vec, *Q_rhs_vec, SOURCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
     }
 }
@@ -1076,6 +1107,13 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     batch_vec_copy({ d_X_half_vecs, d_Q_half_vecs }, { d_X_IB_ghost_vecs, d_Q_IB_ghost_vecs });
     batch_vec_ghost_update({ d_X_IB_ghost_vecs, d_Q_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
+
+    if (d_use_scratch_hierarchy)
+    {
+        assertStructureOnFinestLevel();
+        getPrimaryToScratchSchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx).fillData(data_time);
+    }
+
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         if (!d_lag_body_source_part[part]) continue;
@@ -1088,6 +1126,13 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
                                                 /*close_Q*/ false,
                                                 /*close_X*/ false);
     }
+
+    if (d_use_scratch_hierarchy)
+    {
+        assertStructureOnFinestLevel();
+        getScratchToPrimarySchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx).fillData(data_time);
+    }
+
     return;
 }
 
@@ -1144,7 +1189,7 @@ IBFEMethod::initializeFEEquationSystems()
     d_scratch_fe_data_managers.resize(d_num_parts, nullptr);
     d_active_fe_data_managers.resize(d_num_parts, nullptr);
     IntVector<NDIM> min_ghost_width(0);
-    if (!d_eulerian_data_cache) d_eulerian_data_cache.reset(new SAMRAIDataCache());
+    if (!d_primary_eulerian_data_cache) d_primary_eulerian_data_cache.reset(new SAMRAIDataCache());
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Create FE data managers.
@@ -1154,7 +1199,7 @@ IBFEMethod::initializeFEEquationSystems()
                                                                      d_spread_spec[part],
                                                                      d_workload_spec[part],
                                                                      min_ghost_width,
-                                                                     d_eulerian_data_cache);
+                                                                     d_primary_eulerian_data_cache);
         if (d_use_scratch_hierarchy)
         {
             if (!d_scratch_eulerian_data_cache) d_scratch_eulerian_data_cache.reset(new SAMRAIDataCache());
@@ -1446,6 +1491,15 @@ IBFEMethod::registerEulerianVariables()
                      ghosts,
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
+
+    d_lagrangian_workload_var = new CellVariable<NDIM, double>(d_object_name + "::lagrangian_workload");
+    registerVariable(d_lagrangian_workload_current_idx,
+                     d_lagrangian_workload_new_idx,
+                     d_lagrangian_workload_scratch_idx,
+                     d_lagrangian_workload_var,
+                     ghosts,
+                     d_lagrangian_workload_coarsen_type,
+                     d_lagrangian_workload_refine_type);
     return;
 } // registerEulerianVariables
 
@@ -1463,11 +1517,26 @@ IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
 
+    // At this point we have not yet regridded, so we have not repartitioned:
+    // make the scratch hierarchy a copy of the primary one so that it is not
+    // null (which greatly simplifies control flow below)
+    if (d_use_scratch_hierarchy)
+        d_scratch_hierarchy = d_hierarchy->makeRefinedPatchHierarchy(
+            d_object_name + "::scratch_hierarchy", IntVector<NDIM>(1), /*register_for_restart*/ false);
+
     // Initialize the FE data managers.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_primary_fe_data_managers[part]->reinitElementMappings();
-        if (d_use_scratch_hierarchy) d_scratch_fe_data_managers[part]->reinitElementMappings();
+        if (d_use_scratch_hierarchy)
+        {
+            d_scratch_fe_data_managers[part]->setPatchHierarchy(d_scratch_hierarchy);
+            // TODO: we will have to change this when we support structures
+            // than can live on more than just the finest level
+            d_scratch_fe_data_managers[part]->setPatchLevels(d_scratch_hierarchy->getFinestLevelNumber(),
+                                                             d_scratch_hierarchy->getFinestLevelNumber());
+            d_scratch_fe_data_managers[part]->reinitElementMappings();
+        }
     }
     updateCachedIBGhostedVectors();
 
@@ -1488,9 +1557,30 @@ IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int
 void
 IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
 {
-    for (unsigned int part = 0; part < d_num_parts; ++part)
+    // TODO: since this function is called before we finish setting everything
+    // up the data interdependencies are complicated and its too hard to
+    // communicate between the scratch and primary hierarchies. Try to fix
+    // this.
+    if (hierarchy == d_scratch_hierarchy)
     {
-        d_active_fe_data_managers[part]->addWorkloadEstimate(hierarchy, workload_data_idx);
+        TBOX_ASSERT(d_use_scratch_hierarchy);
+
+        for (unsigned int part = 0; part < d_num_parts; ++part)
+        {
+            d_scratch_fe_data_managers[part]->addWorkloadEstimate(hierarchy, workload_data_idx);
+        }
+    }
+    else
+    {
+        // If we use the scratch hierarchy then the work on the provided
+        // hierarchy is zero, so we have nothing to add
+        if (!d_use_scratch_hierarchy)
+        {
+            for (unsigned int part = 0; part < d_num_parts; ++part)
+            {
+                d_primary_fe_data_managers[part]->addWorkloadEstimate(hierarchy, workload_data_idx);
+            }
+        }
     }
 
     if (d_do_log)
@@ -1563,7 +1653,84 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
     // if we are not initialized then there is nothing to do
     if (d_is_initialized)
     {
-        // Checking the workload index like this breaks incapsulation, but
+        if (d_use_scratch_hierarchy)
+        {
+            // TODO: we want to repartition the regridded primary hierarchy at
+            // this point. Hence, we do computations with that data
+            // partitioning which is not very efficient. A better approach would be:
+            //
+            // 1. Compute lagrangian workload on the scratch hierarchy.
+            // 2. Communicate that workload to the primary hierarchy.
+            // 3. Regrid the primary hierarchy.
+            // 4. Copy that data into the new freshly-copied scratch hierarchy.
+            //
+            // This way we wouldn't have to do computations on the primary
+            // FEDataManager. It would also be nice to propagate tag data in
+            // this way (so that the call to applyGradientDetector will be a
+            // no-op for the scratch hierarchy).
+            if (d_do_log) plog << "IBFEMethod: starting scratch hierarchy regrid" << std::endl;
+            d_scratch_hierarchy = d_hierarchy->makeRefinedPatchHierarchy(
+                d_object_name + "::scratch_hierarchy", IntVector<NDIM>(1), /*register_for_restart*/ false);
+            for (unsigned int part = 0; part < d_num_parts; ++part)
+            {
+                if (d_use_scratch_hierarchy)
+                {
+                    d_scratch_fe_data_managers[part]->setPatchHierarchy(d_scratch_hierarchy);
+                    assertStructureOnFinestLevel();
+                    d_scratch_fe_data_managers[part]->setPatchLevels(d_scratch_hierarchy->getFinestLevelNumber(),
+                                                                     d_scratch_hierarchy->getFinestLevelNumber());
+                    d_scratch_fe_data_managers[part]->reinitElementMappings();
+                }
+            }
+
+            // At this point the primary hierarchy has been regridded but the
+            // scratch hierarchy has not.
+            Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
+            Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>(d_load_balancer_db);
+            load_balancer->setWorkloadPatchDataIndex(d_lagrangian_workload_current_idx);
+
+            // only tag cells for refinement based on this class' refinement
+            // criterion: we won't ever read boxes that are away from the
+            // structure. IBFEMethod implements applyGradientDetector so we
+            // have to turn that on.
+            Pointer<InputDatabase> database(new InputDatabase(d_object_name + ":: tag_db"));
+            database->putString("tagging_method", "GRADIENT_DETECTOR");
+
+            Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+                new StandardTagAndInitialize<NDIM>(d_object_name + ":: tag", this, database);
+
+            Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+                new GriddingAlgorithm<NDIM>(d_object_name + ":: gridding_alg",
+                                            d_gridding_algorithm_db,
+                                            error_detector,
+                                            box_generator,
+                                            load_balancer);
+
+            // Use this class' buffer requirements when regridding
+            Array<int> tag_buffer;
+            setupTagBuffer(tag_buffer, gridding_algorithm);
+
+            for (int ln = 0; ln <= d_scratch_hierarchy->getFinestLevelNumber(); ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > scratch_level = d_scratch_hierarchy->getPatchLevel(ln);
+                // we also need workload
+                if (!scratch_level->checkAllocated(d_lagrangian_workload_current_idx))
+                    scratch_level->allocatePatchData(d_lagrangian_workload_current_idx);
+            }
+
+            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(
+                d_scratch_hierarchy, 0, d_scratch_hierarchy->getFinestLevelNumber());
+            hier_cc_data_ops.setToScalar(d_lagrangian_workload_current_idx, 0.0);
+            addWorkloadEstimate(d_scratch_hierarchy, d_lagrangian_workload_current_idx);
+
+            // TODO: d_current_time is actually nan here. Since we don't do
+            // any sort of tagging based on the current time I think we can
+            // just put in a bogus (nonnegative) value.
+            gridding_algorithm->regridAllFinerLevels(d_scratch_hierarchy, 0, 0.0 /*d_current_time*/, tag_buffer);
+            if (d_do_log) plog << "IBFEMethod: finished scratch hierarchy regrid" << std::endl;
+        }
+
+        // Checking the workload index like this breaks encapsulation, but
         // since this is inside the library and not user code its not so bad
         const bool workload_is_setup = d_ib_solver ? d_ib_solver->getWorkloadDataIndex() != IBTK::invalid_index : false;
         // At this point in the code SAMRAI has already redistributed the
@@ -1582,6 +1749,29 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             }
         }
 
+        if (d_use_scratch_hierarchy)
+        {
+            // FEDataManager needs
+            // 1. velocity
+            // 2. force
+            // 3. workload or some quadrature point per cell count
+            // 4. tagging
+            //
+            // patch data in the scratch hierarchy. However, the data index is not
+            // known until the call to interpolateVelocity or spreadForce, so
+            // clear existing data but do not allocate yet.
+            d_scratch_transfer_forward_schedules.clear();
+            d_scratch_transfer_backward_schedules.clear();
+
+            for (unsigned int part = 0; part < d_num_parts; ++part)
+            {
+                d_scratch_fe_data_managers[part]->setPatchHierarchy(d_scratch_hierarchy);
+                assertStructureOnFinestLevel();
+                d_scratch_fe_data_managers[part]->setPatchLevels(d_scratch_hierarchy->getFinestLevelNumber(),
+                                                                 d_scratch_hierarchy->getFinestLevelNumber());
+            }
+        }
+
         reinitializeFEData();
         for (unsigned int part = 0; part < d_num_parts; ++part)
         {
@@ -1589,41 +1779,48 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             if (d_use_scratch_hierarchy) d_scratch_fe_data_managers[part]->reinitElementMappings();
         }
         updateCachedIBGhostedVectors();
+
+        if (d_use_scratch_hierarchy)
+        {
+            if (d_do_log) plog << "IBFEMethod::scratch hierarchy workload" << std::endl;
+            for (int ln = 0; ln <= d_scratch_hierarchy->getFinestLevelNumber(); ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > scratch_level = d_scratch_hierarchy->getPatchLevel(ln);
+                if (!scratch_level->checkAllocated(d_lagrangian_workload_current_idx))
+                    scratch_level->allocatePatchData(d_lagrangian_workload_current_idx);
+            }
+            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(
+                d_scratch_hierarchy, 0, d_scratch_hierarchy->getFinestLevelNumber());
+            hier_cc_data_ops.setToScalar(d_lagrangian_workload_current_idx, 0.0);
+            addWorkloadEstimate(d_scratch_hierarchy, d_lagrangian_workload_current_idx);
+            if (d_do_log) plog << "IBFEMethod:: end scratch hierarchy workload" << std::endl;
+        }
     }
     return;
 } // endDataRedistribution
 
 void
-IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                int level_number,
-                                double init_data_time,
-                                bool can_be_refined,
-                                bool initial_time,
-                                Pointer<BasePatchLevel<NDIM> > old_level,
-                                bool allocate_data)
+IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+                                int /*level_number*/,
+                                double /*init_data_time*/,
+                                bool /*can_be_refined*/,
+                                bool /*initial_time*/,
+                                Pointer<BasePatchLevel<NDIM> > /*old_level*/,
+                                bool /*allocate_data*/)
 {
-    const int finest_hier_level = hierarchy->getFinestLevelNumber();
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        d_primary_fe_data_managers[part]->setPatchHierarchy(hierarchy);
-        d_primary_fe_data_managers[part]->setPatchLevels(0, finest_hier_level);
-        d_primary_fe_data_managers[part]->initializeLevelData(
-            hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
-    }
-    return;
 } // initializeLevelData
 
 void
 IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                        int coarsest_level,
+                                        int /*coarsest_level*/,
                                         int /*finest_level*/)
 {
-    const int finest_hier_level = hierarchy->getFinestLevelNumber();
+    if (hierarchy == d_scratch_hierarchy) return;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_primary_fe_data_managers[part]->setPatchHierarchy(hierarchy);
-        d_primary_fe_data_managers[part]->setPatchLevels(0, hierarchy->getFinestLevelNumber());
-        d_primary_fe_data_managers[part]->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_hier_level);
+        d_primary_fe_data_managers[part]->setPatchLevels(hierarchy->getFinestLevelNumber(),
+                                                         hierarchy->getFinestLevelNumber());
     }
     return;
 } // resetHierarchyConfiguration
@@ -1640,9 +1837,23 @@ IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierar
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
+
+    // If we are working on the scratch hierarchy then this is the first and
+    // last place where we will do gradient detection: hence it is our
+    // responsibility to zero the array; otherwise SAMRAI tries to refine
+    // everything.
+    if (hierarchy == d_scratch_hierarchy)
+    {
+        HierarchyCellDataOpsInteger<NDIM> hier_cc_data_ops(hierarchy, level_number, level_number);
+        hier_cc_data_ops.setToScalar(tag_index, 0);
+    }
+
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        d_active_fe_data_managers[part]->applyGradientDetector(
+        auto* fe_data_manager = hierarchy == d_primary_fe_data_managers[part]->getPatchHierarchy() ?
+                                    d_primary_fe_data_managers[part] :
+                                    d_scratch_fe_data_managers[part];
+        fe_data_manager->applyGradientDetector(
             hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     }
     return;
@@ -1677,6 +1888,12 @@ IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirname, un
     return;
 }
 
+SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> >
+IBFEMethod::getScratchHierarchy()
+{
+    return d_scratch_hierarchy;
+}
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
@@ -1686,7 +1903,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
                                        const unsigned int part)
 {
     // Extract the mesh.
-    EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
+    EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems.get_mesh();
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
@@ -1697,7 +1914,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     auto& Phi_system = equation_systems.get_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
     const DofMap& Phi_dof_map = Phi_system.get_dof_map();
     FEDataManager::SystemDofMapCache& Phi_dof_map_cache =
-        *d_active_fe_data_managers[part]->getDofMapCache(PHI_SYSTEM_NAME);
+        *d_primary_fe_data_managers[part]->getDofMapCache(PHI_SYSTEM_NAME);
     FEType Phi_fe_type = Phi_dof_map.variable_type(0);
     std::vector<int> Phi_vars(1, 0);
 
@@ -1705,7 +1922,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     std::vector<int> X_vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) X_vars[d] = d;
 
-    FEDataInterpolation fe(dim, d_active_fe_data_managers[part]);
+    FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]);
     std::unique_ptr<QBase> qrule_face = QBase::build(QGAUSS, dim - 1, FIFTH);
     fe.attachQuadratureRuleFace(qrule_face.get());
     fe.evalNormalsFace();
@@ -1902,7 +2119,7 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
                                             const unsigned int part)
 {
     // Extract the mesh.
-    EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
+    EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems.get_mesh();
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
@@ -1922,7 +2139,7 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
         // Extract the FE systems and DOF maps, and setup the FE object.
         const DofMap& G_dof_map = G_system.get_dof_map();
         FEDataManager::SystemDofMapCache& G_dof_map_cache =
-            *d_active_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
+            *d_primary_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
         FEType G_fe_type = G_dof_map.variable_type(0);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -1932,7 +2149,7 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
-        FEDataInterpolation fe(dim, d_active_fe_data_managers[part]);
+        FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]);
         std::unique_ptr<QBase> qrule =
             QBase::build(d_PK1_stress_fcn_data[part][k].quad_type, dim, d_PK1_stress_fcn_data[part][k].quad_order);
         std::unique_ptr<QBase> qrule_face =
@@ -2101,7 +2318,7 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
     // Extract the FE systems and DOF maps, and setup the FE objects.
     const DofMap& G_dof_map = G_system.get_dof_map();
     FEDataManager::SystemDofMapCache& G_dof_map_cache =
-        *d_active_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
+        *d_primary_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
     FEType G_fe_type = G_dof_map.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -2114,7 +2331,7 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
     std::vector<int> Phi_vars(1, 0);
     std::vector<int> no_vars;
 
-    FEDataInterpolation fe(dim, d_active_fe_data_managers[part]);
+    FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]);
     std::unique_ptr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
     std::unique_ptr<QBase> qrule_face = QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
     fe.attachQuadratureRule(qrule.get());
@@ -2373,7 +2590,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
     // Extract the mesh.
-    EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
+    EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems.get_mesh();
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
@@ -2391,7 +2608,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
-    FEDataInterpolation fe(dim, d_active_fe_data_managers[part]);
+    FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]);
     std::unique_ptr<QBase> default_qrule_face =
         QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
     fe.attachQuadratureRuleFace(default_qrule_face.get());
@@ -2430,8 +2647,8 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     // Loop over the patches to spread the transmission elastic force density
     // onto the grid.
     const std::vector<std::vector<Elem*> >& active_patch_element_map =
-        d_active_fe_data_managers[part]->getActivePatchElementMap();
-    const int level_num = d_active_fe_data_managers[part]->getLevelNumber();
+        d_primary_fe_data_managers[part]->getActivePatchElementMap();
+    const int level_num = d_primary_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> F, F_s, n, x;
     double P;
@@ -2607,7 +2824,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
 
         // Spread the boundary forces to the grid.
         const std::string& spread_kernel_fcn = d_spread_spec[part].kernel_fcn;
-        const hier::IntVector<NDIM>& ghost_width = d_active_fe_data_managers[part]->getGhostCellWidth();
+        const hier::IntVector<NDIM>& ghost_width = d_primary_fe_data_managers[part]->getGhostCellWidth();
         const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), ghost_width);
         Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
         LEInteractor::spread(f_data, T_bdry, NDIM, x_bdry, NDIM, patch, spread_box, spread_kernel_fcn);
@@ -2645,7 +2862,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     if (!integrate_normal_force) return;
 
     // Extract the mesh.
-    EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
+    EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems.get_mesh();
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
@@ -2666,7 +2883,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
     std::vector<int> no_vars;
 
-    FEDataInterpolation fe(dim, d_active_fe_data_managers[part]);
+    FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]);
     std::unique_ptr<QBase> qrule_face = QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
     fe.attachQuadratureRuleFace(qrule_face.get());
     fe.evalQuadraturePointsFace();
@@ -2704,8 +2921,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     // are determined from the interior and transmission elastic force
     // densities.
     const std::vector<std::vector<Elem*> >& active_patch_element_map =
-        d_active_fe_data_managers[part]->getActivePatchElementMap();
-    const int level_num = d_active_fe_data_managers[part]->getLevelNumber();
+        d_primary_fe_data_managers[part]->getActivePatchElementMap();
+    const int level_num = d_primary_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> G, F, F_s, n, x;
     std::vector<libMesh::Point> X_node_cache, x_node_cache;
@@ -2993,7 +3210,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 void
 IBFEMethod::initializeCoordinates(const unsigned int part)
 {
-    EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
+    EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     MeshBase& mesh = equation_systems.get_mesh();
     auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
@@ -3027,7 +3244,7 @@ IBFEMethod::initializeCoordinates(const unsigned int part)
 void
 IBFEMethod::updateCoordinateMapping(const unsigned int part)
 {
-    EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
+    EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     MeshBase& mesh = equation_systems.get_mesh();
     auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
@@ -3058,7 +3275,7 @@ IBFEMethod::updateCoordinateMapping(const unsigned int part)
 void
 IBFEMethod::initializeVelocity(const unsigned int part)
 {
-    EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
+    EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     MeshBase& mesh = equation_systems.get_mesh();
     auto& U_system = equation_systems.get_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
     const unsigned int U_sys_num = U_system.number();
@@ -3091,6 +3308,47 @@ IBFEMethod::initializeVelocity(const unsigned int part)
     copy_and_synch(U_vec, *U_system.current_local_solution, /*close_v_in*/ false);
     return;
 } // initializeVelocity
+
+SAMRAI::xfer::RefineSchedule<NDIM>&
+IBFEMethod::getPrimaryToScratchSchedule(const int level_number,
+                                        const int data_idx,
+                                        SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy)
+{
+    TBOX_ASSERT(d_scratch_hierarchy);
+    const auto key = std::make_pair(level_number, data_idx);
+    if (d_scratch_transfer_forward_schedules.count(key) == 0)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
+        Pointer<PatchLevel<NDIM> > scratch_level = d_scratch_hierarchy->getPatchLevel(level_number);
+        if (!scratch_level->checkAllocated(data_idx)) scratch_level->allocatePatchData(data_idx, 0.0);
+        Pointer<RefineAlgorithm<NDIM> > refine_algorithm = new RefineAlgorithm<NDIM>();
+        Pointer<RefineOperator<NDIM> > refine_op_f = nullptr;
+        refine_algorithm->registerRefine(data_idx, data_idx, data_idx, refine_op_f);
+        d_scratch_transfer_forward_schedules[key] =
+            refine_algorithm->createSchedule("DEFAULT_FILL", scratch_level, level, patch_strategy, false, nullptr);
+    }
+    return *d_scratch_transfer_forward_schedules[key];
+} // getPrimaryToScratchSchedule
+
+SAMRAI::xfer::RefineSchedule<NDIM>&
+IBFEMethod::getScratchToPrimarySchedule(const int level_number,
+                                        const int data_idx,
+                                        SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy)
+{
+    TBOX_ASSERT(d_scratch_hierarchy);
+    const auto key = std::make_pair(level_number, data_idx);
+    if (d_scratch_transfer_backward_schedules.count(key) == 0)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
+        Pointer<PatchLevel<NDIM> > scratch_level = d_scratch_hierarchy->getPatchLevel(level_number);
+        Pointer<RefineAlgorithm<NDIM> > refine_algorithm = new RefineAlgorithm<NDIM>();
+        Pointer<RefineOperator<NDIM> > refine_op_b = nullptr;
+        refine_algorithm->registerRefine(data_idx, data_idx, data_idx, refine_op_b);
+        d_scratch_transfer_backward_schedules[key] =
+            refine_algorithm->createSchedule("DEFAULT_FILL", level, scratch_level, patch_strategy, false, nullptr);
+    }
+    return *d_scratch_transfer_backward_schedules[key];
+} // getScratchToPrimarySchedule
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -3350,6 +3608,21 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     {
         d_default_workload_spec.q_point_weight = db->getDouble("workload_quad_point_weight");
     }
+
+    d_use_scratch_hierarchy = db->getBoolWithDefault("use_scratch_hierarchy", false);
+    if (d_use_scratch_hierarchy)
+    {
+        if (!db->isDatabase("GriddingAlgorithm") || !db->isDatabase("LoadBalancer"))
+        {
+            TBOX_ERROR(d_object_name << ": if the scratch hierarchy is enabled "
+                                        "then the input database should contain entries for the "
+                                        "scratch GriddingAlgorithm and LoadBalancer."
+                                     << std::endl);
+        }
+        d_gridding_algorithm_db = db->getDatabase("GriddingAlgorithm");
+        d_load_balancer_db = db->getDatabase("LoadBalancer");
+    }
+
     return;
 } // getFromInput
 
@@ -3379,6 +3652,23 @@ IBFEMethod::getFromRestart()
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
     return;
 } // getFromRestart
+
+void
+IBFEMethod::assertStructureOnFinestLevel() const
+{
+    for (unsigned part = 0; part < d_num_parts; ++part)
+    {
+        const auto pair = d_primary_fe_data_managers[part]->getPatchLevels();
+        TBOX_ASSERT(pair.first == d_hierarchy->getFinestLevelNumber() &&
+                    pair.second == d_hierarchy->getFinestLevelNumber() + 1);
+        if (d_use_scratch_hierarchy)
+        {
+            const auto scratch_pair = d_scratch_fe_data_managers[part]->getPatchLevels();
+            TBOX_ASSERT(scratch_pair.first == d_hierarchy->getFinestLevelNumber() &&
+                        scratch_pair.second == d_hierarchy->getFinestLevelNumber() + 1);
+        }
+    }
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

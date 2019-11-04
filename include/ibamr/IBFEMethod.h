@@ -121,7 +121,7 @@ namespace IBAMR
  * from <code>GHOSTED</code>, the default, to <code>CACHE</code>, which will
  * use PETSc's VecCache object to distribute data.
  *
- * <h2>Options Controlling Partitioning</h2>
+ * <h2>Options Controlling libMesh Partitioning</h2>
  *
  * This class can repartition libMesh data in a way that matches SAMRAI's
  * distribution of patches; put another way, if a certain region of space on
@@ -160,6 +160,68 @@ namespace IBAMR
  * <code>AUTOMATIC</code>. The intent of these choices is to automatically use
  * the fairest (that is, partitioning based on workload estimation)
  * partitioner.
+ *
+ * <h2>Options Controlling IB Data Partitioning</h2>
+ *
+ * The main computational expenses of this class are
+ * IBFEMethod::interpolateVelocity() and IBFEMethod::spreadForce(). These two
+ * methods compute at IB points placed inside the patches owned on the current
+ * processor: i.e., they use the Eulerian partitioning of the domain. This
+ * partitioning scales very poorly at higher processor counts with some
+ * Lagrangian geometries since the Eulerian partitioning places equal number
+ * of cells, which do not necessarily coincide with IB points, on different
+ * processors: i.e., some processors will have a large number of IB points and
+ * some may have zero.
+ *
+ * To get around this, this class can optionally work with a different
+ * partitioning of the Eulerian data that is partitioned so that each
+ * processor has roughly the same number of IB points, or some more elaborate
+ * partitioning scheme that takes into account the number of mesh nodes as
+ * well. This class will set up this scratch hierarchy and manage its state
+ * (see IBFEMethod::d_scratch_hierarchy). The scratch hierarchy can be set up
+ * by adding the following parameters to the input database:
+ *
+ * @code
+ * use_scratch_hierarchy = TRUE
+ * workload_quad_point_weight = 1.0
+ *
+ * GriddingAlgorithm
+ * {
+ *     max_levels = MAX_LEVELS
+ *     ratio_to_coarser
+ *     {
+ *         level_1 = REF_RATIO,REF_RATIO
+ *         level_2 = REF_RATIO,REF_RATIO
+ *     }
+ *
+ *     largest_patch_size
+ *     {
+ *         level_0 = 512,512
+ *     }
+ *
+ *     smallest_patch_size
+ *     {
+ *         level_0 = 8,8
+ *     }
+ *
+ *     efficiency_tolerance = 0.80e0
+ *     combine_efficiency   = 0.80e0
+ * }
+ *
+ * LoadBalancer
+ * {
+ *    bin_pack_method     = "SPATIAL"
+ *    max_workload_factor = 1
+ * }
+ * @endcode
+ *
+ * i.e., providing <code>use_scratch_hierarchy = TRUE</code> (the default is
+ * <code>FALSE</code>) turns on the scratch hierarchy and the remaining
+ * parameters determine how patches are generated and load balanced. The
+ * parameter <code>workload_quad_point_weight</code> is the multiplier
+ * assigned to an IB point when calculating the work per processor: in the
+ * future additional weights, such as <code>workload_node_point_weight</code>
+ * will also be added.
  */
 class IBFEMethod : public IBStrategy
 {
@@ -658,8 +720,16 @@ public:
                                SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
-     * Initialize data on a new level after it is inserted into an AMR patch
-     * hierarchy by the gridding algorithm.
+     * this function only exists for compatibility with the base class and
+     * does nothing: data reinitialization is handled by
+     * endDataRedistribution() instead.
+     *
+     * The reasoning is this: since this class stores data only on particular
+     * levels (at the present time, the structure is always on the finest
+     * level) setting up level data is nontrivial when generating the initial
+     * grid (i.e., when tagging cells that contain interaction points for
+     * refinement). In a sense there is no level data to compute until we are
+     * done regridding.
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
@@ -684,6 +754,11 @@ public:
      * Set integer tags to "one" in cells where refinement of the given level
      * should occur according to user-supplied feature detection criteria.
      *
+     * The name here is misleading, but SAMRAI expects us to use one of two
+     * tagging methods to refine the grid, and IBAMR consistently uses
+     * gradient detection: hence this function has the same name but tags
+     * cells in a different way.
+     *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector
      */
     void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
@@ -702,6 +777,12 @@ public:
      * Write the equation_systems data to a restart file in the specified directory.
      */
     void writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number);
+
+    /*!
+     * Return a pointer to the scratch hierarchy used by this object. See the
+     * main documentation of this class for more information.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > getScratchHierarchy();
 
 protected:
     /*!
@@ -763,6 +844,32 @@ protected:
      */
     void initializeVelocity(unsigned int part);
 
+    /*!
+     * Get the transfer schedule from the primary hierarchy to the scratch
+     * hierarchy associated with the given level and index. If necessary the
+     * schedule is created and stored in a map.
+     *
+     * If needed, a SAMRAI::xfer::RefinePatchStrategy object can be provided
+     * for filling ghost data at physical boundaries.
+     */
+    SAMRAI::xfer::RefineSchedule<NDIM>&
+    getPrimaryToScratchSchedule(const int level_number,
+                                const int data_idx,
+                                SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
+
+    /*!
+     * Get the transfer schedule from the scratch hierarchy to the primary
+     * hierarchy associated with the given level and index. If necessary the
+     * schedule is created and stored in a map.
+     *
+     * If needed, a SAMRAI::xfer::RefinePatchStrategy object can be provided
+     * for filling ghost data at physical boundaries.
+     */
+    SAMRAI::xfer::RefineSchedule<NDIM>&
+    getScratchToPrimarySchedule(const int level_number,
+                                const int data_idx,
+                                SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
+
     /*
      * Indicates whether the integrator should output logging messages.
      */
@@ -791,7 +898,44 @@ protected:
      * PatchHierarchy object, and so different scratch data caching objects are
      * needed for the regular and scratch patch hierarchies.
      */
-    std::shared_ptr<IBTK::SAMRAIDataCache> d_eulerian_data_cache, d_scratch_eulerian_data_cache;
+    std::shared_ptr<IBTK::SAMRAIDataCache> d_primary_eulerian_data_cache, d_scratch_eulerian_data_cache;
+
+    /*
+     * Pointer to the scratch patch hierarchy (which is only used for the
+     * evaluation of IB terms, i.e., in IBFEMethod::interpolateVelocity(),
+     * IBFEMethod::spreadForce(), and IBFEMethod::spreadFluidSource()).
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_scratch_hierarchy;
+
+    int d_lagrangian_workload_current_idx = IBTK::invalid_index;
+    int d_lagrangian_workload_new_idx = IBTK::invalid_index;
+    int d_lagrangian_workload_scratch_idx = IBTK::invalid_index;
+
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_lagrangian_workload_var;
+    const std::string d_lagrangian_workload_coarsen_type = "CONSERVATIVE_COARSEN";
+    const std::string d_lagrangian_workload_refine_type = "CONSERVATIVE_LINEAR_REFINE";
+
+    /*
+     * Refinement schedules for transferring data from d_hierarchy to
+     * d_scratch_hierarchy. The keys are the level number and data index (in
+     * that order).
+     *
+     * @note this function assumes that only data on the finest level needs to
+     * be transferred.
+     */
+    std::map<std::pair<int, int>, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
+        d_scratch_transfer_forward_schedules;
+
+    /*
+     * Refinement schedules for transferring data from d_scratch_hierarchy to
+     * d_hierarchy. The keys are the level number and data index (in
+     * that order).
+     *
+     * @note this function assumes that only data on the finest level needs to
+     * be transferred.
+     */
+    std::map<std::pair<int, int>, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
+        d_scratch_transfer_backward_schedules;
 
     /*
      * The current time step interval.
@@ -990,6 +1134,16 @@ protected:
      */
     std::string d_libmesh_restart_file_extension;
 
+    /**
+     * database for the GriddingAlgorithm used with the scratch hierarchy.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_gridding_algorithm_db;
+
+    /**
+     * database for the LoadBalancer used with the scratch hierarchy.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_load_balancer_db;
+
 private:
     /*!
      * \brief Default constructor.
@@ -1053,6 +1207,13 @@ private:
      * Update the caches of IB-ghosted vectors.
      */
     void updateCachedIBGhostedVectors();
+
+    /*!
+     * At the present time this class and FEDataManager assume that the finite
+     * element mesh is always on the finest grid level. This function
+     * explicitly asserts that this condition is met.
+     */
+    void assertStructureOnFinestLevel() const;
 };
 } // namespace IBAMR
 
