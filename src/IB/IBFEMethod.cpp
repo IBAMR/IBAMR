@@ -755,7 +755,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 
     if (d_use_scratch_hierarchy)
     {
-        // TODO: this assumes the structure is always on the finest level
+        assertStructureOnFinestLevel();
         getPrimaryToScratchSchedule(
             d_hierarchy->getFinestLevelNumber(), u_data_idx, d_ib_solver->getVelocityPhysBdryOp())
             .fillData(data_time);
@@ -948,7 +948,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
 
     if (d_use_scratch_hierarchy)
     {
-        // TODO: this assumes the structure is always on the finest level
+        assertStructureOnFinestLevel();
         // TODO: we don't need a RefinePatchStrategy here, right?
         getPrimaryToScratchSchedule(d_hierarchy->getFinestLevelNumber(), f_data_idx).fillData(data_time);
     }
@@ -970,7 +970,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
 
     if (d_use_scratch_hierarchy)
     {
-        // TODO: this assumes the structure is always on the finest level
+        assertStructureOnFinestLevel();
         // TODO: we don't need a RefinePatchStrategy here, right?
         getScratchToPrimarySchedule(d_hierarchy->getFinestLevelNumber(), f_data_idx).fillData(data_time);
     }
@@ -1110,7 +1110,7 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
 
     if (d_use_scratch_hierarchy)
     {
-        // TODO: this assumes the structure is always on the finest level
+        assertStructureOnFinestLevel();
         getPrimaryToScratchSchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx).fillData(data_time);
     }
 
@@ -1129,7 +1129,7 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
 
     if (d_use_scratch_hierarchy)
     {
-        // TODO: this assumes the structure is always on the finest level
+        assertStructureOnFinestLevel();
         getScratchToPrimarySchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx).fillData(data_time);
     }
 
@@ -1531,7 +1531,8 @@ IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
         if (d_use_scratch_hierarchy)
         {
             d_scratch_fe_data_managers[part]->setPatchHierarchy(d_scratch_hierarchy);
-            // TODO: this assumes the structure lives on the finest grid level.
+            // TODO: we will have to change this when we support structures
+            // than can live on more than just the finest level
             d_scratch_fe_data_managers[part]->setPatchLevels(d_scratch_hierarchy->getFinestLevelNumber(),
                                                              d_scratch_hierarchy->getFinestLevelNumber());
             d_scratch_fe_data_managers[part]->reinitElementMappings();
@@ -1675,7 +1676,7 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
                 if (d_use_scratch_hierarchy)
                 {
                     d_scratch_fe_data_managers[part]->setPatchHierarchy(d_scratch_hierarchy);
-                    // TODO: this assumes the structure lives on the finest grid level.
+                    assertStructureOnFinestLevel();
                     d_scratch_fe_data_managers[part]->setPatchLevels(d_scratch_hierarchy->getFinestLevelNumber(),
                                                                      d_scratch_hierarchy->getFinestLevelNumber());
                     d_scratch_fe_data_managers[part]->reinitElementMappings();
@@ -1765,7 +1766,7 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             for (unsigned int part = 0; part < d_num_parts; ++part)
             {
                 d_scratch_fe_data_managers[part]->setPatchHierarchy(d_scratch_hierarchy);
-                // TODO: this assumes the structure is always on the finest level
+                assertStructureOnFinestLevel();
                 d_scratch_fe_data_managers[part]->setPatchLevels(d_scratch_hierarchy->getFinestLevelNumber(),
                                                                  d_scratch_hierarchy->getFinestLevelNumber());
             }
@@ -3319,8 +3320,6 @@ IBFEMethod::getPrimaryToScratchSchedule(const int level_number,
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         Pointer<PatchLevel<NDIM> > scratch_level = d_scratch_hierarchy->getPatchLevel(level_number);
-        // TODO: its not clear to me why, but we need the allocation check for
-        // workload data.
         if (!scratch_level->checkAllocated(data_idx)) scratch_level->allocatePatchData(data_idx, 0.0);
         Pointer<RefineAlgorithm<NDIM> > refine_algorithm = new RefineAlgorithm<NDIM>();
         Pointer<RefineOperator<NDIM> > refine_op_f = nullptr;
@@ -3653,6 +3652,23 @@ IBFEMethod::getFromRestart()
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
     return;
 } // getFromRestart
+
+void
+IBFEMethod::assertStructureOnFinestLevel() const
+{
+    for (unsigned part = 0; part < d_num_parts; ++part)
+    {
+        const auto pair = d_primary_fe_data_managers[part]->getPatchLevels();
+        TBOX_ASSERT(pair.first == d_hierarchy->getFinestLevelNumber() &&
+                    pair.second == d_hierarchy->getFinestLevelNumber() + 1);
+        if (d_use_scratch_hierarchy)
+        {
+            const auto scratch_pair = d_scratch_fe_data_managers[part]->getPatchLevels();
+            TBOX_ASSERT(scratch_pair.first == d_hierarchy->getFinestLevelNumber() &&
+                        scratch_pair.second == d_hierarchy->getFinestLevelNumber() + 1);
+        }
+    }
+}
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
