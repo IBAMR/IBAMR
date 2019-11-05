@@ -45,6 +45,7 @@
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
 #include <libmesh/equation_systems.h>
+#include <libmesh/linear_partitioner.h>
 #include <libmesh/exodusII_io.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
@@ -456,9 +457,17 @@ main(int argc, char** argv)
             TBOX_ERROR("unsupported beam elem type: " << beam_elem_type << "\n");
         }
 
+        // metis does a good job partitioning, but the partitioning relies on
+        // random numbers: the seed changed in libMesh commit
+        // 98cede90ca8837688ee13aac5e299a3765f083da (between 1.3.1 and
+        // 1.4.0). Hence, to achieve consistent partitioning, use a simpler partitioning scheme:
+        LinearPartitioner partitioner;
         block1_mesh.prepare_for_use();
+        partitioner.partition(block1_mesh);
         block2_mesh.prepare_for_use();
+        partitioner.partition(block2_mesh);
         beam_mesh.prepare_for_use();
+        partitioner.partition(beam_mesh);
 
         // Make an ordered list of the nodes along the bottom edge of the beam.
         typedef std::set<libMesh::Node*, node_x_comp> node_set;
