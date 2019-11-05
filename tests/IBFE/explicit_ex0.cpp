@@ -375,10 +375,6 @@ main(int argc, char** argv)
         // Deallocate initialization objects.
         app_initializer.setNull();
 
-        // Print the input database contents to the log file.
-        plog << "Input database:\n";
-        input_db->printClassData(plog);
-
         // Setup data used to determine the accuracy of the computed solution.
         const Pointer<hier::Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
