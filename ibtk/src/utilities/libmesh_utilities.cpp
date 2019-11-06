@@ -241,9 +241,11 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const lib
 
     std::vector<libMesh::dof_id_type> dof_indices;
     std::vector<double> X_node;
-    for (auto it = mesh.active_local_elements_begin(); it != mesh.active_local_elements_end(); ++it)
+    const auto el_begin = mesh.active_local_elements_begin();
+    const auto el_end = mesh.active_local_elements_end();
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
-        const libMesh::Elem* const elem = *it;
+        const libMesh::Elem* const elem = *el_it;
         const unsigned int n_nodes = elem->n_nodes();
         bboxes.emplace_back();
         libMesh::BoundingBox& box = bboxes.back();
@@ -295,9 +297,11 @@ get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const li
     const std::size_t n_elem = mesh.n_active_elem();
     std::vector<double> flattened_bboxes(2 * LIBMESH_DIM * n_elem);
     std::size_t elem_n = 0;
-    for (auto it = mesh.active_local_elements_begin(); it != mesh.active_local_elements_end(); ++it)
+    const auto el_begin = mesh.active_local_elements_begin();
+    const auto el_end = mesh.active_local_elements_end();
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
-        const auto id = (*it)->id();
+        const auto id = (*el_it)->id();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             flattened_bboxes[2 * id * NDIM + d] = bboxes[elem_n].first(d);

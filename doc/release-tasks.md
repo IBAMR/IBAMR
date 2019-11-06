@@ -36,6 +36,9 @@ GitHub.
   cppcheck --force -j4 --enable=all -I./include/ -I./ibtk/include/  \
   $(find ./src ./ibtk/src -name '*.cpp') >cppcheck-results.txt 2>&1
 ```
+- [ ] Check that we don't call functions like
+  `ReplicatedMesh::active_local_elements_end()` inside `for`-loop declarations
+  since the end iterator is expensive to compute.
 
 ## testing
 
