@@ -1766,7 +1766,7 @@ CIBMethod::computeCOMOfStructures(IBTK::EigenAlignedVector<Eigen::Vector3d>& cen
 
         for (unsigned struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
-            SAMRAI_MPI::sumReduction(&center_of_mass[struct_no][0], NDIM);
+            SAMRAI_MPI::sumReduction(center_of_mass[struct_no].data(), center_of_mass[struct_no].size());
             const int total_nodes = getNumberOfNodes(struct_no);
             center_of_mass[struct_no] /= total_nodes;
         }

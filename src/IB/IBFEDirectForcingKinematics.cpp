@@ -576,7 +576,7 @@ IBFEDirectForcingKinematics::computeCOMOfStructure(Eigen::Vector3d& X0)
             vol_part += JxW[qp];
         }
     }
-    SAMRAI_MPI::sumReduction(&X0[0], NDIM);
+    SAMRAI_MPI::sumReduction(X0.data(), X0.size());
     vol_part = SAMRAI_MPI::sumReduction(vol_part);
     X0 /= vol_part;
 

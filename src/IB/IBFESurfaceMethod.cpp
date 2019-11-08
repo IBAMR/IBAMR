@@ -1083,7 +1083,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             }
         }
 
-        SAMRAI_MPI::sumReduction(&F_integral(0), NDIM);
+        SAMRAI_MPI::sumReduction(&F_integral(0), LIBMESH_DIM);
 
         // Solve for F.
         d_fe_data_managers[part]->computeL2Projection(

@@ -947,7 +947,7 @@ LDataManager::computeLagrangianStructureCenterOfMass(const int structure_id, con
     }
     d_lag_mesh_data[level_number][POSN_DATA_NAME]->restoreArrays();
 
-    SAMRAI_MPI::sumReduction(&X_com[0], NDIM);
+    SAMRAI_MPI::sumReduction(X_com.data(), X_com.size());
     node_counter = SAMRAI_MPI::sumReduction(node_counter);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
