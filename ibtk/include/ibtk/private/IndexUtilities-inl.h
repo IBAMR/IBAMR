@@ -117,6 +117,10 @@ IndexUtilities::getSideCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMR
             side_coord[d] = patch_X_lower[d] + patch_dx[d] * (double(side_idx(d) - patch_lower_idx(d)) + 0.5);
         }
     }
+    for (int d = NDIM; d < side_coord.size(); ++d)
+    {
+        side_coord[d] = 0.0;
+    }
     return side_coord;
 } // getSideCenter
 
