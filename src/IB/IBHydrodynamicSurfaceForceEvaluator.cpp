@@ -31,6 +31,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
 #include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/INSStaggeredPressureBcCoef.h"
@@ -291,16 +292,7 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
                     n(axis) = signof(phi_upper - phi_lower);
 
                     // Get the relative coordinate from X0
-                    const IBTK::VectorNd side_center = IBTK::IndexUtilities::getSideCenter(*patch, s_i);
-                    IBTK::Vector3d r_vec = IBTK::Vector3d::Zero();
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        r_vec[d] = side_center[d] - X0[d];
-                    }
-
-                    // Get the relative coordinate from X0
-                    r_vec = IBTK::IndexUtilities::getSideCenter<IBTK::Vector3d>(*patch, s_i);
-                    r_vec -= X0;
+                    const auto r_vec = IBTK::IndexUtilities::getSideCenter<IBTK::Vector3d>(*patch, s_i) - X0;
 
                     // Compute pressure on the face using simple averaging (n. -p I) * dA
                     const IBTK::Vector3d pn = 0.5 * n * ((*p_data)(c_l) + (*p_data)(c_u));
@@ -345,8 +337,6 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
                     pressure_force += (-pn * dS);
                     pressure_torque += (r_vec.cross(-pn)) * dS;
 
-                    pressure_torque += r_vec.cross(-pn) * dS;
-
                     // Add up the viscous forces n.(mu*(grad U + grad U)^T)dS
                     // and viscous torque r X n.(mu*(grad U + grad U)^T)dS
                     viscous_force += (n(axis) * viscous_trac * dS);
@@ -356,10 +346,10 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
         }
     }
     // Sum the net force and torque across processors.
-    SAMRAI_MPI::sumReduction(pressure_force.data(), NDIM);
-    SAMRAI_MPI::sumReduction(viscous_force.data(), NDIM);
-    SAMRAI_MPI::sumReduction(pressure_torque.data(), NDIM);
-    SAMRAI_MPI::sumReduction(viscous_torque.data(), NDIM);
+    SAMRAI_MPI::sumReduction(pressure_force.data(), 3);
+    SAMRAI_MPI::sumReduction(viscous_force.data(), 3);
+    SAMRAI_MPI::sumReduction(pressure_torque.data(), 3);
+    SAMRAI_MPI::sumReduction(viscous_torque.data(), 3);
 
     // Deallocate patch data
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
