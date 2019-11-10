@@ -135,8 +135,6 @@ public:
         return;
     } // setLevelSetPatchData
 
-    //////////////// PRIVATE /////////////////////////////
-
 private:
     LSLocateCircularInterface& operator=(const LSLocateCircularInterface&) = delete;
 

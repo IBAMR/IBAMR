@@ -449,8 +449,6 @@ public:
         return;
     } // setDensityPatchData
 
-    //////////////// PRIVATE /////////////////////////////
-
 private:
     SetFluidGasSolidDensity& operator=(const SetFluidGasSolidDensity&) = delete;
 
