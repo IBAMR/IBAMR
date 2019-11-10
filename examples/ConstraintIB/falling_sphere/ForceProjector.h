@@ -115,8 +115,6 @@ public:
         return d_body_force_idx;
     } // getEulerianForcePatchDataIndex
 
-    //////////////// PRIVATE /////////////////////////////
-
 private:
     /*!
      * \brief Default constructor is not implemented and should not be used.

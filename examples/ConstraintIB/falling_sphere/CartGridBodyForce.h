@@ -54,13 +54,11 @@ namespace IBTK
 class CartGridBodyForce : public IBTK::CartGridFunction
 {
 private:
-    ///////////////////////////// PRIVATE DATA MEMBERS /////////////////////
     /*!
      * Patch index for body force var.
      */
     int d_body_force_idx;
 
-    ////////////////////////////// PRIVATE MEMBER FUNCTIONS //////////////////
     /*!
      * \note The default ctor is not implemented and should not be used.
      */
@@ -76,7 +74,6 @@ private:
      */
     CartGridBodyForce& operator=(const CartGridBodyForce& that);
 
-    //////////////////////////// PUBLIC MEMBER FUNCTIONS ////////////////////////
 public:
     /*!
      * \brief Constructor
