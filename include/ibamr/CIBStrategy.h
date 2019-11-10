@@ -63,7 +63,6 @@ namespace IBAMR
  */
 class CIBStrategy : public virtual SAMRAI::tbox::DescribedClass
 {
-    ////////////////////////////// PUBLIC ////////////////////////////////////////
 public:
     /*!
      *  \brief Constructor of the class.
@@ -577,7 +576,6 @@ public:
                              const int managing_rank,
                              const int depth);
 
-    /////////////////////////////// PROTECTED ////////////////////////////////////
 protected:
     /*!
      * \brief Fill the rotation matrix.
@@ -627,7 +625,6 @@ protected:
     // Net rigid generalized force.
     std::vector<IBTK::RigidDOFVector> d_net_rigid_generalized_force;
 
-    /////////////////////////////// PRIVATE //////////////////////////////////////
 private:
     /*!
      * \brief Copy constructor.

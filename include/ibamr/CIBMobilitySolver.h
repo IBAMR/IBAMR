@@ -91,8 +91,6 @@ namespace IBAMR
 
 class CIBMobilitySolver : public SAMRAI::tbox::DescribedClass
 {
-    /////////////////////////////// PUBLIC ///////////////////////////////////////
-
 public:
     /*!
      * \brief The only constructor of this class.
@@ -220,7 +218,6 @@ public:
                             IBAMR::DirectMobilitySolver** dm_solver = nullptr,
                             IBAMR::KrylovFreeBodyMobilitySolver** fbm_solver = nullptr);
 
-    /////////////////////////////// PRIVATE //////////////////////////////////////
 private:
     /*!
      * \brief Get various options from input db.
