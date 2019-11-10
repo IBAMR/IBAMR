@@ -755,11 +755,12 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
     registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
     registerVariable(d_Div_u_ADV_idx, d_Div_u_ADV_var, no_ghosts, getCurrentContext());
 
-// Register scratch variables that are maintained by the
-// INSCollocatedHierarchyIntegrator.
-#if (NDIM == 3)
-    registerVariable(d_Omega_Norm_idx, d_Omega_Norm_var, no_ghosts);
-#endif
+    // Register scratch variables that are maintained by the
+    // INSCollocatedHierarchyIntegrator.
+    if (NDIM == 3)
+        registerVariable(d_Omega_Norm_idx, d_Omega_Norm_var, no_ghosts);
+    else
+        d_Omega_Norm_idx = IBTK::invalid_index;
     registerVariable(d_Grad_P_idx, d_Grad_P_var, no_ghosts);
     registerVariable(d_Phi_idx, d_Phi_var, cell_ghosts);
     registerVariable(d_Grad_Phi_cc_idx, d_Grad_Phi_cc_var, no_ghosts);
@@ -861,15 +862,6 @@ INSCollocatedHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarch
                                                            Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
     HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
-
-    // Project the velocity field if this is the initial time step.  Note that
-    // regridProjection() also has the effect of initializing u_ADV.
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
-    if (initial_time)
-    {
-        regridProjection();
-        synchronizeHierarchyData(CURRENT_DATA);
-    }
 
     // When necessary, initialize the value of the advection velocity registered
     // with a coupled advection-diffusion solver.
@@ -1545,12 +1537,55 @@ INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
+double
+INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) const
+{
+    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+    const double* const dx = patch_geom->getDx();
+
+    const Index<NDIM>& ilower = patch->getBox().lower();
+    const Index<NDIM>& iupper = patch->getBox().upper();
+
+    Pointer<FaceData<NDIM, double> > u_ADV_data = patch->getPatchData(d_u_ADV_var, getCurrentContext());
+    const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV_data->getGhostCellWidth();
+
+    double stable_dt = std::numeric_limits<double>::max();
+    ADVECT_STABLEDT_FC(dx,
+#if (NDIM == 2)
+                       ilower(0),
+                       iupper(0),
+                       ilower(1),
+                       iupper(1),
+                       u_ADV_ghost_cells(0),
+                       u_ADV_ghost_cells(1),
+                       u_ADV_data->getPointer(0),
+                       u_ADV_data->getPointer(1),
+#endif
+#if (NDIM == 3)
+                       ilower(0),
+                       iupper(0),
+                       ilower(1),
+                       iupper(1),
+                       ilower(2),
+                       iupper(2),
+                       u_ADV_ghost_cells(0),
+                       u_ADV_ghost_cells(1),
+                       u_ADV_ghost_cells(2),
+                       u_ADV_data->getPointer(0),
+                       u_ADV_data->getPointer(1),
+                       u_ADV_data->getPointer(2),
+#endif
+                       stable_dt);
+    return stable_dt;
+} // getStableTimestep
+
 void
-INSCollocatedHierarchyIntegrator::regridHierarchyEndSpecialized()
+INSCollocatedHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(const double /*init_data_time*/,
+                                                                              const bool /*initial_time*/)
 {
     regridProjection();
     return;
-} // regridHierarchyEndSpecialized
+} // initializeCompositeHierarchyDataSpecialized
 
 void
 INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
@@ -1976,50 +2011,11 @@ INSCollocatedHierarchyIntegrator::regridProjection()
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(scratch_idxs);
     }
+
+    // Synchronize data on the patch hierarchy.
+    synchronizeHierarchyData(CURRENT_DATA);
     return;
 } // regridProjection
-
-double
-INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) const
-{
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-    const double* const dx = patch_geom->getDx();
-
-    const Index<NDIM>& ilower = patch->getBox().lower();
-    const Index<NDIM>& iupper = patch->getBox().upper();
-
-    Pointer<FaceData<NDIM, double> > u_ADV_data = patch->getPatchData(d_u_ADV_var, getCurrentContext());
-    const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV_data->getGhostCellWidth();
-
-    double stable_dt = std::numeric_limits<double>::max();
-    ADVECT_STABLEDT_FC(dx,
-#if (NDIM == 2)
-                       ilower(0),
-                       iupper(0),
-                       ilower(1),
-                       iupper(1),
-                       u_ADV_ghost_cells(0),
-                       u_ADV_ghost_cells(1),
-                       u_ADV_data->getPointer(0),
-                       u_ADV_data->getPointer(1),
-#endif
-#if (NDIM == 3)
-                       ilower(0),
-                       iupper(0),
-                       ilower(1),
-                       iupper(1),
-                       ilower(2),
-                       iupper(2),
-                       u_ADV_ghost_cells(0),
-                       u_ADV_ghost_cells(1),
-                       u_ADV_ghost_cells(2),
-                       u_ADV_data->getPointer(0),
-                       u_ADV_data->getPointer(1),
-                       u_ADV_data->getPointer(2),
-#endif
-                       stable_dt);
-    return stable_dt;
-} // getStableTimestep
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

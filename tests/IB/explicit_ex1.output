@@ -21,6 +21,10 @@ IBStandardInitializer:   file curve2d_64.director on MPI process 0 does not exis
 IBStandardInitializer:   Either file curve2d_64.inst on MPI process 0 does not exist or instrumentation is disabled : skipping read.
 IBStandardInitializer:   Either file curve2d_64.source on MPI process 0 does not exist or sources are disabled : skipping read.
 IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve number of iterations = 0
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
 IBStandardInitializer:  Deallocating initialization data.
 IBStandardInitializer:  Deallocating initialization data.
 

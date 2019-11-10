@@ -9,6 +9,9 @@ IBFEMethod: mesh part 1 is using SECOND order LAGRANGE finite elements.
 IBFEMethod: mesh part 2 is using SECOND order LAGRANGE finite elements.
 
 IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
 
 
 Writing visualization files...

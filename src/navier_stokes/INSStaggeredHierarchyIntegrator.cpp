@@ -1158,13 +1158,7 @@ INSStaggeredHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy
 {
     HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
 
-    // Project the velocity field if this is the initial time step.
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
-    if (initial_time)
-    {
-        regridProjection();
-        synchronizeHierarchyData(CURRENT_DATA);
-    }
 
     // Initialize mean quantities.
     if (d_flow_averaging_interval && initial_time)
@@ -1894,6 +1888,48 @@ INSStaggeredHierarchyIntegrator::removeNullSpace(const Pointer<SAMRAIVectorReal<
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
+double
+INSStaggeredHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) const
+{
+    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+    const double* const dx = patch_geom->getDx();
+
+    const Index<NDIM>& ilower = patch->getBox().lower();
+    const Index<NDIM>& iupper = patch->getBox().upper();
+
+    Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_var, getCurrentContext());
+    const IntVector<NDIM>& U_ghost_cells = U_data->getGhostCellWidth();
+
+    double stable_dt = std::numeric_limits<double>::max();
+    NAVIER_STOKES_SC_STABLEDT_FC(dx,
+#if (NDIM == 2)
+                                 ilower(0),
+                                 iupper(0),
+                                 ilower(1),
+                                 iupper(1),
+                                 U_ghost_cells(0),
+                                 U_ghost_cells(1),
+                                 U_data->getPointer(0),
+                                 U_data->getPointer(1),
+#endif
+#if (NDIM == 3)
+                                 ilower(0),
+                                 iupper(0),
+                                 ilower(1),
+                                 iupper(1),
+                                 ilower(2),
+                                 iupper(2),
+                                 U_ghost_cells(0),
+                                 U_ghost_cells(1),
+                                 U_ghost_cells(2),
+                                 U_data->getPointer(0),
+                                 U_data->getPointer(1),
+                                 U_data->getPointer(2),
+#endif
+                                 stable_dt);
+    return stable_dt;
+} // getStableTimestep
+
 void
 INSStaggeredHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {
@@ -1913,7 +1949,6 @@ INSStaggeredHierarchyIntegrator::regridHierarchyBeginSpecialized()
     d_div_U_norm_1_pre = d_hier_cc_data_ops->L1Norm(d_Div_U_idx, wgt_cc_idx);
     d_div_U_norm_2_pre = d_hier_cc_data_ops->L2Norm(d_Div_U_idx, wgt_cc_idx);
     d_div_U_norm_oo_pre = d_hier_cc_data_ops->maxNorm(d_Div_U_idx, wgt_cc_idx);
-
     return;
 } // regridHierarchyBeginSpecialized
 
@@ -1933,21 +1968,30 @@ INSStaggeredHierarchyIntegrator::regridHierarchyEndSpecialized()
                          -1.0,
                          d_Q_current_idx,
                          d_Q_var);
-    const double Div_U_norm_1_post = d_hier_cc_data_ops->L1Norm(d_Div_U_idx, wgt_cc_idx);
-    const double Div_U_norm_2_post = d_hier_cc_data_ops->L2Norm(d_Div_U_idx, wgt_cc_idx);
-    const double Div_U_norm_oo_post = d_hier_cc_data_ops->maxNorm(d_Div_U_idx, wgt_cc_idx);
-
-    // Project the interpolated velocity if needed.
-    if (Div_U_norm_1_post > d_regrid_max_div_growth_factor * d_div_U_norm_1_pre ||
-        Div_U_norm_2_post > d_regrid_max_div_growth_factor * d_div_U_norm_2_pre ||
-        Div_U_norm_oo_post > d_regrid_max_div_growth_factor * d_div_U_norm_oo_pre)
-    {
-        pout << d_object_name << "::regridHierarchy():\n"
-             << "  WARNING: projecting the interpolated velocity field\n";
-        regridProjection();
-    }
+    d_div_U_norm_1_post = d_hier_cc_data_ops->L1Norm(d_Div_U_idx, wgt_cc_idx);
+    d_div_U_norm_2_post = d_hier_cc_data_ops->L2Norm(d_Div_U_idx, wgt_cc_idx);
+    d_div_U_norm_oo_post = d_hier_cc_data_ops->maxNorm(d_Div_U_idx, wgt_cc_idx);
+    d_do_regrid_projection =
+        d_div_U_norm_1_post > d_regrid_max_div_growth_factor * d_div_U_norm_1_pre ||
+        d_div_U_norm_2_post > d_regrid_max_div_growth_factor * d_div_U_norm_2_pre ||
+        d_div_U_norm_oo_post > d_regrid_max_div_growth_factor * d_div_U_norm_oo_pre;
     return;
 } // regridHierarchyEndSpecialized
+
+void
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(const double /*init_data_time*/,
+                                                                             const bool initial_time)
+{
+    // Project the interpolated velocity if needed.
+    if (initial_time || d_do_regrid_projection)
+    {
+        plog << d_object_name << "::initializeCompositeHierarchyData():\n"
+             << "  projecting the interpolated velocity field\n";
+        regridProjection();
+        d_do_regrid_projection = false;
+    }
+    return;
+} // initializeCompositeHierarchyDataSpecialized
 
 void
 INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
@@ -2454,50 +2498,11 @@ INSStaggeredHierarchyIntegrator::regridProjection()
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(scratch_idxs);
     }
+
+    // Synchronize data on the patch hierarchy.
+    synchronizeHierarchyData(CURRENT_DATA);
     return;
 } // regridProjection
-
-double
-INSStaggeredHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) const
-{
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-    const double* const dx = patch_geom->getDx();
-
-    const Index<NDIM>& ilower = patch->getBox().lower();
-    const Index<NDIM>& iupper = patch->getBox().upper();
-
-    Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_var, getCurrentContext());
-    const IntVector<NDIM>& U_ghost_cells = U_data->getGhostCellWidth();
-
-    double stable_dt = std::numeric_limits<double>::max();
-    NAVIER_STOKES_SC_STABLEDT_FC(dx,
-#if (NDIM == 2)
-                                 ilower(0),
-                                 iupper(0),
-                                 ilower(1),
-                                 iupper(1),
-                                 U_ghost_cells(0),
-                                 U_ghost_cells(1),
-                                 U_data->getPointer(0),
-                                 U_data->getPointer(1),
-#endif
-#if (NDIM == 3)
-                                 ilower(0),
-                                 iupper(0),
-                                 ilower(1),
-                                 iupper(1),
-                                 ilower(2),
-                                 iupper(2),
-                                 U_ghost_cells(0),
-                                 U_ghost_cells(1),
-                                 U_ghost_cells(2),
-                                 U_data->getPointer(0),
-                                 U_data->getPointer(1),
-                                 U_data->getPointer(2),
-#endif
-                                 stable_dt);
-    return stable_dt;
-} // getStableTimestep
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

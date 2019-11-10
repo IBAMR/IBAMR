@@ -35,6 +35,7 @@
 #include "IBAMR_config.h"
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/BrinkmanPenalizationStrategy.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
@@ -197,9 +198,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
     d_rho_sc_var = new SideVariable<NDIM, double>(d_object_name + "::rho_sc");
     d_rho_interp_cc_var = new CellVariable<NDIM, double>(d_object_name + "::rho_interp_cc", NDIM);
 
-    // Side centered state variable for old velocity, required for the convective operator.
-    d_U_old_var = new SideVariable<NDIM, double>(d_object_name + "::U_old");
-
     return;
 } // INSVCStaggeredConservativeHierarchyIntegrator
 
@@ -256,16 +254,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
             }
         }
     }
-
-    // The old velocity variable, required for conservative convective operator
-    registerVariable(d_U_old_current_idx,
-                     d_U_old_new_idx,
-                     d_U_old_scratch_idx,
-                     d_U_old_var,
-                     side_ghosts,
-                     d_U_coarsen_type,
-                     d_U_refine_type,
-                     d_U_init);
 
     // Set various objects with conservative time integrator.
     d_rho_p_integrator->setSideCenteredVelocityBoundaryConditions(d_U_bc_coefs);
@@ -473,8 +461,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     // Add the momentum portion of the RHS in the case of conservative discretization form
     // RHS^n = RHS^n + 1/dt*(rho*U)^n
     d_hier_sc_data_ops->multiply(d_temp_sc_idx, d_rho_sc_scratch_idx, d_U_scratch_idx, /*interior_only*/ true);
-    d_hier_sc_data_ops->scale(d_temp_sc_idx, 1.0 / dt, d_temp_sc_idx, /*interior_only*/ true);
-    d_hier_sc_data_ops->add(U_rhs_idx, d_temp_sc_idx, U_rhs_idx, /*interior_only*/ true);
+    d_hier_sc_data_ops->axpy(U_rhs_idx, 1.0 / dt, d_temp_sc_idx, U_rhs_idx, /*interior_only*/ true);
     d_hier_sc_data_ops->copyData(d_U_src_idx, d_U_scratch_idx, /*interior_only*/ false);
 
     // Set the initial guess.
@@ -556,9 +543,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
 
         // Integrate density and convective momentum.
         d_rho_p_integrator->integrate(dt);
-
-        // Keep track of the time-lagged velocity
-        d_hier_sc_data_ops->copyData(d_U_old_new_idx, d_U_current_idx);
     }
 
     // Execute any registered callbacks.
@@ -711,8 +695,32 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
     // Store the density for later use
     d_hier_sc_data_ops->copyData(d_rho_linear_op_idx, d_rho_sc_scratch_idx, /*interior_only*/ true);
 
+    // Compute the Brinkman contribution to the velocity operator.
+    d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
+    for (auto& brinkman_force : d_brinkman_force)
+    {
+        brinkman_force->demarcateBrinkmanZone(d_velocity_L_idx, new_time, cycle_num);
+    }
+
+    // Synchronize Brinkman coefficients.
+    SynchronizationTransactionComponent L_synch_transaction =
+        SynchronizationTransactionComponent(d_velocity_L_idx, "CONSERVATIVE_COARSEN");
+    d_side_synch_op->resetTransactionComponent(L_synch_transaction);
+    d_side_synch_op->synchronizeData(d_integrator_time);
+    d_side_synch_op->resetTransactionComponent(default_synch_transaction);
+
     // Update the solvers and operators to take into account new state variables
     updateOperatorsAndSolvers(current_time, new_time);
+
+    // Compute the Brinkman velocity for the RHS vector.
+    d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
+    for (auto& brinkman_force : d_brinkman_force)
+    {
+        brinkman_force->computeBrinkmanVelocity(d_velocity_L_idx, new_time, cycle_num);
+    }
+    d_side_synch_op->resetTransactionComponent(L_synch_transaction);
+    d_side_synch_op->synchronizeData(d_integrator_time);
+    d_side_synch_op->resetTransactionComponent(default_synch_transaction);
 
     // Setup the solution and right-hand-side vectors.
     setupSolverVectors(d_sol_vec, d_rhs_vec, current_time, new_time, cycle_num);
@@ -1114,6 +1122,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(scratch_idxs);
     }
+
+    // Synchronize data on the patch hierarchy.
+    synchronizeHierarchyData(CURRENT_DATA);
     return;
 } // regridProjection
 
@@ -1161,15 +1172,14 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
         // Get the condition number scaling on this level
         const double A_scale = d_A_scale[ln];
 
-        // C_sc = (rho / dt) + K * lambda
+        // C_sc = (rho / dt) + K * lambda + L(x,t^n+1)
         d_hier_sc_data_ops->scale(d_velocity_C_idx, A_scale / dt, d_rho_sc_scratch_idx, /*interior_only*/ true);
-
         if (!MathUtilities<double>::equalEps(lambda, 0.0))
         {
             d_hier_sc_data_ops->addScalar(
                 d_velocity_C_idx, d_velocity_C_idx, A_scale * K * lambda, /*interior_only*/ true);
         }
-        U_problem_coefs.setCPatchDataId(d_velocity_C_idx);
+        d_hier_sc_data_ops->axpy(d_velocity_C_idx, A_scale, d_velocity_L_idx, d_velocity_C_idx);
 
         // D_{ec,nc} = -K * mu
         if (d_mu_is_const)
@@ -1190,17 +1200,18 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
 #endif
             d_hier_cc_data_ops->scale(d_velocity_D_cc_idx, A_scale * (-K), d_mu_scratch_idx, /*interior_only*/ false);
         }
-        U_problem_coefs.setDPatchDataId(d_velocity_D_idx);
-
-        // Ensure that these objects will operate on all levels in the future
-        d_hier_cc_data_ops->resetLevels(coarsest_ln, finest_ln);
-        d_hier_sc_data_ops->resetLevels(coarsest_ln, finest_ln);
-#if (NDIM == 2)
-        d_hier_nc_data_ops->resetLevels(coarsest_ln, finest_ln);
-#elif (NDIM == 3)
-        d_hier_ec_data_ops->resetLevels(coarsest_ln, finest_ln);
-#endif
     }
+    U_problem_coefs.setCPatchDataId(d_velocity_C_idx);
+    U_problem_coefs.setDPatchDataId(d_velocity_D_idx);
+
+    // Ensure that hierarchy operators operate on all levels in the future
+    d_hier_cc_data_ops->resetLevels(coarsest_ln, finest_ln);
+    d_hier_sc_data_ops->resetLevels(coarsest_ln, finest_ln);
+#if (NDIM == 2)
+    d_hier_nc_data_ops->resetLevels(coarsest_ln, finest_ln);
+#elif (NDIM == 3)
+    d_hier_ec_data_ops->resetLevels(coarsest_ln, finest_ln);
+#endif
 
     // D_sc = -1/rho
     P_problem_coefs.setCZero();
@@ -1399,6 +1410,10 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }
 
+    // Add Brinkman penalized velocity term.
+    d_hier_sc_data_ops->add(
+        rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
+
     // Account for internal source/sink distributions.
     if (d_Q_fcn)
     {
@@ -1438,6 +1453,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
     SynchronizationTransactionComponent default_synch_transaction =
         SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
     d_side_synch_op->resetTransactionComponent(default_synch_transaction);
+
     return;
 } // setupSolverVectors
 
@@ -1493,6 +1509,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
         d_hier_sc_data_ops->copyData(d_F_new_idx, d_F_scratch_idx);
     }
+    d_hier_sc_data_ops->subtract(
+        rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
+
     if (d_Q_fcn)
     {
         TBOX_ERROR("Presently not supported for variable coefficient problems");
