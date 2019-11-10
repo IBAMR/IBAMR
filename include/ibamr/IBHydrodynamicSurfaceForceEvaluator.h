@@ -142,6 +142,11 @@ public:
      */
     virtual void setSurfaceContourLevel(double s = 0);
 
+    /*!
+     * \brief Indicate if the force and torque results need to be written on a file.
+     */
+    void writeToFile(bool write_to_file = true);
+
 private:
     /*!
      * \brief Copy constructor.
@@ -225,6 +230,27 @@ private:
      * \brief The contour level that describes the surface of the solid object.
      */
     double d_surface_contour_value = 0.0;
+
+    /*!
+     * \brief Whether to write results on a text file.
+     */
+    bool d_write_to_file = false;
+
+    /*!
+     * \brief File streams associated for the output of hydrodynamic force.
+     *
+     * \note Columns 1-3 represent sum of -p.n dA. Columns 4-6 represent sum of n.(grad U + grad U^T) dA.
+     *
+     */
+    std::unique_ptr<std::ofstream> d_hydro_force_stream = nullptr;
+
+    /*!
+     * \brief File streams associated for the output of hydrodynamic torque.
+     *
+     * \note Columns 1-3 represent sum of r X -p.n dA. Columns 4-6 represent sum of r x n.(grad U + grad U^T) dA.
+     *
+     */
+    std::unique_ptr<std::ofstream> d_hydro_torque_stream = nullptr;
 };
 } // namespace IBAMR
 

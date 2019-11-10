@@ -198,8 +198,8 @@ c
 c     Local variables.
 c
       INTEGER i0,i1
-    
-      
+
+
 c     Do the four sweeping directions.
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
@@ -214,7 +214,7 @@ c     Do the four sweeping directions.
      &                               touches_wall_loc_idx)
          enddo
       enddo
-      
+
       do i1 = ilower1,iupper1
          do i0 = iupper0,ilower0,-1
             call evalsweep1storder2d(U,U_gcw,
@@ -225,10 +225,10 @@ c     Do the four sweeping directions.
      &                               dlower1,dupper1,
      &                               dx,
      &                               patch_touches_bdry,
-     &                               touches_wall_loc_idx)     
+     &                               touches_wall_loc_idx)
          enddo
       enddo
-      
+
       do i1 = iupper1,ilower1,-1
          do i0 = iupper0,ilower0,-1
             call evalsweep1storder2d(U,U_gcw,
@@ -242,7 +242,7 @@ c     Do the four sweeping directions.
      &                               touches_wall_loc_idx)
          enddo
       enddo
-      
+
       do i1 = iupper1,ilower1,-1
          do i0 = ilower0,iupper0
             call evalsweep1storder2d(U,U_gcw,
@@ -288,7 +288,7 @@ c
       INTEGER dlower1,dupper1
       INTEGER U_gcw
       INTEGER patch_touches_bdry
-     
+
 c
 c     Input/Output.
 c
@@ -315,25 +315,25 @@ c     Carry out a single sweep
       hy = dx(1)
       a  = sgn*dmin1(sgn*U(i0-1,i1),sgn*U(i0+1,i1))
       b  = sgn*dmin1(sgn*U(i0,i1-1),sgn*U(i0,i1+1))
- 
+
 c     Take care of physical boundaries.
 c     The grid spacing to the boundary will be h/2
 c     The distance value imposed at the boundary should be zero
       if (patch_touches_bdry .eq. 1) then
-         if (i0 .eq. dlower0 .and. 
-     &       touches_wall_loc_idx(0) .eq. 1) then 
-            a  = zero   
-            hx = hx*half                
+         if (i0 .eq. dlower0 .and.
+     &       touches_wall_loc_idx(0) .eq. 1) then
+            a  = zero
+            hx = hx*half
          elseif (i0 .eq. dupper0 .and.
      &       touches_wall_loc_idx(1) .eq. 1) then
             a  = zero
             hx = hx*half
          endif
-         if (i1 .eq. dlower1 .and. 
-     &       touches_wall_loc_idx(2) .eq. 1) then 
-            b  = zero   
-            hy = hy*half                
-         elseif (i1 .eq. dupper1 .and. 
+         if (i1 .eq. dlower1 .and.
+     &       touches_wall_loc_idx(2) .eq. 1) then
+            b  = zero
+            hy = hy*half
+         elseif (i1 .eq. dupper1 .and.
      &       touches_wall_loc_idx(3) .eq. 1) then
             b  = zero
             hy = hy*half
@@ -350,7 +350,7 @@ c     The distance value imposed at the boundary should be zero
         S = hy*hy*a*a + hx*hx*b*b - hx*hx*hy*hy
         dbar = (-R + sgn*sqrt(R*R-4.d0*Q*S))/(2.d0*Q)
       endif
-                        
+
       U(i0,i1) = sgn*dmin1(sgn*U(i0,i1),sgn*dbar)
 
       return
@@ -754,7 +754,7 @@ c     Compute ENO differences with subcell fix
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Compute the Godunov Hamiltonian of the indicator field |grad phi_0|
-c     
+c
 c     Uses second order ENO for spatial discretization with a subcell
 c     fix near the interface
 c
@@ -905,7 +905,7 @@ c         Compute ENO differences with subcell fix
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Carry out third order relaxation scheme using Gauss Seidel updates
-c     
+c
 c     Uses third order WENO for spatial discretization with a subcell
 c     fix near the interface
 c
@@ -1075,7 +1075,7 @@ c     Sign fix
       endif
 
 c     Compute all the required finite differences
-      Dxc  = (U(i0+1,i1) - U(i0-1,i1))/(two*hx) 
+      Dxc  = (U(i0+1,i1) - U(i0-1,i1))/(two*hx)
       Dyc  = (U(i0,i1+1) - U(i0,i1-1))/(two*hy)
       Dxl  = (three*U(i0,i1) - four*U(i0-1,i1) + U(i0-2,i1))
      &       /(two*hx)
@@ -1088,7 +1088,7 @@ c     Compute all the required finite differences
 
       rxm = (eps + (U(i0,i1) -two*U(i0-1,i1) + U(i0-2,i1))**two)/
      &     (eps + (U(i0+1,i1) -two*U(i0,i1) + U(i0-1,i1))**two)
-      wxm = one/(one + two*rxm**two) 
+      wxm = one/(one + two*rxm**two)
       rxp = (eps + (U(i0+2,i1) -two*U(i0+1,i1) + U(i0,i1))**two)/
      &     (eps + (U(i0+1,i1) -two*U(i0,i1) + U(i0-1,i1))**two)
       wxp = one/(one + two*rxp**two)
@@ -1099,7 +1099,7 @@ c     Compute all the required finite differences
       ryp = (eps + (U(i0,i1+2) -two*U(i0,i1+1) + U(i0,i1))**two)/
      &     (eps + (U(i0,i1+1) -two*U(i0,i1) + U(i0,i1-1))**two)
       wyp = one/(one + two*ryp**two)
- 
+
 
 c     Set dummy values for hxp,hxm,hyp,hym
       hxp = 1.d12;hxm = 1.d12;hyp = 1.d12;hym = 1.d12
@@ -1116,14 +1116,14 @@ c     Compute ENO differences with subcell fix
         else
           hxp = hx*V(i0,i1)/diff
         endif
-        
+
         h1 = hx; h2 = hxp
-        Dxc = (-U(i0,i1)*h1**2 + 
+        Dxc = (-U(i0,i1)*h1**2 +
      &        (-U(i0-1,i1) + U(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
 
         h1 = hxp; h2 = hx - hxp
-        Dxr = (-U(i0+1,i1)*h1**2 + two*(-U(i0,i1))*h1*h2 + 
-     &          (-U(i0,i1))*h2**2)/(h1*h2*(h1 + h2)) 
+        Dxr = (-U(i0+1,i1)*h1**2 + two*(-U(i0,i1))*h1*h2 +
+     &          (-U(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
       endif
 
       if (use_subcell .ne. 0 .and. V(i0,i1)*V(i0-1,i1) .lt. zero) then
@@ -1137,13 +1137,13 @@ c     Compute ENO differences with subcell fix
         else
           hxm = hx*V(i0,i1)/diff
         endif
-       
+
         h1 = hxm; h2 = hx
-        Dxc = ((-U(i0,i1) + U(i0+1, i1))*h1**2 + 
+        Dxc = ((-U(i0,i1) + U(i0+1, i1))*h1**2 +
      &         (U(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
 
         h1 = hx - hxm; h2 = hxm
-        Dxl = (U(i0,i1)*h1**2 + two*U(i0,i1)*h1*h2 + 
+        Dxl = (U(i0,i1)*h1**2 + two*U(i0,i1)*h1*h2 +
      &         U(i0-1,i1)*h2**2)/(h1*h2*(h1 + h2))
       endif
 
@@ -1158,7 +1158,7 @@ c     Compute ENO differences with subcell fix
         else
           hyp = hy*V(i0,i1)/diff
         endif
- 
+
         h1 = hy; h2 = hyp
         Dyc = (-U(i0,i1)*h1**2 +
      &        (-U(i0,i1-1) + U(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
@@ -1186,7 +1186,7 @@ c     Compute ENO differences with subcell fix
 
         h1 = hy - hym; h2 = hym
         Dyb = (U(i0,i1)*h1**2 + two*U(i0,i1)*h1*h2 +
-     &         U(i0,i1-1)*h2**2)/(h1*h2*(h1 + h2))  
+     &         U(i0,i1-1)*h2**2)/(h1*h2*(h1 + h2))
       endif
 
 c     Compute first order derivatives
@@ -1211,7 +1211,7 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Compute the Godunov Hamiltonian of the indicator field |grad phi_0|
-c     
+c
 c     Uses second order WENO for spatial discretization with a subcell
 c     fix near the interface
 c
@@ -1275,7 +1275,7 @@ c
           sgn = S_eps(V(i0,i1),hmin)
 
 c         Compute all the required finite differences
-          Dxc  = (V(i0+1,i1) - V(i0-1,i1))/(two*hx) 
+          Dxc  = (V(i0+1,i1) - V(i0-1,i1))/(two*hx)
           Dyc  = (V(i0,i1+1) - V(i0,i1-1))/(two*hy)
           Dxl  = (three*V(i0,i1) - four*V(i0-1,i1) + V(i0-2,i1))
      &          /(two*hx)
@@ -1288,7 +1288,7 @@ c         Compute all the required finite differences
 
           rxm = (eps + (V(i0,i1) -two*V(i0-1,i1) + V(i0-2,i1))**two)/
      &        (eps + (V(i0+1,i1) -two*V(i0,i1) + V(i0-1,i1))**two)
-          wxm = one/(one + two*rxm**two) 
+          wxm = one/(one + two*rxm**two)
           rxp = (eps + (V(i0+2,i1) -two*V(i0+1,i1) + V(i0,i1))**two)/
      &        (eps + (V(i0+1,i1) -two*V(i0,i1) + V(i0-1,i1))**two)
           wxp = one/(one + two*rxp**two)
@@ -1299,7 +1299,7 @@ c         Compute all the required finite differences
           ryp = (eps + (V(i0,i1+2) -two*V(i0,i1+1) + V(i0,i1))**two)/
      &        (eps + (V(i0,i1+1) -two*V(i0,i1) + V(i0,i1-1))**two)
           wyp = one/(one + two*ryp**two)
- 
+
 
 c         Set dummy values for hxp,hxm,hyp,hym
           hxp = 1.d12;hxm = 1.d12;hyp = 1.d12;hym = 1.d12
@@ -1317,14 +1317,14 @@ c         Compute WENO differences with subcell fix
             else
               hxp = hx*V(i0,i1)/diff
             endif
-        
+
             h1 = hx; h2 = dmax1(hxp,sqrt(smallr))
-            Dxc = (-V(i0,i1)*h1**2 + 
+            Dxc = (-V(i0,i1)*h1**2 +
      &            (-V(i0-1,i1) + V(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
 
             h1 = hxp; h2 = hx - hxp
-            Dxr = (-V(i0+1,i1)*h1**2 + two*(-V(i0,i1))*h1*h2 + 
-     &              (-V(i0,i1))*h2**2)/(h1*h2*(h1 + h2)) 
+            Dxr = (-V(i0+1,i1)*h1**2 + two*(-V(i0,i1))*h1*h2 +
+     &              (-V(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
           endif
 
           if (use_subcell .ne. 0 .and.
@@ -1339,14 +1339,14 @@ c         Compute WENO differences with subcell fix
             else
               hxm = hx*V(i0,i1)/diff
             endif
-       
+
             h1 = dmax1(hxm,sqrt(smallr)); h2 = hx
-            Dxc = ((-V(i0,i1) + V(i0+1, i1))*h1**2 + 
+            Dxc = ((-V(i0,i1) + V(i0+1, i1))*h1**2 +
      &            (V(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
 
             h1 = dmax1(hx - hxm,sqrt(smallr))
             h2 = dmax1(hxm,sqrt(smallr))
-            Dxl = (V(i0,i1)*h1**2 + two*V(i0,i1)*h1*h2 + 
+            Dxl = (V(i0,i1)*h1**2 + two*V(i0,i1)*h1*h2 +
      &            V(i0-1,i1)*h2**2)/(h1*h2*(h1 + h2))
           endif
 
@@ -1362,7 +1362,7 @@ c         Compute WENO differences with subcell fix
             else
               hyp = hy*V(i0,i1)/diff
             endif
- 
+
             h1 = hy; h2 = dmax1(hyp,sqrt(smallr))
             Dyc = (-V(i0,i1)*h1**2 +
      &            (-V(i0,i1-1) + V(i0,i1))*h2**2)/(h1*h2*(h1 + h2))
@@ -1413,7 +1413,7 @@ c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Carry out fifth order relaxation scheme using Gauss Seidel updates
-c     
+c
 c     Uses fifth order WENO for spatial discretization
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1582,7 +1582,7 @@ c     Compute all the required finite differences and their WENO5 interpolation
       Dxm = Ex-WENO5(Qxxm)
       Dyp = Ey+WENO5(Qyyp)
       Dym = Ey-WENO5(Qyym)
-    
+
       H = HG(Dxp,Dxm,Dyp,Dym,sgn)
       dt = cfl*hmin
 
@@ -1593,7 +1593,7 @@ c     Compute all the required finite differences and their WENO5 interpolation
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Compute the Godunov Hamiltonian of the indicator field |grad phi_0|
-c     
+c
 c     Uses fifth order WENO for spatial discretization
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1663,7 +1663,7 @@ c           Compute all the required finite differences and their WENO5 interpol
             Dxm = Ex-WENO5(Qxxm)
             Dyp = Ey+WENO5(Qyyp)
             Dym = Ey-WENO5(Qyym)
-    
+
             H(i0,i1) = HG(Dxp,Dxm,Dyp,Dym,sgn)
           enddo
       enddo
@@ -1824,6 +1824,95 @@ c
       return
       end
 c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Carry out sign sweeping algorithm
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine signsweep2d(
+     &     U,U_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     large_dist,
+     &     n_updates)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER U_gcw
+      REAL large_dist
+c
+c     Input/Output.
+c
+      REAL U(CELL2d(ilower,iupper,U_gcw))
+      INTEGER n_updates
+
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL sgn, sgn_nbr
 
 
+c     Do the four sweeping directions.
+
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0
+            if (dabs(U(i0,i1)) .ge. large_dist) then
+               sgn = sign(one,U(i0,i1))
+               sgn_nbr = sign(one,U(i0-1,i1))
+               if (sgn .ne. sgn_nbr) then
+                  U(i0,i1) = dabs(U(i0,i1))*sgn_nbr
+                  n_updates = n_updates + 1
+               endif
+            endif
+         enddo
+      enddo
+
+      do i1 = iupper1,ilower1,-1
+         do i0 = ilower0,iupper0
+            if (dabs(U(i0,i1)) .ge. large_dist) then
+               sgn = sign(one,U(i0,i1))
+               sgn_nbr = sign(one,U(i0,i1+1))
+               if (sgn .ne. sgn_nbr) then
+                  U(i0,i1) = dabs(U(i0,i1))*sgn_nbr
+                  n_updates = n_updates + 1
+               endif
+            endif
+         enddo
+      enddo
+
+      do i1 = ilower1,iupper1
+         do i0 = iupper0,ilower0,-1
+            if (dabs(U(i0,i1)) .ge. large_dist) then
+               sgn = sign(one,U(i0,i1))
+               sgn_nbr = sign(one,U(i0+1,i1-1))
+               if (sgn .ne. sgn_nbr) then
+                  U(i0,i1) = dabs(U(i0,i1))*sgn_nbr
+                  n_updates = n_updates + 1
+               endif
+            endif
+         enddo
+      enddo
+
+      do i1 = iupper1,ilower1,-1
+         do i0 = iupper0,ilower0,-1
+            if (dabs(U(i0,i1)) .ge. large_dist) then
+               sgn = sign(one,U(i0,i1))
+               sgn_nbr = sign(one,U(i0+1,i1+1))
+               if (sgn .ne. sgn_nbr) then
+                  U(i0,i1) = dabs(U(i0,i1))*sgn_nbr
+                  n_updates = n_updates + 1
+               endif
+            endif
+         enddo
+      enddo
+
+      return
+      end
 

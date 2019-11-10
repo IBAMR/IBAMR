@@ -31,6 +31,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
 #include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/INSStaggeredPressureBcCoef.h"
@@ -40,6 +41,7 @@
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/IndexUtilities.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
@@ -166,7 +168,6 @@ IBHydrodynamicSurfaceForceEvaluator::~IBHydrodynamicSurfaceForceEvaluator()
     {
         var_db->removePatchDataIndex(d_mu_idx);
     }
-
     return;
 } // ~IBHydrodynamicSurfaceForceEvaluator
 
@@ -180,7 +181,19 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
     const double time = d_fluid_solver->getIntegratorTime();
     computeHydrodynamicForceTorque(
         pressure_force, viscous_force, pressure_torque, viscous_torque, X0, time, time, time);
+
+    if (d_write_to_file && SAMRAI_MPI::getRank() == 0)
+    {
+        *d_hydro_force_stream << time << '\t' << pressure_force[0] << '\t' << pressure_force[1] << '\t'
+                              << pressure_force[2] << '\t' << viscous_force[0] << '\t' << viscous_force[1] << '\t'
+                              << viscous_force[2] << std::endl;
+
+        *d_hydro_torque_stream << time << '\t' << pressure_torque[0] << '\t' << pressure_torque[1] << '\t'
+                               << pressure_torque[2] << '\t' << viscous_torque[0] << '\t' << viscous_torque[1] << '\t'
+                               << viscous_torque[2] << std::endl;
+    }
     return;
+
 } // computeHydrodynamicForce
 
 void
@@ -266,9 +279,9 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
 
                 for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
                 {
-                    SideIndex<NDIM> s_i(it(), axis, 0);
-                    CellIndex<NDIM> c_l = s_i.toCell(0);
-                    CellIndex<NDIM> c_u = s_i.toCell(1);
+                    SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
+                    CellIndex<NDIM> c_l = s_i.toCell(SideIndex<NDIM>::Lower);
+                    CellIndex<NDIM> c_u = s_i.toCell(SideIndex<NDIM>::Upper);
                     const double phi_lower = (*ls_solid_data)(c_l);
                     const double phi_upper = (*ls_solid_data)(c_u);
 
@@ -280,12 +293,7 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
                     n(axis) = signof(phi_upper - phi_lower);
 
                     // Get the relative coordinate from X0
-                    const IBTK::VectorNd side_center = IndexUtilities::getSideCenter(*patch, s_i);
-                    IBTK::Vector3d r_vec = IBTK::Vector3d::Zero();
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        r_vec[d] = side_center[d] - X0[d];
-                    }
+                    const IBTK::Vector3d r_vec = IBTK::IndexUtilities::getSideCenter<IBTK::Vector3d>(*patch, s_i) - X0;
 
                     // Compute pressure on the face using simple averaging (n. -p I) * dA
                     const IBTK::Vector3d pn = 0.5 * n * ((*p_data)(c_l) + (*p_data)(c_u));
@@ -328,8 +336,7 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
                     // Add up the pressure forces n.(-pI)dS
                     // and pressure torques r X n.(-pI)dS
                     pressure_force += (-pn * dS);
-
-                    pressure_torque += r_vec.cross(-pn) * dS;
+                    pressure_torque += (r_vec.cross(-pn)) * dS;
 
                     // Add up the viscous forces n.(mu*(grad U + grad U)^T)dS
                     // and viscous torque r X n.(mu*(grad U + grad U)^T)dS
@@ -366,6 +373,44 @@ IBHydrodynamicSurfaceForceEvaluator::setSurfaceContourLevel(double s)
     d_surface_contour_value = s;
     return;
 } // setSurfaceContourLevel
+
+void
+IBHydrodynamicSurfaceForceEvaluator::writeToFile(bool write_to_file)
+{
+    d_write_to_file = write_to_file;
+
+    // Set up the streams for printing force and torque
+    if (d_write_to_file && SAMRAI_MPI::getRank() == 0)
+    {
+        std::string force;
+        force = "Hydro_Force_" + d_ls_solid_var->getName();
+        bool from_restart = RestartManager::getManager()->isFromRestart();
+        if (from_restart)
+        {
+            d_hydro_force_stream.reset(new std::ofstream(force.c_str(), std::fstream::app));
+            d_hydro_force_stream->precision(10);
+        }
+        else
+        {
+            d_hydro_force_stream.reset(new std::ofstream(force.c_str(), std::fstream::out));
+            d_hydro_force_stream->precision(10);
+        }
+
+        std::string torque;
+        torque = "Hydro_Torque_" + d_ls_solid_var->getName();
+        if (from_restart)
+        {
+            d_hydro_torque_stream.reset(new std::ofstream(torque.c_str(), std::fstream::app));
+            d_hydro_torque_stream->precision(10);
+        }
+        else
+        {
+            d_hydro_torque_stream.reset(new std::ofstream(torque.c_str(), std::fstream::out));
+            d_hydro_torque_stream->precision(10);
+        }
+    }
+    return;
+} // writeToFile
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -534,6 +579,11 @@ IBHydrodynamicSurfaceForceEvaluator::getFromInput(Pointer<Database> input_db)
     if (input_db->keyExists("surface_contour_value"))
     {
         d_surface_contour_value = input_db->getDouble("surface_contour_value");
+    }
+
+    if (input_db->keyExists("write_to_file"))
+    {
+        d_write_to_file = input_db->getBool("write_to_file");
     }
 
     return;
