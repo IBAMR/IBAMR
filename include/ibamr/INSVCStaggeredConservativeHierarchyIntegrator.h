@@ -68,8 +68,8 @@ namespace IBAMR
  * Therefore, the density variable must be registered and maintained by this class,
  * and not by any other integrator (such AdvDiffHierarchyIntegrator).
  * It is also assumed that this density variable is side-centered. In other words, given a density at the beginning
- * of the time step \f$rho^n\f$, an interpolated face density \f$rho^{n+\frac{1}{2}}\f$ is produced and used in the
- * momentum convection to obtain \f$N(\rho u)\f$ and mass advection to obtain \f$rho^{n+1}\f$. Hence, a consistent
+ * of the time step \f$\rho^n\f$, an interpolated face density \f$\rho^{n+\frac{1}{2}}\f$ is produced and used in the
+ * momentum convection to obtain \f$N(\rho u)\f$ and mass advection to obtain \f$\rho^{n+1}\f$. Hence, a consistent
  * momentum and mass transport is carried out, which leads to stable solutions for high-density ratio flows.
  *
  */
@@ -279,11 +279,6 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var;
 
-    /*!
-     * Side-centered velocity variable maintained from previous time step
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_old_var;
-
     /*
      * Patch data descriptor indices for all "state" variables managed by the
      * integrator.
@@ -291,7 +286,6 @@ private:
      * State variables have three contexts: current, scratch, and new.
      */
     int d_rho_sc_current_idx, d_rho_sc_scratch_idx, d_rho_sc_new_idx;
-    int d_U_old_current_idx, d_U_old_new_idx, d_U_old_scratch_idx;
 
     /*
      * Boundary condition object for the side-centered density variable maintained

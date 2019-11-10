@@ -35,6 +35,7 @@
 #include "IBAMR_config.h"
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/BrinkmanPenalizationStrategy.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
@@ -528,6 +529,7 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string
     d_F_var = INSHierarchyIntegrator::d_F_var;
     d_Q_var = INSHierarchyIntegrator::d_Q_var;
     d_N_old_var = new SideVariable<NDIM, double>(d_object_name + "::N_old");
+    d_U_old_var = new SideVariable<NDIM, double>(d_object_name + "::U_old");
 
     d_U_cc_var = new CellVariable<NDIM, double>(d_object_name + "::U_cc", NDIM);
     d_F_cc_var = new CellVariable<NDIM, double>(d_object_name + "::F_cc", NDIM);
@@ -799,6 +801,15 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     const IntVector<NDIM> no_ghosts = 0;
     const IntVector<NDIM> mu_cell_ghosts = MUCELLG;
 
+    registerVariable(d_U_old_current_idx,
+                     d_U_old_new_idx,
+                     d_U_old_scratch_idx,
+                     d_U_old_var,
+                     side_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE",
+                     d_U_init);
+
     registerVariable(d_U_current_idx,
                      d_U_new_idx,
                      d_U_scratch_idx,
@@ -1028,6 +1039,9 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     d_velocity_C_var = new SideVariable<NDIM, double>(d_object_name + "::velocity_C");
     d_velocity_C_idx = var_db->registerVariableAndContext(d_velocity_C_var, getCurrentContext(), no_ghosts);
 
+    d_velocity_L_var = new SideVariable<NDIM, double>(d_object_name + "::velocity_L");
+    d_velocity_L_idx = var_db->registerVariableAndContext(d_velocity_L_var, getCurrentContext(), side_ghosts);
+
     d_velocity_rhs_C_var = new SideVariable<NDIM, double>(d_object_name + "::velocity_rhs_C");
     d_velocity_rhs_C_idx = var_db->registerVariableAndContext(d_velocity_rhs_C_var, getCurrentContext(), no_ghosts);
 #if (NDIM == 2)
@@ -1153,14 +1167,6 @@ INSVCStaggeredHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarc
 {
     HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
 
-    // Project the velocity field if this is the initial time step.
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
-    if (initial_time)
-    {
-        regridProjection();
-        synchronizeHierarchyData(CURRENT_DATA);
-    }
-
     // When necessary, initialize the value of the advection velocity registered
     // with a coupled advection-diffusion solver.
     if (d_adv_diff_hier_integrator)
@@ -1193,6 +1199,7 @@ INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         level->allocatePatchData(d_scratch_data, current_time);
         level->allocatePatchData(d_new_data, new_time);
         level->allocatePatchData(d_velocity_C_idx, current_time);
+        level->allocatePatchData(d_velocity_L_idx, current_time);
         level->allocatePatchData(d_velocity_rhs_C_idx, current_time);
         level->allocatePatchData(d_velocity_D_idx, current_time);
         level->allocatePatchData(d_velocity_D_cc_idx, current_time);
@@ -1211,6 +1218,16 @@ INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
 
     // Preprocess the operators and solvers
     preprocessOperatorsAndSolvers(current_time, new_time);
+
+    // Preprocess Brinkman penalization objects.
+    for (auto& brinkman_force : d_brinkman_force)
+    {
+        brinkman_force->setTimeInterval(current_time, new_time);
+        brinkman_force->preprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
+    }
+
+    // Keep track of the time-lagged velocity
+    d_hier_sc_data_ops->copyData(d_U_old_new_idx, d_U_current_idx);
 
     return;
 } // preprocessIntegrateHierarchy
@@ -1301,6 +1318,7 @@ INSVCStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double cu
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_velocity_C_idx);
+        level->deallocatePatchData(d_velocity_L_idx);
         level->deallocatePatchData(d_velocity_D_idx);
         level->deallocatePatchData(d_velocity_D_cc_idx);
         level->deallocatePatchData(d_pressure_D_idx);
@@ -1311,6 +1329,12 @@ INSVCStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double cu
         level->deallocatePatchData(d_mu_interp_idx);
         level->deallocatePatchData(d_N_full_idx);
         if (d_mu_var.isNull()) level->deallocatePatchData(d_mu_scratch_idx);
+    }
+
+    // Postprocess Brinkman penalization objects.
+    for (auto& brinkman_force : d_brinkman_force)
+    {
+        brinkman_force->postprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
     }
 
     // Execute any registered callbacks.
@@ -1397,6 +1421,14 @@ INSVCStaggeredHierarchyIntegrator::registerResetFluidViscosityFcn(ResetFluidProp
 } // registerResetFluidViscosityFcn
 
 void
+INSVCStaggeredHierarchyIntegrator::registerBrinkmanPenalizationStrategy(
+    Pointer<BrinkmanPenalizationStrategy> brinkman_force)
+{
+    d_brinkman_force.push_back(brinkman_force);
+    return;
+} // registerBrinkmanPenalizationStrategy
+
+void
 INSVCStaggeredHierarchyIntegrator::registerMassDensityInitialConditions(const Pointer<CartGridFunction> rho_init_fcn)
 {
 #if !defined(NDEBUG)
@@ -1444,6 +1476,48 @@ INSVCStaggeredHierarchyIntegrator::getTransportedViscosityVariable() const
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
+double
+INSVCStaggeredHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) const
+{
+    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+    const double* const dx = patch_geom->getDx();
+
+    const Index<NDIM>& ilower = patch->getBox().lower();
+    const Index<NDIM>& iupper = patch->getBox().upper();
+
+    Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_var, getCurrentContext());
+    const IntVector<NDIM>& U_ghost_cells = U_data->getGhostCellWidth();
+
+    double stable_dt = std::numeric_limits<double>::max();
+    NAVIER_STOKES_SC_STABLEDT_FC(dx,
+#if (NDIM == 2)
+                                 ilower(0),
+                                 iupper(0),
+                                 ilower(1),
+                                 iupper(1),
+                                 U_ghost_cells(0),
+                                 U_ghost_cells(1),
+                                 U_data->getPointer(0),
+                                 U_data->getPointer(1),
+#endif
+#if (NDIM == 3)
+                                 ilower(0),
+                                 iupper(0),
+                                 ilower(1),
+                                 iupper(1),
+                                 ilower(2),
+                                 iupper(2),
+                                 U_ghost_cells(0),
+                                 U_ghost_cells(1),
+                                 U_ghost_cells(2),
+                                 U_data->getPointer(0),
+                                 U_data->getPointer(1),
+                                 U_data->getPointer(2),
+#endif
+                                 stable_dt);
+    return stable_dt;
+} // getStableTimestep
+
 void
 INSVCStaggeredHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {
@@ -1483,21 +1557,30 @@ INSVCStaggeredHierarchyIntegrator::regridHierarchyEndSpecialized()
                          -1.0,
                          d_Q_current_idx,
                          d_Q_var);
-    const double Div_U_norm_1_post = d_hier_cc_data_ops->L1Norm(d_Div_U_idx, wgt_cc_idx);
-    const double Div_U_norm_2_post = d_hier_cc_data_ops->L2Norm(d_Div_U_idx, wgt_cc_idx);
-    const double Div_U_norm_oo_post = d_hier_cc_data_ops->maxNorm(d_Div_U_idx, wgt_cc_idx);
-
-    // Project the interpolated velocity if needed.
-    if (Div_U_norm_1_post > d_regrid_max_div_growth_factor * d_div_U_norm_1_pre ||
-        Div_U_norm_2_post > d_regrid_max_div_growth_factor * d_div_U_norm_2_pre ||
-        Div_U_norm_oo_post > d_regrid_max_div_growth_factor * d_div_U_norm_oo_pre)
-    {
-        pout << d_object_name << "::regridHierarchy():\n"
-             << "  WARNING: projecting the interpolated velocity field\n";
-        regridProjection();
-    }
+    d_div_U_norm_1_post = d_hier_cc_data_ops->L1Norm(d_Div_U_idx, wgt_cc_idx);
+    d_div_U_norm_2_post = d_hier_cc_data_ops->L2Norm(d_Div_U_idx, wgt_cc_idx);
+    d_div_U_norm_oo_post = d_hier_cc_data_ops->maxNorm(d_Div_U_idx, wgt_cc_idx);
+    d_do_regrid_projection =
+        d_div_U_norm_1_post > d_regrid_max_div_growth_factor * d_div_U_norm_1_pre ||
+        d_div_U_norm_2_post > d_regrid_max_div_growth_factor * d_div_U_norm_2_pre ||
+        d_div_U_norm_oo_post > d_regrid_max_div_growth_factor * d_div_U_norm_oo_pre;
     return;
 } // regridHierarchyEndSpecialized
+
+void
+INSVCStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(const double /*init_data_time*/,
+                                                                               const bool initial_time)
+{
+    // Project the interpolated velocity if needed.
+    if (initial_time || d_do_regrid_projection)
+    {
+        plog << d_object_name << "::initializeCompositeHierarchyData():\n"
+             << "  projecting the interpolated velocity field\n";
+        regridProjection();
+        d_do_regrid_projection = false;
+    }
+    return;
+} // initializeCompositeHierarchyDataSpecialized
 
 void
 INSVCStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
@@ -1914,48 +1997,6 @@ INSVCStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
     }
     return;
 } // setupPlotDataSpecialized
-
-double
-INSVCStaggeredHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) const
-{
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-    const double* const dx = patch_geom->getDx();
-
-    const Index<NDIM>& ilower = patch->getBox().lower();
-    const Index<NDIM>& iupper = patch->getBox().upper();
-
-    Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_var, getCurrentContext());
-    const IntVector<NDIM>& U_ghost_cells = U_data->getGhostCellWidth();
-
-    double stable_dt = std::numeric_limits<double>::max();
-    NAVIER_STOKES_SC_STABLEDT_FC(dx,
-#if (NDIM == 2)
-                                 ilower(0),
-                                 iupper(0),
-                                 ilower(1),
-                                 iupper(1),
-                                 U_ghost_cells(0),
-                                 U_ghost_cells(1),
-                                 U_data->getPointer(0),
-                                 U_data->getPointer(1),
-#endif
-#if (NDIM == 3)
-                                 ilower(0),
-                                 iupper(0),
-                                 ilower(1),
-                                 iupper(1),
-                                 ilower(2),
-                                 iupper(2),
-                                 U_ghost_cells(0),
-                                 U_ghost_cells(1),
-                                 U_ghost_cells(2),
-                                 U_data->getPointer(0),
-                                 U_data->getPointer(1),
-                                 U_data->getPointer(2),
-#endif
-                                 stable_dt);
-    return stable_dt;
-} // getStableTimestep
 
 void
 INSVCStaggeredHierarchyIntegrator::copySideToFace(const int U_fc_idx,

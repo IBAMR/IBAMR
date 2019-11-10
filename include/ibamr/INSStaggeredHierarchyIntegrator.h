@@ -246,6 +246,31 @@ protected:
     double d_div_U_norm_oo_pre = 0.0;
 
     /*!
+     * L1 norm of the discrete divergence of the fluid velocity after regridding.
+     */
+    double d_div_U_norm_1_post = 0.0;
+
+    /*!
+     * L2 norm of the discrete divergence of the fluid velocity after regridding.
+     */
+    double d_div_U_norm_2_post = 0.0;
+
+    /*!
+     * L-infinity norm of the discrete divergence of the fluid velocity after regridding.
+     */
+    double d_div_U_norm_oo_post = 0.0;
+
+    /*!
+     * Whether we need to perform a regrid projection when (re-)initializing composite hierarchy data.
+     */
+    bool d_do_regrid_projection = false;
+
+    /*!
+     * Determine the largest stable timestep on an individual patch.
+     */
+    double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const override;
+
+    /*!
      * Prepare the current hierarchy for regridding. Here we calculate the divergence.
      */
     void regridHierarchyBeginSpecialized() override;
@@ -253,15 +278,15 @@ protected:
     /*!
      * Update the current hierarchy data after regridding. Here we recalculate
      * the divergence and, if it has grown by a factor more than
-     * d_regrid_max_div_growth_factor, we then project the velocity field onto
-     * a divergence-free set of grid functions.
+     * d_regrid_max_div_growth_factor, we indicate that a regrid projection is needed
+     * to (re)initialize the composite hierarchy data.
      */
     void regridHierarchyEndSpecialized() override;
 
     /*!
-     * Determine the largest stable timestep on an individual patch.
+     * Perform data initialization after the entire hierarchy has been constructed.
      */
-    double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const override;
+    void initializeCompositeHierarchyDataSpecialized(double init_data_time, bool initial_time) override;
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
