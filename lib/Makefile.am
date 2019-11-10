@@ -68,10 +68,13 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/IBInstrumentPanel.cpp \
 ../src/IB/IBInstrumentationSpec.cpp \
 ../src/IB/IBInstrumentationSpecFactory.cpp \
+../src/IB/IBInterpolantHierarchyIntegrator.cpp \
+../src/IB/IBInterpolantMethod.cpp \
 ../src/IB/IBKirchhoffRodForceGen.cpp \
 ../src/IB/IBLagrangianForceStrategy.cpp \
 ../src/IB/IBLagrangianForceStrategySet.cpp \
 ../src/IB/IBLagrangianSourceStrategy.cpp \
+../src/IB/IBLevelSetMethod.cpp \
 ../src/IB/IBMethod.cpp \
 ../src/IB/IBRedundantInitializer.cpp \
 ../src/IB/IBRodForceSpec.cpp \
@@ -160,7 +163,14 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 ../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 ../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
-../src/utilities/ConvectiveOperator.cpp
+../src/utilities/ConvectiveOperator.cpp \
+../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
+../src/wave_generation/StokesFifthOrderWaveBcCoef.cpp \
+../src/wave_generation/StokesFirstOrderWaveBcCoef.cpp \
+../src/wave_generation/StokesSecondOrderWaveBcCoef.cpp \
+../src/wave_generation/StokesWaveGeneratorStrategy.cpp \
+../src/wave_generation/WaveDampingFunctions.cpp \
+../src/wave_generation/WaveGenerationFunctions.cpp
 
 if LIBMESH_ENABLED
   DIM_INDEPENDENT_SOURCES += \
@@ -174,7 +184,8 @@ if LIBMESH_ENABLED
   ../src/IB/IMPInitializer.cpp \
   ../src/IB/IMPMethod.cpp \
   ../src/IB/MaterialPointSpec.cpp \
-  ../src/IB/MaterialPointSpecFactory.cpp
+  ../src/IB/MaterialPointSpecFactory.cpp \
+  ../src/level_set/FESurfaceDistanceEvaluator.cpp
 endif
 
 pkg_include_HEADERS += \
@@ -204,6 +215,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/GeneralizedIBMethod.h \
 ../include/ibamr/DirectMobilitySolver.h \
 ../include/ibamr/FastSweepingLSMethod.h \
+../include/ibamr/FifthOrderStokesWaveGenerator.h \
 ../include/ibamr/IBAnchorPointSpec.h \
 ../include/ibamr/IBBeamForceSpec.h \
 ../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -213,10 +225,13 @@ pkg_include_HEADERS += \
 ../include/ibamr/IBImplicitStrategy.h \
 ../include/ibamr/IBInstrumentPanel.h \
 ../include/ibamr/IBInstrumentationSpec.h \
+../include/ibamr/IBInterpolantHierarchyIntegrator.h \
+../include/ibamr/IBInterpolantMethod.h \
 ../include/ibamr/IBKirchhoffRodForceGen.h \
 ../include/ibamr/IBLagrangianForceStrategy.h \
 ../include/ibamr/IBLagrangianForceStrategySet.h \
 ../include/ibamr/IBLagrangianSourceStrategy.h \
+../include/ibamr/IBLevelSetMethod.h \
 ../include/ibamr/IBMethod.h \
 ../include/ibamr/IBMethodPostProcessStrategy.h \
 ../include/ibamr/IBRedundantInitializer.h \
@@ -282,16 +297,23 @@ pkg_include_HEADERS += \
 ../include/ibamr/StaggeredStokesSolver.h \
 ../include/ibamr/StaggeredStokesSolverManager.h \
 ../include/ibamr/StokesBcCoefStrategy.h \
+../include/ibamr/StokesFifthOrderWaveBcCoef.h \
+../include/ibamr/StokesFirstOrderWaveBcCoef.h \
+../include/ibamr/StokesSecondOrderWaveBcCoef.h \
 ../include/ibamr/StokesSpecifications.h \
+../include/ibamr/StokesWaveGeneratorStrategy.h \
 ../include/ibamr/SurfaceTensionForceFunction.h \
 ../include/ibamr/VCStaggeredStokesOperator.h \
 ../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
 ../include/ibamr/Wall.h \
-../include/ibamr/WallForceEvaluator.h
+../include/ibamr/WallForceEvaluator.h \
+../include/ibamr/WaveDampingFunctions.h \
+../include/ibamr/WaveGenerationFunctions.h
 
 if LIBMESH_ENABLED
   pkg_include_HEADERS += \
   ../include/ibamr/CIBFEMethod.h \
+  ../include/ibamr/FESurfaceDistanceEvaluator.h \
   ../include/ibamr/IBFECentroidPostProcessor.h \
   ../include/ibamr/IBFEDirectForcingKinematics.h \
   ../include/ibamr/IBFEInstrumentPanel.h \
