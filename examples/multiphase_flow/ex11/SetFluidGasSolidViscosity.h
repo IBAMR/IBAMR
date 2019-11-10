@@ -30,7 +30,6 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-
 /////////////////////// INCLUDE GUARD ////////////////////////////////////
 
 #ifndef included_SetFluidGasSolidViscosity
@@ -104,8 +103,6 @@ public:
                                const double time,
                                const double current_time,
                                const double new_time);
-
-    //////////////// PRIVATE /////////////////////////////
 
 private:
     /*!
