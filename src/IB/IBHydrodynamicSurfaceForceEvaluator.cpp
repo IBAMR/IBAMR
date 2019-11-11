@@ -340,10 +340,10 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
         }
     }
     // Sum the net force and torque across processors.
-    SAMRAI_MPI::sumReduction(pressure_force.data(), NDIM);
-    SAMRAI_MPI::sumReduction(viscous_force.data(), NDIM);
-    SAMRAI_MPI::sumReduction(pressure_torque.data(), NDIM);
-    SAMRAI_MPI::sumReduction(viscous_torque.data(), NDIM);
+    SAMRAI_MPI::sumReduction(pressure_force.data(), pressure_force.size());
+    SAMRAI_MPI::sumReduction(viscous_force.data(), viscous_force.size());
+    SAMRAI_MPI::sumReduction(pressure_torque.data(), pressure_torque.size());
+    SAMRAI_MPI::sumReduction(viscous_torque.data(), viscous_force.size());
 
     // Deallocate patch data
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
