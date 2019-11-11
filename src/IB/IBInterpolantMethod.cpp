@@ -114,10 +114,10 @@ namespace
 static const int IB_INTERPOLANT_METHOD_VERSION = 1;
 
 inline void
-set_rotation_matrix(const std::vector<Eigen::Vector3d>& rot_vel,
-                    const std::vector<Eigen::Quaterniond>& q_old,
-                    std::vector<Eigen::Quaterniond>& q_new,
-                    std::vector<Eigen::Matrix3d>& rot_mat,
+set_rotation_matrix(const EigenAlignedVector<Eigen::Vector3d>& rot_vel,
+                    const EigenAlignedVector<Eigen::Quaterniond>& q_old,
+                    EigenAlignedVector<Eigen::Quaterniond>& q_new,
+                    EigenAlignedVector<Eigen::Matrix3d>& rot_mat,
                     const double dt)
 {
     unsigned n_structs = (unsigned)rot_mat.size();
@@ -505,13 +505,13 @@ IBInterpolantMethod::trapezoidalStep(const double /*current_time*/, const double
 void
 IBInterpolantMethod::updateMeshPosition(double current_time,
                                         double new_time,
-                                        const std::vector<Eigen::Vector3d>& U,
-                                        const std::vector<Eigen::Vector3d>& W)
+                                        const EigenAlignedVector<Eigen::Vector3d>& U,
+                                        const EigenAlignedVector<Eigen::Vector3d>& W)
 {
     const double dt = new_time - current_time;
 
     // Fill the rotation matrix of structures with rotation angle (W^n+1)*dt.
-    std::vector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
+    EigenAlignedVector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
     set_rotation_matrix(W, d_quaternion_current, d_quaternion_new, rotation_mat, dt);
 
     // Rotate the body with new rotational velocity about origin
@@ -669,7 +669,7 @@ IBInterpolantMethod::initializePatchHierarchy(
 
     // Initialize initial center of mass of structures.
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<Eigen::Vector3d> X0_com(d_num_rigid_parts, Eigen::Vector3d::Zero());
+    EigenAlignedVector<Eigen::Vector3d> X0_com(d_num_rigid_parts, Eigen::Vector3d::Zero());
     std::vector<Pointer<LData> > X0_data_vec(finest_ln + 1, Pointer<LData>(NULL));
     X0_data_vec[finest_ln] = d_l_data_manager->getLData("X0", finest_ln);
     computeCenterOfMass(d_center_of_mass_initial, X0_data_vec);
@@ -941,7 +941,7 @@ IBInterpolantMethod::getQData(const std::string& var_name, std::vector<Pointer<L
 } // getQData
 
 void
-IBInterpolantMethod::computeCenterOfMass(std::vector<Eigen::Vector3d>& center_of_mass,
+IBInterpolantMethod::computeCenterOfMass(EigenAlignedVector<Eigen::Vector3d>& center_of_mass,
                                          std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data)
 {
     const int coarsest_ln = 0;

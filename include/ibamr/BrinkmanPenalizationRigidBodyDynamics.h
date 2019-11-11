@@ -88,6 +88,13 @@ namespace IBAMR
 class BrinkmanPenalizationRigidBodyDynamics : public BrinkmanPenalizationStrategy
 {
 public:
+    /*!
+     * Since this class has Eigen object members, which have special alignment
+     * requirements, we must explicitly override operator new to get the
+     * correct aligment for the object as a whole.
+     */
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     /*
      * \brief Constructor of the class.
      */

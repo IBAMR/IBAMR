@@ -131,7 +131,7 @@ IBInterpolantHierarchyIntegrator::integrateHierarchy(const double current_time,
     const std::vector<Pointer<BrinkmanPenalizationStrategy> >& brinkman_force =
         vc_ins_integrator->getBrinkmanPenalizationStrategy();
     const std::size_t num_objects = brinkman_force.size();
-    std::vector<Eigen::Vector3d> U(num_objects), W(num_objects);
+    EigenAlignedVector<Eigen::Vector3d> U(num_objects), W(num_objects);
     for (std::size_t k = 0; k < num_objects; ++k)
     {
         Pointer<BrinkmanPenalizationRigidBodyDynamics> rbd = brinkman_force[k];
