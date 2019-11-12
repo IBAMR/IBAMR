@@ -210,6 +210,7 @@ INSHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> F_fc
             p_F_fcn->addFunction(d_F_fcn);
         }
         p_F_fcn->addFunction(F_fcn);
+        d_F_fcn = p_F_fcn;
     }
     else
     {
