@@ -207,7 +207,6 @@ public:
         return;
     } // setViscosityPatchData
 
-    //////////////// PRIVATE /////////////////////////////
 private:
     SetFluidGasSolidViscosity& operator=(const SetFluidGasSolidViscosity&) = delete;
     SetFluidGasSolidViscosity(const SetFluidGasSolidViscosity&) = delete;

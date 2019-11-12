@@ -70,7 +70,6 @@ namespace IBAMR
  */
 class DirectMobilitySolver : public SAMRAI::tbox::DescribedClass
 {
-    /////////////////////////////// PUBLIC //////////////////////////////////////
 public:
     /*!
      * \brief The only constructor of this class.
@@ -223,7 +222,6 @@ public:
      */
     const std::vector<std::vector<unsigned> >& getStructIDs(const std::string& mat_name);
 
-    /////////////////////////////// PRIVATE //////////////////////////////////////
 private:
     /*!
      * \brief Get input options.

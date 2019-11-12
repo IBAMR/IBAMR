@@ -129,8 +129,6 @@ public:
         return;
     } // setLevelSetPatchData
 
-    //////////////// PRIVATE /////////////////////////////
-
 private:
     LSLocateGasInterface& operator=(const LSLocateGasInterface&) = delete;
     LSLocateGasInterface(const LSLocateGasInterface&) = delete;
