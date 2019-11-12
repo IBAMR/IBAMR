@@ -795,7 +795,10 @@ HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> 
             Pointer<CartGridFunction> var_init = d_state_var_init_fcns[var];
             if (var_init)
             {
-                var_init->setDataOnPatchLevel(var_current_idx, var, level, init_data_time, initial_time);
+                const int coarsest_ln = 0;
+                const int finest_ln = level_number;
+                var_init->setDataOnPatchHierarchy(
+                    var_current_idx, var, hierarchy, init_data_time, initial_time, coarsest_ln, finest_ln);
             }
             else
             {

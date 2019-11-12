@@ -759,7 +759,10 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
             Pointer<CartGridFunction> F_fcn = d_F_fcn[F_var];
             if (F_fcn)
             {
-                F_fcn->setDataOnPatchLevel(F_idx, F_var, level, init_data_time, initial_time);
+                const int coarsest_ln = 0;
+                const int finest_ln = level_number;
+                F_fcn->setDataOnPatchHierarchy(
+                    F_idx, F_var, hierarchy, init_data_time, initial_time, coarsest_ln, finest_ln);
             }
             else
             {
@@ -782,7 +785,10 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::initializeLevelDataSpecialized(
             Pointer<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
             if (D_fcn)
             {
-                D_fcn->setDataOnPatchLevel(D_idx, D_var, level, init_data_time, initial_time);
+                const int coarsest_ln = 0;
+                const int finest_ln = level_number;
+                D_fcn->setDataOnPatchHierarchy(
+                    D_idx, D_var, hierarchy, init_data_time, initial_time, coarsest_ln, finest_ln);
             }
             else
             {
