@@ -19,7 +19,7 @@ IBAMR_PROJECT_ROOT=$HOME/code/IBAMR
 
 intercept_make="make CC=intercept-cc CXX=intercept-c++ MPICH_CC=intercept-cc MPICH_CXX=intercept-cxx OMPI_CC=intercept-cc OMPI_CXX=intercept-cxx"
 
-CXX_COMMAND=/usr/local/Cellar/llvm/8.0.1/bin/clang++
+CXX_COMMAND=/usr/local/Cellar/llvm/9.0.0_1/bin/clang++
 
 if [ $SETUP_PETSC -eq 1 ]; then
   echo "setting up petsc"
