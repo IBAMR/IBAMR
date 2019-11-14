@@ -19,6 +19,9 @@ import time
 # We rely on subprocess.run, which is new in 3.5
 assert sys.version_info >= (3, 5)
 
+INCLUDE_REGEX_DEFAULT = '.*'
+EXCLUDE_REGEX_DEFAULT = '^$'
+
 
 def interrupt_handler(sig, frame):
     """Small interrupt handler to catch SIGINT.
@@ -43,6 +46,14 @@ class Parameters:
 
     n_processors: number of processors to use at once. Defaults to 4.
 
+    show_only: only print test names and do not execute them.
+
+    include_regex: regular expression matching tests to run. Defaults to '.+'
+    (i.e., run all tests).
+
+    exclude_regex: regular expression matching tests to skip. Defaults to '^$'
+    (i.e., skip no tests).
+
     keep_work_directories: whether or not work directories (usually in /tmp/)
     should be deleted after the test is run. Defaults to False.
     """
@@ -54,7 +65,8 @@ class Parameters:
         self.n_processors = input_arguments.n_processors
         self.show_only = input_arguments.show_only
         self.test_directory = os.getcwd() + input_arguments.test_directory
-        self.test_regex = input_arguments.test_regex
+        self.include_regex = input_arguments.include_regex
+        self.exclude_regex = input_arguments.exclude_regex
         self.verbose = False
 
         # These are the only two required inputs:
@@ -288,7 +300,8 @@ def main():
                              'numdiff': 'numdiff',
                              'show_only': 'False',
                              'test_directory': '/tests/',
-                             'test_regex': '.*'}
+                             'include_regex': INCLUDE_REGEX_DEFAULT,
+                             'exclude_regex': EXCLUDE_REGEX_DEFAULT}
     config_file.read('attest.conf')
     conf = config_file['attest'] # shorthand
 
@@ -344,14 +357,20 @@ def main():
                         help=("Directory in which all test files " +
                               "(executables, input files, and output files) " +
                               "are located."))
-    parser.add_argument('-R,--tests-regex', type=str, default=conf['test_regex'],
-                        dest='test_regex',
-                        help="Regex for filtering test names; e.g., if a test is"
-                        " in 'tests/dir/example.input', the regex will be "
-                        "applied to 'dir/example.input'.")
+    parser.add_argument('-R,--include-regex', type=str, default=conf['include_regex'],
+                        dest='include_regex',
+                        help="Regular expression for including test names; If a"
+                        " test is in 'tests/dir/example.input', the regex will "
+                        "be applied to 'dir/example.input'.")
+    parser.add_argument('-E,--exclude-regex', type=str, default=conf['exclude_regex'],
+                        dest='exclude_regex',
+                        help="Regular expression for excluding test names. If a"
+                        " test is in 'tests/dir/example.input', the regex will "
+                        "be applied to 'dir/example.input'.")
     input_arguments = parser.parse_args()
     parameters = Parameters(input_arguments)
-    test_pattern = re.compile(parameters.test_regex)
+    include_pattern = re.compile(parameters.include_regex)
+    exclude_pattern = re.compile(parameters.exclude_regex)
 
     # 1. set up input file list:
     unstarted_tests = []
@@ -359,7 +378,9 @@ def main():
         path_length = len(os.path.split(input_file)[0])
         input_file_name = input_file[path_length + 1:]
         # include the directory when matching test input files:
-        if re.search(test_pattern, input_file[len(parameters.test_directory):]):
+        regex_input = input_file[len(parameters.test_directory):]
+        if (re.search(include_pattern, regex_input)
+            and not re.search(exclude_pattern, regex_input)):
             output_file = os.path.splitext(input_file)[0] + ".output"
             base_name = input_file_name[:input_file_name.find('.')]
             executable = os.path.split(input_file)[0] + os.sep + base_name
