@@ -280,7 +280,13 @@ def main():
     """Run the tests and print the results.
     """
     # 0. Set up environment and input settings:
+    # a. permit running more MPI processes than we have logical cores
     os.environ['OMPI_MCA_rmaps_base_oversubscribe'] = "1"
+    # b. completely disable OMP threading. HYPRE may try to parallelize itself
+    # with threads which leads to disasterous performance since we expect that
+    # all parallelization is done with MPI.
+    os.environ['OMP_NUM_THREADS'] = "1"
+    os.environ['OMP_THREAD_LIMIT'] = "1"
     config_file = configparser.ConfigParser()
     config_file['attest'] = {'jobs': '1',
                              'keep_work_directories': 'True',
