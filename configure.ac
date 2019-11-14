@@ -246,6 +246,7 @@ AC_CONFIG_FILES([
   tests/physical_boundary/Makefile
   tests/refine/Makefile
   tests/spread/Makefile
+  tests/wave_tank/Makefile
 ])
 AC_CONFIG_SUBDIRS([ibtk])
 AC_OUTPUT
