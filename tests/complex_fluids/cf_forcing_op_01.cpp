@@ -1,0 +1,196 @@
+// Copyright (c) 2002-2014, Boyce Griffith
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
+//
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+
+// Config files
+#include <IBTK_config.h>
+
+#include <SAMRAI_config.h>
+
+// Headers for basic PETSc objects
+#include <petscsys.h>
+
+// Headers for major SAMRAI objects
+#include "ibtk/muParserCartGridFunction.h"
+
+#include <BergerRigoutsos.h>
+#include <CartesianGridGeometry.h>
+#include <GriddingAlgorithm.h>
+#include <LoadBalancer.h>
+#include <StandardTagAndInitialize.h>
+
+// Headers for application-specific algorithm/data structure objects
+#include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
+#include "ibamr/CFGiesekusRelaxation.h"
+#include "ibamr/CFINSForcing.h"
+#include "ibamr/CFOldroydBRelaxation.h"
+#include "ibamr/CFRoliePolyRelaxation.h"
+#include "ibamr/ibamr_enums.h"
+#include "ibamr/namespaces.h"
+
+#include <ibtk/AppInitializer.h>
+#include <ibtk/CartCellRobinPhysBdryOp.h>
+#include <ibtk/CartExtrapPhysBdryOp.h>
+#include <ibtk/CartSideRobinPhysBdryOp.h>
+#include <ibtk/PhysicalBoundaryUtilities.h>
+#include <ibtk/muParserRobinBcCoefs.h>
+
+#include <tbox/Array.h>
+
+// Set up application namespace declarations
+#include <ibtk/app_namespaces.h>
+
+/*******************************************************************************
+ * For each run, the input filename must be given on the command line.  In all *
+ * cases, the command line is:                                                 *
+ *                                                                             *
+ *    executable <input file name>                                             *
+ *                                                                             *
+ *******************************************************************************/
+int
+main(int argc, char* argv[])
+{
+    // Initialize PETSc, MPI, and SAMRAI.
+    PetscInitialize(&argc, &argv, NULL, NULL);
+    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
+    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
+    SAMRAIManager::startup();
+
+    { // cleanup dynamically allocated objects prior to shutdown
+        // prevent a warning about timer initialization
+        TimerManager::createManager(nullptr);
+
+        // Parse command line options, set some standard options from the input
+        // file, and enable file logging.
+        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_poisson.log");
+        Pointer<Database> input_db = app_initializer->getInputDatabase();
+
+        // Create major algorithm and data objects that comprise the
+        // application.  These objects are configured from the input database.
+        Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator =
+            new AdvDiffSemiImplicitHierarchyIntegrator(
+                "AdvDiffHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffHierarchyIntegrator"));
+        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+            "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
+                                               adv_diff_integrator,
+                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM> > load_balancer =
+            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
+                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                        error_detector,
+                                        box_generator,
+                                        load_balancer);
+        Pointer<CartGridFunction> u_fcn = nullptr;
+        Pointer<CFINSForcing> cf_forcing = new CFINSForcing("ComplexFluid",
+                                                            app_initializer->getComponentDatabase("ComplexFluid"),
+                                                            u_fcn,
+                                                            grid_geometry,
+                                                            adv_diff_integrator,
+                                                            adv_diff_integrator->getVisItDataWriter());
+        Pointer<CartGridFunction> exact_fcn = new muParserCartGridFunction(
+            "ComplexFluid", app_initializer->getComponentDatabase("ComplexFluid")->getDatabase("FCN"), grid_geometry);
+
+        // Initialize the AMR patch hierarchy.
+        adv_diff_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
+
+        Pointer<Variable<NDIM> > c_var;
+        std::string var_centering = input_db->getString("VAR_CENTERING");
+        if (var_centering == "SIDE")
+        {
+            c_var = new SideVariable<NDIM, double>("DIV");
+        }
+        else if (var_centering == "CELL")
+        {
+            c_var = new CellVariable<NDIM, double>("DIV", NDIM);
+        }
+        else
+        {
+            TBOX_ERROR("Incorrect centering.");
+        }
+        auto var_db = VariableDatabase<NDIM>::getDatabase();
+        const int c_idx = var_db->registerVariableAndContext(c_var, var_db->getContext("CTX"));
+        const int c_cloned_idx = var_db->registerClonedPatchDataIndex(c_var, c_idx);
+        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(c_idx);
+            level->allocatePatchData(c_cloned_idx);
+        }
+
+        cf_forcing->setDataOnPatchHierarchy(
+            c_idx, c_var, patch_hierarchy, 0.0, false, 0, patch_hierarchy->getFinestLevelNumber());
+        exact_fcn->setDataOnPatchHierarchy(
+            c_cloned_idx, c_var, patch_hierarchy, 0.0, false, 0, patch_hierarchy->getFinestLevelNumber());
+
+        HierarchyMathOps hier_math_ops("HierMathOps", patch_hierarchy);
+        hier_math_ops.setPatchHierarchy(patch_hierarchy);
+        hier_math_ops.resetLevels(0, patch_hierarchy->getFinestLevelNumber());
+        const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
+        const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
+
+        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(
+            patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(
+            patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+
+        if (var_centering == "CELL")
+        {
+            hier_cc_data_ops.subtract(c_idx, c_idx, c_cloned_idx);
+            plog << "Error norms:\n"
+                 << "  L1-norm:  " << std::setprecision(8) << hier_cc_data_ops.L1Norm(c_idx, wgt_cc_idx) << "\n"
+                 << "  L2-norm:  " << std::setprecision(8) << hier_cc_data_ops.L2Norm(c_idx, wgt_cc_idx) << "\n"
+                 << "  max-norm: " << std::setprecision(8) << hier_cc_data_ops.maxNorm(c_idx, wgt_cc_idx) << "\n";
+        }
+        else
+        {
+            hier_sc_data_ops.subtract(c_idx, c_idx, c_cloned_idx);
+            plog << "Error norms:\n"
+                 << "  L1-norm:  " << std::setprecision(8) << hier_sc_data_ops.L1Norm(c_idx, wgt_sc_idx) << "\n"
+                 << "  L2-norm:  " << std::setprecision(8) << hier_sc_data_ops.L2Norm(c_idx, wgt_sc_idx) << "\n"
+                 << "  max-norm: " << std::setprecision(8) << hier_sc_data_ops.maxNorm(c_idx, wgt_sc_idx) << "\n";
+        }
+
+        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            level->deallocatePatchData(c_idx);
+            level->deallocatePatchData(c_cloned_idx);
+        }
+
+    } // cleanup dynamically allocated objects prior to shutdown
+
+    SAMRAIManager::shutdown();
+    PetscFinalize();
+    return 0;
+} // main

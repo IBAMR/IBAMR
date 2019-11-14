@@ -256,6 +256,7 @@ AC_CONFIG_FILES([
   tests/Makefile
   tests/adv_diff/Makefile
   tests/advect/Makefile
+  tests/complex_fluids/Makefile
   tests/IB/Makefile
   tests/IBFE/Makefile
   tests/IBTK/Makefile
