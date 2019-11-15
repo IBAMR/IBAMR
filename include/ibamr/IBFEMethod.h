@@ -185,6 +185,8 @@ namespace IBAMR
  * use_scratch_hierarchy = TRUE
  * workload_quad_point_weight = 1.0
  *
+ * // The values supplied here should usually be the same as those provided to
+ * // the top-level GriddingAlgorithm.
  * GriddingAlgorithm
  * {
  *     max_levels = MAX_LEVELS
@@ -201,17 +203,22 @@ namespace IBAMR
  *
  *     smallest_patch_size
  *     {
- *         level_0 = 8,8
+ *         level_0 = 16,16
  *     }
  *
  *     efficiency_tolerance = 0.80e0
  *     combine_efficiency   = 0.80e0
+ *     coalesce_boxes = TRUE
+ *     allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
  * }
  *
+ * // Smaller workload factors improve load balancing but increase the total
+ * // amount of work since more elements will end up on multiple patches.
+ * // This value is a good compromise.
  * LoadBalancer
  * {
  *    bin_pack_method     = "SPATIAL"
- *    max_workload_factor = 1
+ *    max_workload_factor = 0.5
  * }
  * @endcode
  *
