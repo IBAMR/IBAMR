@@ -187,17 +187,15 @@ public:
                                        int num_cycles = 1) override;
 
 protected:
-    /*
-     * Since (unlike the staggered case) there is no local divergence-preserving
-     * interpolation scheme for collocated velocity fields, the velocity must
-     * always be projected onto the grid after regridding. Do that here.
-     */
-    void regridHierarchyEndSpecialized() override;
-
     /*!
      * Determine the largest stable timestep on an individual patch.
      */
     double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const override;
+
+    /*!
+     * Perform data initialization after the entire hierarchy has been constructed.
+     */
+    void initializeCompositeHierarchyDataSpecialized(double init_data_time, bool initial_time) override;
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch

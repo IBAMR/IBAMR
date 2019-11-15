@@ -2,6 +2,10 @@
 IBFEMethod: mesh part 0 is using FIRST order LAGRANGE finite elements.
 
 IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve number of iterations = 0
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
 Total number of elems: 56
 Total number of DoFs: 2539
 

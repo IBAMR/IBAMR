@@ -64,6 +64,7 @@
 
 namespace IBAMR
 {
+class BrinkmanPenalizationStrategy;
 class ConvectiveOperator;
 } // namespace IBAMR
 namespace IBTK
@@ -280,14 +281,21 @@ public:
                                                 void* ctx);
 
     /*!
-     * \brief Register interface neighborhood locating functions.
+     * \brief Register function to reset fluid density.
      */
     void registerResetFluidDensityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
 
     /*!
-     * \brief Register interface neighborhood locating functions.
+     * \brief Register function to reset fluid viscosity.
      */
     void registerResetFluidViscosityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
+
+    /*!
+     * \brief Register BrinkmanPenalizationStrategy objects to add Brinkman penalization term
+     * in the momentum equation.
+     */
+    virtual void
+    registerBrinkmanPenalizationStrategy(SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> brinkman_force);
 
     /*!
      * \brief Supply initial conditions for the density field, if maintained by the fluid integrator.
@@ -393,6 +401,23 @@ public:
         return d_mu_bc_coef;
     }
 
+    /*!
+     * \brief Get the Brinkman penalization objects registered with this class.
+     */
+    const std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> >&
+    getBrinkmanPenalizationStrategy() const
+    {
+        return d_brinkman_force;
+    } // getBrinkmanPenalizationStrategy
+
+    /*!
+     * \brief Get "old" velocity variable.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getOldVelocityVariable() const
+    {
+        return d_U_old_var;
+    } // getOldVelocityVariable
+
 protected:
     /*!
      * L1 norm of the discrete divergence of the fluid velocity before regridding.
@@ -410,6 +435,31 @@ protected:
     double d_div_U_norm_oo_pre = 0.0;
 
     /*!
+     * L1 norm of the discrete divergence of the fluid velocity after regridding.
+     */
+    double d_div_U_norm_1_post = 0.0;
+
+    /*!
+     * L2 norm of the discrete divergence of the fluid velocity after regridding.
+     */
+    double d_div_U_norm_2_post = 0.0;
+
+    /*!
+     * L-infinity norm of the discrete divergence of the fluid velocity after regridding.
+     */
+    double d_div_U_norm_oo_post = 0.0;
+
+    /*!
+     * Whether we need to perform a regrid projection when (re-)initializing composite hierarchy data.
+     */
+    bool d_do_regrid_projection = false;
+
+    /*!
+     * Determine the largest stable timestep on an individual patch.
+     */
+    double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const override;
+
+    /*!
      * Prepare the current hierarchy for regridding. Here we calculate the divergence.
      */
     void regridHierarchyBeginSpecialized() override;
@@ -423,9 +473,9 @@ protected:
     void regridHierarchyEndSpecialized() override;
 
     /*!
-     * Determine the largest stable timestep on an individual patch.
+     * Perform data initialization after the entire hierarchy has been constructed.
      */
-    double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const override;
+    void initializeCompositeHierarchyDataSpecialized(double init_data_time, bool initial_time) override;
 
     /*!
      * Virtual method to initialize data on a new level after it is inserted into an AMR patch
@@ -526,6 +576,7 @@ protected:
      * Fluid solver variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_old_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_U_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_P_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_F_var;
@@ -557,6 +608,7 @@ protected:
 #endif
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_velocity_D_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_velocity_C_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_velocity_L_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_velocity_rhs_C_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_N_full_var;
@@ -588,6 +640,11 @@ protected:
     std::vector<void*> d_reset_rho_fcns_ctx, d_reset_mu_fcns_ctx;
 
     /*!
+     * Brinkman force strategy objects registered with this integrator.
+     */
+    std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> > d_brinkman_force;
+
+    /*!
      * Temporary storage variables that contain intermediate quantities
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_temp_sc_var;
@@ -602,6 +659,7 @@ protected:
      * State variables have three contexts: current, scratch, and new.
      */
     int d_U_current_idx, d_U_new_idx, d_U_scratch_idx;
+    int d_U_old_current_idx, d_U_old_new_idx, d_U_old_scratch_idx;
     int d_P_current_idx, d_P_new_idx, d_P_scratch_idx;
     int d_F_current_idx, d_F_new_idx, d_F_scratch_idx;
     int d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx;
@@ -623,7 +681,7 @@ protected:
      * Scratch variables have only one context: scratch.
      */
     int d_Omega_Norm_idx, d_U_regrid_idx, d_U_src_idx, d_indicator_idx, d_F_div_idx;
-    int d_velocity_C_idx, d_velocity_D_idx, d_velocity_D_cc_idx, d_pressure_D_idx;
+    int d_velocity_C_idx, d_velocity_L_idx, d_velocity_D_idx, d_velocity_D_cc_idx, d_pressure_D_idx;
     int d_velocity_rhs_C_idx, d_velocity_rhs_D_idx, d_pressure_rhs_D_idx;
     int d_mu_interp_idx;
     int d_N_full_idx;

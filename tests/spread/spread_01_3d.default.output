@@ -3,6 +3,8 @@ Number of elements: 7
 IBFEMethod: mesh part 0 is using SECOND order LAGRANGE finite elements.
 
 IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
 patch number 0
 Array side normal = 0
 Array depth = 0
