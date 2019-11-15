@@ -121,6 +121,52 @@ namespace IBAMR
  * from <code>GHOSTED</code>, the default, to <code>CACHE</code>, which will
  * use PETSc's VecCache object to distribute data.
  *
+ * <h2>Options Controlling Interpolation and Spreading</h2>
+ * Like other classes inheriting from IBStrategy, most options regarding the
+ * actual IB method implementation can be specified with the provided input
+ * database. Parameters starting with <code>IB_</code> set and override those
+ * with the same name starting with <code>interp_</code> or
+ * <code>spread_</code>: e.g., <code>IB_delta_fcn</code> overrides both
+ * <code>interp_delta_fcn</code> and <code>spread_delta_fcn</code>.
+ * <ul>
+ *   <li><code>interp_quad_type</code>: Quadrature type for interpolation,
+ *   provided as a string. Can be any quadrature type known to libMesh.
+ *   Defaults to <code>"QGAUSS"</code>.</li>
+ *   <li><code>spread_quad_type</code>: Quadrature type for spreading,
+ *   provided as a string. Parsed in the same was as <code>interp_quad_type</code>.</li>
+ *   <li><code>IB_quad_type</code>: overriding alias for the two previous
+ *   entries - has the same default.</li>
+ *   <li><code>interp_use_adaptive_quadrature</code>: Whether or not the current
+ *   deformation of each element should be considered when determining which
+ *   quadrature rule to use. Defaults to <code>TRUE</code>.</li>
+ *   <li><code>spread_point_density</code>: Same as above, but for spreading.
+ *   <li><code>IB_point_density</code>: overriding alias for the two previous
+ *   entries - has the same default.</li>
+ *   <li><code>interp_point_density</code>: Parameter for adaptively computing the
+ *   number of quadrature points in a quadrature rule. Defaults to
+ *   <code>2.0</code>. See IBTK::getQuadratureKey() for a detailed
+ *   description.</li>
+ *   <li><code>spread_point_density</code>: Same as above, but for spreading.
+ *   <li><code>IB_point_density</code>: overriding alias for the two previous
+ *   entries - has the same default.</li>
+ *   <li><code>interp_use_consistent_mass_matrix</code>: Whether or not mass
+ *   lumping should be applied when solving the L2 projection for computing
+ *   the velocity of the structure. Defaults to FALSE. Note that no linear
+ *   system is solved when computing forces so this parameter does not have a
+ *   spreading equivalent.</li>
+ *   <li><code>use_consistent_mass_matrix</code>: Overriding alias of the
+ *   previous entry.
+ *   <li><code>IB_use_consistent_mass_matrix</code>: Overriding alias of
+ *   the previous entry.</li>
+ *   <li><code>interp_use_nodal_quadrature</code>: Whether or not nodal
+ *   quadrature should be used, which is essentially interpolation instead of
+ *   projection. This is an experimental feature. Defaults to
+ *   <code>FALSE</code>.</li>
+ *   <li><code>spread_use_nodal_quadrature</code>: Same as above, but for spreading.
+ *   <li><code>IB_use_nodal_quadrature</code>: overriding alias for the two previous
+ *   entries - has the same default.</li>
+ * </ul>
+ *
  * <h2>Options Controlling libMesh Partitioning</h2>
  *
  * This class can repartition libMesh data in a way that matches SAMRAI's
