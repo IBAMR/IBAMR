@@ -182,12 +182,13 @@ public:
     getAdvectionVelocityFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var) const;
 
     /*!
-     * Register a cell-centered source term.
+     * Register a cell-centered source term. Can optionally turn off outputting the source.
      *
      * Data management for the registered source term will be handled by the
      * hierarchy integrator.
      */
-    virtual void registerSourceTerm(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > F_var);
+    virtual void registerSourceTerm(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > F_var,
+                                    const bool output_F = true);
 
     /*!
      * Supply an IBTK::CartGridFunction object to specify the value of a
@@ -205,12 +206,13 @@ public:
 
     /*!
      * Register a cell-centered quantity to be advected and diffused by the
-     * hierarchy integrator.
+     * hierarchy integrator. Can optionally turn off outputting the quantity.
      *
      * Data management for the registered quantity will be handled by the
      * hierarchy integrator.
      */
-    virtual void registerTransportedQuantity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+    virtual void registerTransportedQuantity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                                             const bool output_Q = true);
 
     /*!
      * Set the face-centered advection velocity to be used with a particular
@@ -564,6 +566,7 @@ protected:
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
              SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
         d_F_fcn;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, bool> d_F_output;
 
     /*!
      * Diffusion coefficient data
@@ -605,6 +608,7 @@ protected:
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
              std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> >
         d_Q_bc_coef;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, bool> d_Q_output;
 
     /*!
      * Objects to keep track of the resetting functions.

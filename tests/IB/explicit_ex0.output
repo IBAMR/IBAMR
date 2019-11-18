@@ -1,4 +1,7 @@
 IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
 IBRedundantInitializer:  Deallocating initialization data.
 At beginning of timestep # 0
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator

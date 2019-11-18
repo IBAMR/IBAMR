@@ -19,8 +19,14 @@ import time
 # We rely on subprocess.run, which is new in 3.5
 assert sys.version_info >= (3, 5)
 
+INCLUDE_REGEX_DEFAULT = '.*'
+EXCLUDE_REGEX_DEFAULT = '^$'
+
 
 def interrupt_handler(sig, frame):
+    """Small interrupt handler to catch SIGINT.
+    """
+    del sig, frame
     print("SIGINT caught. Exiting.")
     sys.exit(1)
 signal.signal(signal.SIGINT, interrupt_handler)
@@ -40,19 +46,27 @@ class Parameters:
 
     n_processors: number of processors to use at once. Defaults to 4.
 
+    show_only: only print test names and do not execute them.
+
+    include_regex: regular expression matching tests to run. Defaults to '.+'
+    (i.e., run all tests).
+
+    exclude_regex: regular expression matching tests to skip. Defaults to '^$'
+    (i.e., skip no tests).
+
     keep_work_directories: whether or not work directories (usually in /tmp/)
     should be deleted after the test is run. Defaults to False.
     """
     def __init__(self, input_arguments):
-        ip = input_arguments
         # TODO: finish implementing verbose mode
-        self.keep_work_directories = ip.keep_work_directories
-        self.mpiexec = ip.mpiexec
-        self.numdiff = ip.numdiff
-        self.n_processors = ip.n_processors
-        self.show_only = ip.show_only
-        self.test_directory = os.getcwd() + ip.test_directory
-        self.test_regex = ip.test_regex
+        self.keep_work_directories = input_arguments.keep_work_directories
+        self.mpiexec = input_arguments.mpiexec
+        self.numdiff = input_arguments.numdiff
+        self.n_processors = input_arguments.n_processors
+        self.show_only = input_arguments.show_only
+        self.test_directory = os.getcwd() + input_arguments.test_directory
+        self.include_regex = input_arguments.include_regex
+        self.exclude_regex = input_arguments.exclude_regex
         self.verbose = False
 
         # These are the only two required inputs:
@@ -61,7 +75,7 @@ class Parameters:
                              " to configure, stored in attest.conf, or explicitly"
                              " provided as a command-line argument to attest"
                              " itself.")
-        elif not os.path.isfile(self.mpiexec):
+        if not os.path.isfile(self.mpiexec):
             raise ValueError("The given path to mpiexec <" + self.mpiexec + ">"
                              " is not valid.")
 
@@ -70,14 +84,14 @@ class Parameters:
                              "to configure, stored in attest.conf, or explicitly"
                              " provided as a command-line argument to attest"
                              " itself.")
-        elif not os.path.isfile(self.numdiff):
+        if not os.path.isfile(self.numdiff):
             raise ValueError("The given path to numdiff <" + self.numdiff + ">"
                              " is not valid.")
 
 
 def n_mpi_processes(input_file):
     """Determine the number of MPI processes to use when running a test by
-    inspecting the input file.
+    inspecting the input file. Defaults to 1.
     """
     mpirun_index = input_file.find("mpirun")
     if mpirun_index != -1:
@@ -87,6 +101,20 @@ def n_mpi_processes(input_file):
         return int(input_file[next_equals_index + 1:next_dot_index])
 
     return 1
+
+
+def restart_n(input_file):
+    """Determine the restart snapshot number to use when restarting the
+    simulation. Defaults to zero.
+    """
+    restart_index = input_file.find("restart")
+    if restart_index != -1:
+        next_equals_index = input_file.find('=', restart_index)
+        next_dot_index = input_file.find('.', restart_index)
+        assert next_equals_index < next_dot_index
+        return int(input_file[next_equals_index + 1:next_dot_index])
+
+    return 0
 
 
 @enum.unique
@@ -148,7 +176,9 @@ class Test:
     def __init__(self, executable, input_file, output_file, parameters):
         self.executable = executable
         self.input_file = input_file
-        self._n_mpi_processes = n_mpi_processes(os.path.split(self.input_file)[-1])
+        stripped_input_file = os.path.split(self.input_file)[-1]
+        self._n_mpi_processes = n_mpi_processes(stripped_input_file)
+        self._restart_n = restart_n(stripped_input_file)
         self.output_file = output_file
         self._parameters = parameters
 
@@ -175,6 +205,19 @@ class Test:
         return self._n_mpi_processes
 
 
+    def do_restart(self):
+        """Whether or not we should, upon completion, run the test again in restart
+        mode.
+        """
+        return self._restart_n != 0
+
+
+    def restart_n(self):
+        """The restart snapshot number to use in case we restart the test.
+        """
+        return self._restart_n
+
+
     def run(self):
         """Actually execute the test and compare the output results. Returns a
         TestOutput object describing what happened.
@@ -194,11 +237,21 @@ class Test:
                                         cwd=temporary_directory)
             run_succeeded = run_result.returncode == 0
             if run_succeeded:
+                # The first run succeeded: if we are testing restart code we need to run again
+                if self.do_restart():
+                    run_args += ["./restart/", str(self.restart_n())]
+                    run_result = subprocess.run(run_args,
+                                                stderr=subprocess.PIPE,
+                                                stdout=subprocess.PIPE,
+                                                cwd=temporary_directory)
+                    run_succeeded = run_result.returncode == 0
+
+            if run_succeeded:
                 # Nearly the same as deal.II: Configure numdiff with
                 #   - relative differences of 1e-6
                 #   - absolute differences of 1e-10 (i.e., ignore values near zero)
                 #   - [space][tab][newline]=,:;<>[](){}^ as separators between numbers
-                numdiff_flags = ["-r", "1e-6", "-a", "1e-10",  "-s",
+                numdiff_flags = ["-r", "1e-6", "-a", "1e-10", "-s",
                                  "' \\t\\n=,:;<>[](){}^'"]
                 diff_result = subprocess.run(
                     [self._parameters.numdiff] + numdiff_flags +
@@ -239,7 +292,13 @@ def main():
     """Run the tests and print the results.
     """
     # 0. Set up environment and input settings:
+    # a. permit running more MPI processes than we have logical cores
     os.environ['OMPI_MCA_rmaps_base_oversubscribe'] = "1"
+    # b. completely disable OMP threading. HYPRE may try to parallelize itself
+    # with threads which leads to disasterous performance since we expect that
+    # all parallelization is done with MPI.
+    os.environ['OMP_NUM_THREADS'] = "1"
+    os.environ['OMP_THREAD_LIMIT'] = "1"
     config_file = configparser.ConfigParser()
     config_file['attest'] = {'jobs': '1',
                              'keep_work_directories': 'True',
@@ -247,18 +306,24 @@ def main():
                              'numdiff': 'numdiff',
                              'show_only': 'False',
                              'test_directory': '/tests/',
-                             'test_regex': '.*'}
+                             'include_regex': INCLUDE_REGEX_DEFAULT,
+                             'exclude_regex': EXCLUDE_REGEX_DEFAULT}
     config_file.read('attest.conf')
     conf = config_file['attest'] # shorthand
 
-    # argparse doesn't support writing -j8 (i.e., with no space), so manually
-    # pull that out:
     for entry in sys.argv:
+        # argparse doesn't support writing -j8 (i.e., with no space), so
+        # manually pull that out:
         if 2 < len(entry) and entry[0:2] == '-j':
             conf['jobs'] = entry[2:]
             sys.argv.remove(entry)
+        # also support -j for all available processors (this assumes
+        # hyperthreading and will ignore virtual cores):
+        elif entry == '-j':
+            conf['jobs'] = str(int(os.cpu_count()/2))
+            sys.argv.remove(entry)
 
-    description=(
+    description = (
         "A simple test runner. attest is configured both with an input file "
         "(attest.conf, located in the top level test directory) and command "
         "line arguments. Command line arguments will override settings found in"
@@ -271,7 +336,10 @@ def main():
     parser.add_argument('-j,--jobs', metavar='N', type=int,
                         default=conf['jobs'], dest='n_processors',
                         help=("Total number of processors to use across all " +
-                              "concurrent MPI jobs."))
+                              "concurrent MPI jobs: defaults to 1. If \"-j\" is "
+                              "given as an argument without a number then half "
+                              "of the the total cores (including virtual cores) "
+                              "will be used."))
     parser.add_argument('--keep-work-directories',
                         default=bool(conf['keep_work_directories']),
                         dest='keep_work_directories',
@@ -295,14 +363,20 @@ def main():
                         help=("Directory in which all test files " +
                               "(executables, input files, and output files) " +
                               "are located."))
-    parser.add_argument('-R,--tests-regex', type=str, default=conf['test_regex'],
-                        dest='test_regex',
-                        help="Regex for filtering test names; e.g., if a test is"
-                        " in 'tests/dir/example.input', the regex will be "
-                        "applied to 'dir/example.input'.")
+    parser.add_argument('-R,--include-regex', type=str, default=conf['include_regex'],
+                        dest='include_regex',
+                        help="Regular expression for including test names; If a"
+                        " test is in 'tests/dir/example.input', the regex will "
+                        "be applied to 'dir/example.input'.")
+    parser.add_argument('-E,--exclude-regex', type=str, default=conf['exclude_regex'],
+                        dest='exclude_regex',
+                        help="Regular expression for excluding test names. If a"
+                        " test is in 'tests/dir/example.input', the regex will "
+                        "be applied to 'dir/example.input'.")
     input_arguments = parser.parse_args()
     parameters = Parameters(input_arguments)
-    test_pattern = re.compile(parameters.test_regex)
+    include_pattern = re.compile(parameters.include_regex)
+    exclude_pattern = re.compile(parameters.exclude_regex)
 
     # 1. set up input file list:
     unstarted_tests = []
@@ -310,7 +384,9 @@ def main():
         path_length = len(os.path.split(input_file)[0])
         input_file_name = input_file[path_length + 1:]
         # include the directory when matching test input files:
-        if re.search(test_pattern, input_file[len(parameters.test_directory):]):
+        regex_input = input_file[len(parameters.test_directory):]
+        if (re.search(include_pattern, regex_input)
+            and not re.search(exclude_pattern, regex_input)):
             output_file = os.path.splitext(input_file)[0] + ".output"
             base_name = input_file_name[:input_file_name.find('.')]
             executable = os.path.split(input_file)[0] + os.sep + base_name

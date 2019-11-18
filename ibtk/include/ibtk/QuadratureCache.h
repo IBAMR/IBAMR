@@ -44,14 +44,10 @@
 #include <memory>
 #include <tuple>
 
-/////////////////////////////// NAMESPACE ////////////////////////////////////
+/////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
 {
-/////////////////////////////// STATIC ///////////////////////////////////////
-
-/////////////////////////////// PUBLIC ///////////////////////////////////////
-
 /**
  * \brief Class storing multiple libMesh quadrature objects. We assume that
  * quadrature rules are uniquely determined by the element type, quadrature
@@ -93,6 +89,14 @@ public:
      */
     value_type& operator[](const key_type& quad_key);
 
+    /**
+     * Clear the cache.
+     */
+    void clear()
+    {
+        quadratures.clear();
+    }
+
 protected:
     /**
      * Dimension of the FE mesh.
@@ -128,11 +132,6 @@ inline QuadratureCache::value_type& QuadratureCache::operator[](const Quadrature
         return *(it->second);
     }
 }
-
-/////////////////////////////// PRIVATE //////////////////////////////////////
-
-/////////////////////////////// NAMESPACE ////////////////////////////////////
-
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

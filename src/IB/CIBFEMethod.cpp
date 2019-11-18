@@ -353,12 +353,12 @@ CIBFEMethod::interpolateVelocity(const int u_data_idx,
             X_vec->localize(*X_ghost_vec);
             if (d_compute_L2_projection)
             {
-                d_fe_data_managers[part]->interp(
+                d_active_fe_data_managers[part]->interp(
                     u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time);
             }
             else if (!d_compute_L2_projection)
             {
-                d_fe_data_managers[part]->interpWeighted(
+                d_active_fe_data_managers[part]->interpWeighted(
                     u_data_idx, *U_vec, *X_ghost_vec, VELOCITY_SYSTEM_NAME, u_ghost_fill_scheds, data_time);
             }
         }
@@ -736,7 +736,7 @@ CIBFEMethod::computeMobilityRegularization(Vec D, Vec L, const double scale)
         for (unsigned part = 0; part < d_num_rigid_parts; ++part)
         {
             std::pair<LinearSolver<double>*, SparseMatrix<double>*> filter =
-                d_fe_data_managers[part]->buildL2ProjectionSolver(VELOCITY_SYSTEM_NAME);
+                d_active_fe_data_managers[part]->buildL2ProjectionSolver(VELOCITY_SYSTEM_NAME);
             Mat mat = static_cast<PetscMatrix<double>*>(filter.second)->mat();
             MatMult(mat, vL[part], vD[part]);
         }
@@ -1055,7 +1055,7 @@ CIBFEMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector&
     if (!d_compute_L2_projection)
     {
         std::pair<LinearSolver<double>*, SparseMatrix<double>*> filter =
-            d_fe_data_managers[part]->buildL2ProjectionSolver(VELOCITY_SYSTEM_NAME);
+            d_active_fe_data_managers[part]->buildL2ProjectionSolver(VELOCITY_SYSTEM_NAME);
         Mat mat = static_cast<PetscMatrix<double>*>(filter.second)->mat();
         MatMult(mat, U_k.vec(), vV[part]);
     }
@@ -1088,7 +1088,7 @@ CIBFEMethod::initializeFEData()
 
     for (unsigned part = 0; part < d_num_rigid_parts; ++part)
     {
-        EquationSystems& equation_systems = *d_fe_data_managers[part]->getEquationSystems();
+        EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
         computeCOMOfStructure(d_center_of_mass_initial[part], &equation_systems);
     }
 

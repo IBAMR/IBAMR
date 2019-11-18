@@ -117,6 +117,19 @@ namespace IBAMR
 /*!
  * \brief Class IBStrategy provides a generic interface for specifying the
  * implementation details of a particular version of the IB method.
+ *
+ * <h2>Options Controlling Interpolation and Spreading</h2>
+ * All classes inheriting from IBStrategy read the following values from the
+ * input database to determine which interpolation and spreading delta functions
+ * should be used:
+ * <ul>
+ *   <li><code>interp_delta_fcn</code>: name of the interpolation kernel,
+ *   provided as a string. Defaults to <code>"IB_4"</code>.</li>
+ *   <li><code>spread_delta_fcn</code>: name of the spreading kernel,
+ *   provided as a string. Defaults to <code>"IB_4"</code>.</li>
+ *   <li><code>IB_delta_fcn</code>: overriding alias for the two previous
+ *   entries - has the same default.</li>
+ * </ul>
  */
 class IBStrategy : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>, public SAMRAI::tbox::Serializable
 {

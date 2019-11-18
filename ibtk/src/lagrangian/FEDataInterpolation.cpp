@@ -49,11 +49,6 @@ FEDataInterpolation::FEDataInterpolation(const unsigned int dim, FEDataManager* 
     return;
 }
 
-FEDataInterpolation::~FEDataInterpolation()
-{
-    return;
-}
-
 void
 FEDataInterpolation::registerSystem(const System& system,
                                     const std::vector<int>& phi_vars,
@@ -61,12 +56,14 @@ FEDataInterpolation::registerSystem(const System& system,
 {
     TBOX_ASSERT(!d_initialized && (!phi_vars.empty() || !dphi_vars.empty()));
     const unsigned int sys_num = system.number();
-    for (auto it = d_noninterp_systems.begin(), it_end = d_noninterp_systems.end(); it != it_end; ++it)
+    for (auto noninterp_system : d_noninterp_systems)
     {
-        if ((*it)->number() == sys_num)
+        if (noninterp_system->number() == sys_num)
         {
             // This system has already been registered.  If so, just merge the collection of variables.
-            size_t system_idx = std::distance(d_noninterp_systems.begin(), it);
+            const size_t system_idx =
+                std::distance(d_noninterp_systems.begin(),
+                              std::find(d_noninterp_systems.begin(), d_noninterp_systems.end(), noninterp_system));
 
             std::vector<int>& orig_all_vars = d_noninterp_system_all_vars[system_idx];
             std::set<int> all_vars_set(orig_all_vars.begin(), orig_all_vars.end());
@@ -111,9 +108,9 @@ FEDataInterpolation::registerInterpolatedSystem(const System& system,
 {
     TBOX_ASSERT(!d_initialized && (!vars.empty() || !grad_vars.empty()));
     const unsigned int sys_num = system.number();
-    for (auto it = d_systems.begin(), it_end = d_systems.end(); it != it_end; ++it)
+    for (auto system : d_systems)
     {
-        if ((*it)->number() == sys_num)
+        if (system->number() == sys_num)
         {
             // This system has already been registered.  Check to see if the same collection of variables (etc.)
             // were used in the previous registration action; if so, do not re-register the system.
@@ -121,7 +118,8 @@ FEDataInterpolation::registerInterpolatedSystem(const System& system,
             // NOTE: The same system may be registered multiple times with different collections of variables,
             // gradient variables, system data, etc.  We want to make sure we check all of the registered systems to
             // see if any of them match the function arguments.
-            const size_t system_idx = std::distance(d_systems.begin(), it);
+            const size_t system_idx =
+                std::distance(d_systems.begin(), std::find(d_systems.begin(), d_systems.end(), system));
             bool same_data = true;
             same_data = same_data && (vars == d_system_vars[system_idx]);
             same_data = same_data && (grad_vars == d_system_grad_vars[system_idx]);
@@ -301,11 +299,11 @@ FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
     d_dphi_face.resize(num_fe_types, nullptr);
     for (unsigned int fe_type_idx = 0; fe_type_idx < num_fe_types; ++fe_type_idx)
     {
-        Pointer<FEBase>& fe = d_fe[fe_type_idx];
+        std::unique_ptr<FEBase>& fe = d_fe[fe_type_idx];
         if (!fe)
         {
             const FEType& fe_type = d_fe_types[fe_type_idx];
-            fe = FEBase::build(d_dim, fe_type).release();
+            fe = FEBase::build(d_dim, fe_type);
             if (d_qrule) fe->attach_quadrature_rule(d_qrule);
             if (d_eval_q_point && !d_q_point) d_q_point = &fe->get_xyz();
             if (d_eval_JxW && !d_JxW) d_JxW = &fe->get_JxW();
@@ -313,11 +311,11 @@ FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
             if (d_eval_dphi[fe_type_idx]) d_dphi[fe_type_idx] = &fe->get_dphi();
         }
 
-        Pointer<FEBase>& fe_face = d_fe_face[fe_type_idx];
+        std::unique_ptr<FEBase>& fe_face = d_fe_face[fe_type_idx];
         if (!fe_face)
         {
             const FEType& fe_type = d_fe_types[fe_type_idx];
-            fe_face = FEBase::build(d_dim, fe_type).release();
+            fe_face = FEBase::build(d_dim, fe_type);
             if (d_qrule_face) fe_face->attach_quadrature_rule(d_qrule_face);
             if (d_eval_q_point_face && !d_q_point_face) d_q_point_face = &fe_face->get_xyz();
             if (d_eval_JxW_face && !d_JxW_face) d_JxW_face = &fe_face->get_JxW();
@@ -341,10 +339,8 @@ FEDataInterpolation::reinit(const Elem* elem,
     d_current_elem = elem;
     if (d_qrule || points)
     {
-        const size_t num_fe_types = d_fe_types.size();
-        for (unsigned int fe_type_idx = 0; fe_type_idx < num_fe_types; ++fe_type_idx)
+        for (const auto& fe : d_fe)
         {
-            Pointer<FEBase>& fe = d_fe[fe_type_idx];
             fe->reinit(elem, points, weights);
         }
     }
@@ -364,10 +360,8 @@ FEDataInterpolation::reinit(const Elem* const elem,
     d_current_side = side;
     if (d_qrule_face || points)
     {
-        const size_t num_fe_types = d_fe_types.size();
-        for (unsigned int fe_type_idx = 0; fe_type_idx < num_fe_types; ++fe_type_idx)
+        for (const auto& fe_face : d_fe_face)
         {
-            Pointer<FEBase>& fe_face = d_fe_face[fe_type_idx];
             fe_face->reinit(elem, side, tol, points, weights);
         }
     }

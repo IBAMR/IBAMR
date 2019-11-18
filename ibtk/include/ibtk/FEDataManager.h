@@ -206,6 +206,12 @@ public:
      */
     SystemDofMapCache* getDofMapCache(unsigned int system_num);
 
+    /*!
+     * Clear all cached (i.e., computed at first request and then stored for
+     * future calls) data.
+     */
+    void clearCached();
+
 protected:
     /*
      * The object name is used as a handle to databases stored in restart files
@@ -214,6 +220,15 @@ protected:
      */
     std::string d_object_name;
     bool d_registered_for_restart;
+
+    /*!
+     * Name of the coordinates system.
+     *
+     * @note For backwards compatibility reasons this string may be reassigned
+     * to another value by assignment to
+     * FEDataManager::COORDINATES_SYSTEM_NAME.
+     */
+    std::string d_coordinates_system_name = "coordinates system";
 
     /*
      * FE equation system associated with this data manager object.
@@ -253,8 +268,9 @@ protected:
 /*!
  * \brief Class FEDataManager coordinates data required for
  * Lagrangian-Eulerian interaction between a Lagrangian finite element (FE)
- * mesh. In particular, the base class FEData stores the necessary FE data
- * while this class stores additional data dependent on the Eulerian grid.
+ * mesh. In particular, the FEData member object stores the necessary finite
+ * element data while this class stores additional data dependent on the
+ * Eulerian grid.
  *
  * <h3>Parameters effecting workload estimate calculations</h3>
  * FEDataManager can estimate the amount of work done in IBFE calculations
@@ -270,11 +286,11 @@ protected:
  *
  * \note Multiple FEDataManager objects may be instantiated simultaneously.
  */
-class FEDataManager : public SAMRAI::tbox::Serializable, public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+class FEDataManager : public SAMRAI::tbox::Serializable
 {
 public:
     /*!
-     * Alias SystemDofMapCache for backwards compatibility.
+     * Alias FEData::SystemDofMapCache for backwards compatibility.
      */
     using SystemDofMapCache = FEData::SystemDofMapCache;
 
@@ -353,16 +369,26 @@ public:
     struct WorkloadSpec
     {
         /// The multiplier applied to each quadrature point.
-        double q_point_weight = 2.0;
+        double q_point_weight = 1.0;
     };
 
+protected:
+    /*!
+     * FEData object that contains the libMesh data structures.
+     *
+     * @note multiple FEDataManager objects may use the same FEData object,
+     * usually combined with different hierarchies.
+     */
+    std::shared_ptr<FEData> d_fe_data;
+
+public:
     /*!
      * \brief The name of the equation system which stores the spatial position
-     * data.
+     * data. The actual string is stored by FEData.
      *
      * \note The default value for this string is "coordinates system".
      */
-    std::string COORDINATES_SYSTEM_NAME = "coordinates system";
+    std::string& COORDINATES_SYSTEM_NAME;
 
     /*!
      * \brief The libMesh boundary IDs to use for specifying essential boundary
@@ -382,10 +408,10 @@ public:
      * mediated by the getManager() function.
      *
      * Note that when a manager is accessed for the first time, the
-     * freeAllManagers static method is registered with the ShutdownRegistry
-     * class.  Consequently, all allocated managers are freed at program
-     * completion.  Thus, users of this class do not explicitly allocate or
-     * deallocate the FEDataManager instances.
+     * FEDataManager::freeAllManagers() static method is registered with the
+     * SAMRAI::tbox::ShutdownRegistry class. Consequently, all allocated
+     * managers are freed at program completion. Thus, users of this class do
+     * not explicitly allocate or deallocate the FEDataManager instances.
      *
      * \return A pointer to the data manager instance.
      */
@@ -395,6 +421,28 @@ public:
                const SpreadSpec& default_spread_spec,
                const WorkloadSpec& default_workload_spec,
                const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
+               std::shared_ptr<SAMRAIDataCache> eulerian_data_cache = nullptr,
+               bool register_for_restart = true);
+
+    /*!
+     * Return a pointer to the instance of the Lagrangian data manager
+     * corresponding to the specified name.  Access to FEDataManager objects is
+     * mediated by the getManager() function.
+     *
+     * This is the same as the other methods except for the first argument:
+     * here the FEData object owned by the new FEDataManager will, in most
+     * cases, be co-owned by another FEDataManager object.
+     *
+     * \return A pointer to the data manager instance.
+     */
+    static FEDataManager*
+    getManager(std::shared_ptr<FEData> fe_data,
+               const std::string& name,
+               const InterpSpec& default_interp_spec,
+               const SpreadSpec& default_spread_spec,
+               const WorkloadSpec& default_workload_spec,
+               const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
+               std::shared_ptr<SAMRAIDataCache> eulerian_data_cache = nullptr,
                bool register_for_restart = true);
 
     /*!
@@ -552,8 +600,8 @@ public:
      * @note The vector returned by pointer is owned by this class (i.e., no
      * copying is done).
      *
-     * @deprecated Use buildIBGhostedVector instead which clones a vector with
-     * the same ghost region.
+     * @deprecated Use buildIBGhostedVector() instead which clones a vector
+     * with the same ghost region.
      */
     libMesh::NumericVector<double>* buildGhostedSolutionVector(const std::string& system_name,
                                                                bool localize_data = true);
@@ -575,6 +623,16 @@ public:
      * @deprecated Use buildIBGhostedVector() instead.
      */
     libMesh::NumericVector<double>* buildGhostedCoordsVector(bool localize_data = true);
+
+    /*!
+     * \return The shared pointer to the object managing the Lagrangian data.
+     */
+    std::shared_ptr<FEData>& getFEData();
+
+    /*!
+     * \return The shared pointer to the object managing the Lagrangian data.
+     */
+    const std::shared_ptr<FEData>& getFEData() const;
 
     /*!
      * \brief Spread a density from the FE mesh to the Cartesian grid using the
@@ -812,59 +870,6 @@ public:
                              const int finest_ln = -1);
 
     /*!
-     * Initialize data on a new level after it is inserted into an AMR patch
-     * hierarchy by the gridding algorithm.  The level number indicates that of
-     * the new level.  The old_level pointer corresponds to the level that
-     * resided in the hierarchy before the level with the specified number was
-     * introduced.  If the pointer is null, there was no level in the hierarchy
-     * prior to the call and the level data is set based on the user routines
-     * and the simulation time.  Otherwise, the specified level replaces the old
-     * level and the new level receives data from the old level appropriately
-     * before it is destroyed.
-     *
-     * The boolean argument initial_time indicates whether the level is being
-     * introduced for the first time (i.e., at initialization time) or after
-     * some regrid process during the calculation beyond the initial hierarchy
-     * construction.  This information is provided since the initialization of
-     * the data on a patch may be different in each of those circumstances.  The
-     * can_be_refined boolean argument indicates whether the level is the finest
-     * level allowed in the hierarchy.  This may or may not affect the data
-     * initialization process depending on the problem.
-     *
-     * When assertion checking is active, an unrecoverable exception will result
-     * if the hierarchy pointer is null, the level number does not match any
-     * level in the hierarchy, or the old level number does not match the level
-     * number (if the old level pointer is non-null).
-     */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                             int level_number,
-                             double init_data_time,
-                             bool can_be_refined,
-                             bool initial_time,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level =
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
-                             bool allocate_data = true) override;
-
-    /*!
-     * Reset cached communication schedules after the hierarchy has changed (for
-     * example, due to regridding) and the data has been initialized on the new
-     * levels.  The intent is that the cost of data movement on the hierarchy
-     * will be amortized across multiple communication cycles, if possible.  The
-     * level numbers indicate the range of levels in the hierarchy that have
-     * changed.  However, this routine updates communication schedules every
-     * level finer than and including that indexed by the coarsest level number
-     * given.
-     *
-     * When assertion checking is active, an unrecoverable exception will result
-     * if the hierarchy pointer is null, any pointer to a level in the hierarchy
-     * that is coarser than the finest level is null, or the given level numbers
-     * not specified properly; e.g., coarsest_ln > finest_ln.
-     */
-    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                     int coarsest_ln,
-                                     int finest_ln) override;
-
-    /*!
      * Set integer tags to "one" in cells where refinement of the given level
      * should occur due to the presence of Lagrangian data.  The double time
      * argument is the regrid time.  The integer "tag_index" argument is the
@@ -881,13 +886,17 @@ public:
      * When assertion checking is active, an unrecoverable exception will result
      * if the hierarchy pointer is null or the level number does not match any
      * existing level in the hierarchy.
+     *
+     * @note This function is analogous to
+     * StandardTagAndInitStrategy::applyGradientDetector and is only meant to
+     * be called from IBFEMethod::applyGradientDetector.
      */
     void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,
                                bool initial_time,
-                               bool uses_richardson_extrapolation_too) override;
+                               bool uses_richardson_extrapolation_too);
 
     /*!
      * Write out object state to the given database.
@@ -898,14 +907,6 @@ public:
 
 protected:
     /*!
-     * FEData object that contains the libMesh data structures.
-     *
-     * @note multiple FEDataManager objects may use the same FEData object,
-     * usually combined with different hierarchies.
-     */
-    std::shared_ptr<FEData> d_fe_data;
-
-    /*!
      * \brief Constructor.
      */
     FEDataManager(std::string object_name,
@@ -913,12 +914,26 @@ protected:
                   SpreadSpec default_spread_spec,
                   WorkloadSpec default_workload_spec,
                   SAMRAI::hier::IntVector<NDIM> ghost_width,
+                  std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
+                  bool register_for_restart = true);
+
+    /*!
+     * \brief Constructor, where the FEData object owned by this class may be
+     * co-owned by other objects.
+     */
+    FEDataManager(std::shared_ptr<FEData> fe_data,
+                  std::string object_name,
+                  InterpSpec default_interp_spec,
+                  SpreadSpec default_spread_spec,
+                  WorkloadSpec default_workload_spec,
+                  SAMRAI::hier::IntVector<NDIM> ghost_width,
+                  std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
                   bool register_for_restart = true);
 
     /*!
      * \brief The FEDataManager destructor cleans up any allocated data objects.
      */
-    ~FEDataManager() = default;
+    ~FEDataManager();
 
 private:
     /*!
@@ -960,6 +975,9 @@ private:
      *
      * \note For inactive elements, the lower and upper bound values will be
      * identically zero.
+     *
+     * @deprecated Use the non member function
+     * IBTK::get_global_active_element_bounding_boxes instead.
      */
     std::vector<std::pair<Point, Point> >* computeActiveElementBoundingBoxes();
 
@@ -1046,7 +1064,7 @@ private:
     /*
      * Cached Eulerian data to reduce the number of allocations/deallocations.
      */
-    SAMRAIDataCache d_cached_eulerian_data;
+    std::shared_ptr<SAMRAIDataCache> d_eulerian_data_cache;
 
     /*
      * SAMRAI::hier::VariableContext object used for data management.

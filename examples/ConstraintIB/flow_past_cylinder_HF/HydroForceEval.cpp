@@ -436,8 +436,8 @@ HydroForceEval::readVertexFiles(const std::string& extension)
 
         // Ensure that the file exists.
         const std::string vertex_filename = d_struct_names[j] + extension;
-        std::ifstream file_stream;
-        file_stream.open(vertex_filename.c_str(), std::ios::in);
+        std::ifstream file_stream(vertex_filename);
+
         if (file_stream.is_open())
         {
             plog << d_object_name << ":  "
@@ -537,8 +537,7 @@ HydroForceEval::readElemFiles(const std::string& extension)
 
         // Ensure that the file exists.
         const std::string elem_filename = d_struct_names[j] + extension;
-        std::ifstream file_stream;
-        file_stream.open(elem_filename.c_str(), std::ios::in);
+        std::ifstream file_stream(elem_filename);
         if (file_stream.is_open())
         {
             plog << d_object_name << ":  "

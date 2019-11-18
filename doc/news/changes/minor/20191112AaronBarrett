@@ -1,0 +1,6 @@
+Fixed: Multiple body force functions can be registered with INS integrators.
+Previously, the integrator would overwrite the previous forcing function,
+despite claiming that functions would be evaluted in the order they are
+registered.
+<br>
+(Aaron Barrett, 2019/11/12)

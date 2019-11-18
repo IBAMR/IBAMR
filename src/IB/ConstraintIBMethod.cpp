@@ -940,8 +940,9 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
         const StructureParameters& struct_param = d_ib_kinematics[struct_no]->getStructureParameters();
         const int total_nodes = struct_param.getTotalNodes();
 
-        SAMRAI_MPI::sumReduction(&d_center_of_mass_current[struct_no][0], NDIM);
-        SAMRAI_MPI::sumReduction(&d_center_of_mass_new[struct_no][0], NDIM);
+        SAMRAI_MPI::sumReduction(d_center_of_mass_current[struct_no].data(),
+                                 d_center_of_mass_current[struct_no].size());
+        SAMRAI_MPI::sumReduction(d_center_of_mass_new[struct_no].data(), d_center_of_mass_new[struct_no].size());
 
         for (int i = 0; i < 3; ++i)
         {
@@ -1184,7 +1185,7 @@ ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_han
             d_vel_com_def_new[position_handle][d] += U_com_def[d];
         }
     }
-    SAMRAI_MPI::sumReduction(&d_vel_com_def_new[position_handle][0], NDIM);
+    SAMRAI_MPI::sumReduction(d_vel_com_def_new[position_handle].data(), d_vel_com_def_new[position_handle].size());
 
     for (int d = 0; d < 3; ++d)
     {
@@ -1483,7 +1484,7 @@ ConstraintIBMethod::calculateRigidTranslationalMomentum()
         const StructureParameters& struct_param = d_ib_kinematics[struct_no]->getStructureParameters();
         if (struct_param.getStructureIsSelfTranslating())
         {
-            SAMRAI_MPI::sumReduction(&d_rigid_trans_vel_new[struct_no][0], NDIM);
+            SAMRAI_MPI::sumReduction(d_rigid_trans_vel_new[struct_no].data(), d_rigid_trans_vel_new[struct_no].size());
             Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
             for (int d = 0; d < NDIM; ++d)
             {

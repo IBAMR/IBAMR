@@ -45,6 +45,7 @@
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
 #include <libmesh/equation_systems.h>
+#include <libmesh/linear_partitioner.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
 #include <libmesh/mesh_triangle_interface.h>
@@ -65,6 +66,17 @@
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
+
+/*
+ * Test based on IBFE/explicit/ex4 that can verify whether or not a bunch of
+ * things related to IBFEMethod work. This test program is run in various
+ * different ways to check, e.g.,
+ *
+ * 1. Basic reproducibility of the IBFE stack (IBExplicitHierarchyIntegrator,
+ *    INSStaggeredHierarchyIntegrator, and IBFEMethod)
+ * 2. IBFE restart code
+ * 3. IBFECentroidPostProcessor
+ */
 
 // Elasticity model data.
 namespace ModelData
@@ -162,6 +174,12 @@ main(int argc, char** argv)
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
+        const bool dump_restart_data = app_initializer->dumpRestartData();
+        const int restart_dump_interval = app_initializer->getRestartDumpInterval();
+        const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
+        const string restart_read_dirname = app_initializer->getRestartReadDirectory();
+        const int restart_restore_num = app_initializer->getRestartRestoreNumber();
+
         // Create a simple FE mesh.
         ReplicatedMesh mesh(init.comm(), NDIM);
         const double dx = input_db->getDouble("DX");
@@ -214,6 +232,12 @@ main(int argc, char** argv)
         }
 #endif
         mesh.prepare_for_use();
+        // metis does a good job partitioning, but the partitioning relies on
+        // random numbers: the seed changed in libMesh commit
+        // 98cede90ca8837688ee13aac5e299a3765f083da (between 1.3.1 and
+        // 1.4.0). Hence, to achieve consistent partitioning, use a simpler partitioning scheme:
+        LinearPartitioner partitioner;
+        partitioner.partition(mesh);
 
         c1_s = input_db->getDouble("C1_S");
         p0_s = input_db->getDouble("P0_S");
@@ -252,7 +276,10 @@ main(int argc, char** argv)
             new IBFEMethod("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
                            &mesh,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+                           /*register_for_restart*/ true,
+                           restart_read_dirname,
+                           restart_restore_num);
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
@@ -287,45 +314,6 @@ main(int argc, char** argv)
         }
         ib_method_ops->initializeFEEquationSystems();
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
-
-        // Set up post processor to recover computed stresses.
-        ib_method_ops->initializeFEEquationSystems();
-        FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
-
-        Pointer<IBFEPostProcessor> ib_post_processor =
-            new IBFECentroidPostProcessor("IBFEPostProcessor", fe_data_manager);
-
-        ib_post_processor->registerTensorVariable("FF", MONOMIAL, CONSTANT, IBFEPostProcessor::FF_fcn);
-
-        pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function, static_cast<void*>(NULL));
-        ib_post_processor->registerTensorVariable("sigma_dev",
-                                                  MONOMIAL,
-                                                  CONSTANT,
-                                                  IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  vector<SystemData>(),
-                                                  &PK1_dev_stress_fcn_data);
-
-        pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function, static_cast<void*>(NULL));
-        ib_post_processor->registerTensorVariable("sigma_dil",
-                                                  MONOMIAL,
-                                                  CONSTANT,
-                                                  IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
-                                                  vector<SystemData>(),
-                                                  &PK1_dil_stress_fcn_data);
-
-        Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
-        Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
-        HierarchyGhostCellInterpolation::InterpolationTransactionComponent p_ghostfill(
-            /*data_idx*/ -1, "LINEAR_REFINE", /*use_cf_bdry_interpolation*/ false, "CONSERVATIVE_COARSEN", "LINEAR");
-        FEDataManager::InterpSpec p_interp_spec("PIECEWISE_LINEAR",
-                                                QGAUSS,
-                                                FIFTH,
-                                                /*use_adaptive_quadrature*/ false,
-                                                /*point_density*/ 2.0,
-                                                /*use_consistent_mass_matrix*/ true,
-                                                /*use_nodal_quadrature*/ false);
-        ib_post_processor->registerInterpolatedScalarEulerianVariable(
-            "p_f", LAGRANGE, FIRST, p_var, p_current_ctx, p_ghostfill, p_interp_spec);
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -370,6 +358,68 @@ main(int argc, char** argv)
             navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
+        // Set up post processor to recover computed stresses.
+        FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
+
+        FEDataManager* other_manager = nullptr;
+        const bool use_separate_fe_data_manager = input_db->getBoolWithDefault("use_separate_fe_data_manager", false);
+        if (use_separate_fe_data_manager)
+        {
+            FEDataManager::WorkloadSpec spec;
+            other_manager = FEDataManager::getManager(fe_data_manager->getFEData(),
+                                                      "cloned_fe_data_manager",
+                                                      fe_data_manager->getDefaultInterpSpec(),
+                                                      fe_data_manager->getDefaultSpreadSpec(),
+                                                      spec);
+            other_manager->setPatchHierarchy(patch_hierarchy);
+            // Check that we have the same Lagrangian data.
+            TBOX_ASSERT(fe_data_manager->getFEData() == other_manager->getFEData());
+            TBOX_ASSERT(fe_data_manager->getEquationSystems() == other_manager->getEquationSystems());
+        }
+        else
+        {
+            other_manager = fe_data_manager;
+        }
+
+        const bool log_postprocessor = input_db->getBoolWithDefault("log_postprocessor", false);
+        const int postprocessor_sampling_rate = input_db->getIntegerWithDefault("postprocessor_sampling_rate", 25);
+
+        Pointer<IBFEPostProcessor> ib_post_processor =
+            new IBFECentroidPostProcessor("IBFEPostProcessor", other_manager);
+        ib_post_processor->registerTensorVariable("FF", MONOMIAL, CONSTANT, IBFEPostProcessor::FF_fcn);
+
+        std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function,
+                                                                         static_cast<void*>(NULL));
+        ib_post_processor->registerTensorVariable("sigma_dev",
+                                                  MONOMIAL,
+                                                  CONSTANT,
+                                                  IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
+                                                  vector<SystemData>(),
+                                                  &PK1_dev_stress_fcn_data);
+
+        std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function,
+                                                                         static_cast<void*>(NULL));
+        ib_post_processor->registerTensorVariable("sigma_dil",
+                                                  MONOMIAL,
+                                                  CONSTANT,
+                                                  IBFEPostProcessor::cauchy_stress_from_PK1_stress_fcn,
+                                                  vector<SystemData>(),
+                                                  &PK1_dil_stress_fcn_data);
+
+        Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+        Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
+        HierarchyGhostCellInterpolation::InterpolationTransactionComponent p_ghostfill(
+            /*data_idx*/ -1, "LINEAR_REFINE", /*use_cf_bdry_interpolation*/ false, "CONSERVATIVE_COARSEN", "LINEAR");
+        FEDataManager::InterpSpec p_interp_spec("PIECEWISE_LINEAR",
+                                                QGAUSS,
+                                                FIFTH,
+                                                /*use_adaptive_quadrature*/ false,
+                                                /*point_density*/ 2.0,
+                                                /*use_consistent_mass_matrix*/ true,
+                                                /*use_nodal_quadrature*/ false);
+        ib_post_processor->registerInterpolatedScalarEulerianVariable(
+            "p_f", LAGRANGE, FIRST, p_var, p_current_ctx, p_ghostfill, p_interp_spec);
+
         // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
         {
@@ -380,8 +430,17 @@ main(int argc, char** argv)
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
-        if (ib_post_processor) ib_post_processor->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
+
+        if (ib_post_processor)
+        {
+            if (other_manager != fe_data_manager)
+            {
+                other_manager->setPatchLevels(fe_data_manager->getPatchLevels().first,
+                                              fe_data_manager->getPatchLevels().second - 1);
+            }
+            ib_post_processor->initializeFEData();
+        }
 
         // Deallocate initialization objects.
         app_initializer.setNull();
@@ -416,10 +475,38 @@ main(int argc, char** argv)
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
 
-            // At specified intervals, write visualization and restart files,
-            // print out timer data, and store hierarchy data for post
-            // processing.
             iteration_num += 1;
+            if (log_postprocessor && iteration_num % 10 == 0)
+            {
+                // The external FEDataManager is not reinitialized after
+                // regrids, so recompute its Lagrangian-Eulerian data every
+                // time we use it.
+                if (use_separate_fe_data_manager) other_manager->reinitElementMappings();
+                ib_post_processor->postProcessData(loop_time);
+                // This hard-codes in an internal detail that is not presently documented
+                auto& system = equation_systems->get_system("FF reconstruction system");
+                plog << system.get_info() << std::endl;
+
+                NumericVector<double>& solution = *system.solution;
+                plog << "some values from \"FF reconstruction system\" + 1:" << std::endl;
+                for (std::size_t i = solution.first_local_index(); i < solution.last_local_index(); ++i)
+                {
+                    if (i % (solution.local_size() / postprocessor_sampling_rate) == 0)
+                    {
+                        // improve the relative error (since we are taking
+                        // derivatives it ends up being nearly 1e-5 for some
+                        // values) somewhat by adding 1
+                        plog << i << ", " << 1.0 + std::abs(solution(i)) << std::endl;
+                    }
+                }
+            }
+
+            if (dump_restart_data && (iteration_num % restart_dump_interval == 0))
+            {
+                pout << "\nWriting restart files...\n\n";
+                RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
+                ib_method_ops->writeFEDataToRestartFile(restart_dump_dirname, iteration_num);
+            }
 
             // Compute the volume of the structure.
             double J_integral = 0.0;

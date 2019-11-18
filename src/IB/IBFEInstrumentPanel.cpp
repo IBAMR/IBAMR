@@ -315,15 +315,6 @@ IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Dat
 
     // make plot directory
     Utilities::recursiveMkdir(d_plot_directory_name);
-
-    // set up file streams
-    if (SAMRAI_MPI::getRank() == 0)
-    {
-        d_mean_pressure_stream.open(d_plot_directory_name + "/mean_pressure.dat");
-        d_flux_stream.open(d_plot_directory_name + "/flux.dat");
-        d_mean_pressure_stream.precision(15);
-        d_flux_stream.precision(15);
-    }
 }
 
 void
@@ -1110,8 +1101,13 @@ IBFEInstrumentPanel::getMeterRadius(const int meter_mesh_number)
 void
 IBFEInstrumentPanel::outputData(const double data_time)
 {
-    if (SAMRAI_MPI::getRank() == 0)
+    static const int mpi_root = 0;
+    if (SAMRAI_MPI::getRank() == mpi_root)
     {
+        d_mean_pressure_stream.open(d_plot_directory_name + "/mean_pressure.dat", std::ofstream::app);
+        d_flux_stream.open(d_plot_directory_name + "/flux.dat", std::ofstream::app);
+        d_mean_pressure_stream.precision(15);
+        d_flux_stream.precision(15);
         d_mean_pressure_stream << data_time;
         d_flux_stream << data_time;
         for (unsigned int jj = 0; jj < d_num_meters; ++jj)
@@ -1121,6 +1117,8 @@ IBFEInstrumentPanel::outputData(const double data_time)
         }
         d_mean_pressure_stream << "\n";
         d_flux_stream << "\n";
+        d_mean_pressure_stream.close();
+        d_flux_stream.close();
     }
 }
 

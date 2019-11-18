@@ -187,8 +187,8 @@ am__DIST_COMMON = $(srcdir)/Makefile.in \
 	$(top_srcdir)/config/install-sh $(top_srcdir)/config/ltmain.sh \
 	$(top_srcdir)/config/make.inc.in $(top_srcdir)/config/missing \
 	config/compile config/config.guess config/config.rpath \
-	config/config.sub config/install-sh config/ltmain.sh \
-	config/missing
+	config/config.sub config/depcomp config/install-sh \
+	config/ltmain.sh config/missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -1012,7 +1012,8 @@ attest.conf:
 	@printf "numdiff = ${NUMDIFF}\n" >> attest.conf-tmp
 	@printf "show_only = False\n" >> attest.conf-tmp
 	@printf "test_directory = /tests/\n" >> attest.conf-tmp
-	@printf "test_regex = .*\n" >> attest.conf-tmp
+	@printf "include_regex = .*\n" >> attest.conf-tmp
+	@printf "exclude_regex = ^$\n" >> attest.conf-tmp
 	@mv attest.conf-tmp attest.conf
 
 tests: lib attest.conf

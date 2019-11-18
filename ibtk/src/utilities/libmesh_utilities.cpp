@@ -40,6 +40,7 @@
 #include "libmesh/mesh_base.h"
 #include "libmesh/numeric_vector.h"
 #include "libmesh/parallel.h"
+#include "libmesh/petsc_vector.h"
 #include "libmesh/point.h"
 #include "libmesh/system.h"
 
@@ -238,6 +239,105 @@ write_node_partitioning(const std::string& file_name, const libMesh::System& pos
     }
 }
 
+std::vector<libMesh::BoundingBox>
+get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system)
+{
+    static_assert(NDIM <= LIBMESH_DIM,
+                  "NDIM should be no more than LIBMESH_DIM for this function to "
+                  "work correctly.");
+    const unsigned int X_sys_num = X_system.number();
+    auto X_ghost_vec_ptr = X_system.current_local_solution->zero_clone();
+    auto& X_ghost_vec = dynamic_cast<libMesh::PetscVector<double>&>(*X_ghost_vec_ptr);
+    X_ghost_vec = *X_system.solution;
+
+    std::vector<libMesh::BoundingBox> bboxes;
+    bboxes.reserve(mesh.n_local_elem());
+
+    std::vector<libMesh::dof_id_type> dof_indices;
+    std::vector<double> X_node;
+    const auto el_begin = mesh.active_local_elements_begin();
+    const auto el_end = mesh.active_local_elements_end();
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
+    {
+        const libMesh::Elem* const elem = *el_it;
+        const unsigned int n_nodes = elem->n_nodes();
+        bboxes.emplace_back();
+        libMesh::BoundingBox& box = bboxes.back();
+        libMesh::Point& lower_bound = box.first;
+        libMesh::Point& upper_bound = box.second;
+        for (unsigned int d = 0; d < LIBMESH_DIM; ++d)
+        {
+            lower_bound(d) = std::numeric_limits<double>::max();
+            upper_bound(d) = -std::numeric_limits<double>::max();
+        }
+
+        dof_indices.clear();
+        for (unsigned int k = 0; k < n_nodes; ++k)
+        {
+            const libMesh::Node* const node = elem->node_ptr(k);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                TBOX_ASSERT(node->n_dofs(X_sys_num, d) == 1);
+                dof_indices.push_back(node->dof_number(X_sys_num, d, 0));
+            }
+        }
+
+        X_node.resize(dof_indices.size());
+        X_ghost_vec.get(dof_indices, X_node.data());
+        for (unsigned int k = 0; k < n_nodes; ++k)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                const double& X = X_node[k * NDIM + d];
+                lower_bound(d) = std::min(lower_bound(d), X);
+                upper_bound(d) = std::max(upper_bound(d), X);
+            }
+        }
+    }
+
+    return bboxes;
+} // get_local_active_element_bounding_boxes
+
+std::vector<libMesh::BoundingBox>
+get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system)
+{
+    static_assert(NDIM <= LIBMESH_DIM,
+                  "NDIM should be no more than LIBMESH_DIM for this function to "
+                  "work correctly.");
+    const std::vector<libMesh::BoundingBox> bboxes = get_local_active_element_bounding_boxes(mesh, X_system);
+
+    // Parallel sum bounds so that each process has access to the bounding box
+    // data for each active element in the mesh.
+    const std::size_t n_elem = mesh.n_active_elem();
+    std::vector<double> flattened_bboxes(2 * LIBMESH_DIM * n_elem);
+    std::size_t elem_n = 0;
+    const auto el_begin = mesh.active_local_elements_begin();
+    const auto el_end = mesh.active_local_elements_end();
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
+    {
+        const auto id = (*el_it)->id();
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            flattened_bboxes[2 * id * NDIM + d] = bboxes[elem_n].first(d);
+            flattened_bboxes[(2 * id + 1) * NDIM + d] = bboxes[elem_n].second(d);
+        }
+        ++elem_n;
+    }
+    const int ierr = MPI_Allreduce(
+        MPI_IN_PLACE, flattened_bboxes.data(), flattened_bboxes.size(), MPI_DOUBLE, MPI_SUM, mesh.comm().get());
+    TBOX_ASSERT(ierr == 0);
+
+    std::vector<libMesh::BoundingBox> global_bboxes(n_elem);
+    for (unsigned int e = 0; e < n_elem; ++e)
+    {
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            global_bboxes[e].first(d) = flattened_bboxes[2 * e * NDIM + d];
+            global_bboxes[e].second(d) = flattened_bboxes[(2 * e + 1) * NDIM + d];
+        }
+    }
+    return global_bboxes;
+} // get_global_active_element_bounding_boxes
 //////////////////////////////////////////////////////////////////////////////
 
 } // namespace IBTK

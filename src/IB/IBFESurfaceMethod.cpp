@@ -44,6 +44,7 @@
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
@@ -1082,7 +1083,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             }
         }
 
-        SAMRAI_MPI::sumReduction(&F_integral(0), NDIM);
+        SAMRAI_MPI::sumReduction(&F_integral(0), LIBMESH_DIM);
 
         // Solve for F.
         d_fe_data_managers[part]->computeL2Projection(
@@ -1169,11 +1170,18 @@ IBFESurfaceMethod::initializeFEEquationSystems()
     // parts and the Cartesian grid.
     d_equation_systems.resize(d_num_parts, nullptr);
     d_fe_data_managers.resize(d_num_parts, nullptr);
+    IntVector<NDIM> min_ghost_width(0);
+    if (!d_eulerian_data_cache) d_eulerian_data_cache.reset(new SAMRAIDataCache());
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Create FE data managers.
         const std::string manager_name = "IBFESurfaceMethod FEDataManager::" + std::to_string(part);
-        d_fe_data_managers[part] = FEDataManager::getManager(manager_name, d_interp_spec[part], d_spread_spec[part]);
+        d_fe_data_managers[part] = FEDataManager::getManager(manager_name,
+                                                             d_interp_spec[part],
+                                                             d_spread_spec[part],
+                                                             d_default_workload_spec,
+                                                             min_ghost_width,
+                                                             d_eulerian_data_cache);
         d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
 
         // Create FE equation systems objects and corresponding variables.
@@ -1377,35 +1385,32 @@ void IBFESurfaceMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*h
 
 void
 IBFESurfaceMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                       int level_number,
-                                       double init_data_time,
-                                       bool can_be_refined,
-                                       bool initial_time,
-                                       Pointer<BasePatchLevel<NDIM> > old_level,
-                                       bool allocate_data)
+                                       int /*level_number*/,
+                                       double /*init_data_time*/,
+                                       bool /*can_be_refined*/,
+                                       bool /*initial_time*/,
+                                       Pointer<BasePatchLevel<NDIM> > /*old_level*/,
+                                       bool /*allocate_data*/)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_fe_data_managers[part]->setPatchHierarchy(hierarchy);
         d_fe_data_managers[part]->setPatchLevels(0, finest_hier_level);
-        d_fe_data_managers[part]->initializeLevelData(
-            hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     }
     return;
 } // initializeLevelData
 
 void
 IBFESurfaceMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                               int coarsest_level,
+                                               int /*coarsest_level*/,
                                                int /*finest_level*/)
 {
-    const int finest_hier_level = hierarchy->getFinestLevelNumber();
+    // const int finest_hier_level = hierarchy->getFinestLevelNumber();
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_fe_data_managers[part]->setPatchHierarchy(hierarchy);
         d_fe_data_managers[part]->setPatchLevels(0, hierarchy->getFinestLevelNumber());
-        d_fe_data_managers[part]->resetHierarchyConfiguration(hierarchy, coarsest_level, finest_hier_level);
     }
     return;
 } // resetHierarchyConfiguration

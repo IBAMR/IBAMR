@@ -100,8 +100,6 @@ public:
         return;
     } // setLSSolidPatchData
 
-    //////////////// PRIVATE /////////////////////////////
-
 private:
     /*!
      * Default assignment operator is not implemented and should not be used.

@@ -254,8 +254,7 @@ IBStandardInitializer::readVertexFiles(const std::string& extension)
 
             // Ensure that the file exists.
             const std::string vertex_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(vertex_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(vertex_filename);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
@@ -366,8 +365,7 @@ IBStandardInitializer::readSpringFiles(const std::string& extension, const bool 
 
             // Ensure that the file exists.
             const std::string spring_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(spring_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(spring_filename);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
@@ -555,6 +553,14 @@ IBStandardInitializer::readSpringFiles(const std::string& extension, const bool 
                      << "read " << num_edges << " edges from ASCII input file named " << spring_filename << std::endl
                      << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
+            else
+            {
+                plog << d_object_name << ":  "
+                     << " file " << spring_filename
+                     << " on MPI process " << SAMRAI_MPI::getRank()
+                     << " does not exist: skipping read." << std::endl;
+
+            }
 
             // Free the next MPI process to start reading the current file.
             if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
@@ -595,8 +601,7 @@ IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool
 
             // Ensure that the file exists.
             const std::string xspring_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(xspring_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(xspring_filename);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
@@ -785,6 +790,15 @@ IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool
                      << "read " << num_edges << " edges from ASCII input file named " << xspring_filename << std::endl
                      << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
+            else
+            {
+                plog << d_object_name << ":  "
+                     << " file " << xspring_filename
+                     << " on MPI process " << SAMRAI_MPI::getRank()
+                     << " does not exist: skipping read." << std::endl;
+
+            }
+
 
             // Free the next MPI process to start reading the current file.
             if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
@@ -823,8 +837,7 @@ IBStandardInitializer::readBeamFiles(const std::string& extension, const bool in
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
 
             const std::string beam_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(beam_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(beam_filename);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
@@ -1019,6 +1032,14 @@ IBStandardInitializer::readBeamFiles(const std::string& extension, const bool in
                      << "read " << num_beams << " beams from ASCII input file named " << beam_filename << std::endl
                      << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
+            else
+            {
+                plog << d_object_name << ":  "
+                     << " file " << beam_filename
+                     << " on MPI process " << SAMRAI_MPI::getRank()
+                     << " does not exist: skipping read." << std::endl;
+
+            }
 
             // Free the next MPI process to start reading the current file.
             if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
@@ -1056,8 +1077,7 @@ IBStandardInitializer::readRodFiles(const std::string& extension, const bool inp
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
 
             const std::string rod_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(rod_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(rod_filename);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
@@ -1331,6 +1351,14 @@ IBStandardInitializer::readRodFiles(const std::string& extension, const bool inp
                      << "read " << num_rods << " rods from ASCII input file named " << rod_filename << std::endl
                      << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
+            else
+            {
+                plog << d_object_name << ":  "
+                     << " file " << rod_filename
+                     << " on MPI process " << SAMRAI_MPI::getRank()
+                     << " does not exist: skipping read." << std::endl;
+
+            }
 
             // Free the next MPI process to start reading the current file.
             if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
@@ -1373,8 +1401,7 @@ IBStandardInitializer::readTargetPointFiles(const std::string& extension)
             d_target_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
 
             const std::string target_point_stiffness_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(target_point_stiffness_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(target_point_stiffness_filename);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
@@ -1495,6 +1522,14 @@ IBStandardInitializer::readTargetPointFiles(const std::string& extension)
                      << target_point_stiffness_filename << std::endl
                      << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
+            else
+            {
+                plog << d_object_name << ":  "
+                     << " file " << target_point_stiffness_filename
+                     << " on MPI process " << SAMRAI_MPI::getRank()
+                     << " does not exist: skipping read." << std::endl;
+
+            }
 
             // Modify the target point stiffness constants according to whether
             // target point penalty forces are enabled, or whether uniform
@@ -1563,8 +1598,7 @@ IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
             d_anchor_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
 
             const std::string anchor_point_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(anchor_point_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(anchor_point_filename);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
@@ -1648,6 +1682,14 @@ IBStandardInitializer::readAnchorPointFiles(const std::string& extension)
                      << anchor_point_filename << std::endl
                      << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
+            else
+            {
+                plog << d_object_name << ":  "
+                     << " file " << anchor_point_filename
+                     << " on MPI process " << SAMRAI_MPI::getRank()
+                     << " does not exist: skipping read." << std::endl;
+
+            }
 
             // Free the next MPI process to start reading the current file.
             if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
@@ -1685,8 +1727,7 @@ IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
             d_bdry_mass_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
 
             const std::string bdry_mass_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(bdry_mass_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(bdry_mass_filename);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
@@ -1793,6 +1834,14 @@ IBStandardInitializer::readBoundaryMassFiles(const std::string& extension)
                      << bdry_mass_filename << std::endl
                      << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
+            else
+            {
+                plog << d_object_name << ":  "
+                     << " file " << bdry_mass_filename
+                     << " on MPI process " << SAMRAI_MPI::getRank()
+                     << " does not exist: skipping read." << std::endl;
+
+            }
 
             // Modify the boundary masses and boundary mass stiffness constants
             // according to whether boundary mass is enabled, or whether uniform
@@ -1851,8 +1900,7 @@ IBStandardInitializer::readDirectorFiles(const std::string& extension)
             d_directors[ln][j].resize(d_num_vertex[ln][j], std::vector<double>(3 * 3, 0.0));
 
             const std::string directors_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(directors_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(directors_filename);
             if (file_stream.is_open())
             {
                 plog << d_object_name << ":  "
@@ -1937,6 +1985,14 @@ IBStandardInitializer::readDirectorFiles(const std::string& extension)
                      << directors_filename << std::endl
                      << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
+            else
+            {
+                plog << d_object_name << ":  "
+                     << " file " << directors_filename
+                     << " on MPI process " << SAMRAI_MPI::getRank()
+                     << " does not exist: skipping read." << std::endl;
+
+            }
 
             // Free the next MPI process to start reading the current file.
             if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
@@ -1970,8 +2026,7 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
 
             const std::string inst_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(inst_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(inst_filename);
             if (file_stream.is_open() && d_enable_instrumentation[ln][j])
             {
                 plog << d_object_name << ":  "
@@ -2175,6 +2230,14 @@ IBStandardInitializer::readInstrumentationFiles(const std::string& extension)
                      << inst_filename << std::endl
                      << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
             }
+            else
+            {
+                plog << d_object_name << ":  "
+                     << " Either file " << inst_filename
+                     << " on MPI process " << SAMRAI_MPI::getRank()
+                     << " does not exist or instrumentation is disabled : skipping read." << std::endl;
+
+            }
 
             // Free the next MPI process to start reading the current file.
             if (d_use_file_batons && rank != nodes - 1) SAMRAI_MPI::send(&flag, sz, rank + 1, false, j);
@@ -2210,8 +2273,7 @@ IBStandardInitializer::readSourceFiles(const std::string& extension)
             if (d_use_file_batons && rank != 0) SAMRAI_MPI::recv(&flag, sz, rank - 1, false, j);
 
             const std::string source_filename = d_base_filename[ln][j] + extension;
-            std::ifstream file_stream;
-            file_stream.open(source_filename.c_str(), std::ios::in);
+            std::ifstream file_stream(source_filename);
             if (file_stream.is_open() && d_enable_sources[ln][j])
             {
                 plog << d_object_name << ":  "
@@ -2374,6 +2436,14 @@ IBStandardInitializer::readSourceFiles(const std::string& extension)
                      << "read " << num_source_pts << " source points from ASCII input file named " << source_filename
                      << std::endl
                      << "  on MPI process " << SAMRAI_MPI::getRank() << std::endl;
+            }
+            else
+            {
+                plog << d_object_name << ":  "
+                     << " Either file " << source_filename
+                     << " on MPI process " << SAMRAI_MPI::getRank()
+                     << " does not exist or sources are disabled : skipping read." << std::endl;
+
             }
 
             // Free the next MPI process to start reading the current file.
