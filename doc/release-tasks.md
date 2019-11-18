@@ -12,7 +12,7 @@ GitHub.
   `--disable-deprecated`) to verify that we do not use any deprecated
   functionality (this will cause compilation errors if we do use them). Add
   version checks: for example, here is one (lightly edited) in
-  `IBFEInstrumentPannel.cpp`: 
+  `IBFEInstrumentPannel.cpp`:
 ```cpp
     // new API in 1.4.0
 #if 1 <= LIBMESH_MAJOR_VERSION && 4 <= LIBMESH_MINOR_VERSION
@@ -39,6 +39,8 @@ GitHub.
 - [ ] Check that we don't call functions like
   `ReplicatedMesh::active_local_elements_end()` inside `for`-loop declarations
   since the end iterator is expensive to compute.
+- [ ] Run *include what you use* and delete unnecessary header inclusions.
+- [ ] Run clang-format on the entire code base.
 
 ## testing
 
@@ -63,7 +65,7 @@ GitHub.
 ```
   where `X` and `Y` are the version numbers for the release (e.g., for the
   `0.5.0` release they are `0` and `5`). Note that the bugfix number does not go
-  into the branch name. 
+  into the branch name.
 - [ ] Increment the version number on `master` to, e.g., `0.6.0-pre` to signify
   that `master` now corresponds to a prerelease state. Put this in a PR.
 - [ ] At this point the release branch and `master` will have diverged. Create a
@@ -71,7 +73,7 @@ GitHub.
   prerelease (the tag should be `vX.Y.Z-rc1`). Be sure to include instructions
   on how to patch and compile SAMRAI.
 - [ ] If necessary, patch `IBAMR-X.Y` should the release candidate uncover more
-  bugs. 
+  bugs.
 - [ ] Once `IBAMR-X.Y` is in good shape tag a proper release, i.e., `vX.Y.Z` and
   create a non-draft release on GitHub.
 - [ ] Send out a message to the mailing list about the release.
