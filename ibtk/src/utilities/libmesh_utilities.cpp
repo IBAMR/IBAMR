@@ -225,7 +225,11 @@ write_node_partitioning(const std::string& file_name, const libMesh::System& pos
     }
 }
 
+#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
 std::vector<libMesh::BoundingBox>
+#else
+std::vector<libMesh::MeshTools::BoundingBox>
+#endif
 get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system)
 {
     static_assert(NDIM <= LIBMESH_DIM,
@@ -236,7 +240,12 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const lib
     auto& X_ghost_vec = dynamic_cast<libMesh::PetscVector<double>&>(*X_ghost_vec_ptr);
     X_ghost_vec = *X_system.solution;
 
+#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
     std::vector<libMesh::BoundingBox> bboxes;
+#else
+    std::vector<libMesh::MeshTools::BoundingBox> bboxes;
+#endif
+
     bboxes.reserve(mesh.n_local_elem());
 
     std::vector<libMesh::dof_id_type> dof_indices;
@@ -248,7 +257,7 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const lib
         const libMesh::Elem* const elem = *el_it;
         const unsigned int n_nodes = elem->n_nodes();
         bboxes.emplace_back();
-        libMesh::BoundingBox& box = bboxes.back();
+        auto& box = bboxes.back();
         libMesh::Point& lower_bound = box.first;
         libMesh::Point& upper_bound = box.second;
         for (unsigned int d = 0; d < LIBMESH_DIM; ++d)
@@ -284,13 +293,17 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const lib
     return bboxes;
 } // get_local_active_element_bounding_boxes
 
+#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
 std::vector<libMesh::BoundingBox>
+#else
+std::vector<libMesh::MeshTools::BoundingBox>
+#endif
 get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system)
 {
     static_assert(NDIM <= LIBMESH_DIM,
                   "NDIM should be no more than LIBMESH_DIM for this function to "
                   "work correctly.");
-    const std::vector<libMesh::BoundingBox> bboxes = get_local_active_element_bounding_boxes(mesh, X_system);
+    const auto bboxes = get_local_active_element_bounding_boxes(mesh, X_system);
 
     // Parallel sum bounds so that each process has access to the bounding box
     // data for each active element in the mesh.
@@ -313,7 +326,11 @@ get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const li
         MPI_IN_PLACE, flattened_bboxes.data(), flattened_bboxes.size(), MPI_DOUBLE, MPI_SUM, mesh.comm().get());
     TBOX_ASSERT(ierr == 0);
 
+#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
     std::vector<libMesh::BoundingBox> global_bboxes(n_elem);
+#else
+    std::vector<libMesh::MeshTools::BoundingBox> global_bboxes(n_elem);
+#endif
     for (unsigned int e = 0; e < n_elem; ++e)
     {
         for (unsigned int d = 0; d < NDIM; ++d)

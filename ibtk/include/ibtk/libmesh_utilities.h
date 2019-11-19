@@ -40,7 +40,11 @@
 
 #include "tbox/Utilities.h"
 
+#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
 #include "libmesh/bounding_box.h"
+#else
+#include "libmesh/mesh_tools.h"
+#endif
 #include "libmesh/dof_map.h"
 #include "libmesh/dof_object.h"
 #include "libmesh/edge.h"
@@ -1354,15 +1358,25 @@ void write_node_partitioning(const std::string& file_name, const libMesh::System
  * Compute bounding boxes for each local active (i.e., active on the current
  * processor) element in @p mesh with coordinates given by @p X_system.
  */
-std::vector<libMesh::BoundingBox> get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
-                                                                          const libMesh::System& X_system);
+#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
+std::vector<libMesh::BoundingBox>
+#else
+std::vector<libMesh::MeshTools::BoundingBox>
+#endif
+get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                        const libMesh::System& X_system);
 
 /*
  * Compute bounding boxes for each active (i.e., active on any processor)
  * element in @p mesh with coordinates given by @p X_system.
  */
-std::vector<libMesh::BoundingBox> get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
-                                                                           const libMesh::System& X_system);
+#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
+std::vector<libMesh::BoundingBox>
+#else
+std::vector<libMesh::MeshTools::BoundingBox>
+#endif
+get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                         const libMesh::System& X_system);
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
