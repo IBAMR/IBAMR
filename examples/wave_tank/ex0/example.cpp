@@ -46,6 +46,7 @@
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
+#include <ibamr/IrregularWaveBcCoef.h>
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/StokesFifthOrderWaveBcCoef.h>
 #include <ibamr/StokesFirstOrderWaveBcCoef.h>
@@ -307,6 +308,11 @@ run_example(int argc, char* argv[])
                 else if (wave_type == "FIFTH_ORDER_STOKES")
                 {
                     u_bc_coefs[d] = new StokesFifthOrderWaveBcCoef(
+                        bc_coefs_name, d, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
+                }
+                else if (wave_type == "IRREGULAR")
+                {
+                    u_bc_coefs[d] = new IrregularWaveBcCoef(
                         bc_coefs_name, d, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
                 }
                 else

@@ -5,9 +5,9 @@ include $(top_srcdir)/config/Make-rules
 EXAMPLE_DRIVER = ex_main.cpp SetFluidProperties.cpp SetLSProperties.cpp LSLocateColumnInterface.cpp GravityForcing.cpp TagLSRefinementCells.cpp
 GTEST_DRIVER   = test_main.cpp SetFluidProperties.cpp SetLSProperties.cpp LSLocateColumnInterface.cpp GravityForcing.cpp TagLSRefinementCells.cpp
 EXTRA_DIST     = input2d input2d.test
-EXTRA_DIST    += input2d_CaseA input2d_CaseB input2d_CaseC input2d_5thOrderStokes
+EXTRA_DIST    += input2d_CaseA input2d_CaseA_IrregularWave input2d_CaseB input2d_CaseC input2d_5thOrderStokes
 EXTRA_DIST    += input3d input3d.test
-EXTRA_DIST    += compareStokesFirstOrder.m compareStokesSecondOrder.m compareStokesFifthOrder.m
+EXTRA_DIST    += compareIrregularWave.m compareStokesFirstOrder.m compareStokesSecondOrder.m compareStokesFifthOrder.m
 
 GTESTS   =
 EXAMPLES =
