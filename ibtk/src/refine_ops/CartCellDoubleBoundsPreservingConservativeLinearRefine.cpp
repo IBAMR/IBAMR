@@ -163,15 +163,15 @@ CartCellDoubleBoundsPreservingConservativeLinearRefine::refine(Patch<NDIM>& fine
 #endif
     const int data_depth = fdata->getDepth();
     const Box<NDIM>& patch_box_crse = coarse.getBox();
-    const Index<NDIM>& patch_lower_crse = patch_box_crse.lower();
-    const Index<NDIM>& patch_upper_crse = patch_box_crse.upper();
+    const hier::Index<NDIM>& patch_lower_crse = patch_box_crse.lower();
+    const hier::Index<NDIM>& patch_upper_crse = patch_box_crse.upper();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom_crse = coarse.getPatchGeometry();
     for (int depth = 0; depth < data_depth; ++depth)
     {
         for (Box<NDIM>::Iterator b(coarse_correction_box); b; b++)
         {
-            const Index<NDIM>& i_crse = b();
-            const Index<NDIM> i_fine = i_crse * ratio;
+            const hier::Index<NDIM>& i_crse = b();
+            const hier::Index<NDIM> i_fine = i_crse * ratio;
 
             // Determine the lower/upper bounds.
             Box<NDIM> stencil_box_crse(i_crse, i_crse);

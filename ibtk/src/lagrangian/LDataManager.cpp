@@ -1063,7 +1063,7 @@ LDataManager::reinitLagrangianStructure(const Point& X_center, const int structu
         const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
         for (LNodeSetData::CellIterator it(patch_box); it; it++)
         {
-            const Index<NDIM>& i = *it;
+            const hier::Index<NDIM>& i = *it;
             LNodeSet* const node_set = idx_data->getItem(i);
             if (node_set)
             {
@@ -1141,7 +1141,7 @@ LDataManager::displaceLagrangianStructure(const Vector& dX, const int structure_
         const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
         for (LNodeSetData::CellIterator it(patch_box); it; it++)
         {
-            const Index<NDIM>& i = *it;
+            const hier::Index<NDIM>& i = *it;
             LNodeSet* const node_set = idx_data->getItem(i);
             if (node_set)
             {
@@ -1475,7 +1475,7 @@ LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int finest
             std::set<int> registered_periodic_idx;
             for (LNodeSetData::CellIterator it(Box<NDIM>::grow(patch_box, IntVector<NDIM>(CFL_WIDTH))); it; it++)
             {
-                const Index<NDIM>& old_cell_idx = *it;
+                const hier::Index<NDIM>& old_cell_idx = *it;
                 LNodeSet* const old_node_set = current_idx_data->getItem(old_cell_idx);
                 if (old_node_set)
                 {
@@ -2018,7 +2018,7 @@ LDataManager::updateNodeCountData(const int coarsest_ln_in, const int finest_ln_
             node_count_data->fillAll(0.0);
             for (LNodeSetData::SetIterator it(*idx_data); it; it++)
             {
-                const Index<NDIM>& i = it.getIndex();
+                const hier::Index<NDIM>& i = it.getIndex();
                 if (patch_box.contains(i))
                 {
                     const LNodeSet& node_set = *it;
@@ -2917,7 +2917,7 @@ LDataManager::computeNodeDistribution(AO& ao,
         const Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
         for (Box<NDIM>::Iterator b(patch_box); b; b++)
         {
-            const Index<NDIM>& i = b();
+            const hier::Index<NDIM>& i = b();
             if (!idx_data->isElement(i)) continue;
             const LNodeSet* const node_set = idx_data->getItem(i);
             for (LNodeSet::const_iterator node_it = node_set->begin(); node_it != node_set->end(); ++node_it)

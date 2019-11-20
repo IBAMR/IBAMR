@@ -130,7 +130,7 @@ StokesFirstOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
         double dof_posn[NDIM];
         for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
         {
-            const Index<NDIM>& i = b();
+            const hier::Index<NDIM>& i = b();
             if (acoef_data) (*acoef_data)(i, 0) = 1.0;
             if (bcoef_data) (*bcoef_data)(i, 0) = 0.0;
 

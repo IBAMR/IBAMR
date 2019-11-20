@@ -567,8 +567,8 @@ AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const FaceData<NDIM, d
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
+    const hier::Index<NDIM>& ilower = patch.getBox().lower();
+    const hier::Index<NDIM>& iupper = patch.getBox().upper();
 
     const IntVector<NDIM>& u_ghost_cells = u_ADV.getGhostCellWidth();
 
@@ -623,8 +623,8 @@ AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(CellData<NDIM, dou
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
+    const hier::Index<NDIM>& ilower = patch.getBox().lower();
+    const hier::Index<NDIM>& iupper = patch.getBox().upper();
 
     const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
     const IntVector<NDIM>& q_half_ghost_cells = q_half.getGhostCellWidth();
@@ -695,8 +695,8 @@ AdvectorExplicitPredictorPatchOps::computeFlux(FaceData<NDIM, double>& flux,
 
     TBOX_ASSERT(q_half.getBox() == patch.getBox());
 #endif
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
+    const hier::Index<NDIM>& ilower = patch.getBox().lower();
+    const hier::Index<NDIM>& iupper = patch.getBox().upper();
 
     const IntVector<NDIM>& flux_ghost_cells = flux.getGhostCellWidth();
     const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
@@ -840,8 +840,8 @@ AdvectorExplicitPredictorPatchOps::enforceIncompressibility(FaceData<NDIM, doubl
 #else
     NULL_USE(u_ADV);
 #endif
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
+    const hier::Index<NDIM>& ilower = patch.getBox().lower();
+    const hier::Index<NDIM>& iupper = patch.getBox().upper();
 
     const IntVector<NDIM>& grad_phi_ghost_cells = grad_phi.getGhostCellWidth();
     const IntVector<NDIM>& v_half_ghost_cells = v_half.getGhostCellWidth();
@@ -962,8 +962,8 @@ AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
+    const hier::Index<NDIM>& ilower = patch.getBox().lower();
+    const hier::Index<NDIM>& iupper = patch.getBox().upper();
 
     const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
     const IntVector<NDIM>& Q_ghost_cells = Q.getGhostCellWidth();
@@ -1144,8 +1144,8 @@ AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, double>&
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
+    const hier::Index<NDIM>& ilower = patch.getBox().lower();
+    const hier::Index<NDIM>& iupper = patch.getBox().upper();
 
     const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
     const IntVector<NDIM>& Q_ghost_cells = Q.getGhostCellWidth();

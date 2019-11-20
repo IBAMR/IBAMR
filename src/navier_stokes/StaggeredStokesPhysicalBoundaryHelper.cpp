@@ -128,7 +128,7 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
                     if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
                     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
                     {
-                        const Index<NDIM>& i = it();
+                        const hier::Index<NDIM>& i = it();
                         const double& alpha = (*acoef_data)(i, 0);
                         const double gamma = homogeneous_bc && !extended_bc_coef ? 0.0 : (*gcoef_data)(i, 0);
 #if !defined(NDEBUG)
@@ -198,12 +198,12 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
         const ArrayData<NDIM, bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
         for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
         {
-            const Index<NDIM>& i = it();
+            const hier::Index<NDIM>& i = it();
             if ((bdry_locs_data(i, 0) == 0.0 && (bdry_tag & NORMAL_TRACTION_BDRY)) ||
                 (bdry_locs_data(i, 0) == 1.0 && (bdry_tag & NORMAL_VELOCITY_BDRY)))
             {
                 // Place i_g in the ghost cell abutting the boundary.
-                Index<NDIM> i_g = i;
+                hier::Index<NDIM> i_g = i;
                 if (is_lower)
                 {
                     i_g(bdry_normal_axis) -= 1;

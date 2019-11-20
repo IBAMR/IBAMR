@@ -114,7 +114,7 @@ StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(Pointer<SideData<
         const ArrayData<NDIM, bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
         for (Box<NDIM>::Iterator it(bdry_locs_data.getBox()); it; it++)
         {
-            const Index<NDIM>& i = it();
+            const hier::Index<NDIM>& i = it();
             if (bdry_locs_data(i, 0))
             {
                 (*u_out_data)(SideIndex<NDIM>(i, bdry_normal_axis, SideIndex<NDIM>::Lower)) =
@@ -172,7 +172,7 @@ StaggeredPhysicalBoundaryHelper::setupMaskingFunction(Pointer<SideData<NDIM, int
         const ArrayData<NDIM, bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
         for (Box<NDIM>::Iterator it(bdry_locs_data.getBox()); it; it++)
         {
-            const Index<NDIM>& i = it();
+            const hier::Index<NDIM>& i = it();
             if (bdry_locs_data(i, 0)) (*mask_data)(SideIndex<NDIM>(i, bdry_normal_axis, SideIndex<NDIM>::Lower)) = 1;
         }
     }
@@ -269,7 +269,7 @@ StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<RobinBcCoefSt
                     ArrayData<NDIM, bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
                     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
                     {
-                        const Index<NDIM>& i = it();
+                        const hier::Index<NDIM>& i = it();
                         const double& alpha = (*acoef_data)(i, 0);
                         const double& beta = (*bcoef_data)(i, 0);
 #if !defined(NDEBUG)

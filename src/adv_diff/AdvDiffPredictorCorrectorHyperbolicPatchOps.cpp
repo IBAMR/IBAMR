@@ -202,8 +202,8 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patch
                                                                            bool /*at_synchronization*/)
 {
     const Box<NDIM>& patch_box = patch.getBox();
-    const Index<NDIM>& ilower = patch_box.lower();
-    const Index<NDIM>& iupper = patch_box.upper();
+    const hier::Index<NDIM>& ilower = patch_box.lower();
+    const hier::Index<NDIM>& iupper = patch_box.upper();
 
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();

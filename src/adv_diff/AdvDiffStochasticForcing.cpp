@@ -332,7 +332,7 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                             acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box, data_time);
                         for (Box<NDIM>::Iterator it(bc_coef_box * side_boxes[bdry_normal_axis]); it; it++)
                         {
-                            const Index<NDIM>& i = it();
+                            const hier::Index<NDIM>& i = it();
                             const double& alpha = (*acoef_data)(i, 0);
                             const double& beta = (*bcoef_data)(i, 0);
                             const bool dirichlet_bc = (alpha != 0.0 && beta == 0.0);
@@ -405,8 +405,8 @@ AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
         {
             for (BoxIterator<NDIM> i(SideGeometry<NDIM>::toSideBox(patch_box, axis)); i; i++)
             {
-                const Index<NDIM>& ic = i();
-                Index<NDIM> ic_lower(ic);
+                const hier::Index<NDIM>& ic = i();
+                hier::Index<NDIM> ic_lower(ic);
                 ic_lower(axis) -= 1;
                 SideIndex<NDIM> is(ic, axis, SideIndex<NDIM>::Lower);
                 double f;
@@ -452,7 +452,7 @@ AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
             }
             for (BoxIterator<NDIM> i(patch_box); i; i++)
             {
-                const Index<NDIM>& ic = i();
+                const hier::Index<NDIM>& ic = i();
                 SideIndex<NDIM> is_lower(ic, axis, SideIndex<NDIM>::Lower);
                 SideIndex<NDIM> is_upper(ic, axis, SideIndex<NDIM>::Upper);
                 const double scale_lower = f_scale_sc_data(is_lower, d);

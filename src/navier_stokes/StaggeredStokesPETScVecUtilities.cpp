@@ -350,16 +350,16 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelAO(AO& ao,
 #if !defined(NDEBUG)
     TBOX_ASSERT(domain_boxes.size() == 1);
 #endif
-    const Index<NDIM>& domain_lower = domain_boxes[0].lower();
-    const Index<NDIM>& domain_upper = domain_boxes[0].upper();
+    const hier::Index<NDIM>& domain_lower = domain_boxes[0].lower();
+    const hier::Index<NDIM>& domain_upper = domain_boxes[0].upper();
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_level->getGridGeometry();
     IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(patch_level->getRatio());
 
-    const Index<NDIM> p_num_cells = domain_upper - domain_lower + 1;
-    std::array<Index<NDIM>, NDIM> u_num_cells;
+    const hier::Index<NDIM> p_num_cells = domain_upper - domain_lower + 1;
+    std::array<hier::Index<NDIM>, NDIM> u_num_cells;
     for (unsigned d = 0; d < NDIM; ++d)
     {
-        Index<NDIM> offset = 1;
+        hier::Index<NDIM> offset = 1;
         offset(d) = periodic_shift(d) ? 1 : 2;
         u_num_cells[d] = domain_upper - domain_lower + offset;
     }
@@ -642,7 +642,7 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
 #if !defined(NDEBUG)
     TBOX_ASSERT(domain_boxes.size() == 1);
 #endif
-    const Index<NDIM>& domain_upper = domain_boxes[0].upper();
+    const hier::Index<NDIM>& domain_upper = domain_boxes[0].upper();
 
     // Determine the number of local DOFs.
     int local_dof_count = 0;
@@ -708,7 +708,7 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
         {
             for (Box<NDIM>::Iterator b(bl()); b; b++)
             {
-                const Index<NDIM>& ic = b();
+                const hier::Index<NDIM>& ic = b();
                 for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
                 {
                     if (data_boxes[component_axis].contains(ic))

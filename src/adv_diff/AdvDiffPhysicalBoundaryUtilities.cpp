@@ -127,7 +127,7 @@ AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellData
             if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = bc();
+                const hier::Index<NDIM>& i = bc();
                 const FaceIndex<NDIM> i_f(i, bdry_normal_axis, FaceIndex<NDIM>::Lower);
                 bool is_inflow_bdry = (is_lower && (*u_ADV_data)(i_f) > 0.0) || (!is_lower && (*u_ADV_data)(i_f) < 0.0);
                 if (!inflow_boundaries_only || is_inflow_bdry)
@@ -137,7 +137,7 @@ AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellData
                     const double& g = (*gcoef_data)(i, 0);
                     const double& h = dx[bdry_normal_axis];
                     int sgn;
-                    Index<NDIM> i_i(i), i_g(i);
+                    hier::Index<NDIM> i_i(i), i_g(i);
                     if (is_lower)
                     {
                         sgn = -1;

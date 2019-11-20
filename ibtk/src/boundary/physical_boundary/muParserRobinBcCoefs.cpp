@@ -308,7 +308,7 @@ muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
                                  double fill_time) const
 {
     const Box<NDIM>& patch_box = patch.getBox();
-    const Index<NDIM>& patch_lower = patch_box.lower();
+    const hier::Index<NDIM>& patch_lower = patch_box.lower();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
 
     const double* const x_lower = pgeom->getXLower();
@@ -332,7 +332,7 @@ muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
     d_parser_time = fill_time;
     for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
     {
-        const Index<NDIM>& i = b();
+        const hier::Index<NDIM>& i = b();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             if (d != bdry_normal_axis)

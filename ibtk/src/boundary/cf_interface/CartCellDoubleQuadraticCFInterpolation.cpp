@@ -148,10 +148,10 @@ coarsen(const int& index, const int& ratio)
     return (index < 0 ? (index + 1) / ratio - 1 : index / ratio);
 } // coarsen
 
-inline Index<NDIM>
-coarsen(const Index<NDIM>& index, const IntVector<NDIM>& ratio)
+inline hier::Index<NDIM>
+coarsen(const hier::Index<NDIM>& index, const IntVector<NDIM>& ratio)
 {
-    Index<NDIM> coarse_index;
+    hier::Index<NDIM> coarse_index;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         coarse_index(d) = coarsen(index(d), ratio(d));
@@ -160,7 +160,7 @@ coarsen(const Index<NDIM>& index, const IntVector<NDIM>& ratio)
 } // coarsen
 
 inline bool
-bdry_boxes_contain_index(const Index<NDIM>& i, const std::vector<const BoundaryBox<NDIM>*>& patch_cf_bdry_boxes)
+bdry_boxes_contain_index(const hier::Index<NDIM>& i, const std::vector<const BoundaryBox<NDIM>*>& patch_cf_bdry_boxes)
 {
     for (const auto& patch_cf_bdry_box : patch_cf_bdry_boxes)
     {
@@ -171,7 +171,7 @@ bdry_boxes_contain_index(const Index<NDIM>& i, const std::vector<const BoundaryB
 } // bdry_boxes_contain_index
 
 inline bool
-is_corner_point(const Index<NDIM>& i,
+is_corner_point(const hier::Index<NDIM>& i,
                 const unsigned int bdry_normal_axis,
                 const bool is_lower,
                 const Box<NDIM>& patch_box,
@@ -199,12 +199,12 @@ is_corner_point(const Index<NDIM>& i,
         {
             const bool periodic = periodic_shift(axis) > 0;
 
-            Index<NDIM> i_lower(i);
+            hier::Index<NDIM> i_lower(i);
             i_lower(axis) = i(axis) - 1;
             if ((periodic || domain_boxes.contains(i_lower)) && !bdry_boxes_contain_index(i_lower, patch_cf_bdry_boxes))
                 return true;
 
-            Index<NDIM> i_upper(i);
+            hier::Index<NDIM> i_upper(i);
             i_upper(axis) = i(axis) + 1;
             if ((periodic || domain_boxes.contains(i_upper)) && !bdry_boxes_contain_index(i_upper, patch_cf_bdry_boxes))
                 return true;
@@ -459,13 +459,13 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch<NDIM>&
         const IntVector<NDIM> ghost_width_to_fill = GHOST_WIDTH_TO_FILL;
 
         const Box<NDIM>& patch_box_fine = fine.getBox();
-        const Index<NDIM>& patch_lower_fine = patch_box_fine.lower();
+        const hier::Index<NDIM>& patch_lower_fine = patch_box_fine.lower();
         Pointer<CartesianPatchGeometry<NDIM> > pgeom_fine = fine.getPatchGeometry();
         const double* const XLower_fine = pgeom_fine->getXLower();
         const double* const dx_fine = pgeom_fine->getDx();
 
         const Box<NDIM>& patch_box_crse = coarse.getBox();
-        const Index<NDIM>& patch_lower_crse = patch_box_crse.lower();
+        const hier::Index<NDIM>& patch_lower_crse = patch_box_crse.lower();
         Pointer<CartesianPatchGeometry<NDIM> > pgeom_crse = coarse.getPatchGeometry();
         const double* const XLower_crse = pgeom_crse->getXLower();
         const double* const dx_crse = pgeom_crse->getDx();
@@ -495,8 +495,8 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch<NDIM>&
 
             for (Box<NDIM>::Iterator b(bc_fill_box); b; b++)
             {
-                const Index<NDIM>& i_fine = b();
-                const Index<NDIM> i_crse = coarsen(i_fine, ratio);
+                const hier::Index<NDIM>& i_fine = b();
+                const hier::Index<NDIM> i_crse = coarsen(i_fine, ratio);
                 const bool corner_point = bdry_type != 1 ? false :
                                                            is_corner_point(i_fine,
                                                                            bdry_normal_axis,
@@ -557,7 +557,7 @@ CartCellDoubleQuadraticCFInterpolation::postprocessRefine_expensive(Patch<NDIM>&
                 }
 
                 // Interpolate from the coarse grid to the fine grid.
-                Index<NDIM> i_intrp;
+                hier::Index<NDIM> i_intrp;
                 for (int d = 0; d < data_depth; ++d)
                 {
                     (*fdata)(i_fine, d) = 0.0;
@@ -733,8 +733,8 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Patch<N
         const int data_depth = data->getDepth();
 
         const Box<NDIM>& patch_box = patch.getBox();
-        const Index<NDIM>& patch_lower = patch_box.lower();
-        const Index<NDIM>& patch_upper = patch_box.upper();
+        const hier::Index<NDIM>& patch_lower = patch_box.lower();
+        const hier::Index<NDIM>& patch_upper = patch_box.upper();
         Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
 
         // Use quadratic interpolation in the normal direction to reset values
@@ -751,7 +751,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Patch<N
             const bool is_lower = location_index % 2 == 0;
             for (Box<NDIM>::Iterator b(bc_fill_box); b; b++)
             {
-                const Index<NDIM>& i_bdry = b();
+                const hier::Index<NDIM>& i_bdry = b();
                 if (!is_corner_point(i_bdry,
                                      bdry_normal_axis,
                                      is_lower,
@@ -760,7 +760,7 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Patch<N
                                      periodic_shift,
                                      domain_boxes))
                 {
-                    Index<NDIM> i_intr0(i_bdry), i_intr1(i_bdry);
+                    hier::Index<NDIM> i_intr0(i_bdry), i_intr1(i_bdry);
                     if (is_lower)
                     {
                         i_intr0(bdry_normal_axis) = patch_lower(bdry_normal_axis);

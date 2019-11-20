@@ -1084,7 +1084,7 @@ IBMethod::spreadFluidSource(const int q_data_idx,
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            const Index<NDIM>& patch_lower = patch_box.lower();
+            const hier::Index<NDIM>& patch_lower = patch_box.lower();
             const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
             const double* const xLower = pgeom->getXLower();
             const double* const dx = pgeom->getDx();
@@ -1100,7 +1100,7 @@ IBMethod::spreadFluidSource(const int q_data_idx,
                 }
 
                 // Determine the approximate source stencil box.
-                const Index<NDIM> i_center = IndexUtilities::getCellIndex(d_X_src[ln][n], grid_geom, ratio);
+                const hier::Index<NDIM> i_center = IndexUtilities::getCellIndex(d_X_src[ln][n], grid_geom, ratio);
                 Box<NDIM> stencil_box(i_center, i_center);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
@@ -1110,7 +1110,7 @@ IBMethod::spreadFluidSource(const int q_data_idx,
                 // Spread the source strength onto the Cartesian grid.
                 for (Box<NDIM>::Iterator b(patch_box * stencil_box); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const hier::Index<NDIM>& i = b();
                     double wgt = 1.0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -1254,7 +1254,7 @@ IBMethod::interpolatePressure(int p_data_idx,
                 {
                     for (Box<NDIM>::Iterator b(blist() * patch_box); b; b++)
                     {
-                        const Index<NDIM>& i = b();
+                        const hier::Index<NDIM>& i = b();
                         p_norm += (*p_data)(i) * (*wgt_data)(i);
                         vol += (*wgt_data)(i);
                     }
@@ -1284,7 +1284,7 @@ IBMethod::interpolatePressure(int p_data_idx,
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            const Index<NDIM>& patch_lower = patch_box.lower();
+            const hier::Index<NDIM>& patch_lower = patch_box.lower();
             const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
             const double* const xLower = pgeom->getXLower();
             const double* const dx = pgeom->getDx();
@@ -1300,7 +1300,7 @@ IBMethod::interpolatePressure(int p_data_idx,
                 }
 
                 // Determine the approximate source stencil box.
-                const Index<NDIM> i_center = IndexUtilities::getCellIndex(d_X_src[ln][n], grid_geom, ratio);
+                const hier::Index<NDIM> i_center = IndexUtilities::getCellIndex(d_X_src[ln][n], grid_geom, ratio);
                 Box<NDIM> stencil_box(i_center, i_center);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
@@ -1310,7 +1310,7 @@ IBMethod::interpolatePressure(int p_data_idx,
                 // Interpolate the pressure from the Cartesian grid.
                 for (Box<NDIM>::Iterator b(patch_box * stencil_box); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const hier::Index<NDIM>& i = b();
                     double wgt = 1.0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -1628,7 +1628,7 @@ IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarch
             }
 
             // Determine the approximate source stencil box.
-            const Index<NDIM> i_center =
+            const hier::Index<NDIM> i_center =
                 IndexUtilities::getCellIndex(d_X_src[finer_level_number][n], grid_geom, finer_ratio);
             Box<NDIM> stencil_box(i_center, i_center);
             for (unsigned int d = 0; d < NDIM; ++d)

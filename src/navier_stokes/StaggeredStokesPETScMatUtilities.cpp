@@ -119,7 +119,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
     // Setup the finite difference stencils.
     static const int uu_stencil_sz = 2 * NDIM + 1;
-    std::array<Index<NDIM>, uu_stencil_sz> uu_stencil(array_constant<Index<NDIM>, uu_stencil_sz>(Index<NDIM>(0)));
+    std::array<hier::Index<NDIM>, uu_stencil_sz> uu_stencil(
+        array_constant<hier::Index<NDIM>, uu_stencil_sz>(hier::Index<NDIM>(0)));
     for (unsigned int axis = 0, uu_stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++uu_stencil_index)
@@ -128,9 +129,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         }
     }
     static const int up_stencil_sz = 2;
-    std::array<std::array<Index<NDIM>, up_stencil_sz>, NDIM> up_stencil(
-        array_constant<std::array<Index<NDIM>, up_stencil_sz>, NDIM>(
-            array_constant<Index<NDIM>, up_stencil_sz>(Index<NDIM>(0))));
+    std::array<std::array<hier::Index<NDIM>, up_stencil_sz>, NDIM> up_stencil(
+        array_constant<std::array<hier::Index<NDIM>, up_stencil_sz>, NDIM>(
+            array_constant<hier::Index<NDIM>, up_stencil_sz>(hier::Index<NDIM>(0))));
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side)
@@ -139,7 +140,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         }
     }
     static const int pu_stencil_sz = 2 * NDIM;
-    std::array<Index<NDIM>, pu_stencil_sz> pu_stencil(array_constant<Index<NDIM>, pu_stencil_sz>(Index<NDIM>(0)));
+    std::array<hier::Index<NDIM>, pu_stencil_sz> pu_stencil(
+        array_constant<hier::Index<NDIM>, pu_stencil_sz>(hier::Index<NDIM>(0)));
     for (unsigned int axis = 0, pu_stencil_index = 0; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++pu_stencil_index)
@@ -388,7 +390,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 // boundary conditions.
                 for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
                 {
-                    const Index<NDIM>& i = bc();
+                    const hier::Index<NDIM>& i = bc();
                     const double& a = (*acoef_data)(i, 0);
                     const double& b = (*bcoef_data)(i, 0);
                     const bool velocity_bc = (a == 1.0 || MathUtilities<double>::equalEps(a, 1.0));
@@ -396,7 +398,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 #if !defined(NDEBUG)
                     TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
 #endif
-                    Index<NDIM> i_intr = i;
+                    hier::Index<NDIM> i_intr = i;
                     if (is_lower)
                     {
                         i_intr(bdry_normal_axis) += 0;
@@ -487,7 +489,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 // boundary conditions.
                 for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
                 {
-                    const Index<NDIM>& i = bc();
+                    const hier::Index<NDIM>& i = bc();
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                     const double& a = (*acoef_data)(i, 0);
                     const double& b = (*bcoef_data)(i, 0);
@@ -662,7 +664,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
 #if !defined(NDEBUG)
     TBOX_ASSERT(domain_boxes.size() == 1);
 #endif
-    const Index<NDIM>& domain_upper = domain_boxes[0].upper();
+    const hier::Index<NDIM>& domain_upper = domain_boxes[0].upper();
 
     // Determine the number of local DOFs.
     int local_dof_count = 0;

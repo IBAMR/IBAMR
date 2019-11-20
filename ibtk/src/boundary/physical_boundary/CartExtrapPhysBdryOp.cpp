@@ -317,8 +317,8 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
     const std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >& bdry_fill_boxes)
 {
     const Box<NDIM>& patch_box = patch.getBox();
-    const Index<NDIM>& patch_lower = patch_box.lower();
-    const Index<NDIM>& patch_upper = patch_box.upper();
+    const hier::Index<NDIM>& patch_lower = patch_box.lower();
+    const hier::Index<NDIM>& patch_upper = patch_box.upper();
 
     const int extrap_type =
         (d_extrap_type == "CONSTANT" ? 0 : (d_extrap_type == "LINEAR" ? 1 : (d_extrap_type == "QUADRATIC" ? 2 : -1)));
@@ -416,8 +416,8 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
     const std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >& bdry_fill_boxes)
 {
     const Box<NDIM>& patch_box = patch.getBox();
-    const Index<NDIM>& patch_lower = patch_box.lower();
-    const Index<NDIM>& patch_upper = patch_box.upper();
+    const hier::Index<NDIM>& patch_lower = patch_box.lower();
+    const hier::Index<NDIM>& patch_upper = patch_box.upper();
 
     const int extrap_type =
         (d_extrap_type == "CONSTANT" ? 0 : (d_extrap_type == "LINEAR" ? 1 : (d_extrap_type == "QUADRATIC" ? 2 : -1)));
@@ -522,8 +522,8 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
     const std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >& bdry_fill_boxes)
 {
     const Box<NDIM>& patch_box = patch.getBox();
-    const Index<NDIM>& patch_lower = patch_box.lower();
-    const Index<NDIM>& patch_upper = patch_box.upper();
+    const hier::Index<NDIM>& patch_lower = patch_box.lower();
+    const hier::Index<NDIM>& patch_upper = patch_box.upper();
 
     const int extrap_type =
         (d_extrap_type == "CONSTANT" ? 0 : (d_extrap_type == "LINEAR" ? 1 : (d_extrap_type == "QUADRATIC" ? 2 : -1)));
@@ -620,8 +620,8 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
     const std::vector<std::pair<Box<NDIM>, std::pair<int, int> > >& bdry_fill_boxes)
 {
     const Box<NDIM>& patch_box = patch.getBox();
-    const Index<NDIM>& patch_lower = patch_box.lower();
-    const Index<NDIM>& patch_upper = patch_box.upper();
+    const hier::Index<NDIM>& patch_lower = patch_box.lower();
+    const hier::Index<NDIM>& patch_upper = patch_box.upper();
 
     const int extrap_type =
         (d_extrap_type == "CONSTANT" ? 0 : (d_extrap_type == "LINEAR" ? 1 : (d_extrap_type == "QUADRATIC" ? 2 : -1)));

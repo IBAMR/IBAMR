@@ -3022,7 +3022,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     axis_box.upper(axis) = 0;
                     for (BoxIterator<NDIM> b(axis_box); b; b++)
                     {
-                        const Index<NDIM>& i_c = b();
+                        const hier::Index<NDIM>& i_c = b();
                         libMesh::Point r;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {

@@ -261,8 +261,8 @@ copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHierarchy
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Index<NDIM>& ilower = patch->getBox().lower();
-            const Index<NDIM>& iupper = patch->getBox().upper();
+            const hier::Index<NDIM>& ilower = patch->getBox().lower();
+            const hier::Index<NDIM>& iupper = patch->getBox().upper();
             Pointer<SideData<NDIM, double> > U_sc_data = patch->getPatchData(U_sc_idx);
             Pointer<FaceData<NDIM, double> > U_fc_data = patch->getPatchData(U_fc_idx);
 #if !defined(NDEBUG)
@@ -1482,8 +1482,8 @@ INSVCStaggeredHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const Index<NDIM>& ilower = patch->getBox().lower();
-    const Index<NDIM>& iupper = patch->getBox().upper();
+    const hier::Index<NDIM>& ilower = patch->getBox().lower();
+    const hier::Index<NDIM>& iupper = patch->getBox().upper();
 
     Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_var, getCurrentContext());
     const IntVector<NDIM>& U_ghost_cells = U_data->getGhostCellWidth();
@@ -1895,7 +1895,7 @@ INSVCStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointe
                 Pointer<CellData<NDIM, double> > Omega_data = patch->getPatchData(d_Omega_idx);
                 for (CellIterator<NDIM> ic(patch_box); ic; ic++)
                 {
-                    const Index<NDIM>& i = ic();
+                    const hier::Index<NDIM>& i = ic();
 #if (NDIM == 2)
                     if (std::abs((*Omega_data)(i)) > thresh)
                     {

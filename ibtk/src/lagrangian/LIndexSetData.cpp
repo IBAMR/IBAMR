@@ -87,8 +87,8 @@ LIndexSetData<T>::cacheLocalIndices(Pointer<Patch<NDIM> > patch, const IntVector
     d_ghost_periodic_shifts.clear();
 
     const Box<NDIM>& patch_box = patch->getBox();
-    const Index<NDIM>& ilower = patch_box.lower();
-    const Index<NDIM>& iupper = patch_box.upper();
+    const hier::Index<NDIM>& ilower = patch_box.lower();
+    const hier::Index<NDIM>& iupper = patch_box.upper();
 
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();

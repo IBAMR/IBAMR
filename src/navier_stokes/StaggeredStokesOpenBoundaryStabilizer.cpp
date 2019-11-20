@@ -196,7 +196,7 @@ StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
             }
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(bdry_box * patch_box, axis)); b; b++)
             {
-                const Index<NDIM>& i = b();
+                const hier::Index<NDIM>& i = b();
                 const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                 const double U_current = U_current_data ? (*U_current_data)(i_s) : 0.0;
                 const double U_new = U_new_data ? (*U_new_data)(i_s) : 0.0;

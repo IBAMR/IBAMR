@@ -108,9 +108,9 @@ RelaxationLSBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
 #endif
     for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
     {
-        const Index<NDIM>& i = bc();
-        Index<NDIM> i_bdry = bc();
-        Index<NDIM> i_intr = bc();
+        const hier::Index<NDIM>& i = bc();
+        hier::Index<NDIM> i_bdry = bc();
+        hier::Index<NDIM> i_intr = bc();
 
         if (is_upper)
         {

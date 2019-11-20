@@ -227,7 +227,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 struct IndexComp
 {
-    inline bool operator()(const Index<NDIM>& lhs, const Index<NDIM>& rhs) const
+    inline bool operator()(const hier::Index<NDIM>& lhs, const hier::Index<NDIM>& rhs) const
     {
         return ((lhs(0) < rhs(0))
 #if (NDIM > 1)

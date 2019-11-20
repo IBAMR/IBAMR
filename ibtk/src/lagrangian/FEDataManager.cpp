@@ -2625,8 +2625,8 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
                 {
                     interpolate(&X_qp[0], qp, X_node, X_phi);
 
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
-                    tag_data->fill(1, Box<NDIM>(i - Index<NDIM>(1), i + Index<NDIM>(1)));
+                    const hier::Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
+                    tag_data->fill(1, Box<NDIM>(i - hier::Index<NDIM>(1), i + hier::Index<NDIM>(1)));
                 }
             }
         }
@@ -2874,7 +2874,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
                 for (unsigned int qp = 0; qp < qrule.n_points(); ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, X_phi);
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
+                    const hier::Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
                     if (patch_box.contains(i))
                     {
                         (*qp_count_data)(i) += 1.0;
@@ -3070,7 +3070,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
                 for (unsigned int qp = 0; qp < qrule.n_points() && !found_qp; ++qp)
                 {
                     interpolate(&X_qp[0], qp, X_node, X_phi);
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
+                    const hier::Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
                     if (ghost_box.contains(i))
                     {
                         local_elems.insert(elem);

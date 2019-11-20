@@ -324,8 +324,8 @@ SCPoissonHypreLevelSolver::allocateHypreData()
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
         const Box<NDIM>& patch_box = d_level->getPatch(p())->getBox();
-        Index<NDIM> lower = patch_box.lower();
-        Index<NDIM> upper = patch_box.upper();
+        hier::Index<NDIM> lower = patch_box.lower();
+        hier::Index<NDIM> upper = patch_box.upper();
         HYPRE_SStructGridSetExtents(d_grid, PART, lower, upper);
     }
 
@@ -355,7 +355,7 @@ SCPoissonHypreLevelSolver::allocateHypreData()
     // Allocate stencil data and set stencil offsets.
     static const int stencil_sz = 2 * NDIM + 1;
     d_stencil_offsets.resize(stencil_sz);
-    std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), Index<NDIM>(0));
+    std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), hier::Index<NDIM>(0));
     for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++stencil_index)
@@ -823,9 +823,9 @@ SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
     for (int var = 0; var < NVARS; ++var)
     {
         const unsigned int axis = var;
-        Index<NDIM> lower = box.lower();
+        hier::Index<NDIM> lower = box.lower();
         lower(axis) -= 1;
-        Index<NDIM> upper = box.upper();
+        hier::Index<NDIM> upper = box.upper();
         HYPRE_SStructVectorSetBoxValues(vector, PART, lower, upper, var, hypre_data.getPointer(axis));
     }
     return;
@@ -842,9 +842,9 @@ SCPoissonHypreLevelSolver::copyFromHypre(SideData<NDIM, double>& dst_data,
     for (int var = 0; var < NVARS; ++var)
     {
         const unsigned int axis = var;
-        Index<NDIM> lower = box.lower();
+        hier::Index<NDIM> lower = box.lower();
         lower(axis) -= 1;
-        Index<NDIM> upper = box.upper();
+        hier::Index<NDIM> upper = box.upper();
         HYPRE_SStructVectorGetBoxValues(vector, PART, lower, upper, var, hypre_data.getPointer(axis));
     }
     if (copy_data)

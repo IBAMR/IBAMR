@@ -459,7 +459,7 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
             }
             for (LNodeSetData::CellIterator it(idx_data->getGhostBox()); it; it++)
             {
-                const Index<NDIM>& i = *it;
+                const hier::Index<NDIM>& i = *it;
                 LNodeSet* const node_set = idx_data->getItem(i);
                 if (!node_set) continue;
                 for (const auto& node_idx : *node_set)
@@ -496,8 +496,8 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
                         }
                         for (Box<NDIM>::Iterator b(stencil_box * side_boxes[component]); b; b++)
                         {
-                            const Index<NDIM>& i = b();
-                            const Index<NDIM> i_shift = i - stencil_box.lower();
+                            const hier::Index<NDIM>& i = b();
+                            const hier::Index<NDIM> i_shift = i - stencil_box.lower();
                             const SideIndex<NDIM> i_s(i, component, SideIndex<NDIM>::Lower);
                             const double u = (*u_data)(i_s);
                             double w = 1.0;
@@ -847,7 +847,7 @@ IMPMethod::spreadForce(const int f_data_idx,
             for (unsigned int d = 0; d < NDIM; ++d) dV_c *= dx[d];
             for (LNodeSetData::CellIterator it(idx_data->getGhostBox()); it; it++)
             {
-                const Index<NDIM>& i = *it;
+                const hier::Index<NDIM>& i = *it;
                 LNodeSet* const node_set = idx_data->getItem(i);
                 if (!node_set) continue;
                 for (const auto& node_idx : *node_set)
@@ -893,8 +893,8 @@ IMPMethod::spreadForce(const int f_data_idx,
                         }
                         for (Box<NDIM>::Iterator b(stencil_box * side_boxes[component]); b; b++)
                         {
-                            const Index<NDIM>& i = b();
-                            const Index<NDIM> i_shift = i - stencil_box.lower();
+                            const hier::Index<NDIM>& i = b();
+                            const hier::Index<NDIM> i_shift = i - stencil_box.lower();
                             const SideIndex<NDIM> i_s(i, component, SideIndex<NDIM>::Lower);
                             double f = 0.0;
                             for (unsigned int k = 0; k < NDIM; ++k)
