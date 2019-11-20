@@ -178,6 +178,8 @@ AC_CONFIG_FILES([
   examples/IBFE/explicit/ex9/Makefile
   examples/IBFE/explicit/ex10/Makefile
   examples/IBFE/explicit/ex11/Makefile
+  examples/IBLevelSet/Makefile
+  examples/IBLevelSet/ex0/Makefile
   examples/IMP/Makefile
   examples/IMP/explicit/Makefile
   examples/IMP/explicit/ex0/Makefile
@@ -216,6 +218,9 @@ AC_CONFIG_FILES([
   examples/vc_navier_stokes/ex0/Makefile
   examples/vc_navier_stokes/ex1/Makefile
   examples/vc_navier_stokes/ex2/Makefile
+  examples/wave_tank/Makefile
+  examples/wave_tank/ex0/Makefile
+  examples/wave_tank/ex1/Makefile
   lib/Makefile
   src/Makefile
   src/fortran/Makefile
@@ -230,6 +235,7 @@ AC_CONFIG_FILES([
   src/navier_stokes/fortran/Makefile
   src/utilities/Makefile
   src/tools/Makefile
+  src/wave_generation/Makefile
   tests/Makefile
   tests/adv_diff/Makefile
   tests/advect/Makefile
@@ -240,6 +246,7 @@ AC_CONFIG_FILES([
   tests/physical_boundary/Makefile
   tests/refine/Makefile
   tests/spread/Makefile
+  tests/wave_tank/Makefile
 ])
 AC_CONFIG_SUBDIRS([ibtk])
 AC_OUTPUT

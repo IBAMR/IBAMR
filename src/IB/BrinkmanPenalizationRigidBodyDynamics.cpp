@@ -98,6 +98,8 @@ BrinkmanPenalizationRigidBodyDynamics::BrinkmanPenalizationRigidBodyDynamics(
                                                                  d_adv_diff_solver,
                                                                  d_fluid_solver))
 {
+    d_hydro_force_eval->writeToFile(false);
+
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
@@ -203,7 +205,8 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
 
     if (d_ext_force_torque_fcn_data.forcetorquefcn)
     {
-        d_ext_force_torque_fcn_data.forcetorquefcn(time, d_ext_force, d_ext_torque, d_ext_force_torque_fcn_data.ctx);
+        d_ext_force_torque_fcn_data.forcetorquefcn(
+            time, cycle_num, d_ext_force, d_ext_torque, d_ext_force_torque_fcn_data.ctx);
     }
     else
     {
@@ -215,7 +218,7 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     Eigen::Vector3d U_imposed = Eigen::Vector3d::Zero(), W_imposed = Eigen::Vector3d::Zero();
     if (d_kinematics_fcn_data.comvelfcn)
     {
-        d_kinematics_fcn_data.comvelfcn(time, U_imposed, W_imposed, d_kinematics_fcn_data.ctx);
+        d_kinematics_fcn_data.comvelfcn(time, cycle_num, U_imposed, W_imposed, d_kinematics_fcn_data.ctx);
     }
 
     // Integrate Newton's second law of motion to find updated COM velocity and position.
@@ -276,6 +279,9 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     ghost_fill_alg->createSchedule(finest_level)->fillData(time);
 
     // Set the rigid body velocity in u_idx
+    Eigen::Vector3d r = Eigen::Vector3d::Zero();
+    Eigen::Vector3d dr = Eigen::Vector3d::Zero();
+    Eigen::Vector3d Wxdr = Eigen::Vector3d::Zero();
     for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
@@ -313,14 +319,9 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
                 }
                 if (phi <= alpha)
                 {
-                    const IBTK::VectorNd side_center = IndexUtilities::getSideCenter(*patch, s_i);
-                    IBTK::Vector3d dr = IBTK::Vector3d::Zero();
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        dr[d] = side_center[d] - d_center_of_mass_new[d];
-                    }
-
-                    const Eigen::Vector3d Wxdr = d_rot_vel_new.cross(dr);
+                    r = IBTK::IndexUtilities::getSideCenter<Eigen::Vector3d>(*patch, s_i);
+                    dr = r - d_center_of_mass_new;
+                    Wxdr = d_rot_vel_new.cross(dr);
                     const double penalty = (*rho_data)(s_i) / dt;
                     (*u_data)(s_i) = d_trans_vel_new(axis) + Wxdr(axis);
                     (*u_data)(s_i) *= (1.0 - Hphi) * penalty;

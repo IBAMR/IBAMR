@@ -30,7 +30,6 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-
 /////////////////////// INCLUDE GUARD ////////////////////////////////////
 
 #ifndef included_SetLSProperties
@@ -88,8 +87,6 @@ public:
                         const double current_time,
                         const bool initial_time,
                         const bool regrid_time);
-
-    //////////////// PRIVATE /////////////////////////////
 
 private:
     /*!
