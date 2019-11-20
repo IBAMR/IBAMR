@@ -54,6 +54,20 @@ GitHub.
 - [ ] In general, run the test suite on as many platforms and configurations as
   possible to weed out problems.
 
+## Copyright
+
+- [ ] Ensure that the top level file `COPYRIGHT` has the release year in it.
+- [ ] Check that new files that have been added since the last release have the
+  correct copyright header. Try, for example,
+```
+  git log --diff-filter=A --numstat --pretty='COMMIT: %H %cd' v0.5.1..master
+```
+  to print all added files between `0.5.1` and `master`.
+- [ ] Run a script that updates (based on commits) the second year in the
+  copyright statement of each file: i.e., if a file has been changed in the
+  current year, then the copyright should be extended to include this year. Make
+  sure that headers, source files, automake files, etc. are all updated.
+
 ## creating the release
 
 - [ ] Collate the changelog entries on `master`. At the current time this is
