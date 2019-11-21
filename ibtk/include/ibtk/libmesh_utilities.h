@@ -1356,8 +1356,7 @@ std::vector<libMesh::BoundingBox>
 #else
 std::vector<libMesh::MeshTools::BoundingBox>
 #endif
-get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
-                                        const libMesh::System& X_system);
+get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system);
 
 /*
  * Compute bounding boxes for each active (i.e., active on any processor)
@@ -1368,8 +1367,7 @@ std::vector<libMesh::BoundingBox>
 #else
 std::vector<libMesh::MeshTools::BoundingBox>
 #endif
-get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
-                                         const libMesh::System& X_system);
+get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system);
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

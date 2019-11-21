@@ -312,9 +312,8 @@ std::vector<libMesh::MeshTools::BoundingBox>
 #endif
 get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system)
 {
-    static_assert(NDIM <= LIBMESH_DIM,
-                  "NDIM should be no more than LIBMESH_DIM for this function to "
-                  "work correctly.");
+    const unsigned int dim = mesh.mesh_dimension();
+    TBOX_ASSERT(dim <= LIBMESH_DIM);
     const unsigned int X_sys_num = X_system.number();
     auto X_ghost_vec_ptr = X_system.current_local_solution->zero_clone();
     auto& X_ghost_vec = dynamic_cast<libMesh::PetscVector<double>&>(*X_ghost_vec_ptr);
@@ -350,7 +349,7 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const lib
         for (unsigned int k = 0; k < n_nodes; ++k)
         {
             const libMesh::Node* const node = elem->node_ptr(k);
-            for (unsigned int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < dim; ++d)
             {
                 TBOX_ASSERT(node->n_dofs(X_sys_num, d) == 1);
                 dof_indices.push_back(node->dof_number(X_sys_num, d, 0));
@@ -361,11 +360,18 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const lib
         X_ghost_vec.get(dof_indices, X_node.data());
         for (unsigned int k = 0; k < n_nodes; ++k)
         {
-            for (unsigned int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < dim; ++d)
             {
-                const double& X = X_node[k * NDIM + d];
+                const double& X = X_node[k * dim + d];
                 lower_bound(d) = std::min(lower_bound(d), X);
                 upper_bound(d) = std::max(upper_bound(d), X);
+            }
+
+            // fill extra dimension with 0.0, which is libMesh's convention
+            for (unsigned int d = dim; d < LIBMESH_DIM; ++d)
+            {
+                lower_bound(d) = 0.0;
+                upper_bound(d) = 0.0;
             }
         }
     }
