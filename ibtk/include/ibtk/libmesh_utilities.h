@@ -1335,6 +1335,18 @@ void write_elem_partitioning(const std::string& file_name, const libMesh::System
  */
 void write_node_partitioning(const std::string& file_name, const libMesh::System& position_system);
 
+/**
+ * Compute bounding boxes based on where an elements quadrature points
+ * are. See getQuadratureKey for descriptions of the last five arguments.
+ */
+std::vector<libMesh::BoundingBox> get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                                                          const libMesh::System& X_system,
+                                                                          const libMesh::QuadratureType quad_type,
+                                                                          const libMesh::Order quad_order,
+                                                                          const bool use_adaptive_quadrature,
+                                                                          const double point_density,
+                                                                          const double patch_dx_min);
+
 /*
  * Compute bounding boxes for each local active (i.e., active on the current
  * processor) element in @p mesh with coordinates given by @p X_system.
