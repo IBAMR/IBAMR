@@ -1,5 +1,19 @@
 #!/usr/bin/env python
 
+## ---------------------------------------------------------------------
+##
+## Copyright (c) 2016 - 2016 by the IBAMR developers
+## All rights reserved.
+##
+## This file is part of IBAMR.
+##
+## IBAMR is free software and is distributed under the 3-clause BSD
+## license. The full text of the license can be found in the file
+## COPYRIGHT at the top level directory of IBAMR.
+##
+## ---------------------------------------------------------------------
+
+
 # clang-format is in the user's bin directory; however apps don't inherit the same paths that
 # shells do. so we need to manually add it. 
 import os

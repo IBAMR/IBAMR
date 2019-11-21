@@ -1,5 +1,16 @@
-# -------------------------------------------------------------
-# -------------------------------------------------------------
+## ---------------------------------------------------------------------
+##
+## Copyright (c) 2014 - 2014 by the IBAMR developers
+## All rights reserved.
+##
+## This file is part of IBAMR.
+##
+## IBAMR is free software and is distributed under the 3-clause BSD
+## license. The full text of the license can be found in the file
+## COPYRIGHT at the top level directory of IBAMR.
+##
+## ---------------------------------------------------------------------
+
 AC_DEFUN([CHECK_BUILTIN_EXPECT],[
 AC_MSG_CHECKING([whether compiler supports __builtin_expect keyword])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[
