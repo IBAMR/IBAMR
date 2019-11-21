@@ -2902,7 +2902,7 @@ FEDataManager::computeActiveElementBoundingBoxes()
     const MeshBase& mesh = d_fe_data->d_es->get_mesh();
     const System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
 
-    const std::vector<libMesh::BoundingBox> bboxes = get_global_active_element_bounding_boxes(mesh, X_system);
+    const auto bboxes = get_global_active_element_bounding_boxes(mesh, X_system);
     d_active_elem_bboxes.resize(bboxes.size());
     for (std::size_t i = 0; i < bboxes.size(); ++i)
     {
