@@ -194,7 +194,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(Patch<NDIM>& fine,
             {
                 for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_box, axis)); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const hier::Index<NDIM>& i = b();
                     const SideIndex<NDIM> i_s(i, axis, 0);
                     if (std::abs((*indicator_data)(i_s)-1.0) < 1.0e-12)
                     {
@@ -217,17 +217,17 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(Patch<NDIM>& fine,
             {
                 for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_box, axis)); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const hier::Index<NDIM>& i = b();
                     const SideIndex<NDIM> i_s(i, axis, 0);
                     if (!(std::abs((*indicator_data)(i_s)-1.0) < 1.0e-12))
                     {
-                        const Index<NDIM> i_coarse_lower = IndexUtilities::coarsen(i, ratio);
-                        const Index<NDIM> i_lower = IndexUtilities::refine(i_coarse_lower, ratio);
+                        const hier::Index<NDIM> i_coarse_lower = IndexUtilities::coarsen(i, ratio);
+                        const hier::Index<NDIM> i_lower = IndexUtilities::refine(i_coarse_lower, ratio);
                         if (i(axis) == i_lower(axis)) continue;
 
-                        Index<NDIM> i_coarse_upper = i_coarse_lower;
+                        hier::Index<NDIM> i_coarse_upper = i_coarse_lower;
                         i_coarse_upper(axis) += 1;
-                        const Index<NDIM> i_upper = IndexUtilities::refine(i_coarse_upper, ratio);
+                        const hier::Index<NDIM> i_upper = IndexUtilities::refine(i_coarse_upper, ratio);
 
                         const double w1 =
                             static_cast<double>(i(axis) - i_lower(axis)) / static_cast<double>(ratio(axis));

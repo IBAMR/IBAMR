@@ -78,7 +78,7 @@ DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
             const Box<NDIM>& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (Box<NDIM>::Iterator it(data_box); it; it++)
             {
-                const Index<NDIM>& i = it();
+                const hier::Index<NDIM>& i = it();
                 for (int d = 0; d < patch_data->getDepth(); ++d)
                 {
                     if ((*patch_data)(i, d) != (*patch_data)(i, d) || std::isnan((*patch_data)(i, d)))
@@ -128,7 +128,7 @@ DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
             {
                 for (Box<NDIM>::Iterator it(FaceGeometry<NDIM>::toFaceBox(data_box, axis)); it; it++)
                 {
-                    const Index<NDIM>& i = it();
+                    const hier::Index<NDIM>& i = it();
                     const FaceIndex<NDIM> i_f(i, axis, FaceIndex<NDIM>::Lower);
                     for (int d = 0; d < patch_data->getDepth(); ++d)
                     {
@@ -178,7 +178,7 @@ DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
             const Box<NDIM>& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (Box<NDIM>::Iterator it(NodeGeometry<NDIM>::toNodeBox(data_box)); it; it++)
             {
-                const Index<NDIM>& i = it();
+                const hier::Index<NDIM>& i = it();
                 const NodeIndex<NDIM> i_n(i, 0);
                 for (int d = 0; d < patch_data->getDepth(); ++d)
                 {
@@ -229,7 +229,7 @@ DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
             {
                 for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(data_box, axis)); it; it++)
                 {
-                    const Index<NDIM>& i = it();
+                    const hier::Index<NDIM>& i = it();
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                     for (int d = 0; d < patch_data->getDepth(); ++d)
                     {

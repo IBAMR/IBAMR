@@ -187,7 +187,7 @@ SpongeLayerForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double> > F_
                 }
                 for (Box<NDIM>::Iterator b(bdry_box * patch_box); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const hier::Index<NDIM>& i = b();
                     const double U_current = U_current_data ? (*U_current_data)(i, d) : 0.0;
                     const double U_new = U_new_data ? (*U_new_data)(i, d) : 0.0;
                     const double U = (cycle_num > 0) ? 0.5 * (U_new + U_current) : U_current;
@@ -241,7 +241,7 @@ SpongeLayerForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> > F_
                 }
                 for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(bdry_box * patch_box, d)); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const hier::Index<NDIM>& i = b();
                     const SideIndex<NDIM> i_s(i, d, SideIndex<NDIM>::Lower);
                     const double U_current = U_current_data ? (*U_current_data)(i_s) : 0.0;
                     const double U_new = U_new_data ? (*U_new_data)(i_s) : 0.0;

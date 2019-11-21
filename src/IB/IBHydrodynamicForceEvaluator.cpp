@@ -1252,7 +1252,7 @@ IBHydrodynamicForceEvaluator::getPhysicalCoordinateFromSideIndex(IBTK::Vector3d&
     Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
     const double* patch_X_lower = patch_geom->getXLower();
     const Box<NDIM>& patch_box = patch->getBox();
-    const Index<NDIM>& patch_lower_idx = patch_box.lower();
+    const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
     const double* const patch_dx = patch_geom->getDx();
 
     for (int d = 0; d < NDIM; ++d)

@@ -133,7 +133,7 @@ WallForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
             for (LNodeSetData::CellIterator scit(intersect_box); scit; scit++)
             {
                 // get current nodes in the cell.
-                const Index<NDIM>& search_cell_idx = *scit;
+                const hier::Index<NDIM>& search_cell_idx = *scit;
                 LNodeSet* search_node_set = current_idx_data->getItem(search_cell_idx);
 
                 // if particles exist in this cell, add forces to them

@@ -90,7 +90,7 @@ enum HypreStructRelaxType
 
 struct IndexComp
 {
-    bool operator()(const Index<NDIM>& lhs, const Index<NDIM>& rhs) const
+    bool operator()(const hier::Index<NDIM>& lhs, const hier::Index<NDIM>& rhs) const
     {
         return (lhs(0) < rhs(0)
 #if (NDIM > 1)
@@ -364,8 +364,8 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
         const Box<NDIM>& patch_box = d_level->getPatch(p())->getBox();
-        Index<NDIM> lower = patch_box.lower();
-        Index<NDIM> upper = patch_box.upper();
+        hier::Index<NDIM> lower = patch_box.lower();
+        hier::Index<NDIM> upper = patch_box.upper();
         HYPRE_StructGridSetExtents(d_grid, lower, upper);
     }
 
@@ -386,7 +386,7 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     {
         static const int stencil_sz = 2 * NDIM + 1;
         d_stencil_offsets.resize(stencil_sz);
-        std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), Index<NDIM>(0));
+        std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), hier::Index<NDIM>(0));
         for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
         {
             for (int side = 0; side <= 1; ++side, ++stencil_index)
@@ -404,7 +404,7 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     {
         static const int stencil_sz = (NDIM == 2) ? 9 : 19;
         d_stencil_offsets.resize(stencil_sz);
-        std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), Index<NDIM>(0));
+        std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), hier::Index<NDIM>(0));
         int stencil_index = 0;
 #if (NDIM == 3)
         for (int z_offset = -1; z_offset <= 1; ++z_offset)
@@ -494,7 +494,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
                 matrix_coefs, patch, d_stencil_offsets, d_poisson_spec, d_bc_coefs[k], d_solution_time);
             for (Box<NDIM>::Iterator b(patch_box); b; b++)
             {
-                Index<NDIM> i = b();
+                hier::Index<NDIM> i = b();
                 for (int j = 0; j < stencil_sz; ++j)
                 {
                     mat_vals[j] = matrix_coefs(i, j);
@@ -568,7 +568,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
             stencil_indices[i] = i;
         }
 
-        std::map<Index<NDIM>, int, IndexComp> stencil_index_map;
+        std::map<hier::Index<NDIM>, int, IndexComp> stencil_index_map;
         int stencil_index = 0;
 #if (NDIM == 3)
         for (int z_offset = -1; z_offset <= 1; ++z_offset)
@@ -584,10 +584,10 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                     {
 #endif
 #if (NDIM == 2)
-                        const Index<NDIM> i(x_offset, y_offset);
+                        const hier::Index<NDIM> i(x_offset, y_offset);
 #endif
 #if (NDIM == 3)
-                        const Index<NDIM> i(x_offset, y_offset, z_offset);
+                        const hier::Index<NDIM> i(x_offset, y_offset, z_offset);
 #endif
                         stencil_index_map[i] = stencil_index++;
 #if (NDIM == 3)
@@ -601,8 +601,8 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
         // finite difference stencil for the Laplace operator.
         for (Box<NDIM>::Iterator b(patch_box); b; b++)
         {
-            Index<NDIM> i = b();
-            static const Index<NDIM> i_stencil_center(0);
+            hier::Index<NDIM> i = b();
+            static const hier::Index<NDIM> i_stencil_center(0);
             const int stencil_center = stencil_index_map[i_stencil_center];
 
             std::vector<double> mat_vals(stencil_sz, 0.0);
@@ -613,7 +613,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
             {
                 const double& h = dx[axis];
                 {
-                    Index<NDIM> i_stencil_lower(0);
+                    hier::Index<NDIM> i_stencil_lower(0);
                     --i_stencil_lower[axis];
                     const int stencil_lower = stencil_index_map[i_stencil_lower];
 
@@ -623,7 +623,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                     mat_vals[stencil_center] -= D_lower / (h * h);
                 }
                 {
-                    Index<NDIM> i_stencil_upper(0);
+                    hier::Index<NDIM> i_stencil_upper(0);
                     ++i_stencil_upper[axis];
                     const int stencil_upper = stencil_index_map[i_stencil_upper];
 
@@ -661,7 +661,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                         {
                             for (int trans_shift = -1; trans_shift <= 1; trans_shift += 2)
                             {
-                                Index<NDIM> i_stencil(0);
+                                hier::Index<NDIM> i_stencil(0);
                                 i_stencil[norm_axis] += norm_shift;
                                 i_stencil[trans_axis] += trans_shift;
                                 const int stencil_index = stencil_index_map[i_stencil];
@@ -685,7 +685,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                         {
                             for (int trans_shift = -1; trans_shift <= 1; trans_shift += 2)
                             {
-                                Index<NDIM> i_stencil(0);
+                                hier::Index<NDIM> i_stencil(0);
                                 i_stencil[norm_axis] += norm_shift;
                                 i_stencil[trans_axis] += trans_shift;
                                 const int stencil_index = stencil_index_map[i_stencil];
@@ -1160,8 +1160,8 @@ CCPoissonHypreLevelSolver::copyToHypre(const std::vector<HYPRE_StructVector>& ve
         copy_data ? new CellData<NDIM, double>(box, src_data.getDepth(), 0) : nullptr);
     CellData<NDIM, double>& hypre_data = copy_data ? *src_data_box : src_data;
     if (copy_data) hypre_data.copyOnBox(src_data, box);
-    Index<NDIM> lower = box.lower();
-    Index<NDIM> upper = box.upper();
+    hier::Index<NDIM> lower = box.lower();
+    hier::Index<NDIM> upper = box.upper();
     for (unsigned int k = 0; k < d_depth; ++k)
     {
         HYPRE_StructVectorSetBoxValues(vectors[k], lower, upper, hypre_data.getPointer(k));
@@ -1178,8 +1178,8 @@ CCPoissonHypreLevelSolver::copyFromHypre(CellData<NDIM, double>& dst_data,
     std::unique_ptr<CellData<NDIM, double> > dst_data_box(
         copy_data ? new CellData<NDIM, double>(box, dst_data.getDepth(), 0) : nullptr);
     CellData<NDIM, double>& hypre_data = copy_data ? *dst_data_box : dst_data;
-    Index<NDIM> lower = box.lower();
-    Index<NDIM> upper = box.upper();
+    hier::Index<NDIM> lower = box.lower();
+    hier::Index<NDIM> upper = box.upper();
     for (unsigned int k = 0; k < d_depth; ++k)
     {
         HYPRE_StructVectorGetBoxValues(vectors[k], lower, upper, hypre_data.getPointer(k));

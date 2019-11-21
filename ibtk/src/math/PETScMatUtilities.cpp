@@ -74,7 +74,7 @@ namespace IBTK
 
 namespace
 {
-bool inline is_cf_bdry_idx(const Index<NDIM>& idx, const std::vector<Box<NDIM> >& cf_bdry_boxes)
+bool inline is_cf_bdry_idx(const hier::Index<NDIM>& idx, const std::vector<Box<NDIM> >& cf_bdry_boxes)
 {
     bool contains_idx = false;
     int n_cf_bdry_boxes = static_cast<int>(cf_bdry_boxes.size());
@@ -85,7 +85,7 @@ bool inline is_cf_bdry_idx(const Index<NDIM>& idx, const std::vector<Box<NDIM> >
     return contains_idx;
 } // is_cf_bdry_idx
 
-inline Index<NDIM>
+inline hier::Index<NDIM>
 get_shift(int dir, int shift)
 {
     SAMRAI::hier::Index<NDIM> iv(0);
@@ -143,7 +143,7 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
 
     // Setup the finite difference stencil.
     static const int stencil_sz = 2 * NDIM + 1;
-    std::vector<Index<NDIM> > stencil(stencil_sz, Index<NDIM>(0));
+    std::vector<hier::Index<NDIM> > stencil(stencil_sz, hier::Index<NDIM>(0));
     for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++stencil_index)
@@ -293,7 +293,7 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
 
     // Setup the finite difference stencil.
     static const int stencil_sz = 2 * NDIM + 1;
-    std::vector<Index<NDIM> > stencil(stencil_sz, Index<NDIM>(0));
+    std::vector<hier::Index<NDIM> > stencil(stencil_sz, hier::Index<NDIM>(0));
     for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++stencil_index)
@@ -461,7 +461,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
         {
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
             {
-                const Index<NDIM>& cc = b();
+                const hier::Index<NDIM>& cc = b();
                 const SideIndex<NDIM> i(cc, axis, SideIndex<NDIM>::Lower);
                 const int i_dof_index = (*dof_index_data)(i);
                 if (proc_lower <= i_dof_index && i_dof_index < proc_upper)
@@ -474,7 +474,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                     {
                         if (d == axis)
                         {
-                            Index<NDIM> shift_axis = get_shift(axis, 1);
+                            hier::Index<NDIM> shift_axis = get_shift(axis, 1);
 
                             const int i_dof_hi = (*dof_index_data)(i + shift_axis);
                             if (i_dof_hi >= proc_lower && i_dof_hi < proc_upper)
@@ -497,9 +497,9 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                         }
                         else
                         {
-                            Index<NDIM> shift_d_plus = get_shift(d, 1);
-                            Index<NDIM> shift_d_minus = get_shift(d, -1);
-                            Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+                            hier::Index<NDIM> shift_d_plus = get_shift(d, 1);
+                            hier::Index<NDIM> shift_d_minus = get_shift(d, -1);
+                            hier::Index<NDIM> shift_axis_minus = get_shift(axis, -1);
 
                             const int i_dof_hi = (*dof_index_data)(i + shift_d_plus);
                             if (i_dof_hi >= proc_lower && i_dof_hi < proc_upper)
@@ -586,10 +586,10 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                         &mat);
     IBTK_CHKERRQ(ierr);
 
-    using StencilMapType = std::map<Index<NDIM>, int, IndexFortranOrder>;
+    using StencilMapType = std::map<hier::Index<NDIM>, int, IndexFortranOrder>;
     static std::vector<StencilMapType> stencil_map_vec;
     static const int stencil_sz = (2 * NDIM + 1) + 4 * (NDIM - 1);
-    static const Index<NDIM> ORIGIN(0);
+    static const hier::Index<NDIM> ORIGIN(0);
 
 #if (NDIM == 2)
     // Create stencil dictionary.
@@ -688,7 +688,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
 #endif
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
             {
-                const Index<NDIM>& cc = b();
+                const hier::Index<NDIM>& cc = b();
                 const SideIndex<NDIM> i(b(), axis, SideIndex<NDIM>::Lower);
                 const int dof_index = (*dof_index_data)(i);
                 if (proc_lower <= dof_index && dof_index < proc_upper)
@@ -701,8 +701,8 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                     {
                         if (d == axis)
                         {
-                            const Index<NDIM> shift_axis_plus = get_shift(axis, 1);
-                            const Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+                            const hier::Index<NDIM> shift_axis_plus = get_shift(axis, 1);
+                            const hier::Index<NDIM> shift_axis_minus = get_shift(axis, -1);
 
                             idx += 1;
                             mat_vals[idx] = matrix_coefs(i, stencil_map[shift_axis_plus]);
@@ -714,10 +714,10 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                         }
                         else
                         {
-                            const Index<NDIM> shift_d_plus = get_shift(d, 1);
-                            const Index<NDIM> shift_d_minus = get_shift(d, -1);
-                            const Index<NDIM> shift_axis_plus = get_shift(axis, 1);
-                            const Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+                            const hier::Index<NDIM> shift_d_plus = get_shift(d, 1);
+                            const hier::Index<NDIM> shift_d_minus = get_shift(d, -1);
+                            const hier::Index<NDIM> shift_axis_plus = get_shift(axis, 1);
+                            const hier::Index<NDIM> shift_axis_minus = get_shift(axis, -1);
 
                             idx += 1;
                             mat_vals[idx] = matrix_coefs(i, stencil_map[shift_d_plus]);
@@ -799,7 +799,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
 #if !defined(NDEBUG)
     TBOX_ASSERT(domain_boxes.size() == 1);
 #endif
-    const Index<NDIM>& domain_lower = domain_boxes[0].lower();
+    const hier::Index<NDIM>& domain_lower = domain_boxes[0].lower();
 
     // The processor mapping determines which patches are assigned to which processors.
     const ProcessorMapping& proc_mapping = patch_level->getProcessorMapping();
@@ -832,7 +832,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     for (int k = 0; k < n_local_points; ++k)
     {
         const double* const X = &X_arr[NDIM * k];
-        const Index<NDIM> X_idx = IndexUtilities::getCellIndex(X, grid_geom, ratio);
+        const hier::Index<NDIM> X_idx = IndexUtilities::getCellIndex(X, grid_geom, ratio);
 
 // Determine the position of the center of the Cartesian grid cell
 // containing the IB point.
@@ -885,8 +885,8 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                     "sizes not currently implemented\n");
             }
             Box<NDIM>& stencil_box_axis = stencil_box[k][axis];
-            Index<NDIM>& stencil_box_lower = stencil_box_axis.lower();
-            Index<NDIM>& stencil_box_upper = stencil_box_axis.upper();
+            hier::Index<NDIM>& stencil_box_lower = stencil_box_axis.lower();
+            hier::Index<NDIM>& stencil_box_upper = stencil_box_axis.upper();
             for (int d = 0; d < NDIM; ++d)
             {
                 if (d == axis)
@@ -962,7 +962,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
         {
             // Look-up the stencil box.
             const Box<NDIM>& stencil_box_axis = stencil_box[k][axis];
-            const Index<NDIM>& stencil_box_lower = stencil_box_axis.lower();
+            const hier::Index<NDIM>& stencil_box_lower = stencil_box_axis.lower();
 
             // Compute the weights of the 1-dimensional delta functions.
             for (int d = 0; d < NDIM; ++d)
@@ -1232,9 +1232,9 @@ PETScMatUtilities::constructConservativeProlongationOp_cell(Mat& mat,
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarse_domain_boxes.size() == 1);
 #endif
-    const Index<NDIM>& coarse_domain_lower = coarse_domain_boxes[0].lower();
-    const Index<NDIM>& coarse_domain_upper = coarse_domain_boxes[0].upper();
-    Index<NDIM> coarse_num_cells = 1;
+    const hier::Index<NDIM>& coarse_domain_lower = coarse_domain_boxes[0].lower();
+    const hier::Index<NDIM>& coarse_domain_upper = coarse_domain_boxes[0].upper();
+    hier::Index<NDIM> coarse_num_cells = 1;
     coarse_num_cells += coarse_domain_upper - coarse_domain_lower;
 
     // Ratio between fine and coarse levels.
@@ -1374,8 +1374,8 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarse_domain_boxes.size() == 1);
 #endif
-    const Index<NDIM>& coarse_domain_lower = coarse_domain_boxes[0].lower();
-    const Index<NDIM>& coarse_domain_upper = coarse_domain_boxes[0].upper();
+    const hier::Index<NDIM>& coarse_domain_lower = coarse_domain_boxes[0].lower();
+    const hier::Index<NDIM>& coarse_domain_upper = coarse_domain_boxes[0].upper();
     Box<NDIM> coarse_domain_side_boxes[NDIM];
     for (int axis = 0; axis < NDIM; ++axis)
     {
@@ -1383,10 +1383,10 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
     }
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = coarse_patch_level->getGridGeometry();
     IntVector<NDIM> coarse_periodic_shift = grid_geom->getPeriodicShift(coarse_patch_level->getRatio());
-    std::array<Index<NDIM>, NDIM> coarse_num_cells;
+    std::array<hier::Index<NDIM>, NDIM> coarse_num_cells;
     for (unsigned d = 0; d < NDIM; ++d)
     {
-        Index<NDIM> offset = 1;
+        hier::Index<NDIM> offset = 1;
         offset(d) = coarse_periodic_shift(d) ? 1 : 2;
         coarse_num_cells[d] = coarse_domain_upper - coarse_domain_lower + offset;
     }
@@ -1650,8 +1650,8 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarse_domain_boxes.size() == 1);
 #endif
-    const Index<NDIM>& coarse_domain_lower = coarse_domain_boxes[0].lower();
-    const Index<NDIM>& coarse_domain_upper = coarse_domain_boxes[0].upper();
+    const hier::Index<NDIM>& coarse_domain_lower = coarse_domain_boxes[0].lower();
+    const hier::Index<NDIM>& coarse_domain_upper = coarse_domain_boxes[0].upper();
     Box<NDIM> coarse_domain_side_boxes[NDIM];
     for (int axis = 0; axis < NDIM; ++axis)
     {
@@ -1659,10 +1659,10 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
     }
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = coarse_patch_level->getGridGeometry();
     IntVector<NDIM> coarse_periodic_shift = grid_geom->getPeriodicShift(coarse_patch_level->getRatio());
-    std::array<Index<NDIM>, NDIM> coarse_num_cells;
+    std::array<hier::Index<NDIM>, NDIM> coarse_num_cells;
     for (unsigned d = 0; d < NDIM; ++d)
     {
-        Index<NDIM> offset = 1;
+        hier::Index<NDIM> offset = 1;
         offset(d) = coarse_periodic_shift(d) ? 1 : 2;
         coarse_num_cells[d] = coarse_domain_upper - coarse_domain_lower + offset;
     }

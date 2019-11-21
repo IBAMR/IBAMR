@@ -2642,7 +2642,7 @@ INSVCStaggeredConservativeMassMomentumIntegrator::enforceDivergenceFreeCondition
                 for (Box<NDIM>::Iterator b(bc_fill_box); b; b++)
                 {
                     // Place i_s on the c-f interface.
-                    Index<NDIM> i_s = b();
+                    hier::Index<NDIM> i_s = b();
 
                     // Work out from the coarse-fine interface to fill the ghost cell
                     // values so that the velocity field satisfies the discrete

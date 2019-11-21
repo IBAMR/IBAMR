@@ -266,7 +266,7 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     const double* const dx = pgeom->getDx();
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
-        const Index<NDIM>& i = it();
+        const hier::Index<NDIM>& i = it();
         double dummy_val;
         double& alpha = acoef_data ? (*acoef_data)(i, 0) : dummy_val;
         double& beta = bcoef_data ? (*bcoef_data)(i, 0) : dummy_val;
@@ -296,7 +296,7 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
 #endif
                 // Place i_i in the interior cell abutting the boundary, and
                 // place i_g in the ghost cell abutting the boundary.
-                Index<NDIM> i_i(i), i_g(i);
+                hier::Index<NDIM> i_i(i), i_g(i);
                 if (is_lower)
                 {
                     i_g(bdry_normal_axis) -= 1;

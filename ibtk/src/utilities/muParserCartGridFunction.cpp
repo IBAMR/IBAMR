@@ -271,7 +271,7 @@ muParserCartGridFunction::setDataOnPatch(const int data_idx,
     d_parser_time = data_time;
 
     const Box<NDIM>& patch_box = patch->getBox();
-    const Index<NDIM>& patch_lower = patch_box.lower();
+    const hier::Index<NDIM>& patch_lower = patch_box.lower();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
 
     const double* const XLower = pgeom->getXLower();
@@ -354,7 +354,7 @@ muParserCartGridFunction::setDataOnPatch(const int data_idx,
                 for (FaceIterator<NDIM> ic(patch_box, axis); ic; ic++)
                 {
                     const FaceIndex<NDIM>& i = ic();
-                    const Index<NDIM>& cell_idx = i.toCell(1);
+                    const hier::Index<NDIM>& cell_idx = i.toCell(1);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (d == axis)

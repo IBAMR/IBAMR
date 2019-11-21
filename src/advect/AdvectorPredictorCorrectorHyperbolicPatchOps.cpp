@@ -710,8 +710,8 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patc
                                                                             bool /*at_synchronization*/)
 {
     const Box<NDIM>& patch_box = patch.getBox();
-    const Index<NDIM>& ilower = patch_box.lower();
-    const Index<NDIM>& iupper = patch_box.upper();
+    const hier::Index<NDIM>& ilower = patch_box.lower();
+    const hier::Index<NDIM>& iupper = patch_box.upper();
 
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
@@ -971,8 +971,8 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::tagGradientDetectorCells(Patch<NDI
     const double* const dx = patch_geom->getDx();
 
     const Box<NDIM>& patch_box = patch.getBox();
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
+    const hier::Index<NDIM>& ilower = patch.getBox().lower();
+    const hier::Index<NDIM>& iupper = patch.getBox().upper();
 
     Pointer<CellData<NDIM, int> > tags = patch.getPatchData(tag_indx);
 
@@ -1314,7 +1314,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(Patch<
                     acoef_data, bcoef_data, gcoef_data, Q_var, patch, trimmed_bdry_box, fill_time);
                 for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const hier::Index<NDIM>& i = b();
                     const FaceIndex<NDIM> i_f(i, bdry_normal_axis, FaceIndex<NDIM>::Lower);
 
                     bool is_inflow_bdry = (is_lower && (*u_data)(i_f) > 0.0) || (!is_lower && (*u_data)(i_f) < 0.0);
@@ -1325,7 +1325,7 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(Patch<
                         const double& g = (*gcoef_data)(i, 0);
                         const double& h = dx[bdry_normal_axis];
 
-                        Index<NDIM> i_intr(i);
+                        hier::Index<NDIM> i_intr(i);
                         if (is_lower)
                         {
                             // intentionally blank

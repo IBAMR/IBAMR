@@ -69,7 +69,7 @@ compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
 
 #if (NDIM == 2)
 inline double
-compute_mu_avg(const Index<NDIM>& i, const NodeData<NDIM, double>& mu_data)
+compute_mu_avg(const hier::Index<NDIM>& i, const NodeData<NDIM, double>& mu_data)
 {
     Box<NDIM> node_box(i, i);
     const int n_nodes = std::pow(2, NDIM);
@@ -88,7 +88,7 @@ compute_mu_avg(const Index<NDIM>& i, const NodeData<NDIM, double>& mu_data)
 } // compute_mu_avg
 
 inline double
-compute_mu_harmonic_avg(const Index<NDIM>& i, const NodeData<NDIM, double>& mu_data)
+compute_mu_harmonic_avg(const hier::Index<NDIM>& i, const NodeData<NDIM, double>& mu_data)
 {
     Box<NDIM> node_box(i, i);
     const int n_nodes = std::pow(2, NDIM);
@@ -109,7 +109,7 @@ compute_mu_harmonic_avg(const Index<NDIM>& i, const NodeData<NDIM, double>& mu_d
 
 #if (NDIM == 3)
 inline double
-compute_mu_avg(const Index<NDIM>& i, const EdgeData<NDIM, double>& mu_data)
+compute_mu_avg(const hier::Index<NDIM>& i, const EdgeData<NDIM, double>& mu_data)
 {
     Box<NDIM> edge_box(i, i);
     const int n_edges = 12;
@@ -131,7 +131,7 @@ compute_mu_avg(const Index<NDIM>& i, const EdgeData<NDIM, double>& mu_data)
 } // compute_mu_avg
 
 inline double
-compute_mu_harmonic_avg(const Index<NDIM>& i, const EdgeData<NDIM, double>& mu_data)
+compute_mu_harmonic_avg(const hier::Index<NDIM>& i, const EdgeData<NDIM, double>& mu_data)
 {
     Box<NDIM> edge_box(i, i);
     const int n_edges = 12;
@@ -153,14 +153,14 @@ compute_mu_harmonic_avg(const Index<NDIM>& i, const EdgeData<NDIM, double>& mu_d
 } // compute_mu_harmonic_avg
 
 inline double
-get_mu_edge(const Index<NDIM>& i, const int perp, const Pointer<EdgeData<NDIM, double> > mu_data)
+get_mu_edge(const hier::Index<NDIM>& i, const int perp, const Pointer<EdgeData<NDIM, double> > mu_data)
 {
     const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData(perp);
     return mu_array_data(i, /*depth*/ 0);
 }
 #endif
 
-inline Index<NDIM>
+inline hier::Index<NDIM>
 get_shift(int dir, int shift)
 {
     SAMRAI::hier::Index<NDIM> iv(0);
@@ -172,7 +172,7 @@ get_shift(int dir, int shift)
 void
 PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coefficients,
                                             Pointer<Patch<NDIM> > patch,
-                                            const std::vector<Index<NDIM> >& stencil,
+                                            const std::vector<hier::Index<NDIM> >& stencil,
                                             const PoissonSpecifications& poisson_spec,
                                             RobinBcCoefStrategy<NDIM>* bc_coef,
                                             double data_time)
@@ -185,7 +185,7 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
 void
 PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coefficients,
                                             Pointer<Patch<NDIM> > patch,
-                                            const std::vector<Index<NDIM> >& stencil,
+                                            const std::vector<hier::Index<NDIM> >& stencil,
                                             const PoissonSpecifications& poisson_spec,
                                             const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                             double data_time)
@@ -194,27 +194,27 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
 #if !defined(NDEBUG)
     TBOX_ASSERT(stencil_sz == 2 * NDIM + 1);
 #endif
-    std::map<Index<NDIM>, int, IndexFortranOrder> stencil_map;
+    std::map<hier::Index<NDIM>, int, IndexFortranOrder> stencil_map;
     for (int k = 0; k < stencil_sz; ++k)
     {
         stencil_map[stencil[k]] = k;
     }
 #if !defined(NDEBUG)
-    TBOX_ASSERT(stencil_map.find(Index<NDIM>(0)) != stencil_map.end());
+    TBOX_ASSERT(stencil_map.find(hier::Index<NDIM>(0)) != stencil_map.end());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        Index<NDIM> ilower(0), iupper(0);
+        hier::Index<NDIM> ilower(0), iupper(0);
         ilower(axis) = -1;
         iupper(axis) = +1;
         TBOX_ASSERT(stencil_map.find(ilower) != stencil_map.end());
         TBOX_ASSERT(stencil_map.find(iupper) != stencil_map.end());
     }
 #endif
-    const int stencil_index_diag = stencil_map[Index<NDIM>(0)];
+    const int stencil_index_diag = stencil_map[hier::Index<NDIM>(0)];
     std::array<int, NDIM> stencil_index_lower, stencil_index_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        Index<NDIM> ilower(0), iupper(0);
+        hier::Index<NDIM> ilower(0), iupper(0);
         ilower(axis) = -1;
         iupper(axis) = +1;
         stencil_index_lower[axis] = stencil_map[ilower];
@@ -272,7 +272,7 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
     {
         for (Box<NDIM>::Iterator b(patch_box); b; b++)
         {
-            const Index<NDIM>& i = b();
+            const hier::Index<NDIM>& i = b();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 const SideIndex<NDIM> ilower(i, axis, SideIndex<NDIM>::Lower);
@@ -334,7 +334,7 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
             //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i_s_bdry = bc();
+                const hier::Index<NDIM>& i_s_bdry = bc();
                 const double& a = (*acoef_data)(i_s_bdry, 0);
                 const double& b = (*bcoef_data)(i_s_bdry, 0);
                 const double& h = dx[bdry_normal_axis];
@@ -343,7 +343,7 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
                 //
                 // i_c_intr: cell index located adjacent to physical boundary
                 // in the patch interior
-                Index<NDIM> i_c_intr = i_s_bdry;
+                hier::Index<NDIM> i_c_intr = i_s_bdry;
                 if (is_upper)
                 {
                     i_c_intr(bdry_normal_axis) -= 1;
@@ -372,7 +372,7 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
         const auto offset = static_cast<unsigned int>(d * stencil_sz);
         for (Box<NDIM>::Iterator b(patch_box); b; b++)
         {
-            const Index<NDIM>& i = b();
+            const hier::Index<NDIM>& i = b();
             matrix_coefficients(i, offset + stencil_index_diag) = diagonal(i, d);
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -389,7 +389,7 @@ PoissonUtilities::computeMatrixCoefficients(CellData<NDIM, double>& matrix_coeff
 void
 PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coefficients,
                                             Pointer<Patch<NDIM> > patch,
-                                            const std::vector<Index<NDIM> >& stencil,
+                                            const std::vector<hier::Index<NDIM> >& stencil,
                                             const PoissonSpecifications& poisson_spec,
                                             const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                             double data_time)
@@ -401,27 +401,27 @@ PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coeff
 #if !defined(NDEBUG)
     TBOX_ASSERT(stencil_sz == 2 * NDIM + 1);
 #endif
-    std::map<Index<NDIM>, int, IndexFortranOrder> stencil_map;
+    std::map<hier::Index<NDIM>, int, IndexFortranOrder> stencil_map;
     for (int k = 0; k < stencil_sz; ++k)
     {
         stencil_map[stencil[k]] = k;
     }
 #if !defined(NDEBUG)
-    TBOX_ASSERT(stencil_map.find(Index<NDIM>(0)) != stencil_map.end());
+    TBOX_ASSERT(stencil_map.find(hier::Index<NDIM>(0)) != stencil_map.end());
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        Index<NDIM> ilower(0), iupper(0);
+        hier::Index<NDIM> ilower(0), iupper(0);
         ilower(axis) = -1;
         iupper(axis) = +1;
         TBOX_ASSERT(stencil_map.find(ilower) != stencil_map.end());
         TBOX_ASSERT(stencil_map.find(iupper) != stencil_map.end());
     }
 #endif
-    const int stencil_index_diag = stencil_map[Index<NDIM>(0)];
+    const int stencil_index_diag = stencil_map[hier::Index<NDIM>(0)];
     std::array<int, NDIM> stencil_index_lower, stencil_index_upper;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        Index<NDIM> ilower(0), iupper(0);
+        hier::Index<NDIM> ilower(0), iupper(0);
         ilower(axis) = -1;
         iupper(axis) = +1;
         stencil_index_lower[axis] = stencil_map[ilower];
@@ -564,12 +564,12 @@ PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coeff
             //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = bc();
+                const hier::Index<NDIM>& i = bc();
                 const double& a = (*acoef_data)(i, 0);
                 const double& b = (*bcoef_data)(i, 0);
                 const double& h = dx[bdry_normal_axis];
 
-                Index<NDIM> i_intr = i;
+                hier::Index<NDIM> i_intr = i;
                 if (is_lower)
                 {
                     i_intr(bdry_normal_axis) += 0;
@@ -662,7 +662,7 @@ PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coeff
             // If b == 0, then u_b = 0, which we enforce directly.
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = bc();
+                const hier::Index<NDIM>& i = bc();
                 const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                 const double& a = (*acoef_data)(i, 0);
                 const double& b = (*bcoef_data)(i, 0);
@@ -708,7 +708,7 @@ void
 PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     SAMRAI::pdat::SideData<NDIM, double>& matrix_coefficients,
     SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-    const std::vector<std::map<Index<NDIM>, int, IndexFortranOrder> >& stencil_map_vec,
+    const std::vector<std::map<hier::Index<NDIM>, int, IndexFortranOrder> >& stencil_map_vec,
     const SAMRAI::solv::PoissonSpecifications& poisson_spec,
     double alpha,
     double beta,
@@ -769,11 +769,11 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     // Compute all matrix coefficients, including those on the physical
     // boundary; however, do not yet take physical boundary conditions into
     // account.  Boundary conditions are handled subsequently.
-    using StencilMapType = std::map<Index<NDIM>, int, IndexFortranOrder>;
+    using StencilMapType = std::map<hier::Index<NDIM>, int, IndexFortranOrder>;
 #if (NDIM == 2)
     StencilMapType stencil_map = stencil_map_vec[0];
 #endif
-    static const Index<NDIM> ORIGIN(0);
+    static const hier::Index<NDIM> ORIGIN(0);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
 #if (NDIM == 3)
@@ -781,7 +781,7 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
 #endif
         for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
         {
-            const Index<NDIM>& cc = b();
+            const hier::Index<NDIM>& cc = b();
             const SideIndex<NDIM> i(cc, axis, SideIndex<NDIM>::Lower);
 
             if (C_is_varying)
@@ -797,8 +797,8 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
             {
                 if (d == axis)
                 {
-                    const Index<NDIM> shift_axis_plus = get_shift(axis, 1);
-                    const Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+                    const hier::Index<NDIM> shift_axis_plus = get_shift(axis, 1);
+                    const hier::Index<NDIM> shift_axis_minus = get_shift(axis, -1);
 
                     double mu_upper = std::numeric_limits<double>::quiet_NaN();
                     double mu_lower = std::numeric_limits<double>::quiet_NaN();
@@ -825,10 +825,10 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
                 }
                 else
                 {
-                    const Index<NDIM> shift_d_plus = get_shift(d, 1);
-                    const Index<NDIM> shift_d_minus = get_shift(d, -1);
-                    const Index<NDIM> shift_axis_plus = get_shift(axis, 1);
-                    const Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+                    const hier::Index<NDIM> shift_d_plus = get_shift(d, 1);
+                    const hier::Index<NDIM> shift_d_minus = get_shift(d, -1);
+                    const hier::Index<NDIM> shift_axis_plus = get_shift(axis, 1);
+                    const hier::Index<NDIM> shift_axis_minus = get_shift(axis, -1);
 
 #if (NDIM == 2)
                     const double mu_upper = mu_array_data(cc + shift_d_plus, 0);
@@ -943,12 +943,12 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
             //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = bc();
+                const hier::Index<NDIM>& i = bc();
                 const double& a = (*acoef_data)(i, 0);
                 const double& b = (*bcoef_data)(i, 0);
                 const double& h = dx[bdry_normal_axis];
 
-                Index<NDIM> i_intr = i;
+                hier::Index<NDIM> i_intr = i;
                 if (is_lower)
                 {
                     i_intr(bdry_normal_axis) += 0;
@@ -961,14 +961,14 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
 
                 if (is_lower)
                 {
-                    Index<NDIM> shift = get_shift(bdry_normal_axis, -1);
+                    hier::Index<NDIM> shift = get_shift(bdry_normal_axis, -1);
                     matrix_coefficients(i_s, stencil_map[ORIGIN]) +=
                         matrix_coefficients(i_s, stencil_map[shift]) * (-(a * h - 2.0 * b) / (a * h + 2.0 * b));
                     matrix_coefficients(i_s, stencil_map[shift]) = 0.0;
                 }
                 else
                 {
-                    Index<NDIM> shift = get_shift(bdry_normal_axis, 1);
+                    hier::Index<NDIM> shift = get_shift(bdry_normal_axis, 1);
                     matrix_coefficients(i_s, stencil_map[ORIGIN]) +=
                         matrix_coefficients(i_s, stencil_map[shift]) * (-(a * h - 2.0 * b) / (a * h + 2.0 * b));
                     matrix_coefficients(i_s, stencil_map[shift]) = 0.0;
@@ -1063,8 +1063,8 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
                 //     u_o = -((a*h - 2*b)/(a*h + 2*b))*u_i
                 for (Box<NDIM>::Iterator bc(side_box); bc; bc++)
                 {
-                    const Index<NDIM>& i = bc();
-                    const Index<NDIM> i_upper = i + get_shift(comp, 1);
+                    const hier::Index<NDIM>& i = bc();
+                    const hier::Index<NDIM> i_upper = i + get_shift(comp, 1);
                     const double& a_lower = (*acoef_data)(i, 0);
                     const double& b_lower = (*bcoef_data)(i, 0);
                     const double& a_upper = (*acoef_data)(i_upper, 0);
@@ -1075,15 +1075,15 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
 
                     if (is_lower)
                     {
-                        Index<NDIM> shift_outer_lower = get_shift(bdry_normal_axis, -1) + get_shift(comp, -1);
-                        Index<NDIM> shift_inner_lower = get_shift(bdry_normal_axis, 1) + get_shift(comp, -1);
+                        hier::Index<NDIM> shift_outer_lower = get_shift(bdry_normal_axis, -1) + get_shift(comp, -1);
+                        hier::Index<NDIM> shift_inner_lower = get_shift(bdry_normal_axis, 1) + get_shift(comp, -1);
                         matrix_coefficients(i_s, stencil_map[shift_inner_lower]) +=
                             matrix_coefficients(i_s, stencil_map[shift_outer_lower]) *
                             (-(a_lower * h - 2.0 * b_lower) / (a_lower * h + 2.0 * b_lower));
                         matrix_coefficients(i_s, stencil_map[shift_outer_lower]) = 0.0;
 
-                        Index<NDIM> shift_outer_upper = get_shift(bdry_normal_axis, -1) + get_shift(comp, 1);
-                        Index<NDIM> shift_inner_upper = get_shift(bdry_normal_axis, 1) + get_shift(comp, 1);
+                        hier::Index<NDIM> shift_outer_upper = get_shift(bdry_normal_axis, -1) + get_shift(comp, 1);
+                        hier::Index<NDIM> shift_inner_upper = get_shift(bdry_normal_axis, 1) + get_shift(comp, 1);
                         matrix_coefficients(i_s, stencil_map[shift_inner_upper]) +=
                             matrix_coefficients(i_s, stencil_map[shift_outer_upper]) *
                             (-(a_upper * h - 2.0 * b_upper) / (a_upper * h + 2.0 * b_upper));
@@ -1091,15 +1091,15 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
                     }
                     else
                     {
-                        Index<NDIM> shift_outer_lower = get_shift(bdry_normal_axis, 1) + get_shift(comp, -1);
-                        Index<NDIM> shift_inner_lower = get_shift(bdry_normal_axis, -1) + get_shift(comp, -1);
+                        hier::Index<NDIM> shift_outer_lower = get_shift(bdry_normal_axis, 1) + get_shift(comp, -1);
+                        hier::Index<NDIM> shift_inner_lower = get_shift(bdry_normal_axis, -1) + get_shift(comp, -1);
                         matrix_coefficients(i_s, stencil_map[shift_inner_lower]) +=
                             matrix_coefficients(i_s, stencil_map[shift_outer_lower]) *
                             (-(a_lower * h - 2.0 * b_lower) / (a_lower * h + 2.0 * b_lower));
                         matrix_coefficients(i_s, stencil_map[shift_outer_lower]) = 0.0;
 
-                        Index<NDIM> shift_outer_upper = get_shift(bdry_normal_axis, 1) + get_shift(comp, 1);
-                        Index<NDIM> shift_inner_upper = get_shift(bdry_normal_axis, -1) + get_shift(comp, 1);
+                        hier::Index<NDIM> shift_outer_upper = get_shift(bdry_normal_axis, 1) + get_shift(comp, 1);
+                        hier::Index<NDIM> shift_inner_upper = get_shift(bdry_normal_axis, -1) + get_shift(comp, 1);
                         matrix_coefficients(i_s, stencil_map[shift_inner_upper]) +=
                             matrix_coefficients(i_s, stencil_map[shift_outer_upper]) *
                             (-(a_upper * h - 2.0 * b_upper) / (a_upper * h + 2.0 * b_upper));
@@ -1177,7 +1177,7 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
             // If b == 0, then u_b = 0, which we enforce directly.
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = bc();
+                const hier::Index<NDIM>& i = bc();
                 const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                 const double& a = (*acoef_data)(i, 0);
                 const double& b = (*bcoef_data)(i, 0);
@@ -1196,8 +1196,8 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
 #endif
                     if (is_lower)
                     {
-                        const Index<NDIM> shift_outer = get_shift(bdry_normal_axis, -1);
-                        const Index<NDIM> shift_inner = get_shift(bdry_normal_axis, 1);
+                        const hier::Index<NDIM> shift_outer = get_shift(bdry_normal_axis, -1);
+                        const hier::Index<NDIM> shift_inner = get_shift(bdry_normal_axis, 1);
                         matrix_coefficients(i_s, stencil_map[ORIGIN]) -=
                             matrix_coefficients(i_s, stencil_map[shift_outer]) * 2 * dx[bdry_normal_axis] * a / b;
                         matrix_coefficients(i_s, stencil_map[shift_inner]) +=
@@ -1206,8 +1206,8 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
                     }
                     else
                     {
-                        const Index<NDIM> shift_outer = get_shift(bdry_normal_axis, 1);
-                        const Index<NDIM> shift_inner = get_shift(bdry_normal_axis, -1);
+                        const hier::Index<NDIM> shift_outer = get_shift(bdry_normal_axis, 1);
+                        const hier::Index<NDIM> shift_inner = get_shift(bdry_normal_axis, -1);
                         matrix_coefficients(i_s, stencil_map[ORIGIN]) -=
                             matrix_coefficients(i_s, stencil_map[shift_outer]) * 2 * dx[bdry_normal_axis] * a / b;
                         matrix_coefficients(i_s, stencil_map[shift_inner]) +=
@@ -1315,12 +1315,12 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(CellData<NDIM, double>& rhs_data,
             //                 in the patch interior
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i_s_bdry = bc();
+                const hier::Index<NDIM>& i_s_bdry = bc();
                 const double& a = (*acoef_data)(i_s_bdry, 0);
                 const double& b = (*bcoef_data)(i_s_bdry, 0);
                 const double& g = (*gcoef_data)(i_s_bdry, 0);
                 const double& h = dx[bdry_normal_axis];
-                Index<NDIM> i_c_intr = i_s_bdry;
+                hier::Index<NDIM> i_c_intr = i_s_bdry;
                 if (is_upper)
                 {
                     i_c_intr(bdry_normal_axis) -= 1;
@@ -1456,12 +1456,12 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
             // In this loop, we modify the rhs entries appropriately.
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = bc();
+                const hier::Index<NDIM>& i = bc();
                 const double& a = (*acoef_data)(i, 0);
                 const double& b = (*bcoef_data)(i, 0);
                 const double& g = (*gcoef_data)(i, 0);
                 const double& h = dx[bdry_normal_axis];
-                Index<NDIM> i_intr = i;
+                hier::Index<NDIM> i_intr = i;
                 if (is_lower)
                 {
                     i_intr(bdry_normal_axis) += 0;
@@ -1536,7 +1536,7 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
             // the right-hand side vector.
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = bc();
+                const hier::Index<NDIM>& i = bc();
                 const double& b = (*bcoef_data)(i, 0);
                 const double& g = (*gcoef_data)(i, 0);
                 const double& h = dx[bdry_normal_axis];
@@ -1687,12 +1687,12 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
             // In this loop, we modify the rhs entries appropriately.
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = bc();
+                const hier::Index<NDIM>& i = bc();
                 const double& a = (*acoef_data)(i, 0);
                 const double& b = (*bcoef_data)(i, 0);
                 const double& g = (*gcoef_data)(i, 0);
                 const double& h = dx[bdry_normal_axis];
-                Index<NDIM> i_intr = i;
+                hier::Index<NDIM> i_intr = i;
                 if (is_lower)
                 {
                     i_intr(bdry_normal_axis) += 0;
@@ -1703,7 +1703,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
                 }
                 const SideIndex<NDIM> i_s(i_intr, axis, SideIndex<NDIM>::Lower);
 
-                const Index<NDIM> shift_bdry_normal = get_shift(bdry_normal_axis, 1);
+                const hier::Index<NDIM> shift_bdry_normal = get_shift(bdry_normal_axis, 1);
 #if (NDIM == 2)
                 const double mu_upper = mu_array_data(i_intr + shift_bdry_normal, 0);
                 const double mu_lower = mu_array_data(i_intr, 0);
@@ -1801,8 +1801,8 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
                 //     u_o = 2*h*g/(2*b + a*h)
                 for (Box<NDIM>::Iterator bc(side_box); bc; bc++)
                 {
-                    const Index<NDIM>& i = bc();
-                    const Index<NDIM>& i_upper = i + get_shift(comp, 1);
+                    const hier::Index<NDIM>& i = bc();
+                    const hier::Index<NDIM>& i_upper = i + get_shift(comp, 1);
                     const double& a_lower = (*acoef_data)(i, 0);
                     const double& b_lower = (*bcoef_data)(i, 0);
                     const double& g_lower = (*gcoef_data)(i, 0);
@@ -1814,7 +1814,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
 
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
 
-                    const Index<NDIM> shift_d = get_shift(comp, 1);
+                    const hier::Index<NDIM> shift_d = get_shift(comp, 1);
 #if (NDIM == 2)
                     const double mu_upper = mu_array_data(i + shift_d, 0);
                     const double mu_lower = mu_array_data(i, 0);
@@ -1899,13 +1899,13 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
             // the right-hand side vector.
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = bc();
+                const hier::Index<NDIM>& i = bc();
                 const double& b = (*bcoef_data)(i, 0);
                 const double& g = (*gcoef_data)(i, 0);
                 const double& h = dx[bdry_normal_axis];
                 const SideIndex<NDIM> i_s_bdry(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
 
-                const Index<NDIM> shift_axis_minus = get_shift(bdry_normal_axis, -1);
+                const hier::Index<NDIM> shift_axis_minus = get_shift(bdry_normal_axis, -1);
                 double mu_upper = std::numeric_limits<double>::quiet_NaN();
                 double mu_lower = std::numeric_limits<double>::quiet_NaN();
                 if (mu_interp_type == VC_AVERAGE_INTERP)
@@ -1977,7 +1977,7 @@ PoissonUtilities::adjustRHSAtCoarseFineBoundary(CellData<NDIM, double>& rhs_data
         {
             for (Box<NDIM>::Iterator bc(bc_fill_box); bc; bc++)
             {
-                Index<NDIM> i_s_bdry = bc();
+                hier::Index<NDIM> i_s_bdry = bc();
                 CellIndex<NDIM> i_c_intr(i_s_bdry);
                 CellIndex<NDIM> i_c_bdry(i_s_bdry);
                 if (is_lower)
@@ -2108,9 +2108,9 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
 
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = bc();
+                const hier::Index<NDIM>& i = bc();
                 const double& h = dx[bdry_normal_axis];
-                Index<NDIM> i_intr = i, i_bdry = i;
+                hier::Index<NDIM> i_intr = i, i_bdry = i;
                 if (is_lower)
                 {
                     i_intr(bdry_normal_axis) += 0;
@@ -2124,7 +2124,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                 const SideIndex<NDIM> i_s_intr(i_intr, axis, SideIndex<NDIM>::Lower);
                 const SideIndex<NDIM> i_s_bdry(i_bdry, axis, SideIndex<NDIM>::Lower);
 
-                const Index<NDIM> shift_bdry_normal = get_shift(bdry_normal_axis, 1);
+                const hier::Index<NDIM> shift_bdry_normal = get_shift(bdry_normal_axis, 1);
 #if (NDIM == 2)
                 const double mu_upper = mu_array_data(i_intr + shift_bdry_normal, 0);
                 const double mu_lower = mu_array_data(i_intr, 0);
@@ -2166,11 +2166,11 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
 
                 for (Box<NDIM>::Iterator bc(side_box); bc; bc++)
                 {
-                    const Index<NDIM>& i = bc();
+                    const hier::Index<NDIM>& i = bc();
                     const double& h = dx[bdry_normal_axis];
                     const double& hd = dx[comp];
 
-                    const Index<NDIM> shift_d = get_shift(comp, 1);
+                    const hier::Index<NDIM> shift_d = get_shift(comp, 1);
 #if (NDIM == 2)
                     const double mu_upper = mu_array_data(i + shift_d, 0);
                     const double mu_lower = mu_array_data(i, 0);
@@ -2183,7 +2183,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                     if (is_lower)
                     {
-                        const Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+                        const hier::Index<NDIM> shift_axis_minus = get_shift(axis, -1);
                         const SideIndex<NDIM> sw(i + shift_axis_minus, comp, SideIndex<NDIM>::Lower);
                         const SideIndex<NDIM> nw(i + shift_axis_minus, comp, SideIndex<NDIM>::Upper);
 
@@ -2192,7 +2192,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                     }
                     else
                     {
-                        const Index<NDIM> shift_axis_plus = get_shift(axis, 1);
+                        const hier::Index<NDIM> shift_axis_plus = get_shift(axis, 1);
                         const SideIndex<NDIM> se(i, comp, SideIndex<NDIM>::Lower);
                         const SideIndex<NDIM> ne(i, comp, SideIndex<NDIM>::Upper);
 
@@ -2225,11 +2225,11 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
 
             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
             {
-                const Index<NDIM>& i = bc();
+                const hier::Index<NDIM>& i = bc();
                 const double& h = dx[bdry_normal_axis];
 
-                const Index<NDIM> shift_axis_minus = get_shift(bdry_normal_axis, -1);
-                const Index<NDIM> shift_axis_plus = get_shift(bdry_normal_axis, 1);
+                const hier::Index<NDIM> shift_axis_minus = get_shift(bdry_normal_axis, -1);
+                const hier::Index<NDIM> shift_axis_plus = get_shift(bdry_normal_axis, 1);
 
                 const SideIndex<NDIM> i_s(i, bdry_normal_axis, SideIndex<NDIM>::Lower);
                 const SideIndex<NDIM> i_s_bdry(

@@ -493,7 +493,7 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<Pat
             Pointer<LMarkerSetData> mark_scratch_data = patch->getPatchData(mark_scratch_idx);
             for (LMarkerSetData::Iterator it(*mark_scratch_data); it; it++)
             {
-                const Index<NDIM>& i = it.getIndex();
+                const hier::Index<NDIM>& i = it.getIndex();
                 if (!mark_current_data->isElement(i))
                 {
                     mark_current_data->appendItemPointer(i, new LMarkerSet());
@@ -581,7 +581,7 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<Pat
                 ;
             if (patch_owns_mark_at_new_loc)
             {
-                const Index<NDIM> i = IndexUtilities::getCellIndex(X_shifted, grid_geom, ratio);
+                const hier::Index<NDIM> i = IndexUtilities::getCellIndex(X_shifted, grid_geom, ratio);
                 if (!mark_data_new->isElement(i))
                 {
                     mark_data_new->appendItemPointer(i, new LMarkerSet());
@@ -652,7 +652,7 @@ LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
                     ;
                 if (patch_owns_mark_at_loc)
                 {
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(X, grid_geom, ratio);
+                    const hier::Index<NDIM> i = IndexUtilities::getCellIndex(X, grid_geom, ratio);
                     if (!mark_data->isElement(i))
                     {
                         mark_data->appendItemPointer(i, new LMarkerSet());

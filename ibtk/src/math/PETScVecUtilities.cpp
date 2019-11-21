@@ -587,7 +587,7 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
         {
             for (Box<NDIM>::Iterator b(bl()); b; b++)
             {
-                const Index<NDIM>& ic = b();
+                const hier::Index<NDIM>& ic = b();
                 for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
                 {
                     if (UNLIKELY(!data_boxes[component_axis].contains(ic))) continue;
@@ -635,11 +635,11 @@ PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
 #if !defined(NDEBUG)
     TBOX_ASSERT(domain_boxes.size() == 1);
 #endif
-    const Index<NDIM>& domain_lower = domain_boxes[0].lower();
-    const Index<NDIM>& domain_upper = domain_boxes[0].upper();
+    const hier::Index<NDIM>& domain_lower = domain_boxes[0].lower();
+    const hier::Index<NDIM>& domain_upper = domain_boxes[0].upper();
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_level->getGridGeometry();
     IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(patch_level->getRatio());
-    Index<NDIM> num_cells = 1;
+    hier::Index<NDIM> num_cells = 1;
     num_cells += domain_upper - domain_lower;
 
     // Compute PETSc to SAMRAI index mapping.
@@ -703,14 +703,14 @@ PETScVecUtilities::constructPatchLevelAO_side(AO& ao,
 #if !defined(NDEBUG)
     TBOX_ASSERT(domain_boxes.size() == 1);
 #endif
-    const Index<NDIM>& domain_lower = domain_boxes[0].lower();
-    const Index<NDIM>& domain_upper = domain_boxes[0].upper();
+    const hier::Index<NDIM>& domain_lower = domain_boxes[0].lower();
+    const hier::Index<NDIM>& domain_upper = domain_boxes[0].upper();
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_level->getGridGeometry();
     IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(patch_level->getRatio());
-    std::array<Index<NDIM>, NDIM> num_cells;
+    std::array<hier::Index<NDIM>, NDIM> num_cells;
     for (unsigned d = 0; d < NDIM; ++d)
     {
-        Index<NDIM> offset = 1;
+        hier::Index<NDIM> offset = 1;
         offset(d) = periodic_shift(d) ? 1 : 2;
         num_cells[d] = domain_upper - domain_lower + offset;
     }

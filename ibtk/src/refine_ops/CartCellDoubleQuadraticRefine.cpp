@@ -61,10 +61,10 @@ coarsen(const int& index, const int& ratio)
     return (index < 0 ? (index + 1) / ratio - 1 : index / ratio);
 } // coarsen
 
-inline Index<NDIM>
-coarsen(const Index<NDIM>& index, const IntVector<NDIM>& ratio)
+inline hier::Index<NDIM>
+coarsen(const hier::Index<NDIM>& index, const IntVector<NDIM>& ratio)
 {
-    Index<NDIM> coarse_index;
+    hier::Index<NDIM> coarse_index;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         coarse_index(d) = coarsen(index(d), ratio(d));
@@ -119,13 +119,13 @@ CartCellDoubleQuadraticRefine::refine(Patch<NDIM>& fine,
     const int data_depth = fdata->getDepth();
 
     const Box<NDIM>& patch_box_fine = fine.getBox();
-    const Index<NDIM>& patch_lower_fine = patch_box_fine.lower();
+    const hier::Index<NDIM>& patch_lower_fine = patch_box_fine.lower();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom_fine = fine.getPatchGeometry();
     const double* const XLower_fine = pgeom_fine->getXLower();
     const double* const dx_fine = pgeom_fine->getDx();
 
     const Box<NDIM>& patch_box_crse = coarse.getBox();
-    const Index<NDIM>& patch_lower_crse = patch_box_crse.lower();
+    const hier::Index<NDIM>& patch_lower_crse = patch_box_crse.lower();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom_crse = coarse.getPatchGeometry();
     const double* const XLower_crse = pgeom_crse->getXLower();
     const double* const dx_crse = pgeom_crse->getDx();
@@ -134,8 +134,8 @@ CartCellDoubleQuadraticRefine::refine(Patch<NDIM>& fine,
     // overlying coarse grid data.
     for (Box<NDIM>::Iterator b(fine_box); b; b++)
     {
-        const Index<NDIM>& i_fine = b();
-        const Index<NDIM> i_crse = coarsen(i_fine, ratio);
+        const hier::Index<NDIM>& i_fine = b();
+        const hier::Index<NDIM> i_crse = coarsen(i_fine, ratio);
 
         // Determine the interpolation stencil in the coarse index space.
         Box<NDIM> stencil_box_crse(i_crse, i_crse);
@@ -162,7 +162,7 @@ CartCellDoubleQuadraticRefine::refine(Patch<NDIM>& fine,
         }
 
         // Interpolate from the coarse grid to the fine grid.
-        Index<NDIM> i_intrp;
+        hier::Index<NDIM> i_intrp;
         for (int d = 0; d < data_depth; ++d)
         {
             (*fdata)(i_fine, d) = 0.0;

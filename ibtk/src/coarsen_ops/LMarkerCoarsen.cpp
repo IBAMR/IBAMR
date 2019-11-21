@@ -57,10 +57,10 @@ coarsen(const int index, const int ratio)
     return (index < 0 ? (index + 1) / ratio - 1 : index / ratio);
 } // coarsen
 
-inline Index<NDIM>
-coarsen_index(const Index<NDIM>& i, const IntVector<NDIM>& ratio)
+inline hier::Index<NDIM>
+coarsen_index(const hier::Index<NDIM>& i, const IntVector<NDIM>& ratio)
 {
-    Index<NDIM> coarse_i;
+    hier::Index<NDIM> coarse_i;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         coarse_i(d) = coarsen(i(d), ratio(d));
@@ -110,8 +110,8 @@ LMarkerCoarsen::coarsen(Patch<NDIM>& coarse,
     const Box<NDIM> fine_box = Box<NDIM>::refine(coarse_box, ratio);
     for (LMarkerSetData::SetIterator it(*src_mark_data); it; it++)
     {
-        const Index<NDIM>& fine_i = it.getIndex();
-        const Index<NDIM> coarse_i = coarsen_index(fine_i, ratio);
+        const hier::Index<NDIM>& fine_i = it.getIndex();
+        const hier::Index<NDIM> coarse_i = coarsen_index(fine_i, ratio);
         if (fine_box.contains(fine_i) && coarse_box.contains(coarse_i))
         {
             const LMarkerSet& fine_mark_set = it();

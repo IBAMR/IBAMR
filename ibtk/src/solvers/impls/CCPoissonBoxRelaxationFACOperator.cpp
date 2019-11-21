@@ -116,7 +116,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 struct IndexComp
 {
-    inline bool operator()(const Index<NDIM>& lhs, const Index<NDIM>& rhs) const
+    inline bool operator()(const hier::Index<NDIM>& lhs, const hier::Index<NDIM>& rhs) const
     {
         return ((lhs(0) < rhs(0))
 #if (NDIM > 1)
@@ -905,7 +905,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
 
     for (Box<NDIM>::Iterator b(patch_box); b; b++)
     {
-        const Index<NDIM>& i = b();
+        const hier::Index<NDIM>& i = b();
 
         std::vector<double> mat_vals(stencil_sz, 0.0);
         mat_vals[NDIM] = (*C_data)(i);
@@ -1000,7 +1000,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
         num_cells[d] = ghost_box.numberCells(d);
     }
     std::vector<int> mat_stencil(stencil_sz);
-    std::map<Index<NDIM>, int, IndexComp> stencil_indices;
+    std::map<hier::Index<NDIM>, int, IndexComp> stencil_indices;
     int stencil_index = 0;
     static const int x_axis = 0;
 #if (NDIM == 3)
@@ -1018,10 +1018,10 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
                 {
 #endif
 #if (NDIM == 2)
-                    const Index<NDIM> i(x_offset, y_offset);
+                    const hier::Index<NDIM> i(x_offset, y_offset);
 #endif
 #if (NDIM == 3)
-                    const Index<NDIM> i(x_offset, y_offset, z_offset);
+                    const hier::Index<NDIM> i(x_offset, y_offset, z_offset);
 #endif
                     stencil_indices[i] = stencil_index++;
                     mat_stencil[stencil_indices[i]] = x_offset + y_offset * num_cells[x_axis]
@@ -1043,8 +1043,8 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
 
     for (Box<NDIM>::Iterator b(patch_box); b; b++)
     {
-        const Index<NDIM>& i = b();
-        static const Index<NDIM> i_stencil_center(0);
+        const hier::Index<NDIM>& i = b();
+        static const hier::Index<NDIM> i_stencil_center(0);
         const int stencil_center = stencil_indices[i_stencil_center];
 
         std::vector<double> mat_vals(stencil_sz, 0.0);
@@ -1057,7 +1057,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
 
             // Lower side normal flux.
             {
-                Index<NDIM> i_stencil_lower(0);
+                hier::Index<NDIM> i_stencil_lower(0);
                 --i_stencil_lower[axis];
                 const int stencil_lower = stencil_indices[i_stencil_lower];
 
@@ -1069,7 +1069,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
 
             // Upper side normal flux.
             {
-                Index<NDIM> i_stencil_upper(0);
+                hier::Index<NDIM> i_stencil_upper(0);
                 ++i_stencil_upper[axis];
                 const int stencil_upper = stencil_indices[i_stencil_upper];
 
@@ -1096,7 +1096,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
                     {
                         for (int trans_shift = -1; trans_shift <= 1; trans_shift += 2)
                         {
-                            Index<NDIM> i_stencil(0);
+                            hier::Index<NDIM> i_stencil(0);
                             i_stencil[norm_axis] += norm_shift;
                             i_stencil[trans_axis] += trans_shift;
                             const int stencil_index = stencil_indices[i_stencil];
@@ -1119,7 +1119,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
                     {
                         for (int trans_shift = -1; trans_shift <= 1; trans_shift += 2)
                         {
-                            Index<NDIM> i_stencil(0);
+                            hier::Index<NDIM> i_stencil(0);
                             i_stencil[norm_axis] += norm_shift;
                             i_stencil[trans_axis] += trans_shift;
                             const int stencil_index = stencil_indices[i_stencil];

@@ -375,7 +375,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         // 2.
                         for (Box<NDIM>::Iterator it(patch_box); it; it++)
                         {
-                            const Index<NDIM>& i = it();
+                            const hier::Index<NDIM>& i = it();
                             for (int d = 0; d < NDIM; ++d)
                             {
                                 (*W_cc_data)(i, d) *= std::sqrt(2.0);
@@ -388,7 +388,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         // diagonal by sqrt(2) to make the variance 2.
                         for (Box<NDIM>::Iterator it(patch_box); it; it++)
                         {
-                            const Index<NDIM>& i = it();
+                            const hier::Index<NDIM>& i = it();
                             double trace = 0.0;
                             for (int d = 0; d < NDIM; ++d)
                             {
@@ -477,7 +477,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                             acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box, data_time);
                         for (Box<NDIM>::Iterator it(bc_coef_box * node_box); it; it++)
                         {
-                            const Index<NDIM>& i = it();
+                            const hier::Index<NDIM>& i = it();
                             const NodeIndex<NDIM> n_i(i, 0);
                             const double& alpha = (*acoef_data)(i, 0);
                             const double& beta = (*bcoef_data)(i, 0);
@@ -553,7 +553,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                                 acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box, data_time);
                             for (Box<NDIM>::Iterator it(bc_coef_box * edge_boxes[edge_axis]); it; it++)
                             {
-                                const Index<NDIM>& i = it();
+                                const hier::Index<NDIM>& i = it();
                                 const EdgeIndex<NDIM> e_i(i, edge_axis, 0);
                                 const double& alpha = (*acoef_data)(i, 0);
                                 const double& beta = (*bcoef_data)(i, 0);

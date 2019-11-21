@@ -1016,11 +1016,11 @@ perform_mls(const int stencil_sz,
             {
                 const int ic0 = stencil_lower[0] + i0;
 #if (NDIM == 2)
-                const Index<NDIM> idx(ic0, ic1);
+                const hier::Index<NDIM> idx(ic0, ic1);
                 T[i1][i0] = D[0][i0] * D[1][i1] * mask_data(idx, /*depth*/ 0);
 #elif (NDIM == 3)
-            const Index<NDIM> idx(ic0, ic1, ic2);
-            T[i2][i1][i0] = D[0][i0] * D[1][i1] * D[2][i2] * mask_data(idx, /*depth*/ 0);
+                const hier::Index<NDIM> idx(ic0, ic1, ic2);
+                T[i2][i1][i0] = D[0][i0] * D[1][i1] * D[2][i2] * mask_data(idx, /*depth*/ 0);
 #endif
             }
         }
@@ -1253,11 +1253,11 @@ interpolate_data(const int stencil_sz,
             {
                 const int ic0 = stencil_lower[0] + i0;
 #if (NDIM == 2)
-                const Index<NDIM> idx(ic0, ic1);
+                const hier::Index<NDIM> idx(ic0, ic1);
                 Q += q_data(idx, q_comp) * Psi[i1][i0];
 #elif (NDIM == 3)
-            const Index<NDIM> idx(ic0, ic1, ic2);
-            Q += q_data(idx, q_comp) * Psi[i2][i1][i0];
+                const hier::Index<NDIM> idx(ic0, ic1, ic2);
+                Q += q_data(idx, q_comp) * Psi[i2][i1][i0];
 #endif
             }
         }
@@ -1302,11 +1302,11 @@ spread_data(const int stencil_sz,
             {
                 const int ic0 = stencil_lower[0] + i0;
 #if (NDIM == 2)
-                const Index<NDIM> idx(ic0, ic1);
+                const hier::Index<NDIM> idx(ic0, ic1);
                 q_data(idx, q_comp) += Q * Psi[i1][i0] * fac;
 #elif (NDIM == 3)
-            const Index<NDIM> idx(ic0, ic1, ic2);
-            q_data(idx, q_comp) += Q * Psi[i2][i1][i0] * fac;
+                const hier::Index<NDIM> idx(ic0, ic1, ic2);
+                q_data(idx, q_comp) += Q * Psi[i2][i1][i0] * fac;
 #endif
             }
         }
@@ -4654,8 +4654,8 @@ LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
     periodic_shifts.reserve(NDIM * upper_bound);
 
     const Box<NDIM>& patch_box = patch->getBox();
-    const Index<NDIM>& ilower = patch_box.lower();
-    const Index<NDIM>& iupper = patch_box.upper();
+    const hier::Index<NDIM>& ilower = patch_box.lower();
+    const hier::Index<NDIM>& iupper = patch_box.upper();
     const Box<NDIM>& ghost_box = idx_data->getGhostBox();
 
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -4681,7 +4681,7 @@ LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
     {
         for (typename LIndexSetData<T>::SetIterator it(*idx_data); it; it++)
         {
-            const Index<NDIM>& i = it.getIndex();
+            const hier::Index<NDIM>& i = it.getIndex();
             if (!box.contains(i)) continue;
 
             std::array<int, NDIM> offset;
@@ -4735,7 +4735,7 @@ LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
     for (int k = 0; k < X_size / X_depth; ++k)
     {
         const double* const X = &X_data[NDIM * k];
-        const Index<NDIM> i = IndexUtilities::getCellIndex(X, patch_geom, patch_box);
+        const hier::Index<NDIM> i = IndexUtilities::getCellIndex(X, patch_geom, patch_box);
         if (box.contains(i)) local_indices.push_back(k);
     }
     return;

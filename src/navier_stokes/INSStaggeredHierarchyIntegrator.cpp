@@ -362,8 +362,8 @@ copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHierarchy
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Index<NDIM>& ilower = patch->getBox().lower();
-            const Index<NDIM>& iupper = patch->getBox().upper();
+            const hier::Index<NDIM>& ilower = patch->getBox().lower();
+            const hier::Index<NDIM>& iupper = patch->getBox().upper();
             Pointer<SideData<NDIM, double> > U_sc_data = patch->getPatchData(U_sc_idx);
             Pointer<FaceData<NDIM, double> > U_fc_data = patch->getPatchData(U_fc_idx);
 #if !defined(NDEBUG)
@@ -1158,7 +1158,7 @@ INSStaggeredHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy
                 const Box<NDIM>& patch_box = patch->getBox();
                 for (Box<NDIM>::Iterator it(patch_box); it; it++)
                 {
-                    const Index<NDIM>& ic = it();
+                    const hier::Index<NDIM>& ic = it();
                     VectorNd U;
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
@@ -1575,7 +1575,7 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
                 Pointer<CellData<NDIM, double> > k_data = patch->getPatchData(d_k_new_idx);
                 for (Box<NDIM>::Iterator it(patch_box); it; it++)
                 {
-                    const Index<NDIM>& ic = it();
+                    const hier::Index<NDIM>& ic = it();
 
                     // To simplifiy notation in this comment, define U = mean(u).
                     //
@@ -1875,8 +1875,8 @@ INSStaggeredHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) 
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const Index<NDIM>& ilower = patch->getBox().lower();
-    const Index<NDIM>& iupper = patch->getBox().upper();
+    const hier::Index<NDIM>& ilower = patch->getBox().lower();
+    const hier::Index<NDIM>& iupper = patch->getBox().upper();
 
     Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_var, getCurrentContext());
     const IntVector<NDIM>& U_ghost_cells = U_data->getGhostCellWidth();
@@ -2270,7 +2270,7 @@ INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<
                 Pointer<CellData<NDIM, double> > Omega_data = patch->getPatchData(d_Omega_idx);
                 for (CellIterator<NDIM> ic(patch_box); ic; ic++)
                 {
-                    const Index<NDIM>& i = ic();
+                    const hier::Index<NDIM>& i = ic();
                     double norm_Omega_sq = 0.0;
                     for (unsigned int d = 0; d < (NDIM == 2 ? 1 : NDIM); ++d)
                     {
@@ -2791,8 +2791,8 @@ INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
 
-            const Index<NDIM>& ilower = patch->getBox().lower();
-            const Index<NDIM>& iupper = patch->getBox().upper();
+            const hier::Index<NDIM>& ilower = patch->getBox().lower();
+            const hier::Index<NDIM>& iupper = patch->getBox().upper();
 
             Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(U_idx);
             Pointer<CellData<NDIM, double> > Q_data = patch->getPatchData(Q_idx);

@@ -153,7 +153,7 @@ NonbondedForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
         for (LNodeSetData::CellIterator cit(patch_box); cit; cit++)
         {
             // get list of particles in this cell
-            const Index<NDIM>& first_cell_idx = *cit;
+            const hier::Index<NDIM>& first_cell_idx = *cit;
             LNodeSet* const mstr_node_set = current_idx_data->getItem(first_cell_idx);
             if (mstr_node_set)
             {
@@ -166,7 +166,7 @@ NonbondedForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
                     // forces onto the particle in the "master" cell At this
                     // point we know both cells, need to figure out periodic
                     // additions.
-                    const Index<NDIM>& search_cell_idx = *scit;
+                    const hier::Index<NDIM>& search_cell_idx = *scit;
 
                     // search across periodic boundaries.
                     for (int k = 0; k < NDIM; ++k)

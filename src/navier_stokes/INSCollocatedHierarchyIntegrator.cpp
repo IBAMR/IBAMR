@@ -1524,8 +1524,8 @@ INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch)
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const Index<NDIM>& ilower = patch->getBox().lower();
-    const Index<NDIM>& iupper = patch->getBox().upper();
+    const hier::Index<NDIM>& ilower = patch->getBox().lower();
+    const hier::Index<NDIM>& iupper = patch->getBox().upper();
 
     Pointer<FaceData<NDIM, double> > u_ADV_data = patch->getPatchData(d_u_ADV_var, getCurrentContext());
     const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV_data->getGhostCellWidth();
@@ -1788,7 +1788,7 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer
                 Pointer<CellData<NDIM, double> > Omega_data = patch->getPatchData(d_Omega_idx);
                 for (CellIterator<NDIM> ic(patch_box); ic; ic++)
                 {
-                    const Index<NDIM>& i = ic();
+                    const hier::Index<NDIM>& i = ic();
 #if (NDIM == 2)
                     if (std::abs((*Omega_data)(i)) > thresh)
                     {
@@ -2182,8 +2182,8 @@ INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const in
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
 
-            const Index<NDIM>& ilower = patch->getBox().lower();
-            const Index<NDIM>& iupper = patch->getBox().upper();
+            const hier::Index<NDIM>& ilower = patch->getBox().lower();
+            const hier::Index<NDIM>& iupper = patch->getBox().upper();
 
             Pointer<FaceData<NDIM, double> > u_data = patch->getPatchData(u_idx);
             Pointer<CellData<NDIM, double> > Q_data = patch->getPatchData(Q_idx);

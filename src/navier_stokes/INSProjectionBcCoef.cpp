@@ -158,7 +158,7 @@ INSProjectionBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
     // Dirichlet conditions for the pressure.
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
-        const Index<NDIM>& i = it();
+        const hier::Index<NDIM>& i = it();
         double dummy_val;
         double& alpha = acoef_data ? (*acoef_data)(i, 0) : dummy_val;
         double& beta = bcoef_data ? (*bcoef_data)(i, 0) : dummy_val;
