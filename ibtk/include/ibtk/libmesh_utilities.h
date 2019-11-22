@@ -49,6 +49,18 @@ IBTK_ENABLE_EXTRA_WARNINGS
 
 namespace IBTK
 {
+namespace libMeshWrappers
+{
+    /**
+     * Compatibility type alias for supporting older versions of libMesh.
+     */
+#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
+    using BoundingBox = libMesh::BoundingBox;
+#else
+    using BoundingBox = libMesh::MeshTools::BoundingBox;
+#endif
+}
+
 /*!
  * Struct allowing for the specification of system variables / gradients and the NumericVector used to evaluate
  * those quantities.
@@ -1339,34 +1351,27 @@ void write_node_partitioning(const std::string& file_name, const libMesh::System
  * Compute bounding boxes based on where an elements quadrature points
  * are. See getQuadratureKey for descriptions of the last five arguments.
  */
-std::vector<libMesh::BoundingBox> get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
-                                                                          const libMesh::System& X_system,
-                                                                          const libMesh::QuadratureType quad_type,
-                                                                          const libMesh::Order quad_order,
-                                                                          const bool use_adaptive_quadrature,
-                                                                          const double point_density,
-                                                                          const double patch_dx_min);
+std::vector<libMeshWrappers::BoundingBox>
+get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                        const libMesh::System& X_system,
+                                        const libMesh::QuadratureType quad_type,
+                                        const libMesh::Order quad_order,
+                                        const bool use_adaptive_quadrature,
+                                        const double point_density,
+                                        const double patch_dx_min);
 
 /*
  * Compute bounding boxes for each local active (i.e., active on the current
  * processor) element in @p mesh with coordinates given by @p X_system.
  */
-#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
-std::vector<libMesh::BoundingBox>
-#else
-std::vector<libMesh::MeshTools::BoundingBox>
-#endif
+std::vector<libMeshWrappers::BoundingBox>
 get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system);
 
 /*
  * Compute bounding boxes for each active (i.e., active on any processor)
  * element in @p mesh with coordinates given by @p X_system.
  */
-#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
-std::vector<libMesh::BoundingBox>
-#else
-std::vector<libMesh::MeshTools::BoundingBox>
-#endif
+std::vector<libMeshWrappers::BoundingBox>
 get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system);
 } // namespace IBTK
 
