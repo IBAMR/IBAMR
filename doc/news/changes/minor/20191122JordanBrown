@@ -1,0 +1,4 @@
+Improved: Improved Jacobian calculation and caching by creating 
+JacobianCalculator and JacobianCalculatorCache classes for use by FEDataManager.
+<br>
+(Jordan Brown, 2019/11/22)

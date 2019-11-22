@@ -171,6 +171,7 @@ DIM_INDEPENDENT_SOURCES = \
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
 ../src/lagrangian/BoxPartitioner.cpp \
+../src/lagrangian/JacobianCalculator.cpp \
 ../src/lagrangian/FEDataInterpolation.cpp \
 ../src/lagrangian/FEDataManager.cpp \
 ../src/utilities/libmesh_utilities.cpp
@@ -349,6 +350,7 @@ pkg_include_HEADERS += \
 if LIBMESH_ENABLED
 DIM_INDEPENDENT_SOURCES += \
 ../include/lagrangian/BoxPartitioner.h \
+../src/lagrangian/JacobianCalculator.h \
 ../include/ibtk/FEDataInterpolation.h \
 ../include/ibtk/FEDataManager.h \
 ../include/ibtk/libmesh_utilities.h
