@@ -91,4 +91,6 @@ GitHub.
 - [ ] Once `IBAMR-X.Y` is in good shape tag a proper release, i.e., `vX.Y.Z` and
   create a non-draft release on GitHub.
 - [ ] Send out a message to the mailing list about the release.
+- [ ] Add a note on the release to the web page.
+- [ ] Update version numbers on the build instructions web page.
 - [ ] Celebrate!
