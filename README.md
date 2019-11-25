@@ -28,7 +28,9 @@ For general information about the IB method, see [math.nyu.edu/faculty/peskin](h
 Getting Started
 ---------------
 
-IBAMR requires a number of [third-party libraries](../../wiki/ThirdPartyLibraries).  [Sample build instructions are provided](../../wiki/Building) for a typical Linux installation.
+IBAMR requires a number of [third-party libraries](../../wiki/ThirdPartyLibraries). [Sample build instructions are provided](../../wiki/Building) for a typical Linux installation. 
+
+For help with git see [the summary document](./doc/git.md) included with the documentation.
 
 Documentation
 -------------
