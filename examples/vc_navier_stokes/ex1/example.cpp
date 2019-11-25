@@ -58,8 +58,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-bool
-run_example(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
@@ -443,8 +443,7 @@ run_example(int argc, char* argv[])
     // double test_results[2] = {uMax_norm, pMax_norm};
     SAMRAIManager::shutdown();
     PetscFinalize();
-    return true;
-} // run_example
+} // main
 
 void
 output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,

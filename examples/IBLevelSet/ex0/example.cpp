@@ -321,8 +321,8 @@ static double shift_z;
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-bool
-run_example(int argc, char* argv[], std::vector<double>& Q_err)
+int
+main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -333,8 +333,6 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
     // Increase maximum patch data component indices
     SAMRAIManager::setMaxNumberPatchDataEntries(2500);
 
-    // Resize Q_err to hold error norms
-    Q_err.resize(3);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -1009,5 +1007,4 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
     } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
-    return true;
 } // main

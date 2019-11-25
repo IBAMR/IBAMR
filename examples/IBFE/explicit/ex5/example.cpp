@@ -207,8 +207,8 @@ void postprocess_data(Pointer<Database> input_db,
  *                                                                             *
  *******************************************************************************/
 
-bool
-run_example(int argc, char** argv)
+int
+main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
@@ -608,8 +608,7 @@ run_example(int argc, char** argv)
     } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
-    return true;
-} // run_example
+} // main
 
 void
 postprocess_data(Pointer<Database> input_db,

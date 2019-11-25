@@ -97,7 +97,6 @@ CONFIGURE_EIGEN("$ABSOLUTE_SRCDIR/contrib/eigen","\$(abs_top_builddir)/contrib/e
 CONFIGURE_HDF5
 CONFIGURE_HYPRE
 CONFIGURE_GSL
-CONFIGURE_GTEST
 CONFIGURE_MUPARSER("$ABSOLUTE_SRCDIR/contrib/muparser","\$(abs_top_builddir)/contrib/muparser")
 # configure dependencies of dependencies:
 CONFIGURE_SILO

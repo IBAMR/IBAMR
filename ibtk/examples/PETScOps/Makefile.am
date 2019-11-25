@@ -20,12 +20,6 @@ all:
 	  $(MAKE) examples ; \
 	fi ;
 
-gtest:
-	@(cd ProlongationMat && make gtest) || exit 1;
-
-gtest-long:
-	@(cd ProlongationMat && make gtest-long) || exit 1;
-
 ## Standard make targets.
 examples:
 	@(cd ProlongationMat && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;

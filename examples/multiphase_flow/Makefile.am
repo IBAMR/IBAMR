@@ -23,50 +23,5 @@ examples: $(COMPLETE_EXAMPLES)
 $(COMPLETE_EXAMPLES):
 	cd $@ && $(MAKE) $(AM_MAKEFLAGS) examples
 
-gtest:
-	@(cd ex0 && make gtest) || exit 1;
-	@(cd ex1 && make gtest) || exit 1;
-	@(cd ex2 && make gtest) || exit 1;
-	@(cd ex3 && make gtest) || exit 1;
-	@(cd ex4 && make gtest) || exit 1;
-	@(cd ex5 && make gtest) || exit 1;
-	@(cd ex6 && make gtest) || exit 1;
-	@(cd ex7 && make gtest) || exit 1;
-	@(cd ex8 && make gtest) || exit 1;
-	@(cd ex9 && make gtest) || exit 1;
-	@(cd ex10 && make gtest) || exit 1;
-	@(cd ex11 && make gtest) || exit 1;
-	@(cd ex12 && make gtest) || exit 1;
-	@(cd ex13 && make gtest) || exit 1;
 
-gtest-long:
-	@(cd ex0 && make gtest-long) || exit 1;
-	@(cd ex1 && make gtest-long) || exit 1;
-	@(cd ex2 && make gtest-long) || exit 1;
-	@(cd ex3 && make gtest-long) || exit 1;
-	@(cd ex4 && make gtest-long) || exit 1;
-	@(cd ex5 && make gtest-long) || exit 1;
-	@(cd ex6 && make gtest-long) || exit 1;
-	@(cd ex7 && make gtest-long) || exit 1;
-	@(cd ex8 && make gtest-long) || exit 1;
-	@(cd ex9 && make gtest-long) || exit 1;
-	@(cd ex10 && make gtest-long) || exit 1;
-	@(cd ex11 && make gtest-long) || exit 1;
-	@(cd ex12 && make gtest-long) || exit 1;
-	@(cd ex13 && make gtest-long) || exit 1;
 
-gtest-all:
-	@(cd ex0 && make gtest-long) || exit 1;
-	@(cd ex1 && make gtest-long) || exit 1;
-	@(cd ex2 && make gtest-long) || exit 1;
-	@(cd ex3 && make gtest-long) || exit 1;
-	@(cd ex4 && make gtest-long) || exit 1;
-	@(cd ex5 && make gtest-long) || exit 1;
-	@(cd ex6 && make gtest-long) || exit 1;
-	@(cd ex7 && make gtest-long) || exit 1;
-	@(cd ex8 && make gtest-long) || exit 1;
-	@(cd ex9 && make gtest-long) || exit 1;
-	@(cd ex10 && make gtest-long) || exit 1;
-	@(cd ex11 && make gtest-long) || exit 1;
-	@(cd ex12 && make gtest-long) || exit 1;
-	@(cd ex13 && make gtest-long) || exit 1;

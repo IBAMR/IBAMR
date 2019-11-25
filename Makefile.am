@@ -67,28 +67,3 @@ EXTRA_DIST += $(top_srcdir)/doc/stylesheet.css
 refresh_tags:
 	cd ibtk && $(MAKE) refresh_tags
 	cd $(top_srcdir) && find . -name "*.[ChIf]" -print | etags -
-
-
-
-if GTEST_ENABLED
-gtest:
-	@(cd examples && make gtest) || exit 1;
-	@(cd ibtk     && make gtest) || exit 1;
-
-gtest-long:
-	@(cd examples && make gtest-long) || exit 1;
-	@(cd ibtk     && make gtest-long) || exit 1;
-
-gtest-all:
-	@(cd examples && make gtest-all) || exit 1;
-	@(cd ibtk     && make gtest-all) || exit 1;
-else
-gtest:
-	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-	@echo " To run tests, Google Test Framework must be enabled.                "
-	@echo " Configure IBAMR with additional options:                            "
-	@echo "                      --enable-gtest --with-gtest=path               "
-	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-gtest-long:
-	make gtest
-endif

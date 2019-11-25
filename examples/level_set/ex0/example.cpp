@@ -56,16 +56,14 @@
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-bool
-run_example(int argc, char* argv[], std::vector<double>& Q_err)
+int
+main(int argc, char* argv[])
 {
     // Initialize MPI and SAMRAI.
     SAMRAI_MPI::init(&argc, &argv);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
-    // Resize Q_err to hold error norms
-    Q_err.resize(3);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -306,5 +304,4 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
 
     SAMRAIManager::shutdown();
     SAMRAI_MPI::finalize();
-    return true;
 } // main

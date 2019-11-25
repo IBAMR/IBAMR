@@ -43,8 +43,8 @@
  *    executable <input file name>                                             *
  *                                                                             *
  *******************************************************************************/
-bool
-run_example(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
@@ -276,5 +276,4 @@ run_example(int argc, char* argv[])
 
     SAMRAIManager::shutdown();
     PetscFinalize();
-    return true;
 } // main
