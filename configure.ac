@@ -256,6 +256,7 @@ AC_CONFIG_FILES([
   tests/IBFE/Makefile
   tests/IBTK/Makefile
   tests/multiphase_flow/Makefile
+  tests/navier_stokes/Makefile
   tests/physical_boundary/Makefile
   tests/refine/Makefile
   tests/spread/Makefile
