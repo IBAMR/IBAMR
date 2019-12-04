@@ -30,7 +30,7 @@
 namespace IBAMR
 {
 /*!
- * \brief Class CIBFEMethod is a concrete CIBStrategy and IBMethod
+ * \brief Class CIBMethod is a concrete CIBStrategy and IBMethod
  * class which implements the motion of rigid bodies using the constraint
  * formulation. The immersed structure is discretized using standard IB
  * markers.
