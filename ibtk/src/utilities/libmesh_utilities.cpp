@@ -13,6 +13,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/FECache.h"
+#include "ibtk/QuadratureCache.h"
 #include "ibtk/libmesh_utilities.h"
 
 #include "libmesh/enum_elem_type.h"
@@ -206,27 +208,106 @@ write_node_partitioning(const std::string& file_name, const libMesh::System& pos
     }
 }
 
-#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
-std::vector<libMesh::BoundingBox>
-#else
-std::vector<libMesh::MeshTools::BoundingBox>
-#endif
-get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system)
+std::vector<libMeshWrappers::BoundingBox>
+get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                        const libMesh::System& X_system,
+                                        const libMesh::QuadratureType quad_type,
+                                        const libMesh::Order quad_order,
+                                        const bool use_adaptive_quadrature,
+                                        const double point_density,
+                                        const double patch_dx_min)
 {
-    static_assert(NDIM <= LIBMESH_DIM,
-                  "NDIM should be no more than LIBMESH_DIM for this function to "
-                  "work correctly.");
+    const unsigned int dim = mesh.mesh_dimension();
+    TBOX_ASSERT(dim <= LIBMESH_DIM);
     const unsigned int X_sys_num = X_system.number();
     auto X_ghost_vec_ptr = X_system.current_local_solution->zero_clone();
     auto& X_ghost_vec = dynamic_cast<libMesh::PetscVector<double>&>(*X_ghost_vec_ptr);
     X_ghost_vec = *X_system.solution;
 
-#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
-    std::vector<libMesh::BoundingBox> bboxes;
-#else
-    std::vector<libMesh::MeshTools::BoundingBox> bboxes;
-#endif
+    std::vector<libMeshWrappers::BoundingBox> bboxes;
 
+    std::vector<std::vector<libMesh::dof_id_type> > dof_indices(dim);
+    boost::multi_array<double, 2> X_node;
+    QuadratureCache quad_cache(dim);
+    FECache fe_cache(dim, X_system.get_dof_map().variable_type(0), update_phi);
+    using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    const auto el_begin = mesh.active_local_elements_begin();
+    const auto el_end = mesh.active_local_elements_end();
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
+    {
+        // 0. Set up bounding box
+        bboxes.emplace_back();
+        auto& box = bboxes.back();
+        libMesh::Point& lower_bound = box.first;
+        libMesh::Point& upper_bound = box.second;
+        for (unsigned int d = 0; d < LIBMESH_DIM; ++d)
+        {
+            lower_bound(d) = std::numeric_limits<double>::max();
+            upper_bound(d) = -std::numeric_limits<double>::max();
+        }
+
+        // 1. extract node locations
+        const libMesh::Elem* const elem = *el_it;
+        const unsigned int n_nodes = elem->n_nodes();
+        for (unsigned int d = 0; d < dim; ++d) dof_indices[d].clear();
+
+        for (unsigned int k = 0; k < n_nodes; ++k)
+        {
+            const libMesh::Node* const node = elem->node_ptr(k);
+            for (unsigned int d = 0; d < dim; ++d)
+            {
+                TBOX_ASSERT(node->n_dofs(X_sys_num, d) == 1);
+                dof_indices[d].push_back(node->dof_number(X_sys_num, d, 0));
+            }
+        }
+        get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
+
+        // 2. compute mapped quadrature points in the deformed configuration
+        const quad_key_type key =
+            getQuadratureKey(quad_type, quad_order, use_adaptive_quadrature, point_density, elem, X_node, patch_dx_min);
+        libMesh::QBase& quadrature = quad_cache[key];
+        libMesh::FEBase& fe = fe_cache(key, elem);
+        const std::vector<std::vector<double> >& phi_X = fe.get_phi();
+        const std::vector<libMesh::Point>& q_points = quadrature.get_points();
+        for (unsigned int qp = 0; qp < q_points.size(); ++qp)
+        {
+            libMesh::Point mapped_point;
+            for (unsigned int k = 0; k < n_nodes; ++k)
+            {
+                for (unsigned int d = 0; d < dim; ++d)
+                {
+                    mapped_point(d) += phi_X[k][qp] * X_node[k][d];
+                }
+            }
+            for (unsigned int d = 0; d < dim; ++d)
+            {
+                lower_bound(d) = std::min(lower_bound(d), mapped_point(d));
+                upper_bound(d) = std::max(upper_bound(d), mapped_point(d));
+            }
+
+            // fill extra dimension with 0.0, which is libMesh's convention
+            for (unsigned int d = dim; d < LIBMESH_DIM; ++d)
+            {
+                lower_bound(d) = 0.0;
+                upper_bound(d) = 0.0;
+            }
+        }
+    }
+
+    return bboxes;
+} // get_local_active_element_bounding_boxes
+
+std::vector<libMeshWrappers::BoundingBox>
+get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system)
+{
+    const unsigned int dim = mesh.mesh_dimension();
+    TBOX_ASSERT(dim <= LIBMESH_DIM);
+    const unsigned int X_sys_num = X_system.number();
+    auto X_ghost_vec_ptr = X_system.current_local_solution->zero_clone();
+    auto& X_ghost_vec = dynamic_cast<libMesh::PetscVector<double>&>(*X_ghost_vec_ptr);
+    X_ghost_vec = *X_system.solution;
+
+    std::vector<libMeshWrappers::BoundingBox> bboxes;
     bboxes.reserve(mesh.n_local_elem());
 
     std::vector<libMesh::dof_id_type> dof_indices;
@@ -251,7 +332,7 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const lib
         for (unsigned int k = 0; k < n_nodes; ++k)
         {
             const libMesh::Node* const node = elem->node_ptr(k);
-            for (unsigned int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < dim; ++d)
             {
                 TBOX_ASSERT(node->n_dofs(X_sys_num, d) == 1);
                 dof_indices.push_back(node->dof_number(X_sys_num, d, 0));
@@ -262,11 +343,18 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const lib
         X_ghost_vec.get(dof_indices, X_node.data());
         for (unsigned int k = 0; k < n_nodes; ++k)
         {
-            for (unsigned int d = 0; d < NDIM; ++d)
+            for (unsigned int d = 0; d < dim; ++d)
             {
-                const double& X = X_node[k * NDIM + d];
+                const double& X = X_node[k * dim + d];
                 lower_bound(d) = std::min(lower_bound(d), X);
                 upper_bound(d) = std::max(upper_bound(d), X);
+            }
+
+            // fill extra dimension with 0.0, which is libMesh's convention
+            for (unsigned int d = dim; d < LIBMESH_DIM; ++d)
+            {
+                lower_bound(d) = 0.0;
+                upper_bound(d) = 0.0;
             }
         }
     }
@@ -274,11 +362,7 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const lib
     return bboxes;
 } // get_local_active_element_bounding_boxes
 
-#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
-std::vector<libMesh::BoundingBox>
-#else
-std::vector<libMesh::MeshTools::BoundingBox>
-#endif
+std::vector<libMeshWrappers::BoundingBox>
 get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system)
 {
     static_assert(NDIM <= LIBMESH_DIM,
@@ -307,11 +391,7 @@ get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const li
         MPI_IN_PLACE, flattened_bboxes.data(), flattened_bboxes.size(), MPI_DOUBLE, MPI_SUM, mesh.comm().get());
     TBOX_ASSERT(ierr == 0);
 
-#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
-    std::vector<libMesh::BoundingBox> global_bboxes(n_elem);
-#else
-    std::vector<libMesh::MeshTools::BoundingBox> global_bboxes(n_elem);
-#endif
+    std::vector<libMeshWrappers::BoundingBox> global_bboxes(n_elem);
     for (unsigned int e = 0; e < n_elem; ++e)
     {
         for (unsigned int d = 0; d < NDIM; ++d)
