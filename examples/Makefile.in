@@ -465,10 +465,10 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SUBDIRS = CIB CIBFE ConstraintIB IB IBFE IBLevelSet IMP adv_diff advect navier_stokes level_set multiphase_flow vc_navier_stokes wave_tank
+SUBDIRS = CIB ConstraintIB IB IBFE IBLevelSet IMP adv_diff advect navier_stokes level_set multiphase_flow vc_navier_stokes wave_tank
 COMPLETE_EXAMPLES = CIB ConstraintIB IB IBFE IBLevelSet adv_diff advect navier_stokes level_set multiphase_flow vc_navier_stokes wave_tank
 # Not all examples can be compiled at the present time
-INCOMPLETE_EXAMPLES = IMP CIBFE
+INCOMPLETE_EXAMPLES = IMP
 all: all-recursive
 
 .SUFFIXES:

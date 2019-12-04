@@ -13,7 +13,7 @@
 
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = CIB CIBFE ConstraintIB IB IBFE IBLevelSet IMP adv_diff advect navier_stokes level_set multiphase_flow vc_navier_stokes wave_tank
+SUBDIRS = CIB ConstraintIB IB IBFE IBLevelSet IMP adv_diff advect navier_stokes level_set multiphase_flow vc_navier_stokes wave_tank
 
 all:
 	if test "$(CONFIGURATION_BUILD_DIR)" != ""; then \
@@ -22,7 +22,7 @@ all:
 
 COMPLETE_EXAMPLES = CIB ConstraintIB IB IBFE IBLevelSet adv_diff advect navier_stokes level_set multiphase_flow vc_navier_stokes wave_tank
 # Not all examples can be compiled at the present time
-INCOMPLETE_EXAMPLES = IMP CIBFE
+INCOMPLETE_EXAMPLES = IMP
 .PHONY: examples $(COMPLETE_EXAMPLES)
 examples: $(COMPLETE_EXAMPLES)
 
