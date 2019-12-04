@@ -120,6 +120,21 @@ protected:
 };
 
 /*
+ * Specialization for Edge2 elements.
+ */
+class Edge2JacobianCalculator : public JacobianCalculator
+{
+public:
+    /**
+     * Explicitly use the base class' constructor (this class does not require
+     * any additional setup).
+     */
+    using JacobianCalculator::JacobianCalculator;
+
+    virtual const std::vector<double>& get_JxW(const libMesh::Elem* elem) override;
+};
+
+/*
  * Specialization for TRI3 elements.
  */
 class Tri3JacobianCalculator : public JacobianCalculator
