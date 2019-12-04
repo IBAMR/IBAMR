@@ -114,6 +114,9 @@ operator[](const JacobianCalculatorCache::key_type& quad_key)
         std::unique_ptr<JacobianCalculator> jac_calc;
         switch (elem_type)
         {
+		case libMesh::EDGE2:
+            jac_calc.reset(new Edge2JacobianCalculator(quad_key));
+            break;
         case libMesh::TRI3:
             jac_calc.reset(new Tri3JacobianCalculator(quad_key));
             break;
