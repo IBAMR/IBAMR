@@ -585,17 +585,17 @@ run_example(int argc, char** argv)
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
-            if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
-            {
-                postprocess_data(input_db,
-                                 patch_hierarchy,
-                                 navier_stokes_integrator,
-                                 mesh,
-                                 equation_systems,
-                                 iteration_num,
-                                 loop_time,
-                                 postproc_data_dump_dirname);
-            }
+            //~ if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
+            //~ {
+                //~ postprocess_data(input_db,
+                                 //~ patch_hierarchy,
+                                 //~ navier_stokes_integrator,
+                                 //~ mesh,
+                                 //~ equation_systems,
+                                 //~ iteration_num,
+                                 //~ loop_time,
+                                 //~ postproc_data_dump_dirname);
+            //~ }
         }
 
         // Close the logging streams.
@@ -641,7 +641,6 @@ postprocess_data(Pointer<Database> input_db,
         F_integral[d] = 0.0;
         T_integral[d] = 0.0;
     }
-
     System* x_system;
     System* U_system;
 

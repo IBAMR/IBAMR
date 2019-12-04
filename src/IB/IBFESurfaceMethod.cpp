@@ -600,7 +600,6 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
         {
             *d_P_jump_systems[part]->solution = *d_P_jump_half_vecs[part];
             *d_P_jump_systems[part]->current_local_solution = *d_P_jump_half_vecs[part];
-
             *d_P_systems[part]->solution = *d_P_half_vecs[part];
             *d_P_systems[part]->current_local_solution = *d_P_half_vecs[part];
         }
@@ -615,7 +614,6 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
             *d_WSS_systems[part]->solution = *d_WSS_half_vecs[part];
             *d_WSS_systems[part]->current_local_solution = *d_WSS_half_vecs[part];
         }
-
         if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions)
         {
             *d_TAU_systems[part]->solution = *d_TAU_half_vecs[part];
@@ -858,7 +856,6 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                 x_lower_gh[d] = patch_x_lower[d] - (static_cast<double>(u_ghost_num)) * patch_dx[d];
                 x_upper_gh[d] = patch_x_upper[d] + (static_cast<double>(u_ghost_num)) * patch_dx[d];
             }
-
             double* x_upper_ghost = &x_upper_gh[0];
             double* x_lower_ghost = &x_lower_gh[0];
 
@@ -1188,11 +1185,9 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 #endif
                         }
                     }
-
                     for (unsigned int k = 0; k < local_indices.size(); ++k)
                     {
                         U_qp[NDIM * local_indices[k] + axis] = U_axis[local_indices[k]];
-
                         if (dh != 0.0)
                         {
                             WSS_qp[NDIM * local_indices[k] + axis] =
@@ -1770,7 +1765,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             }
         }
 
-        SAMRAI_MPI::sumReduction(&F_integral(0), LIBMESH_DIM);
+        SAMRAI_MPI::sumReduction(&F_integral(0), NDIM);
 
         // Solve for F.
         d_fe_data_managers[part]->computeL2Projection(
@@ -2197,12 +2192,12 @@ void IBFESurfaceMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*h
 
 void
 IBFESurfaceMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                                       int /*level_number*/,
-                                       double /*init_data_time*/,
-                                       bool /*can_be_refined*/,
-                                       bool /*initial_time*/,
-                                       Pointer<BasePatchLevel<NDIM> > /*old_level*/,
-                                       bool /*allocate_data*/)
+                                       int level_number,
+                                       double init_data_time,
+                                       bool can_be_refined,
+                                       bool initial_time,
+                                       Pointer<BasePatchLevel<NDIM> > old_level,
+                                       bool allocate_data)
 {
     const int finest_hier_level = hierarchy->getFinestLevelNumber();
     for (unsigned int part = 0; part < d_num_parts; ++part)
