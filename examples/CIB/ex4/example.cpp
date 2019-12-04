@@ -106,8 +106,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-bool
-run_example(int argc, char* argv[], double& end_time, double& end_u)
+int
+main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
@@ -358,11 +358,7 @@ run_example(int argc, char* argv[], double& end_time, double& end_u)
             U_stream << loop_time << "\t" << U0(0) << "\t" << U0(1) << "\t" << U0(2) << "\t" << U0(3) << "\t" << U0(4)
                      << "\t" << U0(5) << std::endl;
 
-            // store velocity and loop time in variables passed to run_example as reference
-            // used to test accuracy relative to past preformance in test_main.cpp
-            end_u = std::abs(U0(1));
-            end_time = loop_time;
-            pout << "Velocity of rigid body is " << std::setprecision(10) << end_u << "\n";
+            pout << "Velocity of rigid body is " << std::setprecision(10) << std::abs(U0(1)) << "\n";
 
             // Compute external gravity force on structure
             struct0.F.setZero();
@@ -421,7 +417,6 @@ run_example(int argc, char* argv[], double& end_time, double& end_u)
 
     SAMRAIManager::shutdown();
     PetscFinalize();
-    return true;
 } // main
 
 void

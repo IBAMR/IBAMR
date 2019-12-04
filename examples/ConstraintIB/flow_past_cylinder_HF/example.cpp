@@ -95,8 +95,8 @@ spring_force_deriv(double /*R*/, const double* /*params*/, int /*lag_mastr_idx*/
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-bool
-run_example(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, PETSC_NULL, PETSC_NULL);
@@ -399,8 +399,7 @@ run_example(int argc, char* argv[])
 
     SAMRAIManager::shutdown();
     PetscFinalize();
-    return true;
-} // run_example
+} // main
 
 void
 output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,

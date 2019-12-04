@@ -1,0 +1,11 @@
+Removed: The old test suite based on gtest has been completely removed in favor
+of the one based on attest. In particular:
+<ol>
+  <li>gtest is no longer recognized as a dependency.</li>
+  <li><code>example.cpp</code> and <code>ex_main.cpp</code> have been brought
+  back together.</li>
+  <li>The <code>gtest</code> and <code>gtest-long</code> make targets have been
+  removed.</li>
+</ol>
+<br>
+(David Wells, 2019/12/03)

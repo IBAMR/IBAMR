@@ -23,11 +23,5 @@ examples: $(COMPLETE_EXAMPLES)
 $(COMPLETE_EXAMPLES):
 	cd $@ && $(MAKE) $(AM_MAKEFLAGS) examples
 
-gtest:
-	@(cd explicit && make gtest) || exit 1;
 
-gtest-long:
-	@(cd explicit && make gtest) || exit 1;
 
-gtest-all:
-	@(cd explicit && make gtest-long) || exit 1;

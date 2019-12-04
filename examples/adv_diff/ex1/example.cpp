@@ -48,8 +48,8 @@
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-bool
-run_example(int argc, char* argv[], std::vector<double>& U_err)
+int
+main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
@@ -57,8 +57,6 @@ run_example(int argc, char* argv[], std::vector<double>& U_err)
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
-    // resize U_err to hold error data
-    U_err.resize(3);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -277,9 +275,6 @@ run_example(int argc, char* argv[], std::vector<double>& U_err)
              << "  L2-norm:  " << hier_cc_data_ops.L2Norm(U_idx, wgt_cc_idx) << "\n"
              << "  max-norm: " << hier_cc_data_ops.maxNorm(U_idx, wgt_cc_idx) << "\n";
 
-        U_err[0] = hier_cc_data_ops.L1Norm(U_idx, wgt_cc_idx);
-        U_err[1] = hier_cc_data_ops.L2Norm(U_idx, wgt_cc_idx);
-        U_err[2] = hier_cc_data_ops.maxNorm(U_idx, wgt_cc_idx);
 
         if (dump_viz_data && uses_visit)
         {
@@ -294,5 +289,4 @@ run_example(int argc, char* argv[], std::vector<double>& U_err)
 
     SAMRAIManager::shutdown();
     PetscFinalize();
-    return true;
 } // main

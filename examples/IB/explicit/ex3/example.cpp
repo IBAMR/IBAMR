@@ -86,8 +86,8 @@ linear_spring_force_deriv(double /*R*/, const double* params, int /*lag_mastr_id
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-bool
-run_example(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
@@ -322,7 +322,6 @@ run_example(int argc, char* argv[])
 
     SAMRAIManager::shutdown();
     PetscFinalize();
-    return true;
 } // main
 
 void

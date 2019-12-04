@@ -54,16 +54,14 @@
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-bool
-run_example(int argc, char* argv[], std::vector<double>& Q_err)
+int
+main(int argc, char* argv[])
 {
     // Initialize MPI and SAMRAI.
     SAMRAI_MPI::init(&argc, &argv);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
-    // Resize Q_err to hold error norms
-    Q_err.resize(3);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -279,9 +277,6 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
              << "  max-norm: " << hier_cc_data_ops.maxNorm(Q_idx, wgt_idx) << "\n"
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 
-        Q_err[0] = hier_cc_data_ops.L1Norm(Q_idx, wgt_idx);  // L1norm
-        Q_err[1] = hier_cc_data_ops.L2Norm(Q_idx, wgt_idx);  // L2norm
-        Q_err[2] = hier_cc_data_ops.maxNorm(Q_idx, wgt_idx); // MaxNorm
 
         if (dump_viz_data && uses_visit)
         {
@@ -292,5 +287,4 @@ run_example(int argc, char* argv[], std::vector<double>& Q_err)
 
     SAMRAIManager::shutdown();
     SAMRAI_MPI::finalize();
-    return true;
 } // main

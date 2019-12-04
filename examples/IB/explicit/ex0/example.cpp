@@ -236,8 +236,8 @@ generate_springs(
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-bool
-run_example(int argc, char* argv[], std::vector<double>& u_err, std::vector<double>& p_err)
+int
+main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
@@ -246,8 +246,6 @@ run_example(int argc, char* argv[], std::vector<double>& u_err, std::vector<doub
     SAMRAIManager::startup();
 
     // resize error vectors to hold data from u and p
-    u_err.resize(3);
-    p_err.resize(3);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -531,9 +529,6 @@ run_example(int argc, char* argv[], std::vector<double>& u_err, std::vector<doub
                      << "  L2-norm:  " << hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx) << "\n"
                      << "  max-norm: " << hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx) << "\n";
 
-                u_err[0] = hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx);
-                u_err[1] = hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx);
-                u_err[2] = hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx);
             }
 
             Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
@@ -547,9 +542,6 @@ run_example(int argc, char* argv[], std::vector<double>& u_err, std::vector<doub
                      << "  L2-norm:  " << hier_sc_data_ops.L2Norm(u_cloned_idx, wgt_sc_idx) << "\n"
                      << "  max-norm: " << hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx) << "\n";
 
-                u_err[0] = hier_sc_data_ops.L1Norm(u_cloned_idx, wgt_sc_idx);
-                u_err[1] = hier_sc_data_ops.L2Norm(u_cloned_idx, wgt_sc_idx);
-                u_err[2] = hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx);
             }
 
             HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
@@ -561,9 +553,6 @@ run_example(int argc, char* argv[], std::vector<double>& u_err, std::vector<doub
                  << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
                  << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 
-            p_err[0] = hier_cc_data_ops.L1Norm(p_cloned_idx, wgt_cc_idx);
-            p_err[1] = hier_cc_data_ops.L2Norm(p_cloned_idx, wgt_cc_idx);
-            p_err[2] = hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx);
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
@@ -574,7 +563,6 @@ run_example(int argc, char* argv[], std::vector<double>& u_err, std::vector<doub
 
     SAMRAIManager::shutdown();
     PetscFinalize();
-    return true;
 } // main
 
 void

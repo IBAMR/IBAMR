@@ -41,8 +41,8 @@
  *    executable <input file name>                                             *
  *                                                                             *
  *******************************************************************************/
-bool
-run_example(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
@@ -262,5 +262,4 @@ run_example(int argc, char* argv[])
     // up, so we shut things down in the opposite order of initialization:
     SAMRAIManager::shutdown();
     PetscFinalize();
-    return true;
-} // run_example
+} // main
