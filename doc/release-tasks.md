@@ -7,6 +7,8 @@ GitHub.
 
 ## static analysis
 
+- [ ] verify that neither `namespaces.h` nor `app_namespaces.h` are in IBTK or
+  IBAMR headers
 - [ ] clear basic compilation warnings with GCC and clang on linux
 - [ ] compile with the latest libMesh release (which should be configured with
   `--disable-deprecated`) to verify that we do not use any deprecated
