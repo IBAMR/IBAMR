@@ -183,6 +183,7 @@ dnl
 
   if test -e "$LIBMESH_DIR/include/boost" ; then
     AC_MSG_ERROR([libMesh appears to be configured to use a bundled Boost library, but when IBAMR is also configured to use libMesh, IBAMR and libMesh both must use the same (external) Boost library])
+    AC_DEFINE([LIBMESH_HAS_BOOST],1,[Define if libmesh was built with boost])
   fi
 
   CPPFLAGS_PREPEND($LIBMESH_CPPFLAGS)

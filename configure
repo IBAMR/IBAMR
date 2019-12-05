@@ -24063,6 +24063,9 @@ $as_echo "$as_me: using Eigen library bundled with libMesh" >&6;}
 
   if test -e "$LIBMESH_DIR/include/boost" ; then
     as_fn_error $? "libMesh appears to be configured to use a bundled Boost library, but when IBAMR is also configured to use libMesh, IBAMR and libMesh both must use the same (external) Boost library" "$LINENO" 5
+
+$as_echo "#define LIBMESH_HAS_BOOST 1" >>confdefs.h
+
   fi
 
   CPPFLAGS="$LIBMESH_CPPFLAGS $CPPFLAGS"
@@ -27050,8 +27053,8 @@ CONTRIB_SRCDIR="$ABSOLUTE_SRCDIR/ibtk/contrib/boost"
 #$as_unset boost_cv_version
 #BOOST_REQUIRE([1.57.0],[AC_MSG_WARN([could not find system Boost library, using bundled Boost library])])
 if test x"$USING_BUNDLED_BOOST" = xyes ; then
-  if test "$LIBMESH_ENABLED" = yes ; then
-    as_fn_error $? "IBAMR is configured to use a bundled Boost library, but when IBAMR is also configured to use libMesh, IBAMR and libMesh both must use the same (external) Boost library" "$LINENO" 5
+  if test "$LIBMESH_HAS_BOOST" = yes ; then
+    as_fn_error $? "IBAMR is configured to use a bundled Boost library, but libMesh is configured with Boost support. When IBAMR is configured to use libMesh, IBAMR and libMesh both must use the same (external) Boost library" "$LINENO" 5
   fi
   { $as_echo "$as_me:${as_lineno-$LINENO}: configuring bundled Boost library" >&5
 $as_echo "$as_me: configuring bundled Boost library" >&6;}

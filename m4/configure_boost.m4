@@ -25,8 +25,8 @@ AC_ARG_VAR(BOOST_ROOT,[the location of the Boost installation that is to be used
 #$as_unset boost_cv_version
 #BOOST_REQUIRE([1.57.0],[AC_MSG_WARN([could not find system Boost library, using bundled Boost library])])
 if test x"$USING_BUNDLED_BOOST" = xyes ; then
-  if test "$LIBMESH_ENABLED" = yes ; then
-    AC_MSG_ERROR([IBAMR is configured to use a bundled Boost library, but when IBAMR is also configured to use libMesh, IBAMR and libMesh both must use the same (external) Boost library])
+  if test "$LIBMESH_HAS_BOOST" = yes ; then
+    AC_MSG_ERROR([IBAMR is configured to use a bundled Boost library, but libMesh is configured with Boost support. When IBAMR is configured to use libMesh, IBAMR and libMesh both must use the same (external) Boost library])
   fi
   AC_MSG_NOTICE([configuring bundled Boost library])
   BOOST_CPPFLAGS="-I$CONTRIB_SRCDIR"
