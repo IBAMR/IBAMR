@@ -11,8 +11,8 @@ GitHub to track things that need to be fixed or improved in IBAMR with the
 
 ## Using git and IBAMR
 IBAMR has about a dozen regular contributors, who, at any time, are working on
-dozens of new features and fixes for IBAMR. We use git to track these changes,
-handle merging of new features, and keep a log of all commited changes to IBAMR.
+dozens of new features and fixes. We use git to track these changes, handle
+merging of new features, and keep a log of all commited changes to the library.
 
 Changes to IBAMR are peer-reviewed: instead of simply pushing new features as
 they are finished, all changes undergo a period when the core IBAMR developers
@@ -71,9 +71,9 @@ Use the same command to set up upstream:
 
 > git remote add upstream https://github.com/ibamr/ibamr
 
-That should be all the configuration your local IBAMR repository needs: at this
-point your authorship information is set up and the repository is correctly
-linked with your copy of IBAMR on GitHub and the official IBAMR repository.
+That should be all the configuration your local repository needs: at this point
+your authorship information is set up and the repository is correctly linked
+with your copy of IBAMR on GitHub and the official IBAMR repository.
 
 Suppose that you wanted to add another function to
 `ibtk/src/lagrangian/LEInteractor.cpp`. You should start by creating a branch
@@ -109,6 +109,7 @@ Sometimes its necessary to take a sequence of commits on a branch (here
 way to do this is to do an *interactive rebase*:
 
 > git checkout feature-branch
+>
 > git rebase -i master
 
 This does two things:
@@ -134,12 +135,13 @@ have made commits on `master`. To get commits on master into `feature-branch`
 you should run
 
 > git checkout feature-branch
+>
 > git rebase master
 
 This will 'replay' the commits in `feature-branch` on top of (that is, after all
-of it's commits) `master`. Rebasing is preferrable to merging since it keeps all
+of it's commits) `master`. Rebasing is preferable to merging since it keeps all
 related commits together. Merging interleaves the commits on `master` and
-`feature-branch`: this is undesireable since it makes it difficult to keep track
+`feature-branch`: this is undesirable since it makes it difficult to keep track
 of which commits are unique to `feature-branch`.
 
 If there are more commits in another repository that you want on the current
@@ -160,7 +162,7 @@ branch.
 There are lots of tutorials on the Internet that describe possible workflows
 with git. We suggest poking around Stack Overflow for information on more
 complex git commands. Another good resource are the video lectures put out by
-Wolfgang Bangerth, which are available on Youtube in
+Wolfgang Bangerth, which are available on YouTube in
 [lecture 32.75](https://www.youtube.com/watch?v=kqb3aIakftA) and
 [lecture 32.8](https://www.youtube.com/watch?v=kAqp2hhv-DU). The first video
 gives an overview into how git works and the second discusses how git and GitHub
