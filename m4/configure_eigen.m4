@@ -44,18 +44,18 @@ fi
 CPPFLAGS_PREPEND($EIGEN_CPPFLAGS)
 AM_CONDITIONAL([USING_BUNDLED_EIGEN],[test "$USING_BUNDLED_EIGEN" = yes])
 
-AC_MSG_CHECKING([for Eigen version >= 3.1.0])
+AC_MSG_CHECKING([for Eigen version >= 3.2.5])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <Eigen/Core>
 ]], [[
-#if EIGEN_VERSION_AT_LEAST(3,1,0)
+#if EIGEN_VERSION_AT_LEAST(3,2,5)
 #else
 asdf
 #endif
 ]])],[EIGEN_VERSION_VALID=yes],[EIGEN_VERSION_VALID=no])
 AC_MSG_RESULT([${EIGEN_VERSION_VALID}])
 if test "$EIGEN_VERSION_VALID" = no; then
-  AC_MSG_ERROR([invalid Eigen version detected: please use Eigen 3.1.0 or later])
+  AC_MSG_ERROR([invalid Eigen version detected: please use Eigen 3.2.5 or later])
 fi
 
 PACKAGE_CPPFLAGS_PREPEND($EIGEN_CPPFLAGS)

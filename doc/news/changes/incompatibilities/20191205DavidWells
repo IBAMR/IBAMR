@@ -1,0 +1,4 @@
+Changed: IBAMR now requires Eigen 3.2.5 or newer. The bundled version of Eigen
+has been updated to the latest release (3.3.7).
+<br>
+(David Wells, 2019/12/05)
