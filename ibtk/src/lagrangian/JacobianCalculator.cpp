@@ -42,6 +42,7 @@
 
 #include <algorithm>
 
+namespace IBTK
 {
 JacobianCalculator::JacobianCalculator(const JacobianCalculator::key_type quad_key) : d_quad_key(quad_key)
 {
@@ -358,3 +359,4 @@ Tet4JacobianCalculator::get_JxW(const Elem* elem)
 template class LagrangeJacobianCalculator<1>;
 template class LagrangeJacobianCalculator<2>;
 template class LagrangeJacobianCalculator<3>;
+} // namespace IBTK

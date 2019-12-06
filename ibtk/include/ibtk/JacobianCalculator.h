@@ -53,6 +53,8 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <tuple>
 #include <vector>
 
+namespace IBTK
+{
 class JacobianCalculator
 {
 public:
@@ -202,5 +204,6 @@ public:
 
     virtual const std::vector<double>& get_JxW(const libMesh::Elem* elem) override;
 };
+} // namespace IBTK
 
 #endif //#ifndef included_IBTK_JacobianCalculator
