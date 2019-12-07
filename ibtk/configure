@@ -27407,8 +27407,8 @@ else
 fi
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Eigen version >= 3.1.0" >&5
-$as_echo_n "checking for Eigen version >= 3.1.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Eigen version >= 3.2.5" >&5
+$as_echo_n "checking for Eigen version >= 3.2.5... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -27426,7 +27426,7 @@ int
 main ()
 {
 
-#if EIGEN_VERSION_AT_LEAST(3,1,0)
+#if EIGEN_VERSION_AT_LEAST(3,2,5)
 #else
 asdf
 #endif
@@ -27444,7 +27444,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${EIGEN_VERSION_VALID}" >&5
 $as_echo "${EIGEN_VERSION_VALID}" >&6; }
 if test "$EIGEN_VERSION_VALID" = no; then
-  as_fn_error $? "invalid Eigen version detected: please use Eigen 3.1.0 or later" "$LINENO" 5
+  as_fn_error $? "invalid Eigen version detected: please use Eigen 3.2.5 or later" "$LINENO" 5
 fi
 
 PACKAGE_CPPFLAGS="$EIGEN_CPPFLAGS $PACKAGE_CPPFLAGS"
