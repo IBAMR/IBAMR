@@ -197,6 +197,12 @@ AC_CONFIG_FILES([
   examples/adv_diff/ex1/Makefile
   examples/adv_diff/ex2/Makefile
   examples/advect/Makefile
+  examples/complex_fluids/Makefile
+  examples/complex_fluids/ex0/Makefile
+  examples/complex_fluids/ex1/Makefile
+  examples/complex_fluids/ex2/Makefile
+  examples/complex_fluids/ex3/Makefile
+  examples/complex_fluids/ex4/Makefile
   examples/level_set/Makefile
   examples/level_set/ex0/Makefile
   examples/level_set/ex1/Makefile
@@ -238,6 +244,8 @@ AC_CONFIG_FILES([
   src/adv_diff/fortran/Makefile
   src/advect/Makefile
   src/advect/fortran/Makefile
+  src/complex_fluids/Makefile
+  src/complex_fluids/fortran/Makefile
   src/level_set/Makefile
   src/level_set/fortran/Makefile
   src/navier_stokes/Makefile
@@ -248,6 +256,7 @@ AC_CONFIG_FILES([
   tests/Makefile
   tests/adv_diff/Makefile
   tests/advect/Makefile
+  tests/complex_fluids/Makefile
   tests/IB/Makefile
   tests/IBFE/Makefile
   tests/IBTK/Makefile

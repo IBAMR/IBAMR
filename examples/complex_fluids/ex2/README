@@ -1,0 +1,5 @@
+This example sets up flow past a confined cylinder. The structure is tethered
+in place using a penalty method. The structure is represented using a finite
+element representation following the IBFEMethod. Drag coefficients are
+outputted in text files. An interpolation class is included to interpolate the
+stress onto the surface of the cylinder.

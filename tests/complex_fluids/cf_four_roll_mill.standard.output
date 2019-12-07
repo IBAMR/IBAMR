@@ -1,0 +1,318 @@
+INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+Conformation tensor is SPD
+Largest det:  1
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1
+Smallest det: 0.999975
+Conformation tensor is SPD
+Largest det:  1
+Smallest det: 0.9999
+Conformation tensor is SPD
+Largest det:  1
+Smallest det: 0.999912
+Conformation tensor is SPD
+Largest det:  1
+Smallest det: 0.999939
+Conformation tensor is SPD
+Largest det:  1
+Smallest det: 0.999991
+Conformation tensor is SPD
+Largest det:  1.00008
+Smallest det: 0.999999
+Conformation tensor is SPD
+Largest det:  1.00021
+Smallest det: 0.999999
+Conformation tensor is SPD
+Largest det:  1.00039
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.00063
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.00094
+Smallest det: 0.999999
+Conformation tensor is SPD
+Largest det:  1.00131
+Smallest det: 0.999999
+Conformation tensor is SPD
+Largest det:  1.00176
+Smallest det: 0.999999
+Conformation tensor is SPD
+Largest det:  1.00229
+Smallest det: 0.999999
+Conformation tensor is SPD
+Largest det:  1.00291
+Smallest det: 0.999999
+Conformation tensor is SPD
+Largest det:  1.00361
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.0044
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.00529
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.00627
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.00736
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.00854
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.00983
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.01122
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.01272
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.01432
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.01603
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.01785
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.01977
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.02181
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.02394
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.02619
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.02854
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.031
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.03356
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.03623
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.039
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.04187
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.04484
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.04792
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.05109
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.05435
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.05772
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.06117
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.06472
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.06836
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.07209
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.07591
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.07981
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.0838
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.08786
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.09201
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.09624
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.10054
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.10492
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.10937
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.11389
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.11848
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.12314
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.12787
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.13266
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.13751
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.14242
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.14739
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.15241
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.15749
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.16263
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.16781
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.17304
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.17833
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.18365
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.18903
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.19444
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.1999
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.20539
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.21093
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.2165
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.2221
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.22774
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.23341
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.23911
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.24484
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.2506
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.25638
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.26219
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.26802
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.27387
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.27975
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.28564
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.29155
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.29748
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.30342
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.30938
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.31535
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.32134
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.32733
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.33334
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.33935
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.34537
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.3514
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.35744
+Smallest det: 1
+Conformation tensor is SPD
+Largest det:  1.36348
+Smallest det: 1
+Soln norms in sxx at time 1:
+  L1-norm:  44.60778085
+  L2-norm:  7.728263339
+  max-norm: 2.64690267
+Soln norms in syy at time 1:
+  L1-norm:  44.60778085
+  L2-norm:  7.728263339
+  max-norm: 2.64690267
+Soln norms in sxy at time 1:
+  L1-norm:  1.915578886
+  L2-norm:  0.3759901117
+  max-norm: 0.1200481671
