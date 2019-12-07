@@ -466,7 +466,7 @@ IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 SUBDIRS = eel2d eel3d
-COMPLETE_EXAMPLES = eel2d eel3d falling_sphere flow_past_cylinder flow_past_cylinder_HF knifefish impulsively_started_cylinder moving_plate oscillating_rigid_cylinder stokes_first_problem
+COMPLETE_EXAMPLES = eel2d eel3d falling_sphere flow_past_cylinder knifefish impulsively_started_cylinder moving_plate oscillating_rigid_cylinder stokes_first_problem
 INCOMPLETE_EXAMPLES = 
 all: all-recursive
 

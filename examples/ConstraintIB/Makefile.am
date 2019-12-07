@@ -15,7 +15,7 @@
 include $(top_srcdir)/config/Make-rules
 SUBDIRS = eel2d eel3d
 
-COMPLETE_EXAMPLES = eel2d eel3d falling_sphere flow_past_cylinder flow_past_cylinder_HF knifefish impulsively_started_cylinder moving_plate oscillating_rigid_cylinder stokes_first_problem
+COMPLETE_EXAMPLES = eel2d eel3d falling_sphere flow_past_cylinder knifefish impulsively_started_cylinder moving_plate oscillating_rigid_cylinder stokes_first_problem
 INCOMPLETE_EXAMPLES =
 .PHONY: examples $(COMPLETE_EXAMPLES)
 examples: $(COMPLETE_EXAMPLES)
