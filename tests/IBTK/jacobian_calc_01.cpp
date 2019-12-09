@@ -218,7 +218,7 @@ main(int argc, char** argv)
         }
 
         {
-            plog << "Test " << test_n << ": TET4 square" << std::endl;
+            plog << "Test " << test_n << ": TET4 cube" << std::endl;
             const key_type key(TET4, QGAUSS, THIRD);
             Tet4JacobianCalculator jac_calc_1(key);
             LagrangeJacobianCalculator<3> jac_calc_2(key);
