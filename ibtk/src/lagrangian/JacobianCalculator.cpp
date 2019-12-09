@@ -31,6 +31,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include "ibtk/JacobianCalculator.h"
+#include "ibtk/libmesh_utilities.h"
 #include "ibtk/namespaces.h"
 
 #include "tbox/Utilities.h"
@@ -41,92 +42,7 @@
 
 #include <algorithm>
 
-namespace
 {
-int
-get_dim(const ElemType elem_type)
-{
-    switch (elem_type)
-    {
-    case ElemType::TRI3:
-    case ElemType::TRI6:
-    case ElemType::QUAD4:
-    case ElemType::QUAD8:
-    case ElemType::QUAD9:
-        return 2;
-    case ElemType::TET4:
-    case ElemType::TET10:
-    case ElemType::HEX8:
-    case ElemType::HEX27:
-        return 3;
-    default:
-        TBOX_ERROR("unimplemented element type");
-    }
-    // bogus return to placate compilers
-    return 3;
-}
-
-std::size_t
-get_n_nodes(const libMesh::ElemType elem_type)
-{
-    switch (elem_type)
-    {
-    case libMesh::TRI3:
-        return 3;
-    case libMesh::TRI6:
-        return 6;
-    case libMesh::QUAD4:
-        return 4;
-    case libMesh::QUAD8:
-        return 8;
-    case libMesh::QUAD9:
-        return 9;
-    case libMesh::TET4:
-        return 4;
-    case libMesh::TET10:
-        return 10;
-    case libMesh::HEX8:
-        return 8;
-    case libMesh::HEX27:
-        return 27;
-    default:
-        TBOX_ERROR("unimplemented element type");
-    }
-
-    return 0;
-}
-
-libMesh::Order
-get_default_order(const libMesh::ElemType elem_type)
-{
-    switch (elem_type)
-    {
-    case libMesh::TRI3:
-        return libMesh::FIRST;
-    case libMesh::TRI6:
-        return libMesh::SECOND;
-    case libMesh::QUAD4:
-        return libMesh::FIRST;
-    case libMesh::QUAD8:
-        return libMesh::SECOND;
-    case libMesh::QUAD9:
-        return libMesh::SECOND;
-    case libMesh::TET4:
-        return libMesh::FIRST;
-    case libMesh::TET10:
-        return libMesh::SECOND;
-    case libMesh::HEX8:
-        return libMesh::FIRST;
-    case libMesh::HEX27:
-        return libMesh::SECOND;
-    default:
-        TBOX_ERROR("unimplemented element type");
-    }
-
-    return libMesh::CONSTANT;
-}
-} // namespace
-
 JacobianCalculator::JacobianCalculator(const JacobianCalculator::key_type quad_key) : d_quad_key(quad_key)
 {
     const ElemType elem_type = std::get<0>(d_quad_key);
