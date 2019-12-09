@@ -843,7 +843,7 @@ FEDataManager::spread(const int f_data_idx,
     using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
     FECache F_fe_cache(dim, F_fe_type, FEUpdateFlags::update_phi);
     FECache X_fe_cache(dim, X_fe_type, FEUpdateFlags::update_phi);
-    JacobianCalculatorCache jacobian_calculator_cache;
+    JacobianCalculatorCache jacobian_calculator_cache(mesh.spatial_dimension());
 
     // Check to see if we are using nodal quadrature.
     const bool use_nodal_quadrature =
@@ -1519,7 +1519,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
     using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
     FECache F_fe_cache(dim, F_fe_type, FEUpdateFlags::update_phi);
     FECache X_fe_cache(dim, X_fe_type, FEUpdateFlags::update_phi);
-    JacobianCalculatorCache jacobian_calculator_cache;
+    JacobianCalculatorCache jacobian_calculator_cache(mesh.spatial_dimension());
 
     // Communicate any unsynchronized ghost data.
     for (const auto& f_refine_sched : f_refine_scheds)

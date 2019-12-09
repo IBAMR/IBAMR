@@ -89,9 +89,9 @@ protected:
 /*
  * A generic implementation for Lagrange-type elements: works for all elements
  * in that family but is less efficient than the specialized classes for
- * lower-order or tensor-product elements. Only supports codimension zero.
+ * lower-order or tensor-product elements. Supports nonzero codimension.
  */
-template <int dim>
+template <int dim, int spacedim = dim>
 class LagrangeJacobianCalculator : public JacobianCalculator
 {
 public:
@@ -122,7 +122,7 @@ protected:
 };
 
 /*
- * Specialization for TRI3 elements.
+ * Specialization for TRI3 elements with codimension zero.
  */
 class Tri3JacobianCalculator : public JacobianCalculator
 {
@@ -137,7 +137,7 @@ public:
 };
 
 /*
- * Specialization for QUAD4 elements.
+ * Specialization for QUAD4 elements with codimension zero.
  */
 class Quad4JacobianCalculator : public JacobianCalculator
 {
@@ -152,7 +152,7 @@ public:
 };
 
 /*
- * Specialization for QUAD9 elements.
+ * Specialization for QUAD9 elements with codimension zero.
  */
 class Quad9JacobianCalculator : public JacobianCalculator
 {
