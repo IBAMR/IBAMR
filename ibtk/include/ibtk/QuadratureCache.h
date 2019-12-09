@@ -16,6 +16,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/libmesh_utilities.h>
+
 #include <libmesh/enum_elem_type.h>
 #include <libmesh/enum_order.h>
 #include <libmesh/enum_quadrature_type.h>
@@ -57,7 +59,8 @@ public:
     /**
      * Constructor. Sets up a cache of Quadrature objects.
      *
-     * @param dim The dimension of the Quadrature object.
+     * @param dim The topological dimension of the relevant libMesh::Mesh: see
+     * libMesh::MeshBase::mesh_dimension() for more information.
      */
     QuadratureCache(const unsigned int dim);
 
@@ -80,7 +83,7 @@ public:
 
 protected:
     /**
-     * Dimension of the FE mesh.
+     * Topological dimension of the FE mesh.
      */
     unsigned int dim;
 
@@ -96,6 +99,7 @@ inline QuadratureCache::QuadratureCache(const unsigned int dim) : dim(dim)
 
 inline QuadratureCache::value_type& QuadratureCache::operator[](const QuadratureCache::key_type& quad_key)
 {
+    TBOX_ASSERT(static_cast<unsigned int>(get_dim(std::get<0>(quad_key))) == dim);
     auto it = quadratures.find(quad_key);
     if (it == quadratures.end())
     {

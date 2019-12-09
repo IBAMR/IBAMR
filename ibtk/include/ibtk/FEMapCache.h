@@ -17,6 +17,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/QuadratureCache.h>
+#include <ibtk/libmesh_utilities.h>
 
 #include <libmesh/elem.h>
 #include <libmesh/enum_elem_type.h>
@@ -73,9 +74,8 @@ public:
      * Constructor. Sets up a cache of FE objects calculating values for the
      * given FEType argument. All cached FE objects have the same FEType.
      *
-     * @param dim The dimension of the relevant libMesh::Mesh.
-     *
-     * @param dim The dimension of the relevant libMesh::Mesh.
+     * @param dim The topological dimension of the relevant libMesh::Mesh: see
+     * libMesh::MeshBase::mesh_dimension() for more information.
      */
     FEMapCache(const unsigned int dim);
 
@@ -90,7 +90,7 @@ public:
 
 protected:
     /**
-     * Dimension of the FE mesh.
+     * Topological dimension of the FE mesh.
      */
     const unsigned int dim;
 
@@ -112,6 +112,7 @@ inline FEMapCache::FEMapCache(const unsigned int dim) : dim(dim), quadrature_cac
 
 inline libMesh::FEMap& FEMapCache::operator[](const FEMapCache::key_type& quad_key)
 {
+    TBOX_ASSERT(static_cast<unsigned int>(get_dim(std::get<0>(quad_key))) == dim);
     auto it = fe_maps.find(quad_key);
     if (it == fe_maps.end())
     {
