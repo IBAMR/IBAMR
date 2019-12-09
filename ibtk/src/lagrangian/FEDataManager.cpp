@@ -15,6 +15,7 @@
 
 #include "ibtk/FECache.h"
 #include "ibtk/FEDataManager.h"
+#include "ibtk/FEMapCache.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/JacobianCalculatorCache.h"
@@ -1030,12 +1031,15 @@ FEDataManager::spread(const int f_data_idx,
                 const quad_key_type& key = quad_keys[e_idx];
                 const FEBase& X_fe = X_fe_cache(key, elem);
                 const FEBase& F_fe = F_fe_cache(key, elem);
+	         	FEMap& fe_map = fe_map_cache[key];
                 JacobianCalculator& jacobian_calculator = jacobian_calculator_cache[key];
                 const QBase& qrule = d_fe_data->d_quadrature_cache[key];
+                if (NDIM - dim == 1)     
+					fe_map.compute_map(dim, qrule.get_weights(), elem, /*second derivatives*/ false);
 
                 // JxW depends on the element
-                const std::vector<double>& JxW_F = jacobian_calculator.get_JxW(elem);
-                const std::vector<std::vector<double> >& phi_F = F_fe.get_phi();
+                const std::vector<double>& JxW_F = (dim == NDIM) ? jacobian_calculator.get_JxW(elem) : fe_map.get_JxW();       
+				const std::vector<std::vector<double> >& phi_F = F_fe.get_phi();
                 const std::vector<std::vector<double> >& phi_X = X_fe.get_phi();
 
                 const unsigned int n_qp = qrule.n_points();
@@ -1784,9 +1788,12 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 const FEBase& F_fe = F_fe_cache(key, elem);
                 const QBase& qrule = d_fe_data->d_quadrature_cache[key];
                 JacobianCalculator& jacobian_calculator = jacobian_calculator_cache[key];
+         		FEMap& fe_map = fe_map_cache[key];
+                if (NDIM - dim == 1)     
+					fe_map.compute_map(dim, qrule.get_weights(), elem, /*second derivatives*/ false);
 
                 // JxW depends on the element
-                const std::vector<double>& JxW_F = jacobian_calculator.get_JxW(elem);
+                const std::vector<double>& JxW_F = (dim == NDIM) ? jacobian_calculator.get_JxW(elem) : fe_map.get_JxW();  
                 const std::vector<std::vector<double> >& phi_F = F_fe.get_phi();
 
                 const unsigned int n_qp = qrule.n_points();
