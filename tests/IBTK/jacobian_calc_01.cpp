@@ -226,11 +226,11 @@ main(int argc, char** argv)
             ++test_n;
         }
 
-#if 0
         {
             plog << "Test " << test_n << ": HEX8 square" << std::endl;
             const key_type key(HEX8, QGAUSS, THIRD);
-            Tet4JacobianCalculator jac_calc_1(key);
+            // HEX8 doesn't have a custom calculator yet
+            LagrangeJacobianCalculator<3> jac_calc_1(key);
             LagrangeJacobianCalculator<3> jac_calc_2(key);
             test_cube(init, jac_calc_1, jac_calc_2, 3, key);
             ++test_n;
@@ -239,7 +239,8 @@ main(int argc, char** argv)
         {
             plog << "Test " << test_n << ": HEX8 circle" << std::endl;
             const key_type key(HEX8, QGAUSS, THIRD);
-            Tet4JacobianCalculator jac_calc_1(key);
+            // HEX8 doesn't have a custom calculator yet
+            LagrangeJacobianCalculator<3> jac_calc_1(key);
             LagrangeJacobianCalculator<3> jac_calc_2(key);
             test_circle(init, jac_calc_1, jac_calc_2, 4, 3, key);
             ++test_n;
@@ -248,7 +249,8 @@ main(int argc, char** argv)
         {
             plog << "Test " << test_n << ": HEX27 square" << std::endl;
             const key_type key(HEX27, QGAUSS, FOURTH);
-            Tet4JacobianCalculator jac_calc_1(key);
+            // HEX27 doesn't have a custom calculator yet
+            LagrangeJacobianCalculator<3> jac_calc_1(key);
             LagrangeJacobianCalculator<3> jac_calc_2(key);
             test_cube(init, jac_calc_1, jac_calc_2, 3, key);
             ++test_n;
@@ -257,12 +259,12 @@ main(int argc, char** argv)
         {
             plog << "Test " << test_n << ": HEX27 circle" << std::endl;
             const key_type key(HEX27, QGAUSS, FOURTH);
-            Hex27JacobianCalculator jac_calc_1(key);
+            // HEX27 doesn't have a custom calculator yet
+            LagrangeJacobianCalculator<3> jac_calc_1(key);
             LagrangeJacobianCalculator<3> jac_calc_2(key);
             test_circle(init, jac_calc_1, jac_calc_2, 2, 3, key);
             ++test_n;
         }
-#endif
     }
 
     SAMRAIManager::shutdown();
