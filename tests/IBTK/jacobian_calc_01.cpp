@@ -86,8 +86,8 @@ test_cube(LibMeshInit& init, JacobianCalculator& jc_1, JacobianCalculator& jc_2,
         const std::vector<double>& JxW_3 = fe_map.get_JxW();
         for (unsigned int i = 0; i < JxW.size(); ++i)
         {
-            TBOX_ASSERT(std::abs(JxW[i] - JxW_2[i]) < 1e-16 * std::max(1.0, std::abs(JxW[i])));
-            TBOX_ASSERT(std::abs(JxW[i] - JxW_3[i]) < 1e-16 * std::max(1.0, std::abs(JxW[i])));
+            TBOX_ASSERT(std::abs(JxW[i] - JxW_2[i]) < 1e-14 * std::max(1.0, std::abs(JxW[i])));
+            TBOX_ASSERT(std::abs(JxW[i] - JxW_3[i]) < 1e-14 * std::max(1.0, std::abs(JxW[i])));
         }
         volume += std::accumulate(JxW.begin(), JxW.end(), 0.0);
         volume_2 += std::accumulate(JxW_2.begin(), JxW_2.end(), 0.0);
@@ -140,7 +140,7 @@ test_circle(LibMeshInit& init,
         const std::vector<double>& JxW_2 = jc_2.get_JxW(*elem_iter);
         for (unsigned int i = 0; i < JxW.size(); ++i)
         {
-            TBOX_ASSERT(std::abs(JxW[i] - JxW_2[i]) < 1e-16 * std::max(1.0, std::abs(JxW[i])));
+            TBOX_ASSERT(std::abs(JxW[i] - JxW_2[i]) < 1e-14 * std::max(1.0, std::abs(JxW[i])));
         }
         volume += std::accumulate(JxW.begin(), JxW.end(), 0.0);
         volume_2 += std::accumulate(JxW_2.begin(), JxW_2.end(), 0.0);
