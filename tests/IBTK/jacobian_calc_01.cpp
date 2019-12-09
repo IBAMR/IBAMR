@@ -105,6 +105,10 @@ test_circle(LibMeshInit& init,
             const key_type key)
 {
     const auto elem_type = std::get<0>(key);
+
+    FEMapCache map_cache(dim);
+    QuadratureCache quad_cache(dim);
+
     const double radius = 1.0;
     ReplicatedMesh mesh(init.comm(), dim);
     MeshTools::Generation::build_sphere(mesh, radius, n_refines, elem_type);
@@ -136,11 +140,17 @@ test_circle(LibMeshInit& init,
     for (auto elem_iter = mesh.active_local_elements_begin(); elem_iter != mesh.active_local_elements_end();
          ++elem_iter)
     {
+        FEMap& fe_map = map_cache[key];
+        QBase& quad = quad_cache[key];
+        fe_map.compute_map(dim, quad.get_weights(), *elem_iter, false);
+        // all computed JxW values should agree
         const std::vector<double>& JxW = jc_1.get_JxW(*elem_iter);
         const std::vector<double>& JxW_2 = jc_2.get_JxW(*elem_iter);
+        const std::vector<double>& JxW_3 = fe_map.get_JxW();
         for (unsigned int i = 0; i < JxW.size(); ++i)
         {
             TBOX_ASSERT(std::abs(JxW[i] - JxW_2[i]) < 1e-14 * std::max(1.0, std::abs(JxW[i])));
+            TBOX_ASSERT(std::abs(JxW[i] - JxW_3[i]) < 1e-14 * std::max(1.0, std::abs(JxW[i])));
         }
         volume += std::accumulate(JxW.begin(), JxW.end(), 0.0);
         volume_2 += std::accumulate(JxW_2.begin(), JxW_2.end(), 0.0);
