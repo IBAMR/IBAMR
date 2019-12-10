@@ -14,59 +14,13 @@ At beginning of timestep # 0
 Simulation time is 0
 IBHierarchyIntegrator::advanceHierarchy(): time interval = [0,2.4414062500000001355e-05], dt = 2.4414062500000001355e-05
 IBHierarchyIntegrator::advanceHierarchy(): regridding prior to timestep 0
-workload estimate on processor 0 = 72192
-workload estimate on processor 1 = 8192
-workload estimate on processor 2 = 8192
-workload estimate on processor 3 = 8192
-local active DoFs on processor 0 = 963
-local active DoFs on processor 1 = 586
-local active DoFs on processor 2 = 560
-local active DoFs on processor 3 = 430
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
 IBFEMethod: starting scratch hierarchy regrid
-FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
-quadrature points on processor 0 = 18
-quadrature points on processor 1 = 18
-quadrature points on processor 2 = 434
-quadrature points on processor 3 = 434
-workload estimate on processor 0 = 18
-workload estimate on processor 1 = 18
-workload estimate on processor 2 = 434
-workload estimate on processor 3 = 434
-local active DoFs on processor 0 = 963
-local active DoFs on processor 1 = 586
-local active DoFs on processor 2 = 560
-local active DoFs on processor 3 = 430
-quadrature points on processor 0 = 18
-quadrature points on processor 1 = 18
-quadrature points on processor 2 = 434
-quadrature points on processor 3 = 434
 IBFEMethod: finished scratch hierarchy regrid
 IBFEMethod::scratch hierarchy workload
-FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
-quadrature points on processor 0 = 235
-quadrature points on processor 1 = 235
-quadrature points on processor 2 = 217
-quadrature points on processor 3 = 217
-workload estimate on processor 0 = 235
-workload estimate on processor 1 = 235
-workload estimate on processor 2 = 217
-workload estimate on processor 3 = 217
-local active DoFs on processor 0 = 963
-local active DoFs on processor 1 = 586
-local active DoFs on processor 2 = 560
-local active DoFs on processor 3 = 430
 IBFEMethod:: end scratch hierarchy workload
-workload estimate on processor 0 = 16384
-workload estimate on processor 1 = 16384
-workload estimate on processor 2 = 16384
-workload estimate on processor 3 = 16384
-local active DoFs on processor 0 = 963
-local active DoFs on processor 1 = 586
-local active DoFs on processor 2 = 560
-local active DoFs on processor 3 = 430
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver

@@ -13,59 +13,13 @@ At beginning of timestep # 0
 Simulation time is 0
 IBHierarchyIntegrator::advanceHierarchy(): time interval = [0,0.00078125000000000004337], dt = 0.00078125000000000004337
 IBHierarchyIntegrator::advanceHierarchy(): regridding prior to timestep 0
-workload estimate on processor 0 = 1700
-workload estimate on processor 1 = 0
-workload estimate on processor 2 = 0
-workload estimate on processor 3 = 0
-local active DoFs on processor 0 = 843
-local active DoFs on processor 1 = 531
-local active DoFs on processor 2 = 396
-local active DoFs on processor 3 = 369
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
 IBFEMethod: starting scratch hierarchy regrid
-FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
-quadrature points on processor 0 = 0
-quadrature points on processor 1 = 3896
-quadrature points on processor 2 = 1279
-quadrature points on processor 3 = 0
-workload estimate on processor 0 = 0
-workload estimate on processor 1 = 3896
-workload estimate on processor 2 = 1279
-workload estimate on processor 3 = 0
-local active DoFs on processor 0 = 843
-local active DoFs on processor 1 = 531
-local active DoFs on processor 2 = 396
-local active DoFs on processor 3 = 369
-quadrature points on processor 0 = 0
-quadrature points on processor 1 = 3896
-quadrature points on processor 2 = 1279
-quadrature points on processor 3 = 0
 IBFEMethod: finished scratch hierarchy regrid
 IBFEMethod::scratch hierarchy workload
-FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
-quadrature points on processor 0 = 1249
-quadrature points on processor 1 = 1389
-quadrature points on processor 2 = 1258
-quadrature points on processor 3 = 1279
-workload estimate on processor 0 = 1249
-workload estimate on processor 1 = 1389
-workload estimate on processor 2 = 1258
-workload estimate on processor 3 = 1279
-local active DoFs on processor 0 = 843
-local active DoFs on processor 1 = 531
-local active DoFs on processor 2 = 396
-local active DoFs on processor 3 = 369
 IBFEMethod:: end scratch hierarchy workload
-workload estimate on processor 0 = 436
-workload estimate on processor 1 = 416
-workload estimate on processor 2 = 432
-workload estimate on processor 3 = 256
-local active DoFs on processor 0 = 843
-local active DoFs on processor 1 = 531
-local active DoFs on processor 2 = 396
-local active DoFs on processor 3 = 369
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
@@ -307,6 +261,8 @@ At end       of timestep # 9
 Simulation time is 0.0078125
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
+FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
+FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for system: p_f interpolation system
    System #4, "FF reconstruction system"
     Type "Basic"
     Variables={ "FF_00" "FF_01" "FF_10" "FF_11" } 
@@ -1396,6 +1352,10 @@ local active DoFs on processor 2 = 396
 local active DoFs on processor 3 = 369
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
+quadrature points on processor 0 = 0
+quadrature points on processor 1 = 3912
+quadrature points on processor 2 = 1270
+quadrature points on processor 3 = 0
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
 IBFEMethod: starting scratch hierarchy regrid
 FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
@@ -1511,6 +1471,8 @@ At end       of timestep # 49
 Simulation time is 0.0390625
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
+FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
+FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for system: p_f interpolation system
    System #4, "FF reconstruction system"
     Type "Basic"
     Variables={ "FF_00" "FF_01" "FF_10" "FF_11" } 
@@ -2242,6 +2204,10 @@ local active DoFs on processor 2 = 396
 local active DoFs on processor 3 = 369
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
+quadrature points on processor 0 = 531
+quadrature points on processor 1 = 2526
+quadrature points on processor 2 = 2125
+quadrature points on processor 3 = 0
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
 IBFEMethod: starting scratch hierarchy regrid
 FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
@@ -2429,6 +2395,8 @@ At end       of timestep # 79
 Simulation time is 0.0625
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
+FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
+FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for system: p_f interpolation system
    System #4, "FF reconstruction system"
     Type "Basic"
     Variables={ "FF_00" "FF_01" "FF_10" "FF_11" } 
@@ -2970,6 +2938,10 @@ local active DoFs on processor 2 = 396
 local active DoFs on processor 3 = 369
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
+quadrature points on processor 0 = 532
+quadrature points on processor 1 = 2554
+quadrature points on processor 2 = 2124
+quadrature points on processor 3 = 0
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
 IBFEMethod: starting scratch hierarchy regrid
 FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
@@ -3061,6 +3033,8 @@ At end       of timestep # 99
 Simulation time is 0.078125
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
+FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
+FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for system: p_f interpolation system
    System #4, "FF reconstruction system"
     Type "Basic"
     Variables={ "FF_00" "FF_01" "FF_10" "FF_11" } 
