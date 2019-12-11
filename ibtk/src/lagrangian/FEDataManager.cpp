@@ -161,7 +161,7 @@ static Timer* t_apply_gradient_detector;
 static Timer* t_put_to_database;
 
 // Version of FEDataManager restart file data.
-static const int FE_DATA_MANAGER_VERSION = 1;
+static const int FE_DATA_MANAGER_VERSION = 2;
 
 // Local helper functions.
 struct ElemComp
