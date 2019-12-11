@@ -17,6 +17,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/QuadratureCache.h>
+#include <ibtk/libmesh_utilities.h>
 
 #include <libmesh/elem.h>
 #include <libmesh/enum_elem_type.h>
@@ -73,9 +74,8 @@ public:
      * Constructor. Sets up a cache of FE objects calculating values for the
      * given FEType argument. All cached FE objects have the same FEType.
      *
-     * @param dim The dimension of the relevant libMesh::Mesh.
-     *
-     * @param dim The dimension of the relevant libMesh::Mesh.
+     * @param dim The topological dimension of the relevant libMesh::Mesh: see
+     * libMesh::MeshBase::mesh_dimension() for more information.
      */
     FEMapCache(const unsigned int dim);
 
@@ -90,33 +90,34 @@ public:
 
 protected:
     /**
-     * Dimension of the FE mesh.
+     * Topological dimension of the FE mesh.
      */
-    const unsigned int dim;
+    const unsigned int d_dim;
 
     /**
      * Managed libMesh::Quadrature objects. These are used to partially
      * initialize (i.e., points but not weights are stored) the FEMap objects.
      */
-    QuadratureCache quadrature_cache;
+    QuadratureCache d_quadrature_cache;
 
     /**
      * Managed libMesh::FEMap objects of specified dimension and family.
      */
-    std::map<key_type, libMesh::FEMap> fe_maps;
+    std::map<key_type, libMesh::FEMap> d_fe_maps;
 };
 
-inline FEMapCache::FEMapCache(const unsigned int dim) : dim(dim), quadrature_cache(dim)
+inline FEMapCache::FEMapCache(const unsigned int dim) : d_dim(dim), d_quadrature_cache(d_dim)
 {
 }
 
 inline libMesh::FEMap& FEMapCache::operator[](const FEMapCache::key_type& quad_key)
 {
-    auto it = fe_maps.find(quad_key);
-    if (it == fe_maps.end())
+    TBOX_ASSERT(static_cast<unsigned int>(get_dim(std::get<0>(quad_key))) == d_dim);
+    auto it = d_fe_maps.find(quad_key);
+    if (it == d_fe_maps.end())
     {
-        libMesh::QBase& quad = quadrature_cache[quad_key];
-        libMesh::FEMap& fe_map = fe_maps[quad_key];
+        libMesh::QBase& quad = d_quadrature_cache[quad_key];
+        libMesh::FEMap& fe_map = d_fe_maps[quad_key];
         // Calling this function enables JxW calculations
         fe_map.get_JxW();
 
@@ -131,7 +132,7 @@ inline libMesh::FEMap& FEMapCache::operator[](const FEMapCache::key_type& quad_k
 
         // This is one of very few functions in libMesh that is templated on
         // the dimension (not spatial dimension) of the mesh
-        switch (dim)
+        switch (d_dim)
         {
         case 1:
             fe_map.init_reference_to_physical_map<1>(quad.get_points(), exemplar_elem.get());

@@ -34,6 +34,8 @@
 #include <SAMRAI_config.h>
 
 // Headers for basic libMesh objects
+#include <libmesh/boundary_info.h>
+#include <libmesh/boundary_mesh.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
 #include <libmesh/mesh_refinement.h>
@@ -54,7 +56,7 @@
 using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
 
 void
-test_cube(LibMeshInit& init, JacobianCalculator& jc_1, JacobianCalculator& jc_2, const int dim, const key_type key)
+test_cube(LibMeshInit& init, JacobianCalculator& jc_1, JacobianCalculator& jc_2, JacobianCalculator& jc_boundary, const int dim, const key_type key)
 {
     const auto elem_type = std::get<0>(key);
 
@@ -69,6 +71,7 @@ test_cube(LibMeshInit& init, JacobianCalculator& jc_1, JacobianCalculator& jc_2,
     else
         TBOX_ASSERT(false);
 
+    // check that we get the same thing with both calculators and libMesh's general code:
     const std::vector<double>& JxW = jc_1.get_JxW(*mesh.active_local_elements_begin());
     for (const double jxw : JxW) plog << std::setprecision(12) << jxw << '\n';
 
@@ -86,25 +89,61 @@ test_cube(LibMeshInit& init, JacobianCalculator& jc_1, JacobianCalculator& jc_2,
         const std::vector<double>& JxW_3 = fe_map.get_JxW();
         for (unsigned int i = 0; i < JxW.size(); ++i)
         {
-            TBOX_ASSERT(std::abs(JxW[i] - JxW_2[i]) < 1e-16 * std::max(1.0, std::abs(JxW[i])));
-            TBOX_ASSERT(std::abs(JxW[i] - JxW_3[i]) < 1e-16 * std::max(1.0, std::abs(JxW[i])));
+            TBOX_ASSERT(std::abs(JxW[i] - JxW_2[i]) < 1e-14 * std::max(1.0, std::abs(JxW[i])));
+            TBOX_ASSERT(std::abs(JxW[i] - JxW_3[i]) < 1e-14 * std::max(1.0, std::abs(JxW[i])));
         }
         volume += std::accumulate(JxW.begin(), JxW.end(), 0.0);
         volume_2 += std::accumulate(JxW_2.begin(), JxW_2.end(), 0.0);
     }
     TBOX_ASSERT(std::abs(volume - volume_2) < 1e-15 * volume);
     plog << "volume is " << volume << '\n';
+
+    // also test the surface mesh:
+    {
+        BoundaryMesh boundary_mesh(mesh.comm(), mesh.mesh_dimension() - 1);
+        mesh.boundary_info->sync(boundary_mesh);
+        boundary_mesh.prepare_for_use();
+        TBOX_ASSERT(boundary_mesh.spatial_dimension() == mesh.mesh_dimension());
+        TBOX_ASSERT(boundary_mesh.mesh_dimension() == mesh.mesh_dimension() - 1);
+
+        FEMapCache boundary_map_cache(dim - 1);
+        QuadratureCache boundary_quad_cache(dim - 1);
+
+        for (auto elem_iter = boundary_mesh.active_local_elements_begin();
+             elem_iter != boundary_mesh.active_local_elements_end();
+             ++elem_iter)
+        {
+            key_type boundary_key = key;
+            std::get<0>(boundary_key) = (*elem_iter)->type();
+
+            FEMap& fe_map = boundary_map_cache[boundary_key];
+            QBase& quad = boundary_quad_cache[boundary_key];
+            fe_map.compute_map(dim - 1, quad.get_weights(), *elem_iter, false);
+            // all computed JxW values should agree
+            const std::vector<double>& JxW = jc_boundary.get_JxW(*elem_iter);
+            const std::vector<double>& JxW_2 = fe_map.get_JxW();
+            for (unsigned int i = 0; i < JxW.size(); ++i)
+            {
+                TBOX_ASSERT(std::abs(JxW[i] - JxW_2[i]) < 1e-14 * std::max(1.0, std::abs(JxW[i])));
+            }
+        }
+    }
 }
 
 void
 test_circle(LibMeshInit& init,
             JacobianCalculator& jc_1,
             JacobianCalculator& jc_2,
+            JacobianCalculator& jc_boundary,
             const int n_refines,
             const int dim,
             const key_type key)
 {
     const auto elem_type = std::get<0>(key);
+
+    FEMapCache map_cache(dim);
+    QuadratureCache quad_cache(dim);
+
     const double radius = 1.0;
     ReplicatedMesh mesh(init.comm(), dim);
     MeshTools::Generation::build_sphere(mesh, radius, n_refines, elem_type);
@@ -128,6 +167,7 @@ test_circle(LibMeshInit& init,
     }
     mesh.prepare_for_use();
 
+    // check that we get the same thing with both calculators and libMesh's general code:
     const std::vector<double>& JxW = jc_1.get_JxW(*mesh.active_local_elements_begin());
     for (const double jxw : JxW) plog << std::setprecision(12) << jxw << '\n';
 
@@ -136,17 +176,54 @@ test_circle(LibMeshInit& init,
     for (auto elem_iter = mesh.active_local_elements_begin(); elem_iter != mesh.active_local_elements_end();
          ++elem_iter)
     {
+        FEMap& fe_map = map_cache[key];
+        QBase& quad = quad_cache[key];
+        fe_map.compute_map(dim, quad.get_weights(), *elem_iter, false);
+        // all computed JxW values should agree
         const std::vector<double>& JxW = jc_1.get_JxW(*elem_iter);
         const std::vector<double>& JxW_2 = jc_2.get_JxW(*elem_iter);
+        const std::vector<double>& JxW_3 = fe_map.get_JxW();
         for (unsigned int i = 0; i < JxW.size(); ++i)
         {
-            TBOX_ASSERT(std::abs(JxW[i] - JxW_2[i]) < 1e-16 * std::max(1.0, std::abs(JxW[i])));
+            TBOX_ASSERT(std::abs(JxW[i] - JxW_2[i]) < 1e-14 * std::max(1.0, std::abs(JxW[i])));
+            TBOX_ASSERT(std::abs(JxW[i] - JxW_3[i]) < 1e-14 * std::max(1.0, std::abs(JxW[i])));
         }
         volume += std::accumulate(JxW.begin(), JxW.end(), 0.0);
         volume_2 += std::accumulate(JxW_2.begin(), JxW_2.end(), 0.0);
     }
     TBOX_ASSERT(std::abs(volume - volume_2) < 1e-15 * volume);
     plog << "volume is " << volume << '\n';
+
+    // also test the surface mesh:
+    {
+        BoundaryMesh boundary_mesh(mesh.comm(), mesh.mesh_dimension() - 1);
+        mesh.boundary_info->sync(boundary_mesh);
+        boundary_mesh.prepare_for_use();
+        TBOX_ASSERT(boundary_mesh.spatial_dimension() == mesh.mesh_dimension());
+        TBOX_ASSERT(boundary_mesh.mesh_dimension() == mesh.mesh_dimension() - 1);
+
+        FEMapCache boundary_map_cache(dim - 1);
+        QuadratureCache boundary_quad_cache(dim - 1);
+
+        for (auto elem_iter = boundary_mesh.active_local_elements_begin();
+             elem_iter != boundary_mesh.active_local_elements_end();
+             ++elem_iter)
+        {
+            key_type boundary_key = key;
+            std::get<0>(boundary_key) = (*elem_iter)->type();
+
+            FEMap& fe_map = boundary_map_cache[boundary_key];
+            QBase& quad = boundary_quad_cache[boundary_key];
+            fe_map.compute_map(dim - 1, quad.get_weights(), *elem_iter, false);
+            // all computed JxW values should agree
+            const std::vector<double>& JxW = jc_boundary.get_JxW(*elem_iter);
+            const std::vector<double>& JxW_2 = fe_map.get_JxW();
+            for (unsigned int i = 0; i < JxW.size(); ++i)
+            {
+                TBOX_ASSERT(std::abs(JxW[i] - JxW_2[i]) < 1e-14 * std::max(1.0, std::abs(JxW[i])));
+            }
+        }
+    }
 }
 
 int
@@ -168,7 +245,9 @@ main(int argc, char** argv)
             const key_type key(TRI3, QGAUSS, THIRD);
             Tri3JacobianCalculator jac_calc_1(key);
             LagrangeJacobianCalculator<2> jac_calc_2(key);
-            test_cube(init, jac_calc_1, jac_calc_2, 2, key);
+            const key_type boundary_key(EDGE2, QGAUSS, THIRD);
+            LagrangeJacobianCalculator<1, 2> jac_calc_b(boundary_key);
+            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, 2, key);
             ++test_n;
         }
 
@@ -177,7 +256,9 @@ main(int argc, char** argv)
             const key_type key(TRI3, QGAUSS, THIRD);
             Tri3JacobianCalculator jac_calc_1(key);
             LagrangeJacobianCalculator<2> jac_calc_2(key);
-            test_cube(init, jac_calc_1, jac_calc_2, 2, key);
+            const key_type boundary_key(EDGE2, QGAUSS, THIRD);
+            LagrangeJacobianCalculator<1, 2> jac_calc_b(boundary_key);
+            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, 2, key);
             ++test_n;
         }
 
@@ -186,7 +267,9 @@ main(int argc, char** argv)
             const key_type key(QUAD4, QGAUSS, THIRD);
             Quad4JacobianCalculator jac_calc_1(key);
             LagrangeJacobianCalculator<2> jac_calc_2(key);
-            test_cube(init, jac_calc_1, jac_calc_2, 2, key);
+            const key_type boundary_key(EDGE2, QGAUSS, THIRD);
+            LagrangeJacobianCalculator<1, 2> jac_calc_b(boundary_key);
+            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, 2, key);
             ++test_n;
         }
 
@@ -195,7 +278,9 @@ main(int argc, char** argv)
             const key_type key(QUAD4, QGAUSS, THIRD);
             Quad4JacobianCalculator jac_calc_1(key);
             LagrangeJacobianCalculator<2> jac_calc_2(key);
-            test_circle(init, jac_calc_1, jac_calc_2, 5, 2, key);
+            const key_type boundary_key(EDGE2, QGAUSS, THIRD);
+            LagrangeJacobianCalculator<1, 2> jac_calc_b(boundary_key);
+            test_circle(init, jac_calc_1, jac_calc_2, jac_calc_b, 5, 2, key);
             ++test_n;
         }
 
@@ -204,7 +289,9 @@ main(int argc, char** argv)
             const key_type key(QUAD9, QGAUSS, FOURTH);
             Quad9JacobianCalculator jac_calc_1(key);
             LagrangeJacobianCalculator<2> jac_calc_2(key);
-            test_cube(init, jac_calc_1, jac_calc_2, 2, key);
+            const key_type boundary_key(EDGE3, QGAUSS, FOURTH);
+            LagrangeJacobianCalculator<1, 2> jac_calc_b(boundary_key);
+            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, 2, key);
             ++test_n;
         }
 
@@ -213,56 +300,70 @@ main(int argc, char** argv)
             const key_type key(QUAD9, QGAUSS, FOURTH);
             Quad9JacobianCalculator jac_calc_1(key);
             LagrangeJacobianCalculator<2> jac_calc_2(key);
-            test_circle(init, jac_calc_1, jac_calc_2, 4, 2, key);
+            const key_type boundary_key(EDGE3, QGAUSS, FOURTH);
+            LagrangeJacobianCalculator<1, 2> jac_calc_b(boundary_key);
+            test_circle(init, jac_calc_1, jac_calc_2, jac_calc_b, 4, 2, key);
             ++test_n;
         }
 
         {
-            plog << "Test " << test_n << ": TET4 square" << std::endl;
+            plog << "Test " << test_n << ": TET4 cube" << std::endl;
             const key_type key(TET4, QGAUSS, THIRD);
             Tet4JacobianCalculator jac_calc_1(key);
             LagrangeJacobianCalculator<3> jac_calc_2(key);
-            test_cube(init, jac_calc_1, jac_calc_2, 3, key);
+            const key_type boundary_key(TRI3, QGAUSS, THIRD);
+            LagrangeJacobianCalculator<2, 3> jac_calc_b(boundary_key);
+            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, 3, key);
             ++test_n;
         }
 
-#if 0
         {
             plog << "Test " << test_n << ": HEX8 square" << std::endl;
             const key_type key(HEX8, QGAUSS, THIRD);
-            Tet4JacobianCalculator jac_calc_1(key);
+            // HEX8 doesn't have a custom calculator yet
+            LagrangeJacobianCalculator<3> jac_calc_1(key);
             LagrangeJacobianCalculator<3> jac_calc_2(key);
-            test_cube(init, jac_calc_1, jac_calc_2, 3, key);
+            const key_type boundary_key(QUAD4, QGAUSS, THIRD);
+            LagrangeJacobianCalculator<2, 3> jac_calc_b(boundary_key);
+            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, 3, key);
             ++test_n;
         }
 
         {
             plog << "Test " << test_n << ": HEX8 circle" << std::endl;
             const key_type key(HEX8, QGAUSS, THIRD);
-            Tet4JacobianCalculator jac_calc_1(key);
+            // HEX8 doesn't have a custom calculator yet
+            LagrangeJacobianCalculator<3> jac_calc_1(key);
             LagrangeJacobianCalculator<3> jac_calc_2(key);
-            test_circle(init, jac_calc_1, jac_calc_2, 4, 3, key);
+            const key_type boundary_key(QUAD4, QGAUSS, THIRD);
+            LagrangeJacobianCalculator<2, 3> jac_calc_b(boundary_key);
+            test_circle(init, jac_calc_1, jac_calc_2, jac_calc_b, 4, 3, key);
             ++test_n;
         }
 
         {
             plog << "Test " << test_n << ": HEX27 square" << std::endl;
             const key_type key(HEX27, QGAUSS, FOURTH);
-            Tet4JacobianCalculator jac_calc_1(key);
+            // HEX27 doesn't have a custom calculator yet
+            LagrangeJacobianCalculator<3> jac_calc_1(key);
             LagrangeJacobianCalculator<3> jac_calc_2(key);
-            test_cube(init, jac_calc_1, jac_calc_2, 3, key);
+            const key_type boundary_key(QUAD9, QGAUSS, FOURTH);
+            LagrangeJacobianCalculator<2, 3> jac_calc_b(boundary_key);
+            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, 3, key);
             ++test_n;
         }
 
         {
             plog << "Test " << test_n << ": HEX27 circle" << std::endl;
             const key_type key(HEX27, QGAUSS, FOURTH);
-            Hex27JacobianCalculator jac_calc_1(key);
+            // HEX27 doesn't have a custom calculator yet
+            LagrangeJacobianCalculator<3> jac_calc_1(key);
             LagrangeJacobianCalculator<3> jac_calc_2(key);
-            test_circle(init, jac_calc_1, jac_calc_2, 2, 3, key);
+            const key_type boundary_key(QUAD9, QGAUSS, FOURTH);
+            LagrangeJacobianCalculator<2, 3> jac_calc_b(boundary_key);
+            test_circle(init, jac_calc_1, jac_calc_2, jac_calc_b, 2, 3, key);
             ++test_n;
         }
-#endif
     }
 
     SAMRAIManager::shutdown();

@@ -61,6 +61,117 @@ namespace libMeshWrappers
 #endif
 }
 
+/**
+ * Utility function for getting the dimensionality of a libMesh element type.
+ */
+inline
+int
+get_dim(const libMesh::ElemType elem_type)
+{
+    switch (elem_type)
+    {
+    case libMesh::ElemType::EDGE2:
+    case libMesh::ElemType::EDGE3:
+    case libMesh::ElemType::EDGE4:
+        return 1;
+    case libMesh::ElemType::TRI3:
+    case libMesh::ElemType::TRI6:
+    case libMesh::ElemType::QUAD4:
+    case libMesh::ElemType::QUAD8:
+    case libMesh::ElemType::QUAD9:
+        return 2;
+    case libMesh::ElemType::TET4:
+    case libMesh::ElemType::TET10:
+    case libMesh::ElemType::HEX8:
+    case libMesh::ElemType::HEX27:
+        return 3;
+    default:
+        TBOX_ERROR("unimplemented element type");
+    }
+    // bogus return to placate compilers
+    return 3;
+}
+
+/**
+ * Utility function for getting the number of nodes of a libMesh element type.
+ */
+inline
+std::size_t
+get_n_nodes(const libMesh::ElemType elem_type)
+{
+    switch (elem_type)
+    {
+    case libMesh::ElemType::EDGE2:
+        return 2;
+    case libMesh::ElemType::EDGE3:
+        return 3;
+    case libMesh::ElemType::EDGE4:
+        return 4;
+    case libMesh::ElemType::TRI3:
+        return 3;
+    case libMesh::ElemType::TRI6:
+        return 6;
+    case libMesh::ElemType::QUAD4:
+        return 4;
+    case libMesh::ElemType::QUAD8:
+        return 8;
+    case libMesh::ElemType::QUAD9:
+        return 9;
+    case libMesh::ElemType::TET4:
+        return 4;
+    case libMesh::ElemType::TET10:
+        return 10;
+    case libMesh::ElemType::HEX8:
+        return 8;
+    case libMesh::ElemType::HEX27:
+        return 27;
+    default:
+        TBOX_ERROR("unimplemented element type");
+    }
+
+    return 0;
+}
+
+/**
+ * Utility function for getting the default order of a libMesh element type.
+ */
+inline
+libMesh::Order
+get_default_order(const libMesh::ElemType elem_type)
+{
+    switch (elem_type)
+    {
+    case libMesh::ElemType::EDGE2:
+        return libMesh::Order::FIRST;
+    case libMesh::ElemType::EDGE3:
+        return libMesh::Order::SECOND;
+    case libMesh::ElemType::EDGE4:
+        return libMesh::Order::THIRD;
+    case libMesh::ElemType::TRI3:
+        return libMesh::Order::FIRST;
+    case libMesh::ElemType::TRI6:
+        return libMesh::Order::SECOND;
+    case libMesh::ElemType::QUAD4:
+        return libMesh::Order::FIRST;
+    case libMesh::ElemType::QUAD8:
+        return libMesh::Order::SECOND;
+    case libMesh::ElemType::QUAD9:
+        return libMesh::Order::SECOND;
+    case libMesh::ElemType::TET4:
+        return libMesh::Order::FIRST;
+    case libMesh::ElemType::TET10:
+        return libMesh::Order::SECOND;
+    case libMesh::ElemType::HEX8:
+        return libMesh::Order::FIRST;
+    case libMesh::ElemType::HEX27:
+        return libMesh::Order::SECOND;
+    default:
+        TBOX_ERROR("unimplemented element type");
+    }
+
+    return libMesh::Order::CONSTANT;
+}
+
 /*!
  * Struct allowing for the specification of system variables / gradients and the NumericVector used to evaluate
  * those quantities.

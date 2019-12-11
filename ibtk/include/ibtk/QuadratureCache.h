@@ -16,6 +16,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/libmesh_utilities.h>
+
 #include <libmesh/enum_elem_type.h>
 #include <libmesh/enum_order.h>
 #include <libmesh/enum_quadrature_type.h>
@@ -57,7 +59,8 @@ public:
     /**
      * Constructor. Sets up a cache of Quadrature objects.
      *
-     * @param dim The dimension of the Quadrature object.
+     * @param dim The topological dimension of the relevant libMesh::Mesh: see
+     * libMesh::MeshBase::mesh_dimension() for more information.
      */
     QuadratureCache(const unsigned int dim);
 
@@ -75,36 +78,37 @@ public:
      */
     void clear()
     {
-        quadratures.clear();
+        d_quadratures.clear();
     }
 
 protected:
     /**
-     * Dimension of the FE mesh.
+     * Topological dimension of the FE mesh.
      */
-    unsigned int dim;
+    unsigned int d_dim;
 
     /**
      * Managed libMesh::Quadrature objects.
      */
-    std::map<key_type, std::unique_ptr<libMesh::QBase> > quadratures;
+    std::map<key_type, std::unique_ptr<libMesh::QBase> > d_quadratures;
 };
 
-inline QuadratureCache::QuadratureCache(const unsigned int dim) : dim(dim)
+inline QuadratureCache::QuadratureCache(const unsigned int dim) : d_dim(dim)
 {
 }
 
 inline QuadratureCache::value_type& QuadratureCache::operator[](const QuadratureCache::key_type& quad_key)
 {
-    auto it = quadratures.find(quad_key);
-    if (it == quadratures.end())
+    TBOX_ASSERT(static_cast<unsigned int>(get_dim(std::get<0>(quad_key))) == d_dim);
+    auto it = d_quadratures.find(quad_key);
+    if (it == d_quadratures.end())
     {
         const libMesh::ElemType elem_type = std::get<0>(quad_key);
         const libMesh::QuadratureType quad_type = std::get<1>(quad_key);
         const libMesh::Order order = std::get<2>(quad_key);
 
         libMesh::QBase& new_quad =
-            *(*quadratures.emplace(quad_key, libMesh::QBase::build(quad_type, dim, order)).first).second;
+            *(*d_quadratures.emplace(quad_key, libMesh::QBase::build(quad_type, d_dim, order)).first).second;
         new_quad.init(elem_type);
         return new_quad;
     }
