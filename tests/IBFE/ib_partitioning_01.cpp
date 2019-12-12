@@ -43,7 +43,6 @@
 #include <LoadBalancer.h>
 #include <SAMRAI_config.h>
 #include <StandardTagAndInitialize.h>
-
 #include <mpi.h>
 
 #include <string>
@@ -90,8 +89,9 @@ main(int argc, char** argv)
 
         // we want R/2^n_refinements = dx so that we have roughly equal spacing for both elements and cells
         const int n_refinements = int(std::log2(R / dx));
+        const std::string shape = input_db->getStringWithDefault("SHAPE", "SPHERE");
         // no support for tetrahedral spheres in 3D yet
-        if (elem_type == "TET4" || elem_type == "TET10")
+        if (shape == "CUBE")
         {
             MeshTools::Generation::build_cube(mesh,
                                               n_refinements,
@@ -106,8 +106,14 @@ main(int argc, char** argv)
                                               Utility::string_to_enum<ElemType>(elem_type),
                                               false);
         }
+        else if (shape == "SQUARE")
+        {
+            MeshTools::Generation::build_square(
+                mesh, n_refinements, n_refinements, -R, R, -R, R, Utility::string_to_enum<ElemType>(elem_type), false);
+        }
         else
         {
+            TBOX_ASSERT(shape == "SPHERE");
             MeshTools::Generation::build_sphere(
                 mesh, R, n_refinements, Utility::string_to_enum<ElemType>(elem_type), 10);
         }

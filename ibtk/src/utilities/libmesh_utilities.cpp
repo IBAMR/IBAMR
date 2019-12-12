@@ -363,15 +363,9 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const lib
 } // get_local_active_element_bounding_boxes
 
 std::vector<libMeshWrappers::BoundingBox>
-get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system)
+get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                         const std::vector<libMeshWrappers::BoundingBox>& local_bboxes)
 {
-    static_assert(NDIM <= LIBMESH_DIM,
-                  "NDIM should be no more than LIBMESH_DIM for this function to "
-                  "work correctly.");
-    const auto bboxes = get_local_active_element_bounding_boxes(mesh, X_system);
-
-    // Parallel sum bounds so that each process has access to the bounding box
-    // data for each active element in the mesh.
     const std::size_t n_elem = mesh.n_active_elem();
     std::vector<double> flattened_bboxes(2 * LIBMESH_DIM * n_elem);
     std::size_t elem_n = 0;
@@ -382,8 +376,8 @@ get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const li
         const auto id = (*el_it)->id();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            flattened_bboxes[2 * id * NDIM + d] = bboxes[elem_n].first(d);
-            flattened_bboxes[(2 * id + 1) * NDIM + d] = bboxes[elem_n].second(d);
+            flattened_bboxes[2 * id * NDIM + d] = local_bboxes[elem_n].first(d);
+            flattened_bboxes[(2 * id + 1) * NDIM + d] = local_bboxes[elem_n].second(d);
         }
         ++elem_n;
     }
@@ -401,6 +395,15 @@ get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const li
         }
     }
     return global_bboxes;
+} // get_local_active_element_bounding_boxes
+
+std::vector<libMeshWrappers::BoundingBox>
+get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system)
+{
+    static_assert(NDIM <= LIBMESH_DIM,
+                  "NDIM should be no more than LIBMESH_DIM for this function to "
+                  "work correctly.");
+    return get_global_active_element_bounding_boxes(mesh, get_local_active_element_bounding_boxes(mesh, X_system));
 } // get_global_active_element_bounding_boxes
 //////////////////////////////////////////////////////////////////////////////
 

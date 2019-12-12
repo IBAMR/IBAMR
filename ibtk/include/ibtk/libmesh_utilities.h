@@ -1477,6 +1477,13 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
 std::vector<libMeshWrappers::BoundingBox> get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
                                                                                   const libMesh::System& X_system);
 
+/**
+ * Get the global list of bounding boxes from the local list.
+ */
+std::vector<libMeshWrappers::BoundingBox>
+get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                         const std::vector<libMeshWrappers::BoundingBox>& local_bboxes);
+
 /*
  * Compute bounding boxes for each active (i.e., active on any processor)
  * element in @p mesh with coordinates given by @p X_system.
