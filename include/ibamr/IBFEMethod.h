@@ -256,6 +256,19 @@ namespace IBAMR
  * assigned to an IB point when calculating the work per processor: in the
  * future additional weights, such as <code>workload_node_point_weight</code>
  * will also be added.
+ *
+ * <h2>Options Controlling Logging</h2>
+ * The logging options set by this class are propagated to the owned
+ * FEDataManager objects.
+ * <ol>
+ *   <li><code>enable_logging</code>: set to <code>TRUE</code> to enable logging.</code>.
+ *   Defaults to <code>false</code>.</li>
+ *   <li><code>skip_initial_workload_log</code>: For testing purposes (see
+ *   d_skip_initial_workload_log) it is necessary to disable some output: this
+ *   option disables logging of workload data (quadrature point counts, etc.)
+ *   before the first time step if set to <code>TRUE</code>. Defaults to
+ *   <code>false</code>.</li>
+ * </ol>
  */
 class IBFEMethod : public IBStrategy
 {
@@ -904,10 +917,25 @@ protected:
                                 const int data_idx,
                                 SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
 
-    /*
+    /*!
      * Indicates whether the integrator should output logging messages.
      */
     bool d_do_log = false;
+
+    /*!
+     * Whether or not the initial (i.e., before the regrid prior to
+     * timestepping) workload calculations should be logged. This output is
+     * generally not stable between machines and so this is usually disabled
+     * in tests.
+     */
+    bool d_skip_initial_workload_log = false;
+
+    /*!
+     * Whether or not we have started time integration. This is only used to
+     * determine whether or not we print some initial logging output: see
+     * d_skip_initial_workload_log for more information.
+     */
+    bool d_started_time_integration = false;
 
     /*
      * Boolean controlling whether or not the scratch hierarchy should be

@@ -141,6 +141,7 @@ IBFEMethod {
    IB_point_density           = IB_POINT_DENSITY
    workload_quad_point_weight = 1.0
    enable_logging             = ENABLE_LOGGING
+   skip_initial_workload_log  = TRUE
 
    libmesh_partitioner_type = "LIBMESH_DEFAULT"
 

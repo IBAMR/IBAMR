@@ -13,46 +13,9 @@ At beginning of timestep # 0
 Simulation time is 0
 IBHierarchyIntegrator::advanceHierarchy(): time interval = [0,0.00078125000000000004337], dt = 0.00078125000000000004337
 IBHierarchyIntegrator::advanceHierarchy(): regridding prior to timestep 0
-FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
-quadrature points on processor 0 = 5175
-quadrature points on processor 1 = 0
-quadrature points on processor 2 = 0
-quadrature points on processor 3 = 0
-quadrature points on processor 4 = 0
-workload estimate on processor 0 = 1700
-workload estimate on processor 1 = 0
-workload estimate on processor 2 = 0
-workload estimate on processor 3 = 0
-workload estimate on processor 4 = 0
-local active DoFs on processor 0 = 735
-local active DoFs on processor 1 = 477
-local active DoFs on processor 2 = 333
-local active DoFs on processor 3 = 306
-local active DoFs on processor 4 = 288
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
-quadrature points on processor 0 = 5175
-quadrature points on processor 1 = 0
-quadrature points on processor 2 = 0
-quadrature points on processor 3 = 0
-quadrature points on processor 4 = 0
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
-FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
-quadrature points on processor 0 = 0
-quadrature points on processor 1 = 2638
-quadrature points on processor 2 = 1258
-quadrature points on processor 3 = 1279
-quadrature points on processor 4 = 0
-workload estimate on processor 0 = 404
-workload estimate on processor 1 = 304
-workload estimate on processor 2 = 320
-workload estimate on processor 3 = 288
-workload estimate on processor 4 = 224
-local active DoFs on processor 0 = 735
-local active DoFs on processor 1 = 477
-local active DoFs on processor 2 = 333
-local active DoFs on processor 3 = 306
-local active DoFs on processor 4 = 288
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver

@@ -543,6 +543,8 @@ IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDI
 void
 IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
+    d_started_time_integration = true;
+
     d_current_time = current_time;
     d_new_time = new_time;
     d_half_time = current_time + 0.5 * (new_time - current_time);
@@ -1538,6 +1540,18 @@ IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int
 void
 IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
 {
+    const bool old_d_do_log = d_do_log;
+    if (d_skip_initial_workload_log && !d_started_time_integration)
+    {
+        d_do_log = false;
+        for (unsigned int part = 0; part < d_num_parts; ++part)
+        {
+            if (d_use_scratch_hierarchy)
+                d_scratch_fe_data_managers[part]->setLoggingEnabled(false);
+            d_primary_fe_data_managers[part]->setLoggingEnabled(false);
+        }
+    }
+
     // TODO: since this function is called before we finish setting everything
     // up the data interdependencies are complicated and its too hard to
     // communicate between the scratch and primary hierarchies. Try to fix
@@ -1618,6 +1632,13 @@ IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const 
         }
     }
 
+    d_do_log = old_d_do_log;
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        if (d_use_scratch_hierarchy)
+            d_scratch_fe_data_managers[part]->setLoggingEnabled(d_do_log);
+        d_primary_fe_data_managers[part]->setLoggingEnabled(d_do_log);
+    }
     return;
 } // addWorkloadEstimate
 
@@ -1814,6 +1835,18 @@ IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierar
                                   bool initial_time,
                                   bool uses_richardson_extrapolation_too)
 {
+    const bool old_d_do_log = d_do_log;
+    if (d_skip_initial_workload_log && !d_started_time_integration)
+    {
+        d_do_log = false;
+        for (unsigned int part = 0; part < d_num_parts; ++part)
+        {
+            if (d_use_scratch_hierarchy)
+                d_scratch_fe_data_managers[part]->setLoggingEnabled(false);
+            d_primary_fe_data_managers[part]->setLoggingEnabled(false);
+        }
+    }
+
     Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -1836,6 +1869,15 @@ IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierar
                                     d_scratch_fe_data_managers[part];
         fe_data_manager->applyGradientDetector(
             hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
+    }
+
+
+    d_do_log = old_d_do_log;
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        if (d_use_scratch_hierarchy)
+            d_scratch_fe_data_managers[part]->setLoggingEnabled(d_do_log);
+        d_primary_fe_data_managers[part]->setLoggingEnabled(d_do_log);
     }
     return;
 } // applyGradientDetector
@@ -3578,6 +3620,9 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_do_log = db->getBool("do_log");
     else if (db->keyExists("enable_logging"))
         d_do_log = db->getBool("enable_logging");
+
+    if (db->keyExists("skip_initial_workload_log"))
+        d_skip_initial_workload_log = db->getBool("skip_initial_workload_log");
 
     if (db->isDouble("epsilon")) d_epsilon = db->getDouble("epsilon");
 

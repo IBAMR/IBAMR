@@ -24,6 +24,21 @@ IBHierarchyIntegrator::advanceHierarchy(): time interval = [0,0.00015625], dt = 
 IBHierarchyIntegrator::advanceHierarchy(): regridding prior to timestep 0
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
+FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
+quadrature points on processor 0 = 9216
+quadrature points on processor 1 = 0
+quadrature points on processor 2 = 0
+quadrature points on processor 3 = 0
+FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
+quadrature points on processor 0 = 0
+quadrature points on processor 1 = 0
+quadrature points on processor 2 = 0
+quadrature points on processor 3 = 9216
+FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
+quadrature points on processor 0 = 0
+quadrature points on processor 1 = 1896
+quadrature points on processor 2 = 1896
+quadrature points on processor 3 = 0
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
 IBFEMethod: starting scratch hierarchy regrid
 FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
