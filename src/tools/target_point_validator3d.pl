@@ -1,4 +1,17 @@
 #!/usr/bin/perl -w
+## ---------------------------------------------------------------------
+##
+## Copyright (c) 2008 - 2008 by the IBAMR developers
+## All rights reserved.
+##
+## This file is part of IBAMR.
+##
+## IBAMR is free software and is distributed under the 3-clause BSD
+## license. The full text of the license can be found in the file
+## COPYRIGHT at the top level directory of IBAMR.
+##
+## ---------------------------------------------------------------------
+
 #
 # filename: target_point_validator3d.pl
 # author: Boyce Griffith
