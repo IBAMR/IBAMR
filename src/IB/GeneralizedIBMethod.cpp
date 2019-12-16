@@ -86,8 +86,8 @@ static const int GENERALIZED_IB_METHOD_VERSION = 1;
 GeneralizedIBMethod::GeneralizedIBMethod(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
     : IBMethod(std::move(object_name), input_db, register_for_restart)
 {
-    // NOTE: Parent class constructor registers class with the restart manager, sets object
-    // name.
+    // NOTE: Parent class constructor registers class with the restart manager,
+    // sets object name.
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -363,7 +363,8 @@ void
 GeneralizedIBMethod::midpointStep(const double /*current_time*/, const double /*new_time*/)
 {
     TBOX_ERROR(d_object_name << "::midpointStep():\n"
-                             << "  time-stepping type MIDPOINT_RULE not supported by class GeneralizedIBMethod;\n"
+                             << "  time-stepping type MIDPOINT_RULE not "
+                                "supported by class GeneralizedIBMethod;\n"
                              << "  use TRAPEZOIDAL_RULE instead.\n");
     return;
 } // midpointStep

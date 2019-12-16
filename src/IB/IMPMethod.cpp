@@ -936,9 +936,8 @@ IMPMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     // Initialize various Lagrangian data objects.
     if (initial_time)
     {
-        pout << "WARNING: IMPMethod implementation currently requires that the initial "
-                "velocity is "
-                "*zero*.\n";
+        pout << "WARNING: IMPMethod implementation currently requires that the "
+                "initial velocity is *zero*.\n";
     }
     return;
 } // initializePatchHierarchy

@@ -293,10 +293,12 @@ AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(std::string
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {
-        TBOX_ERROR("AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator():\n"
-                   << "  unsupported differencing form: "
-                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
-                   << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+        TBOX_ERROR(
+            "AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator()"
+            ":\n"
+            << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+            << " \n"
+            << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
     if (input_db)
@@ -305,9 +307,11 @@ AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(std::string
             d_outflow_bdry_extrap_type = input_db->getString("outflow_bdry_extrap_type");
         if (input_db->keyExists("bdry_extrap_type"))
         {
-            TBOX_ERROR("AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator():\n"
-                       << "  input database key ``bdry_extrap_type'' has been changed to "
-                          "``outflow_bdry_extrap_type''\n");
+            TBOX_ERROR(
+                "AdvDiffCenteredConvectiveOperator::"
+                "AdvDiffCenteredConvectiveOperator():\n"
+                << "  input database key ``bdry_extrap_type'' has been changed to "
+                   "``outflow_bdry_extrap_type''\n");
         }
     }
 
@@ -347,12 +351,15 @@ AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(std::string
 
     // Setup Timers.
     IBAMR_DO_ONCE(t_apply_convective_operator = TimerManager::getManager()->getTimer(
-                      "IBAMR::AdvDiffCenteredConvectiveOperator::applyConvectiveOperator()");
+                      "IBAMR::AdvDiffCenteredConvectiveOperator::applyConvectiveOperator("
+                      ")");
                   t_apply = TimerManager::getManager()->getTimer("IBAMR::AdvDiffCenteredConvectiveOperator::apply()");
                   t_initialize_operator_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::AdvDiffCenteredConvectiveOperator::initializeOperatorState()");
+                      "IBAMR::AdvDiffCenteredConvectiveOperator::initializeOperatorState("
+                      ")");
                   t_deallocate_operator_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::AdvDiffCenteredConvectiveOperator::deallocateOperatorState()"););
+                      "IBAMR::AdvDiffCenteredConvectiveOperator::deallocateOperatorState("
+                      ")"););
     return;
 } // AdvDiffCenteredConvectiveOperator
 
@@ -370,7 +377,8 @@ AdvDiffCenteredConvectiveOperator::applyConvectiveOperator(const int Q_idx, cons
     if (!d_is_initialized)
     {
         TBOX_ERROR("AdvDiffCenteredConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  operator must be initialized prior to call to applyConvectiveOperator\n");
+                   << "  operator must be initialized prior to call to "
+                      "applyConvectiveOperator\n");
     }
 #endif
 

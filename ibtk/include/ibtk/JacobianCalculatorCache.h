@@ -103,14 +103,14 @@ protected:
     std::map<key_type, std::unique_ptr<JacobianCalculator> > d_jacobian_calculators;
 };
 
-inline JacobianCalculatorCache::JacobianCalculatorCache(const int spatial_dimension) :
-    d_spatial_dimension(spatial_dimension)
+inline JacobianCalculatorCache::JacobianCalculatorCache(const int spatial_dimension)
+    : d_spatial_dimension(spatial_dimension)
 {
     TBOX_ASSERT(0 < spatial_dimension && spatial_dimension <= 3);
 }
 
-inline JacobianCalculatorCache::value_type& JacobianCalculatorCache::
-operator[](const JacobianCalculatorCache::key_type& quad_key)
+inline JacobianCalculatorCache::value_type&
+    JacobianCalculatorCache::operator[](const JacobianCalculatorCache::key_type& quad_key)
 {
     auto it = d_jacobian_calculators.find(quad_key);
     if (it == d_jacobian_calculators.end())
@@ -159,8 +159,8 @@ operator[](const JacobianCalculatorCache::key_type& quad_key)
             else
                 jac_calc.reset(new LagrangeJacobianCalculator<3, 3>(quad_key));
             break;
-            default:
-                TBOX_ERROR("unimplemented spatial dimension");
+        default:
+            TBOX_ERROR("unimplemented spatial dimension");
         }
 
         JacobianCalculator& new_jacob = *(*d_jacobian_calculators.emplace(quad_key, std::move(jac_calc)).first).second;

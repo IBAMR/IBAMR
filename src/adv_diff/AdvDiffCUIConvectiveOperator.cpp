@@ -392,7 +392,8 @@ AdvDiffCUIConvectiveOperator::applyConvectiveOperator(const int Q_idx, const int
     if (!d_is_initialized)
     {
         TBOX_ERROR("AdvDiffCUIConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  operator must be initialized prior to call to applyConvectiveOperator\n");
+                   << "  operator must be initialized prior to call to "
+                      "applyConvectiveOperator\n");
     }
 #endif
 

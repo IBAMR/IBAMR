@@ -162,8 +162,10 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
 
     // Compute the action of the operator:
-    // A*[u;p;U;L] := [A_u;A_p;A_U;A_L] = [(C*I+D*L)*u + Grad P - gamma*S L; -Div u; T L;
-    //                                     -beta*J u + beta*T^{*} U -beta*delta*Reg*L]
+    // A*[u;p;U;L] :=
+    //     [A_u;A_p;A_U;A_L] = [(C*I+D*L)*u + Grad P - gamma*S L; -Div u; T L;
+    //                          -beta*J u + beta*T^{*} U
+    //                          -beta*delta*Reg*L]
 
     // (a) Momentum equation.
     d_hier_math_ops->grad(A_U_idx, A_U_sc_var, /*cf_bdry_synch*/ false, 1.0, P_idx, P_cc_var, d_no_fill, half_time);

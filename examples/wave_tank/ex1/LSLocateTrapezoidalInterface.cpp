@@ -14,11 +14,13 @@
 // Filename LSLocateTrapezoidalInterface.cpp
 // Created by Nishant Nangia
 
+#include <ibamr/app_namespaces.h>
+
+#include <ibtk/HierarchyMathOps.h>
+
 #include "LSLocateTrapezoidalInterface.h"
 
 #include <CartesianGridGeometry.h>
-#include <ibamr/app_namespaces.h>
-#include <ibtk/HierarchyMathOps.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

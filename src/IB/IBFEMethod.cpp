@@ -800,7 +800,8 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     // Solve for the interpolated data.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        *d_U_systems[part]->solution = *U_vecs[part]; // TODO: Commenting out this line changes the solution slightly.
+        // TODO: Commenting out this line changes the solution slightly.
+        *d_U_systems[part]->solution = *U_vecs[part];
         d_active_fe_data_managers[part]->computeL2Projection(*d_U_systems[part]->solution,
                                                              *d_U_rhs_vecs[part],
                                                              VELOCITY_SYSTEM_NAME,
@@ -896,8 +897,9 @@ IBFEMethod::computeLagrangianForce(const double data_time)
     batch_vec_assembly(d_F_rhs_vecs);
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
-        d_F_systems[part]->solution->zero(); // TODO: Commenting out this line changes the solution slightly but
-                                             // probably speeds up this solve slightly too.
+        // TODO: Commenting out this line changes the solution slightly but
+        // probably speeds up this solve slightly too.
+        d_F_systems[part]->solution->zero();
         d_active_fe_data_managers[part]->computeL2Projection(*d_F_systems[part]->solution,
                                                              *d_F_rhs_vecs[part],
                                                              FORCE_SYSTEM_NAME,
@@ -1209,7 +1211,8 @@ IBFEMethod::initializeFEEquationSystems()
         d_primary_fe_data_managers[part]->setEquationSystems(&equation_systems, d_max_level_number - 1);
         if (d_use_scratch_hierarchy)
             d_scratch_fe_data_managers[part]->setEquationSystems(&equation_systems, d_max_level_number - 1);
-        // Since the scratch and primary FEDataManagers use the same FEData object we only have to do this assignment
+        // Since the scratch and primary FEDataManagers use the same FEData object
+        // we only have to do this assignment
         // once
         d_active_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
         if (from_restart)
@@ -1219,7 +1222,10 @@ IBFEMethod::initializeFEEquationSystems()
             const XdrMODE xdr_mode = (d_libmesh_restart_file_extension == "xdr" ? DECODE : READ);
             const int read_mode =
                 EquationSystems::READ_HEADER | EquationSystems::READ_DATA | EquationSystems::READ_ADDITIONAL_DATA;
-            equation_systems.read(file_name, xdr_mode, read_mode, /*partition_agnostic*/ true);
+            equation_systems.read(file_name,
+                                  xdr_mode,
+                                  read_mode,
+                                  /*partition_agnostic*/ true);
         }
         else
         {
@@ -1504,8 +1510,9 @@ IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     // make the scratch hierarchy a copy of the primary one so that it is not
     // null (which greatly simplifies control flow below)
     if (d_use_scratch_hierarchy)
-        d_scratch_hierarchy = d_hierarchy->makeRefinedPatchHierarchy(
-            d_object_name + "::scratch_hierarchy", IntVector<NDIM>(1), /*register_for_restart*/ false);
+        d_scratch_hierarchy = d_hierarchy->makeRefinedPatchHierarchy(d_object_name + "::scratch_hierarchy",
+                                                                     IntVector<NDIM>(1),
+                                                                     /*register_for_restart*/ false);
 
     // Initialize the FE data managers.
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -1546,8 +1553,7 @@ IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const 
         d_do_log = false;
         for (unsigned int part = 0; part < d_num_parts; ++part)
         {
-            if (d_use_scratch_hierarchy)
-                d_scratch_fe_data_managers[part]->setLoggingEnabled(false);
+            if (d_use_scratch_hierarchy) d_scratch_fe_data_managers[part]->setLoggingEnabled(false);
             d_primary_fe_data_managers[part]->setLoggingEnabled(false);
         }
     }
@@ -1635,8 +1641,7 @@ IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const 
     d_do_log = old_d_do_log;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        if (d_use_scratch_hierarchy)
-            d_scratch_fe_data_managers[part]->setLoggingEnabled(d_do_log);
+        if (d_use_scratch_hierarchy) d_scratch_fe_data_managers[part]->setLoggingEnabled(d_do_log);
         d_primary_fe_data_managers[part]->setLoggingEnabled(d_do_log);
     }
     return;
@@ -1671,8 +1676,9 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             // this way (so that the call to applyGradientDetector will be a
             // no-op for the scratch hierarchy).
             if (d_do_log) plog << "IBFEMethod: starting scratch hierarchy regrid" << std::endl;
-            d_scratch_hierarchy = d_hierarchy->makeRefinedPatchHierarchy(
-                d_object_name + "::scratch_hierarchy", IntVector<NDIM>(1), /*register_for_restart*/ false);
+            d_scratch_hierarchy = d_hierarchy->makeRefinedPatchHierarchy(d_object_name + "::scratch_hierarchy",
+                                                                         IntVector<NDIM>(1),
+                                                                         /*register_for_restart*/ false);
             for (unsigned int part = 0; part < d_num_parts; ++part)
             {
                 if (d_use_scratch_hierarchy)
@@ -1841,8 +1847,7 @@ IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierar
         d_do_log = false;
         for (unsigned int part = 0; part < d_num_parts; ++part)
         {
-            if (d_use_scratch_hierarchy)
-                d_scratch_fe_data_managers[part]->setLoggingEnabled(false);
+            if (d_use_scratch_hierarchy) d_scratch_fe_data_managers[part]->setLoggingEnabled(false);
             d_primary_fe_data_managers[part]->setLoggingEnabled(false);
         }
     }
@@ -1871,12 +1876,10 @@ IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierar
             hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     }
 
-
     d_do_log = old_d_do_log;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        if (d_use_scratch_hierarchy)
-            d_scratch_fe_data_managers[part]->setLoggingEnabled(d_do_log);
+        if (d_use_scratch_hierarchy) d_scratch_fe_data_managers[part]->setLoggingEnabled(d_do_log);
         d_primary_fe_data_managers[part]->setLoggingEnabled(d_do_log);
     }
     return;
@@ -1906,7 +1909,10 @@ IBFEMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirname, un
             libmesh_restart_file_name(restart_dump_dirname, time_step_number, part, d_libmesh_restart_file_extension);
         const XdrMODE xdr_mode = (d_libmesh_restart_file_extension == "xdr" ? ENCODE : WRITE);
         const int write_mode = EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA;
-        d_equation_systems[part]->write(file_name, xdr_mode, write_mode, /*partition_agnostic*/ true);
+        d_equation_systems[part]->write(file_name,
+                                        xdr_mode,
+                                        write_mode,
+                                        /*partition_agnostic*/ true);
     }
     return;
 }
@@ -1951,7 +1957,8 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     fe.evalNormalsFace();
     fe.evalQuadraturePointsFace();
     fe.evalQuadratureWeightsFace();
-    fe.registerSystem(Phi_system, Phi_vars, Phi_vars); // compute phi and dphi for the Phi system
+    fe.registerSystem(Phi_system, Phi_vars,
+                      Phi_vars); // compute phi and dphi for the Phi system
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, X_vars, X_vars, &X_vec);
     const size_t num_PK1_fcns = d_PK1_stress_fcn_data[part].size();
     std::vector<std::vector<size_t> > PK1_fcn_system_idxs(num_PK1_fcns);
@@ -2022,11 +2029,13 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
             {
                 // X:     reference coordinate
                 // x:     current coordinate
-                // FF:    deformation gradient associated with x = chi(X,t) (FF = dchi/dX)
+                // FF:    deformation gradient associated with x = chi(X,t)
+                //        (FF = dchi/dX)
                 // J:     Jacobian determinant (J = det(FF))
                 // N:     unit normal in the reference configuration
                 // n:     unit normal in the current configuration
-                // dA_da: reference surface area per current surface area (from Nanson's relation)
+                // dA_da: reference surface area per current surface area (from Nanson's
+                //        relation)
                 const libMesh::Point& X = q_point_face[qp];
                 const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
                 const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
@@ -2152,8 +2161,8 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
     DenseVector<double> G_rhs_e[NDIM];
     std::vector<libMesh::dof_id_type> dof_id_scratch;
 
-    // First handle the stress contributions.  These are handled separately because
-    // each stress function may use a different quadrature rule.
+    // First handle the stress contributions.  These are handled separately
+    // because each stress function may use a different quadrature rule.
     const size_t num_PK1_fcns = d_PK1_stress_fcn_data[part].size();
     for (unsigned int k = 0; k < num_PK1_fcns; ++k)
     {
@@ -2184,7 +2193,8 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
         fe.evalQuadraturePointsFace();
         fe.evalQuadratureWeights();
         fe.evalQuadratureWeightsFace();
-        fe.registerSystem(G_system, std::vector<int>(), vars); // compute dphi for the force system
+        fe.registerSystem(G_system, std::vector<int>(),
+                          vars); // compute dphi for the force system
         const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_vec);
         std::vector<size_t> PK1_fcn_system_idxs;
         fe.setupInterpolatedSystemDataIndexes(
@@ -2210,7 +2220,8 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
         // Loop over the elements to compute the right-hand side vector.  This
         // is computed via
         //
-        //    rhs_k = -int{PP(s,t) grad phi_k(s)}ds + int{PP(s,t) N(s,t) phi_k(s)}dA(s)
+        //    rhs_k = -int{PP(s,t) grad phi_k(s)}ds + int{PP(s,t) N(s,t)
+        //    phi_k(s)}dA(s)
         //
         // This right-hand side vector is used to solve for the nodal values of
         // the interior elastic force density.
@@ -2364,7 +2375,8 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
     fe.evalQuadraturePointsFace();
     fe.evalQuadratureWeights();
     fe.evalQuadratureWeightsFace();
-    fe.registerSystem(G_system, vars, vars); // compute phi and dphi for the force system
+    fe.registerSystem(G_system, vars,
+                      vars); // compute phi and dphi for the force system
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_vec);
     const size_t Phi_sys_idx = Phi_vec ? fe.registerInterpolatedSystem(*Phi_system, Phi_vars, no_vars, Phi_vec) :
                                          std::numeric_limits<size_t>::max();
@@ -3260,7 +3272,9 @@ IBFEMethod::initializeCoordinates(const unsigned int part)
     }
     X_coords.close();
     X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
-    copy_and_synch(X_coords, *X_system.current_local_solution, /*close_v_in*/ false);
+    copy_and_synch(X_coords,
+                   *X_system.current_local_solution,
+                   /*close_v_in*/ false);
     return;
 } // initializeCoordinates
 
@@ -3454,10 +3468,10 @@ IBFEMethod::commonConstructor(const std::string& object_name,
         if ((mesh_has_first_order_elems && mesh_has_second_order_elems) ||
             (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
         {
-            TBOX_ERROR(d_object_name
-                       << "::IBFEMethod():\n"
-                       << "  each FE mesh part must contain only FIRST order elements or only SECOND order elements"
-                       << std::endl);
+            TBOX_ERROR(d_object_name << "::IBFEMethod():\n"
+                                     << "  each FE mesh part must contain only FIRST "
+                                        "order elements or only SECOND order elements"
+                                     << std::endl);
         }
         d_fe_family[part] = LAGRANGE;
         d_default_quad_type[part] = QGAUSS;

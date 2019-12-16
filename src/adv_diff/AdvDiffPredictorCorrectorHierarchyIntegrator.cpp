@@ -143,7 +143,8 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::AdvDiffPredictorCorrectorHierarchy
         TBOX_ERROR(d_object_name << "::AdvDiffPredictorCorrectorHierarchyIntegrator():\n"
                                  << "  unsupported default diffusion time stepping type: "
                                  << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type) << " \n"
-                                 << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+                                 << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, "
+                                    "TRAPEZOIDAL_RULE\n");
     }
     return;
 } // AdvDiffPredictorCorrectorHierarchyIntegrator
@@ -298,7 +299,8 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
     if (d_current_num_cycles != expected_num_cycles)
     {
         IBAMR_DO_ONCE({
-            pout << "AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy():\n"
+            pout << "AdvDiffPredictorCorrectorHierarchyIntegrator::"
+                    "integrateHierarchy():\n"
                  << "  WARNING: num_cycles = " << d_current_num_cycles
                  << " but expected num_cycles = " << expected_num_cycles << ".\n";
         });
@@ -430,7 +432,8 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
         }
     }
 
-    // Compute any time-dependent variable diffusion coefficients at time-level n+1/2.
+    // Compute any time-dependent variable diffusion coefficients at time-level
+    // n+1/2.
     for (auto cit = d_diffusion_coef_var.begin(); cit != d_diffusion_coef_var.end(); ++cit, ++l)
     {
         Pointer<SideVariable<NDIM, double> > D_var = *cit;
@@ -509,7 +512,8 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                                      << "  unsupported diffusion time stepping type: "
                                      << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
-                                     << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+                                     << "  valid choices are: BACKWARD_EULER, "
+                                        "FORWARD_EULER, TRAPEZOIDAL_RULE\n");
         }
         PoissonSpecifications solver_spec(d_object_name + "::solver_spec::" + Q_var->getName());
         PoissonSpecifications rhs_op_spec(d_object_name + "::rhs_op_spec::" + Q_var->getName());

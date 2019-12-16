@@ -26,7 +26,8 @@ namespace IBAMR
 
 Wall::Wall(Pointer<Database> wall_db, Pointer<CartesianGridGeometry<NDIM> > grid_geometry, double wall_ghost_dist)
 {
-    // get geometry for the wall force box and scaling from cells to numerical postions
+    // get geometry for the wall force box and scaling from cells to numerical
+    // postions
     const Box<NDIM> domain_box = grid_geometry->getPhysicalDomain()[0];
     const double* dx = grid_geometry->getDx();
 
@@ -46,7 +47,8 @@ Wall::Wall(Pointer<Database> wall_db, Pointer<CartesianGridGeometry<NDIM> > grid
         // location gives the numerical location of the wall, but is read in
         // as a cell number for box creation.  The convention is that the cell
         // indicated is the first cell the wall applies forces to
-        // e.g. if location is 1, and side = 1, the wall will be at location h = cell width.
+        // e.g. if location is 1, and side = 1, the wall will be at location h =
+        // cell width.
         //      if location is 1, and side = 0, the wall will be at location 2h,
         //      where h = cell width
         d_location = wall_db->getInteger("location");
@@ -67,7 +69,8 @@ Wall::Wall(Pointer<Database> wall_db, Pointer<CartesianGridGeometry<NDIM> > grid
         TBOX_ERROR("walls must have a side parameter");
     }
 
-    // how far to search for particles to apply forces to.  This is padded by lagrangian ghost cell width.
+    // how far to search for particles to apply forces to.  This is padded by
+    // lagrangian ghost cell width.
     if (wall_db->keyExists("force_distance"))
     {
         d_force_distance = wall_db->getDouble("force_distance");

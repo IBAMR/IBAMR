@@ -70,8 +70,9 @@ IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(Pointer<Database> input_db)
     getFromInput(input_db);
 
     // Setup Timers.
-    IBAMR_DO_ONCE(t_compute_lagrangian_force_and_torque = TimerManager::getManager()->getTimer(
-                      "IBAMR::IBKirchhoffRodForceGen::computeLagrangianForceAndTorque()");
+    IBAMR_DO_ONCE(t_compute_lagrangian_force_and_torque =
+                      TimerManager::getManager()->getTimer("IBAMR::IBKirchhoffRodForceGen::"
+                                                           "computeLagrangianForceAndTorque()");
                   t_initialize_level_data =
                       TimerManager::getManager()->getTimer("IBAMR::IBKirchhoffRodForceGen::initializeLevelData()"););
     return;

@@ -182,9 +182,11 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
         t_prolong_error_and_correct =
             TimerManager::getManager()->getTimer("StaggeredStokesFACPreconditionerStrategy::prolongErrorAndCorrect()");
         t_initialize_operator_state =
-            TimerManager::getManager()->getTimer("StaggeredStokesFACPreconditionerStrategy::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->getTimer(
-            "StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()"););
+            TimerManager::getManager()->getTimer("StaggeredStokesFACPreconditionerStrategy::initializeOperatorState("
+                                                 ")");
+        t_deallocate_operator_state =
+            TimerManager::getManager()->getTimer("StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState("
+                                                 ")"););
     return;
 } // StaggeredStokesFACPreconditionerStrategy
 

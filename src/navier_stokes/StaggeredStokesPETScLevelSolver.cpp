@@ -188,8 +188,8 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
             for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
-                const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
-                    d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
+                const Array<BoundaryBox<NDIM> >& type_1_cf_bdry = d_cf_boundary->getBoundaries(patch->getPatchNumber(),
+                                                                                               /* boundary type */ 1);
                 local_cf_bdry_box_size += type_1_cf_bdry.size();
             }
             level_covers_entire_domain = SAMRAI_MPI::sumReduction(local_cf_bdry_box_size) == 0;
@@ -214,8 +214,8 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
                 p_patch_data->fill(1.0);
             }
 
-            LinearSolver::setNullspace(/*const vec*/ false,
-                                       std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >(1, nullspace_vec));
+            LinearSolver::setNullspace(
+                /*const vec*/ false, std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >(1, nullspace_vec));
         }
     }
 
@@ -291,9 +291,10 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
             d_bc_helper->enforceNormalVelocityBoundaryConditions(
                 f_adj_idx, h_adj_idx, d_U_bc_coefs, d_solution_time, d_homogeneous_bc, d_level_num, d_level_num);
         }
-        const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
-            level_zero ? Array<BoundaryBox<NDIM> >() :
-                         d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
+        const Array<BoundaryBox<NDIM> >& type_1_cf_bdry = level_zero ?
+                                                              Array<BoundaryBox<NDIM> >() :
+                                                              d_cf_boundary->getBoundaries(patch->getPatchNumber(),
+                                                                                           /* boundary type */ 1);
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
         if (at_cf_bdry)
         {

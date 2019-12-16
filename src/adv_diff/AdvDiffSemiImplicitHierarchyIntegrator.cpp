@@ -126,7 +126,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(c
         TBOX_ERROR(d_object_name << "::AdvDiffSemiImplicitHierarchyIntegrator():\n"
                                  << "  unsupported default diffusion time stepping type: "
                                  << enum_to_string<TimeSteppingType>(d_default_diffusion_time_stepping_type) << " \n"
-                                 << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+                                 << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, "
+                                    "TRAPEZOIDAL_RULE\n");
     }
 
     switch (d_default_convective_time_stepping_type)
@@ -157,7 +158,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::AdvDiffSemiImplicitHierarchyIntegrator(c
                                      << "  unsupported default initial convective time stepping type: "
                                      << enum_to_string<TimeSteppingType>(d_default_init_convective_time_stepping_type)
                                      << " \n"
-                                     << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+                                     << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, "
+                                        "TRAPEZOIDAL_RULE\n");
         }
     }
     return;
@@ -548,7 +550,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                                      << "  unsupported diffusion time stepping type: "
                                      << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
-                                     << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+                                     << "  valid choices are: BACKWARD_EULER, "
+                                        "FORWARD_EULER, TRAPEZOIDAL_RULE\n");
         }
         PoissonSpecifications solver_spec(d_object_name + "::solver_spec::" + Q_var->getName());
         PoissonSpecifications rhs_op_spec(d_object_name + "::rhs_op_spec::" + Q_var->getName());

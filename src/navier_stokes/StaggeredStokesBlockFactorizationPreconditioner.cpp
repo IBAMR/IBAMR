@@ -158,12 +158,15 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
 
     // Setup Timers.
     IBAMR_DO_ONCE(t_solve_system = TimerManager::getManager()->getTimer(
-                      "IBAMR::StaggeredStokesBlockFactorizationPreconditioner::solveSystem()");
-                  t_initialize_solver_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState()");
-                  t_deallocate_solver_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::StaggeredStokesBlockFactorizationPreconditioner::deallocateSolverState("
-                      ")"););
+                      "IBAMR::StaggeredStokesBlockFactorizationPreconditioner::solveSystem("
+                      ")");
+                  t_initialize_solver_state =
+                      TimerManager::getManager()->getTimer("IBAMR::StaggeredStokesBlockFactorizationPreconditioner::"
+                                                           "initializeSolverState()");
+                  t_deallocate_solver_state =
+                      TimerManager::getManager()->getTimer("IBAMR::StaggeredStokesBlockFactorizationPreconditioner::"
+                                                           "deallocateSolverState("
+                                                           ")"););
     return;
 } // StaggeredStokesBlockFactorizationPreconditioner
 
@@ -283,7 +286,9 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
                               F_U_idx,
                               F_U_sc_var);
         d_P_bdry_fill_op->resetTransactionComponent(P_scratch_transaction_comp);
-        solveVelocitySubsystem(*U_vec, *F_U_mod_vec, /*initial_guess_nonzero*/ false);
+        solveVelocitySubsystem(*U_vec,
+                               *F_U_mod_vec,
+                               /*initial_guess_nonzero*/ false);
         break;
 
     case LOWER_TRIANGULAR:
@@ -299,7 +304,9 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
                              1.0,
                              F_P_idx,
                              F_P_cc_var);
-        solvePressureSubsystem(*P_vec, *F_P_mod_vec, /*initial_guess_nonzero*/ false);
+        solvePressureSubsystem(*P_vec,
+                               *F_P_mod_vec,
+                               /*initial_guess_nonzero*/ false);
         break;
 
     case SYMMETRIC:
@@ -315,7 +322,9 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
                              1.0,
                              F_P_idx,
                              F_P_cc_var);
-        solvePressureSubsystem(*P_vec, *F_P_mod_vec, /*initial_guess_nonzero*/ false);
+        solvePressureSubsystem(*P_vec,
+                               *F_P_mod_vec,
+                               /*initial_guess_nonzero*/ false);
         d_P_bdry_fill_op->resetTransactionComponent(P_transaction_comp);
         d_hier_math_ops->grad(d_F_U_mod_idx,
                               F_U_sc_var,
@@ -329,7 +338,9 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
                               F_U_idx,
                               F_U_sc_var);
         d_P_bdry_fill_op->resetTransactionComponent(P_scratch_transaction_comp);
-        solveVelocitySubsystem(*U_vec, *F_U_mod_vec, /*initial_guess_nonzero*/ true);
+        solveVelocitySubsystem(*U_vec,
+                               *F_U_mod_vec,
+                               /*initial_guess_nonzero*/ true);
         break;
 
     case DIAGONAL:
@@ -417,7 +428,9 @@ StaggeredStokesBlockFactorizationPreconditioner::setInitialGuessNonzero(bool ini
     if (initial_guess_nonzero)
     {
         TBOX_ERROR(d_object_name + "::setInitialGuessNonzero()\n"
-                   << "  class IBAMR::StaggeredStokesBlockFactorizationPreconditioner requires a "
+                   << "  class "
+                      "IBAMR::StaggeredStokesBlockFactorizationPreconditioner "
+                      "requires a "
                       "zero initial guess"
                    << std::endl);
     }
@@ -430,7 +443,8 @@ StaggeredStokesBlockFactorizationPreconditioner::setMaxIterations(int max_iterat
     if (max_iterations != 1)
     {
         TBOX_ERROR(d_object_name + "::setMaxIterations()\n"
-                   << "  class IBAMR::StaggeredStokesBlockFactorizationPreconditioner only "
+                   << "  class "
+                      "IBAMR::StaggeredStokesBlockFactorizationPreconditioner only "
                       "performs a single iteration"
                    << std::endl);
     }
@@ -515,7 +529,8 @@ StaggeredStokesBlockFactorizationPreconditioner::solvePressureSubsystem(SAMRAIVe
         d_pressure_solver->setHomogeneousBc(true);
         auto p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
         if (p_pressure_solver) p_pressure_solver->setInitialGuessNonzero(initial_guess_nonzero);
-        d_pressure_solver->solveSystem(*P_scratch_vec, F_P_vec); // P_scratch_idx := -inv(L_rho)*F_P
+        d_pressure_solver->solveSystem(*P_scratch_vec,
+                                       F_P_vec); // P_scratch_idx := -inv(L_rho)*F_P
         d_pressure_data_ops->linearSum(
             P_idx, -1.0 / getDt(), d_P_scratch_idx, d_U_problem_coefs.getDConstant(), F_P_idx);
     }

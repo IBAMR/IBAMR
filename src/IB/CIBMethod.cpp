@@ -424,7 +424,8 @@ CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
                                                                             /*manage_data*/ true);
 
         // Initialize the Lagrange multiplier to zero.
-        // Specific value of lambda will be assigned from structure specific input file.
+        // Specific value of lambda will be assigned from structure specific input
+        // file.
         VecSet(lag_mul_data->getVec(), 0.0);
 
         // Create unshifted initial position of the structure.
@@ -726,7 +727,8 @@ void
 CIBMethod::backwardEulerStep(double /*current_time*/, double /*new_time*/)
 {
     TBOX_ERROR(
-        "CIBMethod::backwardEulerStep() not implemented. The time integrator uses mid-point timestepping with "
+        "CIBMethod::backwardEulerStep() not implemented. The time "
+        "integrator uses mid-point timestepping with "
         "CIBMethod::forwardEulerStep() as predictor. \n");
     return;
 
@@ -860,8 +862,10 @@ CIBMethod::midpointStep(double current_time, double new_time)
 void
 CIBMethod::trapezoidalStep(double /*current_time*/, double /*new_time*/)
 {
-    TBOX_ERROR("CIBMethod does not support trapezoidal time-stepping rule for position update."
-               << " Only mid-point rule is supported." << std::endl);
+    TBOX_ERROR(
+        "CIBMethod does not support trapezoidal time-stepping rule for "
+        "position update. Only mid-point rule is supported."
+        << std::endl);
 
     return;
 } // trapezoidalStep
@@ -1420,7 +1424,10 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
         }
         else
         {
-            TBOX_ERROR("CIBMethod::generateMobilityMatrix(): Invalid type of a mobility matrix." << std::endl);
+            TBOX_ERROR(
+                "CIBMethod::generateMobilityMatrix(): Invalid type of a "
+                "mobility matrix."
+                << std::endl);
         }
     }
 
@@ -1504,31 +1511,51 @@ CIBMethod::constructGeometricMatrix(const std::string& /*mat_name*/,
                 R_dr = rotation_mat * dr;
 
                 // Here we are doing column major format.
-                geometric_mat_data[/*col*/ (i * block_size) * row_size + /*row*/ q * NDIM] = 1.0;     //(1,1)
-                geometric_mat_data[/*col*/ (i * block_size) * row_size + /*row*/ q * NDIM + 1] = 0.0; //(2,1)
+                geometric_mat_data[/*col*/ (i * block_size) * row_size +
+                                   /*row*/ q * NDIM] = 1.0; //(1,1)
+                geometric_mat_data[/*col*/ (i * block_size) * row_size +
+                                   /*row*/ q * NDIM + 1] = 0.0; //(2,1)
 
-                geometric_mat_data[/*col*/ (i * block_size + 1) * row_size + /*row*/ q * NDIM] = 0.0;     //(1,2)
-                geometric_mat_data[/*col*/ (i * block_size + 1) * row_size + /*row*/ q * NDIM + 1] = 1.0; //(2,2)
+                geometric_mat_data[/*col*/ (i * block_size + 1) * row_size +
+                                   /*row*/ q * NDIM] = 0.0; //(1,2)
+                geometric_mat_data[/*col*/ (i * block_size + 1) * row_size +
+                                   /*row*/ q * NDIM + 1] = 1.0; //(2,2)
 #if (NDIM == 2)
-                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM] = -R_dr[1];    //(1,3)
-                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM + 1] = R_dr[0]; //(2,3)
+                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size +
+                                   /*row*/ q * NDIM] = -R_dr[1]; //(1,3)
+                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size +
+                                   /*row*/ q * NDIM + 1] = R_dr[0]; //(2,3)
 #elif (NDIM == 3)
-                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM] = 0.0;      //(1,3)
-                geometric_mat_data[/*col*/ (i * block_size + 3) * row_size + /*row*/ q * NDIM] = 0.0;      //(1,4)
-                geometric_mat_data[/*col*/ (i * block_size + 4) * row_size + /*row*/ q * NDIM] = R_dr[2];  //(1,5)
-                geometric_mat_data[/*col*/ (i * block_size + 5) * row_size + /*row*/ q * NDIM] = -R_dr[1]; //(1,6)
+                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size +
+                                   /*row*/ q * NDIM] = 0.0; //(1,3)
+                geometric_mat_data[/*col*/ (i * block_size + 3) * row_size +
+                                   /*row*/ q * NDIM] = 0.0; //(1,4)
+                geometric_mat_data[/*col*/ (i * block_size + 4) * row_size +
+                                   /*row*/ q * NDIM] = R_dr[2]; //(1,5)
+                geometric_mat_data[/*col*/ (i * block_size + 5) * row_size +
+                                   /*row*/ q * NDIM] = -R_dr[1]; //(1,6)
 
-                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM + 1] = 0.0;      //(2,3)
-                geometric_mat_data[/*col*/ (i * block_size + 3) * row_size + /*row*/ q * NDIM + 1] = -R_dr[2]; //(2,4)
-                geometric_mat_data[/*col*/ (i * block_size + 4) * row_size + /*row*/ q * NDIM + 1] = 0.0;      //(2,5)
-                geometric_mat_data[/*col*/ (i * block_size + 5) * row_size + /*row*/ q * NDIM + 1] = R_dr[0];  //(2,6)
+                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size +
+                                   /*row*/ q * NDIM + 1] = 0.0; //(2,3)
+                geometric_mat_data[/*col*/ (i * block_size + 3) * row_size +
+                                   /*row*/ q * NDIM + 1] = -R_dr[2]; //(2,4)
+                geometric_mat_data[/*col*/ (i * block_size + 4) * row_size +
+                                   /*row*/ q * NDIM + 1] = 0.0; //(2,5)
+                geometric_mat_data[/*col*/ (i * block_size + 5) * row_size +
+                                   /*row*/ q * NDIM + 1] = R_dr[0]; //(2,6)
 
-                geometric_mat_data[/*col*/ (i * block_size) * row_size + /*row*/ q * NDIM + 2] = 0.0;          //(3,1)
-                geometric_mat_data[/*col*/ (i * block_size + 1) * row_size + /*row*/ q * NDIM + 2] = 0.0;      //(3,2)
-                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM + 2] = 1.0;      //(3,3)
-                geometric_mat_data[/*col*/ (i * block_size + 3) * row_size + /*row*/ q * NDIM + 2] = R_dr[1];  //(3,4)
-                geometric_mat_data[/*col*/ (i * block_size + 4) * row_size + /*row*/ q * NDIM + 2] = -R_dr[0]; //(3,5)
-                geometric_mat_data[/*col*/ (i * block_size + 5) * row_size + /*row*/ q * NDIM + 2] = 0.0;      //(3,6)
+                geometric_mat_data[/*col*/ (i * block_size) * row_size +
+                                   /*row*/ q * NDIM + 2] = 0.0; //(3,1)
+                geometric_mat_data[/*col*/ (i * block_size + 1) * row_size +
+                                   /*row*/ q * NDIM + 2] = 0.0; //(3,2)
+                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size +
+                                   /*row*/ q * NDIM + 2] = 1.0; //(3,3)
+                geometric_mat_data[/*col*/ (i * block_size + 3) * row_size +
+                                   /*row*/ q * NDIM + 2] = R_dr[1]; //(3,4)
+                geometric_mat_data[/*col*/ (i * block_size + 4) * row_size +
+                                   /*row*/ q * NDIM + 2] = -R_dr[0]; //(3,5)
+                geometric_mat_data[/*col*/ (i * block_size + 5) * row_size +
+                                   /*row*/ q * NDIM + 2] = 0.0; //(3,6)
 #endif
             }
         }
@@ -1550,9 +1577,10 @@ CIBMethod::rotateArray(double* array,
 #if !defined(NDEBUG)
     if (!(depth == NDIM || depth == s_max_free_dofs))
     {
-        TBOX_ERROR("CIBMethod::rotateArray(). Data depth of the array to be rotated should either be "
-                   << NDIM << " (type nodal velocity) or " << s_max_free_dofs << " (type body free DOFs)."
-                   << std::endl);
+        TBOX_ERROR(
+            "CIBMethod::rotateArray(). Data depth of the array to be "
+            "rotated should either be "
+            << NDIM << " (type nodal velocity) or " << s_max_free_dofs << " (type body free DOFs)." << std::endl);
     }
 #endif
 
@@ -1599,8 +1627,10 @@ CIBMethod::rotateArray(double* array,
             }
             else
             {
-                TBOX_ERROR("CIBMethod::rotateArray(). Rotation of only force and position/velocity data is supported."
-                           << std::endl);
+                TBOX_ERROR(
+                    "CIBMethod::rotateArray(). Rotation of only force and "
+                    "position/velocity data is supported."
+                    << std::endl);
             }
         }
     }
@@ -1819,15 +1849,19 @@ CIBMethod::setRegularizationWeight(const int level_number)
             iss >> lag_pts;
             if (lag_pts != (lag_idx_range.second - lag_idx_range.first))
             {
-                TBOX_ERROR("CIBMethod::setRegularizationWeight() Total no. of Lagrangian points in the weight file "
-                           << d_reg_filename[struct_no] << " not equal to corresponding vertex file." << std::endl);
+                TBOX_ERROR(
+                    "CIBMethod::setRegularizationWeight() Total no. of "
+                    "Lagrangian points in the weight file "
+                    << d_reg_filename[struct_no] << " not equal to corresponding vertex file." << std::endl);
             }
         }
         else
         {
-            TBOX_ERROR("CIBMethod::setRegularizationWeight() Error in the input regularization file "
-                       << d_reg_filename[struct_no] << " at line number 0. Total number of Lagrangian  points required."
-                       << std::endl);
+            TBOX_ERROR(
+                "CIBMethod::setRegularizationWeight() Error in the input "
+                "regularization file "
+                << d_reg_filename[struct_no] << " at line number 0. Total number of Lagrangian  points required."
+                << std::endl);
         }
 
         std::vector<double> reg_weight(lag_pts);
@@ -1840,8 +1874,10 @@ CIBMethod::setRegularizationWeight(const int level_number)
             }
             else
             {
-                TBOX_ERROR("CIBMethod::setRegularizationWeight() Error in the input regularization file "
-                           << d_reg_filename[struct_no] << " at line number " << k + 1 << std::endl);
+                TBOX_ERROR(
+                    "CIBMethod::setRegularizationWeight() Error in the input "
+                    "regularization file "
+                    << d_reg_filename[struct_no] << " at line number " << k + 1 << std::endl);
             }
         }
 
@@ -1913,8 +1949,10 @@ CIBMethod::setInitialLambda(const int level_number)
 
             if (lag_pts != (lag_idx_range.second - lag_idx_range.first))
             {
-                TBOX_ERROR("CIBMethod::setInitialLambda() Total no. of Lagrangian points in the lambda file "
-                           << d_lambda_filename[struct_no] << " not equal to corresponding vertex file." << std::endl);
+                TBOX_ERROR(
+                    "CIBMethod::setInitialLambda() Total no. of Lagrangian "
+                    "points in the lambda file "
+                    << d_lambda_filename[struct_no] << " not equal to corresponding vertex file." << std::endl);
             }
         }
         else

@@ -11,7 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-
 #include <ibtk/ibtk_utilities.h>
 
 #include <tbox/Pointer.h>

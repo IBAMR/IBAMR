@@ -291,7 +291,8 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {
         TBOX_ERROR(
-            "INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator("
+            "INSCollocatedCenteredConvectiveOperator::"
+            "INSCollocatedCenteredConvectiveOperator("
             "):\n"
             << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
             << " \n"
@@ -350,14 +351,17 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
 #endif
 
     // Setup Timers.
-    IBAMR_DO_ONCE(t_apply_convective_operator = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator()");
+    IBAMR_DO_ONCE(t_apply_convective_operator =
+                      TimerManager::getManager()->getTimer("IBAMR::INSCollocatedCenteredConvectiveOperator::"
+                                                           "applyConvectiveOperator()");
                   t_apply =
                       TimerManager::getManager()->getTimer("IBAMR::INSCollocatedCenteredConvectiveOperator::apply()");
-                  t_initialize_operator_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSCollocatedCenteredConvectiveOperator::initializeOperatorState()");
-                  t_deallocate_operator_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSCollocatedCenteredConvectiveOperator::deallocateOperatorState()"););
+                  t_initialize_operator_state =
+                      TimerManager::getManager()->getTimer("IBAMR::INSCollocatedCenteredConvectiveOperator::"
+                                                           "initializeOperatorState()");
+                  t_deallocate_operator_state =
+                      TimerManager::getManager()->getTimer("IBAMR::INSCollocatedCenteredConvectiveOperator::"
+                                                           "deallocateOperatorState()"););
     return;
 } // INSCollocatedCenteredConvectiveOperator
 
@@ -375,7 +379,8 @@ INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx
     if (!d_is_initialized)
     {
         TBOX_ERROR("INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  operator must be initialized prior to call to applyConvectiveOperator\n");
+                   << "  operator must be initialized prior to call to "
+                      "applyConvectiveOperator\n");
     }
 #endif
 

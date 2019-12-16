@@ -127,7 +127,8 @@ StokesFirstOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
                 }
             }
 
-            // Compute a numerical heaviside at the boundary from the analytical wave elevation
+            // Compute a numerical heaviside at the boundary from the analytical wave
+            // elevation
             const double theta = d_wave_number * dof_posn[0] - d_omega * fill_time;
             const double kd = d_wave_number * d_depth;
             const double z_plus_d = dof_posn[dir];

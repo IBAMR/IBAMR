@@ -173,20 +173,24 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
     if (!d_s_fcn)
     {
         TBOX_ERROR("CFUpperConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  Source function must be register prior to call to applyConvectiveOperator\n");
+                   << "  Source function must be register prior to call to "
+                      "applyConvectiveOperator\n");
     }
     if (!d_is_initialized)
     {
         TBOX_ERROR("CFUpperConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  operator must be initialized prior to call to applyConvectiveOperator\n");
+                   << "  operator must be initialized prior to call to "
+                      "applyConvectiveOperator\n");
     }
     // Set up velocity information:
     d_convec_oper->setAdvectionVelocity(d_u_idx);
     d_convec_oper->setSolutionTime(d_solution_time);
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     // Copy data to side centered velocity field
-    // TODO: This is only done because we currently only have operators to fill in physical boundary conditions for
-    // cell- and side-centered quantities.
+    //
+    // TODO: This is only done because we currently only have operators to
+    // fill in physical boundary conditions for cell- and side-centered
+    // quantities.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);

@@ -108,10 +108,12 @@ INSCollocatedWavePropConvectiveOperator::INSCollocatedWavePropConvectiveOperator
 {
     if (d_difference_form != ADVECTIVE /* && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC*/)
     {
-        TBOX_ERROR("INSCollocatedWavePropConvectiveOperator::INSCollocatedWavePropConvectiveOperator():\n"
-                   << "  unsupported differencing form: "
-                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
-                   << "  valid choices are: ADVECTIVE\n");
+        TBOX_ERROR(
+            "INSCollocatedWavePropConvectiveOperator::"
+            "INSCollocatedWavePropConvectiveOperator():\n"
+            << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+            << " \n"
+            << "  valid choices are: ADVECTIVE\n");
     }
 
     if (input_db)
@@ -153,7 +155,8 @@ INSCollocatedWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx
     if (!d_is_initialized)
     {
         TBOX_ERROR("INSCollocatedWavePropConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  operator must be initialized prior to call to applyConvectiveOperator\n");
+                   << "  operator must be initialized prior to call to "
+                      "applyConvectiveOperator\n");
     }
 #endif
 

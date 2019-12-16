@@ -11,7 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-
 #include <ibamr/app_namespaces.h>
 
 #include <ibtk/HierarchyMathOps.h>

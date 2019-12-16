@@ -318,10 +318,12 @@ INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator(
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {
-        TBOX_ERROR("INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator():\n"
-                   << "  unsupported differencing form: "
-                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
-                   << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+        TBOX_ERROR(
+            "INSCollocatedPPMConvectiveOperator::"
+            "INSCollocatedPPMConvectiveOperator():\n"
+            << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+            << " \n"
+            << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
     if (input_db)
@@ -377,12 +379,15 @@ INSCollocatedPPMConvectiveOperator::INSCollocatedPPMConvectiveOperator(
 
     // Setup Timers.
     IBAMR_DO_ONCE(t_apply_convective_operator = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSCollocatedPPMConvectiveOperator::applyConvectiveOperator()");
+                      "IBAMR::INSCollocatedPPMConvectiveOperator::applyConvectiveOperator("
+                      ")");
                   t_apply = TimerManager::getManager()->getTimer("IBAMR::INSCollocatedPPMConvectiveOperator::apply()");
                   t_initialize_operator_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSCollocatedPPMConvectiveOperator::initializeOperatorState()");
+                      "IBAMR::INSCollocatedPPMConvectiveOperator::initializeOperatorState("
+                      ")");
                   t_deallocate_operator_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSCollocatedPPMConvectiveOperator::deallocateOperatorState()"););
+                      "IBAMR::INSCollocatedPPMConvectiveOperator::deallocateOperatorState("
+                      ")"););
     return;
 } // INSCollocatedPPMConvectiveOperator
 
@@ -400,7 +405,8 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
     if (!d_is_initialized)
     {
         TBOX_ERROR("INSCollocatedPPMConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  operator must be initialized prior to call to applyConvectiveOperator\n");
+                   << "  operator must be initialized prior to call to "
+                      "applyConvectiveOperator\n");
     }
 #endif
 
@@ -534,7 +540,8 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
                                    patch_upper(0),
                                    patch_lower(1),
                                    patch_upper(1),
-                                   //                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
+                                   //                      u_extrap_data_gcw(0),
+                                   //                      u_extrap_data_gcw(1),
                                    u_ADV_data_gcw(0),
                                    u_ADV_data_gcw(1),
                                    u_extrap_data_gcw(0),
@@ -557,7 +564,8 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
                                    patch_upper(1),
                                    patch_lower(2),
                                    patch_upper(2),
-                                   //                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
+                                   //                      u_extrap_data_gcw(0),
+                                   //                      u_extrap_data_gcw(1),
                                    // u_extrap_data_gcw(2),
                                    u_ADV_data_gcw(0),
                                    u_ADV_data_gcw(1),
@@ -569,7 +577,7 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
                                    u_flux_data_gcw(1),
                                    u_flux_data_gcw(2),
                                    //                      u_extrap_data->getPointer(0,0),
-                                   // u_extrap_data->getPointer(1,1),    u_extrap_data->getPointer(2,2),
+                                   // u_extrap_data->getPointer(1,1), u_extrap_data->getPointer(2,2),
                                    u_ADV_data->getPointer(0),
                                    u_ADV_data->getPointer(1),
                                    u_ADV_data->getPointer(2),
@@ -624,7 +632,8 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
                                          patch_upper(0),
                                          patch_lower(1),
                                          patch_upper(1),
-                                         //                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
+                                         //                      u_extrap_data_gcw(0),
+                                         //                      u_extrap_data_gcw(1),
                                          u_ADV_data_gcw(0),
                                          u_ADV_data_gcw(1),
                                          u_extrap_data_gcw(0),
@@ -645,7 +654,8 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
                                          patch_upper(1),
                                          patch_lower(2),
                                          patch_upper(2),
-                                         //                      u_extrap_data_gcw(0), u_extrap_data_gcw(1),
+                                         //                      u_extrap_data_gcw(0),
+                                         //                      u_extrap_data_gcw(1),
                                          // u_extrap_data_gcw(2),
                                          u_ADV_data_gcw(0),
                                          u_ADV_data_gcw(1),
@@ -654,7 +664,7 @@ INSCollocatedPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, con
                                          u_extrap_data_gcw(1),
                                          u_extrap_data_gcw(2),
                                          //                      u_extrap_data->getPointer(0,0),
-                                         // u_extrap_data->getPointer(1,1),    u_extrap_data->getPointer(2,2),
+                                         // u_extrap_data->getPointer(1,1), u_extrap_data->getPointer(2,2),
                                          u_ADV_data->getPointer(0),
                                          u_ADV_data->getPointer(1),
                                          u_ADV_data->getPointer(2),

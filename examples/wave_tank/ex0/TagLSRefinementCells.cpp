@@ -15,11 +15,13 @@
 // Created on Dec 28, 2017 by Nishant Nangia
 
 // APPLICATION INCLUDES
+#include <ibamr/app_namespaces.h>
+
 #include "TagLSRefinementCells.h"
-#include <fstream>
 
 #include <CartesianGridGeometry.h>
-#include <ibamr/app_namespaces.h>
+
+#include <fstream>
 
 // C++ INCLUDES
 

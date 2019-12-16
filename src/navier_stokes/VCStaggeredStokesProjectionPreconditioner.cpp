@@ -137,10 +137,12 @@ VCStaggeredStokesProjectionPreconditioner::VCStaggeredStokesProjectionPreconditi
     // Setup Timers.
     IBAMR_DO_ONCE(t_solve_system = TimerManager::getManager()->getTimer(
                       "IBAMR::VCStaggeredStokesProjectionPreconditioner::solveSystem()");
-                  t_initialize_solver_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::VCStaggeredStokesProjectionPreconditioner::initializeSolverState()");
-                  t_deallocate_solver_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::VCStaggeredStokesProjectionPreconditioner::deallocateSolverState()"););
+                  t_initialize_solver_state =
+                      TimerManager::getManager()->getTimer("IBAMR::VCStaggeredStokesProjectionPreconditioner::"
+                                                           "initializeSolverState()");
+                  t_deallocate_solver_state =
+                      TimerManager::getManager()->getTimer("IBAMR::VCStaggeredStokesProjectionPreconditioner::"
+                                                           "deallocateSolverState()"););
     return;
 } // VCStaggeredStokesProjectionPreconditioner
 
@@ -422,7 +424,8 @@ VCStaggeredStokesProjectionPreconditioner::setInitialGuessNonzero(bool initial_g
     if (initial_guess_nonzero)
     {
         TBOX_ERROR(d_object_name + "::setInitialGuessNonzero()\n"
-                   << "  class IBAMR::VCStaggeredStokesProjectionPreconditioner requires a zero "
+                   << "  class IBAMR::VCStaggeredStokesProjectionPreconditioner "
+                      "requires a zero "
                       "initial guess"
                    << std::endl);
     }
@@ -435,7 +438,8 @@ VCStaggeredStokesProjectionPreconditioner::setMaxIterations(int max_iterations)
     if (max_iterations != 1)
     {
         TBOX_ERROR(d_object_name + "::setMaxIterations()\n"
-                   << "  class IBAMR::VCStaggeredStokesProjectionPreconditioner only performs a "
+                   << "  class IBAMR::VCStaggeredStokesProjectionPreconditioner "
+                      "only performs a "
                       "single iteration"
                    << std::endl);
     }

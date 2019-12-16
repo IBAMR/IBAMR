@@ -15,11 +15,13 @@
 // Created on Dec 14, 2017 by Nishant Nangia
 
 // APPLICATION INCLUDES
+#include <ibamr/app_namespaces.h>
+
+#include <ibtk/HierarchyMathOps.h>
+
 #include "SetFluidGasSolidViscosity.h"
 
 #include <CartesianGridGeometry.h>
-#include <ibamr/app_namespaces.h>
-#include <ibtk/HierarchyMathOps.h>
 
 // C++ INCLUDES
 

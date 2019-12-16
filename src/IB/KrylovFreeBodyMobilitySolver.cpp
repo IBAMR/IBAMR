@@ -242,11 +242,13 @@ KrylovFreeBodyMobilitySolver::reportKSPConvergedReason(const KSPConvergedReason&
     {
     case KSP_CONVERGED_RTOL:
         os << d_object_name
-           << ": converged: |Ax-b| <= rtol*|b| --- residual norm is less than specified relative tolerance.\n";
+           << ": converged: |Ax-b| <= rtol*|b| --- residual norm "
+              "is less than specified relative tolerance.\n";
         break;
     case KSP_CONVERGED_ATOL:
         os << d_object_name
-           << ": converged: |Ax-b| <= atol --- residual norm is less than specified absolute tolerance.\n";
+           << ": converged: |Ax-b| <= atol --- residual norm is "
+              "less than specified absolute tolerance.\n";
         break;
     case KSP_CONVERGED_ITS:
         os << d_object_name << ": converged: maximum number of iterations reached.\n";
@@ -259,11 +261,13 @@ KrylovFreeBodyMobilitySolver::reportKSPConvergedReason(const KSPConvergedReason&
         break;
     case KSP_DIVERGED_ITS:
         os << d_object_name
-           << ": diverged: reached maximum number of iterations before any convergence criteria were satisfied.\n";
+           << ": diverged: reached maximum number of iterations "
+              "before any convergence criteria were satisfied.\n";
         break;
     case KSP_DIVERGED_DTOL:
         os << d_object_name
-           << ": diverged: |Ax-b| >= dtol*|b| --- residual is greater than specified divergence tolerance.\n";
+           << ": diverged: |Ax-b| >= dtol*|b| --- residual is "
+              "greater than specified divergence tolerance.\n";
         break;
     case KSP_DIVERGED_BREAKDOWN:
         os << d_object_name << ": diverged: breakdown in the Krylov method.\n";
@@ -273,13 +277,16 @@ KrylovFreeBodyMobilitySolver::reportKSPConvergedReason(const KSPConvergedReason&
         break;
     case KSP_DIVERGED_NONSYMMETRIC:
         os << d_object_name
-           << ": diverged: it appears the operator or preconditioner is not symmetric, but this "
+           << ": diverged: it appears the operator or preconditioner is not "
+              "symmetric, but this "
               "Krylov method (KSPCG, KSPMINRES, KSPCR) requires symmetry\n";
         break;
     case KSP_DIVERGED_INDEFINITE_PC:
         os << d_object_name
-           << ": diverged: it appears the preconditioner is indefinite (has both positive and "
-              "negative eigenvalues), but this Krylov method (KSPCG) requires it to be positive "
+           << ": diverged: it appears the preconditioner is "
+              "indefinite (has both positive and "
+              "negative eigenvalues), but this Krylov method "
+              "(KSPCG) requires it to be positive "
               "definite.\n";
         break;
     case KSP_CONVERGED_ITERATING:
@@ -430,7 +437,8 @@ KrylovFreeBodyMobilitySolver::MatVecMult_KFBMSolver(Mat A, Vec x, Vec y)
     TBOX_ASSERT(solver);
 #endif
     // a) Set rigid body velocity
-    VecSet(solver->d_petsc_temp_v, 0.0); // so that lambda for specified-kinematics part is zero.
+    VecSet(solver->d_petsc_temp_v,
+           0.0); // so that lambda for specified-kinematics part is zero.
     solver->d_cib_strategy->setRigidBodyVelocity(x,
                                                  solver->d_petsc_temp_v,
                                                  /*only_free_dofs*/ true,

@@ -302,8 +302,9 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
     case STANDARD:
         if (d_project_conform)
         {
-            // TODO: This only projects the conformation tensor data owned by this class. Really, we need to project
-            // the conformation tensor owned by the advection diffusion integrator.
+            // TODO: This only projects the conformation tensor data owned by
+            // this class. Really, we need to project the conformation tensor
+            // owned by the advection diffusion integrator.
             projectTensor(d_W_cc_idx, d_W_cc_var, hierarchy, data_time, initial_time, coarsest_ln, finest_ln);
         }
         hier_cc_data_ops->copyData(d_W_scratch_idx, d_W_cc_idx);
@@ -386,8 +387,9 @@ CFINSForcing::setDataOnPatchLevel(const int data_idx,
 {
     if (initial_time)
     {
-        // The integrators do not call setDataOnPatchHierarchy for the initial iteration. We need to allocate draw and
-        // scratch data here at the initial time.
+        // The integrators do not call setDataOnPatchHierarchy for the initial
+        // iteration. We need to allocate draw and scratch data here at the
+        // initial time.
         if (!level->checkAllocated(d_W_scratch_idx)) level->allocatePatchData(d_W_scratch_idx);
         if (d_conform_draw && !level->checkAllocated(d_conform_idx_draw)) level->allocatePatchData(d_conform_idx_draw);
         if (d_stress_draw && !level->checkAllocated(d_stress_idx_draw)) level->allocatePatchData(d_stress_idx_draw);
@@ -441,9 +443,10 @@ CFINSForcing::setDataOnPatch(const int data_idx,
     }
     if (d_stress_draw)
     {
-        // TODO: This currently assumes that the relationship between the conformation tensor and stress tensor is given
-        // by stress = eta/lambda*(C-I). This is not necessarily true for all relationships. We should make this change
-        // using a function.
+        // TODO: This currently assumes that the relationship between the
+        // conformation tensor and stress tensor is given by stress =
+        // eta/lambda*(C-I). This is not necessarily true for all
+        // relationships. We should make this change using a function.
         Pointer<CellData<NDIM, double> > stress_data_draw = patch->getPatchData(d_stress_idx_draw);
         for (CellIterator<NDIM> ci(patch_box); ci; ci++)
         {
@@ -475,10 +478,11 @@ CFINSForcing::setDataOnPatch(const int data_idx,
         if (initial_time) return;
         const IntVector<NDIM> W_cc_ghosts = W_cc_data->getGhostCellWidth();
         const IntVector<NDIM> divW_sc_ghosts = divW_sc_data->getGhostCellWidth();
-        // Compute prefactor of divergence of stress.
-        // If we are computing the conformation tensor, we need to convert to stress
-        // TODO: This term depends on the particular fluid model (Currently works for OldroydB, Giesekus, and
-        // RoliePoly?) Perhaps a better way would be to convert to stress, then take divergence (takes care of nonlinear
+        // Compute prefactor of divergence of stress. If we are computing the
+        // conformation tensor, we need to convert to stress TODO: This term
+        // depends on the particular fluid model (Currently works for
+        // OldroydB, Giesekus, and RoliePoly?) Perhaps a better way would be
+        // to convert to stress, then take divergence (takes care of nonlinear
         // models).
         double alpha = d_eta / d_lambda;
         const IntVector<NDIM>& patch_lower = patch_box.lower();
@@ -553,10 +557,11 @@ CFINSForcing::setDataOnPatch(const int data_idx,
         if (initial_time) return;
         const IntVector<NDIM> W_cc_ghosts = W_cc_data->getGhostCellWidth();
         const IntVector<NDIM> divW_cc_ghosts = divW_cc_data->getGhostCellWidth();
-        // Compute prefactor of divergence of stress.
-        // If we are computing the conformation tensor, we need to convert to stress
-        // TODO: This term depends on the particular fluid model (Currently works for OldroydB, Giesekus, and
-        // RoliePoly) Perhaps a better way would be to convert to stress, then take divergence (takes care of nonlinear
+        // Compute prefactor of divergence of stress. If we are computing the
+        // conformation tensor, we need to convert to stress TODO: This term
+        // depends on the particular fluid model (Currently works for
+        // OldroydB, Giesekus, and RoliePoly) Perhaps a better way would be to
+        // convert to stress, then take divergence (takes care of nonlinear
         // models).
         double alpha = d_eta / d_lambda;
         const IntVector<NDIM>& patch_lower = patch_box.lower();

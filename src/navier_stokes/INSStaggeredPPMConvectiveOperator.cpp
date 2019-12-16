@@ -459,10 +459,12 @@ INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(std::string
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {
-        TBOX_ERROR("INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator():\n"
-                   << "  unsupported differencing form: "
-                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
-                   << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+        TBOX_ERROR(
+            "INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator()"
+            ":\n"
+            << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+            << " \n"
+            << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
     if (input_db)
@@ -490,12 +492,15 @@ INSStaggeredPPMConvectiveOperator::INSStaggeredPPMConvectiveOperator(std::string
 
     // Setup Timers.
     IBAMR_DO_ONCE(t_apply_convective_operator = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSStaggeredPPMConvectiveOperator::applyConvectiveOperator()");
+                      "IBAMR::INSStaggeredPPMConvectiveOperator::applyConvectiveOperator("
+                      ")");
                   t_apply = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredPPMConvectiveOperator::apply()");
                   t_initialize_operator_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSStaggeredPPMConvectiveOperator::initializeOperatorState()");
+                      "IBAMR::INSStaggeredPPMConvectiveOperator::initializeOperatorState("
+                      ")");
                   t_deallocate_operator_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSStaggeredPPMConvectiveOperator::deallocateOperatorState()"););
+                      "IBAMR::INSStaggeredPPMConvectiveOperator::deallocateOperatorState("
+                      ")"););
     return;
 } // INSStaggeredPPMConvectiveOperator
 
@@ -513,7 +518,8 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, cons
     if (!d_is_initialized)
     {
         TBOX_ERROR("INSStaggeredPPMConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  operator must be initialized prior to call to applyConvectiveOperator\n");
+                   << "  operator must be initialized prior to call to "
+                      "applyConvectiveOperator\n");
     }
     TBOX_ASSERT(U_idx == d_u_idx);
 #endif
@@ -938,7 +944,8 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, cons
                     TBOX_ERROR("INSStaggeredPPMConvectiveOperator::applyConvectiveOperator():\n"
                                << "  unsupported differencing form: "
                                << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
-                               << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+                               << "  valid choices are: ADVECTIVE, CONSERVATIVE, "
+                                  "SKEW_SYMMETRIC\n");
                 }
             }
         }

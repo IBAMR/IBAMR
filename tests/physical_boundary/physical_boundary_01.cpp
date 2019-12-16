@@ -31,8 +31,9 @@
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartExtrapPhysBdryOp.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
-#include <ibtk/muParserRobinBcCoefs.h>
 #include <ibtk/PhysicalBoundaryUtilities.h>
+#include <ibtk/muParserRobinBcCoefs.h>
+
 #include <tbox/Array.h>
 
 // Set up application namespace declarations
@@ -209,7 +210,7 @@ main(int argc, char* argv[])
                     bc_fill_op.setPhysicalBoundaryConditions(*patch, 0.0, data->getGhostCellWidth());
 
                     warning = false;
-                    std::vector<Box<NDIM>> ghost_boxes;
+                    std::vector<Box<NDIM> > ghost_boxes;
                     if (extrap_type == "LINEAR")
                     {
                         ghost_boxes.push_back(data->getGhostBox());
@@ -217,7 +218,8 @@ main(int argc, char* argv[])
                     else if (extrap_type == "QUADRATIC")
                     {
                         ghost_boxes.push_back(patch->getBox());
-                        const tbox::Array<BoundaryBox<NDIM>> codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+                        const tbox::Array<BoundaryBox<NDIM> > codim1_boxes =
+                            PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
                         if (codim1_boxes.size() != 0)
                         {
                             for (int n = 0; n < codim1_boxes.size(); ++n)
@@ -254,7 +256,7 @@ main(int argc, char* argv[])
                     bc_fill_op.setPhysicalBoundaryConditions(*patch, 0.0, data->getGhostCellWidth());
 
                     warning = false;
-                    std::vector<Box<NDIM>> ghost_boxes;
+                    std::vector<Box<NDIM> > ghost_boxes;
                     if (extrap_type == "LINEAR")
                     {
                         ghost_boxes.push_back(data->getGhostBox());
@@ -262,39 +264,41 @@ main(int argc, char* argv[])
                     else if (extrap_type == "QUADRATIC")
                     {
                         ghost_boxes.push_back(patch->getBox());
-                        const tbox::Array<BoundaryBox<NDIM>> codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+                        const tbox::Array<BoundaryBox<NDIM> > codim1_boxes =
+                            PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
                         if (codim1_boxes.size() != 0)
                         {
-                                for (int n = 0; n < codim1_boxes.size(); ++n)
-                                {
-                                    const BoundaryBox<NDIM>& bdry_box = codim1_boxes[n];
-                                    ghost_boxes.push_back(pgeom->getBoundaryFillBox(bdry_box, patch->getBox(), gcw));
-                                }
+                            for (int n = 0; n < codim1_boxes.size(); ++n)
+                            {
+                                const BoundaryBox<NDIM>& bdry_box = codim1_boxes[n];
+                                ghost_boxes.push_back(pgeom->getBoundaryFillBox(bdry_box, patch->getBox(), gcw));
+                            }
                         }
                     }
                     for (const auto& box : ghost_boxes)
                     {
-                            for (unsigned int axis = 0; axis < NDIM; ++axis)
+                        for (unsigned int axis = 0; axis < NDIM; ++axis)
+                        {
+                            for (SideIterator<NDIM> si(box, axis); si; si++)
                             {
-                                for (SideIterator<NDIM> si(box, axis); si; si++)
+                                const SideIndex<NDIM>& i = si();
+                                double X[NDIM];
+                                for (unsigned int d = 0; d < NDIM; ++d)
                                 {
-                                    const SideIndex<NDIM>& i = si();
-                                    double X[NDIM];
-                                    for (unsigned int d = 0; d < NDIM; ++d)
-                                    {
-                                        X[d] = x_lower[d] +
-                                               dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + (axis == d ? 0.0 : 0.5));
-                                    }
-                                    double val = fcn_map[extrap_type](X);
-        
-                                    if (!MathUtilities<double>::equalEps(val, (*data)(i)))
-                                    {
-                                        warning = true;
-                                        pout << "warning: value at location " << i << " is not correct\n";
-                                        pout << "  expected value = " << val << "   computed value = " << (*data)(i) << "\n";
-                                    }
+                                    X[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) +
+                                                                 (axis == d ? 0.0 : 0.5));
+                                }
+                                double val = fcn_map[extrap_type](X);
+
+                                if (!MathUtilities<double>::equalEps(val, (*data)(i)))
+                                {
+                                    warning = true;
+                                    pout << "warning: value at location " << i << " is not correct\n";
+                                    pout << "  expected value = " << val << "   computed value = " << (*data)(i)
+                                         << "\n";
                                 }
                             }
+                        }
                     }
                 }
 

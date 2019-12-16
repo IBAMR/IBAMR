@@ -221,7 +221,8 @@ INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {
         TBOX_ERROR(
-            "INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator():"
+            "INSStaggeredCenteredConvectiveOperator::"
+            "INSStaggeredCenteredConvectiveOperator():"
             "\n"
             << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
             << " \n"
@@ -252,14 +253,17 @@ INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
 #endif
 
     // Setup Timers.
-    IBAMR_DO_ONCE(t_apply_convective_operator = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator()");
+    IBAMR_DO_ONCE(t_apply_convective_operator =
+                      TimerManager::getManager()->getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::"
+                                                           "applyConvectiveOperator()");
                   t_apply =
                       TimerManager::getManager()->getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::apply()");
-                  t_initialize_operator_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSStaggeredCenteredConvectiveOperator::initializeOperatorState()");
-                  t_deallocate_operator_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSStaggeredCenteredConvectiveOperator::deallocateOperatorState()"););
+                  t_initialize_operator_state =
+                      TimerManager::getManager()->getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::"
+                                                           "initializeOperatorState()");
+                  t_deallocate_operator_state =
+                      TimerManager::getManager()->getTimer("IBAMR::INSStaggeredCenteredConvectiveOperator::"
+                                                           "deallocateOperatorState()"););
     return;
 } // INSStaggeredCenteredConvectiveOperator
 
@@ -277,7 +281,8 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx,
     if (!d_is_initialized)
     {
         TBOX_ERROR("INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  operator must be initialized prior to call to applyConvectiveOperator\n");
+                   << "  operator must be initialized prior to call to "
+                      "applyConvectiveOperator\n");
     }
     TBOX_ASSERT(U_idx == d_u_idx);
 #endif
@@ -449,10 +454,13 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx,
                 );
                 break;
             default:
-                TBOX_ERROR("INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator():\n"
-                           << "  unsupported differencing form: "
-                           << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
-                           << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+                TBOX_ERROR(
+                    "INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator():"
+                    "\n"
+                    << "  unsupported differencing form: "
+                    << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, "
+                       "SKEW_SYMMETRIC\n");
             }
         }
     }

@@ -183,7 +183,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::INSVCStaggeredNonConservativeH
             TBOX_ERROR(d_object_name << "::INSVCStaggeredNonConservativeHierarchyIntegrator():\n"
                                      << "  unsupported initial convective time stepping type: "
                                      << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type) << " \n"
-                                     << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+                                     << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, "
+                                        "TRAPEZOIDAL_RULE\n");
         }
     }
 
@@ -215,20 +216,22 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     const IntVector<NDIM> side_ghosts = SIDEG;
     const IntVector<NDIM> no_ghosts = 0;
 
-    // Get the density variable, which can either be an advected field maintained by
-    // an appropriate advection-diffusion integrator, or a set field with some functional
-    // form maintained by the INS integrator
+    // Get the density variable, which can either be an advected field
+    // maintained by an appropriate advection-diffusion integrator, or a set
+    // field with some functional form maintained by the INS integrator
     if (!d_rho_is_const)
     {
         if (d_adv_diff_hier_integrator && d_rho_adv_diff_var)
         {
 #if !defined(NDEBUG)
-            // AdvDiffHierarchyIntegrator should initialize and maintain the density variable.
+            // AdvDiffHierarchyIntegrator should initialize and maintain the
+            // density variable.
             TBOX_ASSERT(!d_rho_var);
             TBOX_ASSERT(!d_rho_init_fcn);
 #endif
             d_rho_var = Pointer<CellVariable<NDIM, double> >(nullptr);
-            // Ensure that boundary conditions are provided by the advection-diffusion integrator
+            // Ensure that boundary conditions are provided by the
+            // advection-diffusion integrator
             d_rho_bc_coef = (d_adv_diff_hier_integrator->getPhysicalBcCoefs(d_rho_adv_diff_var)).front();
         }
         else if (d_rho_var)
@@ -236,21 +239,27 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
             Pointer<CellVariable<NDIM, double> > cc_var = d_rho_var;
             if (!cc_var)
             {
-                TBOX_ERROR("INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator():\n"
-                           << " registered density variable must be cell centered");
+                TBOX_ERROR(
+                    "INSVCStaggeredNonConservativeHierarchyIntegrator::"
+                    "initializeHierarchyIntegrator():\n"
+                    << " registered density variable must be cell centered");
             }
         }
         else
         {
-            TBOX_ERROR("INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator():\n"
-                       << "  rho_is_const == false but no mass density variable has been registered.\n");
+            TBOX_ERROR(
+                "INSVCStaggeredNonConservativeHierarchyIntegrator::"
+                "initializeHierarchyIntegrator():\n"
+                << "  rho_is_const == false but no mass density variable has "
+                   "been registered.\n");
         }
     }
 
     if (d_rho_var)
     {
 #if !defined(NDEBUG)
-        // INSVCStaggeredNonConservativeHierarchyIntegrator should initialize the density variable.
+        // INSVCStaggeredNonConservativeHierarchyIntegrator should initialize the
+        // density variable.
         TBOX_ASSERT(d_rho_init_fcn || d_reset_rho_fcns.size() > 0);
 #endif
         registerVariable(d_rho_current_idx,
@@ -269,7 +278,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
         d_rho_init_fcn = nullptr;
 
         Pointer<CellVariable<NDIM, double> > rho_cc_scratch_var =
-            new CellVariable<NDIM, double>(d_object_name + "_rho_cc_scratch_var", /*depth*/ 1);
+            new CellVariable<NDIM, double>(d_object_name + "_rho_cc_scratch_var",
+                                           /*depth*/ 1);
         d_rho_scratch_idx = var_db->registerVariableAndContext(rho_cc_scratch_var, getScratchContext(), cell_ghosts);
     }
 
@@ -328,7 +338,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
         level->allocatePatchData(d_rho_interp_idx, current_time);
     }
 
-    // Note that we always reset current context of state variables here, if necessary.
+    // Note that we always reset current context of state variables here, if
+    // necessary.
     const double apply_time = current_time;
     if (!d_mu_is_const && d_mu_var)
     {
@@ -360,7 +371,9 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
             mu_current_idx = d_mu_current_idx;
         }
 
-        d_hier_cc_data_ops->copyData(d_mu_scratch_idx, mu_current_idx, /*interior_only*/ true);
+        d_hier_cc_data_ops->copyData(d_mu_scratch_idx,
+                                     mu_current_idx,
+                                     /*interior_only*/ true);
         d_mu_bdry_bc_fill_op->fillData(current_time);
 
         // Interpolate onto node or edge centers
@@ -390,11 +403,17 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
         }
 
         // Store the viscosities for later use
-        d_hier_cc_data_ops->copyData(d_mu_linear_op_idx, d_mu_scratch_idx, /*interior_only*/ false);
+        d_hier_cc_data_ops->copyData(d_mu_linear_op_idx,
+                                     d_mu_scratch_idx,
+                                     /*interior_only*/ false);
 #if (NDIM == 2)
-        d_hier_nc_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
+        d_hier_nc_data_ops->copyData(d_mu_interp_linear_op_idx,
+                                     d_mu_interp_idx,
+                                     /*interior_only*/ false);
 #elif (NDIM == 3)
-        d_hier_ec_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
+        d_hier_ec_data_ops->copyData(d_mu_interp_linear_op_idx,
+                                     d_mu_interp_idx,
+                                     /*interior_only*/ false);
 #endif
     }
 
@@ -433,7 +452,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
         TBOX_ERROR("this statement should not be reached");
     }
 
-    // The rho/dt * u^n term will be taken care of later since it must be multiplied by the newest value of rho
+    // The rho/dt * u^n term will be taken care of later since it must be
+    // multiplied by the newest value of rho
     PoissonSpecifications U_rhs_problem_coefs(d_object_name + "::U_rhs_problem_coefs");
     U_rhs_problem_coefs.setCConstant(-K_rhs * lambda);
 
@@ -441,17 +461,27 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
     if (d_mu_is_const)
     {
 #if (NDIM == 2)
-        d_hier_nc_data_ops->setToScalar(d_velocity_rhs_D_idx, +K_rhs * mu, /*interior_only*/ false);
+        d_hier_nc_data_ops->setToScalar(d_velocity_rhs_D_idx,
+                                        +K_rhs * mu,
+                                        /*interior_only*/ false);
 #elif (NDIM == 3)
-        d_hier_ec_data_ops->setToScalar(d_velocity_rhs_D_idx, +K_rhs * mu, /*interior_only*/ false);
+        d_hier_ec_data_ops->setToScalar(d_velocity_rhs_D_idx,
+                                        +K_rhs * mu,
+                                        /*interior_only*/ false);
 #endif
     }
     else
     {
 #if (NDIM == 2)
-        d_hier_nc_data_ops->scale(d_velocity_rhs_D_idx, +K_rhs, d_mu_interp_idx, /*interior_only*/ false);
+        d_hier_nc_data_ops->scale(d_velocity_rhs_D_idx,
+                                  +K_rhs,
+                                  d_mu_interp_idx,
+                                  /*interior_only*/ false);
 #elif (NDIM == 3)
-        d_hier_ec_data_ops->scale(d_velocity_rhs_D_idx, +K_rhs, d_mu_interp_idx, /*interior_only*/ false);
+        d_hier_ec_data_ops->scale(d_velocity_rhs_D_idx,
+                                  +K_rhs,
+                                  d_mu_interp_idx,
+                                  /*interior_only*/ false);
 #endif
     }
     U_rhs_problem_coefs.setDPatchDataId(d_velocity_rhs_D_idx);
@@ -484,7 +514,9 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
                                 d_no_fill_op,
                                 current_time,
                                 d_mu_vc_interp_type);
-    d_hier_sc_data_ops->copyData(d_U_src_idx, d_U_scratch_idx, /*interior_only*/ false);
+    d_hier_sc_data_ops->copyData(d_U_src_idx,
+                                 d_U_scratch_idx,
+                                 /*interior_only*/ false);
 
     // Set the initial guess.
     d_hier_sc_data_ops->copyData(d_U_new_idx, d_U_current_idx);
@@ -502,9 +534,11 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
                                      << "  attempting to perform " << d_current_num_cycles
                                      << " cycles of fixed point iteration.\n"
-                                     << "  number of cycles required by coupled advection-diffusion solver = "
+                                     << "  number of cycles required by coupled advection-diffusion "
+                                        "solver = "
                                      << adv_diff_num_cycles << ".\n"
-                                     << "  current implementation requires either that both solvers use the same "
+                                     << "  current implementation requires either that both solvers use "
+                                        "the same "
                                         "number of cycles,\n"
                                      << "  or that the Navier-Stokes solver use only a single cycle.\n");
         }
@@ -575,14 +609,16 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
     if (d_current_num_cycles != expected_num_cycles)
     {
         IBAMR_DO_ONCE({
-            pout << "INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy():\n"
+            pout << "INSVCStaggeredNonConservativeHierarchyIntegrator::"
+                    "integrateHierarchy():\n"
                  << "  WARNING: num_cycles = " << d_current_num_cycles
                  << " but expected num_cycles = " << expected_num_cycles << ".\n";
         });
     }
 
     // Update the state variables of any linked advection-diffusion solver.
-    // NOTE: This also updates rho and mu if they are maintained by adv-diff integrator.
+    // NOTE: This also updates rho and mu if they are maintained by adv-diff
+    // integrator.
     if (d_adv_diff_hier_integrator)
     {
         d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
@@ -633,7 +669,9 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
         {
             rho_new_idx = d_rho_new_idx;
         }
-        d_hier_cc_data_ops->copyData(d_rho_scratch_idx, rho_new_idx, /*interior_only*/ true);
+        d_hier_cc_data_ops->copyData(d_rho_scratch_idx,
+                                     rho_new_idx,
+                                     /*interior_only*/ true);
         d_rho_bdry_bc_fill_op->fillData(new_time);
 
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
@@ -665,7 +703,9 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
         }
 
         // Store the density for later use
-        d_hier_sc_data_ops->copyData(d_rho_linear_op_idx, d_rho_interp_idx, /*interior_only*/ true);
+        d_hier_sc_data_ops->copyData(d_rho_linear_op_idx,
+                                     d_rho_interp_idx,
+                                     /*interior_only*/ true);
 
         // Deallocate temporary patch data
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
@@ -687,7 +727,9 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
         {
             mu_new_idx = d_mu_new_idx;
         }
-        d_hier_cc_data_ops->copyData(d_mu_scratch_idx, mu_new_idx, /*interior_only*/ true);
+        d_hier_cc_data_ops->copyData(d_mu_scratch_idx,
+                                     mu_new_idx,
+                                     /*interior_only*/ true);
         d_mu_bdry_bc_fill_op->fillData(new_time);
 
         // Interpolate onto node or edge centers
@@ -717,11 +759,17 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
         }
 
         // Store the viscosities for later use
-        d_hier_cc_data_ops->copyData(d_mu_linear_op_idx, d_mu_scratch_idx, /*interior_only*/ false);
+        d_hier_cc_data_ops->copyData(d_mu_linear_op_idx,
+                                     d_mu_scratch_idx,
+                                     /*interior_only*/ false);
 #if (NDIM == 2)
-        d_hier_nc_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
+        d_hier_nc_data_ops->copyData(d_mu_interp_linear_op_idx,
+                                     d_mu_interp_idx,
+                                     /*interior_only*/ false);
 #elif (NDIM == 3)
-        d_hier_ec_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
+        d_hier_ec_data_ops->copyData(d_mu_interp_linear_op_idx,
+                                     d_mu_interp_idx,
+                                     /*interior_only*/ false);
 #endif
     }
 
@@ -935,7 +983,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::resetHierarchyConfigurationSpe
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     if (!d_rho_is_const)
     {
-        // These options are chosen to ensure that information is propagated conservatively from the coarse cells only
+        // These options are chosen to ensure that information is propagated
+        // conservatively from the coarse cells only
         InterpolationTransactionComponent rho_bc_component(d_rho_scratch_idx,
                                                            d_rho_refine_type,
                                                            false,
@@ -1042,7 +1091,9 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
         {
             rho_current_idx = d_rho_current_idx;
         }
-        d_hier_cc_data_ops->copyData(d_rho_scratch_idx, rho_current_idx, /*interior_only*/ true);
+        d_hier_cc_data_ops->copyData(d_rho_scratch_idx,
+                                     rho_current_idx,
+                                     /*interior_only*/ true);
         d_rho_bdry_bc_fill_op->fillData(apply_time);
 
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
@@ -1124,13 +1175,18 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
     // Solve the projection pressure-Poisson problem.
     regrid_projection_solver->solveSystem(sol_vec, rhs_vec);
     if (d_enable_logging && d_enable_logging_solver_iterations)
-        plog << d_object_name << "::regridProjection(): regrid projection solve number of iterations = "
+        plog << d_object_name
+             << "::regridProjection(): regrid projection solve "
+                "number of iterations = "
              << regrid_projection_solver->getNumIterations() << "\n";
     if (d_enable_logging)
-        plog << d_object_name << "::regridProjection(): regrid projection solve residual norm        = "
+        plog << d_object_name
+             << "::regridProjection(): regrid projection solve "
+                "residual norm        = "
              << regrid_projection_solver->getResidualNorm() << "\n";
 
-    // Fill ghost cells for Phi, compute Grad Phi, and set U := U - 1/rho * Grad Phi
+    // Fill ghost cells for Phi, compute Grad Phi, and set U := U - 1/rho * Grad
+    // Phi
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent Phi_bc_component(d_P_scratch_idx,
                                                        DATA_REFINE_TYPE,
@@ -1203,7 +1259,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::getConvectiveTimeSteppingType(
         {
             convective_time_stepping_type = MIDPOINT_RULE;
             IBAMR_DO_ONCE({
-                pout << "INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy():\n"
+                pout << "INSVCStaggeredNonConservativeHierarchyIntegrator::"
+                        "integrateHierarchy():\n"
                      << "  WARNING: convective_time_stepping_type = "
                      << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
                      << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
@@ -1272,8 +1329,10 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
 
             if (!MathUtilities<double>::equalEps(lambda, 0.0))
             {
-                d_hier_sc_data_ops->addScalar(
-                    d_velocity_C_idx, d_velocity_C_idx, A_scale * K * lambda, /*interior_only*/ true);
+                d_hier_sc_data_ops->addScalar(d_velocity_C_idx,
+                                              d_velocity_C_idx,
+                                              A_scale * K * lambda,
+                                              /*interior_only*/ true);
             }
             U_problem_coefs.setCPatchDataId(d_velocity_C_idx);
         }
@@ -1282,11 +1341,17 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
         if (d_mu_is_const)
         {
 #if (NDIM == 2)
-            d_hier_nc_data_ops->setToScalar(d_velocity_D_idx, A_scale * (-K * mu), /*interior_only*/ false);
+            d_hier_nc_data_ops->setToScalar(d_velocity_D_idx,
+                                            A_scale * (-K * mu),
+                                            /*interior_only*/ false);
 #elif (NDIM == 3)
-            d_hier_ec_data_ops->setToScalar(d_velocity_D_idx, A_scale * (-K * mu), /*interior_only*/ false);
+            d_hier_ec_data_ops->setToScalar(d_velocity_D_idx,
+                                            A_scale * (-K * mu),
+                                            /*interior_only*/ false);
 #endif
-            d_hier_cc_data_ops->setToScalar(d_velocity_D_cc_idx, A_scale * (-K * mu), /*interior_only*/ false);
+            d_hier_cc_data_ops->setToScalar(d_velocity_D_cc_idx,
+                                            A_scale * (-K * mu),
+                                            /*interior_only*/ false);
         }
         else
         {
@@ -1317,8 +1382,13 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
     }
     else
     {
-        d_hier_sc_data_ops->reciprocal(d_pressure_D_idx, d_rho_interp_idx, /*interior_only*/ false);
-        d_hier_sc_data_ops->scale(d_pressure_D_idx, -1.0, d_pressure_D_idx, /*interior_only*/ false);
+        d_hier_sc_data_ops->reciprocal(d_pressure_D_idx,
+                                       d_rho_interp_idx,
+                                       /*interior_only*/ false);
+        d_hier_sc_data_ops->scale(d_pressure_D_idx,
+                                  -1.0,
+                                  d_pressure_D_idx,
+                                  /*interior_only*/ false);
 
         // Synchronize pressure patch data coefficient
         using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
@@ -1332,8 +1402,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
         P_problem_coefs.setDPatchDataId(d_pressure_D_idx);
     }
 
-    // Ensure that solver components are appropriately reinitialized at the correct intervals or
-    // when the time step size changes.
+    // Ensure that solver components are appropriately reinitialized at the
+    // correct intervals or when the time step size changes.
     const bool dt_change = initial_time || !MathUtilities<double>::equalEps(dt, d_dt_previous[0]);
     const bool precond_reinit = d_integrator_step % d_precond_reinit_interval == 0;
     if (precond_reinit)
@@ -1500,7 +1570,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
                                      d_P_rhs_vec->getComponentDescriptorIndex(0));
     }
 
-    // Account for the convective acceleration term N_full, which will contain the rho scaling factor.
+    // Account for the convective acceleration term N_full, which will contain the
+    // rho scaling factor.
     if (!d_creeping_flow)
     {
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
@@ -1545,7 +1616,9 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
         // Set the convective term depending on the time stepping type
         if (convective_time_stepping_type == FORWARD_EULER)
         {
-            d_hier_sc_data_ops->copyData(d_N_full_idx, d_N_old_new_idx, /*interior_only*/ true);
+            d_hier_sc_data_ops->copyData(d_N_full_idx,
+                                         d_N_old_new_idx,
+                                         /*interior_only*/ true);
         }
         else if (convective_time_stepping_type == ADAMS_BASHFORTH)
         {
@@ -1576,11 +1649,17 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
         // Scale by newest rho and tack on the convective term to the RHS
         if (d_rho_is_const)
         {
-            d_hier_sc_data_ops->scale(d_N_full_idx, rho, d_N_full_idx, /*interior_only*/ true);
+            d_hier_sc_data_ops->scale(d_N_full_idx,
+                                      rho,
+                                      d_N_full_idx,
+                                      /*interior_only*/ true);
         }
         else
         {
-            d_hier_sc_data_ops->multiply(d_N_full_idx, d_rho_interp_idx, d_N_full_idx, /*interior_only*/ true);
+            d_hier_sc_data_ops->multiply(d_N_full_idx,
+                                         d_rho_interp_idx,
+                                         d_N_full_idx,
+                                         /*interior_only*/ true);
         }
         d_hier_sc_data_ops->axpy(
             rhs_vec->getComponentDescriptorIndex(0), -1.0, d_N_full_idx, rhs_vec->getComponentDescriptorIndex(0));
@@ -1596,7 +1675,10 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
     }
     else
     {
-        d_hier_sc_data_ops->scale(d_temp_sc_idx, 1.0 / dt, d_rho_interp_idx, /*interior_only*/ true);
+        d_hier_sc_data_ops->scale(d_temp_sc_idx,
+                                  1.0 / dt,
+                                  d_rho_interp_idx,
+                                  /*interior_only*/ true);
         d_hier_math_ops->pointwiseMultiply(rhs_vec->getComponentDescriptorIndex(0),
                                            rhs_vec->getComponentVariable(0),
                                            d_temp_sc_idx,
@@ -1715,7 +1797,10 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::resetSolverVectors(
     }
     else
     {
-        d_hier_sc_data_ops->scale(d_temp_sc_idx, -1.0 / dt, d_rho_interp_idx, /*interior_only*/ true);
+        d_hier_sc_data_ops->scale(d_temp_sc_idx,
+                                  -1.0 / dt,
+                                  d_rho_interp_idx,
+                                  /*interior_only*/ true);
         d_hier_math_ops->pointwiseMultiply(rhs_vec->getComponentDescriptorIndex(0),
                                            rhs_vec->getComponentVariable(0),
                                            d_temp_sc_idx,

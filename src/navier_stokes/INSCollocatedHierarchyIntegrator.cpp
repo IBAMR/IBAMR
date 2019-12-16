@@ -306,7 +306,8 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(std::string o
         TBOX_ERROR(d_object_name << "::INSCollocatedHierarchyIntegrator():\n"
                                  << "  unsupported viscous time stepping type: "
                                  << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << " \n"
-                                 << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+                                 << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, "
+                                    "TRAPEZOIDAL_RULE\n");
     }
     switch (d_convective_time_stepping_type)
     {
@@ -334,7 +335,8 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(std::string o
             TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                      << "  unsupported initial convective time stepping type: "
                                      << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type) << " \n"
-                                     << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+                                     << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, "
+                                        "TRAPEZOIDAL_RULE\n");
         }
     }
 
@@ -528,35 +530,43 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
     {
         pout << "\n"
              << "   "
-                "******************************************************************************"
+                "******************************************************************"
+                "************"
                 "**\n"
-             << "   * INSCollocatedHierarchyIntegrator:                                        "
+             << "   * INSCollocatedHierarchyIntegrator:                            "
+                "            "
                 "    "
                 "*\n"
-             << "   *                                                                          "
+             << "   *                                                              "
+                "            "
                 "    "
                 "*\n"
-             << "   * WARNING: PRESSURE_INCREMENT projection method exhibits very slow "
+             << "   * WARNING: PRESSURE_INCREMENT projection method exhibits very "
+                "slow "
                 "convergence "
                 "*\n"
-             << "   *          when used with locally refined grids.                           "
+             << "   *          when used with locally refined grids.               "
+                "            "
                 "    "
                 "*\n"
-             << "   *                                                                          "
+             << "   *                                                              "
+                "            "
                 "    "
                 "*\n"
-             << "   *          Sugest changing projection method type to PRESSURE_UPDATE.      "
+             << "   *          Sugest changing projection method type to "
+                "PRESSURE_UPDATE.      "
                 "    "
                 "*\n"
              << "   "
-                "******************************************************************************"
+                "******************************************************************"
+                "************"
                 "\n\n";
         // NOTE: It is not clear what is causing this lack of convergence.
         //
         // The basic pressure-increment projection method with is:
         //
-        // (1)      rho{[u(*) - u(n)]/dt + N(n+1/2)} = - Grad_h P(n-1/2) + mu Lap_h[u(*) +
-        // u(n)]/2
+        // (1)      rho{[u(*) - u(n)]/dt + N(n+1/2)} = - Grad_h P(n-1/2)
+        //                                    + mu Lap_h[u(*) + u(n)]/2
         //
         // (2)      rho[u(n+1) - u(*)]/dt = - Grad_h Phi
         //          Div_h u(n+1)          = 0
@@ -578,7 +588,8 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
         // instead of P.  E.g., by keeping track of a vector-valued quantity GP,
         // as follows:
         //
-        // (1)      rho{[u(*) - u(n)]/dt + N(n+1/2)} = - GP(n-1/2) + mu Lap_h[u(*) + u(n)]/2
+        // (1)      rho{[u(*) - u(n)]/dt + N(n+1/2)} = - GP(n-1/2) + mu Lap_h[u(*)
+        //                                               + u(n)]/2
         //
         // (2)      rho[u(n+1) - u(*)]/dt = - Grad_h Phi
         //          Div_h u(n+1)          = 0
@@ -961,9 +972,11 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
                                      << "  attempting to perform " << d_current_num_cycles
                                      << " cycles of fixed point iteration.\n"
-                                     << "  number of cycles required by coupled advection-diffusion solver = "
+                                     << "  number of cycles required by coupled advection-diffusion "
+                                        "solver = "
                                      << adv_diff_num_cycles << ".\n"
-                                     << "  current implementation requires either that both solvers use the same "
+                                     << "  current implementation requires either that both solvers use "
+                                        "the same "
                                         "number of cycles,\n"
                                      << "  or that the Navier-Stokes solver use only a single cycle.\n");
         }
@@ -2113,7 +2126,10 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
     if (d_convective_op && d_convective_op_needs_init)
     {
         if (d_enable_logging)
-            plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing convective operator" << std::endl;
+            plog << d_object_name
+                 << "::preprocessIntegrateHierarchy(): initializing "
+                    "convective operator"
+                 << std::endl;
         d_convective_op->setAdvectionVelocity(d_U_scratch_idx);
         d_convective_op->initializeOperatorState(*d_U_scratch_vec, *d_U_rhs_vec);
         d_convective_op_needs_init = false;
@@ -2318,7 +2334,8 @@ INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const in
                     << "  unsupported differencing form: "
                     << enum_to_string<ConvectiveDifferencingType>(d_convective_op->getConvectiveDifferencingType())
                     << " \n"
-                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, "
+                       "SKEW_SYMMETRIC\n");
             }
         }
     }

@@ -75,7 +75,8 @@ StaggeredStokesBlockPreconditioner::setVelocitySubdomainSolver(Pointer<PoissonSo
 {
     IBAMR_DO_ONCE(if (!needsVelocitySubdomainSolver()) {
         pout << d_object_name << "::setVelocitySubdomainSolver():\n"
-             << "WARNING: implementation does not require velocity subdomain solver\n";
+             << "WARNING: implementation does not require velocity subdomain "
+                "solver\n";
     });
     d_velocity_solver = velocity_solver;
     return;
@@ -100,7 +101,8 @@ StaggeredStokesBlockPreconditioner::setPressureSubdomainSolver(Pointer<PoissonSo
 {
     IBAMR_DO_ONCE(if (!needsPressureSubdomainSolver()) {
         pout << d_object_name << "::setPressureSubdomainSolver():\n"
-             << "WARNING: implementation does not require pressure subdomain solver\n";
+             << "WARNING: implementation does not require pressure subdomain "
+                "solver\n";
     });
     d_pressure_solver = pressure_solver;
     return;

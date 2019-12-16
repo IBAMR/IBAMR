@@ -149,7 +149,8 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
 
     if (d_use_structure_predictor)
     {
-        pout << "WARNING: explicit predictor for the structural configuration appears to be nonlinearly unstable!\n";
+        pout << "WARNING: explicit predictor for the structural configuration "
+                "appears to be nonlinearly unstable!\n";
     }
 
     if (!d_solve_for_position)
@@ -179,12 +180,14 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
     case MIDPOINT_RULE:
         break;
     default:
-        TBOX_ERROR("IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): time_stepping_type = "
-                   << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
-                   << "  only supported time_stepping_types are:\n"
-                   << "    " << enum_to_string<TimeSteppingType>(BACKWARD_EULER) << "\n"
-                   << "    " << enum_to_string<TimeSteppingType>(TRAPEZOIDAL_RULE) << "\n"
-                   << "    " << enum_to_string<TimeSteppingType>(MIDPOINT_RULE) << "\n");
+        TBOX_ERROR(
+            "IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy()"
+            ": time_stepping_type = "
+            << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+            << "  only supported time_stepping_types are:\n"
+            << "    " << enum_to_string<TimeSteppingType>(BACKWARD_EULER) << "\n"
+            << "    " << enum_to_string<TimeSteppingType>(TRAPEZOIDAL_RULE) << "\n"
+            << "    " << enum_to_string<TimeSteppingType>(MIDPOINT_RULE) << "\n");
     }
 
     const int coarsest_ln = 0;
@@ -233,7 +236,9 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
     if (d_use_structure_predictor)
     {
         if (d_enable_logging)
-            plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
+            plog << d_object_name
+                 << "::preprocessIntegrateHierarchy(): performing "
+                    "Lagrangian forward Euler step\n";
         d_ib_implicit_ops->forwardEulerStep(current_time, new_time);
     }
 
@@ -785,7 +790,8 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     if (d_enable_logging)
     {
         plog << d_object_name
-             << "::integrateHierarchy_velocity(): interpolating Eulerian velocity to the Lagrangian mesh\n";
+             << "::integrateHierarchy_velocity(): interpolating "
+                "Eulerian velocity to the Lagrangian mesh\n";
     }
     int u_new_idx = eul_sol_vec->getComponentDescriptorIndex(0);
     double velocity_time = std::numeric_limits<double>::quiet_NaN();
@@ -927,7 +933,9 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES /*snes*/, Vec x
     d_ib_implicit_ops->computeLagrangianForce(force_time);
     if (d_enable_logging)
     {
-        plog << d_object_name << "::integrateHierarchy_position(): spreading Lagrangian force to the Eulerian grid\n";
+        plog << d_object_name
+             << "::integrateHierarchy_position(): spreading "
+                "Lagrangian force to the Eulerian grid\n";
         plog << "Spreading being done from " << d_object_name << "::IBFunction_position().\n";
     }
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
@@ -1048,7 +1056,9 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES /*snes*/, Vec x
     d_ib_implicit_ops->computeLagrangianForce(force_time);
     if (d_enable_logging)
     {
-        plog << d_object_name << "::integrateHierarchy_velocity(): spreading Lagrangian force to the Eulerian grid\n";
+        plog << d_object_name
+             << "::integrateHierarchy_velocity(): spreading "
+                "Lagrangian force to the Eulerian grid\n";
         plog << "Spreading being done from " << d_object_name << "::IBFunction_velocity().\n";
     }
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
@@ -1128,8 +1138,8 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_velocity(SNES /*snes*/, 
     ierr = MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY);
     CHKERRQ(ierr);
 
-    // Get the estimate of X^{n+1} from the current iterate U^{n+1} and set as it as
-    // a base vector in matrix-free Lagrangian force Jacobian.
+    // Get the estimate of X^{n+1} from the current iterate U^{n+1} and set as it
+    // as a base vector in matrix-free Lagrangian force Jacobian.
     Vec X_new;
     ierr = VecDuplicate(d_X_current, &X_new);
     CHKERRQ(ierr);
@@ -1237,7 +1247,9 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(Vec x, Vec f)
     d_ib_implicit_ops->computeLinearizedLagrangianForce(X, force_time);
     if (d_enable_logging)
     {
-        plog << d_object_name << "::integrateHierarchy_position(): spreading Lagrangian force to the Eulerian grid\n";
+        plog << d_object_name
+             << "::integrateHierarchy_position(): spreading "
+                "Lagrangian force to the Eulerian grid\n";
         plog << "Spreading being done from " << d_object_name << "::IBJacobianApply_position().\n";
     }
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);
@@ -1334,7 +1346,9 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_velocity(Vec x, Vec f)
     d_ib_implicit_ops->computeLinearizedLagrangianForce(X, force_time);
     if (d_enable_logging)
     {
-        plog << d_object_name << "::integrateHierarchy_velocity(): spreading Lagrangian force to the Eulerian grid\n";
+        plog << d_object_name
+             << "::integrateHierarchy_velocity(): spreading "
+                "Lagrangian force to the Eulerian grid\n";
         plog << "Spreading being done from " << d_object_name << "::IBJacobianApply_velocity().\n";
     }
     d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0, /*interior_only*/ false);

@@ -40,7 +40,12 @@
 using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
 
 void
-test_cube(LibMeshInit& init, JacobianCalculator& jc_1, JacobianCalculator& jc_2, JacobianCalculator& jc_boundary, const int dim, const key_type key)
+test_cube(LibMeshInit& init,
+          JacobianCalculator& jc_1,
+          JacobianCalculator& jc_2,
+          JacobianCalculator& jc_boundary,
+          const int dim,
+          const key_type key)
 {
     const auto elem_type = std::get<0>(key);
 

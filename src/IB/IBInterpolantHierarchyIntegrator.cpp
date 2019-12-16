@@ -13,13 +13,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/IBInterpolantHierarchyIntegrator.h"
 #include "ibamr/BrinkmanPenalizationRigidBodyDynamics.h"
+#include "ibamr/IBInterpolantHierarchyIntegrator.h"
 #include "ibamr/IBInterpolantMethod.h"
 #include "ibamr/IBLevelSetMethod.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h"
+
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 
