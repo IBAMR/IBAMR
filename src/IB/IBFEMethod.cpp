@@ -3239,7 +3239,9 @@ IBFEMethod::initializeCoordinates(const unsigned int part)
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>& X_coords = *X_system.solution;
     const bool identity_mapping = !d_coordinate_mapping_fcn_data[part].fcn;
-    for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+    auto it = mesh.local_nodes_begin();
+    const auto end_it = mesh.local_nodes_end();
+    for (; it != end_it; ++it)
     {
         Node* n = *it;
         if (n->n_vars(X_sys_num))
@@ -3275,7 +3277,9 @@ IBFEMethod::updateCoordinateMapping(const unsigned int part)
     auto& dX_system = equation_systems.get_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
     const unsigned int dX_sys_num = dX_system.number();
     NumericVector<double>& dX_coords = *dX_system.solution;
-    for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+    auto it = mesh.local_nodes_begin();
+    const auto end_it = mesh.local_nodes_end();
+    for (; it != end_it; ++it)
     {
         Node* n = *it;
         if (n->n_vars(X_sys_num))
@@ -3310,7 +3314,9 @@ IBFEMethod::initializeVelocity(const unsigned int part)
     }
     else
     {
-        for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+        auto it = mesh.local_nodes_begin();
+        const auto end_it = mesh.local_nodes_end();
+        for (; it != end_it; ++it)
         {
             Node* n = *it;
             if (n->n_vars(U_sys_num))

@@ -242,7 +242,9 @@ IBFEDirectForcingKinematics::forwardEulerStep(double current_time,
 
     IBFEMethod::CoordinateMappingFcnData mapping = d_ibfe_method_ops->getInitialCoordinateMappingFunction(d_part);
     const bool identity_mapping = !(mapping.fcn);
-    for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+    auto it = mesh.local_nodes_begin();
+    const auto end_it = mesh.local_nodes_end();
+    for (; it != end_it; ++it)
     {
         const Node* const n = *it;
         const libMesh::Point& s = *n;
@@ -326,7 +328,9 @@ IBFEDirectForcingKinematics::midpointStep(double current_time,
 
     IBFEMethod::CoordinateMappingFcnData mapping = d_ibfe_method_ops->getInitialCoordinateMappingFunction(d_part);
     const bool identity_mapping = !(mapping.fcn);
-    for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+    auto it = mesh.local_nodes_begin();
+    const auto end_it = mesh.local_nodes_end();
+    for (; it != end_it; ++it)
     {
         const Node* const n = *it;
         const libMesh::Point& s = *n;
@@ -676,7 +680,9 @@ IBFEDirectForcingKinematics::computeImposedLagrangianForceDensity(PetscVector<do
         nodal_X_values[d].resize(total_local_nodes);
     }
 
-    for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+    auto it = mesh.local_nodes_begin();
+    const auto end_it = mesh.local_nodes_end();
+    for (; it != end_it; ++it)
     {
         const Node* const n = *it;
         if (n->n_vars(X_sys_num) && n->n_vars(U_sys_num))
