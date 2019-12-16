@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/namespaces.h"
 #include "ibamr/AdvDiffWavePropConvectiveOperator.h"
 
 #include <utility>
