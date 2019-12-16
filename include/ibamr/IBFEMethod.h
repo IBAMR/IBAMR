@@ -269,6 +269,13 @@ namespace IBAMR
  *   before the first time step if set to <code>TRUE</code>. Defaults to
  *   <code>false</code>.</li>
  * </ol>
+ *
+ * <h2>Handling Restart Data</h2>
+ * The caching of the IBFE restart data is not managed by SAMRAI's RestartManager. It 
+ * is instead handled by IBFEMethod::writeFEDataToRestartFile() given a restart_dump_dirname
+ * and time_step_number. Each instance of IBFEMethod is registered for restart by default,
+ * but the this option can be turned off. During a restart, the data is handled by the
+ * RestartManager automatically to reinitiate the IBFEMethod.  
  */
 class IBFEMethod : public IBStrategy
 {
@@ -821,8 +828,21 @@ public:
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*!
-     * Write the equation_systems data to a restart file in the specified directory.
-     */
+    * For technical reasons this class does not use SAMRAI's RestartManager, so 
+    * restart files must be separately written for the IBFE objects. This function 
+    * saves the solutions to the defined EquationSystems in an xdr file in 
+    * restart_dump_dirname for each FE part. An example snippet is included below to show 
+    * the distinct IBFE restart data saving step. The data will then be automatically 
+    * read back into the system along with the RestartManager data during restart.
+    *
+    * @code
+    * if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
+    * {
+    *     RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
+    *     ib_method_ops->writeFEDataToRestartFile(restart_dump_dirname, iteration_num);
+    * }
+    * @endcode   
+    */
     void writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number);
 
     /*!
