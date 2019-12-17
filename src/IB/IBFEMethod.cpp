@@ -2255,12 +2255,12 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
                 fe.setInterpolatedDataPointers(PK1_var_data, PK1_grad_var_data, PK1_fcn_system_idxs, elem, qp);
                 d_PK1_stress_fcn_data[part][k].fcn(
                     PP, FF, x, X, elem, PK1_var_data, PK1_grad_var_data, data_time, d_PK1_stress_fcn_data[part][k].ctx);
-                for (unsigned int k = 0; k < n_basis; ++k)
+                for (unsigned int basis_n = 0; basis_n < n_basis; ++basis_n)
                 {
-                    F_qp = -PP * dphi[k][qp] * JxW[qp];
+                    F_qp = -PP * dphi[basis_n][qp] * JxW[qp];
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
-                        G_rhs_e[i](k) += F_qp(i);
+                        G_rhs_e[i](basis_n) += F_qp(i);
                     }
                 }
             }
@@ -2282,9 +2282,9 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
 
                 fe.reinit(elem, side);
                 fe.interpolate(elem, side);
-                const unsigned int n_qp = qrule_face->n_points();
-                const size_t n_basis = phi_face.size();
-                for (unsigned int qp = 0; qp < n_qp; ++qp)
+                const unsigned int n_qp_face = qrule_face->n_points();
+                const size_t n_basis_face = phi_face.size();
+                for (unsigned int qp = 0; qp < n_qp_face; ++qp)
                 {
                     const libMesh::Point& X = q_point_face[qp];
                     const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
@@ -2325,12 +2325,12 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
                     }
 
                     // Add the boundary forces to the right-hand-side vector.
-                    for (unsigned int k = 0; k < n_basis; ++k)
+                    for (unsigned int basis_face_n = 0; basis_face_n < n_basis_face; ++basis_face_n)
                     {
-                        F_qp = F * phi_face[k][qp] * JxW_face[qp];
+                        F_qp = F * phi_face[basis_face_n][qp] * JxW_face[qp];
                         for (unsigned int i = 0; i < NDIM; ++i)
                         {
-                            G_rhs_e[i](k) += F_qp(i);
+                            G_rhs_e[i](basis_face_n) += F_qp(i);
                         }
                     }
                 }
@@ -2498,9 +2498,9 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
 
             fe.reinit(elem, side);
             fe.interpolate(elem, side);
-            const unsigned int n_qp = qrule_face->n_points();
-            const size_t n_basis = phi_face.size();
-            for (unsigned int qp = 0; qp < n_qp; ++qp)
+            const unsigned int n_qp_face = qrule_face->n_points();
+            const size_t n_basis_face = phi_face.size();
+            for (unsigned int qp = 0; qp < n_qp_face; ++qp)
             {
                 const libMesh::Point& X = q_point_face[qp];
                 const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
@@ -2568,7 +2568,7 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
                 if (!integrate_tangential_force) F -= (F - (F * n) * n);
 
                 // Add the boundary forces to the right-hand-side vector.
-                for (unsigned int k = 0; k < n_basis; ++k)
+                for (unsigned int k = 0; k < n_basis_face; ++k)
                 {
                     F_qp = F * phi_face[k][qp] * JxW_face[qp];
                     for (unsigned int i = 0; i < NDIM; ++i)
