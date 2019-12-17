@@ -84,9 +84,6 @@ StokesFirstOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
     for (int d = 0; d < NDIM; ++d) vol_cell *= dx[d];
     auto alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-    // Get physical domain box extents on patch box level.
-    const SAMRAI::hier::Box<NDIM> domain_box =
-        SAMRAI::hier::Box<NDIM>::refine(d_grid_geom->getPhysicalDomain()[0], pgeom->getRatio());
     const int dir = (NDIM == 2) ? 1 : (NDIM == 3) ? 2 : -1;
 
     // We take location index = 0, i.e., x_lower to be the wave inlet.

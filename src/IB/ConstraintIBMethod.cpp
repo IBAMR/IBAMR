@@ -513,7 +513,6 @@ ConstraintIBMethod::registerEulerianVariables()
         d_Div_u_var = new CellVariable<NDIM, double>(d_object_name + "::Div_u");
         d_phi_var = new CellVariable<NDIM, double>(d_object_name + "::phi");
         const IntVector<NDIM> cell_ghosts = CELLG;
-        const IntVector<NDIM> side_ghosts = SIDEG;
         d_phi_idx = var_db->registerVariableAndContext(d_phi_var, d_scratch_context, cell_ghosts);
         d_Div_u_scratch_idx = var_db->registerVariableAndContext(d_Div_u_var, d_scratch_context, cell_ghosts);
     }

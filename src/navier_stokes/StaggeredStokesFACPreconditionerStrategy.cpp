@@ -518,7 +518,6 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
 
     const Pointer<SideVariable<NDIM, double> > U_res_sc_var = residual.getComponentVariable(0);
     const Pointer<SideVariable<NDIM, double> > U_sol_sc_var = solution.getComponentVariable(0);
-    const Pointer<SideVariable<NDIM, double> > U_rhs_sc_var = rhs.getComponentVariable(0);
 
     const int P_res_idx = residual.getComponentDescriptorIndex(1);
     const int P_sol_idx = solution.getComponentDescriptorIndex(1);
@@ -526,7 +525,6 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
 
     const Pointer<CellVariable<NDIM, double> > P_res_cc_var = residual.getComponentVariable(1);
     const Pointer<CellVariable<NDIM, double> > P_sol_cc_var = solution.getComponentVariable(1);
-    const Pointer<CellVariable<NDIM, double> > P_rhs_cc_var = rhs.getComponentVariable(1);
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;

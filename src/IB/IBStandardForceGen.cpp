@@ -148,8 +148,6 @@ IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hie
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-
     // Resize the vectors corresponding to data individually maintained for
     // separate levels of the patch hierarchy.
     const int new_size = std::max(level_number + 1, static_cast<int>(d_is_initialized.size()));

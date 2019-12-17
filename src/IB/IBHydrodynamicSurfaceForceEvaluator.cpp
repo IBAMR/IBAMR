@@ -475,8 +475,6 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
                          use_new_ctx ?
                          var_db->mapVariableAndContextToIndex(mu_ins_var, d_fluid_solver->getNewContext()) :
                          IBTK::invalid_index;
-            auto p_vc_ins_hier_integrator =
-                dynamic_cast<INSVCStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
             mu_bc_coef = p_vc_ins_hier_integrator->getViscosityBoundaryConditions();
         }
         else
