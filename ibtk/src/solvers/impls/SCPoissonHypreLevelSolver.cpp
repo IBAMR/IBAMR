@@ -16,14 +16,13 @@
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/PoissonUtilities.h"
 #include "ibtk/SCPoissonHypreLevelSolver.h"
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
-#include "HYPRE_sstruct_ls.h"
-#include "HYPRE_sstruct_mv.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
@@ -40,6 +39,11 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "HYPRE_sstruct_ls.h"
+#include "HYPRE_sstruct_mv.h"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <mpi.h>
 
