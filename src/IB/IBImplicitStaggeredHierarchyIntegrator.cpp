@@ -325,12 +325,13 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
     cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
     d_regrid_cfl_estimate += cfl_max;
     if (d_enable_logging)
-        plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
-    if (d_enable_logging)
-        plog << d_object_name
+    {
+        plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n"
+             << d_object_name
              << "::postprocessIntegrateHierarchy(): estimated upper bound on IB "
                 "point displacement since last regrid = "
              << d_regrid_cfl_estimate << "\n";
+    }
 
     // Deallocate the fluid solver.
     const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();

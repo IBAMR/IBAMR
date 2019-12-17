@@ -499,10 +499,13 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
             const bool D_is_constant = d_poisson_spec.dIsConstant();
             const double& alpha = D_is_constant ? d_poisson_spec.getDConstant() : 0.0;
             Pointer<SideData<NDIM, double> > alpha_data = nullptr;
-            if (!D_is_constant) alpha_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
+            if (!D_is_constant)
+            {
+                alpha_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
 #if !defined(NDEBUG)
-            if (!D_is_constant) TBOX_ASSERT(alpha_data);
+                TBOX_ASSERT(alpha_data);
 #endif
+            }
 
             const double& beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
             for (int depth = 0; depth < error_data->getDepth(); ++depth)
