@@ -501,8 +501,8 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
                 IBTK_CHKERRQ(ierr);
                 ierr = ISRestoreIndices(d_nonoverlap_is[i], &nonoverlap_is_arr);
                 IBTK_CHKERRQ(ierr);
-
                 ierr = MatCreateVecs(d_sub_mat[i], &d_sub_x[i], &d_sub_y[i]);
+                IBTK_CHKERRQ(ierr);
             }
             else
             {
