@@ -128,6 +128,14 @@ This does two things:
    - `edit`: Keep the commit, but pause the rebase afterwards so that one can
      make additional changes.
 
+After rebasing it is necessary to force push the newly edited commit history for
+`feature-branch` to the remote branch. This can be achieved using:
+
+> git push -f origin feature-branch
+
+The commit history for the remote branch should now reflect the edited local 
+changes made to `feature-branch`.   
+
 ### Keeping a branch up to date
 One can also use rebasing to keep a branch up to date with another branch:
 suppose you have made lots of commits on `feature-branch` and other developers
