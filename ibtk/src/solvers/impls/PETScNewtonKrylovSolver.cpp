@@ -377,8 +377,6 @@ PETScNewtonKrylovSolver::deallocateSolverState()
 
     IBTK_TIMER_START(t_deallocate_solver_state);
 
-    int ierr;
-
     // Deallocate the linear solver and operator states only if we are not
     // re-initializing the Newton solver.
     if (!d_reinitializing_solver)
@@ -407,7 +405,7 @@ PETScNewtonKrylovSolver::deallocateSolverState()
     // Destroy the SNES solver.
     if (d_managing_petsc_snes)
     {
-        ierr = SNESDestroy(&d_petsc_snes);
+        int ierr = SNESDestroy(&d_petsc_snes);
         IBTK_CHKERRQ(ierr);
         d_petsc_snes = nullptr;
     }
@@ -651,7 +649,6 @@ PETScNewtonKrylovSolver::FormFunction_SAMRAI(SNES /*snes*/, Vec x, Vec f, void* 
 PetscErrorCode
 PETScNewtonKrylovSolver::FormJacobian_SAMRAI(SNES snes, Vec x, Mat A, Mat /*B*/, void* p_ctx)
 {
-    int ierr;
     auto newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(newton_solver);
@@ -666,7 +663,7 @@ PETScNewtonKrylovSolver::FormJacobian_SAMRAI(SNES snes, Vec x, Mat A, Mat /*B*/,
     else
     {
         Vec u, f;
-        ierr = SNESGetSolution(snes, &u);
+        int ierr = SNESGetSolution(snes, &u);
         CHKERRQ(ierr);
         ierr = SNESGetFunction(snes, &f, nullptr, nullptr);
         CHKERRQ(ierr);

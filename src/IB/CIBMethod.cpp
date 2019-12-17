@@ -662,7 +662,6 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
             double* const X_half = &X_half_array[local_idx][0];
             const double* const X0 = &X0_array[local_idx][0];
             Eigen::Vector3d dr = Eigen::Vector3d::Zero();
-            Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
 
             int struct_handle = 0;
             if (structs_on_this_ln > 1) struct_handle = getStructureHandle(lag_idx);
@@ -674,7 +673,7 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
             }
 
             // Rotate dr vector using the rotation matrix.
-            R_dr = rotation_mat[struct_handle] * dr;
+            const Eigen::Vector3d R_dr = rotation_mat[struct_handle] * dr;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_half[d] = d_center_of_mass_current[struct_handle][d] + R_dr[d] +
@@ -784,7 +783,6 @@ CIBMethod::midpointStep(double current_time, double new_time)
             double* const X_new = &X_new_array[local_idx][0];
             const double* const X0 = &X0_array[local_idx][0];
             Eigen::Vector3d dr = Eigen::Vector3d::Zero();
-            Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
 
             int struct_handle = 0;
             if (structs_on_this_ln > 1) struct_handle = getStructureHandle(lag_idx);
@@ -796,7 +794,7 @@ CIBMethod::midpointStep(double current_time, double new_time)
             }
 
             // Rotate dr vector using the rotation matrix.
-            R_dr = rotation_mat[struct_handle] * dr;
+            const Eigen::Vector3d R_dr = rotation_mat[struct_handle] * dr;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_new[d] =

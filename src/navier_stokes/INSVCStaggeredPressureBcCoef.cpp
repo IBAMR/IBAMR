@@ -251,11 +251,10 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     Array<double> A_scale = d_fluid_solver->getScalingFactor();
     const double p_scale = A_scale[patch.getPatchLevelNumber()];
     double mu = d_fluid_solver->muIsConstant() ? d_problem_coefs->getMu() : -1;
-    int mu_idx = -1;
     Pointer<CellData<NDIM, double> > mu_data;
     if (!d_fluid_solver->muIsConstant())
     {
-        mu_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
+        const int mu_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 #if !defined(NDEBUG)
         TBOX_ASSERT(mu_idx >= 0);
 #endif
