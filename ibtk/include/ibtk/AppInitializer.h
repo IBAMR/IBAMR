@@ -56,18 +56,22 @@ public:
 
     /*!
      * Return a boolean value indicating whether this is a restarted run.
+     * This is defined as true when the program recognizes command line arguments 
+     * for restart_restore_num and restart_dump_dirname.
      */
     bool isFromRestart() const;
 
     /*!
      * Return the restart directory.  If we are not starting from restart,
-     * this method returns an empty string.
+     * this method returns an empty string. This value is set by the second
+     * command line argument to the executable.
      */
     const std::string& getRestartReadDirectory() const;
 
     /*!
      * Return the restart restore number.  If we are not starting from restart,
-     * this method returns 0.
+     * this method returns 0. This value is set by the third command line 
+     * argument to the executable.
      */
     int getRestartRestoreNumber() const;
 
@@ -148,12 +152,16 @@ public:
     bool dumpRestartData() const;
 
     /*!
-     * Return the restart dump interval.
+     * Return the restart dump interval. This is set in the Main database of 
+     * the input file. This can be defined in the input file as restart_interval,
+     * restart_dump_interval, or restart_write_interval.
      */
     int getRestartDumpInterval() const;
 
     /*!
-     * Return the restart dump directory name.
+     * Return the restart dump directory name. This is set in the Main database
+     * of the input file. This can be defined in the input file as restart_dump_dirname,
+     * restart_dirname, or restart_write_dirname. 
      */
     std::string getRestartDumpDirectory() const;
 
