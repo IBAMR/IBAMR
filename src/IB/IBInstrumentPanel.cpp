@@ -1208,8 +1208,8 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
     char temp_buf[SILO_NAME_BUFSIZE];
     std::string current_file_name;
     DBfile* dbfile;
-    const unsigned int mpi_rank = SAMRAI_MPI::getRank();
-    const unsigned int mpi_nodes = SAMRAI_MPI::getNodes();
+    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_nodes = SAMRAI_MPI::getNodes();
 
     // Create the working directory.
     sprintf(temp_buf, "%06d", d_instrument_read_timestep_num);
