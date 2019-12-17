@@ -1,34 +1,15 @@
-c Filename: upper_convective_op2d.f.m4
-c Created on 23 Oct 2019 by Aaron Barrett
+c ---------------------------------------------------------------------
 c
-c Copyright (c) 2002-2019, Boyce Griffith
+c Copyright (c) 2019 - 2019 by the IBAMR developers
 c All rights reserved.
 c
-c Redistribution and use in source and binary forms, with or without
-c modification, are permitted provided that the following conditions are met:
+c This file is part of IBAMR.
 c
-c    * Redistributions of source code must retain the above copyright notice,
-c      this list of conditions and the following disclaimer.
+c IBAMR is free software and is distributed under the 3-clause BSD
+c license. The full text of the license can be found in the file
+c COPYRIGHT at the top level directory of IBAMR.
 c
-c    * Redistributions in binary form must reproduce the above copyright
-c      notice, this list of conditions and the following disclaimer in the
-c      documentation and/or other materials provided with the distribution.
-c
-c    * Neither the name of The University of North Carolina nor the names of
-c      its contributors may be used to endorse or promote products derived from
-c      this software without specific prior written permission.
-c
-c THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-c AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-c IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-c ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-c LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-c CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-c SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-c INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-c CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-c ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-c POSSIBILITY OF SUCH DAMAGE.
+c ---------------------------------------------------------------------
 
 define(NDIM,2)dnl
 define(REAL,`double precision')dnl

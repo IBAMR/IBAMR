@@ -1,3 +1,16 @@
+c ---------------------------------------------------------------------
+c
+c Copyright (c) 2019 - 2019 by the IBAMR developers
+c All rights reserved.
+c
+c This file is part of IBAMR.
+c
+c IBAMR is free software and is distributed under the 3-clause BSD
+c license. The full text of the license can be found in the file
+c COPYRIGHT at the top level directory of IBAMR.
+c
+c ---------------------------------------------------------------------
+
       REAL zero,eighth,sixth,fourth,third,half,twothird,
      &  rt75,one,onept5,two,three,pi,four,seven,smallr
       parameter (zero=0.d0)
