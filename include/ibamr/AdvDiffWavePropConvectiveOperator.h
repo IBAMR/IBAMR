@@ -22,7 +22,6 @@
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CartExtrapPhysBdryOp.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"
@@ -221,7 +220,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_var;
     int d_Q_scratch_idx = 0;
 
-    const std::vector<RobinBcCoefStrategy<NDIM>*> d_conc_bc_coefs;
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_conc_bc_coefs;
     // Reconstruction Order (2*k-1)
     // Currently only available for k=3
     int d_k = 3;
