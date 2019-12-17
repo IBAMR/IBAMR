@@ -112,7 +112,7 @@ callStokesWaveRelaxationCallbackFunction(double /*current_time*/,
                     if (x_posn >= x_zone_start && x_posn <= x_zone_end)
                     {
                         const double xtilde = (x_posn - x_zone_start) / (x_zone_end - x_zone_start);
-                        const double gamma = 1.0 - (exp(std::pow(xtilde, alpha)) - 1.0) / (exp(1.0) - 1.0);
+                        const double gamma = 1.0 - std::expm1(std::pow(xtilde, alpha)) / std::expm1(1.0);
 
                         if (axis == 0 || axis == (NDIM - 1))
                         {
@@ -154,7 +154,7 @@ callStokesWaveRelaxationCallbackFunction(double /*current_time*/,
                 {
                     const double eta = stokes_wave_generator->getSurfaceElevation(x_posn, new_time);
                     const double xtilde = (x_posn - x_zone_start) / (x_zone_end - x_zone_start);
-                    const double gamma = 1.0 - (exp(std::pow(xtilde, alpha)) - 1.0) / (exp(1.0) - 1.0);
+                    const double gamma = 1.0 - std::expm1(std::pow(xtilde, alpha)) / std::expm1(1.0);
 
                     const double target = sign_gas * (-eta + dir_posn - depth);
 

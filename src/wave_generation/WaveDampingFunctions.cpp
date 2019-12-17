@@ -245,8 +245,8 @@ callRelaxationZoneCallbackFunction(double /*current_time*/,
 
                     if (x_posn >= x_zone_start && x_posn <= x_zone_end)
                     {
-                        double xtilde = (x_posn - x_zone_start) / (x_zone_end - x_zone_start);
-                        double gamma = 1.0 - (exp(std::pow(xtilde, alpha)) - 1.0) / (exp(1.0) - 1.0);
+                        const double xtilde = (x_posn - x_zone_start) / (x_zone_end - x_zone_start);
+                        const double gamma = 1.0 - std::expm1(std::pow(xtilde, alpha)) / std::expm1(1.0);
                         const double target = 0.0;
 
                         if (axis == 0 || axis == dir)
@@ -286,9 +286,9 @@ callRelaxationZoneCallbackFunction(double /*current_time*/,
 
                 if (x_posn >= x_zone_start && x_posn <= x_zone_end)
                 {
-                    double xtilde = (x_posn - x_zone_start) / (x_zone_end - x_zone_start);
-                    double gamma = 1.0 - (exp(std::pow(xtilde, alpha)) - 1.0) / (exp(1.0) - 1.0);
-                    double target = dir_surface;
+                    const double xtilde = (x_posn - x_zone_start) / (x_zone_end - x_zone_start);
+                    const double gamma = 1.0 - std::expm1(std::pow(xtilde, alpha)) / std::expm1(1.0);
+                    const double target = dir_surface;
 
                     (*phi_data)(i, 0) = gamma * (*phi_data)(i, 0) + (1.0 - gamma) * target;
                 }
