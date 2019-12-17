@@ -1000,8 +1000,7 @@ IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
         hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
-        Pointer<LData> Grad_U_data =
-            d_l_data_manager->createLData("Grad_U", level_number, NDIM * NDIM, /*manage_data*/ true);
+        d_l_data_manager->createLData("Grad_U", level_number, NDIM * NDIM, /*manage_data*/ true);
         Pointer<LData> F_data = d_l_data_manager->createLData("F",
                                                               level_number,
                                                               NDIM * NDIM,
