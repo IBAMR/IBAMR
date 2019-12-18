@@ -101,6 +101,7 @@
 #include "libmesh/fe_type.h"
 #include "libmesh/fem_context.h"
 #include "libmesh/linear_solver.h"
+#include "libmesh/linear_implicit_system.h"
 #include "libmesh/mesh_base.h"
 #include "libmesh/node.h"
 #include "libmesh/numeric_vector.h"
@@ -835,7 +836,7 @@ FEDataManager::spread(const int f_data_idx,
     const unsigned int dim = mesh.mesh_dimension();
 
     // Extract the FE systems and DOF maps, and setup the FECache objects.
-    System& F_system = d_fe_data->d_es->get_system(system_name);
+    LinearImplicitSystem& F_system = d_fe_data->d_es->get_system<LinearImplicitSystem>(system_name);
     const unsigned int n_vars = F_system.n_vars();
     const DofMap& F_dof_map = F_system.get_dof_map();
     FEData::SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
@@ -878,7 +879,7 @@ FEDataManager::spread(const int f_data_idx,
         // This will break, at some point in the future, if we ever use
         // nonnodal-interpolating finite elements. TODO: more finite elements
         // will probably work.
-        std::vector<FEFamily> fe_family_whitelist{ LAGRANGE, L2_LAGRANGE };
+        std::vector<FEFamily> fe_family_whitelist{ LAGRANGE, L2_LAGRANGE, SUBDIVISION };
         TBOX_ASSERT(std::find(fe_family_whitelist.begin(), fe_family_whitelist.end(), F_fe_type.family) !=
                     fe_family_whitelist.end());
         TBOX_ASSERT(std::find(fe_family_whitelist.begin(), fe_family_whitelist.end(), X_fe_type.family) !=
@@ -1143,7 +1144,7 @@ FEDataManager::prolongData(const int f_data_idx,
     TBOX_ASSERT(dim == NDIM);
 
     // Extract the FE systems and DOF maps, and setup the FE object.
-    System& F_system = d_fe_data->d_es->get_system(system_name);
+    LinearImplicitSystem& F_system = d_fe_data->d_es->get_system<LinearImplicitSystem>(system_name);
     const unsigned int n_vars = F_system.n_vars();
     TBOX_ASSERT(n_vars == NDIM); // specialized to side-centered data
     const DofMap& F_dof_map = F_system.get_dof_map();
@@ -1512,7 +1513,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
     const unsigned int dim = mesh.mesh_dimension();
 
     // Extract the FE systems and DOF maps, and setup the FECache objects.
-    System& F_system = d_fe_data->d_es->get_system(system_name);
+    LinearImplicitSystem& F_system = d_fe_data->d_es->get_system<LinearImplicitSystem>(system_name);
     const unsigned int n_vars = F_system.n_vars();
     const DofMap& F_dof_map = F_system.get_dof_map();
     FEData::SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
@@ -1942,7 +1943,7 @@ FEDataManager::restrictData(const int f_data_idx,
     TBOX_ASSERT(dim == NDIM);
 
     // Extract the FE systems and DOF maps, and setup the FE object.
-    System& F_system = d_fe_data->d_es->get_system(system_name);
+    LinearImplicitSystem& F_system = d_fe_data->d_es->get_system<LinearImplicitSystem>(system_name);
     const unsigned int n_vars = F_system.n_vars();
     const DofMap& F_dof_map = F_system.get_dof_map();
     FEData::SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);

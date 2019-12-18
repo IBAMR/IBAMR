@@ -57,6 +57,7 @@
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
+#include "libmesh/linear_implicit_system.h"
 #include "libmesh/linear_solver.h"
 #include "libmesh/numeric_vector.h"
 #include "libmesh/petsc_vector.h"

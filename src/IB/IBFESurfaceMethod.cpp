@@ -372,7 +372,7 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
         d_U_t_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_U_t_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
 
-        d_F_systems[part] = &d_equation_systems[part]->get_system(FORCE_SYSTEM_NAME);
+        d_F_systems[part] = &d_equation_systems[part]->get_system<LinearImplicitSystem>(FORCE_SYSTEM_NAME);
         d_F_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->current_local_solution.get());
         d_F_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME, /*localize_data*/ false));
@@ -877,7 +877,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         NumericVector<double>* X_vec = d_X_half_vecs[part];
 
         // Extract the FE systems and DOF maps, and setup the FE objects.
-        System& F_system = equation_systems->get_system(FORCE_SYSTEM_NAME);
+        LinearImplicitSystem& F_system = equation_systems->get_system<LinearImplicitSystem>(FORCE_SYSTEM_NAME);
         const DofMap& F_dof_map = F_system.get_dof_map();
         FEDataManager::SystemDofMapCache& F_dof_map_cache =
             *d_fe_data_managers[part]->getDofMapCache(FORCE_SYSTEM_NAME);
@@ -1231,7 +1231,7 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                 U_t_system.add_variable("U_t_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
 
-            auto& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
+            auto& F_system = equation_systems->add_system<LinearImplicitSystem>(FORCE_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 F_system.add_variable("F_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
@@ -1276,7 +1276,7 @@ IBFESurfaceMethod::initializeFEData()
         auto& U_system = equation_systems->get_system<System>(VELOCITY_SYSTEM_NAME);
         auto& U_n_system = equation_systems->get_system<System>(NORMAL_VELOCITY_SYSTEM_NAME);
         auto& U_t_system = equation_systems->get_system<System>(TANGENTIAL_VELOCITY_SYSTEM_NAME);
-        auto& F_system = equation_systems->get_system<System>(FORCE_SYSTEM_NAME);
+        auto& F_system = equation_systems->get_system<LinearImplicitSystem>(FORCE_SYSTEM_NAME);
 
         X_system.assemble_before_solve = false;
         X_system.assemble();
