@@ -122,11 +122,7 @@ PETScMFFDJacobianOperator::getBaseVector() const
         PETScSAMRAIVectorReal::restoreSAMRAIVector(u, &samrai_u);
         return samrai_u_ptr;
     }
-    else
-    {
-        return d_op_u;
-    }
-    return Pointer<SAMRAIVectorReal<NDIM, double> >(nullptr);
+    return d_op_u;
 }
 
 void

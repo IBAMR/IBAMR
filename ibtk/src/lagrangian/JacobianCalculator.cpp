@@ -76,24 +76,35 @@ LagrangeJacobianCalculator<dim, spacedim>::LagrangeJacobianCalculator(
 
 namespace
 {
-template <int M, int N = M>
+// permit compilation with non-square arrays, but always fail at runtime
+template <int M, int N>
 double
-determinant(const double (&A)[M][N])
+determinant(const double (&)[M][N])
 {
-    TBOX_ASSERT(M == N);
-    switch (M)
-    {
-    case 1:
-        return A[0][0];
-    case 2:
-        return A[0][0] * A[1][1] - A[0][1] * A[1][0];
-    case 3:
-        return A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1]) - A[1][0] * (A[0][1] * A[2][2] - A[0][2] * A[2][1]) +
-               A[2][0] * (A[0][1] * A[1][2] - A[0][2] * A[1][1]);
-    }
-
     TBOX_ASSERT(false);
     return 0.0;
+}
+
+template <>
+double
+determinant(const double (&A)[1][1])
+{
+    return A[0][0];
+}
+
+template <>
+double
+determinant(const double (&A)[2][2])
+{
+    return A[0][0] * A[1][1] - A[0][1] * A[1][0];
+}
+
+template <>
+double
+determinant(const double (&A)[3][3])
+{
+    return A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1]) - A[1][0] * (A[0][1] * A[2][2] - A[0][2] * A[2][1]) +
+           A[2][0] * (A[0][1] * A[1][2] - A[0][2] * A[1][1]);
 }
 } // namespace
 
@@ -120,7 +131,7 @@ LagrangeJacobianCalculator<dim, spacedim>::get_JxW(const libMesh::Elem* elem)
 
     for (unsigned int q = 0; q < d_JxW.size(); ++q)
     {
-        double contravariant[spacedim][dim]{ 0.0 };
+        double contravariant[spacedim][dim]{ { 0.0 } };
         for (unsigned int node_n = 0; node_n < d_n_nodes; ++node_n)
         {
             for (unsigned int i = 0; i < spacedim; ++i)

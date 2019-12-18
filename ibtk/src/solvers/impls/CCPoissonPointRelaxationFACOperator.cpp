@@ -206,21 +206,6 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 // interface ghost cells; used only to evaluate composite grid residuals.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
 
-struct IndexComp
-{
-    inline bool operator()(const hier::Index<NDIM>& lhs, const hier::Index<NDIM>& rhs) const
-    {
-        return ((lhs(0) < rhs(0))
-#if (NDIM > 1)
-                || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
-#if (NDIM > 2)
-                || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
-#endif
-#endif
-        );
-    } // operator()
-};
-
 enum SmootherType
 {
     PATCH_GAUSS_SEIDEL,
