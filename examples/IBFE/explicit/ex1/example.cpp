@@ -329,6 +329,13 @@ main(int argc, char* argv[])
         }
         std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
+        // Check to see if this is a restarted run to append current exodus files
+        if (uses_exodus)
+        {
+            const bool from_restart = RestartManager::getManager()->isFromRestart();
+            exodus_io->append(from_restart);
+        }
+
         // Initialize hierarchy configuration and data on all patches.
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
         for (unsigned int k = 0; k < equation_systems->n_systems(); ++k)

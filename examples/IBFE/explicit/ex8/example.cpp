@@ -349,6 +349,8 @@ main(int argc, char* argv[])
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
         const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
+        const string restart_read_dirname = app_initializer->getRestartReadDirectory();
+        const int restart_restore_num = app_initializer->getRestartRestoreNumber();
 
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
@@ -467,7 +469,10 @@ main(int argc, char* argv[])
             new IBFEMethod("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
                            meshes,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+                           /*register_for_restart*/ true,
+                           restart_read_dirname,
+                           restart_restore_num);
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
@@ -567,6 +572,15 @@ main(int argc, char* argv[])
         std::unique_ptr<ExodusII_IO> block1_exodus_io(uses_exodus ? new ExodusII_IO(block1_mesh) : NULL);
         std::unique_ptr<ExodusII_IO> block2_exodus_io(uses_exodus ? new ExodusII_IO(block2_mesh) : NULL);
         std::unique_ptr<ExodusII_IO> beam_exodus_io(uses_exodus ? new ExodusII_IO(beam_mesh) : NULL);
+
+        // Check to see if this is a restarted run to append current exodus files
+        if (uses_exodus)
+        {
+            const bool from_restart = RestartManager::getManager()->isFromRestart();
+            block1_exodus_io->append(from_restart);
+            block2_exodus_io->append(from_restart);
+            beam_exodus_io->append(from_restart);
+        }
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
@@ -697,6 +711,7 @@ main(int argc, char* argv[])
             {
                 pout << "\nWriting restart files...\n\n";
                 RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
+                ib_method_ops->writeFEDataToRestartFile(restart_dump_dirname, iteration_num);
             }
             if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
             {

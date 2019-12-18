@@ -149,6 +149,8 @@ main(int argc, char* argv[])
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
         const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
+        const string restart_read_dirname = app_initializer->getRestartReadDirectory();
+        const int restart_restore_num = app_initializer->getRestartRestoreNumber();
 
         const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
         const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
@@ -216,8 +218,8 @@ main(int argc, char* argv[])
                            &mesh,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
                            /*register_for_restart*/ true,
-                           app_initializer->getRestartDumpDirectory(),
-                           app_initializer->getRestartRestoreNumber());
+                           restart_read_dirname,
+                           restart_restore_num);
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
@@ -323,6 +325,13 @@ main(int argc, char* argv[])
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
         std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+
+        // Check to see if this is a restarted run to append current exodus files
+        if (uses_exodus)
+        {
+            const bool from_restart = RestartManager::getManager()->isFromRestart();
+            exodus_io->append(from_restart);
+        }
 
         // Initialize hierarchy configuration and data on all patches.
         EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
