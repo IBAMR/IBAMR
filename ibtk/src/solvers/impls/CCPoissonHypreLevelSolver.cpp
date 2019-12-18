@@ -16,6 +16,7 @@
 #include "ibtk/CCPoissonHypreLevelSolver.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/PoissonUtilities.h"
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
@@ -25,8 +26,6 @@
 #include "CellData.h"
 #include "CellDataFactory.h"
 #include "CellIndex.h"
-#include "HYPRE_struct_ls.h"
-#include "HYPRE_struct_mv.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -48,6 +47,11 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "HYPRE_struct_ls.h"
+#include "HYPRE_struct_mv.h"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <mpi.h>
 

@@ -70,6 +70,9 @@ IncludeCategories:
 # PETSc:
   - Regex: "[<\"]petsc[a-z]*\\.h[>\"]$"
     Priority: 300
+# HYPRE:
+  - Regex: "[<\"]HYPRE[a-z_]*\\.h[>\"]$"
+    Priority: 350
 # other standardized headers:
   - Regex: "<[A-Za-z_]*\\.h>"
     Priority: 1000
