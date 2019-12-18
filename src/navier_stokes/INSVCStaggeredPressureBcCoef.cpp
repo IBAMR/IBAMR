@@ -307,14 +307,15 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                 }
                 if (!d_fluid_solver->muIsConstant())
                 {
-                    // Average mu onto side centers
-                    // In certain use cases with traction boundary conditions, this class will attempt to fill
-                    // Robin BC coefficient values along an extended physical boundary outside of the physical domain
-                    // that will never be used. However, viscosity values will not be available at those locations, so
-                    // we
-                    // need to ensure we don't access those unallocated data. The unphysical value should result in bad
-                    // stuff if
-                    // it gets used for whatever reason.
+                    // Average mu onto side centers In certain use cases with
+                    // traction boundary conditions, this class will attempt
+                    // to fill Robin BC coefficient values along an extended
+                    // physical boundary outside of the physical domain that
+                    // will never be used. However, viscosity values will not
+                    // be available at those locations, so we need to ensure
+                    // we don't access those unallocated data. The unphysical
+                    // value should result in bad stuff if it gets used for
+                    // whatever reason.
                     const bool mu_contains_cells =
                         (mu_data->getGhostBox().contains(i_g) && mu_data->getGhostBox().contains(i_i));
                     if (d_mu_interp_type == VC_AVERAGE_INTERP)
@@ -368,7 +369,8 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
             default:
             {
                 TBOX_ERROR(
-                    "INSVCStaggeredPressureBcCoef::setBcCoefs(): unrecognized or unsupported "
+                    "INSVCStaggeredPressureBcCoef::setBcCoefs(): unrecognized "
+                    "or unsupported "
                     "traction boundary condition type: "
                     << enum_to_string<TractionBcType>(d_traction_bc_type) << "\n");
             }

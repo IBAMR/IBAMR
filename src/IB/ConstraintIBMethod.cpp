@@ -175,7 +175,8 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
       d_tagged_pt_position(d_no_structures, std::vector<double>(3, 0.0)),
       d_rho_solid(d_no_structures, std::numeric_limits<double>::quiet_NaN())
 {
-    // NOTE: Parent class constructor registers class with the restart manager, sets object name.
+    // NOTE: Parent class constructor registers class with the restart manager,
+    // sets object name.
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -210,7 +211,8 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
         if (d_velcorrection_projection_fac_pc_db.isNull())
         {
             TBOX_WARNING(d_object_name << "::ConstraintIBMethod():\n"
-                                       << " ConstraintIBMethodProjection:: Poisson FAC PC solver database is null."
+                                       << " ConstraintIBMethodProjection:: Poisson "
+                                          "FAC PC solver database is null."
                                        << std::endl);
         }
 
@@ -594,9 +596,11 @@ ConstraintIBMethod::registerConstraintIBKinematics(const std::vector<Pointer<Con
 {
     if (ib_kinematics.size() != static_cast<unsigned int>(d_no_structures))
     {
-        TBOX_ERROR("ConstraintIBMethod::registerConstraintIBKinematics(). No of structures "
-                   << ib_kinematics.size() << " in vector passed to this method is not equal to no. of structures "
-                   << d_no_structures << " registered with this class" << std::endl);
+        TBOX_ERROR(
+            "ConstraintIBMethod::registerConstraintIBKinematics(). No of "
+            "structures "
+            << ib_kinematics.size() << " in vector passed to this method is not equal to no. of structures "
+            << d_no_structures << " registered with this class" << std::endl);
     }
     else
     {
@@ -681,7 +685,8 @@ ConstraintIBMethod::preprocessIntegrateData(double current_time, double new_time
         d_l_data_U_current[ln] = d_l_data_manager->createLData(d_object_name + "current_lag_vel", ln, NDIM, false);
     }
 
-    // Compue the current Lagrangian velocity according to constraint for the predictor Euler step.
+    // Compue the current Lagrangian velocity according to constraint for the
+    // predictor Euler step.
     calculateCurrentLagrangianVelocity();
     return;
 
@@ -744,7 +749,8 @@ ConstraintIBMethod::getFromInput(Pointer<Database> input_db, const bool from_res
     // Sanity check.
     if (d_output_eul_mom && !d_needs_div_free_projection)
         TBOX_WARNING(
-            "WARNING ConstraintIBMethod::getFromInput() Eulerian momentum is calculated but divergence free projection "
+            "WARNING ConstraintIBMethod::getFromInput() Eulerian momentum "
+            "is calculated but divergence free projection "
             "is not active"
             << std::endl);
 
@@ -856,7 +862,8 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-        // Get LData corresponding to the present and new position of the structures.
+        // Get LData corresponding to the present and new position of the
+        // structures.
         Pointer<LData> ptr_x_lag_data_current(nullptr), ptr_x_lag_data_new(nullptr);
         ptr_x_lag_data_current = d_l_data_manager->getLData("X", ln);
         if (tbox::MathUtilities<double>::equalEps(d_FuRMoRP_current_time, 0.0))
@@ -1264,7 +1271,8 @@ ConstraintIBMethod::calculateVolumeElement()
 {
     using StructureParameters = ConstraintIBKinematics::StructureParameters;
 
-    // Initialize variables and variable contexts associated with Eulerian tracking of the Lagrangian points.
+    // Initialize variables and variable contexts associated with Eulerian
+    // tracking of the Lagrangian points.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const IntVector<NDIM> cell_ghosts = 0;
     Pointer<CellVariable<NDIM, int> > vol_cc_var = new CellVariable<NDIM, int>(d_object_name + "::vol_cc_var");
@@ -1299,7 +1307,8 @@ ConstraintIBMethod::calculateVolumeElement()
         const size_t structs_on_this_ln = structIDs.size();
         for (size_t struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
-            // If the volume element has already been set, then skip the volume computation
+            // If the volume element has already been set, then skip the volume
+            // computation
             if (d_vol_element_is_set[struct_no])
             {
                 tbox::plog << "Skipping volume element computation for structure no. " << struct_no << std::endl;
@@ -1379,14 +1388,16 @@ ConstraintIBMethod::calculateVolumeElement()
                    << " STRUCTURE NO. " << struct_no << "  ++++++++++++++++++++++++++ \n\n\n"
                    << " VOLUME OF THE MATERIAL ELEMENT           = " << d_vol_element[struct_no] << "\n"
                    << " VOLUME OF THE STRUCTURE                  = " << d_structure_vol[struct_no] << "\n"
-                   << " ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+                   << " +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+                      "+++++++\n"
                    << std::endl;
 
         tbox::pout << " ++++++++++++++++ "
                    << " STRUCTURE NO. " << struct_no << "  ++++++++++++++++++++++++++ \n\n\n"
                    << " VOLUME OF THE MATERIAL ELEMENT           = " << d_vol_element[struct_no] << "\n"
                    << " VOLUME OF THE STRUCTURE                  = " << d_structure_vol[struct_no] << "\n"
-                   << " ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+                   << " +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+                      "+++++++\n"
                    << std::endl;
     }
 
@@ -2065,9 +2076,10 @@ ConstraintIBMethod::updateStructurePositionEulerStep()
                     else
                     {
                         TBOX_ERROR(
-                            "ConstraintIBMethod::updateStructurePositionEulerStep():: Unknown position update method "
-                            "encountered"
-                            << "Supported methods are : CONSTRAINT_VELOCITY, CONSTRAINT_POSITION AND "
+                            "ConstraintIBMethod::updateStructurePositionEulerStep():"
+                            ": Unknown position update method encountered\n"
+                            << "Supported methods are : CONSTRAINT_VELOCITY, "
+                               "CONSTRAINT_POSITION AND "
                                "CONSTRAINT_EXPT_POSITION "
                             << std::endl);
                     }
@@ -2171,9 +2183,11 @@ ConstraintIBMethod::updateStructurePositionMidPointStep()
                     else
                     {
                         TBOX_ERROR(
-                            "ConstraintIBMethod::updateStructurePositionMidPointStep():: Unknown position update "
-                            "method encountered"
-                            << "Supported methods are : CONSTRAINT_VELOCITY, CONSTRAINT_POSITION AND "
+                            "ConstraintIBMethod::"
+                            "updateStructurePositionMidPointStep():: Unknown "
+                            "position update method encountered\n"
+                            << "Supported methods are : CONSTRAINT_VELOCITY, "
+                               "CONSTRAINT_POSITION AND "
                                "CONSTRAINT_EXPT_POSITION "
                             << std::endl);
                     }
@@ -2265,7 +2279,9 @@ ConstraintIBMethod::copyDensityVariable(int copy_from_idx, int copy_to_idx)
         if (!level->checkAllocated(copy_to_idx)) level->allocatePatchData(copy_to_idx);
     }
 
-    d_hier_sc_data_ops->copyData(copy_to_idx, copy_from_idx, /*interior_only*/ true);
+    d_hier_sc_data_ops->copyData(copy_to_idx,
+                                 copy_from_idx,
+                                 /*interior_only*/ true);
 
     return;
 } // copyDensityVariable
@@ -2307,9 +2323,10 @@ ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
         X_data[ln] = d_l_data_X_half_Euler[ln];
     }
 
-    // Since we do not want to mess up the boundary values of u_ins, we zero-out the scratch variable,
-    // spread to it and then add the correction to u_ins. This assumes that the structure is away from
-    // the physical domain.
+    // Since we do not want to mess up the boundary values of u_ins, we
+    // zero-out the scratch variable, spread to it and then add the correction
+    // to u_ins. This assumes that the structure is away from the physical
+    // domain.
     SAMRAIVectorReal<NDIM, double> u_cib(d_object_name + "cib", d_hierarchy, coarsest_ln, finest_ln);
     SAMRAIVectorReal<NDIM, double> u_ins(d_object_name + "ins", d_hierarchy, coarsest_ln, finest_ln);
 

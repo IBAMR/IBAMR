@@ -66,14 +66,14 @@ int
 main(int argc, char* argv[])
 {
     {
-    std::ifstream structure_vertex_stream(SOURCE_DIR "/curve2d_64.vertex");
-    std::ofstream structure_vertex_cwd("curve2d_64.vertex");
-    structure_vertex_cwd << structure_vertex_stream.rdbuf();
-    std::ifstream structure_spring_stream(SOURCE_DIR "/curve2d_64.spring");
-    std::ofstream structure_spring_cwd("curve2d_64.spring");
-    structure_spring_cwd << structure_spring_stream.rdbuf();
+        std::ifstream structure_vertex_stream(SOURCE_DIR "/curve2d_64.vertex");
+        std::ofstream structure_vertex_cwd("curve2d_64.vertex");
+        structure_vertex_cwd << structure_vertex_stream.rdbuf();
+        std::ifstream structure_spring_stream(SOURCE_DIR "/curve2d_64.spring");
+        std::ofstream structure_spring_cwd("curve2d_64.spring");
+        structure_spring_cwd << structure_spring_stream.rdbuf();
     }
-    
+
     // Initialize PETSc, MPI, and SAMRAI.
     PetscInitialize(&argc, &argv, NULL, NULL);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
@@ -227,14 +227,14 @@ main(int argc, char* argv[])
         ib_method_ops->freeLInitStrategy();
         ib_initializer.setNull();
         app_initializer.setNull();
-        
+
         // Inactivate structure
         const std::string structure_name = "curve2d_64";
         const int structure_level_number = input_db->getDatabase("IBStandardInitializer")->getInteger("max_levels") - 1;
         LDataManager* l_data_manager = ib_method_ops->getLDataManager();
         const int structure_id = l_data_manager->getLagrangianStructureID(structure_name, structure_level_number);
         pout << "\nInactivate \"curve2d_64\" \n\n";
-        l_data_manager->inactivateLagrangianStructures(std::vector<int> {structure_id}, structure_level_number);
+        l_data_manager->inactivateLagrangianStructures(std::vector<int>{ structure_id }, structure_level_number);
 
         // Write restart data before starting main time integration loop.
         if (dump_restart_data && !is_from_restart)

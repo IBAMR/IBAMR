@@ -227,7 +227,8 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             TBOX_ERROR(d_object_name << "::setDataOnPatchHierarchy():\n"
                                      << "  unsupported default convective time stepping type: "
                                      << enum_to_string<TimeSteppingType>(convective_time_stepping_type) << " \n"
-                                     << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+                                     << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, "
+                                        "TRAPEZOIDAL_RULE\n");
         }
 
         // Generate random components.

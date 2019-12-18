@@ -57,7 +57,6 @@ main(int argc, char* argv[])
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
-
     { // cleanup dynamically allocated objects prior to shutdown
 
         // Parse command line options, set some standard options from the input
@@ -274,7 +273,6 @@ main(int argc, char* argv[])
              << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(U_idx, wgt_cc_idx) << "\n"
              << "  L2-norm:  " << hier_cc_data_ops.L2Norm(U_idx, wgt_cc_idx) << "\n"
              << "  max-norm: " << hier_cc_data_ops.maxNorm(U_idx, wgt_cc_idx) << "\n";
-
 
         if (dump_viz_data && uses_visit)
         {

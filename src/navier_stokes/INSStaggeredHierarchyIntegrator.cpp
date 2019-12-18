@@ -466,7 +466,8 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
         TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                  << "  unsupported viscous time stepping type: "
                                  << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << " \n"
-                                 << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+                                 << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, "
+                                    "TRAPEZOIDAL_RULE\n");
     }
     switch (d_convective_time_stepping_type)
     {
@@ -494,7 +495,8 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
             TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                      << "  unsupported initial convective time stepping type: "
                                      << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type) << " \n"
-                                     << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+                                     << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, "
+                                        "TRAPEZOIDAL_RULE\n");
         }
     }
 
@@ -546,7 +548,8 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     }
     d_P_bc_coef = new INSStaggeredPressureBcCoef(this, d_bc_coefs, d_traction_bc_type);
 
-    // Check to see whether to track mean flow quantities and turbulent kinetic energy.
+    // Check to see whether to track mean flow quantities and turbulent kinetic
+    // energy.
     if (input_db->keyExists("flow_averaging_interval"))
         d_flow_averaging_interval = input_db->getInteger("flow_averaging_interval");
 
@@ -936,7 +939,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
         d_F_div_idx = -1;
     }
 
-    // Register variables for tracking mean flow quantities and turbulent kinetic energy.
+    // Register variables for tracking mean flow quantities and turbulent kinetic
+    // energy.
     if (d_U_mean_var)
     {
         registerVariable(d_U_mean_current_idx,
@@ -1280,7 +1284,9 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
                                                               /*P_bc_coef*/ nullptr);
     d_hier_math_ops->laplace(
         U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var, d_no_fill_op, current_time);
-    d_hier_sc_data_ops->copyData(d_U_src_idx, d_U_scratch_idx, /*interior_only*/ false);
+    d_hier_sc_data_ops->copyData(d_U_src_idx,
+                                 d_U_scratch_idx,
+                                 /*interior_only*/ false);
 
     // Set the initial guess.
     d_hier_sc_data_ops->copyData(d_U_new_idx, d_U_current_idx);
@@ -1298,9 +1304,11 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
                                      << "  attempting to perform " << d_current_num_cycles
                                      << " cycles of fixed point iteration.\n"
-                                     << "  number of cycles required by coupled advection-diffusion solver = "
+                                     << "  number of cycles required by coupled advection-diffusion "
+                                        "solver = "
                                      << adv_diff_num_cycles << ".\n"
-                                     << "  current implementation requires either that both solvers use the same "
+                                     << "  current implementation requires either that both solvers use "
+                                        "the same "
                                         "number of cycles,\n"
                                      << "  or that the Navier-Stokes solver use only a single cycle.\n");
         }
@@ -1551,13 +1559,14 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
 
     // Update mean quantities.
     //
-    // NOTE: The time step indexing is a little funny here.  We are computing new quantities associated with the time
-    // step at the end of the current interval, and so we shift the step index by 1.
+    // NOTE: The time step indexing is a little funny here.  We are computing
+    // new quantities associated with the time step at the end of the current
+    // interval, and so we shift the step index by 1.
     const int new_time_step = getIntegratorStep() + 1;
     if (d_flow_averaging_interval && (new_time_step % d_flow_averaging_interval == 0))
     {
-        // N is the number of samples.  Currently we always capture the value at the initial time, which is why N is
-        // shifted by 1.
+        // N is the number of samples.  Currently we always capture the value
+        // at the initial time, which is why N is shifted by 1.
         const double N = 1 + new_time_step / d_flow_averaging_interval;
         const double weight = ((N - 1.0) / N);
 
@@ -1579,20 +1588,24 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
 
                     // To simplifiy notation in this comment, define U = mean(u).
                     //
-                    // We decompose u as u = U + u', so u' = u - U, and we track the mean values of u(i), u(i)*u(j), and
-                    // u'(i)*u'(j).  These values are needed to determine the turbulent kinetic energy and Reynolds
-                    // stresses.
+                    // We decompose u as u = U + u', so u' = u - U, and we
+                    // track the mean values of u(i), u(i)*u(j), and
+                    // u'(i)*u'(j).  These values are needed to determine the
+                    // turbulent kinetic energy and Reynolds stresses.
                     //
-                    // Turbulent kinetic energy is k = 0.5*(mean(u'^2) + mean(v'^2) + mean(w'^2)).
+                    // Turbulent kinetic energy is k = 0.5*(mean(u'^2) +
+                    // mean(v'^2) + mean(w'^2)).
                     //
                     // Reynolds stresses are rho * mean(u'(i) * u'(j)).
                     //
-                    // TODO: These tensors are all symmetric, so we could use Voigt notation to cut down on redundant
-                    // data storage.
+                    // TODO: These tensors are all symmetric, so we could use
+                    // Voigt notation to cut down on redundant data storage.
                     //
-                    // TODO: Consider adding a helper function to translate between tensor indices and data depth.
+                    // TODO: Consider adding a helper function to translate
+                    // between tensor indices and data depth.
 
-                    // Evaluate the current velocity at the cell center at the end of the current time interval:
+                    // Evaluate the current velocity at the cell center at the
+                    // end of the current time interval:
                     VectorNd u;
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
@@ -1600,7 +1613,8 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
                                       (*U_data)(SideIndex<NDIM>(ic, i, SideIndex<NDIM>::Lower)));
                     }
 
-                    // Compute the mean values of u(i), u'(i), and u(i)*u(j) at the end of the current time interval:
+                    // Compute the mean values of u(i), u'(i), and u(i)*u(j)
+                    // at the end of the current time interval:
                     VectorNd u_mean, u_fluct;
                     MatrixNd uu_mean;
                     for (unsigned int i = 0; i < NDIM; ++i)
@@ -1613,7 +1627,8 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
                         }
                     }
 
-                    // Compute the mean values of u'(i)*u'(j) at the end of the current time interval:
+                    // Compute the mean values of u'(i)*u'(j) at the end of
+                    // the current time interval:
                     MatrixNd uu_fluct;
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
@@ -1624,7 +1639,8 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
                         }
                     }
 
-                    // Evaluate the turbulent kinetic energy at the end of the current time interval:
+                    // Evaluate the turbulent kinetic energy at the end of the
+                    // current time interval:
                     double k = 0.0;
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
@@ -1952,10 +1968,9 @@ INSStaggeredHierarchyIntegrator::regridHierarchyEndSpecialized()
     d_div_U_norm_1_post = d_hier_cc_data_ops->L1Norm(d_Div_U_idx, wgt_cc_idx);
     d_div_U_norm_2_post = d_hier_cc_data_ops->L2Norm(d_Div_U_idx, wgt_cc_idx);
     d_div_U_norm_oo_post = d_hier_cc_data_ops->maxNorm(d_Div_U_idx, wgt_cc_idx);
-    d_do_regrid_projection =
-        d_div_U_norm_1_post > d_regrid_max_div_growth_factor * d_div_U_norm_1_pre ||
-        d_div_U_norm_2_post > d_regrid_max_div_growth_factor * d_div_U_norm_2_pre ||
-        d_div_U_norm_oo_post > d_regrid_max_div_growth_factor * d_div_U_norm_oo_pre;
+    d_do_regrid_projection = d_div_U_norm_1_post > d_regrid_max_div_growth_factor * d_div_U_norm_1_pre ||
+                             d_div_U_norm_2_post > d_regrid_max_div_growth_factor * d_div_U_norm_2_pre ||
+                             d_div_U_norm_oo_post > d_regrid_max_div_growth_factor * d_div_U_norm_oo_pre;
     return;
 } // regridHierarchyEndSpecialized
 
@@ -2442,10 +2457,14 @@ INSStaggeredHierarchyIntegrator::regridProjection()
     // Solve the projection pressure-Poisson problem.
     regrid_projection_solver->solveSystem(sol_vec, rhs_vec);
     if (d_enable_logging && d_enable_logging_solver_iterations)
-        plog << d_object_name << "::regridProjection(): regrid projection solve number of iterations = "
+        plog << d_object_name
+             << "::regridProjection(): regrid projection solve "
+                "number of iterations = "
              << regrid_projection_solver->getNumIterations() << "\n";
     if (d_enable_logging)
-        plog << d_object_name << "::regridProjection(): regrid projection solve residual norm        = "
+        plog << d_object_name
+             << "::regridProjection(): regrid projection solve "
+                "residual norm        = "
              << regrid_projection_solver->getResidualNorm() << "\n";
 
     // Fill ghost cells for Phi, compute Grad Phi, and set U := U - Grad Phi
@@ -2648,7 +2667,10 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
     if (d_convective_op && d_convective_op_needs_init)
     {
         if (d_enable_logging)
-            plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing convective operator" << std::endl;
+            plog << d_object_name
+                 << "::preprocessIntegrateHierarchy(): initializing "
+                    "convective operator"
+                 << std::endl;
         d_convective_op->setAdvectionVelocity(d_U_scratch_idx);
         d_convective_op->setSolutionTime(d_integrator_time);
         d_convective_op->initializeOperatorState(*d_U_scratch_vec, *d_U_rhs_vec);
@@ -2945,7 +2967,8 @@ INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int
                     << "  unsupported differencing form: "
                     << enum_to_string<ConvectiveDifferencingType>(d_convective_op->getConvectiveDifferencingType())
                     << " \n"
-                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, "
+                       "SKEW_SYMMETRIC\n");
             }
         }
     }

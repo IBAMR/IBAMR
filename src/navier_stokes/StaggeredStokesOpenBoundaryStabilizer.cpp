@@ -107,7 +107,8 @@ StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
                         "StaggeredStokesOpenBoundaryStabilizer::"
                         "StaggeredStokesOpenBoundaryStabilizer():\n"
                         << "  unsupported stabilization type: ``" << stabilization_type << "''\n"
-                        << "  supported values are: ``INFLOW'', ``OUTFLOW'', or ``NONE''\n");
+                        << "  supported values are: ``INFLOW'', ``OUTFLOW'', or "
+                           "``NONE''\n");
                 }
             }
             const std::string width_key = "width_" + std::to_string(location_index);

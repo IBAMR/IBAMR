@@ -234,7 +234,8 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     if (d_apply_mass_constraint && initial_time)
     {
         TBOX_WARNING(d_object_name << "::initializeLSData():\n"
-                                   << " Mass constraint is automatically turned off for initial hierarchy time"
+                                   << " Mass constraint is automatically turned "
+                                      "off for initial hierarchy time"
                                    << std::endl);
     }
     const bool constrain_ls_mass = (d_apply_mass_constraint && !initial_time);
@@ -251,14 +252,16 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
-    // Create a temporary variable to hold previous iteration values with appropriate ghost cell width
-    // since it is not guaranteed that D_idx will have proper ghost cell width.
+    // Create a temporary variable to hold previous iteration values with
+    // appropriate ghost cell width since it is not guaranteed that D_idx will
+    // have proper ghost cell width.
     IntVector<NDIM> cell_ghosts;
     IntVector<NDIM> no_ghosts = 0;
     if (d_ls_order == FIRST_ORDER_LS)
     {
         TBOX_WARNING(d_object_name << "::initializeLSData():\n"
-                                   << " First order relxation is known to cause significant interface volume loss \n"
+                                   << " First order relxation is known to cause significant "
+                                      "interface volume loss \n"
                                    << " consider trying THIRD_ORDER_ENO or THIRD_ORDER_WENO." << std::endl);
         cell_ghosts = std::max(1, d_D_gcw);
     }
@@ -377,7 +380,9 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         if (constrain_ls_mass)
         {
             D_fill_op->fillData(time);
-            hier_cc_data_ops.copyData(D_copy_idx, D_scratch_idx, /*interior_only*/ false);
+            hier_cc_data_ops.copyData(D_copy_idx,
+                                      D_scratch_idx,
+                                      /*interior_only*/ false);
             applyMassConstraint(hier_math_ops, D_scratch_idx, D_copy_idx, D_init_idx, H_init_idx);
         }
 

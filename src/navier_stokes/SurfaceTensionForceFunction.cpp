@@ -270,21 +270,31 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
     if (d_ts_type == MIDPOINT_RULE)
     {
-        hier_cc_data_ops.linearSum(
-            d_phi_idx, 0.5, phi_adv_diff_new_idx, 0.5, phi_adv_diff_current_idx, /*interior_only*/ true);
+        hier_cc_data_ops.linearSum(d_phi_idx,
+                                   0.5,
+                                   phi_adv_diff_new_idx,
+                                   0.5,
+                                   phi_adv_diff_current_idx,
+                                   /*interior_only*/ true);
     }
     else if (d_ts_type == BACKWARD_EULER)
     {
-        hier_cc_data_ops.copyData(d_phi_idx, phi_adv_diff_new_idx, /*interior_only*/ true);
+        hier_cc_data_ops.copyData(d_phi_idx,
+                                  phi_adv_diff_new_idx,
+                                  /*interior_only*/ true);
     }
     else if (d_ts_type == FORWARD_EULER)
     {
-        hier_cc_data_ops.copyData(d_phi_idx, phi_adv_diff_current_idx, /*interior_only*/ true);
+        hier_cc_data_ops.copyData(d_phi_idx,
+                                  phi_adv_diff_current_idx,
+                                  /*interior_only*/ true);
     }
     else
     {
         TBOX_ERROR("SurfaceTensionForceFunction::setDataOnPatchHierarchy : "
-                   << "The class only supports BACKWARD_EULER, FORWARD_EULER, and MIDPOINT_RULE" << std::endl);
+                   << "The class only supports BACKWARD_EULER, FORWARD_EULER, and "
+                      "MIDPOINT_RULE"
+                   << std::endl);
     }
     hier_cc_data_ops.copyData(d_C_idx, d_phi_idx, /*interior_only*/ true);
 
@@ -464,7 +474,8 @@ SurfaceTensionForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double> >
                                                 Pointer<PatchLevel<NDIM> > /*level*/)
 {
     TBOX_ERROR(
-        "SurfaceTensionForceFunction::setDataOnPatchCell() Cell centered surface force tension is not implemented yet."
+        "SurfaceTensionForceFunction::setDataOnPatchCell() Cell centered "
+        "surface force tension is not implemented yet."
         << std::endl);
 
     return;
@@ -483,7 +494,9 @@ SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> >
 
     // First find normal in terms of gradient of phi.
     // N = grad(phi)
-    SideData<NDIM, double> N(patch_box, /*depth*/ NDIM, /*gcw*/ IntVector<NDIM>(2));
+    SideData<NDIM, double> N(patch_box,
+                             /*depth*/ NDIM,
+                             /*gcw*/ IntVector<NDIM>(2));
     Pointer<CellData<NDIM, double> > Phi = patch->getPatchData(d_phi_idx);
 
     SC_NORMAL_FC(N.getPointer(0, 0),

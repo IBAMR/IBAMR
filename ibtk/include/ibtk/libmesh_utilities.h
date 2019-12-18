@@ -51,21 +51,20 @@ namespace IBTK
 {
 namespace libMeshWrappers
 {
-    /**
-     * Compatibility type alias for supporting older versions of libMesh.
-     */
+/**
+ * Compatibility type alias for supporting older versions of libMesh.
+ */
 #if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
-    using BoundingBox = libMesh::BoundingBox;
+using BoundingBox = libMesh::BoundingBox;
 #else
-    using BoundingBox = libMesh::MeshTools::BoundingBox;
+using BoundingBox = libMesh::MeshTools::BoundingBox;
 #endif
-}
+} // namespace libMeshWrappers
 
 /**
  * Utility function for getting the dimensionality of a libMesh element type.
  */
-inline
-int
+inline int
 get_dim(const libMesh::ElemType elem_type)
 {
     switch (elem_type)
@@ -95,8 +94,7 @@ get_dim(const libMesh::ElemType elem_type)
 /**
  * Utility function for getting the number of nodes of a libMesh element type.
  */
-inline
-std::size_t
+inline std::size_t
 get_n_nodes(const libMesh::ElemType elem_type)
 {
     switch (elem_type)
@@ -135,8 +133,7 @@ get_n_nodes(const libMesh::ElemType elem_type)
 /**
  * Utility function for getting the default order of a libMesh element type.
  */
-inline
-libMesh::Order
+inline libMesh::Order
 get_default_order(const libMesh::ElemType elem_type)
 {
     switch (elem_type)
@@ -698,8 +695,8 @@ interpolate(libMesh::TypeVector<double>& U,
  * Compute the jacobian with respect to the initial configuration in the deformed configuration
  * @p X_node at quadrature point number @qp.
  *
- * \f[ 
- * J(qp) = \sum_{i = 1}^n \xi_i \otimes \nabla_X \phi_i(qp) 
+ * \f[
+ * J(qp) = \sum_{i = 1}^n \xi_i \otimes \nabla_X \phi_i(qp)
  * \f]
  *
  * @param[out] dX_ds Tensor containing the output of this function of size 3x3.
@@ -1475,15 +1472,15 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
  * Compute bounding boxes for each local active (i.e., active on the current
  * processor) element in @p mesh with coordinates given by @p X_system.
  */
-std::vector<libMeshWrappers::BoundingBox>
-get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system);
+std::vector<libMeshWrappers::BoundingBox> get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                                                                  const libMesh::System& X_system);
 
 /*
  * Compute bounding boxes for each active (i.e., active on any processor)
  * element in @p mesh with coordinates given by @p X_system.
  */
-std::vector<libMeshWrappers::BoundingBox>
-get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system);
+std::vector<libMeshWrappers::BoundingBox> get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                                                                   const libMesh::System& X_system);
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

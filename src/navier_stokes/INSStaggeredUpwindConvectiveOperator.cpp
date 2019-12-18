@@ -318,10 +318,12 @@ INSStaggeredUpwindConvectiveOperator::INSStaggeredUpwindConvectiveOperator(
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {
-        TBOX_ERROR("INSStaggeredUpwindConvectiveOperator::INSStaggeredUpwindConvectiveOperator():\n"
-                   << "  unsupported differencing form: "
-                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
-                   << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+        TBOX_ERROR(
+            "INSStaggeredUpwindConvectiveOperator::"
+            "INSStaggeredUpwindConvectiveOperator():\n"
+            << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+            << " \n"
+            << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -348,14 +350,17 @@ INSStaggeredUpwindConvectiveOperator::INSStaggeredUpwindConvectiveOperator(
 #endif
 
     // Setup Timers.
-    IBAMR_DO_ONCE(t_apply_convective_operator = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator()");
+    IBAMR_DO_ONCE(t_apply_convective_operator =
+                      TimerManager::getManager()->getTimer("IBAMR::INSStaggeredUpwindConvectiveOperator::"
+                                                           "applyConvectiveOperator()");
                   t_apply =
                       TimerManager::getManager()->getTimer("IBAMR::INSStaggeredUpwindConvectiveOperator::apply()");
-                  t_initialize_operator_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSStaggeredUpwindConvectiveOperator::initializeOperatorState()");
-                  t_deallocate_operator_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSStaggeredUpwindConvectiveOperator::deallocateOperatorState()"););
+                  t_initialize_operator_state =
+                      TimerManager::getManager()->getTimer("IBAMR::INSStaggeredUpwindConvectiveOperator::"
+                                                           "initializeOperatorState()");
+                  t_deallocate_operator_state =
+                      TimerManager::getManager()->getTimer("IBAMR::INSStaggeredUpwindConvectiveOperator::"
+                                                           "deallocateOperatorState()"););
     return;
 } // INSStaggeredUpwindConvectiveOperator
 
@@ -373,7 +378,8 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
     if (!d_is_initialized)
     {
         TBOX_ERROR("INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  operator must be initialized prior to call to applyConvectiveOperator\n");
+                   << "  operator must be initialized prior to call to "
+                      "applyConvectiveOperator\n");
     }
     TBOX_ASSERT(U_idx == d_u_idx);
 #endif
@@ -664,10 +670,13 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
 #endif
                     break;
                 default:
-                    TBOX_ERROR("INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator():\n"
-                               << "  unsupported differencing form: "
-                               << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
-                               << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+                    TBOX_ERROR(
+                        "INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator():"
+                        "\n"
+                        << "  unsupported differencing form: "
+                        << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
+                        << "  valid choices are: ADVECTIVE, CONSERVATIVE, "
+                           "SKEW_SYMMETRIC\n");
                 }
             }
         }

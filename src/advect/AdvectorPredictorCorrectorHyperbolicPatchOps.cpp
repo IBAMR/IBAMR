@@ -342,9 +342,8 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setSourceTermFunction(Pointer<Cell
         {
             pout << d_object_name << "::setSourceTermFunction(): WARNING:\n"
                  << "  source term function for source term variable " << F_var_name << " has already been set.\n"
-                 << "  functions will be evaluated in the order in which they were registered "
-                    "with "
-                    "the solver\n"
+                 << "  functions will be evaluated in the order in which they were "
+                    "registered with the solver\n"
                  << "  when evaluating the source term value.\n";
             p_F_fcn = new CartGridFunctionSet(d_object_name + "::" + F_var_name + "::source_function_set");
             p_F_fcn->addFunction(d_F_fcn[F_var]);
@@ -852,8 +851,8 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patc
         default:
         {
             TBOX_ERROR(
-                "AdvectorPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch()"
-                ":\n"
+                "AdvectorPredictorCorrectorHyperbolicPatchOps::"
+                "conservativeDifferenceOnPatch():\n"
                 << "  unsupported differencing form: "
                 << enum_to_string<ConvectiveDifferencingType>(d_Q_difference_form[Q_var]) << " \n"
                 << "  valid choices are: ADVECTIVE, CONSERVATIVE\n");

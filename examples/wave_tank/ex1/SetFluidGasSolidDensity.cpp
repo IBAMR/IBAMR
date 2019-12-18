@@ -15,11 +15,13 @@
 // Created on Nov 15, 2017 by Nishant Nangia
 
 // APPLICATION INCLUDES
+#include <ibamr/app_namespaces.h>
+
+#include <ibtk/HierarchyMathOps.h>
+
 #include "SetFluidGasSolidDensity.h"
 
 #include <CartesianGridGeometry.h>
-#include <ibamr/app_namespaces.h>
-#include <ibtk/HierarchyMathOps.h>
 
 // C++ INCLUDES
 

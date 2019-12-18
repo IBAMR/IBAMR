@@ -419,7 +419,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     else
                     {
                         TBOX_ERROR(
-                            "StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(): Unknown BC type for "
+                            "StaggeredStokesPETScMatUtilities::"
+                            "constructPatchLevelMACStokesOp(): Unknown BC type for "
                             "tangential velocity specified.");
                     }
                 }
@@ -509,7 +510,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     else
                     {
                         TBOX_ERROR(
-                            "StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(): Unknown BC type for "
+                            "StaggeredStokesPETScMatUtilities::"
+                            "constructPatchLevelMACStokesOp(): Unknown BC type for "
                             "normal velocity specified.");
                     }
                 }
@@ -615,11 +617,14 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
     // is the "master" location.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<SideVariable<NDIM, int> > patch_num_var = new SideVariable<NDIM, int>(
-        "StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains()::patch_num_var");
+        "StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains()::"
+        "patch_num_var");
     static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
     patch_level->allocatePatchData(patch_num_idx);
     Pointer<SideVariable<NDIM, bool> > u_mastr_loc_var = new SideVariable<NDIM, bool>(
-        "StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains()::u_mastr_loc_var");
+        "StaggeredStokesPETScMatUtilities::"
+        "constructPatchLevelASMSubdomains()::u_"
+        "mastr_loc_var");
     static const int u_mastr_loc_idx = var_db->registerPatchDataIndex(u_mastr_loc_var);
     patch_level->allocatePatchData(u_mastr_loc_idx);
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)

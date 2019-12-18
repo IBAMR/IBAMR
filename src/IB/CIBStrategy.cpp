@@ -294,7 +294,8 @@ CIBStrategy::computeNetRigidGeneralizedForce(Vec L,
 {
     // Here we use the fact that all vector enteries of F are on
     // a single processor, and we can set values directly in the array
-    // rather than using the costly VecSetValues() followed by VecAssemblyBegin/End().
+    // rather than using the costly VecSetValues() followed by
+    // VecAssemblyBegin/End().
     PetscScalar* F_array = nullptr;
     VecGetArray(F, &F_array);
 

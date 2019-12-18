@@ -1062,9 +1062,9 @@ perform_mls(const int stencil_sz,
                         p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : x[1]);
                         G(j, k) += p_j * p_k * T[i1][i0];
 #elif (NDIM == 3)
-                    p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
-                    p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : k == 2 ? x[1] : x[2]);
-                    G(j, k) += p_j * p_k * T[i2][i1][i0];
+                        p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
+                        p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : k == 2 ? x[1] : x[2]);
+                        G(j, k) += p_j * p_k * T[i2][i1][i0];
 #endif
                     }
                 }
@@ -1099,12 +1099,12 @@ perform_mls(const int stencil_sz,
                 }
                 Psi[i1][i0] *= T[i1][i0];
 #elif (NDIM == 3)
-            for (int j = 0; j <= 3; ++j)
-            {
-                p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
-                Psi[i2][i1][i0] += L[j] * p_j;
-            }
-            Psi[i2][i1][i0] *= T[i2][i1][i0];
+                for (int j = 0; j <= 3; ++j)
+                {
+                    p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
+                    Psi[i2][i1][i0] += L[j] * p_j;
+                }
+                Psi[i2][i1][i0] *= T[i2][i1][i0];
 #endif
             }
         }

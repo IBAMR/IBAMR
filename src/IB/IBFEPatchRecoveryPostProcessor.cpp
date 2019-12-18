@@ -179,7 +179,9 @@ IBFEPatchRecoveryPostProcessor::IBFEPatchRecoveryPostProcessor(MeshBase* mesh, F
     }
     if (first_order_elems && second_order_elems)
     {
-        TBOX_ERROR("cannot have both first- and second-order elements in the same mesh.\n");
+        TBOX_ERROR(
+            "cannot have both first- and second-order elements in the same "
+            "mesh.\n");
     }
     d_interp_order = first_order_elems ? FIRST : SECOND;
     d_quad_order = first_order_elems ? THIRD : FIFTH;
@@ -387,9 +389,8 @@ IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const
         if (!d_local_patch_proj_solver[k].isInvertible())
         {
             TBOX_ERROR(
-                "IBFEPatchRecoveryPostProcessor could not construct L2 reconstruction for "
-                "element "
-                "patch associated with node "
+                "IBFEPatchRecoveryPostProcessor could not construct L2 "
+                "reconstruction for element patch associated with node "
                 << node_id << "\n");
         }
     }

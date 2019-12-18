@@ -129,7 +129,8 @@ StokesFifthOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
                 }
             }
 
-            // Compute a numerical heaviside at the boundary from the analytical wave elevation
+            // Compute a numerical heaviside at the boundary from the analytical wave
+            // elevation
             const double z_plus_d = dof_posn[dir];
             const double eta = getSurfaceElevation(dof_posn[0], fill_time);
             const double phi = -eta + (z_plus_d - d_depth);

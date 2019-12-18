@@ -325,14 +325,15 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
 
                     if (!d_fluid_solver->muIsConstant())
                     {
-                        // In certain use cases with traction boundary conditions, this class will attempt to fill
-                        // Robin BC coefficient values along an extended physical boundary outside of the physical
-                        // domain
-                        // that will never be used. However, viscosity values will not be available at those locations,
-                        // so we
-                        // need to ensure we don't access those unallocated data. The unphysical value should result in
-                        // bad stuff if
-                        // it gets used for whatever reason.
+                        // In certain use cases with traction boundary
+                        // conditions, this class will attempt to fill Robin
+                        // BC coefficient values along an extended physical
+                        // boundary outside of the physical domain that will
+                        // never be used. However, viscosity values will not
+                        // be available at those locations, so we need to
+                        // ensure we don't access those unallocated data. The
+                        // unphysical value should result in bad stuff if it
+                        // gets used for whatever reason.
                         if (mu_data_exists)
                         {
 #if (NDIM == 2)
@@ -364,14 +365,15 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                         hier::Index<NDIM> i_upper(i);
                         i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
 
-                        // In certain use cases with traction boundary conditions, this class will attempt to fill
-                        // Robin BC coefficient values along an extended physical boundary outside of the physical
-                        // domain
-                        // that will never be used. However, viscosity values will not be available at those locations,
-                        // so we
-                        // need to ensure we don't access those unallocated data. The unphysical value should result in
-                        // bad stuff if
-                        // it gets used for whatever reason.
+                        // In certain use cases with traction boundary
+                        // conditions, this class will attempt to fill Robin
+                        // BC coefficient values along an extended physical
+                        // boundary outside of the physical domain that will
+                        // never be used. However, viscosity values will not
+                        // be available at those locations, so we need to
+                        // ensure we don't access those unallocated data. The
+                        // unphysical value should result in bad stuff if it
+                        // gets used for whatever reason.
                         if (mu_data_exists)
                         {
 #if (NDIM == 2)

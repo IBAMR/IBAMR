@@ -44,16 +44,20 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/FESurfaceDistanceEvaluator.h"
-#include "CartesianGridGeometry.h"
-#include "HierarchyCellDataOpsReal.h"
 #include "IBAMR_config.h"
+
+#include "ibamr/FESurfaceDistanceEvaluator.h"
 #include "ibamr/app_namespaces.h"
+
 #include "ibtk/FEDataManager.h"
 #include "ibtk/IndexUtilities.h"
-#include "libmesh/equation_systems.h"
+
+#include "CartesianGridGeometry.h"
+#include "HierarchyCellDataOpsReal.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
+
+#include "libmesh/equation_systems.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -132,12 +136,16 @@ FESurfaceDistanceEvaluator::FESurfaceDistanceEvaluator(std::string object_name,
     d_supported_elem_type = TRI3;
 #endif
 
-    // Note that this class is specialized to work on a boundary mesh with dim = NDIM - 1
+    // Note that this class is specialized to work on a boundary mesh with
+    //
+    //    dim = NDIM - 1
+    //
     // derived from a volumetric mesh.
     if (d_use_vol_extracted_bdry_mesh && d_bdry_mesh.mesh_dimension() != NDIM - 1)
     {
         TBOX_ERROR(
-            "FESurfaceDistanceEvaluator presently requires a boundary mesh with dim = NDIM - 1 to be registered");
+            "FESurfaceDistanceEvaluator presently requires a boundary mesh "
+            "with dim = NDIM - 1 to be registered");
     }
 
     // Set up timers
@@ -152,7 +160,8 @@ FESurfaceDistanceEvaluator::FESurfaceDistanceEvaluator(std::string object_name,
 void
 FESurfaceDistanceEvaluator::mapIntersections()
 {
-    // Loop over each cell and a set of triangles and map cell-triangle intersections.
+    // Loop over each cell and a set of triangles and map cell-triangle
+    // intersections.
     const int finest_ln = d_patch_hierarchy->getFinestLevelNumber();
     IBTK_TIMER_START(t_collectNeighboringPatchElements);
     collectNeighboringPatchElements(finest_ln);
@@ -163,14 +172,16 @@ FESurfaceDistanceEvaluator::mapIntersections()
     // Clear out the data structure.
     d_cell_elem_neighbor_map.clear();
 
-    // Loop over patches on finest level, while keeping track of the local patch indexing
+    // Loop over patches on finest level, while keeping track of the local patch
+    // indexing
     Pointer<PatchLevel<NDIM> > level = d_patch_hierarchy->getPatchLevel(finest_ln);
     int local_patch_num = 0;
 
     // Desired ghost cell width
     IntVector<NDIM> ghost_width = d_gcw;
 
-    // Compute a bounding box for the entire structure, relying on LibMesh parallel decomposition
+    // Compute a bounding box for the entire structure, relying on LibMesh
+    // parallel decomposition
     MeshBase::const_element_iterator el_it = d_mesh.active_local_elements_begin();
     MeshBase::const_element_iterator el_end = d_mesh.active_local_elements_end();
     ;
@@ -241,15 +252,17 @@ FESurfaceDistanceEvaluator::mapIntersections()
         const SAMRAI::hier::Index<NDIM>& patch_lower_index = patch_box.lower();
         const double* const patch_dx = patch_geom->getDx();
 
-        // If the patch box doesn't intersect the structure box, no need to do computations
+        // If the patch box doesn't intersect the structure box, no need to do
+        // computations
         if (!patch_box.intersects(struct_box)) continue;
 
         // Loop over cells
         for (Box<NDIM>::Iterator it(patch_box); it; it++)
         {
-            // Get the coordinates/dimensions a box grown out of the cell center of ci
-            // by the ghost cell width. This will ensure that we capture not only the elements
-            // intersecting the cell, but also the elements intersecting the neighbor
+            // Get the coordinates/dimensions a box grown out of the cell
+            // center of ci by the ghost cell width. This will ensure that we
+            // capture not only the elements intersecting the cell, but also
+            // the elements intersecting the neighbor
             CellIndex<NDIM> ci(it());
             IBTK::Vector3d r_bl, r_tr;
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -266,7 +279,7 @@ FESurfaceDistanceEvaluator::mapIntersections()
                                 IndexUtilities::getCellIndex(r_tr.data(), grid_geom, level_ratio));
             if (!ghost_box.intersects(struct_box)) continue;
 
-                // Prepare the required vectors
+            // Prepare the required vectors
 #if (NDIM == 2)
             IBTK::Vector3d r_br, r_tl;
             r_br(1) = r_bl(1);
@@ -378,7 +391,9 @@ FESurfaceDistanceEvaluator::updateSignAwayFromInterface(int D_idx,
 
     // Copy d_idx to D_iter_idx
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, finest_ln, finest_ln);
-    hier_cc_data_ops.setToScalar(D_iter_idx, large_distance, /*interior_only*/ false);
+    hier_cc_data_ops.setToScalar(D_iter_idx,
+                                 large_distance,
+                                 /*interior_only*/ false);
     hier_cc_data_ops.copyData(D_iter_idx, D_idx);
 
     // Fill ghost cells
@@ -437,7 +452,8 @@ FESurfaceDistanceEvaluator::checkIntersection2D(const IBTK::Vector3d& box_bl,
                                                 const libMesh::Point& n0,
                                                 const libMesh::Point& n1)
 {
-    // If the line element is entirely contained within the box, then count as "intersected"
+    // If the line element is entirely contained within the box, then count as
+    // "intersected"
     if ((box_bl(0) <= n0(0) && n0(0) <= box_tr(0)) && (box_bl(1) <= n0(1) && n0(1) <= box_tr(1)) &&
         (box_bl(0) <= n1(0) && n1(0) <= box_tr(0)) && (box_bl(1) <= n1(1) && n1(1) <= box_tr(1)))
     {
@@ -477,7 +493,8 @@ FESurfaceDistanceEvaluator::checkIntersection3D(const IBTK::Vector3d& box_center
                                                 const IBTK::Vector3d& vert1,
                                                 const IBTK::Vector3d& vert2)
 {
-    // If the tri element is entirely contained within the box, then count as "intersected"
+    // If the tri element is entirely contained within the box, then count as
+    // "intersected"
     bool contains_vert0 = true;
     bool contains_vert1 = true;
     bool contains_vert2 = true;
@@ -495,7 +512,8 @@ FESurfaceDistanceEvaluator::checkIntersection3D(const IBTK::Vector3d& box_center
         return true;
     }
 
-    // Use the separating axis theorem to test the overlap between the tri element and the box
+    // Use the separating axis theorem to test the overlap between the tri element
+    // and the box
     double pmin, pmax, p0, p1, p2, rad, fex, fey, fez, a, b, fa, fb;
     IBTK::Vector3d v0, v1, v2, normal, e0, e1, e2;
     const int X = 0;
@@ -921,9 +939,11 @@ FESurfaceDistanceEvaluator::collectNeighboringPatchElements(int level_number)
             // Error checking for element type
             if (elem->type() != d_supported_elem_type)
             {
-                TBOX_ERROR("FESurfaceDistanceEvaluator presently does not support elements of type "
-                           << Utility::enum_to_string<ElemType>(elem->type()) << " for NDIM = " << NDIM
-                           << ".\nSupported type is " << Utility::enum_to_string<ElemType>(d_supported_elem_type));
+                TBOX_ERROR(
+                    "FESurfaceDistanceEvaluator presently does not support "
+                    "elements of type "
+                    << Utility::enum_to_string<ElemType>(elem->type()) << " for NDIM = " << NDIM
+                    << ".\nSupported type is " << Utility::enum_to_string<ElemType>(d_supported_elem_type));
             }
 
             // First check the centroids
@@ -969,7 +989,8 @@ FESurfaceDistanceEvaluator::computeSignedDistanceVolExtractedBdryMesh(int n_idx,
     const int bdry_mesh_dim = d_bdry_mesh.mesh_dimension();
     libMesh::UniquePtr<FEBase> fe_bdry(FEBase::build(NDIM, fe_type));
 
-    // Ensures only a single quadrature point is used for the normals, which is sufficient for linear elements.
+    // Ensures only a single quadrature point is used for the normals, which is
+    // sufficient for linear elements.
     libMesh::UniquePtr<QBase> qrule_bdry = QBase::build(QGAUSS, bdry_mesh_dim, CONSTANT);
     fe_bdry->attach_quadrature_rule(qrule_bdry.get());
 
@@ -1006,12 +1027,14 @@ FESurfaceDistanceEvaluator::computeSignedDistanceVolExtractedBdryMesh(int n_idx,
                 }
                 double min_dist = std::numeric_limits<double>::max();
 
-                // Create a pair to take care of normals for cells equidistant to multiple elements.
+                // Create a pair to take care of normals for cells equidistant to
+                // multiple elements.
                 std::vector<std::pair<libMesh::Elem*, IBTK::VectorNd> > vec_equidistant_pair;
                 for (auto& elem : elem_set)
                 {
-                    // Loop over the sides of the element. If it has no neighbors on a side,
-                    // then it MUST live on the boundary of the mesh
+                    // Loop over the sides of the element. If it has no
+                    // neighbors on a side, then it MUST live on the boundary
+                    // of the mesh
                     for (unsigned int s = 0; s < elem->n_sides(); ++s)
                     {
                         if (elem->neighbor_ptr(s) != nullptr) continue;
@@ -1033,15 +1056,15 @@ FESurfaceDistanceEvaluator::computeSignedDistanceVolExtractedBdryMesh(int n_idx,
                         const double L2 = (v - w).squaredNorm();
                         if (MathUtilities<double>::equalEps(L2, 0.0))
                         {
-                            // Special case where line element collapses to a point.
-                            // Shouldn't happen.
+                            // Special case where line element collapses to a
+                            // point. Shouldn't happen.
                             proj = v;
                             dist = (proj - P).norm();
                         }
                         else
                         {
-                            // Parameterize and project
-                            // Note that this will take care of the edge case where the projection
+                            // Parameterize and project Note that this will
+                            // take care of the edge case where the projection
                             // does not fall on the line
                             const double t = std::max(0.0, std::min(1.0, (P - v).dot(w - v) / L2));
                             proj = v + t * (w - v);
@@ -1053,16 +1076,18 @@ FESurfaceDistanceEvaluator::computeSignedDistanceVolExtractedBdryMesh(int n_idx,
                         dist = (P - proj).norm();
 #endif
 
-                        // If the distance is the same as the minimal distance, then the cell is equidistant
-                        // to multiple elements, so add it to the set.
+                        // If the distance is the same as the minimal
+                        // distance, then the cell is equidistant to multiple
+                        // elements, so add it to the set.
                         if (MathUtilities<double>::equalEps(dist, min_dist))
                         {
                             vec_equidistant_pair.push_back(std::make_pair(elem, proj));
                         }
                         else if (dist < min_dist)
                         {
-                            // If a new minimal element is found, clear the previous vector of pairs and simply keep
-                            // this one
+                            // If a new minimal element is found, clear the
+                            // previous vector of pairs and simply keep this
+                            // one
                             min_dist = dist;
                             vec_equidistant_pair.clear();
                             vec_equidistant_pair.push_back(std::make_pair(elem, proj));
@@ -1070,9 +1095,11 @@ FESurfaceDistanceEvaluator::computeSignedDistanceVolExtractedBdryMesh(int n_idx,
                     }
                 }
 
-                // Determine the sign based on the normal vectors at the quadrature points
-                // For linear elements considered in this class, the normal is the same no matter the quadrature point
-                // If the cell is equidistant to multiple elements, take the average normal from those elements
+                // Determine the sign based on the normal vectors at the
+                // quadrature points For linear elements considered in this
+                // class, the normal is the same no matter the quadrature
+                // point If the cell is equidistant to multiple elements, take
+                // the average normal from those elements
                 double sgn = 0.0;
                 const size_t vec_length = vec_equidistant_pair.size();
                 TBOX_ASSERT(vec_length > 0);
@@ -1085,8 +1112,9 @@ FESurfaceDistanceEvaluator::computeSignedDistanceVolExtractedBdryMesh(int n_idx,
                     IBTK::VectorNd proj = elem_vec_pair.second;
                     avg_proj += proj;
 
-                    // Loop over the sides of the element. If it has no neighbors on a side,
-                    // then it MUST live on the boundary of the mesh
+                    // Loop over the sides of the element. If it has no
+                    // neighbors on a side, then it MUST live on the boundary
+                    // of the mesh
                     for (unsigned int s = 0; s < elem->n_sides(); ++s)
                     {
                         if (elem->neighbor_ptr(s) != nullptr) continue;
@@ -1133,7 +1161,8 @@ FESurfaceDistanceEvaluator::computeSignedDistanceSurfaceMesh(int n_idx, int d_id
     dphi_dxi[0] = &fe_surface->get_dphidxi();
     if (NDIM > 2) dphi_dxi[1] = &fe_surface->get_dphideta();
 
-    // Ensures only a single quadrature point is used for the normals, which is sufficient for linear elements.
+    // Ensures only a single quadrature point is used for the normals, which is
+    // sufficient for linear elements.
     libMesh::UniquePtr<QBase> qrule_surface = QBase::build(QGAUSS, surface_mesh_dim, CONSTANT);
     fe_surface->attach_quadrature_rule(qrule_surface.get());
 
@@ -1179,7 +1208,8 @@ FESurfaceDistanceEvaluator::computeSignedDistanceSurfaceMesh(int n_idx, int d_id
                 }
                 double min_dist = std::numeric_limits<double>::max();
 
-                // Create a pair to take care of normals for cells equidistant to multiple elements.
+                // Create a pair to take care of normals for cells equidistant to
+                // multiple elements.
                 std::vector<std::pair<libMesh::Elem*, IBTK::VectorNd> > vec_equidistant_pair;
                 for (const auto& elem : elem_set)
                 {
@@ -1208,7 +1238,8 @@ FESurfaceDistanceEvaluator::computeSignedDistanceSurfaceMesh(int n_idx, int d_id
                     else
                     {
                         // Parameterize and project
-                        // Note that this will take care of the edge case where the projection
+                        // Note that this will take care of the edge case where the
+                        // projection
                         // does not fall on the line
                         const double t = std::max(0.0, std::min(1.0, (P - v).dot(w - v) / L2));
                         proj = v + t * (w - v);
@@ -1220,7 +1251,8 @@ FESurfaceDistanceEvaluator::computeSignedDistanceSurfaceMesh(int n_idx, int d_id
                     dist = (P - proj).norm();
 #endif
 
-                    // If the distance is the same as the minimal distance, then the cell is equidistant
+                    // If the distance is the same as the minimal distance, then the cell
+                    // is equidistant
                     // to multiple elements, so add it to the set.
                     if (MathUtilities<double>::equalEps(dist, min_dist))
                     {
@@ -1228,17 +1260,19 @@ FESurfaceDistanceEvaluator::computeSignedDistanceSurfaceMesh(int n_idx, int d_id
                     }
                     else if (dist < min_dist)
                     {
-                        // If a new minimal element is found, clear the previous vector of pairs and simply keep
-                        // this one
+                        // If a new minimal element is found, clear the
+                        // previous vector of pairs and simply keep this one
                         min_dist = dist;
                         vec_equidistant_pair.clear();
                         vec_equidistant_pair.push_back(std::make_pair(elem, proj));
                     }
                 }
 
-                // Determine the sign based on the normal vectors at the quadrature points
-                // For linear elements considered in this class, the normal is the same no matter the quadrature point
-                // If the cell is equidistant to multiple elements, take the average normal from those elements
+                // Determine the sign based on the normal vectors at the
+                // quadrature points For linear elements considered in this
+                // class, the normal is the same no matter the quadrature
+                // point If the cell is equidistant to multiple elements, take
+                // the average normal from those elements
                 double sgn = 0.0;
                 const size_t vec_length = vec_equidistant_pair.size();
                 TBOX_ASSERT(vec_length > 0);

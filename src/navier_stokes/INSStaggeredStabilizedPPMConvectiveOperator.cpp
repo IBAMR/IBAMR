@@ -490,9 +490,11 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
         if (input_db->keyExists("stabilization_type")) d_stabilization_type = input_db->getString("stabilization_type");
         if (d_stabilization_type != "UPWIND" && d_stabilization_type != "VISCOUS_ONLY")
         {
-            TBOX_ERROR("INSStaggeredStabilizedPPMConvectiveOperator: unrecognized value for stabilization_type, "
-                       << d_stabilization_type << "\n"
-                       << "  recognized choices are UPWIND, VISCOUS_ONLY\n");
+            TBOX_ERROR(
+                "INSStaggeredStabilizedPPMConvectiveOperator: unrecognized "
+                "value for stabilization_type, "
+                << d_stabilization_type << "\n"
+                << "  recognized choices are UPWIND, VISCOUS_ONLY\n");
         }
         if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
         for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
@@ -526,13 +528,16 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
 
     // Setup Timers.
     IBAMR_DO_ONCE(
-        t_apply_convective_operator = TimerManager::getManager()->getTimer(
-            "IBAMR::INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator()");
+        t_apply_convective_operator =
+            TimerManager::getManager()->getTimer("IBAMR::INSStaggeredStabilizedPPMConvectiveOperator::"
+                                                 "applyConvectiveOperator()");
         t_apply = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredStabilizedPPMConvectiveOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->getTimer(
-            "IBAMR::INSStaggeredStabilizedPPMConvectiveOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->getTimer(
-            "IBAMR::INSStaggeredStabilizedPPMConvectiveOperator::deallocateOperatorState()"););
+        t_initialize_operator_state =
+            TimerManager::getManager()->getTimer("IBAMR::INSStaggeredStabilizedPPMConvectiveOperator::"
+                                                 "initializeOperatorState()");
+        t_deallocate_operator_state =
+            TimerManager::getManager()->getTimer("IBAMR::INSStaggeredStabilizedPPMConvectiveOperator::"
+                                                 "deallocateOperatorState()"););
     return;
 } // INSStaggeredStabilizedPPMConvectiveOperator
 
@@ -549,8 +554,11 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
 #if !defined(NDEBUG)
     if (!d_is_initialized)
     {
-        TBOX_ERROR("INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  operator must be initialized prior to call to applyConvectiveOperator\n");
+        TBOX_ERROR(
+            "INSStaggeredStabilizedPPMConvectiveOperator::"
+            "applyConvectiveOperator():\n"
+            << "  operator must be initialized prior to call to "
+               "applyConvectiveOperator\n");
     }
     TBOX_ASSERT(U_idx == d_u_idx);
 #endif
@@ -1157,11 +1165,13 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
                     break;
                 default:
                     TBOX_ERROR(
-                        "INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator("
+                        "INSStaggeredStabilizedPPMConvectiveOperator::"
+                        "applyConvectiveOperator("
                         "):\n"
                         << "  unsupported differencing form: "
                         << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
-                        << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+                        << "  valid choices are: ADVECTIVE, CONSERVATIVE, "
+                           "SKEW_SYMMETRIC\n");
                 }
             }
 
@@ -1178,9 +1188,11 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
             }
             else
             {
-                TBOX_ERROR("INSStaggeredStabilizedPPMConvectiveOperator: unrecognized value for stabilization_type, "
-                           << d_stabilization_type << "\n"
-                           << "  recognized choices are UPWIND, VISCOUS_ONLY\n");
+                TBOX_ERROR(
+                    "INSStaggeredStabilizedPPMConvectiveOperator: unrecognized "
+                    "value for stabilization_type, "
+                    << d_stabilization_type << "\n"
+                    << "  recognized choices are UPWIND, VISCOUS_ONLY\n");
             }
             if (patch_geom->getTouchesRegularBoundary())
             {

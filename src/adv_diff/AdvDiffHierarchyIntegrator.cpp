@@ -283,9 +283,8 @@ AdvDiffHierarchyIntegrator::setSourceTermFunction(Pointer<CellVariable<NDIM, dou
         {
             pout << d_object_name << "::setSourceTermFunction(): WARNING:\n"
                  << "  source term function for source term variable " << F_var_name << " has already been set.\n"
-                 << "  functions will be evaluated in the order in which they were registered "
-                    "with "
-                    "the solver\n"
+                 << "  functions will be evaluated in the order in which they were "
+                    "registered with the solver\n"
                  << "  when evaluating the source term value.\n";
             p_F_fcn = new CartGridFunctionSet(d_object_name + "::" + F_var_name + "::source_function_set");
             p_F_fcn->addFunction(d_F_fcn[F_var]);
@@ -441,8 +440,8 @@ AdvDiffHierarchyIntegrator::setDiffusionCoefficient(Pointer<CellVariable<NDIM, d
              << "::setDiffusionCoefficient(Pointer<CellVariable<NDIM,double> > "
                 "Q_var, const double kappa): WARNING: \n"
              << "   a variable diffusion coefficient for the variable " << Q_var_name << " has already been set.\n"
-             << "   this variable coefficient will be overriden by the constant diffusion "
-                "coefficient "
+             << "   this variable coefficient will be overriden by the constant "
+                "diffusion coefficient "
              << "kappa = " << kappa << "\n";
         // erase entries from maps with key D_var
         d_diffusion_coef_fcn.erase(D_var);
@@ -499,9 +498,11 @@ AdvDiffHierarchyIntegrator::setDiffusionCoefficientFunction(Pointer<SideVariable
         if (!p_D_fcn)
         {
             pout << d_object_name << "::setDiffusionCoefficientFunction(): WARNING:\n"
-                 << "  diffusion coefficient function for diffusion coefficient variable " << D_var_name
-                 << " has already been set.\n"
-                 << "  functions will be evaluated in the order in which they were registered "
+                 << "  diffusion coefficient function for diffusion coefficient "
+                    "variable "
+                 << D_var_name << " has already been set.\n"
+                 << "  functions will be evaluated in the order in which they were "
+                    "registered "
                     "with "
                     "the solver\n"
                  << "  when evaluating the source term value.\n";
@@ -727,8 +728,8 @@ AdvDiffHierarchyIntegrator::getHelmholtzRHSOperator(Pointer<CellVariable<NDIM, d
     if (!d_helmholtz_rhs_ops[l])
     {
         const std::string& name = Q_var->getName();
-        d_helmholtz_rhs_ops[l] =
-            new CCLaplaceOperator(d_object_name + "::helmholtz_rhs_op::" + name, /*homogeneous_bc*/ false);
+        d_helmholtz_rhs_ops[l] = new CCLaplaceOperator(d_object_name + "::helmholtz_rhs_op::" + name,
+                                                       /*homogeneous_bc*/ false);
         d_helmholtz_rhs_ops_need_init[l] = true;
     }
     return d_helmholtz_rhs_ops[l];
@@ -832,7 +833,8 @@ AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(double current_time, do
     const bool initial_time = false;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    // Build the priority mapping, which determines which variables are reset first
+    // Build the priority mapping, which determines which variables are reset
+    // first
     std::multimap<int, Pointer<CellVariable<NDIM, double> > > priority_Q_map;
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
@@ -985,7 +987,8 @@ AdvDiffHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double i
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    // Build the priority mapping, which determines which variables are reset first
+    // Build the priority mapping, which determines which variables are reset
+    // first
     std::multimap<int, Pointer<CellVariable<NDIM, double> > > priority_Q_map;
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)

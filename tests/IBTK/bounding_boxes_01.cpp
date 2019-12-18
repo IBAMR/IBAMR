@@ -11,18 +11,19 @@
 //
 // ---------------------------------------------------------------------
 
-#include <SAMRAI_config.h>
-#include <tbox/SAMRAI_MPI.h>
-#include <tbox/SAMRAIManager.h>
+#include <ibtk/libmesh_utilities.h>
 
-#include <libmesh/mesh.h>
-#include <libmesh/mesh_generation.h>
+#include <tbox/SAMRAIManager.h>
+#include <tbox/SAMRAI_MPI.h>
+
+#include <libmesh/enum_order.h>
+#include <libmesh/enum_quadrature_type.h>
 #include <libmesh/equation_systems.h>
 #include <libmesh/explicit_system.h>
-#include <libmesh/enum_quadrature_type.h>
-#include <libmesh/enum_order.h>
+#include <libmesh/mesh.h>
+#include <libmesh/mesh_generation.h>
 
-#include <ibtk/libmesh_utilities.h>
+#include <SAMRAI_config.h>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -31,12 +32,10 @@
 #include <iostream>
 
 System&
-setup_deformation_system(ReplicatedMesh &mesh,
-                         EquationSystems &equation_systems,
-                         const libMesh::Order order)
+setup_deformation_system(ReplicatedMesh& mesh, EquationSystems& equation_systems, const libMesh::Order order)
 {
     // Set up the system
-    auto &X_system = equation_systems.add_system<ExplicitSystem>("X");
+    auto& X_system = equation_systems.add_system<ExplicitSystem>("X");
     const auto X_sys_num = X_system.number();
     const unsigned int dim = mesh.mesh_dimension();
     for (unsigned int d = 0; d < dim; ++d)
@@ -46,7 +45,7 @@ setup_deformation_system(ReplicatedMesh &mesh,
     equation_systems.init();
 
     // Set up the system solution to match the current mesh coordinates
-    auto &X_solution = *X_system.solution;
+    auto& X_solution = *X_system.solution;
     const auto el_begin = mesh.active_local_elements_begin();
     const auto el_end = mesh.active_local_elements_end();
     for (auto el_it = el_begin; el_it != el_end; ++el_it)
@@ -70,12 +69,12 @@ setup_deformation_system(ReplicatedMesh &mesh,
 }
 
 void
-test(LibMeshInit &init,
+test(LibMeshInit& init,
      const unsigned int dim,
      const std::string geometry,
      const ElemType elem_type,
      const Order order,
-     std::ofstream &out,
+     std::ofstream& out,
      const bool use_nodal_quadrature = true)
 {
     ReplicatedMesh mesh(init.comm(), dim);
@@ -92,17 +91,14 @@ test(LibMeshInit &init,
             MeshTools::Generation::build_cube(mesh, 2, 3, 2, 0.0, 0.5, 0.0, 0.25, 0.0, 8.0, elem_type);
     }
     EquationSystems equation_systems(mesh);
-    auto &X_system = setup_deformation_system(mesh, equation_systems,
-                                              order == FIRST ? FIRST : SECOND);
+    auto& X_system = setup_deformation_system(mesh, equation_systems, order == FIRST ? FIRST : SECOND);
 
     // Verify that the default settings are the same as both what we get with
     // nodal quadratures and what libMesh computes
     const auto quad_type = use_nodal_quadrature ? (order == FIRST ? QTRAP : QSIMPSON) : QGAUSS;
     std::vector<libMeshWrappers::BoundingBox> nodal_bboxes_1 =
-        get_local_active_element_bounding_boxes(mesh, X_system, quad_type,
-                                                order, false, 1.0, 1.0);
-    std::vector<libMeshWrappers::BoundingBox> nodal_bboxes_2 =
-        get_local_active_element_bounding_boxes(mesh, X_system);
+        get_local_active_element_bounding_boxes(mesh, X_system, quad_type, order, false, 1.0, 1.0);
+    std::vector<libMeshWrappers::BoundingBox> nodal_bboxes_2 = get_local_active_element_bounding_boxes(mesh, X_system);
     TBOX_ASSERT(nodal_bboxes_1.size() == nodal_bboxes_2.size());
 
     const auto el_begin = mesh.active_local_elements_begin();
@@ -111,16 +107,14 @@ test(LibMeshInit &init,
     for (auto el_it = el_begin; el_it != el_end; ++el_it, ++i)
     {
         const Elem* elem = *el_it;
-        const libMeshWrappers::BoundingBox &box_1 = nodal_bboxes_1[i];
-        const libMeshWrappers::BoundingBox &box_2 = nodal_bboxes_2[i];
+        const libMeshWrappers::BoundingBox& box_1 = nodal_bboxes_1[i];
+        const libMeshWrappers::BoundingBox& box_2 = nodal_bboxes_2[i];
 
         if (use_nodal_quadrature)
         {
             // boxes should be the same
-            TBOX_ASSERT((box_1.min() - box_2.min()).norm() <
-                        std::max(1.0, box_1.min().norm())*1e-16);
-            TBOX_ASSERT((box_1.max() - box_2.max()).norm() <
-                        std::max(1.0, box_1.max().norm())*1e-16);
+            TBOX_ASSERT((box_1.min() - box_2.min()).norm() < std::max(1.0, box_1.min().norm()) * 1e-16);
+            TBOX_ASSERT((box_1.max() - box_2.max()).norm() < std::max(1.0, box_1.max().norm()) * 1e-16);
 
             // nodes should be in the box
             const unsigned int n_nodes = elem->n_nodes();
@@ -155,20 +149,16 @@ test(LibMeshInit &init,
         libMeshWrappers::BoundingBox box_3 = (*el_it)->loose_bounding_box();
         if (order == FIRST)
         {
-            TBOX_ASSERT((box_2.min() - box_3.min()).norm() <
-                        std::max(1.0, box_2.min().norm())*1e-16);
-            TBOX_ASSERT((box_2.max() - box_3.max()).norm() <
-                        std::max(1.0, box_2.max().norm())*1e-16);
+            TBOX_ASSERT((box_2.min() - box_3.min()).norm() < std::max(1.0, box_2.min().norm()) * 1e-16);
+            TBOX_ASSERT((box_2.max() - box_3.max()).norm() < std::max(1.0, box_2.max().norm()) * 1e-16);
         }
 
         // in both cases check that we are inside the libMesh box: it claims
         // to be a loose fit
         libMeshWrappers::BoundingBox box_union(box_3);
         box_union.union_with(box_2);
-        TBOX_ASSERT((box_union.min() - box_3.min()).norm() <
-                    std::max(1.0, box_union.min().norm())*1e-16);
-        TBOX_ASSERT((box_union.max() - box_3.max()).norm() <
-                    std::max(1.0, box_union.max().norm())*1e-16);
+        TBOX_ASSERT((box_union.min() - box_3.min()).norm() < std::max(1.0, box_union.min().norm()) * 1e-16);
+        TBOX_ASSERT((box_union.max() - box_3.max()).norm() < std::max(1.0, box_union.max().norm()) * 1e-16);
 #endif
 
         // box 3 should be a superset of box 2: i.e., the corners of box 2
@@ -180,7 +170,8 @@ test(LibMeshInit &init,
     }
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char** argv)
 {
     LibMeshInit init(argc, argv);
     std::ofstream out("output");

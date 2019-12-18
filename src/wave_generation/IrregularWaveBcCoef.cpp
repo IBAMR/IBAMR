@@ -79,8 +79,10 @@ IrregularWaveBcCoef::IrregularWaveBcCoef(std::string object_name,
 
             d_omega[i] = d_omega_begin + i * delta_omega;
 
-            // Using an approximate formula for the dispersion relationship, calculate the wave number.
-            // See Eqn. (5.4.22) in WAVES IN OCEANIC AND COASTAL WATERS by LEO H. HOLTHUIJSEN.
+            // Using an approximate formula for the dispersion relationship, calculate
+            // the wave number.
+            // See Eqn. (5.4.22) in WAVES IN OCEANIC AND COASTAL WATERS by LEO H.
+            // HOLTHUIJSEN.
             const double alpha = std::pow(d_omega[i], 2) * d_depth / d_gravity;
             const double beta = alpha * std::pow(tanh(alpha), -0.5);
             d_wave_number[i] = (alpha + std::pow(beta, 2) * std::pow(cosh(beta), -2)) /
@@ -109,8 +111,12 @@ IrregularWaveBcCoef::IrregularWaveBcCoef(std::string object_name,
             }
             else
             {
-                TBOX_ERROR("IrregularWaveBcCoef::IrregularWaveBcCoef(): Unknown wave spectrum type "
-                           << d_wave_spectrum << " .This class supports only JONSWAP and BRETSCHNEIDER wave spectra.");
+                TBOX_ERROR(
+                    "IrregularWaveBcCoef::IrregularWaveBcCoef(): Unknown wave "
+                    "spectrum type "
+                    << d_wave_spectrum
+                    << " .This class supports only JONSWAP "
+                       "and BRETSCHNEIDER wave spectra.");
             }
 
             d_amplitude[i] = std::sqrt(2.0 * spectral_density * delta_omega);
@@ -204,7 +210,8 @@ IrregularWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
                 }
             }
 
-            // Compute a numerical heaviside at the boundary from the analytical wave elevation
+            // Compute a numerical heaviside at the boundary from the analytical wave
+            // elevation
             const double z_plus_d = dof_posn[dir];
             const double eta = getSurfaceElevation(dof_posn[0], fill_time);
             const double phi = -eta + (z_plus_d - d_depth);

@@ -110,7 +110,8 @@ INSStaggeredConvectiveOperatorManager::registerOperatorFactoryFunction(const std
 {
     if (d_operator_maker_map.find(operator_type) != d_operator_maker_map.end())
     {
-        pout << "INSStaggeredConvectiveOperatorManager::registerOperatorFactoryFunction():\n"
+        pout << "INSStaggeredConvectiveOperatorManager::"
+                "registerOperatorFactoryFunction():\n"
              << "  NOTICE: overriding initialization function for operator_type = " << operator_type << "\n";
     }
     d_operator_maker_map[operator_type] = operator_maker;

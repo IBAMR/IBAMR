@@ -528,7 +528,6 @@ main(int argc, char* argv[])
                      << "\n"
                      << "  L2-norm:  " << hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx) << "\n"
                      << "  max-norm: " << hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx) << "\n";
-
             }
 
             Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
@@ -541,7 +540,6 @@ main(int argc, char* argv[])
                      << "\n"
                      << "  L2-norm:  " << hier_sc_data_ops.L2Norm(u_cloned_idx, wgt_sc_idx) << "\n"
                      << "  max-norm: " << hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx) << "\n";
-
             }
 
             HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
@@ -552,7 +550,6 @@ main(int argc, char* argv[])
                  << "  max-norm: " << hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx) << "\n"
                  << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
                  << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-
         }
 
         // Cleanup Eulerian boundary condition specification objects (when

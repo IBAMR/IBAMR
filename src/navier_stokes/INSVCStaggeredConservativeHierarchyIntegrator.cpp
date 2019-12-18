@@ -175,7 +175,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
         input_db->getDatabase("mass_momentum_integrator_db"));
     d_convective_op_type = "NONE";
 
-    // Side centered state variable for density and interpolated density variable for plotting.
+    // Side centered state variable for density and interpolated density variable
+    // for plotting.
     d_rho_sc_var = new SideVariable<NDIM, double>(d_object_name + "::rho_sc");
     d_rho_interp_cc_var = new CellVariable<NDIM, double>(d_object_name + "::rho_interp_cc", NDIM);
 
@@ -191,7 +192,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
 
     INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
 
-    // Get the density variable, which must be side-centered and maintained by the INS integrator for
+    // Get the density variable, which must be side-centered and maintained by the
+    // INS integrator for
     // this conservative discretization form.
     const IntVector<NDIM> side_ghosts = SIDEG;
     const IntVector<NDIM> no_ghosts = 0;
@@ -213,8 +215,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     }
     else
     {
-        TBOX_ERROR("INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator():\n"
-                   << "  rho_is_const == false but no mass density variable has been registered.\n");
+        TBOX_ERROR(
+            "INSVCStaggeredConservativeHierarchyIntegrator::"
+            "initializeHierarchyIntegrator():\n"
+            << "  rho_is_const == false but no mass density variable has "
+               "been registered.\n");
     }
 
     // Register variables for plotting.
@@ -260,17 +265,17 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
     const double dt = new_time - current_time;
 
-    // Get the current value of density and store it in scratch.
-    // Note that for conservative differencing, it is required that
-    // the side-centered density is a state variable maintained
-    // by this integrator.
+    // Get the current value of density and store it in scratch.  Note that
+    // for conservative differencing, it is required that the side-centered
+    // density is a state variable maintained by this integrator.
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_rho_sc_var);
     TBOX_ASSERT(d_rho_sc_current_idx >= 0);
     TBOX_ASSERT(d_rho_sc_scratch_idx >= 0);
 #endif
 
-    // Note that we always reset current context of state variables here, if necessary.
+    // Note that we always reset current context of state variables here, if
+    // necessary.
     const double apply_time = current_time;
     for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
     {
@@ -283,7 +288,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
                             new_time,
                             d_reset_rho_fcns_ctx[k]);
     }
-    d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx, d_rho_sc_current_idx, /*interior_only*/ true);
+    d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx,
+                                 d_rho_sc_current_idx,
+                                 /*interior_only*/ true);
 
     if (!d_mu_is_const && d_mu_var)
     {
@@ -315,7 +322,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
             mu_current_idx = d_mu_current_idx;
         }
 
-        d_hier_cc_data_ops->copyData(d_mu_scratch_idx, mu_current_idx, /*interior_only*/ true);
+        d_hier_cc_data_ops->copyData(d_mu_scratch_idx,
+                                     mu_current_idx,
+                                     /*interior_only*/ true);
         d_mu_bdry_bc_fill_op->fillData(current_time);
 
         // Interpolate onto node or edge centers
@@ -345,11 +354,17 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
         }
 
         // Store the viscosities for later use
-        d_hier_cc_data_ops->copyData(d_mu_linear_op_idx, d_mu_scratch_idx, /*interior_only*/ false);
+        d_hier_cc_data_ops->copyData(d_mu_linear_op_idx,
+                                     d_mu_scratch_idx,
+                                     /*interior_only*/ false);
 #if (NDIM == 2)
-        d_hier_nc_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
+        d_hier_nc_data_ops->copyData(d_mu_interp_linear_op_idx,
+                                     d_mu_interp_idx,
+                                     /*interior_only*/ false);
 #elif (NDIM == 3)
-        d_hier_ec_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
+        d_hier_ec_data_ops->copyData(d_mu_interp_linear_op_idx,
+                                     d_mu_interp_idx,
+                                     /*interior_only*/ false);
 #endif
     }
 
@@ -395,17 +410,27 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     if (d_mu_is_const)
     {
 #if (NDIM == 2)
-        d_hier_nc_data_ops->setToScalar(d_velocity_rhs_D_idx, +K_rhs * mu, /*interior_only*/ false);
+        d_hier_nc_data_ops->setToScalar(d_velocity_rhs_D_idx,
+                                        +K_rhs * mu,
+                                        /*interior_only*/ false);
 #elif (NDIM == 3)
-        d_hier_ec_data_ops->setToScalar(d_velocity_rhs_D_idx, +K_rhs * mu, /*interior_only*/ false);
+        d_hier_ec_data_ops->setToScalar(d_velocity_rhs_D_idx,
+                                        +K_rhs * mu,
+                                        /*interior_only*/ false);
 #endif
     }
     else
     {
 #if (NDIM == 2)
-        d_hier_nc_data_ops->scale(d_velocity_rhs_D_idx, +K_rhs, d_mu_interp_idx, /*interior_only*/ false);
+        d_hier_nc_data_ops->scale(d_velocity_rhs_D_idx,
+                                  +K_rhs,
+                                  d_mu_interp_idx,
+                                  /*interior_only*/ false);
 #elif (NDIM == 3)
-        d_hier_ec_data_ops->scale(d_velocity_rhs_D_idx, +K_rhs, d_mu_interp_idx, /*interior_only*/ false);
+        d_hier_ec_data_ops->scale(d_velocity_rhs_D_idx,
+                                  +K_rhs,
+                                  d_mu_interp_idx,
+                                  /*interior_only*/ false);
 #endif
     }
     U_rhs_problem_coefs.setDPatchDataId(d_velocity_rhs_D_idx);
@@ -439,11 +464,18 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
                                 current_time,
                                 d_mu_vc_interp_type);
 
-    // Add the momentum portion of the RHS in the case of conservative discretization form
+    // Add the momentum portion of the RHS in the case of conservative
+    // discretization form
     // RHS^n = RHS^n + 1/dt*(rho*U)^n
     d_hier_sc_data_ops->multiply(d_temp_sc_idx, d_rho_sc_scratch_idx, d_U_scratch_idx, /*interior_only*/ true);
-    d_hier_sc_data_ops->axpy(U_rhs_idx, 1.0 / dt, d_temp_sc_idx, U_rhs_idx, /*interior_only*/ true);
-    d_hier_sc_data_ops->copyData(d_U_src_idx, d_U_scratch_idx, /*interior_only*/ false);
+    d_hier_sc_data_ops->axpy(U_rhs_idx,
+                             1.0 / dt,
+                             d_temp_sc_idx,
+                             U_rhs_idx,
+                             /*interior_only*/ true);
+    d_hier_sc_data_ops->copyData(d_U_src_idx,
+                                 d_U_scratch_idx,
+                                 /*interior_only*/ false);
 
     // Set the initial guess.
     d_hier_sc_data_ops->copyData(d_U_new_idx, d_U_current_idx);
@@ -461,9 +493,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
                                      << "  attempting to perform " << d_current_num_cycles
                                      << " cycles of fixed point iteration.\n"
-                                     << "  number of cycles required by coupled advection-diffusion solver = "
+                                     << "  number of cycles required by coupled advection-diffusion "
+                                        "solver = "
                                      << adv_diff_num_cycles << ".\n"
-                                     << "  current implementation requires either that both solvers use the same "
+                                     << "  current implementation requires either that both solvers use "
+                                        "the same "
                                         "number of cycles,\n"
                                      << "  or that the Navier-Stokes solver use only a single cycle.\n");
         }
@@ -496,7 +530,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
         d_rho_p_integrator->setTimeInterval(current_time, new_time);
 
         // For conservative momentum discretization, an approximation to rho^{n+1}
-        // will be computed from rho^{n}, which requires additional options to be set.
+        // will be computed from rho^{n}, which requires additional options to be
+        // set.
 
         // Set the rho^{n} density
         d_rho_p_integrator->setSideCenteredDensityPatchDataIndex(d_rho_sc_current_idx);
@@ -509,7 +544,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
         const int ins_cycle_num = 0;
         d_rho_p_integrator->setCycleNumber(ins_cycle_num);
 
-        // Set the velocities used to update the density and the previous time step size
+        // Set the velocities used to update the density and the previous time step
+        // size
         if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
         {
             d_rho_p_integrator->setFluidVelocityPatchDataIndices(
@@ -543,7 +579,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Update the state variables of any linked advection-diffusion solver.
-    // NOTE: This also updates rho and mu if they are maintained by adv-diff integrator.
+    // NOTE: This also updates rho and mu if they are maintained by adv-diff
+    // integrator.
     if (d_adv_diff_hier_integrator)
     {
         d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
@@ -579,7 +616,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
         {
             mu_new_idx = d_mu_new_idx;
         }
-        d_hier_cc_data_ops->copyData(d_mu_scratch_idx, mu_new_idx, /*interior_only*/ true);
+        d_hier_cc_data_ops->copyData(d_mu_scratch_idx,
+                                     mu_new_idx,
+                                     /*interior_only*/ true);
         d_mu_bdry_bc_fill_op->fillData(new_time);
 
         // Interpolate onto node or edge centers
@@ -609,16 +648,23 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
         }
 
         // Store the viscosities for later use
-        d_hier_cc_data_ops->copyData(d_mu_linear_op_idx, d_mu_scratch_idx, /*interior_only*/ false);
+        d_hier_cc_data_ops->copyData(d_mu_linear_op_idx,
+                                     d_mu_scratch_idx,
+                                     /*interior_only*/ false);
 #if (NDIM == 2)
-        d_hier_nc_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
+        d_hier_nc_data_ops->copyData(d_mu_interp_linear_op_idx,
+                                     d_mu_interp_idx,
+                                     /*interior_only*/ false);
 #elif (NDIM == 3)
-        d_hier_ec_data_ops->copyData(d_mu_interp_linear_op_idx, d_mu_interp_idx, /*interior_only*/ false);
+        d_hier_ec_data_ops->copyData(d_mu_interp_linear_op_idx,
+                                     d_mu_interp_idx,
+                                     /*interior_only*/ false);
 #endif
     }
 
-    // In the special case of a conservative discretization form, the updated density is calculated by
-    // application of the mass and convective momentum integrator.
+    // In the special case of a conservative discretization form, the updated
+    // density is calculated by application of the mass and convective
+    // momentum integrator.
     if (!d_creeping_flow)
     {
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
@@ -647,7 +693,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
             else
             {
                 d_rho_p_integrator->setFluidVelocityPatchDataIndices(
-                    /*old*/ d_U_old_current_idx, /*current*/ d_U_current_idx, /*new*/ d_U_new_idx);
+                    /*old*/ d_U_old_current_idx,
+                    /*current*/ d_U_current_idx,
+                    /*new*/ d_U_new_idx);
                 d_rho_p_integrator->setPreviousTimeStepSize(d_dt_previous[0]);
             }
 
@@ -658,7 +706,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
         d_hier_sc_data_ops->copyData(d_N_full_idx, N_idx, /*interior_only*/ true);
     }
     const int rho_sc_new_idx = d_rho_p_integrator->getUpdatedSideCenteredDensityPatchDataIndex();
-    d_hier_sc_data_ops->copyData(d_rho_sc_new_idx, rho_sc_new_idx, /*interior_only*/ true);
+    d_hier_sc_data_ops->copyData(d_rho_sc_new_idx,
+                                 rho_sc_new_idx,
+                                 /*interior_only*/ true);
 
     // Copy new into scratch
     d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx, d_rho_sc_new_idx);
@@ -674,7 +724,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
     d_side_synch_op->resetTransactionComponent(default_synch_transaction);
 
     // Store the density for later use
-    d_hier_sc_data_ops->copyData(d_rho_linear_op_idx, d_rho_sc_scratch_idx, /*interior_only*/ true);
+    d_hier_sc_data_ops->copyData(d_rho_linear_op_idx,
+                                 d_rho_sc_scratch_idx,
+                                 /*interior_only*/ true);
 
     // Compute the Brinkman contribution to the velocity operator.
     d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
@@ -873,7 +925,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::registerMassDensitySourceTerm(Poi
     {
         TBOX_ERROR(d_object_name << "::INSVCStaggeredConservativeHierarchyIntegrator():\n"
                                  << " present implementation allows for only one mass density source\n"
-                                 << " term to be set. Consider combining source terms into single CartGridFunction.\n");
+                                 << " term to be set. Consider combining source terms into single "
+                                    "CartGridFunction.\n");
     }
     return;
 } // registerMassDensitySourceTerm
@@ -1065,13 +1118,18 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
     // Solve the projection pressure-Poisson problem.
     regrid_projection_solver->solveSystem(sol_vec, rhs_vec);
     if (d_enable_logging && d_enable_logging_solver_iterations)
-        plog << d_object_name << "::regridProjection(): regrid projection solve number of iterations = "
+        plog << d_object_name
+             << "::regridProjection(): regrid projection solve "
+                "number of iterations = "
              << regrid_projection_solver->getNumIterations() << "\n";
     if (d_enable_logging)
-        plog << d_object_name << "::regridProjection(): regrid projection solve residual norm        = "
+        plog << d_object_name
+             << "::regridProjection(): regrid projection solve "
+                "residual norm        = "
              << regrid_projection_solver->getResidualNorm() << "\n";
 
-    // Fill ghost cells for Phi, compute Grad Phi, and set U := U - 1/rho * Grad Phi
+    // Fill ghost cells for Phi, compute Grad Phi, and set U := U - 1/rho * Grad
+    // Phi
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent Phi_bc_component(d_P_scratch_idx,
                                                        DATA_REFINE_TYPE,
@@ -1157,8 +1215,10 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
         d_hier_sc_data_ops->scale(d_velocity_C_idx, A_scale / dt, d_rho_sc_scratch_idx, /*interior_only*/ true);
         if (!MathUtilities<double>::equalEps(lambda, 0.0))
         {
-            d_hier_sc_data_ops->addScalar(
-                d_velocity_C_idx, d_velocity_C_idx, A_scale * K * lambda, /*interior_only*/ true);
+            d_hier_sc_data_ops->addScalar(d_velocity_C_idx,
+                                          d_velocity_C_idx,
+                                          A_scale * K * lambda,
+                                          /*interior_only*/ true);
         }
         d_hier_sc_data_ops->axpy(d_velocity_C_idx, A_scale, d_velocity_L_idx, d_velocity_C_idx);
 
@@ -1166,11 +1226,17 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
         if (d_mu_is_const)
         {
 #if (NDIM == 2)
-            d_hier_nc_data_ops->setToScalar(d_velocity_D_idx, A_scale * (-K * mu), /*interior_only*/ false);
+            d_hier_nc_data_ops->setToScalar(d_velocity_D_idx,
+                                            A_scale * (-K * mu),
+                                            /*interior_only*/ false);
 #elif (NDIM == 3)
-            d_hier_ec_data_ops->setToScalar(d_velocity_D_idx, A_scale * (-K * mu), /*interior_only*/ false);
+            d_hier_ec_data_ops->setToScalar(d_velocity_D_idx,
+                                            A_scale * (-K * mu),
+                                            /*interior_only*/ false);
 #endif
-            d_hier_cc_data_ops->setToScalar(d_velocity_D_cc_idx, A_scale * (-K * mu), /*interior_only*/ false);
+            d_hier_cc_data_ops->setToScalar(d_velocity_D_cc_idx,
+                                            A_scale * (-K * mu),
+                                            /*interior_only*/ false);
         }
         else
         {
@@ -1196,8 +1262,13 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
 
     // D_sc = -1/rho
     P_problem_coefs.setCZero();
-    d_hier_sc_data_ops->reciprocal(d_pressure_D_idx, d_rho_sc_scratch_idx, /*interior_only*/ false);
-    d_hier_sc_data_ops->scale(d_pressure_D_idx, -1.0, d_pressure_D_idx, /*interior_only*/ false);
+    d_hier_sc_data_ops->reciprocal(d_pressure_D_idx,
+                                   d_rho_sc_scratch_idx,
+                                   /*interior_only*/ false);
+    d_hier_sc_data_ops->scale(d_pressure_D_idx,
+                              -1.0,
+                              d_pressure_D_idx,
+                              /*interior_only*/ false);
 
     // Synchronize pressure patch data coefficient
     using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
@@ -1210,7 +1281,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     d_side_synch_op->resetTransactionComponent(default_synch_transaction);
     P_problem_coefs.setDPatchDataId(d_pressure_D_idx);
 
-    // Ensure that solver components are appropriately reinitialized at the correct intervals or
+    // Ensure that solver components are appropriately reinitialized at the
+    // correct intervals or
     // when the time step size changes.
     const bool dt_change = initial_time || !MathUtilities<double>::equalEps(dt, d_dt_previous[0]);
     const bool precond_reinit = d_integrator_step % d_precond_reinit_interval == 0;
@@ -1376,7 +1448,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
                                      d_P_rhs_vec->getComponentDescriptorIndex(0));
     }
 
-    // Account for the convective acceleration term N_full, which will contain the rho scaling factor.
+    // Account for the convective acceleration term N_full, which will contain the
+    // rho scaling factor.
     if (!d_creeping_flow)
     {
         d_hier_sc_data_ops->axpy(

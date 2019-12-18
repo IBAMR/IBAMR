@@ -11,7 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-
 // APPLICATION INCLUDES
 #include <ibamr/app_namespaces.h>
 

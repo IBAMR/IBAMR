@@ -103,8 +103,9 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
-    // Create a temporary variable to hold previous iteration values with appropriate ghost cell width
-    // since it is not guaranteed that D_idx will have proper ghost cell width.
+    // Create a temporary variable to hold previous iteration values with
+    // appropriate ghost cell width since it is not guaranteed that D_idx will
+    // have proper ghost cell width.
     IntVector<NDIM> cell_ghosts;
     if (d_ls_order == FIRST_ORDER_LS)
     {
@@ -165,7 +166,9 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
 
         if (diff_L2_norm <= d_abs_tol)
         {
-            plog << d_object_name << "::initializeLSData(): Fast sweeping algorithm converged for entire domain"
+            plog << d_object_name
+                 << "::initializeLSData(): Fast sweeping algorithm "
+                    "converged for entire domain"
                  << std::endl;
         }
     }

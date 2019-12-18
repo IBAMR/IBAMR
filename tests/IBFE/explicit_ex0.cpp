@@ -93,7 +93,7 @@ PK1_stress_function(TensorValue<double>& PP,
         PP(1, 1) = 0.0;
     }
     return;
-} // PK1_stress_function 
+} // PK1_stress_function
 } // namespace ModelData
 using namespace ModelData;
 

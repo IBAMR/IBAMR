@@ -11,7 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-
 #ifndef included_IBAMR_CIBMobilitySolver
 #define included_IBAMR_CIBMobilitySolver
 

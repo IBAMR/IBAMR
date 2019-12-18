@@ -376,7 +376,8 @@ IBRedundantInitializer::initializeSprings()
                     if (edge_pair.first > e.second)
                     {
                         TBOX_ERROR(d_object_name << ":\n Error on level " << ln << " and structure number " << j
-                                                 << ".\n Master index must be lower than the slave index for springs.");
+                                                 << ".\n Master index must be lower than "
+                                                    "the slave index for springs.");
                     }
                     if (spec.parameters[0] < 0.0)
                     {
@@ -430,9 +431,9 @@ IBRedundantInitializer::initializeXSprings()
                     }
                     if (edge_pair.first > e.second)
                     {
-                        TBOX_ERROR(d_object_name
-                                   << ":\n Error on level " << ln << " and structure number " << j
-                                   << ".\n Master index must be lower than the slave index for xsprings.");
+                        TBOX_ERROR(d_object_name << ":\n Error on level " << ln << " and structure number " << j
+                                                 << ".\n Master index must be lower than "
+                                                    "the slave index for xsprings.");
                     }
                     if (spec.parameters[0] < 0.0)
                     {
@@ -849,8 +850,9 @@ IBRedundantInitializer::initializeInstrumentationData()
                 }
                 if (encountered_instrument_idx.size() != new_names.size())
                 {
-                    TBOX_ERROR(d_object_name << ":\n Not all anticipated instrument indices were found on level " << ln
-                                             << " and structure number " << j << ". Expected to find "
+                    TBOX_ERROR(d_object_name << ":\n Not all anticipated instrument "
+                                                "indices were found on level "
+                                             << ln << " and structure number " << j << ". Expected to find "
                                              << new_names.size() << " distinct meter indices.");
                 }
             }
@@ -1283,7 +1285,9 @@ IBRedundantInitializer::initializeLSiloDataWriter(const int level_number)
     // any of the levels of the locally refined Cartesian grid.
     if (d_global_index_offset[level_number] != 0)
     {
-        TBOX_ERROR("This is broken --- please submit a bug report if you encounter this error.\n");
+        TBOX_ERROR(
+            "This is broken --- please submit a bug report if you encounter "
+            "this error.\n");
     }
 
     // WARNING: For now, we just register the visualization data on MPI process

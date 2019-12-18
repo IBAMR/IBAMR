@@ -183,7 +183,8 @@ INSHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> F_fc
         {
             pout << d_object_name << "::registerBodyForceFunction(): WARNING:\n"
                  << "  body force function has already been set.\n"
-                 << "  functions will be evaluated in the order in which they were registered "
+                 << "  functions will be evaluated in the order in which they were "
+                    "registered "
                     "with "
                     "the solver\n"
                  << "  when evaluating the body force term value.\n";
@@ -213,9 +214,8 @@ INSHierarchyIntegrator::registerFluidSourceFunction(Pointer<CartGridFunction> Q_
         {
             pout << d_object_name << "::registerFluidSourceFunction(): WARNING:\n"
                  << "  fluid source function has already been set.\n"
-                 << "  functions will be evaluated in the order in which they were registered "
-                    "with "
-                    "the solver\n"
+                 << "  functions will be evaluated in the order in which they were "
+                    "registered with the solver\n"
                  << "  when evaluating the fluid source term value.\n";
             p_Q_fcn = new CartGridFunctionSet(d_object_name + "::fluid_source_function_set");
             p_Q_fcn->addFunction(d_Q_fcn);

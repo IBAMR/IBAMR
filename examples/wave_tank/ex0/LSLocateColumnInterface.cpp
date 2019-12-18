@@ -14,11 +14,13 @@
 // Filename LSLocateColumnInterface.cpp
 // Created on Sep 4, 2018 by Nishant Nangia and Amneet Bhalla
 
+#include <ibamr/app_namespaces.h>
+
+#include <ibtk/HierarchyMathOps.h>
+
 #include "LSLocateColumnInterface.h"
 
 #include <CartesianGridGeometry.h>
-#include <ibamr/app_namespaces.h>
-#include <ibtk/HierarchyMathOps.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

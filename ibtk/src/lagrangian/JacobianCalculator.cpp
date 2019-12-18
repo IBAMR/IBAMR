@@ -49,7 +49,8 @@ JacobianCalculator::get_JxW(const Elem*)
 }
 
 template <int dim, int spacedim>
-LagrangeJacobianCalculator<dim, spacedim>::LagrangeJacobianCalculator(const typename LagrangeJacobianCalculator<dim, spacedim>::key_type quad_key)
+LagrangeJacobianCalculator<dim, spacedim>::LagrangeJacobianCalculator(
+    const typename LagrangeJacobianCalculator<dim, spacedim>::key_type quad_key)
     : JacobianCalculator(quad_key), d_n_nodes(get_n_nodes(std::get<0>(this->d_quad_key)))
 {
 #if 1 <= LIBMESH_MAJOR_VERSION && 4 <= LIBMESH_MINOR_VERSION
@@ -73,7 +74,6 @@ LagrangeJacobianCalculator<dim, spacedim>::LagrangeJacobianCalculator(const type
     }
 }
 
-
 namespace
 {
 template <int M, int N = M>
@@ -88,15 +88,14 @@ determinant(const double (&A)[M][N])
     case 2:
         return A[0][0] * A[1][1] - A[0][1] * A[1][0];
     case 3:
-        return A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1]) -
-            A[1][0] * (A[0][1] * A[2][2] - A[0][2] * A[2][1]) +
-            A[2][0] * (A[0][1] * A[1][2] - A[0][2] * A[1][1]);
+        return A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1]) - A[1][0] * (A[0][1] * A[2][2] - A[0][2] * A[2][1]) +
+               A[2][0] * (A[0][1] * A[1][2] - A[0][2] * A[1][1]);
     }
 
     TBOX_ASSERT(false);
     return 0.0;
 }
-}
+} // namespace
 
 template <int dim, int spacedim>
 const std::vector<double>&

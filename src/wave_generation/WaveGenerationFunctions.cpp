@@ -53,7 +53,9 @@ callStokesWaveRelaxationCallbackFunction(double /*current_time*/,
     Pointer<CellVariable<NDIM, double> > phi_cc_var = stokes_wave_generator->d_wave_gen_data.d_phi_var;
     if (!phi_cc_var)
     {
-        TBOX_ERROR("callFifthOrderStokesWaveRelaxationCallbackFunction(): Level set variable must be cell centered!");
+        TBOX_ERROR(
+            "callFifthOrderStokesWaveRelaxationCallbackFunction(): Level "
+            "set variable must be cell centered!");
     }
     int phi_new_idx = var_db->mapVariableAndContextToIndex(
         phi_cc_var, stokes_wave_generator->d_wave_gen_data.d_adv_diff_hier_integrator->getNewContext());
@@ -116,8 +118,10 @@ callStokesWaveRelaxationCallbackFunction(double /*current_time*/,
 
                         if (axis == 0 || axis == (NDIM - 1))
                         {
-                            const double target =
-                                h_phi * stokes_wave_generator->getVelocity(x_posn, z_plus_d, new_time, /*comp*/ axis);
+                            const double target = h_phi * stokes_wave_generator->getVelocity(x_posn,
+                                                                                             z_plus_d,
+                                                                                             new_time,
+                                                                                             /*comp*/ axis);
                             (*u_data)(i_side, 0) = (1.0 - gamma) * (*u_data)(i_side, 0) + gamma * target;
                         }
                     }

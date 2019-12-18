@@ -73,10 +73,12 @@ AdvDiffWavePropConvectiveOperator::AdvDiffWavePropConvectiveOperator(
 {
     if (d_difference_form != ADVECTIVE /* && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC*/)
     {
-        TBOX_ERROR("AdvDiffWavePropConvectiveOperator::AdvDiffWavePropConvectiveOperator():\n"
-                   << "  unsupported differencing form: "
-                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
-                   << "  valid choices are: ADVECTIVE\n");
+        TBOX_ERROR(
+            "AdvDiffWavePropConvectiveOperator::"
+            "AdvDiffWavePropConvectiveOperator():\n"
+            << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+            << " \n"
+            << "  valid choices are: ADVECTIVE\n");
     }
 
     // Register some scratch variables

@@ -234,7 +234,8 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
         d_kinematics_fcn_data.comvelfcn(time, cycle_num, U_imposed, W_imposed, d_kinematics_fcn_data.ctx);
     }
 
-    // Integrate Newton's second law of motion to find updated COM velocity and position.
+    // Integrate Newton's second law of motion to find updated COM velocity and
+    // position.
     // a) Translational motion
     const double dt = d_new_time - d_current_time;
     Eigen::Vector3d F_rigid;
@@ -360,8 +361,8 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
     // Get the interpolated density variable
     const int rho_ins_idx = d_fluid_solver->getLinearOperatorRhoPatchDataIndex();
 
-    // Get the solid level set data. We have already copied new data into scratch data and have also
-    // filled its ghost cells on the finest level.
+    // Get the solid level set data. We have already copied new data into scratch
+    // data and have also filled its ghost cells on the finest level.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int ls_scratch_idx =
         var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
@@ -493,8 +494,10 @@ BrinkmanPenalizationRigidBodyDynamics::getFromRestart()
     }
     else
     {
-        TBOX_ERROR("BrinkmanPenalizationRigidBodyDynamics::getFromRestart(): Restart database corresponding to "
-                   << d_object_name << " not found in restart file." << std::endl);
+        TBOX_ERROR(
+            "BrinkmanPenalizationRigidBodyDynamics::getFromRestart(): "
+            "Restart database corresponding to "
+            << d_object_name << " not found in restart file." << std::endl);
     }
 
     std::string U = "U", W = "W", C0 = "C0", C = "C", J0 = "J0", Q = "Q", M = "M";

@@ -103,10 +103,11 @@ static const std::string SILO_SUMMARY_FILE_POSTFIX = ".summary.silo";
 static const std::string SILO_PROCESSOR_FILE_PREFIX = "meter_data.proc_";
 static const std::string SILO_PROCESSOR_FILE_POSTFIX = ".silo";
 
-void init_meter_elements(boost::multi_array<Point, 2>& X_web,
-                         boost::multi_array<Vector, 2>& dA_web,
-                         const boost::multi_array<Point, 1>& X_perimeter,
-                         const Point& X_centroid)
+void
+init_meter_elements(boost::multi_array<Point, 2>& X_web,
+                    boost::multi_array<Vector, 2>& dA_web,
+                    const boost::multi_array<Point, 1>& X_perimeter,
+                    const Point& X_centroid)
 {
 #if (NDIM == 2)
     TBOX_ERROR("no support for 2D flow meters at this time!\n");

@@ -32,7 +32,8 @@ namespace IBAMR
 namespace
 {
 /*!
- * A struct holding the required information used by the variable alpha damping method
+ * A struct holding the required information used by the variable alpha damping
+ * method
  */
 struct MassConservationFunctor
 {
@@ -97,7 +98,8 @@ MassConservationFunctor::operator()(const double& alpha)
                 const SideIndex<NDIM> sl(ci, /*axis*/ 0, SideIndex<NDIM>::Lower);
                 const SideIndex<NDIM> su(ci, /*axis*/ 0, SideIndex<NDIM>::Upper);
 
-                // Note: assumes (0,0) in bottom left corner, and water phase denoted by negative level set
+                // Note: assumes (0,0) in bottom left corner, and water phase denoted by
+                // negative level set
                 const double phi_new = (*phi_new_data)(ci);
                 const double phi_current = (*phi_current_data)(ci);
                 const double phi_new_sc_lower = 0.5 * (phi_new + (*phi_new_data)(cl));
@@ -211,7 +213,8 @@ callRelaxationZoneCallbackFunction(double /*current_time*/,
     Pointer<CellVariable<NDIM, double> > phi_cc_var = ptr_wave_damper->d_phi_var;
     if (!phi_cc_var)
         TBOX_ERROR(
-            "WaveDampingStrategy::callRelaxationZoneCallbackFunction: Level set variable must be cell centered!");
+            "WaveDampingStrategy::callRelaxationZoneCallbackFunction: Level "
+            "set variable must be cell centered!");
     int phi_new_idx =
         var_db->mapVariableAndContextToIndex(phi_cc_var, ptr_wave_damper->d_adv_diff_hier_integrator->getNewContext());
     static const int dir = NDIM == 2 ? 1 : 2;
@@ -306,7 +309,8 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
                                            int /*num_cycles*/,
                                            void* ctx)
 {
-    // Reference: Hu Zhe, et al., "Numerical Wave Tank Based on A Conserved Wave-Absorbing Method"
+    // Reference: Hu Zhe, et al., "Numerical Wave Tank Based on A Conserved
+    // Wave-Absorbing Method"
     auto ptr_wave_damper = static_cast<WaveDampingData*>(ctx);
     const double x_zone_start = ptr_wave_damper->d_x_zone_start;
     const double x_zone_end = ptr_wave_damper->d_x_zone_end;
@@ -344,7 +348,9 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
     Pointer<CellVariable<NDIM, double> > phi_cc_var = ptr_wave_damper->d_phi_var;
     if (!phi_cc_var)
         TBOX_ERROR(
-            "WaveDampingStrategy::callConservedWaveAbsorbingCallbackFunction: Level set variable must be cell "
+            "WaveDampingStrategy::"
+            "callConservedWaveAbsorbingCallbackFunction: Level set variable "
+            "must be cell "
             "centered!");
     int phi_current_idx = var_db->mapVariableAndContextToIndex(
         phi_cc_var, ptr_wave_damper->d_adv_diff_hier_integrator->getCurrentContext());
@@ -393,8 +399,8 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
     const double min = MassConservationFunctor::s_newton_min;
     const double max = MassConservationFunctor::s_newton_max;
 
-    // Accuracy doubles at each step, so stop when just over half of the digits are
-    // correct, and rely on that step to polish off the remainder:
+    // Accuracy doubles at each step, so stop when just over half of the
+    // digits are correct, and rely on that step to polish off the remainder:
     auto get_digits = static_cast<int>(std::numeric_limits<double>::digits * 0.6);
     const boost::uintmax_t maxit = 50;
     boost::uintmax_t it = maxit;
