@@ -8,7 +8,7 @@ U_MAX = 2.0
 L = 16.0 //60.0                                       // width of computational domain
 MAX_LEVELS = 6                                 // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                 // refinement ratio between levels
-N = 16                                         // actual    number of grid cells on coarsest grid level
+N = 32                                         // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
 DX0 = L/N                                      // mesh width on coarsest grid level
 DX  = L/NFINEST                                // mesh width on finest   grid level
@@ -30,7 +30,7 @@ USE_CONSISTENT_MASS_MATRIX   = TRUE              // whether to use a consistent 
 IB_POINT_DENSITY             = 4.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                  = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)
 CFL_MAX                      = 0.1               // maximum CFL number
-DT                           = CFL_MAX*DX   // maximum timestep size
+DT                           = CFL_MAX*DX/U_MAX   // maximum timestep size
 START_TIME                   = 0.0e0             // initial simulation time
 END_TIME                     = 200               // final simulation time
 GROW_DT                      = 2.0e0             // growth factor for timesteps
@@ -40,7 +40,7 @@ CONVECTIVE_FORM              = "ADVECTIVE"       // how to compute the convectiv
 NORMALIZE_PRESSURE           = FALSE             // whether to explicitly force the pressure to have mean zero
 ERROR_ON_DT_CHANGE           = TRUE              // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING            = TRUE              // whether to tag cells for refinement based on vorticity thresholds
-TAG_BUFFER                   = 4                 // size of tag buffer used by grid generation algorithm
+TAG_BUFFER                   = 1                 // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL          = 0.5               // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
 OUTPUT_U                     = TRUE
 OUTPUT_P                     = TRUE
@@ -52,7 +52,7 @@ ENABLE_LOGGING               = TRUE
 // model parameters
 ETA_S_BODY = 0.0
 KAPPA_S_BODY = 0.0
-KAPPA_S_SURFACE = 450 // 0.05*DX/DT^2 //0.0183*DX/DT^2 // 7.5*DX/DT^2
+KAPPA_S_SURFACE = 1000 // 0.05*DX/DT^2 //0.0183*DX/DT^2 // 7.5*DX/DT^2
 ETA_S_SURFACE = 0.0 //1.5*DX/DT
 C1_S = 0.0
 
@@ -236,9 +236,9 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0,0),(2*N - 1,N - 1,N - 1) ]
-   x_lo = -0.5*L,-0.5*L,-0.5*L
-   x_up =  1.5*L, 0.5*L, 0.5*L
+   domain_boxes = [ (0,0,0),(N - 1,N - 1,N - 1) ]
+   x_lo = -0.25*L,-0.5*L,-0.5*L
+   x_up =  0.75*L, 0.5*L, 0.5*L
    periodic_dimension = 0,0,0
 }
 
@@ -255,7 +255,7 @@ GriddingAlgorithm {
       level_0 = 512,512,512  // all finer levels will use same values as level_0
    }
    smallest_patch_size {
-      level_0 =   8,  8,  8  // all finer levels will use same values as level_0
+      level_0 =   32,  32,  32  // all finer levels will use same values as level_0
    }
    efficiency_tolerance = 0.80e0  // min % of tag cells in new patch level
    combine_efficiency   = 0.80e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
