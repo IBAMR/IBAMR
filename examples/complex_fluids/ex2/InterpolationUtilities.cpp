@@ -11,12 +11,16 @@
 //
 // ---------------------------------------------------------------------
 
+#include "ibtk/ibtk_macros.h"
+
 #include "InterpolationUtilities.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include <Eigen/Core>
 #include <Eigen/QR>
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <HierarchyCellDataOpsReal.h>
 #include <Patch.h>
