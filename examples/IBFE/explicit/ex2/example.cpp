@@ -338,6 +338,13 @@ main(int argc, char* argv[])
         std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
         std::unique_ptr<GMVIO> gmv_io(uses_gmv ? new GMVIO(mesh) : NULL);
 
+        // Check to see if this is a restarted run to append current exodus files
+        if (uses_exodus)
+        {
+            const bool from_restart = RestartManager::getManager()->isFromRestart();
+            exodus_io->append(from_restart);
+        }
+
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);

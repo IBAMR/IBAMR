@@ -247,6 +247,8 @@ main(int argc, char* argv[])
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
         const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
+        const string restart_read_dirname = app_initializer->getRestartReadDirectory();
+        const int restart_restore_num = app_initializer->getRestartRestoreNumber();
 
         const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
         const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
@@ -344,17 +346,27 @@ main(int argc, char* argv[])
         }
         Pointer<IBStrategy> ib_ops;
         if (use_boundary_mesh)
+        {
             ib_ops = new IBFESurfaceMethod(
                 "IBFEMethod",
                 app_initializer->getComponentDatabase("IBFEMethod"),
                 &mesh,
-                app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+                app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+                /*register_for_restart*/ true,
+                restart_read_dirname,
+                restart_restore_num);
+        }
         else
+        {
             ib_ops =
                 new IBFEMethod("IBFEMethod",
                                app_initializer->getComponentDatabase("IBFEMethod"),
                                &mesh,
-                               app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+                               app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+                               /*register_for_restart*/ true,
+                               restart_read_dirname,
+                               restart_restore_num);
+        }
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
@@ -471,6 +483,13 @@ main(int argc, char* argv[])
         }
         std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
+        // Check to see if this is a restarted run to append current exodus files
+        if (uses_exodus)
+        {
+            const bool from_restart = RestartManager::getManager()->isFromRestart();
+            exodus_io->append(from_restart);
+        }
+
         // Initialize hierarchy configuration and data on all patches.
         if (use_boundary_mesh)
         {
@@ -572,6 +591,15 @@ main(int argc, char* argv[])
             {
                 pout << "\nWriting restart files...\n\n";
                 RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
+                if (use_boundary_mesh)
+                {
+                    dynamic_cast<IBFESurfaceMethod&>(*ib_ops).writeFEDataToRestartFile(restart_dump_dirname,
+                                                                                       iteration_num);
+                }
+                else
+                {
+                    dynamic_cast<IBFEMethod&>(*ib_ops).writeFEDataToRestartFile(restart_dump_dirname, iteration_num);
+                }
             }
             if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
             {
