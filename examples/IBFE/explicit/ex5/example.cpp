@@ -667,12 +667,10 @@ postprocess_data(Pointer<Database> input_db,
 
     std::vector<std::vector<unsigned int> > WSS_o_dof_indices(NDIM);
     System* TAU_system;
-    NumericVector<double>* TAU_vec;
-    NumericVector<double>* TAU_ghost_vec;
+    NumericVector<double>* TAU_ghost_vec = NULL;
     if (compute_fluid_traction)
     {
-        TAU_system = &equation_systems->get_system(IBFESurfaceMethod::TAU_SYSTEM_NAME);
-        TAU_vec = TAU_system->solution.get();
+        TAU_system = &equation_systems->get_system(IBFESurfaceMethod::TAU_OUT_SYSTEM_NAME);
         TAU_ghost_vec = TAU_system->current_local_solution.get();
     }
 
