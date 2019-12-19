@@ -564,8 +564,8 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
                              d_F_half_vecs,
                              d_WSS_in_half_vecs,
                              d_WSS_out_half_vecs,
-                             //~ d_P_in_half_vecs,
-                             //~ d_P_out_half_vecs,
+                          //   d_P_in_half_vecs,
+                             d_P_out_half_vecs,
                              d_P_jump_half_vecs,
                              d_TAU_in_half_vecs,
                              d_TAU_out_half_vecs },
@@ -1606,8 +1606,8 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         TBOX_ASSERT(X_fe_type == F_fe_type);
         NumericVector<double>& X0_vec = X_system.get_vector("INITIAL_COORDINATES");
         System* P_jump_system;
-        const DofMap* P_jump_dof_map;
-        FEDataManager::SystemDofMapCache* P_jump_dof_map_cache;
+        const DofMap* P_jump_dof_map = NULL;
+        FEDataManager::SystemDofMapCache* P_jump_dof_map_cache = NULL;
         FEType P_jump_fe_type = INVALID_FE;
         if (d_use_pressure_jump_conditions)
         {
@@ -1943,7 +1943,7 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
         copy_and_synch(*F_vec, *F_ghost_vec);
         d_fe_data_managers[part]->spread(
             f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op, data_time);
-        PetscVector<double>* P_jump_ghost_vec;
+        PetscVector<double>* P_jump_ghost_vec = NULL;
         std::array<PetscVector<double>*, NDIM> DU_jump_ghost_vec;
         std::array<PetscVector<double>*, NDIM> DU_jump_vec;
         if (d_use_pressure_jump_conditions)
@@ -2523,11 +2523,8 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
         TBOX_ASSERT(X_dof_map.variable_type(d) == X_fe_type);
     }
 
-    System& P_jump_system = equation_systems->get_system(PRESSURE_JUMP_SYSTEM_NAME);
     FEDataManager::SystemDofMapCache& P_jump_dof_map_cache =
-        *d_fe_data_managers[part]->getDofMapCache(PRESSURE_JUMP_SYSTEM_NAME);
-    DofMap& P_jump_dof_map = P_jump_system.get_dof_map();
-    // TBOX_ASSERT(P_jump_dof_map.variable_type(0) == X_fe_type);
+    *d_fe_data_managers[part]->getDofMapCache(PRESSURE_JUMP_SYSTEM_NAME);
     std::vector<unsigned int> P_jump_dof_indices;
     std::unique_ptr<FEBase> fe_X = FEBase::build(dim, X_fe_type);
     const std::vector<double>& JxW = fe_X->get_JxW();
@@ -2539,7 +2536,6 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
     System& P_in_system = equation_systems->get_system(PRESSURE_IN_SYSTEM_NAME);
     const DofMap& P_in_dof_map = P_in_system.get_dof_map();
     FEDataManager::SystemDofMapCache& P_in_dof_map_cache = *d_fe_data_managers[part]->getDofMapCache(PRESSURE_IN_SYSTEM_NAME);
-    FEType P_in_fe_type = P_in_dof_map.variable_type(0);
     std::vector<unsigned int> P_in_dof_indices;
     
     
@@ -2856,7 +2852,8 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
 {
     batch_vec_ghost_update({ d_WSS_in_half_vecs[part],
                              d_WSS_out_half_vecs[part],
-                             //~ d_P_in_half_vecs[part], d_P_out_half_vecs[part],
+                            // d_P_in_half_vecs[part], 
+                             d_P_out_half_vecs[part],
                              d_TAU_in_half_vecs[part],
                              d_TAU_out_half_vecs[part],
                              d_X_new_vecs[part] },
@@ -3207,7 +3204,6 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
             const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
             const auto& WSS_in_dof_indices = WSS_in_dof_map_cache.dof_indices(elem);
             const auto& TAU_in_dof_indices = TAU_in_dof_map_cache.dof_indices(elem);
-            const auto& WSS_out_dof_indices = WSS_out_dof_map_cache.dof_indices(elem);
             const auto& TAU_out_dof_indices = TAU_out_dof_map_cache.dof_indices(elem);
             
             for (unsigned int i = 0; i < NDIM; ++i)
@@ -3309,7 +3305,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 
     System* P_jump_system;
     const DofMap* P_jump_dof_map;
-    FEDataManager::SystemDofMapCache* P_jump_dof_map_cache;
+    FEDataManager::SystemDofMapCache* P_jump_dof_map_cache = NULL;
     FEType P_jump_fe_type;
     if (d_use_pressure_jump_conditions)
     {
