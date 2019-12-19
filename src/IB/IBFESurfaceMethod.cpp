@@ -2661,7 +2661,7 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
         }
 
         if (!n_qp_patch) continue;
-		P_jump_qp.resize(n_qp_patch);
+        P_jump_qp.resize(n_qp_patch);
         P_in_qp.resize(n_qp_patch);
         P_out_qp.resize(n_qp_patch);
         x_in_qp.resize(NDIM * n_qp_patch);
@@ -2885,10 +2885,12 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
 void
 IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int part)
 {
-    batch_vec_ghost_update({d_WSS_in_half_vecs[part], d_WSS_out_half_vecs[part], 
-							d_P_in_half_vecs[part], d_P_out_half_vecs[part], 
-							d_TAU_in_half_vecs[part], d_TAU_out_half_vecs[part],
-							d_X_new_vecs[part]},
+    batch_vec_ghost_update({ d_WSS_in_half_vecs[part],
+                             d_WSS_out_half_vecs[part],
+                             //~ d_P_in_half_vecs[part], d_P_out_half_vecs[part],
+                             d_TAU_in_half_vecs[part],
+                             d_TAU_out_half_vecs[part],
+                             d_X_new_vecs[part] },
                            INSERT_VALUES,
                            SCATTER_FORWARD);
     NumericVector<double>* WSS_in_vec = NULL;
@@ -3074,7 +3076,7 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
 
         if (!n_qp_patch) continue;
         P_in_qp.resize(n_qp_patch);
-		P_out_qp.resize(n_qp_patch);
+        P_out_qp.resize(n_qp_patch);
         x_qp.resize(NDIM * n_qp_patch);
         WSS_in_qp.resize(NDIM * n_qp_patch);
         WSS_out_qp.resize(NDIM * n_qp_patch);
@@ -3219,8 +3221,8 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
                     TAU_in_qp[NDIM * local_indices[k] + axis] =
                         WSS_in_qp[NDIM * local_indices[k] + axis] -
                         P_in_qp[local_indices[k]] * Normal_qp[NDIM * local_indices[k] + axis];
-                        
-					TAU_out_qp[NDIM * local_indices[k] + axis] =
+
+                    TAU_out_qp[NDIM * local_indices[k] + axis] =
                         WSS_out_qp[NDIM * local_indices[k] + axis] -
                         P_out_qp[local_indices[k]] * Normal_qp[NDIM * local_indices[k] + axis];
                 }
