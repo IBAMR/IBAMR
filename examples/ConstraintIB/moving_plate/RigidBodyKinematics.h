@@ -17,12 +17,16 @@
 ///////////////////////////// INCLUDES ///////////////////////////////////////
 #include "ibamr/ConstraintIBKinematics.h"
 
+#include "ibtk/ibtk_macros.h"
+
 #include "PatchHierarchy.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Core"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <iostream>
 #include <map>

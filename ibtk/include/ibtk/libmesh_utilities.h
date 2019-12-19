@@ -21,6 +21,8 @@
 
 #include "tbox/Utilities.h"
 
+#include "libmesh/libmesh_config.h"
+
 #if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
 #include "libmesh/bounding_box.h"
 #else
