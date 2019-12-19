@@ -1288,23 +1288,22 @@ FESurfaceDistanceEvaluator::computeSignedDistanceSurfaceMesh(int n_idx, int d_id
                     avg_proj += proj;
 
                     // Get the nodes
-                    const libMesh::Point& n0 = elem->point(0);
-                    const libMesh::Point& n1 = elem->point(1);
-                    X_node[0][0] = n0(0);
-                    X_node[0][1] = n0(1);
-                    X_node[1][0] = n1(0);
-                    X_node[1][1] = n1(1);
-
-#if (NDIM == 3)
-                    const libMesh::Point& n2 = elem->point(2);
-                    X_node[2][0] = n2(0);
-                    X_node[2][1] = n2(1);
-                    X_node[2][2] = n2(2);
+                    const unsigned int n_nodes = elem->n_nodes();
+#if !defined(NDEBUG)
+                    TBOX_ASSERT(n_nodes == NDIM);
 #endif
+                    for (unsigned int i = 0; i < n_nodes; ++i)
+                    {
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            X_node[i][d] = (elem->point(i))(d);
+                        }
+                    }
 
                     const unsigned int n_qp = qrule_surface->n_points();
+#if !defined(NDEBUG)
                     TBOX_ASSERT(n_qp == 1);
-
+#endif
                     unsigned int qp = 0;
                     for (unsigned int k = 0; k < NDIM - 1; ++k)
                     {
@@ -1323,11 +1322,11 @@ FESurfaceDistanceEvaluator::computeSignedDistanceSurfaceMesh(int n_idx, int d_id
                 }
 
                 // Take the average normal and normalize it
-                avg_unit_normal /= (double)vec_length;
+                avg_unit_normal /= static_cast<double>(vec_length);
                 avg_unit_normal /= avg_unit_normal.norm();
 
                 // Average the proj point
-                avg_proj /= (double)vec_length;
+                avg_proj /= static_cast<double>(vec_length);
 
                 // Compute the signed distance function.
                 sgn = avg_unit_normal.dot(P - avg_proj) <= 0.0 ? -1.0 : 1.0;

@@ -251,8 +251,10 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     d_center_of_mass_new = d_center_of_mass_current + dt * d_trans_vel_new;
 
     // b) Rotational motion
-    Eigen::Matrix3d R = Eigen::Matrix3d::Identity(3, 3);
-    set_rotation_matrix(d_rot_vel_new, d_quaternion_current, d_quaternion_new, R, dt);
+    const Eigen::Matrix3d R_current = d_quaternion_current.toRotationMatrix();
+    Eigen::Matrix3d R_new = Eigen::Matrix3d::Identity(3, 3);
+    set_rotation_matrix(d_rot_vel_new, d_quaternion_current, d_quaternion_new, R_new, dt);
+
     Eigen::Vector3d T_rigid = d_hydro_torque_pressure + d_hydro_torque_viscous + d_ext_torque;
     d_rot_vel_new.setZero();
     if (NDIM == 2)
@@ -261,8 +263,9 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     }
     else if (NDIM == 3)
     {
-        const Eigen::Vector3d T0_rigid = solve_3x3_system((R.transpose()) * T_rigid, d_inertia_tensor_initial);
-        d_rot_vel_new = d_rot_vel_current + dt * R * T0_rigid;
+        const Eigen::Vector3d IW_new =
+            (T_rigid * dt + R_current * d_inertia_tensor_initial * R_current.transpose() * d_rot_vel_current);
+        d_rot_vel_new = R_new * solve_3x3_system(R_new.transpose() * IW_new, d_inertia_tensor_initial);
     }
     for (unsigned s = NDIM; s < s_max_free_dofs; ++s)
     {
