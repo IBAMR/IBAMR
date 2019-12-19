@@ -821,13 +821,13 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         }
 
         System* WSS_in_system;
-        const DofMap* WSS_in_dof_map;
-        FEDataManager::SystemDofMapCache* WSS_in_dof_map_cache;
+        const DofMap* WSS_in_dof_map = NULL;
+        FEDataManager::SystemDofMapCache* WSS_in_dof_map_cache = NULL;
         FEType WSS_in_fe_type = INVALID_FE;
         
         System* WSS_out_system;
-        const DofMap* WSS_out_dof_map;
-        FEDataManager::SystemDofMapCache* WSS_out_dof_map_cache;
+        const DofMap* WSS_out_dof_map = NULL;
+        FEDataManager::SystemDofMapCache* WSS_out_dof_map_cache = NULL;
         FEType WSS_out_fe_type = INVALID_FE;
         
         
