@@ -244,6 +244,12 @@ main(int argc, char* argv[])
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
+        const bool dump_restart_data = app_initializer->dumpRestartData();
+        const int restart_dump_interval = app_initializer->getRestartDumpInterval();
+        const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
+        const string restart_read_dirname = app_initializer->getRestartReadDirectory();
+        const int restart_restore_num = app_initializer->getRestartRestoreNumber();
+
         // Setup user-defined kernel function.
         LEInteractor::s_kernel_fcn = &kernel;
         LEInteractor::s_kernel_fcn_stencil_size = 8;
@@ -263,10 +269,6 @@ main(int argc, char* argv[])
         }
 #endif
         const string exodus_filename = app_initializer->getExodusIIFilename();
-
-        const bool dump_restart_data = app_initializer->dumpRestartData();
-        const int restart_dump_interval = app_initializer->getRestartDumpInterval();
-        const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
 
         const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
         const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
@@ -368,13 +370,19 @@ main(int argc, char* argv[])
                 "IBFEMethod",
                 app_initializer->getComponentDatabase("IBFEMethod"),
                 &mesh,
-                app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+                app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+                /*register_for_restart*/ true,
+                restart_read_dirname,
+                restart_restore_num);
         else
             ib_ops =
                 new IBFEMethod("IBFEMethod",
                                app_initializer->getComponentDatabase("IBFEMethod"),
                                &mesh,
-                               app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+                               app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+                               /*register_for_restart*/ true,
+                               restart_read_dirname,
+                               restart_restore_num);
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
@@ -571,6 +579,11 @@ main(int argc, char* argv[])
             {
                 pout << "\nWriting restart files...\n\n";
                 RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
+                if (use_boundary_mesh)
+                    dynamic_cast<IBFESurfaceMethod&>(*ib_ops).writeFEDataToRestartFile(restart_dump_dirname,
+                                                                                       iteration_num);
+                else
+                    dynamic_cast<IBFEMethod&>(*ib_ops).writeFEDataToRestartFile(restart_dump_dirname, iteration_num);
             }
             if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
             {

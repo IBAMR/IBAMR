@@ -1186,7 +1186,6 @@ IBFESurfaceMethod::initializeFEEquationSystems()
             {
                 X_system.add_variable("X_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
-            X_system.add_vector("INITIAL_COORDINATES", /*projections*/ true, GHOSTED);
 
             auto& dX_system = equation_systems->add_system<System>(COORD_MAPPING_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -1222,6 +1221,49 @@ IBFESurfaceMethod::initializeFEEquationSystems()
             {
                 auto& DP_system = equation_systems->add_system<System>(PRESSURE_JUMP_SYSTEM_NAME);
                 DP_system.add_variable("C_p", d_fe_order[part], d_fe_family[part]);
+            }
+        }
+
+        // This is the same code (with a different system and vector name) as IBFEMethod.
+        //
+        // Setup cached system vectors.
+        //
+        // NOTE: libMesh does not appear to preserve the type of the vector
+        // after restart (GHOSTED vectors are now PARALLEL), and so we
+        // manually reset these vectors here.
+        auto insert_parallel_into_ghosted = [](const PetscVector<Number>& parallel_vector,
+                                               PetscVector<Number>& ghosted_vector) {
+            TBOX_ASSERT(parallel_vector.size() == ghosted_vector.size());
+            TBOX_ASSERT(parallel_vector.local_size() == ghosted_vector.local_size());
+            ghosted_vector = parallel_vector;
+            ghosted_vector.close();
+        };
+
+        const std::array<std::string, 1> system_names{ { COORDS_SYSTEM_NAME } };
+        const std::array<std::string, 1> vector_names{ { "INITIAL_COORDINATES" } };
+        for (const std::string& system_name : system_names)
+        {
+            auto& system = equation_systems->get_system(system_name);
+            for (const std::string& vector_name : vector_names)
+            {
+                std::unique_ptr<NumericVector<double> > clone_vector;
+                if (from_restart)
+                {
+                    NumericVector<double>* current = system.request_vector(vector_name);
+                    if (current != nullptr)
+                    {
+                        clone_vector = current->clone();
+                    }
+                }
+                system.remove_vector(vector_name);
+                system.add_vector(vector_name, /*projections*/ true, /*type*/ GHOSTED);
+
+                if (clone_vector != nullptr)
+                {
+                    const auto& parallel_vector = dynamic_cast<const PetscVector<Number>&>(*clone_vector);
+                    auto& ghosted_vector = dynamic_cast<PetscVector<Number>&>(system.get_vector(vector_name));
+                    insert_parallel_into_ghosted(parallel_vector, ghosted_vector);
+                }
             }
         }
     }
