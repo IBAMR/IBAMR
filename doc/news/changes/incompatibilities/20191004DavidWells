@@ -1,4 +1,0 @@
-Changed: The default value for IBTK::FEDataManager::WorkloadSpec::q_point_weight
-has been changed to 1.0.
-<br>
-(David Wells, 2019/10/04)

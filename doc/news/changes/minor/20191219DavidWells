@@ -1,3 +1,0 @@
-Fixed: IBFESurfaceMethod now sets up restart data correctly in parallel.
-<br>
-(David Wells, 2019/12/19)

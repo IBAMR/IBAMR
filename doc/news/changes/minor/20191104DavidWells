@@ -1,7 +1,0 @@
-Fixed: IBFEMethod::resetHierarchyConfiguration() now sets the starting patch
-level on its FEDataManager objects to the finest level number instead of 0.
-This fixes a bug where an FEDataManager could have its coarsest level set to
-something other than its finest level (supporting multiple grid levels is
-presently not supported).
-<br>
-(David Wells, 2019/11/04)

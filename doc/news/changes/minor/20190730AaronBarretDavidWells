@@ -1,6 +1,0 @@
-New: Added a script <code>make_visit_file.py</code> for combining visit dump and
-lag data (i.e., the script ensures that <code>dumps.visit</code> and
-<code>lag_data.visit</code> contain everything) accumulated over multiple
-restart runs into a single file for each category.
-<br>
-(Aaron Barrett and David Wells, 2019/10/02)

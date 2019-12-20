@@ -1,8 +1,0 @@
-New: Added a polymeric fluid solver that can solve a Maxwell type fluid model.
-Different fluid models can be implemented through a relaxation operator. The
-solver currently solves for the conformation tensor, not the stress tensor. The
-current assumption is that the relationship between the conformation tensor and
-stress tensor is linear. Added several new examples demonstrating the
-capabilities of the solver.
-<br>
-(Aaron Barrett, 2019/10/23)

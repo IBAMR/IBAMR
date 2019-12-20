@@ -1,9 +1,0 @@
-New:Added boundary conditions for generating Stokes and irregular gravity waves 
-for the numerical wave tank. Wave generation and wave damping zones are added. 
-The generation and damping zone code has been moved to WaveGenerationFunctions 
-and WaveDampingFunctions, respectively. Added Brinkman penalization based FSI model. 
-Code to calculate distance function from STL/FE mesh is added in FESurfaceDistanceEvaluator 
-class. IBInterpolantHierarchyIntegrator class is added which works with IBLevelSetMethod
-based FSI models. Several examples validating the new implementation have been added. 
-<br>
-(Amneet Bhalla, 2019/12/18)
