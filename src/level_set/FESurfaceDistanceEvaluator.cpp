@@ -1300,9 +1300,11 @@ FESurfaceDistanceEvaluator::computeSignedDistanceSurfaceMesh(int n_idx, int d_id
                         }
                     }
 
-                    const unsigned int n_qp = qrule_surface->n_points();
 #if !defined(NDEBUG)
-                    TBOX_ASSERT(n_qp == 1);
+                    {
+                        const unsigned int n_qp = qrule_surface->n_points();
+                        TBOX_ASSERT(n_qp == 1);
+                    }
 #endif
                     unsigned int qp = 0;
                     for (unsigned int k = 0; k < NDIM - 1; ++k)
