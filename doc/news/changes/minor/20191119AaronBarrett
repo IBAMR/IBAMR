@@ -1,3 +1,0 @@
-Fixed: Allows IBAMR to be built with the bundled boost when libMesh is configured without boost support.
-<br>
-(Aaron Barrett, 2019/11/19)

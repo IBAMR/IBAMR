@@ -1,6 +1,0 @@
-Removed: The overlap code in IBFEMethod
-(IBFEMethod::computeOverlapConstraintForceDensity(),
-IBFEMethod::resetOverlapNodalValues(), and related functions) has been removed
-because the algorithm generates spurious motion.
-<br>
-(Boyce Griffith, 2019/09/19)

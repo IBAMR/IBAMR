@@ -1,3 +1,0 @@
-Fixed: The IBFE examples now all save the IBFEMethod restart data correctly and can be initiated using restart data.
-<br>
-(Marshall Davey, 2019/12/19)

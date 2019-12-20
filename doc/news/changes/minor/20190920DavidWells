@@ -1,4 +1,0 @@
-Improved: IBStandardInitializer will now log a message explaining what happened
-when optional input files (e.g., rod input files) are not available.
-<br>
-(David Wells, 2019/09/20)

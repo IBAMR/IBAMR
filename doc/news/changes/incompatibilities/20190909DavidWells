@@ -1,5 +1,0 @@
-Changed: IBAMR no longer explicitly links against netCDF when libMesh is present:
-instead, it relies on libMesh to link against the correct version of netCDF to
-resolve the dependency.
-<br>
-(David Wells, 2019/09/09)
