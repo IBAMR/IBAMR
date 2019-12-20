@@ -431,6 +431,7 @@ def main():
     fraction_template = (("{: >" + str(test_width) + "}")
                          + "/"
                          + ("{: <" + str(test_width) + "}").format(n_tests))
+    whitespace_pad = ' ' * (1 + len(fraction_template.format(0)))
     worker_available = threading.Event()
 
     result_update_lock = threading.Lock()
@@ -445,7 +446,7 @@ def main():
             nonlocal n_finished_tests
             test_output = future.result()
             # pad the test result output
-            print(' ' * (1 + len(fraction_template.format(0))), end='')
+            print(whitespace_pad, end='')
             test_output.print()
             test_passed = test_output.test_result == TestResult.passed
             if test_passed:
