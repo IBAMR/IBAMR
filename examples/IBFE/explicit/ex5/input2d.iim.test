@@ -4,7 +4,6 @@ MU = 1.0/Re
 RHO = 1.0
 R = 0.5        								   // radius of the cylinder
 U_MAX = 2.0
-
 // grid spacing parameters
 L = 60.0                                       // width of computational domain
 MAX_LEVELS = 6                                 // maximum number of levels in locally refined grid
@@ -67,7 +66,7 @@ SECOND_ORDER_PRESSURE_UPDATE = TRUE
 
 VelocityBcCoefs_0 {
    t_half = 0.5
-   tau    = 0.25
+   tau = 0.25
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "0.0"
@@ -86,6 +85,7 @@ VelocityBcCoefs_0 {
 }
 
 VelocityBcCoefs_1 {
+
    L = L
 
    L = L
