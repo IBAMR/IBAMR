@@ -51,11 +51,12 @@ OUTPUT_OMEGA                 = TRUE
 OUTPUT_DIV_U                 = TRUE
 ENABLE_LOGGING               = TRUE
 
+
 // model parameters
-KAPPA_S_BODY = 0.0 //2.5*DX/DT^2
-ETA_S_BODY = 0.0 //1.5*DX/DT
 KAPPA_S_SURFACE = 0.0002/DT^2
 ETA_S_SURFACE = 0.0/DT
+KAPPA_S_BODY = 0.0
+ETA_S_BODY = 0.0
 C1_S = 0.0
 
 
@@ -87,6 +88,7 @@ VelocityBcCoefs_0 {
 VelocityBcCoefs_1 {
 
    L = L
+
    acoef_function_0 = "1.0"
    acoef_function_1 = "0.0"
    acoef_function_2 = "1.0"
@@ -195,7 +197,6 @@ Main {
 // hierarchy data dump parameters
    data_dump_interval          = 1
    data_dump_dirname           = "hier_data_IIM2d"
-
 // timer dump parameters
    timer_dump_interval         = 0
 }
