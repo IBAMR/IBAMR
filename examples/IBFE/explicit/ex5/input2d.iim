@@ -187,7 +187,7 @@ Main {
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
    viz_dump_interval           = int(1/DT)
-   viz_dump_dirname            = "viz_IIM2d"
+   viz_dump_dirname            = "viz_IIM_2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
@@ -242,6 +242,5 @@ TimerManager{
    print_exclusive = FALSE
    print_total     = TRUE
    print_threshold = 0.1
-
    timer_list = "IBAMR::*::*","IBTK::*::*","*::*::*"
 }
