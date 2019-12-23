@@ -180,30 +180,6 @@ LagrangeJacobianCalculator<dim, spacedim>::get_JxW(const libMesh::Elem* elem)
     return this->d_JxW;
 }
 
-
-
-const std::vector<double>&
-Edge2JacobianCalculator::get_JxW(const Elem* elem)
-{
-    TBOX_ASSERT(elem->type() == std::get<0>(d_quad_key));
-    std::copy(d_quad_weights.begin(), d_quad_weights.end(), d_JxW.begin());
-
-    // calculate Jacobians here
-    const Point p0 = elem->point(0);
-    const Point p1 = elem->point(1);
-
-    const double Jac_0 = p1(0) - p0(0);
-    const double Jac_1 = p1(1) - p0(1);
-
-    const double J = sqrt(Jac_0 * Jac_0 + Jac_1 * Jac_1);
-
-    TBOX_ASSERT(J > 0.0);
-    for (double& jxw : d_JxW) jxw *= J;
-
-    return d_JxW;
-}
-
-
 const std::vector<double>&
 Tri3JacobianCalculator::get_JxW(const Elem* elem)
 {
