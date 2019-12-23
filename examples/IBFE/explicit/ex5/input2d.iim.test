@@ -1,10 +1,9 @@
 // physical parameters
-Re    = 200.0
-MU    = 1.0/Re
-RHO   = 1.0
-R     = 0.5        							   // radius of the cylinder
+Re = 200.0
+MU = 1.0/Re
+RHO = 1.0
+R = 0.5        								   // radius of the cylinder
 U_MAX = 2.0
-
 // grid spacing parameters
 L = 60.0                                       // width of computational domain
 MAX_LEVELS = 6                                 // maximum number of levels in locally refined grid
@@ -51,12 +50,14 @@ OUTPUT_OMEGA                 = TRUE
 OUTPUT_DIV_U                 = TRUE
 ENABLE_LOGGING               = TRUE
 
+
 // model parameters
-KAPPA_S_BODY    = 0.0 //2.5*DX/DT^2
-ETA_S_BODY      = 0.0 //1.5*DX/DT
 KAPPA_S_SURFACE = 0.0002/DT^2
-ETA_S_SURFACE   = 0.0/DT
-C1_S 			= 0.0
+ETA_S_SURFACE = 0.0/DT
+KAPPA_S_BODY = 0.0
+ETA_S_BODY = 0.0
+C1_S = 0.0
+
 
 
 // collocated solver parameters
@@ -65,7 +66,7 @@ SECOND_ORDER_PRESSURE_UPDATE = TRUE
 
 VelocityBcCoefs_0 {
    t_half = 0.5
-   tau    = 0.25
+   tau = 0.25
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "0.0"
@@ -84,6 +85,7 @@ VelocityBcCoefs_0 {
 }
 
 VelocityBcCoefs_1 {
+
    L = L
 
    acoef_function_0 = "1.0"
@@ -189,12 +191,11 @@ Main {
 
 // restart dump parameters
    restart_dump_interval       = 0
-   restart_dump_dirname        = "restart_IB2d"
+   restart_dump_dirname        = "restart_IIM2d"
 
 // hierarchy data dump parameters
    data_dump_interval          = 1
-   data_dump_dirname           = "hier_data_IB2d"
-
+   data_dump_dirname           = "hier_data_IIM2d"
 // timer dump parameters
    timer_dump_interval         = 0
 }
