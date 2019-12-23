@@ -222,7 +222,7 @@ Main {
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 1
+   restart_dump_interval       = 0
    restart_dump_dirname        = "restart_IIM_3d"
 
 // hierarchy data dump parameters
