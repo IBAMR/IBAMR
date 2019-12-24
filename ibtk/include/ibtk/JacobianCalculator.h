@@ -11,6 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
+
 #ifndef included_IBTK_JacobianCalculator
 #define included_IBTK_JacobianCalculator
 
@@ -34,8 +35,6 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <tuple>
 #include <vector>
 
-namespace IBTK
-{
 class JacobianCalculator
 {
 public:
@@ -70,9 +69,9 @@ protected:
 /*
  * A generic implementation for Lagrange-type elements: works for all elements
  * in that family but is less efficient than the specialized classes for
- * lower-order or tensor-product elements. Supports nonzero codimension.
+ * lower-order or tensor-product elements. Only supports codimension zero.
  */
-template <int dim, int spacedim = dim>
+template <int dim>
 class LagrangeJacobianCalculator : public JacobianCalculator
 {
 public:
@@ -103,7 +102,22 @@ protected:
 };
 
 /*
- * Specialization for TRI3 elements with codimension zero.
+ * Specialization for Edge2 elements.
+ */
+class Edge2JacobianCalculator : public JacobianCalculator
+{
+public:
+    /**
+     * Explicitly use the base class' constructor (this class does not require
+     * any additional setup).
+     */
+    using JacobianCalculator::JacobianCalculator;
+
+    virtual const std::vector<double>& get_JxW(const libMesh::Elem* elem) override;
+};
+
+/*
+ * Specialization for TRI3 elements.
  */
 class Tri3JacobianCalculator : public JacobianCalculator
 {
@@ -118,7 +132,7 @@ public:
 };
 
 /*
- * Specialization for QUAD4 elements with codimension zero.
+ * Specialization for QUAD4 elements.
  */
 class Quad4JacobianCalculator : public JacobianCalculator
 {
@@ -133,7 +147,7 @@ public:
 };
 
 /*
- * Specialization for QUAD9 elements with codimension zero.
+ * Specialization for QUAD9 elements.
  */
 class Quad9JacobianCalculator : public JacobianCalculator
 {
@@ -185,6 +199,5 @@ public:
 
     virtual const std::vector<double>& get_JxW(const libMesh::Elem* elem) override;
 };
-} // namespace IBTK
 
 #endif //#ifndef included_IBTK_JacobianCalculator

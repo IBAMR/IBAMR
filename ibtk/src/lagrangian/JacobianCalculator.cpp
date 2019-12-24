@@ -1,18 +1,36 @@
-// ---------------------------------------------------------------------
+// Filename: JacobianCalculator.h
+// Created on June 27, 2019 by David Wells and Jordan Brown
 //
-// Copyright (c) 2019 - 2019 by the IBAMR developers
+// Copyright (c) 2019-2019, Boyce Griffith
 // All rights reserved.
 //
-// This file is part of IBAMR.
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
 //
-// IBAMR is free software and is distributed under the 3-clause BSD
-// license. The full text of the license can be found in the file
-// COPYRIGHT at the top level directory of IBAMR.
+//    * Redistributions of source code must retain the above copyright notice,
+//      this list of conditions and the following disclaimer.
 //
-// ---------------------------------------------------------------------
+//    * Redistributions in binary form must reproduce the above copyright
+//      notice, this list of conditions and the following disclaimer in the
+//      documentation and/or other materials provided with the distribution.
+//
+//    * Neither the name of The University of North Carolina nor the names of
+//      its contributors may be used to endorse or promote products derived from
+//      this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 
 #include "ibtk/JacobianCalculator.h"
-#include "ibtk/libmesh_utilities.h"
 #include "ibtk/namespaces.h"
 
 #include "tbox/Utilities.h"
@@ -23,8 +41,103 @@
 
 #include <algorithm>
 
-namespace IBTK
+namespace
 {
+int
+get_dim(const ElemType elem_type)
+{
+    switch (elem_type)
+    {
+	case ElemType::EDGE2:
+    case ElemType::EDGE3:
+		return 1;
+    case ElemType::TRI3:
+    case ElemType::TRI6:
+    case ElemType::QUAD4:
+    case ElemType::QUAD8:
+    case ElemType::QUAD9:
+        return 2;
+    case ElemType::TET4:
+    case ElemType::TET10:
+    case ElemType::HEX8:
+    case ElemType::HEX27:
+        return 3;
+    default:
+        TBOX_ERROR("unimplemented element type");
+    }
+    // bogus return to placate compilers
+    return 3;
+}
+
+std::size_t
+get_n_nodes(const libMesh::ElemType elem_type)
+{
+    switch (elem_type)
+    {
+	case libMesh::EDGE2:
+        return 2;
+    case libMesh::EDGE3:
+        return 3;
+    case libMesh::TRI3:
+        return 3;
+    case libMesh::TRI6:
+        return 6;
+    case libMesh::QUAD4:
+        return 4;
+    case libMesh::QUAD8:
+        return 8;
+    case libMesh::QUAD9:
+        return 9;
+    case libMesh::TET4:
+        return 4;
+    case libMesh::TET10:
+        return 10;
+    case libMesh::HEX8:
+        return 8;
+    case libMesh::HEX27:
+        return 27;
+    default:
+        TBOX_ERROR("unimplemented element type");
+    }
+
+    return 0;
+}
+
+libMesh::Order
+get_default_order(const libMesh::ElemType elem_type)
+{
+    switch (elem_type)
+    {
+	case libMesh::EDGE2:
+        return libMesh::FIRST;
+    case libMesh::EDGE3:
+        return libMesh::SECOND;
+    case libMesh::TRI3:
+        return libMesh::FIRST;
+    case libMesh::TRI6:
+        return libMesh::SECOND;
+    case libMesh::QUAD4:
+        return libMesh::FIRST;
+    case libMesh::QUAD8:
+        return libMesh::SECOND;
+    case libMesh::QUAD9:
+        return libMesh::SECOND;
+    case libMesh::TET4:
+        return libMesh::FIRST;
+    case libMesh::TET10:
+        return libMesh::SECOND;
+    case libMesh::HEX8:
+        return libMesh::FIRST;
+    case libMesh::HEX27:
+        return libMesh::SECOND;
+    default:
+        TBOX_ERROR("unimplemented element type");
+    }
+
+    return libMesh::CONSTANT;
+}
+} // namespace
+
 JacobianCalculator::JacobianCalculator(const JacobianCalculator::key_type quad_key) : d_quad_key(quad_key)
 {
     const ElemType elem_type = std::get<0>(d_quad_key);
@@ -48,9 +161,8 @@ JacobianCalculator::get_JxW(const Elem*)
     return d_JxW;
 }
 
-template <int dim, int spacedim>
-LagrangeJacobianCalculator<dim, spacedim>::LagrangeJacobianCalculator(
-    const typename LagrangeJacobianCalculator<dim, spacedim>::key_type quad_key)
+template <int dim>
+LagrangeJacobianCalculator<dim>::LagrangeJacobianCalculator(const LagrangeJacobianCalculator<dim>::key_type quad_key)
     : JacobianCalculator(quad_key), d_n_nodes(get_n_nodes(std::get<0>(this->d_quad_key)))
 {
 #if 1 <= LIBMESH_MAJOR_VERSION && 4 <= LIBMESH_MINOR_VERSION
@@ -74,104 +186,55 @@ LagrangeJacobianCalculator<dim, spacedim>::LagrangeJacobianCalculator(
     }
 }
 
-namespace
-{
-// permit compilation with non-square arrays, but always fail at runtime
-template <int M, int N>
-double
-determinant(const double (&)[M][N])
-{
-    TBOX_ASSERT(false);
-    return 0.0;
-}
-
-template <>
-double
-determinant(const double (&A)[1][1])
-{
-    return A[0][0];
-}
-
-template <>
-double
-determinant(const double (&A)[2][2])
-{
-    return A[0][0] * A[1][1] - A[0][1] * A[1][0];
-}
-
-template <>
-double
-determinant(const double (&A)[3][3])
-{
-    return A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1]) - A[1][0] * (A[0][1] * A[2][2] - A[0][2] * A[2][1]) +
-           A[2][0] * (A[0][1] * A[1][2] - A[0][2] * A[1][1]);
-}
-} // namespace
-
-template <int dim, int spacedim>
+template <int dim>
 const std::vector<double>&
-LagrangeJacobianCalculator<dim, spacedim>::get_JxW(const libMesh::Elem* elem)
+LagrangeJacobianCalculator<dim>::get_JxW(const libMesh::Elem* elem)
 {
-    // static_assert(spacedim <= LIBMESH_DIM);
     TBOX_ASSERT(elem->type() == std::get<0>(d_quad_key));
     std::copy(this->d_quad_weights.begin(), this->d_quad_weights.end(), this->d_JxW.begin());
 
     // max_n_nodes is a constant defined by libMesh - currently 27
 #if 1 <= LIBMESH_MAJOR_VERSION && 4 <= LIBMESH_MINOR_VERSION
-    double xs[libMesh::Elem::max_n_nodes][spacedim];
+    double xs[libMesh::Elem::max_n_nodes][dim];
 #else
-    double xs[27][spacedim];
+    double xs[27][dim];
 #endif
 
     for (unsigned int i = 0; i < d_n_nodes; ++i)
     {
         const libMesh::Point p = elem->point(i);
-        for (unsigned int j = 0; j < spacedim; ++j) xs[i][j] = p(j);
+        for (unsigned int j = 0; j < dim; ++j) xs[i][j] = p(j);
     }
 
     for (unsigned int q = 0; q < d_JxW.size(); ++q)
     {
-        double contravariant[spacedim][dim]{ { 0.0 } };
+        double Jac[dim][dim]{ 0.0 };
         for (unsigned int node_n = 0; node_n < d_n_nodes; ++node_n)
         {
-            for (unsigned int i = 0; i < spacedim; ++i)
+            for (unsigned int i = 0; i < dim; ++i)
             {
                 for (unsigned int j = 0; j < dim; ++j)
                 {
-                    contravariant[i][j] += xs[node_n][i] * d_dphi[node_n][q][j];
+                    Jac[i][j] += xs[node_n][i] * d_dphi[node_n][q][j];
                 }
             }
         }
 
         double J = 0.0;
-        if (dim == spacedim)
+        switch (dim)
         {
-            J = determinant(contravariant);
-        }
-        else
-        {
-            std::array<std::array<double, spacedim>, dim> dx_t;
-            for (unsigned int i = 0; i < spacedim; ++i)
-            {
-                for (unsigned int j = 0; j < dim; ++j)
-                {
-                    dx_t[j][i] = contravariant[i][j];
-                }
-            }
-            double Jac[dim][dim];
-            for (unsigned int i = 0; i < dim; ++i)
-            {
-                for (unsigned int j = 0; j < dim; ++j)
-                {
-                    Jac[i][j] = 0.0;
-                    for (unsigned int k = 0; k < spacedim; ++k)
-                    {
-                        Jac[i][j] += dx_t[i][k] * dx_t[j][k];
-                    }
-                }
-            }
-
-            J = std::sqrt(determinant(Jac));
+        case 1:
+            J = Jac[0][0];
+            break;
+        case 2:
+            J = Jac[0][0] * Jac[1][1] - Jac[0][1] * Jac[1][0];
+            break;
+        case 3:
+            J = Jac[0][0] * Jac[1][1] - Jac[0][1] * Jac[1][0];
+            J = Jac[0][0] * (Jac[1][1] * Jac[2][2] - Jac[1][2] * Jac[2][1]) -
+                Jac[1][0] * (Jac[0][1] * Jac[2][2] - Jac[0][2] * Jac[2][1]) +
+                Jac[2][0] * (Jac[0][1] * Jac[1][2] - Jac[0][2] * Jac[1][1]);
+            break;
         }
         TBOX_ASSERT(J > 0.0);
         this->d_JxW[q] *= J;
@@ -179,6 +242,30 @@ LagrangeJacobianCalculator<dim, spacedim>::get_JxW(const libMesh::Elem* elem)
 
     return this->d_JxW;
 }
+
+
+
+const std::vector<double>&
+Edge2JacobianCalculator::get_JxW(const Elem* elem)
+{
+    TBOX_ASSERT(elem->type() == std::get<0>(d_quad_key));
+    std::copy(d_quad_weights.begin(), d_quad_weights.end(), d_JxW.begin());
+
+    // calculate Jacobians here
+    const Point p0 = elem->point(0);
+    const Point p1 = elem->point(1);
+
+    const double Jac_0 = p1(0) - p0(0);
+    const double Jac_1 = p1(1) - p0(1);
+
+    const double J = sqrt(Jac_0 * Jac_0 + Jac_1 * Jac_1);
+
+    TBOX_ASSERT(J > 0.0);
+    for (double& jxw : d_JxW) jxw *= J;
+
+    return d_JxW;
+}
+
 
 const std::vector<double>&
 Tri3JacobianCalculator::get_JxW(const Elem* elem)
@@ -387,10 +474,6 @@ Tet4JacobianCalculator::get_JxW(const Elem* elem)
     return d_JxW;
 }
 
-template class LagrangeJacobianCalculator<1, 1>;
-template class LagrangeJacobianCalculator<1, 2>;
-template class LagrangeJacobianCalculator<1, 3>;
-template class LagrangeJacobianCalculator<2, 2>;
-template class LagrangeJacobianCalculator<2, 3>;
-template class LagrangeJacobianCalculator<3, 3>;
-} // namespace IBTK
+template class LagrangeJacobianCalculator<1>;
+template class LagrangeJacobianCalculator<2>;
+template class LagrangeJacobianCalculator<3>;
