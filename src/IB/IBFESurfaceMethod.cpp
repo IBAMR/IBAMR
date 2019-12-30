@@ -560,7 +560,7 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
                              d_F_half_vecs,
                              d_WSS_in_half_vecs,
                              d_WSS_out_half_vecs,
-                          //   d_P_in_half_vecs,
+                             d_P_in_half_vecs,
                              d_P_out_half_vecs,
                              d_P_jump_half_vecs,
                              d_TAU_in_half_vecs,
@@ -735,6 +735,13 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                                        const double data_time)
 {
     const double mu = getINSHierarchyIntegrator()->getStokesSpecifications()->getMu();
+    
+    // Communicate ghost data.
+    for (const auto& u_ghost_fill_sched : u_ghost_fill_scheds)
+    {
+        if (u_ghost_fill_sched) u_ghost_fill_sched->fillData(data_time);
+    }
+    
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -857,12 +864,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 
         std::unique_ptr<FEBase> fe_DU_jump = FEBase::build(dim, DU_jump_fe_type);
         const std::vector<std::vector<double> >& phi_DU_jump = fe_DU_jump->get_phi();
-        // Communicate any unsynchronized ghost data and extract the underlying
-        // solution data.
-        for (const auto& u_ghost_fill_sched : u_ghost_fill_scheds)
-        {
-            if (u_ghost_fill_sched) u_ghost_fill_sched->fillData(data_time);
-        }
+
         X_ghost_vec->close();
         auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec);
         Vec X_global_vec = X_petsc_vec->vec();
@@ -1285,7 +1287,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                         if (dh != 0.0)
                         {
                             WSS_in_qp[NDIM * local_indices[k] + axis] =
-                                 mu * (1.0 / dh) * (U_qp[NDIM * local_indices[k] + axis] - U_in_qp[NDIM * local_indices[k] + axis]);
+                                 mu * (1.0 / dh) * ( U_in_qp[NDIM * local_indices[k] + axis] - U_qp[NDIM * local_indices[k] + axis]);
                                 
                             WSS_out_qp[NDIM * local_indices[k] + axis] =
                                 mu * (1.0 / dh) * (U_out_qp[NDIM * local_indices[k] + axis] - U_qp[NDIM * local_indices[k] + axis]);
@@ -1433,6 +1435,12 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             *U_n_vec, *U_n_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
         d_fe_data_managers[part]->computeL2Projection(
             *U_t_vec, *U_t_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
+        
+	VecRestoreArray(X_local_vec, &X_local_soln);
+		VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+		
+		for (unsigned int d = 0; d < NDIM; ++d) d_DU_jump_IB_ghost_vecs[part][d]->close();
+		d_X_IB_ghost_vecs[part]->close();
     }
     return;
 } // interpolateVelocity
