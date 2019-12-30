@@ -554,27 +554,6 @@ void
 IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
 {
 
-	std::vector<libMesh::PetscVector<double>*> U0_jump_vec;
-	std::vector<libMesh::PetscVector<double>*> U1_jump_vec;
-	
-	U1_jump_vec.resize(d_num_parts);
-	U0_jump_vec.resize(d_num_parts);
-	
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        std::array<PetscVector<double>*, NDIM> DU_jump_vec;
-        if (d_use_velocity_jump_conditions)
-        {
-            DU_jump_vec = d_DU_jump_half_vecs[part];
-            //~ for (unsigned int d = 0; d < NDIM; ++d)
-            //~ {
-				U0_jump_vec[part] = DU_jump_vec[0];
-				U1_jump_vec[part] = DU_jump_vec[1];
-                //~ copy_and_synch(*DU_jump_vec[d], *DU_jump_ghost_vec[d]);
-            //~ }
-        }
-    }
-
     batch_vec_ghost_update({ d_X_new_vecs,
                              d_U_new_vecs,
                              d_U_n_new_vecs,
@@ -582,8 +561,6 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
                              d_F_half_vecs,
                              d_WSS_in_half_vecs,
                              d_WSS_out_half_vecs,
-                             U0_jump_vec,
-                             U1_jump_vec,
                              d_P_in_half_vecs,
                              d_P_out_half_vecs,
                              d_P_jump_half_vecs,
@@ -593,15 +570,6 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
                            SCATTER_FORWARD);
                            
                            
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        if (d_use_velocity_jump_conditions)
-        {
-				d_DU_jump_half_vecs[part][0] = U0_jump_vec[part];
-				d_DU_jump_half_vecs[part][1] = U1_jump_vec[part];
-
-        }
-    }
 
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
