@@ -153,7 +153,7 @@ const std::string IBFESurfaceMethod::PRESSURE_JUMP_SYSTEM_NAME = "[[p]] system";
 const std::string IBFESurfaceMethod::WSS_IN_SYSTEM_NAME = "One sided interior wall shear stress system";
 const std::string IBFESurfaceMethod::WSS_OUT_SYSTEM_NAME = "One sided exterior wall shear stress system";
 const std::string IBFESurfaceMethod::PRESSURE_IN_SYSTEM_NAME = "One sided interior pressure system";
-const std::string IBFESurfaceMethod::PRESSURE_OUT_SYSTEM_NAME = "One sided interior pressure system";
+const std::string IBFESurfaceMethod::PRESSURE_OUT_SYSTEM_NAME = "One sided exterior pressure system";
 const std::string IBFESurfaceMethod::TAU_IN_SYSTEM_NAME = "Interior traction system";
 const std::string IBFESurfaceMethod::TAU_OUT_SYSTEM_NAME = "Exterior traction system";
 const std::array<std::string, NDIM> IBFESurfaceMethod::VELOCITY_JUMP_SYSTEM_NAME = {
@@ -178,7 +178,7 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
 {
     commonConstructor(object_name,
                       input_db,
-                      std::vector<MeshBase*>(1, mesh),
+                      std::vector<MeshBase*>(d_num_parts, mesh),
                       max_level_number,
                       register_for_restart,
                       restart_read_dirname,

@@ -15,7 +15,6 @@
 
 #include "ibtk/FECache.h"
 #include "ibtk/FEDataManager.h"
-#include "ibtk/FEMapCache.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/JacobianCalculatorCache.h"
@@ -162,7 +161,7 @@ static Timer* t_apply_gradient_detector;
 static Timer* t_put_to_database;
 
 // Version of FEDataManager restart file data.
-static const int FE_DATA_MANAGER_VERSION = 1;
+static const int FE_DATA_MANAGER_VERSION = 2;
 
 // Local helper functions.
 struct ElemComp
@@ -844,8 +843,7 @@ FEDataManager::spread(const int f_data_idx,
     using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
     FECache F_fe_cache(dim, F_fe_type, FEUpdateFlags::update_phi);
     FECache X_fe_cache(dim, X_fe_type, FEUpdateFlags::update_phi);
-    FEMapCache fe_map_cache(dim);
-    JacobianCalculatorCache jacobian_calculator_cache;
+    JacobianCalculatorCache jacobian_calculator_cache(mesh.spatial_dimension());
 
     // Check to see if we are using nodal quadrature.
     const bool use_nodal_quadrature =
@@ -1032,15 +1030,12 @@ FEDataManager::spread(const int f_data_idx,
                 const quad_key_type& key = quad_keys[e_idx];
                 const FEBase& X_fe = X_fe_cache(key, elem);
                 const FEBase& F_fe = F_fe_cache(key, elem);
-	         	FEMap& fe_map = fe_map_cache[key];
                 JacobianCalculator& jacobian_calculator = jacobian_calculator_cache[key];
                 const QBase& qrule = d_fe_data->d_quadrature_cache[key];
-                if (NDIM - dim == 1)     
-					fe_map.compute_map(dim, qrule.get_weights(), elem, /*second derivatives*/ false);
 
                 // JxW depends on the element
-                const std::vector<double>& JxW_F = (dim == NDIM) ? jacobian_calculator.get_JxW(elem) : fe_map.get_JxW();       
-				const std::vector<std::vector<double> >& phi_F = F_fe.get_phi();
+                const std::vector<double>& JxW_F = jacobian_calculator.get_JxW(elem);
+                const std::vector<std::vector<double> >& phi_F = F_fe.get_phi();
                 const std::vector<std::vector<double> >& phi_X = X_fe.get_phi();
 
                 const unsigned int n_qp = qrule.n_points();
@@ -1524,8 +1519,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
     using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
     FECache F_fe_cache(dim, F_fe_type, FEUpdateFlags::update_phi);
     FECache X_fe_cache(dim, X_fe_type, FEUpdateFlags::update_phi);
-    JacobianCalculatorCache jacobian_calculator_cache;
-    FEMapCache fe_map_cache(dim);
+    JacobianCalculatorCache jacobian_calculator_cache(mesh.spatial_dimension());
 
     // Communicate any unsynchronized ghost data.
     for (const auto& f_refine_sched : f_refine_scheds)
@@ -1790,12 +1784,9 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 const FEBase& F_fe = F_fe_cache(key, elem);
                 const QBase& qrule = d_fe_data->d_quadrature_cache[key];
                 JacobianCalculator& jacobian_calculator = jacobian_calculator_cache[key];
-         		FEMap& fe_map = fe_map_cache[key];
-                if (NDIM - dim == 1)     
-					fe_map.compute_map(dim, qrule.get_weights(), elem, /*second derivatives*/ false);
 
                 // JxW depends on the element
-                const std::vector<double>& JxW_F = (dim == NDIM) ? jacobian_calculator.get_JxW(elem) : fe_map.get_JxW();  
+                const std::vector<double>& JxW_F = jacobian_calculator.get_JxW(elem);
                 const std::vector<std::vector<double> >& phi_F = F_fe.get_phi();
 
                 const unsigned int n_qp = qrule.n_points();
@@ -2907,17 +2898,74 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
 std::vector<std::pair<Point, Point> >*
 FEDataManager::computeActiveElementBoundingBoxes()
 {
+    // Get the necessary FE data.
     const MeshBase& mesh = d_fe_data->d_es->get_mesh();
-    const System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
+    const unsigned int n_elem = mesh.max_elem_id() + 1;
+    System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
+    const unsigned int X_sys_num = X_system.number();
+    NumericVector<double>& X_vec = *X_system.solution;
+    NumericVector<double>& X_ghost_vec = *X_system.current_local_solution;
+    copy_and_synch(X_vec, X_ghost_vec, /*close_v_in*/ false);
 
-    const auto bboxes = get_global_active_element_bounding_boxes(mesh, X_system);
-    d_active_elem_bboxes.resize(bboxes.size());
-    for (std::size_t i = 0; i < bboxes.size(); ++i)
+    // Compute the lower and upper bounds of all active local elements in the
+    // mesh.  Assumes nodal basis functions.
+    d_active_elem_bboxes.resize(n_elem);
+    std::fill(d_active_elem_bboxes.begin(), d_active_elem_bboxes.end(), std::make_pair(Point::Zero(), Point::Zero()));
+    std::vector<unsigned int> dof_indices;
+    MeshBase::const_element_iterator el_it = mesh.active_local_elements_begin();
+    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+    for (; el_it != el_end; ++el_it)
     {
-        for (int d = 0; d < NDIM; ++d)
+        const Elem* const elem = *el_it;
+        const unsigned int elem_id = elem->id();
+        Point& elem_lower_bound = d_active_elem_bboxes[elem_id].first;
+        Point& elem_upper_bound = d_active_elem_bboxes[elem_id].second;
+        elem_lower_bound = Point::Constant(std::numeric_limits<double>::max());
+        elem_upper_bound = Point::Constant(-std::numeric_limits<double>::max());
+
+        const unsigned int n_nodes = elem->n_nodes();
+        dof_indices.clear();
+        for (unsigned int k = 0; k < n_nodes; ++k)
         {
-            d_active_elem_bboxes[i].first[d] = bboxes[i].first(d);
-            d_active_elem_bboxes[i].second[d] = bboxes[i].second(d);
+            const Node* const node = elem->node_ptr(k);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                TBOX_ASSERT(node->n_dofs(X_sys_num, d) == 1);
+                dof_indices.push_back(node->dof_number(X_sys_num, d, 0));
+            }
+        }
+        std::vector<double> X_node;
+        X_ghost_vec.get(dof_indices, X_node);
+        for (unsigned int k = 0; k < n_nodes; ++k)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                const double& X = X_node[k * NDIM + d];
+                elem_lower_bound[d] = std::min(elem_lower_bound[d], X);
+                elem_upper_bound[d] = std::max(elem_upper_bound[d], X);
+            }
+        }
+    }
+
+    // Parallel sum elem_lower_bound and elem_upper_bound so that each process
+    // has access to the bounding box data for each active element in the mesh.
+    std::vector<double> d_active_elem_bboxes_flattened(2 * NDIM * n_elem);
+    for (unsigned int e = 0; e < n_elem; ++e)
+    {
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            d_active_elem_bboxes_flattened[2 * e * NDIM + d] = d_active_elem_bboxes[e].first[d];
+            d_active_elem_bboxes_flattened[(2 * e + 1) * NDIM + d] = d_active_elem_bboxes[e].second[d];
+        }
+    }
+    SAMRAI_MPI::sumReduction(&d_active_elem_bboxes_flattened[0],
+                             static_cast<int>(d_active_elem_bboxes_flattened.size()));
+    for (unsigned int e = 0; e < n_elem; ++e)
+    {
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            d_active_elem_bboxes[e].first[d] = d_active_elem_bboxes_flattened[2 * e * NDIM + d];
+            d_active_elem_bboxes[e].second[d] = d_active_elem_bboxes_flattened[(2 * e + 1) * NDIM + d];
         }
     }
     return &d_active_elem_bboxes;
@@ -3185,18 +3233,34 @@ FEDataManager::collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
 
     // Record the local DOFs associated with the active local elements.
     std::set<unsigned int> ghost_dof_set(constraint_dependency_dof_list.begin(), constraint_dependency_dof_list.end());
-    std::vector<unsigned int> dof_indices;
     for (const auto& elem : active_elems)
     {
         // DOFs associated with the element.
         for (unsigned int var_num = 0; var_num < elem->n_vars(sys_num); ++var_num)
         {
-            dof_map.dof_indices(elem, dof_indices, var_num);
-            for (auto dof_index : dof_indices)
+            if (elem->n_dofs(sys_num, var_num) > 0)
             {
+                const unsigned int dof_index = elem->dof_number(sys_num, var_num, 0);
                 if (dof_index < first_local_dof || dof_index >= end_local_dof)
                 {
                     ghost_dof_set.insert(dof_index);
+                }
+            }
+        }
+
+        // DOFs associated with the nodes of the element.
+        for (unsigned int k = 0; k < elem->n_nodes(); ++k)
+        {
+            const Node* const node = elem->node_ptr(k);
+            for (unsigned int var_num = 0; var_num < node->n_vars(sys_num); ++var_num)
+            {
+                if (node->n_dofs(sys_num, var_num) > 0)
+                {
+                    const unsigned int dof_index = node->dof_number(sys_num, var_num, 0);
+                    if (dof_index < first_local_dof || dof_index >= end_local_dof)
+                    {
+                        ghost_dof_set.insert(dof_index);
+                    }
                 }
             }
         }
