@@ -34,6 +34,7 @@
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFECentroidPostProcessor.h>
 #include <ibamr/IBFEMethod.h>
+#include <ibamr/IBImplicitHierarchyIntegrator.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
@@ -219,11 +220,25 @@ main(int argc, char* argv[])
                            /*register_for_restart*/ true,
                            restart_read_dirname,
                            restart_restore_num);
-        Pointer<IBHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
+        Pointer<IBHierarchyIntegrator> time_integrator;
+        const string ib_time_stepping_type =
+            app_initializer->getComponentDatabase("Main")->getStringWithDefault("ib_time_stepping_type", "EXPLICIT");
+        if (ib_time_stepping_type == "EXPLICIT")
+        {
+            time_integrator =
+                new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                                  app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                                  ib_method_ops,
+                                                  navier_stokes_integrator);
+        }
+        else
+        {
+            time_integrator =
+                new IBImplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                                  app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                                  ib_method_ops,
+                                                  navier_stokes_integrator);
+        }
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
