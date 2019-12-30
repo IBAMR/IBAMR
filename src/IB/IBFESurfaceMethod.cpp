@@ -1436,7 +1436,8 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         d_fe_data_managers[part]->computeL2Projection(
             *U_t_vec, *U_t_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
         
-	VecRestoreArray(X_local_vec, &X_local_soln);
+       
+        VecRestoreArray(X_local_vec, &X_local_soln);
 		VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
 		
 		for (unsigned int d = 0; d < NDIM; ++d) d_DU_jump_IB_ghost_vecs[part][d]->close();
@@ -1531,6 +1532,7 @@ void
 IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    batch_vec_ghost_update(d_X_half_vecs, INSERT_VALUES, SCATTER_FORWARD);
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
@@ -1916,26 +1918,25 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
                                const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
-    batch_vec_ghost_update({ d_F_half_vecs, d_X_half_vecs, d_P_jump_half_vecs }, INSERT_VALUES, SCATTER_FORWARD);
-
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         PetscVector<double>* X_vec = d_X_half_vecs[part];
         PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         PetscVector<double>* F_vec = d_F_half_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
-        copy_and_synch(*X_vec, *X_ghost_vec);
-        copy_and_synch(*F_vec, *F_ghost_vec);
+        X_vec->localize(*X_ghost_vec);
+        F_vec->localize(*F_ghost_vec);
         d_fe_data_managers[part]->spread(
             f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op, data_time);
+        PetscVector<double>* P_jump_vec;
         PetscVector<double>* P_jump_ghost_vec = NULL;
         std::array<PetscVector<double>*, NDIM> DU_jump_ghost_vec;
         std::array<PetscVector<double>*, NDIM> DU_jump_vec;
         if (d_use_pressure_jump_conditions)
         {
-            PetscVector<double>* P_jump_vec = d_P_jump_half_vecs[part];
+            P_jump_vec = d_P_jump_half_vecs[part];
             P_jump_ghost_vec = d_P_jump_IB_ghost_vecs[part];
-            copy_and_synch(*P_jump_vec, *P_jump_ghost_vec);
+            P_jump_vec->localize(*P_jump_ghost_vec);
         }
         if (d_use_velocity_jump_conditions)
         {
@@ -1943,14 +1944,20 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
             DU_jump_vec = d_DU_jump_half_vecs[part];
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                copy_and_synch(*DU_jump_vec[d], *DU_jump_ghost_vec[d]);
+                DU_jump_vec[d]->localize(*DU_jump_ghost_vec[d]);
+            }
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                DU_jump_vec[d]->localize(*DU_jump_ghost_vec[d]);
             }
         }
 
         if (d_use_pressure_jump_conditions || d_use_velocity_jump_conditions)
         {
-            imposeJumpConditions(f_data_idx, *P_jump_ghost_vec, DU_jump_ghost_vec, *X_ghost_vec, data_time, part);
-        }
+			imposeJumpConditions(f_data_idx, *P_jump_ghost_vec, DU_jump_ghost_vec, *X_ghost_vec, data_time, part);
+
+	    }
+	   
     }
     return;
 } // spreadForce
