@@ -35,6 +35,7 @@
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFECentroidPostProcessor.h>
 #include <ibamr/IBFEMethod.h>
+#include <ibamr/IBImplicitHierarchyIntegrator.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
@@ -267,13 +268,26 @@ main(int argc, char* argv[])
                            /*register_for_restart*/ true,
                            restart_read_dirname,
                            restart_restore_num);
-        Pointer<IBExplicitHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
+        Pointer<IBHierarchyIntegrator> time_integrator;
+        const string ib_time_stepping_type =
+            app_initializer->getComponentDatabase("Main")->getStringWithDefault("ib_time_stepping_type", "EXPLICIT");
+        if (ib_time_stepping_type == "EXPLICIT")
+        {
+            time_integrator =
+                new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                                  app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                                  ib_method_ops,
+                                                  navier_stokes_integrator);
+        }
+        else
+        {
+            time_integrator =
+                new IBImplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                                  app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                                  ib_method_ops,
+                                                  navier_stokes_integrator);
+        }
         time_integrator->registerLoadBalancer(load_balancer);
-
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
@@ -435,7 +449,11 @@ main(int argc, char* argv[])
 #endif
                 }
             }
-            time_integrator->setMarkers(positions);
+            if (ib_time_stepping_type == "EXPLICIT")
+            {
+                Pointer<IBExplicitHierarchyIntegrator> explicit_time_integrator = time_integrator;
+                explicit_time_integrator->setMarkers(positions);
+            }
         }
 
         // Write out initial visualization data.
@@ -450,9 +468,10 @@ main(int argc, char* argv[])
                     equation_systems->get_system(ib_method_ops->getCurrentCoordinatesSystemName());
                 time_integrator->setupPlotData();
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-                if (use_markers)
+                if (use_markers && ib_time_stepping_type == "EXPLICIT")
                 {
-                    time_integrator->writeMarkerPlotData(iteration_num, loop_time);
+                    Pointer<IBExplicitHierarchyIntegrator> explicit_time_integrator = time_integrator;
+                    explicit_time_integrator->writeMarkerPlotData(iteration_num, loop_time);
                 }
                 if (NDIM < 3 && input_db->getBoolWithDefault("save_extra_partitioning", false))
                 {
@@ -515,9 +534,10 @@ main(int argc, char* argv[])
                         equation_systems->get_system(ib_method_ops->getCurrentCoordinatesSystemName());
                     time_integrator->setupPlotData();
                     visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-                    if (use_markers)
+                    if (use_markers && ib_time_stepping_type == "EXPLICIT")
                     {
-                        time_integrator->writeMarkerPlotData(iteration_num, loop_time);
+                        Pointer<IBExplicitHierarchyIntegrator> explicit_time_integrator = time_integrator;
+                        explicit_time_integrator->writeMarkerPlotData(iteration_num, loop_time);
                     }
                     if (NDIM < 3 && input_db->getBoolWithDefault("save_extra_partitioning", false))
                     {
