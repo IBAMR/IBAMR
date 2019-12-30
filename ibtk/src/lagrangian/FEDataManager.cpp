@@ -2895,6 +2895,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
     return;
 } // updateQuadPointCountData
 
+
 std::vector<std::pair<Point, Point> >*
 FEDataManager::computeActiveElementBoundingBoxes()
 {
