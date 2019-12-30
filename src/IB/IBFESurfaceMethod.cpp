@@ -2468,8 +2468,10 @@ struct IndexOrder
 void
 IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const double data_time, unsigned int part)
 {
+	batch_vec_ghost_update({ d_P_out_half_vecs[part], d_P_in_half_vecs[part], d_X_new_vecs[part] },
+                           INSERT_VALUES,
+                           SCATTER_FORWARD);
 
-    //~ batch_vec_ghost_update({ d_P_half_vecs[part], d_X_new_vecs[part] }, INSERT_VALUES, SCATTER_FORWARD);
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_fe_data_managers[part]->getPatchHierarchy();
 
     NumericVector<double>* P_in_vec = d_P_in_half_vecs[part];
@@ -2546,7 +2548,7 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
     boost::multi_array<double, 2> x_node;
     std::vector<double> x_qp, x_in_qp, x_out_qp;
     boost::multi_array<double, 1> P_jump_node;
-    std::vector<double> P_in_qp, P_out_qp, P_jump_qp, N_qp;
+    std::vector<double> P_i_qp, P_o_qp, P_in_qp, P_out_qp, P_jump_qp, N_qp;
     std::array<VectorValue<double>, 2> dx_dxi;
 
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getLevelNumber());
@@ -2579,7 +2581,7 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
 
         if (d_p_calc_width == 0)
         {
-           TBOX_ERROR(d_object_name << ": The width for the interfacial pressure calc hasn't been setup!"
+           TBOX_ERROR(d_object_name << ": The width for the interfacial pressure calc hasn't been set up!"
                       << std::endl);
         }
         const double dh = d_p_calc_width * sqrt(diag_dis);
@@ -2619,12 +2621,16 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
 
         if (!n_qp_patch) continue;
         P_jump_qp.resize(n_qp_patch);
+        P_i_qp.resize(n_qp_patch);
+        P_o_qp.resize(n_qp_patch);
         P_in_qp.resize(n_qp_patch);
         P_out_qp.resize(n_qp_patch);
         x_in_qp.resize(NDIM * n_qp_patch);
         x_out_qp.resize(NDIM * n_qp_patch);
         x_qp.resize(NDIM * n_qp_patch);
         N_qp.resize(NDIM * n_qp_patch);
+        std::fill(P_i_qp.begin(), P_i_qp.end(), 0.0);
+        std::fill(P_o_qp.begin(), P_o_qp.end(), 0.0);
         std::fill(P_in_qp.begin(), P_in_qp.end(), 0.0);
         std::fill(P_out_qp.begin(), P_out_qp.end(), 0.0);
 		std::fill(P_jump_qp.begin(), P_jump_qp.end(), 0.0);
@@ -2724,10 +2730,10 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
         const Box<NDIM> ghost_box = Box<NDIM>::grow(patch->getBox(), IntVector<NDIM>(p_ghost_num));
 
         LEInteractor::interpolate(
-            P_in_qp, 1, x_in_qp, NDIM, p_data, patch, ghost_box, d_default_interp_spec.kernel_fcn);
+            P_i_qp, 1, x_in_qp, NDIM, p_data, patch, ghost_box, d_default_interp_spec.kernel_fcn);
             
         LEInteractor::interpolate(
-            P_out_qp, 1, x_out_qp, NDIM, p_data, patch, ghost_box, d_default_interp_spec.kernel_fcn);
+            P_o_qp, 1, x_out_qp, NDIM, p_data, patch, ghost_box, d_default_interp_spec.kernel_fcn);
 
         std::vector<int> local_indices;
         local_indices.clear();
@@ -2763,7 +2769,8 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
         {
             for (unsigned int k = 0; k < nindices; ++k)
             {
-                P_out_qp[local_indices[k]] = P_jump_qp[local_indices[k]] + P_in_qp[local_indices[k]];
+                P_out_qp[local_indices[k]] = P_o_qp[local_indices[k]];
+                P_in_qp[local_indices[k]] = P_i_qp[local_indices[k]];
             }
         }
 
@@ -2797,7 +2804,7 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
             fe_P->reinit(elem);
 
             const unsigned int n_qp = qrule->n_points();
-            const size_t n_basis2 = P_in_dof_indices.size();
+            const size_t n_basis2 = P_out_dof_indices.size();
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = qp_offset + qp;
@@ -2844,7 +2851,7 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
 {
     batch_vec_ghost_update({ d_WSS_in_half_vecs[part],
                              d_WSS_out_half_vecs[part],
-                            // d_P_in_half_vecs[part], 
+                             d_P_in_half_vecs[part], 
                              d_P_out_half_vecs[part],
                              d_TAU_in_half_vecs[part],
                              d_TAU_out_half_vecs[part],
@@ -3175,7 +3182,7 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
             {
                 for (unsigned int k = 0; k < nindices; ++k)
                 {
-                    // calculate the fluid traciton tau
+                    // calculate both the interior and exterior fluid tracitons (tau)
                     TAU_in_qp[NDIM * local_indices[k] + axis] =
                         WSS_in_qp[NDIM * local_indices[k] + axis] -
                         P_in_qp[local_indices[k]] * Normal_qp[NDIM * local_indices[k] + axis];
@@ -3194,7 +3201,6 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
         {
             Elem* const elem = patch_elems[e_idx];
             const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
-            const auto& WSS_in_dof_indices = WSS_in_dof_map_cache.dof_indices(elem);
             const auto& TAU_in_dof_indices = TAU_in_dof_map_cache.dof_indices(elem);
             const auto& TAU_out_dof_indices = TAU_out_dof_map_cache.dof_indices(elem);
             
@@ -3215,7 +3221,7 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
             fe_X->reinit(elem);
             fe_P->reinit(elem);
             const unsigned int n_qp = qrule->n_points();
-            const size_t n_basis2 = WSS_in_dof_indices[0].size();
+            const size_t n_basis2 = TAU_out_dof_indices[0].size();
             for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
                 const int idx = NDIM * (qp_offset + qp);
@@ -3437,7 +3443,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                         {
                             const double x_s =
                                 x_lower[d] + dx[d] * (static_cast<double>(i_s - patch_lower[d]) + 0.5 * shift);
-                            const double tol = 1.0e-4 * dx[d];
+                            const double tol = 1.0e-6 * dx[d];
                             if (x(d) <= x_s) x(d) = std::min(x_s - tol, x(d));
                             if (x(d) >= x_s) x(d) = std::max(x_s + tol, x(d));
                         }
@@ -3452,7 +3458,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
             }
             Box<NDIM> box(IndexUtilities::getCellIndex(&x_min[0], grid_geom, ratio),
                           IndexUtilities::getCellIndex(&x_max[0], grid_geom, ratio));
-            box.grow(IntVector<NDIM>(1));
+            box.grow(IntVector<NDIM>(3));
             box = box * patch_box;
 
             // Loop over coordinate directions and look for intersections with
@@ -3460,14 +3466,12 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
                 Box<NDIM> extended_box = patch_box;
-                extended_box.grow(IntVector<NDIM>(1));
+                extended_box.grow(IntVector<NDIM>(3));
+                extended_box = extended_box * patch_box;
                 if (patch_geom->getTouchesRegularBoundary(axis, 1)) extended_box.upper(axis) += 1;
 
                 Box<NDIM> side_boxes[NDIM];
                 for (int d = 0; d < NDIM; ++d) side_boxes[d] = SideGeometry<NDIM>::toSideBox(extended_box, d);
-
-                Box<NDIM> side_u_boxes[NDIM];
-                for (int d = 0; d < NDIM; ++d) side_u_boxes[d] = SideGeometry<NDIM>::toSideBox(patch_box, d);
 
                 // Setup a unit vector pointing in the coordinate direction of
                 // interest.
@@ -3500,8 +3504,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                 (d == axis ? 0.0 :
                                              d == SideDim[axis][l] ?
                                              x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d])) :
-                                             x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]) +
-                                                                   0.5)); // In 2D this
+                                             x_lower[d] + dx[d] * (static_cast<double>(i_c(d) - patch_lower[d]) + 0.5)); 
                         }
                     }
 
@@ -3618,7 +3621,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                             i_s_um(axis) =
                                 static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) + patch_lower[axis];
 
-                            if (side_u_boxes[axis].contains(i_s_up) && side_u_boxes[axis].contains(i_s_um))
+                            if (side_boxes[axis].contains(i_s_up) && side_boxes[axis].contains(i_s_um))
                             {
                                 std::vector<libMesh::Point> ref_coords(1, xui);
                                 fe_X->reinit(elem, &ref_coords);
@@ -3747,7 +3750,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                                              << std::endl);
                                 }
 
-                                if (side_u_boxes[axis].contains(i_s_up) && side_u_boxes[axis].contains(i_s_um))
+                                if (side_boxes[axis].contains(i_s_up) && side_boxes[axis].contains(i_s_um))
                                 {
                                     std::vector<libMesh::Point> ref_coords(1, xui);
                                     fe_X->reinit(elem, &ref_coords);
@@ -3793,11 +3796,8 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                     {
                                         // Evaluate the jump conditions and apply them
                                         // to the Eulerian grid.
-
-                                        // Evaluate the jump conditions and apply them
-                                        // to the Eulerian grid.
-                                        if (side_u_boxes[SideDim[axis][j]].contains(i_s_um) &&
-                                            side_u_boxes[SideDim[axis][j]].contains(i_s_up))
+                                        if (side_boxes[SideDim[axis][j]].contains(i_s_um) &&
+                                            side_boxes[SideDim[axis][j]].contains(i_s_up))
                                         {
                                             TBOX_ASSERT(i_s_up(axis) - i_s_um(axis) == 1);
 

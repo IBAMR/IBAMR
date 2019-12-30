@@ -162,8 +162,8 @@ tether_force_function(VectorValue<double>& F,
 
 void
 tether_force_function(VectorValue<double>& F,
-                      const VectorValue<double>& /*n*/,
-                      const VectorValue<double>& /*N*/,
+                      const VectorValue<double>& n,
+                      const VectorValue<double>& N,
                       const TensorValue<double>& /*FF*/,
                       const libMesh::Point& x,
                       const libMesh::Point& X,
@@ -176,10 +176,12 @@ tether_force_function(VectorValue<double>& F,
 {
     const TetherData* const tether_data = reinterpret_cast<TetherData*>(ctx);
 
-    VectorValue<double> D = X - x;
-    VectorValue<double> U;
-    for (unsigned int d = 0; d < NDIM; ++d) U(d) = (*var_data[0])[d];
-    F = tether_data->kappa_s_surface * D - tether_data->eta_s_surface * U;
+	const std::vector<double>& U = *var_data[0];
+    double u_bndry_n = 0.0;
+    for (unsigned int d = 0; d < NDIM; ++d) u_bndry_n += n(d) * U[d];
+
+	for (unsigned int d = 0; d < NDIM; ++d)
+		F(d) = tether_data->kappa_s_surface * (X(d) - x(d)) - tether_data->eta_s_surface * u_bndry_n * n(d);
     return;
 } // tether_force_function
 } // namespace ModelData
