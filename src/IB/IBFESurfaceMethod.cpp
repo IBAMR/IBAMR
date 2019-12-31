@@ -1284,23 +1284,26 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 #endif
                         }
                     }
-                    for (unsigned int k = 0; k < local_indices.size(); ++k)
+                    if (d_use_velocity_jump_conditions)
                     {
-                        U_qp[NDIM * local_indices[k] + axis] = U_axis[local_indices[k]];
-                        if (dh != 0.0)
-                        {
-                            WSS_in_qp[NDIM * local_indices[k] + axis] =
-                                 mu * (1.0 / dh) * ( U_in_qp[NDIM * local_indices[k] + axis] - U_qp[NDIM * local_indices[k] + axis]);
-                                
-                            WSS_out_qp[NDIM * local_indices[k] + axis] =
-                                mu * (1.0 / dh) * (U_out_qp[NDIM * local_indices[k] + axis] - U_qp[NDIM * local_indices[k] + axis]);
-                        }
-                        else
-                        {
-                            TBOX_ERROR(d_object_name << ": The width for the wall shear stress hasn't been setup!"
-                                                     << std::endl);
-                        }
-                    }
+						for (unsigned int k = 0; k < local_indices.size(); ++k)
+						{
+							U_qp[NDIM * local_indices[k] + axis] = U_axis[local_indices[k]];
+							if (dh != 0.0)
+							{
+								WSS_in_qp[NDIM * local_indices[k] + axis] =
+									 mu * (1.0 / dh) * ( U_in_qp[NDIM * local_indices[k] + axis] - U_qp[NDIM * local_indices[k] + axis]);
+									
+								WSS_out_qp[NDIM * local_indices[k] + axis] =
+									mu * (1.0 / dh) * (U_out_qp[NDIM * local_indices[k] + axis] - U_qp[NDIM * local_indices[k] + axis]);
+							}
+							else
+							{
+								TBOX_ERROR(d_object_name << ": The width for the wall shear stress hasn't been set up!"
+														 << std::endl);
+							}
+						}
+					}
                 }
             }
             // Loop over the elements and accumulate the right-hand-side values.
@@ -1442,9 +1445,12 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
        
         VecRestoreArray(X_local_vec, &X_local_soln);
 		VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
-		
-		for (unsigned int d = 0; d < NDIM; ++d) d_DU_jump_IB_ghost_vecs[part][d]->close();
 		d_X_IB_ghost_vecs[part]->close();
+
+		if (d_use_velocity_jump_conditions)
+		{
+			for (unsigned int d = 0; d < NDIM; ++d) d_DU_jump_IB_ghost_vecs[part][d]->close();
+		}
     }
     return;
 } // interpolateVelocity
@@ -3375,6 +3381,16 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
         {
             side_ghost_boxes[d] = SideGeometry<NDIM>::toSideBox(f_data->getGhostBox(), d);
         }
+        
+        
+        
+        Box<NDIM> side_boxes[NDIM];
+        for (int d = 0; d < NDIM; ++d)
+        {
+            side_boxes[d] = SideGeometry<NDIM>::toSideBox(patch_box, d);
+        }
+        
+        
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const x_lower = patch_geom->getXLower();
         const double* const dx = patch_geom->getDx();
@@ -3446,7 +3462,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                         {
                             const double x_s =
                                 x_lower[d] + dx[d] * (static_cast<double>(i_s - patch_lower[d]) + 0.5 * shift);
-                            const double tol = 1.0e-6 * dx[d];
+                            const double tol = 1.0e-4 * dx[d];
                             if (x(d) <= x_s) x(d) = std::min(x_s - tol, x(d));
                             if (x(d) >= x_s) x(d) = std::max(x_s + tol, x(d));
                         }
@@ -3473,8 +3489,8 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                 extended_box = extended_box * patch_box;
                 if (patch_geom->getTouchesRegularBoundary(axis, 1)) extended_box.upper(axis) += 1;
 
-                Box<NDIM> side_boxes[NDIM];
-                for (int d = 0; d < NDIM; ++d) side_boxes[d] = SideGeometry<NDIM>::toSideBox(extended_box, d);
+                //~ Box<NDIM> side_boxes[NDIM];
+                //~ for (int d = 0; d < NDIM; ++d) side_boxes[d] = SideGeometry<NDIM>::toSideBox(extended_box, d);
 
                 // Setup a unit vector pointing in the coordinate direction of
                 // interest.
@@ -3540,7 +3556,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                             const libMesh::Point& xi = intersections[k].second;
                             SideIndex<NDIM> i_s(i_c, axis, 0);
                             i_s(axis) = boost::math::iround((x(axis) - x_lower[axis]) / dx[axis]) + patch_lower[axis];
-                            if (extended_box.contains(i_s))
+                            if (side_boxes[axis].contains(i_s))
                             {
                                 std::vector<libMesh::Point> ref_coords(1, xi);
                                 fe_X->reinit(elem, &ref_coords);
@@ -3700,6 +3716,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                 }
                             }
                             // Keep track of the positions where we have
+                            // imposed jump conditions.
                             intersection_u_points[axis][i_s_um].push_back(xu);
                             intersection_u_ref_coords[axis][i_s_um].push_back(xui);
                             intersection_u_normals[axis][i_s_um].push_back(n);
