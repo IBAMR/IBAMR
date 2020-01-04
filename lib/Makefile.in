@@ -246,6 +246,7 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
 	../src/IB/NonbondedForceEvaluator.cpp ../src/IB/Wall.cpp \
 	../src/IB/WallForceEvaluator.cpp \
+	../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
@@ -419,6 +420,7 @@ am__objects_3 = ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.$(O
 	../src/IB/libIBAMR2d_a-NonbondedForceEvaluator.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-Wall.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-WallForceEvaluator.$(OBJEXT) \
+	../src/adv_diff/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.$(OBJEXT) \
@@ -572,6 +574,7 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
 	../src/IB/NonbondedForceEvaluator.cpp ../src/IB/Wall.cpp \
 	../src/IB/WallForceEvaluator.cpp \
+	../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
@@ -745,6 +748,7 @@ am__objects_5 = ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.$(O
 	../src/IB/libIBAMR3d_a-NonbondedForceEvaluator.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-Wall.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-WallForceEvaluator.$(OBJEXT) \
+	../src/adv_diff/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.$(OBJEXT) \
@@ -993,6 +997,7 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigid
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po \
+	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.Po \
@@ -1004,6 +1009,7 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigid
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffWavePropConvectiveOperator.Po \
+	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Po \
@@ -1226,6 +1232,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/ibamr_enums.h \
 	../include/ibamr/ibamr_utilities.h \
 	../include/ibamr/namespaces.h \
+	../include/ibamr/AdvDiffBDSQConvectiveOperator.h \
 	../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 	../include/ibamr/AdvDiffConvectiveOperatorManager.h \
@@ -1652,6 +1659,7 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/ibamr_enums.h \
 	../include/ibamr/ibamr_utilities.h \
 	../include/ibamr/namespaces.h $(am__append_4) \
+	../include/ibamr/AdvDiffBDSQConvectiveOperator.h \
 	../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 	../include/ibamr/AdvDiffConvectiveOperatorManager.h \
@@ -1821,6 +1829,7 @@ DIM_INDEPENDENT_SOURCES =  \
 	../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
 	../src/IB/NonbondedForceEvaluator.cpp ../src/IB/Wall.cpp \
 	../src/IB/WallForceEvaluator.cpp \
+	../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
@@ -2167,6 +2176,9 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/adv_diff/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ../src/adv_diff/$(DEPDIR)
 	@: > ../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
+../src/adv_diff/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.$(OBJEXT):  \
+	../src/adv_diff/$(am__dirstamp) \
+	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
 ../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT):  \
 	../src/adv_diff/$(am__dirstamp) \
 	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
@@ -2649,6 +2661,9 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-WallForceEvaluator.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/adv_diff/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.$(OBJEXT):  \
+	../src/adv_diff/$(am__dirstamp) \
+	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
 ../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT):  \
 	../src/adv_diff/$(am__dirstamp) \
 	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
@@ -3123,6 +3138,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.Po@am__quote@ # am--include-marker
@@ -3134,6 +3150,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffWavePropConvectiveOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Po@am__quote@ # am--include-marker
@@ -4099,6 +4116,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/WallForceEvaluator.cpp' object='../src/IB/libIBAMR2d_a-WallForceEvaluator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-WallForceEvaluator.obj `if test -f '../src/IB/WallForceEvaluator.cpp'; then $(CYGPATH_W) '../src/IB/WallForceEvaluator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/WallForceEvaluator.cpp'; fi`
+
+../src/adv_diff/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.o: ../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.Tpo -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.o `test -f '../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp' object='../src/adv_diff/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.o `test -f '../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp
+
+../src/adv_diff/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.obj: ../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.obj -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.Tpo -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.obj `if test -f '../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp' object='../src/adv_diff/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.obj `if test -f '../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp'; fi`
 
 ../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.o: ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Tpo -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.o `test -f '../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp
@@ -6144,6 +6175,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-WallForceEvaluator.obj `if test -f '../src/IB/WallForceEvaluator.cpp'; then $(CYGPATH_W) '../src/IB/WallForceEvaluator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/WallForceEvaluator.cpp'; fi`
 
+../src/adv_diff/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.o: ../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.Tpo -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.o `test -f '../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp' object='../src/adv_diff/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.o `test -f '../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp
+
+../src/adv_diff/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.obj: ../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.obj -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.Tpo -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.obj `if test -f '../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp' object='../src/adv_diff/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.obj `if test -f '../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp'; fi`
+
 ../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.o: ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Tpo -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.o `test -f '../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Po
@@ -7727,6 +7772,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po
+	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.Po
@@ -7738,6 +7784,7 @@ distclean: distclean-am
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffWavePropConvectiveOperator.Po
+	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Po
@@ -8066,6 +8113,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po
+	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffBDSQConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.Po
@@ -8077,6 +8125,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffWavePropConvectiveOperator.Po
+	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffBDSQConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Po

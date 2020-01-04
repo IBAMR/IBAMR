@@ -57,6 +57,7 @@ public:
     static const std::string CUI;
     static const std::string PPM;
     static const std::string WAVE_PROP;
+    static const std::string BDSQ;
 
     /*!
      * Return a pointer to the instance of the operator manager.  Access to

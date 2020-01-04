@@ -112,6 +112,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/NonbondedForceEvaluator.cpp \
 ../src/IB/Wall.cpp \
 ../src/IB/WallForceEvaluator.cpp \
+../src/adv_diff/AdvDiffBDSQConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
@@ -208,6 +209,7 @@ if LIBMESH_ENABLED
 endif
 
 pkg_include_HEADERS += \
+../include/ibamr/AdvDiffBDSQConvectiveOperator.h \
 ../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
 ../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 ../include/ibamr/AdvDiffConvectiveOperatorManager.h \
