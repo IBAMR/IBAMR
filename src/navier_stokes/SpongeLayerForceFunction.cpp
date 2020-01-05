@@ -98,6 +98,18 @@ SpongeLayerForceFunction::SpongeLayerForceFunction(const std::string& object_nam
                 d_width[location_index] = input_db->getDouble(width_key);
             }
         }
+        if (input_db->keyExists("chi"))
+        {
+            d_chi = input_db->getDouble("chi");
+        }
+        else
+        {
+            d_chi = 1.0;
+            TBOX_WARNING(
+                "SpongeLayerForceFunction::SpongeLayerForceFunction():"
+                << "Penalization factor for sponge layer not specified in the input file. Using a default value of 1.0"
+                << std::endl);
+        }
     }
     return;
 } // SpongeLayerForceFunction
@@ -130,8 +142,7 @@ SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
     if (initial_time) return;
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
-    const double rho = d_fluid_solver->getStokesSpecifications()->getRho();
-    const double kappa = cycle_num >= 0 ? 0.5 * rho / dt : 0.0;
+    const double kappa = cycle_num >= 0 ? d_chi / dt : 0.0;
     Pointer<PatchData<NDIM> > u_current_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
     Pointer<PatchData<NDIM> > u_new_data =

@@ -146,6 +146,7 @@ private:
                             double kappa,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch);
 
+    double d_chi;
     std::array<SAMRAI::tbox::Array<bool>, 2 * NDIM> d_forcing_enabled;
     std::array<double, 2 * NDIM> d_width;
     const INSHierarchyIntegrator* const d_fluid_solver;
