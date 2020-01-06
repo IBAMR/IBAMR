@@ -333,11 +333,11 @@ build_local_curv_block(DBfile* dbfile,
     {
         const char* varname = varnames[v].c_str();
         const int varplotdepth = varplotdepths[v];
-        std::vector<char*> compnames(varplotdepth);
+        std::vector<char*> compnames_ptrs(varplotdepth);
         for (int d = 0; d < varplotdepth; ++d)
         {
             const std::string compname = varnames[v] + "_" + std::to_string(d);
-            compnames[d] = strdup(compname.c_str());
+            compnames_ptrs[d] = strdup(compname.c_str());
         }
 
         std::vector<float*> vars(varplotdepth);
