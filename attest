@@ -431,6 +431,8 @@ def main():
     fraction_template = (("{: >" + str(test_width) + "}")
                          + "/"
                          + ("{: <" + str(test_width) + "}").format(n_tests))
+    whitespace_pad = ' ' * (1 + len(fraction_template.format(0)))
+    worker_available = threading.Event()
 
     result_update_lock = threading.Lock()
     def deal_with_result(future):
@@ -444,7 +446,7 @@ def main():
             nonlocal n_finished_tests
             test_output = future.result()
             # pad the test result output
-            print(' ' * (1 + len(fraction_template.format(0))), end='')
+            print(whitespace_pad, end='')
             test_output.print()
             test_passed = test_output.test_result == TestResult.passed
             if test_passed:
@@ -453,6 +455,8 @@ def main():
                 failed_test_outputs.append(test_output)
             processors_in_use -= test_output.n_mpi_processes()
             n_finished_tests += 1
+
+            worker_available.set()
 
     # allow some wiggle room for finished tests that are waiting for
     # result_update_lock by using lots of threads:
@@ -477,12 +481,13 @@ def main():
                     processors_in_use += test.n_mpi_processes()
                 index -= 1
 
-            # try not to monopolize the processor if all cores are taken. This
-            # also prevents us from spinning on the while condition above.
-            if n_processors <= processors_in_use:
-                time.sleep(0.5)
-            else:
-                time.sleep(0.05)
+            # wait until at least one worker is available to try and add more
+            # tests:
+            with result_update_lock:
+                if n_processors <= processors_in_use:
+                    worker_available.clear()
+
+            worker_available.wait()
 
     if 0 < n_tests:
         print("\n{}/{} ({}%) tests passed\n".format(
