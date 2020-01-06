@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2009 - 2018 by the IBAMR developers
+## Copyright (c) 2014 - 2018 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -13,19 +13,25 @@
 
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = CIB CIBFE ConstraintIB IB IBFE IBLevelSet IMP adv_diff advect navier_stokes level_set multiphase_flow vc_navier_stokes wave_tank
+SUBDIRS = ex0 ex1
 
-all:
-	if test "$(CONFIGURATION_BUILD_DIR)" != ""; then \
-	  $(MAKE) examples ; \
-	fi ;
-
-COMPLETE_EXAMPLES = CIB ConstraintIB IB IBFE IBLevelSet adv_diff advect navier_stokes level_set multiphase_flow vc_navier_stokes wave_tank
-# Not all examples can be compiled at the present time
-INCOMPLETE_EXAMPLES = IMP CIBFE
+COMPLETE_EXAMPLES = $(SUBDIRS)
+INCOMPLETE_EXAMPLES =
 .PHONY: examples $(COMPLETE_EXAMPLES)
 examples: $(COMPLETE_EXAMPLES)
 
 $(COMPLETE_EXAMPLES):
 	cd $@ && $(MAKE) $(AM_MAKEFLAGS) examples
 
+
+# tests are disabled for CIBFE
+#	@(cd ex0 && make gtest) || exit 1;
+#	@(cd ex1 && make gtest) || exit 1;
+
+
+#	@(cd ex0 && make gtest) || exit 1;
+#	@(cd ex1 && make gtest-long) || exit 1;
+
+
+#	@(cd ex0 && make gtest-long) || exit 1;
+#	@(cd ex1 && make gtest-long) || exit 1;

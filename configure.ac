@@ -153,6 +153,9 @@ AC_CONFIG_FILES([
   examples/CIB/ex2/Makefile
   examples/CIB/ex3/Makefile
   examples/CIB/ex4/Makefile
+  examples/CIBFE/Makefile
+  examples/CIBFE/ex0/Makefile
+  examples/CIBFE/ex1/Makefile
   examples/ConstraintIB/Makefile
   examples/ConstraintIB/eel2d/Makefile
   examples/ConstraintIB/eel3d/Makefile
