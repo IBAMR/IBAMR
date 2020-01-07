@@ -1955,10 +1955,6 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
             {
                 DU_jump_vec[d]->localize(*DU_jump_ghost_vec[d]);
             }
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                DU_jump_vec[d]->localize(*DU_jump_ghost_vec[d]);
-            }
         }
 
         if (d_use_pressure_jump_conditions || d_use_velocity_jump_conditions)
@@ -1966,6 +1962,14 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
 			imposeJumpConditions(f_data_idx, *P_jump_ghost_vec, DU_jump_ghost_vec, *X_ghost_vec, data_time, part);
 
 	    }
+	    if (d_use_velocity_jump_conditions)
+		{
+			for (unsigned int d = 0; d < NDIM; ++d) d_DU_jump_IB_ghost_vecs[part][d]->close();
+		}
+		if(d_use_pressure_jump_conditions)
+		{
+			d_P_jump_IB_ghost_vecs[part]->close();
+		}
 	   
     }
     return;
@@ -2188,6 +2192,44 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                 }
                 
             }
+        
+            auto insert_parallel_into_ghosted = [](const PetscVector<Number>& parallel_vector,
+                                               PetscVector<Number>& ghosted_vector) {
+				TBOX_ASSERT(parallel_vector.size() == ghosted_vector.size());
+				TBOX_ASSERT(parallel_vector.local_size() == ghosted_vector.local_size());
+				ghosted_vector = parallel_vector;
+				ghosted_vector.close();
+			};
+
+			const std::array<std::string, 1> system_names{ { COORDS_SYSTEM_NAME } };
+			const std::array<std::string, 1> vector_names{ { "INITIAL_COORDINATES" } };
+			for (const std::string& system_name : system_names)
+			{
+				auto& system = equation_systems->get_system(system_name);
+				for (const std::string& vector_name : vector_names)
+				{
+					std::unique_ptr<NumericVector<double> > clone_vector;
+					if (from_restart)
+					{
+						NumericVector<double>* current = system.request_vector(vector_name);
+						if (current != nullptr)
+						{
+							clone_vector = current->clone();
+						}
+					}
+					system.remove_vector(vector_name);
+					system.add_vector(vector_name, /*projections*/ true, /*type*/ GHOSTED);
+
+					if (clone_vector != nullptr)
+					{
+						const auto& parallel_vector = dynamic_cast<const PetscVector<Number>&>(*clone_vector);
+						auto& ghosted_vector = dynamic_cast<PetscVector<Number>&>(system.get_vector(vector_name));
+						insert_parallel_into_ghosted(parallel_vector, ghosted_vector);
+					}
+				}
+			}
+        
+        
         }
     }
     d_fe_equation_systems_initialized = true;
@@ -3457,7 +3499,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                     // nodes.
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        const int i_s = std::floor((x(d) - x_lower[d]) / dx[d]) + patch_lower[d];
+                        const int i_s = boost::math::iround(((x(d) - x_lower[d]) / dx[d]) - 0.5) + patch_lower[d];
                         for (int shift = 0; shift <= 2; ++shift)
                         {
                             const double x_s =
@@ -3477,20 +3519,18 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
             }
             Box<NDIM> box(IndexUtilities::getCellIndex(&x_min[0], grid_geom, ratio),
                           IndexUtilities::getCellIndex(&x_max[0], grid_geom, ratio));
-            box.grow(IntVector<NDIM>(3));
+            box.grow(IntVector<NDIM>(1));
             box = box * patch_box;
 
             // Loop over coordinate directions and look for intersections with
             // the background fluid grid.
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                Box<NDIM> extended_box = patch_box;
-                extended_box.grow(IntVector<NDIM>(3));
-                extended_box = extended_box * patch_box;
-                if (patch_geom->getTouchesRegularBoundary(axis, 1)) extended_box.upper(axis) += 1;
+                //~ Box<NDIM> extended_box = patch_box;
+                //~ extended_box.grow(IntVector<NDIM>(1));
+                //~ extended_box = extended_box * patch_box;
+                //~ if (patch_geom->getTouchesRegularBoundary(axis, 1)) extended_box.upper(axis) += 1;
 
-                //~ Box<NDIM> side_boxes[NDIM];
-                //~ for (int d = 0; d < NDIM; ++d) side_boxes[d] = SideGeometry<NDIM>::toSideBox(extended_box, d);
 
                 // Setup a unit vector pointing in the coordinate direction of
                 // interest.
@@ -3635,11 +3675,11 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                             i_c_neighbor(axis) += 1;
 
                             SideIndex<NDIM> i_s_up(i_c_neighbor, axis, 0);
-                            i_s_up(axis) = static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] + 1.0)) +
+                            i_s_up(axis) = boost::math::iround((xu(axis) - x_lower[axis]) / dx[axis] + 0.5) +
                                            patch_lower[axis];
-                            i_s_um(axis) =
-                                static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) + patch_lower[axis];
-
+                            i_s_um(axis) = boost::math::iround((xu(axis) - x_lower[axis]) / dx[axis] - 0.5) + 
+										   patch_lower[axis];
+                                
                             if (side_boxes[axis].contains(i_s_up) && side_boxes[axis].contains(i_s_um))
                             {
                                 std::vector<libMesh::Point> ref_coords(1, xui);
@@ -3698,28 +3738,31 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                     const double sdh_um = ((xu(axis) - x_cell_bdry_um)); // Signed Distance h
 
                                     const double sdh_up = ((xu(axis) - x_cell_bdry_up)); // Signed Distance h
-
                                     TBOX_ASSERT((sdh_um) < dx[axis] && sdh_um > 0);
                                     TBOX_ASSERT(fabs(sdh_up) < dx[axis] && sdh_up < 0);
+                                    // if (side_ghost_boxes[axis].contains(i_s_up) && side_ghost_boxes[axis].contains(i_s_um))
+                                    // {
+										double C_u_um = 0;
+										double C_u_up = 0;
 
-                                    double C_u_um = 0;
-                                    double C_u_up = 0;
+										interpolate(&jn(0), 0, DU_jump_node[axis], phi_P_jump);
+										C_u_up = sdh_up * jn(axis);
+										C_u_um = sdh_um * jn(axis);
 
-                                    interpolate(&jn(0), 0, DU_jump_node[axis], phi_P_jump);
-                                    C_u_up = sdh_up * jn(axis);
-                                    C_u_um = sdh_um * jn(axis);
-
-                                    const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
-                                    // Note that the corrections are applied to opposite sides
-                                    (*f_data)(i_s_up) -= sgn * (C_u_um / (dx[axis] * dx[axis]));
-                                    (*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
+										const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
+										// Note that the corrections are applied to opposite sides
+										(*f_data)(i_s_up) -= sgn * (C_u_um / (dx[axis] * dx[axis]));
+										(*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
+									// }
+		                    
+									// Keep track of the positions where we have
+									// imposed jump conditions.
+									intersection_u_points[axis][i_s_um].push_back(xu);
+									intersection_u_ref_coords[axis][i_s_um].push_back(xui);
+									intersection_u_normals[axis][i_s_um].push_back(n);
                                 }
                             }
-                            // Keep track of the positions where we have
-                            // imposed jump conditions.
-                            intersection_u_points[axis][i_s_um].push_back(xu);
-                            intersection_u_ref_coords[axis][i_s_um].push_back(xui);
-                            intersection_u_normals[axis][i_s_um].push_back(n);
+
                         }
 
                         for (unsigned int j = 0; j < NDIM - 1; ++j)
@@ -3739,12 +3782,10 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
 
                                     SideIndex<NDIM> i_side_up(i_c_neighbor, SideDim[axis][j], 0);
 
-                                    i_side_up(axis) =
-                                        static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] + 0.5)) +
-                                        patch_lower[axis];
-                                    i_side_um(axis) =
-                                        static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
-                                        patch_lower[axis];
+                                    i_side_up(axis) = boost::math::iround((xu(axis) - x_lower[axis]) / dx[axis]) +
+													  patch_lower[axis];
+                                    i_side_um(axis) = boost::math::iround((xu(axis) - x_lower[axis]) / dx[axis] - 0.5) +
+													  patch_lower[axis];
                                     i_s_up = i_side_up;
                                     i_s_um = i_side_um;
                                 }
@@ -3755,12 +3796,10 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                     Index<NDIM> i_c_neighbor = i_c;
                                     i_c_neighbor(axis) -= 1;
                                     SideIndex<NDIM> i_side_um(i_c_neighbor, SideDim[axis][j], 0);
-                                    i_side_up(axis) =
-                                        static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis])) +
-                                        patch_lower[axis];
-                                    i_side_um(axis) =
-                                        static_cast<int>(std::floor((xu(axis) - x_lower[axis]) / dx[axis] - 0.5)) +
-                                        patch_lower[axis];
+                                    i_side_up(axis) = boost::math::iround((xu(axis) - x_lower[axis]) / dx[axis] - 0.5) +
+													  patch_lower[axis];
+                                    i_side_um(axis) = boost::math::iround((xu(axis) - x_lower[axis]) / dx[axis] - 1.0) +
+													  patch_lower[axis];
                                     i_s_up = i_side_up;
                                     i_s_um = i_side_um;
                                 }
@@ -3816,39 +3855,38 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                                     {
                                         // Evaluate the jump conditions and apply them
                                         // to the Eulerian grid.
-                                        if (side_boxes[SideDim[axis][j]].contains(i_s_um) &&
-                                            side_boxes[SideDim[axis][j]].contains(i_s_up))
-                                        {
-                                            TBOX_ASSERT(i_s_up(axis) - i_s_um(axis) == 1);
 
-                                            const double x_mid_side_up =
-                                                x_lower[axis] +
-                                                static_cast<double>(i_s_up(axis) - patch_lower[axis] + 0.5) * dx[axis];
+										TBOX_ASSERT(i_s_up(axis) - i_s_um(axis) == 1);
 
-                                            const double x_mid_side_um =
-                                                x_lower[axis] +
-                                                static_cast<double>(i_s_um(axis) - patch_lower[axis] + 0.5) * dx[axis];
+										const double x_mid_side_up =
+											x_lower[axis] +
+											static_cast<double>(i_s_up(axis) - patch_lower[axis] + 0.5) * dx[axis];
 
-                                            TBOX_ASSERT(xu(axis) <= x_mid_side_up);
-                                            TBOX_ASSERT(xu(axis) > x_mid_side_um);
+										const double x_mid_side_um =
+											x_lower[axis] +
+											static_cast<double>(i_s_um(axis) - patch_lower[axis] + 0.5) * dx[axis];
 
-                                            const double sdh_up = xu(axis) - x_mid_side_up; // Signed Distance h
-                                            const double sdh_um = xu(axis) - x_mid_side_um;
+										TBOX_ASSERT(xu(axis) <= x_mid_side_up);
+										TBOX_ASSERT(xu(axis) > x_mid_side_um);
 
-                                            double C_u_um = 0;
-                                            double C_u_up = 0;
+										const double sdh_up = xu(axis) - x_mid_side_up; // Signed Distance h
+										const double sdh_um = xu(axis) - x_mid_side_um;
+										// if (side_ghost_boxes[SideDim[axis][j]].contains(i_s_up) && side_ghost_boxes[SideDim[axis][j]].contains(i_s_um))
+										// {
+											double C_u_um = 0;
+											double C_u_up = 0;
 
-                                            interpolate(&jn(0), 0, DU_jump_node[SideDim[axis][j]], phi_P_jump);
-                                            C_u_um = sdh_um * jn(axis);
-                                            C_u_up = sdh_up * jn(axis);
+											interpolate(&jn(0), 0, DU_jump_node[SideDim[axis][j]], phi_P_jump);
+											C_u_um = sdh_um * jn(axis);
+											C_u_up = sdh_up * jn(axis);
 
-                                            const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
+											const double sgn = n(axis) > 0.0 ? 1.0 : n(axis) < 0.0 ? -1.0 : 0.0;
 
-                                            (*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
+											(*f_data)(i_s_um) += sgn * (C_u_up / (dx[axis] * dx[axis]));
 
-                                            (*f_data)(i_s_up) -= sgn * (C_u_um / (dx[axis] * dx[axis]));
-                                        }
+											(*f_data)(i_s_up) -= sgn * (C_u_um / (dx[axis] * dx[axis]));
 
+										// }
                                         intersectionSide_u_points[j][axis][i_s_um].push_back(xu);
                                         intersectionSide_u_ref_coords[j][axis][i_s_um].push_back(xui);
                                         intersectionSide_u_normals[j][axis][i_s_um].push_back(n);
