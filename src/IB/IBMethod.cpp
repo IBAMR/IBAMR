@@ -991,10 +991,9 @@ IBMethod::constructInterpOp(Mat& J,
                             const int dof_index_idx,
                             const double data_time)
 {
-    int ierr;
     if (J)
     {
-        ierr = MatDestroy(&J);
+        int ierr = MatDestroy(&J);
         IBTK_CHKERRQ(ierr);
     }
 

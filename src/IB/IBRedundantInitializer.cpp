@@ -867,13 +867,13 @@ IBRedundantInitializer::initializeSourceData()
     {
         std::vector<std::string> source_names;
         std::vector<double> source_radii;
-        int source_offset = 0;
         const size_t num_base_filename = d_base_filename[ln].size();
         d_source_idx[ln].resize(num_base_filename);
         if (d_init_source_on_level_fcn)
         {
             std::vector<std::string> new_names;
             std::vector<double> new_radii;
+            int source_offset = 0;
             for (unsigned int j = 0; j < num_base_filename; ++j)
             {
                 const int min_idx = 0;

@@ -817,10 +817,9 @@ void
 IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
-    int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
+        int ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
@@ -838,10 +837,9 @@ void
 IBFEMethod::midpointStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
-    int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_half_vecs[part]->vec(), d_X_current_vecs[part]->vec());
+        int ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_half_vecs[part]->vec(), d_X_current_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
@@ -859,10 +857,9 @@ void
 IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
-    int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        ierr =
+        int ierr =
             VecWAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_new_vecs[part]->vec());
@@ -2959,7 +2956,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
         d_primary_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_primary_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
-    VectorValue<double> G, F, F_s, n, x;
+    VectorValue<double> G, F, F_s, n;
     std::vector<libMesh::Point> X_node_cache, x_node_cache;
     IBTK::Point x_min, x_max;
     std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
@@ -3073,7 +3070,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 #endif
                         for (const auto& intersection : intersections)
                         {
-                            libMesh::Point x = r + intersection.first * q;
+                            const libMesh::Point x = r + intersection.first * q;
                             SideIndex<NDIM> i_s(i_c, axis, 0);
                             i_s(axis) = std::floor((x(axis) - x_lower[axis]) / dx[axis] + 0.5) + patch_lower[axis];
                             intersection_ref_coords.push_back(intersection.second);
@@ -3107,6 +3104,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     const libMesh::Point& X = q_point_face[qp];
                     const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
                     const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                    libMesh::VectorValue<double> x;
                     get_x_and_FF(x, FF, x_data, grad_x_data);
                     const double J = std::abs(FF.det());
                     tensor_inverse_transpose(FF_inv_trans, FF, NDIM);

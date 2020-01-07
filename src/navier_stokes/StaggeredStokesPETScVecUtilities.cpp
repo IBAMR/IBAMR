@@ -319,10 +319,9 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelAO(AO& ao,
                                                         int& u_ao_offset,
                                                         int& p_ao_offset)
 {
-    int ierr;
     if (ao)
     {
-        ierr = AODestroy(&ao);
+        int ierr = AODestroy(&ao);
         IBTK_CHKERRQ(ierr);
     }
 

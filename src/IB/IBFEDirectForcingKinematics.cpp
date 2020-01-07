@@ -222,10 +222,6 @@ IBFEDirectForcingKinematics::forwardEulerStep(double current_time,
 
     // Rotate the body with current rotational velocity about center of mass
     // and translate the body to predicted position.
-    Eigen::Vector3d dr = Eigen::Vector3d::Zero();
-    Eigen::Vector3d Rxdr_half = Eigen::Vector3d::Zero();
-    Eigen::Vector3d Rxdr_new = Eigen::Vector3d::Zero();
-
     EquationSystems* equation_systems = d_ibfe_method_ops->getFEDataManager(d_part)->getEquationSystems();
     System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
@@ -268,14 +264,15 @@ IBFEDirectForcingKinematics::forwardEulerStep(double current_time,
 
     for (unsigned int k = 0; k < total_local_nodes; ++k)
     {
+        Eigen::Vector3d dr = Eigen::Vector3d::Zero();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dr[d] = nodal_X0_values[d][k] - d_center_of_mass_initial[d];
         }
 
         // Rotate dr vector using the rotation matrix.
-        Rxdr_half = rotation_mat_half * dr;
-        Rxdr_new = rotation_mat_new * dr;
+        const Eigen::Vector3d Rxdr_half = rotation_mat_half * dr;
+        const Eigen::Vector3d Rxdr_new = rotation_mat_new * dr;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             X_half_petsc.set(nodal_X_indices[d][k],
@@ -309,9 +306,6 @@ IBFEDirectForcingKinematics::midpointStep(double current_time,
 
     // Rotate the body with current rotational velocity about center of mass
     // and translate the body to predicted position.
-    Eigen::Vector3d dr = Eigen::Vector3d::Zero();
-    Eigen::Vector3d Rxdr = Eigen::Vector3d::Zero();
-
     EquationSystems* equation_systems = d_ibfe_method_ops->getFEDataManager(d_part)->getEquationSystems();
     System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
@@ -354,13 +348,14 @@ IBFEDirectForcingKinematics::midpointStep(double current_time,
 
     for (unsigned int k = 0; k < total_local_nodes; ++k)
     {
+        Eigen::Vector3d dr = Eigen::Vector3d::Zero();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dr[d] = nodal_X0_values[d][k] - d_center_of_mass_initial[d];
         }
 
         // Rotate dr vector using the rotation matrix.
-        Rxdr = rotation_mat * dr;
+        const Eigen::Vector3d Rxdr = rotation_mat * dr;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             X_half_petsc.set(nodal_X_indices[d][k], d_center_of_mass_current[d] + Rxdr[d] + dt * d_trans_vel_half[d]);
@@ -845,8 +840,7 @@ IBFEDirectForcingKinematics::computeMixedLagrangianForceDensity(PetscVector<doub
     IBTK_CHKERRQ(ierr);
 
     // Linear momentum balance.
-    Eigen::Vector3d U_new = Eigen::Vector3d::Zero();
-    U_new = F / vol_mesh;
+    const Eigen::Vector3d U_new = F / vol_mesh;
 
     // Angular momentum balance.
     // NOTE: Here we rotate the angular momentum vector back to initial time

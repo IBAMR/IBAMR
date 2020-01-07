@@ -549,7 +549,7 @@ IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
         const double* const X_node = X_ghost_data->getGhostedLocalFormVecArray()->data();
         MatrixNd dF_dX;
         Vector D;
-        double R, T, dT_dR, eps;
+        double dT_dR;
         for (unsigned int k = 0; k < petsc_mastr_node_idxs.size(); ++k)
         {
             // Compute the Jacobian of the force applied by the spring to the
@@ -567,12 +567,12 @@ IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
             {
                 D(i) = X_node[petsc_slave_idx + i] - X_node[petsc_mastr_idx + i];
             }
-            R = D.norm();
-            T = force_fcn(R, params, lag_mastr_idx, lag_slave_idx);
+            const double R = D.norm();
+            const double T = force_fcn(R, params, lag_mastr_idx, lag_slave_idx);
             if (!force_deriv_fcn)
             {
                 // Use finite differences to approximate dT/dR.
-                eps = std::max(R, 1.0) * std::pow(std::numeric_limits<double>::epsilon(), 1.0 / 3.0);
+                const double eps = std::max(R, 1.0) * std::pow(std::numeric_limits<double>::epsilon(), 1.0 / 3.0);
                 dT_dR = (force_fcn(R + eps, params, lag_mastr_idx, lag_slave_idx) -
                          force_fcn(R - eps, params, lag_mastr_idx, lag_slave_idx)) /
                         (2.0 * eps);

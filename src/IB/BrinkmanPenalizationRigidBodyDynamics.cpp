@@ -296,9 +296,6 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     ghost_fill_alg->createSchedule(finest_level)->fillData(time);
 
     // Set the rigid body velocity in u_idx
-    Eigen::Vector3d r = Eigen::Vector3d::Zero();
-    Eigen::Vector3d dr = Eigen::Vector3d::Zero();
-    Eigen::Vector3d Wxdr = Eigen::Vector3d::Zero();
     for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
@@ -336,9 +333,9 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
                 }
                 if (phi <= alpha)
                 {
-                    r = IBTK::IndexUtilities::getSideCenter<Eigen::Vector3d>(*patch, s_i);
-                    dr = r - d_center_of_mass_new;
-                    Wxdr = d_rot_vel_new.cross(dr);
+                    const Eigen::Vector3d r = IBTK::IndexUtilities::getSideCenter<Eigen::Vector3d>(*patch, s_i);
+                    const Eigen::Vector3d dr = r - d_center_of_mass_new;
+                    const Eigen::Vector3d Wxdr = d_rot_vel_new.cross(dr);
                     const double penalty = (*rho_data)(s_i) / dt;
                     (*u_data)(s_i) = d_trans_vel_new(axis) + Wxdr(axis);
                     (*u_data)(s_i) *= (1.0 - Hphi) * penalty;

@@ -639,10 +639,9 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
                 for (unsigned int qp = 0; qp < qp_points.size(); ++qp)
                 {
                     Vector qp_temp;
-                    double disp_comp = 0.0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        disp_comp = 0.0;
+                        double disp_comp = 0.0;
                         for (unsigned int nn = 0; nn < phi.size(); ++nn)
                         {
                             disp_comp += disp_coords(d, nn) * phi[nn][qp];
