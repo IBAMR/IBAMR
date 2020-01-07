@@ -1188,20 +1188,20 @@ IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonlocal_pet
 
     // Determine how many target points are associated with the present MPI
     // process.
-    unsigned int num_target_points = 0;
+    unsigned int total_num_target_points = 0;
     for (const auto& node_idx : local_nodes)
     {
         const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
-        if (force_spec) num_target_points += 1;
+        if (force_spec) total_num_target_points += 1;
     }
 
     // Resize arrays for storing cached values used to compute target point
     // forces.
-    petsc_node_idxs.resize(num_target_points);
-    petsc_global_node_idxs.resize(num_target_points);
-    kappa.resize(num_target_points);
-    eta.resize(num_target_points);
-    X0.resize(num_target_points);
+    petsc_node_idxs.resize(total_num_target_points);
+    petsc_global_node_idxs.resize(total_num_target_points);
+    kappa.resize(total_num_target_points);
+    eta.resize(total_num_target_points);
+    X0.resize(total_num_target_points);
 
     // Setup the data structures used to compute target point forces.
     int current_target_point = 0;
