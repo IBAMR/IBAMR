@@ -1602,8 +1602,6 @@ INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
     }
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-
     // Initialize level data at the initial time.
     if (initial_time)
     {

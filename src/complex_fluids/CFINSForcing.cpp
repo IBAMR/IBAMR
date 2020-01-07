@@ -198,7 +198,6 @@ CFINSForcing::commonConstructor(const Pointer<Database> input_db,
     const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
     if (periodic_shift.min() <= 0)
     {
-        std::vector<RobinBcCoefStrategy<NDIM>*> conc_bc_coefs(NDIM * (NDIM + 1) / 2);
         d_conc_bc_coefs.resize(NDIM * (NDIM + 1) / 2);
         for (int d = 0; d < NDIM * (NDIM + 1) / 2; ++d)
         {

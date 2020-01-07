@@ -663,7 +663,6 @@ CCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
 
     const Pointer<CellVariable<NDIM, double> > res_var = residual.getComponentVariable(0);
     const Pointer<CellVariable<NDIM, double> > sol_var = solution.getComponentVariable(0);
-    const Pointer<CellVariable<NDIM, double> > rhs_var = rhs.getComponentVariable(0);
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;

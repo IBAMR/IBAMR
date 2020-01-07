@@ -319,7 +319,6 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
     // Dump Lagrange multiplier data.
     if (d_lambda_dump_interval && ((d_ib_solver->getIntegratorStep() + 1) % d_lambda_dump_interval == 0))
     {
-        Pointer<LData> ptr_lagmultpr = d_l_data_manager->getLData("lambda", finest_ln);
         Vec lambda_petsc_vec_parallel = ptr_lagmultpr->getVec();
         Vec lambda_lag_vec_parallel = nullptr;
         Vec lambda_lag_vec_seq = nullptr;

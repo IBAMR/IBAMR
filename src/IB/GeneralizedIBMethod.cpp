@@ -113,7 +113,6 @@ GeneralizedIBMethod::registerEulerianVariables()
     IBMethod::registerEulerianVariables();
 
     const IntVector<NDIM> ib_ghosts = getMinimumGhostCellWidth();
-    const IntVector<NDIM> ghosts = 1;
     const IntVector<NDIM> no_ghosts = 0;
 
     Pointer<Variable<NDIM> > u_var = d_ib_solver->getVelocityVariable();
@@ -147,7 +146,6 @@ GeneralizedIBMethod::registerEulerianCommunicationAlgorithms()
 {
     IBMethod::registerEulerianCommunicationAlgorithms();
 
-    Pointer<Geometry<NDIM> > grid_geom = d_ib_solver->getPatchHierarchy()->getGridGeometry();
     Pointer<RefineAlgorithm<NDIM> > refine_alg;
     Pointer<RefineOperator<NDIM> > refine_op;
 

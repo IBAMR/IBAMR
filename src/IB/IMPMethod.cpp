@@ -1068,8 +1068,6 @@ IMPMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarc
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-
     // Tag cells that contain Lagrangian nodes.
     d_l_data_manager->applyGradientDetector(
         hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);

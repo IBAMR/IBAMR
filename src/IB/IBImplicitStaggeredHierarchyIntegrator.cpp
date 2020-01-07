@@ -440,9 +440,7 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_position(const double
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> current_ctx = ins_hier_integrator->getCurrentContext();
     Pointer<VariableContext> scratch_ctx = ins_hier_integrator->getScratchContext();
-    Pointer<VariableContext> new_ctx = ins_hier_integrator->getNewContext();
 
     const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
     const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
@@ -626,7 +624,6 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> current_ctx = ins_hier_integrator->getCurrentContext();
     Pointer<VariableContext> scratch_ctx = ins_hier_integrator->getScratchContext();
-    Pointer<VariableContext> new_ctx = ins_hier_integrator->getNewContext();
 
     const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
     const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();

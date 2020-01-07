@@ -177,8 +177,6 @@ IBRedundantInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHie
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_data_processed);
 #endif
-    // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
 
     // Loop over all patches in the specified level of the patch level and count
     // the number of local vertices.
@@ -1080,9 +1078,6 @@ IBRedundantInitializer::initializeMassDataOnPatchLevel(const unsigned int /*glob
     TBOX_ASSERT(d_data_processed);
 #endif
 
-    // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
-
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
     boost::multi_array_ref<double, 1>& M_array = *M_data->getLocalFormArray();
@@ -1142,9 +1137,6 @@ IBRedundantInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*
     TBOX_ASSERT(d_data_processed);
 #endif
 
-    // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
-
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
     boost::multi_array_ref<double, 2>& D_array = *D_data->getLocalFormVecArray();
@@ -1200,7 +1192,6 @@ IBRedundantInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarch
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const Box<NDIM>& patch_box = patch->getBox();
 
         Pointer<CellData<NDIM, int> > tag_data = patch->getPatchData(tag_index);
@@ -1378,7 +1369,6 @@ IBRedundantInitializer::getPatchVerticesAtLevel(std::vector<std::pair<int, int> 
     // NOTE: This is clearly not the best way to do this, but it will work for
     // now.
     const Box<NDIM>& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
     for (unsigned int j = 0; j < d_num_vertex[vertex_level_number].size(); ++j)
     {
         for (int k = 0; k < d_num_vertex[vertex_level_number][j]; ++k)
