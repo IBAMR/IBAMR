@@ -1,0 +1,29 @@
+Number of elements: 648
+
+IBFEMethod: mesh part 0 is using FIRST order LAGRANGE finite elements.
+
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+locally owned range on 0: [0, 351)
+total length on 0: 504
+global index ranges on 0:
+[0, 357)
+[372, 396)
+[399, 408)
+[423, 462)
+[465, 474)
+[495, 519)
+[522, 531)
+[546, 570)
+[573, 582)
+locally owned range on 1: [351, 597)
+total length on 1: 582
+global index ranges on 1:
+[351, 597)
+[0, 39)
+[42, 129)
+[132, 201)
+[204, 273)
+[276, 336)
+[339, 351)
