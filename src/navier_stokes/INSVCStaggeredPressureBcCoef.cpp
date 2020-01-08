@@ -266,7 +266,7 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
         const hier::Index<NDIM>& i = it();
-        double dummy_val;
+        double dummy_val = std::numeric_limits<double>::quiet_NaN();
         double& alpha = acoef_data ? (*acoef_data)(i, 0) : dummy_val;
         double& beta = bcoef_data ? (*bcoef_data)(i, 0) : dummy_val;
         double& gamma = gcoef_data ? (*gcoef_data)(i, 0) : dummy_val;

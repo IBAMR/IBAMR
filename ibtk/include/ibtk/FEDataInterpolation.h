@@ -340,9 +340,9 @@ private:
 
     // Data associated with the current element.
     const libMesh::Elem* d_current_elem = nullptr;
-    unsigned int d_current_side;
+    unsigned int d_current_side = std::numeric_limits<unsigned int>::max();
     std::vector<boost::multi_array<double, 2> > d_system_elem_data;
-    unsigned int d_n_qp;
+    unsigned int d_n_qp = std::numeric_limits<unsigned int>::max();
 };
 } // namespace IBTK
 

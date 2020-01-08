@@ -304,8 +304,11 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         hierarchy->getPatchLevel(ln)->allocatePatchData(D_copy_idx, time);
         hierarchy->getPatchLevel(ln)->allocatePatchData(H_init_idx, time);
         hierarchy->getPatchLevel(ln)->allocatePatchData(H_scratch_idx, time);
-        if (d_apply_volume_shift) hierarchy->getPatchLevel(ln)->allocatePatchData(HS_init_idx, time);
-        if (d_apply_volume_shift) hierarchy->getPatchLevel(ln)->allocatePatchData(HS_copy_idx, time);
+        if (d_apply_volume_shift)
+        {
+            hierarchy->getPatchLevel(ln)->allocatePatchData(HS_init_idx, time);
+            hierarchy->getPatchLevel(ln)->allocatePatchData(HS_copy_idx, time);
+        }
     }
 
     // First, fill cells with some positive/negative values
@@ -436,8 +439,11 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         hierarchy->getPatchLevel(ln)->deallocatePatchData(H_init_idx);
         hierarchy->getPatchLevel(ln)->deallocatePatchData(H_scratch_idx);
 
-        if (d_apply_volume_shift) hierarchy->getPatchLevel(ln)->deallocatePatchData(HS_init_idx);
-        if (d_apply_volume_shift) hierarchy->getPatchLevel(ln)->deallocatePatchData(HS_copy_idx);
+        if (d_apply_volume_shift)
+        {
+            hierarchy->getPatchLevel(ln)->deallocatePatchData(HS_init_idx);
+            hierarchy->getPatchLevel(ln)->deallocatePatchData(HS_copy_idx);
+        }
     }
     var_db->removePatchDataIndex(D_scratch_idx);
     var_db->removePatchDataIndex(D_iter_idx);
@@ -446,8 +452,11 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     var_db->removePatchDataIndex(H_init_idx);
     var_db->removePatchDataIndex(H_scratch_idx);
 
-    if (d_apply_volume_shift) var_db->removePatchDataIndex(HS_init_idx);
-    if (d_apply_volume_shift) var_db->removePatchDataIndex(HS_copy_idx);
+    if (d_apply_volume_shift)
+    {
+        var_db->removePatchDataIndex(HS_init_idx);
+        var_db->removePatchDataIndex(HS_copy_idx);
+    }
 
     // Indicate that the LS has been initialized.
     d_reinitialize_ls = false;
