@@ -1948,7 +1948,7 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
         if (mesh_has_first_order_elems)
         {
             d_fe_order[part] = FIRST;
-            d_default_quad_order[part] = THIRD;
+            d_default_quad_order[part] = FIRST;
         }
         if (mesh_has_second_order_elems)
         {
