@@ -373,10 +373,10 @@ get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
     for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
         const auto id = (*el_it)->id();
-        for (unsigned int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < LIBMESH_DIM; ++d)
         {
-            flattened_bboxes[2 * id * NDIM + d] = local_bboxes[elem_n].first(d);
-            flattened_bboxes[(2 * id + 1) * NDIM + d] = local_bboxes[elem_n].second(d);
+            flattened_bboxes[2 * id * LIBMESH_DIM + d] = local_bboxes[elem_n].first(d);
+            flattened_bboxes[(2 * id + 1) * LIBMESH_DIM + d] = local_bboxes[elem_n].second(d);
         }
         ++elem_n;
     }
@@ -387,10 +387,10 @@ get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
     std::vector<libMeshWrappers::BoundingBox> global_bboxes(n_elem);
     for (unsigned int e = 0; e < n_elem; ++e)
     {
-        for (unsigned int d = 0; d < NDIM; ++d)
+        for (unsigned int d = 0; d < LIBMESH_DIM; ++d)
         {
-            global_bboxes[e].first(d) = flattened_bboxes[2 * e * NDIM + d];
-            global_bboxes[e].second(d) = flattened_bboxes[(2 * e + 1) * NDIM + d];
+            global_bboxes[e].first(d) = flattened_bboxes[2 * e * LIBMESH_DIM + d];
+            global_bboxes[e].second(d) = flattened_bboxes[(2 * e + 1) * LIBMESH_DIM + d];
         }
     }
     return global_bboxes;
