@@ -348,13 +348,13 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const lib
                 lower_bound(d) = std::min(lower_bound(d), X);
                 upper_bound(d) = std::max(upper_bound(d), X);
             }
+        }
 
-            // fill extra dimension with 0.0, which is libMesh's convention
-            for (unsigned int d = dim; d < LIBMESH_DIM; ++d)
-            {
-                lower_bound(d) = 0.0;
-                upper_bound(d) = 0.0;
-            }
+        // fill extra dimension with 0.0, which is libMesh's convention
+        for (unsigned int d = dim; d < LIBMESH_DIM; ++d)
+        {
+            lower_bound(d) = 0.0;
+            upper_bound(d) = 0.0;
         }
     }
 
