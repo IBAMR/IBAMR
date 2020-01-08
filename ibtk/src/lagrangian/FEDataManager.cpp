@@ -2888,6 +2888,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
 std::vector<std::pair<Point, Point> >*
 FEDataManager::computeActiveElementBoundingBoxes()
 {
+    IBTK_DEPRECATED_MEMBER_FUNCTION1("FEDataManager", "computeActiveElementBoundingBoxes");
     const MeshBase& mesh = d_fe_data->d_es->get_mesh();
     const System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
 
