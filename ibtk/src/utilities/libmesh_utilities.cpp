@@ -301,7 +301,6 @@ std::vector<libMeshWrappers::BoundingBox>
 get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system)
 {
     const unsigned int dim = mesh.mesh_dimension();
-    TBOX_ASSERT(dim <= LIBMESH_DIM);
     const unsigned int X_sys_num = X_system.number();
     auto X_ghost_vec_ptr = X_system.current_local_solution->zero_clone();
     auto& X_ghost_vec = dynamic_cast<libMesh::PetscVector<double>&>(*X_ghost_vec_ptr);
