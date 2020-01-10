@@ -183,8 +183,9 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 ../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
 ../src/utilities/ConvectiveOperator.cpp \
-../src/wave_generation/IrregularWaveBcCoef.cpp \
 ../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
+../src/wave_generation/IrregularWaveBcCoef.cpp \
+../src/wave_generation/IrregularWaveGenerator.cpp \
 ../src/wave_generation/StokesFifthOrderWaveBcCoef.cpp \
 ../src/wave_generation/StokesFirstOrderWaveBcCoef.cpp \
 ../src/wave_generation/StokesSecondOrderWaveBcCoef.cpp \
@@ -290,6 +291,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/INSVCStaggeredPressureBcCoef.h \
 ../include/ibamr/INSVCStaggeredVelocityBcCoef.h \
 ../include/ibamr/IrregularWaveBcCoef.h \
+../include/ibamr/IrregularWaveGenerator.h \
 ../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 ../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 ../include/ibamr/KrylovMobilitySolver.h \
