@@ -211,7 +211,6 @@ PETScMFFDJacobianOperator::FormFunction_SAMRAI(void* p_ctx, Vec x, Vec f)
     TBOX_ASSERT(jac_op);
     TBOX_ASSERT(jac_op->d_F);
 #endif
-    int ierr;
     Pointer<SAMRAIVectorReal<NDIM, double> > samrai_x, samrai_f;
     PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &samrai_x);
     PETScSAMRAIVectorReal::getSAMRAIVector(f, &samrai_f);
@@ -222,7 +221,7 @@ PETScMFFDJacobianOperator::FormFunction_SAMRAI(void* p_ctx, Vec x, Vec f)
     {
         SNES snes = jac_op->d_nonlinear_solver->getPETScSNES();
         Vec rhs;
-        ierr = SNESGetRhs(snes, &rhs);
+        int ierr = SNESGetRhs(snes, &rhs);
         CHKERRQ(ierr);
         if (rhs)
         {

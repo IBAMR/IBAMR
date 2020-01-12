@@ -198,7 +198,6 @@ CFINSForcing::commonConstructor(const Pointer<Database> input_db,
     const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
     if (periodic_shift.min() <= 0)
     {
-        std::vector<RobinBcCoefStrategy<NDIM>*> conc_bc_coefs(NDIM * (NDIM + 1) / 2);
         d_conc_bc_coefs.resize(NDIM * (NDIM + 1) / 2);
         for (int d = 0; d < NDIM * (NDIM + 1) / 2; ++d)
         {
@@ -908,11 +907,10 @@ CFINSForcing::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > hierarchy
             if (!W_data) continue;
             Pointer<CellData<NDIM, int> > tag_data = patch->getPatchData(tag_index);
             const Box<NDIM>& box = patch->getBox();
-            double norm;
             for (CellIterator<NDIM> ic(box); ic; ic++)
             {
                 const CellIndex<NDIM>& i = ic();
-                norm = 0.0;
+                double norm = 0.0;
                 for (int d = 0; d < NDIM; ++d) norm += (*W_data)(i, d) * (*W_data)(i, d);
                 norm = sqrt(norm);
                 if (norm > thresh) (*tag_data)(i) = 1;

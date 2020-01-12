@@ -817,10 +817,9 @@ void
 IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
-    int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
+        int ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
@@ -838,10 +837,9 @@ void
 IBFEMethod::midpointStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
-    int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_half_vecs[part]->vec(), d_X_current_vecs[part]->vec());
+        int ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_half_vecs[part]->vec(), d_X_current_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
@@ -859,10 +857,9 @@ void
 IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
-    int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        ierr =
+        int ierr =
             VecWAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_new_vecs[part]->vec());
@@ -2255,12 +2252,12 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
                 fe.setInterpolatedDataPointers(PK1_var_data, PK1_grad_var_data, PK1_fcn_system_idxs, elem, qp);
                 d_PK1_stress_fcn_data[part][k].fcn(
                     PP, FF, x, X, elem, PK1_var_data, PK1_grad_var_data, data_time, d_PK1_stress_fcn_data[part][k].ctx);
-                for (unsigned int k = 0; k < n_basis; ++k)
+                for (unsigned int basis_n = 0; basis_n < n_basis; ++basis_n)
                 {
-                    F_qp = -PP * dphi[k][qp] * JxW[qp];
+                    F_qp = -PP * dphi[basis_n][qp] * JxW[qp];
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
-                        G_rhs_e[i](k) += F_qp(i);
+                        G_rhs_e[i](basis_n) += F_qp(i);
                     }
                 }
             }
@@ -2282,9 +2279,9 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
 
                 fe.reinit(elem, side);
                 fe.interpolate(elem, side);
-                const unsigned int n_qp = qrule_face->n_points();
-                const size_t n_basis = phi_face.size();
-                for (unsigned int qp = 0; qp < n_qp; ++qp)
+                const unsigned int n_qp_face = qrule_face->n_points();
+                const size_t n_basis_face = phi_face.size();
+                for (unsigned int qp = 0; qp < n_qp_face; ++qp)
                 {
                     const libMesh::Point& X = q_point_face[qp];
                     const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
@@ -2325,12 +2322,12 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
                     }
 
                     // Add the boundary forces to the right-hand-side vector.
-                    for (unsigned int k = 0; k < n_basis; ++k)
+                    for (unsigned int basis_face_n = 0; basis_face_n < n_basis_face; ++basis_face_n)
                     {
-                        F_qp = F * phi_face[k][qp] * JxW_face[qp];
+                        F_qp = F * phi_face[basis_face_n][qp] * JxW_face[qp];
                         for (unsigned int i = 0; i < NDIM; ++i)
                         {
-                            G_rhs_e[i](k) += F_qp(i);
+                            G_rhs_e[i](basis_face_n) += F_qp(i);
                         }
                     }
                 }
@@ -2498,9 +2495,9 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
 
             fe.reinit(elem, side);
             fe.interpolate(elem, side);
-            const unsigned int n_qp = qrule_face->n_points();
-            const size_t n_basis = phi_face.size();
-            for (unsigned int qp = 0; qp < n_qp; ++qp)
+            const unsigned int n_qp_face = qrule_face->n_points();
+            const size_t n_basis_face = phi_face.size();
+            for (unsigned int qp = 0; qp < n_qp_face; ++qp)
             {
                 const libMesh::Point& X = q_point_face[qp];
                 const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
@@ -2568,7 +2565,7 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
                 if (!integrate_tangential_force) F -= (F - (F * n) * n);
 
                 // Add the boundary forces to the right-hand-side vector.
-                for (unsigned int k = 0; k < n_basis; ++k)
+                for (unsigned int k = 0; k < n_basis_face; ++k)
                 {
                     F_qp = F * phi_face[k][qp] * JxW_face[qp];
                     for (unsigned int i = 0; i < NDIM; ++i)
@@ -2959,7 +2956,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
         d_primary_fe_data_managers[part]->getActivePatchElementMap();
     const int level_num = d_primary_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
-    VectorValue<double> G, F, F_s, n, x;
+    VectorValue<double> G, F, F_s, n;
     std::vector<libMesh::Point> X_node_cache, x_node_cache;
     IBTK::Point x_min, x_max;
     std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
@@ -3073,7 +3070,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
 #endif
                         for (const auto& intersection : intersections)
                         {
-                            libMesh::Point x = r + intersection.first * q;
+                            const libMesh::Point x = r + intersection.first * q;
                             SideIndex<NDIM> i_s(i_c, axis, 0);
                             i_s(axis) = std::floor((x(axis) - x_lower[axis]) / dx[axis] + 0.5) + patch_lower[axis];
                             intersection_ref_coords.push_back(intersection.second);
@@ -3107,6 +3104,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     const libMesh::Point& X = q_point_face[qp];
                     const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
                     const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+                    libMesh::VectorValue<double> x;
                     get_x_and_FF(x, FF, x_data, grad_x_data);
                     const double J = std::abs(FF.det());
                     tensor_inverse_transpose(FF_inv_trans, FF, NDIM);

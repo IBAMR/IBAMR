@@ -266,14 +266,13 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
         const int P_sol_idx = solution.getComponentDescriptorIndex(1);
 
         // Update the residual, r = f - A*u, to include the IB part of the operator.
-        int ierr;
         int rank = SAMRAI_MPI::getRank();
         for (int ln = coarsest_level_num; ln <= finest_level_num; ++ln)
         {
             Vec solution_vec, residual_vec;
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
 
-            ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &solution_vec);
+            int ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &solution_vec);
             IBTK_CHKERRQ(ierr);
             ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &residual_vec);
             IBTK_CHKERRQ(ierr);
@@ -312,7 +311,6 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
         const int P_rhs_idx = rhs.getComponentDescriptorIndex(1);
 
         // Compute the residual, r = f - A*u.
-        int ierr;
         int rank = SAMRAI_MPI::getRank();
         for (int ln = coarsest_level_num; ln <= finest_level_num; ++ln)
         {
@@ -321,7 +319,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
             Vec rhs_vec;
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
 
-            ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &solution_vec);
+            int ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &solution_vec);
             IBTK_CHKERRQ(ierr);
             ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &residual_vec);
             IBTK_CHKERRQ(ierr);

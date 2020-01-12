@@ -1731,17 +1731,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 TBOX_ASSERT(n_qp == phi_X[0].size());
                 double* X_begin = &X_qp[NDIM * qp_offset];
                 std::fill(X_begin, X_begin + NDIM * n_qp, 0.0);
-                for (unsigned int k = 0; k < n_node; ++k)
-                {
-                    for (unsigned int qp = 0; qp < n_qp; ++qp)
-                    {
-                        const double& p_X = phi_X[k][qp];
-                        for (unsigned int i = 0; i < NDIM; ++i)
-                        {
-                            X_qp[NDIM * (qp_offset + qp) + i] += X_nodes[e_idx][k][i] * p_X;
-                        }
-                    }
-                }
+                sum_weighted_elem_solution<true>(NDIM, n_node, qp_offset, phi_X, {}, X_nodes[e_idx], X_qp);
                 qp_offset += n_qp;
             }
 

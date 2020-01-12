@@ -392,7 +392,6 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
         double max_dist = std::numeric_limits<double>::max();
         d_nodes[jj].push_back(temp_nodes[jj][0]);
         d_node_dof_IDs[jj].push_back(temp_node_dof_IDs[jj][0]);
-        max_dist = std::numeric_limits<double>::max();
         for (unsigned int kk = 1; kk < temp_nodes[jj].size(); ++kk)
         {
             for (unsigned int ll = 0; ll < temp_nodes[jj].size(); ++ll)
@@ -640,10 +639,9 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
                 for (unsigned int qp = 0; qp < qp_points.size(); ++qp)
                 {
                     Vector qp_temp;
-                    double disp_comp = 0.0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        disp_comp = 0.0;
+                        double disp_comp = 0.0;
                         for (unsigned int nn = 0; nn < phi.size(); ++nn)
                         {
                             disp_comp += disp_coords(d, nn) * phi[nn][qp];
@@ -1046,8 +1044,6 @@ IBFEInstrumentPanel::initializeSystemDependentData(IBFEMethod* ib_method_ops, co
     {
         // get node on meter mesh
         const Node* node = &d_meter_meshes[meter_mesh_number]->node_ref(ii);
-        // get the centroid
-        const Node* centroid_node = &d_meter_meshes[meter_mesh_number]->node_ref(d_num_nodes[meter_mesh_number]);
 
         std::vector<double> node_disp(NDIM, 0.0);
         std::vector<double> centroid_disp(NDIM, 0.0);

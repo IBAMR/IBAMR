@@ -148,8 +148,6 @@ IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hie
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-
     // Resize the vectors corresponding to data individually maintained for
     // separate levels of the patch hierarchy.
     const int new_size = std::max(level_number + 1, static_cast<int>(d_is_initialized.size()));
@@ -551,7 +549,7 @@ IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
         const double* const X_node = X_ghost_data->getGhostedLocalFormVecArray()->data();
         MatrixNd dF_dX;
         Vector D;
-        double R, T, dT_dR, eps;
+        double dT_dR;
         for (unsigned int k = 0; k < petsc_mastr_node_idxs.size(); ++k)
         {
             // Compute the Jacobian of the force applied by the spring to the
@@ -569,12 +567,12 @@ IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
             {
                 D(i) = X_node[petsc_slave_idx + i] - X_node[petsc_mastr_idx + i];
             }
-            R = D.norm();
-            T = force_fcn(R, params, lag_mastr_idx, lag_slave_idx);
+            const double R = D.norm();
+            const double T = force_fcn(R, params, lag_mastr_idx, lag_slave_idx);
             if (!force_deriv_fcn)
             {
                 // Use finite differences to approximate dT/dR.
-                eps = std::max(R, 1.0) * std::pow(std::numeric_limits<double>::epsilon(), 1.0 / 3.0);
+                const double eps = std::max(R, 1.0) * std::pow(std::numeric_limits<double>::epsilon(), 1.0 / 3.0);
                 dT_dR = (force_fcn(R + eps, params, lag_mastr_idx, lag_slave_idx) -
                          force_fcn(R - eps, params, lag_mastr_idx, lag_slave_idx)) /
                         (2.0 * eps);
@@ -759,23 +757,23 @@ IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc_idx_
     const int num_local_nodes = static_cast<int>(local_nodes.size());
 
     // Determine how many springs are associated with the present MPI process.
-    unsigned int num_springs = 0;
+    unsigned int total_num_springs = 0;
     for (const auto& node_idx : local_nodes)
     {
         const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
-        if (force_spec) num_springs += force_spec->getNumberOfSprings();
+        if (force_spec) total_num_springs += force_spec->getNumberOfSprings();
     }
 
     // Resize arrays for storing cached values used to compute spring forces.
-    lag_mastr_node_idxs.resize(num_springs);
-    lag_slave_node_idxs.resize(num_springs);
-    petsc_mastr_node_idxs.resize(num_springs);
-    petsc_slave_node_idxs.resize(num_springs);
-    petsc_global_mastr_node_idxs.resize(num_springs);
-    petsc_global_slave_node_idxs.resize(num_springs);
-    force_fcns.resize(num_springs);
-    force_deriv_fcns.resize(num_springs);
-    parameters.resize(num_springs);
+    lag_mastr_node_idxs.resize(total_num_springs);
+    lag_slave_node_idxs.resize(total_num_springs);
+    petsc_mastr_node_idxs.resize(total_num_springs);
+    petsc_slave_node_idxs.resize(total_num_springs);
+    petsc_global_mastr_node_idxs.resize(total_num_springs);
+    petsc_global_slave_node_idxs.resize(total_num_springs);
+    force_fcns.resize(total_num_springs);
+    force_deriv_fcns.resize(total_num_springs);
+    parameters.resize(total_num_springs);
 
     // Setup the data structures used to compute spring forces.
     int current_spring = 0;
@@ -976,20 +974,20 @@ IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_idx_se
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Determine how many beams are associated with the present MPI process.
-    unsigned int num_beams = 0;
+    unsigned int total_num_beams = 0;
     for (const auto& node_idx : local_nodes)
     {
         const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
-        if (force_spec) num_beams += force_spec->getNumberOfBeams();
+        if (force_spec) total_num_beams += force_spec->getNumberOfBeams();
     }
-    petsc_mastr_node_idxs.resize(num_beams);
-    petsc_next_node_idxs.resize(num_beams);
-    petsc_prev_node_idxs.resize(num_beams);
-    petsc_global_mastr_node_idxs.resize(num_beams);
-    petsc_global_next_node_idxs.resize(num_beams);
-    petsc_global_prev_node_idxs.resize(num_beams);
-    rigidities.resize(num_beams);
-    curvatures.resize(num_beams);
+    petsc_mastr_node_idxs.resize(total_num_beams);
+    petsc_next_node_idxs.resize(total_num_beams);
+    petsc_prev_node_idxs.resize(total_num_beams);
+    petsc_global_mastr_node_idxs.resize(total_num_beams);
+    petsc_global_next_node_idxs.resize(total_num_beams);
+    petsc_global_prev_node_idxs.resize(total_num_beams);
+    rigidities.resize(total_num_beams);
+    curvatures.resize(total_num_beams);
 
     // Setup the data structures used to compute beam forces.
     int current_beam = 0;
@@ -1190,20 +1188,20 @@ IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonlocal_pet
 
     // Determine how many target points are associated with the present MPI
     // process.
-    unsigned int num_target_points = 0;
+    unsigned int total_num_target_points = 0;
     for (const auto& node_idx : local_nodes)
     {
         const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
-        if (force_spec) num_target_points += 1;
+        if (force_spec) total_num_target_points += 1;
     }
 
     // Resize arrays for storing cached values used to compute target point
     // forces.
-    petsc_node_idxs.resize(num_target_points);
-    petsc_global_node_idxs.resize(num_target_points);
-    kappa.resize(num_target_points);
-    eta.resize(num_target_points);
-    X0.resize(num_target_points);
+    petsc_node_idxs.resize(total_num_target_points);
+    petsc_global_node_idxs.resize(total_num_target_points);
+    kappa.resize(total_num_target_points);
+    eta.resize(total_num_target_points);
+    X0.resize(total_num_target_points);
 
     // Setup the data structures used to compute target point forces.
     int current_target_point = 0;

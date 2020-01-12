@@ -33,7 +33,6 @@ CFOldroydBRelaxation::setDataOnPatch(const int data_idx,
                                      Pointer<PatchLevel<NDIM> > /*patch_level*/)
 {
     const Box<NDIM>& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometry<NDIM> > p_geom = patch->getPatchGeometry();
     Pointer<CellData<NDIM, double> > ret_data = patch->getPatchData(data_idx);
     Pointer<CellData<NDIM, double> > in_data = patch->getPatchData(d_W_cc_idx);
     ret_data->fillAll(0.0);

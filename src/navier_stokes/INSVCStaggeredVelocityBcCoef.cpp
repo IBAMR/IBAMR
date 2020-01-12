@@ -260,7 +260,6 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     const double* const dx = pgeom->getDx();
 
     double mu = d_fluid_solver->muIsConstant() ? d_problem_coefs->getMu() : -1;
-    int mu_idx = -1;
 #if (NDIM == 2)
     Pointer<NodeData<NDIM, double> > mu_data;
 #elif (NDIM == 3)
@@ -268,7 +267,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
 #endif
     if (!d_fluid_solver->muIsConstant())
     {
-        mu_idx = d_fluid_solver->getInterpolatedLinearOperatorMuPatchDataIndex();
+        const int mu_idx = d_fluid_solver->getInterpolatedLinearOperatorMuPatchDataIndex();
 
 #if !defined(NDEBUG)
         TBOX_ASSERT(mu_idx >= 0);

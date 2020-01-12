@@ -370,8 +370,6 @@ PETScKrylovLinearSolver::deallocateSolverState()
 
     IBTK_TIMER_START(t_deallocate_solver_state);
 
-    int ierr;
-
     // Deallocate the operator and preconditioner states only if we are not
     // re-initializing the solver.
     if (!d_reinitializing_solver)
@@ -397,7 +395,7 @@ PETScKrylovLinearSolver::deallocateSolverState()
     // Destroy the KSP solver.
     if (d_managing_petsc_ksp)
     {
-        ierr = KSPDestroy(&d_petsc_ksp);
+        int ierr = KSPDestroy(&d_petsc_ksp);
         IBTK_CHKERRQ(ierr);
         d_petsc_ksp = nullptr;
         d_solver_has_attached_nullspace = false;
@@ -733,12 +731,10 @@ PETScKrylovLinearSolver::resetMatNullspace()
 void
 PETScKrylovLinearSolver::deallocateNullspaceData()
 {
-    int ierr;
-
     // Deallocate PETSc data structures.
     if (d_petsc_nullsp)
     {
-        ierr = MatNullSpaceDestroy(&d_petsc_nullsp);
+        int ierr = MatNullSpaceDestroy(&d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
         d_petsc_nullsp = nullptr;
         if (d_petsc_mat)
@@ -775,9 +771,8 @@ PETScKrylovLinearSolver::deallocateNullspaceData()
 PetscErrorCode
 PETScKrylovLinearSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
 {
-    int ierr;
     void* p_ctx;
-    ierr = MatShellGetContext(A, &p_ctx);
+    int ierr = MatShellGetContext(A, &p_ctx);
     CHKERRQ(ierr);
     auto krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
 #if !defined(NDEBUG)

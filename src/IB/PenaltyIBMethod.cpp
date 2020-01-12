@@ -281,12 +281,10 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
             const double* const X = d_X_current_data[ln]->getLocalFormVecArray()->data();
             const double* const Y = d_Y_current_data[ln]->getLocalFormVecArray()->data();
             const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
-            unsigned int i, d;
-            double dX;
-            for (i = 0; i < n_local; ++i)
+            for (unsigned int i = 0; i < n_local; ++i)
             {
-                dX = 0.0;
-                for (d = 0; d < NDIM; ++d)
+                double dX = 0.0;
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     F[NDIM * i + d] += K[i] * (Y[NDIM * i + d] - X[NDIM * i + d]);
                     dX += (Y[NDIM * i + d] - X[NDIM * i + d]) * (Y[NDIM * i + d] - X[NDIM * i + d]);
@@ -309,15 +307,13 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
             const double* const X_new = d_X_new_data[ln]->getLocalFormVecArray()->data();
             const double* const Y_new = d_Y_new_data[ln]->getLocalFormVecArray()->data();
             const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
-            unsigned int i, d;
-            double X_half, Y_half, dX;
-            for (i = 0; i < n_local; ++i)
+            for (unsigned int i = 0; i < n_local; ++i)
             {
-                dX = 0.0;
-                for (d = 0; d < NDIM; ++d)
+                double dX = 0.0;
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X_half = 0.5 * (X[NDIM * i + d] + X_new[NDIM * i + d]);
-                    Y_half = 0.5 * (Y[NDIM * i + d] + Y_new[NDIM * i + d]);
+                    const double X_half = 0.5 * (X[NDIM * i + d] + X_new[NDIM * i + d]);
+                    const double Y_half = 0.5 * (Y[NDIM * i + d] + Y_new[NDIM * i + d]);
                     F[NDIM * i + d] += K[i] * (Y_half - X_half);
                     dX += (Y_half - X_half) * (Y_half - X_half);
                 }
@@ -337,12 +333,10 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
             const double* const X = d_X_new_data[ln]->getLocalFormVecArray()->data();
             const double* const Y = d_Y_new_data[ln]->getLocalFormVecArray()->data();
             const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
-            unsigned int i, d;
-            double dX;
-            for (i = 0; i < n_local; ++i)
+            for (unsigned int i = 0; i < n_local; ++i)
             {
-                dX = 0.0;
-                for (d = 0; d < NDIM; ++d)
+                double dX = 0.0;
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     F[NDIM * i + d] += K[i] * (Y[NDIM * i + d] - X[NDIM * i + d]);
                     dX += (Y[NDIM * i + d] - X[NDIM * i + d]) * (Y[NDIM * i + d] - X[NDIM * i + d]);

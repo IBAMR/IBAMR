@@ -333,11 +333,15 @@ build_local_curv_block(DBfile* dbfile,
     {
         const char* varname = varnames[v].c_str();
         const int varplotdepth = varplotdepths[v];
-        std::vector<char*> compnames(varplotdepth);
+        std::vector<std::string> compnames;
         for (int d = 0; d < varplotdepth; ++d)
         {
-            const std::string compname = varnames[v] + "_" + std::to_string(d);
-            compnames[d] = strdup(compname.c_str());
+            compnames.push_back(varnames[v] + "_" + std::to_string(d));
+        }
+        std::vector<const char*> compnames_ptrs;
+        for (int d = 0; d < varplotdepth; ++d)
+        {
+            compnames_ptrs.push_back(compnames[d].c_str());
         }
 
         std::vector<float*> vars(varplotdepth);
@@ -357,7 +361,7 @@ build_local_curv_block(DBfile* dbfile,
                          varname,
                          meshname,
                          varplotdepth,
-                         &compnames[0],
+                         &compnames_ptrs[0],
                          &vars[0],
                          &dims[0],
                          ndims,
@@ -366,11 +370,6 @@ build_local_curv_block(DBfile* dbfile,
                          DB_FLOAT,
                          DB_NODECENT,
                          optlist);
-        }
-
-        for (int d = 0; d < varplotdepth; ++d)
-        {
-            free(compnames[d]);
         }
     }
 
@@ -553,11 +552,15 @@ build_local_ucd_mesh(DBfile* dbfile,
     {
         const char* varname = varnames[v].c_str();
         const int varplotdepth = varplotdepths[v];
-        std::vector<char*> compnames(varplotdepth);
+        std::vector<std::string> compnames;
         for (int d = 0; d < varplotdepth; ++d)
         {
-            const std::string compname = varnames[v] + "_" + std::to_string(d);
-            compnames[d] = strdup(compname.c_str());
+            compnames.push_back(varnames[v] + "_" + std::to_string(d));
+        }
+        std::vector<const char*> compnames_ptrs;
+        for (int d = 0; d < varplotdepth; ++d)
+        {
+            compnames_ptrs.push_back(compnames[d].c_str());
         }
 
         std::vector<float*> vars(varplotdepth);
@@ -576,7 +579,7 @@ build_local_ucd_mesh(DBfile* dbfile,
                         varname,
                         meshname,
                         varplotdepth,
-                        &compnames[0],
+                        &compnames_ptrs[0],
                         &vars[0],
                         nnodes,
                         nullptr,
@@ -584,11 +587,6 @@ build_local_ucd_mesh(DBfile* dbfile,
                         DB_FLOAT,
                         DB_NODECENT,
                         optlist);
-        }
-
-        for (int d = 0; d < varplotdepth; ++d)
-        {
-            free(compnames[d]);
         }
     }
 
@@ -1793,13 +1791,16 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                     current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
                     const int nblocks = mb_nblocks_per_proc[ln][proc][mb];
-                    std::vector<char*> meshnames(nblocks);
-
+                    std::vector<std::string> meshnames;
                     for (int block = 0; block < nblocks; ++block)
                     {
-                        meshnames[block] = strdup((current_file_name + ":level_" + std::to_string(ln) + "_mb_" +
-                                                   std::to_string(mb) + "_block_" + std::to_string(block) + "/mesh")
-                                                      .c_str());
+                        meshnames.push_back(current_file_name + ":level_" + std::to_string(ln) + "_mb_" +
+                                            std::to_string(mb) + "_block_" + std::to_string(block) + "/mesh");
+                    }
+                    std::vector<const char*> meshnames_ptrs;
+                    for (int block = 0; block < nblocks; ++block)
+                    {
+                        meshnames_ptrs.push_back(meshnames[block].c_str());
                     }
 
                     std::string& mb_name = mb_names_per_proc[ln][proc][mb];
@@ -1807,7 +1808,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                     DBPutMultimesh(dbfile,
                                    mb_name.c_str(),
                                    nblocks,
-                                   meshnames.data(),
+                                   meshnames_ptrs.data(),
                                    &multimeshtypes_per_proc[ln][proc][mb][0],
                                    optlist);
 
@@ -1815,11 +1816,6 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                     {
                         TBOX_ERROR(d_object_name << "::writePlotData()\n"
                                                  << "  Could not create directory named " << mb_name << std::endl);
-                    }
-
-                    for (int block = 0; block < nblocks; ++block)
-                    {
-                        free(meshnames[block]);
                     }
                 }
 
@@ -1894,14 +1890,18 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                         current_file_name += SILO_PROCESSOR_FILE_POSTFIX;
 
                         const int nblocks = mb_nblocks_per_proc[ln][proc][mb];
-                        std::vector<char*> varnames(nblocks);
 
+                        std::vector<std::string> varnames;
                         for (int block = 0; block < nblocks; ++block)
                         {
-                            varnames[block] =
-                                strdup((current_file_name + ":level_" + std::to_string(ln) + "_mb_" +
-                                        std::to_string(mb) + "_block_" + std::to_string(block) + d_var_names[ln][v])
-                                           .c_str());
+                            varnames.push_back(current_file_name + ":level_" + std::to_string(ln) + "_mb_" +
+                                               std::to_string(mb) + "_block_" + std::to_string(block) +
+                                               d_var_names[ln][v]);
+                        }
+                        std::vector<const char*> varnames_ptrs;
+                        for (int block = 0; block < nblocks; ++block)
+                        {
+                            varnames_ptrs.push_back(varnames[block].c_str());
                         }
 
                         std::string& mb_name = mb_names_per_proc[ln][proc][mb];
@@ -1911,14 +1911,9 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
                         DBPutMultivar(dbfile,
                                       var_name.c_str(),
                                       nblocks,
-                                      varnames.data(),
+                                      varnames_ptrs.data(),
                                       &multivartypes_per_proc[ln][proc][mb][0],
                                       optlist);
-
-                        for (int block = 0; block < nblocks; ++block)
-                        {
-                            free(varnames[block]);
-                        }
                     }
 
                     for (int mesh = 0; mesh < nucd_meshes_per_proc[ln][proc]; ++mesh)

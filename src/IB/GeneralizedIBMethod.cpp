@@ -113,7 +113,6 @@ GeneralizedIBMethod::registerEulerianVariables()
     IBMethod::registerEulerianVariables();
 
     const IntVector<NDIM> ib_ghosts = getMinimumGhostCellWidth();
-    const IntVector<NDIM> ghosts = 1;
     const IntVector<NDIM> no_ghosts = 0;
 
     Pointer<Variable<NDIM> > u_var = d_ib_solver->getVelocityVariable();
@@ -147,7 +146,6 @@ GeneralizedIBMethod::registerEulerianCommunicationAlgorithms()
 {
     IBMethod::registerEulerianCommunicationAlgorithms();
 
-    Pointer<Geometry<NDIM> > grid_geom = d_ib_solver->getPatchHierarchy()->getGridGeometry();
     Pointer<RefineAlgorithm<NDIM> > refine_alg;
     Pointer<RefineOperator<NDIM> > refine_op;
 
@@ -266,6 +264,7 @@ GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
     {
         W_data = &d_W_new_data;
     }
+    TBOX_ASSERT(W_data);
 
     Pointer<Variable<NDIM> > u_var = d_ib_solver->getVelocityVariable();
     Pointer<CellVariable<NDIM, double> > u_cc_var = u_var;
@@ -514,6 +513,8 @@ GeneralizedIBMethod::spreadForce(const int f_data_idx,
         N_data = &d_N_new_data;
         N_needs_ghost_fill = &d_N_new_needs_ghost_fill;
     }
+    TBOX_ASSERT(N_data);
+    TBOX_ASSERT(N_needs_ghost_fill);
 
     std::vector<Pointer<LData> >* X_LE_data;
     bool* X_LE_needs_ghost_fill;

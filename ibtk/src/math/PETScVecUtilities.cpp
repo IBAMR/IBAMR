@@ -623,10 +623,9 @@ PETScVecUtilities::constructPatchLevelAO_cell(AO& ao,
                                               Pointer<PatchLevel<NDIM> > patch_level,
                                               const int ao_offset)
 {
-    int ierr;
     if (ao)
     {
-        ierr = AODestroy(&ao);
+        int ierr = AODestroy(&ao);
         IBTK_CHKERRQ(ierr);
     }
 
@@ -691,10 +690,9 @@ PETScVecUtilities::constructPatchLevelAO_side(AO& ao,
                                               Pointer<PatchLevel<NDIM> > patch_level,
                                               const int ao_offset)
 {
-    int ierr;
     if (ao)
     {
-        ierr = AODestroy(&ao);
+        int ierr = AODestroy(&ao);
         IBTK_CHKERRQ(ierr);
     }
 
