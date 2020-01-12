@@ -16,6 +16,9 @@
 #include <IBTK_config.h>
 
 #include "ibamr/IBFESurfaceMethod.h"
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
@@ -24,7 +27,9 @@
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/SAMRAIDataCache.h"
+#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
 
@@ -36,9 +41,12 @@
 #include "CellData.h"
 #include "CellIndex.h"
 #include "GriddingAlgorithm.h"
+#include "HierarchyDataOpsManager.h"
+#include "HierarchyDataOpsReal.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LoadBalancer.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchData.h"
 #include "PatchHierarchy.h"
@@ -47,6 +55,8 @@
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
+#include "Variable.h"
+#include "VariableDatabase.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
@@ -56,6 +66,7 @@
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
+#include "libmesh/boundary_info.h"
 #include "libmesh/compare_types.h"
 #include "libmesh/dense_vector.h"
 #include "libmesh/dof_map.h"
@@ -81,9 +92,11 @@
 #include "libmesh/petsc_vector.h"
 #include "libmesh/point.h"
 #include "libmesh/quadrature.h"
+#include "libmesh/sparse_matrix.h"
 #include "libmesh/string_to_enum.h"
 #include "libmesh/system.h"
 #include "libmesh/tensor_value.h"
+#include "libmesh/type_tensor.h"
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
@@ -103,6 +116,7 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <map>
 #include <memory>
 #include <ostream>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -111,6 +125,8 @@ namespace SAMRAI
 {
 namespace xfer
 {
+template <int DIM>
+class RefineSchedule;
 template <int DIM>
 class CoarsenSchedule;
 } // namespace xfer
@@ -4349,5 +4365,7 @@ IBFESurfaceMethod::getFromRestart()
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace IBAMR
+
+//////////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
