@@ -852,7 +852,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             }
         }
         FEType fe_type = U_fe_type;
-        UniquePtr<FEBase> fe_X = FEBase::build(dim, fe_type);
+        std::unique_ptr<FEBase> fe_X = FEBase::build(dim, fe_type);
         const std::vector<double>& JxW = fe_X->get_JxW();
         const std::vector<std::vector<double> >& phi_X = fe_X->get_phi();
         std::array<const std::vector<std::vector<double> >*, NDIM - 1> dphi_dxi;
@@ -860,7 +860,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         if (NDIM > 2) dphi_dxi[1] = &fe_X->get_dphideta();
 
         FEType fe_DU_jump_type = DU_jump_fe_type;
-        UniquePtr<FEBase> fe_DU_jump = FEBase::build(dim, fe_DU_jump_type);
+        std::unique_ptr<FEBase> fe_DU_jump = FEBase::build(dim, fe_DU_jump_type);
         const std::vector<double>& JxW_jump = fe_DU_jump->get_JxW();
         const std::vector<std::vector<double> >& phi_DU_jump = fe_DU_jump->get_phi();
 
@@ -1023,8 +1023,6 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             x_qp[NDIM * (qp_offset + qp) + d] += x_node[k][d] * p;
-                            x_in_qp[NDIM * (qp_offset + qp) + d] += x_node[k][d] * p;
-                            x_out_qp[NDIM * (qp_offset + qp) + d] += x_node[k][d] * p;
                         }
                         if (d_use_velocity_jump_conditions)
                         {
@@ -1053,8 +1051,8 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         n_qp[NDIM * (qp_offset + qp) + d] = n(d);
-                        x_in_qp[NDIM * (qp_offset + qp) + d] -= n(d) * dh;
-                        x_out_qp[NDIM * (qp_offset + qp) + d] += n(d) * dh;
+                        x_in_qp[NDIM * (qp_offset + qp) + d] = x_qp[NDIM * (qp_offset + qp) + d] - n(d) * dh;
+                        x_out_qp[NDIM * (qp_offset + qp) + d] = x_qp[NDIM * (qp_offset + qp) + d] + n(d) * dh;
                     }
                 }
                 qp_offset += n_qpoints;
