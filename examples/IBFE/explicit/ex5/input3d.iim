@@ -217,7 +217,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
-   viz_dump_interval           = int(0.1/DT)
+   viz_dump_interval           = int(0.05/DT)
    viz_dump_dirname            = "viz_IIM_3D"
    visit_number_procs_per_file = 1
 
