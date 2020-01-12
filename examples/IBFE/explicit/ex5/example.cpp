@@ -117,8 +117,9 @@ struct TetherData
     }
 };
 
-bool use_boundary_mesh = false;
-bool compute_fluid_traction = false;
+
+bool use_boundary_mesh 			  = false;
+bool compute_fluid_traction 	  = false;
 
 // Tether (penalty) stress function.
 void
@@ -721,7 +722,9 @@ postprocess_data(Pointer<Database> input_db,
         get_values_for_interpolation(x_node, *x_ghost_vec, dof_indices);
         get_values_for_interpolation(U_node, *U_ghost_vec, dof_indices);
         get_values_for_interpolation(X_node, X_vec, dof_indices);
-        if (compute_fluid_traction) get_values_for_interpolation(TAU_node, *TAU_ghost_vec, dof_indices);
+
+        if (compute_fluid_traction)
+            get_values_for_interpolation(TAU_node, *TAU_ghost_vec, dof_indices);
 
         const unsigned int n_qp = qrule->n_points();
         for (unsigned int qp = 0; qp < n_qp; ++qp)
