@@ -2929,17 +2929,74 @@ std::vector<std::pair<Point, Point> >*
 FEDataManager::computeActiveElementBoundingBoxes()
 {
     IBTK_DEPRECATED_MEMBER_FUNCTION1("FEDataManager", "computeActiveElementBoundingBoxes");
+    // Get the necessary FE data.
     const MeshBase& mesh = d_fe_data->d_es->get_mesh();
-    const System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
+    const unsigned int n_elem = mesh.max_elem_id() + 1;
+    System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
+    const unsigned int X_sys_num = X_system.number();
+    NumericVector<double>& X_vec = *X_system.solution;
+    NumericVector<double>& X_ghost_vec = *X_system.current_local_solution;
+    copy_and_synch(X_vec, X_ghost_vec, /*close_v_in*/ false);
 
-    const auto bboxes = get_global_active_element_bounding_boxes(mesh, X_system);
-    d_active_elem_bboxes.resize(bboxes.size());
-    for (std::size_t i = 0; i < bboxes.size(); ++i)
+    // Compute the lower and upper bounds of all active local elements in the
+    // mesh.  Assumes nodal basis functions.
+    d_active_elem_bboxes.resize(n_elem);
+    std::fill(d_active_elem_bboxes.begin(), d_active_elem_bboxes.end(), std::make_pair(Point::Zero(), Point::Zero()));
+    std::vector<unsigned int> dof_indices;
+    MeshBase::const_element_iterator el_it = mesh.active_local_elements_begin();
+    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+    for (; el_it != el_end; ++el_it)
     {
-        for (int d = 0; d < NDIM; ++d)
+        const Elem* const elem = *el_it;
+        const unsigned int elem_id = elem->id();
+        Point& elem_lower_bound = d_active_elem_bboxes[elem_id].first;
+        Point& elem_upper_bound = d_active_elem_bboxes[elem_id].second;
+        elem_lower_bound = Point::Constant(std::numeric_limits<double>::max());
+        elem_upper_bound = Point::Constant(-std::numeric_limits<double>::max());
+
+        const unsigned int n_nodes = elem->n_nodes();
+        dof_indices.clear();
+        for (unsigned int k = 0; k < n_nodes; ++k)
         {
-            d_active_elem_bboxes[i].first[d] = bboxes[i].first(d);
-            d_active_elem_bboxes[i].second[d] = bboxes[i].second(d);
+            const Node* const node = elem->node_ptr(k);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                TBOX_ASSERT(node->n_dofs(X_sys_num, d) == 1);
+                dof_indices.push_back(node->dof_number(X_sys_num, d, 0));
+            }
+        }
+        std::vector<double> X_node;
+        X_ghost_vec.get(dof_indices, X_node);
+        for (unsigned int k = 0; k < n_nodes; ++k)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                const double& X = X_node[k * NDIM + d];
+                elem_lower_bound[d] = std::min(elem_lower_bound[d], X);
+                elem_upper_bound[d] = std::max(elem_upper_bound[d], X);
+            }
+        }
+    }
+
+    // Parallel sum elem_lower_bound and elem_upper_bound so that each process
+    // has access to the bounding box data for each active element in the mesh.
+    std::vector<double> d_active_elem_bboxes_flattened(2 * NDIM * n_elem);
+    for (unsigned int e = 0; e < n_elem; ++e)
+    {
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            d_active_elem_bboxes_flattened[2 * e * NDIM + d] = d_active_elem_bboxes[e].first[d];
+            d_active_elem_bboxes_flattened[(2 * e + 1) * NDIM + d] = d_active_elem_bboxes[e].second[d];
+        }
+    }
+    SAMRAI_MPI::sumReduction(&d_active_elem_bboxes_flattened[0],
+                             static_cast<int>(d_active_elem_bboxes_flattened.size()));
+    for (unsigned int e = 0; e < n_elem; ++e)
+    {
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            d_active_elem_bboxes[e].first[d] = d_active_elem_bboxes_flattened[2 * e * NDIM + d];
+            d_active_elem_bboxes[e].second[d] = d_active_elem_bboxes_flattened[(2 * e + 1) * NDIM + d];
         }
     }
     return &d_active_elem_bboxes;
