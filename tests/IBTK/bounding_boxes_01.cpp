@@ -180,34 +180,39 @@ main(int argc, char** argv)
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
-    // test 2D
-    out << "2D:" << std::endl;
-    test(init, 2, "sphere", TRI3, FIRST, out, true);
-    test(init, 2, "sphere", TRI3, FIRST, out, false);
-    out << "TRI3 OK" << std::endl;
-    test(init, 2, "sphere", TRI6, THIRD, out, true);
-    test(init, 2, "sphere", TRI6, THIRD, out, false);
-    out << "TRI6 OK" << std::endl;
-    test(init, 2, "sphere", QUAD4, FIRST, out, true);
-    test(init, 2, "sphere", QUAD4, FIRST, out, false);
-    out << "QUAD4 OK" << std::endl;
-    test(init, 2, "sphere", QUAD9, THIRD, out, true);
-    test(init, 2, "sphere", QUAD9, THIRD, out, false);
-    out << "QUAD9 OK" << std::endl;
+    if (NDIM == 2)
+    {
+        // test 2D
+        out << "2D:" << std::endl;
+        test(init, 2, "sphere", TRI3, FIRST, out, true);
+        test(init, 2, "sphere", TRI3, FIRST, out, false);
+        out << "TRI3 OK" << std::endl;
+        test(init, 2, "sphere", TRI6, THIRD, out, true);
+        test(init, 2, "sphere", TRI6, THIRD, out, false);
+        out << "TRI6 OK" << std::endl;
+        test(init, 2, "sphere", QUAD4, FIRST, out, true);
+        test(init, 2, "sphere", QUAD4, FIRST, out, false);
+        out << "QUAD4 OK" << std::endl;
+        test(init, 2, "sphere", QUAD9, THIRD, out, true);
+        test(init, 2, "sphere", QUAD9, THIRD, out, false);
+        out << "QUAD9 OK" << std::endl;
+    }
 
-    // test 3D
-    out << "\n";
-    out << "3D:" << std::endl;
-    test(init, 3, "cube", TET4, FIRST, out, true);
-    test(init, 3, "cube", TET4, FIRST, out, false);
-    out << "TET4 OK" << std::endl;
-    test(init, 3, "cube", TET10, THIRD, out, true);
-    test(init, 3, "cube", TET10, THIRD, out, false);
-    out << "TET10 OK" << std::endl;
-    test(init, 3, "sphere", HEX8, FIRST, out, true);
-    test(init, 3, "sphere", HEX8, FIRST, out, false);
-    out << "HEX8 OK" << std::endl;
-    test(init, 3, "sphere", HEX27, THIRD, out, true);
-    test(init, 3, "sphere", HEX27, THIRD, out, false);
-    out << "HEX27 OK" << std::endl;
+    if (NDIM == 3)
+    {
+        // test 3D
+        out << "3D:" << std::endl;
+        test(init, 3, "cube", TET4, FIRST, out, true);
+        test(init, 3, "cube", TET4, FIRST, out, false);
+        out << "TET4 OK" << std::endl;
+        test(init, 3, "cube", TET10, THIRD, out, true);
+        test(init, 3, "cube", TET10, THIRD, out, false);
+        out << "TET10 OK" << std::endl;
+        test(init, 3, "sphere", HEX8, FIRST, out, true);
+        test(init, 3, "sphere", HEX8, FIRST, out, false);
+        out << "HEX8 OK" << std::endl;
+        test(init, 3, "sphere", HEX27, THIRD, out, true);
+        test(init, 3, "sphere", HEX27, THIRD, out, false);
+        out << "HEX27 OK" << std::endl;
+    }
 }
