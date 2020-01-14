@@ -1,12 +1,13 @@
+USE_BOUNDARY_MESH = TRUE
+
 L   = 1.0
 MAX_LEVELS = 2
 REF_RATIO  = 4
-N = 12
+N = 64
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N
-DX  = L/NFINEST
+DX  = 0.2/4 // = R/4 so that we refine exactly twice
 MFAC = 1.0
-ELEM_TYPE = "TET4"
-SHAPE = "CUBE"
+ELEM_TYPE = "HEX27"
 
 IBHierarchyIntegrator {}
 IBFEMethod { enable_logging = FALSE}
@@ -40,7 +41,7 @@ GriddingAlgorithm {
       level_0 = 512,512,512  // all finer levels will use same values as level_0
    }
    smallest_patch_size {
-      level_0 =   2,  2,  2  // all finer levels will use same values as level_0
+      level_0 =   16,  16,  16  // all finer levels will use same values as level_0
    }
 }
 

@@ -17,7 +17,8 @@ EXTRA_PROGRAMS = elem_hmax_01 elem_hmax_02 mpi_type_wrappers poisson_01_2d \
 poisson_01_3d samraidatacache_01_2d samraidatacache_01_3d laplace_01_2d \
 laplace_01_3d laplace_02_2d laplace_02_3d laplace_03_2d laplace_03_3d ldata_01 \
 prolongation_mat_2d prolongation_mat_3d phys_boundary_ops_2d phys_boundary_ops_3d \
-vc_viscous_solver_2d vc_viscous_solver_3d jacobian_calc_01 bounding_boxes_01
+vc_viscous_solver_2d vc_viscous_solver_3d jacobian_calc_01 bounding_boxes_01_2d \
+bounding_boxes_01_3d
 
 elem_hmax_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 elem_hmax_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -103,9 +104,13 @@ jacobian_calc_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 jacobian_calc_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 jacobian_calc_01_SOURCES = jacobian_calc_01.cpp
 
-bounding_boxes_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-bounding_boxes_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-bounding_boxes_01_SOURCES = bounding_boxes_01.cpp
+bounding_boxes_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+bounding_boxes_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+bounding_boxes_01_2d_SOURCES = bounding_boxes_01.cpp
+
+bounding_boxes_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+bounding_boxes_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+bounding_boxes_01_3d_SOURCES = bounding_boxes_01.cpp
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \

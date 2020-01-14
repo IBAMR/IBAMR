@@ -2888,6 +2888,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
 std::vector<std::pair<Point, Point> >*
 FEDataManager::computeActiveElementBoundingBoxes()
 {
+    IBTK_DEPRECATED_MEMBER_FUNCTION1("FEDataManager", "computeActiveElementBoundingBoxes");
     const MeshBase& mesh = d_fe_data->d_es->get_mesh();
     const System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
 
@@ -2911,197 +2912,99 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
 {
     // Get the necessary FE data.
     const MeshBase& mesh = d_fe_data->d_es->get_mesh();
-    const Parallel::Communicator& comm = mesh.comm();
-    const unsigned int dim = mesh.mesh_dimension();
     System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
-    const DofMap& X_dof_map = X_system.get_dof_map();
-    FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
-    FEType fe_type = X_dof_map.variable_type(0);
-    for (unsigned d = 0; d < NDIM; ++d)
-    {
-        TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
-    }
-    NumericVector<double>* X_vec = getCoordsVector();
-    std::unique_ptr<NumericVector<double> > X_ghost_vec = NumericVector<double>::build(comm);
-
-    // convenience alias for the quadrature key type used by FECache and JacobianCalculatorCache
-    using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
-    FECache X_fe_cache(dim, fe_type, FEUpdateFlags::update_phi);
 
     // Setup data structures used to assign elements to patches.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
-    const IntVector<NDIM>& ratio = level->getRatio();
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
     const int num_local_patches = level->getProcessorMapping().getNumberOfLocalIndices();
     std::vector<std::set<Elem*> > local_patch_elems(num_local_patches);
-    std::vector<std::set<Elem*> > nonlocal_patch_elems(num_local_patches);
-    std::vector<std::set<Elem*> > frontier_patch_elems(num_local_patches);
+    active_patch_elems.resize(num_local_patches);
 
-    // We provisionally associate an element with a Cartesian grid patch if the
-    // element's bounding box intersects the patch interior grown by the
-    // specified ghost cell width.
-    //
-    // NOTE: Following the call to computeActiveElementBoundingBoxes, each
-    // processor will have access to all of the element bounding boxes.  This is
-    // not a scalable approach, but we won't worry about this until it becomes
-    // an actual issue.
-    computeActiveElementBoundingBoxes();
+    // We associate an element with a Cartesian grid patch if the element's
+    // bounding box (which is computed based on the bounds of quadrature
+    // points) intersects the patch interior grown by the specified ghost cell
+    // width.
+    double dx_0 = std::numeric_limits<double>::max();
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        dx_0 = std::min(dx_0, *std::min_element(pgeom->getDx(), pgeom->getDx() + NDIM));
+    }
+    dx_0 = SAMRAI_MPI::minReduction(dx_0);
+    TBOX_ASSERT(dx_0 != std::numeric_limits<double>::max());
+
+    // be a bit paranoid by computing bounding boxes for elements as the union
+    // of the bounding box of the nodes and the bounding box of the quadrature
+    // points:
+    const std::vector<libMeshWrappers::BoundingBox> local_nodal_bboxes =
+        get_local_active_element_bounding_boxes(mesh, X_system);
+    const std::vector<libMeshWrappers::BoundingBox> local_qp_bboxes =
+        get_local_active_element_bounding_boxes(mesh,
+                                                X_system,
+                                                d_default_interp_spec.quad_type,
+                                                d_default_interp_spec.quad_order,
+                                                d_default_interp_spec.use_adaptive_quadrature,
+                                                d_default_interp_spec.point_density,
+                                                dx_0);
+    TBOX_ASSERT(local_nodal_bboxes.size() == local_qp_bboxes.size());
+    std::vector<libMeshWrappers::BoundingBox> local_bboxes;
+    for (std::size_t box_n = 0; box_n < local_nodal_bboxes.size(); ++box_n)
+    {
+        local_bboxes.emplace_back(local_nodal_bboxes[box_n]);
+#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MAJOR_VERSION
+        local_bboxes.back().union_with(local_qp_bboxes[box_n]);
+#else
+        // no BoundingBox::union_with in libMesh 1.1
+        auto& box = local_bboxes.back();
+        auto& other_box = local_qp_bboxes[box_n];
+        for (unsigned int d = 0; d < LIBMESH_DIM; ++d)
+        {
+            box.first(d) = std::min(box.first(d), other_box.first(d));
+            box.second(d) = std::max(box.second(d), other_box.second(d));
+        }
+#endif
+    }
+    const std::vector<libMeshWrappers::BoundingBox> global_bboxes =
+        get_global_active_element_bounding_boxes(mesh, local_bboxes);
+
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
-        std::set<Elem*>& frontier_elems = frontier_patch_elems[local_patch_num];
+        std::set<Elem*>& elems = local_patch_elems[local_patch_num];
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
-        Point x_lower;
-        Point x_upper;
+        // TODO: reimplement this with an rtree description of SAMRAI's patches
+        libMeshWrappers::BoundingBox patch_bbox;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            x_lower[d] = pgeom->getXLower()[d] - dx[d] * ghost_width[d];
-            x_upper[d] = pgeom->getXUpper()[d] + dx[d] * ghost_width[d];
+            patch_bbox.first(d) = pgeom->getXLower()[d] - dx[d] * ghost_width[d];
+            patch_bbox.second(d) = pgeom->getXUpper()[d] + dx[d] * ghost_width[d];
         }
-
-        MeshBase::const_element_iterator el_it = mesh.active_elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.active_elements_end();
-        for (; el_it != el_end; ++el_it)
+        for (unsigned int d = NDIM; d < LIBMESH_DIM; ++d)
         {
-            Elem* const elem = *el_it;
-            const unsigned int elem_id = elem->id();
-            const Point& elem_lower_bound = d_active_elem_bboxes[elem_id].first;
-            const Point& elem_upper_bound = d_active_elem_bboxes[elem_id].second;
-            bool in_patch = true;
-            for (unsigned int d = 0; d < NDIM && in_patch; ++d)
-            {
-                in_patch = in_patch && ((elem_upper_bound[d] >= x_lower[d] && elem_upper_bound[d] <= x_upper[d]) ||
-                                        (elem_lower_bound[d] >= x_lower[d] && elem_lower_bound[d] <= x_upper[d]));
-            }
-            if (in_patch)
-            {
-                frontier_elems.insert(elem);
-            }
+            patch_bbox.first(d) = 0.0;
+            patch_bbox.second(d) = 0.0;
         }
-    }
 
-    // Recursively add/remove elements from the active sets that were generated
-    // via the bounding box method.
-    bool done = false;
-    while (!done)
-    {
-        // Setup an appropriately ghosted temporary coordinates vector.
-        std::vector<unsigned int> X_ghost_dofs;
-        std::vector<Elem*> frontier_elems;
-        collect_unique_elems(frontier_elems, frontier_patch_elems);
-        collectGhostDOFIndices(X_ghost_dofs, frontier_elems, COORDINATES_SYSTEM_NAME);
-        X_ghost_vec->init(X_vec->size(), X_vec->local_size(), X_ghost_dofs, true, GHOSTED);
-        copy_and_synch(*X_vec, *X_ghost_vec, /*close_v_in*/ false);
-        auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec.get());
-        const double* const X_local_soln = X_petsc_vec->get_array_read();
-
-        // Keep only those elements that have a quadrature point on the local
-        // patch.
-        boost::multi_array<double, 2> X_node;
-        Point X_qp;
-        int local_patch_num = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+        auto el_it = mesh.active_elements_begin();
+        for (const libMeshWrappers::BoundingBox& bbox : global_bboxes)
         {
-            const std::set<Elem*>& frontier_elems = frontier_patch_elems[local_patch_num];
-            std::set<Elem*>& local_elems = local_patch_elems[local_patch_num];
-            std::set<Elem*>& nonlocal_elems = nonlocal_patch_elems[local_patch_num];
-            if (frontier_elems.empty()) continue;
-
-            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Box<NDIM> ghost_box = Box<NDIM>::grow(patch_box, ghost_width);
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const patch_dx = patch_geom->getDx();
-            const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
-
-            auto el_it = frontier_elems.begin();
-            const std::set<Elem*>::const_iterator el_end = frontier_elems.end();
-            for (; el_it != el_end; ++el_it)
-            {
-                Elem* const elem = *el_it;
-                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
-                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
-
-                const quad_key_type key = getQuadratureKey(d_default_interp_spec.quad_type,
-                                                           d_default_interp_spec.quad_order,
-                                                           d_default_interp_spec.use_adaptive_quadrature,
-                                                           d_default_interp_spec.point_density,
-                                                           elem,
-                                                           X_node,
-                                                           patch_dx_min);
-                const FEBase& X_fe = X_fe_cache(key, elem);
-                const QBase& qrule = d_fe_data->d_quadrature_cache[key];
-                const std::vector<std::vector<double> >& X_phi = X_fe.get_phi();
-                TBOX_ASSERT(qrule.n_points() == X_phi[0].size());
-
-                bool found_qp = false;
-                for (unsigned int qp = 0; qp < qrule.n_points() && !found_qp; ++qp)
-                {
-                    interpolate(&X_qp[0], qp, X_node, X_phi);
-                    const hier::Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
-                    if (ghost_box.contains(i))
-                    {
-                        local_elems.insert(elem);
-                        found_qp = true;
-                    }
-                }
-                if (!found_qp) nonlocal_elems.insert(elem);
-            }
+            if (bbox.intersects(patch_bbox)) elems.insert(*el_it);
+            ++el_it;
         }
-
-        X_petsc_vec->restore_array();
-
-        // Rebuild the set of frontier elements, which are any neighbors of a
-        // local element that has not already been determined to be either a
-        // local or a nonlocal element.
-        bool new_frontier = false;
-        local_patch_num = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
-        {
-            std::set<Elem*>& frontier_elems = frontier_patch_elems[local_patch_num];
-            const std::set<Elem*>& local_elems = local_patch_elems[local_patch_num];
-            const std::set<Elem*>& nonlocal_elems = nonlocal_patch_elems[local_patch_num];
-            frontier_elems.clear();
-            if (local_elems.empty()) continue;
-
-            for (const auto& elem : local_elems)
-            {
-                for (unsigned int n = 0; n < elem->n_neighbors(); ++n)
-                {
-                    Elem* const nghbr_elem = elem->neighbor_ptr(n);
-                    if (nghbr_elem)
-                    {
-                        const bool is_local_elem = local_elems.find(nghbr_elem) != local_elems.end();
-                        const bool is_nonlocal_elem = nonlocal_elems.find(nghbr_elem) != nonlocal_elems.end();
-                        if (!(is_local_elem || is_nonlocal_elem))
-                        {
-                            frontier_elems.insert(nghbr_elem);
-                            new_frontier = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        // Check to see if we are done.
-        done = SAMRAI_MPI::sumReduction(new_frontier ? 1 : 0) == 0;
     }
 
     // Set the active patch element data.
-    active_patch_elems.resize(num_local_patches);
     local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
-        std::vector<Elem*>& active_elems = active_patch_elems[local_patch_num];
         const std::set<Elem*>& local_elems = local_patch_elems[local_patch_num];
+        std::vector<Elem*>& active_elems = active_patch_elems[local_patch_num];
         active_elems.resize(local_elems.size());
-        int k = 0;
-        for (auto cit = local_elems.begin(); cit != local_elems.end(); ++cit, ++k)
-        {
-            active_elems[k] = *cit;
-        }
+        std::copy(local_elems.begin(), local_elems.end(), active_elems.begin());
     }
     return;
 } // collectActivePatchElements

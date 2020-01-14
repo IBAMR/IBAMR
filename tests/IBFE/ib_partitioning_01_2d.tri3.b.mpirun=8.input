@@ -1,12 +1,13 @@
+// Like the other TRI3 partitioning test, but uses a square
 L   = 1.0
-MAX_LEVELS = 2
+MAX_LEVELS = 3
 REF_RATIO  = 4
-N = 12
+N = 32
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N
-DX  = L/NFINEST
+DX  = 0.3/(1 * 32 )
 MFAC = 1.0
-ELEM_TYPE = "TET4"
-SHAPE = "CUBE"
+ELEM_TYPE = "TRI3"
+SHAPE = "SQUARE"
 
 IBHierarchyIntegrator {}
 IBFEMethod { enable_logging = FALSE}
@@ -23,26 +24,30 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0,0),(N - 1,N - 1,N - 1) ]
-   x_lo = 0,0,0
-   x_up = L,L,L
-   periodic_dimension = 0,0,0
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = L,L
+   periodic_dimension = 0,0
 }
 
 GriddingAlgorithm {
    max_levels = MAX_LEVELS
    ratio_to_coarser {
-      level_1 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_2 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_3 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_1 = REF_RATIO,REF_RATIO
+      level_2 = REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO
    }
    largest_patch_size {
-      level_0 = 512,512,512  // all finer levels will use same values as level_0
+      level_0 = 512,512
    }
    smallest_patch_size {
-      level_0 =   2,  2,  2  // all finer levels will use same values as level_0
+      level_0 =   2,  2  // all finer levels will use same values as level_0
    }
 }
 
 StandardTagAndInitialize {tagging_method = "GRADIENT_DETECTOR"}
-LoadBalancer {}
+LoadBalancer
+{
+   bin_pack_method     = "GREEDY"
+   max_workload_factor = 0.0625
+}
