@@ -218,7 +218,8 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
                                         const double patch_dx_min)
 {
     const unsigned int dim = mesh.mesh_dimension();
-    TBOX_ASSERT(dim <= LIBMESH_DIM);
+    const unsigned int spacedim = mesh.spatial_dimension();
+    TBOX_ASSERT(spacedim == NDIM);
     const unsigned int X_sys_num = X_system.number();
     auto X_ghost_vec_ptr = X_system.current_local_solution->zero_clone();
     auto& X_ghost_vec = dynamic_cast<libMesh::PetscVector<double>&>(*X_ghost_vec_ptr);
@@ -226,7 +227,7 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
 
     std::vector<libMeshWrappers::BoundingBox> bboxes;
 
-    std::vector<std::vector<libMesh::dof_id_type> > dof_indices(dim);
+    std::vector<std::vector<libMesh::dof_id_type> > dof_indices(NDIM);
     boost::multi_array<double, 2> X_node;
     QuadratureCache quad_cache(dim);
     FECache fe_cache(dim, X_system.get_dof_map().variable_type(0), update_phi);
@@ -249,12 +250,12 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
         // 1. extract node locations
         const libMesh::Elem* const elem = *el_it;
         const unsigned int n_nodes = elem->n_nodes();
-        for (unsigned int d = 0; d < dim; ++d) dof_indices[d].clear();
+        for (unsigned int d = 0; d < NDIM; ++d) dof_indices[d].clear();
 
         for (unsigned int k = 0; k < n_nodes; ++k)
         {
             const libMesh::Node* const node = elem->node_ptr(k);
-            for (unsigned int d = 0; d < dim; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 TBOX_ASSERT(node->n_dofs(X_sys_num, d) == 1);
                 dof_indices[d].push_back(node->dof_number(X_sys_num, d, 0));
@@ -274,19 +275,19 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
             libMesh::Point mapped_point;
             for (unsigned int k = 0; k < n_nodes; ++k)
             {
-                for (unsigned int d = 0; d < dim; ++d)
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     mapped_point(d) += phi_X[k][qp] * X_node[k][d];
                 }
             }
-            for (unsigned int d = 0; d < dim; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 lower_bound(d) = std::min(lower_bound(d), mapped_point(d));
                 upper_bound(d) = std::max(upper_bound(d), mapped_point(d));
             }
 
             // fill extra dimension with 0.0, which is libMesh's convention
-            for (unsigned int d = dim; d < LIBMESH_DIM; ++d)
+            for (unsigned int d = NDIM; d < LIBMESH_DIM; ++d)
             {
                 lower_bound(d) = 0.0;
                 upper_bound(d) = 0.0;
@@ -300,7 +301,8 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
 std::vector<libMeshWrappers::BoundingBox>
 get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system)
 {
-    const unsigned int dim = mesh.mesh_dimension();
+    const unsigned int spacedim = mesh.spatial_dimension();
+    TBOX_ASSERT(spacedim == NDIM);
     const unsigned int X_sys_num = X_system.number();
     auto X_ghost_vec_ptr = X_system.current_local_solution->zero_clone();
     auto& X_ghost_vec = dynamic_cast<libMesh::PetscVector<double>&>(*X_ghost_vec_ptr);
@@ -331,7 +333,7 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const lib
         for (unsigned int k = 0; k < n_nodes; ++k)
         {
             const libMesh::Node* const node = elem->node_ptr(k);
-            for (unsigned int d = 0; d < dim; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
                 TBOX_ASSERT(node->n_dofs(X_sys_num, d) == 1);
                 dof_indices.push_back(node->dof_number(X_sys_num, d, 0));
@@ -342,16 +344,16 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const lib
         X_ghost_vec.get(dof_indices, X_node.data());
         for (unsigned int k = 0; k < n_nodes; ++k)
         {
-            for (unsigned int d = 0; d < dim; ++d)
+            for (unsigned int d = 0; d < NDIM; ++d)
             {
-                const double& X = X_node[k * dim + d];
+                const double& X = X_node[k * NDIM + d];
                 lower_bound(d) = std::min(lower_bound(d), X);
                 upper_bound(d) = std::max(upper_bound(d), X);
             }
         }
 
         // fill extra dimension with 0.0, which is libMesh's convention
-        for (unsigned int d = dim; d < LIBMESH_DIM; ++d)
+        for (unsigned int d = NDIM; d < LIBMESH_DIM; ++d)
         {
             lower_bound(d) = 0.0;
             upper_bound(d) = 0.0;
