@@ -15,6 +15,7 @@
 
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
+#include <ibamr/IBFESurfaceMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/app_namespaces.h>
@@ -26,7 +27,9 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 #include <libmesh/boundary_info.h>
+#include <libmesh/boundary_mesh.h>
 #include <libmesh/equation_systems.h>
+#include <libmesh/gmv_io.h>
 #include <libmesh/linear_partitioner.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
@@ -48,19 +51,7 @@
 #include <string>
 #include <vector>
 
-// This file is the main driver for parallel IB element partitioning.
-
-// Coordinate mapping function.
-void
-coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
-{
-    X(0) = s(0) + 0.6;
-    X(1) = s(1) + 0.5;
-#if (NDIM == 3)
-    X(2) = s(2) + 0.5;
-#endif
-    return;
-} // coordinate_mapping_function
+// This file is the main driver for parallel IB element partitioning for surface meshes.
 
 int
 main(int argc, char** argv)
@@ -82,18 +73,17 @@ main(int argc, char** argv)
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create a simple FE mesh.
-        ReplicatedMesh mesh(init.comm(), NDIM);
+        Mesh solid_mesh(init.comm(), NDIM);
         const double dx = input_db->getDouble("DX");
         string elem_type = input_db->getString("ELEM_TYPE");
         const double R = 0.3;
-
         // we want R/2^n_refinements = dx so that we have roughly equal spacing for both elements and cells
         const int n_refinements = int(std::log2(R / dx));
         const std::string shape = input_db->getStringWithDefault("SHAPE", "SPHERE");
         // no support for tetrahedral spheres in 3D yet
         if (shape == "CUBE")
         {
-            MeshTools::Generation::build_cube(mesh,
+            MeshTools::Generation::build_cube(solid_mesh,
                                               n_refinements,
                                               n_refinements,
                                               n_refinements,
@@ -108,22 +98,47 @@ main(int argc, char** argv)
         }
         else if (shape == "SQUARE")
         {
-            MeshTools::Generation::build_square(
-                mesh, n_refinements, n_refinements, -R, R, -R, R, Utility::string_to_enum<ElemType>(elem_type), false);
+            MeshTools::Generation::build_square(solid_mesh,
+                                                n_refinements,
+                                                n_refinements,
+                                                -R,
+                                                R,
+                                                -R,
+                                                R,
+                                                Utility::string_to_enum<ElemType>(elem_type),
+                                                false);
         }
         else
         {
             TBOX_ASSERT(shape == "SPHERE");
             MeshTools::Generation::build_sphere(
-                mesh, R, n_refinements, Utility::string_to_enum<ElemType>(elem_type), 10);
+                solid_mesh, R, n_refinements, Utility::string_to_enum<ElemType>(elem_type), 10);
         }
-        mesh.prepare_for_use();
+        solid_mesh.prepare_for_use();
+        for (auto node = solid_mesh.nodes_begin(); node != solid_mesh.nodes_end(); ++node)
+        {
+            (**node)(0) += 0.6;
+            (**node)(1) += 0.5;
+#if NDIM == 3
+            (**node)(2) += 0.5;
+#endif
+        }
+
+        BoundaryMesh boundary_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension() - 1);
+        solid_mesh.boundary_info->sync(boundary_mesh);
+        boundary_mesh.prepare_for_use();
+
+        bool use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);
+        Mesh& mesh = use_boundary_mesh ? boundary_mesh : solid_mesh;
         // metis does a good job partitioning, but the partitioning relies on
         // random numbers: the seed changed in libMesh commit
         // 98cede90ca8837688ee13aac5e299a3765f083da (between 1.3.1 and
         // 1.4.0). Hence, to achieve consistent partitioning, use a simpler partitioning scheme:
         LinearPartitioner partitioner;
         partitioner.partition(mesh);
+
+        GMVIO gmv_out(mesh);
+        gmv_out.write("mesh.gmv");
 
         plog << "Number of elements: " << mesh.n_active_elem() << std::endl;
 
@@ -159,16 +174,26 @@ main(int argc, char** argv)
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        Pointer<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod",
-                           app_initializer->getComponentDatabase("IBFEMethod"),
-                           &mesh,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
-                           false);
+
+        Pointer<IBStrategy> ib_ops;
+        if (use_boundary_mesh)
+            ib_ops = new IBFESurfaceMethod(
+                "IBFEMethod",
+                app_initializer->getComponentDatabase("IBFEMethod"),
+                &mesh,
+                app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+                /*register_for_restart*/ false);
+        else
+            ib_ops =
+                new IBFEMethod("IBFEMethod",
+                               app_initializer->getComponentDatabase("IBFEMethod"),
+                               &mesh,
+                               app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+                               false);
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
+                                              ib_ops,
                                               navier_stokes_integrator,
                                               false);
 
@@ -185,14 +210,32 @@ main(int argc, char** argv)
                                         false);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
-        ib_method_ops->initializeFEEquationSystems();
-        ib_method_ops->initializeFEData();
+        if (use_boundary_mesh)
+        {
+            Pointer<IBFESurfaceMethod> ibfe_ops = ib_ops;
+            ibfe_ops->initializeFEEquationSystems();
+            ibfe_ops->initializeFEData();
+        }
+        else
+        {
+            Pointer<IBFEMethod> ibfe_ops = ib_ops;
+            ibfe_ops->initializeFEEquationSystems();
+            ibfe_ops->initializeFEData();
+        }
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
-
         time_integrator->regridHierarchy();
 
-        FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
+        FEDataManager* fe_data_manager = nullptr;
+        if (use_boundary_mesh)
+        {
+            Pointer<IBFESurfaceMethod> ibfe_ops = ib_ops;
+            fe_data_manager = ibfe_ops->getFEDataManager();
+        }
+        else
+        {
+            Pointer<IBFEMethod> ibfe_ops = ib_ops;
+            fe_data_manager = ibfe_ops->getFEDataManager();
+        }
         const std::string& displacement_name = IBFEMethod::COORDS_SYSTEM_NAME;
         std::unique_ptr<libMesh::PetscVector<double> > ib_vector =
             fe_data_manager->buildIBGhostedVector(displacement_name);
@@ -204,6 +247,7 @@ main(int argc, char** argv)
 
         const int rank = SAMRAI_MPI::getRank();
         const int n_nodes = SAMRAI_MPI::getNodes();
+
         if (rank == 0)
         {
             for (int r = 0; r < n_nodes; ++r)

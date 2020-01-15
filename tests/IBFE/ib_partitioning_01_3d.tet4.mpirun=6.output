@@ -18,17 +18,15 @@ global index ranges on 0:
 [372, 375)
 [378, 393)
 locally owned range on 1: [150, 249)
-total length on 1: 390
+total length on 1: 411
 global index ranges on 1:
 [150, 249)
 [0, 93)
 [96, 150)
-[249, 306)
-[315, 318)
-[321, 360)
-[366, 369)
-[372, 411)
-[417, 420)
+[249, 309)
+[312, 360)
+[363, 411)
+[414, 423)
 locally owned range on 2: [249, 351)
 total length on 2: 216
 global index ranges on 2:
@@ -52,7 +50,7 @@ global index ranges on 2:
 [546, 549)
 [552, 567)
 locally owned range on 3: [351, 423)
-total length on 3: 390
+total length on 3: 411
 global index ranges on 3:
 [351, 423)
 [21, 27)
@@ -62,17 +60,23 @@ global index ranges on 3:
 [60, 63)
 [66, 69)
 [72, 75)
+[90, 93)
+[96, 99)
+[102, 105)
 [120, 123)
 [126, 129)
 [132, 135)
 [147, 150)
 [153, 156)
+[168, 171)
+[174, 177)
 [192, 195)
 [198, 201)
 [204, 207)
 [219, 222)
 [225, 228)
-[249, 309)
+[240, 243)
+[246, 309)
 [312, 351)
 [423, 483)
 [486, 534)
