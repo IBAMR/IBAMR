@@ -2992,7 +2992,11 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         auto el_it = mesh.active_elements_begin();
         for (const libMeshWrappers::BoundingBox& bbox : global_bboxes)
         {
+#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MAJOR_VERSION
             if (bbox.intersects(patch_bbox)) elems.insert(*el_it);
+#else
+            if (bbox.intersect(patch_bbox)) elems.insert(*el_it);
+#endif
             ++el_it;
         }
     }
