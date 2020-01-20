@@ -6,29 +6,33 @@ G     = 9.81
 GRAV_CONST = 0.0,-G
 
 // Wave Parameters
-DEPTH       =  0.4
-HEIGHT      =  0.05 * DEPTH
-AMPLITUDE   =  HEIGHT/2.0
-TIME_PERIOD =  9.8995/sqrt(G/DEPTH)
-WAVELENGTH  =  9.232 * DEPTH
-WAVENUMBER  =  2.0*PI/WAVELENGTH
-OMEGA       =  2.0*PI/TIME_PERIOD
-WAVE_TYPE   = "IRREGULAR"
+DEPTH               =  0.4
+HEIGHT              =  0.05 * DEPTH
+AMPLITUDE           =  HEIGHT/2.0
+TIME_PERIOD         =  9.8995/sqrt(G/DEPTH)
+WAVELENGTH          =  9.232 * DEPTH
+WAVENUMBER          =  2.0*PI/WAVELENGTH
+OMEGA               =  2.0*PI/TIME_PERIOD
+WAVE_TYPE           = "IRREGULAR"
+WAVE_GENERATOR_TYPE = WAVE_TYPE
 
 // domain parameters
-L     = 45.0 * DEPTH
-H     = 1.5 * DEPTH
+L = 45.0 * DEPTH
+H = 1.5 * DEPTH
 
 // Damping parameters
-X_ZONE_START = L - 10.0 * DEPTH
-X_ZONE_END = L
-ALPHA = 3.5
+WAVE_DAMPING_METHOD = "RELAXATION"
+X_ZONE_START        = L - 10.0 * DEPTH
+X_ZONE_END          = L
+INLET_ZONE_START    = 0.0
+INLET_ZONE_END      = WAVELENGTH
+ALPHA               = 3.5
 
 // material properties
-MU_I       = 1.137e-3
-MU_O       = 1.78e-5
-RHO_I      = 1.0e3
-RHO_O      = 1.226
+MU_I  = 1.137e-3
+MU_O  = 1.78e-5
+RHO_I = 1.0e3
+RHO_O = 1.226
 
 NUM_INTERFACE_CELLS = 1.0
 
@@ -36,36 +40,36 @@ NUM_INTERFACE_CELLS = 1.0
 MAX_LEVELS = 1        // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 
-Ny = 120
-Nx = 2000                                   // coarsest grid spacing
+Ny       = 120
+Nx       = 2000                                   // coarsest grid spacing
 NXFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
 NYFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Ny  // finest   grid spacing
-Hx = L/NXFINEST
-Hy = H/NYFINEST
+Hx       = L/NXFINEST
+Hy       = H/NYFINEST
 
 
 // Level set parameters
-LS_ORDER           = "THIRD_ORDER_ENO"
-LS_ABS_TOL         = 1e-8
-LS_REINIT_INTERVAL = 1
-MAX_ITERATIONS     = 40
-APPLY_SIGN_FIX     = TRUE
-APPLY_SUBCELL_FIX  = TRUE
-APPLY_VOLUME_SHIFT = FALSE
-APPLY_MASS_CONSTRAINT = FALSE
+LS_ORDER                   = "THIRD_ORDER_ENO"
+LS_ABS_TOL                 = 1e-8
+LS_REINIT_INTERVAL         = 1
+MAX_ITERATIONS             = 40
+APPLY_SIGN_FIX             = TRUE
+APPLY_SUBCELL_FIX          = TRUE
+APPLY_VOLUME_SHIFT         = FALSE
+APPLY_MASS_CONSTRAINT      = FALSE
 // LS_REPLACEMENT_INTERVAL = 1
 
-LS_TAG_VALUE = 0.0
-LS_TAG_ABS_THRESH = 2.0*L/Nx
+LS_TAG_VALUE         = 0.0
+LS_TAG_ABS_THRESH    = 2.0*L/Nx
 VORTICITY_REL_THRESH = 0.5
 
 
 // surface tension parameters
 DELTA_FUNCTION = "IB_4"
-SIGMA = 0.0
+SIGMA          = 0.0
 
-U = "0.0"
-V = "0.0"
+U        = "0.0"
+V        = "0.0"
 PHI_INIT = "X_1 - D"
 
 ProbePoints {
@@ -99,6 +103,7 @@ VelocityBcCoefs_0 {
    gcoef_function_3 = "0.0"
 
    wave_parameters_db {
+        amplitude                =  AMPLITUDE
         depth                    =  DEPTH
         omega_begin              =  2*PI/4
         omega_end                =  2*PI/0.6
@@ -106,6 +111,7 @@ VelocityBcCoefs_0 {
         significant_wave_period  =  TIME_PERIOD
         significant_wave_height  =  HEIGHT
         wave_spectrum            =  "JONSWAP"
+        wave_number              =  WAVENUMBER
         num_waves                =  50
         num_interface_cells      =  NUM_INTERFACE_CELLS
    }
@@ -128,6 +134,7 @@ VelocityBcCoefs_1 {
    gcoef_function_3 = "0.0"
 
    wave_parameters_db {
+        amplitude                =  AMPLITUDE
         depth                    =  DEPTH
         omega_begin              =  2*PI/4
         omega_end                =  2*PI/0.6
@@ -135,6 +142,7 @@ VelocityBcCoefs_1 {
         significant_wave_period  =  TIME_PERIOD
         significant_wave_height  =  HEIGHT
         wave_spectrum            =  "JONSWAP"
+        wave_number              =  WAVENUMBER
         num_waves                =  50
         num_interface_cells      =  NUM_INTERFACE_CELLS
    }

@@ -57,16 +57,19 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
+#include <ibamr/FifthOrderStokesWaveGenerator.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibamr/IrregularWaveBcCoef.h>
+#include <ibamr/IrregularWaveGenerator.h>
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/StokesFifthOrderWaveBcCoef.h>
 #include <ibamr/StokesFirstOrderWaveBcCoef.h>
 #include <ibamr/StokesSecondOrderWaveBcCoef.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/WaveDampingFunctions.h>
+#include <ibamr/WaveGenerationFunctions.h>
 #include <ibamr/app_namespaces.h>
 
 #include "ibtk/IndexUtilities.h"
@@ -371,6 +374,37 @@ main(int argc, char* argv[])
                                                         << std::endl);
         }
 
+        // Create a generating zone near the channel inlet to absorb water waves reflected by the
+        // WEC towards the channel inlet. This method also uses a time splitting approach and modifies
+        // the fluid momentum in the post processing step.
+        // Register callback function for tagging refined cells for level set data
+        const string& wave_generator_type = input_db->getStringWithDefault("WAVE_GENERATOR_TYPE", "");
+        const double inlet_zone_start = input_db->getDouble("INLET_ZONE_START");
+        const double inlet_zone_end = input_db->getDouble("INLET_ZONE_END");
+        Pointer<Database> wave_db =
+            app_initializer->getComponentDatabase("VelocityBcCoefs_0")->getDatabase("wave_parameters_db");
+        StokesWaveGeneratorStrategy* wave_generator = nullptr;
+        if (wave_generator_type == "FIFTH_ORDER_STOKES")
+        {
+            wave_generator = new FifthOrderStokesWaveGenerator("FIFTH_ORDER_STOKES", wave_db);
+        }
+        if (wave_generator_type == "IRREGULAR")
+        {
+            wave_generator = new IrregularWaveGenerator("IRREGULAR", wave_db);
+        }
+        if (wave_generator)
+        {
+            wave_generator->d_wave_gen_data.d_x_zone_start = inlet_zone_start;
+            wave_generator->d_wave_gen_data.d_x_zone_end = inlet_zone_end;
+            wave_generator->d_wave_gen_data.d_alpha = alpha;
+            wave_generator->d_wave_gen_data.d_ins_hier_integrator = time_integrator;
+            wave_generator->d_wave_gen_data.d_adv_diff_hier_integrator = adv_diff_integrator;
+            wave_generator->d_wave_gen_data.d_phi_var = phi_var;
+
+            time_integrator->registerPostprocessIntegrateHierarchyCallback(
+                &WaveGenerationFunctions::callStokesWaveRelaxationCallbackFunction, static_cast<void*>(wave_generator));
+        }
+
         RobinBcCoefStrategy<NDIM>* phi_bc_coef = NULL;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("PhiBcCoefs"))
         {
@@ -474,13 +508,25 @@ main(int argc, char* argv[])
             }
         }
 
-        // File to write to for fluid mass data
-        ofstream mass_file;
+        // File to write to for fluid mass data and irregular wave data.
+        ofstream mass_file, wave_stream;
 
         if (!SAMRAI_MPI::getRank())
         {
             mass_file.open("mass_fluid.txt");
+
+            if (wave_generator_type == "IRREGULAR")
+            {
+                IrregularWaveGenerator* irregular_wave_generator =
+                    dynamic_cast<IrregularWaveGenerator*>(wave_generator);
+
+                wave_stream.open("irregular_wave_data_at_gen_zone.txt", fstream::out);
+                wave_stream.precision(10);
+                irregular_wave_generator->printWaveData(wave_stream);
+                wave_stream.close();
+            }
         }
+
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -606,6 +652,7 @@ main(int argc, char* argv[])
         delete ptr_SetLSProperties;
         delete ptr_SetFluidProperties;
         delete ptr_LSLocateColumnInterface;
+        delete wave_generator;
         for (int i = 0; i < num_probes; ++i) delete probe_streams[i];
 
     } // cleanup dynamically allocated objects prior to shutdown
