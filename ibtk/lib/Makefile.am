@@ -61,7 +61,7 @@ pkg_include_HEADERS = \
 ../include/ibtk/namespaces.h
 
 ## Dimension-dependent libraries
-DIM_INDEPENDENT_SOURCES = \
+DIM_DEPENDENT_SOURCES = \
 ../src/boundary/HierarchyGhostCellInterpolation.cpp \
 ../src/boundary/cf_interface/CartCellDoubleLinearCFInterpolation.cpp \
 ../src/boundary/cf_interface/CartCellDoubleQuadraticCFInterpolation.cpp \
@@ -182,7 +182,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/utilities/muParserCartGridFunction.cpp
 
 if LIBMESH_ENABLED
-DIM_INDEPENDENT_SOURCES += \
+DIM_DEPENDENT_SOURCES += \
 ../src/lagrangian/BoxPartitioner.cpp \
 ../src/lagrangian/JacobianCalculator.cpp \
 ../src/lagrangian/FEDataInterpolation.cpp \
@@ -348,7 +348,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/private/StreamableManager-inl.h
 
 if LIBMESH_ENABLED
-DIM_INDEPENDENT_SOURCES += \
+DIM_DEPENDENT_SOURCES += \
 ../include/lagrangian/BoxPartitioner.h \
 ../src/lagrangian/JacobianCalculator.h \
 ../include/ibtk/FEDataInterpolation.h \
@@ -357,7 +357,7 @@ DIM_INDEPENDENT_SOURCES += \
 endif
 
 libIBTK2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-libIBTK2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+libIBTK2d_a_SOURCES = $(DIM_DEPENDENT_SOURCES) \
 $(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation2d.f \
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f \
 $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop2d.f \
@@ -380,7 +380,7 @@ $(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
 $(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
 
 libIBTK3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-libIBTK3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+libIBTK3d_a_SOURCES = $(DIM_DEPENDENT_SOURCES) \
 $(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation3d.f \
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.f \
 $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.f \
