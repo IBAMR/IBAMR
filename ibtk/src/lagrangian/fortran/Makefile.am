@@ -11,9 +11,19 @@
 ##
 ## ---------------------------------------------------------------------
 
-## Process this file with automake to produce Makefile.in
-include $(top_srcdir)/config/Make-rules
-
 EXTRA_DIST = lagrangian_delta.f.m4 lagrangian_interaction2d.f.m4 lagrangian_interaction3d.f.m4
 BUILT_SOURCES = lagrangian_delta.f lagrangian_interaction2d.f lagrangian_interaction3d.f
 CLEANFILES = ${BUILT_SOURCES}
+
+# we have to use some custom Make logic here since, long story short, autotools
+# does not correctly generate Fortran file dependency information and, to get
+# function inlining, we have to include lagrangian_delta.f in the other two
+# files.
+lagrangian_delta.f: lagrangian_delta.f.m4 Makefile
+	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
+
+lagrangian_interaction2d.f: lagrangian_interaction2d.f.m4 lagrangian_delta.f Makefile
+	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
+
+lagrangian_interaction3d.f: lagrangian_interaction3d.f.m4 lagrangian_delta.f Makefile
+	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@

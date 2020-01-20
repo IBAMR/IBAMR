@@ -54,6 +54,10 @@ define(INTERPOLATE_3D_SPECIALIZE_FIXED_WIDTH,
                                 $5, $6)
          endif')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
+
+c     this is a Fortran include, not an m4 include
+      include 'lagrangian_delta.f'
+
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
