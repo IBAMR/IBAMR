@@ -34,7 +34,23 @@ clean-local:
 
 ## Dimension-independent library
 libIBTK_a_SOURCES = \
-$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f
+$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f \
+$(top_builddir)/src/utilities/ParallelEdgeMap.cpp \
+$(top_builddir)/src/utilities/FixedSizedStream.cpp \
+$(top_builddir)/src/utilities/IBTK_MPI.cpp
+
+if USING_BUNDLED_MUPARSER
+libIBTK_a_SOURCES += \
+../contrib/muparser/src/muParserDLL.cpp \
+../contrib/muparser/src/muParserTokenReader.cpp \
+../contrib/muparser/src/muParserError.cpp \
+../contrib/muparser/src/muParserCallback.cpp \
+../contrib/muparser/src/muParserBytecode.cpp \
+../contrib/muparser/src/muParserBase.cpp \
+../contrib/muparser/src/muParserInt.cpp \
+../contrib/muparser/src/muParserTest.cpp \
+../contrib/muparser/src/muParser.cpp
+endif
 
 pkg_include_HEADERS = \
 ../include/ibtk/IBTK_CHKERRQ.h \
@@ -146,15 +162,12 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/utilities/EdgeSynchCopyFillPattern.cpp \
 ../src/utilities/FaceDataSynchronization.cpp \
 ../src/utilities/FaceSynchCopyFillPattern.cpp \
-../src/utilities/FixedSizedStream.cpp \
 ../src/utilities/HierarchyIntegrator.cpp \
-../src/utilities/IBTK_MPI.cpp \
 ../src/utilities/IndexUtilities.cpp \
 ../src/utilities/LMarkerUtilities.cpp \
 ../src/utilities/NodeDataSynchronization.cpp \
 ../src/utilities/NodeSynchCopyFillPattern.cpp \
 ../src/utilities/NormOps.cpp \
-../src/utilities/ParallelEdgeMap.cpp \
 ../src/utilities/ParallelMap.cpp \
 ../src/utilities/ParallelSet.cpp \
 ../src/utilities/PartitioningBox.cpp \
@@ -175,19 +188,6 @@ DIM_INDEPENDENT_SOURCES += \
 ../src/lagrangian/FEDataInterpolation.cpp \
 ../src/lagrangian/FEDataManager.cpp \
 ../src/utilities/libmesh_utilities.cpp
-endif
-
-if USING_BUNDLED_MUPARSER
-DIM_INDEPENDENT_SOURCES += \
-../contrib/muparser/src/muParserDLL.cpp \
-../contrib/muparser/src/muParserTokenReader.cpp \
-../contrib/muparser/src/muParserError.cpp \
-../contrib/muparser/src/muParserCallback.cpp \
-../contrib/muparser/src/muParserBytecode.cpp \
-../contrib/muparser/src/muParserBase.cpp \
-../contrib/muparser/src/muParserInt.cpp \
-../contrib/muparser/src/muParserTest.cpp \
-../contrib/muparser/src/muParser.cpp
 endif
 
 pkg_include_HEADERS += \
