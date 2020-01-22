@@ -165,7 +165,13 @@ Temporary Items
 *.exe
 *.out
 *.app
+
+# build files and other related scripts
 build
 configure.log
 configure.log.bkp
 RDict.log
+build-*.sh
+objs-*
+*.py
+*.sh
