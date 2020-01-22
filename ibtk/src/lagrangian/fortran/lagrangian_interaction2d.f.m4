@@ -48,6 +48,10 @@ define(INTERPOLATE_2D_SPECIALIZE_FIXED_WIDTH,
                                 $3, $4)
          endif')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
+
+c     this is a Fortran include, not an m4 include
+      include 'lagrangian_delta.f'
+
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c

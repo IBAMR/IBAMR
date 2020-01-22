@@ -184,7 +184,6 @@ am__v_AR_1 =
 libIBTK_a_AR = $(AR) $(ARFLAGS)
 libIBTK_a_LIBADD =
 am__libIBTK_a_SOURCES_DIST =  \
-	$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f \
 	$(top_builddir)/src/utilities/ParallelEdgeMap.cpp \
 	$(top_builddir)/src/utilities/FixedSizedStream.cpp \
 	$(top_builddir)/src/utilities/IBTK_MPI.cpp \
@@ -207,7 +206,7 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/muParserInt.$(OBJEXT) \
 @USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/muParserTest.$(OBJEXT) \
 @USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/muParser.$(OBJEXT)
-am_libIBTK_a_OBJECTS = $(top_builddir)/src/lagrangian/fortran/lagrangian_delta.$(OBJEXT) \
+am_libIBTK_a_OBJECTS =  \
 	$(top_builddir)/src/utilities/ParallelEdgeMap.$(OBJEXT) \
 	$(top_builddir)/src/utilities/FixedSizedStream.$(OBJEXT) \
 	$(top_builddir)/src/utilities/IBTK_MPI.$(OBJEXT) \
@@ -1426,9 +1425,7 @@ IBTK3d_LIBS = ${top_builddir}/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 lib_LIBRARIES = libIBTK.a $(am__append_1) $(am__append_2)
-libIBTK_a_SOURCES =  \
-	$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f \
-	$(top_builddir)/src/utilities/ParallelEdgeMap.cpp \
+libIBTK_a_SOURCES = $(top_builddir)/src/utilities/ParallelEdgeMap.cpp \
 	$(top_builddir)/src/utilities/FixedSizedStream.cpp \
 	$(top_builddir)/src/utilities/IBTK_MPI.cpp $(am__append_3)
 pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
@@ -1803,15 +1800,6 @@ uninstall-libLIBRARIES:
 
 clean-libLIBRARIES:
 	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
-$(top_builddir)/src/lagrangian/fortran/$(am__dirstamp):
-	@$(MKDIR_P) $(top_builddir)/src/lagrangian/fortran
-	@: > $(top_builddir)/src/lagrangian/fortran/$(am__dirstamp)
-$(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) $(top_builddir)/src/lagrangian/fortran/$(DEPDIR)
-	@: > $(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp)
-$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.$(OBJEXT):  \
-	$(top_builddir)/src/lagrangian/fortran/$(am__dirstamp) \
-	$(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/utilities/$(am__dirstamp):
 	@$(MKDIR_P) $(top_builddir)/src/utilities
 	@: > $(top_builddir)/src/utilities/$(am__dirstamp)
@@ -2330,6 +2318,12 @@ $(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen2d.$(OBJEXT):  \
 $(top_builddir)/src/coarsen_ops/fortran/rt0coarsen2d.$(OBJEXT):  \
 	$(top_builddir)/src/coarsen_ops/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/coarsen_ops/fortran/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/lagrangian/fortran/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/src/lagrangian/fortran
+	@: > $(top_builddir)/src/lagrangian/fortran/$(am__dirstamp)
+$(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/src/lagrangian/fortran/$(DEPDIR)
+	@: > $(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/lagrangian/fortran/lagrangian_interaction2d.$(OBJEXT):  \
 	$(top_builddir)/src/lagrangian/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp)
