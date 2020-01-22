@@ -379,8 +379,6 @@ main(int argc, char* argv[])
         // the fluid momentum in the post processing step.
         // Register callback function for tagging refined cells for level set data
         const string& wave_generator_type = input_db->getStringWithDefault("WAVE_GENERATOR_TYPE", "");
-        const double inlet_zone_start = input_db->getDouble("INLET_ZONE_START");
-        const double inlet_zone_end = input_db->getDouble("INLET_ZONE_END");
         Pointer<Database> wave_db =
             app_initializer->getComponentDatabase("VelocityBcCoefs_0")->getDatabase("wave_parameters_db");
         StokesWaveGeneratorStrategy* wave_generator = nullptr;
@@ -394,6 +392,8 @@ main(int argc, char* argv[])
         }
         if (wave_generator)
         {
+            const double inlet_zone_start = input_db->getDouble("INLET_ZONE_START");
+            const double inlet_zone_end = input_db->getDouble("INLET_ZONE_END");
             wave_generator->d_wave_gen_data.d_x_zone_start = inlet_zone_start;
             wave_generator->d_wave_gen_data.d_x_zone_end = inlet_zone_end;
             wave_generator->d_wave_gen_data.d_alpha = alpha;
