@@ -98,6 +98,7 @@
 #include "libmesh/tensor_value.h"
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
+#include "libmesh/libmesh_version.h"
 
 #include "petscksp.h"
 #include "petscoptions.h"
@@ -2953,9 +2954,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     for (std::size_t box_n = 0; box_n < local_nodal_bboxes.size(); ++box_n)
     {
         local_bboxes.emplace_back(local_nodal_bboxes[box_n]);
-#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MAJOR_VERSION
-        local_bboxes.back().union_with(local_qp_bboxes[box_n]);
-#else
+#if LIBMESH_VERSION_LESS_THAN(1, 2, 0)
         // no BoundingBox::union_with in libMesh 1.1
         auto& box = local_bboxes.back();
         auto& other_box = local_qp_bboxes[box_n];
@@ -2964,6 +2963,8 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
             box.first(d) = std::min(box.first(d), other_box.first(d));
             box.second(d) = std::max(box.second(d), other_box.second(d));
         }
+#else
+        local_bboxes.back().union_with(local_qp_bboxes[box_n]);
 #endif
     }
     const std::vector<libMeshWrappers::BoundingBox> global_bboxes =
@@ -2992,10 +2993,10 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         auto el_it = mesh.active_elements_begin();
         for (const libMeshWrappers::BoundingBox& bbox : global_bboxes)
         {
-#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MAJOR_VERSION
-            if (bbox.intersects(patch_bbox)) elems.insert(*el_it);
-#else
+#if LIBMESH_VERSION_LESS_THAN(1, 2, 0)
             if (bbox.intersect(patch_bbox)) elems.insert(*el_it);
+#else
+            if (bbox.intersects(patch_bbox)) elems.insert(*el_it);
 #endif
             ++el_it;
         }

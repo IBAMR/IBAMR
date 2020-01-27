@@ -22,11 +22,12 @@
 #include "tbox/Utilities.h"
 
 #include "libmesh/libmesh_config.h"
+#include "libmesh/libmesh_version.h"
 
-#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
-#include "libmesh/bounding_box.h"
-#else
+#if LIBMESH_VERSION_LESS_THAN(1, 2, 0)
 #include "libmesh/mesh_tools.h"
+#else
+#include "libmesh/bounding_box.h"
 #endif
 #include "libmesh/dof_map.h"
 #include "libmesh/dof_object.h"
@@ -56,10 +57,10 @@ namespace libMeshWrappers
 /**
  * Compatibility type alias for supporting older versions of libMesh.
  */
-#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
-using BoundingBox = libMesh::BoundingBox;
-#else
+#if LIBMESH_VERSION_LESS_THAN(1, 2, 0)
 using BoundingBox = libMesh::MeshTools::BoundingBox;
+#else
+using BoundingBox = libMesh::BoundingBox;
 #endif
 } // namespace libMeshWrappers
 
@@ -1241,7 +1242,7 @@ get_nodal_dof_indices(const libMesh::DofMap& dof_map,
                       const unsigned int variable_n,
                       std::vector<libMesh::dof_id_type>& nodal_indices)
 {
-#if LIBMESH_MINOR_VERSION < 2
+#if LIBMESH_VERSION_LESS_THAN(1, 2, 0)
     // See dof_map.C, circa line 2208
 
     // We only call this function with variable numbers 0, 1, or 2, so skip

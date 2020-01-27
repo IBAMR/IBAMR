@@ -20,6 +20,7 @@
 #include <libmesh/enum_quadrature_type.h>
 #include <libmesh/equation_systems.h>
 #include <libmesh/explicit_system.h>
+#include <libmesh/libmesh_version.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
 
@@ -126,7 +127,7 @@ test(LibMeshInit& init,
         else
         {
             // the non-nodal box should be a subset of the nodal one
-#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
+#if !LIBMESH_VERSION_LESS_THAN(1, 2, 0)
             libMeshWrappers::BoundingBox box_union(box_2);
             box_union.union_with(box_1);
             TBOX_ASSERT(box_union.min() == box_2.min());
@@ -135,7 +136,7 @@ test(LibMeshInit& init,
 
             // box 2 should be a superset of box 1: i.e., the corners of box 1
             // should be in box 2
-#if 1 <= LIBMESH_MAJOR_VERSION && 4 <= LIBMESH_MINOR_VERSION
+#if !LIBMESH_VERSION_LESS_THAN(1, 4, 0)
             TBOX_ASSERT(box_2.signed_distance(box_1.min()) <= 0.0);
             TBOX_ASSERT(box_2.signed_distance(box_1.max()) <= 0.0);
 #endif
@@ -145,7 +146,7 @@ test(LibMeshInit& init,
         // Since X is just the initial coordinates of the mesh, we should
         // match the bounding box which is computed directly from the
         // element too.
-#if 1 <= LIBMESH_MAJOR_VERSION && 2 <= LIBMESH_MINOR_VERSION
+#if !LIBMESH_VERSION_LESS_THAN(1, 2, 0)
         libMeshWrappers::BoundingBox box_3 = (*el_it)->loose_bounding_box();
         if (order == FIRST)
         {
@@ -163,7 +164,7 @@ test(LibMeshInit& init,
 
         // box 3 should be a superset of box 2: i.e., the corners of box 2
         // should be in box 3
-#if 1 <= LIBMESH_MAJOR_VERSION && 4 <= LIBMESH_MINOR_VERSION
+#if !LIBMESH_VERSION_LESS_THAN(1, 4, 0)
         TBOX_ASSERT(box_2.signed_distance(box_1.min()) <= 0.0);
         TBOX_ASSERT(box_2.signed_distance(box_1.max()) <= 0.0);
 #endif

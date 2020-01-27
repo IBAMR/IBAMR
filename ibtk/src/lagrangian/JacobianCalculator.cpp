@@ -18,6 +18,7 @@
 #include "tbox/Utilities.h"
 
 #include <libmesh/fe.h>
+#include <libmesh/libmesh_version.h>
 #include <libmesh/point.h>
 #include <libmesh/quadrature.h>
 
@@ -53,10 +54,10 @@ LagrangeJacobianCalculator<dim, spacedim>::LagrangeJacobianCalculator(
     const typename LagrangeJacobianCalculator<dim, spacedim>::key_type quad_key)
     : JacobianCalculator(quad_key), d_n_nodes(get_n_nodes(std::get<0>(this->d_quad_key)))
 {
-#if 1 <= LIBMESH_MAJOR_VERSION && 4 <= LIBMESH_MINOR_VERSION
-    TBOX_ASSERT(d_n_nodes <= libMesh::Elem::max_n_nodes);
-#else
+#if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
     TBOX_ASSERT(d_n_nodes <= 27);
+#else
+    TBOX_ASSERT(d_n_nodes <= libMesh::Elem::max_n_nodes);
 #endif
     const libMesh::ElemType elem_type = std::get<0>(this->d_quad_key);
 
@@ -117,10 +118,10 @@ LagrangeJacobianCalculator<dim, spacedim>::get_JxW(const libMesh::Elem* elem)
     std::copy(this->d_quad_weights.begin(), this->d_quad_weights.end(), this->d_JxW.begin());
 
     // max_n_nodes is a constant defined by libMesh - currently 27
-#if 1 <= LIBMESH_MAJOR_VERSION && 4 <= LIBMESH_MINOR_VERSION
-    double xs[libMesh::Elem::max_n_nodes][spacedim];
-#else
+#if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
     double xs[27][spacedim];
+#else
+    double xs[libMesh::Elem::max_n_nodes][spacedim];
 #endif
 
     for (unsigned int i = 0; i < d_n_nodes; ++i)
