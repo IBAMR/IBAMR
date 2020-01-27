@@ -326,6 +326,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/utilities/StandardTagAndInitStrategySet.cpp \
 	../src/utilities/Streamable.cpp \
 	../src/utilities/StreamableManager.cpp \
+	../src/utilities/box_utilities.cpp \
 	../src/utilities/muParserCartGridFunction.cpp \
 	../src/lagrangian/BoxPartitioner.cpp \
 	../src/lagrangian/JacobianCalculator.cpp \
@@ -479,6 +480,7 @@ am__objects_3 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK2d_a-StandardTagAndInitStrategySet.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-Streamable.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-StreamableManager.$(OBJEXT) \
+	../src/utilities/libIBTK2d_a-box_utilities.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-muParserCartGridFunction.$(OBJEXT) \
 	$(am__objects_2)
 am_libIBTK2d_a_OBJECTS = $(am__objects_3) \
@@ -617,6 +619,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/utilities/StandardTagAndInitStrategySet.cpp \
 	../src/utilities/Streamable.cpp \
 	../src/utilities/StreamableManager.cpp \
+	../src/utilities/box_utilities.cpp \
 	../src/utilities/muParserCartGridFunction.cpp \
 	../src/lagrangian/BoxPartitioner.cpp \
 	../src/lagrangian/JacobianCalculator.cpp \
@@ -770,6 +773,7 @@ am__objects_5 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK3d_a-StandardTagAndInitStrategySet.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-Streamable.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-StreamableManager.$(OBJEXT) \
+	../src/utilities/libIBTK3d_a-box_utilities.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-muParserCartGridFunction.$(OBJEXT) \
 	$(am__objects_4)
 am_libIBTK3d_a_OBJECTS = $(am__objects_5) \
@@ -1035,6 +1039,7 @@ am__depfiles_remade =  \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-StandardTagAndInitStrategySet.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-Streamable.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-StreamableManager.Po \
+	../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-libmesh_utilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-muParserCartGridFunction.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-AppInitializer.Po \
@@ -1066,6 +1071,7 @@ am__depfiles_remade =  \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-StandardTagAndInitStrategySet.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-Streamable.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-StreamableManager.Po \
+	../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-libmesh_utilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Po
 am__mv = mv -f
@@ -1560,6 +1566,7 @@ pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
 	../include/ibtk/VCSCViscousOpPointRelaxationFACOperator.h \
 	../include/ibtk/VCSCViscousOperator.h \
 	../include/ibtk/VCSCViscousPETScLevelSolver.h \
+	../include/ibtk/box_utilities.h \
 	../include/ibtk/muParserCartGridFunction.h \
 	../include/ibtk/muParserRobinBcCoefs.h \
 	../include/ibtk/private/FixedSizedStream-inl.h \
@@ -1688,6 +1695,7 @@ DIM_DEPENDENT_SOURCES =  \
 	../src/utilities/StandardTagAndInitStrategySet.cpp \
 	../src/utilities/Streamable.cpp \
 	../src/utilities/StreamableManager.cpp \
+	../src/utilities/box_utilities.cpp \
 	../src/utilities/muParserCartGridFunction.cpp $(am__append_4)
 libIBTK2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBTK2d_a_SOURCES = $(DIM_DEPENDENT_SOURCES) \
@@ -2270,6 +2278,9 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/utilities/libIBTK2d_a-StreamableManager.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK2d_a-box_utilities.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-muParserCartGridFunction.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -2743,6 +2754,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/utilities/libIBTK3d_a-StreamableManager.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK3d_a-box_utilities.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-muParserCartGridFunction.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -3075,6 +3089,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-StandardTagAndInitStrategySet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-Streamable.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-StreamableManager.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-libmesh_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-muParserCartGridFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-AppInitializer.Po@am__quote@ # am--include-marker
@@ -3106,6 +3121,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-StandardTagAndInitStrategySet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-Streamable.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-StreamableManager.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-libmesh_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Po@am__quote@ # am--include-marker
 
@@ -4776,6 +4792,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/StreamableManager.cpp' object='../src/utilities/libIBTK2d_a-StreamableManager.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-StreamableManager.obj `if test -f '../src/utilities/StreamableManager.cpp'; then $(CYGPATH_W) '../src/utilities/StreamableManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/StreamableManager.cpp'; fi`
+
+../src/utilities/libIBTK2d_a-box_utilities.o: ../src/utilities/box_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-box_utilities.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Tpo -c -o ../src/utilities/libIBTK2d_a-box_utilities.o `test -f '../src/utilities/box_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/box_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/box_utilities.cpp' object='../src/utilities/libIBTK2d_a-box_utilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-box_utilities.o `test -f '../src/utilities/box_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/box_utilities.cpp
+
+../src/utilities/libIBTK2d_a-box_utilities.obj: ../src/utilities/box_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-box_utilities.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Tpo -c -o ../src/utilities/libIBTK2d_a-box_utilities.obj `if test -f '../src/utilities/box_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/box_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/box_utilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/box_utilities.cpp' object='../src/utilities/libIBTK2d_a-box_utilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-box_utilities.obj `if test -f '../src/utilities/box_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/box_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/box_utilities.cpp'; fi`
 
 ../src/utilities/libIBTK2d_a-muParserCartGridFunction.o: ../src/utilities/muParserCartGridFunction.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-muParserCartGridFunction.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-muParserCartGridFunction.Tpo -c -o ../src/utilities/libIBTK2d_a-muParserCartGridFunction.o `test -f '../src/utilities/muParserCartGridFunction.cpp' || echo '$(srcdir)/'`../src/utilities/muParserCartGridFunction.cpp
@@ -6499,6 +6529,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-StreamableManager.obj `if test -f '../src/utilities/StreamableManager.cpp'; then $(CYGPATH_W) '../src/utilities/StreamableManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/StreamableManager.cpp'; fi`
 
+../src/utilities/libIBTK3d_a-box_utilities.o: ../src/utilities/box_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-box_utilities.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Tpo -c -o ../src/utilities/libIBTK3d_a-box_utilities.o `test -f '../src/utilities/box_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/box_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/box_utilities.cpp' object='../src/utilities/libIBTK3d_a-box_utilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-box_utilities.o `test -f '../src/utilities/box_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/box_utilities.cpp
+
+../src/utilities/libIBTK3d_a-box_utilities.obj: ../src/utilities/box_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-box_utilities.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Tpo -c -o ../src/utilities/libIBTK3d_a-box_utilities.obj `if test -f '../src/utilities/box_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/box_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/box_utilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/box_utilities.cpp' object='../src/utilities/libIBTK3d_a-box_utilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-box_utilities.obj `if test -f '../src/utilities/box_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/box_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/box_utilities.cpp'; fi`
+
 ../src/utilities/libIBTK3d_a-muParserCartGridFunction.o: ../src/utilities/muParserCartGridFunction.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-muParserCartGridFunction.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Tpo -c -o ../src/utilities/libIBTK3d_a-muParserCartGridFunction.o `test -f '../src/utilities/muParserCartGridFunction.cpp' || echo '$(srcdir)/'`../src/utilities/muParserCartGridFunction.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Po
@@ -7013,6 +7057,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-StandardTagAndInitStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-Streamable.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-StreamableManager.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-libmesh_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-muParserCartGridFunction.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-AppInitializer.Po
@@ -7044,6 +7089,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-StandardTagAndInitStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-Streamable.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-StreamableManager.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-libmesh_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Po
 	-rm -f Makefile
@@ -7316,6 +7362,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-StandardTagAndInitStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-Streamable.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-StreamableManager.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-libmesh_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-muParserCartGridFunction.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-AppInitializer.Po
@@ -7347,6 +7394,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-StandardTagAndInitStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-Streamable.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-StreamableManager.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-libmesh_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Po
 	-rm -f Makefile
