@@ -57,6 +57,7 @@
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/face_tri3.h"
+#include "libmesh/libmesh_version.h"
 #include "libmesh/linear_implicit_system.h"
 #include "libmesh/mesh.h"
 #include "libmesh/mesh_function.h"
@@ -322,15 +323,15 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     std::vector<std::vector<libMesh::Point> > temp_nodes;
     std::vector<libMesh::Point> meter_centroids;
     // new API in 1.4.0
-#if 1 <= LIBMESH_MAJOR_VERSION && 4 <= LIBMESH_MINOR_VERSION
+#if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
+    boundary_info.build_node_list(nodes, bcs);
+#else
     const std::vector<std::tuple<dof_id_type, boundary_id_type> > node_list = boundary_info.build_node_list();
     for (const std::tuple<dof_id_type, boundary_id_type>& pair : node_list)
     {
         nodes.push_back(std::get<0>(pair));
         bcs.push_back(std::get<1>(pair));
     }
-#else
-    boundary_info.build_node_list(nodes, bcs);
 #endif
 
     // check to make sure there are node sets to work with

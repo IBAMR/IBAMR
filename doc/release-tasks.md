@@ -14,18 +14,18 @@ GitHub.
   `--disable-deprecated`) to verify that we do not use any deprecated
   functionality (this will cause compilation errors if we do use them). Add
   version checks: for example, here is one (lightly edited) in
-  `IBFEInstrumentPannel.cpp`:
+  `IBFEInstrumentPannel.cpp` that uses a macro defined in `libmesh_version.h`:
 ```cpp
     // new API in 1.4.0
-#if 1 <= LIBMESH_MAJOR_VERSION && 4 <= LIBMESH_MINOR_VERSION
+#if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
+    boundary_info.build_node_list(nodes, bcs);
+#else
     const auto node_list = boundary_info.build_node_list();
     for (const auto& pair : node_list)
     {
         nodes.push_back(std::get<0>(pair));
         bcs.push_back(std::get<1>(pair));
     }
-#else
-    boundary_info.build_node_list(nodes, bcs);
 #endif
 ```
   around APIs to keep backwards compatibility with older versions of libMesh.
