@@ -164,6 +164,7 @@ DIM_DEPENDENT_SOURCES = \
 ../src/utilities/HierarchyIntegrator.cpp \
 ../src/utilities/IndexUtilities.cpp \
 ../src/utilities/LMarkerUtilities.cpp \
+../src/utilities/MergingLoadBalancer.cpp \
 ../src/utilities/NodeDataSynchronization.cpp \
 ../src/utilities/NodeSynchCopyFillPattern.cpp \
 ../src/utilities/NormOps.cpp \

@@ -313,6 +313,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/utilities/HierarchyIntegrator.cpp \
 	../src/utilities/IndexUtilities.cpp \
 	../src/utilities/LMarkerUtilities.cpp \
+	../src/utilities/MergingLoadBalancer.cpp \
 	../src/utilities/NodeDataSynchronization.cpp \
 	../src/utilities/NodeSynchCopyFillPattern.cpp \
 	../src/utilities/NormOps.cpp ../src/utilities/ParallelMap.cpp \
@@ -466,6 +467,7 @@ am__objects_3 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK2d_a-HierarchyIntegrator.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-IndexUtilities.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-LMarkerUtilities.$(OBJEXT) \
+	../src/utilities/libIBTK2d_a-MergingLoadBalancer.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-NodeDataSynchronization.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-NodeSynchCopyFillPattern.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-NormOps.$(OBJEXT) \
@@ -606,6 +608,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/utilities/HierarchyIntegrator.cpp \
 	../src/utilities/IndexUtilities.cpp \
 	../src/utilities/LMarkerUtilities.cpp \
+	../src/utilities/MergingLoadBalancer.cpp \
 	../src/utilities/NodeDataSynchronization.cpp \
 	../src/utilities/NodeSynchCopyFillPattern.cpp \
 	../src/utilities/NormOps.cpp ../src/utilities/ParallelMap.cpp \
@@ -759,6 +762,7 @@ am__objects_5 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK3d_a-HierarchyIntegrator.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-IndexUtilities.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-LMarkerUtilities.$(OBJEXT) \
+	../src/utilities/libIBTK3d_a-MergingLoadBalancer.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-NodeDataSynchronization.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-NodeSynchCopyFillPattern.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-NormOps.$(OBJEXT) \
@@ -1025,6 +1029,7 @@ am__depfiles_remade =  \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po \
+	../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-NormOps.Po \
@@ -1057,6 +1062,7 @@ am__depfiles_remade =  \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po \
+	../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-NormOps.Po \
@@ -1682,6 +1688,7 @@ DIM_DEPENDENT_SOURCES =  \
 	../src/utilities/HierarchyIntegrator.cpp \
 	../src/utilities/IndexUtilities.cpp \
 	../src/utilities/LMarkerUtilities.cpp \
+	../src/utilities/MergingLoadBalancer.cpp \
 	../src/utilities/NodeDataSynchronization.cpp \
 	../src/utilities/NodeSynchCopyFillPattern.cpp \
 	../src/utilities/NormOps.cpp ../src/utilities/ParallelMap.cpp \
@@ -2236,6 +2243,9 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/utilities/libIBTK2d_a-LMarkerUtilities.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK2d_a-MergingLoadBalancer.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-NodeDataSynchronization.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -2712,6 +2722,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/utilities/libIBTK3d_a-LMarkerUtilities.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK3d_a-MergingLoadBalancer.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-NodeDataSynchronization.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -3075,6 +3088,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-NormOps.Po@am__quote@ # am--include-marker
@@ -3107,6 +3121,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-NormOps.Po@am__quote@ # am--include-marker
@@ -4596,6 +4611,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/LMarkerUtilities.cpp' object='../src/utilities/libIBTK2d_a-LMarkerUtilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-LMarkerUtilities.obj `if test -f '../src/utilities/LMarkerUtilities.cpp'; then $(CYGPATH_W) '../src/utilities/LMarkerUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/LMarkerUtilities.cpp'; fi`
+
+../src/utilities/libIBTK2d_a-MergingLoadBalancer.o: ../src/utilities/MergingLoadBalancer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-MergingLoadBalancer.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Tpo -c -o ../src/utilities/libIBTK2d_a-MergingLoadBalancer.o `test -f '../src/utilities/MergingLoadBalancer.cpp' || echo '$(srcdir)/'`../src/utilities/MergingLoadBalancer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/MergingLoadBalancer.cpp' object='../src/utilities/libIBTK2d_a-MergingLoadBalancer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-MergingLoadBalancer.o `test -f '../src/utilities/MergingLoadBalancer.cpp' || echo '$(srcdir)/'`../src/utilities/MergingLoadBalancer.cpp
+
+../src/utilities/libIBTK2d_a-MergingLoadBalancer.obj: ../src/utilities/MergingLoadBalancer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-MergingLoadBalancer.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Tpo -c -o ../src/utilities/libIBTK2d_a-MergingLoadBalancer.obj `if test -f '../src/utilities/MergingLoadBalancer.cpp'; then $(CYGPATH_W) '../src/utilities/MergingLoadBalancer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/MergingLoadBalancer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/MergingLoadBalancer.cpp' object='../src/utilities/libIBTK2d_a-MergingLoadBalancer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-MergingLoadBalancer.obj `if test -f '../src/utilities/MergingLoadBalancer.cpp'; then $(CYGPATH_W) '../src/utilities/MergingLoadBalancer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/MergingLoadBalancer.cpp'; fi`
 
 ../src/utilities/libIBTK2d_a-NodeDataSynchronization.o: ../src/utilities/NodeDataSynchronization.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-NodeDataSynchronization.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Tpo -c -o ../src/utilities/libIBTK2d_a-NodeDataSynchronization.o `test -f '../src/utilities/NodeDataSynchronization.cpp' || echo '$(srcdir)/'`../src/utilities/NodeDataSynchronization.cpp
@@ -6333,6 +6362,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-LMarkerUtilities.obj `if test -f '../src/utilities/LMarkerUtilities.cpp'; then $(CYGPATH_W) '../src/utilities/LMarkerUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/LMarkerUtilities.cpp'; fi`
 
+../src/utilities/libIBTK3d_a-MergingLoadBalancer.o: ../src/utilities/MergingLoadBalancer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-MergingLoadBalancer.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Tpo -c -o ../src/utilities/libIBTK3d_a-MergingLoadBalancer.o `test -f '../src/utilities/MergingLoadBalancer.cpp' || echo '$(srcdir)/'`../src/utilities/MergingLoadBalancer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/MergingLoadBalancer.cpp' object='../src/utilities/libIBTK3d_a-MergingLoadBalancer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-MergingLoadBalancer.o `test -f '../src/utilities/MergingLoadBalancer.cpp' || echo '$(srcdir)/'`../src/utilities/MergingLoadBalancer.cpp
+
+../src/utilities/libIBTK3d_a-MergingLoadBalancer.obj: ../src/utilities/MergingLoadBalancer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-MergingLoadBalancer.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Tpo -c -o ../src/utilities/libIBTK3d_a-MergingLoadBalancer.obj `if test -f '../src/utilities/MergingLoadBalancer.cpp'; then $(CYGPATH_W) '../src/utilities/MergingLoadBalancer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/MergingLoadBalancer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/MergingLoadBalancer.cpp' object='../src/utilities/libIBTK3d_a-MergingLoadBalancer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-MergingLoadBalancer.obj `if test -f '../src/utilities/MergingLoadBalancer.cpp'; then $(CYGPATH_W) '../src/utilities/MergingLoadBalancer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/MergingLoadBalancer.cpp'; fi`
+
 ../src/utilities/libIBTK3d_a-NodeDataSynchronization.o: ../src/utilities/NodeDataSynchronization.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-NodeDataSynchronization.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Tpo -c -o ../src/utilities/libIBTK3d_a-NodeDataSynchronization.o `test -f '../src/utilities/NodeDataSynchronization.cpp' || echo '$(srcdir)/'`../src/utilities/NodeDataSynchronization.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po
@@ -7043,6 +7086,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NormOps.Po
@@ -7075,6 +7119,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NormOps.Po
@@ -7348,6 +7393,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NormOps.Po
@@ -7380,6 +7426,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NormOps.Po
