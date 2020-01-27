@@ -9,14 +9,14 @@ L   = 1.0
 // grid spacing parameters
 MAX_LEVELS = 2                                      // maximum number of levels in locally refined grid
 REF_RATIO  = 4                                      // refinement ratio between levels
-N = 32                                              // actual    number of grid cells on coarsest grid level
+N = 10                                              // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N            // effective number of grid cells on finest   grid level
 DX0 = L/N                                           // mesh width on coarsest grid level
 DX  = L/NFINEST                                     // mesh width on finest   grid level
-MFAC = 1.0                                          // ratio of Lagrangian mesh width to Cartesian mesh width
-ELEM_TYPE = "HEX8"                                  // type of element to use for structure discretization
-PK1_DEV_QUAD_ORDER = "THIRD"
-PK1_DIL_QUAD_ORDER = "FIRST"
+MFAC = 2.0                                          // ratio of Lagrangian mesh width to Cartesian mesh width
+ELEM_TYPE = "TRI3"                                  // type of element to use for structure discretization
+PK1_DEV_QUAD_ORDER = "FIFTH"
+PK1_DIL_QUAD_ORDER = "THIRD"
 
 // model parameters
 U_MAX = 2.0
@@ -31,10 +31,10 @@ USE_JUMP_CONDITIONS        = FALSE                  // whether to impose pressur
 USE_CONSISTENT_MASS_MATRIX = TRUE                   // whether to use a consistent or lumped mass matrix
 IB_POINT_DENSITY           = 3.0                    // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                = "STAGGERED"            // the fluid solver to use (STAGGERED or COLLOCATED)
-CFL_MAX                    = 0.025                  // maximum CFL number (lowered from 0.25 to 0.025 to prevent multiple regrids)
+CFL_MAX                    = 0.25                   // maximum CFL number
 DT                         = 0.25*CFL_MAX*DX/U_MAX  // maximum timestep size
 START_TIME                 = 0.0e0                  // initial simulation time
-END_TIME                   = 10*DT                 // final simulation time
+END_TIME                   = 10*DT                  // final simulation time
 GROW_DT                    = 2.0e0                  // growth factor for timesteps
 NUM_CYCLES                 = 1                      // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH"      // convective time stepping type
@@ -45,11 +45,11 @@ ERROR_ON_DT_CHANGE         = TRUE                   // whether to emit an error 
 VORTICITY_TAGGING          = TRUE                   // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                 = 1                      // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL        = 0.5                    // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
-OUTPUT_U                   = TRUE
-OUTPUT_P                   = TRUE
-OUTPUT_F                   = TRUE
-OUTPUT_OMEGA               = TRUE
-OUTPUT_DIV_U               = TRUE
+OUTPUT_U                   = FALSE
+OUTPUT_P                   = FALSE
+OUTPUT_F                   = FALSE
+OUTPUT_OMEGA               = FALSE
+OUTPUT_DIV_U               = FALSE
 ENABLE_LOGGING             = TRUE
 
 // collocated solver parameters
@@ -61,22 +61,16 @@ VelocityBcCoefs_0 {
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
-   acoef_function_4 = "1.0"
-   acoef_function_5 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
-   bcoef_function_4 = "0.0"
-   bcoef_function_5 = "0.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
-   gcoef_function_4 = "0.0"
-   gcoef_function_5 = "1.0"
+   gcoef_function_3 = "1.0"
 }
 
 VelocityBcCoefs_1 {
@@ -84,45 +78,16 @@ VelocityBcCoefs_1 {
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
-   acoef_function_4 = "1.0"
-   acoef_function_5 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
-   bcoef_function_4 = "0.0"
-   bcoef_function_5 = "0.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
-   gcoef_function_4 = "0.0"
-   gcoef_function_5 = "1.0"
-}
-
-VelocityBcCoefs_2 {
-   acoef_function_0 = "1.0"
-   acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
-   acoef_function_4 = "1.0"
-   acoef_function_5 = "1.0"
-
-   bcoef_function_0 = "0.0"
-   bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
-   bcoef_function_4 = "0.0"
-   bcoef_function_5 = "0.0"
-
-   gcoef_function_0 = "0.0"
-   gcoef_function_1 = "0.0"
-   gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
-   gcoef_function_4 = "0.0"
-   gcoef_function_5 = "0.0"
 }
 
 IBHierarchyIntegrator {
@@ -134,6 +99,7 @@ IBHierarchyIntegrator {
    dt_max              = DT
    error_on_dt_change  = ERROR_ON_DT_CHANGE
    enable_logging      = ENABLE_LOGGING
+   enable_logging_solver_iterations = FALSE
 }
 
 IBFEMethod {
@@ -142,11 +108,10 @@ IBFEMethod {
    use_jump_conditions        = USE_JUMP_CONDITIONS
    use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
    IB_point_density           = IB_POINT_DENSITY
-   workload_quad_point_weight = 1.0
-   enable_logging             = ENABLE_LOGGING
+   enable_logging             = TRUE
    skip_initial_workload_log  = TRUE
-
-   libmesh_partitioner_type = "LIBMESH_DEFAULT"
+   libmesh_partitioner_type   = "LIBMESH_DEFAULT"
+   workload_quad_point_weight = 1.0
 
    use_scratch_hierarchy = TRUE
 
@@ -155,43 +120,39 @@ IBFEMethod {
        max_levels = MAX_LEVELS
        ratio_to_coarser
        {
-           level_1 = REF_RATIO,REF_RATIO,REF_RATIO
-           level_2 = REF_RATIO,REF_RATIO,REF_RATIO
-           level_3 = REF_RATIO,REF_RATIO,REF_RATIO
-           level_4 = REF_RATIO,REF_RATIO,REF_RATIO
-           level_5 = REF_RATIO,REF_RATIO,REF_RATIO
+           level_1 = REF_RATIO,REF_RATIO
+           level_2 = REF_RATIO,REF_RATIO
+           level_3 = REF_RATIO,REF_RATIO
+           level_4 = REF_RATIO,REF_RATIO
+           level_5 = REF_RATIO,REF_RATIO
        }
 
        largest_patch_size
        {
-           level_0 = 64,64,64
-           level_1 = 128,128,128
+           level_0 = 32,32
        }
 
        smallest_patch_size
        {
-           level_0 =  64,64,64
-           level_1 =  16,16,16
+           level_0 = 8,8
        }
 
        efficiency_tolerance = 0.1e0  // min % of tag cells in new patch level
        combine_efficiency   = 0.1e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
 
-       // TODO: enabling this causes SAMRAI to print a warning with the file name in it :'(
-       // allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
        coalesce_boxes = TRUE
    }
 
    LoadBalancer
    {
       type                = "DEFAULT"
-      bin_pack_method     = "GREEDY"
+      bin_pack_method     = "SPATIAL"
       max_workload_factor = 0.0625
    }
+
 }
 
 INSCollocatedHierarchyIntegrator {
-   cell_workload                 = 0.0
    mu                            = MU
    rho                           = RHO
    start_time                    = START_TIME
@@ -212,12 +173,12 @@ INSCollocatedHierarchyIntegrator {
    output_Omega                  = OUTPUT_OMEGA
    output_Div_U                  = OUTPUT_DIV_U
    enable_logging                = ENABLE_LOGGING
+   enable_logging_solver_iterations = FALSE
    projection_method_type        = PROJECTION_METHOD_TYPE
    use_2nd_order_pressure_update = SECOND_ORDER_PRESSURE_UPDATE
 }
 
 INSStaggeredHierarchyIntegrator {
-   cell_workload                 = 0.0
    mu                            = MU
    rho                           = RHO
    start_time                    = START_TIME
@@ -238,6 +199,7 @@ INSStaggeredHierarchyIntegrator {
    output_Omega                  = OUTPUT_OMEGA
    output_Div_U                  = OUTPUT_DIV_U
    enable_logging                = ENABLE_LOGGING
+   enable_logging_solver_iterations = FALSE
 }
 
 Main {
@@ -248,51 +210,48 @@ Main {
    log_all_nodes               = FALSE
 
 // visualization dump parameters
-   viz_writer                  = "VisIt","ExodusII"
-   viz_dump_interval           = -1
-   viz_dump_dirname            = "viz_IB3d"
+   viz_writer                  = ""
+   viz_dump_interval           = 10
+   viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = -1
-   restart_dump_dirname        = "restart_IB3d"
+   restart_dump_interval       = 0
+   restart_dump_dirname        = "restart_IB2d"
 
 // hierarchy data dump parameters
-   data_dump_interval          = -1
-   data_dump_dirname           = "hier_data_IB3d"
+   data_dump_interval          = 0
+   data_dump_dirname           = "hier_data_IB2d"
 
 // timer dump parameters
-   timer_dump_interval         = -1
+   timer_dump_interval         = 0
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0,0),(N - 1,N - 1,N - 1) ]
-   x_lo = 0,0,0
-   x_up = L,L,L
-   periodic_dimension = 0,0,0
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = L,L
+   periodic_dimension = 0,0
 }
 
 GriddingAlgorithm {
    max_levels = MAX_LEVELS
    ratio_to_coarser {
-      level_1 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_2 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_3 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_4 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_5 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_1 = REF_RATIO,REF_RATIO
+      level_2 = REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO
+      level_4 = REF_RATIO,REF_RATIO
+      level_5 = REF_RATIO,REF_RATIO
    }
    largest_patch_size {
-      level_0 = 64,64,64  // all finer levels will use same values as level_0
+      level_0 = 512,512  // all finer levels will use same values as level_0
    }
    smallest_patch_size {
-      level_0 =   16,  16,  16  // all finer levels will use same values as level_0
+      level_0 =   8,  8  // all finer levels will use same values as level_0
    }
    efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
    combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
-
-    // TODO: enabling this causes SAMRAI to print a warning with the file name in it :'(
-    // allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
-    coalesce_boxes = TRUE
+   coalesce_boxes = TRUE // the documentation states that this may be expensive...
 }
 
 StandardTagAndInitialize {
@@ -301,7 +260,7 @@ StandardTagAndInitialize {
 
 LoadBalancer {
    bin_pack_method     = "SPATIAL"
-   max_workload_factor = 1
+   max_workload_factor = 0.0625
 }
 
 TimerManager{

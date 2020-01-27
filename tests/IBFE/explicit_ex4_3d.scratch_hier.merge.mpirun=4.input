@@ -184,7 +184,7 @@ IBFEMethod {
 
    LoadBalancer
    {
-      type                = "DEFAULT"
+      type                = "MERGING"
       bin_pack_method     = "GREEDY"
       max_workload_factor = 0.0625
    }

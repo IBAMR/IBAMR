@@ -60,6 +60,7 @@
  *    INSStaggeredHierarchyIntegrator, and IBFEMethod)
  * 2. IBFE restart code
  * 3. IBFECentroidPostProcessor
+ * 4. IBTK::MergingLoadBalancer
  */
 
 // Elasticity model data.
@@ -426,9 +427,6 @@ main(int argc, char** argv)
             ib_post_processor->initializeFEData();
         }
 
-        // Deallocate initialization objects.
-        app_initializer.setNull();
-
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
@@ -530,6 +528,16 @@ main(int argc, char** argv)
             {
                 plog << std::setprecision(12) << std::fixed << loop_time << " " << J_integral << std::endl;
             }
+        }
+
+        if (input_db->getBoolWithDefault("log_scratch_partitioning", false))
+        {
+            Pointer<PatchHierarchy<NDIM> > scratch_hier = ib_method_ops->getScratchHierarchy();
+            TBOX_ASSERT(scratch_hier);
+            Pointer<PatchLevel<NDIM> > patch_level = scratch_hier->getPatchLevel(scratch_hier->getFinestLevelNumber());
+            const BoxArray<NDIM> boxes = patch_level->getBoxes();
+            plog << "Scratch hierarchy boxes:\n";
+            for (int i = 0; i < boxes.size(); ++i) plog << boxes[i] << '\n';
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
