@@ -225,11 +225,17 @@ namespace IBAMR
  *
  *     largest_patch_size
  *     {
+ *         // We recommend using very large values here: large patches
+ *         // are more efficient, especially with the merging load balancer.
  *         level_0 = 512,512
  *     }
  *
  *     smallest_patch_size
  *     {
+ *         // on the other hand, smaller patch sizes here typically enable
+ *         // better load balancing at the cost of creating more total work
+ *         // due to an increased number of ghost cells (and, therefore,
+ *         // an increased number of elements in more than one patch).
  *         level_0 = 16,16
  *     }
  *
@@ -244,6 +250,7 @@ namespace IBAMR
  * // This value is a good compromise.
  * LoadBalancer
  * {
+ *    type                = "MERGING"
  *    bin_pack_method     = "SPATIAL"
  *    max_workload_factor = 0.5
  * }
@@ -251,8 +258,16 @@ namespace IBAMR
  *
  * i.e., providing <code>use_scratch_hierarchy = TRUE</code> (the default is
  * <code>FALSE</code>) turns on the scratch hierarchy and the remaining
- * parameters determine how patches are generated and load balanced. The
- * parameter <code>workload_quad_point_weight</code> is the multiplier
+ * parameters determine how patches are generated and load balanced. The extra
+ * argument <code>type</code> to <code>LoadBalancer</code> specifies whether
+ * an IBTK::MergingLoadBalancer (chosen by <code>"MERGING"</code>) or the
+ * default SAMRAI LoadBalancer (chosen by <code>"DEFAULT"</code>) is
+ * used. Since IBTK::MergingLoadBalancer is usually what one wants
+ * <code>"MERGING"</code> is the default. The merging option is better since
+ * it reduces the total number of elements which end up in patch ghost
+ * regions since some patches will be merged together.
+ *
+ * The parameter <code>workload_quad_point_weight</code> is the multiplier
  * assigned to an IB point when calculating the work per processor: in the
  * future additional weights, such as <code>workload_node_point_weight</code>
  * will also be added.

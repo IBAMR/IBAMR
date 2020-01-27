@@ -147,6 +147,7 @@ IBFEMethod {
 
    LoadBalancer
    {
+      type                = "DEFAULT"
       bin_pack_method     = "SPATIAL"
       max_workload_factor = 0.0625
    }
