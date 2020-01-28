@@ -269,32 +269,42 @@ main(int argc, char** argv)
         }
 
         ib_method_ops->spreadForce(f_ghost_idx, nullptr, {}, time_integrator->getIntegratorTime() + dt / 2);
+        const double cutoff = input_db->getDoubleWithDefault("output_cutoff_value", 0.0);
         {
             const int ln = patch_hierarchy->getFinestLevelNumber();
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                out << "patch number " << p() << '\n';
+                bool printed_value = false;
+                std::ostringstream patch_out;
+                patch_out << "patch number " << p() << '\n';
+                patch_out.precision(16);
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_ghost_idx);
                 const Box<NDIM> patch_box = patch->getBox();
 
-                // same as SideData::print, but elides zero values
-                out.precision(16);
+                // same as SideData::print, but elides zero values. We don't
+                // print any information about the patch when no values are
+                // above the cutoff.
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
-                    out << "Array side normal = " << axis << std::endl;
+                    patch_out << "Array side normal = " << axis << std::endl;
                     for (int d = 0; d < f_data->getDepth(); ++d)
                     {
-                        out << "Array depth = " << d << std::endl;
+                        patch_out << "Array depth = " << d << std::endl;
                         const ArrayData<NDIM, double>& data = f_data->getArrayData(axis);
                         for (SideIterator<NDIM> i(patch_box, axis); i; i++)
                         {
                             const double value = data(i(), d);
-                            if (value != 0.0) out << "array" << i() << " = " << value << '\n';
+                            if (std::abs(value) > cutoff)
+                            {
+                                patch_out << "array" << i() << " = " << value << '\n';
+                                printed_value = true;
+                            }
                         }
                     }
                 }
+                if (printed_value) out << patch_out.str();
                 // f_data->print(patch_box, plog, 16);
             }
         }
