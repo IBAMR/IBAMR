@@ -109,7 +109,13 @@ line_equation(const IBTK::Vector3d& coord, const libMesh::Point& n0, const libMe
     return (y1 - y0) * coord(0) + (x0 - x1) * coord(1) + (x1 * y0 - x0 * y1);
 } // line_equation
 
-#define MAKE_EDGE(n0, n1) n1(0) - n0(0), n1(1) - n0(1), n1(2) - n0(2)
+template <class T1, class T2>
+inline T1
+make_edge(T2 n0, T2 n1)
+{
+    T1 e0(n1(0) - n0(0), n1(1) - n0(1), n1(2) - n0(2));
+    return (e0);
+} // make_edge
 } // namespace
 
 const double FESurfaceDistanceEvaluator::s_large_distance = 1234567.0;
@@ -523,7 +529,7 @@ FESurfaceDistanceEvaluator::calculateSurfaceNormals()
         std::array<VectorValue<double>, 2> Edge;
         const libMesh::Point& n0 = elem->point(0);
         const libMesh::Point& n1 = elem->point(1);
-        Edge[0] = VectorValue<double>(MAKE_EDGE(n0, n1));
+        Edge[0] = make_edge<VectorValue<double>, libMesh::Point>(n0, n1);
 
         if (NDIM == 2)
         {
@@ -532,7 +538,7 @@ FESurfaceDistanceEvaluator::calculateSurfaceNormals()
 
 #if (NDIM == 3)
         const libMesh::Point& n2 = elem->point(2);
-        Edge[1] = VectorValue<double>(MAKE_EDGE(n0, n2));
+        Edge[1] = make_edge<VectorValue<double>, libMesh::Point>(n0, n2);
 #endif
         // cross product of edge 0 and edge 1 results the outward face normal.
         VectorValue<double> N = Edge[0].cross(Edge[1]);
@@ -908,8 +914,8 @@ FESurfaceDistanceEvaluator::getClosestPointandAngleWeightedNormal3D(const IBTK::
     const IBTK::Vector3d B(n0(0), n0(1), n0(2));
     const IBTK::Vector3d D = B - P;
 
-    const IBTK::Vector3d E0(MAKE_EDGE(B, n1));
-    const IBTK::Vector3d E1(MAKE_EDGE(B, n2));
+    const IBTK::Vector3d E0 = make_edge<IBTK::Vector3d, libMesh::Point>(n0, n1);
+    const IBTK::Vector3d E1 = make_edge<IBTK::Vector3d, libMesh::Point>(n0, n2);
 
     // Compute the required dot products.
     const double a = E0.dot(E0);
@@ -1235,18 +1241,18 @@ FESurfaceDistanceEvaluator::getClosestPointandAngleWeightedNormal3D(const IBTK::
             const libMesh::Point& nbr_n2 = nbr_elem->point(2);
             if (nbr_elem->node_ptr(0) == elem->node_ptr(0))
             {
-                nbr_e0 << MAKE_EDGE(nbr_n0, nbr_n1);
-                nbr_e1 << MAKE_EDGE(nbr_n0, nbr_n2);
+                nbr_e0 = make_edge<IBTK::Vector3d, libMesh::Point>(nbr_n0, nbr_n1);
+                nbr_e1 = make_edge<IBTK::Vector3d, libMesh::Point>(nbr_n0, nbr_n2);
             }
             else if (nbr_elem->node_ptr(1) == elem->node_ptr(0))
             {
-                nbr_e0 << MAKE_EDGE(nbr_n1, nbr_n0);
-                nbr_e1 << MAKE_EDGE(nbr_n1, nbr_n2);
+                nbr_e0 = make_edge<IBTK::Vector3d, libMesh::Point>(nbr_n1, nbr_n0);
+                nbr_e1 = make_edge<IBTK::Vector3d, libMesh::Point>(nbr_n1, nbr_n2);
             }
             else if (nbr_elem->node_ptr(2) == elem->node_ptr(0))
             {
-                nbr_e0 << MAKE_EDGE(nbr_n2, nbr_n0);
-                nbr_e1 << MAKE_EDGE(nbr_n2, nbr_n1);
+                nbr_e0 = make_edge<IBTK::Vector3d, libMesh::Point>(nbr_n2, nbr_n0);
+                nbr_e1 = make_edge<IBTK::Vector3d, libMesh::Point>(nbr_n2, nbr_n1);
             }
             const double nbr_e0_norm = nbr_e0.norm();
             const double nbr_e1_norm = nbr_e1.norm();
@@ -1265,18 +1271,18 @@ FESurfaceDistanceEvaluator::getClosestPointandAngleWeightedNormal3D(const IBTK::
             const libMesh::Point& nbr_n2 = nbr_elem->point(2);
             if (nbr_elem->node_ptr(0) == elem->node_ptr(1))
             {
-                nbr_e0 << MAKE_EDGE(nbr_n0, nbr_n1);
-                nbr_e1 << MAKE_EDGE(nbr_n0, nbr_n2);
+                nbr_e0 = make_edge<IBTK::Vector3d, libMesh::Point>(nbr_n0, nbr_n1);
+                nbr_e1 = make_edge<IBTK::Vector3d, libMesh::Point>(nbr_n0, nbr_n2);
             }
             else if (nbr_elem->node_ptr(1) == elem->node_ptr(1))
             {
-                nbr_e0 << MAKE_EDGE(nbr_n1, nbr_n0);
-                nbr_e1 << MAKE_EDGE(nbr_n1, nbr_n2);
+                nbr_e0 = make_edge<IBTK::Vector3d, libMesh::Point>(nbr_n1, nbr_n0);
+                nbr_e1 = make_edge<IBTK::Vector3d, libMesh::Point>(nbr_n1, nbr_n2);
             }
             else if (nbr_elem->node_ptr(2) == elem->node_ptr(1))
             {
-                nbr_e0 << MAKE_EDGE(nbr_n2, nbr_n0);
-                nbr_e1 << MAKE_EDGE(nbr_n2, nbr_n1);
+                nbr_e0 = make_edge<IBTK::Vector3d, libMesh::Point>(nbr_n2, nbr_n0);
+                nbr_e1 = make_edge<IBTK::Vector3d, libMesh::Point>(nbr_n2, nbr_n1);
             }
             const double nbr_e0_norm = nbr_e0.norm();
             const double nbr_e1_norm = nbr_e1.norm();
@@ -1295,18 +1301,18 @@ FESurfaceDistanceEvaluator::getClosestPointandAngleWeightedNormal3D(const IBTK::
             const libMesh::Point& nbr_n2 = nbr_elem->point(2);
             if (nbr_elem->node_ptr(0) == elem->node_ptr(2))
             {
-                nbr_e0 << MAKE_EDGE(nbr_n0, nbr_n1);
-                nbr_e1 << MAKE_EDGE(nbr_n0, nbr_n2);
+                nbr_e0 = make_edge<IBTK::Vector3d, libMesh::Point>(nbr_n0, nbr_n1);
+                nbr_e1 = make_edge<IBTK::Vector3d, libMesh::Point>(nbr_n0, nbr_n2);
             }
             else if (nbr_elem->node_ptr(1) == elem->node_ptr(2))
             {
-                nbr_e0 << MAKE_EDGE(nbr_n1, nbr_n0);
-                nbr_e1 << MAKE_EDGE(nbr_n1, nbr_n2);
+                nbr_e0 = make_edge<IBTK::Vector3d, libMesh::Point>(nbr_n1, nbr_n0);
+                nbr_e1 = make_edge<IBTK::Vector3d, libMesh::Point>(nbr_n1, nbr_n2);
             }
             else if (nbr_elem->node_ptr(2) == elem->node_ptr(2))
             {
-                nbr_e0 << MAKE_EDGE(nbr_n2, nbr_n0);
-                nbr_e1 << MAKE_EDGE(nbr_n2, nbr_n1);
+                nbr_e0 = make_edge<IBTK::Vector3d, libMesh::Point>(nbr_n2, nbr_n0);
+                nbr_e1 = make_edge<IBTK::Vector3d, libMesh::Point>(nbr_n2, nbr_n1);
             }
             const double nbr_e0_norm = nbr_e0.norm();
             const double nbr_e1_norm = nbr_e1.norm();
