@@ -57,64 +57,6 @@
 // IBFEmethod::spreadForce). At the moment it simply prints out the force
 // values.
 
-// A scalar function parser that behaves similarly to our own
-// muParserCartGridFunction.
-class ParsedFunction
-{
-public:
-    ParsedFunction(std::vector<std::string> expressions, const unsigned int n_vars = 0)
-        : string_functions(std::move(expressions)),
-          vars(n_vars == 0 ? string_functions.size() : n_vars, 0.0),
-          parsers(string_functions.size())
-    {
-        for (unsigned int var_n = 0; var_n < vars.size(); ++var_n)
-            for (mu::Parser& parser : parsers) parser.DefineVar("X_" + std::to_string(var_n), &vars[var_n]);
-
-        for (unsigned int p_n = 0; p_n < string_functions.size(); ++p_n) parsers[p_n].SetExpr(string_functions[p_n]);
-    }
-
-    // Evaluate a single component.
-    double value(const libMesh::Point& p, const unsigned int component_n) const
-    {
-        TBOX_ASSERT(component_n < parsers.size());
-        for (unsigned int var_n = 0; var_n < vars.size(); ++var_n) vars[var_n] = p(var_n);
-
-        try
-        {
-            return parsers[component_n].Eval();
-        }
-        catch (mu::ParserError& e)
-        {
-            std::cerr << "Message:  <" << e.GetMsg() << ">\n";
-            std::cerr << "Formula:  <" << e.GetExpr() << ">\n";
-            std::cerr << "Token:    <" << e.GetToken() << ">\n";
-            std::cerr << "Position: <" << e.GetPos() << ">\n";
-            std::cerr << "Errc:     <" << e.GetCode() << ">" << std::endl;
-            throw e;
-        }
-        return 1.0;
-    }
-
-    // Evaluate all components. Only makes sense if the number of variables is
-    // equal to the number of functions.
-    libMesh::Point value(const libMesh::Point& p) const
-    {
-        TBOX_ASSERT(vars.size() == parsers.size());
-        for (unsigned int var_n = 0; var_n < vars.size(); ++var_n) vars[var_n] = p(var_n);
-
-        libMesh::Point out;
-        for (unsigned int component_n = 0; component_n < parsers.size(); ++component_n)
-            out(component_n) = parsers[component_n].Eval();
-        return out;
-    }
-
-private:
-    const std::vector<std::string> string_functions;
-    mutable std::vector<double> vars;
-
-    std::vector<mu::Parser> parsers;
-};
-
 // Coordinate mapping function.
 void
 coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
