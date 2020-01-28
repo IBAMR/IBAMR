@@ -153,7 +153,9 @@ int main(int argc, char **argv)
             for (const auto &box : result)
                 out << box << '\n';
             for (const auto &box : boxes)
-                check_box_contained(result, box);
+            {
+                TBOX_ASSERT(check_box_contained(result, box));
+            }
         }
     }
 
