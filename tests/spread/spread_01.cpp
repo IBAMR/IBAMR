@@ -198,6 +198,11 @@ main(int argc, char** argv)
         ib_method_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
+        // only regrid if we are in parallel - do this to avoid weird problems
+        // with inconsistent initial partitionings (see
+        // IBFEMethod::d_skip_initial_workload_log)
+        if (SAMRAI_MPI::getNodes() != 1) time_integrator->regridHierarchy();
+
         // Now for the actual test. Set up a new variable containing ghost data:
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const Pointer<SAMRAI::hier::Variable<NDIM> > f_var = time_integrator->getBodyForceVariable();
@@ -250,36 +255,79 @@ main(int argc, char** argv)
         }
         half_f_vector.close();
 
+        std::ostringstream out;
+        if (SAMRAI_MPI::getNodes() != 1)
+        {
+            // partitioning is only relevant when there are multiple processors
+            Pointer<PatchLevel<NDIM> > patch_level =
+                patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
+            const BoxArray<NDIM> boxes = patch_level->getBoxes();
+            plog << "hierarchy boxes:\n";
+            for (int i = 0; i < boxes.size(); ++i) plog << boxes[i] << '\n';
+            // rank is only relevant when there are multiple processors
+            out << "\nrank: " << SAMRAI_MPI::getRank() << '\n';
+        }
+
         ib_method_ops->spreadForce(f_ghost_idx, nullptr, {}, time_integrator->getIntegratorTime() + dt / 2);
         {
             const int ln = patch_hierarchy->getFinestLevelNumber();
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                plog << "patch number " << p() << '\n';
+                out << "patch number " << p() << '\n';
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_ghost_idx);
                 const Box<NDIM> patch_box = patch->getBox();
 
                 // same as SideData::print, but elides zero values
-                plog.precision(16);
+                out.precision(16);
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
-                    plog << "Array side normal = " << axis << std::endl;
+                    out << "Array side normal = " << axis << std::endl;
                     for (int d = 0; d < f_data->getDepth(); ++d)
                     {
-                        plog << "Array depth = " << d << std::endl;
+                        out << "Array depth = " << d << std::endl;
                         const ArrayData<NDIM, double>& data = f_data->getArrayData(axis);
                         for (SideIterator<NDIM> i(patch_box, axis); i; i++)
                         {
                             const double value = data(i(), d);
-                            if (value != 0.0) plog << "array" << i() << " = " << value << '\n';
+                            if (value != 0.0) out << "array" << i() << " = " << value << '\n';
                         }
                     }
                 }
                 // f_data->print(patch_box, plog, 16);
             }
         }
+        SAMRAI_MPI::barrier();
+
+        // okay, now each processor has some output, but we want to get
+        // everything on rank 0 to print to plog.
+        const std::string to_log = out.str();
+        const int n_nodes = SAMRAI_MPI::getNodes();
+        std::vector<unsigned long> string_sizes(n_nodes);
+
+        const unsigned long size = to_log.size();
+        int ierr = MPI_Gather(
+            &size, 1, MPI_UNSIGNED_LONG, string_sizes.data(), 1, MPI_UNSIGNED_LONG, 0, SAMRAI_MPI::getCommunicator());
+        TBOX_ASSERT(ierr == 0);
+
+        // MPI_Gatherv would be more efficient, but this just a test so its
+        // not too important
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            plog << to_log;
+            for (int r = 1; r < n_nodes; ++r)
+            {
+                std::string input;
+                input.resize(string_sizes[r]);
+                ierr = MPI_Recv(
+                    &input[0], string_sizes[r], MPI_CHAR, r, 0, SAMRAI_MPI::getCommunicator(), MPI_STATUS_IGNORE);
+                TBOX_ASSERT(ierr == 0);
+                plog << input;
+            }
+        }
+        else
+            MPI_Send(to_log.data(), size, MPI_CHAR, 0, 0, SAMRAI_MPI::getCommunicator());
     } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
