@@ -1,7 +1,5 @@
-// additional test logging parameters
-log_postprocessor = TRUE
-postprocessor_sampling_rate = 25
-use_separate_fe_data_manager = FALSE
+// test parameters
+log_scratch_partitioning = TRUE
 
 // physical parameters
 MU  = 0.01
@@ -36,7 +34,7 @@ SOLVER_TYPE                = "STAGGERED"            // the fluid solver to use (
 CFL_MAX                    = 0.25                   // maximum CFL number
 DT                         = 0.25*CFL_MAX*DX/U_MAX  // maximum timestep size
 START_TIME                 = 0.0e0                  // initial simulation time
-END_TIME                   = 100*DT                // final simulation time
+END_TIME                   = 10*DT                  // final simulation time
 GROW_DT                    = 2.0e0                  // growth factor for timesteps
 NUM_CYCLES                 = 1                      // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH"      // convective time stepping type
@@ -147,7 +145,7 @@ IBFEMethod {
 
    LoadBalancer
    {
-      type                = "DEFAULT"
+      type                = "MERGING"
       bin_pack_method     = "SPATIAL"
       max_workload_factor = 0.0625
    }

@@ -164,6 +164,7 @@ DIM_DEPENDENT_SOURCES = \
 ../src/utilities/HierarchyIntegrator.cpp \
 ../src/utilities/IndexUtilities.cpp \
 ../src/utilities/LMarkerUtilities.cpp \
+../src/utilities/MergingLoadBalancer.cpp \
 ../src/utilities/NodeDataSynchronization.cpp \
 ../src/utilities/NodeSynchCopyFillPattern.cpp \
 ../src/utilities/NormOps.cpp \
@@ -178,6 +179,7 @@ DIM_DEPENDENT_SOURCES = \
 ../src/utilities/StandardTagAndInitStrategySet.cpp \
 ../src/utilities/Streamable.cpp \
 ../src/utilities/StreamableManager.cpp \
+../src/utilities/box_utilities.cpp \
 ../src/utilities/muParserCartGridFunction.cpp
 
 if LIBMESH_ENABLED
@@ -329,6 +331,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/VCSCViscousOpPointRelaxationFACOperator.h \
 ../include/ibtk/VCSCViscousOperator.h \
 ../include/ibtk/VCSCViscousPETScLevelSolver.h \
+../include/ibtk/box_utilities.h \
 ../include/ibtk/muParserCartGridFunction.h \
 ../include/ibtk/muParserRobinBcCoefs.h \
 ../include/ibtk/private/FixedSizedStream-inl.h \

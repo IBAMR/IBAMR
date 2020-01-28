@@ -18,6 +18,74 @@ IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
 IBFEMethod: starting scratch hierarchy regrid
+round: 0 number of boxes: 2
+number of common faces: 0
+final number of boxes: 2
+round: 0 number of boxes: 2
+number of common faces: 0
+final number of boxes: 2
+round: 0 number of boxes: 21
+number of common faces: 12
+face: (44,64,32), (76,64,52)
+boxes:
+[(44,32,32),(76,64,52)]
+[(44,64,32),(76,96,52)]
+face: (44,64,52), (60,64,68)
+boxes:
+[(44,32,52),(60,64,68)]
+[(44,64,52),(60,96,68)]
+face: (44,64,68), (76,64,96)
+boxes:
+[(44,32,68),(76,64,96)]
+[(44,64,68),(76,96,96)]
+face: (76,32,64), (92,48,64)
+boxes:
+[(76,32,32),(92,48,64)]
+[(76,32,64),(92,48,96)]
+face: (76,64,32), (92,64,48)
+boxes:
+[(76,48,32),(92,64,48)]
+[(76,64,32),(92,80,48)]
+face: (76,64,48), (92,80,48)
+boxes:
+[(76,64,32),(92,80,48)]
+[(76,64,48),(92,80,64)]
+face: (76,64,80), (92,64,96)
+boxes:
+[(76,48,80),(92,64,96)]
+[(76,64,80),(92,80,96)]
+face: (76,80,64), (92,96,64)
+boxes:
+[(76,80,32),(92,96,64)]
+[(76,80,64),(92,96,96)]
+face: (92,32,64), (108,64,64)
+boxes:
+[(92,32,32),(108,64,64)]
+[(92,32,64),(108,64,96)]
+face: (92,64,32), (108,64,64)
+boxes:
+[(92,32,32),(108,64,64)]
+[(92,64,32),(108,96,64)]
+face: (92,64,64), (108,64,96)
+boxes:
+[(92,32,64),(108,64,96)]
+[(92,64,64),(108,96,96)]
+face: (92,64,64), (108,96,64)
+boxes:
+[(92,64,32),(108,96,64)]
+[(92,64,64),(108,96,96)]
+round: 1 number of boxes: 12
+number of common faces: 1
+face: (92,64,32), (108,64,96)
+boxes:
+[(92,32,32),(108,64,96)]
+[(92,64,32),(108,96,96)]
+round: 2 number of boxes: 11
+number of common faces: 0
+final number of boxes: 11
+round: 0 number of boxes: 1
+number of common faces: 0
+final number of boxes: 1
 IBFEMethod: finished scratch hierarchy regrid
 IBFEMethod::scratch hierarchy workload
 IBFEMethod:: end scratch hierarchy workload
@@ -32,9 +100,9 @@ FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for syst
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 7
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.7200985722839383998e-12
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.720098654780944926e-12
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 4
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.5973159080525373871e-12
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.59731590806291915e-12
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for system: IB velocity system
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
@@ -275,29 +343,19 @@ Simulation time is 0.000244141
 
 0.000244140625 0.000003210343
 Scratch hierarchy boxes:
-[(76,48,48),(91,63,63)]
-[(76,64,64),(91,79,79)]
-[(76,64,48),(91,79,63)]
-[(76,48,64),(91,63,79)]
 [(60,64,52),(75,79,67)]
+[(76,48,48),(91,63,63)]
 [(60,48,52),(75,63,67)]
-[(44,64,52),(59,95,67)]
-[(44,64,32),(75,95,51)]
+[(76,64,64),(91,79,79)]
+[(44,32,32),(75,95,51)]
+[(44,32,52),(59,95,67)]
+[(44,32,68),(75,95,95)]
 [(60,32,52),(75,47,67)]
-[(76,32,32),(91,47,63)]
-[(76,48,32),(91,63,47)]
-[(92,64,64),(107,95,95)]
-[(92,32,32),(107,63,63)]
-[(76,32,64),(91,47,95)]
-[(44,64,68),(75,95,95)]
-[(44,32,68),(75,63,95)]
-[(76,64,32),(91,79,47)]
-[(92,32,64),(107,63,95)]
 [(60,80,52),(75,95,67)]
-[(76,80,32),(91,95,63)]
-[(92,64,32),(107,95,63)]
-[(76,48,80),(91,63,95)]
-[(76,64,80),(91,79,95)]
-[(76,80,64),(91,95,95)]
-[(44,32,52),(59,63,67)]
-[(44,32,32),(75,63,51)]
+[(76,32,32),(91,47,95)]
+[(76,48,32),(91,79,47)]
+[(76,48,80),(91,79,95)]
+[(76,64,48),(91,79,63)]
+[(76,80,32),(91,95,95)]
+[(92,32,32),(107,95,95)]
+[(76,48,64),(91,63,79)]

@@ -25,6 +25,7 @@
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
+#include "ibtk/MergingLoadBalancer.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
@@ -1691,7 +1692,15 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             // At this point the primary hierarchy has been regridded but the
             // scratch hierarchy has not.
             Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-            Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>(d_load_balancer_db);
+            const std::string load_balancer_type = d_load_balancer_db->getStringWithDefault("type", "MERGING");
+            Pointer<LoadBalancer<NDIM> > load_balancer;
+            if (load_balancer_type == "DEFAULT")
+                load_balancer = new LoadBalancer<NDIM>(d_load_balancer_db);
+            else if (load_balancer_type == "MERGING")
+                load_balancer = new MergingLoadBalancer(d_load_balancer_db);
+            else
+                TBOX_ERROR(d_object_name << "::IBFEMethod():\n"
+                                         << "unimplemented load balancer type " << load_balancer_type << std::endl);
             load_balancer->setWorkloadPatchDataIndex(d_lagrangian_workload_current_idx);
 
             // only tag cells for refinement based on this class' refinement
