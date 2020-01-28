@@ -57,64 +57,6 @@
 // IBFEmethod::spreadForce). At the moment it simply prints out the force
 // values.
 
-// A scalar function parser that behaves similarly to our own
-// muParserCartGridFunction.
-class ParsedFunction
-{
-public:
-    ParsedFunction(std::vector<std::string> expressions, const unsigned int n_vars = 0)
-        : string_functions(std::move(expressions)),
-          vars(n_vars == 0 ? string_functions.size() : n_vars, 0.0),
-          parsers(string_functions.size())
-    {
-        for (unsigned int var_n = 0; var_n < vars.size(); ++var_n)
-            for (mu::Parser& parser : parsers) parser.DefineVar("X_" + std::to_string(var_n), &vars[var_n]);
-
-        for (unsigned int p_n = 0; p_n < string_functions.size(); ++p_n) parsers[p_n].SetExpr(string_functions[p_n]);
-    }
-
-    // Evaluate a single component.
-    double value(const libMesh::Point& p, const unsigned int component_n) const
-    {
-        TBOX_ASSERT(component_n < parsers.size());
-        for (unsigned int var_n = 0; var_n < vars.size(); ++var_n) vars[var_n] = p(var_n);
-
-        try
-        {
-            return parsers[component_n].Eval();
-        }
-        catch (mu::ParserError& e)
-        {
-            std::cerr << "Message:  <" << e.GetMsg() << ">\n";
-            std::cerr << "Formula:  <" << e.GetExpr() << ">\n";
-            std::cerr << "Token:    <" << e.GetToken() << ">\n";
-            std::cerr << "Position: <" << e.GetPos() << ">\n";
-            std::cerr << "Errc:     <" << e.GetCode() << ">" << std::endl;
-            throw e;
-        }
-        return 1.0;
-    }
-
-    // Evaluate all components. Only makes sense if the number of variables is
-    // equal to the number of functions.
-    libMesh::Point value(const libMesh::Point& p) const
-    {
-        TBOX_ASSERT(vars.size() == parsers.size());
-        for (unsigned int var_n = 0; var_n < vars.size(); ++var_n) vars[var_n] = p(var_n);
-
-        libMesh::Point out;
-        for (unsigned int component_n = 0; component_n < parsers.size(); ++component_n)
-            out(component_n) = parsers[component_n].Eval();
-        return out;
-    }
-
-private:
-    const std::vector<std::string> string_functions;
-    mutable std::vector<double> vars;
-
-    std::vector<mu::Parser> parsers;
-};
-
 // Coordinate mapping function.
 void
 coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
@@ -256,6 +198,11 @@ main(int argc, char** argv)
         ib_method_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
+        // only regrid if we are in parallel - do this to avoid weird problems
+        // with inconsistent initial partitionings (see
+        // IBFEMethod::d_skip_initial_workload_log)
+        if (SAMRAI_MPI::getNodes() != 1) time_integrator->regridHierarchy();
+
         // Now for the actual test. Set up a new variable containing ghost data:
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const Pointer<SAMRAI::hier::Variable<NDIM> > f_var = time_integrator->getBodyForceVariable();
@@ -308,36 +255,89 @@ main(int argc, char** argv)
         }
         half_f_vector.close();
 
+        std::ostringstream out;
+        if (SAMRAI_MPI::getNodes() != 1)
+        {
+            // partitioning is only relevant when there are multiple processors
+            Pointer<PatchLevel<NDIM> > patch_level =
+                patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
+            const BoxArray<NDIM> boxes = patch_level->getBoxes();
+            plog << "hierarchy boxes:\n";
+            for (int i = 0; i < boxes.size(); ++i) plog << boxes[i] << '\n';
+            // rank is only relevant when there are multiple processors
+            out << "\nrank: " << SAMRAI_MPI::getRank() << '\n';
+        }
+
         ib_method_ops->spreadForce(f_ghost_idx, nullptr, {}, time_integrator->getIntegratorTime() + dt / 2);
+        const double cutoff = input_db->getDoubleWithDefault("output_cutoff_value", 0.0);
         {
             const int ln = patch_hierarchy->getFinestLevelNumber();
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                plog << "patch number " << p() << '\n';
+                bool printed_value = false;
+                std::ostringstream patch_out;
+                patch_out << "patch number " << p() << '\n';
+                patch_out.precision(16);
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_ghost_idx);
                 const Box<NDIM> patch_box = patch->getBox();
 
-                // same as SideData::print, but elides zero values
-                plog.precision(16);
+                // same as SideData::print, but elides zero values. We don't
+                // print any information about the patch when no values are
+                // above the cutoff.
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
-                    plog << "Array side normal = " << axis << std::endl;
+                    patch_out << "Array side normal = " << axis << std::endl;
                     for (int d = 0; d < f_data->getDepth(); ++d)
                     {
-                        plog << "Array depth = " << d << std::endl;
+                        patch_out << "Array depth = " << d << std::endl;
                         const ArrayData<NDIM, double>& data = f_data->getArrayData(axis);
                         for (SideIterator<NDIM> i(patch_box, axis); i; i++)
                         {
                             const double value = data(i(), d);
-                            if (value != 0.0) plog << "array" << i() << " = " << value << '\n';
+                            if (std::abs(value) > cutoff)
+                            {
+                                patch_out << "array" << i() << " = " << value << '\n';
+                                printed_value = true;
+                            }
                         }
                     }
                 }
+                if (printed_value) out << patch_out.str();
                 // f_data->print(patch_box, plog, 16);
             }
         }
+        SAMRAI_MPI::barrier();
+
+        // okay, now each processor has some output, but we want to get
+        // everything on rank 0 to print to plog.
+        const std::string to_log = out.str();
+        const int n_nodes = SAMRAI_MPI::getNodes();
+        std::vector<unsigned long> string_sizes(n_nodes);
+
+        const unsigned long size = to_log.size();
+        int ierr = MPI_Gather(
+            &size, 1, MPI_UNSIGNED_LONG, string_sizes.data(), 1, MPI_UNSIGNED_LONG, 0, SAMRAI_MPI::getCommunicator());
+        TBOX_ASSERT(ierr == 0);
+
+        // MPI_Gatherv would be more efficient, but this just a test so its
+        // not too important
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            plog << to_log;
+            for (int r = 1; r < n_nodes; ++r)
+            {
+                std::string input;
+                input.resize(string_sizes[r]);
+                ierr = MPI_Recv(
+                    &input[0], string_sizes[r], MPI_CHAR, r, 0, SAMRAI_MPI::getCommunicator(), MPI_STATUS_IGNORE);
+                TBOX_ASSERT(ierr == 0);
+                plog << input;
+            }
+        }
+        else
+            MPI_Send(to_log.data(), size, MPI_CHAR, 0, 0, SAMRAI_MPI::getCommunicator());
     } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
