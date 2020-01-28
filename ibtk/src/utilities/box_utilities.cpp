@@ -35,7 +35,7 @@ namespace IBTK
     {
         bool
         operator()(const std::pair<hier::Index<NDIM>, hier::Index<NDIM>> &a,
-                   const std::pair<hier::Index<NDIM>, hier::Index<NDIM>> &b)
+                   const std::pair<hier::Index<NDIM>, hier::Index<NDIM>> &b) const
         {
             int a_indices[2*NDIM];
             int b_indices[2*NDIM];
@@ -59,7 +59,7 @@ namespace IBTK
     {
         bool
         operator()(const std::pair<hier::Index<NDIM>, hier::Index<NDIM>> &a,
-                   const std::pair<hier::Index<NDIM>, hier::Index<NDIM>> &b)
+                   const std::pair<hier::Index<NDIM>, hier::Index<NDIM>> &b) const
         {
             long a_magnitude = 1;
             long b_magnitude = 1;
@@ -79,7 +79,7 @@ namespace IBTK
     {
         bool
         operator()(const hier::Box<NDIM> &a,
-                   const hier::Box<NDIM> &b)
+                   const hier::Box<NDIM> &b) const
         {
             int a_indices[2*NDIM];
             int b_indices[2*NDIM];
