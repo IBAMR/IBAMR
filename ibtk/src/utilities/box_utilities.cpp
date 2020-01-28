@@ -16,8 +16,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <tbox/PIO.h>
-
 #include <Box.h>
 
 #include <algorithm>
@@ -110,7 +108,6 @@ merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::Box<NDIM> >& input_b
     int round_n = 0;
     while (true)
     {
-        tbox::plog << "round: " << round_n << " number of boxes: " << boxes.size() << '\n';
         std::map<std::pair<hier::Index<NDIM>, hier::Index<NDIM> >,
                  std::set<hier::Box<NDIM>, BoxLexical>,
                  IndexPairLexical>
@@ -170,20 +167,12 @@ merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::Box<NDIM> >& input_b
             for (const auto& face : faces_to_remove) face_to_boxes.erase(face);
         }
 
-        tbox::plog << "number of common faces: " << face_to_boxes.size() << '\n';
         if (face_to_boxes.size() == 0) break;
 
         // 2. sort faces by size in *descending* order:
         std::vector<std::pair<hier::Index<NDIM>, hier::Index<NDIM> > > faces;
         for (const auto& pair : face_to_boxes) faces.push_back(pair.first);
         std::sort(faces.begin(), faces.end(), IndexPairMagnitudeGreater());
-
-        for (const auto& pair : face_to_boxes)
-        {
-            tbox::plog << "face: " << pair.first.first << ", " << pair.first.second << '\n';
-            tbox::plog << "boxes:\n";
-            for (const auto& box : pair.second) tbox::plog << box << '\n';
-        }
 
         // 3. merge boxes.
         std::set<hier::Box<NDIM>, BoxLexical> removed_boxes;
@@ -229,7 +218,6 @@ merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::Box<NDIM> >& input_b
         }
         ++round_n;
     }
-    tbox::plog << "final number of boxes: " << boxes.size() << '\n';
     boxes.insert(*boxes.begin());
 
     // convert back to the usual box format by undoing the box expansion

@@ -17,50 +17,6 @@ IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
 IBFEMethod: starting scratch hierarchy regrid
-round: 0 number of boxes: 4
-number of common faces: 2
-face: (4,20), (16,20)
-boxes:
-[(4,0),(16,20)]
-[(4,20),(16,40)]
-face: (16,12), (24,12)
-boxes:
-[(16,0),(24,12)]
-[(16,12),(24,20)]
-round: 1 number of boxes: 2
-number of common faces: 0
-final number of boxes: 2
-round: 0 number of boxes: 1
-number of common faces: 0
-final number of boxes: 1
-round: 0 number of boxes: 3
-number of common faces: 1
-face: (32,12), (32,20)
-boxes:
-[(24,12),(32,20)]
-[(32,12),(40,20)]
-round: 1 number of boxes: 2
-number of common faces: 1
-face: (24,12), (40,12)
-boxes:
-[(24,0),(40,12)]
-[(24,12),(40,20)]
-round: 2 number of boxes: 1
-number of common faces: 0
-final number of boxes: 1
-round: 0 number of boxes: 4
-number of common faces: 2
-face: (24,28), (24,40)
-boxes:
-[(16,28),(24,40)]
-[(24,28),(40,40)]
-face: (32,20), (32,28)
-boxes:
-[(24,20),(32,28)]
-[(32,20),(40,28)]
-round: 1 number of boxes: 2
-number of common faces: 0
-final number of boxes: 2
 IBFEMethod: finished scratch hierarchy regrid
 IBFEMethod::scratch hierarchy workload
 IBFEMethod:: end scratch hierarchy workload
