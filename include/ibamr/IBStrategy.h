@@ -476,21 +476,21 @@ protected:
      */
     void registerGhostfillRefineAlgorithm(const std::string& name,
                                           SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > ghostfill_alg,
-                                          SAMRAI::xfer::RefinePatchStrategy<NDIM>* ghostfill_patch_strategy = NULL);
+                                          std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM> > ghostfill_patch_strategy = nullptr);
 
     /*!
      * Register a data-prolonging refine algorithm.
      */
     void registerProlongRefineAlgorithm(const std::string& name,
                                         SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > prolong_alg,
-                                        SAMRAI::xfer::RefinePatchStrategy<NDIM>* prolong_patch_strategy = NULL);
+                                        std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM> > prolong_patch_strategy = nullptr);
 
     /*!
      * Register a coarsen algorithm.
      */
     void registerCoarsenAlgorithm(const std::string& name,
                                   SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > coarsen_alg,
-                                  SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy = NULL);
+                                  std::unique_ptr<SAMRAI::xfer::CoarsenPatchStrategy<NDIM> > coarsen_patch_strategy = nullptr);
 
     /*!
      * Get ghost cell-filling refine algorithm.

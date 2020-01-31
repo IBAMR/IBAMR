@@ -1412,43 +1412,40 @@ HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const Pointer<Base
     return;
 } // executeApplyGradientDetectorCallbackFcns
 
-// TODO: Should ghostfill_patch_strategy be a unique_ptr?
 void
 HierarchyIntegrator::registerGhostfillRefineAlgorithm(const std::string& name,
                                                       Pointer<RefineAlgorithm<NDIM> > ghostfill_alg,
-                                                      RefinePatchStrategy<NDIM>* ghostfill_patch_strategy)
+                                                      std::unique_ptr<RefinePatchStrategy<NDIM> > ghostfill_patch_strategy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_ghostfill_algs.find(name) == d_ghostfill_algs.end());
 #endif
     d_ghostfill_algs[name] = ghostfill_alg;
-    d_ghostfill_strategies[name].reset(ghostfill_patch_strategy);
+    d_ghostfill_strategies[name] = std::move(ghostfill_patch_strategy);
 } // registerGhostfillRefineAlgorithm
 
-// TODO: Should prolong_patch_strategy be a unique_ptr?
 void
 HierarchyIntegrator::registerProlongRefineAlgorithm(const std::string& name,
                                                     Pointer<RefineAlgorithm<NDIM> > prolong_alg,
-                                                    RefinePatchStrategy<NDIM>* prolong_patch_strategy)
+                                                    std::unique_ptr<RefinePatchStrategy<NDIM> > prolong_patch_strategy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_prolong_algs.find(name) == d_prolong_algs.end());
 #endif
     d_prolong_algs[name] = prolong_alg;
-    d_prolong_strategies[name].reset(prolong_patch_strategy);
+    d_prolong_strategies[name] = std::move(prolong_patch_strategy);
 } // registerProlongRefineAlgorithm
 
-// TODO: Should coarsen_patch_strategy be a unique_ptr?
 void
 HierarchyIntegrator::registerCoarsenAlgorithm(const std::string& name,
                                               Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg,
-                                              CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy)
+                                              std::unique_ptr<CoarsenPatchStrategy<NDIM> > coarsen_patch_strategy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsen_algs.find(name) == d_coarsen_algs.end());
 #endif
     d_coarsen_algs[name] = coarsen_alg;
-    d_coarsen_strategies[name].reset(coarsen_patch_strategy);
+    d_coarsen_strategies[name] = std::move(coarsen_patch_strategy);
 } // registerCoarsenAlgorithm
 
 Pointer<RefineAlgorithm<NDIM> >

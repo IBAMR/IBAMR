@@ -353,25 +353,25 @@ IBStrategy::registerVariable(int& idx,
 void
 IBStrategy::registerGhostfillRefineAlgorithm(const std::string& name,
                                              Pointer<RefineAlgorithm<NDIM> > ghostfill_alg,
-                                             RefinePatchStrategy<NDIM>* ghostfill_patch_strategy)
+                                             std::unique_ptr<RefinePatchStrategy<NDIM> > ghostfill_patch_strategy)
 {
-    d_ib_solver->registerGhostfillRefineAlgorithm(name, ghostfill_alg, ghostfill_patch_strategy);
+    d_ib_solver->registerGhostfillRefineAlgorithm(name, ghostfill_alg, std::move(ghostfill_patch_strategy));
 } // registerGhostfillRefineAlgorithm
 
 void
 IBStrategy::registerProlongRefineAlgorithm(const std::string& name,
                                            Pointer<RefineAlgorithm<NDIM> > prolong_alg,
-                                           RefinePatchStrategy<NDIM>* prolong_patch_strategy)
+                                           std::unique_ptr<RefinePatchStrategy<NDIM> > prolong_patch_strategy)
 {
-    d_ib_solver->registerProlongRefineAlgorithm(name, prolong_alg, prolong_patch_strategy);
+    d_ib_solver->registerProlongRefineAlgorithm(name, prolong_alg, std::move(prolong_patch_strategy));
 } // registerProlongRefineAlgorithm
 
 void
 IBStrategy::registerCoarsenAlgorithm(const std::string& name,
                                      Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg,
-                                     CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy)
+                                     std::unique_ptr<CoarsenPatchStrategy<NDIM> > coarsen_patch_strategy)
 {
-    d_ib_solver->registerCoarsenAlgorithm(name, coarsen_alg, coarsen_patch_strategy);
+    d_ib_solver->registerCoarsenAlgorithm(name, coarsen_alg, std::move(coarsen_patch_strategy));
 } // registerCoarsenAlgorithm
 
 Pointer<RefineAlgorithm<NDIM> >
