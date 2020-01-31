@@ -1,0 +1,95 @@
+// physical domain parameters
+R           = 0.1
+D           = 2.0*R
+HEIGHT      = 2.0*D
+LENGTH      = 2.0*D
+XCOM        = LENGTH/2.0
+YCOM        = HEIGHT/2.0
+
+// grid spacing parameters
+MAX_LEVELS       = 1
+REF_RATIO        = 1
+N                = 80
+NFINEST          = (REF_RATIO^(MAX_LEVELS - 1))*N
+H_COARSEST       = LENGTH/N
+H                = LENGTH/NFINEST
+
+GCW                                = 4
+DX                                 = H
+MFAC                               = 2.0
+ELEM_TYPE                          = "TRI3"
+SPLIT_FORCES                       = FALSE
+USE_JUMP_CONDITIONS                = FALSE
+USE_CONSISTENT_MASS_MATRIX         = TRUE
+IB_POINT_DENSITY                   = 1.0
+USE_VOLUME_EXTRACTED_BOUNDARY_MESH = TRUE            // whether to use boundary mesh extracted from solid mesh
+//GMSH_FILENAME                      = "CircleMesh.msh"
+
+Main {
+// log file parameters
+   log_file_name = "FESurfaceDistanceTest.log"
+   log_all_nodes = FALSE
+
+// visualization dump parameters
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2dcylinder"
+   viz_dump_interval     = 1    //zero to turn off
+   visit_number_procs_per_file = 1
+
+// timer dump parameters
+   timer_enabled = TRUE
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0) , (N - 1, N - 1) ]
+   x_lo         =   0.0,   0.0
+   x_up         =   LENGTH, HEIGHT
+   periodic_dimension = 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
+   ratio_to_coarser {
+      level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
+      level_2 = REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO
+      level_4 = REF_RATIO,REF_RATIO
+      level_5 = REF_RATIO,REF_RATIO
+      level_6 = REF_RATIO,REF_RATIO
+      level_7 = REF_RATIO,REF_RATIO
+   }
+
+   largest_patch_size {
+      level_0 = 2048, 2048 // largest patch allowed in hierarchy
+                          // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 =  8, 8 // smallest patch allowed in hierarchy
+                            // all finer levels will use same values as level_0...
+   }
+}
+x_lower_index = int((XCOM - D)/H_COARSEST)
+y_lower_index = int((YCOM - D)/H_COARSEST)
+x_upper_index = int((XCOM + D)/H_COARSEST)
+y_upper_index = int((YCOM + D)/H_COARSEST)
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+      RefineBoxes {
+         level_0 = [ ( x_lower_index , y_lower_index ) , ( x_upper_index , y_upper_index ) ]
+      }
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 0.1
+
+   timer_list = "IBAMR::*::*" , "IBTK::*::*" , "*::*::*"
+}

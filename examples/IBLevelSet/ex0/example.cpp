@@ -391,7 +391,7 @@ main(int argc, char* argv[])
         dx = input_db->getDouble("DX");
         ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
-        const bool use_bdry_mesh = input_db->getBool("USE_BOUNDARY_MESH");
+        const bool use_vol_extracted_bdry_mesh = input_db->getBool("USE_VOLUME_EXTRACTED_BOUNDARY_MESH");
         shift_x = circle.X0[0];
         shift_y = circle.X0[1];
 #if (NDIM == 3)
@@ -835,15 +835,16 @@ main(int argc, char* argv[])
         Pointer<FESurfaceDistanceEvaluator> surface_distance_eval =
             new FESurfaceDistanceEvaluator("FESurfaceDistanceEvaluator",
                                            patch_hierarchy,
-                                           ibfe_method_ops,
                                            mesh,
                                            boundary_mesh,
-                                           /*part*/ 0,
                                            /*gcw*/ gcw,
-                                           use_bdry_mesh);
+                                           use_vol_extracted_bdry_mesh);
         pout << "Started mapping intersections" << std::endl;
         surface_distance_eval->mapIntersections();
         pout << "Finished mapping intersections" << std::endl;
+        pout << "Computing face normal" << std::endl;
+        surface_distance_eval->calculateSurfaceNormals();
+        pout << "Finished calculation of face normal" << std::endl;
         pout << "Computing distances" << std::endl;
         surface_distance_eval->computeSignedDistance(n_idx, d_idx);
         pout << "Finished computing distances" << std::endl;

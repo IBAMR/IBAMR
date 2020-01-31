@@ -198,15 +198,15 @@ EXPLICITLY_REMOVE_NULLSPACE  = FALSE
 ENABLE_LOGGING               = TRUE
 
 // IBFEMethod parameters
-DX                         = H
-MFAC                       = 2.0
-ELEM_TYPE                  = "TRI3"
-SPLIT_FORCES               = FALSE
-USE_JUMP_CONDITIONS        = FALSE
-USE_CONSISTENT_MASS_MATRIX = TRUE
-IB_POINT_DENSITY           = 1.0
-USE_BOUNDARY_MESH          = FALSE            // whether to use boundary mesh extracted from solid mesh
-GMSH_FILENAME              = "CircleMesh.msh"
+DX                                 = H
+MFAC                               = 2.0
+ELEM_TYPE                          = "TRI3"
+SPLIT_FORCES                       = FALSE
+USE_JUMP_CONDITIONS                = FALSE
+USE_CONSISTENT_MASS_MATRIX         = TRUE
+IB_POINT_DENSITY                   = 1.0
+USE_VOLUME_EXTRACTED_BOUNDARY_MESH = FALSE            // whether to use boundary mesh extracted from solid mesh
+GMSH_FILENAME                      = "CircleMesh.msh"
 
 
 // AdvDiff solver parameters

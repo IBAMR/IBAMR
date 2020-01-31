@@ -985,10 +985,8 @@ main(int argc, char* argv[])
         Pointer<FESurfaceDistanceEvaluator> surface_distance_eval =
             new FESurfaceDistanceEvaluator("FESurfaceDistanceEvaluator",
                                            patch_hierarchy,
-                                           ibfe_method_ops,
                                            mesh,
                                            boundary_mesh,
-                                           /*part*/ 0,
                                            /*gcw*/ gcw,
                                            use_bdry_mesh);
         pout << "Started mapping intersections" << std::endl;

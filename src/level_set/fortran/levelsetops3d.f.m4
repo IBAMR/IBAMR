@@ -2648,12 +2648,12 @@ c     Do the four sweeping directions.
          enddo
       enddo
 
-      do i2 = ilower2,iupper2
-         do i1 = ilower1,iupper1
-            do i0 = iupper0,ilower0,-1
+      do i2 = iupper2,ilower2,-1
+         do i1 = iupper1,ilower1,-1
+            do i0 = ilower0,iupper0
                if (dabs(U(i0,i1,i2)) .ge. large_dist) then
                   sgn = sign(one,U(i0,i1,i2))
-                  sgn_nbr = sign(one,U(i0+1,i1,i2))
+                  sgn_nbr = sign(one,U(i0,i1+1,i2+1))
                   if (sgn .ne. sgn_nbr) then
                      U(i0,i1,i2) = dabs(U(i0,i1,i2))*sgn_nbr
                      n_updates = n_updates + 1
@@ -2664,11 +2664,11 @@ c     Do the four sweeping directions.
       enddo
 
       do i2 = ilower2,iupper2
-         do i1 = iupper1,ilower1,-1
+         do i1 = ilower1,iupper1
             do i0 = iupper0,ilower0,-1
                if (dabs(U(i0,i1,i2)) .ge. large_dist) then
                   sgn = sign(one,U(i0,i1,i2))
-                  sgn_nbr = sign(one,U(i0+1,i1+1,i2))
+                  sgn_nbr = sign(one,U(i0+1,i1,i2))
                   if (sgn .ne. sgn_nbr) then
                      U(i0,i1,i2) = dabs(U(i0,i1,i2))*sgn_nbr
                      n_updates = n_updates + 1
@@ -2693,15 +2693,15 @@ c     Do the four sweeping directions.
          enddo
       enddo
 
-      do i2 = iupper2,ilower2,-1
+      do i2 = ilower2,iupper2
          do i1 = iupper1,ilower1,-1
-            do i0 = ilower0,iupper0
+            do i0 = iupper0,ilower0,-1
                if (dabs(U(i0,i1,i2)) .ge. large_dist) then
                   sgn = sign(one,U(i0,i1,i2))
-                  sgn_nbr = sign(one,U(i0,i1+1,i2+1))
+                  sgn_nbr = sign(one,U(i0+1,i1+1,i2))
                   if (sgn .ne. sgn_nbr) then
-                     U(i0,i1,i2) = dabs(U(i0,i1,i2))*sgn_nbr
-                     n_updates = n_updates + 1
+                    U(i0,i1,i2) = dabs(U(i0,i1,i2))*sgn_nbr
+                    n_updates = n_updates + 1
                   endif
                endif
             enddo

@@ -76,47 +76,50 @@ public:
     static const double s_large_distance;
 
     /*!
-     * The only constructor of this class.
+     * \brief The only constructor of this class.
      */
     FESurfaceDistanceEvaluator(std::string object_name,
                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
-                               SAMRAI::tbox::Pointer<IBAMR::IBFEMethod> ibfe_method,
                                const libMesh::Mesh& mesh,
                                const libMesh::BoundaryMesh& bdry_mesh,
-                               const int part,
                                const int gcw = 1,
                                bool use_extracted_bdry_mesh = true);
 
     /*!
-     * Default dstructor.
+     * \brief Default dstructor.
      */
     ~FESurfaceDistanceEvaluator() = default;
 
     /*!
-     * Map the triangles intersecting a particular grid cell.
+     * \brief Map the triangles intersecting a particular grid cell.
      */
     void mapIntersections();
 
     /*!
-     * Get the map maintaining triangle-cell intersection and neighbors.
+     * \brief Compute the face normal of the surface elements.
+     */
+    void calculateSurfaceNormals();
+
+    /*!
+     * \brief Get the map maintaining triangle-cell intersection and neighbors.
      */
     const std::map<SAMRAI::pdat::CellIndex<NDIM>, std::set<libMesh::Elem*>, IBTK::CellIndexFortranOrder>&
     getNeighborIntersectionsMap();
 
     /*!
-     * Compute the signed distance in the viscinity of the finite element mesh.
+     * \brief Compute the signed distance in the viscinity of the finite element mesh.
      */
     void computeSignedDistance(int n_idx, int d_idx);
 
     /*!
-     * Update the sign of the distance function away from the finite element mesh.
+     * \brief Update the sign of the distance function away from the finite element mesh.
      */
-    static void updateSignAwayFromInterface(int d_idx,
-                                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
-                                            double large_distance = s_large_distance);
+    void updateSignAwayFromInterface(int d_idx,
+                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                                     double large_distance = s_large_distance);
 
     /*!
-     * Check whether the grown box and line element intersect in 2D.
+     * \brief Check whether the grown box and line element intersect in 2D.
      *
      *     (box_tl)   *--------------*  (box_tr)
      *                |              |
@@ -134,7 +137,7 @@ public:
                                     const libMesh::Point& n1);
 
     /*!
-     * Check whether the grown box and triangle element intersect in 3D.
+     * \brief Check whether the grown box and triangle element intersect in 3D.
      *
      *                  ^   --------------
      *                  |  |              |                  vert0
@@ -154,32 +157,24 @@ public:
                                     const IBTK::Vector3d& vert1,
                                     const IBTK::Vector3d& vert2);
 
-    /*!
-     * Get the closest point for a given point and list of triangle vertices.
-     */
-    static IBTK::Vector3d getClosestPoint3D(const IBTK::Vector3d& P,
-                                            const libMesh::Point& vert0,
-                                            const libMesh::Point& vert1,
-                                            const libMesh::Point& vert2);
-
 private:
     /*!
-     * Default constructor is not implemented and should not be used.
+     * \brief Default constructor is not implemented and should not be used.
      */
     FESurfaceDistanceEvaluator() = delete;
 
     /*!
-     * Default assignment operator is not implemented and should not be used.
+     * \brief Default assignment operator is not implemented and should not be used.
      */
     FESurfaceDistanceEvaluator& operator=(const FESurfaceDistanceEvaluator& that) = delete;
 
     /*!
-     * Default copy constructor is not implemented and should not be used.
+     * \brief Default copy constructor is not implemented and should not be used.
      */
     FESurfaceDistanceEvaluator(const FESurfaceDistanceEvaluator& from) = delete;
 
     /*!
-     * Collect all of the neighboring elements which are located within a local
+     * \brief Collect all of the neighboring elements which are located within a local
      * Cartesian grid patch grown by the specified ghost cell width.
      *
      * In this method, the determination as to whether an element is local or
@@ -188,14 +183,11 @@ private:
     void collectNeighboringPatchElements(int level_number);
 
     /*!
-     * Compute signed distance from volume extracted boundary mesh.
+     * \brief Compute the closest point on a triangle for a given Eulerian point P and obtain
+     * its corresponding angle-weighted pseudo-normal from the surface mesh elements.
      */
-    void computeSignedDistanceVolExtractedBdryMesh(int n_idx, int d_idx);
-
-    /*!
-     * Compute signed distance from surface mesh.
-     */
-    void computeSignedDistanceSurfaceMesh(int n_idx, int d_idx);
+    std::pair<IBTK::Vector3d, IBTK::Vector3d> getClosestPointandAngleWeightedNormal3D(const IBTK::Vector3d& P,
+                                                                                      libMesh::Elem* elem);
 
     /*!
      * Name of this object.
@@ -208,24 +200,14 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_patch_hierarchy;
 
     /*!
-     * Pointer to the FEDataManager for a particular part.
-     */
-    SAMRAI::tbox::Pointer<IBAMR::IBFEMethod> d_ibfe_method;
-
-    /*!
      * Volume mesh object
      */
     const libMesh::Mesh& d_mesh;
 
     /*!
-     * Boundary mesh object
+     * Boundary mesh object.
      */
     const libMesh::BoundaryMesh& d_bdry_mesh;
-
-    /*!
-     * The part number.
-     */
-    int d_part;
 
     /*!
      * The desired ghost cell width.
@@ -238,7 +220,7 @@ private:
     bool d_use_vol_extracted_bdry_mesh;
 
     /*!
-     * The supported element type for this class
+     * The supported element type for this class.
      */
     libMesh::ElemType d_supported_elem_type;
 
@@ -254,6 +236,25 @@ private:
      */
     std::map<SAMRAI::pdat::CellIndex<NDIM>, std::set<libMesh::Elem*>, IBTK::CellIndexFortranOrder>
         d_cell_elem_neighbor_map;
+
+    /*!
+     * Map the node and the set of elements sharing this node.
+     */
+    std::map<libMesh::Node*, std::set<libMesh::Elem*> > d_node_to_elem;
+    /*!
+     * Map the edge and the set of elements sharing this edge.
+     */
+    std::map<std::pair<libMesh::Node*, libMesh::Node*>, std::set<libMesh::Elem*> > d_edge_to_elem;
+
+    /*!
+     * Map the element and its face normal.
+     */
+    std::map<libMesh::Elem*, IBTK::VectorNd> d_elem_face_normal;
+
+    /*!
+     * Object to create a bounding box for sign update sweeping algorithm.
+     */
+    SAMRAI::hier::Box<NDIM> d_large_struct_box;
 };
 
 } // namespace IBAMR
