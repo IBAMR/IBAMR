@@ -1664,9 +1664,6 @@ c
 c
       implicit none
 c
-c     Functions.
-c
-c
 c     Input.
 c
       INTEGER depth
@@ -1696,7 +1693,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:4)
+      REAL X_cell(0:NDIM-1),w0(0:4),w1(0:4)
 
       PARAMETER (K = (38.0d0 - sqrt(69.0d0))/60.0d0)
 c
@@ -1747,14 +1744,14 @@ c
      &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
      &          /280.0d0
 
-         w(0,0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
+         w0(0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
      &                         r - 3.0d0*K*r + 2.0d0*r**2 - r**3)
-         w(0,1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
+         w0(1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
      &                   4.0d0*r + 3.0d0*K*r -       r**2 + r**3)
-         w(0,2) = phi
-         w(0,3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
+         w0(2) = phi
+         w0(3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
      &                   4.0d0*r - 3.0d0*K*r -       r**2 - r**3)
-         w(0,4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
+         w0(4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
      &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
 
          ic1 = ic_center(1)
@@ -1767,21 +1764,30 @@ c
      &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
      &          /280.0d0
 
-         w(1,0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
+         w1(0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
      &                         r - 3.0d0*K*r + 2.0d0*r**2 - r**3)
-         w(1,1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
+         w1(1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
      &                   4.0d0*r + 3.0d0*K*r -       r**2 + r**3)
-         w(1,2) = phi
-         w(1,3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
+         w1(2) = phi
+         w1(3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
      &                   4.0d0*r - 3.0d0*K*r -       r**2 - r**3)
-         w(1,4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
+         w1(4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
      &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
 
 c
 c     Interpolate u onto V.
 c
-         INTERPOLATE_2D_SPECIALIZE_FIXED_WIDTH(ic_lower(1), ic_upper(1),
-                                               ic_lower(0), ic_upper(0), 5)
+         do d = 0,depth-1
+            V(d,s) = 0.d0
+            do ic1 = ic_lower(1),ic_upper(1)
+               do ic0 = ic_lower(0),ic_upper(0)
+                  V(d,s) = V(d,s)
+     &                 +w0(ic0-ic_lower(0))
+     &                 *w1(ic1-ic_lower(1))
+     &                 *u(ic0,ic1,d)
+               enddo
+            enddo
+         enddo
 c
 c     End loop over points.
 c
@@ -1808,9 +1814,6 @@ c
      &     u)
 c
       implicit none
-c
-c     Functions.
-c
 c
 c     Input.
 c
@@ -1840,7 +1843,7 @@ c
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:4)
+      REAL X_cell(0:NDIM-1),w0(0:4),w1(0:4)
 
       PARAMETER (K = (38.0d0 - sqrt(69.0d0))/60.0d0)
 c
@@ -1892,14 +1895,14 @@ c
      &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
      &          /280.0d0
 
-         w(0,0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
+         w0(0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
      &                         r - 3.0d0*K*r + 2.0d0*r**2 - r**3)
-         w(0,1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
+         w0(1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
      &                   4.0d0*r + 3.0d0*K*r -       r**2 + r**3)
-         w(0,2) = phi
-         w(0,3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
+         w0(2) = phi
+         w0(3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
      &                   4.0d0*r - 3.0d0*K*r -       r**2 - r**3)
-         w(0,4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
+         w0(4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
      &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
 
          ic1 = ic_center(1)
@@ -1912,14 +1915,14 @@ c
      &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
      &          /280.0d0
 
-         w(1,0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
+         w1(0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
      &                         r - 3.0d0*K*r + 2.0d0*r**2 - r**3)
-         w(1,1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
+         w1(1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
      &                   4.0d0*r + 3.0d0*K*r -       r**2 + r**3)
-         w(1,2) = phi
-         w(1,3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
+         w1(2) = phi
+         w1(3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
      &                   4.0d0*r - 3.0d0*K*r -       r**2 - r**3)
-         w(1,4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
+         w1(4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
      &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
 
 c
@@ -1929,8 +1932,8 @@ c
             do ic1 = ic_lower(1),ic_upper(1)
                do ic0 = ic_lower(0),ic_upper(0)
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
-     &                 w(0,ic0-ic_lower(0))*
-     &                 w(1,ic1-ic_lower(1))*
+     &                 w0(ic0-ic_lower(0))*
+     &                 w1(ic1-ic_lower(1))*
      &                 V(d,s)/(dx(0)*dx(1)))
                enddo
             enddo
