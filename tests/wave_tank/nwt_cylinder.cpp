@@ -992,6 +992,9 @@ main(int argc, char* argv[])
         pout << "Started mapping intersections" << std::endl;
         surface_distance_eval->mapIntersections();
         pout << "Finished mapping intersections" << std::endl;
+        pout << "Calculating surface normals" << std::endl;
+        surface_distance_eval->calculateSurfaceNormals();
+        pout << "Finished calculating surface normals" << std::endl;
         pout << "Computing distances" << std::endl;
         surface_distance_eval->computeSignedDistance(n_idx, d_idx);
         pout << "Finished computing distances" << std::endl;
