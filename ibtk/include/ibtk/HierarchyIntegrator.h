@@ -23,6 +23,7 @@
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
 #include "CoarsenAlgorithm.h"
+#include "CoarsenPatchStrategy.h"
 #include "CoarsenSchedule.h"
 #include "ComponentSelector.h"
 #include "GriddingAlgorithm.h"
@@ -30,6 +31,7 @@
 #include "LoadBalancer.h"
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
+#include "RefinePatchStrategy.h"
 #include "RefineSchedule.h"
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
@@ -58,13 +60,6 @@ namespace tbox
 {
 class Database;
 } // namespace tbox
-namespace xfer
-{
-template <int DIM>
-class CoarsenPatchStrategy;
-template <int DIM>
-class RefinePatchStrategy;
-} // namespace xfer
 } // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
