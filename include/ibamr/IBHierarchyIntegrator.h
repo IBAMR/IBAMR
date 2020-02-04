@@ -311,6 +311,8 @@ protected:
 
     /*
      * Refine and coarsen algorithm data.
+     * The base class, HierarchyIntegrator, is responsible for the d_u_phys_bdry_op and d_p_phys_bdry_op
+     * objects as they are passed into d_ghostfill_strategies.
      */
     IBTK::RobinPhysBdryPatchStrategy *d_u_phys_bdry_op, *d_p_phys_bdry_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_u_ghostfill_alg, d_f_prolong_alg, d_p_ghostfill_alg,
