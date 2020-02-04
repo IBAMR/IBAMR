@@ -18,7 +18,9 @@
 
 #include "ibtk/CartGridFunction.h"
 
+#include "CoarsenPatchStrategy.h"
 #include "IntVector.h"
+#include "RefinePatchStrategy.h"
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "tbox/Pointer.h"
@@ -73,13 +75,9 @@ namespace xfer
 template <int DIM>
 class CoarsenAlgorithm;
 template <int DIM>
-class CoarsenPatchStrategy;
-template <int DIM>
 class CoarsenSchedule;
 template <int DIM>
 class RefineAlgorithm;
-template <int DIM>
-class RefinePatchStrategy;
 template <int DIM>
 class RefineSchedule;
 } // namespace xfer
