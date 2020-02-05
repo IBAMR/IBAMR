@@ -1233,7 +1233,7 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
     // Output the web data on the available MPI processes.
     for (unsigned int meter = 0; meter < d_num_meters; ++meter)
     {
-        if (meter % mpi_nodes == mpi_rank)
+        if (static_cast<int>(meter) % mpi_nodes == mpi_rank)
         {
             std::string dirname = d_instrument_names[meter];
             if (DBMkDir(dbfile, dirname.c_str()) == -1)

@@ -133,7 +133,7 @@ NonbondedForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
     const double* const x_upper = grid_geom->getXUpper();
 
     // we will grow the search box by interaction_radius + 2.0*regrid_alpha
-    IntVector<NDIM> grow_amount(int(ceil(d_interaction_radius + 2.0 * d_regrid_alpha)));
+    IntVector<NDIM> grow_amount(static_cast<int>(ceil(d_interaction_radius + 2.0 * d_regrid_alpha)));
     const int lag_node_idx_current_idx = l_data_manager->getLNodePatchDescriptorIndex();
 
     // iterate through levels.
