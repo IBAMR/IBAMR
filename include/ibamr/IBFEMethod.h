@@ -939,7 +939,8 @@ protected:
      */
     SAMRAI::xfer::RefineSchedule<NDIM>&
     getPrimaryToScratchSchedule(const int level_number,
-                                const int data_idx,
+                                const int primary_data_idx,
+                                const int scratch_data_idx,
                                 SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
 
     /*!
@@ -952,7 +953,8 @@ protected:
      */
     SAMRAI::xfer::RefineSchedule<NDIM>&
     getScratchToPrimarySchedule(const int level_number,
-                                const int data_idx,
+                                const int primary_data_idx,
+                                const int scratch_data_idx,
                                 SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
 
     /*!
@@ -1017,24 +1019,24 @@ protected:
 
     /*!
      * Refinement schedules for transferring data from d_hierarchy to
-     * d_scratch_hierarchy. The keys are the level number and data index (in
-     * that order).
+     * d_scratch_hierarchy. The key type is the level number and a pair of
+     * indices (the primary and scratch, in that order).
      *
      * @note this function assumes that only data on the finest level needs to
      * be transferred.
      */
-    std::map<std::pair<int, int>, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
+    std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
         d_scratch_transfer_forward_schedules;
 
     /*!
      * Refinement schedules for transferring data from d_scratch_hierarchy to
-     * d_hierarchy. The keys are the level number and data index (in
-     * that order).
+     * d_hierarchy. The key type is the level number and a pair of indices
+     * (the primary and scratch, in that order).
      *
      * @note this function assumes that only data on the finest level needs to
      * be transferred.
      */
-    std::map<std::pair<int, int>, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
+    std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
         d_scratch_transfer_backward_schedules;
 
     /*
