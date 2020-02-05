@@ -64,7 +64,6 @@ static Pointer<Timer> t_midpointStep;
 
 // Number of ghost cells used for each variable quantity.
 static const int CELLG = 1;
-static const int SIDEG = 1;
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
