@@ -82,6 +82,7 @@
 #include "libmesh/fe_interface.h"
 #include "libmesh/fe_type.h"
 #include "libmesh/fem_context.h"
+#include "libmesh/libmesh_version.h"
 #include "libmesh/linear_solver.h"
 #include "libmesh/mesh_base.h"
 #include "libmesh/node.h"
@@ -98,7 +99,6 @@
 #include "libmesh/tensor_value.h"
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
-#include "libmesh/libmesh_version.h"
 
 #include "petscksp.h"
 #include "petscoptions.h"
@@ -768,14 +768,10 @@ void
 FEDataManager::spread(const int f_data_idx,
                       NumericVector<double>& F_vec,
                       NumericVector<double>& X_vec,
-                      const std::string& system_name,
-                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                      const double fill_data_time,
-                      const bool close_F,
-                      const bool close_X)
+                      const std::string& system_name)
 {
-    spread(
-        f_data_idx, F_vec, X_vec, system_name, d_default_spread_spec, f_phys_bdry_op, fill_data_time, close_X, close_F);
+    spread(f_data_idx, F_vec, X_vec, system_name, d_default_spread_spec);
+
     return;
 } // spread
 
@@ -784,11 +780,7 @@ FEDataManager::spread(const int f_data_idx,
                       NumericVector<double>& F_vec,
                       NumericVector<double>& X_vec,
                       const std::string& system_name,
-                      const FEDataManager::SpreadSpec& spread_spec,
-                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                      const double fill_data_time,
-                      const bool close_F,
-                      const bool close_X)
+                      const FEDataManager::SpreadSpec& spread_spec)
 {
     IBTK_TIMER_START(t_spread);
 
@@ -801,14 +793,6 @@ FEDataManager::spread(const int f_data_idx,
     const bool cc_data = f_cc_var;
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || sc_data);
-
-    // Make a copy of the Eulerian data.
-    const auto f_copy_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
-    Pointer<HierarchyDataOpsReal<NDIM, double> > f_data_ops =
-        HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
-    f_data_ops->resetLevels(d_fe_data->d_level_number, d_fe_data->d_level_number);
-    f_data_ops->swapData(f_copy_data_idx, f_data_idx);
-    f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
     // We spread directly to the finest level of the patch hierarchy.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data->d_level_number);
@@ -849,10 +833,6 @@ FEDataManager::spread(const int f_data_idx,
     // Check to see if we are using nodal quadrature.
     const bool use_nodal_quadrature =
         spread_spec.use_nodal_quadrature && (F_fe_type == X_fe_type && F_order == X_order);
-
-    // Communicate any unsynchronized ghost data.
-    if (close_F) F_vec.close();
-    if (close_X) X_vec.close();
 
     // We only use the FECache objects if we do *not* use nodal quadrature so
     // only perform sanity checks in that case:
@@ -948,11 +928,6 @@ FEDataManager::spread(const int f_data_idx,
                 Pointer<SideData<NDIM, double> > f_sc_data = f_data;
                 LEInteractor::spread(
                     f_sc_data, F_dX_node, n_vars, X_node, NDIM, patch, spread_box, spread_spec.kernel_fcn);
-            }
-            if (f_phys_bdry_op)
-            {
-                f_phys_bdry_op->setPatchDataIndex(f_data_idx);
-                f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, fill_data_time, f_data->getGhostCellWidth());
             }
         }
 
@@ -1074,11 +1049,6 @@ FEDataManager::spread(const int f_data_idx,
                 LEInteractor::spread(
                     f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
             }
-            if (f_phys_bdry_op)
-            {
-                f_phys_bdry_op->setPatchDataIndex(f_data_idx);
-                f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, fill_data_time, f_data->getGhostCellWidth());
-            }
         }
 
         // Restore local form vectors.
@@ -1086,11 +1056,78 @@ FEDataManager::spread(const int f_data_idx,
         X_petsc_vec->restore_array();
     }
 
+    IBTK_TIMER_STOP(t_spread);
+    return;
+} // spread
+
+void
+FEDataManager::spread(const int f_data_idx,
+                      NumericVector<double>& F_vec,
+                      NumericVector<double>& X_vec,
+                      const std::string& system_name,
+                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                      const double fill_data_time,
+                      const bool close_F,
+                      const bool close_X)
+{
+    spread(
+        f_data_idx, F_vec, X_vec, system_name, d_default_spread_spec, f_phys_bdry_op, fill_data_time, close_X, close_F);
+    return;
+} // spread
+
+void
+FEDataManager::spread(const int f_data_idx,
+                      NumericVector<double>& F_vec,
+                      NumericVector<double>& X_vec,
+                      const std::string& system_name,
+                      const FEDataManager::SpreadSpec& spread_spec,
+                      RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                      const double fill_data_time,
+                      const bool close_F,
+                      const bool close_X)
+{
+    // Determine the type of data centering.
+    auto var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<hier::Variable<NDIM> > f_var;
+    var_db->mapIndexToVariable(f_data_idx, f_var);
+    Pointer<CellVariable<NDIM, double> > f_cc_var = f_var;
+    Pointer<SideVariable<NDIM, double> > f_sc_var = f_var;
+    const bool cc_data = f_cc_var;
+    const bool sc_data = f_sc_var;
+    TBOX_ASSERT(cc_data || sc_data);
+
+    // Make a copy of the Eulerian data.
+    const auto f_copy_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
+    Pointer<HierarchyDataOpsReal<NDIM, double> > f_data_ops =
+        HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+    f_data_ops->resetLevels(d_fe_data->d_level_number, d_fe_data->d_level_number);
+    f_data_ops->swapData(f_copy_data_idx, f_data_idx);
+    f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
+
+    // Communicate any unsynchronized ghost data.
+    if (close_F) F_vec.close();
+    if (close_X) X_vec.close();
+
+    // Spread values.
+    spread(f_data_idx, F_vec, X_vec, system_name, spread_spec);
+
+    // sum values outside the physical domain into the physical domain.
+    if (f_phys_bdry_op)
+    {
+        f_phys_bdry_op->setPatchDataIndex(f_data_idx);
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data->d_level_number);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
+            f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, fill_data_time, f_data->getGhostCellWidth());
+        }
+    }
+
     // Accumulate data.
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
 
-    IBTK_TIMER_STOP(t_spread);
     return;
 } // spread
 
