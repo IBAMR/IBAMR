@@ -1003,6 +1003,14 @@ protected:
     std::shared_ptr<IBTK::SAMRAIDataCache> d_primary_eulerian_data_cache, d_scratch_eulerian_data_cache;
 
     /*!
+     * Pointer to one of the above data caches, named in the same way as
+     * d_active_fe_data_managers - i.e., this object points to
+     * d_scratch_eulerian_data_cache if we are using the scratch hierarchy and
+     * otherwise points to d_primary_eulerian_data_cache.
+     */
+    std::shared_ptr<IBTK::SAMRAIDataCache> d_active_eulerian_data_cache;
+
+    /*!
      * Pointer to the scratch patch hierarchy (which is only used for the
      * evaluation of IB terms, i.e., in IBFEMethod::interpolateVelocity(),
      * IBFEMethod::spreadForce(), and IBFEMethod::spreadFluidSource()).

@@ -929,19 +929,23 @@ IBFEMethod::spreadForce(const int f_data_idx,
     batch_vec_copy({ d_X_half_vecs, d_F_half_vecs }, { d_X_IB_ghost_vecs, d_F_IB_ghost_vecs });
     batch_vec_ghost_update({ d_X_IB_ghost_vecs, d_F_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
-    if (d_use_scratch_hierarchy)
-    {
-        assertStructureOnFinestLevel();
-        // TODO: we don't need a RefinePatchStrategy here, right?
-        getPrimaryToScratchSchedule(d_hierarchy->getFinestLevelNumber(), f_data_idx, f_data_idx).fillData(data_time);
-    }
+    // set up a new data index for computing forces on the active hierarchy.
+    Pointer<PatchHierarchy<NDIM> > hierarchy = d_use_scratch_hierarchy ? d_scratch_hierarchy : d_hierarchy;
+    const int ln = hierarchy->getFinestLevelNumber();
+    const auto f_scratch_data_idx = d_active_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
+    // zero data.
+    Pointer<hier::Variable<NDIM> > f_var;
+    VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(f_data_idx, f_var);
+    auto f_active_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, hierarchy);
+    f_active_data_ops->resetLevels(ln, ln);
+    f_active_data_ops->setToScalar(f_scratch_data_idx, 0.0, /*interior_only*/ false);
 
     // Spread interior force density values.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
-        d_active_fe_data_managers[part]->spread(f_data_idx,
+        d_active_fe_data_managers[part]->spread(f_scratch_data_idx,
                                                 *F_ghost_vec,
                                                 *X_ghost_vec,
                                                 FORCE_SYSTEM_NAME,
@@ -953,8 +957,26 @@ IBFEMethod::spreadForce(const int f_data_idx,
 
     if (d_use_scratch_hierarchy)
     {
+        // harder case: we have a scratch index on the scratch hierarchy but
+        // no corresponding index on the primary hierarchy.
+        //
+        // unlike the other data ops, this is always on the primary hierarchy
+        auto f_primary_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy);
+        f_primary_data_ops->resetLevels(ln, ln);
+        const auto f_primary_scratch_data_idx = d_primary_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
+        // we have to zero everything here since the scratch to primary
+        // communication does not touch ghost cells, which may have junk
+        f_primary_data_ops->setToScalar(f_primary_scratch_data_idx, 0.0, /*interior_only*/ false);
+
         assertStructureOnFinestLevel();
-        getScratchToPrimarySchedule(d_hierarchy->getFinestLevelNumber(), f_data_idx, f_data_idx).fillData(data_time);
+        getScratchToPrimarySchedule(ln, f_primary_scratch_data_idx, f_scratch_data_idx).fillData(data_time);
+        f_primary_data_ops->add(f_data_idx, f_data_idx, f_primary_scratch_data_idx);
+    }
+    else
+    {
+        // easier case: f_scratch_data_idx is on the primary hierarchy so we
+        // just need to add its values to those in f_data_idx
+        f_active_data_ops->add(f_data_idx, f_data_idx, f_scratch_data_idx);
     }
 
     // Handle any transmission conditions.
@@ -1172,6 +1194,7 @@ IBFEMethod::initializeFEEquationSystems()
     d_active_fe_data_managers.resize(d_num_parts, nullptr);
     IntVector<NDIM> min_ghost_width(0);
     if (!d_primary_eulerian_data_cache) d_primary_eulerian_data_cache.reset(new SAMRAIDataCache());
+    d_active_eulerian_data_cache = d_primary_eulerian_data_cache;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Create FE data managers.
@@ -1193,6 +1216,7 @@ IBFEMethod::initializeFEEquationSystems()
                                                                          min_ghost_width,
                                                                          d_scratch_eulerian_data_cache);
             d_active_fe_data_managers[part] = d_scratch_fe_data_managers[part];
+            d_active_eulerian_data_cache = d_scratch_eulerian_data_cache;
         }
         else
         {
