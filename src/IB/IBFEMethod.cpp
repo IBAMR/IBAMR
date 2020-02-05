@@ -948,11 +948,20 @@ IBFEMethod::spreadForce(const int f_data_idx,
         d_active_fe_data_managers[part]->spread(f_scratch_data_idx,
                                                 *F_ghost_vec,
                                                 *X_ghost_vec,
-                                                FORCE_SYSTEM_NAME,
-                                                f_phys_bdry_op,
-                                                data_time,
-                                                /*close_F*/ false,
-                                                /*close_X*/ false);
+                                                FORCE_SYSTEM_NAME);
+    }
+
+    // Deal with force values spread outside the physical domain.
+    if (f_phys_bdry_op)
+    {
+        f_phys_bdry_op->setPatchDataIndex(f_scratch_data_idx);
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_scratch_data_idx);
+            f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
+        }
     }
 
     if (d_use_scratch_hierarchy)
