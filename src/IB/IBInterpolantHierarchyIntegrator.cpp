@@ -54,9 +54,6 @@ IBInterpolantHierarchyIntegrator::IBInterpolantHierarchyIntegrator(std::string o
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     return;
-
-    // intentionally blank
-    return;
 } // IBInterpolantHierarchyIntegrator
 
 void

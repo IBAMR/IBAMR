@@ -47,18 +47,14 @@ CFRelaxationOperator::convertToConformation(const MatrixNd& mat)
     {
     case SQUARE_ROOT:
         return mat * mat;
-        break;
     case LOGARITHM:
         return mat.exp();
-        break;
     case STANDARD:
         return mat;
-        break;
     case UNKNOWN_TENSOR_EVOLUTION_TYPE:
         TBOX_ERROR(d_object_name << ":\n"
                                  << "  Uknown tensor evolution type.");
         return mat;
-        break;
     default:
         TBOX_ERROR("Should not reach this statement.");
         break;
