@@ -87,8 +87,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = elem_hmax_01$(EXEEXT) elem_hmax_02$(EXEEXT) \
-	mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
+EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	poisson_01_3d$(EXEEXT) samraidatacache_01_2d$(EXEEXT) \
 	samraidatacache_01_3d$(EXEEXT) laplace_01_2d$(EXEEXT) \
 	laplace_01_3d$(EXEEXT) laplace_02_2d$(EXEEXT) \
@@ -97,9 +96,11 @@ EXTRA_PROGRAMS = elem_hmax_01$(EXEEXT) elem_hmax_02$(EXEEXT) \
 	prolongation_mat_2d$(EXEEXT) prolongation_mat_3d$(EXEEXT) \
 	phys_boundary_ops_2d$(EXEEXT) phys_boundary_ops_3d$(EXEEXT) \
 	vc_viscous_solver_2d$(EXEEXT) vc_viscous_solver_3d$(EXEEXT) \
-	jacobian_calc_01$(EXEEXT) bounding_boxes_01_2d$(EXEEXT) \
-	bounding_boxes_01_3d$(EXEEXT) box_utilities_01_2d$(EXEEXT) \
-	box_utilities_01_3d$(EXEEXT)
+	box_utilities_01_2d$(EXEEXT) box_utilities_01_3d$(EXEEXT) \
+	$(am__EXEEXT_1)
+@LIBMESH_ENABLED_TRUE@am__append_1 = elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
+@LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d
+
 subdir = tests/IBTK
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -131,10 +132,16 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am_bounding_boxes_01_2d_OBJECTS =  \
-	bounding_boxes_01_2d-bounding_boxes_01.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@am__EXEEXT_1 = elem_hmax_01$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	elem_hmax_02$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	jacobian_calc_01$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	bounding_boxes_01_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	bounding_boxes_01_3d$(EXEEXT)
+am__bounding_boxes_01_2d_SOURCES_DIST = bounding_boxes_01.cpp
+@LIBMESH_ENABLED_TRUE@am_bounding_boxes_01_2d_OBJECTS = bounding_boxes_01_2d-bounding_boxes_01.$(OBJEXT)
 bounding_boxes_01_2d_OBJECTS = $(am_bounding_boxes_01_2d_OBJECTS)
-bounding_boxes_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@bounding_boxes_01_2d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -143,10 +150,11 @@ bounding_boxes_01_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(bounding_boxes_01_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_bounding_boxes_01_3d_OBJECTS =  \
-	bounding_boxes_01_3d-bounding_boxes_01.$(OBJEXT)
+am__bounding_boxes_01_3d_SOURCES_DIST = bounding_boxes_01.cpp
+@LIBMESH_ENABLED_TRUE@am_bounding_boxes_01_3d_OBJECTS = bounding_boxes_01_3d-bounding_boxes_01.$(OBJEXT)
 bounding_boxes_01_3d_OBJECTS = $(am_bounding_boxes_01_3d_OBJECTS)
-bounding_boxes_01_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
 bounding_boxes_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(bounding_boxes_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
@@ -167,22 +175,29 @@ box_utilities_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(box_utilities_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_elem_hmax_01_OBJECTS = elem_hmax_01-elem_hmax_01.$(OBJEXT)
+am__elem_hmax_01_SOURCES_DIST = elem_hmax_01.cpp
+@LIBMESH_ENABLED_TRUE@am_elem_hmax_01_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	elem_hmax_01-elem_hmax_01.$(OBJEXT)
 elem_hmax_01_OBJECTS = $(am_elem_hmax_01_OBJECTS)
-elem_hmax_01_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@elem_hmax_01_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 elem_hmax_01_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(elem_hmax_01_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_elem_hmax_02_OBJECTS = elem_hmax_02-elem_hmax_02.$(OBJEXT)
+am__elem_hmax_02_SOURCES_DIST = elem_hmax_02.cpp
+@LIBMESH_ENABLED_TRUE@am_elem_hmax_02_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	elem_hmax_02-elem_hmax_02.$(OBJEXT)
 elem_hmax_02_OBJECTS = $(am_elem_hmax_02_OBJECTS)
-elem_hmax_02_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@elem_hmax_02_DEPENDENCIES = $(IBAMR3d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 elem_hmax_02_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(elem_hmax_02_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_jacobian_calc_01_OBJECTS =  \
-	jacobian_calc_01-jacobian_calc_01.$(OBJEXT)
+am__jacobian_calc_01_SOURCES_DIST = jacobian_calc_01.cpp
+@LIBMESH_ENABLED_TRUE@am_jacobian_calc_01_OBJECTS = jacobian_calc_01-jacobian_calc_01.$(OBJEXT)
 jacobian_calc_01_OBJECTS = $(am_jacobian_calc_01_OBJECTS)
-jacobian_calc_01_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@jacobian_calc_01_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 jacobian_calc_01_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(jacobian_calc_01_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
@@ -397,15 +412,16 @@ SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(samraidatacache_01_3d_SOURCES) \
 	$(vc_viscous_solver_2d_SOURCES) \
 	$(vc_viscous_solver_3d_SOURCES)
-DIST_SOURCES = $(bounding_boxes_01_2d_SOURCES) \
-	$(bounding_boxes_01_3d_SOURCES) $(box_utilities_01_2d_SOURCES) \
-	$(box_utilities_01_3d_SOURCES) $(elem_hmax_01_SOURCES) \
-	$(elem_hmax_02_SOURCES) $(jacobian_calc_01_SOURCES) \
-	$(laplace_01_2d_SOURCES) $(laplace_01_3d_SOURCES) \
-	$(laplace_02_2d_SOURCES) $(laplace_02_3d_SOURCES) \
-	$(laplace_03_2d_SOURCES) $(laplace_03_3d_SOURCES) \
-	$(ldata_01_SOURCES) $(mpi_type_wrappers_SOURCES) \
-	$(phys_boundary_ops_2d_SOURCES) \
+DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
+	$(am__bounding_boxes_01_3d_SOURCES_DIST) \
+	$(box_utilities_01_2d_SOURCES) $(box_utilities_01_3d_SOURCES) \
+	$(am__elem_hmax_01_SOURCES_DIST) \
+	$(am__elem_hmax_02_SOURCES_DIST) \
+	$(am__jacobian_calc_01_SOURCES_DIST) $(laplace_01_2d_SOURCES) \
+	$(laplace_01_3d_SOURCES) $(laplace_02_2d_SOURCES) \
+	$(laplace_02_3d_SOURCES) $(laplace_03_2d_SOURCES) \
+	$(laplace_03_3d_SOURCES) $(ldata_01_SOURCES) \
+	$(mpi_type_wrappers_SOURCES) $(phys_boundary_ops_2d_SOURCES) \
 	$(phys_boundary_ops_3d_SOURCES) $(poisson_01_2d_SOURCES) \
 	$(poisson_01_3d_SOURCES) $(prolongation_mat_2d_SOURCES) \
 	$(prolongation_mat_3d_SOURCES) \
@@ -704,12 +720,12 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-elem_hmax_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-elem_hmax_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-elem_hmax_01_SOURCES = elem_hmax_01.cpp
-elem_hmax_02_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-elem_hmax_02_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-elem_hmax_02_SOURCES = elem_hmax_02.cpp
+@LIBMESH_ENABLED_TRUE@elem_hmax_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@elem_hmax_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@elem_hmax_01_SOURCES = elem_hmax_01.cpp
+@LIBMESH_ENABLED_TRUE@elem_hmax_02_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@elem_hmax_02_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@elem_hmax_02_SOURCES = elem_hmax_02.cpp
 mpi_type_wrappers_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 mpi_type_wrappers_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 mpi_type_wrappers_SOURCES = mpi_type_wrappers.cpp
@@ -764,15 +780,15 @@ vc_viscous_solver_2d_SOURCES = vc_viscous_solver.cpp
 vc_viscous_solver_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 vc_viscous_solver_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 vc_viscous_solver_3d_SOURCES = vc_viscous_solver.cpp
-jacobian_calc_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-jacobian_calc_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-jacobian_calc_01_SOURCES = jacobian_calc_01.cpp
-bounding_boxes_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-bounding_boxes_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-bounding_boxes_01_2d_SOURCES = bounding_boxes_01.cpp
-bounding_boxes_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-bounding_boxes_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-bounding_boxes_01_3d_SOURCES = bounding_boxes_01.cpp
+@LIBMESH_ENABLED_TRUE@jacobian_calc_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@jacobian_calc_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@jacobian_calc_01_SOURCES = jacobian_calc_01.cpp
+@LIBMESH_ENABLED_TRUE@bounding_boxes_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@bounding_boxes_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@bounding_boxes_01_2d_SOURCES = bounding_boxes_01.cpp
+@LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d_SOURCES = bounding_boxes_01.cpp
 box_utilities_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 box_utilities_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 box_utilities_01_2d_SOURCES = box_utilities_01.cpp
