@@ -13,7 +13,11 @@
 
 include $(top_srcdir)/config/Make-rules
 
-EXTRA_PROGRAMS = interpolate_velocity_01_2d interpolate_velocity_01_3d \
+# All programs in this subdirectory depend on libMesh.
+EXTRA_PROGRAMS =
+
+if LIBMESH_ENABLED
+EXTRA_PROGRAMS += interpolate_velocity_01_2d interpolate_velocity_01_3d \
 interpolate_velocity_02 explicit_ex0_2d explicit_ex4_2d explicit_ex4_3d \
 explicit_ex5_2d explicit_ex5_3d explicit_ex8_2d ib_partitioning_01_2d \
 ib_partitioning_01_3d ib_partitioning_02_2d ib_partitioning_02_3d
@@ -69,6 +73,7 @@ ib_partitioning_02_2d_SOURCES = ib_partitioning_02.cpp
 ib_partitioning_02_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 ib_partitioning_02_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 ib_partitioning_02_3d_SOURCES = ib_partitioning_02.cpp
+endif
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \

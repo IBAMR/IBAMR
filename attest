@@ -393,26 +393,37 @@ def main():
 
     # 1. set up input file list:
     unstarted_tests = []
+    invalid_test_inputs = []
     for input_file in get_input_files(parameters.test_directory):
         path_length = len(os.path.split(input_file)[0])
         input_file_name = input_file[path_length + 1:]
         # include the directory when matching test input files:
         regex_input = input_file[len(parameters.test_directory):]
+
         if (re.search(include_pattern, regex_input)
             and not re.search(exclude_pattern, regex_input)):
             output_file = os.path.splitext(input_file)[0] + ".output"
             base_name = input_file_name[:input_file_name.find('.')]
             executable = os.path.split(input_file)[0] + os.sep + base_name
-            # only test things with valid input:
             if all((os.path.isfile(f) for f in [executable, input_file, output_file])):
                 unstarted_tests.append(Test(executable, input_file, output_file,
                                             parameters=parameters))
-            else:
-                print("\nWarning: The test with input file \n\n    " + input_file_name +
-                      "\n\ncannot be run since either the input file, output "
-                      "file, or executable is\nmissing. This usually means that "
-                      "either the test's executable failed to\ncompile or the "
-                      "input file is a broken link.\n")
+
+            # only warn about tests with invalid input or output files: i.e.,
+            # skip checking executables here since we copy all input files
+            # regardless of what actually compiled and some tests may not be
+            # compiled if their dependencies are unavailable.
+            elif not all((os.path.isfile(f) for f in [input_file, output_file])):
+                invalid_test_inputs.append(input_file_name)
+
+    if invalid_test_inputs:
+        print("\nWarning: The tests with input files \n")
+        for invalid_test_input in invalid_test_inputs:
+            print("   ", invalid_test_input)
+
+        print("\ncannot be run since either the input or output file "
+                "missing. This usually\nmeans that one of the files is a "
+                "broken link.")
 
     unstarted_tests.sort(key=lambda u: u.n_mpi_processes())
 

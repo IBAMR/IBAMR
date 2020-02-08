@@ -13,20 +13,28 @@
 
 include $(top_srcdir)/config/Make-rules
 
-EXTRA_PROGRAMS = elem_hmax_01 elem_hmax_02 mpi_type_wrappers poisson_01_2d \
+EXTRA_PROGRAMS = mpi_type_wrappers poisson_01_2d \
 poisson_01_3d samraidatacache_01_2d samraidatacache_01_3d laplace_01_2d \
 laplace_01_3d laplace_02_2d laplace_02_3d laplace_03_2d laplace_03_3d ldata_01 \
 prolongation_mat_2d prolongation_mat_3d phys_boundary_ops_2d phys_boundary_ops_3d \
-vc_viscous_solver_2d vc_viscous_solver_3d jacobian_calc_01 bounding_boxes_01_2d \
-bounding_boxes_01_3d box_utilities_01_2d box_utilities_01_3d
+vc_viscous_solver_2d vc_viscous_solver_3d box_utilities_01_2d box_utilities_01_3d
 
+if LIBMESH_ENABLED
+EXTRA_PROGRAMS += elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
+bounding_boxes_01_3d
+endif
+
+if LIBMESH_ENABLED
 elem_hmax_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 elem_hmax_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 elem_hmax_01_SOURCES = elem_hmax_01.cpp
+endif
 
+if LIBMESH_ENABLED
 elem_hmax_02_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 elem_hmax_02_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 elem_hmax_02_SOURCES = elem_hmax_02.cpp
+endif
 
 mpi_type_wrappers_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 mpi_type_wrappers_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -100,17 +108,23 @@ vc_viscous_solver_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 vc_viscous_solver_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 vc_viscous_solver_3d_SOURCES = vc_viscous_solver.cpp
 
+if LIBMESH_ENABLED
 jacobian_calc_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 jacobian_calc_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 jacobian_calc_01_SOURCES = jacobian_calc_01.cpp
+endif
 
+if LIBMESH_ENABLED
 bounding_boxes_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 bounding_boxes_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 bounding_boxes_01_2d_SOURCES = bounding_boxes_01.cpp
+endif
 
+if LIBMESH_ENABLED
 bounding_boxes_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 bounding_boxes_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 bounding_boxes_01_3d_SOURCES = bounding_boxes_01.cpp
+endif
 
 box_utilities_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 box_utilities_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)

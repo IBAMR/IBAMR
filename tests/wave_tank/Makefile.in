@@ -87,7 +87,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = nwt_cylinder$(EXEEXT)
+EXTRA_PROGRAMS = $(am__EXEEXT_1)
+@LIBMESH_ENABLED_TRUE@am__append_1 = nwt_cylinder
 subdir = tests/wave_tank
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -119,15 +120,21 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am_nwt_cylinder_OBJECTS = nwt_cylinder-FlowGravityForcing.$(OBJEXT) \
-	nwt_cylinder-SetFluidGasSolidDensity.$(OBJEXT) \
-	nwt_cylinder-SetLSProperties.$(OBJEXT) \
-	nwt_cylinder-nwt_cylinder.$(OBJEXT) \
-	nwt_cylinder-LSLocateGasInterface.$(OBJEXT) \
-	nwt_cylinder-SetFluidGasSolidViscosity.$(OBJEXT) \
-	nwt_cylinder-TagLSRefinementCells.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@am__EXEEXT_1 = nwt_cylinder$(EXEEXT)
+am__nwt_cylinder_SOURCES_DIST = FlowGravityForcing.cpp \
+	SetFluidGasSolidDensity.cpp SetLSProperties.cpp \
+	nwt_cylinder.cpp LSLocateGasInterface.cpp \
+	SetFluidGasSolidViscosity.cpp TagLSRefinementCells.cpp
+@LIBMESH_ENABLED_TRUE@am_nwt_cylinder_OBJECTS = nwt_cylinder-FlowGravityForcing.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	nwt_cylinder-SetFluidGasSolidDensity.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	nwt_cylinder-SetLSProperties.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	nwt_cylinder-nwt_cylinder.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	nwt_cylinder-LSLocateGasInterface.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	nwt_cylinder-SetFluidGasSolidViscosity.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	nwt_cylinder-TagLSRefinementCells.$(OBJEXT)
 nwt_cylinder_OBJECTS = $(am_nwt_cylinder_OBJECTS)
-nwt_cylinder_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@nwt_cylinder_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -177,7 +184,7 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(nwt_cylinder_SOURCES)
-DIST_SOURCES = $(nwt_cylinder_SOURCES)
+DIST_SOURCES = $(am__nwt_cylinder_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -471,10 +478,10 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 
 # this test needs some extra input files, so make SOURCE_DIR available:
-nwt_cylinder_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
-nwt_cylinder_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-nwt_cylinder_SOURCES = FlowGravityForcing.cpp  SetFluidGasSolidDensity.cpp \
-SetLSProperties.cpp nwt_cylinder.cpp LSLocateGasInterface.cpp SetFluidGasSolidViscosity.cpp TagLSRefinementCells.cpp
+@LIBMESH_ENABLED_TRUE@nwt_cylinder_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
+@LIBMESH_ENABLED_TRUE@nwt_cylinder_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@nwt_cylinder_SOURCES = FlowGravityForcing.cpp  SetFluidGasSolidDensity.cpp \
+@LIBMESH_ENABLED_TRUE@SetLSProperties.cpp nwt_cylinder.cpp LSLocateGasInterface.cpp SetFluidGasSolidViscosity.cpp TagLSRefinementCells.cpp
 
 all: all-am
 

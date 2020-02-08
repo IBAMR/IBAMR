@@ -87,8 +87,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = fe_surface_distance_circle$(EXEEXT) \
-	fe_surface_distance_sphere$(EXEEXT)
+EXTRA_PROGRAMS = $(am__EXEEXT_1)
+@LIBMESH_ENABLED_TRUE@am__append_1 = fe_surface_distance_circle fe_surface_distance_sphere
 subdir = tests/level_set
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -120,12 +120,15 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am_fe_surface_distance_circle_OBJECTS =  \
-	fe_surface_distance_circle-fe_surface_distance.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@am__EXEEXT_1 =  \
+@LIBMESH_ENABLED_TRUE@	fe_surface_distance_circle$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	fe_surface_distance_sphere$(EXEEXT)
+am__fe_surface_distance_circle_SOURCES_DIST = fe_surface_distance.cpp
+@LIBMESH_ENABLED_TRUE@am_fe_surface_distance_circle_OBJECTS = fe_surface_distance_circle-fe_surface_distance.$(OBJEXT)
 fe_surface_distance_circle_OBJECTS =  \
 	$(am_fe_surface_distance_circle_OBJECTS)
-fe_surface_distance_circle_DEPENDENCIES = $(IBAMR2d_LIBS) \
-	$(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@fe_surface_distance_circle_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -134,12 +137,12 @@ fe_surface_distance_circle_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(fe_surface_distance_circle_CXXFLAGS) $(CXXFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_fe_surface_distance_sphere_OBJECTS =  \
-	fe_surface_distance_sphere-fe_surface_distance.$(OBJEXT)
+am__fe_surface_distance_sphere_SOURCES_DIST = fe_surface_distance.cpp
+@LIBMESH_ENABLED_TRUE@am_fe_surface_distance_sphere_OBJECTS = fe_surface_distance_sphere-fe_surface_distance.$(OBJEXT)
 fe_surface_distance_sphere_OBJECTS =  \
 	$(am_fe_surface_distance_sphere_OBJECTS)
-fe_surface_distance_sphere_DEPENDENCIES = $(IBAMR3d_LIBS) \
-	$(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@fe_surface_distance_sphere_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
 fe_surface_distance_sphere_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(fe_surface_distance_sphere_CXXFLAGS) $(CXXFLAGS) \
@@ -183,8 +186,8 @@ am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(fe_surface_distance_circle_SOURCES) \
 	$(fe_surface_distance_sphere_SOURCES)
-DIST_SOURCES = $(fe_surface_distance_circle_SOURCES) \
-	$(fe_surface_distance_sphere_SOURCES)
+DIST_SOURCES = $(am__fe_surface_distance_circle_SOURCES_DIST) \
+	$(am__fe_surface_distance_sphere_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -476,12 +479,12 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-fe_surface_distance_circle_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-fe_surface_distance_circle_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-fe_surface_distance_circle_SOURCES = fe_surface_distance.cpp
-fe_surface_distance_sphere_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-fe_surface_distance_sphere_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-fe_surface_distance_sphere_SOURCES = fe_surface_distance.cpp
+@LIBMESH_ENABLED_TRUE@fe_surface_distance_circle_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@fe_surface_distance_circle_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@fe_surface_distance_circle_SOURCES = fe_surface_distance.cpp
+@LIBMESH_ENABLED_TRUE@fe_surface_distance_sphere_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@fe_surface_distance_sphere_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@fe_surface_distance_sphere_SOURCES = fe_surface_distance.cpp
 all: all-am
 
 .SUFFIXES:

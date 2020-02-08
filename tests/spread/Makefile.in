@@ -87,7 +87,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = spread_01_2d$(EXEEXT) spread_01_3d$(EXEEXT)
+EXTRA_PROGRAMS = $(am__EXEEXT_1)
+@LIBMESH_ENABLED_TRUE@am__append_1 = spread_01_2d spread_01_3d
 subdir = tests/spread
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -119,9 +120,14 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am_spread_01_2d_OBJECTS = spread_01_2d-spread_01.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@am__EXEEXT_1 = spread_01_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	spread_01_3d$(EXEEXT)
+am__spread_01_2d_SOURCES_DIST = spread_01.cpp
+@LIBMESH_ENABLED_TRUE@am_spread_01_2d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	spread_01_2d-spread_01.$(OBJEXT)
 spread_01_2d_OBJECTS = $(am_spread_01_2d_OBJECTS)
-spread_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@spread_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -129,9 +135,12 @@ am__v_lt_1 =
 spread_01_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(spread_01_2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_spread_01_3d_OBJECTS = spread_01_3d-spread_01.$(OBJEXT)
+am__spread_01_3d_SOURCES_DIST = spread_01.cpp
+@LIBMESH_ENABLED_TRUE@am_spread_01_3d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	spread_01_3d-spread_01.$(OBJEXT)
 spread_01_3d_OBJECTS = $(am_spread_01_3d_OBJECTS)
-spread_01_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@spread_01_3d_DEPENDENCIES = $(IBAMR3d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 spread_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(spread_01_3d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
@@ -172,7 +181,8 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(spread_01_2d_SOURCES) $(spread_01_3d_SOURCES)
-DIST_SOURCES = $(spread_01_2d_SOURCES) $(spread_01_3d_SOURCES)
+DIST_SOURCES = $(am__spread_01_2d_SOURCES_DIST) \
+	$(am__spread_01_3d_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -464,12 +474,12 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-spread_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-spread_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-spread_01_2d_SOURCES = spread_01.cpp
-spread_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-spread_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-spread_01_3d_SOURCES = spread_01.cpp
+@LIBMESH_ENABLED_TRUE@spread_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@spread_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@spread_01_2d_SOURCES = spread_01.cpp
+@LIBMESH_ENABLED_TRUE@spread_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@spread_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@spread_01_3d_SOURCES = spread_01.cpp
 all: all-am
 
 .SUFFIXES:
