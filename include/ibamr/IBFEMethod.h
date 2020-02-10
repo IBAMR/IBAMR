@@ -1234,12 +1234,46 @@ protected:
     /**
      * database for the GriddingAlgorithm used with the scratch hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_gridding_algorithm_db;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_scratch_gridding_algorithm_db;
 
     /**
      * database for the LoadBalancer used with the scratch hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_load_balancer_db;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_scratch_load_balancer_db;
+
+    /**
+     * Error detector used with the scratch hierarchy.
+     *
+     * @note this object has to be persistent since d_scratch_gridding_alg
+     * requires it: see the note for that member object.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::TagAndInitializeStrategy<NDIM> > d_scratch_error_detector;
+
+    /**
+     * Box generator used with the scratch hierarchy.
+     *
+     * @note this object has to be persistent since d_scratch_gridding_alg
+     * requires it: see the note for that member object.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::BoxGeneratorStrategy<NDIM> > d_scratch_box_generator;
+
+    /**
+     * Load balancer used with the scratch hierarchy.
+     *
+     * @note this object has to be persistent since d_scratch_gridding_alg
+     * requires it: see the note for that member object.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_scratch_load_balancer;
+
+    /**
+     * Gridding algorithm used with the scratch hierarchy.
+     *
+     * @note this object has to be persistent because, due to a bug in SAMRAI,
+     * it is impossible to create a SAMRAI::mesh::GriddingAlgorithm object in
+     * a restarted simulation without a corresponding entry in the restart
+     * database.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_scratch_gridding_algorithm;
 
 private:
     /*!
