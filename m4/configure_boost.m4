@@ -36,6 +36,9 @@ else
 fi
 CPPFLAGS_PREPEND($BOOST_CPPFLAGS)
 AC_CHECK_HEADER([boost/multi_array.hpp],,AC_MSG_ERROR([cannot find working boost/multi_array.hpp]))
+AC_CHECK_HEADER([boost/math/special_functions/round.hpp],,AC_MSG_ERROR([cannot find working boost/math/special_functions/round.hpp]))
+AC_CHECK_HEADER([boost/math/tools/roots.hpp],,AC_MSG_ERROR([cannot find working boost/math/tools/roots.hpp]))
+AC_CHECK_HEADER([boost/cstdint.hpp],,AC_MSG_ERROR([cannot find working boost/cstdint.h]))
 PACKAGE_CPPFLAGS_PREPEND("$BOOST_CPPFLAGS")
 PACKAGE_RESTORE_ENVIRONMENT
 ])

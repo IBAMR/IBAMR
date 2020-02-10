@@ -27075,6 +27075,30 @@ else
 fi
 
 
+ac_fn_cxx_check_header_mongrel "$LINENO" "boost/math/special_functions/round.hpp" "ac_cv_header_boost_math_special_functions_round_hpp" "$ac_includes_default"
+if test "x$ac_cv_header_boost_math_special_functions_round_hpp" = xyes; then :
+
+else
+  as_fn_error $? "cannot find working boost/math/special_functions/round.hpp" "$LINENO" 5
+fi
+
+
+ac_fn_cxx_check_header_mongrel "$LINENO" "boost/math/tools/roots.hpp" "ac_cv_header_boost_math_tools_roots_hpp" "$ac_includes_default"
+if test "x$ac_cv_header_boost_math_tools_roots_hpp" = xyes; then :
+
+else
+  as_fn_error $? "cannot find working boost/math/tools/roots.hpp" "$LINENO" 5
+fi
+
+
+ac_fn_cxx_check_header_mongrel "$LINENO" "boost/cstdint.hpp" "ac_cv_header_boost_cstdint_hpp" "$ac_includes_default"
+if test "x$ac_cv_header_boost_cstdint_hpp" = xyes; then :
+
+else
+  as_fn_error $? "cannot find working boost/cstdint.h" "$LINENO" 5
+fi
+
+
 PACKAGE_CPPFLAGS=""$BOOST_CPPFLAGS" $PACKAGE_CPPFLAGS"
 
 
