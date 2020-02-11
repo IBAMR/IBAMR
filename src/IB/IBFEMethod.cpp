@@ -776,7 +776,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     {
         d_active_fe_data_managers[part]->interpWeighted(u_data_idx,
                                                         *d_U_rhs_vecs[part],
-                                                        *d_X_IB_ghost_vecs[part],
+                                                        X_system.get_vector("initial_configuration"),
                                                         VELOCITY_SYSTEM_NAME,
                                                         no_fill,
                                                         data_time,
@@ -943,7 +943,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         d_active_fe_data_managers[part]->spread(f_data_idx,
                                                 *F_ghost_vec,
-                                                *X_ghost_vec,
+                                                X_system.get_vector("initial_configuration"),
                                                 FORCE_SYSTEM_NAME,
                                                 f_phys_bdry_op,
                                                 data_time,
@@ -3258,6 +3258,9 @@ IBFEMethod::initializeCoordinates(const unsigned int part)
     copy_and_synch(X_coords,
                    *X_system.current_local_solution,
                    /*close_v_in*/ false);
+
+    X_system.add_vector("initial_configuration");
+    X_system.get_vector("initial_configuration") = X_coords;
     return;
 } // initializeCoordinates
 
