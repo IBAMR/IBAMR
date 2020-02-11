@@ -406,7 +406,7 @@ IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 TEST_DIRECTORIES = adv_diff advect complex_fluids IB IBFE IBTK level_set multiphase_flow \
-navier_stokes physical_boundary refine spread wave_tank
+navier_stokes physical_boundary refine spread vc_navier_stokes wave_tank
 
 all: all-am
 

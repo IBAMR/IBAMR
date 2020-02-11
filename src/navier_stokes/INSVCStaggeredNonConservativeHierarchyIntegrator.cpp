@@ -986,7 +986,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::resetHierarchyConfigurationSpe
         InterpolationTransactionComponent rho_bc_component(d_rho_scratch_idx,
                                                            d_rho_refine_type,
                                                            false,
-                                                           d_rho_refine_type,
+                                                           d_rho_coarsen_type,
                                                            d_rho_bdry_extrap_type,
                                                            false,
                                                            d_rho_bc_coef);
