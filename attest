@@ -18,6 +18,7 @@ import argparse
 import ast
 import concurrent.futures as cf
 import configparser
+import distutils.util as du
 import enum
 import os
 import re
@@ -314,7 +315,7 @@ def main():
     os.environ['OMP_THREAD_LIMIT'] = "1"
     config_file = configparser.ConfigParser()
     config_file['attest'] = {'jobs': '1',
-                             'keep_work_directories': 'True',
+                             'keep_work_directories': 'False',
                              'mpiexec': 'mpiexec',
                              'numdiff': 'numdiff',
                              'show_only': 'False',
@@ -354,7 +355,7 @@ def main():
                               "of the the total cores (including virtual cores) "
                               "will be used."))
     parser.add_argument('--keep-work-directories',
-                        default=bool(conf['keep_work_directories']),
+                        default=bool(du.strtobool(conf['keep_work_directories'])),
                         dest='keep_work_directories',
                         action='store_true',
                         help=("Whether or not to keep temporary work " +
