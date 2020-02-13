@@ -6,8 +6,12 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on f
 
 // Complex Fluid parameters
 RELAX_OP = "OLDROYDB"
-VAR_CENTERING = "CELL"
+VAR_CENTERING = "SIDE"
 RELAXATION_TIME = 1.0
+EVOLVE_TYPE = "SQUARE_ROOT"
+QXX = "sin(2*PI*X_0)+2"
+QYY = "cos(2*PI*X_1)+2"
+QXY = "0.0"
 
 ComplexFluid {
    relaxation_time = RELAXATION_TIME
@@ -15,14 +19,65 @@ ComplexFluid {
    output_conformation_tensor = FALSE
    output_stress_tensor = FALSE
    output_divergence = FALSE
+   evolution_type = EVOLVE_TYPE
    InitialConditions {
-       function_0 = "sin(2*PI*X_0)+2"
-       function_1 = "cos(2*PI*X_1)+2"
-       function_2 = "0.0"
+       function_0 = QXX
+       function_1 = QYY
+       function_2 = QXY
+   }
+   ExtraStressBoundaryConditions_0 {
+      acoef_function_0 = "1.0"
+      acoef_function_1 = "1.0"
+      acoef_function_2 = "1.0"
+      acoef_function_3 = "1.0"
+
+      bcoef_function_0 = "0.0"
+      bcoef_function_1 = "0.0"
+      bcoef_function_2 = "0.0"
+      bcoef_function_3 = "0.0"
+
+      gcoef_function_0 = QXX
+      gcoef_function_1 = QXX
+      gcoef_function_2 = QXX
+      gcoef_function_3 = QXX
+   }
+
+   ExtraStressBoundaryConditions_1 {
+      acoef_function_0 = "1.0"
+      acoef_function_1 = "1.0"
+      acoef_function_2 = "1.0"
+      acoef_function_3 = "1.0"
+
+      bcoef_function_0 = "0.0"
+      bcoef_function_1 = "0.0"
+      bcoef_function_2 = "0.0"
+      bcoef_function_3 = "0.0"
+
+      gcoef_function_0 = QYY
+      gcoef_function_1 = QYY
+      gcoef_function_2 = QYY
+      gcoef_function_3 = QYY
+   }
+
+   ExtraStressBoundaryConditions_2 {
+      acoef_function_0 = "1.0"
+      acoef_function_1 = "1.0"
+      acoef_function_2 = "1.0"
+      acoef_function_3 = "1.0"
+
+      bcoef_function_0 = "0.0"
+      bcoef_function_1 = "0.0"
+      bcoef_function_2 = "0.0"
+      bcoef_function_3 = "0.0"
+
+      gcoef_function_0 = QXY
+      gcoef_function_1 = QXY
+      gcoef_function_2 = QXY
+      gcoef_function_3 = QXY
    }
    FCN {
-       function_0 = "2*PI*cos(2*PI*X_0)"
-       function_1 = "-2*PI*sin(2*PI*X_1)"
+       function_0 = "4.0*PI*cos(2.0*PI*X_0)*(2.0+sin(2.0*PI*X_0))"
+       function_1 = "-4.0*PI*sin(2.0*PI*X_1)*(2.0+cos(2.0*PI*X_1))"
    }
 }
 
@@ -49,7 +104,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0),(N - 1,N - 1) ]
    x_lo = 0.0, 0.0
    x_up = 1.0, 1.0
-   periodic_dimension = 1,1
+   periodic_dimension = 0,0
 }
 
 GriddingAlgorithm {

@@ -146,7 +146,6 @@ CFINSForcing::commonConstructor(const Pointer<Database> input_db,
     d_adv_diff_integrator->registerTransportedQuantity(d_W_cc_var);
     d_adv_diff_integrator->setInitialConditions(d_W_cc_var, d_init_conds);
     d_W_scratch_idx = var_db->registerVariableAndContext(d_W_cc_var, d_context, ghosts_cc);
-    d_W_cc_idx = var_db->registerClonedPatchDataIndex(d_W_cc_var, d_W_scratch_idx);
 
     // Read parameters from input file
     d_lambda = input_db->getDouble("relaxation_time");
@@ -160,6 +159,10 @@ CFINSForcing::commonConstructor(const Pointer<Database> input_db,
     d_error_on_spd = input_db->getBoolWithDefault("error_on_spd", d_error_on_spd);
     d_log_divW = input_db->getBoolWithDefault("log_divergence", d_log_divW);
     d_project_conform = input_db->getBoolWithDefault("project_conformation_tensor", d_project_conform);
+    // Have advection diffusion integrator project conformation tensor if necessary.
+    if (d_project_conform)
+        d_adv_diff_integrator->registerIntegrateHierarchyCallback(&apply_project_tensor_callback,
+                                                                  static_cast<void*>(this));
 
     // Set up drawing variables if necessary
     d_conform_draw = input_db->getBoolWithDefault("output_conformation_tensor", d_conform_draw);
@@ -262,11 +265,11 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
         if (d_conform_draw && !level->checkAllocated(d_conform_idx_draw)) level->allocatePatchData(d_conform_idx_draw);
         if ((d_divW_idx_draw > -1) && !level->checkAllocated(d_divW_idx_draw))
             level->allocatePatchData(d_divW_idx_draw);
-        if (!level->checkAllocated(d_W_cc_idx)) level->allocatePatchData(d_W_cc_idx);
     }
     if (initial_time)
     {
-        d_init_conds->setDataOnPatchHierarchy(d_W_cc_idx, d_W_cc_var, hierarchy, data_time, coarsest_ln, finest_ln);
+        d_init_conds->setDataOnPatchHierarchy(
+            d_W_scratch_idx, d_W_cc_var, hierarchy, data_time, coarsest_ln, finest_ln);
     }
     else
     {
@@ -279,42 +282,16 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
             hier_data_ops_manager->getOperationsDouble(d_W_cc_var, hierarchy, true);
         if (d_adv_diff_integrator->getCurrentCycleNumber() == 0 || !W_new_is_allocated)
         {
-            hier_cc_data_ops->copyData(d_W_cc_idx, W_current_idx);
+            hier_cc_data_ops->copyData(d_W_scratch_idx, W_current_idx);
         }
         else
         {
-            hier_cc_data_ops->linearSum(d_W_cc_idx, 0.5, W_current_idx, 0.5, W_new_idx);
+            hier_cc_data_ops->linearSum(d_W_scratch_idx, 0.5, W_current_idx, 0.5, W_new_idx);
         }
     }
 
-    HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<HierarchyDataOpsReal<NDIM, double> > hier_cc_data_ops =
-        hier_data_ops_manager->getOperationsDouble(d_W_cc_var, hierarchy);
-    switch (d_evolve_type)
-    {
-    case SQUARE_ROOT:
-        squareMatrix(d_W_scratch_idx, d_W_cc_var, hierarchy, data_time, initial_time, coarsest_ln, finest_ln);
-        break;
-    case LOGARITHM:
-        exponentiateMatrix(d_W_scratch_idx, d_W_cc_var, hierarchy, data_time, initial_time, coarsest_ln, finest_ln);
-        break;
-    case STANDARD:
-        if (d_project_conform)
-        {
-            // TODO: This only projects the conformation tensor data owned by
-            // this class. Really, we need to project the conformation tensor
-            // owned by the advection diffusion integrator.
-            projectTensor(d_W_cc_idx, d_W_cc_var, hierarchy, data_time, initial_time, coarsest_ln, finest_ln);
-        }
-        hier_cc_data_ops->copyData(d_W_scratch_idx, d_W_cc_idx);
-        break;
-    case UNKNOWN_TENSOR_EVOLUTION_TYPE:
-        TBOX_ERROR(d_object_name << "\n:"
-                                 << "  Unknown tensor evolution type");
-        break;
-    }
-
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    // Fill in boundary conditions for evolved quantity.
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> ghost_cell_components(1);
     ghost_cell_components[0] = InterpolationTransactionComponent(d_W_scratch_idx,
                                                                  "CONSERVATIVE_LINEAR_REFINE",
@@ -328,6 +305,42 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
     HierarchyGhostCellInterpolation ghost_fill_op;
     ghost_fill_op.initializeOperatorState(ghost_cell_components, hierarchy);
     ghost_fill_op.fillData(data_time);
+
+    HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    Pointer<HierarchyDataOpsReal<NDIM, double> > hier_cc_data_ops =
+        hier_data_ops_manager->getOperationsDouble(d_W_cc_var, hierarchy);
+    // Convert evolved quantity including ghost cells to conformation tensor.
+    switch (d_evolve_type)
+    {
+    case SQUARE_ROOT:
+        squareMatrix(d_W_scratch_idx,
+                     d_W_cc_var,
+                     hierarchy,
+                     data_time,
+                     initial_time,
+                     coarsest_ln,
+                     finest_ln,
+                     true /*extended_box*/);
+        break;
+    case LOGARITHM:
+        exponentiateMatrix(d_W_scratch_idx,
+                           d_W_cc_var,
+                           hierarchy,
+                           data_time,
+                           initial_time,
+                           coarsest_ln,
+                           finest_ln,
+                           true /*extended_box*/);
+        break;
+    case STANDARD:
+        if (d_project_conform)
+            projectTensor(d_W_scratch_idx, d_W_cc_var, data_time, initial_time, true /*extended_box*/);
+        break;
+    case UNKNOWN_TENSOR_EVOLUTION_TYPE:
+        TBOX_ERROR(d_object_name << "\n:"
+                                 << "  Unknown tensor evolution type");
+        break;
+    }
 
     // Check to ensure conformation tensor is positive definite
     d_positive_def = true;
@@ -674,7 +687,8 @@ CFINSForcing::squareMatrix(const int data_idx,
                            const double /*data_time*/,
                            const bool initial_time,
                            const int coarsest_ln,
-                           const int finest_ln)
+                           const int finest_ln,
+                           const bool extended_box)
 {
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -682,32 +696,40 @@ CFINSForcing::squareMatrix(const int data_idx,
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& box = patch->getBox();
-            const Pointer<PatchGeometry<NDIM> > p_geom = patch->getPatchGeometry();
             if (initial_time) return;
-            Pointer<CellData<NDIM, double> > half_data = patch->getPatchData(d_W_cc_idx);
-            Pointer<CellData<NDIM, double> > tens_data = patch->getPatchData(data_idx);
+            Pointer<CellData<NDIM, double> > data = patch->getPatchData(data_idx);
+            const Box<NDIM>& box = extended_box ? data->getGhostBox() : patch->getBox();
+            const Pointer<PatchGeometry<NDIM> > p_geom = patch->getPatchGeometry();
+
             for (CellIterator<NDIM> it(box); it; it++)
             {
                 CellIndex<NDIM> i = *it;
 #if (NDIM == 2)
-                (*tens_data)(i, 0) = (*half_data)(i, 0) * (*half_data)(i, 0) + (*half_data)(i, 2) * (*half_data)(i, 2);
-                (*tens_data)(i, 1) = (*half_data)(i, 2) * (*half_data)(i, 2) + (*half_data)(i, 1) * (*half_data)(i, 1);
-                (*tens_data)(i, 2) = (*half_data)(i, 0) * (*half_data)(i, 2) + (*half_data)(i, 1) * (*half_data)(i, 2);
+                Eigen::Matrix2d mat;
+                mat(0, 0) = (*data)(i, 0);
+                mat(1, 0) = (*data)(i, 2);
+                mat(0, 1) = (*data)(i, 2);
+                mat(1, 1) = (*data)(i, 1);
+                mat = mat * mat;
+                (*data)(i, 0) = mat(0, 0);
+                (*data)(i, 1) = mat(1, 1);
+                (*data)(i, 2) = mat(0, 1);
 #endif
 #if (NDIM == 3)
-                (*tens_data)(i, 0) = (*half_data)(i, 0) * (*half_data)(i, 0) + (*half_data)(i, 4) * (*half_data)(i, 4) +
-                                     (*half_data)(i, 5) * (*half_data)(i, 5);
-                (*tens_data)(i, 1) = (*half_data)(i, 1) * (*half_data)(i, 1) + (*half_data)(i, 3) * (*half_data)(i, 3) +
-                                     (*half_data)(i, 5) * (*half_data)(i, 5);
-                (*tens_data)(i, 2) = (*half_data)(i, 2) * (*half_data)(i, 2) + (*half_data)(i, 3) * (*half_data)(i, 3) +
-                                     (*half_data)(i, 4) * (*half_data)(i, 4);
-                (*tens_data)(i, 3) = (*half_data)(i, 1) * (*half_data)(i, 3) + (*half_data)(i, 2) * (*half_data)(i, 3) +
-                                     (*half_data)(i, 4) * (*half_data)(i, 5);
-                (*tens_data)(i, 4) = (*half_data)(i, 0) * (*half_data)(i, 4) + (*half_data)(i, 2) * (*half_data)(i, 4) +
-                                     (*half_data)(i, 3) * (*half_data)(i, 5);
-                (*tens_data)(i, 5) = (*half_data)(i, 3) * (*half_data)(i, 4) + (*half_data)(i, 0) * (*half_data)(i, 5) +
-                                     (*half_data)(i, 1) * (*half_data)(i, 5);
+                Eigen::Matrix3d mat;
+                mat(0, 0) = (*data)(i, 0);
+                mat(1, 1) = (*data)(i, 1);
+                mat(2, 2) = (*data)(i, 2);
+                mat(1, 2) = mat(2, 1) = (*data)(i, 3);
+                mat(0, 2) = mat(2, 0) = (*data)(i, 4);
+                mat(0, 1) = mat(1, 0) = (*data)(i, 5);
+                mat = mat * mat;
+                (*data)(i, 0) = mat(0, 0);
+                (*data)(i, 1) = mat(1, 1);
+                (*data)(i, 2) = mat(2, 2);
+                (*data)(i, 3) = mat(1, 2);
+                (*data)(i, 4) = mat(0, 2);
+                (*data)(i, 5) = mat(0, 1);
 #endif
             }
         }
@@ -757,7 +779,8 @@ CFINSForcing::exponentiateMatrix(const int data_idx,
                                  const double /*data_time*/,
                                  const bool /*initial_time*/,
                                  const int coarsest_ln,
-                                 const int finest_ln)
+                                 const int finest_ln,
+                                 const bool extended_box)
 {
     for (int ln = coarsest_ln; ln <= finest_ln; ln++)
     {
@@ -765,18 +788,17 @@ CFINSForcing::exponentiateMatrix(const int data_idx,
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& box = patch->getBox();
             Pointer<CellData<NDIM, double> > data = patch->getPatchData(data_idx);
-            Pointer<CellData<NDIM, double> > log_data = patch->getPatchData(d_W_cc_idx);
+            const Box<NDIM>& box = extended_box ? data->getGhostBox() : patch->getBox();
             for (CellIterator<NDIM> it(box); it; it++)
             {
                 CellIndex<NDIM> i = *it;
 #if (NDIM == 2)
                 Eigen::Matrix2d mat;
-                mat(0, 0) = (*log_data)(i, 0);
-                mat(1, 0) = (*log_data)(i, 2);
-                mat(0, 1) = (*log_data)(i, 2);
-                mat(1, 1) = (*log_data)(i, 1);
+                mat(0, 0) = (*data)(i, 0);
+                mat(1, 0) = (*data)(i, 2);
+                mat(0, 1) = (*data)(i, 2);
+                mat(1, 1) = (*data)(i, 1);
                 mat = mat.exp();
                 (*data)(i, 0) = mat(0, 0);
                 (*data)(i, 1) = mat(1, 1);
@@ -784,12 +806,12 @@ CFINSForcing::exponentiateMatrix(const int data_idx,
 #endif
 #if (NDIM == 3)
                 Eigen::Matrix3d mat;
-                mat(0, 0) = (*log_data)(i, 0);
-                mat(1, 1) = (*log_data)(i, 1);
-                mat(2, 2) = (*log_data)(i, 2);
-                mat(1, 2) = mat(2, 1) = (*log_data)(i, 3);
-                mat(0, 2) = mat(2, 0) = (*log_data)(i, 4);
-                mat(0, 1) = mat(1, 0) = (*log_data)(i, 5);
+                mat(0, 0) = (*data)(i, 0);
+                mat(1, 1) = (*data)(i, 1);
+                mat(2, 2) = (*data)(i, 2);
+                mat(1, 2) = mat(2, 1) = (*data)(i, 3);
+                mat(0, 2) = mat(2, 0) = (*data)(i, 4);
+                mat(0, 1) = mat(1, 0) = (*data)(i, 5);
                 mat = mat.exp();
                 (*data)(i, 0) = mat(0, 0);
                 (*data)(i, 1) = mat(1, 1);
@@ -807,21 +829,20 @@ CFINSForcing::exponentiateMatrix(const int data_idx,
 void
 CFINSForcing::projectTensor(const int data_idx,
                             const Pointer<Variable<NDIM> > /*var*/,
-                            const Pointer<PatchHierarchy<NDIM> > hierarchy,
                             const double /*data_time*/,
                             const bool initial_time,
-                            const int coarsest_ln,
-                            const int finest_ln)
+                            const bool extended_box)
 {
-    for (int ln = coarsest_ln; ln <= finest_ln; ln++)
+    Pointer<PatchHierarchy<NDIM> > hierarchy = d_adv_diff_integrator->getPatchHierarchy();
+    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++)
     {
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& box = patch->getBox();
             if (initial_time) return;
             Pointer<CellData<NDIM, double> > data = patch->getPatchData(data_idx);
+            const Box<NDIM>& box = extended_box ? data->getGhostBox() : patch->getBox();
             for (CellIterator<NDIM> it(box); it; it++)
             {
                 CellIndex<NDIM> i = *it;
@@ -934,4 +955,18 @@ CFINSForcing::apply_gradient_detector_callback(Pointer<BasePatchHierarchy<NDIM> 
         hierarchy, level_number, error_data_time, tag_index, initial_time, richardson_extrapolation_too);
     return;
 } // apply_gradient_detector_callback
+
+void
+CFINSForcing::apply_project_tensor_callback(const double current_time,
+                                            const double /*new_time*/,
+                                            const int /*cycle_num*/,
+                                            void* ctx)
+{
+    auto object = static_cast<CFINSForcing*>(ctx);
+    auto var_db = VariableDatabase<NDIM>::getDatabase();
+    const int Q_idx = var_db->mapVariableAndContextToIndex(object->getVariable(),
+                                                           object->getAdvDiffHierarchyIntegrator()->getNewContext());
+    object->projectTensor(Q_idx, object->getVariable(), current_time, false /*initial_time*/, false /*extended_box*/);
+    return;
+} // apply_project_tensor_callback
 } // namespace IBAMR
