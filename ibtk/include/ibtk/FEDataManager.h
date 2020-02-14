@@ -618,6 +618,51 @@ public:
     /*!
      * \brief Spread a density from the FE mesh to the Cartesian grid using the
      * default spreading spec.
+     *
+     * @note This function may spread forces from points near the physical
+     * boundary into ghost cells outside the physical domain. To account for
+     * these forces one should usually call
+     * IBTK::RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData()
+     * after this function to move said force values into the physical domain.
+     */
+    void spread(int f_data_idx,
+                libMesh::NumericVector<double>& F,
+                libMesh::NumericVector<double>& X,
+                const std::string& system_name);
+
+    /*!
+     * \brief Spread a density from the FE mesh to the Cartesian grid.
+     *
+     * @param[in] f_data_idx SAMRAI index into the
+     * SAMRAI::hier::PatchHierarchy object owned by this class. The spread
+     * force values will be added into this index.
+     * @param[in] F Finite element solution vector containing the field which
+     * will be spread onto the Eulerian grid.
+     * @param[in] X Finite element solution vector containing the current
+     * position of the mesh.
+     * @param[in] system_name name of the system corresponding to @p F.
+     *
+     * Both @p X and @p F should contain ghost values corresponding to the IB
+     * partitioning of the Lagrangian data, i.e., vectors returned from
+     * buildIBGhostedVector.
+     *
+     * @note This function may spread forces from points near the physical
+     * boundary into ghost cells outside the physical domain. To account for
+     * these forces one should usually call
+     * IBTK::RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData()
+     * after this function to move said force values into the physical domain.
+     */
+    void spread(int f_data_idx,
+                libMesh::NumericVector<double>& F,
+                libMesh::NumericVector<double>& X,
+                const std::string& system_name,
+                const SpreadSpec& spread_spec);
+
+    /*!
+     * \brief Spread a density from the FE mesh to the Cartesian grid using
+     * the default spreading spec. This is a convenience overload of spread
+     * where @p f_phys_bdry_op is used to correctly accumulate force values
+     * spread outside the physical domain into it.
      */
     void spread(int f_data_idx,
                 libMesh::NumericVector<double>& F,
@@ -630,7 +675,9 @@ public:
 
     /*!
      * \brief Spread a density from the FE mesh to the Cartesian grid using a
-     * specified spreading spec.
+     * specified spreading spec. This is a convenience overload of spread
+     * where @p f_phys_bdry_op is used to correctly accumulate force values
+     * spread outside the physical domain into it.
      */
     void spread(int f_data_idx,
                 libMesh::NumericVector<double>& F,
