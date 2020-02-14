@@ -92,12 +92,16 @@ main(int argc, char** argv)
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create a simple FE mesh.
-        ReplicatedMesh mesh(init.comm(), NDIM);
+        std::vector<std::unique_ptr<ReplicatedMesh> > meshes;
+        meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
-        string elem_type = input_db->getString("ELEM_TYPE");
+        const std::string elem_str = input_db->getString("ELEM_TYPE");
+        const auto elem_type = Utility::string_to_enum<ElemType>(elem_str);
+
+        ReplicatedMesh& mesh = *meshes[0];
         const double R = 0.2;
-        if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
+        if (NDIM == 2 && (elem_str == "TRI3" || elem_str == "TRI6"))
         {
 #ifdef LIBMESH_HAVE_TRIANGLE
             const int num_circum_nodes = ceil(2.0 * M_PI * R / ds);
@@ -108,7 +112,7 @@ main(int argc, char** argv)
             }
             TriangleInterface triangle(mesh);
             triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
-            triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
+            triangle.elem_type() = elem_type;
             triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
             triangle.insert_extra_points() = true;
             triangle.smooth_after_generating() = true;
@@ -123,17 +127,20 @@ main(int argc, char** argv)
             // NOTE: number of segments along boundary is 4*2^r.
             const double num_circum_segments = 2.0 * M_PI * R / ds;
             const int r = log2(0.25 * num_circum_segments);
-            MeshTools::Generation::build_sphere(mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
+            MeshTools::Generation::build_sphere(mesh, R, r, elem_type);
         }
         mesh.prepare_for_use();
+
         // metis does a good job partitioning, but the partitioning relies on
         // random numbers: the seed changed in libMesh commit
         // 98cede90ca8837688ee13aac5e299a3765f083da (between 1.3.1 and
         // 1.4.0). Hence, to achieve consistent partitioning, use a simpler partitioning scheme:
         LinearPartitioner partitioner;
-        partitioner.partition(mesh);
+        for (const auto& mesh : meshes) partitioner.partition(*mesh);
 
-        plog << "Number of elements: " << mesh.n_active_elem() << std::endl;
+        std::size_t n_elem = 0;
+        for (const auto& mesh : meshes) n_elem += mesh->n_active_elem();
+        plog << "Number of elements: " << n_elem << std::endl;
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -167,10 +174,16 @@ main(int argc, char** argv)
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
+
+        std::vector<libMesh::MeshBase*> mesh_ptrs;
+        for (auto& mesh : meshes)
+        {
+            mesh_ptrs.emplace_back(mesh.get());
+        }
         Pointer<IBFEMethod> ib_method_ops =
             new IBFEMethod("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
-                           &mesh,
+                           mesh_ptrs,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
                            false);
         Pointer<IBHierarchyIntegrator> time_integrator =
@@ -245,15 +258,18 @@ main(int argc, char** argv)
         const double dt = time_integrator->getMaximumTimeStepSize();
         time_integrator->preprocessIntegrateHierarchy(
             time_integrator->getIntegratorTime(), time_integrator->getIntegratorTime() + dt, 1 /*???*/);
-        auto& fe_data_manager = *ib_method_ops->getFEDataManager();
-        auto& equation_systems = *fe_data_manager.getEquationSystems();
-        auto& force_system = equation_systems.get_system(IBFEMethod::FORCE_SYSTEM_NAME);
-        auto& half_f_vector = dynamic_cast<libMesh::PetscVector<double>&>(*force_system.current_local_solution);
-        for (unsigned int i = half_f_vector.first_local_index(); i < half_f_vector.last_local_index(); ++i)
+        for (unsigned int part_n = 0; part_n < meshes.size(); ++part_n)
         {
-            half_f_vector.set(i, i % 10);
+            auto& fe_data_manager = *ib_method_ops->getFEDataManager(part_n);
+            auto& equation_systems = *fe_data_manager.getEquationSystems();
+            auto& force_system = equation_systems.get_system(IBFEMethod::FORCE_SYSTEM_NAME);
+            auto& half_f_vector = dynamic_cast<libMesh::PetscVector<double>&>(*force_system.current_local_solution);
+            for (unsigned int i = half_f_vector.first_local_index(); i < half_f_vector.last_local_index(); ++i)
+            {
+                half_f_vector.set(i, i % 10);
+            }
+            half_f_vector.close();
         }
-        half_f_vector.close();
 
         std::ostringstream out;
         if (SAMRAI_MPI::getNodes() != 1)
