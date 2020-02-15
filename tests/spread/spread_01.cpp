@@ -99,44 +99,107 @@ main(int argc, char** argv)
         const std::string elem_str = input_db->getString("ELEM_TYPE");
         const auto elem_type = Utility::string_to_enum<ElemType>(elem_str);
 
-        ReplicatedMesh& mesh = *meshes[0];
-        const double R = 0.2;
-        if (NDIM == 2 && (elem_str == "TRI3" || elem_str == "TRI6"))
+        const std::string geometry = input_db->getStringWithDefault("geometry", "sphere");
+
+        if (geometry == "sphere")
         {
-#ifdef LIBMESH_HAVE_TRIANGLE
-            const int num_circum_nodes = ceil(2.0 * M_PI * R / ds);
-            for (int k = 0; k < num_circum_nodes; ++k)
+            ReplicatedMesh& mesh = *meshes[0];
+            const double R = 0.2;
+            if (NDIM == 2 && (elem_str == "TRI3" || elem_str == "TRI6"))
             {
-                const double theta = 2.0 * M_PI * static_cast<double>(k) / static_cast<double>(num_circum_nodes);
-                mesh.add_point(libMesh::Point(R * cos(theta), R * sin(theta)));
-            }
-            TriangleInterface triangle(mesh);
-            triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
-            triangle.elem_type() = elem_type;
-            triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
-            triangle.insert_extra_points() = true;
-            triangle.smooth_after_generating() = true;
-            triangle.triangulate();
+#ifdef LIBMESH_HAVE_TRIANGLE
+                const int num_circum_nodes = ceil(2.0 * M_PI * R / ds);
+                for (int k = 0; k < num_circum_nodes; ++k)
+                {
+                    const double theta = 2.0 * M_PI * static_cast<double>(k) / static_cast<double>(num_circum_nodes);
+                    mesh.add_point(libMesh::Point(R * cos(theta), R * sin(theta)));
+                }
+                TriangleInterface triangle(mesh);
+                triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
+                triangle.elem_type() = elem_type;
+                triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
+                triangle.insert_extra_points() = true;
+                triangle.smooth_after_generating() = true;
+                triangle.triangulate();
 #else
-            TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
-                       << "       but Triangle is required for TRI3 or TRI6 elements.\n");
+                TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
+                           << "       but Triangle is required for TRI3 or TRI6 elements.\n");
 #endif
+            }
+            else
+            {
+                // NOTE: number of segments along boundary is 4*2^r.
+                const double num_circum_segments = 2.0 * M_PI * R / ds;
+                const int r = log2(0.25 * num_circum_segments);
+                MeshTools::Generation::build_sphere(mesh, R, r, elem_type);
+            }
+        }
+        else if (geometry == "cube")
+        {
+            ReplicatedMesh& mesh = *meshes[0];
+            const double L = input_db->getDouble("L");
+            if (NDIM == 2)
+                MeshTools::Generation::build_square(mesh, 10, 12, 0.0, L, 0.0, L, elem_type);
+            else
+                MeshTools::Generation::build_cube(mesh, 10, 12, 14, 0.0, L, 0.0, L, 0.0, L, elem_type);
         }
         else
         {
-            // NOTE: number of segments along boundary is 4*2^r.
-            const double num_circum_segments = 2.0 * M_PI * R / ds;
-            const int r = log2(0.25 * num_circum_segments);
-            MeshTools::Generation::build_sphere(mesh, R, r, elem_type);
+            TBOX_ASSERT(geometry == "composite_cube");
+            const double L = input_db->getDouble("L");
+            if (NDIM == 2)
+            {
+                ReplicatedMesh& mesh_0 = *meshes[0];
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_1 = *meshes[1];
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_2 = *meshes[2];
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_3 = *meshes[3];
+                MeshTools::Generation::build_square(mesh_0, 10, 12, 0.0, L / 2, 0.0, L / 2, elem_type);
+                MeshTools::Generation::build_square(mesh_1, 10, 12, L / 2, L, 0.0, L / 2, elem_type);
+                MeshTools::Generation::build_square(mesh_2, 10, 12, 0.0, L / 2, L / 2, L, elem_type);
+                MeshTools::Generation::build_square(mesh_3, 10, 12, L / 2, L, L / 2, L, elem_type);
+            }
+            else
+            {
+                ReplicatedMesh& mesh_0 = *meshes[0];
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_1 = *meshes[1];
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_2 = *meshes[2];
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_3 = *meshes[3];
+                MeshTools::Generation::build_cube(mesh_0, 10, 12, 11, 0.0, L / 2, 0.0, L / 2, 0.0, L / 2, elem_type);
+                MeshTools::Generation::build_cube(mesh_1, 10, 12, 11, L / 2, L, 0.0, L / 2, 0.0, L / 2, elem_type);
+                MeshTools::Generation::build_cube(mesh_2, 10, 12, 11, 0.0, L / 2, L / 2, L, 0.0, L / 2, elem_type);
+                MeshTools::Generation::build_cube(mesh_3, 10, 12, 11, L / 2, L, L / 2, L, 0.0, L / 2, elem_type);
+
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_4 = *meshes[4];
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_5 = *meshes[5];
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_6 = *meshes[6];
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_7 = *meshes[7];
+                MeshTools::Generation::build_cube(mesh_4, 10, 12, 11, 0.0, L / 2, 0.0, L / 2, L / 2, L, elem_type);
+                MeshTools::Generation::build_cube(mesh_5, 10, 12, 11, L / 2, L, 0.0, L / 2, L / 2, L, elem_type);
+                MeshTools::Generation::build_cube(mesh_6, 10, 12, 11, 0.0, L / 2, L / 2, L, L / 2, L, elem_type);
+                MeshTools::Generation::build_cube(mesh_7, 10, 12, 11, L / 2, L, L / 2, L, L / 2, L, elem_type);
+            }
         }
-        mesh.prepare_for_use();
 
         // metis does a good job partitioning, but the partitioning relies on
         // random numbers: the seed changed in libMesh commit
         // 98cede90ca8837688ee13aac5e299a3765f083da (between 1.3.1 and
         // 1.4.0). Hence, to achieve consistent partitioning, use a simpler partitioning scheme:
-        LinearPartitioner partitioner;
-        for (const auto& mesh : meshes) partitioner.partition(*mesh);
+        for (const auto& mesh : meshes)
+        {
+            mesh->prepare_for_use();
+            LinearPartitioner partitioner;
+            partitioner.partition(*mesh);
+        }
 
         std::size_t n_elem = 0;
         for (const auto& mesh : meshes) n_elem += mesh->n_active_elem();
@@ -206,7 +269,9 @@ main(int argc, char** argv)
                                         false);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
+        if (geometry == "sphere")
+            // other meshes are already centered correctly
+            ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
         ib_method_ops->initializeFEEquationSystems();
         ib_method_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
