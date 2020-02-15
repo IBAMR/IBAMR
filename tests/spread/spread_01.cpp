@@ -170,10 +170,10 @@ main(int argc, char** argv)
                 ReplicatedMesh& mesh_2 = *meshes[2];
                 meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
                 ReplicatedMesh& mesh_3 = *meshes[3];
-                MeshTools::Generation::build_cube(mesh_0, 10, 12, 11, 0.0, L / 2, 0.0, L / 2, 0.0, L / 2, elem_type);
-                MeshTools::Generation::build_cube(mesh_1, 10, 12, 11, L / 2, L, 0.0, L / 2, 0.0, L / 2, elem_type);
-                MeshTools::Generation::build_cube(mesh_2, 10, 12, 11, 0.0, L / 2, L / 2, L, 0.0, L / 2, elem_type);
-                MeshTools::Generation::build_cube(mesh_3, 10, 12, 11, L / 2, L, L / 2, L, 0.0, L / 2, elem_type);
+                MeshTools::Generation::build_cube(mesh_0, 5, 6, 7, 0.0, L / 2, 0.0, L / 2, 0.0, L / 2, elem_type);
+                MeshTools::Generation::build_cube(mesh_1, 5, 6, 7, L / 2, L, 0.0, L / 2, 0.0, L / 2, elem_type);
+                MeshTools::Generation::build_cube(mesh_2, 5, 6, 7, 0.0, L / 2, L / 2, L, 0.0, L / 2, elem_type);
+                MeshTools::Generation::build_cube(mesh_3, 5, 6, 7, L / 2, L, L / 2, L, 0.0, L / 2, elem_type);
 
                 meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
                 ReplicatedMesh& mesh_4 = *meshes[4];
@@ -183,10 +183,10 @@ main(int argc, char** argv)
                 ReplicatedMesh& mesh_6 = *meshes[6];
                 meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
                 ReplicatedMesh& mesh_7 = *meshes[7];
-                MeshTools::Generation::build_cube(mesh_4, 10, 12, 11, 0.0, L / 2, 0.0, L / 2, L / 2, L, elem_type);
-                MeshTools::Generation::build_cube(mesh_5, 10, 12, 11, L / 2, L, 0.0, L / 2, L / 2, L, elem_type);
-                MeshTools::Generation::build_cube(mesh_6, 10, 12, 11, 0.0, L / 2, L / 2, L, L / 2, L, elem_type);
-                MeshTools::Generation::build_cube(mesh_7, 10, 12, 11, L / 2, L, L / 2, L, L / 2, L, elem_type);
+                MeshTools::Generation::build_cube(mesh_4, 5, 6, 7, 0.0, L / 2, 0.0, L / 2, L / 2, L, elem_type);
+                MeshTools::Generation::build_cube(mesh_5, 5, 6, 7, L / 2, L, 0.0, L / 2, L / 2, L, elem_type);
+                MeshTools::Generation::build_cube(mesh_6, 5, 6, 7, 0.0, L / 2, L / 2, L, L / 2, L, elem_type);
+                MeshTools::Generation::build_cube(mesh_7, 5, 6, 7, L / 2, L, L / 2, L, L / 2, L, elem_type);
             }
         }
 
