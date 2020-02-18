@@ -234,7 +234,7 @@ private:
     /*!
      * Update the operators and solvers to account for changes due to time-dependent coefficients
      */
-    void updateOperatorsAndSolvers(double current_time, double new_time);
+    void updateOperatorsAndSolvers(double current_time, double new_time, int cycle_num);
 
     /*!
      * Setup solution and RHS vectors using state data maintained by the

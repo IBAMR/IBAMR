@@ -743,7 +743,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
     d_side_synch_op->resetTransactionComponent(default_synch_transaction);
 
     // Update the solvers and operators to take into account new state variables
-    updateOperatorsAndSolvers(current_time, new_time);
+    updateOperatorsAndSolvers(current_time, new_time, cycle_num);
 
     // Compute the Brinkman velocity for the RHS vector.
     d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
@@ -1170,7 +1170,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
 /////////////////////////////// PRIVATE //////////////////////////////////////
 void
 INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const double current_time,
-                                                                         const double new_time)
+                                                                         const double new_time,
+                                                                         const int cycle_num)
 {
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     const double dt = new_time - current_time;
@@ -1282,17 +1283,18 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     P_problem_coefs.setDPatchDataId(d_pressure_D_idx);
 
     // Ensure that solver components are appropriately reinitialized at the
-    // correct intervals or
-    // when the time step size changes.
+    // correct intervals or when the time step size changes. Subdomain solvers
+    // are only reinitialized during the first cycle
     const bool dt_change = initial_time || !MathUtilities<double>::equalEps(dt, d_dt_previous[0]);
     const bool precond_reinit = d_integrator_step % d_precond_reinit_interval == 0;
-    if (precond_reinit)
+    const bool first_cycle = cycle_num == 0;
+    if (first_cycle && precond_reinit)
     {
         d_velocity_solver_needs_init = true;
         d_pressure_solver_needs_init = true;
         d_stokes_solver_needs_init = true;
     }
-    else if (dt_change)
+    else if (first_cycle && dt_change)
     {
         d_velocity_solver_needs_init = true;
         d_stokes_solver_needs_init = true;
