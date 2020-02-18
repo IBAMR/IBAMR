@@ -50,6 +50,7 @@ IBTK_DISABLE_EXTRA_WARNINGS
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <map>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <utility>

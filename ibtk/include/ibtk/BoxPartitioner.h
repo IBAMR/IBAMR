@@ -21,6 +21,8 @@
 #include <libmesh/partitioner.h>
 #include <libmesh/system.h>
 
+#include <memory>
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 namespace IBTK
 {

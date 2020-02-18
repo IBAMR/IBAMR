@@ -36,6 +36,7 @@
 #include "libmesh/explicit_system.h"
 
 #include <array>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
