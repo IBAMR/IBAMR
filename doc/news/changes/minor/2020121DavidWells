@@ -1,0 +1,7 @@
+Improved: The build system has been modified slightly to permit inlining of the
+IB kernels in <code>lagrangian_interaction_2d.f</code> and
+<code>lagrangian_interaction_3d.f</code>. Inlining these kernels makes the
+force spreading and velocity interpolation about 15% faster in 3D.
+
+<br>
+(David Wells, 2020/01/21)

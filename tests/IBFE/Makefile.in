@@ -87,14 +87,12 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = interpolate_velocity_01_2d$(EXEEXT) \
-	interpolate_velocity_01_3d$(EXEEXT) \
-	interpolate_velocity_02$(EXEEXT) explicit_ex0_2d$(EXEEXT) \
-	explicit_ex4_2d$(EXEEXT) explicit_ex4_3d$(EXEEXT) \
-	explicit_ex5_2d$(EXEEXT) explicit_ex5_3d$(EXEEXT) \
-	explicit_ex8_2d$(EXEEXT) ib_partitioning_01_2d$(EXEEXT) \
-	ib_partitioning_01_3d$(EXEEXT) ib_partitioning_02_2d$(EXEEXT) \
-	ib_partitioning_02_3d$(EXEEXT)
+EXTRA_PROGRAMS = $(am__EXEEXT_1)
+@LIBMESH_ENABLED_TRUE@am__append_1 = interpolate_velocity_01_2d interpolate_velocity_01_3d \
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_02 explicit_ex0_2d explicit_ex4_2d explicit_ex4_3d \
+@LIBMESH_ENABLED_TRUE@explicit_ex5_2d explicit_ex5_3d explicit_ex8_2d ib_partitioning_01_2d \
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_3d ib_partitioning_02_2d ib_partitioning_02_3d
+
 subdir = tests/IBFE
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -126,9 +124,26 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am_explicit_ex0_2d_OBJECTS = explicit_ex0_2d-explicit_ex0.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@am__EXEEXT_1 =  \
+@LIBMESH_ENABLED_TRUE@	interpolate_velocity_01_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	interpolate_velocity_01_3d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	interpolate_velocity_02$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	explicit_ex0_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	explicit_ex4_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	explicit_ex4_3d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	explicit_ex5_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	explicit_ex5_3d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	explicit_ex8_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	ib_partitioning_01_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	ib_partitioning_01_3d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	ib_partitioning_02_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	ib_partitioning_02_3d$(EXEEXT)
+am__explicit_ex0_2d_SOURCES_DIST = explicit_ex0.cpp
+@LIBMESH_ENABLED_TRUE@am_explicit_ex0_2d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	explicit_ex0_2d-explicit_ex0.$(OBJEXT)
 explicit_ex0_2d_OBJECTS = $(am_explicit_ex0_2d_OBJECTS)
-explicit_ex0_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex0_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -137,98 +152,121 @@ explicit_ex0_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(explicit_ex0_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_explicit_ex4_2d_OBJECTS = explicit_ex4_2d-explicit_ex4.$(OBJEXT)
+am__explicit_ex4_2d_SOURCES_DIST = explicit_ex4.cpp
+@LIBMESH_ENABLED_TRUE@am_explicit_ex4_2d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	explicit_ex4_2d-explicit_ex4.$(OBJEXT)
 explicit_ex4_2d_OBJECTS = $(am_explicit_ex4_2d_OBJECTS)
-explicit_ex4_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex4_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 explicit_ex4_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(explicit_ex4_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_explicit_ex4_3d_OBJECTS = explicit_ex4_3d-explicit_ex4.$(OBJEXT)
+am__explicit_ex4_3d_SOURCES_DIST = explicit_ex4.cpp
+@LIBMESH_ENABLED_TRUE@am_explicit_ex4_3d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	explicit_ex4_3d-explicit_ex4.$(OBJEXT)
 explicit_ex4_3d_OBJECTS = $(am_explicit_ex4_3d_OBJECTS)
-explicit_ex4_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex4_3d_DEPENDENCIES = $(IBAMR3d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 explicit_ex4_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(explicit_ex4_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_explicit_ex5_2d_OBJECTS = explicit_ex5_2d-explicit_ex5.$(OBJEXT)
+am__explicit_ex5_2d_SOURCES_DIST = explicit_ex5.cpp
+@LIBMESH_ENABLED_TRUE@am_explicit_ex5_2d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	explicit_ex5_2d-explicit_ex5.$(OBJEXT)
 explicit_ex5_2d_OBJECTS = $(am_explicit_ex5_2d_OBJECTS)
-explicit_ex5_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex5_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 explicit_ex5_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(explicit_ex5_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_explicit_ex5_3d_OBJECTS = explicit_ex5_3d-explicit_ex5.$(OBJEXT)
+am__explicit_ex5_3d_SOURCES_DIST = explicit_ex5.cpp
+@LIBMESH_ENABLED_TRUE@am_explicit_ex5_3d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	explicit_ex5_3d-explicit_ex5.$(OBJEXT)
 explicit_ex5_3d_OBJECTS = $(am_explicit_ex5_3d_OBJECTS)
-explicit_ex5_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex5_3d_DEPENDENCIES = $(IBAMR3d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 explicit_ex5_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(explicit_ex5_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_explicit_ex8_2d_OBJECTS = explicit_ex8_2d-explicit_ex8.$(OBJEXT)
+am__explicit_ex8_2d_SOURCES_DIST = explicit_ex8.cpp
+@LIBMESH_ENABLED_TRUE@am_explicit_ex8_2d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	explicit_ex8_2d-explicit_ex8.$(OBJEXT)
 explicit_ex8_2d_OBJECTS = $(am_explicit_ex8_2d_OBJECTS)
-explicit_ex8_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex8_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 explicit_ex8_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(explicit_ex8_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_ib_partitioning_01_2d_OBJECTS =  \
-	ib_partitioning_01_2d-ib_partitioning_01.$(OBJEXT)
+am__ib_partitioning_01_2d_SOURCES_DIST = ib_partitioning_01.cpp
+@LIBMESH_ENABLED_TRUE@am_ib_partitioning_01_2d_OBJECTS = ib_partitioning_01_2d-ib_partitioning_01.$(OBJEXT)
 ib_partitioning_01_2d_OBJECTS = $(am_ib_partitioning_01_2d_OBJECTS)
-ib_partitioning_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_2d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
 ib_partitioning_01_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(ib_partitioning_01_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_ib_partitioning_01_3d_OBJECTS =  \
-	ib_partitioning_01_3d-ib_partitioning_01.$(OBJEXT)
+am__ib_partitioning_01_3d_SOURCES_DIST = ib_partitioning_01.cpp
+@LIBMESH_ENABLED_TRUE@am_ib_partitioning_01_3d_OBJECTS = ib_partitioning_01_3d-ib_partitioning_01.$(OBJEXT)
 ib_partitioning_01_3d_OBJECTS = $(am_ib_partitioning_01_3d_OBJECTS)
-ib_partitioning_01_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_3d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
 ib_partitioning_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(ib_partitioning_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_ib_partitioning_02_2d_OBJECTS =  \
-	ib_partitioning_02_2d-ib_partitioning_02.$(OBJEXT)
+am__ib_partitioning_02_2d_SOURCES_DIST = ib_partitioning_02.cpp
+@LIBMESH_ENABLED_TRUE@am_ib_partitioning_02_2d_OBJECTS = ib_partitioning_02_2d-ib_partitioning_02.$(OBJEXT)
 ib_partitioning_02_2d_OBJECTS = $(am_ib_partitioning_02_2d_OBJECTS)
-ib_partitioning_02_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_2d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
 ib_partitioning_02_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(ib_partitioning_02_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_ib_partitioning_02_3d_OBJECTS =  \
-	ib_partitioning_02_3d-ib_partitioning_02.$(OBJEXT)
+am__ib_partitioning_02_3d_SOURCES_DIST = ib_partitioning_02.cpp
+@LIBMESH_ENABLED_TRUE@am_ib_partitioning_02_3d_OBJECTS = ib_partitioning_02_3d-ib_partitioning_02.$(OBJEXT)
 ib_partitioning_02_3d_OBJECTS = $(am_ib_partitioning_02_3d_OBJECTS)
-ib_partitioning_02_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_3d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
 ib_partitioning_02_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(ib_partitioning_02_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_interpolate_velocity_01_2d_OBJECTS =  \
-	interpolate_velocity_01_2d-interpolate_velocity_01.$(OBJEXT)
+am__interpolate_velocity_01_2d_SOURCES_DIST =  \
+	interpolate_velocity_01.cpp
+@LIBMESH_ENABLED_TRUE@am_interpolate_velocity_01_2d_OBJECTS = interpolate_velocity_01_2d-interpolate_velocity_01.$(OBJEXT)
 interpolate_velocity_01_2d_OBJECTS =  \
 	$(am_interpolate_velocity_01_2d_OBJECTS)
-interpolate_velocity_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
-	$(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_01_2d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
 interpolate_velocity_01_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(interpolate_velocity_01_2d_CXXFLAGS) $(CXXFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_interpolate_velocity_01_3d_OBJECTS =  \
-	interpolate_velocity_01_3d-interpolate_velocity_01.$(OBJEXT)
+am__interpolate_velocity_01_3d_SOURCES_DIST =  \
+	interpolate_velocity_01.cpp
+@LIBMESH_ENABLED_TRUE@am_interpolate_velocity_01_3d_OBJECTS = interpolate_velocity_01_3d-interpolate_velocity_01.$(OBJEXT)
 interpolate_velocity_01_3d_OBJECTS =  \
 	$(am_interpolate_velocity_01_3d_OBJECTS)
-interpolate_velocity_01_3d_DEPENDENCIES = $(IBAMR3d_LIBS) \
-	$(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_01_3d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
 interpolate_velocity_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(interpolate_velocity_01_3d_CXXFLAGS) $(CXXFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_interpolate_velocity_02_OBJECTS =  \
-	interpolate_velocity_02-interpolate_velocity_02.$(OBJEXT)
+am__interpolate_velocity_02_SOURCES_DIST =  \
+	interpolate_velocity_02.cpp
+@LIBMESH_ENABLED_TRUE@am_interpolate_velocity_02_OBJECTS = interpolate_velocity_02-interpolate_velocity_02.$(OBJEXT)
 interpolate_velocity_02_OBJECTS =  \
 	$(am_interpolate_velocity_02_OBJECTS)
-interpolate_velocity_02_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_02_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
 interpolate_velocity_02_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(interpolate_velocity_02_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
@@ -290,16 +328,19 @@ SOURCES = $(explicit_ex0_2d_SOURCES) $(explicit_ex4_2d_SOURCES) \
 	$(interpolate_velocity_01_2d_SOURCES) \
 	$(interpolate_velocity_01_3d_SOURCES) \
 	$(interpolate_velocity_02_SOURCES)
-DIST_SOURCES = $(explicit_ex0_2d_SOURCES) $(explicit_ex4_2d_SOURCES) \
-	$(explicit_ex4_3d_SOURCES) $(explicit_ex5_2d_SOURCES) \
-	$(explicit_ex5_3d_SOURCES) $(explicit_ex8_2d_SOURCES) \
-	$(ib_partitioning_01_2d_SOURCES) \
-	$(ib_partitioning_01_3d_SOURCES) \
-	$(ib_partitioning_02_2d_SOURCES) \
-	$(ib_partitioning_02_3d_SOURCES) \
-	$(interpolate_velocity_01_2d_SOURCES) \
-	$(interpolate_velocity_01_3d_SOURCES) \
-	$(interpolate_velocity_02_SOURCES)
+DIST_SOURCES = $(am__explicit_ex0_2d_SOURCES_DIST) \
+	$(am__explicit_ex4_2d_SOURCES_DIST) \
+	$(am__explicit_ex4_3d_SOURCES_DIST) \
+	$(am__explicit_ex5_2d_SOURCES_DIST) \
+	$(am__explicit_ex5_3d_SOURCES_DIST) \
+	$(am__explicit_ex8_2d_SOURCES_DIST) \
+	$(am__ib_partitioning_01_2d_SOURCES_DIST) \
+	$(am__ib_partitioning_01_3d_SOURCES_DIST) \
+	$(am__ib_partitioning_02_2d_SOURCES_DIST) \
+	$(am__ib_partitioning_02_3d_SOURCES_DIST) \
+	$(am__interpolate_velocity_01_2d_SOURCES_DIST) \
+	$(am__interpolate_velocity_01_3d_SOURCES_DIST) \
+	$(am__interpolate_velocity_02_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -591,45 +632,45 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-interpolate_velocity_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-interpolate_velocity_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-interpolate_velocity_01_2d_SOURCES = interpolate_velocity_01.cpp
-interpolate_velocity_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-interpolate_velocity_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-interpolate_velocity_01_3d_SOURCES = interpolate_velocity_01.cpp
-interpolate_velocity_02_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-interpolate_velocity_02_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-interpolate_velocity_02_SOURCES = interpolate_velocity_02.cpp
-explicit_ex0_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-explicit_ex0_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-explicit_ex0_2d_SOURCES = explicit_ex0.cpp
-explicit_ex4_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-explicit_ex4_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-explicit_ex4_2d_SOURCES = explicit_ex4.cpp
-explicit_ex4_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-explicit_ex4_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-explicit_ex4_3d_SOURCES = explicit_ex4.cpp
-explicit_ex5_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-explicit_ex5_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-explicit_ex5_2d_SOURCES = explicit_ex5.cpp
-explicit_ex5_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-explicit_ex5_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-explicit_ex5_3d_SOURCES = explicit_ex5.cpp
-explicit_ex8_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-explicit_ex8_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-explicit_ex8_2d_SOURCES = explicit_ex8.cpp
-ib_partitioning_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-ib_partitioning_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-ib_partitioning_01_2d_SOURCES = ib_partitioning_01.cpp
-ib_partitioning_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-ib_partitioning_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-ib_partitioning_01_3d_SOURCES = ib_partitioning_01.cpp
-ib_partitioning_02_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-ib_partitioning_02_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-ib_partitioning_02_2d_SOURCES = ib_partitioning_02.cpp
-ib_partitioning_02_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-ib_partitioning_02_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-ib_partitioning_02_3d_SOURCES = ib_partitioning_02.cpp
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_01_2d_SOURCES = interpolate_velocity_01.cpp
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_01_3d_SOURCES = interpolate_velocity_01.cpp
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_02_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_02_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_02_SOURCES = interpolate_velocity_02.cpp
+@LIBMESH_ENABLED_TRUE@explicit_ex0_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@explicit_ex0_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex0_2d_SOURCES = explicit_ex0.cpp
+@LIBMESH_ENABLED_TRUE@explicit_ex4_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@explicit_ex4_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex4_2d_SOURCES = explicit_ex4.cpp
+@LIBMESH_ENABLED_TRUE@explicit_ex4_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@explicit_ex4_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex4_3d_SOURCES = explicit_ex4.cpp
+@LIBMESH_ENABLED_TRUE@explicit_ex5_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@explicit_ex5_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex5_2d_SOURCES = explicit_ex5.cpp
+@LIBMESH_ENABLED_TRUE@explicit_ex5_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@explicit_ex5_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex5_3d_SOURCES = explicit_ex5.cpp
+@LIBMESH_ENABLED_TRUE@explicit_ex8_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@explicit_ex8_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex8_2d_SOURCES = explicit_ex8.cpp
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_2d_SOURCES = ib_partitioning_01.cpp
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_3d_SOURCES = ib_partitioning_01.cpp
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_2d_SOURCES = ib_partitioning_02.cpp
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_3d_SOURCES = ib_partitioning_02.cpp
 all: all-am
 
 .SUFFIXES:

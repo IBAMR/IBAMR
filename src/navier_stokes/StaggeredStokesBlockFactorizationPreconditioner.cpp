@@ -462,10 +462,7 @@ StaggeredStokesBlockFactorizationPreconditioner::solvePressureSubsystem(SAMRAIVe
 {
     // Get the vector components.
     const int P_idx = P_vec.getComponentDescriptorIndex(0);
-    const Pointer<Variable<NDIM> >& P_var = P_vec.getComponentVariable(0);
-
     const int F_P_idx = F_P_vec.getComponentDescriptorIndex(0);
-    const Pointer<Variable<NDIM> >& F_P_var = F_P_vec.getComponentVariable(0);
 
     Pointer<SAMRAIVectorReal<NDIM, double> > P_scratch_vec;
     P_scratch_vec =

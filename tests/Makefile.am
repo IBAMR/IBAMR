@@ -12,8 +12,8 @@
 ## ---------------------------------------------------------------------
 
 include $(top_srcdir)/config/Make-rules
-TEST_DIRECTORIES = adv_diff advect complex_fluids IB IBTK IBFE multiphase_flow \
-navier_stokes physical_boundary refine spread wave_tank
+TEST_DIRECTORIES = adv_diff advect complex_fluids IB IBFE IBTK level_set multiphase_flow \
+navier_stokes physical_boundary refine spread vc_navier_stokes wave_tank
 
 tests: $(TEST_DIRECTORIES)
 

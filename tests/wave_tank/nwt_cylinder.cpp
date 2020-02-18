@@ -985,15 +985,16 @@ main(int argc, char* argv[])
         Pointer<FESurfaceDistanceEvaluator> surface_distance_eval =
             new FESurfaceDistanceEvaluator("FESurfaceDistanceEvaluator",
                                            patch_hierarchy,
-                                           ibfe_method_ops,
                                            mesh,
                                            boundary_mesh,
-                                           /*part*/ 0,
                                            /*gcw*/ gcw,
                                            use_bdry_mesh);
         pout << "Started mapping intersections" << std::endl;
         surface_distance_eval->mapIntersections();
         pout << "Finished mapping intersections" << std::endl;
+        pout << "Calculating surface normals" << std::endl;
+        surface_distance_eval->calculateSurfaceNormals();
+        pout << "Finished calculating surface normals" << std::endl;
         pout << "Computing distances" << std::endl;
         surface_distance_eval->computeSignedDistance(n_idx, d_idx);
         pout << "Finished computing distances" << std::endl;

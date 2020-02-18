@@ -136,7 +136,6 @@ namespace
 {
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
-static const int SIDEG = 1;
 
 // Types of refining and coarsening to perform prior to setting coarse-fine
 // boundary and physical boundary ghost cell values.
@@ -987,7 +986,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::resetHierarchyConfigurationSpe
         InterpolationTransactionComponent rho_bc_component(d_rho_scratch_idx,
                                                            d_rho_refine_type,
                                                            false,
-                                                           d_rho_refine_type,
+                                                           d_rho_coarsen_type,
                                                            d_rho_bdry_extrap_type,
                                                            false,
                                                            d_rho_bc_coef);

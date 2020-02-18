@@ -225,11 +225,17 @@ namespace IBAMR
  *
  *     largest_patch_size
  *     {
+ *         // We recommend using very large values here: large patches
+ *         // are more efficient, especially with the merging load balancer.
  *         level_0 = 512,512
  *     }
  *
  *     smallest_patch_size
  *     {
+ *         // on the other hand, smaller patch sizes here typically enable
+ *         // better load balancing at the cost of creating more total work
+ *         // due to an increased number of ghost cells (and, therefore,
+ *         // an increased number of elements in more than one patch).
  *         level_0 = 16,16
  *     }
  *
@@ -244,6 +250,7 @@ namespace IBAMR
  * // This value is a good compromise.
  * LoadBalancer
  * {
+ *    type                = "MERGING"
  *    bin_pack_method     = "SPATIAL"
  *    max_workload_factor = 0.5
  * }
@@ -251,8 +258,16 @@ namespace IBAMR
  *
  * i.e., providing <code>use_scratch_hierarchy = TRUE</code> (the default is
  * <code>FALSE</code>) turns on the scratch hierarchy and the remaining
- * parameters determine how patches are generated and load balanced. The
- * parameter <code>workload_quad_point_weight</code> is the multiplier
+ * parameters determine how patches are generated and load balanced. The extra
+ * argument <code>type</code> to <code>LoadBalancer</code> specifies whether
+ * an IBTK::MergingLoadBalancer (chosen by <code>"MERGING"</code>) or the
+ * default SAMRAI LoadBalancer (chosen by <code>"DEFAULT"</code>) is
+ * used. Since IBTK::MergingLoadBalancer is usually what one wants
+ * <code>"MERGING"</code> is the default. The merging option is better since
+ * it reduces the total number of elements which end up in patch ghost
+ * regions since some patches will be merged together.
+ *
+ * The parameter <code>workload_quad_point_weight</code> is the multiplier
  * assigned to an IB point when calculating the work per processor: in the
  * future additional weights, such as <code>workload_node_point_weight</code>
  * will also be added.
@@ -1219,12 +1234,46 @@ protected:
     /**
      * database for the GriddingAlgorithm used with the scratch hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_gridding_algorithm_db;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_scratch_gridding_algorithm_db;
 
     /**
      * database for the LoadBalancer used with the scratch hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_load_balancer_db;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_scratch_load_balancer_db;
+
+    /**
+     * Error detector used with the scratch hierarchy.
+     *
+     * @note this object has to be persistent since d_scratch_gridding_alg
+     * requires it: see the note for that member object.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::TagAndInitializeStrategy<NDIM> > d_scratch_error_detector;
+
+    /**
+     * Box generator used with the scratch hierarchy.
+     *
+     * @note this object has to be persistent since d_scratch_gridding_alg
+     * requires it: see the note for that member object.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::BoxGeneratorStrategy<NDIM> > d_scratch_box_generator;
+
+    /**
+     * Load balancer used with the scratch hierarchy.
+     *
+     * @note this object has to be persistent since d_scratch_gridding_alg
+     * requires it: see the note for that member object.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_scratch_load_balancer;
+
+    /**
+     * Gridding algorithm used with the scratch hierarchy.
+     *
+     * @note this object has to be persistent because, due to a bug in SAMRAI,
+     * it is impossible to create a SAMRAI::mesh::GriddingAlgorithm object in
+     * a restarted simulation without a corresponding entry in the restart
+     * database.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_scratch_gridding_algorithm;
 
 private:
     /*!

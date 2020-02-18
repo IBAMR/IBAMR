@@ -239,6 +239,10 @@ main(int argc, char* argv[])
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
+        const bool dump_restart_data = app_initializer->dumpRestartData();
+        const int restart_dump_interval = app_initializer->getRestartDumpInterval();
+        const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
+
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
@@ -353,7 +357,10 @@ main(int argc, char* argv[])
         // Deallocate initialization objects.
         ib_method_ops->freeLInitStrategy();
         ib_initializer.setNull();
-        app_initializer.setNull();
+        // don't deallocate app_initializer - since we don't bother with
+        // visualization output in this program deallocating the
+        // app_initializer also deallocates several objects which restarted
+        // simulations expect to find in the restart database.
 
         // Setup data used to determine the accuracy of the computed solution.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -400,6 +407,11 @@ main(int argc, char* argv[])
             // print out timer data, and store hierarchy data for post
             // processing.
             iteration_num += 1;
+            if (dump_restart_data && (iteration_num % restart_dump_interval == 0))
+            {
+                pout << "\nWriting restart files...\n\n";
+                RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
+            }
 
             // Compute velocity and pressure error norms.
             const int coarsest_ln = 0;

@@ -1,3 +1,6 @@
+// test parameters
+log_scratch_partitioning = TRUE
+
 // physical parameters
 MU  = 0.01
 RHO = 1.0
@@ -181,6 +184,7 @@ IBFEMethod {
 
    LoadBalancer
    {
+      type                = "DEFAULT"
       bin_pack_method     = "GREEDY"
       max_workload_factor = 0.0625
    }

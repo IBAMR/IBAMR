@@ -91,14 +91,7 @@ build_triplet = @build@
 host_triplet = @host@
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = libIBTK2d.a
 @SAMRAI3D_ENABLED_TRUE@am__append_2 = libIBTK3d.a
-@LIBMESH_ENABLED_TRUE@am__append_3 = \
-@LIBMESH_ENABLED_TRUE@../src/lagrangian/BoxPartitioner.cpp \
-@LIBMESH_ENABLED_TRUE@../src/lagrangian/JacobianCalculator.cpp \
-@LIBMESH_ENABLED_TRUE@../src/lagrangian/FEDataInterpolation.cpp \
-@LIBMESH_ENABLED_TRUE@../src/lagrangian/FEDataManager.cpp \
-@LIBMESH_ENABLED_TRUE@../src/utilities/libmesh_utilities.cpp
-
-@USING_BUNDLED_MUPARSER_TRUE@am__append_4 = \
+@USING_BUNDLED_MUPARSER_TRUE@am__append_3 = \
 @USING_BUNDLED_MUPARSER_TRUE@../contrib/muparser/src/muParserDLL.cpp \
 @USING_BUNDLED_MUPARSER_TRUE@../contrib/muparser/src/muParserTokenReader.cpp \
 @USING_BUNDLED_MUPARSER_TRUE@../contrib/muparser/src/muParserError.cpp \
@@ -109,13 +102,17 @@ host_triplet = @host@
 @USING_BUNDLED_MUPARSER_TRUE@../contrib/muparser/src/muParserTest.cpp \
 @USING_BUNDLED_MUPARSER_TRUE@../contrib/muparser/src/muParser.cpp
 
-@LIBMESH_ENABLED_TRUE@am__append_5 = \
-@LIBMESH_ENABLED_TRUE@../include/lagrangian/BoxPartitioner.h \
-@LIBMESH_ENABLED_TRUE@../src/lagrangian/JacobianCalculator.h \
-@LIBMESH_ENABLED_TRUE@../include/ibtk/FEDataInterpolation.h \
-@LIBMESH_ENABLED_TRUE@../include/ibtk/FEDataManager.h \
-@LIBMESH_ENABLED_TRUE@../include/ibtk/libmesh_utilities.h
-
+@LIBMESH_ENABLED_TRUE@am__append_4 =  \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/BoxPartitioner.cpp \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/JacobianCalculator.cpp \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/FEDataInterpolation.cpp \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/FEDataManager.cpp \
+@LIBMESH_ENABLED_TRUE@	../src/utilities/libmesh_utilities.cpp \
+@LIBMESH_ENABLED_TRUE@	../include/lagrangian/BoxPartitioner.h \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/JacobianCalculator.h \
+@LIBMESH_ENABLED_TRUE@	../include/ibtk/FEDataInterpolation.h \
+@LIBMESH_ENABLED_TRUE@	../include/ibtk/FEDataManager.h \
+@LIBMESH_ENABLED_TRUE@	../include/ibtk/libmesh_utilities.h
 subdir = lib
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -186,8 +183,34 @@ am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
 libIBTK_a_AR = $(AR) $(ARFLAGS)
 libIBTK_a_LIBADD =
+am__libIBTK_a_SOURCES_DIST =  \
+	$(top_builddir)/src/utilities/ParallelEdgeMap.cpp \
+	$(top_builddir)/src/utilities/FixedSizedStream.cpp \
+	$(top_builddir)/src/utilities/IBTK_MPI.cpp \
+	../contrib/muparser/src/muParserDLL.cpp \
+	../contrib/muparser/src/muParserTokenReader.cpp \
+	../contrib/muparser/src/muParserError.cpp \
+	../contrib/muparser/src/muParserCallback.cpp \
+	../contrib/muparser/src/muParserBytecode.cpp \
+	../contrib/muparser/src/muParserBase.cpp \
+	../contrib/muparser/src/muParserInt.cpp \
+	../contrib/muparser/src/muParserTest.cpp \
+	../contrib/muparser/src/muParser.cpp
 am__dirstamp = $(am__leading_dot)dirstamp
-am_libIBTK_a_OBJECTS = $(top_builddir)/src/lagrangian/fortran/lagrangian_delta.$(OBJEXT)
+@USING_BUNDLED_MUPARSER_TRUE@am__objects_1 = ../contrib/muparser/src/muParserDLL.$(OBJEXT) \
+@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/muParserTokenReader.$(OBJEXT) \
+@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/muParserError.$(OBJEXT) \
+@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/muParserCallback.$(OBJEXT) \
+@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/muParserBytecode.$(OBJEXT) \
+@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/muParserBase.$(OBJEXT) \
+@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/muParserInt.$(OBJEXT) \
+@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/muParserTest.$(OBJEXT) \
+@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/muParser.$(OBJEXT)
+am_libIBTK_a_OBJECTS =  \
+	$(top_builddir)/src/utilities/ParallelEdgeMap.$(OBJEXT) \
+	$(top_builddir)/src/utilities/FixedSizedStream.$(OBJEXT) \
+	$(top_builddir)/src/utilities/IBTK_MPI.$(OBJEXT) \
+	$(am__objects_1)
 libIBTK_a_OBJECTS = $(am_libIBTK_a_OBJECTS)
 libIBTK2d_a_AR = $(AR) $(ARFLAGS)
 libIBTK2d_a_LIBADD =
@@ -287,16 +310,13 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/utilities/EdgeSynchCopyFillPattern.cpp \
 	../src/utilities/FaceDataSynchronization.cpp \
 	../src/utilities/FaceSynchCopyFillPattern.cpp \
-	../src/utilities/FixedSizedStream.cpp \
 	../src/utilities/HierarchyIntegrator.cpp \
-	../src/utilities/IBTK_MPI.cpp \
 	../src/utilities/IndexUtilities.cpp \
 	../src/utilities/LMarkerUtilities.cpp \
+	../src/utilities/MergingLoadBalancer.cpp \
 	../src/utilities/NodeDataSynchronization.cpp \
 	../src/utilities/NodeSynchCopyFillPattern.cpp \
-	../src/utilities/NormOps.cpp \
-	../src/utilities/ParallelEdgeMap.cpp \
-	../src/utilities/ParallelMap.cpp \
+	../src/utilities/NormOps.cpp ../src/utilities/ParallelMap.cpp \
 	../src/utilities/ParallelSet.cpp \
 	../src/utilities/PartitioningBox.cpp \
 	../src/utilities/RefinePatchStrategySet.cpp \
@@ -307,21 +327,13 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/utilities/StandardTagAndInitStrategySet.cpp \
 	../src/utilities/Streamable.cpp \
 	../src/utilities/StreamableManager.cpp \
+	../src/utilities/box_utilities.cpp \
 	../src/utilities/muParserCartGridFunction.cpp \
 	../src/lagrangian/BoxPartitioner.cpp \
 	../src/lagrangian/JacobianCalculator.cpp \
 	../src/lagrangian/FEDataInterpolation.cpp \
 	../src/lagrangian/FEDataManager.cpp \
 	../src/utilities/libmesh_utilities.cpp \
-	../contrib/muparser/src/muParserDLL.cpp \
-	../contrib/muparser/src/muParserTokenReader.cpp \
-	../contrib/muparser/src/muParserError.cpp \
-	../contrib/muparser/src/muParserCallback.cpp \
-	../contrib/muparser/src/muParserBytecode.cpp \
-	../contrib/muparser/src/muParserBase.cpp \
-	../contrib/muparser/src/muParserInt.cpp \
-	../contrib/muparser/src/muParserTest.cpp \
-	../contrib/muparser/src/muParser.cpp \
 	../include/lagrangian/BoxPartitioner.h \
 	../src/lagrangian/JacobianCalculator.h \
 	../include/ibtk/FEDataInterpolation.h \
@@ -347,22 +359,12 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f \
 	$(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
 	$(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
-@LIBMESH_ENABLED_TRUE@am__objects_1 = ../src/lagrangian/libIBTK2d_a-BoxPartitioner.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@am__objects_2 = ../src/lagrangian/libIBTK2d_a-BoxPartitioner.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-JacobianCalculator.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-FEDataInterpolation.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-FEDataManager.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK2d_a-libmesh_utilities.$(OBJEXT)
-@USING_BUNDLED_MUPARSER_TRUE@am__objects_2 = ../contrib/muparser/src/libIBTK2d_a-muParserDLL.$(OBJEXT) \
-@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/libIBTK2d_a-muParserTokenReader.$(OBJEXT) \
-@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/libIBTK2d_a-muParserError.$(OBJEXT) \
-@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/libIBTK2d_a-muParserCallback.$(OBJEXT) \
-@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/libIBTK2d_a-muParserBytecode.$(OBJEXT) \
-@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/libIBTK2d_a-muParserBase.$(OBJEXT) \
-@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/libIBTK2d_a-muParserInt.$(OBJEXT) \
-@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/libIBTK2d_a-muParserTest.$(OBJEXT) \
-@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/libIBTK2d_a-muParser.$(OBJEXT)
-am__objects_3 =
-am__objects_4 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
+am__objects_3 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK2d_a-CartCellDoubleLinearCFInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK2d_a-CartCellDoubleQuadraticCFInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK2d_a-CartSideDoubleQuadraticCFInterpolation.$(OBJEXT) \
@@ -462,15 +464,13 @@ am__objects_4 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK2d_a-EdgeSynchCopyFillPattern.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-FaceDataSynchronization.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-FaceSynchCopyFillPattern.$(OBJEXT) \
-	../src/utilities/libIBTK2d_a-FixedSizedStream.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-HierarchyIntegrator.$(OBJEXT) \
-	../src/utilities/libIBTK2d_a-IBTK_MPI.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-IndexUtilities.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-LMarkerUtilities.$(OBJEXT) \
+	../src/utilities/libIBTK2d_a-MergingLoadBalancer.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-NodeDataSynchronization.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-NodeSynchCopyFillPattern.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-NormOps.$(OBJEXT) \
-	../src/utilities/libIBTK2d_a-ParallelEdgeMap.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-ParallelMap.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-ParallelSet.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-PartitioningBox.$(OBJEXT) \
@@ -482,9 +482,10 @@ am__objects_4 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK2d_a-StandardTagAndInitStrategySet.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-Streamable.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-StreamableManager.$(OBJEXT) \
+	../src/utilities/libIBTK2d_a-box_utilities.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-muParserCartGridFunction.$(OBJEXT) \
-	$(am__objects_1) $(am__objects_2) $(am__objects_3)
-am_libIBTK2d_a_OBJECTS = $(am__objects_4) \
+	$(am__objects_2)
+am_libIBTK2d_a_OBJECTS = $(am__objects_3) \
 	$(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation2d.$(OBJEXT) \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.$(OBJEXT) \
 	$(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop2d.$(OBJEXT) \
@@ -604,16 +605,13 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/utilities/EdgeSynchCopyFillPattern.cpp \
 	../src/utilities/FaceDataSynchronization.cpp \
 	../src/utilities/FaceSynchCopyFillPattern.cpp \
-	../src/utilities/FixedSizedStream.cpp \
 	../src/utilities/HierarchyIntegrator.cpp \
-	../src/utilities/IBTK_MPI.cpp \
 	../src/utilities/IndexUtilities.cpp \
 	../src/utilities/LMarkerUtilities.cpp \
+	../src/utilities/MergingLoadBalancer.cpp \
 	../src/utilities/NodeDataSynchronization.cpp \
 	../src/utilities/NodeSynchCopyFillPattern.cpp \
-	../src/utilities/NormOps.cpp \
-	../src/utilities/ParallelEdgeMap.cpp \
-	../src/utilities/ParallelMap.cpp \
+	../src/utilities/NormOps.cpp ../src/utilities/ParallelMap.cpp \
 	../src/utilities/ParallelSet.cpp \
 	../src/utilities/PartitioningBox.cpp \
 	../src/utilities/RefinePatchStrategySet.cpp \
@@ -624,21 +622,13 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/utilities/StandardTagAndInitStrategySet.cpp \
 	../src/utilities/Streamable.cpp \
 	../src/utilities/StreamableManager.cpp \
+	../src/utilities/box_utilities.cpp \
 	../src/utilities/muParserCartGridFunction.cpp \
 	../src/lagrangian/BoxPartitioner.cpp \
 	../src/lagrangian/JacobianCalculator.cpp \
 	../src/lagrangian/FEDataInterpolation.cpp \
 	../src/lagrangian/FEDataManager.cpp \
 	../src/utilities/libmesh_utilities.cpp \
-	../contrib/muparser/src/muParserDLL.cpp \
-	../contrib/muparser/src/muParserTokenReader.cpp \
-	../contrib/muparser/src/muParserError.cpp \
-	../contrib/muparser/src/muParserCallback.cpp \
-	../contrib/muparser/src/muParserBytecode.cpp \
-	../contrib/muparser/src/muParserBase.cpp \
-	../contrib/muparser/src/muParserInt.cpp \
-	../contrib/muparser/src/muParserTest.cpp \
-	../contrib/muparser/src/muParser.cpp \
 	../include/lagrangian/BoxPartitioner.h \
 	../src/lagrangian/JacobianCalculator.h \
 	../include/ibtk/FEDataInterpolation.h \
@@ -664,21 +654,12 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f \
 	$(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \
 	$(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.f
-@LIBMESH_ENABLED_TRUE@am__objects_5 = ../src/lagrangian/libIBTK3d_a-BoxPartitioner.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@am__objects_4 = ../src/lagrangian/libIBTK3d_a-BoxPartitioner.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-JacobianCalculator.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-FEDataInterpolation.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-FEDataManager.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK3d_a-libmesh_utilities.$(OBJEXT)
-@USING_BUNDLED_MUPARSER_TRUE@am__objects_6 = ../contrib/muparser/src/libIBTK3d_a-muParserDLL.$(OBJEXT) \
-@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/libIBTK3d_a-muParserTokenReader.$(OBJEXT) \
-@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/libIBTK3d_a-muParserError.$(OBJEXT) \
-@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/libIBTK3d_a-muParserCallback.$(OBJEXT) \
-@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/libIBTK3d_a-muParserBytecode.$(OBJEXT) \
-@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/libIBTK3d_a-muParserBase.$(OBJEXT) \
-@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/libIBTK3d_a-muParserInt.$(OBJEXT) \
-@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/libIBTK3d_a-muParserTest.$(OBJEXT) \
-@USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/libIBTK3d_a-muParser.$(OBJEXT)
-am__objects_7 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
+am__objects_5 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK3d_a-CartCellDoubleLinearCFInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK3d_a-CartCellDoubleQuadraticCFInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK3d_a-CartSideDoubleQuadraticCFInterpolation.$(OBJEXT) \
@@ -778,15 +759,13 @@ am__objects_7 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK3d_a-EdgeSynchCopyFillPattern.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-FaceDataSynchronization.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-FaceSynchCopyFillPattern.$(OBJEXT) \
-	../src/utilities/libIBTK3d_a-FixedSizedStream.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-HierarchyIntegrator.$(OBJEXT) \
-	../src/utilities/libIBTK3d_a-IBTK_MPI.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-IndexUtilities.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-LMarkerUtilities.$(OBJEXT) \
+	../src/utilities/libIBTK3d_a-MergingLoadBalancer.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-NodeDataSynchronization.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-NodeSynchCopyFillPattern.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-NormOps.$(OBJEXT) \
-	../src/utilities/libIBTK3d_a-ParallelEdgeMap.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-ParallelMap.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-ParallelSet.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-PartitioningBox.$(OBJEXT) \
@@ -798,9 +777,10 @@ am__objects_7 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK3d_a-StandardTagAndInitStrategySet.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-Streamable.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-StreamableManager.$(OBJEXT) \
+	../src/utilities/libIBTK3d_a-box_utilities.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-muParserCartGridFunction.$(OBJEXT) \
-	$(am__objects_5) $(am__objects_6) $(am__objects_3)
-am_libIBTK3d_a_OBJECTS = $(am__objects_7) \
+	$(am__objects_4)
+am_libIBTK3d_a_OBJECTS = $(am__objects_5) \
 	$(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation3d.$(OBJEXT) \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.$(OBJEXT) \
 	$(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.$(OBJEXT) \
@@ -838,24 +818,18 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade =  \
-	../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParser.Po \
-	../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBase.Po \
-	../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBytecode.Po \
-	../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserCallback.Po \
-	../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserDLL.Po \
-	../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserError.Po \
-	../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserInt.Po \
-	../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTest.Po \
-	../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTokenReader.Po \
-	../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParser.Po \
-	../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBase.Po \
-	../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBytecode.Po \
-	../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserCallback.Po \
-	../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserDLL.Po \
-	../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserError.Po \
-	../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserInt.Po \
-	../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTest.Po \
-	../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTokenReader.Po \
+	$(top_builddir)/src/utilities/$(DEPDIR)/FixedSizedStream.Po \
+	$(top_builddir)/src/utilities/$(DEPDIR)/IBTK_MPI.Po \
+	$(top_builddir)/src/utilities/$(DEPDIR)/ParallelEdgeMap.Po \
+	../contrib/muparser/src/$(DEPDIR)/muParser.Po \
+	../contrib/muparser/src/$(DEPDIR)/muParserBase.Po \
+	../contrib/muparser/src/$(DEPDIR)/muParserBytecode.Po \
+	../contrib/muparser/src/$(DEPDIR)/muParserCallback.Po \
+	../contrib/muparser/src/$(DEPDIR)/muParserDLL.Po \
+	../contrib/muparser/src/$(DEPDIR)/muParserError.Po \
+	../contrib/muparser/src/$(DEPDIR)/muParserInt.Po \
+	../contrib/muparser/src/$(DEPDIR)/muParserTest.Po \
+	../contrib/muparser/src/$(DEPDIR)/muParserTokenReader.Po \
 	../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellInterpolation.Po \
 	../src/boundary/$(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Po \
 	../src/boundary/cf_interface/$(DEPDIR)/libIBTK2d_a-CartCellDoubleLinearCFInterpolation.Po \
@@ -1052,15 +1026,13 @@ am__depfiles_remade =  \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-EdgeSynchCopyFillPattern.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Po \
-	../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po \
-	../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po \
+	../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-NormOps.Po \
-	../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelMap.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po \
@@ -1072,6 +1044,7 @@ am__depfiles_remade =  \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-StandardTagAndInitStrategySet.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-Streamable.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-StreamableManager.Po \
+	../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-libmesh_utilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-muParserCartGridFunction.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-AppInitializer.Po \
@@ -1086,15 +1059,13 @@ am__depfiles_remade =  \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-EdgeSynchCopyFillPattern.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Po \
-	../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po \
-	../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po \
+	../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-NormOps.Po \
-	../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelMap.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po \
@@ -1106,6 +1077,7 @@ am__depfiles_remade =  \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-StandardTagAndInitStrategySet.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-Streamable.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-StreamableManager.Po \
+	../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-libmesh_utilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Po
 am__mv = mv -f
@@ -1166,7 +1138,8 @@ am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(libIBTK_a_SOURCES) $(libIBTK2d_a_SOURCES) \
 	$(libIBTK3d_a_SOURCES)
-DIST_SOURCES = $(libIBTK_a_SOURCES) $(am__libIBTK2d_a_SOURCES_DIST) \
+DIST_SOURCES = $(am__libIBTK_a_SOURCES_DIST) \
+	$(am__libIBTK2d_a_SOURCES_DIST) \
 	$(am__libIBTK3d_a_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -1464,9 +1437,9 @@ IBTK3d_LIBS = ${top_builddir}/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 lib_LIBRARIES = libIBTK.a $(am__append_1) $(am__append_2)
-libIBTK_a_SOURCES = \
-$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f
-
+libIBTK_a_SOURCES = $(top_builddir)/src/utilities/ParallelEdgeMap.cpp \
+	$(top_builddir)/src/utilities/FixedSizedStream.cpp \
+	$(top_builddir)/src/utilities/IBTK_MPI.cpp $(am__append_3)
 pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
 	../include/ibtk/app_namespaces.h \
 	../include/ibtk/compiler_hints.h ../include/ibtk/ibtk_enums.h \
@@ -1599,6 +1572,7 @@ pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
 	../include/ibtk/VCSCViscousOpPointRelaxationFACOperator.h \
 	../include/ibtk/VCSCViscousOperator.h \
 	../include/ibtk/VCSCViscousPETScLevelSolver.h \
+	../include/ibtk/box_utilities.h \
 	../include/ibtk/muParserCartGridFunction.h \
 	../include/ibtk/muParserRobinBcCoefs.h \
 	../include/ibtk/private/FixedSizedStream-inl.h \
@@ -1615,7 +1589,7 @@ pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
 	../include/ibtk/private/LSetDataIterator-inl.h \
 	../include/ibtk/private/PETScSAMRAIVectorReal-inl.h \
 	../include/ibtk/private/StreamableManager-inl.h
-DIM_INDEPENDENT_SOURCES =  \
+DIM_DEPENDENT_SOURCES =  \
 	../src/boundary/HierarchyGhostCellInterpolation.cpp \
 	../src/boundary/cf_interface/CartCellDoubleLinearCFInterpolation.cpp \
 	../src/boundary/cf_interface/CartCellDoubleQuadraticCFInterpolation.cpp \
@@ -1711,16 +1685,13 @@ DIM_INDEPENDENT_SOURCES =  \
 	../src/utilities/EdgeSynchCopyFillPattern.cpp \
 	../src/utilities/FaceDataSynchronization.cpp \
 	../src/utilities/FaceSynchCopyFillPattern.cpp \
-	../src/utilities/FixedSizedStream.cpp \
 	../src/utilities/HierarchyIntegrator.cpp \
-	../src/utilities/IBTK_MPI.cpp \
 	../src/utilities/IndexUtilities.cpp \
 	../src/utilities/LMarkerUtilities.cpp \
+	../src/utilities/MergingLoadBalancer.cpp \
 	../src/utilities/NodeDataSynchronization.cpp \
 	../src/utilities/NodeSynchCopyFillPattern.cpp \
-	../src/utilities/NormOps.cpp \
-	../src/utilities/ParallelEdgeMap.cpp \
-	../src/utilities/ParallelMap.cpp \
+	../src/utilities/NormOps.cpp ../src/utilities/ParallelMap.cpp \
 	../src/utilities/ParallelSet.cpp \
 	../src/utilities/PartitioningBox.cpp \
 	../src/utilities/RefinePatchStrategySet.cpp \
@@ -1731,10 +1702,10 @@ DIM_INDEPENDENT_SOURCES =  \
 	../src/utilities/StandardTagAndInitStrategySet.cpp \
 	../src/utilities/Streamable.cpp \
 	../src/utilities/StreamableManager.cpp \
-	../src/utilities/muParserCartGridFunction.cpp $(am__append_3) \
-	$(am__append_4) $(am__append_5)
+	../src/utilities/box_utilities.cpp \
+	../src/utilities/muParserCartGridFunction.cpp $(am__append_4)
 libIBTK2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-libIBTK2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+libIBTK2d_a_SOURCES = $(DIM_DEPENDENT_SOURCES) \
 $(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation2d.f \
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f \
 $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop2d.f \
@@ -1757,7 +1728,7 @@ $(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
 $(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
 
 libIBTK3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-libIBTK3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+libIBTK3d_a_SOURCES = $(DIM_DEPENDENT_SOURCES) \
 $(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation3d.f \
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.f \
 $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.f \
@@ -1844,15 +1815,54 @@ uninstall-libLIBRARIES:
 
 clean-libLIBRARIES:
 	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
-$(top_builddir)/src/lagrangian/fortran/$(am__dirstamp):
-	@$(MKDIR_P) $(top_builddir)/src/lagrangian/fortran
-	@: > $(top_builddir)/src/lagrangian/fortran/$(am__dirstamp)
-$(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) $(top_builddir)/src/lagrangian/fortran/$(DEPDIR)
-	@: > $(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp)
-$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.$(OBJEXT):  \
-	$(top_builddir)/src/lagrangian/fortran/$(am__dirstamp) \
-	$(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/utilities/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/src/utilities
+	@: > $(top_builddir)/src/utilities/$(am__dirstamp)
+$(top_builddir)/src/utilities/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/src/utilities/$(DEPDIR)
+	@: > $(top_builddir)/src/utilities/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/utilities/ParallelEdgeMap.$(OBJEXT):  \
+	$(top_builddir)/src/utilities/$(am__dirstamp) \
+	$(top_builddir)/src/utilities/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/utilities/FixedSizedStream.$(OBJEXT):  \
+	$(top_builddir)/src/utilities/$(am__dirstamp) \
+	$(top_builddir)/src/utilities/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/utilities/IBTK_MPI.$(OBJEXT):  \
+	$(top_builddir)/src/utilities/$(am__dirstamp) \
+	$(top_builddir)/src/utilities/$(DEPDIR)/$(am__dirstamp)
+../contrib/muparser/src/$(am__dirstamp):
+	@$(MKDIR_P) ../contrib/muparser/src
+	@: > ../contrib/muparser/src/$(am__dirstamp)
+../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ../contrib/muparser/src/$(DEPDIR)
+	@: > ../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
+../contrib/muparser/src/muParserDLL.$(OBJEXT):  \
+	../contrib/muparser/src/$(am__dirstamp) \
+	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
+../contrib/muparser/src/muParserTokenReader.$(OBJEXT):  \
+	../contrib/muparser/src/$(am__dirstamp) \
+	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
+../contrib/muparser/src/muParserError.$(OBJEXT):  \
+	../contrib/muparser/src/$(am__dirstamp) \
+	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
+../contrib/muparser/src/muParserCallback.$(OBJEXT):  \
+	../contrib/muparser/src/$(am__dirstamp) \
+	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
+../contrib/muparser/src/muParserBytecode.$(OBJEXT):  \
+	../contrib/muparser/src/$(am__dirstamp) \
+	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
+../contrib/muparser/src/muParserBase.$(OBJEXT):  \
+	../contrib/muparser/src/$(am__dirstamp) \
+	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
+../contrib/muparser/src/muParserInt.$(OBJEXT):  \
+	../contrib/muparser/src/$(am__dirstamp) \
+	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
+../contrib/muparser/src/muParserTest.$(OBJEXT):  \
+	../contrib/muparser/src/$(am__dirstamp) \
+	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
+../contrib/muparser/src/muParser.$(OBJEXT):  \
+	../contrib/muparser/src/$(am__dirstamp) \
+	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
 
 libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libIBTK.a
@@ -2224,19 +2234,16 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/utilities/libIBTK2d_a-FaceSynchCopyFillPattern.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
-../src/utilities/libIBTK2d_a-FixedSizedStream.$(OBJEXT):  \
-	../src/utilities/$(am__dirstamp) \
-	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-HierarchyIntegrator.$(OBJEXT):  \
-	../src/utilities/$(am__dirstamp) \
-	../src/utilities/$(DEPDIR)/$(am__dirstamp)
-../src/utilities/libIBTK2d_a-IBTK_MPI.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-IndexUtilities.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-LMarkerUtilities.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK2d_a-MergingLoadBalancer.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-NodeDataSynchronization.$(OBJEXT):  \
@@ -2246,9 +2253,6 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-NormOps.$(OBJEXT):  \
-	../src/utilities/$(am__dirstamp) \
-	../src/utilities/$(DEPDIR)/$(am__dirstamp)
-../src/utilities/libIBTK2d_a-ParallelEdgeMap.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-ParallelMap.$(OBJEXT):  \
@@ -2284,6 +2288,9 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/utilities/libIBTK2d_a-StreamableManager.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK2d_a-box_utilities.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-muParserCartGridFunction.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -2302,39 +2309,6 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/utilities/libIBTK2d_a-libmesh_utilities.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/$(am__dirstamp):
-	@$(MKDIR_P) ../contrib/muparser/src
-	@: > ../contrib/muparser/src/$(am__dirstamp)
-../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) ../contrib/muparser/src/$(DEPDIR)
-	@: > ../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/libIBTK2d_a-muParserDLL.$(OBJEXT):  \
-	../contrib/muparser/src/$(am__dirstamp) \
-	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/libIBTK2d_a-muParserTokenReader.$(OBJEXT):  \
-	../contrib/muparser/src/$(am__dirstamp) \
-	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/libIBTK2d_a-muParserError.$(OBJEXT):  \
-	../contrib/muparser/src/$(am__dirstamp) \
-	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/libIBTK2d_a-muParserCallback.$(OBJEXT):  \
-	../contrib/muparser/src/$(am__dirstamp) \
-	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/libIBTK2d_a-muParserBytecode.$(OBJEXT):  \
-	../contrib/muparser/src/$(am__dirstamp) \
-	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/libIBTK2d_a-muParserBase.$(OBJEXT):  \
-	../contrib/muparser/src/$(am__dirstamp) \
-	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/libIBTK2d_a-muParserInt.$(OBJEXT):  \
-	../contrib/muparser/src/$(am__dirstamp) \
-	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/libIBTK2d_a-muParserTest.$(OBJEXT):  \
-	../contrib/muparser/src/$(am__dirstamp) \
-	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/libIBTK2d_a-muParser.$(OBJEXT):  \
-	../contrib/muparser/src/$(am__dirstamp) \
-	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/boundary/cf_interface/fortran/$(am__dirstamp):
 	@$(MKDIR_P) $(top_builddir)/src/boundary/cf_interface/fortran
 	@: > $(top_builddir)/src/boundary/cf_interface/fortran/$(am__dirstamp)
@@ -2365,6 +2339,12 @@ $(top_builddir)/src/coarsen_ops/fortran/cubiccoarsen2d.$(OBJEXT):  \
 $(top_builddir)/src/coarsen_ops/fortran/rt0coarsen2d.$(OBJEXT):  \
 	$(top_builddir)/src/coarsen_ops/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/coarsen_ops/fortran/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/lagrangian/fortran/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/src/lagrangian/fortran
+	@: > $(top_builddir)/src/lagrangian/fortran/$(am__dirstamp)
+$(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/src/lagrangian/fortran/$(DEPDIR)
+	@: > $(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/lagrangian/fortran/lagrangian_interaction2d.$(OBJEXT):  \
 	$(top_builddir)/src/lagrangian/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/lagrangian/fortran/$(DEPDIR)/$(am__dirstamp)
@@ -2733,19 +2713,16 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/utilities/libIBTK3d_a-FaceSynchCopyFillPattern.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
-../src/utilities/libIBTK3d_a-FixedSizedStream.$(OBJEXT):  \
-	../src/utilities/$(am__dirstamp) \
-	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-HierarchyIntegrator.$(OBJEXT):  \
-	../src/utilities/$(am__dirstamp) \
-	../src/utilities/$(DEPDIR)/$(am__dirstamp)
-../src/utilities/libIBTK3d_a-IBTK_MPI.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-IndexUtilities.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-LMarkerUtilities.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK3d_a-MergingLoadBalancer.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-NodeDataSynchronization.$(OBJEXT):  \
@@ -2755,9 +2732,6 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-NormOps.$(OBJEXT):  \
-	../src/utilities/$(am__dirstamp) \
-	../src/utilities/$(DEPDIR)/$(am__dirstamp)
-../src/utilities/libIBTK3d_a-ParallelEdgeMap.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-ParallelMap.$(OBJEXT):  \
@@ -2793,6 +2767,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/utilities/libIBTK3d_a-StreamableManager.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK3d_a-box_utilities.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-muParserCartGridFunction.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -2811,33 +2788,6 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/utilities/libIBTK3d_a-libmesh_utilities.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/libIBTK3d_a-muParserDLL.$(OBJEXT):  \
-	../contrib/muparser/src/$(am__dirstamp) \
-	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/libIBTK3d_a-muParserTokenReader.$(OBJEXT):  \
-	../contrib/muparser/src/$(am__dirstamp) \
-	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/libIBTK3d_a-muParserError.$(OBJEXT):  \
-	../contrib/muparser/src/$(am__dirstamp) \
-	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/libIBTK3d_a-muParserCallback.$(OBJEXT):  \
-	../contrib/muparser/src/$(am__dirstamp) \
-	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/libIBTK3d_a-muParserBytecode.$(OBJEXT):  \
-	../contrib/muparser/src/$(am__dirstamp) \
-	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/libIBTK3d_a-muParserBase.$(OBJEXT):  \
-	../contrib/muparser/src/$(am__dirstamp) \
-	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/libIBTK3d_a-muParserInt.$(OBJEXT):  \
-	../contrib/muparser/src/$(am__dirstamp) \
-	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/libIBTK3d_a-muParserTest.$(OBJEXT):  \
-	../contrib/muparser/src/$(am__dirstamp) \
-	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
-../contrib/muparser/src/libIBTK3d_a-muParser.$(OBJEXT):  \
-	../contrib/muparser/src/$(am__dirstamp) \
-	../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation3d.$(OBJEXT): $(top_builddir)/src/boundary/cf_interface/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/boundary/cf_interface/fortran/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.$(OBJEXT): $(top_builddir)/src/boundary/cf_interface/fortran/$(am__dirstamp) \
@@ -2910,6 +2860,7 @@ mostlyclean-compile:
 	-rm -f $(top_builddir)/src/math/fortran/*.$(OBJEXT)
 	-rm -f $(top_builddir)/src/refine_ops/fortran/*.$(OBJEXT)
 	-rm -f $(top_builddir)/src/solvers/impls/fortran/*.$(OBJEXT)
+	-rm -f $(top_builddir)/src/utilities/*.$(OBJEXT)
 	-rm -f ../contrib/muparser/src/*.$(OBJEXT)
 	-rm -f ../src/boundary/*.$(OBJEXT)
 	-rm -f ../src/boundary/cf_interface/*.$(OBJEXT)
@@ -2926,24 +2877,18 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParser.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBase.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBytecode.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserCallback.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserDLL.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserError.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserInt.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTest.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTokenReader.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParser.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBase.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBytecode.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserCallback.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserDLL.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserError.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserInt.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTest.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTokenReader.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@$(top_builddir)/src/utilities/$(DEPDIR)/FixedSizedStream.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@$(top_builddir)/src/utilities/$(DEPDIR)/IBTK_MPI.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@$(top_builddir)/src/utilities/$(DEPDIR)/ParallelEdgeMap.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/muParser.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/muParserBase.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/muParserBytecode.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/muParserCallback.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/muParserDLL.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/muParserError.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/muParserInt.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/muParserTest.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/muParserTokenReader.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellInterpolation.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/boundary/$(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/boundary/cf_interface/$(DEPDIR)/libIBTK2d_a-CartCellDoubleLinearCFInterpolation.Po@am__quote@ # am--include-marker
@@ -3140,15 +3085,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-EdgeSynchCopyFillPattern.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-NormOps.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelMap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po@am__quote@ # am--include-marker
@@ -3160,6 +3103,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-StandardTagAndInitStrategySet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-Streamable.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-StreamableManager.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-libmesh_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-muParserCartGridFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-AppInitializer.Po@am__quote@ # am--include-marker
@@ -3174,15 +3118,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-EdgeSynchCopyFillPattern.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-NormOps.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelMap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po@am__quote@ # am--include-marker
@@ -3194,6 +3136,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-StandardTagAndInitStrategySet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-Streamable.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-StreamableManager.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-libmesh_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Po@am__quote@ # am--include-marker
 
@@ -4627,20 +4570,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-FaceSynchCopyFillPattern.obj `if test -f '../src/utilities/FaceSynchCopyFillPattern.cpp'; then $(CYGPATH_W) '../src/utilities/FaceSynchCopyFillPattern.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/FaceSynchCopyFillPattern.cpp'; fi`
 
-../src/utilities/libIBTK2d_a-FixedSizedStream.o: ../src/utilities/FixedSizedStream.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-FixedSizedStream.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Tpo -c -o ../src/utilities/libIBTK2d_a-FixedSizedStream.o `test -f '../src/utilities/FixedSizedStream.cpp' || echo '$(srcdir)/'`../src/utilities/FixedSizedStream.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/FixedSizedStream.cpp' object='../src/utilities/libIBTK2d_a-FixedSizedStream.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-FixedSizedStream.o `test -f '../src/utilities/FixedSizedStream.cpp' || echo '$(srcdir)/'`../src/utilities/FixedSizedStream.cpp
-
-../src/utilities/libIBTK2d_a-FixedSizedStream.obj: ../src/utilities/FixedSizedStream.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-FixedSizedStream.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Tpo -c -o ../src/utilities/libIBTK2d_a-FixedSizedStream.obj `if test -f '../src/utilities/FixedSizedStream.cpp'; then $(CYGPATH_W) '../src/utilities/FixedSizedStream.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/FixedSizedStream.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/FixedSizedStream.cpp' object='../src/utilities/libIBTK2d_a-FixedSizedStream.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-FixedSizedStream.obj `if test -f '../src/utilities/FixedSizedStream.cpp'; then $(CYGPATH_W) '../src/utilities/FixedSizedStream.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/FixedSizedStream.cpp'; fi`
-
 ../src/utilities/libIBTK2d_a-HierarchyIntegrator.o: ../src/utilities/HierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-HierarchyIntegrator.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Tpo -c -o ../src/utilities/libIBTK2d_a-HierarchyIntegrator.o `test -f '../src/utilities/HierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/utilities/HierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po
@@ -4654,20 +4583,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/HierarchyIntegrator.cpp' object='../src/utilities/libIBTK2d_a-HierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-HierarchyIntegrator.obj `if test -f '../src/utilities/HierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/utilities/HierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/HierarchyIntegrator.cpp'; fi`
-
-../src/utilities/libIBTK2d_a-IBTK_MPI.o: ../src/utilities/IBTK_MPI.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-IBTK_MPI.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Tpo -c -o ../src/utilities/libIBTK2d_a-IBTK_MPI.o `test -f '../src/utilities/IBTK_MPI.cpp' || echo '$(srcdir)/'`../src/utilities/IBTK_MPI.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/IBTK_MPI.cpp' object='../src/utilities/libIBTK2d_a-IBTK_MPI.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-IBTK_MPI.o `test -f '../src/utilities/IBTK_MPI.cpp' || echo '$(srcdir)/'`../src/utilities/IBTK_MPI.cpp
-
-../src/utilities/libIBTK2d_a-IBTK_MPI.obj: ../src/utilities/IBTK_MPI.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-IBTK_MPI.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Tpo -c -o ../src/utilities/libIBTK2d_a-IBTK_MPI.obj `if test -f '../src/utilities/IBTK_MPI.cpp'; then $(CYGPATH_W) '../src/utilities/IBTK_MPI.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/IBTK_MPI.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/IBTK_MPI.cpp' object='../src/utilities/libIBTK2d_a-IBTK_MPI.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-IBTK_MPI.obj `if test -f '../src/utilities/IBTK_MPI.cpp'; then $(CYGPATH_W) '../src/utilities/IBTK_MPI.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/IBTK_MPI.cpp'; fi`
 
 ../src/utilities/libIBTK2d_a-IndexUtilities.o: ../src/utilities/IndexUtilities.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-IndexUtilities.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Tpo -c -o ../src/utilities/libIBTK2d_a-IndexUtilities.o `test -f '../src/utilities/IndexUtilities.cpp' || echo '$(srcdir)/'`../src/utilities/IndexUtilities.cpp
@@ -4696,6 +4611,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/LMarkerUtilities.cpp' object='../src/utilities/libIBTK2d_a-LMarkerUtilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-LMarkerUtilities.obj `if test -f '../src/utilities/LMarkerUtilities.cpp'; then $(CYGPATH_W) '../src/utilities/LMarkerUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/LMarkerUtilities.cpp'; fi`
+
+../src/utilities/libIBTK2d_a-MergingLoadBalancer.o: ../src/utilities/MergingLoadBalancer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-MergingLoadBalancer.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Tpo -c -o ../src/utilities/libIBTK2d_a-MergingLoadBalancer.o `test -f '../src/utilities/MergingLoadBalancer.cpp' || echo '$(srcdir)/'`../src/utilities/MergingLoadBalancer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/MergingLoadBalancer.cpp' object='../src/utilities/libIBTK2d_a-MergingLoadBalancer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-MergingLoadBalancer.o `test -f '../src/utilities/MergingLoadBalancer.cpp' || echo '$(srcdir)/'`../src/utilities/MergingLoadBalancer.cpp
+
+../src/utilities/libIBTK2d_a-MergingLoadBalancer.obj: ../src/utilities/MergingLoadBalancer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-MergingLoadBalancer.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Tpo -c -o ../src/utilities/libIBTK2d_a-MergingLoadBalancer.obj `if test -f '../src/utilities/MergingLoadBalancer.cpp'; then $(CYGPATH_W) '../src/utilities/MergingLoadBalancer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/MergingLoadBalancer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/MergingLoadBalancer.cpp' object='../src/utilities/libIBTK2d_a-MergingLoadBalancer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-MergingLoadBalancer.obj `if test -f '../src/utilities/MergingLoadBalancer.cpp'; then $(CYGPATH_W) '../src/utilities/MergingLoadBalancer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/MergingLoadBalancer.cpp'; fi`
 
 ../src/utilities/libIBTK2d_a-NodeDataSynchronization.o: ../src/utilities/NodeDataSynchronization.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-NodeDataSynchronization.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Tpo -c -o ../src/utilities/libIBTK2d_a-NodeDataSynchronization.o `test -f '../src/utilities/NodeDataSynchronization.cpp' || echo '$(srcdir)/'`../src/utilities/NodeDataSynchronization.cpp
@@ -4738,20 +4667,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/NormOps.cpp' object='../src/utilities/libIBTK2d_a-NormOps.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-NormOps.obj `if test -f '../src/utilities/NormOps.cpp'; then $(CYGPATH_W) '../src/utilities/NormOps.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/NormOps.cpp'; fi`
-
-../src/utilities/libIBTK2d_a-ParallelEdgeMap.o: ../src/utilities/ParallelEdgeMap.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-ParallelEdgeMap.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Tpo -c -o ../src/utilities/libIBTK2d_a-ParallelEdgeMap.o `test -f '../src/utilities/ParallelEdgeMap.cpp' || echo '$(srcdir)/'`../src/utilities/ParallelEdgeMap.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/ParallelEdgeMap.cpp' object='../src/utilities/libIBTK2d_a-ParallelEdgeMap.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-ParallelEdgeMap.o `test -f '../src/utilities/ParallelEdgeMap.cpp' || echo '$(srcdir)/'`../src/utilities/ParallelEdgeMap.cpp
-
-../src/utilities/libIBTK2d_a-ParallelEdgeMap.obj: ../src/utilities/ParallelEdgeMap.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-ParallelEdgeMap.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Tpo -c -o ../src/utilities/libIBTK2d_a-ParallelEdgeMap.obj `if test -f '../src/utilities/ParallelEdgeMap.cpp'; then $(CYGPATH_W) '../src/utilities/ParallelEdgeMap.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ParallelEdgeMap.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/ParallelEdgeMap.cpp' object='../src/utilities/libIBTK2d_a-ParallelEdgeMap.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-ParallelEdgeMap.obj `if test -f '../src/utilities/ParallelEdgeMap.cpp'; then $(CYGPATH_W) '../src/utilities/ParallelEdgeMap.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ParallelEdgeMap.cpp'; fi`
 
 ../src/utilities/libIBTK2d_a-ParallelMap.o: ../src/utilities/ParallelMap.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-ParallelMap.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelMap.Tpo -c -o ../src/utilities/libIBTK2d_a-ParallelMap.o `test -f '../src/utilities/ParallelMap.cpp' || echo '$(srcdir)/'`../src/utilities/ParallelMap.cpp
@@ -4907,6 +4822,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-StreamableManager.obj `if test -f '../src/utilities/StreamableManager.cpp'; then $(CYGPATH_W) '../src/utilities/StreamableManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/StreamableManager.cpp'; fi`
 
+../src/utilities/libIBTK2d_a-box_utilities.o: ../src/utilities/box_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-box_utilities.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Tpo -c -o ../src/utilities/libIBTK2d_a-box_utilities.o `test -f '../src/utilities/box_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/box_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/box_utilities.cpp' object='../src/utilities/libIBTK2d_a-box_utilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-box_utilities.o `test -f '../src/utilities/box_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/box_utilities.cpp
+
+../src/utilities/libIBTK2d_a-box_utilities.obj: ../src/utilities/box_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-box_utilities.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Tpo -c -o ../src/utilities/libIBTK2d_a-box_utilities.obj `if test -f '../src/utilities/box_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/box_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/box_utilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/box_utilities.cpp' object='../src/utilities/libIBTK2d_a-box_utilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-box_utilities.obj `if test -f '../src/utilities/box_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/box_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/box_utilities.cpp'; fi`
+
 ../src/utilities/libIBTK2d_a-muParserCartGridFunction.o: ../src/utilities/muParserCartGridFunction.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-muParserCartGridFunction.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-muParserCartGridFunction.Tpo -c -o ../src/utilities/libIBTK2d_a-muParserCartGridFunction.o `test -f '../src/utilities/muParserCartGridFunction.cpp' || echo '$(srcdir)/'`../src/utilities/muParserCartGridFunction.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-muParserCartGridFunction.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-muParserCartGridFunction.Po
@@ -4990,132 +4919,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/libmesh_utilities.cpp' object='../src/utilities/libIBTK2d_a-libmesh_utilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-libmesh_utilities.obj `if test -f '../src/utilities/libmesh_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/libmesh_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/libmesh_utilities.cpp'; fi`
-
-../contrib/muparser/src/libIBTK2d_a-muParserDLL.o: ../contrib/muparser/src/muParserDLL.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK2d_a-muParserDLL.o -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserDLL.Tpo -c -o ../contrib/muparser/src/libIBTK2d_a-muParserDLL.o `test -f '../contrib/muparser/src/muParserDLL.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserDLL.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserDLL.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserDLL.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserDLL.cpp' object='../contrib/muparser/src/libIBTK2d_a-muParserDLL.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK2d_a-muParserDLL.o `test -f '../contrib/muparser/src/muParserDLL.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserDLL.cpp
-
-../contrib/muparser/src/libIBTK2d_a-muParserDLL.obj: ../contrib/muparser/src/muParserDLL.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK2d_a-muParserDLL.obj -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserDLL.Tpo -c -o ../contrib/muparser/src/libIBTK2d_a-muParserDLL.obj `if test -f '../contrib/muparser/src/muParserDLL.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserDLL.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserDLL.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserDLL.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserDLL.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserDLL.cpp' object='../contrib/muparser/src/libIBTK2d_a-muParserDLL.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK2d_a-muParserDLL.obj `if test -f '../contrib/muparser/src/muParserDLL.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserDLL.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserDLL.cpp'; fi`
-
-../contrib/muparser/src/libIBTK2d_a-muParserTokenReader.o: ../contrib/muparser/src/muParserTokenReader.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK2d_a-muParserTokenReader.o -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTokenReader.Tpo -c -o ../contrib/muparser/src/libIBTK2d_a-muParserTokenReader.o `test -f '../contrib/muparser/src/muParserTokenReader.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserTokenReader.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTokenReader.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTokenReader.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserTokenReader.cpp' object='../contrib/muparser/src/libIBTK2d_a-muParserTokenReader.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK2d_a-muParserTokenReader.o `test -f '../contrib/muparser/src/muParserTokenReader.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserTokenReader.cpp
-
-../contrib/muparser/src/libIBTK2d_a-muParserTokenReader.obj: ../contrib/muparser/src/muParserTokenReader.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK2d_a-muParserTokenReader.obj -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTokenReader.Tpo -c -o ../contrib/muparser/src/libIBTK2d_a-muParserTokenReader.obj `if test -f '../contrib/muparser/src/muParserTokenReader.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserTokenReader.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserTokenReader.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTokenReader.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTokenReader.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserTokenReader.cpp' object='../contrib/muparser/src/libIBTK2d_a-muParserTokenReader.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK2d_a-muParserTokenReader.obj `if test -f '../contrib/muparser/src/muParserTokenReader.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserTokenReader.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserTokenReader.cpp'; fi`
-
-../contrib/muparser/src/libIBTK2d_a-muParserError.o: ../contrib/muparser/src/muParserError.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK2d_a-muParserError.o -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserError.Tpo -c -o ../contrib/muparser/src/libIBTK2d_a-muParserError.o `test -f '../contrib/muparser/src/muParserError.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserError.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserError.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserError.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserError.cpp' object='../contrib/muparser/src/libIBTK2d_a-muParserError.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK2d_a-muParserError.o `test -f '../contrib/muparser/src/muParserError.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserError.cpp
-
-../contrib/muparser/src/libIBTK2d_a-muParserError.obj: ../contrib/muparser/src/muParserError.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK2d_a-muParserError.obj -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserError.Tpo -c -o ../contrib/muparser/src/libIBTK2d_a-muParserError.obj `if test -f '../contrib/muparser/src/muParserError.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserError.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserError.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserError.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserError.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserError.cpp' object='../contrib/muparser/src/libIBTK2d_a-muParserError.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK2d_a-muParserError.obj `if test -f '../contrib/muparser/src/muParserError.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserError.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserError.cpp'; fi`
-
-../contrib/muparser/src/libIBTK2d_a-muParserCallback.o: ../contrib/muparser/src/muParserCallback.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK2d_a-muParserCallback.o -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserCallback.Tpo -c -o ../contrib/muparser/src/libIBTK2d_a-muParserCallback.o `test -f '../contrib/muparser/src/muParserCallback.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserCallback.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserCallback.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserCallback.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserCallback.cpp' object='../contrib/muparser/src/libIBTK2d_a-muParserCallback.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK2d_a-muParserCallback.o `test -f '../contrib/muparser/src/muParserCallback.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserCallback.cpp
-
-../contrib/muparser/src/libIBTK2d_a-muParserCallback.obj: ../contrib/muparser/src/muParserCallback.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK2d_a-muParserCallback.obj -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserCallback.Tpo -c -o ../contrib/muparser/src/libIBTK2d_a-muParserCallback.obj `if test -f '../contrib/muparser/src/muParserCallback.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserCallback.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserCallback.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserCallback.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserCallback.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserCallback.cpp' object='../contrib/muparser/src/libIBTK2d_a-muParserCallback.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK2d_a-muParserCallback.obj `if test -f '../contrib/muparser/src/muParserCallback.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserCallback.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserCallback.cpp'; fi`
-
-../contrib/muparser/src/libIBTK2d_a-muParserBytecode.o: ../contrib/muparser/src/muParserBytecode.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK2d_a-muParserBytecode.o -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBytecode.Tpo -c -o ../contrib/muparser/src/libIBTK2d_a-muParserBytecode.o `test -f '../contrib/muparser/src/muParserBytecode.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserBytecode.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBytecode.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBytecode.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserBytecode.cpp' object='../contrib/muparser/src/libIBTK2d_a-muParserBytecode.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK2d_a-muParserBytecode.o `test -f '../contrib/muparser/src/muParserBytecode.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserBytecode.cpp
-
-../contrib/muparser/src/libIBTK2d_a-muParserBytecode.obj: ../contrib/muparser/src/muParserBytecode.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK2d_a-muParserBytecode.obj -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBytecode.Tpo -c -o ../contrib/muparser/src/libIBTK2d_a-muParserBytecode.obj `if test -f '../contrib/muparser/src/muParserBytecode.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserBytecode.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserBytecode.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBytecode.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBytecode.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserBytecode.cpp' object='../contrib/muparser/src/libIBTK2d_a-muParserBytecode.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK2d_a-muParserBytecode.obj `if test -f '../contrib/muparser/src/muParserBytecode.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserBytecode.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserBytecode.cpp'; fi`
-
-../contrib/muparser/src/libIBTK2d_a-muParserBase.o: ../contrib/muparser/src/muParserBase.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK2d_a-muParserBase.o -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBase.Tpo -c -o ../contrib/muparser/src/libIBTK2d_a-muParserBase.o `test -f '../contrib/muparser/src/muParserBase.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserBase.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBase.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBase.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserBase.cpp' object='../contrib/muparser/src/libIBTK2d_a-muParserBase.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK2d_a-muParserBase.o `test -f '../contrib/muparser/src/muParserBase.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserBase.cpp
-
-../contrib/muparser/src/libIBTK2d_a-muParserBase.obj: ../contrib/muparser/src/muParserBase.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK2d_a-muParserBase.obj -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBase.Tpo -c -o ../contrib/muparser/src/libIBTK2d_a-muParserBase.obj `if test -f '../contrib/muparser/src/muParserBase.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserBase.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserBase.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBase.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBase.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserBase.cpp' object='../contrib/muparser/src/libIBTK2d_a-muParserBase.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK2d_a-muParserBase.obj `if test -f '../contrib/muparser/src/muParserBase.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserBase.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserBase.cpp'; fi`
-
-../contrib/muparser/src/libIBTK2d_a-muParserInt.o: ../contrib/muparser/src/muParserInt.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK2d_a-muParserInt.o -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserInt.Tpo -c -o ../contrib/muparser/src/libIBTK2d_a-muParserInt.o `test -f '../contrib/muparser/src/muParserInt.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserInt.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserInt.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserInt.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserInt.cpp' object='../contrib/muparser/src/libIBTK2d_a-muParserInt.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK2d_a-muParserInt.o `test -f '../contrib/muparser/src/muParserInt.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserInt.cpp
-
-../contrib/muparser/src/libIBTK2d_a-muParserInt.obj: ../contrib/muparser/src/muParserInt.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK2d_a-muParserInt.obj -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserInt.Tpo -c -o ../contrib/muparser/src/libIBTK2d_a-muParserInt.obj `if test -f '../contrib/muparser/src/muParserInt.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserInt.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserInt.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserInt.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserInt.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserInt.cpp' object='../contrib/muparser/src/libIBTK2d_a-muParserInt.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK2d_a-muParserInt.obj `if test -f '../contrib/muparser/src/muParserInt.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserInt.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserInt.cpp'; fi`
-
-../contrib/muparser/src/libIBTK2d_a-muParserTest.o: ../contrib/muparser/src/muParserTest.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK2d_a-muParserTest.o -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTest.Tpo -c -o ../contrib/muparser/src/libIBTK2d_a-muParserTest.o `test -f '../contrib/muparser/src/muParserTest.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserTest.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTest.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTest.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserTest.cpp' object='../contrib/muparser/src/libIBTK2d_a-muParserTest.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK2d_a-muParserTest.o `test -f '../contrib/muparser/src/muParserTest.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserTest.cpp
-
-../contrib/muparser/src/libIBTK2d_a-muParserTest.obj: ../contrib/muparser/src/muParserTest.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK2d_a-muParserTest.obj -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTest.Tpo -c -o ../contrib/muparser/src/libIBTK2d_a-muParserTest.obj `if test -f '../contrib/muparser/src/muParserTest.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserTest.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserTest.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTest.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTest.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserTest.cpp' object='../contrib/muparser/src/libIBTK2d_a-muParserTest.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK2d_a-muParserTest.obj `if test -f '../contrib/muparser/src/muParserTest.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserTest.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserTest.cpp'; fi`
-
-../contrib/muparser/src/libIBTK2d_a-muParser.o: ../contrib/muparser/src/muParser.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK2d_a-muParser.o -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParser.Tpo -c -o ../contrib/muparser/src/libIBTK2d_a-muParser.o `test -f '../contrib/muparser/src/muParser.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParser.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParser.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParser.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParser.cpp' object='../contrib/muparser/src/libIBTK2d_a-muParser.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK2d_a-muParser.o `test -f '../contrib/muparser/src/muParser.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParser.cpp
-
-../contrib/muparser/src/libIBTK2d_a-muParser.obj: ../contrib/muparser/src/muParser.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK2d_a-muParser.obj -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParser.Tpo -c -o ../contrib/muparser/src/libIBTK2d_a-muParser.obj `if test -f '../contrib/muparser/src/muParser.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParser.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParser.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParser.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParser.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParser.cpp' object='../contrib/muparser/src/libIBTK2d_a-muParser.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK2d_a-muParser.obj `if test -f '../contrib/muparser/src/muParser.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParser.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParser.cpp'; fi`
 
 ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.o: ../src/boundary/HierarchyGhostCellInterpolation.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.o -MD -MP -MF ../src/boundary/$(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Tpo -c -o ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.o `test -f '../src/boundary/HierarchyGhostCellInterpolation.cpp' || echo '$(srcdir)/'`../src/boundary/HierarchyGhostCellInterpolation.cpp
@@ -6517,20 +6320,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-FaceSynchCopyFillPattern.obj `if test -f '../src/utilities/FaceSynchCopyFillPattern.cpp'; then $(CYGPATH_W) '../src/utilities/FaceSynchCopyFillPattern.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/FaceSynchCopyFillPattern.cpp'; fi`
 
-../src/utilities/libIBTK3d_a-FixedSizedStream.o: ../src/utilities/FixedSizedStream.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-FixedSizedStream.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Tpo -c -o ../src/utilities/libIBTK3d_a-FixedSizedStream.o `test -f '../src/utilities/FixedSizedStream.cpp' || echo '$(srcdir)/'`../src/utilities/FixedSizedStream.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/FixedSizedStream.cpp' object='../src/utilities/libIBTK3d_a-FixedSizedStream.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-FixedSizedStream.o `test -f '../src/utilities/FixedSizedStream.cpp' || echo '$(srcdir)/'`../src/utilities/FixedSizedStream.cpp
-
-../src/utilities/libIBTK3d_a-FixedSizedStream.obj: ../src/utilities/FixedSizedStream.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-FixedSizedStream.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Tpo -c -o ../src/utilities/libIBTK3d_a-FixedSizedStream.obj `if test -f '../src/utilities/FixedSizedStream.cpp'; then $(CYGPATH_W) '../src/utilities/FixedSizedStream.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/FixedSizedStream.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/FixedSizedStream.cpp' object='../src/utilities/libIBTK3d_a-FixedSizedStream.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-FixedSizedStream.obj `if test -f '../src/utilities/FixedSizedStream.cpp'; then $(CYGPATH_W) '../src/utilities/FixedSizedStream.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/FixedSizedStream.cpp'; fi`
-
 ../src/utilities/libIBTK3d_a-HierarchyIntegrator.o: ../src/utilities/HierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-HierarchyIntegrator.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Tpo -c -o ../src/utilities/libIBTK3d_a-HierarchyIntegrator.o `test -f '../src/utilities/HierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/utilities/HierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po
@@ -6544,20 +6333,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/HierarchyIntegrator.cpp' object='../src/utilities/libIBTK3d_a-HierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-HierarchyIntegrator.obj `if test -f '../src/utilities/HierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/utilities/HierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/HierarchyIntegrator.cpp'; fi`
-
-../src/utilities/libIBTK3d_a-IBTK_MPI.o: ../src/utilities/IBTK_MPI.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-IBTK_MPI.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Tpo -c -o ../src/utilities/libIBTK3d_a-IBTK_MPI.o `test -f '../src/utilities/IBTK_MPI.cpp' || echo '$(srcdir)/'`../src/utilities/IBTK_MPI.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/IBTK_MPI.cpp' object='../src/utilities/libIBTK3d_a-IBTK_MPI.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-IBTK_MPI.o `test -f '../src/utilities/IBTK_MPI.cpp' || echo '$(srcdir)/'`../src/utilities/IBTK_MPI.cpp
-
-../src/utilities/libIBTK3d_a-IBTK_MPI.obj: ../src/utilities/IBTK_MPI.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-IBTK_MPI.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Tpo -c -o ../src/utilities/libIBTK3d_a-IBTK_MPI.obj `if test -f '../src/utilities/IBTK_MPI.cpp'; then $(CYGPATH_W) '../src/utilities/IBTK_MPI.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/IBTK_MPI.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/IBTK_MPI.cpp' object='../src/utilities/libIBTK3d_a-IBTK_MPI.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-IBTK_MPI.obj `if test -f '../src/utilities/IBTK_MPI.cpp'; then $(CYGPATH_W) '../src/utilities/IBTK_MPI.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/IBTK_MPI.cpp'; fi`
 
 ../src/utilities/libIBTK3d_a-IndexUtilities.o: ../src/utilities/IndexUtilities.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-IndexUtilities.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Tpo -c -o ../src/utilities/libIBTK3d_a-IndexUtilities.o `test -f '../src/utilities/IndexUtilities.cpp' || echo '$(srcdir)/'`../src/utilities/IndexUtilities.cpp
@@ -6586,6 +6361,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/LMarkerUtilities.cpp' object='../src/utilities/libIBTK3d_a-LMarkerUtilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-LMarkerUtilities.obj `if test -f '../src/utilities/LMarkerUtilities.cpp'; then $(CYGPATH_W) '../src/utilities/LMarkerUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/LMarkerUtilities.cpp'; fi`
+
+../src/utilities/libIBTK3d_a-MergingLoadBalancer.o: ../src/utilities/MergingLoadBalancer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-MergingLoadBalancer.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Tpo -c -o ../src/utilities/libIBTK3d_a-MergingLoadBalancer.o `test -f '../src/utilities/MergingLoadBalancer.cpp' || echo '$(srcdir)/'`../src/utilities/MergingLoadBalancer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/MergingLoadBalancer.cpp' object='../src/utilities/libIBTK3d_a-MergingLoadBalancer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-MergingLoadBalancer.o `test -f '../src/utilities/MergingLoadBalancer.cpp' || echo '$(srcdir)/'`../src/utilities/MergingLoadBalancer.cpp
+
+../src/utilities/libIBTK3d_a-MergingLoadBalancer.obj: ../src/utilities/MergingLoadBalancer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-MergingLoadBalancer.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Tpo -c -o ../src/utilities/libIBTK3d_a-MergingLoadBalancer.obj `if test -f '../src/utilities/MergingLoadBalancer.cpp'; then $(CYGPATH_W) '../src/utilities/MergingLoadBalancer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/MergingLoadBalancer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/MergingLoadBalancer.cpp' object='../src/utilities/libIBTK3d_a-MergingLoadBalancer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-MergingLoadBalancer.obj `if test -f '../src/utilities/MergingLoadBalancer.cpp'; then $(CYGPATH_W) '../src/utilities/MergingLoadBalancer.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/MergingLoadBalancer.cpp'; fi`
 
 ../src/utilities/libIBTK3d_a-NodeDataSynchronization.o: ../src/utilities/NodeDataSynchronization.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-NodeDataSynchronization.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Tpo -c -o ../src/utilities/libIBTK3d_a-NodeDataSynchronization.o `test -f '../src/utilities/NodeDataSynchronization.cpp' || echo '$(srcdir)/'`../src/utilities/NodeDataSynchronization.cpp
@@ -6628,20 +6417,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/NormOps.cpp' object='../src/utilities/libIBTK3d_a-NormOps.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-NormOps.obj `if test -f '../src/utilities/NormOps.cpp'; then $(CYGPATH_W) '../src/utilities/NormOps.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/NormOps.cpp'; fi`
-
-../src/utilities/libIBTK3d_a-ParallelEdgeMap.o: ../src/utilities/ParallelEdgeMap.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-ParallelEdgeMap.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Tpo -c -o ../src/utilities/libIBTK3d_a-ParallelEdgeMap.o `test -f '../src/utilities/ParallelEdgeMap.cpp' || echo '$(srcdir)/'`../src/utilities/ParallelEdgeMap.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/ParallelEdgeMap.cpp' object='../src/utilities/libIBTK3d_a-ParallelEdgeMap.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-ParallelEdgeMap.o `test -f '../src/utilities/ParallelEdgeMap.cpp' || echo '$(srcdir)/'`../src/utilities/ParallelEdgeMap.cpp
-
-../src/utilities/libIBTK3d_a-ParallelEdgeMap.obj: ../src/utilities/ParallelEdgeMap.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-ParallelEdgeMap.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Tpo -c -o ../src/utilities/libIBTK3d_a-ParallelEdgeMap.obj `if test -f '../src/utilities/ParallelEdgeMap.cpp'; then $(CYGPATH_W) '../src/utilities/ParallelEdgeMap.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ParallelEdgeMap.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/ParallelEdgeMap.cpp' object='../src/utilities/libIBTK3d_a-ParallelEdgeMap.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-ParallelEdgeMap.obj `if test -f '../src/utilities/ParallelEdgeMap.cpp'; then $(CYGPATH_W) '../src/utilities/ParallelEdgeMap.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ParallelEdgeMap.cpp'; fi`
 
 ../src/utilities/libIBTK3d_a-ParallelMap.o: ../src/utilities/ParallelMap.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-ParallelMap.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelMap.Tpo -c -o ../src/utilities/libIBTK3d_a-ParallelMap.o `test -f '../src/utilities/ParallelMap.cpp' || echo '$(srcdir)/'`../src/utilities/ParallelMap.cpp
@@ -6797,6 +6572,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-StreamableManager.obj `if test -f '../src/utilities/StreamableManager.cpp'; then $(CYGPATH_W) '../src/utilities/StreamableManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/StreamableManager.cpp'; fi`
 
+../src/utilities/libIBTK3d_a-box_utilities.o: ../src/utilities/box_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-box_utilities.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Tpo -c -o ../src/utilities/libIBTK3d_a-box_utilities.o `test -f '../src/utilities/box_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/box_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/box_utilities.cpp' object='../src/utilities/libIBTK3d_a-box_utilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-box_utilities.o `test -f '../src/utilities/box_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/box_utilities.cpp
+
+../src/utilities/libIBTK3d_a-box_utilities.obj: ../src/utilities/box_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-box_utilities.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Tpo -c -o ../src/utilities/libIBTK3d_a-box_utilities.obj `if test -f '../src/utilities/box_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/box_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/box_utilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/box_utilities.cpp' object='../src/utilities/libIBTK3d_a-box_utilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-box_utilities.obj `if test -f '../src/utilities/box_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/box_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/box_utilities.cpp'; fi`
+
 ../src/utilities/libIBTK3d_a-muParserCartGridFunction.o: ../src/utilities/muParserCartGridFunction.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-muParserCartGridFunction.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Tpo -c -o ../src/utilities/libIBTK3d_a-muParserCartGridFunction.o `test -f '../src/utilities/muParserCartGridFunction.cpp' || echo '$(srcdir)/'`../src/utilities/muParserCartGridFunction.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Po
@@ -6880,132 +6669,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/libmesh_utilities.cpp' object='../src/utilities/libIBTK3d_a-libmesh_utilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-libmesh_utilities.obj `if test -f '../src/utilities/libmesh_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/libmesh_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/libmesh_utilities.cpp'; fi`
-
-../contrib/muparser/src/libIBTK3d_a-muParserDLL.o: ../contrib/muparser/src/muParserDLL.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK3d_a-muParserDLL.o -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserDLL.Tpo -c -o ../contrib/muparser/src/libIBTK3d_a-muParserDLL.o `test -f '../contrib/muparser/src/muParserDLL.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserDLL.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserDLL.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserDLL.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserDLL.cpp' object='../contrib/muparser/src/libIBTK3d_a-muParserDLL.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK3d_a-muParserDLL.o `test -f '../contrib/muparser/src/muParserDLL.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserDLL.cpp
-
-../contrib/muparser/src/libIBTK3d_a-muParserDLL.obj: ../contrib/muparser/src/muParserDLL.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK3d_a-muParserDLL.obj -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserDLL.Tpo -c -o ../contrib/muparser/src/libIBTK3d_a-muParserDLL.obj `if test -f '../contrib/muparser/src/muParserDLL.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserDLL.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserDLL.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserDLL.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserDLL.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserDLL.cpp' object='../contrib/muparser/src/libIBTK3d_a-muParserDLL.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK3d_a-muParserDLL.obj `if test -f '../contrib/muparser/src/muParserDLL.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserDLL.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserDLL.cpp'; fi`
-
-../contrib/muparser/src/libIBTK3d_a-muParserTokenReader.o: ../contrib/muparser/src/muParserTokenReader.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK3d_a-muParserTokenReader.o -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTokenReader.Tpo -c -o ../contrib/muparser/src/libIBTK3d_a-muParserTokenReader.o `test -f '../contrib/muparser/src/muParserTokenReader.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserTokenReader.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTokenReader.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTokenReader.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserTokenReader.cpp' object='../contrib/muparser/src/libIBTK3d_a-muParserTokenReader.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK3d_a-muParserTokenReader.o `test -f '../contrib/muparser/src/muParserTokenReader.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserTokenReader.cpp
-
-../contrib/muparser/src/libIBTK3d_a-muParserTokenReader.obj: ../contrib/muparser/src/muParserTokenReader.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK3d_a-muParserTokenReader.obj -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTokenReader.Tpo -c -o ../contrib/muparser/src/libIBTK3d_a-muParserTokenReader.obj `if test -f '../contrib/muparser/src/muParserTokenReader.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserTokenReader.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserTokenReader.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTokenReader.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTokenReader.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserTokenReader.cpp' object='../contrib/muparser/src/libIBTK3d_a-muParserTokenReader.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK3d_a-muParserTokenReader.obj `if test -f '../contrib/muparser/src/muParserTokenReader.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserTokenReader.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserTokenReader.cpp'; fi`
-
-../contrib/muparser/src/libIBTK3d_a-muParserError.o: ../contrib/muparser/src/muParserError.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK3d_a-muParserError.o -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserError.Tpo -c -o ../contrib/muparser/src/libIBTK3d_a-muParserError.o `test -f '../contrib/muparser/src/muParserError.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserError.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserError.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserError.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserError.cpp' object='../contrib/muparser/src/libIBTK3d_a-muParserError.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK3d_a-muParserError.o `test -f '../contrib/muparser/src/muParserError.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserError.cpp
-
-../contrib/muparser/src/libIBTK3d_a-muParserError.obj: ../contrib/muparser/src/muParserError.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK3d_a-muParserError.obj -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserError.Tpo -c -o ../contrib/muparser/src/libIBTK3d_a-muParserError.obj `if test -f '../contrib/muparser/src/muParserError.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserError.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserError.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserError.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserError.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserError.cpp' object='../contrib/muparser/src/libIBTK3d_a-muParserError.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK3d_a-muParserError.obj `if test -f '../contrib/muparser/src/muParserError.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserError.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserError.cpp'; fi`
-
-../contrib/muparser/src/libIBTK3d_a-muParserCallback.o: ../contrib/muparser/src/muParserCallback.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK3d_a-muParserCallback.o -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserCallback.Tpo -c -o ../contrib/muparser/src/libIBTK3d_a-muParserCallback.o `test -f '../contrib/muparser/src/muParserCallback.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserCallback.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserCallback.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserCallback.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserCallback.cpp' object='../contrib/muparser/src/libIBTK3d_a-muParserCallback.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK3d_a-muParserCallback.o `test -f '../contrib/muparser/src/muParserCallback.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserCallback.cpp
-
-../contrib/muparser/src/libIBTK3d_a-muParserCallback.obj: ../contrib/muparser/src/muParserCallback.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK3d_a-muParserCallback.obj -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserCallback.Tpo -c -o ../contrib/muparser/src/libIBTK3d_a-muParserCallback.obj `if test -f '../contrib/muparser/src/muParserCallback.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserCallback.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserCallback.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserCallback.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserCallback.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserCallback.cpp' object='../contrib/muparser/src/libIBTK3d_a-muParserCallback.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK3d_a-muParserCallback.obj `if test -f '../contrib/muparser/src/muParserCallback.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserCallback.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserCallback.cpp'; fi`
-
-../contrib/muparser/src/libIBTK3d_a-muParserBytecode.o: ../contrib/muparser/src/muParserBytecode.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK3d_a-muParserBytecode.o -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBytecode.Tpo -c -o ../contrib/muparser/src/libIBTK3d_a-muParserBytecode.o `test -f '../contrib/muparser/src/muParserBytecode.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserBytecode.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBytecode.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBytecode.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserBytecode.cpp' object='../contrib/muparser/src/libIBTK3d_a-muParserBytecode.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK3d_a-muParserBytecode.o `test -f '../contrib/muparser/src/muParserBytecode.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserBytecode.cpp
-
-../contrib/muparser/src/libIBTK3d_a-muParserBytecode.obj: ../contrib/muparser/src/muParserBytecode.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK3d_a-muParserBytecode.obj -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBytecode.Tpo -c -o ../contrib/muparser/src/libIBTK3d_a-muParserBytecode.obj `if test -f '../contrib/muparser/src/muParserBytecode.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserBytecode.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserBytecode.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBytecode.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBytecode.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserBytecode.cpp' object='../contrib/muparser/src/libIBTK3d_a-muParserBytecode.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK3d_a-muParserBytecode.obj `if test -f '../contrib/muparser/src/muParserBytecode.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserBytecode.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserBytecode.cpp'; fi`
-
-../contrib/muparser/src/libIBTK3d_a-muParserBase.o: ../contrib/muparser/src/muParserBase.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK3d_a-muParserBase.o -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBase.Tpo -c -o ../contrib/muparser/src/libIBTK3d_a-muParserBase.o `test -f '../contrib/muparser/src/muParserBase.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserBase.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBase.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBase.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserBase.cpp' object='../contrib/muparser/src/libIBTK3d_a-muParserBase.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK3d_a-muParserBase.o `test -f '../contrib/muparser/src/muParserBase.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserBase.cpp
-
-../contrib/muparser/src/libIBTK3d_a-muParserBase.obj: ../contrib/muparser/src/muParserBase.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK3d_a-muParserBase.obj -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBase.Tpo -c -o ../contrib/muparser/src/libIBTK3d_a-muParserBase.obj `if test -f '../contrib/muparser/src/muParserBase.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserBase.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserBase.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBase.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBase.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserBase.cpp' object='../contrib/muparser/src/libIBTK3d_a-muParserBase.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK3d_a-muParserBase.obj `if test -f '../contrib/muparser/src/muParserBase.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserBase.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserBase.cpp'; fi`
-
-../contrib/muparser/src/libIBTK3d_a-muParserInt.o: ../contrib/muparser/src/muParserInt.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK3d_a-muParserInt.o -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserInt.Tpo -c -o ../contrib/muparser/src/libIBTK3d_a-muParserInt.o `test -f '../contrib/muparser/src/muParserInt.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserInt.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserInt.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserInt.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserInt.cpp' object='../contrib/muparser/src/libIBTK3d_a-muParserInt.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK3d_a-muParserInt.o `test -f '../contrib/muparser/src/muParserInt.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserInt.cpp
-
-../contrib/muparser/src/libIBTK3d_a-muParserInt.obj: ../contrib/muparser/src/muParserInt.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK3d_a-muParserInt.obj -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserInt.Tpo -c -o ../contrib/muparser/src/libIBTK3d_a-muParserInt.obj `if test -f '../contrib/muparser/src/muParserInt.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserInt.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserInt.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserInt.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserInt.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserInt.cpp' object='../contrib/muparser/src/libIBTK3d_a-muParserInt.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK3d_a-muParserInt.obj `if test -f '../contrib/muparser/src/muParserInt.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserInt.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserInt.cpp'; fi`
-
-../contrib/muparser/src/libIBTK3d_a-muParserTest.o: ../contrib/muparser/src/muParserTest.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK3d_a-muParserTest.o -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTest.Tpo -c -o ../contrib/muparser/src/libIBTK3d_a-muParserTest.o `test -f '../contrib/muparser/src/muParserTest.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserTest.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTest.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTest.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserTest.cpp' object='../contrib/muparser/src/libIBTK3d_a-muParserTest.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK3d_a-muParserTest.o `test -f '../contrib/muparser/src/muParserTest.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParserTest.cpp
-
-../contrib/muparser/src/libIBTK3d_a-muParserTest.obj: ../contrib/muparser/src/muParserTest.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK3d_a-muParserTest.obj -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTest.Tpo -c -o ../contrib/muparser/src/libIBTK3d_a-muParserTest.obj `if test -f '../contrib/muparser/src/muParserTest.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserTest.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserTest.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTest.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTest.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParserTest.cpp' object='../contrib/muparser/src/libIBTK3d_a-muParserTest.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK3d_a-muParserTest.obj `if test -f '../contrib/muparser/src/muParserTest.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParserTest.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParserTest.cpp'; fi`
-
-../contrib/muparser/src/libIBTK3d_a-muParser.o: ../contrib/muparser/src/muParser.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK3d_a-muParser.o -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParser.Tpo -c -o ../contrib/muparser/src/libIBTK3d_a-muParser.o `test -f '../contrib/muparser/src/muParser.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParser.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParser.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParser.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParser.cpp' object='../contrib/muparser/src/libIBTK3d_a-muParser.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK3d_a-muParser.o `test -f '../contrib/muparser/src/muParser.cpp' || echo '$(srcdir)/'`../contrib/muparser/src/muParser.cpp
-
-../contrib/muparser/src/libIBTK3d_a-muParser.obj: ../contrib/muparser/src/muParser.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../contrib/muparser/src/libIBTK3d_a-muParser.obj -MD -MP -MF ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParser.Tpo -c -o ../contrib/muparser/src/libIBTK3d_a-muParser.obj `if test -f '../contrib/muparser/src/muParser.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParser.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParser.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParser.Tpo ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParser.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../contrib/muparser/src/muParser.cpp' object='../contrib/muparser/src/libIBTK3d_a-muParser.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../contrib/muparser/src/libIBTK3d_a-muParser.obj `if test -f '../contrib/muparser/src/muParser.cpp'; then $(CYGPATH_W) '../contrib/muparser/src/muParser.cpp'; else $(CYGPATH_W) '$(srcdir)/../contrib/muparser/src/muParser.cpp'; fi`
 
 .f.o:
 	$(AM_V_F77)$(F77COMPILE) -c -o $@ $<
@@ -7199,6 +6862,8 @@ distclean-generic:
 	-test -z "$(top_builddir)/src/refine_ops/fortran/$(am__dirstamp)" || rm -f $(top_builddir)/src/refine_ops/fortran/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/solvers/impls/fortran/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_builddir)/src/solvers/impls/fortran/$(DEPDIR)/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/solvers/impls/fortran/$(am__dirstamp)" || rm -f $(top_builddir)/src/solvers/impls/fortran/$(am__dirstamp)
+	-test -z "$(top_builddir)/src/utilities/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_builddir)/src/utilities/$(DEPDIR)/$(am__dirstamp)
+	-test -z "$(top_builddir)/src/utilities/$(am__dirstamp)" || rm -f $(top_builddir)/src/utilities/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -7210,24 +6875,18 @@ clean-am: clean-generic clean-libLIBRARIES clean-libtool clean-local \
 	mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParser.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBase.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBytecode.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserCallback.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserDLL.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserError.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserInt.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTest.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTokenReader.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParser.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBase.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBytecode.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserCallback.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserDLL.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserError.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserInt.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTest.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTokenReader.Po
+		-rm -f $(top_builddir)/src/utilities/$(DEPDIR)/FixedSizedStream.Po
+	-rm -f $(top_builddir)/src/utilities/$(DEPDIR)/IBTK_MPI.Po
+	-rm -f $(top_builddir)/src/utilities/$(DEPDIR)/ParallelEdgeMap.Po
+	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParser.Po
+	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserBase.Po
+	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserBytecode.Po
+	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserCallback.Po
+	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserDLL.Po
+	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserError.Po
+	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserInt.Po
+	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserTest.Po
+	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserTokenReader.Po
 	-rm -f ../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellInterpolation.Po
 	-rm -f ../src/boundary/$(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Po
 	-rm -f ../src/boundary/cf_interface/$(DEPDIR)/libIBTK2d_a-CartCellDoubleLinearCFInterpolation.Po
@@ -7424,15 +7083,13 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-EdgeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Po
-	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po
-	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NormOps.Po
-	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po
@@ -7444,6 +7101,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-StandardTagAndInitStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-Streamable.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-StreamableManager.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-libmesh_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-muParserCartGridFunction.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-AppInitializer.Po
@@ -7458,15 +7116,13 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-EdgeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Po
-	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po
-	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NormOps.Po
-	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po
@@ -7478,6 +7134,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-StandardTagAndInitStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-Streamable.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-StreamableManager.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-libmesh_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Po
 	-rm -f Makefile
@@ -7525,24 +7182,18 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParser.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBase.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserBytecode.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserCallback.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserDLL.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserError.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserInt.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTest.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK2d_a-muParserTokenReader.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParser.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBase.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserBytecode.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserCallback.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserDLL.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserError.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserInt.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTest.Po
-	-rm -f ../contrib/muparser/src/$(DEPDIR)/libIBTK3d_a-muParserTokenReader.Po
+		-rm -f $(top_builddir)/src/utilities/$(DEPDIR)/FixedSizedStream.Po
+	-rm -f $(top_builddir)/src/utilities/$(DEPDIR)/IBTK_MPI.Po
+	-rm -f $(top_builddir)/src/utilities/$(DEPDIR)/ParallelEdgeMap.Po
+	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParser.Po
+	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserBase.Po
+	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserBytecode.Po
+	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserCallback.Po
+	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserDLL.Po
+	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserError.Po
+	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserInt.Po
+	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserTest.Po
+	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserTokenReader.Po
 	-rm -f ../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellInterpolation.Po
 	-rm -f ../src/boundary/$(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Po
 	-rm -f ../src/boundary/cf_interface/$(DEPDIR)/libIBTK2d_a-CartCellDoubleLinearCFInterpolation.Po
@@ -7739,15 +7390,13 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-EdgeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Po
-	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po
-	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NormOps.Po
-	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po
@@ -7759,6 +7408,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-StandardTagAndInitStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-Streamable.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-StreamableManager.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-box_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-libmesh_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-muParserCartGridFunction.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-AppInitializer.Po
@@ -7773,15 +7423,13 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-EdgeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Po
-	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po
-	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NormOps.Po
-	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po
@@ -7793,6 +7441,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-StandardTagAndInitStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-Streamable.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-StreamableManager.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-box_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-libmesh_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-muParserCartGridFunction.Po
 	-rm -f Makefile

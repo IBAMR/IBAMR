@@ -286,7 +286,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     d_u_ghostfill_alg = new RefineAlgorithm<NDIM>();
     d_u_ghostfill_op = nullptr;
     d_u_ghostfill_alg->registerRefine(d_u_idx, d_u_idx, d_u_idx, d_u_ghostfill_op);
-    registerGhostfillRefineAlgorithm(d_object_name + "::u", d_u_ghostfill_alg, d_u_phys_bdry_op);
+    std::unique_ptr<RefinePatchStrategy<NDIM> > u_phys_bdry_op_unique(d_u_phys_bdry_op);
+    registerGhostfillRefineAlgorithm(d_object_name + "::u", d_u_ghostfill_alg, std::move(u_phys_bdry_op_unique));
 
     d_u_coarsen_alg = new CoarsenAlgorithm<NDIM>();
     d_u_coarsen_op = grid_geom->lookupCoarsenOperator(d_u_var, "CONSERVATIVE_COARSEN");
@@ -317,7 +318,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
         d_p_ghostfill_alg = new RefineAlgorithm<NDIM>();
         d_p_ghostfill_op = nullptr;
         d_p_ghostfill_alg->registerRefine(d_p_idx, d_p_idx, d_p_idx, d_p_ghostfill_op);
-        registerGhostfillRefineAlgorithm(d_object_name + "::p", d_p_ghostfill_alg, d_p_phys_bdry_op);
+        std::unique_ptr<RefinePatchStrategy<NDIM> > p_phys_bdry_op_unique(d_p_phys_bdry_op);
+        registerGhostfillRefineAlgorithm(d_object_name + "::p", d_p_ghostfill_alg, std::move(p_phys_bdry_op_unique));
 
         d_p_coarsen_alg = new CoarsenAlgorithm<NDIM>();
         d_p_coarsen_op = grid_geom->lookupCoarsenOperator(d_p_var, "CONSERVATIVE_COARSEN");
@@ -339,9 +341,10 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     ComponentSelector instrumentation_data_fill_bc_idxs;
     instrumentation_data_fill_bc_idxs.setFlag(u_scratch_idx);
     instrumentation_data_fill_bc_idxs.setFlag(p_scratch_idx);
-    RefinePatchStrategy<NDIM>* refine_patch_bdry_op =
-        new CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "LINEAR");
-    registerGhostfillRefineAlgorithm(d_object_name + "::INSTRUMENTATION_DATA_FILL", refine_alg, refine_patch_bdry_op);
+    std::unique_ptr<RefinePatchStrategy<NDIM> > refine_patch_bdry_op(
+        new CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "LINEAR"));
+    registerGhostfillRefineAlgorithm(
+        d_object_name + "::INSTRUMENTATION_DATA_FILL", refine_alg, std::move(refine_patch_bdry_op));
 
     // Read in initial marker positions.
     if (!d_mark_file_name.empty())

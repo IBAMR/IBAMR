@@ -26,10 +26,6 @@
 #include "IntVector.h"
 #include "tbox/Pointer.h"
 
-IBTK_DISABLE_EXTRA_WARNINGS
-#include <boost/concept_check.hpp>
-IBTK_ENABLE_EXTRA_WARNINGS
-
 #include <array>
 #include <functional>
 #include <map>

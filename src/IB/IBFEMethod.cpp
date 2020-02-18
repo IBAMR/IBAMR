@@ -25,6 +25,7 @@
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
+#include "ibtk/MergingLoadBalancer.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
@@ -1690,30 +1691,7 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
 
             // At this point the primary hierarchy has been regridded but the
             // scratch hierarchy has not.
-            Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-            Pointer<LoadBalancer<NDIM> > load_balancer = new LoadBalancer<NDIM>(d_load_balancer_db);
-            load_balancer->setWorkloadPatchDataIndex(d_lagrangian_workload_current_idx);
-
-            // only tag cells for refinement based on this class' refinement
-            // criterion: we won't ever read boxes that are away from the
-            // structure. IBFEMethod implements applyGradientDetector so we
-            // have to turn that on.
-            Pointer<InputDatabase> database(new InputDatabase(d_object_name + ":: tag_db"));
-            database->putString("tagging_method", "GRADIENT_DETECTOR");
-
-            Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-                new StandardTagAndInitialize<NDIM>(d_object_name + ":: tag", this, database);
-
-            Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-                new GriddingAlgorithm<NDIM>(d_object_name + ":: gridding_alg",
-                                            d_gridding_algorithm_db,
-                                            error_detector,
-                                            box_generator,
-                                            load_balancer);
-
-            // Use this class' buffer requirements when regridding
-            Array<int> tag_buffer;
-            setupTagBuffer(tag_buffer, gridding_algorithm);
+            d_scratch_load_balancer->setWorkloadPatchDataIndex(d_lagrangian_workload_current_idx);
 
             for (int ln = 0; ln <= d_scratch_hierarchy->getFinestLevelNumber(); ++ln)
             {
@@ -1728,10 +1706,15 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             hier_cc_data_ops.setToScalar(d_lagrangian_workload_current_idx, 0.0);
             addWorkloadEstimate(d_scratch_hierarchy, d_lagrangian_workload_current_idx);
 
+            // Use this class' buffer requirements when regridding
+            Array<int> tag_buffer;
+            setupTagBuffer(tag_buffer, d_scratch_gridding_algorithm);
+
             // TODO: d_current_time is actually nan here. Since we don't do
             // any sort of tagging based on the current time I think we can
             // just put in a bogus (nonnegative) value.
-            gridding_algorithm->regridAllFinerLevels(d_scratch_hierarchy, 0, 0.0 /*d_current_time*/, tag_buffer);
+            d_scratch_gridding_algorithm->regridAllFinerLevels(
+                d_scratch_hierarchy, 0, 0.0 /*d_current_time*/, tag_buffer);
             if (d_do_log) plog << "IBFEMethod: finished scratch hierarchy regrid" << std::endl;
         }
 
@@ -3508,6 +3491,35 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     d_spread_spec.resize(d_num_parts, d_default_spread_spec);
     d_workload_spec.resize(d_num_parts, d_default_workload_spec);
 
+    // If needed, set up the scratch hierarchy regridding objects.
+    if (d_use_scratch_hierarchy)
+    {
+        // only tag cells for refinement based on this class' refinement
+        // criterion: we won't ever read boxes that are away from the
+        // structure. IBFEMethod implements applyGradientDetector so we have
+        // to turn that on.
+        Pointer<InputDatabase> database(new InputDatabase(d_object_name + ":: tag_db"));
+        database->putString("tagging_method", "GRADIENT_DETECTOR");
+        d_scratch_error_detector = new StandardTagAndInitialize<NDIM>(d_object_name + "::tag", this, database);
+        d_scratch_box_generator = new BergerRigoutsos<NDIM>();
+        const std::string load_balancer_type = d_scratch_load_balancer_db->getStringWithDefault("type", "MERGING");
+        if (load_balancer_type == "DEFAULT")
+            d_scratch_load_balancer = new LoadBalancer<NDIM>(d_scratch_load_balancer_db);
+        else if (load_balancer_type == "MERGING")
+            d_scratch_load_balancer = new MergingLoadBalancer(d_scratch_load_balancer_db);
+        else
+            TBOX_ERROR(d_object_name << "::IBFEMethod():\n"
+                                     << "unimplemented load balancer type " << load_balancer_type << std::endl);
+
+        d_scratch_gridding_algorithm =
+            new GriddingAlgorithm<NDIM>(d_object_name + "::gridding_alg",
+                                        d_scratch_gridding_algorithm_db,
+                                        d_scratch_error_detector,
+                                        d_scratch_box_generator,
+                                        d_scratch_load_balancer,
+                                        /*due to a bug in SAMRAI this *has* to be true*/ true);
+    }
+
     return;
 } // commonConstructor
 
@@ -3663,8 +3675,8 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
                                         "scratch GriddingAlgorithm and LoadBalancer."
                                      << std::endl);
         }
-        d_gridding_algorithm_db = db->getDatabase("GriddingAlgorithm");
-        d_load_balancer_db = db->getDatabase("LoadBalancer");
+        d_scratch_gridding_algorithm_db = db->getDatabase("GriddingAlgorithm");
+        d_scratch_load_balancer_db = db->getDatabase("LoadBalancer");
     }
 
     return;

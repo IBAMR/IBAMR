@@ -317,8 +317,9 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 	../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
 	../src/utilities/ConvectiveOperator.cpp \
-	../src/wave_generation/IrregularWaveBcCoef.cpp \
 	../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
+	../src/wave_generation/IrregularWaveBcCoef.cpp \
+	../src/wave_generation/IrregularWaveGenerator.cpp \
 	../src/wave_generation/StokesFifthOrderWaveBcCoef.cpp \
 	../src/wave_generation/StokesFirstOrderWaveBcCoef.cpp \
 	../src/wave_generation/StokesSecondOrderWaveBcCoef.cpp \
@@ -490,8 +491,9 @@ am__objects_3 = ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.$(O
 	../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.$(OBJEXT) \
 	../src/utilities/libIBAMR2d_a-ConvectiveOperator.$(OBJEXT) \
-	../src/wave_generation/libIBAMR2d_a-IrregularWaveBcCoef.$(OBJEXT) \
 	../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.$(OBJEXT) \
+	../src/wave_generation/libIBAMR2d_a-IrregularWaveBcCoef.$(OBJEXT) \
+	../src/wave_generation/libIBAMR2d_a-IrregularWaveGenerator.$(OBJEXT) \
 	../src/wave_generation/libIBAMR2d_a-StokesFifthOrderWaveBcCoef.$(OBJEXT) \
 	../src/wave_generation/libIBAMR2d_a-StokesFirstOrderWaveBcCoef.$(OBJEXT) \
 	../src/wave_generation/libIBAMR2d_a-StokesSecondOrderWaveBcCoef.$(OBJEXT) \
@@ -643,8 +645,9 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 	../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
 	../src/utilities/ConvectiveOperator.cpp \
-	../src/wave_generation/IrregularWaveBcCoef.cpp \
 	../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
+	../src/wave_generation/IrregularWaveBcCoef.cpp \
+	../src/wave_generation/IrregularWaveGenerator.cpp \
 	../src/wave_generation/StokesFifthOrderWaveBcCoef.cpp \
 	../src/wave_generation/StokesFirstOrderWaveBcCoef.cpp \
 	../src/wave_generation/StokesSecondOrderWaveBcCoef.cpp \
@@ -816,8 +819,9 @@ am__objects_5 = ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.$(O
 	../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.$(OBJEXT) \
 	../src/utilities/libIBAMR3d_a-ConvectiveOperator.$(OBJEXT) \
-	../src/wave_generation/libIBAMR3d_a-IrregularWaveBcCoef.$(OBJEXT) \
 	../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.$(OBJEXT) \
+	../src/wave_generation/libIBAMR3d_a-IrregularWaveBcCoef.$(OBJEXT) \
+	../src/wave_generation/libIBAMR3d_a-IrregularWaveGenerator.$(OBJEXT) \
 	../src/wave_generation/libIBAMR3d_a-StokesFifthOrderWaveBcCoef.$(OBJEXT) \
 	../src/wave_generation/libIBAMR3d_a-StokesFirstOrderWaveBcCoef.$(OBJEXT) \
 	../src/wave_generation/libIBAMR3d_a-StokesSecondOrderWaveBcCoef.$(OBJEXT) \
@@ -1141,6 +1145,7 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigid
 	../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveBcCoef.Po \
+	../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveGenerator.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-StokesFifthOrderWaveBcCoef.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-StokesFirstOrderWaveBcCoef.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-StokesSecondOrderWaveBcCoef.Po \
@@ -1149,6 +1154,7 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigid
 	../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-WaveGenerationFunctions.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-FifthOrderStokesWaveGenerator.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-IrregularWaveBcCoef.Po \
+	../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-IrregularWaveGenerator.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-StokesFifthOrderWaveBcCoef.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-StokesFirstOrderWaveBcCoef.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-StokesSecondOrderWaveBcCoef.Po \
@@ -1307,6 +1313,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/INSVCStaggeredPressureBcCoef.h \
 	../include/ibamr/INSVCStaggeredVelocityBcCoef.h \
 	../include/ibamr/IrregularWaveBcCoef.h \
+	../include/ibamr/IrregularWaveGenerator.h \
 	../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 	../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 	../include/ibamr/KrylovMobilitySolver.h \
@@ -1733,6 +1740,7 @@ pkg_include_HEADERS = ../include/ibamr/RNG.h \
 	../include/ibamr/INSVCStaggeredPressureBcCoef.h \
 	../include/ibamr/INSVCStaggeredVelocityBcCoef.h \
 	../include/ibamr/IrregularWaveBcCoef.h \
+	../include/ibamr/IrregularWaveGenerator.h \
 	../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 	../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 	../include/ibamr/KrylovMobilitySolver.h \
@@ -1892,8 +1900,9 @@ DIM_INDEPENDENT_SOURCES =  \
 	../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 	../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
 	../src/utilities/ConvectiveOperator.cpp \
-	../src/wave_generation/IrregularWaveBcCoef.cpp \
 	../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
+	../src/wave_generation/IrregularWaveBcCoef.cpp \
+	../src/wave_generation/IrregularWaveGenerator.cpp \
 	../src/wave_generation/StokesFifthOrderWaveBcCoef.cpp \
 	../src/wave_generation/StokesFirstOrderWaveBcCoef.cpp \
 	../src/wave_generation/StokesSecondOrderWaveBcCoef.cpp \
@@ -2404,10 +2413,13 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/wave_generation/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ../src/wave_generation/$(DEPDIR)
 	@: > ../src/wave_generation/$(DEPDIR)/$(am__dirstamp)
+../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.$(OBJEXT):  \
+	../src/wave_generation/$(am__dirstamp) \
+	../src/wave_generation/$(DEPDIR)/$(am__dirstamp)
 ../src/wave_generation/libIBAMR2d_a-IrregularWaveBcCoef.$(OBJEXT):  \
 	../src/wave_generation/$(am__dirstamp) \
 	../src/wave_generation/$(DEPDIR)/$(am__dirstamp)
-../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.$(OBJEXT):  \
+../src/wave_generation/libIBAMR2d_a-IrregularWaveGenerator.$(OBJEXT):  \
 	../src/wave_generation/$(am__dirstamp) \
 	../src/wave_generation/$(DEPDIR)/$(am__dirstamp)
 ../src/wave_generation/libIBAMR2d_a-StokesFifthOrderWaveBcCoef.$(OBJEXT):  \
@@ -2862,10 +2874,13 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/utilities/libIBAMR3d_a-ConvectiveOperator.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.$(OBJEXT):  \
+	../src/wave_generation/$(am__dirstamp) \
+	../src/wave_generation/$(DEPDIR)/$(am__dirstamp)
 ../src/wave_generation/libIBAMR3d_a-IrregularWaveBcCoef.$(OBJEXT):  \
 	../src/wave_generation/$(am__dirstamp) \
 	../src/wave_generation/$(DEPDIR)/$(am__dirstamp)
-../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.$(OBJEXT):  \
+../src/wave_generation/libIBAMR3d_a-IrregularWaveGenerator.$(OBJEXT):  \
 	../src/wave_generation/$(am__dirstamp) \
 	../src/wave_generation/$(DEPDIR)/$(am__dirstamp)
 ../src/wave_generation/libIBAMR3d_a-StokesFifthOrderWaveBcCoef.$(OBJEXT):  \
@@ -3271,6 +3286,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveBcCoef.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveGenerator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-StokesFifthOrderWaveBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-StokesFirstOrderWaveBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-StokesSecondOrderWaveBcCoef.Po@am__quote@ # am--include-marker
@@ -3279,6 +3295,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-WaveGenerationFunctions.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-FifthOrderStokesWaveGenerator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-IrregularWaveBcCoef.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-IrregularWaveGenerator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-StokesFifthOrderWaveBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-StokesFirstOrderWaveBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-StokesSecondOrderWaveBcCoef.Po@am__quote@ # am--include-marker
@@ -5094,6 +5111,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR2d_a-ConvectiveOperator.obj `if test -f '../src/utilities/ConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/utilities/ConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ConvectiveOperator.cpp'; fi`
 
+../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.o: ../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.o -MD -MP -MF ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Tpo -c -o ../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.o `test -f '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp' || echo '$(srcdir)/'`../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Tpo ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_generation/FifthOrderStokesWaveGenerator.cpp' object='../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.o `test -f '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp' || echo '$(srcdir)/'`../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
+
+../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.obj: ../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.obj -MD -MP -MF ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Tpo -c -o ../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.obj `if test -f '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; then $(CYGPATH_W) '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Tpo ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_generation/FifthOrderStokesWaveGenerator.cpp' object='../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.obj `if test -f '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; then $(CYGPATH_W) '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; fi`
+
 ../src/wave_generation/libIBAMR2d_a-IrregularWaveBcCoef.o: ../src/wave_generation/IrregularWaveBcCoef.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_generation/libIBAMR2d_a-IrregularWaveBcCoef.o -MD -MP -MF ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveBcCoef.Tpo -c -o ../src/wave_generation/libIBAMR2d_a-IrregularWaveBcCoef.o `test -f '../src/wave_generation/IrregularWaveBcCoef.cpp' || echo '$(srcdir)/'`../src/wave_generation/IrregularWaveBcCoef.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveBcCoef.Tpo ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveBcCoef.Po
@@ -5108,19 +5139,19 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_generation/libIBAMR2d_a-IrregularWaveBcCoef.obj `if test -f '../src/wave_generation/IrregularWaveBcCoef.cpp'; then $(CYGPATH_W) '../src/wave_generation/IrregularWaveBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_generation/IrregularWaveBcCoef.cpp'; fi`
 
-../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.o: ../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.o -MD -MP -MF ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Tpo -c -o ../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.o `test -f '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp' || echo '$(srcdir)/'`../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Tpo ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_generation/FifthOrderStokesWaveGenerator.cpp' object='../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.o' libtool=no @AMDEPBACKSLASH@
+../src/wave_generation/libIBAMR2d_a-IrregularWaveGenerator.o: ../src/wave_generation/IrregularWaveGenerator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_generation/libIBAMR2d_a-IrregularWaveGenerator.o -MD -MP -MF ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveGenerator.Tpo -c -o ../src/wave_generation/libIBAMR2d_a-IrregularWaveGenerator.o `test -f '../src/wave_generation/IrregularWaveGenerator.cpp' || echo '$(srcdir)/'`../src/wave_generation/IrregularWaveGenerator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveGenerator.Tpo ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveGenerator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_generation/IrregularWaveGenerator.cpp' object='../src/wave_generation/libIBAMR2d_a-IrregularWaveGenerator.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.o `test -f '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp' || echo '$(srcdir)/'`../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_generation/libIBAMR2d_a-IrregularWaveGenerator.o `test -f '../src/wave_generation/IrregularWaveGenerator.cpp' || echo '$(srcdir)/'`../src/wave_generation/IrregularWaveGenerator.cpp
 
-../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.obj: ../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.obj -MD -MP -MF ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Tpo -c -o ../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.obj `if test -f '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; then $(CYGPATH_W) '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Tpo ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_generation/FifthOrderStokesWaveGenerator.cpp' object='../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.obj' libtool=no @AMDEPBACKSLASH@
+../src/wave_generation/libIBAMR2d_a-IrregularWaveGenerator.obj: ../src/wave_generation/IrregularWaveGenerator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_generation/libIBAMR2d_a-IrregularWaveGenerator.obj -MD -MP -MF ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveGenerator.Tpo -c -o ../src/wave_generation/libIBAMR2d_a-IrregularWaveGenerator.obj `if test -f '../src/wave_generation/IrregularWaveGenerator.cpp'; then $(CYGPATH_W) '../src/wave_generation/IrregularWaveGenerator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_generation/IrregularWaveGenerator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveGenerator.Tpo ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveGenerator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_generation/IrregularWaveGenerator.cpp' object='../src/wave_generation/libIBAMR2d_a-IrregularWaveGenerator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.obj `if test -f '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; then $(CYGPATH_W) '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_generation/libIBAMR2d_a-IrregularWaveGenerator.obj `if test -f '../src/wave_generation/IrregularWaveGenerator.cpp'; then $(CYGPATH_W) '../src/wave_generation/IrregularWaveGenerator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_generation/IrregularWaveGenerator.cpp'; fi`
 
 ../src/wave_generation/libIBAMR2d_a-StokesFifthOrderWaveBcCoef.o: ../src/wave_generation/StokesFifthOrderWaveBcCoef.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_generation/libIBAMR2d_a-StokesFifthOrderWaveBcCoef.o -MD -MP -MF ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-StokesFifthOrderWaveBcCoef.Tpo -c -o ../src/wave_generation/libIBAMR2d_a-StokesFifthOrderWaveBcCoef.o `test -f '../src/wave_generation/StokesFifthOrderWaveBcCoef.cpp' || echo '$(srcdir)/'`../src/wave_generation/StokesFifthOrderWaveBcCoef.cpp
@@ -7138,6 +7169,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR3d_a-ConvectiveOperator.obj `if test -f '../src/utilities/ConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/utilities/ConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ConvectiveOperator.cpp'; fi`
 
+../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.o: ../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.o -MD -MP -MF ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-FifthOrderStokesWaveGenerator.Tpo -c -o ../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.o `test -f '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp' || echo '$(srcdir)/'`../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-FifthOrderStokesWaveGenerator.Tpo ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-FifthOrderStokesWaveGenerator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_generation/FifthOrderStokesWaveGenerator.cpp' object='../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.o `test -f '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp' || echo '$(srcdir)/'`../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
+
+../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.obj: ../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.obj -MD -MP -MF ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-FifthOrderStokesWaveGenerator.Tpo -c -o ../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.obj `if test -f '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; then $(CYGPATH_W) '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-FifthOrderStokesWaveGenerator.Tpo ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-FifthOrderStokesWaveGenerator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_generation/FifthOrderStokesWaveGenerator.cpp' object='../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.obj `if test -f '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; then $(CYGPATH_W) '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; fi`
+
 ../src/wave_generation/libIBAMR3d_a-IrregularWaveBcCoef.o: ../src/wave_generation/IrregularWaveBcCoef.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_generation/libIBAMR3d_a-IrregularWaveBcCoef.o -MD -MP -MF ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-IrregularWaveBcCoef.Tpo -c -o ../src/wave_generation/libIBAMR3d_a-IrregularWaveBcCoef.o `test -f '../src/wave_generation/IrregularWaveBcCoef.cpp' || echo '$(srcdir)/'`../src/wave_generation/IrregularWaveBcCoef.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-IrregularWaveBcCoef.Tpo ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-IrregularWaveBcCoef.Po
@@ -7152,19 +7197,19 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_generation/libIBAMR3d_a-IrregularWaveBcCoef.obj `if test -f '../src/wave_generation/IrregularWaveBcCoef.cpp'; then $(CYGPATH_W) '../src/wave_generation/IrregularWaveBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_generation/IrregularWaveBcCoef.cpp'; fi`
 
-../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.o: ../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.o -MD -MP -MF ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-FifthOrderStokesWaveGenerator.Tpo -c -o ../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.o `test -f '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp' || echo '$(srcdir)/'`../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-FifthOrderStokesWaveGenerator.Tpo ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-FifthOrderStokesWaveGenerator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_generation/FifthOrderStokesWaveGenerator.cpp' object='../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.o' libtool=no @AMDEPBACKSLASH@
+../src/wave_generation/libIBAMR3d_a-IrregularWaveGenerator.o: ../src/wave_generation/IrregularWaveGenerator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_generation/libIBAMR3d_a-IrregularWaveGenerator.o -MD -MP -MF ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-IrregularWaveGenerator.Tpo -c -o ../src/wave_generation/libIBAMR3d_a-IrregularWaveGenerator.o `test -f '../src/wave_generation/IrregularWaveGenerator.cpp' || echo '$(srcdir)/'`../src/wave_generation/IrregularWaveGenerator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-IrregularWaveGenerator.Tpo ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-IrregularWaveGenerator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_generation/IrregularWaveGenerator.cpp' object='../src/wave_generation/libIBAMR3d_a-IrregularWaveGenerator.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.o `test -f '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp' || echo '$(srcdir)/'`../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_generation/libIBAMR3d_a-IrregularWaveGenerator.o `test -f '../src/wave_generation/IrregularWaveGenerator.cpp' || echo '$(srcdir)/'`../src/wave_generation/IrregularWaveGenerator.cpp
 
-../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.obj: ../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.obj -MD -MP -MF ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-FifthOrderStokesWaveGenerator.Tpo -c -o ../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.obj `if test -f '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; then $(CYGPATH_W) '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-FifthOrderStokesWaveGenerator.Tpo ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-FifthOrderStokesWaveGenerator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_generation/FifthOrderStokesWaveGenerator.cpp' object='../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.obj' libtool=no @AMDEPBACKSLASH@
+../src/wave_generation/libIBAMR3d_a-IrregularWaveGenerator.obj: ../src/wave_generation/IrregularWaveGenerator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_generation/libIBAMR3d_a-IrregularWaveGenerator.obj -MD -MP -MF ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-IrregularWaveGenerator.Tpo -c -o ../src/wave_generation/libIBAMR3d_a-IrregularWaveGenerator.obj `if test -f '../src/wave_generation/IrregularWaveGenerator.cpp'; then $(CYGPATH_W) '../src/wave_generation/IrregularWaveGenerator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_generation/IrregularWaveGenerator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-IrregularWaveGenerator.Tpo ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-IrregularWaveGenerator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_generation/IrregularWaveGenerator.cpp' object='../src/wave_generation/libIBAMR3d_a-IrregularWaveGenerator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.obj `if test -f '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; then $(CYGPATH_W) '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_generation/FifthOrderStokesWaveGenerator.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_generation/libIBAMR3d_a-IrregularWaveGenerator.obj `if test -f '../src/wave_generation/IrregularWaveGenerator.cpp'; then $(CYGPATH_W) '../src/wave_generation/IrregularWaveGenerator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_generation/IrregularWaveGenerator.cpp'; fi`
 
 ../src/wave_generation/libIBAMR3d_a-StokesFifthOrderWaveBcCoef.o: ../src/wave_generation/StokesFifthOrderWaveBcCoef.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_generation/libIBAMR3d_a-StokesFifthOrderWaveBcCoef.o -MD -MP -MF ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-StokesFifthOrderWaveBcCoef.Tpo -c -o ../src/wave_generation/libIBAMR3d_a-StokesFifthOrderWaveBcCoef.o `test -f '../src/wave_generation/StokesFifthOrderWaveBcCoef.cpp' || echo '$(srcdir)/'`../src/wave_generation/StokesFifthOrderWaveBcCoef.cpp
@@ -7875,6 +7920,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveBcCoef.Po
+	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-StokesFifthOrderWaveBcCoef.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-StokesFirstOrderWaveBcCoef.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-StokesSecondOrderWaveBcCoef.Po
@@ -7883,6 +7929,7 @@ distclean: distclean-am
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-WaveGenerationFunctions.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-FifthOrderStokesWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-IrregularWaveBcCoef.Po
+	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-IrregularWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-StokesFifthOrderWaveBcCoef.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-StokesFirstOrderWaveBcCoef.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-StokesSecondOrderWaveBcCoef.Po
@@ -8214,6 +8261,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveBcCoef.Po
+	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-StokesFifthOrderWaveBcCoef.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-StokesFirstOrderWaveBcCoef.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-StokesSecondOrderWaveBcCoef.Po
@@ -8222,6 +8270,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-WaveGenerationFunctions.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-FifthOrderStokesWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-IrregularWaveBcCoef.Po
+	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-IrregularWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-StokesFifthOrderWaveBcCoef.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-StokesFirstOrderWaveBcCoef.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-StokesSecondOrderWaveBcCoef.Po
