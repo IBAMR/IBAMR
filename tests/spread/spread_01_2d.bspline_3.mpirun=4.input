@@ -5,8 +5,10 @@ REF_RATIO  = 4
 N = 4
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N
 DX  = L/NFINEST
+// TODO: making this lower produces slightly different numbers of quadrature
+// points with sufficient compiler optimizations and triangles
 MFAC = 0.25
-ELEM_TYPE = "TRI3"
+ELEM_TYPE = "HEX8"
 
 IB_DELTA_FUNCTION = "BSPLINE_3"
 

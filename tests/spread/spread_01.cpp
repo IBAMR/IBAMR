@@ -64,10 +64,20 @@
 void
 coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
 {
-    X(0) = s(0) + 0.6;
-    X(1) = s(1) + 0.5;
+    // We have to be careful with how we pick these offsets since these tests
+    // validate spreading by comparing pointwise values. In particular: with
+    // an odd-order quadrature rule and a quad or hex mesh the cell midpoint
+    // is a quadrature point. Due to roundoff this could work out to be, e.g.,
+    // 0.5 +/- eps: this is problematic since we will get a different Eulerian
+    // cell now based on roundoff accumulation.
+    //
+    // Get around these rounding issues by picking strange-looking shifts that
+    // guarantee no quadrature point will be near 0.5, 0.75, or any other
+    // possible Eulerian cell midpoint coordinate.
+    X(0) = s(0) + 0.612345;
+    X(1) = s(1) + 0.512345;
 #if (NDIM == 3)
-    X(2) = s(2) + 0.5;
+    X(2) = s(2) + 0.512345;
 #endif
     return;
 } // coordinate_mapping_function
