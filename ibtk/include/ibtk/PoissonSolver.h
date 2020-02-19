@@ -20,6 +20,7 @@
 
 #include "PoissonSpecifications.h"
 
+#include <memory>
 #include <vector>
 
 namespace SAMRAI

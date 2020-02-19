@@ -34,6 +34,7 @@
 #include "VariableFillPattern.h"
 #include "tbox/Pointer.h"
 
+#include <memory>
 #include <string>
 #include <vector>
 

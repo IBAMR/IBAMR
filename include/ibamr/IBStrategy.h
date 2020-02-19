@@ -26,6 +26,7 @@
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
+#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>
