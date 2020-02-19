@@ -108,34 +108,18 @@ main(int argc, char** argv)
         {
             ReplicatedMesh& mesh = *meshes[0];
             const double R = 0.2;
-            if (NDIM == 2 && (elem_str == "TRI3" || elem_str == "TRI6"))
-            {
-#ifdef LIBMESH_HAVE_TRIANGLE
-                const int num_circum_nodes = ceil(2.0 * M_PI * R / ds);
-                for (int k = 0; k < num_circum_nodes; ++k)
-                {
-                    const double theta = 2.0 * M_PI * static_cast<double>(k) / static_cast<double>(num_circum_nodes);
-                    mesh.add_point(libMesh::Point(R * cos(theta), R * sin(theta)));
-                }
-                TriangleInterface triangle(mesh);
-                triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
-                triangle.elem_type() = elem_type;
-                triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
-                triangle.insert_extra_points() = true;
-                triangle.smooth_after_generating() = true;
-                triangle.triangulate();
-#else
-                TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
-                           << "       but Triangle is required for TRI3 or TRI6 elements.\n");
-#endif
-            }
-            else
-            {
-                // NOTE: number of segments along boundary is 4*2^r.
-                const double num_circum_segments = 2.0 * M_PI * R / ds;
-                const int r = log2(0.25 * num_circum_segments);
-                MeshTools::Generation::build_sphere(mesh, R, r, elem_type);
-            }
+            // libMesh circa version 1.5 fixed a bug with the way they read
+            // Triangle input which results in vertices being numbered in a
+            // different way after the patch. This actually makes a
+            // substantial difference for this test since changing the vertex
+            // numbering changes the quadrature points, which in turn changes
+            // where we spread forces. Hence, unlike the examples, just avoid
+            // Triangle altogether here.
+            //
+            // NOTE: number of segments along boundary is 4*2^r.
+            const double num_circum_segments = 2.0 * M_PI * R / ds;
+            const int r = log2(0.25 * num_circum_segments);
+            MeshTools::Generation::build_sphere(mesh, R, r, elem_type);
         }
         else if (geometry == "cube")
         {
