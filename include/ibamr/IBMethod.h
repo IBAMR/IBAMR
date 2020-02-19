@@ -36,6 +36,7 @@
 #include "petscsys.h"
 #include "petscvec.h"
 
+#include <limits>
 #include <set>
 #include <string>
 #include <vector>
@@ -150,6 +151,26 @@ public:
      */
     void setupTagBuffer(SAMRAI::tbox::Array<int>& tag_buffer,
                         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) const override;
+
+    /*!
+     * Inactivate a structure/part. See IBAMR::IBStrategy::inactivateLagrangianStructure().
+     */
+    virtual void inactivateLagrangianStructure(int structure_number = 0,
+                                               int level_number = std::numeric_limits<int>::max()) override;
+
+    /*!
+     * Activate a previously inactivated structure/part to be used again in
+     * FSI calculations. See IBAMR::IBStrategy::activateLagrangianStructure().
+     */
+    virtual void activateLagrangianStructure(int structure_number = 0,
+                                             int level_number = std::numeric_limits<int>::max()) override;
+
+    /*!
+     * Determine whether or not the given structure or part is currently
+     * activated. See IBAMR::IBStrategy::getLagrangianStructureIsActivated().
+     */
+    virtual bool getLagrangianStructureIsActivated(int structure_number = 0,
+                                                   int level_number = std::numeric_limits<int>::max()) const override;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.

@@ -26,6 +26,7 @@
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
+#include <limits>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -161,6 +162,64 @@ public:
      */
     virtual void setupTagBuffer(SAMRAI::tbox::Array<int>& tag_buffer,
                                 SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) const;
+
+    /*!
+     * Inactivate a structure or part. Such a structure will be ignored by FSI
+     * calculations: i.e., it will have its velocity set to zero and no forces
+     * will be spread from the structure to the Eulerian grid.
+     *
+     * @param[in] structure_number Number of the structure/part.
+     * @param[in] level_number Level on which the structure lives. For some
+     * inheriting classes (e.g., IBAMR::IBMethod) the structure number alone
+     * is not enough to establish uniqueness. The default value is interpreted
+     * as the finest level in the patch hierarchy.
+     *
+     * @note This method should be implemented by inheriting classes for which
+     * the notion of activating and inactivating a structure 'owned' by this
+     * class makes sense (for example, IBAMR::IBStrategySet does not directly
+     * own any structures, but IBAMR::IBMethod and IBAMR::IBFEMethod both
+     * do). The default implementation unconditionally aborts the program.
+     */
+    virtual void inactivateLagrangianStructure(int structure_number = 0,
+                                               int level_number = std::numeric_limits<int>::max());
+
+    /*!
+     * Activate a previously inactivated structure or part to be used again in
+     * FSI calculations.
+     *
+     * @param[in] structure_number Number of the structure/part.
+     * @param[in] level_number Level on which the structure lives. For some
+     * inheriting classes (e.g., IBAMR::IBMethod) the structure number alone
+     * is not enough to establish uniqueness. The default value is interpreted
+     * as the finest level in the patch hierarchy.
+     *
+     * @note This method should be implemented by inheriting classes for which
+     * the notion of activating and inactivating a structure 'owned' by this
+     * class makes sense (for example, IBAMR::IBStrategySet does not directly
+     * own any structures, but IBAMR::IBMethod and IBAMR::IBFEMethod both
+     * do). The default implementation unconditionally aborts the program.
+     */
+    virtual void activateLagrangianStructure(int structure_number = 0,
+                                             int level_number = std::numeric_limits<int>::max());
+
+    /*!
+     * Determine whether or not the given structure or part is currently
+     * activated.
+     *
+     * @param[in] structure_number Number of the structure/part.
+     * @param[in] level_number Level on which the structure lives. For some
+     * inheriting classes (e.g., IBAMR::IBMethod) the structure number alone
+     * is not enough to establish uniqueness. The default value is interpreted
+     * as the finest level in the patch hierarchy.
+     *
+     * @note This method should be implemented by inheriting classes for which
+     * the notion of activating and inactivating a structure 'owned' by this
+     * class makes sense (for example, IBAMR::IBStrategySet does not directly
+     * own any structures, but IBAMR::IBMethod and IBAMR::IBFEMethod both
+     * do). The default implementation unconditionally aborts the program.
+     */
+    virtual bool getLagrangianStructureIsActivated(int structure_number = 0,
+                                                   int level_number = std::numeric_limits<int>::max()) const;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.

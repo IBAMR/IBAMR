@@ -110,6 +110,27 @@ IBStrategy::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDI
 } // setupTagBuffer
 
 void
+IBStrategy::inactivateLagrangianStructure(int /*structure_number*/, int /*level_number*/)
+{
+    TBOX_ERROR("IBStrategy::inactivateLagrangianStructure(): unimplemented\n");
+    return;
+} // inactivateLagrangianStructure
+
+void
+IBStrategy::activateLagrangianStructure(int /*structure_number*/, int /*level_number*/)
+{
+    TBOX_ERROR("IBStrategy::activateLagrangianStructure(): unimplemented\n");
+    return;
+} // activateLagrangianStructure
+
+bool
+IBStrategy::getLagrangianStructureIsActivated(int /*structure_number*/, int /*level_number*/) const
+{
+    TBOX_ERROR("IBStrategy::getLagrangianStructureIsActivated(): unimplemented\n");
+    return true;
+} // activateLagrangianStructure
+
+void
 IBStrategy::preprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
 {
     // intentionally blank
