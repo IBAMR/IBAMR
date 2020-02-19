@@ -824,7 +824,8 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
     const double dt = new_time - current_time;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        int ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
+        int ierr =
+            VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPBYPCZ(
             d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
@@ -949,10 +950,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
     {
         PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
-        d_active_fe_data_managers[part]->spread(f_scratch_data_idx,
-                                                *F_ghost_vec,
-                                                *X_ghost_vec,
-                                                FORCE_SYSTEM_NAME);
+        d_active_fe_data_managers[part]->spread(f_scratch_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME);
     }
 
     // Deal with force values spread outside the physical domain.

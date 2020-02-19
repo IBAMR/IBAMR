@@ -846,21 +846,21 @@ public:
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*!
-    * For technical reasons this class does not use SAMRAI's RestartManager, so 
-    * restart files must be separately written for the IBFE objects. This function 
-    * saves the solutions to the defined EquationSystems in an xdr file in 
-    * restart_dump_dirname for each FE part. An example snippet is included below to show 
-    * the distinct IBFE restart data saving step. The data will then be automatically 
-    * read back into the system along with the RestartManager data during restart.
-    *
-    * @code
-    * if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
-    * {
-    *     RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
-    *     ib_method_ops->writeFEDataToRestartFile(restart_dump_dirname, iteration_num);
-    * }
-    * @endcode   
-    */
+     * For technical reasons this class does not use SAMRAI's RestartManager, so
+     * restart files must be separately written for the IBFE objects. This function
+     * saves the solutions to the defined EquationSystems in an xdr file in
+     * restart_dump_dirname for each FE part. An example snippet is included below to show
+     * the distinct IBFE restart data saving step. The data will then be automatically
+     * read back into the system along with the RestartManager data during restart.
+     *
+     * @code
+     * if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
+     * {
+     *     RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
+     *     ib_method_ops->writeFEDataToRestartFile(restart_dump_dirname, iteration_num);
+     * }
+     * @endcode
+     */
     void writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number);
 
     /*!
