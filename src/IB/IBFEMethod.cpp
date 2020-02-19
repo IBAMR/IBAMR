@@ -386,6 +386,27 @@ IBFEMethod::registerStressNormalizationPart(unsigned int part)
 } // registerStressNormalizationPart
 
 void
+IBFEMethod::activatePart(unsigned int part)
+{
+    TBOX_ASSERT(part < d_num_parts);
+    d_part_is_active[part] = true;
+}
+
+void
+IBFEMethod::inactivatePart(unsigned int part)
+{
+    TBOX_ASSERT(part < d_num_parts);
+    d_part_is_active[part] = false;
+}
+
+bool
+IBFEMethod::getPartIsActivated(unsigned int part)
+{
+    TBOX_ASSERT(part < d_num_parts);
+    return d_part_is_active[part];
+}
+
+void
 IBFEMethod::registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data, const unsigned int part)
 {
     TBOX_ASSERT(part < d_num_parts);
@@ -774,14 +795,21 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     // Build the right-hand-sides to compute the interpolated data.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        d_active_fe_data_managers[part]->interpWeighted(u_data_idx,
-                                                        *d_U_rhs_vecs[part],
-                                                        *d_X_IB_ghost_vecs[part],
-                                                        VELOCITY_SYSTEM_NAME,
-                                                        no_fill,
-                                                        data_time,
-                                                        /*close_F*/ false,
-                                                        /*close_X*/ false);
+        if (d_part_is_active[part])
+        {
+            d_active_fe_data_managers[part]->interpWeighted(u_data_idx,
+                                                            *d_U_rhs_vecs[part],
+                                                            *d_X_IB_ghost_vecs[part],
+                                                            VELOCITY_SYSTEM_NAME,
+                                                            no_fill,
+                                                            data_time,
+                                                            /*close_F*/ false,
+                                                            /*close_X*/ false);
+        }
+        else
+        {
+            d_U_rhs_vecs[part]->zero();
+        }
     }
 
     // Note that FEDataManager only reads (and does not modify) Eulerian data
@@ -939,6 +967,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
     // Spread interior force density values.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
+        if (!d_part_is_active[part]) continue;
         PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         d_active_fe_data_managers[part]->spread(f_data_idx,
@@ -961,6 +990,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
     // Handle any transmission conditions.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
+        if (!d_part_is_active[part]) continue;
         PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         if (d_split_normal_force || d_split_tangential_force)
@@ -1099,7 +1129,7 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        if (!d_lag_body_source_part[part]) continue;
+        if (!d_part_is_active[part] || !d_lag_body_source_part[part]) continue;
         d_active_fe_data_managers[part]->spread(q_data_idx,
                                                 *d_Q_IB_ghost_vecs[part],
                                                 *d_X_IB_ghost_vecs[part],
@@ -1115,8 +1145,6 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
         assertStructureOnFinestLevel();
         getScratchToPrimarySchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx).fillData(data_time);
     }
-
-    return;
 }
 
 FEDataManager::InterpSpec
@@ -3385,6 +3413,9 @@ IBFEMethod::commonConstructor(const std::string& object_name,
                               const std::string& restart_read_dirname,
                               unsigned int restart_restore_number)
 {
+    // Default all parts to be active.
+    d_part_is_active.resize(d_num_parts, true);
+
     // Set the object name and register it with the restart manager.
     d_object_name = object_name;
     d_registered_for_restart = false;

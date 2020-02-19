@@ -287,11 +287,11 @@ namespace IBAMR
  * </ol>
  *
  * <h2>Handling Restart Data</h2>
- * The caching of the IBFE restart data is not managed by SAMRAI's RestartManager. It 
+ * The caching of the IBFE restart data is not managed by SAMRAI's RestartManager. It
  * is instead handled by IBFEMethod::writeFEDataToRestartFile() given a restart_dump_dirname
  * and time_step_number. Each instance of IBFEMethod is registered for restart by default,
  * but the this option can be turned off. During a restart, the data is handled by the
- * RestartManager automatically to reinitiate the IBFEMethod.  
+ * RestartManager automatically to reinitiate the IBFEMethod.
  */
 class IBFEMethod : public IBStrategy
 {
@@ -343,6 +343,21 @@ public:
      * Indicate that a part should use stress normalization.
      */
     void registerStressNormalizationPart(unsigned int part = 0);
+
+    /**
+     * Activate a FE mesh part.
+     */
+    void activatePart(unsigned int part = 0);
+
+    /**
+     * Inactivate a FE mesh part.
+     */
+    void inactivatePart(unsigned int part = 0);
+
+    /**
+     * Check whether a FE part is activated.
+     */
+    bool getPartIsActivated(unsigned int part = 0);
 
     /*!
      * Typedef specifying interface for coordinate mapping function.
@@ -844,21 +859,21 @@ public:
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*!
-    * For technical reasons this class does not use SAMRAI's RestartManager, so 
-    * restart files must be separately written for the IBFE objects. This function 
-    * saves the solutions to the defined EquationSystems in an xdr file in 
-    * restart_dump_dirname for each FE part. An example snippet is included below to show 
-    * the distinct IBFE restart data saving step. The data will then be automatically 
-    * read back into the system along with the RestartManager data during restart.
-    *
-    * @code
-    * if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
-    * {
-    *     RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
-    *     ib_method_ops->writeFEDataToRestartFile(restart_dump_dirname, iteration_num);
-    * }
-    * @endcode   
-    */
+     * For technical reasons this class does not use SAMRAI's RestartManager, so
+     * restart files must be separately written for the IBFE objects. This function
+     * saves the solutions to the defined EquationSystems in an xdr file in
+     * restart_dump_dirname for each FE part. An example snippet is included below to show
+     * the distinct IBFE restart data saving step. The data will then be automatically
+     * read back into the system along with the RestartManager data during restart.
+     *
+     * @code
+     * if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
+     * {
+     *     RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
+     *     ib_method_ops->writeFEDataToRestartFile(restart_dump_dirname, iteration_num);
+     * }
+     * @endcode
+     */
     void writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number);
 
     /*!
@@ -1051,6 +1066,11 @@ protected:
 
     /// Number of parts owned by the present object.
     const unsigned int d_num_parts = 1;
+
+    /// Indexing information determining whether a given part is active or not.
+    /// The default state for each part is to be active.  Parts are active
+    /// unless deactivated.
+    std::vector<bool> d_part_is_active;
 
     /// FEDataManager objects associated with the primary hierarchy (i.e.,
     /// d_hierarchy). These are used by some other objects (such as
