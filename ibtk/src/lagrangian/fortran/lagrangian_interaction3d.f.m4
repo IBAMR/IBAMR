@@ -1881,8 +1881,10 @@ c
       REAL r
       REAL phi
       REAL K
-      INTEGER ic0,ic1,ic2
+      INTEGER i0,i1,i2,ic0,ic1,ic2
+      INTEGER ig_lower(0:NDIM-1),ig_upper(0:NDIM-1)
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER istart0,istop0,istart1,istop1,istart2,istop2
       INTEGER d,l,s
 
       REAL X_cell(0:NDIM-1),w0(0:4),w1(0:4),w2(0:4)
@@ -1892,6 +1894,15 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+c
+c     Compute the extents of the ghost box.
+c
+      ig_lower(0) = ilower0-nugc0
+      ig_lower(1) = ilower1-nugc1
+      ig_lower(2) = ilower2-nugc2
+      ig_upper(0) = iupper0+nugc0
+      ig_upper(1) = iupper1+nugc1
+      ig_upper(2) = iupper2+nugc2
 c
 c     Use a 5-point IB delta function to interpolate u onto V.
 c
@@ -1921,15 +1932,6 @@ c
             ic_lower(d) = ic_center(d)-2
             ic_upper(d) = ic_center(d)+2
          enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
-
-         ic_lower(2) = max(ic_lower(2),ilower2-nugc2)
-         ic_upper(2) = min(ic_upper(2),iupper2+nugc2)
 c
 c     Compute the interpolation weights.
 c
@@ -1996,16 +1998,22 @@ c
 c
 c     Interpolate u onto V.
 c
+         istart0 =   max(ig_lower(0)-ic_lower(0),0)
+         istop0  = 4-max(ic_upper(0)-ig_upper(0),0)
+         istart1 =   max(ig_lower(1)-ic_lower(1),0)
+         istop1  = 4-max(ic_upper(1)-ig_upper(1),0)
+         istart2 =   max(ig_lower(2)-ic_lower(2),0)
+         istop2  = 4-max(ic_upper(2)-ig_upper(2),0)
          do d = 0,depth-1
             V(d,s) = 0.d0
-            do ic2 = ic_lower(2),ic_upper(2)
-               do ic1 = ic_lower(1),ic_upper(1)
-                  do ic0 = ic_lower(0),ic_upper(0)
-                     V(d,s) = V(d,s)
-     &                    +w0(ic0-ic_lower(0))
-     &                    *w1(ic1-ic_lower(1))
-     &                    *w2(ic2-ic_lower(2))
-     &                    *u(ic0,ic1,ic2,d)
+            do i2 = istart2,istop2
+               ic2 = ic_lower(2)+i2
+               do i1 = istart1,istop1
+                  ic1 = ic_lower(1)+i1
+                  do i0 = istart0,istop0
+                     ic0 = ic_lower(0)+i0
+                     V(d,s) = V(d,s) + w0(i0)*w1(i1)*w2(i2)
+     &                    * u(ic0,ic1,ic2,d)
                   enddo
                enddo
             enddo
@@ -2061,8 +2069,10 @@ c
       REAL r
       REAL phi
       REAL K
-      INTEGER ic0,ic1,ic2
+      INTEGER i0,i1,i2,ic0,ic1,ic2
+      INTEGER ig_lower(0:NDIM-1),ig_upper(0:NDIM-1)
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER istart0,istop0,istart1,istop1,istart2,istop2
       INTEGER d,l,s
 
       REAL X_cell(0:NDIM-1),w0(0:4),w1(0:4),w2(0:4)
@@ -2072,6 +2082,15 @@ c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+c
+c     Compute the extents of the ghost box.
+c
+      ig_lower(0) = ilower0-nugc0
+      ig_lower(1) = ilower1-nugc1
+      ig_lower(2) = ilower2-nugc2
+      ig_upper(0) = iupper0+nugc0
+      ig_upper(1) = iupper1+nugc1
+      ig_upper(2) = iupper2+nugc2
 c
 c     Use a 5-point IB delta function to spread V onto u.
 c
@@ -2101,15 +2120,6 @@ c
             ic_lower(d) = ic_center(d)-2
             ic_upper(d) = ic_center(d)+2
          enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
-
-         ic_lower(2) = max(ic_lower(2),ilower2-nugc2)
-         ic_upper(2) = min(ic_upper(2),iupper2+nugc2)
 c
 c     Compute the spreading weights.
 c
@@ -2176,14 +2186,20 @@ c
 c
 c     Spread V onto u.
 c
+         istart0 =   max(ig_lower(0)-ic_lower(0),0)
+         istop0  = 4-max(ic_upper(0)-ig_upper(0),0)
+         istart1 =   max(ig_lower(1)-ic_lower(1),0)
+         istop1  = 4-max(ic_upper(1)-ig_upper(1),0)
+         istart2 =   max(ig_lower(2)-ic_lower(2),0)
+         istop2  = 4-max(ic_upper(2)-ig_upper(2),0)
          do d = 0,depth-1
-            do ic2 = ic_lower(2),ic_upper(2)
-               do ic1 = ic_lower(1),ic_upper(1)
-                  do ic0 = ic_lower(0),ic_upper(0)
+            do i2 = istart2,istop2
+               ic2 = ic_lower(2)+i2
+               do i1 = istart1,istop1
+                  ic1 = ic_lower(1)+i1
+                  do i0 = istart0,istop0
                      u(ic0,ic1,ic2,d) = u(ic0,ic1,ic2,d)+(
-     &                    w0(ic0-ic_lower(0))*
-     &                    w1(ic1-ic_lower(1))*
-     &                    w2(ic2-ic_lower(2))*
+     &                    w0(i0)*w1(i1)*w2(i2)*
      &                    V(d,s)/(dx(0)*dx(1)*dx(2)))
                   enddo
                enddo

@@ -1,0 +1,4 @@
+Fixed: Fixed a bug with the computation of IB-5 stencils where an incorrect
+stencil could be used at points near the boundaries of patches.
+<br>
+(David Wells, 2020/01/21)
