@@ -1,0 +1,162 @@
+dofs per proc:
+1
+1
+1
+1
+hierarchy boxes:
+[(1,0,0),(1,0,0)]
+[(1,0,1),(1,0,1)]
+[(1,1,0),(1,1,0)]
+[(1,1,1),(1,1,1)]
+
+rank: 0
+x lower:
+0.5
+  0
+  0
+x upper:
+  1
+0.5
+0.5
+Array depth = 0
+array(0,-1,-1) = -1
+array(1,-1,-1) = -1
+array(2,-1,-1) = -1
+array(0,0,-1) = -1
+array(1,0,-1) = -1
+array(2,0,-1) = -1
+array(0,1,-1) = -1
+array(1,1,-1) = -1
+array(2,1,-1) = -1
+array(0,-1,0) = -1
+array(1,-1,0) = -1
+array(2,-1,0) = -1
+array(0,0,0) = -1
+array(1,0,0) = 0
+array(2,0,0) = -1
+array(0,1,0) = -1
+array(1,1,0) = 2
+array(2,1,0) = -1
+array(0,-1,1) = -1
+array(1,-1,1) = -1
+array(2,-1,1) = -1
+array(0,0,1) = -1
+array(1,0,1) = 1
+array(2,0,1) = -1
+array(0,1,1) = -1
+array(1,1,1) = 3
+array(2,1,1) = -1
+
+rank: 1
+x lower:
+0.5
+  0
+0.5
+x upper:
+  1
+0.5
+  1
+Array depth = 0
+array(0,-1,0) = -1
+array(1,-1,0) = -1
+array(2,-1,0) = -1
+array(0,0,0) = -1
+array(1,0,0) = 0
+array(2,0,0) = -1
+array(0,1,0) = -1
+array(1,1,0) = 2
+array(2,1,0) = -1
+array(0,-1,1) = -1
+array(1,-1,1) = -1
+array(2,-1,1) = -1
+array(0,0,1) = -1
+array(1,0,1) = 1
+array(2,0,1) = -1
+array(0,1,1) = -1
+array(1,1,1) = 3
+array(2,1,1) = -1
+array(0,-1,2) = -1
+array(1,-1,2) = -1
+array(2,-1,2) = -1
+array(0,0,2) = -1
+array(1,0,2) = -1
+array(2,0,2) = -1
+array(0,1,2) = -1
+array(1,1,2) = -1
+array(2,1,2) = -1
+
+rank: 2
+x lower:
+0.5
+0.5
+  0
+x upper:
+  1
+  1
+0.5
+Array depth = 0
+array(0,0,-1) = -1
+array(1,0,-1) = -1
+array(2,0,-1) = -1
+array(0,1,-1) = -1
+array(1,1,-1) = -1
+array(2,1,-1) = -1
+array(0,2,-1) = -1
+array(1,2,-1) = -1
+array(2,2,-1) = -1
+array(0,0,0) = -1
+array(1,0,0) = 0
+array(2,0,0) = -1
+array(0,1,0) = -1
+array(1,1,0) = 2
+array(2,1,0) = -1
+array(0,2,0) = -1
+array(1,2,0) = -1
+array(2,2,0) = -1
+array(0,0,1) = -1
+array(1,0,1) = 1
+array(2,0,1) = -1
+array(0,1,1) = -1
+array(1,1,1) = 3
+array(2,1,1) = -1
+array(0,2,1) = -1
+array(1,2,1) = -1
+array(2,2,1) = -1
+
+rank: 3
+x lower:
+0.5
+0.5
+0.5
+x upper:
+1
+1
+1
+Array depth = 0
+array(0,0,0) = -1
+array(1,0,0) = 0
+array(2,0,0) = -1
+array(0,1,0) = -1
+array(1,1,0) = 2
+array(2,1,0) = -1
+array(0,2,0) = -1
+array(1,2,0) = -1
+array(2,2,0) = -1
+array(0,0,1) = -1
+array(1,0,1) = 1
+array(2,0,1) = -1
+array(0,1,1) = -1
+array(1,1,1) = 3
+array(2,1,1) = -1
+array(0,2,1) = -1
+array(1,2,1) = -1
+array(2,2,1) = -1
+array(0,0,2) = -1
+array(1,0,2) = -1
+array(2,0,2) = -1
+array(0,1,2) = -1
+array(1,1,2) = -1
+array(2,1,2) = -1
+array(0,2,2) = -1
+array(1,2,2) = -1
+array(2,2,2) = -1

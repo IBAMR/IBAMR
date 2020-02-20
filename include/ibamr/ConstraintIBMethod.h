@@ -38,6 +38,7 @@ IBTK_DISABLE_EXTRA_WARNINGS
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <fstream>
+#include <memory>
 #include <string>
 #include <vector>
 

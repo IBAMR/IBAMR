@@ -53,6 +53,9 @@
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
 
+// test stuff
+#include "../tests.h"
+
 // This file is the main driver for force spreading tests (i.e.,
 // IBFEmethod::spreadForce). At the moment it simply prints out the force
 // values.
@@ -61,10 +64,20 @@
 void
 coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
 {
-    X(0) = s(0) + 0.6;
-    X(1) = s(1) + 0.5;
+    // We have to be careful with how we pick these offsets since these tests
+    // validate spreading by comparing pointwise values. In particular: with
+    // an odd-order quadrature rule and a quad or hex mesh the cell midpoint
+    // is a quadrature point. Due to roundoff this could work out to be, e.g.,
+    // 0.5 +/- eps: this is problematic since we will get a different Eulerian
+    // cell now based on roundoff accumulation.
+    //
+    // Get around these rounding issues by picking strange-looking shifts that
+    // guarantee no quadrature point will be near 0.5, 0.75, or any other
+    // possible Eulerian cell midpoint coordinate.
+    X(0) = s(0) + 0.612345;
+    X(1) = s(1) + 0.512345;
 #if (NDIM == 3)
-    X(2) = s(2) + 0.5;
+    X(2) = s(2) + 0.512345;
 #endif
     return;
 } // coordinate_mapping_function
@@ -92,48 +105,102 @@ main(int argc, char** argv)
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create a simple FE mesh.
-        ReplicatedMesh mesh(init.comm(), NDIM);
+        std::vector<std::unique_ptr<ReplicatedMesh> > meshes;
+        meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
-        string elem_type = input_db->getString("ELEM_TYPE");
-        const double R = 0.2;
-        if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
+        const std::string elem_str = input_db->getString("ELEM_TYPE");
+        const auto elem_type = Utility::string_to_enum<ElemType>(elem_str);
+
+        const std::string geometry = input_db->getStringWithDefault("geometry", "sphere");
+
+        if (geometry == "sphere")
         {
-#ifdef LIBMESH_HAVE_TRIANGLE
-            const int num_circum_nodes = ceil(2.0 * M_PI * R / ds);
-            for (int k = 0; k < num_circum_nodes; ++k)
-            {
-                const double theta = 2.0 * M_PI * static_cast<double>(k) / static_cast<double>(num_circum_nodes);
-                mesh.add_point(libMesh::Point(R * cos(theta), R * sin(theta)));
-            }
-            TriangleInterface triangle(mesh);
-            triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
-            triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
-            triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
-            triangle.insert_extra_points() = true;
-            triangle.smooth_after_generating() = true;
-            triangle.triangulate();
-#else
-            TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
-                       << "       but Triangle is required for TRI3 or TRI6 elements.\n");
-#endif
-        }
-        else
-        {
+            ReplicatedMesh& mesh = *meshes[0];
+            const double R = 0.2;
+            // libMesh circa version 1.5 fixed a bug with the way they read
+            // Triangle input which results in vertices being numbered in a
+            // different way after the patch. This actually makes a
+            // substantial difference for this test since changing the vertex
+            // numbering changes the quadrature points, which in turn changes
+            // where we spread forces. Hence, unlike the examples, just avoid
+            // Triangle altogether here.
+            //
             // NOTE: number of segments along boundary is 4*2^r.
             const double num_circum_segments = 2.0 * M_PI * R / ds;
             const int r = log2(0.25 * num_circum_segments);
-            MeshTools::Generation::build_sphere(mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
+            MeshTools::Generation::build_sphere(mesh, R, r, elem_type);
         }
-        mesh.prepare_for_use();
+        else if (geometry == "cube")
+        {
+            ReplicatedMesh& mesh = *meshes[0];
+            const double L = input_db->getDouble("L");
+            if (NDIM == 2)
+                MeshTools::Generation::build_square(mesh, 10, 12, 0.0, L, 0.0, L, elem_type);
+            else
+                MeshTools::Generation::build_cube(mesh, 10, 12, 14, 0.0, L, 0.0, L, 0.0, L, elem_type);
+        }
+        else
+        {
+            TBOX_ASSERT(geometry == "composite_cube");
+            const double L = input_db->getDouble("L");
+            if (NDIM == 2)
+            {
+                ReplicatedMesh& mesh_0 = *meshes[0];
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_1 = *meshes[1];
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_2 = *meshes[2];
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_3 = *meshes[3];
+                MeshTools::Generation::build_square(mesh_0, 10, 12, 0.0, L / 2, 0.0, L / 2, elem_type);
+                MeshTools::Generation::build_square(mesh_1, 10, 12, L / 2, L, 0.0, L / 2, elem_type);
+                MeshTools::Generation::build_square(mesh_2, 10, 12, 0.0, L / 2, L / 2, L, elem_type);
+                MeshTools::Generation::build_square(mesh_3, 10, 12, L / 2, L, L / 2, L, elem_type);
+            }
+            else
+            {
+                ReplicatedMesh& mesh_0 = *meshes[0];
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_1 = *meshes[1];
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_2 = *meshes[2];
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_3 = *meshes[3];
+                MeshTools::Generation::build_cube(mesh_0, 5, 6, 7, 0.0, L / 2, 0.0, L / 2, 0.0, L / 2, elem_type);
+                MeshTools::Generation::build_cube(mesh_1, 5, 6, 7, L / 2, L, 0.0, L / 2, 0.0, L / 2, elem_type);
+                MeshTools::Generation::build_cube(mesh_2, 5, 6, 7, 0.0, L / 2, L / 2, L, 0.0, L / 2, elem_type);
+                MeshTools::Generation::build_cube(mesh_3, 5, 6, 7, L / 2, L, L / 2, L, 0.0, L / 2, elem_type);
+
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_4 = *meshes[4];
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_5 = *meshes[5];
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_6 = *meshes[6];
+                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+                ReplicatedMesh& mesh_7 = *meshes[7];
+                MeshTools::Generation::build_cube(mesh_4, 5, 6, 7, 0.0, L / 2, 0.0, L / 2, L / 2, L, elem_type);
+                MeshTools::Generation::build_cube(mesh_5, 5, 6, 7, L / 2, L, 0.0, L / 2, L / 2, L, elem_type);
+                MeshTools::Generation::build_cube(mesh_6, 5, 6, 7, 0.0, L / 2, L / 2, L, L / 2, L, elem_type);
+                MeshTools::Generation::build_cube(mesh_7, 5, 6, 7, L / 2, L, L / 2, L, L / 2, L, elem_type);
+            }
+        }
+
         // metis does a good job partitioning, but the partitioning relies on
         // random numbers: the seed changed in libMesh commit
         // 98cede90ca8837688ee13aac5e299a3765f083da (between 1.3.1 and
         // 1.4.0). Hence, to achieve consistent partitioning, use a simpler partitioning scheme:
-        LinearPartitioner partitioner;
-        partitioner.partition(mesh);
+        for (const auto& mesh : meshes)
+        {
+            mesh->prepare_for_use();
+            LinearPartitioner partitioner;
+            partitioner.partition(*mesh);
+        }
 
-        plog << "Number of elements: " << mesh.n_active_elem() << std::endl;
+        std::size_t n_elem = 0;
+        for (const auto& mesh : meshes) n_elem += mesh->n_active_elem();
+        plog << "Number of elements: " << n_elem << std::endl;
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -167,10 +234,16 @@ main(int argc, char** argv)
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
+
+        std::vector<libMesh::MeshBase*> mesh_ptrs;
+        for (auto& mesh : meshes)
+        {
+            mesh_ptrs.emplace_back(mesh.get());
+        }
         Pointer<IBFEMethod> ib_method_ops =
             new IBFEMethod("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
-                           &mesh,
+                           mesh_ptrs,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
                            false);
         Pointer<IBHierarchyIntegrator> time_integrator =
@@ -193,7 +266,9 @@ main(int argc, char** argv)
                                         false);
 
         // Configure the IBFE solver.
-        ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
+        if (geometry == "sphere")
+            // other meshes are already centered correctly
+            ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
         ib_method_ops->initializeFEEquationSystems();
         ib_method_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
@@ -245,15 +320,18 @@ main(int argc, char** argv)
         const double dt = time_integrator->getMaximumTimeStepSize();
         time_integrator->preprocessIntegrateHierarchy(
             time_integrator->getIntegratorTime(), time_integrator->getIntegratorTime() + dt, 1 /*???*/);
-        auto& fe_data_manager = *ib_method_ops->getFEDataManager();
-        auto& equation_systems = *fe_data_manager.getEquationSystems();
-        auto& force_system = equation_systems.get_system(IBFEMethod::FORCE_SYSTEM_NAME);
-        auto& half_f_vector = dynamic_cast<libMesh::PetscVector<double>&>(*force_system.current_local_solution);
-        for (unsigned int i = half_f_vector.first_local_index(); i < half_f_vector.last_local_index(); ++i)
+        for (unsigned int part_n = 0; part_n < meshes.size(); ++part_n)
         {
-            half_f_vector.set(i, i % 10);
+            auto& fe_data_manager = *ib_method_ops->getFEDataManager(part_n);
+            auto& equation_systems = *fe_data_manager.getEquationSystems();
+            auto& force_system = equation_systems.get_system(IBFEMethod::FORCE_SYSTEM_NAME);
+            auto& half_f_vector = dynamic_cast<libMesh::PetscVector<double>&>(*force_system.current_local_solution);
+            for (unsigned int i = half_f_vector.first_local_index(); i < half_f_vector.last_local_index(); ++i)
+            {
+                half_f_vector.set(i, i % 10);
+            }
+            half_f_vector.close();
         }
-        half_f_vector.close();
 
         std::ostringstream out;
         if (SAMRAI_MPI::getNodes() != 1)
@@ -310,34 +388,7 @@ main(int argc, char** argv)
         }
         SAMRAI_MPI::barrier();
 
-        // okay, now each processor has some output, but we want to get
-        // everything on rank 0 to print to plog.
-        const std::string to_log = out.str();
-        const int n_nodes = SAMRAI_MPI::getNodes();
-        std::vector<unsigned long> string_sizes(n_nodes);
-
-        const unsigned long size = to_log.size();
-        int ierr = MPI_Gather(
-            &size, 1, MPI_UNSIGNED_LONG, string_sizes.data(), 1, MPI_UNSIGNED_LONG, 0, SAMRAI_MPI::getCommunicator());
-        TBOX_ASSERT(ierr == 0);
-
-        // MPI_Gatherv would be more efficient, but this just a test so its
-        // not too important
-        if (SAMRAI_MPI::getRank() == 0)
-        {
-            plog << to_log;
-            for (int r = 1; r < n_nodes; ++r)
-            {
-                std::string input;
-                input.resize(string_sizes[r]);
-                ierr = MPI_Recv(
-                    &input[0], string_sizes[r], MPI_CHAR, r, 0, SAMRAI_MPI::getCommunicator(), MPI_STATUS_IGNORE);
-                TBOX_ASSERT(ierr == 0);
-                plog << input;
-            }
-        }
-        else
-            MPI_Send(to_log.data(), size, MPI_CHAR, 0, 0, SAMRAI_MPI::getCommunicator());
+        print_strings_on_plog_0(out.str());
     } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();

@@ -36,6 +36,7 @@
 #include "libmesh/explicit_system.h"
 
 #include <array>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -155,8 +156,8 @@ namespace IBAMR
  * the finest level is assigned to processor N, then all libMesh nodes and
  * elements within that region will also be assigned to processor N. The
  * actual partitioning here is done by the IBTK::BoxPartitioner class. See the
- * discussion in HierarchyIntegrator and FEDataManager for descriptions on how
- * this partitioning is performed.
+ * discussion in IBTK::HierarchyIntegrator and IBTK::FEDataManager for
+ * descriptions on how this partitioning is performed.
  *
  * The choice of libMesh partitioner depends on the libmesh_partitioner_type
  * parameter in the input database and whether or not workload estimates are
@@ -274,7 +275,7 @@ namespace IBAMR
  *
  * <h2>Options Controlling Logging</h2>
  * The logging options set by this class are propagated to the owned
- * FEDataManager objects.
+ * IBTK::FEDataManager objects.
  * <ol>
  *   <li><code>enable_logging</code>: set to <code>TRUE</code> to enable logging.</code>.
  *   Defaults to <code>false</code>.</li>
@@ -286,11 +287,13 @@ namespace IBAMR
  * </ol>
  *
  * <h2>Handling Restart Data</h2>
- * The caching of the IBFE restart data is not managed by SAMRAI's RestartManager. It 
- * is instead handled by IBFEMethod::writeFEDataToRestartFile() given a restart_dump_dirname
- * and time_step_number. Each instance of IBFEMethod is registered for restart by default,
- * but the this option can be turned off. During a restart, the data is handled by the
- * RestartManager automatically to reinitiate the IBFEMethod.  
+ * The caching of the IBFE restart data is not managed by SAMRAI's
+ * SAMRAI::tbox::RestartManager. It is instead handled by
+ * IBFEMethod::writeFEDataToRestartFile() given a restart_dump_dirname and
+ * time_step_number. Each instance of IBFEMethod is registered for restart by
+ * default, but the this option can be turned off. During a restart, the data
+ * is handled by the SAMRAI::tbox::RestartManager automatically to reinitiate
+ * the IBFEMethod.
  */
 class IBFEMethod : public IBStrategy
 {
@@ -972,13 +975,13 @@ protected:
      */
     bool d_started_time_integration = false;
 
-    /*
+    /*!
      * Boolean controlling whether or not the scratch hierarchy should be
      * used.
      */
     bool d_use_scratch_hierarchy = false;
 
-    /*
+    /*!
      * Pointers to the patch hierarchy and gridding algorithm objects associated
      * with this object.
      */
@@ -986,7 +989,7 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
     bool d_is_initialized = false;
 
-    /*
+    /*!
      * Scratch data caching objects.
      *
      * These are shared by all of the FEDataManagers associated with this class.
@@ -997,7 +1000,7 @@ protected:
      */
     std::shared_ptr<IBTK::SAMRAIDataCache> d_primary_eulerian_data_cache, d_scratch_eulerian_data_cache;
 
-    /*
+    /*!
      * Pointer to the scratch patch hierarchy (which is only used for the
      * evaluation of IB terms, i.e., in IBFEMethod::interpolateVelocity(),
      * IBFEMethod::spreadForce(), and IBFEMethod::spreadFluidSource()).
@@ -1012,7 +1015,7 @@ protected:
     const std::string d_lagrangian_workload_coarsen_type = "CONSERVATIVE_COARSEN";
     const std::string d_lagrangian_workload_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
-    /*
+    /*!
      * Refinement schedules for transferring data from d_hierarchy to
      * d_scratch_hierarchy. The keys are the level number and data index (in
      * that order).
@@ -1023,7 +1026,7 @@ protected:
     std::map<std::pair<int, int>, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
         d_scratch_transfer_forward_schedules;
 
-    /*
+    /*!
      * Refinement schedules for transferring data from d_scratch_hierarchy to
      * d_hierarchy. The keys are the level number and data index (in
      * that order).
@@ -1106,7 +1109,7 @@ protected:
     /// Vector of pointers to body stress normalization vectors (both solutions and RHS).
     std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs, d_Phi_rhs_vecs;
 
-    /**
+    /*!
      * Vectors containing entries for relevant IB ghost data: see
      * FEDataManager::buildIBGhostedVector.
      *
@@ -1118,7 +1121,7 @@ protected:
     std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_U_IB_rhs_vecs;
     std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_X_IB_solution_vecs;
 
-    /*
+    /*!
      * Whether or not to use the ghost region for velocity assembly. See the
      * main documentation of this class for more information.
      */
@@ -1143,7 +1146,7 @@ protected:
      */
     LibmeshPartitionerType d_libmesh_partitioner_type = AUTOMATIC;
 
-    /*
+    /*!
      * Method parameters.
      */
     IBTK::FEDataManager::InterpSpec d_default_interp_spec;
@@ -1160,34 +1163,34 @@ protected:
     std::vector<libMesh::Order> d_default_quad_order;
     bool d_use_consistent_mass_matrix = true;
 
-    /*
+    /*!
      * Data related to handling stress normalization.
      */
     double d_epsilon = 0.0;
     bool d_has_stress_normalization_parts = false;
     std::vector<bool> d_is_stress_normalization_part;
 
-    /*
+    /*!
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
      */
     std::vector<CoordinateMappingFcnData> d_coordinate_mapping_fcn_data;
 
-    /*
+    /*!
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
      */
     std::vector<InitialVelocityFcnData> d_initial_velocity_fcn_data;
 
-    /*
+    /*!
      * Functions used to compute the first Piola-Kirchhoff stress tensor.
      */
     std::vector<std::vector<PK1StressFcnData> > d_PK1_stress_fcn_data;
 
-    /*
+    /*!
      * Objects used to impose direct forcing kinematics.
      */
     std::vector<SAMRAI::tbox::Pointer<IBAMR::IBFEDirectForcingKinematics> > d_direct_forcing_kinematics_data;
 
-    /*
+    /*!
      * Functions used to compute additional body and surface forces on the
      * Lagrangian mesh.
      */
@@ -1195,48 +1198,48 @@ protected:
     std::vector<LagSurfacePressureFcnData> d_lag_surface_pressure_fcn_data;
     std::vector<LagSurfaceForceFcnData> d_lag_surface_force_fcn_data;
 
-    /*
+    /*!
      * Functions used to compute source/sink strength on the Lagrangian mesh.
      */
     bool d_has_lag_body_source_parts = false;
     std::vector<bool> d_lag_body_source_part;
     std::vector<LagBodySourceFcnData> d_lag_body_source_fcn_data;
 
-    /*
+    /*!
      * Nonuniform load balancing data structures.
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
     int d_workload_idx = IBTK::invalid_index;
 
-    /*
+    /*!
      * The object name is used as a handle to databases stored in restart files
      * and for error reporting purposes.
      */
     std::string d_object_name;
 
-    /*
+    /*!
      * A boolean value indicating whether the class is registered with the
      * restart database.
      */
     bool d_registered_for_restart;
 
-    /*
+    /*!
      * Directory and time step number to use when restarting.
      */
     std::string d_libmesh_restart_read_dir;
     int d_libmesh_restart_restore_number;
 
-    /*
+    /*!
      * Restart file type for libMesh equation systems (e.g. xda or xdr).
      */
     std::string d_libmesh_restart_file_extension;
 
-    /**
+    /*!
      * database for the GriddingAlgorithm used with the scratch hierarchy.
      */
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_scratch_gridding_algorithm_db;
 
-    /**
+    /*!
      * database for the LoadBalancer used with the scratch hierarchy.
      */
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_scratch_load_balancer_db;

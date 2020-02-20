@@ -50,6 +50,7 @@ IBTK_DISABLE_EXTRA_WARNINGS
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <map>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -194,7 +195,7 @@ public:
     void clearCached();
 
 protected:
-    /*
+    /*!
      * The object name is used as a handle to databases stored in restart files
      * and for error reporting purposes.  The boolean is used to control restart
      * file writing operations.
@@ -211,12 +212,12 @@ protected:
      */
     std::string d_coordinates_system_name = "coordinates system";
 
-    /*
+    /*!
      * FE equation system associated with this data manager object.
      */
     libMesh::EquationSystems* d_es = nullptr;
 
-    /*
+    /*!
      * Cache of libMesh quadrature objects. Defaults to being an NDIM cache
      * but is overwritten once a libMesh::EquationSystems object is attached.
      */
@@ -232,7 +233,7 @@ protected:
      */
     std::map<unsigned int, std::unique_ptr<SystemDofMapCache> > d_system_dof_map_cache;
 
-    /*
+    /*!
      * Linear solvers and related data for performing interpolation in the IB-FE
      * framework.
      */
@@ -443,7 +444,7 @@ public:
      * Deallocate all of the FEDataManager instances.
      *
      * It is not necessary to call this function at program termination since it
-     * is automatically called by the ShutdownRegistry class.
+     * is automatically called by the SAMRAI::tbox::ShutdownRegistry class.
      */
     static void freeAllManagers();
 
@@ -916,8 +917,8 @@ public:
      * existing level in the hierarchy.
      *
      * @note This function is analogous to
-     * StandardTagAndInitStrategy::applyGradientDetector and is only meant to
-     * be called from IBFEMethod::applyGradientDetector.
+     * SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector() and is
+     * only meant to be called from IBAMR::IBFEMethod::applyGradientDetector().
      */
     void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                int level_number,
@@ -1057,7 +1058,7 @@ private:
     static bool s_registered_callback;
     static unsigned char s_shutdown_priority;
 
-    /*
+    /*!
      * The object name is used as a handle to databases stored in restart files
      * and for error reporting purposes.  The boolean is used to control restart
      * file writing operations.
@@ -1065,7 +1066,7 @@ private:
     std::string d_object_name;
     bool d_registered_for_restart;
 
-    /*
+    /*!
      * Whether or not to log data to the screen: see
      * FEDataManager::setLoggingEnabled() and
      * FEDataManager::getLoggingEnabled().
@@ -1075,7 +1076,7 @@ private:
      */
     bool d_enable_logging = false;
 
-    /*
+    /*!
      * We cache a pointer to the load balancer.
      *
      * @deprecated This pointer is never used and will be removed in the
@@ -1083,23 +1084,23 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
 
-    /*
+    /*!
      * Grid hierarchy information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
-    /*
+    /*!
      * Cached Eulerian data to reduce the number of allocations/deallocations.
      */
     std::shared_ptr<SAMRAIDataCache> d_eulerian_data_cache;
 
-    /*
+    /*!
      * SAMRAI::hier::VariableContext object used for data management.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
 
-    /*
+    /*!
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
      * cell variable used to keep track of the count of the quadrature points in
      * each cell.
@@ -1107,13 +1108,13 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_qp_count_var;
     int d_qp_count_idx;
 
-    /*
+    /*!
      * SAMRAI::xfer::RefineAlgorithm pointer to fill the ghost cell region of
      * SAMRAI variables.
      */
     SAMRAI::xfer::RefineAlgorithm<NDIM> d_ghost_fill_alg;
 
-    /*
+    /*!
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
      * cell variable used to determine the workload for nonuniform load
      * balancing.
@@ -1125,25 +1126,25 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
     int d_workload_idx = IBTK::invalid_index;
 
-    /*
+    /*!
      * The default parameters used during workload calculations.
      */
     const WorkloadSpec d_default_workload_spec;
 
-    /*
+    /*!
      * The default kernel functions and quadrature rule used to mediate
      * Lagrangian-Eulerian interaction.
      */
     const InterpSpec d_default_interp_spec;
     const SpreadSpec d_default_spread_spec;
 
-    /*
+    /*!
      * SAMRAI::hier::IntVector object which determines the ghost cell width used
      * to determine elements that are associated with each Cartesian grid patch.
      */
     const SAMRAI::hier::IntVector<NDIM> d_ghost_width;
 
-    /*
+    /*!
      * Data to manage mappings between mesh elements and grid patches.
      */
     std::vector<std::vector<libMesh::Elem*> > d_active_patch_elem_map;
@@ -1151,12 +1152,12 @@ private:
     std::map<std::string, std::vector<unsigned int> > d_active_patch_ghost_dofs;
     std::vector<std::pair<Point, Point> > d_active_elem_bboxes;
 
-    /*
+    /*!
      * Ghost vectors for the various equation systems.
      */
     std::map<std::string, std::unique_ptr<libMesh::NumericVector<double> > > d_system_ghost_vec;
 
-    /*
+    /*!
      * Exemplar relevant IB-ghosted vectors for the various equation
      * systems. These vectors are cloned for fast initialization in
      * buildIBGhostedVector.
