@@ -1,0 +1,3 @@
+Fixed: The 3D discontinuous linear spread kernel now works correctly.
+<br>
+(David Wells, 2020/02/15)

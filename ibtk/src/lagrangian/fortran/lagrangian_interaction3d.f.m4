@@ -280,7 +280,6 @@ c
      &           NINT((X_shifted(d)-x_lower(d))/dx(d)-0.5d0)
             X_cell(d) = x_lower(d) +
      &           (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-
             if ( d.eq.axis ) then
                if ( X_shifted(d).lt.X_cell(d) ) then
                   ic_lower(d) = ic_center(d)-1
@@ -406,12 +405,11 @@ c
 c     Determine the interpolation stencils and weights.
 c
          do d = 0,NDIM-1
+            ic_center(d) = ilower(d) +
+     &           NINT((X_shifted(d)-x_lower(d))/dx(d)-0.5d0)
+            X_cell(d) = x_lower(d) +
+     &           (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
             if ( d.eq.axis ) then
-               ic_center(d) = ilower(d) +
-     &              NINT((X_shifted(d)-x_lower(d))/dx(d)-0.5d0)
-               X_cell(d) = x_lower(d) +
-     &              (dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
-
                if ( X_shifted(d).lt.X_cell(d) ) then
                   ic_lower(d) = ic_center(d)-1
                   ic_upper(d) = ic_center(d)
