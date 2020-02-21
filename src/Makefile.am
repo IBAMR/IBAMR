@@ -13,4 +13,4 @@
 
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = IB fortran adv_diff advect complex_fluids level_set navier_stokes utilities wave_generation . tools
+SUBDIRS = IB fortran adv_diff advect complex_fluids level_set navier_stokes utilities wave_generation .
