@@ -100,9 +100,6 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorRe
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(u, f);
 
-    // Allocate scratch data.
-    d_fac_strategy->allocateScratchData();
-
     // Set the initial guess to equal zero.
     u.setToScalar(0.0, /*interior_only*/ false);
 
@@ -124,8 +121,6 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorRe
         TBOX_ASSERT(d_f);
         TBOX_ASSERT(d_r);
 #endif
-        d_f->allocateVectorData();
-        d_r->allocateVectorData();
         d_f->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&f, false), false);
         d_r->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&f, false), false);
         switch (d_cycle_type)
@@ -147,12 +142,7 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorRe
                                      << "  unsupported FAC cycle type: " << enum_to_string<MGCycleType>(d_cycle_type)
                                      << "." << std::endl);
         }
-        d_f->deallocateVectorData();
-        d_r->deallocateVectorData();
     }
-
-    // Deallocate scratch data.
-    d_fac_strategy->deallocateScratchData();
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -186,7 +176,12 @@ FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& s
     {
         d_f = rhs.cloneVector("");
         d_r = rhs.cloneVector("");
+        d_f->allocateVectorData();
+        d_r->allocateVectorData();
     }
+
+    // Allocate scratch data.
+    d_fac_strategy->allocateScratchData();
 
     // Indicate the operator is initialized.
     d_is_initialized = true;
@@ -198,15 +193,20 @@ FACPreconditioner::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
+    // Deallocate scratch data.
+    d_fac_strategy->deallocateScratchData();
+
     // Destroy temporary vectors.
     if (d_f)
     {
+        d_f->deallocateVectorData();
         d_f->freeVectorComponents();
         d_f.setNull();
     }
 
     if (d_r)
     {
+        d_r->deallocateVectorData();
         d_r->freeVectorComponents();
         d_r.setNull();
     }

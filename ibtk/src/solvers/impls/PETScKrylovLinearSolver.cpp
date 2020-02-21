@@ -199,9 +199,6 @@ PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
 #endif
     resetKSPOptions();
 
-    // Allocate scratch data.
-    d_b->allocateVectorData();
-
     // Solve the system using a PETSc KSP object.
     d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
     d_A->setHomogeneousBc(d_homogeneous_bc);
@@ -227,9 +224,6 @@ PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
     IBTK_CHKERRQ(ierr);
     const bool converged = (static_cast<int>(reason) > 0);
     if (d_enable_logging) reportKSPConvergedReason(reason, plog);
-
-    // Dealocate scratch data.
-    d_b->deallocateVectorData();
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -323,6 +317,9 @@ PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, doub
     d_b = b.cloneVector(b.getName());
     d_petsc_b = PETScSAMRAIVectorReal::createPETScVector(d_b, d_petsc_comm);
 
+    // Allocate scratch data.
+    d_b->allocateVectorData();
+
     // Initialize the linear operator and preconditioner objects.
     if (d_A) d_A->initializeOperatorState(*d_x, *d_b);
     if (d_managing_petsc_ksp || d_user_provided_mat) resetKSPOperators();
@@ -377,6 +374,9 @@ PETScKrylovLinearSolver::deallocateSolverState()
         if (d_pc_solver) d_pc_solver->deallocateSolverState();
         if (d_A) d_A->deallocateOperatorState();
     }
+
+    // Dealocate scratch data.
+    d_b->deallocateVectorData();
 
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);

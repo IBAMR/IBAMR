@@ -196,10 +196,6 @@ PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
     Pointer<PETScKrylovLinearSolver> p_krylov_solver = d_krylov_solver;
     if (p_krylov_solver) p_krylov_solver->resetKSPOptions();
 
-    // Allocate scratch data.
-    d_b->allocateVectorData();
-    d_r->allocateVectorData();
-
     // Solve the system using a PETSc SNES object.
     d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
     d_F->setHomogeneousBc(d_homogeneous_bc);
@@ -230,10 +226,6 @@ PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
     IBTK_CHKERRQ(ierr);
     const bool converged = (static_cast<int>(reason) > 0);
     if (d_enable_logging) reportSNESConvergedReason(reason, plog);
-
-    // Deallocate scratch data.
-    d_b->deallocateVectorData();
-    d_r->deallocateVectorData();
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -329,6 +321,10 @@ PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, doub
     d_r = b.cloneVector(b.getName());
     d_petsc_r = PETScSAMRAIVectorReal::createPETScVector(d_r, d_petsc_comm);
 
+    // Allocate scratch data.
+    d_b->allocateVectorData();
+    d_r->allocateVectorData();
+
     // Setup the nonlinear operator.
     if (d_F) d_F->initializeOperatorState(*d_x, *d_b);
     if (d_managing_petsc_snes || d_user_provided_function) resetSNESFunction();
@@ -385,6 +381,10 @@ PETScNewtonKrylovSolver::deallocateSolverState()
         if (d_J) d_J->deallocateOperatorState();
         if (d_F) d_F->deallocateOperatorState();
     }
+
+    // Deallocate scratch data.
+    d_b->deallocateVectorData();
+    d_r->deallocateVectorData();
 
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
