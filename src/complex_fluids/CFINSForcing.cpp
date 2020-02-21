@@ -150,7 +150,10 @@ CFINSForcing::commonConstructor(const Pointer<Database> input_db,
     // Read parameters from input file
     d_lambda = input_db->getDouble("relaxation_time");
     d_eta = input_db->getDouble("viscosity");
-    d_evolve_type = string_to_enum<TensorEvolutionType>(input_db->getStringWithDefault("evolution_type", "STANDARD"));
+    if (input_db->keyExists("evolution_type"))
+        d_evolve_type = string_to_enum<TensorEvolutionType>(input_db->getString("evolution_type"));
+    if (input_db->keyExists("evolve_type"))
+        d_evolve_type = string_to_enum<TensorEvolutionType>(input_db->getString("evolve_type"));
     if (input_db->keyExists("D")) d_adv_diff_integrator->setDiffusionCoefficient(d_W_cc_var, input_db->getDouble("D"));
     d_log_det = input_db->getBoolWithDefault("log_determinant", d_log_det);
     d_convec_oper_type = input_db->getStringWithDefault("convective_operator_type", "CENTERED");
