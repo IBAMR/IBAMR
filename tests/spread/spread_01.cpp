@@ -346,7 +346,10 @@ main(int argc, char** argv)
             out << "\nrank: " << SAMRAI_MPI::getRank() << '\n';
         }
 
-        ib_method_ops->spreadForce(f_ghost_idx, nullptr, {}, time_integrator->getIntegratorTime() + dt / 2);
+        // Test the accumulation code when we have meshes that are against the
+        // boundary (i.e., the cube and composite cube geometries)
+        RobinPhysBdryPatchStrategy* bdry_op = geometry == "sphere" ? nullptr : time_integrator->getVelocityPhysBdryOp();
+        ib_method_ops->spreadForce(f_ghost_idx, bdry_op, {}, time_integrator->getIntegratorTime() + dt / 2);
         const double cutoff = input_db->getDoubleWithDefault("output_cutoff_value", 0.0);
         {
             const int ln = patch_hierarchy->getFinestLevelNumber();
