@@ -1,0 +1,9 @@
+This folder contains scripts useful in formatting code.
+
+setup_clang_format_precommit_hook.sh
+  -- Bash script that reates a precommit hook to require clang-format to be run before commits.
+  -- Note this script must be run from the root directory of the project.
+  -- check_formatting.sh is a the script that is run during the precommit hook.
+
+reformat.sh
+  -- Bash script that runs clang-format on all source and header files in the IBAMR source code.
