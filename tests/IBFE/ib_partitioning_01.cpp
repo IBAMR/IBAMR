@@ -234,7 +234,7 @@ main(int argc, char** argv)
                     int ierr = MPI_Recv(bounds, 2, MPIU_INT, r, range_tag, SAMRAI_MPI::commWorld, MPI_STATUS_IGNORE);
                     TBOX_ASSERT(ierr == 0);
 
-                    PetscInt n;
+                    PetscInt n = std::numeric_limits<PetscInt>::max();
                     ierr = MPI_Recv(&n, 1, MPIU_INT, r, length_tag, SAMRAI_MPI::commWorld, MPI_STATUS_IGNORE);
                     TBOX_ASSERT(ierr == 0);
                     indices.resize(n);
