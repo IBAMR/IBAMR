@@ -1,10 +1,9 @@
 // This test is quite long because it also verifies that various quantities are
 // computed correctly after multiple regrids.
 //
-// should produce the same results as the test without a scratch hierarchy.
+// should produce the same results as the test with a scratch hierarchy.
 
 // test parameters
-log_scratch_partitioning = TRUE
 
 // physical parameters
 MU  = 0.01
@@ -118,43 +117,7 @@ IBFEMethod {
    libmesh_partitioner_type   = "LIBMESH_DEFAULT"
    workload_quad_point_weight = 1.0
 
-   use_scratch_hierarchy = TRUE
-
-   GriddingAlgorithm
-   {
-       max_levels = MAX_LEVELS
-       ratio_to_coarser
-       {
-           level_1 = REF_RATIO,REF_RATIO
-           level_2 = REF_RATIO,REF_RATIO
-           level_3 = REF_RATIO,REF_RATIO
-           level_4 = REF_RATIO,REF_RATIO
-           level_5 = REF_RATIO,REF_RATIO
-       }
-
-       largest_patch_size
-       {
-           level_0 = 32,32
-       }
-
-       smallest_patch_size
-       {
-           level_0 = 8,8
-       }
-
-       efficiency_tolerance = 0.1e0  // min % of tag cells in new patch level
-       combine_efficiency   = 0.1e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
-
-       coalesce_boxes = TRUE
-   }
-
-   LoadBalancer
-   {
-      type                = "DEFAULT"
-      bin_pack_method     = "SPATIAL"
-      max_workload_factor = 0.0625
-   }
-
+   use_scratch_hierarchy = FALSE
 }
 
 INSCollocatedHierarchyIntegrator {

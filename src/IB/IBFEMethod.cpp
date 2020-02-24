@@ -741,7 +741,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     {
         assertStructureOnFinestLevel();
         getPrimaryToScratchSchedule(
-            d_hierarchy->getFinestLevelNumber(), u_data_idx, d_ib_solver->getVelocityPhysBdryOp())
+            d_hierarchy->getFinestLevelNumber(), u_data_idx, u_data_idx, d_ib_solver->getVelocityPhysBdryOp())
             .fillData(data_time);
     }
 
@@ -929,33 +929,63 @@ IBFEMethod::spreadForce(const int f_data_idx,
     batch_vec_copy({ d_X_half_vecs, d_F_half_vecs }, { d_X_IB_ghost_vecs, d_F_IB_ghost_vecs });
     batch_vec_ghost_update({ d_X_IB_ghost_vecs, d_F_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
-    if (d_use_scratch_hierarchy)
-    {
-        assertStructureOnFinestLevel();
-        // TODO: we don't need a RefinePatchStrategy here, right?
-        getPrimaryToScratchSchedule(d_hierarchy->getFinestLevelNumber(), f_data_idx).fillData(data_time);
-    }
+    // set up a new data index for computing forces on the active hierarchy.
+    Pointer<PatchHierarchy<NDIM> > hierarchy = d_use_scratch_hierarchy ? d_scratch_hierarchy : d_hierarchy;
+    const int ln = hierarchy->getFinestLevelNumber();
+    const auto f_scratch_data_idx = d_active_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
+    // zero data.
+    Pointer<hier::Variable<NDIM> > f_var;
+    VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(f_data_idx, f_var);
+    auto f_active_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, hierarchy);
+    f_active_data_ops->resetLevels(ln, ln);
+    f_active_data_ops->setToScalar(f_scratch_data_idx, 0.0, /*interior_only*/ false);
 
     // Spread interior force density values.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
-        d_active_fe_data_managers[part]->spread(f_data_idx,
+        d_active_fe_data_managers[part]->spread(f_scratch_data_idx,
                                                 *F_ghost_vec,
                                                 *X_ghost_vec,
-                                                FORCE_SYSTEM_NAME,
-                                                f_phys_bdry_op,
-                                                data_time,
-                                                /*close_F*/ false,
-                                                /*close_X*/ false);
+                                                FORCE_SYSTEM_NAME);
+    }
+
+    // Deal with force values spread outside the physical domain.
+    if (f_phys_bdry_op)
+    {
+        f_phys_bdry_op->setPatchDataIndex(f_scratch_data_idx);
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_scratch_data_idx);
+            f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
+        }
     }
 
     if (d_use_scratch_hierarchy)
     {
+        // harder case: we have a scratch index on the scratch hierarchy but
+        // no corresponding index on the primary hierarchy.
+        //
+        // unlike the other data ops, this is always on the primary hierarchy
+        auto f_primary_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy);
+        f_primary_data_ops->resetLevels(ln, ln);
+        const auto f_primary_scratch_data_idx = d_primary_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
+        // we have to zero everything here since the scratch to primary
+        // communication does not touch ghost cells, which may have junk
+        f_primary_data_ops->setToScalar(f_primary_scratch_data_idx, 0.0, /*interior_only*/ false);
+
         assertStructureOnFinestLevel();
-        // TODO: we don't need a RefinePatchStrategy here, right?
-        getScratchToPrimarySchedule(d_hierarchy->getFinestLevelNumber(), f_data_idx).fillData(data_time);
+        getScratchToPrimarySchedule(ln, f_primary_scratch_data_idx, f_scratch_data_idx).fillData(data_time);
+        f_primary_data_ops->add(f_data_idx, f_data_idx, f_primary_scratch_data_idx);
+    }
+    else
+    {
+        // easier case: f_scratch_data_idx is on the primary hierarchy so we
+        // just need to add its values to those in f_data_idx
+        f_active_data_ops->add(f_data_idx, f_data_idx, f_scratch_data_idx);
     }
 
     // Handle any transmission conditions.
@@ -1094,7 +1124,7 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
     if (d_use_scratch_hierarchy)
     {
         assertStructureOnFinestLevel();
-        getPrimaryToScratchSchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx).fillData(data_time);
+        getPrimaryToScratchSchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx).fillData(data_time);
     }
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -1113,7 +1143,7 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
     if (d_use_scratch_hierarchy)
     {
         assertStructureOnFinestLevel();
-        getScratchToPrimarySchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx).fillData(data_time);
+        getScratchToPrimarySchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx).fillData(data_time);
     }
 
     return;
@@ -1173,6 +1203,7 @@ IBFEMethod::initializeFEEquationSystems()
     d_active_fe_data_managers.resize(d_num_parts, nullptr);
     IntVector<NDIM> min_ghost_width(0);
     if (!d_primary_eulerian_data_cache) d_primary_eulerian_data_cache.reset(new SAMRAIDataCache());
+    d_active_eulerian_data_cache = d_primary_eulerian_data_cache;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Create FE data managers.
@@ -1194,6 +1225,7 @@ IBFEMethod::initializeFEEquationSystems()
                                                                          min_ghost_width,
                                                                          d_scratch_eulerian_data_cache);
             d_active_fe_data_managers[part] = d_scratch_fe_data_managers[part];
+            d_active_eulerian_data_cache = d_scratch_eulerian_data_cache;
         }
         else
         {
@@ -3335,19 +3367,20 @@ IBFEMethod::initializeVelocity(const unsigned int part)
 
 SAMRAI::xfer::RefineSchedule<NDIM>&
 IBFEMethod::getPrimaryToScratchSchedule(const int level_number,
-                                        const int data_idx,
+                                        const int primary_data_idx,
+                                        const int scratch_data_idx,
                                         SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy)
 {
     TBOX_ASSERT(d_scratch_hierarchy);
-    const auto key = std::make_pair(level_number, data_idx);
+    const auto key = std::make_pair(level_number, std::make_pair(primary_data_idx, scratch_data_idx));
     if (d_scratch_transfer_forward_schedules.count(key) == 0)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         Pointer<PatchLevel<NDIM> > scratch_level = d_scratch_hierarchy->getPatchLevel(level_number);
-        if (!scratch_level->checkAllocated(data_idx)) scratch_level->allocatePatchData(data_idx, 0.0);
+        if (!scratch_level->checkAllocated(scratch_data_idx)) scratch_level->allocatePatchData(scratch_data_idx, 0.0);
         Pointer<RefineAlgorithm<NDIM> > refine_algorithm = new RefineAlgorithm<NDIM>();
         Pointer<RefineOperator<NDIM> > refine_op_f = nullptr;
-        refine_algorithm->registerRefine(data_idx, data_idx, data_idx, refine_op_f);
+        refine_algorithm->registerRefine(scratch_data_idx, primary_data_idx, scratch_data_idx, refine_op_f);
         d_scratch_transfer_forward_schedules[key] =
             refine_algorithm->createSchedule("DEFAULT_FILL", scratch_level, level, patch_strategy, false, nullptr);
     }
@@ -3356,18 +3389,19 @@ IBFEMethod::getPrimaryToScratchSchedule(const int level_number,
 
 SAMRAI::xfer::RefineSchedule<NDIM>&
 IBFEMethod::getScratchToPrimarySchedule(const int level_number,
-                                        const int data_idx,
+                                        const int primary_data_idx,
+                                        const int scratch_data_idx,
                                         SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy)
 {
     TBOX_ASSERT(d_scratch_hierarchy);
-    const auto key = std::make_pair(level_number, data_idx);
+    const auto key = std::make_pair(level_number, std::make_pair(primary_data_idx, scratch_data_idx));
     if (d_scratch_transfer_backward_schedules.count(key) == 0)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         Pointer<PatchLevel<NDIM> > scratch_level = d_scratch_hierarchy->getPatchLevel(level_number);
         Pointer<RefineAlgorithm<NDIM> > refine_algorithm = new RefineAlgorithm<NDIM>();
         Pointer<RefineOperator<NDIM> > refine_op_b = nullptr;
-        refine_algorithm->registerRefine(data_idx, data_idx, data_idx, refine_op_b);
+        refine_algorithm->registerRefine(primary_data_idx, scratch_data_idx, primary_data_idx, refine_op_b);
         d_scratch_transfer_backward_schedules[key] =
             refine_algorithm->createSchedule("DEFAULT_FILL", level, scratch_level, patch_strategy, false, nullptr);
     }
