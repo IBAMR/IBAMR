@@ -14,6 +14,8 @@
 #include "ibamr/CFINSForcing.h"
 #include "ibamr/namespaces.h"
 
+#include "ibtk/ibtk_utilities.h"
+
 extern "C"
 {
 #if (NDIM == 2)
@@ -655,28 +657,16 @@ CFINSForcing::checkPositiveDefinite(const int data_idx,
             for (CellIterator<NDIM> it(box); it; it++)
             {
                 const CellIndex<NDIM>& ci = *it;
-#if (NDIM == 2)
-                Eigen::Matrix2d tens(Eigen::Matrix2d::Zero());
-                tens(0, 0) = (*s_data)(ci, 0);
-                tens(0, 1) = tens(1, 0) = (*s_data)(ci, 2);
-                tens(1, 1) = (*s_data)(ci, 1);
-                Eigen::LLT<Eigen::Matrix2d> llt;
-#endif
-#if (NDIM == 3)
-                Eigen::Matrix3d tens(Eigen::Matrix3d::Zero());
-                tens(0, 0) = (*s_data)(ci, 0);
-                tens(1, 1) = (*s_data)(ci, 1);
-                tens(2, 2) = (*s_data)(ci, 2);
-                tens(0, 1) = tens(1, 0) = (*s_data)(ci, 5);
-                tens(0, 2) = tens(2, 0) = (*s_data)(ci, 4);
-                tens(1, 2) = tens(2, 1) = (*s_data)(ci, 3);
-                Eigen::LLT<Eigen::Matrix3d> llt;
-#endif
+                MatrixNd tens;
+                for (int k = 0; k < NDIM * (NDIM + 1) / 2; ++k)
+                {
+                    const std::pair<int, int>& idx = voigt_to_tensor_idx(k);
+                    tens(idx.first, idx.second) = tens(idx.second, idx.first) = (*s_data)(ci, k);
+                }
+                Eigen::LLT<MatrixNd> llt;
                 llt.compute(tens);
                 if (llt.info() == Eigen::NumericalIssue)
-                {
                     d_positive_def = false;
-                }
             }
         }
     }
@@ -707,33 +697,18 @@ CFINSForcing::squareMatrix(const int data_idx,
             for (CellIterator<NDIM> it(box); it; it++)
             {
                 CellIndex<NDIM> i = *it;
-#if (NDIM == 2)
-                Eigen::Matrix2d mat;
-                mat(0, 0) = (*data)(i, 0);
-                mat(1, 0) = (*data)(i, 2);
-                mat(0, 1) = (*data)(i, 2);
-                mat(1, 1) = (*data)(i, 1);
-                mat = mat * mat;
-                (*data)(i, 0) = mat(0, 0);
-                (*data)(i, 1) = mat(1, 1);
-                (*data)(i, 2) = mat(0, 1);
-#endif
-#if (NDIM == 3)
-                Eigen::Matrix3d mat;
-                mat(0, 0) = (*data)(i, 0);
-                mat(1, 1) = (*data)(i, 1);
-                mat(2, 2) = (*data)(i, 2);
-                mat(1, 2) = mat(2, 1) = (*data)(i, 3);
-                mat(0, 2) = mat(2, 0) = (*data)(i, 4);
-                mat(0, 1) = mat(1, 0) = (*data)(i, 5);
-                mat = mat * mat;
-                (*data)(i, 0) = mat(0, 0);
-                (*data)(i, 1) = mat(1, 1);
-                (*data)(i, 2) = mat(2, 2);
-                (*data)(i, 3) = mat(1, 2);
-                (*data)(i, 4) = mat(0, 2);
-                (*data)(i, 5) = mat(0, 1);
-#endif
+                MatrixNd tens;
+                for (int k = 0; k < NDIM * (NDIM + 1) / 2; ++k)
+                {
+                    const std::pair<int, int>& idx = voigt_to_tensor_idx(k);
+                    tens(idx.first, idx.second) = tens(idx.second, idx.first) = (*data)(i, k);
+                }
+                tens = tens * tens;
+                for (int k = 0; k < NDIM * (NDIM + 1) / 2; ++k)
+                {
+                    const std::pair<int, int>& idx = voigt_to_tensor_idx(k);
+                    (*data)(i, k) = tens(idx.first, idx.second);
+                }
             }
         }
     }
@@ -796,33 +771,18 @@ CFINSForcing::exponentiateMatrix(const int data_idx,
             for (CellIterator<NDIM> it(box); it; it++)
             {
                 CellIndex<NDIM> i = *it;
-#if (NDIM == 2)
-                Eigen::Matrix2d mat;
-                mat(0, 0) = (*data)(i, 0);
-                mat(1, 0) = (*data)(i, 2);
-                mat(0, 1) = (*data)(i, 2);
-                mat(1, 1) = (*data)(i, 1);
-                mat = mat.exp();
-                (*data)(i, 0) = mat(0, 0);
-                (*data)(i, 1) = mat(1, 1);
-                (*data)(i, 2) = mat(0, 1);
-#endif
-#if (NDIM == 3)
-                Eigen::Matrix3d mat;
-                mat(0, 0) = (*data)(i, 0);
-                mat(1, 1) = (*data)(i, 1);
-                mat(2, 2) = (*data)(i, 2);
-                mat(1, 2) = mat(2, 1) = (*data)(i, 3);
-                mat(0, 2) = mat(2, 0) = (*data)(i, 4);
-                mat(0, 1) = mat(1, 0) = (*data)(i, 5);
-                mat = mat.exp();
-                (*data)(i, 0) = mat(0, 0);
-                (*data)(i, 1) = mat(1, 1);
-                (*data)(i, 2) = mat(2, 2);
-                (*data)(i, 3) = mat(1, 2);
-                (*data)(i, 4) = mat(0, 2);
-                (*data)(i, 5) = mat(0, 1);
-#endif
+                MatrixNd tens;
+                for (int k = 0; k < NDIM * (NDIM + 1) / 2; ++k)
+                {
+                    const std::pair<int, int>& idx = voigt_to_tensor_idx(k);
+                    tens(idx.first, idx.second) = tens(idx.second, idx.first) = (*data)(i, k);
+                }
+                tens = tens.exp();
+                for (int k = 0; k < NDIM * (NDIM + 1) / 2; ++k)
+                {
+                    const std::pair<int, int>& idx = voigt_to_tensor_idx(k);
+                    (*data)(i, k) = tens(idx.first, idx.second);
+                }
             }
         }
     }
@@ -849,53 +809,26 @@ CFINSForcing::projectTensor(const int data_idx,
             for (CellIterator<NDIM> it(box); it; it++)
             {
                 CellIndex<NDIM> i = *it;
-#if (NDIM == 2)
-                Eigen::Matrix2d c;
-                Eigen::SelfAdjointEigenSolver<Matrix2d> eigs;
-                c(0, 0) = (*data)(i, 0);
-                c(1, 1) = (*data)(i, 1);
-                c(0, 1) = c(1, 0) = (*data)(i, 2);
-                eigs.computeDirect(c);
-                Eigen::Matrix2d eig_vals(Eigen::Matrix2d::Zero());
-                eig_vals(0, 0) = eigs.eigenvalues()(0);
-                eig_vals(1, 1) = eigs.eigenvalues()(1);
-                eig_vals(0, 0) = std::max(eig_vals(0, 0), 0.0);
-                eig_vals(1, 1) = std::max(eig_vals(1, 1), 0.0);
-                Eigen::Matrix2d eig_vecs = eigs.eigenvectors();
-#endif
-#if (NDIM == 3)
-                Eigen::Matrix3d c;
-                Eigen::SelfAdjointEigenSolver<Matrix3d> eigs;
-                c(0, 0) = (*data)(i, 0);
-                c(1, 1) = (*data)(i, 1);
-                c(2, 2) = (*data)(i, 2);
-                c(2, 1) = c(1, 2) = (*data)(i, 3);
-                c(0, 2) = c(2, 0) = (*data)(i, 4);
-                c(0, 1) = c(1, 0) = (*data)(i, 5);
-                eigs.computeDirect(c);
-                Eigen::Matrix3d eig_vals(Eigen::Matrix3d::Zero());
-                eig_vals(0, 0) = eigs.eigenvalues()(0);
-                eig_vals(1, 1) = eigs.eigenvalues()(1);
-                eig_vals(2, 2) = eigs.eigenvalues()(2);
-                eig_vals(0, 0) = std::max(eig_vals(0, 0), 0.0);
-                eig_vals(1, 1) = std::max(eig_vals(1, 1), 0.0);
-                eig_vals(2, 2) = std::max(eig_vals(2, 2), 0.0);
-                Eigen::Matrix3d eig_vecs = eigs.eigenvectors();
-#endif
-                c = eig_vecs * eig_vals * eig_vecs.transpose();
-#if (NDIM == 2)
-                (*data)(i, 0) = c(0, 0);
-                (*data)(i, 1) = c(1, 1);
-                (*data)(i, 2) = c(0, 1);
-#endif
-#if (NDIM == 3)
-                (*data)(i, 0) = c(0, 0);
-                (*data)(i, 1) = c(1, 1);
-                (*data)(i, 2) = c(2, 2);
-                (*data)(i, 3) = c(1, 2);
-                (*data)(i, 4) = c(0, 2);
-                (*data)(i, 5) = c(0, 1);
-#endif
+                MatrixNd tens;
+                Eigen::SelfAdjointEigenSolver<MatrixNd> eigs;
+                for (int k = 0; k < NDIM * (NDIM + 1) / 2; ++k)
+                {
+                    const std::pair<int, int>& idx = voigt_to_tensor_idx(k);
+                    tens(idx.first, idx.second) = tens(idx.second, idx.first) = (*data)(i, k);
+                }
+                eigs.computeDirect(tens);
+                MatrixNd eig_vals(MatrixNd::Zero());
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    eig_vals(d, d) = std::max(eigs.eigenvalues()(d), 0.0);
+                }
+                MatrixNd eig_vecs = eigs.eigenvectors();
+                tens = eig_vecs * eig_vals * eig_vecs.transpose();
+                for (int k = 0; k < NDIM * (NDIM + 1) / 2; ++k)
+                {
+                    const std::pair<int, int>& idx = voigt_to_tensor_idx(k);
+                    (*data)(i, k) = tens(idx.first, idx.second);
+                }
             }
         }
     }
