@@ -1126,7 +1126,7 @@ FEDataManager::spread(const int f_data_idx,
 
     // Accumulate data.
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
-    f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
+    f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx, /*interior_only*/ false);
 
     return;
 } // spread
