@@ -731,18 +731,22 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                 const double data_time)
 {
-    // Communicate ghost data.
-    for (const auto& u_ghost_fill_sched : u_ghost_fill_scheds)
-    {
-        if (u_ghost_fill_sched) u_ghost_fill_sched->fillData(data_time);
-    }
-
     if (d_use_scratch_hierarchy)
     {
         assertStructureOnFinestLevel();
         getPrimaryToScratchSchedule(
             d_hierarchy->getFinestLevelNumber(), u_data_idx, u_data_idx, d_ib_solver->getVelocityPhysBdryOp())
             .fillData(data_time);
+    }
+    else
+    {
+        // Communicate ghost data. Note that this only needs to be done when
+        // we do *not* use the scratch hierarchy since the schedule will, in
+        // that case, fill ghost data.
+        for (const auto& u_ghost_fill_sched : u_ghost_fill_scheds)
+        {
+            if (u_ghost_fill_sched) u_ghost_fill_sched->fillData(data_time);
+        }
     }
 
     std::vector<PetscVector<double>*> U_vecs(d_num_parts), X_vecs(d_num_parts);
