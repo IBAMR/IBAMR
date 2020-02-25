@@ -542,6 +542,32 @@ IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDI
 } // setupTagBuffer
 
 void
+IBFEMethod::inactivateLagrangianStructure(int structure_number, int /*level_number*/)
+{
+    // make sure we don't call before things are properly initialized
+    TBOX_ASSERT(static_cast<std::size_t>(structure_number) < d_part_is_active.size());
+    d_part_is_active[structure_number] = false;
+    return;
+} // inactivateLagrangianStructures
+
+void
+IBFEMethod::activateLagrangianStructure(int structure_number, int /*level_number*/)
+{
+    // make sure we don't call before things are properly initialized
+    TBOX_ASSERT(static_cast<std::size_t>(structure_number) < d_part_is_active.size());
+    d_part_is_active[structure_number] = true;
+    return;
+} // activateLagrangianStructures
+
+bool
+IBFEMethod::getLagrangianStructureIsActivated(int structure_number, int /*level_number*/) const
+{
+    // make sure we don't call before things are properly initialized
+    TBOX_ASSERT(static_cast<std::size_t>(structure_number) < d_part_is_active.size());
+    return d_part_is_active[structure_number];
+} // activateLagrangianStructures
+
+void
 IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
     d_started_time_integration = true;
@@ -778,14 +804,21 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     // Build the right-hand-sides to compute the interpolated data.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        d_active_fe_data_managers[part]->interpWeighted(u_data_idx,
-                                                        *d_U_rhs_vecs[part],
-                                                        *d_X_IB_ghost_vecs[part],
-                                                        VELOCITY_SYSTEM_NAME,
-                                                        no_fill,
-                                                        data_time,
-                                                        /*close_F*/ false,
-                                                        /*close_X*/ false);
+        if (d_part_is_active[part])
+        {
+            d_active_fe_data_managers[part]->interpWeighted(u_data_idx,
+                                                            *d_U_rhs_vecs[part],
+                                                            *d_X_IB_ghost_vecs[part],
+                                                            VELOCITY_SYSTEM_NAME,
+                                                            no_fill,
+                                                            data_time,
+                                                            /*close_F*/ false,
+                                                            /*close_X*/ false);
+        }
+        else
+        {
+            d_U_rhs_vecs[part]->zero();
+        }
     }
 
     // Note that FEDataManager only reads (and does not modify) Eulerian data
@@ -805,15 +838,22 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     // Solve for the interpolated data.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        // TODO: Commenting out this line changes the solution slightly.
-        *d_U_systems[part]->solution = *U_vecs[part];
-        d_active_fe_data_managers[part]->computeL2Projection(*d_U_systems[part]->solution,
-                                                             *d_U_rhs_vecs[part],
-                                                             VELOCITY_SYSTEM_NAME,
-                                                             d_interp_spec[part].use_consistent_mass_matrix,
-                                                             /*close_U*/ false,
-                                                             /*close_F*/ false);
-        *U_vecs[part] = *d_U_systems[part]->solution;
+        if (d_part_is_active[part])
+        {
+            // TODO: Commenting out this line changes the solution slightly.
+            *d_U_systems[part]->solution = *U_vecs[part];
+            d_active_fe_data_managers[part]->computeL2Projection(*d_U_systems[part]->solution,
+                                                                 *d_U_rhs_vecs[part],
+                                                                 VELOCITY_SYSTEM_NAME,
+                                                                 d_interp_spec[part].use_consistent_mass_matrix,
+                                                                 /*close_U*/ false,
+                                                                 /*close_F*/ false);
+            *U_vecs[part] = *d_U_systems[part]->solution;
+        }
+        else
+        {
+            U_vecs[part]->zero();
+        }
     }
     return;
 } // interpolateVelocity
@@ -948,6 +988,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
     // Spread interior force density values.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
+        if (!d_part_is_active[part]) continue;
         PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         d_active_fe_data_managers[part]->spread(f_scratch_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME);
@@ -993,6 +1034,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
     // Handle any transmission conditions.
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
+        if (!d_part_is_active[part]) continue;
         PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         if (d_split_normal_force || d_split_tangential_force)
@@ -1131,7 +1173,8 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        if (!d_lag_body_source_part[part]) continue;
+        if (!d_lag_body_source_part[part] || !d_part_is_active[part]) continue;
+
         d_active_fe_data_managers[part]->spread(q_data_idx,
                                                 *d_Q_IB_ghost_vecs[part],
                                                 *d_X_IB_ghost_vecs[part],
@@ -1883,6 +1926,9 @@ IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierar
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
+        // We still apply the gradient detector (i.e., tag cells for
+        // refinement that contain Lagrangian points) even if a part is
+        // disabled so that it can be reenabled without needing to regrid
         auto* fe_data_manager = hierarchy == d_primary_fe_data_managers[part]->getPatchHierarchy() ?
                                     d_primary_fe_data_managers[part] :
                                     d_scratch_fe_data_managers[part];
@@ -3451,6 +3497,7 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     d_default_spread_spec = FEDataManager::SpreadSpec(
         "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, use_nodal_quadrature);
 
+    d_part_is_active.resize(d_num_parts, true);
     d_fe_family.resize(d_num_parts, INVALID_FE);
     d_fe_order.resize(d_num_parts, INVALID_ORDER);
     d_default_quad_type.resize(d_num_parts, INVALID_Q_RULE);
