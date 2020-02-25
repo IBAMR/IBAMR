@@ -258,6 +258,7 @@ AC_CONFIG_FILES([
   tests/IB/Makefile
   tests/IBFE/Makefile
   tests/IBTK/Makefile
+  tests/interpolate/Makefile
   tests/level_set/Makefile
   tests/multiphase_flow/Makefile
   tests/navier_stokes/Makefile
