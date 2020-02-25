@@ -618,6 +618,35 @@ public:
                         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) const override;
 
     /*!
+     * Inactivate a structure/part. See IBAMR::IBStrategy::inactivateLagrangianStructure().
+     *
+     * @note Since this class assumes that structures live on the finest grid
+     * level the second argument is ignored.
+     */
+    virtual void inactivateLagrangianStructure(int structure_number = 0,
+                                               int level_number = std::numeric_limits<int>::max()) override;
+
+    /*!
+     * Activate a previously inactivated structure/part to be used again in
+     * FSI calculations. See IBAMR::IBStrategy::activateLagrangianStructure().
+     *
+     * @note Since this class assumes that structures live on the finest grid
+     * level the second argument is ignored.
+     */
+    virtual void activateLagrangianStructure(int structure_number = 0,
+                                             int level_number = std::numeric_limits<int>::max()) override;
+
+    /*!
+     * Determine whether or not the given structure or part is currently
+     * activated. See IBAMR::IBStrategy::getLagrangianStructureIsActivated().
+     *
+     * @note Since this class assumes that structures live on the finest grid
+     * level the second argument is ignored.
+     */
+    virtual bool getLagrangianStructureIsActivated(int structure_number = 0,
+                                                   int level_number = std::numeric_limits<int>::max()) const override;
+
+    /*!
      * Method to prepare to advance data from current_time to new_time.
      */
     void preprocessIntegrateData(double current_time, double new_time, int num_cycles) override;
@@ -846,21 +875,21 @@ public:
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*!
-    * For technical reasons this class does not use SAMRAI's RestartManager, so 
-    * restart files must be separately written for the IBFE objects. This function 
-    * saves the solutions to the defined EquationSystems in an xdr file in 
-    * restart_dump_dirname for each FE part. An example snippet is included below to show 
-    * the distinct IBFE restart data saving step. The data will then be automatically 
-    * read back into the system along with the RestartManager data during restart.
-    *
-    * @code
-    * if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
-    * {
-    *     RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
-    *     ib_method_ops->writeFEDataToRestartFile(restart_dump_dirname, iteration_num);
-    * }
-    * @endcode   
-    */
+     * For technical reasons this class does not use SAMRAI's RestartManager, so
+     * restart files must be separately written for the IBFE objects. This function
+     * saves the solutions to the defined EquationSystems in an xdr file in
+     * restart_dump_dirname for each FE part. An example snippet is included below to show
+     * the distinct IBFE restart data saving step. The data will then be automatically
+     * read back into the system along with the RestartManager data during restart.
+     *
+     * @code
+     * if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
+     * {
+     *     RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
+     *     ib_method_ops->writeFEDataToRestartFile(restart_dump_dirname, iteration_num);
+     * }
+     * @endcode
+     */
     void writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number);
 
     /*!
@@ -1063,6 +1092,11 @@ protected:
 
     /// Number of parts owned by the present object.
     const unsigned int d_num_parts = 1;
+
+    /// Indexing information determining whether a given part is active or not.
+    /// The default state for each part is to be active. Parts are active
+    /// unless inactivated via inactivateLagrangianStructure().
+    std::vector<bool> d_part_is_active{ true };
 
     /// FEDataManager objects associated with the primary hierarchy (i.e.,
     /// d_hierarchy). These are used by some other objects (such as

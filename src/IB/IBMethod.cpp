@@ -289,6 +289,32 @@ IBMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM>
 } // setupTagBuffer
 
 void
+IBMethod::inactivateLagrangianStructure(int structure_number, int level_number)
+{
+    if (level_number == std::numeric_limits<int>::max()) level_number = d_hierarchy->getFinestLevelNumber();
+    TBOX_ASSERT(d_l_data_manager);
+    d_l_data_manager->inactivateLagrangianStructures({ structure_number }, level_number);
+    return;
+} // inactivateLagrangianStructures
+
+void
+IBMethod::activateLagrangianStructure(int structure_number, int level_number)
+{
+    if (level_number == std::numeric_limits<int>::max()) level_number = d_hierarchy->getFinestLevelNumber();
+    TBOX_ASSERT(d_l_data_manager);
+    d_l_data_manager->activateLagrangianStructures({ structure_number }, level_number);
+    return;
+} // activateLagrangianStructures
+
+bool
+IBMethod::getLagrangianStructureIsActivated(int structure_number, int level_number) const
+{
+    if (level_number == std::numeric_limits<int>::max()) level_number = d_hierarchy->getFinestLevelNumber();
+    TBOX_ASSERT(d_l_data_manager);
+    return d_l_data_manager->getLagrangianStructureIsActivated(structure_number, level_number);
+} // activateLagrangianStructures
+
+void
 IBMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
 {
     d_current_time = current_time;

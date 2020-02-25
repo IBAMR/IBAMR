@@ -59,8 +59,9 @@
  * 1. Basic reproducibility of the IBFE stack (IBExplicitHierarchyIntegrator,
  *    INSStaggeredHierarchyIntegrator, and IBFEMethod)
  * 2. IBFE restart code
- * 3. IBFECentroidPostProcessor
- * 4. IBTK::MergingLoadBalancer
+ * 3. IBFE part inactivation
+ * 4. IBFECentroidPostProcessor
+ * 5. IBTK::MergingLoadBalancer
  */
 
 // Elasticity model data.
@@ -96,6 +97,21 @@ PK1_dev_stress_function(TensorValue<double>& PP,
     PP = 2.0 * c1_s * FF;
     return;
 } // PK1_dev_stress_function
+
+void
+PK1_dev_inactive_stress_function(TensorValue<double>& PP,
+                                 const TensorValue<double>& FF,
+                                 const libMesh::Point& /*X*/,
+                                 const libMesh::Point& /*s*/,
+                                 Elem* const /*elem*/,
+                                 const vector<const vector<double>*>& /*var_data*/,
+                                 const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                                 double /*time*/,
+                                 void* /*ctx*/)
+{
+    PP = 1e3 * c1_s * FF;
+    return;
+} // PK1_dev_inactive_stress_function
 
 void
 PK1_dil_stress_function(TensorValue<double>& PP,
@@ -217,12 +233,28 @@ main(int argc, char** argv)
         }
 #endif
         mesh.prepare_for_use();
+
+        ReplicatedMesh mesh_2(init.comm(), NDIM);
+        // extra parameter controlling whether or not to add an inactive mesh
+        // to test our ability to turn structures off and on
+        const bool use_inactive_mesh = input_db->getBoolWithDefault("use_inactive_mesh", false);
+        if (use_inactive_mesh)
+        {
+            // Add a substantial mesh near the top of the domain
+#if NDIM == 2
+            MeshTools::Generation::build_square(mesh_2, 10, 12, 0.0, 1.0, 0.15, 0.95, libMesh::QUAD9);
+#else
+            MeshTools::Generation::build_cube(mesh_2, 5, 6, 7, 0.0, 1.0, 0.0, 1.0, 0.15, 0.95, libMesh::HEX27);
+#endif
+        }
+
         // metis does a good job partitioning, but the partitioning relies on
         // random numbers: the seed changed in libMesh commit
         // 98cede90ca8837688ee13aac5e299a3765f083da (between 1.3.1 and
         // 1.4.0). Hence, to achieve consistent partitioning, use a simpler partitioning scheme:
         LinearPartitioner partitioner;
         partitioner.partition(mesh);
+        if (use_inactive_mesh) partitioner.partition(mesh_2);
 
         c1_s = input_db->getDouble("C1_S");
         p0_s = input_db->getDouble("P0_S");
@@ -257,14 +289,18 @@ main(int argc, char** argv)
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
+        std::vector<libMesh::MeshBase*> meshes;
+        meshes.push_back(&mesh);
+        if (use_inactive_mesh) meshes.push_back(&mesh_2);
         Pointer<IBFEMethod> ib_method_ops =
             new IBFEMethod("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
-                           &mesh,
+                           meshes,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
                            /*register_for_restart*/ true,
                            restart_read_dirname,
                            restart_restore_num);
+        if (use_inactive_mesh) ib_method_ops->inactivateLagrangianStructure(1);
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
@@ -293,6 +329,13 @@ main(int argc, char** argv)
             Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER", "FIRST"));
         ib_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
         ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
+
+        IBFEMethod::PK1StressFcnData PK1_dev_inactive_stress_data(PK1_dev_inactive_stress_function);
+        PK1_dev_inactive_stress_data.quad_order = PK1_dev_stress_data.quad_order;
+        if (use_inactive_mesh)
+        {
+            ib_method_ops->registerPK1StressFunction(PK1_dev_inactive_stress_data, 1);
+        }
         if (input_db->getBoolWithDefault("ELIMINATE_PRESSURE_JUMPS", false))
         {
             ib_method_ops->registerStressNormalizationPart();
