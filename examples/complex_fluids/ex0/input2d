@@ -11,10 +11,8 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on f
 
 // Complex Fluid parameters
 FLUID_MODEL = "OLDROYDB"
-CONFORMATION_TENSOR = TRUE
-SQUARE_ROOT_EVOLVE  = FALSE
+EVOLVE_TYPE = "STANDARD"
 LOG_DETERMINANT     = TRUE
-LOG_CONFORM_EVOLVE  = FALSE
 CONVECTIVE_OPERATOR_TYPE     = "WAVE_PROP"
 OUTPUT_CONFORMATION_TENSOR = TRUE
 OUTPUT_STRESS_TENSOR = FALSE
@@ -151,10 +149,8 @@ ExtraStressBoundaryConditions_2 {
 relaxation_time = RELAXATION_TIME
 viscosity = VISCOSITY
 fluid_model         = FLUID_MODEL
-conformation_tensor = CONFORMATION_TENSOR
-square_root_evolve  = SQUARE_ROOT_EVOLVE
+evolution_type = EVOLVE_TYPE
 log_determinant     = LOG_DETERMINANT
-log_conform_evolve  = LOG_CONFORM_EVOLVE
 convective_operator_type     = CONVECTIVE_OPERATOR_TYPE
 output_stress_tensor = OUTPUT_STRESS_TENSOR
 output_conformation_tensor = OUTPUT_CONFORMATION_TENSOR

@@ -1,0 +1,238 @@
+// grid spacing parameters
+MAX_LEVELS = 1                            // maximum number of levels in locally refined grid
+REF_RATIO  = 4                            // refinement ratio between levels
+N = 32                                    // actual    number of grid cells on coarsest grid level
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
+
+// Complex Fluid parameters
+RELAX_OP = "OLDROYDB"
+VAR_CENTERING = "SIDE"
+RELAXATION_TIME = 1.0
+EVOLVE_TYPE = "LOGARITHM"
+QXX = "sin(2*PI*X_0)+2"
+QYY = "cos(2*PI*X_1)+2"
+QZZ = "sin(2*PI*X_2)+2"
+QYZ = "0.0"
+QXZ = "0.0"
+QXY = "0.0"
+
+
+ComplexFluid {
+   relaxation_time = RELAXATION_TIME
+   viscosity = 1.0
+   output_conformation_tensor = FALSE
+   output_stress_tensor = FALSE
+   output_divergence = FALSE
+   evolution_type = EVOLVE_TYPE
+   InitialConditions {
+       function_0 = QXX
+       function_1 = QYY
+       function_2 = QZZ
+       function_3 = QYZ
+       function_4 = QXZ
+       function_5 = QXY
+   }
+   ExtraStressBoundaryConditions_0 {
+      acoef_function_0 = "1.0"
+      acoef_function_1 = "1.0"
+      acoef_function_2 = "1.0"
+      acoef_function_3 = "1.0"
+      acoef_function_4 = "1.0"
+      acoef_function_5 = "1.0"
+
+      bcoef_function_0 = "0.0"
+      bcoef_function_1 = "0.0"
+      bcoef_function_2 = "0.0"
+      bcoef_function_3 = "0.0"
+      bcoef_function_4 = "0.0"
+      bcoef_function_5 = "0.0"
+
+      gcoef_function_0 = QXX
+      gcoef_function_1 = QXX
+      gcoef_function_2 = QXX
+      gcoef_function_3 = QXX
+      gcoef_function_4 = QXX
+      gcoef_function_5 = QXX
+   }
+
+   ExtraStressBoundaryConditions_1 {
+      acoef_function_0 = "1.0"
+      acoef_function_1 = "1.0"
+      acoef_function_2 = "1.0"
+      acoef_function_3 = "1.0"
+      acoef_function_4 = "1.0"
+      acoef_function_5 = "1.0"
+
+      bcoef_function_0 = "0.0"
+      bcoef_function_1 = "0.0"
+      bcoef_function_2 = "0.0"
+      bcoef_function_3 = "0.0"
+      bcoef_function_4 = "0.0"
+      bcoef_function_5 = "0.0"
+
+      gcoef_function_0 = QYY
+      gcoef_function_1 = QYY
+      gcoef_function_2 = QYY
+      gcoef_function_3 = QYY
+      gcoef_function_4 = QYY
+      gcoef_function_5 = QYY
+   }
+
+   ExtraStressBoundaryConditions_2 {
+      acoef_function_0 = "1.0"
+      acoef_function_1 = "1.0"
+      acoef_function_2 = "1.0"
+      acoef_function_3 = "1.0"
+      acoef_function_4 = "1.0"
+      acoef_function_5 = "1.0"
+
+      bcoef_function_0 = "0.0"
+      bcoef_function_1 = "0.0"
+      bcoef_function_2 = "0.0"
+      bcoef_function_3 = "0.0"
+      bcoef_function_4 = "0.0"
+      bcoef_function_5 = "0.0"
+
+      gcoef_function_0 = QZZ
+      gcoef_function_1 = QZZ
+      gcoef_function_2 = QZZ
+      gcoef_function_3 = QZZ
+      gcoef_function_4 = QZZ
+      gcoef_function_5 = QZZ
+   }
+   ExtraStressBoundaryConditions_3 {
+      acoef_function_0 = "1.0"
+      acoef_function_1 = "1.0"
+      acoef_function_2 = "1.0"
+      acoef_function_3 = "1.0"
+      acoef_function_4 = "1.0"
+      acoef_function_5 = "1.0"
+
+      bcoef_function_0 = "0.0"
+      bcoef_function_1 = "0.0"
+      bcoef_function_2 = "0.0"
+      bcoef_function_3 = "0.0"
+      bcoef_function_4 = "0.0"
+      bcoef_function_5 = "0.0"
+
+      gcoef_function_0 = QYZ
+      gcoef_function_1 = QYZ
+      gcoef_function_2 = QYZ
+      gcoef_function_3 = QYZ
+      gcoef_function_4 = QYZ
+      gcoef_function_5 = QYZ
+   }
+   ExtraStressBoundaryConditions_4 {
+      acoef_function_0 = "1.0"
+      acoef_function_1 = "1.0"
+      acoef_function_2 = "1.0"
+      acoef_function_3 = "1.0"
+      acoef_function_4 = "1.0"
+      acoef_function_5 = "1.0"
+
+      bcoef_function_0 = "0.0"
+      bcoef_function_1 = "0.0"
+      bcoef_function_2 = "0.0"
+      bcoef_function_3 = "0.0"
+      bcoef_function_4 = "0.0"
+      bcoef_function_5 = "0.0"
+
+      gcoef_function_0 = QXZ
+      gcoef_function_1 = QXZ
+      gcoef_function_2 = QXZ
+      gcoef_function_3 = QXZ
+      gcoef_function_4 = QXZ
+      gcoef_function_5 = QXZ
+   }
+   ExtraStressBoundaryConditions_5 {
+      acoef_function_0 = "1.0"
+      acoef_function_1 = "1.0"
+      acoef_function_2 = "1.0"
+      acoef_function_3 = "1.0"
+      acoef_function_4 = "1.0"
+      acoef_function_5 = "1.0"
+
+      bcoef_function_0 = "0.0"
+      bcoef_function_1 = "0.0"
+      bcoef_function_2 = "0.0"
+      bcoef_function_3 = "0.0"
+      bcoef_function_4 = "0.0"
+      bcoef_function_5 = "0.0"
+
+      gcoef_function_0 = QXY
+      gcoef_function_1 = QXY
+      gcoef_function_2 = QXY
+      gcoef_function_3 = QXY
+      gcoef_function_4 = QXY
+      gcoef_function_5 = QXY
+   }
+   FCN {
+       function_0 = "2*PI*cos(2*PI*X_0)*exp(2+sin(2*PI*X_0))"
+       function_1 = "-2*PI*sin(2*PI*X_1)*exp(2+cos(2*PI*X_1))"
+       function_2 = "2*PI*cos(2*PI*X_2)*exp(2+sin(2*PI*X_2))"
+   }
+}
+
+Main {
+// log file parameters
+   log_file_name               = "output"
+   log_all_nodes               = FALSE
+
+// visualization dump parameters
+   viz_writer                  = "VisIt"
+   viz_dump_interval           = 0
+   viz_dump_dirname            = "visit"
+   visit_number_procs_per_file = 1
+
+// restart dump parameters
+   restart_dump_interval       = 0
+   restart_dump_dirname        = "restart_INS2d"
+
+// timer dump parameters
+   timer_dump_interval         = 0
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0,0),(N - 1,N - 1,N - 1) ]
+   x_lo = 0.0, 0.0, 0.0
+   x_up = 1.0, 1.0, 1.0
+   periodic_dimension = 0,0,0
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_2 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO,REF_RATIO
+   }
+   largest_patch_size {
+      level_0 = 512,512,512  // all finer levels will use same values as level_0
+   }
+   smallest_patch_size {
+      level_0 =   4,  4, 4  // all finer levels will use same values as level_0
+   }
+   efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+   }
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total     = TRUE
+   print_threshold = 0.1
+   timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
+}
+AdvDiffHierarchyIntegrator {
+}
+

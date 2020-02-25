@@ -1,6 +1,6 @@
 AdvDiffHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
 Conformation tensor is SPD
 Error norms:
-  L1-norm:  0.019205343
-  L2-norm:  0.012355626
-  max-norm: 0.010088468
+  L1-norm:  1.3924034
+  L2-norm:  1.2122335
+  max-norm: 2.7850786

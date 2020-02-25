@@ -28,6 +28,7 @@ IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <array>
+#include <utility>
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 
@@ -143,6 +144,36 @@ level_can_be_refined(int level_number, int max_levels)
 {
     const int finest_level_number = max_levels - 1;
     return level_number < finest_level_number;
+}
+
+/*!
+ * Convert a Voigt notation index to the corresponding symmetric tensor index. This function only returns the upper
+ * triangular index.
+ */
+inline std::pair<int, int>
+voigt_to_tensor_idx(const int k)
+{
+    if (k < NDIM)
+        return std::make_pair(k, k);
+    else
+#if (NDIM == 2)
+        return std::make_pair(0, 1);
+#endif
+#if (NDIM == 3)
+    return std::make_pair(k > 3 ? 0 : 1, k > 4 ? 1 : 2);
+#endif
+}
+
+/*!
+ * Convert a symmetric tensor index to the corresponding Voigt notation index.
+ */
+inline int
+tensor_idx_to_voigt(const std::pair<int, int>& idx)
+{
+    if (idx.first == idx.second)
+        return idx.first;
+    else
+        return 3 * NDIM - 3 - idx.first - idx.second;
 }
 
 /*!
