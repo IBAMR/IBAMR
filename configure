@@ -24011,9 +24011,6 @@ fi
   LIBMESH_CONFIG="env METHOD=$METHOD $LIBMESH_CONFIG"
 
   LIBMESH_CPPFLAGS="`$LIBMESH_CONFIG --include` `$LIBMESH_CONFIG --cppflags`"
-  LIBMESH_CXXFLAGS="`$LIBMESH_CONFIG --cxxflags`"
-  LIBMESH_CFLAGS="`$LIBMESH_CONFIG --cflags`"
-  LIBMESH_FCFLAGS="`$LIBMESH_CONFIG --fflags`"
   LIBMESH_LIBS="`$LIBMESH_CONFIG --libs`"
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for a usable libMesh UniquePtr/unique_ptr configuration" >&5
@@ -24069,12 +24066,6 @@ $as_echo "#define LIBMESH_HAS_BOOST 1" >>confdefs.h
   fi
 
   CPPFLAGS="$LIBMESH_CPPFLAGS $CPPFLAGS"
-
-  CXXFLAGS="$LIBMESH_CXXFLAGS $CXXFLAGS"
-
-  CFLAGS="$LIBMESH_CFLAGS $CFLAGS"
-
-  FCFLAGS="$LIBMESH_FCFLAGS $FCFLAGS"
 
   LIBS="$LIBMESH_LIBS $LIBS"
 
