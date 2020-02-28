@@ -249,6 +249,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/math/PETScMatUtilities.cpp \
 	../src/math/PETScVecUtilities.cpp ../src/math/PatchMathOps.cpp \
 	../src/math/PoissonUtilities.cpp \
+	../src/math/SAMRAIGhostDataAccumulator.cpp \
 	../src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp \
 	../src/refine_ops/CartCellDoubleQuadraticRefine.cpp \
 	../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp \
@@ -403,6 +404,7 @@ am__objects_3 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/math/libIBTK2d_a-PETScVecUtilities.$(OBJEXT) \
 	../src/math/libIBTK2d_a-PatchMathOps.$(OBJEXT) \
 	../src/math/libIBTK2d_a-PoissonUtilities.$(OBJEXT) \
+	../src/math/libIBTK2d_a-SAMRAIGhostDataAccumulator.$(OBJEXT) \
 	../src/refine_ops/libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.$(OBJEXT) \
 	../src/refine_ops/libIBTK2d_a-CartCellDoubleQuadraticRefine.$(OBJEXT) \
 	../src/refine_ops/libIBTK2d_a-CartSideDoubleDivPreservingRefine.$(OBJEXT) \
@@ -544,6 +546,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/math/PETScMatUtilities.cpp \
 	../src/math/PETScVecUtilities.cpp ../src/math/PatchMathOps.cpp \
 	../src/math/PoissonUtilities.cpp \
+	../src/math/SAMRAIGhostDataAccumulator.cpp \
 	../src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp \
 	../src/refine_ops/CartCellDoubleQuadraticRefine.cpp \
 	../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp \
@@ -698,6 +701,7 @@ am__objects_5 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/math/libIBTK3d_a-PETScVecUtilities.$(OBJEXT) \
 	../src/math/libIBTK3d_a-PatchMathOps.$(OBJEXT) \
 	../src/math/libIBTK3d_a-PoissonUtilities.$(OBJEXT) \
+	../src/math/libIBTK3d_a-SAMRAIGhostDataAccumulator.$(OBJEXT) \
 	../src/refine_ops/libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.$(OBJEXT) \
 	../src/refine_ops/libIBTK3d_a-CartCellDoubleQuadraticRefine.$(OBJEXT) \
 	../src/refine_ops/libIBTK3d_a-CartSideDoubleDivPreservingRefine.$(OBJEXT) \
@@ -911,11 +915,13 @@ am__depfiles_remade =  \
 	../src/math/$(DEPDIR)/libIBTK2d_a-PETScVecUtilities.Po \
 	../src/math/$(DEPDIR)/libIBTK2d_a-PatchMathOps.Po \
 	../src/math/$(DEPDIR)/libIBTK2d_a-PoissonUtilities.Po \
+	../src/math/$(DEPDIR)/libIBTK2d_a-SAMRAIGhostDataAccumulator.Po \
 	../src/math/$(DEPDIR)/libIBTK3d_a-HierarchyMathOps.Po \
 	../src/math/$(DEPDIR)/libIBTK3d_a-PETScMatUtilities.Po \
 	../src/math/$(DEPDIR)/libIBTK3d_a-PETScVecUtilities.Po \
 	../src/math/$(DEPDIR)/libIBTK3d_a-PatchMathOps.Po \
 	../src/math/$(DEPDIR)/libIBTK3d_a-PoissonUtilities.Po \
+	../src/math/$(DEPDIR)/libIBTK3d_a-SAMRAIGhostDataAccumulator.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleQuadraticRefine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleDivPreservingRefine.Po \
@@ -1553,6 +1559,7 @@ pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
 	../include/ibtk/PoissonFACPreconditionerStrategy.h \
 	../include/ibtk/PoissonSolver.h \
 	../include/ibtk/PoissonUtilities.h \
+	../include/ibtk/SAMRAIGhostDataAccumulator.h \
 	../include/ibtk/RefinePatchStrategySet.h \
 	../include/ibtk/RobinPhysBdryPatchStrategy.h \
 	../include/ibtk/SAMRAIDataCache.h \
@@ -1624,6 +1631,7 @@ DIM_DEPENDENT_SOURCES =  \
 	../src/math/PETScMatUtilities.cpp \
 	../src/math/PETScVecUtilities.cpp ../src/math/PatchMathOps.cpp \
 	../src/math/PoissonUtilities.cpp \
+	../src/math/SAMRAIGhostDataAccumulator.cpp \
 	../src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp \
 	../src/refine_ops/CartCellDoubleQuadraticRefine.cpp \
 	../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp \
@@ -2019,6 +2027,9 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 	../src/math/$(am__dirstamp) \
 	../src/math/$(DEPDIR)/$(am__dirstamp)
 ../src/math/libIBTK2d_a-PoissonUtilities.$(OBJEXT):  \
+	../src/math/$(am__dirstamp) \
+	../src/math/$(DEPDIR)/$(am__dirstamp)
+../src/math/libIBTK2d_a-SAMRAIGhostDataAccumulator.$(OBJEXT):  \
 	../src/math/$(am__dirstamp) \
 	../src/math/$(DEPDIR)/$(am__dirstamp)
 ../src/refine_ops/$(am__dirstamp):
@@ -2530,6 +2541,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/math/libIBTK3d_a-PoissonUtilities.$(OBJEXT):  \
 	../src/math/$(am__dirstamp) \
 	../src/math/$(DEPDIR)/$(am__dirstamp)
+../src/math/libIBTK3d_a-SAMRAIGhostDataAccumulator.$(OBJEXT):  \
+	../src/math/$(am__dirstamp) \
+	../src/math/$(DEPDIR)/$(am__dirstamp)
 ../src/refine_ops/libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.$(OBJEXT):  \
 	../src/refine_ops/$(am__dirstamp) \
 	../src/refine_ops/$(DEPDIR)/$(am__dirstamp)
@@ -2970,11 +2984,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/math/$(DEPDIR)/libIBTK2d_a-PETScVecUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/math/$(DEPDIR)/libIBTK2d_a-PatchMathOps.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/math/$(DEPDIR)/libIBTK2d_a-PoissonUtilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/math/$(DEPDIR)/libIBTK2d_a-SAMRAIGhostDataAccumulator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/math/$(DEPDIR)/libIBTK3d_a-HierarchyMathOps.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/math/$(DEPDIR)/libIBTK3d_a-PETScMatUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/math/$(DEPDIR)/libIBTK3d_a-PETScVecUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/math/$(DEPDIR)/libIBTK3d_a-PatchMathOps.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/math/$(DEPDIR)/libIBTK3d_a-PoissonUtilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/math/$(DEPDIR)/libIBTK3d_a-SAMRAIGhostDataAccumulator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleQuadraticRefine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleDivPreservingRefine.Po@am__quote@ # am--include-marker
@@ -3715,6 +3731,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/math/PoissonUtilities.cpp' object='../src/math/libIBTK2d_a-PoissonUtilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/math/libIBTK2d_a-PoissonUtilities.obj `if test -f '../src/math/PoissonUtilities.cpp'; then $(CYGPATH_W) '../src/math/PoissonUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/math/PoissonUtilities.cpp'; fi`
+
+../src/math/libIBTK2d_a-SAMRAIGhostDataAccumulator.o: ../src/math/SAMRAIGhostDataAccumulator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/math/libIBTK2d_a-SAMRAIGhostDataAccumulator.o -MD -MP -MF ../src/math/$(DEPDIR)/libIBTK2d_a-SAMRAIGhostDataAccumulator.Tpo -c -o ../src/math/libIBTK2d_a-SAMRAIGhostDataAccumulator.o `test -f '../src/math/SAMRAIGhostDataAccumulator.cpp' || echo '$(srcdir)/'`../src/math/SAMRAIGhostDataAccumulator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/math/$(DEPDIR)/libIBTK2d_a-SAMRAIGhostDataAccumulator.Tpo ../src/math/$(DEPDIR)/libIBTK2d_a-SAMRAIGhostDataAccumulator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/math/SAMRAIGhostDataAccumulator.cpp' object='../src/math/libIBTK2d_a-SAMRAIGhostDataAccumulator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/math/libIBTK2d_a-SAMRAIGhostDataAccumulator.o `test -f '../src/math/SAMRAIGhostDataAccumulator.cpp' || echo '$(srcdir)/'`../src/math/SAMRAIGhostDataAccumulator.cpp
+
+../src/math/libIBTK2d_a-SAMRAIGhostDataAccumulator.obj: ../src/math/SAMRAIGhostDataAccumulator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/math/libIBTK2d_a-SAMRAIGhostDataAccumulator.obj -MD -MP -MF ../src/math/$(DEPDIR)/libIBTK2d_a-SAMRAIGhostDataAccumulator.Tpo -c -o ../src/math/libIBTK2d_a-SAMRAIGhostDataAccumulator.obj `if test -f '../src/math/SAMRAIGhostDataAccumulator.cpp'; then $(CYGPATH_W) '../src/math/SAMRAIGhostDataAccumulator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/math/SAMRAIGhostDataAccumulator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/math/$(DEPDIR)/libIBTK2d_a-SAMRAIGhostDataAccumulator.Tpo ../src/math/$(DEPDIR)/libIBTK2d_a-SAMRAIGhostDataAccumulator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/math/SAMRAIGhostDataAccumulator.cpp' object='../src/math/libIBTK2d_a-SAMRAIGhostDataAccumulator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/math/libIBTK2d_a-SAMRAIGhostDataAccumulator.obj `if test -f '../src/math/SAMRAIGhostDataAccumulator.cpp'; then $(CYGPATH_W) '../src/math/SAMRAIGhostDataAccumulator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/math/SAMRAIGhostDataAccumulator.cpp'; fi`
 
 ../src/refine_ops/libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.o: ../src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/refine_ops/libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.o -MD -MP -MF ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Tpo -c -o ../src/refine_ops/libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.o `test -f '../src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp' || echo '$(srcdir)/'`../src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp
@@ -5466,6 +5496,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/math/libIBTK3d_a-PoissonUtilities.obj `if test -f '../src/math/PoissonUtilities.cpp'; then $(CYGPATH_W) '../src/math/PoissonUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/math/PoissonUtilities.cpp'; fi`
 
+../src/math/libIBTK3d_a-SAMRAIGhostDataAccumulator.o: ../src/math/SAMRAIGhostDataAccumulator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/math/libIBTK3d_a-SAMRAIGhostDataAccumulator.o -MD -MP -MF ../src/math/$(DEPDIR)/libIBTK3d_a-SAMRAIGhostDataAccumulator.Tpo -c -o ../src/math/libIBTK3d_a-SAMRAIGhostDataAccumulator.o `test -f '../src/math/SAMRAIGhostDataAccumulator.cpp' || echo '$(srcdir)/'`../src/math/SAMRAIGhostDataAccumulator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/math/$(DEPDIR)/libIBTK3d_a-SAMRAIGhostDataAccumulator.Tpo ../src/math/$(DEPDIR)/libIBTK3d_a-SAMRAIGhostDataAccumulator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/math/SAMRAIGhostDataAccumulator.cpp' object='../src/math/libIBTK3d_a-SAMRAIGhostDataAccumulator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/math/libIBTK3d_a-SAMRAIGhostDataAccumulator.o `test -f '../src/math/SAMRAIGhostDataAccumulator.cpp' || echo '$(srcdir)/'`../src/math/SAMRAIGhostDataAccumulator.cpp
+
+../src/math/libIBTK3d_a-SAMRAIGhostDataAccumulator.obj: ../src/math/SAMRAIGhostDataAccumulator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/math/libIBTK3d_a-SAMRAIGhostDataAccumulator.obj -MD -MP -MF ../src/math/$(DEPDIR)/libIBTK3d_a-SAMRAIGhostDataAccumulator.Tpo -c -o ../src/math/libIBTK3d_a-SAMRAIGhostDataAccumulator.obj `if test -f '../src/math/SAMRAIGhostDataAccumulator.cpp'; then $(CYGPATH_W) '../src/math/SAMRAIGhostDataAccumulator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/math/SAMRAIGhostDataAccumulator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/math/$(DEPDIR)/libIBTK3d_a-SAMRAIGhostDataAccumulator.Tpo ../src/math/$(DEPDIR)/libIBTK3d_a-SAMRAIGhostDataAccumulator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/math/SAMRAIGhostDataAccumulator.cpp' object='../src/math/libIBTK3d_a-SAMRAIGhostDataAccumulator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/math/libIBTK3d_a-SAMRAIGhostDataAccumulator.obj `if test -f '../src/math/SAMRAIGhostDataAccumulator.cpp'; then $(CYGPATH_W) '../src/math/SAMRAIGhostDataAccumulator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/math/SAMRAIGhostDataAccumulator.cpp'; fi`
+
 ../src/refine_ops/libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.o: ../src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/refine_ops/libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.o -MD -MP -MF ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Tpo -c -o ../src/refine_ops/libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.o `test -f '../src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp' || echo '$(srcdir)/'`../src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Tpo ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Po
@@ -6968,11 +7012,13 @@ distclean: distclean-am
 	-rm -f ../src/math/$(DEPDIR)/libIBTK2d_a-PETScVecUtilities.Po
 	-rm -f ../src/math/$(DEPDIR)/libIBTK2d_a-PatchMathOps.Po
 	-rm -f ../src/math/$(DEPDIR)/libIBTK2d_a-PoissonUtilities.Po
+	-rm -f ../src/math/$(DEPDIR)/libIBTK2d_a-SAMRAIGhostDataAccumulator.Po
 	-rm -f ../src/math/$(DEPDIR)/libIBTK3d_a-HierarchyMathOps.Po
 	-rm -f ../src/math/$(DEPDIR)/libIBTK3d_a-PETScMatUtilities.Po
 	-rm -f ../src/math/$(DEPDIR)/libIBTK3d_a-PETScVecUtilities.Po
 	-rm -f ../src/math/$(DEPDIR)/libIBTK3d_a-PatchMathOps.Po
 	-rm -f ../src/math/$(DEPDIR)/libIBTK3d_a-PoissonUtilities.Po
+	-rm -f ../src/math/$(DEPDIR)/libIBTK3d_a-SAMRAIGhostDataAccumulator.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleQuadraticRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleDivPreservingRefine.Po
@@ -7275,11 +7321,13 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/math/$(DEPDIR)/libIBTK2d_a-PETScVecUtilities.Po
 	-rm -f ../src/math/$(DEPDIR)/libIBTK2d_a-PatchMathOps.Po
 	-rm -f ../src/math/$(DEPDIR)/libIBTK2d_a-PoissonUtilities.Po
+	-rm -f ../src/math/$(DEPDIR)/libIBTK2d_a-SAMRAIGhostDataAccumulator.Po
 	-rm -f ../src/math/$(DEPDIR)/libIBTK3d_a-HierarchyMathOps.Po
 	-rm -f ../src/math/$(DEPDIR)/libIBTK3d_a-PETScMatUtilities.Po
 	-rm -f ../src/math/$(DEPDIR)/libIBTK3d_a-PETScVecUtilities.Po
 	-rm -f ../src/math/$(DEPDIR)/libIBTK3d_a-PatchMathOps.Po
 	-rm -f ../src/math/$(DEPDIR)/libIBTK3d_a-PoissonUtilities.Po
+	-rm -f ../src/math/$(DEPDIR)/libIBTK3d_a-SAMRAIGhostDataAccumulator.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleQuadraticRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleDivPreservingRefine.Po

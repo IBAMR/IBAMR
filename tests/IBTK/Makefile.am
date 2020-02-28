@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2019 - 2019 by the IBAMR developers
+## Copyright (c) 2019 - 2020 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -18,7 +18,8 @@ poisson_01_3d samraidatacache_01_2d samraidatacache_01_3d laplace_01_2d \
 laplace_01_3d laplace_02_2d laplace_02_3d laplace_03_2d laplace_03_3d ldata_01 \
 prolongation_mat_2d prolongation_mat_3d phys_boundary_ops_2d phys_boundary_ops_3d \
 vc_viscous_solver_2d vc_viscous_solver_3d box_utilities_01_2d box_utilities_01_3d \
-ghost_indices_01_2d ghost_indices_01_3d
+ghost_accumulation_01_2d ghost_accumulation_01_3d ghost_indices_01_2d \
+ghost_indices_01_3d
 
 if LIBMESH_ENABLED
 EXTRA_PROGRAMS += elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
@@ -142,6 +143,14 @@ ghost_indices_01_2d_SOURCES = ghost_indices_01.cpp
 ghost_indices_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 ghost_indices_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 ghost_indices_01_3d_SOURCES = ghost_indices_01.cpp
+
+ghost_accumulation_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+ghost_accumulation_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+ghost_accumulation_01_2d_SOURCES = ghost_accumulation_01.cpp
+
+ghost_accumulation_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+ghost_accumulation_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+ghost_accumulation_01_3d_SOURCES = ghost_accumulation_01.cpp
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \

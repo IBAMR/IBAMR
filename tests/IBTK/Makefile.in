@@ -97,8 +97,9 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	phys_boundary_ops_2d$(EXEEXT) phys_boundary_ops_3d$(EXEEXT) \
 	vc_viscous_solver_2d$(EXEEXT) vc_viscous_solver_3d$(EXEEXT) \
 	box_utilities_01_2d$(EXEEXT) box_utilities_01_3d$(EXEEXT) \
-	ghost_indices_01_2d$(EXEEXT) ghost_indices_01_3d$(EXEEXT) \
-	$(am__EXEEXT_1)
+	ghost_accumulation_01_2d$(EXEEXT) \
+	ghost_accumulation_01_3d$(EXEEXT) ghost_indices_01_2d$(EXEEXT) \
+	ghost_indices_01_3d$(EXEEXT) $(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@am__append_1 = elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
 @LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d
 
@@ -194,6 +195,24 @@ elem_hmax_02_OBJECTS = $(am_elem_hmax_02_OBJECTS)
 elem_hmax_02_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(elem_hmax_02_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_ghost_accumulation_01_2d_OBJECTS =  \
+	ghost_accumulation_01_2d-ghost_accumulation_01.$(OBJEXT)
+ghost_accumulation_01_2d_OBJECTS =  \
+	$(am_ghost_accumulation_01_2d_OBJECTS)
+ghost_accumulation_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+ghost_accumulation_01_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(ghost_accumulation_01_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_ghost_accumulation_01_3d_OBJECTS =  \
+	ghost_accumulation_01_3d-ghost_accumulation_01.$(OBJEXT)
+ghost_accumulation_01_3d_OBJECTS =  \
+	$(am_ghost_accumulation_01_3d_OBJECTS)
+ghost_accumulation_01_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+ghost_accumulation_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(ghost_accumulation_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_ghost_indices_01_2d_OBJECTS =  \
 	ghost_indices_01_2d-ghost_indices_01.$(OBJEXT)
 ghost_indices_01_2d_OBJECTS = $(am_ghost_indices_01_2d_OBJECTS)
@@ -375,6 +394,8 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/box_utilities_01_3d-box_utilities_01.Po \
 	./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po \
 	./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po \
+	./$(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Po \
+	./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po \
 	./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po \
 	./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po \
 	./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po \
@@ -418,13 +439,14 @@ am__v_CXXLD_1 =
 SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(bounding_boxes_01_3d_SOURCES) $(box_utilities_01_2d_SOURCES) \
 	$(box_utilities_01_3d_SOURCES) $(elem_hmax_01_SOURCES) \
-	$(elem_hmax_02_SOURCES) $(ghost_indices_01_2d_SOURCES) \
-	$(ghost_indices_01_3d_SOURCES) $(jacobian_calc_01_SOURCES) \
-	$(laplace_01_2d_SOURCES) $(laplace_01_3d_SOURCES) \
-	$(laplace_02_2d_SOURCES) $(laplace_02_3d_SOURCES) \
-	$(laplace_03_2d_SOURCES) $(laplace_03_3d_SOURCES) \
-	$(ldata_01_SOURCES) $(mpi_type_wrappers_SOURCES) \
-	$(phys_boundary_ops_2d_SOURCES) \
+	$(elem_hmax_02_SOURCES) $(ghost_accumulation_01_2d_SOURCES) \
+	$(ghost_accumulation_01_3d_SOURCES) \
+	$(ghost_indices_01_2d_SOURCES) $(ghost_indices_01_3d_SOURCES) \
+	$(jacobian_calc_01_SOURCES) $(laplace_01_2d_SOURCES) \
+	$(laplace_01_3d_SOURCES) $(laplace_02_2d_SOURCES) \
+	$(laplace_02_3d_SOURCES) $(laplace_03_2d_SOURCES) \
+	$(laplace_03_3d_SOURCES) $(ldata_01_SOURCES) \
+	$(mpi_type_wrappers_SOURCES) $(phys_boundary_ops_2d_SOURCES) \
 	$(phys_boundary_ops_3d_SOURCES) $(poisson_01_2d_SOURCES) \
 	$(poisson_01_3d_SOURCES) $(prolongation_mat_2d_SOURCES) \
 	$(prolongation_mat_3d_SOURCES) \
@@ -437,6 +459,8 @@ DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(box_utilities_01_2d_SOURCES) $(box_utilities_01_3d_SOURCES) \
 	$(am__elem_hmax_01_SOURCES_DIST) \
 	$(am__elem_hmax_02_SOURCES_DIST) \
+	$(ghost_accumulation_01_2d_SOURCES) \
+	$(ghost_accumulation_01_3d_SOURCES) \
 	$(ghost_indices_01_2d_SOURCES) $(ghost_indices_01_3d_SOURCES) \
 	$(am__jacobian_calc_01_SOURCES_DIST) $(laplace_01_2d_SOURCES) \
 	$(laplace_01_3d_SOURCES) $(laplace_02_2d_SOURCES) \
@@ -822,6 +846,12 @@ ghost_indices_01_2d_SOURCES = ghost_indices_01.cpp
 ghost_indices_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 ghost_indices_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 ghost_indices_01_3d_SOURCES = ghost_indices_01.cpp
+ghost_accumulation_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+ghost_accumulation_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+ghost_accumulation_01_2d_SOURCES = ghost_accumulation_01.cpp
+ghost_accumulation_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+ghost_accumulation_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+ghost_accumulation_01_3d_SOURCES = ghost_accumulation_01.cpp
 all: all-am
 
 .SUFFIXES:
@@ -880,6 +910,14 @@ elem_hmax_01$(EXEEXT): $(elem_hmax_01_OBJECTS) $(elem_hmax_01_DEPENDENCIES) $(EX
 elem_hmax_02$(EXEEXT): $(elem_hmax_02_OBJECTS) $(elem_hmax_02_DEPENDENCIES) $(EXTRA_elem_hmax_02_DEPENDENCIES) 
 	@rm -f elem_hmax_02$(EXEEXT)
 	$(AM_V_CXXLD)$(elem_hmax_02_LINK) $(elem_hmax_02_OBJECTS) $(elem_hmax_02_LDADD) $(LIBS)
+
+ghost_accumulation_01_2d$(EXEEXT): $(ghost_accumulation_01_2d_OBJECTS) $(ghost_accumulation_01_2d_DEPENDENCIES) $(EXTRA_ghost_accumulation_01_2d_DEPENDENCIES) 
+	@rm -f ghost_accumulation_01_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(ghost_accumulation_01_2d_LINK) $(ghost_accumulation_01_2d_OBJECTS) $(ghost_accumulation_01_2d_LDADD) $(LIBS)
+
+ghost_accumulation_01_3d$(EXEEXT): $(ghost_accumulation_01_3d_OBJECTS) $(ghost_accumulation_01_3d_DEPENDENCIES) $(EXTRA_ghost_accumulation_01_3d_DEPENDENCIES) 
+	@rm -f ghost_accumulation_01_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(ghost_accumulation_01_3d_LINK) $(ghost_accumulation_01_3d_OBJECTS) $(ghost_accumulation_01_3d_LDADD) $(LIBS)
 
 ghost_indices_01_2d$(EXEEXT): $(ghost_indices_01_2d_OBJECTS) $(ghost_indices_01_2d_DEPENDENCIES) $(EXTRA_ghost_indices_01_2d_DEPENDENCIES) 
 	@rm -f ghost_indices_01_2d$(EXEEXT)
@@ -977,6 +1015,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/box_utilities_01_3d-box_utilities_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po@am__quote@ # am--include-marker
@@ -1112,6 +1152,34 @@ elem_hmax_02-elem_hmax_02.obj: elem_hmax_02.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='elem_hmax_02.cpp' object='elem_hmax_02-elem_hmax_02.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(elem_hmax_02_CXXFLAGS) $(CXXFLAGS) -c -o elem_hmax_02-elem_hmax_02.obj `if test -f 'elem_hmax_02.cpp'; then $(CYGPATH_W) 'elem_hmax_02.cpp'; else $(CYGPATH_W) '$(srcdir)/elem_hmax_02.cpp'; fi`
+
+ghost_accumulation_01_2d-ghost_accumulation_01.o: ghost_accumulation_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ghost_accumulation_01_2d_CXXFLAGS) $(CXXFLAGS) -MT ghost_accumulation_01_2d-ghost_accumulation_01.o -MD -MP -MF $(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Tpo -c -o ghost_accumulation_01_2d-ghost_accumulation_01.o `test -f 'ghost_accumulation_01.cpp' || echo '$(srcdir)/'`ghost_accumulation_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Tpo $(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ghost_accumulation_01.cpp' object='ghost_accumulation_01_2d-ghost_accumulation_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ghost_accumulation_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o ghost_accumulation_01_2d-ghost_accumulation_01.o `test -f 'ghost_accumulation_01.cpp' || echo '$(srcdir)/'`ghost_accumulation_01.cpp
+
+ghost_accumulation_01_2d-ghost_accumulation_01.obj: ghost_accumulation_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ghost_accumulation_01_2d_CXXFLAGS) $(CXXFLAGS) -MT ghost_accumulation_01_2d-ghost_accumulation_01.obj -MD -MP -MF $(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Tpo -c -o ghost_accumulation_01_2d-ghost_accumulation_01.obj `if test -f 'ghost_accumulation_01.cpp'; then $(CYGPATH_W) 'ghost_accumulation_01.cpp'; else $(CYGPATH_W) '$(srcdir)/ghost_accumulation_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Tpo $(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ghost_accumulation_01.cpp' object='ghost_accumulation_01_2d-ghost_accumulation_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ghost_accumulation_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o ghost_accumulation_01_2d-ghost_accumulation_01.obj `if test -f 'ghost_accumulation_01.cpp'; then $(CYGPATH_W) 'ghost_accumulation_01.cpp'; else $(CYGPATH_W) '$(srcdir)/ghost_accumulation_01.cpp'; fi`
+
+ghost_accumulation_01_3d-ghost_accumulation_01.o: ghost_accumulation_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ghost_accumulation_01_3d_CXXFLAGS) $(CXXFLAGS) -MT ghost_accumulation_01_3d-ghost_accumulation_01.o -MD -MP -MF $(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Tpo -c -o ghost_accumulation_01_3d-ghost_accumulation_01.o `test -f 'ghost_accumulation_01.cpp' || echo '$(srcdir)/'`ghost_accumulation_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Tpo $(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ghost_accumulation_01.cpp' object='ghost_accumulation_01_3d-ghost_accumulation_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ghost_accumulation_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o ghost_accumulation_01_3d-ghost_accumulation_01.o `test -f 'ghost_accumulation_01.cpp' || echo '$(srcdir)/'`ghost_accumulation_01.cpp
+
+ghost_accumulation_01_3d-ghost_accumulation_01.obj: ghost_accumulation_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ghost_accumulation_01_3d_CXXFLAGS) $(CXXFLAGS) -MT ghost_accumulation_01_3d-ghost_accumulation_01.obj -MD -MP -MF $(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Tpo -c -o ghost_accumulation_01_3d-ghost_accumulation_01.obj `if test -f 'ghost_accumulation_01.cpp'; then $(CYGPATH_W) 'ghost_accumulation_01.cpp'; else $(CYGPATH_W) '$(srcdir)/ghost_accumulation_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Tpo $(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ghost_accumulation_01.cpp' object='ghost_accumulation_01_3d-ghost_accumulation_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ghost_accumulation_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o ghost_accumulation_01_3d-ghost_accumulation_01.obj `if test -f 'ghost_accumulation_01.cpp'; then $(CYGPATH_W) 'ghost_accumulation_01.cpp'; else $(CYGPATH_W) '$(srcdir)/ghost_accumulation_01.cpp'; fi`
 
 ghost_indices_01_2d-ghost_indices_01.o: ghost_indices_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ghost_indices_01_2d_CXXFLAGS) $(CXXFLAGS) -MT ghost_indices_01_2d-ghost_indices_01.o -MD -MP -MF $(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Tpo -c -o ghost_indices_01_2d-ghost_indices_01.o `test -f 'ghost_indices_01.cpp' || echo '$(srcdir)/'`ghost_indices_01.cpp
@@ -1544,6 +1612,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/box_utilities_01_3d-box_utilities_01.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
+	-rm -f ./$(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Po
+	-rm -f ./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po
 	-rm -f ./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po
@@ -1616,6 +1686,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/box_utilities_01_3d-box_utilities_01.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
+	-rm -f ./$(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Po
+	-rm -f ./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po
 	-rm -f ./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po

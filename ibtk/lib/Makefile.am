@@ -100,6 +100,7 @@ DIM_DEPENDENT_SOURCES = \
 ../src/math/PETScVecUtilities.cpp \
 ../src/math/PatchMathOps.cpp \
 ../src/math/PoissonUtilities.cpp \
+../src/math/SAMRAIGhostDataAccumulator.cpp \
 ../src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp \
 ../src/refine_ops/CartCellDoubleQuadraticRefine.cpp \
 ../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp \
@@ -312,6 +313,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/PoissonFACPreconditionerStrategy.h \
 ../include/ibtk/PoissonSolver.h \
 ../include/ibtk/PoissonUtilities.h \
+../include/ibtk/SAMRAIGhostDataAccumulator.h \
 ../include/ibtk/RefinePatchStrategySet.h \
 ../include/ibtk/RobinPhysBdryPatchStrategy.h \
 ../include/ibtk/SAMRAIDataCache.h \
