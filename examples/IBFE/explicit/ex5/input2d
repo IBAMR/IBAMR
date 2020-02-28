@@ -114,6 +114,19 @@ IBFEMethod {
    IB_point_density            = IB_POINT_DENSITY
 }
 
+IBFESurfaceMethod {
+   IB_delta_fcn                 = IB_DELTA_FUNCTION
+   split_forces                 = SPLIT_FORCES
+   use_pressure_jump_conditions = USE_PRESSURE_JUMP_CONDITIONS
+   use_velocity_jump_conditions = USE_VELOCITY_JUMP_CONDITIONS
+   use_consistent_mass_matrix   = USE_CONSISTENT_MASS_MATRIX
+   IB_point_density             = IB_POINT_DENSITY
+   p_calc_width				    = P_CALC_WIDTH
+   wss_calc_width			    = WSS_CALC_WIDTH
+   compute_fluid_traction       = COMPUTE_FLUID_TRACTION
+   min_ghost_cell_width 		= 6
+}
+
 INSCollocatedHierarchyIntegrator {
    mu                            = MU
    rho                           = RHO

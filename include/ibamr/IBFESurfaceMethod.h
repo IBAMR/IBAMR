@@ -591,7 +591,8 @@ protected:
      */
     SAMRAI::xfer::RefineSchedule<NDIM>&
     getPrimaryToScratchSchedule(const int level_number,
-                                const int data_idx,
+                                const int primary_data_idx,
+                                const int scratch_data_idx,
                                 SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
 
     /*!
@@ -604,7 +605,8 @@ protected:
      */
     SAMRAI::xfer::RefineSchedule<NDIM>&
     getScratchToPrimarySchedule(const int level_number,
-                                const int data_idx,
+                                const int primary_data_idx,
+                                const int scratch_data_idx,
                                 SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
 
     /*!
@@ -653,6 +655,14 @@ protected:
     std::shared_ptr<IBTK::SAMRAIDataCache> d_primary_eulerian_data_cache, d_scratch_eulerian_data_cache;
 
     /*!
+     * Pointer to one of the above data caches, named in the same way as
+     * d_active_fe_data_managers - i.e., this object points to
+     * d_scratch_eulerian_data_cache if we are using the scratch hierarchy and
+     * otherwise points to d_primary_eulerian_data_cache.
+     */
+    std::shared_ptr<IBTK::SAMRAIDataCache> d_active_eulerian_data_cache;
+
+    /*!
      * Pointer to the scratch patch hierarchy (which is only used for the
      * evaluation of IB terms, i.e., in IBFESurfaceMethod::interpolateVelocity(),
      * IBFESurfaceMethod::spreadForce(), and IBFESurfaceMethod::spreadFluidSource()).
@@ -675,7 +685,7 @@ protected:
      * @note this function assumes that only data on the finest level needs to
      * be transferred.
      */
-    std::map<std::pair<int, int>, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
+    std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
         d_scratch_transfer_forward_schedules;
 
     /*!
@@ -686,7 +696,7 @@ protected:
      * @note this function assumes that only data on the finest level needs to
      * be transferred.
      */
-    std::map<std::pair<int, int>, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
+    std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
         d_scratch_transfer_backward_schedules;
 
     /*!
@@ -714,8 +724,7 @@ protected:
      */
     std::vector<libMesh::MeshBase*> d_meshes;
     int d_max_level_number;
-    //~ std::vector<std::unique_ptr<libMesh::EquationSystems> > d_equation_systems;
-    std::vector<libMesh::EquationSystems*> d_equation_systems;
+    std::vector<std::unique_ptr<libMesh::EquationSystems> > d_equation_systems;
 
     /// Number of parts owned by the present object.
     const unsigned int d_num_parts = 1;
@@ -744,11 +753,11 @@ protected:
         d_P_jump_systems, d_WSS_in_systems, d_WSS_out_systems, d_P_in_systems, d_P_out_systems, d_TAU_in_systems,
         d_TAU_out_systems;
     std::vector<std::array<libMesh::ExplicitSystem*, NDIM> > d_DU_jump_systems;
-    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
+    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_rhs_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
         d_X_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_rhs_vecs, d_U_new_vecs, d_U_half_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_rhs_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_rhs_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
 
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_rhs_vecs, d_F_tmp_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_P_jump_half_vecs, d_P_jump_IB_ghost_vecs;
@@ -771,6 +780,8 @@ protected:
     std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_X_IB_solution_vecs;
     std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_U_IB_solution_vecs;
     std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_U_IB_rhs_vecs;
+    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_U_n_IB_rhs_vecs;
+    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_U_t_IB_rhs_vecs;
     std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_TAU_out_IB_solution_vecs;
     std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_TAU_in_IB_solution_vecs;
     std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_WSS_out_IB_solution_vecs;

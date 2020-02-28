@@ -591,7 +591,8 @@ main(int argc, char* argv[])
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
-            if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
+            if (use_boundary_mesh && dump_postproc_data &&
+                (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
                 postprocess_data(input_db,
                                  patch_hierarchy,
