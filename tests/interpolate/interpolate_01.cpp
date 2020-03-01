@@ -146,10 +146,10 @@ main(int argc, char** argv)
         {
             // output values and their coordinates:
             const std::size_t n_points = 100;
-            std::vector<double> Q_data(NDIM * n_points, std::numeric_limits<double>::max());
             const int Q_depth = NDIM;
-            std::vector<double> X_data(NDIM * n_points);
+            std::vector<double> Q_data(Q_depth * n_points, std::numeric_limits<double>::max());
             const int X_depth = NDIM;
+            std::vector<double> X_data(X_depth * n_points);
 
             // required SAMRAI data:
             //
@@ -175,9 +175,6 @@ main(int argc, char** argv)
             const bool use_exact = input_db->getBoolWithDefault("use_exact", false);
             double lower = patch_x_lower[0];
             double upper = patch_x_upper[0];
-            // get around some yet-unfixed problems with interpolating ghost
-            // values at corners by sticking to the patch interior in the
-            // exact case
             std::uniform_real_distribution<double> distribution(lower, upper);
             for (double& v : X_data) v = distribution(std_seq);
 
