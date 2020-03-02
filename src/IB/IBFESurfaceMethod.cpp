@@ -1990,7 +1990,8 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
     // Communicate ghost data.
     batch_vec_copy({ d_X_half_vecs, d_F_half_vecs, d_P_jump_half_vecs },
                    { d_X_IB_ghost_vecs, d_F_IB_ghost_vecs, d_P_jump_IB_ghost_vecs });
-    batch_vec_ghost_update({ d_X_IB_ghost_vecs, d_F_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
+    batch_vec_ghost_update(
+        { d_X_IB_ghost_vecs, d_F_IB_ghost_vecs, d_P_jump_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -2516,35 +2517,53 @@ IBFESurfaceMethod::updateCachedIBGhostedVectors()
         d_U_t_IB_rhs_vecs.resize(d_num_parts);
     }
     d_X_IB_solution_vecs.resize(d_num_parts);
-    d_TAU_in_IB_solution_vecs.resize(d_num_parts);
-    d_TAU_out_IB_solution_vecs.resize(d_num_parts);
-    d_WSS_in_IB_solution_vecs.resize(d_num_parts);
-    d_WSS_out_IB_solution_vecs.resize(d_num_parts);
-    d_P_in_IB_solution_vecs.resize(d_num_parts);
-    d_P_out_IB_solution_vecs.resize(d_num_parts);
-    d_P_jump_IB_solution_vecs.resize(d_num_parts);
-    d_DU_jump_IB_solution_vecs.resize(d_num_parts);
-
+    if (d_use_pressure_jump_conditions)
+    {
+        d_P_in_IB_solution_vecs.resize(d_num_parts);
+        d_P_out_IB_solution_vecs.resize(d_num_parts);
+        d_P_jump_IB_solution_vecs.resize(d_num_parts);
+    }
+    if (d_use_velocity_jump_conditions)
+    {
+        d_WSS_in_IB_solution_vecs.resize(d_num_parts);
+        d_WSS_out_IB_solution_vecs.resize(d_num_parts);
+        d_DU_jump_IB_solution_vecs.resize(d_num_parts);
+    }
+    if (d_use_velocity_jump_conditions && d_use_pressure_jump_conditions)
+    {
+        d_TAU_in_IB_solution_vecs.resize(d_num_parts);
+        d_TAU_out_IB_solution_vecs.resize(d_num_parts);
+    }
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_F_IB_solution_vecs[part] = d_active_fe_data_managers[part]->buildIBGhostedVector(FORCE_SYSTEM_NAME);
         d_X_IB_solution_vecs[part] = d_active_fe_data_managers[part]->buildIBGhostedVector(COORDS_SYSTEM_NAME);
-        d_TAU_in_IB_solution_vecs[part] = d_active_fe_data_managers[part]->buildIBGhostedVector(TAU_IN_SYSTEM_NAME);
-        d_TAU_out_IB_solution_vecs[part] = d_active_fe_data_managers[part]->buildIBGhostedVector(TAU_OUT_SYSTEM_NAME);
-        d_WSS_in_IB_solution_vecs[part] = d_active_fe_data_managers[part]->buildIBGhostedVector(WSS_IN_SYSTEM_NAME);
-        d_WSS_out_IB_solution_vecs[part] = d_active_fe_data_managers[part]->buildIBGhostedVector(WSS_OUT_SYSTEM_NAME);
-        d_P_in_IB_solution_vecs[part] = d_active_fe_data_managers[part]->buildIBGhostedVector(PRESSURE_IN_SYSTEM_NAME);
-        d_P_out_IB_solution_vecs[part] =
-            d_active_fe_data_managers[part]->buildIBGhostedVector(PRESSURE_OUT_SYSTEM_NAME);
-        d_P_jump_IB_solution_vecs[part] =
-            d_active_fe_data_managers[part]->buildIBGhostedVector(PRESSURE_JUMP_SYSTEM_NAME);
-
-        for (unsigned int d = 0; d < NDIM; ++d)
+        if (d_use_pressure_jump_conditions)
         {
-            d_DU_jump_IB_solution_vecs[part][d] =
-                d_active_fe_data_managers[part]->buildIBGhostedVector(VELOCITY_JUMP_SYSTEM_NAME[d]);
+            d_P_in_IB_solution_vecs[part] =
+                d_active_fe_data_managers[part]->buildIBGhostedVector(PRESSURE_IN_SYSTEM_NAME);
+            d_P_out_IB_solution_vecs[part] =
+                d_active_fe_data_managers[part]->buildIBGhostedVector(PRESSURE_OUT_SYSTEM_NAME);
+            d_P_jump_IB_solution_vecs[part] =
+                d_active_fe_data_managers[part]->buildIBGhostedVector(PRESSURE_JUMP_SYSTEM_NAME);
         }
-
+        if (d_use_velocity_jump_conditions)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                d_DU_jump_IB_solution_vecs[part][d] =
+                    d_active_fe_data_managers[part]->buildIBGhostedVector(VELOCITY_JUMP_SYSTEM_NAME[d]);
+            }
+            d_WSS_in_IB_solution_vecs[part] = d_active_fe_data_managers[part]->buildIBGhostedVector(WSS_IN_SYSTEM_NAME);
+            d_WSS_out_IB_solution_vecs[part] =
+                d_active_fe_data_managers[part]->buildIBGhostedVector(WSS_OUT_SYSTEM_NAME);
+        }
+        if (d_use_velocity_jump_conditions && d_use_pressure_jump_conditions)
+        {
+            d_TAU_in_IB_solution_vecs[part] = d_active_fe_data_managers[part]->buildIBGhostedVector(TAU_IN_SYSTEM_NAME);
+            d_TAU_out_IB_solution_vecs[part] =
+                d_active_fe_data_managers[part]->buildIBGhostedVector(TAU_OUT_SYSTEM_NAME);
+        }
         if (d_use_ghosted_velocity_rhs)
         {
             d_U_IB_rhs_vecs[part] = d_active_fe_data_managers[part]->buildIBGhostedVector(VELOCITY_SYSTEM_NAME);
