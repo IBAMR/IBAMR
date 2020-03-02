@@ -17,7 +17,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/IBFEDirectForcingKinematics.h"
-#include "ibamr/IBImplicitStrategy.h"
+#include "ibamr/IBStrategy.h"
 #include "ibamr/ibamr_enums.h"
 
 #include "ibtk/FEDataManager.h"
@@ -295,7 +295,7 @@ namespace IBAMR
  * is handled by the SAMRAI::tbox::RestartManager automatically to reinitiate
  * the IBFEMethod.
  */
-class IBFEMethod : public IBImplicitStrategy
+class IBFEMethod : public IBStrategy
 {
 public:
     static const std::string COORDS_SYSTEM_NAME;
@@ -673,12 +673,6 @@ public:
     void forwardEulerStep(double current_time, double new_time) override;
 
     /*!
-     * Advance the positions of the Lagrangian structure using the backward Euler
-     * method.
-     */
-    void backwardEulerStep(double current_time, double new_time) override;
-
-    /*!
      * Advance the positions of the Lagrangian structure using the (explicit)
      * midpoint rule.
      */
@@ -726,46 +720,6 @@ public:
         IBTK::RobinPhysBdryPatchStrategy* q_phys_bdry_op,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& q_prolongation_scheds,
         double data_time) override;
-
-    /*!
-     * Create solution data.
-     */
-    void createSolutionVec(Vec* X_vec) override;
-
-    /*!
-     * Create solution and rhs data.
-     */
-    void createSolverVecs(Vec* X_vec, Vec* F_vec) override;
-
-    /*!
-     * Setup solution and rhs data.
-     */
-    void setupSolverVecs(Vec& X_vec, Vec& F_vec) override;
-
-    /*!
-     * Set the value of the updated position vector.
-     */
-    void setUpdatedPosition(Vec& X_new_vec) override;
-
-    /*!
-     * Get the value of the updated position vector.
-     */
-    void getUpdatedPosition(Vec& X_new_vec) override;
-
-    /*!
-     * Compute the nonlinear residual for backward Euler time stepping.
-     */
-    void computeResidualBackwardEuler(Vec& R_vec) override;
-
-    /*!
-     * Compute the nonlinear residual for midpoint rule time stepping.
-     */
-    void computeResidualMidpointRule(Vec& R_vec) override;
-
-    /*!
-     * Compute the nonlinear residual for trapezoidal rule time stepping.
-     */
-    void computeResidualTrapezoidalRule(Vec& R_vec) override;
 
     /*!
      * Get the default interpolation spec object used by the class.
@@ -1438,11 +1392,6 @@ private:
      * explicitly asserts that this condition is met.
      */
     void assertStructureOnFinestLevel() const;
-
-    /**
-     * Cached data for implicit solver.
-     */
-    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_implicit_X_vecs, d_implicit_R_vecs;
 };
 } // namespace IBAMR
 
