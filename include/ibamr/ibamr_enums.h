@@ -473,7 +473,7 @@ inline TensorEvolutionType
 string_to_enum<TensorEvolutionType>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "STANDARD") == 0) return STANDARD;
-    if (strcasecmp(val.c_str(), "SQUARE_ROOT") == 0) return STANDARD;
+    if (strcasecmp(val.c_str(), "SQUARE_ROOT") == 0) return SQUARE_ROOT;
     if (strcasecmp(val.c_str(), "LOGARITHM") == 0) return LOGARITHM;
     return UNKNOWN_TENSOR_EVOLUTION_TYPE;
 }

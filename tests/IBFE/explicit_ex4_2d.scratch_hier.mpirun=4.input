@@ -1,3 +1,8 @@
+// This test is quite long because it also verifies that various quantities are
+// computed correctly after multiple regrids.
+//
+// should produce the same results as the test without a scratch hierarchy.
+
 // test parameters
 log_scratch_partitioning = TRUE
 
@@ -34,7 +39,7 @@ SOLVER_TYPE                = "STAGGERED"            // the fluid solver to use (
 CFL_MAX                    = 0.25                   // maximum CFL number
 DT                         = 0.25*CFL_MAX*DX/U_MAX  // maximum timestep size
 START_TIME                 = 0.0e0                  // initial simulation time
-END_TIME                   = 10*DT                  // final simulation time
+END_TIME                   = 200*DT                // final simulation time
 GROW_DT                    = 2.0e0                  // growth factor for timesteps
 NUM_CYCLES                 = 1                      // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH"      // convective time stepping type

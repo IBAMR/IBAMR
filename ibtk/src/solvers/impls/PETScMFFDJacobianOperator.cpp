@@ -94,7 +94,6 @@ PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& u)
     }
     else
     {
-        d_op_u->allocateVectorData();
         d_op_u->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&u, false), false);
         PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_u, d_op_u);
         ierr = MatMFFDSetBase(d_petsc_jac, d_petsc_u, nullptr);
@@ -103,7 +102,6 @@ PETScMFFDJacobianOperator::formJacobian(SAMRAIVectorReal<NDIM, double>& u)
         IBTK_CHKERRQ(ierr);
         ierr = MatAssemblyEnd(d_petsc_jac, MAT_FINAL_ASSEMBLY);
         IBTK_CHKERRQ(ierr);
-        d_op_u->deallocateVectorData();
     }
 }
 
@@ -168,6 +166,9 @@ PETScMFFDJacobianOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, 
     d_op_y = out.cloneVector(out.getName());
     d_petsc_y = PETScSAMRAIVectorReal::createPETScVector(d_op_y, comm);
 
+    // Allocate scratch data.
+    d_op_u->allocateVectorData();
+
     // Indicate that the operator is initialized.
     d_is_initialized = true;
 }
@@ -177,6 +178,10 @@ PETScMFFDJacobianOperator::deallocateOperatorState()
 {
     if (!d_is_initialized) return;
 
+    // Deallocate scratch data.
+    d_op_u->deallocateVectorData();
+
+    // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_u);
     d_petsc_u = nullptr;
     d_op_u->resetLevels(0,

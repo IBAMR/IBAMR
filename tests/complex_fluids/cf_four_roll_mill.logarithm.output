@@ -1,318 +1,318 @@
 INSStaggeredHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
 INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field
-Conformation tensor is NOT SPD
-Largest det:  0
-Smallest det: 0
 Conformation tensor is SPD
-Largest det:  5.02941e-05
-Smallest det: 5.02891e-05
+Largest det:  1
+Smallest det: 1
 Conformation tensor is SPD
-Largest det:  0.000201177
-Smallest det: 0.000201156
+Largest det:  1.005
+Smallest det: 1.00001
 Conformation tensor is SPD
-Largest det:  0.000793334
-Smallest det: 0.000793333
+Largest det:  1.01003
+Smallest det: 1.00002
 Conformation tensor is SPD
-Largest det:  0.00176013
-Smallest det: 0.00175983
+Largest det:  1.03008
+Smallest det: 1.00007
 Conformation tensor is SPD
-Largest det:  0.00308583
-Smallest det: 0.00308458
+Largest det:  1.05019
+Smallest det: 1.00012
 Conformation tensor is SPD
-Largest det:  0.00475538
-Smallest det: 0.00475203
+Largest det:  1.07034
+Smallest det: 1.00016
 Conformation tensor is SPD
-Largest det:  0.00675437
-Smallest det: 0.00674712
+Largest det:  1.09052
+Smallest det: 1.00021
 Conformation tensor is SPD
-Largest det:  0.00906898
-Smallest det: 0.00905533
+Largest det:  1.11074
+Smallest det: 1.00025
 Conformation tensor is SPD
-Largest det:  0.011686
-Smallest det: 0.0116626
+Largest det:  1.13098
+Smallest det: 1.00029
 Conformation tensor is SPD
-Largest det:  0.0145928
-Smallest det: 0.0145553
+Largest det:  1.15126
+Smallest det: 1.00034
 Conformation tensor is SPD
-Largest det:  0.0177771
-Smallest det: 0.0177204
+Largest det:  1.17155
+Smallest det: 1.00038
 Conformation tensor is SPD
-Largest det:  0.0212275
-Smallest det: 0.0211451
+Largest det:  1.19187
+Smallest det: 1.00042
 Conformation tensor is SPD
-Largest det:  0.0249329
-Smallest det: 0.0248171
+Largest det:  1.21221
+Smallest det: 1.00046
 Conformation tensor is SPD
-Largest det:  0.0288825
-Smallest det: 0.0287248
+Largest det:  1.23256
+Smallest det: 1.0005
 Conformation tensor is SPD
-Largest det:  0.0330662
-Smallest det: 0.0328565
+Largest det:  1.25293
+Smallest det: 1.00053
 Conformation tensor is SPD
-Largest det:  0.0374743
-Smallest det: 0.0372013
+Largest det:  1.27331
+Smallest det: 1.00057
 Conformation tensor is SPD
-Largest det:  0.0420974
-Smallest det: 0.0417484
+Largest det:  1.29369
+Smallest det: 1.00061
 Conformation tensor is SPD
-Largest det:  0.0469267
-Smallest det: 0.0464876
+Largest det:  1.31409
+Smallest det: 1.00064
 Conformation tensor is SPD
-Largest det:  0.0519536
-Smallest det: 0.051409
+Largest det:  1.33449
+Smallest det: 1.00068
 Conformation tensor is SPD
-Largest det:  0.0571699
-Smallest det: 0.0565028
+Largest det:  1.35489
+Smallest det: 1.00071
 Conformation tensor is SPD
-Largest det:  0.0625679
-Smallest det: 0.0617599
+Largest det:  1.37529
+Smallest det: 1.00074
 Conformation tensor is SPD
-Largest det:  0.06814
-Smallest det: 0.0671712
+Largest det:  1.39568
+Smallest det: 1.00077
 Conformation tensor is SPD
-Largest det:  0.073879
-Smallest det: 0.0727283
+Largest det:  1.41607
+Smallest det: 1.0008
 Conformation tensor is SPD
-Largest det:  0.0797783
-Smallest det: 0.0784226
+Largest det:  1.43645
+Smallest det: 1.00083
 Conformation tensor is SPD
-Largest det:  0.0858311
-Smallest det: 0.0842463
+Largest det:  1.45683
+Smallest det: 1.00086
 Conformation tensor is SPD
-Largest det:  0.0920313
-Smallest det: 0.0901914
+Largest det:  1.47719
+Smallest det: 1.00089
 Conformation tensor is SPD
-Largest det:  0.0983728
-Smallest det: 0.0962507
+Largest det:  1.49753
+Smallest det: 1.00092
 Conformation tensor is SPD
-Largest det:  0.10485
-Smallest det: 0.102417
+Largest det:  1.51786
+Smallest det: 1.00095
 Conformation tensor is SPD
-Largest det:  0.111457
-Smallest det: 0.108683
+Largest det:  1.53817
+Smallest det: 1.00098
 Conformation tensor is SPD
-Largest det:  0.118189
-Smallest det: 0.115042
+Largest det:  1.55846
+Smallest det: 1.001
 Conformation tensor is SPD
-Largest det:  0.125041
-Smallest det: 0.121488
+Largest det:  1.57872
+Smallest det: 1.00103
 Conformation tensor is SPD
-Largest det:  0.132008
-Smallest det: 0.128015
+Largest det:  1.59896
+Smallest det: 1.00105
 Conformation tensor is SPD
-Largest det:  0.139085
-Smallest det: 0.134616
+Largest det:  1.61917
+Smallest det: 1.00108
 Conformation tensor is SPD
-Largest det:  0.146268
-Smallest det: 0.141286
+Largest det:  1.63935
+Smallest det: 1.0011
 Conformation tensor is SPD
-Largest det:  0.153552
-Smallest det: 0.148019
+Largest det:  1.6595
+Smallest det: 1.00112
 Conformation tensor is SPD
-Largest det:  0.160935
-Smallest det: 0.15481
+Largest det:  1.67962
+Smallest det: 1.00115
 Conformation tensor is SPD
-Largest det:  0.168411
-Smallest det: 0.161654
+Largest det:  1.6997
+Smallest det: 1.00117
 Conformation tensor is SPD
-Largest det:  0.175977
-Smallest det: 0.168545
+Largest det:  1.71974
+Smallest det: 1.00119
 Conformation tensor is SPD
-Largest det:  0.183629
-Smallest det: 0.17548
+Largest det:  1.73975
+Smallest det: 1.00121
 Conformation tensor is SPD
-Largest det:  0.191365
-Smallest det: 0.182453
+Largest det:  1.75971
+Smallest det: 1.00123
 Conformation tensor is SPD
-Largest det:  0.19918
-Smallest det: 0.189461
+Largest det:  1.77963
+Smallest det: 1.00125
 Conformation tensor is SPD
-Largest det:  0.207072
-Smallest det: 0.196498
+Largest det:  1.79951
+Smallest det: 1.00127
 Conformation tensor is SPD
-Largest det:  0.215037
-Smallest det: 0.203561
+Largest det:  1.81934
+Smallest det: 1.00129
 Conformation tensor is SPD
-Largest det:  0.223073
-Smallest det: 0.210646
+Largest det:  1.83912
+Smallest det: 1.00131
 Conformation tensor is SPD
-Largest det:  0.231177
-Smallest det: 0.217749
+Largest det:  1.85885
+Smallest det: 1.00132
 Conformation tensor is SPD
-Largest det:  0.239346
-Smallest det: 0.224866
+Largest det:  1.87853
+Smallest det: 1.00134
 Conformation tensor is SPD
-Largest det:  0.247578
-Smallest det: 0.231995
+Largest det:  1.89816
+Smallest det: 1.00136
 Conformation tensor is SPD
-Largest det:  0.255869
-Smallest det: 0.239131
+Largest det:  1.91774
+Smallest det: 1.00138
 Conformation tensor is SPD
-Largest det:  0.264219
-Smallest det: 0.246272
+Largest det:  1.93725
+Smallest det: 1.00139
 Conformation tensor is SPD
-Largest det:  0.272623
-Smallest det: 0.253414
+Largest det:  1.95671
+Smallest det: 1.00141
 Conformation tensor is SPD
-Largest det:  0.281081
-Smallest det: 0.260556
+Largest det:  1.97612
+Smallest det: 1.00142
 Conformation tensor is SPD
-Largest det:  0.28959
-Smallest det: 0.267692
+Largest det:  1.99546
+Smallest det: 1.00144
 Conformation tensor is SPD
-Largest det:  0.298148
-Smallest det: 0.274823
+Largest det:  2.01474
+Smallest det: 1.00145
 Conformation tensor is SPD
-Largest det:  0.306753
-Smallest det: 0.281943
+Largest det:  2.03396
+Smallest det: 1.00147
 Conformation tensor is SPD
-Largest det:  0.315403
-Smallest det: 0.289052
+Largest det:  2.05311
+Smallest det: 1.00148
 Conformation tensor is SPD
-Largest det:  0.324097
-Smallest det: 0.296147
+Largest det:  2.0722
+Smallest det: 1.00149
 Conformation tensor is SPD
-Largest det:  0.332832
-Smallest det: 0.303225
+Largest det:  2.09122
+Smallest det: 1.00151
 Conformation tensor is SPD
-Largest det:  0.341606
-Smallest det: 0.310285
+Largest det:  2.11018
+Smallest det: 1.00152
 Conformation tensor is SPD
-Largest det:  0.350419
-Smallest det: 0.317324
+Largest det:  2.12907
+Smallest det: 1.00153
 Conformation tensor is SPD
-Largest det:  0.359268
-Smallest det: 0.32434
+Largest det:  2.14788
+Smallest det: 1.00155
 Conformation tensor is SPD
-Largest det:  0.368152
-Smallest det: 0.331332
+Largest det:  2.16663
+Smallest det: 1.00156
 Conformation tensor is SPD
-Largest det:  0.37707
-Smallest det: 0.338298
+Largest det:  2.1853
+Smallest det: 1.00157
 Conformation tensor is SPD
-Largest det:  0.386019
-Smallest det: 0.345236
+Largest det:  2.20391
+Smallest det: 1.00158
 Conformation tensor is SPD
-Largest det:  0.394999
-Smallest det: 0.352145
+Largest det:  2.22243
+Smallest det: 1.00159
 Conformation tensor is SPD
-Largest det:  0.404008
-Smallest det: 0.359022
+Largest det:  2.24089
+Smallest det: 1.00161
 Conformation tensor is SPD
-Largest det:  0.413045
-Smallest det: 0.365867
+Largest det:  2.25927
+Smallest det: 1.00162
 Conformation tensor is SPD
-Largest det:  0.422109
-Smallest det: 0.372679
+Largest det:  2.27757
+Smallest det: 1.00163
 Conformation tensor is SPD
-Largest det:  0.431198
-Smallest det: 0.379455
+Largest det:  2.2958
+Smallest det: 1.00164
 Conformation tensor is SPD
-Largest det:  0.44031
-Smallest det: 0.386195
+Largest det:  2.31395
+Smallest det: 1.00165
 Conformation tensor is SPD
-Largest det:  0.449446
-Smallest det: 0.392897
+Largest det:  2.33202
+Smallest det: 1.00166
 Conformation tensor is SPD
-Largest det:  0.458603
-Smallest det: 0.399561
+Largest det:  2.35001
+Smallest det: 1.00167
 Conformation tensor is SPD
-Largest det:  0.46778
-Smallest det: 0.406185
+Largest det:  2.36792
+Smallest det: 1.00168
 Conformation tensor is SPD
-Largest det:  0.476977
-Smallest det: 0.412768
+Largest det:  2.38575
+Smallest det: 1.00169
 Conformation tensor is SPD
-Largest det:  0.486193
-Smallest det: 0.41931
+Largest det:  2.4035
+Smallest det: 1.0017
 Conformation tensor is SPD
-Largest det:  0.495425
-Smallest det: 0.425809
+Largest det:  2.42117
+Smallest det: 1.00171
 Conformation tensor is SPD
-Largest det:  0.504674
-Smallest det: 0.432265
+Largest det:  2.43875
+Smallest det: 1.00172
 Conformation tensor is SPD
-Largest det:  0.513937
-Smallest det: 0.438677
+Largest det:  2.45626
+Smallest det: 1.00173
 Conformation tensor is SPD
-Largest det:  0.523215
-Smallest det: 0.445044
+Largest det:  2.47368
+Smallest det: 1.00174
 Conformation tensor is SPD
-Largest det:  0.532506
-Smallest det: 0.451366
+Largest det:  2.49102
+Smallest det: 1.00175
 Conformation tensor is SPD
-Largest det:  0.54181
-Smallest det: 0.457642
+Largest det:  2.50827
+Smallest det: 1.00176
 Conformation tensor is SPD
-Largest det:  0.551124
-Smallest det: 0.463871
+Largest det:  2.52544
+Smallest det: 1.00177
 Conformation tensor is SPD
-Largest det:  0.560449
-Smallest det: 0.470054
+Largest det:  2.54252
+Smallest det: 1.00177
 Conformation tensor is SPD
-Largest det:  0.569784
-Smallest det: 0.476188
+Largest det:  2.55952
+Smallest det: 1.00178
 Conformation tensor is SPD
-Largest det:  0.579127
-Smallest det: 0.482274
+Largest det:  2.57644
+Smallest det: 1.00179
 Conformation tensor is SPD
-Largest det:  0.588478
-Smallest det: 0.488312
+Largest det:  2.59327
+Smallest det: 1.0018
 Conformation tensor is SPD
-Largest det:  0.597836
-Smallest det: 0.494301
+Largest det:  2.61001
+Smallest det: 1.00181
 Conformation tensor is SPD
-Largest det:  0.607199
-Smallest det: 0.500241
+Largest det:  2.62667
+Smallest det: 1.00182
 Conformation tensor is SPD
-Largest det:  0.616568
-Smallest det: 0.506132
+Largest det:  2.64324
+Smallest det: 1.00182
 Conformation tensor is SPD
-Largest det:  0.625942
-Smallest det: 0.511972
+Largest det:  2.65973
+Smallest det: 1.00183
 Conformation tensor is SPD
-Largest det:  0.635319
-Smallest det: 0.517763
+Largest det:  2.67612
+Smallest det: 1.00184
 Conformation tensor is SPD
-Largest det:  0.644698
-Smallest det: 0.523503
+Largest det:  2.69243
+Smallest det: 1.00185
 Conformation tensor is SPD
-Largest det:  0.65408
-Smallest det: 0.529193
+Largest det:  2.70866
+Smallest det: 1.00186
 Conformation tensor is SPD
-Largest det:  0.663463
-Smallest det: 0.534832
+Largest det:  2.7248
+Smallest det: 1.00186
 Conformation tensor is SPD
-Largest det:  0.672847
-Smallest det: 0.54042
+Largest det:  2.74085
+Smallest det: 1.00187
 Conformation tensor is SPD
-Largest det:  0.68223
-Smallest det: 0.545958
+Largest det:  2.75681
+Smallest det: 1.00188
 Conformation tensor is SPD
-Largest det:  0.691613
-Smallest det: 0.551444
+Largest det:  2.77269
+Smallest det: 1.00189
 Conformation tensor is SPD
-Largest det:  0.700993
-Smallest det: 0.55688
+Largest det:  2.78848
+Smallest det: 1.00189
 Conformation tensor is SPD
-Largest det:  0.710372
-Smallest det: 0.562265
+Largest det:  2.80418
+Smallest det: 1.0019
 Conformation tensor is SPD
-Largest det:  0.719747
-Smallest det: 0.567599
+Largest det:  2.81979
+Smallest det: 1.00191
 Conformation tensor is SPD
-Largest det:  0.729119
-Smallest det: 0.572881
+Largest det:  2.83532
+Smallest det: 1.00192
+Conformation tensor is SPD
+Largest det:  2.85076
+Smallest det: 1.00192
 Soln norms in sxx at time 1:
-  L1-norm:  32.75739925
-  L2-norm:  5.527761345
-  max-norm: 1.698773474
+  L1-norm:  7.826606441
+  L2-norm:  2.193154019
+  max-norm: 1.052956707
 Soln norms in syy at time 1:
-  L1-norm:  32.75739925
-  L2-norm:  5.527761345
-  max-norm: 1.698773474
+  L1-norm:  7.826606441
+  L2-norm:  2.193154019
+  max-norm: 1.052956707
 Soln norms in sxy at time 1:
-  L1-norm:  1.029026247
-  L2-norm:  0.2017946666
-  max-norm: 0.06399773938
+  L1-norm:  0.7985592197
+  L2-norm:  0.1588130878
+  max-norm: 0.05059146564

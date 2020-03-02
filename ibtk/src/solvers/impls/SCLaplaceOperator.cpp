@@ -133,9 +133,6 @@ SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
     }
 #endif
 
-    // Allocate scratch data.
-    d_x->allocateVectorData();
-
     // Simultaneously fill ghost cell values for all components.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
@@ -169,9 +166,6 @@ SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
         d_bc_helpers[comp]->copyDataAtDirichletBoundaries(y_idx, x_idx);
     }
 
-    // Deallocate scratch data.
-    d_x->deallocateVectorData();
-
     IBTK_TIMER_STOP(t_apply);
     return;
 } // apply
@@ -188,6 +182,9 @@ SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>&
     // Setup solution and rhs vectors.
     d_x = in.cloneVector(in.getName());
     d_b = out.cloneVector(out.getName());
+
+    // Allocate scratch data.
+    d_x->allocateVectorData();
 
     // Setup operator state.
     d_hierarchy = in.getPatchHierarchy();
@@ -271,6 +268,9 @@ SCLaplaceOperator::deallocateOperatorState()
 
     // Deallocate hierarchy math operations object.
     if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
+
+    // Deallocate scratch data.
+    d_x->deallocateVectorData();
 
     // Delete the solution and rhs vectors.
     d_x->freeVectorComponents();

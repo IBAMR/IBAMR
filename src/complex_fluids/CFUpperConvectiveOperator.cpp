@@ -145,8 +145,10 @@ CFUpperConvectiveOperator::CFUpperConvectiveOperator(const std::string& object_n
     if (input_db)
     {
         d_interp_type = input_db->getStringWithDefault("interp_type", d_interp_type);
-        d_evolve_type =
-            string_to_enum<TensorEvolutionType>(input_db->getStringWithDefault("evolution_type", "STANDARD"));
+        if (input_db->keyExists("evolution_type"))
+            d_evolve_type = string_to_enum<TensorEvolutionType>(input_db->getString("evolution_type"));
+        if (input_db->keyExists("evolve_type"))
+            d_evolve_type = string_to_enum<TensorEvolutionType>(input_db->getString("evolve_type"));
     }
     // Register some scratch variables
     auto var_db = VariableDatabase<NDIM>::getDatabase();

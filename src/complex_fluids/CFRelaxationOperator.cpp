@@ -22,7 +22,10 @@ CFRelaxationOperator::CFRelaxationOperator(const std::string& object_name, Point
 {
     if (input_db)
     {
-        d_evolve_type = string_to_enum<TensorEvolutionType>(input_db->getStringWithDefault("evolve_type", "STANDARD"));
+        if (input_db->keyExists("evolution_type"))
+            d_evolve_type = string_to_enum<TensorEvolutionType>(input_db->getString("evolution_type"));
+        if (input_db->keyExists("evolve_type"))
+            d_evolve_type = string_to_enum<TensorEvolutionType>(input_db->getString("evolve_type"));
     }
     return;
 } // Constructor

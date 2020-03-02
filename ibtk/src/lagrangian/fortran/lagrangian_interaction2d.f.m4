@@ -47,6 +47,31 @@ define(INTERPOLATE_2D_SPECIALIZE_FIXED_WIDTH,
            INTERPOLATE_INNER_2D($1, $2,
                                 $3, $4)
          endif')dnl
+define(SPREAD_INNER_2D,
+          ` do d = 0,depth-1
+               do ic1 = $1,$2
+                  do ic0 = $3,$4
+                     u(ic0,ic1,d) = u(ic0,ic1,d) + (
+     &                    +w(0,ic0-$3)
+     &                    *w(1,ic1-$1)
+     &                    *V(d,s)/(dx(0)*dx(1)))
+                  enddo
+               enddo
+            enddo')
+dnl Same arguments as before, but the seventh argument is the width of the
+dnl stencil (e.g., 3 for bspline 3). The first branch is a hotter code path
+dnl since when we are not at a boundary the number of inner loop iterations
+dnl is known. Exposing this to the compiler helps generate code which speeds
+dnl up the subroutine by about 25%.
+define(SPREAD_2D_SPECIALIZE_FIXED_WIDTH,
+`   if ($2 - $1 == ($5 - 1) .and.
+     &       $4 - $3 == ($5 - 1)) then
+           SPREAD_INNER_2D($1, ($1 + $5 - 1),
+                           $3, ($3 + $5 - 1))
+         else
+           SPREAD_INNER_2D($1, $2,
+                           $3, $4)
+         endif')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 
 c     this is a Fortran include, not an m4 include
@@ -710,9 +735,10 @@ c
 c
 c     Local variables.
 c
-      INTEGER ic0,ic1
+      INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
+      INTEGER ic,ic0,ic1
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
-      INTEGER d,l,s
+      INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
 c
@@ -720,27 +746,34 @@ c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
 c
+c     Setup convenience arrays.
+c
+      ilower(0) = ilower0
+      ilower(1) = ilower1
+
+      iupper(0) = iupper0
+      iupper(1) = iupper1
+
+      nugc(0) = nugc0
+      nugc(1) = nugc1
+c
 c     Use the piecewise cubic delta function to interpolate u onto V.
 c
       do l = 0,nindices-1
          s = indices(l)
+         do d=0,NDIM-1
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-         ic_center(0) =
-     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
-
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
+            ic_center(d) =
+     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
+     &           + ilower(d)
+            X_cell(d) = x_lower(d)
+     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
 c     Determine the interpolation stencil corresponding to the position
 c     of X(s) within the cell.
 c
-         do d = 0,NDIM-1
             if ( X(d,s).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-2
                ic_upper(d) = ic_center(d)+1
@@ -748,34 +781,25 @@ c
                ic_lower(d) = ic_center(d)-1
                ic_upper(d) = ic_center(d)+2
             endif
-         enddo
 
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
+            ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
+            ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
 c     Compute the interpolation weights.
 c
-         do ic0 = ic_lower(0),ic_upper(0)
-            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w(0,ic0-ic_lower(0)) =
-     &           lagrangian_piecewise_cubic_delta(
-     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
-         enddo
-
-         do ic1 = ic_lower(1),ic_upper(1)
-            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w(1,ic1-ic_lower(1)) =
-     &           lagrangian_piecewise_cubic_delta(
-     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
+            do ic = ic_lower(d),ic_upper(d)
+               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
+               w(d,ic-ic_lower(d)) =
+     &              lagrangian_piecewise_cubic_delta(
+     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+            enddo
          enddo
 c
 c     Interpolate u onto V.
 c
          INTERPOLATE_2D_SPECIALIZE_FIXED_WIDTH(ic_lower(1), ic_upper(1),
-                                               ic_lower(0), ic_upper(0), 4)
+                                               ic_lower(0), ic_upper(0),
+                                               4)
 c
 c     End loop over points.
 c
@@ -827,9 +851,10 @@ c
 c
 c     Local variables.
 c
-      INTEGER ic0,ic1
+      INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
+      INTEGER ic,ic0,ic1
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
-      INTEGER d,l,s
+      INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
 c
@@ -837,27 +862,34 @@ c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
 c
+c     Setup convenience arrays.
+c
+      ilower(0) = ilower0
+      ilower(1) = ilower1
+
+      iupper(0) = iupper0
+      iupper(1) = iupper1
+
+      nugc(0) = nugc0
+      nugc(1) = nugc1
+c
 c     Use the piecewise cubic delta function to spread V onto u.
 c
       do l = 0,nindices-1
          s = indices(l)
+         do d = 0,NDIM-1
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-         ic_center(0) =
-     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
-
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
+            ic_center(d) =
+     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
+     &           + ilower(d)
+            X_cell(d) = x_lower(d)
+     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
 c     Determine the spreading stencil corresponding to the position of
 c     X(s) within the cell.
 c
-         do d = 0,NDIM-1
             if ( X(d,s).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-2
                ic_upper(d) = ic_center(d)+1
@@ -865,42 +897,24 @@ c
                ic_lower(d) = ic_center(d)-1
                ic_upper(d) = ic_center(d)+2
             endif
-         enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
+            ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
+            ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
 c     Compute the spreading weights.
 c
-         do ic0 = ic_lower(0),ic_upper(0)
-            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w(0,ic0-ic_lower(0)) =
-     &           lagrangian_piecewise_cubic_delta(
-     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
-         enddo
-
-         do ic1 = ic_lower(1),ic_upper(1)
-            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w(1,ic1-ic_lower(1)) =
-     &           lagrangian_piecewise_cubic_delta(
-     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
+            do ic = ic_lower(d),ic_upper(d)
+               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
+               w(d,ic-ic_lower(d)) =
+     &              lagrangian_piecewise_cubic_delta(
+     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+            enddo
          enddo
 c
 c     Spread V onto u.
 c
-         do d = 0,depth-1
-            do ic1 = ic_lower(1),ic_upper(1)
-               do ic0 = ic_lower(0),ic_upper(0)
-                  u(ic0,ic1,d) = u(ic0,ic1,d)+(
-     &                 w(0,ic0-ic_lower(0))*
-     &                 w(1,ic1-ic_lower(1))*
-     &                 V(d,s)/(dx(0)*dx(1)))
-               enddo
-            enddo
-         enddo
+         SPREAD_2D_SPECIALIZE_FIXED_WIDTH(ic_lower(1), ic_upper(1),
+                                          ic_lower(0), ic_upper(0),
+                                          4)
 c
 c     End loop over points.
 c
@@ -951,9 +965,10 @@ c
 c
 c     Local variables.
 c
-      INTEGER ic0,ic1
+      INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
+      INTEGER ic,ic0,ic1
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
-      INTEGER d,l,s
+      INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:2)
 c
@@ -961,57 +976,54 @@ c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
 c
+c     Setup convenience arrays.
+c
+      ilower(0) = ilower0
+      ilower(1) = ilower1
+
+      iupper(0) = iupper0
+      iupper(1) = iupper1
+
+      nugc(0) = nugc0
+      nugc(1) = nugc1
+c
 c     Use the IB 3-point delta function to interpolate u onto V.
 c
       do l = 0,nindices-1
          s = indices(l)
+         do d = 0,NDIM-1
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-         ic_center(0) =
-     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
-
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
+            ic_center(d) =
+     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
+     &           + ilower(d)
+            X_cell(d) = x_lower(d)
+     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
 c     Determine the interpolation stencil corresponding to the position
 c     of X(s) within the cell.
 c
-         do d = 0,NDIM-1
             ic_lower(d) = ic_center(d)-1
             ic_upper(d) = ic_center(d)+1
-         enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
+            ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
+            ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
 c     Compute the interpolation weights.
 c
-         do ic0 = ic_lower(0),ic_upper(0)
-            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w(0,ic0-ic_lower(0)) =
-     &           lagrangian_ib_3_delta(
-     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
-         enddo
-
-         do ic1 = ic_lower(1),ic_upper(1)
-            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w(1,ic1-ic_lower(1)) =
-     &           lagrangian_ib_3_delta(
-     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
+            do ic = ic_lower(d),ic_upper(d)
+               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
+               w(d,ic-ic_lower(d)) =
+     &              lagrangian_ib_3_delta(
+     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+            enddo
          enddo
 c
 c     Interpolate u onto V.
 c
          INTERPOLATE_2D_SPECIALIZE_FIXED_WIDTH(ic_lower(1), ic_upper(1),
-                                               ic_lower(0), ic_upper(0), 3)
+                                               ic_lower(0), ic_upper(0),
+                                               3)
 c
 c     End loop over points.
 c
@@ -1063,9 +1075,10 @@ c
 c
 c     Local variables.
 c
-      INTEGER ic0,ic1
+      INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
+      INTEGER ic,ic0,ic1
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
-      INTEGER d,l,s
+      INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:2)
 c
@@ -1073,65 +1086,54 @@ c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
 c
+c     Setup convenience arrays.
+c
+      ilower(0) = ilower0
+      ilower(1) = ilower1
+
+      iupper(0) = iupper0
+      iupper(1) = iupper1
+
+      nugc(0) = nugc0
+      nugc(1) = nugc1
+c
 c     Use the IB 3-point delta function to spread V onto u.
 c
       do l = 0,nindices-1
          s = indices(l)
+         do d = 0,NDIM-1
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-         ic_center(0) =
-     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
-
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
+            ic_center(d) =
+     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
+     &           + ilower(d)
+            X_cell(d) = x_lower(d)
+     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
 c     Determine the spreading stencil corresponding to the position of
 c     X(s) within the cell.
 c
-         do d = 0,NDIM-1
             ic_lower(d) = ic_center(d)-1
             ic_upper(d) = ic_center(d)+1
-         enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
+            ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
+            ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
 c     Compute the spreading weights.
 c
-         do ic0 = ic_lower(0),ic_upper(0)
-            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w(0,ic0-ic_lower(0)) =
-     &           lagrangian_ib_3_delta(
-     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
-         enddo
-
-         do ic1 = ic_lower(1),ic_upper(1)
-            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w(1,ic1-ic_lower(1)) =
-     &           lagrangian_ib_3_delta(
-     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
+            do ic = ic_lower(d),ic_upper(d)
+               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
+               w(d, ic-ic_lower(d)) =
+     &              lagrangian_ib_3_delta(
+     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+            enddo
          enddo
 c
 c     Spread V onto u.
 c
-         do d = 0,depth-1
-            do ic1 = ic_lower(1),ic_upper(1)
-               do ic0 = ic_lower(0),ic_upper(0)
-                  u(ic0,ic1,d) = u(ic0,ic1,d)+(
-     &                 w(0,ic0-ic_lower(0))*
-     &                 w(1,ic1-ic_lower(1))*
-     &                 V(d,s)/(dx(0)*dx(1)))
-               enddo
-            enddo
-         enddo
+         SPREAD_2D_SPECIALIZE_FIXED_WIDTH(ic_lower(1), ic_upper(1),
+                                          ic_lower(0), ic_upper(0),
+                                          3)
 c
 c     End loop over points.
 c
@@ -1664,9 +1666,6 @@ c
 c
       implicit none
 c
-c     Functions.
-c
-c
 c     Input.
 c
       INTEGER depth
@@ -1692,17 +1691,26 @@ c
       REAL r
       REAL phi
       REAL K
-      INTEGER ic0,ic1
+      INTEGER i0,i1,ic0,ic1
+      INTEGER ig_lower(0:NDIM-1),ig_upper(0:NDIM-1)
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER istart0,istop0,istart1,istop1
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:4)
+      REAL X_cell(0:NDIM-1),w0(0:4),w1(0:4)
 
       PARAMETER (K = (38.0d0 - sqrt(69.0d0))/60.0d0)
 c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+c
+c     Compute the extents of the ghost box.
+c
+      ig_lower(0) = ilower0-nugc0
+      ig_lower(1) = ilower1-nugc1
+      ig_upper(0) = iupper0+nugc0
+      ig_upper(1) = iupper1+nugc1
 c
 c     Use a 5-point IB delta function to interpolate u onto V.
 c
@@ -1728,12 +1736,6 @@ c
             ic_lower(d) = ic_center(d)-2
             ic_upper(d) = ic_center(d)+2
          enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
 c
 c     Compute the interpolation weights.
 c
@@ -1747,14 +1749,14 @@ c
      &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
      &          /280.0d0
 
-         w(0,0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
+         w0(0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
      &                         r - 3.0d0*K*r + 2.0d0*r**2 - r**3)
-         w(0,1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
+         w0(1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
      &                   4.0d0*r + 3.0d0*K*r -       r**2 + r**3)
-         w(0,2) = phi
-         w(0,3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
+         w0(2) = phi
+         w0(3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
      &                   4.0d0*r - 3.0d0*K*r -       r**2 - r**3)
-         w(0,4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
+         w0(4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
      &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
 
          ic1 = ic_center(1)
@@ -1767,21 +1769,33 @@ c
      &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
      &          /280.0d0
 
-         w(1,0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
+         w1(0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
      &                         r - 3.0d0*K*r + 2.0d0*r**2 - r**3)
-         w(1,1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
+         w1(1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
      &                   4.0d0*r + 3.0d0*K*r -       r**2 + r**3)
-         w(1,2) = phi
-         w(1,3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
+         w1(2) = phi
+         w1(3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
      &                   4.0d0*r - 3.0d0*K*r -       r**2 - r**3)
-         w(1,4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
+         w1(4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
      &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
 
 c
 c     Interpolate u onto V.
 c
-         INTERPOLATE_2D_SPECIALIZE_FIXED_WIDTH(ic_lower(1), ic_upper(1),
-                                               ic_lower(0), ic_upper(0), 5)
+         istart0 =   max(ig_lower(0)-ic_lower(0),0)
+         istop0  = 4-max(ic_upper(0)-ig_upper(0),0)
+         istart1 =   max(ig_lower(1)-ic_lower(1),0)
+         istop1  = 4-max(ic_upper(1)-ig_upper(1),0)
+         do d = 0,depth-1
+            V(d,s) = 0.d0
+            do i1 = istart1,istop1
+               ic1 = ic_lower(1)+i1
+               do i0 = istart0,istop0
+                  ic0 = ic_lower(0)+i0
+                  V(d,s) = V(d,s) + w0(i0) * w1(i1) * u(ic0,ic1,d)
+               enddo
+            enddo
+         enddo
 c
 c     End loop over points.
 c
@@ -1809,9 +1823,6 @@ c
 c
       implicit none
 c
-c     Functions.
-c
-c
 c     Input.
 c
       INTEGER depth
@@ -1836,17 +1847,26 @@ c
       REAL r
       REAL phi
       REAL K
-      INTEGER ic0,ic1
+      INTEGER i0,i1,ic0,ic1
+      INTEGER ig_lower(0:NDIM-1),ig_upper(0:NDIM-1)
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER istart0,istop0,istart1,istop1
       INTEGER d,l,s
 
-      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:4)
+      REAL X_cell(0:NDIM-1),w0(0:4),w1(0:4)
 
       PARAMETER (K = (38.0d0 - sqrt(69.0d0))/60.0d0)
 c
 c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
+c
+c     Compute the extents of the ghost box.
+c
+      ig_lower(0) = ilower0-nugc0
+      ig_lower(1) = ilower1-nugc1
+      ig_upper(0) = iupper0+nugc0
+      ig_upper(1) = iupper1+nugc1
 c
 c     Use a 5-point IB delta function to spread V onto u.
 c
@@ -1872,12 +1892,6 @@ c
             ic_lower(d) = ic_center(d)-2
             ic_upper(d) = ic_center(d)+2
          enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
 c
 c     Compute the spreading weights.
 c
@@ -1892,14 +1906,14 @@ c
      &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
      &          /280.0d0
 
-         w(0,0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
+         w0(0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
      &                         r - 3.0d0*K*r + 2.0d0*r**2 - r**3)
-         w(0,1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
+         w0(1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
      &                   4.0d0*r + 3.0d0*K*r -       r**2 + r**3)
-         w(0,2) = phi
-         w(0,3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
+         w0(2) = phi
+         w0(3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
      &                   4.0d0*r - 3.0d0*K*r -       r**2 - r**3)
-         w(0,4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
+         w0(4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
      &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
 
          ic1 = ic_center(1)
@@ -1912,26 +1926,30 @@ c
      &          - 8400.0d0*K*(r**4) - 1400.0d0*(r**6)))
      &          /280.0d0
 
-         w(1,0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
+         w1(0) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K +
      &                         r - 3.0d0*K*r + 2.0d0*r**2 - r**3)
-         w(1,1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
+         w1(1) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K -
      &                   4.0d0*r + 3.0d0*K*r -       r**2 + r**3)
-         w(1,2) = phi
-         w(1,3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
+         w1(2) = phi
+         w1(3) = (1.0d0/ 6.0d0) * ( 4.0d0 - 4.0d0*phi -       K +
      &                   4.0d0*r - 3.0d0*K*r -       r**2 - r**3)
-         w(1,4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
+         w1(4) = (1.0d0/12.0d0) * (-2.0d0 + 2.0d0*phi + 2.0d0*K -
      &                         r + 3.0d0*K*r + 2.0d0*r**2 + r**3)
 
 c
 c     Spread V onto u.
 c
+         istart0 =   max(ig_lower(0)-ic_lower(0),0)
+         istop0  = 4-max(ic_upper(0)-ig_upper(0),0)
+         istart1 =   max(ig_lower(1)-ic_lower(1),0)
+         istop1  = 4-max(ic_upper(1)-ig_upper(1),0)
          do d = 0,depth-1
-            do ic1 = ic_lower(1),ic_upper(1)
-               do ic0 = ic_lower(0),ic_upper(0)
+            do i1 = istart1,istop1
+               ic1 = ic_lower(1)+i1
+               do i0 = istart0,istop0
+                  ic0 = ic_lower(0)+i0
                   u(ic0,ic1,d) = u(ic0,ic1,d)+(
-     &                 w(0,ic0-ic_lower(0))*
-     &                 w(1,ic1-ic_lower(1))*
-     &                 V(d,s)/(dx(0)*dx(1)))
+     &                 w0(i0) * w1(i1) * V(d,s)/(dx(0)*dx(1)))
                enddo
             enddo
          enddo
@@ -2314,9 +2332,10 @@ c
 c
 c     Local variables.
 c
-      INTEGER ic0,ic1
+      INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
+      INTEGER ic,ic0,ic1
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
-      INTEGER d,l,s
+      INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:2)
 c
@@ -2324,57 +2343,54 @@ c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
 c
+c     Setup convenience arrays.
+c
+      ilower(0) = ilower0
+      ilower(1) = ilower1
+
+      iupper(0) = iupper0
+      iupper(1) = iupper1
+
+      nugc(0) = nugc0
+      nugc(1) = nugc1
+c
 c     Use a 3-point B-spline function to interpolate u onto V.
 c
       do l = 0,nindices-1
          s = indices(l)
+         do d=0,NDIM-1
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-         ic_center(0) =
-     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
-
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
+            ic_center(d) =
+     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
+     &           + ilower(d)
+            X_cell(d) = x_lower(d)
+     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
 c     Determine the interpolation stencil corresponding to the position
 c     of X(s) within the cell.
 c
-         do d = 0,NDIM-1
             ic_lower(d) = ic_center(d)-1
             ic_upper(d) = ic_center(d)+1
-         enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
+            ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
+            ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
 c     Compute the interpolation weights.
 c
-         do ic0 = ic_lower(0),ic_upper(0)
-            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w(0,ic0-ic_lower(0)) =
-     &           lagrangian_bspline_3_delta(
-     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
-         enddo
-
-         do ic1 = ic_lower(1),ic_upper(1)
-            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w(1,ic1-ic_lower(1)) =
-     &           lagrangian_bspline_3_delta(
-     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
+            do ic = ic_lower(d),ic_upper(d)
+               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
+               w(d,ic-ic_lower(d)) =
+     &              lagrangian_bspline_3_delta(
+     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+            enddo
          enddo
 c
 c     Interpolate u onto V.
 c
          INTERPOLATE_2D_SPECIALIZE_FIXED_WIDTH(ic_lower(1), ic_upper(1),
-                                               ic_lower(0), ic_upper(0), 3)
+                                               ic_lower(0), ic_upper(0),
+                                               3)
 c
 c     End loop over points.
 c
@@ -2426,9 +2442,10 @@ c
 c
 c     Local variables.
 c
-      INTEGER ic0,ic1
+      INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
+      INTEGER ic,ic0,ic1
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
-      INTEGER d,l,s
+      INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:2)
 c
@@ -2436,65 +2453,54 @@ c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
 c
+c     Setup convenience arrays.
+c
+      ilower(0) = ilower0
+      ilower(1) = ilower1
+
+      iupper(0) = iupper0
+      iupper(1) = iupper1
+
+      nugc(0) = nugc0
+      nugc(1) = nugc1
+c
 c     Use a 3-point B-spline function to spread V onto u.
 c
       do l = 0,nindices-1
          s = indices(l)
+         do d=0,NDIM-1
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-         ic_center(0) =
-     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
-
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
+            ic_center(d) =
+     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
+     &           + ilower(d)
+            X_cell(d) = x_lower(d)
+     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
 c     Determine the spreading stencil corresponding to the position of
 c     X(s) within the cell.
 c
-         do d = 0,NDIM-1
             ic_lower(d) = ic_center(d)-1
             ic_upper(d) = ic_center(d)+1
-         enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
+            ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
+            ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
 c     Compute the spreading weights.
 c
-         do ic0 = ic_lower(0),ic_upper(0)
-            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w(0,ic0-ic_lower(0)) =
-     &           lagrangian_bspline_3_delta(
-     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
-         enddo
-
-         do ic1 = ic_lower(1),ic_upper(1)
-            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w(1,ic1-ic_lower(1)) =
-     &           lagrangian_bspline_3_delta(
-     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
+            do ic = ic_lower(d),ic_upper(d)
+               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
+               w(d,ic-ic_lower(d)) =
+     &              lagrangian_bspline_3_delta(
+     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+            enddo
          enddo
 c
 c     Spread V onto u.
 c
-         do d = 0,depth-1
-            do ic1 = ic_lower(1),ic_upper(1)
-               do ic0 = ic_lower(0),ic_upper(0)
-                  u(ic0,ic1,d) = u(ic0,ic1,d)+(
-     &                 w(0,ic0-ic_lower(0))*
-     &                 w(1,ic1-ic_lower(1))*
-     &                 V(d,s)/(dx(0)*dx(1)))
-               enddo
-            enddo
-         enddo
+         SPREAD_2D_SPECIALIZE_FIXED_WIDTH(ic_lower(1), ic_upper(1),
+                                          ic_lower(0), ic_upper(0),
+                                          3)
 c
 c     End loop over points.
 c
@@ -2545,9 +2551,10 @@ c
 c
 c     Local variables.
 c
-      INTEGER ic0,ic1
+      INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
+      INTEGER ic,ic0,ic1
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
-      INTEGER d,l,s
+      INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
 c
@@ -2555,27 +2562,34 @@ c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
 c
+c     Setup convenience arrays.
+c
+      ilower(0) = ilower0
+      ilower(1) = ilower1
+
+      iupper(0) = iupper0
+      iupper(1) = iupper1
+
+      nugc(0) = nugc0
+      nugc(1) = nugc1
+c
 c     Use a 4-point B-spline function to interpolate u onto V.
 c
       do l = 0,nindices-1
          s = indices(l)
+         do d=0,NDIM-1
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-         ic_center(0) =
-     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
-
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
+            ic_center(d) =
+     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
+     &           + ilower(d)
+            X_cell(d) = x_lower(d)
+     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
 c     Determine the interpolation stencil corresponding to the position
 c     of X(s) within the cell.
 c
-         do d = 0,NDIM-1
             if ( X(d,s).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-2
                ic_upper(d) = ic_center(d)+1
@@ -2583,34 +2597,24 @@ c
                ic_lower(d) = ic_center(d)-1
                ic_upper(d) = ic_center(d)+2
             endif
-         enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
+            ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
+            ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
 c     Compute the interpolation weights.
 c
-         do ic0 = ic_lower(0),ic_upper(0)
-            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w(0,ic0-ic_lower(0)) =
-     &           lagrangian_bspline_4_delta(
-     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
-         enddo
-
-         do ic1 = ic_lower(1),ic_upper(1)
-            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w(1,ic1-ic_lower(1)) =
-     &           lagrangian_bspline_4_delta(
-     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
+            do ic = ic_lower(d),ic_upper(d)
+               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
+               w(d,ic-ic_lower(d)) =
+     &              lagrangian_bspline_4_delta(
+     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+            enddo
          enddo
 c
 c     Interpolate u onto V.
 c
          INTERPOLATE_2D_SPECIALIZE_FIXED_WIDTH(ic_lower(1), ic_upper(1),
-                                               ic_lower(0), ic_upper(0), 4)
+                                               ic_lower(0), ic_upper(0),
+                                               4)
 c
 c     End loop over points.
 c
@@ -2662,9 +2666,10 @@ c
 c
 c     Local variables.
 c
-      INTEGER ic0,ic1
+      INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
+      INTEGER ic,ic0,ic1
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
-      INTEGER d,l,s
+      INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:3)
 c
@@ -2672,27 +2677,34 @@ c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
 c
+c     Setup convenience arrays.
+c
+      ilower(0) = ilower0
+      ilower(1) = ilower1
+
+      iupper(0) = iupper0
+      iupper(1) = iupper1
+
+      nugc(0) = nugc0
+      nugc(1) = nugc1
+c
 c     Use a 4-point B-spline function to spread V onto u.
 c
       do l = 0,nindices-1
          s = indices(l)
+         do d=0,NDIM-1
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-         ic_center(0) =
-     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
-
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
+            ic_center(d) =
+     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
+     &           + ilower(d)
+            X_cell(d) = x_lower(d)
+     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
 c     Determine the spreading stencil corresponding to the position of
 c     X(s) within the cell.
 c
-         do d = 0,NDIM-1
             if ( X(d,s).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-2
                ic_upper(d) = ic_center(d)+1
@@ -2700,42 +2712,24 @@ c
                ic_lower(d) = ic_center(d)-1
                ic_upper(d) = ic_center(d)+2
             endif
-         enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
+            ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
+            ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
 c     Compute the spreading weights.
 c
-         do ic0 = ic_lower(0),ic_upper(0)
-            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w(0,ic0-ic_lower(0)) =
-     &           lagrangian_bspline_4_delta(
-     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
-         enddo
-
-         do ic1 = ic_lower(1),ic_upper(1)
-            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w(1,ic1-ic_lower(1)) =
-     &           lagrangian_bspline_4_delta(
-     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
+            do ic = ic_lower(d),ic_upper(d)
+               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
+               w(d,ic-ic_lower(d)) =
+     &              lagrangian_bspline_4_delta(
+     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+            enddo
          enddo
 c
 c     Spread V onto u.
 c
-         do d = 0,depth-1
-            do ic1 = ic_lower(1),ic_upper(1)
-               do ic0 = ic_lower(0),ic_upper(0)
-                  u(ic0,ic1,d) = u(ic0,ic1,d)+(
-     &                 w(0,ic0-ic_lower(0))*
-     &                 w(1,ic1-ic_lower(1))*
-     &                 V(d,s)/(dx(0)*dx(1)))
-               enddo
-            enddo
-         enddo
+         SPREAD_2D_SPECIALIZE_FIXED_WIDTH(ic_lower(1), ic_upper(1),
+                                          ic_lower(0), ic_upper(0),
+                                          4)
 c
 c     End loop over points.
 c
@@ -2786,9 +2780,10 @@ c
 c
 c     Local variables.
 c
-      INTEGER ic0,ic1
+      INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
+      INTEGER ic,ic0,ic1
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
-      INTEGER d,l,s
+      INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:4)
 c
@@ -2796,57 +2791,54 @@ c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
 c
+c     Setup convenience arrays.
+c
+      ilower(0) = ilower0
+      ilower(1) = ilower1
+
+      iupper(0) = iupper0
+      iupper(1) = iupper1
+
+      nugc(0) = nugc0
+      nugc(1) = nugc1
+c
 c     Use a 5-point B-spline function to interpolate u onto V.
 c
       do l = 0,nindices-1
          s = indices(l)
+         do d=0,NDIM-1
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-         ic_center(0) =
-     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
-
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
+            ic_center(d) =
+     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
+     &           + ilower(d)
+            X_cell(d) = x_lower(d)
+     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
 c     Determine the interpolation stencil corresponding to the position
 c     of X(s) within the cell.
 c
-         do d = 0,NDIM-1
             ic_lower(d) = ic_center(d)-2
             ic_upper(d) = ic_center(d)+2
-         enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
+            ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
+            ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
 c     Compute the interpolation weights.
 c
-         do ic0 = ic_lower(0),ic_upper(0)
-            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w(0,ic0-ic_lower(0)) =
-     &           lagrangian_bspline_5_delta(
-     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
-         enddo
-
-         do ic1 = ic_lower(1),ic_upper(1)
-            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w(1,ic1-ic_lower(1)) =
-     &           lagrangian_bspline_5_delta(
-     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
+            do ic = ic_lower(d),ic_upper(d)
+               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
+               w(d,ic-ic_lower(d)) =
+     &              lagrangian_bspline_5_delta(
+     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+            enddo
          enddo
 c
 c     Interpolate u onto V.
 c
          INTERPOLATE_2D_SPECIALIZE_FIXED_WIDTH(ic_lower(1), ic_upper(1),
-                                               ic_lower(0), ic_upper(0), 5)
+                                               ic_lower(0), ic_upper(0),
+                                               5)
 c
 c     End loop over points.
 c
@@ -2898,9 +2890,10 @@ c
 c
 c     Local variables.
 c
-      INTEGER ic0,ic1
+      INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
+      INTEGER ic,ic0,ic1
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
-      INTEGER d,l,s
+      INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:4)
 c
@@ -2908,65 +2901,54 @@ c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
 c
+c     Setup convenience arrays.
+c
+      ilower(0) = ilower0
+      ilower(1) = ilower1
+
+      iupper(0) = iupper0
+      iupper(1) = iupper1
+
+      nugc(0) = nugc0
+      nugc(1) = nugc1
+c
 c     Use a 5-point B-spline function to spread V onto u.
 c
       do l = 0,nindices-1
          s = indices(l)
+         do d = 0,NDIM-1
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-         ic_center(0) =
-     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
-
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
+            ic_center(d) =
+     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
+     &           + ilower(d)
+            X_cell(d) = x_lower(d)
+     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
 c     Determine the spreading stencil corresponding to the position of
 c     X(s) within the cell.
 c
-         do d = 0,NDIM-1
             ic_lower(d) = ic_center(d)-2
             ic_upper(d) = ic_center(d)+2
-         enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
+            ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
+            ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
 c     Compute the spreading weights.
 c
-         do ic0 = ic_lower(0),ic_upper(0)
-            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w(0,ic0-ic_lower(0)) =
-     &           lagrangian_bspline_5_delta(
-     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
-         enddo
-
-         do ic1 = ic_lower(1),ic_upper(1)
-            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w(1,ic1-ic_lower(1)) =
-     &           lagrangian_bspline_5_delta(
-     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
+            do ic = ic_lower(d),ic_upper(d)
+               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
+               w(d,ic-ic_lower(d)) =
+     &              lagrangian_bspline_5_delta(
+     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+            enddo
          enddo
 c
 c     Spread V onto u.
 c
-         do d = 0,depth-1
-            do ic1 = ic_lower(1),ic_upper(1)
-               do ic0 = ic_lower(0),ic_upper(0)
-                  u(ic0,ic1,d) = u(ic0,ic1,d)+(
-     &                 w(0,ic0-ic_lower(0))*
-     &                 w(1,ic1-ic_lower(1))*
-     &                 V(d,s)/(dx(0)*dx(1)))
-               enddo
-            enddo
-         enddo
+         SPREAD_2D_SPECIALIZE_FIXED_WIDTH(ic_lower(1), ic_upper(1),
+                                          ic_lower(0), ic_upper(0),
+                                          5)
 c
 c     End loop over points.
 c
@@ -3017,9 +2999,10 @@ c
 c
 c     Local variables.
 c
-      INTEGER ic0,ic1
+      INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
+      INTEGER ic,ic0,ic1
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
-      INTEGER d,l,s
+      INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:5)
 c
@@ -3027,27 +3010,34 @@ c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
 c
+c     Setup convenience arrays.
+c
+      ilower(0) = ilower0
+      ilower(1) = ilower1
+
+      iupper(0) = iupper0
+      iupper(1) = iupper1
+
+      nugc(0) = nugc0
+      nugc(1) = nugc1
+c
 c     Use a 6-point B-spline function to interpolate u onto V.
 c
       do l = 0,nindices-1
          s = indices(l)
+         do d=0,NDIM-1
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-         ic_center(0) =
-     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
-
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
+            ic_center(d) =
+     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
+     &           + ilower(d)
+            X_cell(d) = x_lower(d)
+     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
 c     Determine the interpolation stencil corresponding to the position
 c     of X(s) within the cell.
 c
-         do d = 0,NDIM-1
             if ( X(d,s).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-3
                ic_upper(d) = ic_center(d)+2
@@ -3055,34 +3045,24 @@ c
                ic_lower(d) = ic_center(d)-2
                ic_upper(d) = ic_center(d)+3
             endif
-         enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
+            ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
+            ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
 c     Compute the interpolation weights.
 c
-         do ic0 = ic_lower(0),ic_upper(0)
-            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w(0,ic0-ic_lower(0)) =
-     &           lagrangian_bspline_6_delta(
-     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
-         enddo
-
-         do ic1 = ic_lower(1),ic_upper(1)
-            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w(1,ic1-ic_lower(1)) =
-     &           lagrangian_bspline_6_delta(
-     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
+            do ic = ic_lower(d),ic_upper(d)
+               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
+               w(d,ic-ic_lower(d)) =
+     &              lagrangian_bspline_6_delta(
+     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+            enddo
          enddo
 c
 c     Interpolate u onto V.
 c
          INTERPOLATE_2D_SPECIALIZE_FIXED_WIDTH(ic_lower(1), ic_upper(1),
-                                               ic_lower(0), ic_upper(0), 6)
+                                               ic_lower(0), ic_upper(0),
+                                               6)
 c
 c     End loop over points.
 c
@@ -3134,9 +3114,10 @@ c
 c
 c     Local variables.
 c
-      INTEGER ic0,ic1
+      INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
+      INTEGER ic,ic0,ic1
       INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
-      INTEGER d,l,s
+      INTEGER d,l,s,nugc(0:NDIM-1)
 
       REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:5)
 c
@@ -3144,27 +3125,34 @@ c     Prevent compiler warning about unused variables.
 c
       x_upper(0) = x_upper(0)
 c
+c     Setup convenience arrays.
+c
+      ilower(0) = ilower0
+      ilower(1) = ilower1
+
+      iupper(0) = iupper0
+      iupper(1) = iupper1
+
+      nugc(0) = nugc0
+      nugc(1) = nugc1
+c
 c     Use a 6-point B-spline function to spread V onto u.
 c
       do l = 0,nindices-1
          s = indices(l)
+         do d=0,NDIM-1
 c
 c     Determine the Cartesian cell in which X(s) is located.
 c
-         ic_center(0) =
-     &        floor((X(0,s)+Xshift(0,l)-x_lower(0))/dx(0))
-     &        + ilower0
-         ic_center(1) =
-     &        floor((X(1,s)+Xshift(1,l)-x_lower(1))/dx(1))
-     &        + ilower1
-
-         X_cell(0) = x_lower(0)+(dble(ic_center(0)-ilower0)+0.5d0)*dx(0)
-         X_cell(1) = x_lower(1)+(dble(ic_center(1)-ilower1)+0.5d0)*dx(1)
+            ic_center(d) =
+     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
+     &           + ilower(d)
+            X_cell(d) = x_lower(d)
+     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
 c
 c     Determine the spreading stencil corresponding to the position of
 c     X(s) within the cell.
 c
-         do d = 0,NDIM-1
             if ( X(d,s).lt.X_cell(d) ) then
                ic_lower(d) = ic_center(d)-3
                ic_upper(d) = ic_center(d)+2
@@ -3172,42 +3160,24 @@ c
                ic_lower(d) = ic_center(d)-2
                ic_upper(d) = ic_center(d)+3
             endif
-         enddo
-
-         ic_lower(0) = max(ic_lower(0),ilower0-nugc0)
-         ic_upper(0) = min(ic_upper(0),iupper0+nugc0)
-
-         ic_lower(1) = max(ic_lower(1),ilower1-nugc1)
-         ic_upper(1) = min(ic_upper(1),iupper1+nugc1)
+            ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
+            ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
 c
 c     Compute the spreading weights.
 c
-         do ic0 = ic_lower(0),ic_upper(0)
-            X_cell(0) = x_lower(0)+(dble(ic0-ilower0)+0.5d0)*dx(0)
-            w(0,ic0-ic_lower(0)) =
-     &           lagrangian_bspline_6_delta(
-     &           (X(0,s)+Xshift(0,l)-X_cell(0))/dx(0))
-         enddo
-
-         do ic1 = ic_lower(1),ic_upper(1)
-            X_cell(1) = x_lower(1)+(dble(ic1-ilower1)+0.5d0)*dx(1)
-            w(1,ic1-ic_lower(1)) =
-     &           lagrangian_bspline_6_delta(
-     &           (X(1,s)+Xshift(1,l)-X_cell(1))/dx(1))
+            do ic = ic_lower(d),ic_upper(d)
+               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
+               w(d,ic-ic_lower(d)) =
+     &              lagrangian_bspline_6_delta(
+     &              (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+            enddo
          enddo
 c
 c     Spread V onto u.
 c
-         do d = 0,depth-1
-            do ic1 = ic_lower(1),ic_upper(1)
-               do ic0 = ic_lower(0),ic_upper(0)
-                  u(ic0,ic1,d) = u(ic0,ic1,d)+(
-     &                 w(0,ic0-ic_lower(0))*
-     &                 w(1,ic1-ic_lower(1))*
-     &                 V(d,s)/(dx(0)*dx(1)))
-               enddo
-            enddo
-         enddo
+         SPREAD_2D_SPECIALIZE_FIXED_WIDTH(ic_lower(1), ic_upper(1),
+                                          ic_lower(0), ic_upper(0),
+                                          6)
 c
 c     End loop over points.
 c

@@ -85,9 +85,6 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
 {
     IBAMR_TIMER_START(t_apply);
 
-    // Allocate scratch data.
-    d_x->allocateVectorData();
-
     // Get the vector components.
     const int U_idx = x.getComponentDescriptorIndex(0);
     const int P_idx = x.getComponentDescriptorIndex(1);
@@ -176,9 +173,6 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                          d_new_time,
                          /*cf_bdry_synch*/ true);
     d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_scratch_idx);
-
-    // Deallocate scratch data.
-    d_x->deallocateVectorData();
 
     IBAMR_TIMER_STOP(t_apply);
     return;

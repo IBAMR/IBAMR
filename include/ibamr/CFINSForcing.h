@@ -81,6 +81,8 @@ public:
     /*!
      * \brief This constructor creates Variable and VariableContext objects for storing the viscoleastic stresses at the
      * centers of the Cartesian grid. Sets up the advection diffusion solver to use the velocity function prescribed.
+     * The initial and boundary conditions should be specified on the quantity being solved for (e.g. Conformation
+     * tensor or square root or logarithm of the conformation tensor).
      */
     CFINSForcing(const std::string& object_name,
                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
@@ -90,9 +92,11 @@ public:
                  SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_data_writer);
 
     /*!
-     * \brief This constructor creates Variable and VariableContext objects for
-     * storing the stochastic stresses at the centers and nodes of the Cartesian
-     * grid.
+     * \brief This constructor creates Variable and VariableContext objects for storing the viscoleastic stresses at the
+     * centers of the Cartesian grid. Sets up the advection diffusion solver to use the fluid velocity from the fluid
+     * solver. Note that this function must be registered with the fluid solver as a forcing function for the
+     * viscoelastic stress to effect the fluid velocity. The initial and boundary conditions should be specified on the
+     * quantity being solved for (e.g. Conformation tensor or square root or logarithm of the conformation tensor).
      */
     CFINSForcing(const std::string& object_name,
                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> app_initializer,
@@ -140,7 +144,7 @@ public:
      */
     inline int getVariableIdx()
     {
-        return d_W_cc_idx;
+        return d_W_scratch_idx;
     }
 
     /*!
@@ -203,6 +207,15 @@ public:
                                bool initial_time,
                                bool /*richardson_extrapolation_too*/);
 
+    /*!
+     * \brief Projects the symmetric tensor stored in data_idx to the nearest non negative matrix in the L2 norm.
+     */
+    void projectTensor(const int data_idx,
+                       const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                       const double data_time,
+                       const bool initial_time,
+                       const bool extended_box);
+
     static void
     apply_gradient_detector_callback(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                      int level_number,
@@ -212,6 +225,8 @@ public:
                                      bool richardson_extrapolation_too,
                                      void* ctx);
 
+    static void apply_project_tensor_callback(double current_time, double new_time, int cycle_num, void* ctx);
+
     inline double getViscosity()
     {
         return d_eta;
@@ -220,6 +235,11 @@ public:
     inline double getRelaxationTime()
     {
         return d_lambda;
+    }
+
+    inline SAMRAI::tbox::Pointer<AdvDiffSemiImplicitHierarchyIntegrator> getAdvDiffHierarchyIntegrator()
+    {
+        return d_adv_diff_integrator;
     }
 
 private:
@@ -239,7 +259,8 @@ private:
                       const double data_time,
                       const bool initial_time,
                       const int coarsest_ln,
-                      const int finest_ln);
+                      const int finest_ln,
+                      const bool extended_box);
 
     void exponentiateMatrix(const int data_idx,
                             const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
@@ -247,20 +268,13 @@ private:
                             const double data_time,
                             const bool initial_time,
                             const int coarsest_ln,
-                            const int finest_ln);
-
-    void projectTensor(const int data_idx,
-                       const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                       const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                       const double data_time,
-                       const bool initial_time,
-                       const int coarsest_ln,
-                       const int finest_ln);
+                            const int finest_ln,
+                            const bool extended_box);
 
     // Scratch variables
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_W_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    int d_W_cc_idx = IBTK::invalid_index, d_W_scratch_idx = IBTK::invalid_index;
+    int d_W_scratch_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<IBTK::muParserCartGridFunction> d_init_conds;
 
     // Draw Variables
@@ -277,7 +291,7 @@ private:
     std::string d_fluid_model = "OLDROYDB", d_interp_type = "LINEAR";
     bool d_project_conform = true;
     TensorEvolutionType d_evolve_type = STANDARD;
-    AdvDiffSemiImplicitHierarchyIntegrator* const d_adv_diff_integrator;
+    SAMRAI::tbox::Pointer<AdvDiffSemiImplicitHierarchyIntegrator> d_adv_diff_integrator;
     SAMRAI::tbox::Pointer<CFUpperConvectiveOperator> d_convec_oper;
     std::string d_convec_oper_type;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_conc_bc_coefs;

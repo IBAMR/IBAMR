@@ -346,7 +346,37 @@ main(int argc, char** argv)
             out << "\nrank: " << SAMRAI_MPI::getRank() << '\n';
         }
 
-        ib_method_ops->spreadForce(f_ghost_idx, nullptr, {}, time_integrator->getIntegratorTime() + dt / 2);
+        // Test the accumulation code when we have meshes that are against the
+        // boundary (i.e., the cube and composite cube geometries)
+        const double data_time = time_integrator->getIntegratorTime() + dt / 2;
+        RobinPhysBdryPatchStrategy* bdry_op = geometry == "sphere" ? nullptr : time_integrator->getVelocityPhysBdryOp();
+        if (input_db->getBoolWithDefault("spread_with_ibfemethod", true))
+            ib_method_ops->spreadForce(f_ghost_idx, bdry_op, {}, data_time);
+        else
+        {
+            TBOX_ASSERT(meshes.size() == 1); // not implemented for multiple parts
+            auto& fe_data_manager = *ib_method_ops->getFEDataManager(0);
+            auto& equation_systems = *fe_data_manager.getEquationSystems();
+            auto& force_system = equation_systems.get_system(IBFEMethod::FORCE_SYSTEM_NAME);
+            auto& F_vec = dynamic_cast<libMesh::PetscVector<double>&>(*force_system.current_local_solution);
+            auto& position_system = equation_systems.get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+            auto& X_vec = dynamic_cast<libMesh::PetscVector<double>&>(*position_system.current_local_solution);
+            fe_data_manager.spread(
+                f_ghost_idx, F_vec, X_vec, IBFEMethod::FORCE_SYSTEM_NAME, nullptr, data_time, false, false);
+
+            // here's the real test for the bug in this case: FEDataManager::spread()
+            // previously did not copy values spread into ghost regions, so the values
+            // computed by these two combined calls would be wrong.
+            bdry_op->setPatchDataIndex(f_ghost_idx);
+            const int ln = patch_hierarchy->getFinestLevelNumber();
+            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_ghost_idx);
+                bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
+            }
+        }
         const double cutoff = input_db->getDoubleWithDefault("output_cutoff_value", 0.0);
         {
             const int ln = patch_hierarchy->getFinestLevelNumber();

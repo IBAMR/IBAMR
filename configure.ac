@@ -250,7 +250,6 @@ AC_CONFIG_FILES([
   src/navier_stokes/Makefile
   src/navier_stokes/fortran/Makefile
   src/utilities/Makefile
-  src/tools/Makefile
   src/wave_generation/Makefile
   tests/Makefile
   tests/adv_diff/Makefile
@@ -259,6 +258,7 @@ AC_CONFIG_FILES([
   tests/IB/Makefile
   tests/IBFE/Makefile
   tests/IBTK/Makefile
+  tests/interpolate/Makefile
   tests/level_set/Makefile
   tests/multiphase_flow/Makefile
   tests/navier_stokes/Makefile

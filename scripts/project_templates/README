@@ -1,0 +1,7 @@
+This folder contains project templates for various GUI's used by IBAMR developers
+
+setup_compile_commands.sh
+  -- Bash script that cretes a JSON compilation database which is useful for many GUI's
+
+sublime
+  -- IBAMR project template for Sublime Text

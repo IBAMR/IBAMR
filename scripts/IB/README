@@ -1,0 +1,15 @@
+This directory contains several helpful scripts to validate and update IB input files.
+
+beam_viewer3d.m, spring_viewer3d.m, target_viewer3d.m, vertex_viewer3d.m:
+  -- These contain Matlab functions to plot 3D beam, spring, target and vertex files.
+
+beam_validator3d.pl, spring_validator3d.pl, target_point_validator3d.pl
+  -- These are Perl scripts that determine whether beam, spring, or target files are valid.
+  -- Note that these check that initial resting lengths/beam curvatures are consistent with the initial specifications.
+  -- These will generate a large number of warnings if the above is not true.
+
+set_spring_rest_length.pl set_spring_stiffness.pl
+  -- These are Perl scripts that will edit spring input files to change the stiffness and resting lengths.
+
+scale_spring_stiffness.pl, scale_spring_rest_length.pl
+  -- These are Perl scripts that will edit spring input files to scale the stiffness and resting lengths.
