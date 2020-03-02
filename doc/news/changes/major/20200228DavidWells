@@ -1,0 +1,4 @@
+New: Added a new class IBTK::SAMRAIGhostDataAccumulator that can do sum
+reductions from data accumulated into ghost regions of SAMRAI patches.
+<br>
+(David Wells, 2020/02/28)

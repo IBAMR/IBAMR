@@ -21,6 +21,8 @@
 #include "petscao.h"
 #include "petscvec.h"
 
+#include <RefineSchedule.h>
+
 #include <vector>
 
 namespace SAMRAI
@@ -30,11 +32,6 @@ namespace hier
 template <int DIM>
 class PatchLevel;
 } // namespace hier
-namespace xfer
-{
-template <int DIM>
-class RefineSchedule;
-} // namespace xfer
 } // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
