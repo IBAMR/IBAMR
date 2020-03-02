@@ -472,8 +472,6 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
                 d_DU_jump_half_vecs[part][d] =
                     dynamic_cast<PetscVector<double>*>(d_DU_jump_systems[part][d]->current_local_solution.get());
                 d_DU_jump_IB_ghost_vecs[part][d] = d_DU_jump_IB_solution_vecs[part][d].get();
-                //~ dynamic_cast<PetscVector<double>*>(d_active_fe_data_managers[part]->buildIBGhostedVector(
-                //~ VELOCITY_JUMP_SYSTEM_NAME[d], /*localize_data*/ false));
             }
             d_WSS_in_systems[part] = &d_equation_systems[part]->get_system<ExplicitSystem>(WSS_IN_SYSTEM_NAME);
             d_WSS_in_half_vecs[part] =
@@ -992,7 +990,6 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                 {
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[axis], axis);
                 }
-                //~ get_values_for_interpolation(x_node, *X_ghost_vec, X_dof_indices);
                 get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);
                 n_qpoints_patch += qrule->n_points();
@@ -1028,7 +1025,6 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                 {
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
-                //~ get_values_for_interpolation(x_node, *X_ghost_vec, X_dof_indices);
                 get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 if (d_use_velocity_jump_conditions)
                 {
@@ -1379,7 +1375,6 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                         WSS_in_rhs_e[d].resize(static_cast<int>(WSS_in_dof_indices[d].size()));
                     }
                 }
-                //~ get_values_for_interpolation(x_node, *X_ghost_vec, X_dof_indices);
                 get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
                 const bool qrule_changed =
                     FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);
@@ -2021,14 +2016,6 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
         {
             imposeJumpConditions(f_data_idx, *P_jump_ghost_vec, DU_jump_ghost_vec, *X_ghost_vec, data_time, part);
         }
-        //~ if (d_use_velocity_jump_conditions)
-        //~ {
-        //~ for (unsigned int d = 0; d < NDIM; ++d) d_DU_jump_IB_ghost_vecs[part][d]->close();
-        //~ }
-        //~ if (d_use_pressure_jump_conditions)
-        //~ {
-        //~ d_P_jump_IB_ghost_vecs[part]->close();
-        //~ }
     }
     return;
 } // spreadForce
@@ -3394,13 +3381,6 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
         *P_out_vec, *P_out_rhs_vec, PRESSURE_OUT_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
 
     X_vec->close();
-    //~ d_X_half_vecs[part]->close();
-    //~ d_X_current_vecs[part]->close();
-    //~ d_X_new_vecs[part]->close();
-
-    //~ d_P_in_half_vecs[part]->close();
-    //~ d_P_out_half_vecs[part]->close();
-    //~ d_X_IB_ghost_vecs[part]->close();
 
     return;
 
@@ -3833,25 +3813,14 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     WSS_in_vec->close();
     WSS_out_vec->close();
 
-    //~ d_X_half_vecs[part]->close();
-    //~ d_X_current_vecs[part]->close();
-    //~ d_X_new_vecs[part]->close();
-    //~ d_TAU_in_half_vecs[part]->close();
-    d_WSS_in_half_vecs[part]->close();
-    d_P_in_half_vecs[part]->close();
-    //~ d_TAU_out_half_vecs[part]->close();
-    d_WSS_out_half_vecs[part]->close();
     d_P_out_half_vecs[part]->close();
+    d_P_in_half_vecs[part]->close();
+    d_WSS_in_half_vecs[part]->close();
+    d_WSS_out_half_vecs[part]->close();
 
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
 
-    //~ d_WSS_in_IB_ghost_vecs[part]->close();
-    //~ d_WSS_out_IB_ghost_vecs[part]->close();
-
-    //~ d_P_in_IB_ghost_vecs[part]->close();
-    //~ d_P_out_IB_ghost_vecs[part]->close();
-    //~ d_X_IB_ghost_vecs[part]->close();
 
     return;
 } // computeFluidTraction
