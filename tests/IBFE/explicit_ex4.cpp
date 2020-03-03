@@ -300,7 +300,6 @@ main(int argc, char** argv)
                            /*register_for_restart*/ true,
                            restart_read_dirname,
                            restart_restore_num);
-        if (use_inactive_mesh) ib_method_ops->inactivateLagrangianStructure(1);
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
@@ -484,6 +483,10 @@ main(int argc, char** argv)
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
+
+            if (use_inactive_mesh)
+                if (input_db->getIntegerWithDefault("inactivate_timestep", 0) == iteration_num)
+                    ib_method_ops->inactivateLagrangianStructure(1);
 
             pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
