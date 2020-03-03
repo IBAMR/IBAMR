@@ -1957,6 +1957,10 @@ IBFEMethod::putToDatabase(Pointer<Database> db)
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
     db->putString("d_libmesh_partitioner_type", enum_to_string<LibmeshPartitionerType>(d_libmesh_partitioner_type));
     db->putDouble("workload_quad_point_weight", d_default_workload_spec.q_point_weight);
+    std::unique_ptr<bool[]> part_is_active_arr{ new bool[d_part_is_active.size()] };
+    std::copy(d_part_is_active.begin(), d_part_is_active.end(), part_is_active_arr.get());
+    db->putInteger("part_is_active_arr_size", d_part_is_active.size());
+    db->putBoolArray("part_is_active_arr", part_is_active_arr.get(), d_part_is_active.size());
     return;
 } // putToDatabase
 
@@ -3789,6 +3793,11 @@ IBFEMethod::getFromRestart()
     d_split_tangential_force = db->getBool("d_split_tangential_force");
     d_use_jump_conditions = db->getBool("d_use_jump_conditions");
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
+    const int part_is_active_arr_size = db->getInteger("part_is_active_arr_size");
+    d_part_is_active.resize(part_is_active_arr_size);
+    std::unique_ptr<bool[]> part_is_active_arr{ new bool[d_part_is_active.size()] };
+    db->getBoolArray("part_is_active_arr", part_is_active_arr.get(), d_part_is_active.size());
+    std::copy(part_is_active_arr.get(), part_is_active_arr.get() + part_is_active_arr_size, d_part_is_active.begin());
     return;
 } // getFromRestart
 
