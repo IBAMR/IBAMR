@@ -13,7 +13,7 @@
 
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = CCLaplace CCPoisson PETScOps PhysBdryOps SCLaplace SCPoisson VCLaplace VCViscousSolver
+SUBDIRS = CCLaplace CCPoisson GhostCells PETScOps PhysBdryOps SCLaplace SCPoisson VCLaplace VCViscousSolver
 
 all:
 	if test "$(CONFIGURATION_BUILD_DIR)" != ""; then \
