@@ -135,7 +135,7 @@ namespace IBAMR
 namespace
 {
 // Version of IBFEMethod restart file data.
-static const int IBFE_METHOD_VERSION = 1;
+static const int IBFE_METHOD_VERSION = 2;
 
 inline boundary_id_type
 get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
