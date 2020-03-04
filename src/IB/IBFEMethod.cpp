@@ -937,7 +937,8 @@ IBFEMethod::computeLagrangianForce(const double data_time)
         assembleInteriorForceDensityRHS(
             *d_F_rhs_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time, part);
     }
-    batch_vec_assembly(d_F_rhs_vecs);
+    batch_vec_ghost_update(d_F_rhs_vecs, ADD_VALUES, SCATTER_REVERSE);
+    // RHS vectors don't need ghost entries for the solve so we can skip the other scatter
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         // TODO: Commenting out this line changes the solution slightly but
@@ -2215,6 +2216,15 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
 
     // Setup global and elemental right-hand-side vectors.
     auto& G_system = equation_systems.get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
+    // During assembly we sum into ghost regions - this only makes sense if we
+    // have a ghosted vector.
+    TBOX_ASSERT(G_rhs_vec.type() == GHOSTED);
+    Vec G_rhs_vec_local;
+    int ierr = VecGhostGetLocalForm(G_rhs_vec.vec(), &G_rhs_vec_local);
+    IBTK_CHKERRQ(ierr);
+    double* G_rhs_local_soln = nullptr;
+    ierr = VecGetArray(G_rhs_vec_local, &G_rhs_local_soln);
+    IBTK_CHKERRQ(ierr);
     DenseVector<double> G_rhs_e[NDIM];
     std::vector<libMesh::dof_id_type> dof_id_scratch;
 
@@ -2399,7 +2409,10 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
             {
                 dof_id_scratch = G_dof_indices[i];
                 G_dof_map.constrain_element_vector(G_rhs_e[i], dof_id_scratch);
-                G_rhs_vec.add_vector(G_rhs_e[i], dof_id_scratch);
+                for (unsigned int j = 0; j < dof_id_scratch.size(); ++j)
+                {
+                    G_rhs_local_soln[G_rhs_vec.map_global_to_local_index(dof_id_scratch[j])] += G_rhs_e[i](j);
+                }
             }
         }
     }
@@ -2642,9 +2655,17 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
         {
             dof_id_scratch = G_dof_indices[i];
             G_dof_map.constrain_element_vector(G_rhs_e[i], dof_id_scratch);
-            G_rhs_vec.add_vector(G_rhs_e[i], dof_id_scratch);
+            for (unsigned int j = 0; j < dof_id_scratch.size(); ++j)
+            {
+                G_rhs_local_soln[G_rhs_vec.map_global_to_local_index(dof_id_scratch[j])] += G_rhs_e[i](j);
+            }
         }
     }
+
+    ierr = VecRestoreArray(G_rhs_vec_local, &G_rhs_local_soln);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGhostRestoreLocalForm(G_rhs_vec.vec(), &G_rhs_vec_local);
+    IBTK_CHKERRQ(ierr);
     return;
 } // assembleInteriorForceDensityRHS
 
