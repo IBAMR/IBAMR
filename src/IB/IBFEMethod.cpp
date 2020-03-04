@@ -1342,37 +1342,7 @@ IBFEMethod::initializeFEEquationSystems()
             ghosted_vector.close();
         };
 
-        const std::array<std::string, 2> system_names{ { COORDS_SYSTEM_NAME, VELOCITY_SYSTEM_NAME } };
-        const std::array<std::string, 2> vector_names{ { "new", "half" } };
-        for (const std::string& system_name : system_names)
-        {
-            auto& system = equation_systems.get_system<ExplicitSystem>(system_name);
-            for (const std::string& vector_name : vector_names)
-            {
-                std::unique_ptr<NumericVector<double> > clone_vector;
-                if (from_restart)
-                {
-                    NumericVector<double>* current = system.request_vector(vector_name);
-                    if (current != nullptr)
-                    {
-                        clone_vector = current->clone();
-                    }
-                }
-                system.remove_vector(vector_name);
-                system.add_vector(vector_name, /*projections*/ true, /*type*/ GHOSTED);
-
-                if (clone_vector != nullptr)
-                {
-                    const auto& parallel_vector = dynamic_cast<const PetscVector<Number>&>(*clone_vector);
-                    auto& ghosted_vector = dynamic_cast<PetscVector<Number>&>(system.get_vector(vector_name));
-                    insert_parallel_into_ghosted(parallel_vector, ghosted_vector);
-                }
-            }
-        }
-
-        {
-            auto& system = equation_systems.get_system(FORCE_SYSTEM_NAME);
-            const std::string vector_name = "tmp";
+        auto convert_parallel_to_ghosted = [&](const std::string& vector_name, System& system) {
             std::unique_ptr<NumericVector<double> > clone_vector;
             if (from_restart)
             {
@@ -1383,7 +1353,7 @@ IBFEMethod::initializeFEEquationSystems()
                 }
             }
             system.remove_vector(vector_name);
-            system.add_vector(vector_name, /*projections*/ false, /*type*/ PARALLEL);
+            system.add_vector(vector_name, /*projections*/ true, /*type*/ GHOSTED);
 
             if (clone_vector != nullptr)
             {
@@ -1391,6 +1361,29 @@ IBFEMethod::initializeFEEquationSystems()
                 auto& ghosted_vector = dynamic_cast<PetscVector<Number>&>(system.get_vector(vector_name));
                 insert_parallel_into_ghosted(parallel_vector, ghosted_vector);
             }
+        };
+
+        const std::array<std::string, 2> system_names{ { COORDS_SYSTEM_NAME, VELOCITY_SYSTEM_NAME } };
+        const std::array<std::string, 2> vector_names{ { "new", "half" } };
+        for (const std::string& system_name : system_names)
+        {
+            auto& system = equation_systems.get_system(system_name);
+            for (const std::string& vector_name : vector_names)
+            {
+                convert_parallel_to_ghosted(vector_name, system);
+            }
+        }
+
+        {
+            auto& system = equation_systems.get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
+            const std::array<std::string, 2> vector_names{ { "tmp", "RHS Vector" } };
+            // const std::array<std::string, 1> vector_names{ { "tmp"/*, "RHS Vector"*/ } };
+            for (const std::string& vector_name : vector_names)
+            {
+                convert_parallel_to_ghosted(vector_name, system);
+            }
+            // libMesh also stores a convenience pointer to the RHS that we need to reset:
+            system.rhs = &system.get_vector("RHS Vector");
         }
     }
     d_fe_equation_systems_initialized = true;
