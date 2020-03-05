@@ -36,7 +36,8 @@ clean-local:
 libIBTK_a_SOURCES = \
 ../src/utilities/ParallelEdgeMap.cpp \
 ../src/utilities/FixedSizedStream.cpp \
-../src/utilities/IBTK_MPI.cpp
+../src/utilities/IBTK_MPI.cpp \
+../src/utilities/IBTKInit.cpp
 
 if USING_BUNDLED_MUPARSER
 libIBTK_a_SOURCES += \
@@ -239,6 +240,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/HierarchyIntegrator.h \
 ../include/ibtk/HierarchyMathOps.h \
 ../include/ibtk/IBTK_MPI.h \
+../include/ibtk/IBTKInit.h \
 ../include/ibtk/IndexUtilities.h \
 ../include/ibtk/JacobianOperator.h \
 ../include/ibtk/KrylovLinearSolver.h \

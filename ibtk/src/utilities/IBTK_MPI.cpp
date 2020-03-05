@@ -16,6 +16,7 @@
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/app_namespaces.h"
 
+#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include <string>
@@ -23,7 +24,7 @@
 
 namespace IBTK
 {
-IBTK_MPI::comm IBTK_MPI::s_communicator = MPI_COMM_WORLD;
+IBTK_MPI::comm IBTK_MPI::s_communicator = MPI_COMM_NULL;
 
 void
 IBTK_MPI::setCommunicator(IBTK_MPI::comm communicator)
@@ -41,9 +42,9 @@ IBTK_MPI::comm
 IBTK_MPI::getSAMRAIWorld()
 {
 #if SAMRAI_VERSION_MAJOR == 2
-    return IBTK_MPI::getCommunicator();
+    return SAMRAI_MPI::commWorld;
 #else
-    return IBTK_MPI::getSAMRAIWorld()
+    return SAMRAI_MPI::getSAMRAIWorld()
 #endif
 }
 
