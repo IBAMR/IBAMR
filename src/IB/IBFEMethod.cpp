@@ -937,7 +937,8 @@ IBFEMethod::computeLagrangianForce(const double data_time)
         assembleInteriorForceDensityRHS(
             *d_F_rhs_vecs[part], *d_X_half_vecs[part], d_Phi_half_vecs[part], data_time, part);
     }
-    batch_vec_assembly(d_F_rhs_vecs);
+    batch_vec_ghost_update(d_F_rhs_vecs, ADD_VALUES, SCATTER_REVERSE);
+    // RHS vectors don't need ghost entries for the solve so we can skip the other scatter
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         // TODO: Commenting out this line changes the solution slightly but
@@ -1342,37 +1343,7 @@ IBFEMethod::initializeFEEquationSystems()
             ghosted_vector.close();
         };
 
-        const std::array<std::string, 2> system_names{ { COORDS_SYSTEM_NAME, VELOCITY_SYSTEM_NAME } };
-        const std::array<std::string, 2> vector_names{ { "new", "half" } };
-        for (const std::string& system_name : system_names)
-        {
-            auto& system = equation_systems.get_system<ExplicitSystem>(system_name);
-            for (const std::string& vector_name : vector_names)
-            {
-                std::unique_ptr<NumericVector<double> > clone_vector;
-                if (from_restart)
-                {
-                    NumericVector<double>* current = system.request_vector(vector_name);
-                    if (current != nullptr)
-                    {
-                        clone_vector = current->clone();
-                    }
-                }
-                system.remove_vector(vector_name);
-                system.add_vector(vector_name, /*projections*/ true, /*type*/ GHOSTED);
-
-                if (clone_vector != nullptr)
-                {
-                    const auto& parallel_vector = dynamic_cast<const PetscVector<Number>&>(*clone_vector);
-                    auto& ghosted_vector = dynamic_cast<PetscVector<Number>&>(system.get_vector(vector_name));
-                    insert_parallel_into_ghosted(parallel_vector, ghosted_vector);
-                }
-            }
-        }
-
-        {
-            auto& system = equation_systems.get_system(FORCE_SYSTEM_NAME);
-            const std::string vector_name = "tmp";
+        auto convert_parallel_to_ghosted = [&](const std::string& vector_name, System& system) {
             std::unique_ptr<NumericVector<double> > clone_vector;
             if (from_restart)
             {
@@ -1383,7 +1354,7 @@ IBFEMethod::initializeFEEquationSystems()
                 }
             }
             system.remove_vector(vector_name);
-            system.add_vector(vector_name, /*projections*/ false, /*type*/ PARALLEL);
+            system.add_vector(vector_name, /*projections*/ true, /*type*/ GHOSTED);
 
             if (clone_vector != nullptr)
             {
@@ -1391,6 +1362,29 @@ IBFEMethod::initializeFEEquationSystems()
                 auto& ghosted_vector = dynamic_cast<PetscVector<Number>&>(system.get_vector(vector_name));
                 insert_parallel_into_ghosted(parallel_vector, ghosted_vector);
             }
+        };
+
+        const std::array<std::string, 2> system_names{ { COORDS_SYSTEM_NAME, VELOCITY_SYSTEM_NAME } };
+        const std::array<std::string, 2> vector_names{ { "new", "half" } };
+        for (const std::string& system_name : system_names)
+        {
+            auto& system = equation_systems.get_system(system_name);
+            for (const std::string& vector_name : vector_names)
+            {
+                convert_parallel_to_ghosted(vector_name, system);
+            }
+        }
+
+        {
+            auto& system = equation_systems.get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
+            const std::array<std::string, 2> vector_names{ { "tmp", "RHS Vector" } };
+            // const std::array<std::string, 1> vector_names{ { "tmp"/*, "RHS Vector"*/ } };
+            for (const std::string& vector_name : vector_names)
+            {
+                convert_parallel_to_ghosted(vector_name, system);
+            }
+            // libMesh also stores a convenience pointer to the RHS that we need to reset:
+            system.rhs = &system.get_vector("RHS Vector");
         }
     }
     d_fe_equation_systems_initialized = true;
@@ -2222,6 +2216,15 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
 
     // Setup global and elemental right-hand-side vectors.
     auto& G_system = equation_systems.get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
+    // During assembly we sum into ghost regions - this only makes sense if we
+    // have a ghosted vector.
+    TBOX_ASSERT(G_rhs_vec.type() == GHOSTED);
+    Vec G_rhs_vec_local;
+    int ierr = VecGhostGetLocalForm(G_rhs_vec.vec(), &G_rhs_vec_local);
+    IBTK_CHKERRQ(ierr);
+    double* G_rhs_local_soln = nullptr;
+    ierr = VecGetArray(G_rhs_vec_local, &G_rhs_local_soln);
+    IBTK_CHKERRQ(ierr);
     DenseVector<double> G_rhs_e[NDIM];
     std::vector<libMesh::dof_id_type> dof_id_scratch;
 
@@ -2406,7 +2409,10 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
             {
                 dof_id_scratch = G_dof_indices[i];
                 G_dof_map.constrain_element_vector(G_rhs_e[i], dof_id_scratch);
-                G_rhs_vec.add_vector(G_rhs_e[i], dof_id_scratch);
+                for (unsigned int j = 0; j < dof_id_scratch.size(); ++j)
+                {
+                    G_rhs_local_soln[G_rhs_vec.map_global_to_local_index(dof_id_scratch[j])] += G_rhs_e[i](j);
+                }
             }
         }
     }
@@ -2649,9 +2655,17 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
         {
             dof_id_scratch = G_dof_indices[i];
             G_dof_map.constrain_element_vector(G_rhs_e[i], dof_id_scratch);
-            G_rhs_vec.add_vector(G_rhs_e[i], dof_id_scratch);
+            for (unsigned int j = 0; j < dof_id_scratch.size(); ++j)
+            {
+                G_rhs_local_soln[G_rhs_vec.map_global_to_local_index(dof_id_scratch[j])] += G_rhs_e[i](j);
+            }
         }
     }
+
+    ierr = VecRestoreArray(G_rhs_vec_local, &G_rhs_local_soln);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecGhostRestoreLocalForm(G_rhs_vec.vec(), &G_rhs_vec_local);
+    IBTK_CHKERRQ(ierr);
     return;
 } // assembleInteriorForceDensityRHS
 
