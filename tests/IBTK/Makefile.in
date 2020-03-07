@@ -99,7 +99,8 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	box_utilities_01_2d$(EXEEXT) box_utilities_01_3d$(EXEEXT) \
 	ghost_accumulation_01_2d$(EXEEXT) \
 	ghost_accumulation_01_3d$(EXEEXT) ghost_indices_01_2d$(EXEEXT) \
-	ghost_indices_01_3d$(EXEEXT) $(am__EXEEXT_1)
+	ghost_indices_01_3d$(EXEEXT) ibtk_init$(EXEEXT) \
+	$(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@am__append_1 = elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
 @LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d
 
@@ -229,6 +230,12 @@ ghost_indices_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(ghost_indices_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_ibtk_init_OBJECTS = ibtk_init-ibtk_init.$(OBJEXT)
+ibtk_init_OBJECTS = $(am_ibtk_init_OBJECTS)
+ibtk_init_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+ibtk_init_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(ibtk_init_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__jacobian_calc_01_SOURCES_DIST = jacobian_calc_01.cpp
 @LIBMESH_ENABLED_TRUE@am_jacobian_calc_01_OBJECTS = jacobian_calc_01-jacobian_calc_01.$(OBJEXT)
 jacobian_calc_01_OBJECTS = $(am_jacobian_calc_01_OBJECTS)
@@ -398,6 +405,7 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po \
 	./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po \
 	./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po \
+	./$(DEPDIR)/ibtk_init-ibtk_init.Po \
 	./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po \
 	./$(DEPDIR)/laplace_01_2d-laplace_01.Po \
 	./$(DEPDIR)/laplace_01_3d-laplace_01.Po \
@@ -442,11 +450,12 @@ SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(elem_hmax_02_SOURCES) $(ghost_accumulation_01_2d_SOURCES) \
 	$(ghost_accumulation_01_3d_SOURCES) \
 	$(ghost_indices_01_2d_SOURCES) $(ghost_indices_01_3d_SOURCES) \
-	$(jacobian_calc_01_SOURCES) $(laplace_01_2d_SOURCES) \
-	$(laplace_01_3d_SOURCES) $(laplace_02_2d_SOURCES) \
-	$(laplace_02_3d_SOURCES) $(laplace_03_2d_SOURCES) \
-	$(laplace_03_3d_SOURCES) $(ldata_01_SOURCES) \
-	$(mpi_type_wrappers_SOURCES) $(phys_boundary_ops_2d_SOURCES) \
+	$(ibtk_init_SOURCES) $(jacobian_calc_01_SOURCES) \
+	$(laplace_01_2d_SOURCES) $(laplace_01_3d_SOURCES) \
+	$(laplace_02_2d_SOURCES) $(laplace_02_3d_SOURCES) \
+	$(laplace_03_2d_SOURCES) $(laplace_03_3d_SOURCES) \
+	$(ldata_01_SOURCES) $(mpi_type_wrappers_SOURCES) \
+	$(phys_boundary_ops_2d_SOURCES) \
 	$(phys_boundary_ops_3d_SOURCES) $(poisson_01_2d_SOURCES) \
 	$(poisson_01_3d_SOURCES) $(prolongation_mat_2d_SOURCES) \
 	$(prolongation_mat_3d_SOURCES) \
@@ -462,11 +471,12 @@ DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(ghost_accumulation_01_2d_SOURCES) \
 	$(ghost_accumulation_01_3d_SOURCES) \
 	$(ghost_indices_01_2d_SOURCES) $(ghost_indices_01_3d_SOURCES) \
-	$(am__jacobian_calc_01_SOURCES_DIST) $(laplace_01_2d_SOURCES) \
-	$(laplace_01_3d_SOURCES) $(laplace_02_2d_SOURCES) \
-	$(laplace_02_3d_SOURCES) $(laplace_03_2d_SOURCES) \
-	$(laplace_03_3d_SOURCES) $(ldata_01_SOURCES) \
-	$(mpi_type_wrappers_SOURCES) $(phys_boundary_ops_2d_SOURCES) \
+	$(ibtk_init_SOURCES) $(am__jacobian_calc_01_SOURCES_DIST) \
+	$(laplace_01_2d_SOURCES) $(laplace_01_3d_SOURCES) \
+	$(laplace_02_2d_SOURCES) $(laplace_02_3d_SOURCES) \
+	$(laplace_03_2d_SOURCES) $(laplace_03_3d_SOURCES) \
+	$(ldata_01_SOURCES) $(mpi_type_wrappers_SOURCES) \
+	$(phys_boundary_ops_2d_SOURCES) \
 	$(phys_boundary_ops_3d_SOURCES) $(poisson_01_2d_SOURCES) \
 	$(poisson_01_3d_SOURCES) $(prolongation_mat_2d_SOURCES) \
 	$(prolongation_mat_3d_SOURCES) \
@@ -771,6 +781,9 @@ SUFFIXES = .f.m4
 @LIBMESH_ENABLED_TRUE@elem_hmax_02_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 @LIBMESH_ENABLED_TRUE@elem_hmax_02_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 @LIBMESH_ENABLED_TRUE@elem_hmax_02_SOURCES = elem_hmax_02.cpp
+ibtk_init_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+ibtk_init_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+ibtk_init_SOURCES = ibtk_init.cpp
 mpi_type_wrappers_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 mpi_type_wrappers_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 mpi_type_wrappers_SOURCES = mpi_type_wrappers.cpp
@@ -927,6 +940,10 @@ ghost_indices_01_3d$(EXEEXT): $(ghost_indices_01_3d_OBJECTS) $(ghost_indices_01_
 	@rm -f ghost_indices_01_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(ghost_indices_01_3d_LINK) $(ghost_indices_01_3d_OBJECTS) $(ghost_indices_01_3d_LDADD) $(LIBS)
 
+ibtk_init$(EXEEXT): $(ibtk_init_OBJECTS) $(ibtk_init_DEPENDENCIES) $(EXTRA_ibtk_init_DEPENDENCIES) 
+	@rm -f ibtk_init$(EXEEXT)
+	$(AM_V_CXXLD)$(ibtk_init_LINK) $(ibtk_init_OBJECTS) $(ibtk_init_LDADD) $(LIBS)
+
 jacobian_calc_01$(EXEEXT): $(jacobian_calc_01_OBJECTS) $(jacobian_calc_01_DEPENDENCIES) $(EXTRA_jacobian_calc_01_DEPENDENCIES) 
 	@rm -f jacobian_calc_01$(EXEEXT)
 	$(AM_V_CXXLD)$(jacobian_calc_01_LINK) $(jacobian_calc_01_OBJECTS) $(jacobian_calc_01_LDADD) $(LIBS)
@@ -1019,6 +1036,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ibtk_init-ibtk_init.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/laplace_01_2d-laplace_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/laplace_01_3d-laplace_01.Po@am__quote@ # am--include-marker
@@ -1208,6 +1226,20 @@ ghost_indices_01_3d-ghost_indices_01.obj: ghost_indices_01.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ghost_indices_01.cpp' object='ghost_indices_01_3d-ghost_indices_01.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ghost_indices_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o ghost_indices_01_3d-ghost_indices_01.obj `if test -f 'ghost_indices_01.cpp'; then $(CYGPATH_W) 'ghost_indices_01.cpp'; else $(CYGPATH_W) '$(srcdir)/ghost_indices_01.cpp'; fi`
+
+ibtk_init-ibtk_init.o: ibtk_init.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ibtk_init_CXXFLAGS) $(CXXFLAGS) -MT ibtk_init-ibtk_init.o -MD -MP -MF $(DEPDIR)/ibtk_init-ibtk_init.Tpo -c -o ibtk_init-ibtk_init.o `test -f 'ibtk_init.cpp' || echo '$(srcdir)/'`ibtk_init.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ibtk_init-ibtk_init.Tpo $(DEPDIR)/ibtk_init-ibtk_init.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ibtk_init.cpp' object='ibtk_init-ibtk_init.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ibtk_init_CXXFLAGS) $(CXXFLAGS) -c -o ibtk_init-ibtk_init.o `test -f 'ibtk_init.cpp' || echo '$(srcdir)/'`ibtk_init.cpp
+
+ibtk_init-ibtk_init.obj: ibtk_init.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ibtk_init_CXXFLAGS) $(CXXFLAGS) -MT ibtk_init-ibtk_init.obj -MD -MP -MF $(DEPDIR)/ibtk_init-ibtk_init.Tpo -c -o ibtk_init-ibtk_init.obj `if test -f 'ibtk_init.cpp'; then $(CYGPATH_W) 'ibtk_init.cpp'; else $(CYGPATH_W) '$(srcdir)/ibtk_init.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ibtk_init-ibtk_init.Tpo $(DEPDIR)/ibtk_init-ibtk_init.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ibtk_init.cpp' object='ibtk_init-ibtk_init.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ibtk_init_CXXFLAGS) $(CXXFLAGS) -c -o ibtk_init-ibtk_init.obj `if test -f 'ibtk_init.cpp'; then $(CYGPATH_W) 'ibtk_init.cpp'; else $(CYGPATH_W) '$(srcdir)/ibtk_init.cpp'; fi`
 
 jacobian_calc_01-jacobian_calc_01.o: jacobian_calc_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(jacobian_calc_01_CXXFLAGS) $(CXXFLAGS) -MT jacobian_calc_01-jacobian_calc_01.o -MD -MP -MF $(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Tpo -c -o jacobian_calc_01-jacobian_calc_01.o `test -f 'jacobian_calc_01.cpp' || echo '$(srcdir)/'`jacobian_calc_01.cpp
@@ -1616,6 +1648,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po
+	-rm -f ./$(DEPDIR)/ibtk_init-ibtk_init.Po
 	-rm -f ./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po
 	-rm -f ./$(DEPDIR)/laplace_01_2d-laplace_01.Po
 	-rm -f ./$(DEPDIR)/laplace_01_3d-laplace_01.Po
@@ -1690,6 +1723,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po
+	-rm -f ./$(DEPDIR)/ibtk_init-ibtk_init.Po
 	-rm -f ./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po
 	-rm -f ./$(DEPDIR)/laplace_01_2d-laplace_01.Po
 	-rm -f ./$(DEPDIR)/laplace_01_3d-laplace_01.Po
