@@ -34,9 +34,9 @@ clean-local:
 
 ## Dimension-independent library
 libIBTK_a_SOURCES = \
-$(top_builddir)/src/utilities/ParallelEdgeMap.cpp \
-$(top_builddir)/src/utilities/FixedSizedStream.cpp \
-$(top_builddir)/src/utilities/IBTK_MPI.cpp
+../src/utilities/ParallelEdgeMap.cpp \
+../src/utilities/FixedSizedStream.cpp \
+../src/utilities/IBTK_MPI.cpp
 
 if USING_BUNDLED_MUPARSER
 libIBTK_a_SOURCES += \
