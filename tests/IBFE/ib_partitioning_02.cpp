@@ -115,6 +115,13 @@ main(int argc, char** argv)
                 solid_mesh, R, n_refinements, Utility::string_to_enum<ElemType>(elem_type), 10);
         }
         solid_mesh.prepare_for_use();
+        // metis does a good job partitioning, but the partitioning relies on
+        // random numbers: the seed changed in libMesh commit
+        // 98cede90ca8837688ee13aac5e299a3765f083da (between 1.3.1 and
+        // 1.4.0). Hence, to achieve consistent partitioning, use a simpler partitioning scheme:
+        LinearPartitioner partitioner;
+        partitioner.partition(solid_mesh);
+
         for (auto node = solid_mesh.nodes_begin(); node != solid_mesh.nodes_end(); ++node)
         {
             (**node)(0) += 0.6;
@@ -130,12 +137,6 @@ main(int argc, char** argv)
 
         bool use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);
         Mesh& mesh = use_boundary_mesh ? boundary_mesh : solid_mesh;
-        // metis does a good job partitioning, but the partitioning relies on
-        // random numbers: the seed changed in libMesh commit
-        // 98cede90ca8837688ee13aac5e299a3765f083da (between 1.3.1 and
-        // 1.4.0). Hence, to achieve consistent partitioning, use a simpler partitioning scheme:
-        LinearPartitioner partitioner;
-        partitioner.partition(mesh);
 
         GMVIO gmv_out(mesh);
         gmv_out.write("mesh.gmv");
