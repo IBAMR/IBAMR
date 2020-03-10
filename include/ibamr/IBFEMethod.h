@@ -22,12 +22,18 @@
 
 #include "ibtk/FEDataManager.h"
 #include "ibtk/SAMRAIDataCache.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
 
+#include "BoxGeneratorStrategy.h"
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
 #include "LoadBalancer.h"
 #include "PatchHierarchy.h"
+#include "SideVariable.h"
+#include "TagAndInitializeStrategy.h"
+#include "Variable.h"
+#include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
 #include "libmesh/enum_fe_family.h"
@@ -35,15 +41,20 @@
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/explicit_system.h"
 
+#include <algorithm>
 #include <array>
+#include <limits>
+#include <map>
 #include <memory>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace IBTK
 {
 class RobinPhysBdryPatchStrategy;
+class SAMRAIDataCache;
 } // namespace IBTK
 namespace SAMRAI
 {
@@ -66,6 +77,8 @@ template <int DIM>
 class CoarsenSchedule;
 template <int DIM>
 class RefineSchedule;
+template <int DIM>
+class RefinePatchStrategy;
 } // namespace xfer
 } // namespace SAMRAI
 namespace libMesh
@@ -78,12 +91,18 @@ template <typename T>
 class NumericVector;
 template <typename T>
 class PetscVector;
+class ExplicitSystem;
+class MeshBase;
+template <typename T>
+class VectorValue;
 } // namespace libMesh
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
 {
+class IBFEDirectForcingKinematics;
+
 /*!
  * \brief Class IBFEMethod is an implementation of the abstract base class
  * IBStrategy that provides functionality required by the IB method with finite

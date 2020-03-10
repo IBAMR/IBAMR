@@ -14,31 +14,38 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/LinearSolver.h"
 #include "ibtk/PETScLevelSolver.h"
+#include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
+#include "CoarseFineBoundary.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "SAMRAIVectorReal.h"
-#include "petsc/private/petscimpl.h"
-#include "petscviewerhdf5.h"
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
+#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
-#include "petscksp.h"
+#include "petscis.h"
+#include "petscistypes.h"
 #include "petscmat.h"
+#include "petscpc.h"
+#include "petscpctypes.h"
 #include "petscsys.h"
 #include "petscvec.h"
+#include "petscversion.h"
+#include <petsclog.h>
 
-#include <cmath>
-#include <ostream>
+#include <algorithm>
+#include <limits>
+#include <memory>
+#include <set>
 #include <string>
 #include <vector>
 

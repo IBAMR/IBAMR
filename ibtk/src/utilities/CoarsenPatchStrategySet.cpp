@@ -21,8 +21,6 @@ namespace SAMRAI
 namespace hier
 {
 template <int DIM>
-class Box;
-template <int DIM>
 class Patch;
 } // namespace hier
 } // namespace SAMRAI

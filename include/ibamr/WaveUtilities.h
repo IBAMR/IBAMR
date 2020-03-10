@@ -17,6 +17,7 @@
 #define included_WaveUtilities
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
+
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 

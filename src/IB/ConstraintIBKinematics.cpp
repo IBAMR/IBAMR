@@ -14,24 +14,25 @@
 /////////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/ConstraintIBKinematics.h"
-#include "ibamr/namespaces.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
+#include "ibtk/LDataManager.h"
+
+#include "tbox/Array.h"
+#include "tbox/Database.h"
+#include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
 
 #include <string>
 
 namespace IBAMR
 {
-namespace
-{
-} // namespace
-
 ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Database> input_db,
                                                                  LDataManager* l_data_manager)
     : d_total_nodes(0), d_tagged_pt_idx(-1), d_struct_is_self_translating(false), d_struct_is_self_rotating(false)
 {
-    Array<std::string> struct_names = input_db->getStringArray("structure_names");
-    Array<int> struct_levels = input_db->getIntegerArray("structure_levels");
+    tbox::Array<std::string> struct_names = input_db->getStringArray("structure_names");
+    tbox::Array<int> struct_levels = input_db->getIntegerArray("structure_levels");
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(!struct_names.isNull());
@@ -80,7 +81,7 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Databas
             << std::endl);
     }
 
-    Array<int> tagged_pt_identifier = input_db->getIntegerArray("tagged_pt_identifier");
+    tbox::Array<int> tagged_pt_identifier = input_db->getIntegerArray("tagged_pt_identifier");
     const int level_tagged = tagged_pt_identifier[0];
     const int relative_idx_tagged = tagged_pt_identifier[1];
     for (int i = 0; i < struct_levels.size(); ++i)

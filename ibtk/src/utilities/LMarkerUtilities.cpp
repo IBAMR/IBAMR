@@ -60,6 +60,7 @@
 #include <iosfwd>
 #include <istream>
 #include <limits>
+#include <memory>
 #include <string>
 #include <vector>
 

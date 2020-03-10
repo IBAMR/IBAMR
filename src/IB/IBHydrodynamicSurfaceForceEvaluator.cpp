@@ -18,23 +18,43 @@
 #include "ibamr/INSStaggeredPressureBcCoef.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/INSVCStaggeredPressureBcCoef.h"
-#include "ibamr/namespaces.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/ibtk_utilities.h"
 
+#include "BasePatchLevel.h"
+#include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
-#include "HierarchyDataOpsManager.h"
-#include "PatchData.h"
+#include "CellIndex.h"
+#include "IntVector.h"
+#include "Patch.h"
 #include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "RobinBcCoefStrategy.h"
 #include "SideData.h"
+#include "SideGeometry.h"
 #include "SideIndex.h"
+#include "SideVariable.h"
+#include "Variable.h"
+#include "VariableContext.h"
+#include "VariableDatabase.h"
+#include "VariableFillPattern.h"
+#include "tbox/Database.h"
+#include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
 
+#include "Eigen/Core"
+
+#include <fstream>
 #include <utility>
+#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

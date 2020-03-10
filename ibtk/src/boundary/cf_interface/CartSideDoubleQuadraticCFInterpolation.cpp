@@ -13,20 +13,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBTK_config.h"
+#include <IBTK_config.h>
 
 #include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BoundaryBox.h"
-#include "Box.h"
-#include "CartesianPatchGeometry.h"
-#include "CartesianSideDoubleConservativeLinearRefine.h"
 #include "CoarseFineBoundary.h"
 #include "ComponentSelector.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
@@ -39,11 +33,11 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "tbox/Array.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
-#include <ostream>
+#include <algorithm>
+#include <memory>
 #include <set>
+#include <string>
 #include <vector>
 
 // FORTRAN ROUTINES

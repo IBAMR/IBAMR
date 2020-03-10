@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
+#include <IBAMR_config.h>
 
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSStaggeredCUIConvectiveOperator.h"
@@ -45,8 +45,6 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
-
-#include <stddef.h>
 
 #include <array>
 #include <ostream>

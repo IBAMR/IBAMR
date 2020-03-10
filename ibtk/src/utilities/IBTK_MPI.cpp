@@ -14,11 +14,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/IBTK_MPI.h"
-#include "ibtk/app_namespaces.h"
+#include "ibtk/app_namespaces.h" // IWYU pragma: keep
 
+#include "SAMRAI_config.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
+#include <ostream>
 #include <string>
 #include <vector>
 

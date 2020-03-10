@@ -13,6 +13,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <IBTK_config.h>
+
 #include "ibamr/GeneralizedIBMethod.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBKirchhoffRodForceGen.h"
@@ -26,14 +28,12 @@
 #include "ibtk/LDataManager.h"
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
 #include "CellVariable.h"
 #include "CoarsenSchedule.h"
-#include "Geometry.h"
 #include "GriddingAlgorithm.h"
 #include "HierarchyDataOpsReal.h"
 #include "IntVector.h"
@@ -54,14 +54,18 @@
 
 #include "petscvec.h"
 
+#include "Eigen/src/Core/GeneralProduct.h"
+
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace IBTK

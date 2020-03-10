@@ -13,65 +13,38 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBTK_config.h"
+#include <IBTK_config.h>
 
-#include "ibtk/CartSideDoubleCubicCoarsen.h"
-#include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
-#include "ibtk/LinearSolver.h"
-#include "ibtk/PoissonFACPreconditionerStrategy.h"
-#include "ibtk/PoissonSolver.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/SCPoissonSolverManager.h"
+#include "ibtk/SCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/SideNoCornersFillPattern.h"
-#include "ibtk/SideSynchCopyFillPattern.h"
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "ibtk/VCSCViscousOpPointRelaxationFACOperator.h"
+#include "ibtk/ibtk_enums.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
 #include "Box.h"
-#include "BoxList.h"
-#include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
-#include "CoarsenOperator.h"
+#include "EdgeData.h"
+#include "EdgeVariable.h"
+#include "HierarchyDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
-#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
-#include "Patch.h"
-#include "PatchDescriptor.h"
-#include "PatchHierarchy.h"
+#include "NodeData.h"
+#include "NodeVariable.h"
 #include "PatchLevel.h"
-#include "PoissonSpecifications.h"
-#include "ProcessorMapping.h"
 #include "SAMRAIVectorReal.h"
-#include "SideData.h"
-#include "SideDataFactory.h"
-#include "SideGeometry.h"
 #include "SideVariable.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
 #include "VariableFillPattern.h"
-#include "tbox/Array.h"
 #include "tbox/Database.h"
-#include "tbox/MemoryDatabase.h"
-#include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
 
-#include <algorithm>
 #include <map>
-#include <ostream>
-#include <string>
-#include <utility>
-#include <vector>
+#include <memory>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

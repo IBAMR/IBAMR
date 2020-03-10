@@ -36,6 +36,8 @@ template <int DIM>
 class PatchLevel;
 template <int DIM>
 class CoarseFineBoundary;
+template <int DIM>
+class IntVector;
 } // namespace hier
 namespace solv
 {

@@ -23,6 +23,7 @@
 #include "tbox/Transaction.h"
 
 #include <iosfwd>
+#include <string>
 
 namespace SAMRAI
 {

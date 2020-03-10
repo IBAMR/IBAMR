@@ -16,7 +16,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBTK INCLUDES
 #include "ibtk/LNode.h"
 #include "ibtk/LSetDataIterator.h"
 

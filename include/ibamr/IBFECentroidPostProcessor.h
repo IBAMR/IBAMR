@@ -18,6 +18,19 @@
 
 #include "ibamr/IBFEPostProcessor.h"
 
+#include "ibtk/libmesh_utilities.h"
+
+#include "libmesh/enum_fe_family.h"
+#include "libmesh/enum_order.h"
+
+#include <string>
+#include <vector>
+
+namespace IBTK
+{
+class FEDataManager;
+} // namespace IBTK
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR

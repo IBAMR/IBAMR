@@ -37,10 +37,10 @@
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
 #include <map>
-#include <ostream>
+#include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 

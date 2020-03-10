@@ -16,6 +16,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <IBTK_config.h>
+
 #include "ibamr/ibamr_enums.h"
 
 #include "ibtk/ibtk_macros.h"
@@ -27,11 +29,13 @@
 #include "petscvec.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "Eigen/Core"
-#include "Eigen/Geometry"
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <map>
+#include <string>
+#include <utility>
 #include <vector>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

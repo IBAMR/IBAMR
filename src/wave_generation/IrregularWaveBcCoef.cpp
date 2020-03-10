@@ -12,6 +12,7 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
 #include "ibamr/IrregularWaveBcCoef.h"
 #include "ibamr/RNG.h"
 #include "ibamr/namespaces.h"
@@ -24,8 +25,15 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
+#include "tbox/Database.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
 
+#include <algorithm>
+#include <cmath>
 #include <fstream>
+#include <limits>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

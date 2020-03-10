@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBTK_config.h"
+#include <IBTK_config.h>
 
 #include "ibtk/CCPoissonBoxRelaxationFACOperator.h"
 #include "ibtk/CCPoissonSolverManager.h"
@@ -28,23 +28,17 @@
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "ibtk/PoissonSolver.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
-#include "Box.h"
-#include "BoxList.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellDataFactory.h"
-#include "CellIndex.h"
 #include "CellVariable.h"
 #include "CoarsenOperator.h"
 #include "HierarchyCellDataOpsReal.h"
-#include "Index.h"
-#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchDescriptor.h"
@@ -61,21 +55,22 @@
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MemoryDatabase.h"
-#include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
+#include "petscksp.h"
 #include "petscmat.h"
-#include "petscsys.h"
 #include "petscvec.h"
+#include <petsclog.h>
 
 #include <algorithm>
 #include <array>
 #include <cstring>
 #include <functional>
 #include <map>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <utility>

@@ -18,7 +18,6 @@
 #include "ibamr/IBStrategy.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CartGridFunction.h"
@@ -40,7 +39,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "tbox/Database.h"
-#include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
@@ -48,9 +46,9 @@
 #include "tbox/Utilities.h"
 
 #include <algorithm>
-#include <deque>
 #include <ostream>
 #include <string>
+#include <utility>
 
 namespace SAMRAI
 {

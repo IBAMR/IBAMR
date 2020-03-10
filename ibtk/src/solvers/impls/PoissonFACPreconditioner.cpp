@@ -13,13 +13,21 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/FACPreconditioner.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/PoissonFACPreconditioner.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
+#include "ibtk/PoissonSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
+#include "PoissonSpecifications.h"
 #include "tbox/Database.h"
+#include "tbox/Pointer.h"
+
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace SAMRAI
 {

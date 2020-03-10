@@ -23,6 +23,7 @@
 
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/PoissonSolver.h"

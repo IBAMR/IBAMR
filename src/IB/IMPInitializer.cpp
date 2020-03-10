@@ -13,6 +13,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <IBTK_config.h>
+
 #include "ibamr/IMPInitializer.h"
 #include "ibamr/MaterialPointSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -25,8 +27,11 @@
 #include "ibtk/LNodeSetData.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/Streamable.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/private/IndexUtilities-inl.h"
+#include "ibtk/private/LData-inl.h"
+#include "ibtk/private/LNode-inl.h"
+#include "ibtk/private/LSet-inl.h"
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
@@ -59,15 +64,17 @@
 #include "libmesh/variant_filter_iterator.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <cmath>
 #include <map>
 #include <memory>
+#include <numeric>
 #include <ostream>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 

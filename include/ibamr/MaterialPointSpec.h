@@ -23,6 +23,8 @@
 
 #include "libmesh/id_types.h"
 
+#include <stddef.h>
+
 #include <vector>
 
 namespace SAMRAI

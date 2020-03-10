@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
+#include <IBAMR_config.h>
 
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/INSStaggeredStochasticForcing.h"
@@ -30,11 +30,11 @@
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
-#include "CellIndex.h"
 #include "CellVariable.h"
 #include "EdgeData.h"     // IWYU pragma: keep
 #include "EdgeGeometry.h" // IWYU pragma: keep
 #include "EdgeIndex.h"    // IWYU pragma: keep
+#include "EdgeVariable.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
 #include "Index.h"
@@ -59,8 +59,8 @@
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
+#include <algorithm>
 #include <cmath>
-#include <limits>
 #include <ostream>
 #include <string>
 #include <utility>

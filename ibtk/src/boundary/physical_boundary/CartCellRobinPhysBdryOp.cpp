@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBTK_config.h"
+#include <IBTK_config.h>
 
 #include "ibtk/CartCellRobinPhysBdryOp.h"
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
@@ -23,11 +23,9 @@
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
-#include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "ComponentSelector.h"
-#include "IntVector.h"
 #include "Patch.h"
 #include "RobinBcCoefStrategy.h"
 #include "Variable.h"
@@ -38,6 +36,8 @@
 
 #include <ostream>
 #include <set>
+#include <string>
+#include <utility>
 #include <vector>
 
 // FORTRAN ROUTINES

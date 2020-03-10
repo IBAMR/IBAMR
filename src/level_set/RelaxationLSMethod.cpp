@@ -13,19 +13,40 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
+#include <IBAMR_config.h>
 
-#include "ibamr/RelaxationLSBcCoefs.h"
+#include "ibamr/LSInitStrategy.h"
 #include "ibamr/RelaxationLSMethod.h"
-#include "ibamr/namespaces.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
+#include "ibamr/ibamr_enums.h"
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
 
+#include "BasePatchLevel.h"
+#include "Box.h"
+#include "CartesianPatchGeometry.h"
+#include "CellData.h"
+#include "CellIndex.h"
 #include "CellVariable.h"
 #include "HierarchyCellDataOpsReal.h"
+#include "IntVector.h"
+#include "Patch.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "Variable.h"
+#include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "tbox/RestartManager.h"
+#include "tbox/Database.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+#include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <cmath>
+#include <ostream>
+#include <string>
+#include <vector>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

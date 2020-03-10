@@ -19,8 +19,10 @@
 #include "ibtk/GeneralSolver.h"
 
 #include "PoissonSpecifications.h"
+#include "RobinBcCoefStrategy.h"
 
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace SAMRAI

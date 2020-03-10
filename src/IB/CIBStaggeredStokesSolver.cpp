@@ -18,11 +18,47 @@
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/IBStrategy.h"
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
+#include "ibtk/GeneralSolver.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
+#include "ibtk/ibtk_utilities.h"
 
+#include "Box.h"
+#include "CellVariable.h"
+#include "MultiblockDataTranslator.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "PoissonSpecifications.h"
+#include "RefineAlgorithm.h"
+#include "RefineOperator.h"
+#include "RefineSchedule.h"
+#include "SAMRAIVectorReal.h"
+#include "SideVariable.h"
+#include "Variable.h"
+#include "VariableContext.h"
+#include "VariableDatabase.h"
 #include "tbox/Database.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+
+#include "petscvec.h"
+#include <petsclog.h>
+
+#include <ostream>
+#include <string>
+#include <vector>
+
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

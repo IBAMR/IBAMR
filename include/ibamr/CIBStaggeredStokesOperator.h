@@ -16,13 +16,25 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/CIBStrategy.h"
 #include "ibamr/StaggeredStokesOperator.h"
+
+#include "ibtk/LinearOperator.h"
 
 #include "tbox/Pointer.h"
 
 #include "petscvec.h"
 
 #include <string>
+
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+} // namespace solv
+} // namespace SAMRAI
 
 namespace IBAMR
 {

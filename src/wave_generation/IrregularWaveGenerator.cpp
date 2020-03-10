@@ -15,11 +15,14 @@
 
 #include "ibamr/IrregularWaveGenerator.h"
 #include "ibamr/RNG.h"
-#include "ibamr/app_namespaces.h"
-
-#include "ibtk/ibtk_utilities.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "tbox/Database.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <cmath>
 
 namespace IBAMR
 {

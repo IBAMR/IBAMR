@@ -12,7 +12,30 @@
 // ---------------------------------------------------------------------
 
 #include "ibamr/CFGiesekusRelaxation.h"
-#include "ibamr/namespaces.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
+
+#include "ibtk/ibtk_utilities.h"
+
+#include "CellData.h"
+#include "CellIterator.h"
+#include "Patch.h"
+#include "tbox/Database.h"
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Box;
+template <int DIM>
+class Variable;
+} // namespace hier
+namespace pdat
+{
+template <int DIM>
+class CellIndex;
+} // namespace pdat
+} // namespace SAMRAI
 
 // Namespace
 namespace IBAMR

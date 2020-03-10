@@ -18,11 +18,15 @@
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/KrylovMobilitySolver.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
-#include "ibamr/namespaces.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CCPoissonSolverManager.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/NewtonKrylovSolver.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
@@ -30,10 +34,57 @@
 #include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/ibtk_utilities.h"
 
-#include "petsc/private/petscimpl.h"
+#include "ArrayData.h"
+#include "CellVariable.h"
+#include "CoarsenSchedule.h"
+#include "HierarchyCellDataOpsReal.h"
+#include "HierarchySideDataOpsReal.h"
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
+#include "Patch.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "PoissonSpecifications.h"
+#include "RefineSchedule.h"
+#include "SAMRAIVectorReal.h"
+#include "SideData.h"
+#include "SideVariable.h"
+#include "Variable.h"
+#include "VariableFillPattern.h"
+#include "tbox/Database.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/MemoryDatabase.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+#include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
+#include "tbox/Utilities.h"
 
-#include <limits>
+#include "petscksp.h"
+#include "petscmat.h"
+#include "petscpc.h"
+#include "petscpctypes.h"
+#include "petscvec.h"
+#include <petsclog.h>
+#include <petscsys.h>
+
+#include <stddef.h>
+
+#include <algorithm>
+#include <memory>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
+
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 namespace IBAMR
 {

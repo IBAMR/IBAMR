@@ -14,26 +14,23 @@
 #ifndef included_CFRelaxationOperator
 #define included_CFRelaxationOperator
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include "IBAMR_config.h"
+
+#include <IBTK_config.h>
+#include <IBAMR_config.h>
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
 
 #include "ibtk/CartGridFunction.h"
-#include "ibtk/ibtk_macros.h"
-#include "ibtk/ibtk_utilities.h"
 
 #include "CellVariable.h"
 #include "HierarchyDataOpsManager.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
+#include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
-
-IBTK_DISABLE_EXTRA_WARNINGS
-#include <unsupported/Eigen/MatrixFunctions>
-IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <string>
 #include <vector>

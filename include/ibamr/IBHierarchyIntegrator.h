@@ -39,6 +39,8 @@
 #include "VariableContext.h"
 #include "tbox/Pointer.h"
 
+#include <stddef.h>
+
 #include <string>
 #include <vector>
 
@@ -64,6 +66,8 @@ namespace mesh
 {
 template <int DIM>
 class GriddingAlgorithm;
+template <int DIM>
+class LoadBalancer;
 } // namespace mesh
 namespace tbox
 {

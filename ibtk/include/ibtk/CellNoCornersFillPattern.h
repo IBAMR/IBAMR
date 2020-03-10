@@ -31,6 +31,7 @@ namespace hier
 {
 template <int DIM>
 class BoxGeometry;
+
 template <int DIM>
 class BoxOverlap;
 } // namespace hier

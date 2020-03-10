@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
+#include <IBAMR_config.h>
 
 #include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
 #include "ibamr/AdvectorExplicitPredictorPatchOps.h"
@@ -49,6 +49,7 @@
 #include <ostream>
 #include <set>
 #include <string>
+#include <utility>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

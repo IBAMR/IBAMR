@@ -14,14 +14,22 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/CIBStrategy.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/ibtk_utilities.h"
 
 #include "tbox/MathUtilities.h"
 #include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+
+#include "petscis.h"
+#include "petscistypes.h"
+#include <petsclog.h>
+#include <petscsys.h>
+
+#include "Eigen/Core"
+
+#include <algorithm>
+#include <memory>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

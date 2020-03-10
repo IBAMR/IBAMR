@@ -24,9 +24,21 @@
 #include "CellIndex.h"
 #include "Index.h"
 #include "IntVector.h"
+#include "Patch.h"
 
 #include <functional>
 #include <vector>
+
+namespace SAMRAI
+{
+namespace pdat
+{
+template <int DIM>
+class CellIndex;
+template <int DIM>
+class SideIndex;
+} // namespace pdat
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

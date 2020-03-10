@@ -14,7 +14,8 @@
 #ifndef included_CFRoliePolyRelaxation
 #define included_CFRoliePolyRelaxation
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include "IBAMR_config.h"
+
+#include <IBAMR_config.h>
 
 #include "ibamr/CFRelaxationOperator.h"
 #include "ibamr/ibamr_enums.h"
@@ -35,9 +36,23 @@
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
-#include <math.h>
-
+#include <cmath>
 #include <string>
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Patch;
+template <int DIM>
+class Variable;
+} // namespace hier
+namespace tbox
+{
+class Database;
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

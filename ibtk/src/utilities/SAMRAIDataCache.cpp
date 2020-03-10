@@ -23,6 +23,7 @@
 #include "EdgeVariable.h"
 #include "FaceDataFactory.h"
 #include "FaceVariable.h"
+#include "MultiblockDataTranslator.h"
 #include "NodeDataFactory.h"
 #include "NodeVariable.h"
 #include "OuteredgeDataFactory.h"
@@ -33,9 +34,15 @@
 #include "OuternodeVariable.h"
 #include "OutersideDataFactory.h"
 #include "OutersideVariable.h"
+#include "PatchLevel.h"
 #include "SideDataFactory.h"
 #include "SideVariable.h"
+#include "Variable.h"
 #include "VariableDatabase.h"
+#include "tbox/Utilities.h"
+
+#include <ostream>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

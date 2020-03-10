@@ -22,10 +22,9 @@
 #include "IntVector.h"
 #include "RobinBcCoefStrategy.h"
 #include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
+#include <algorithm>
 #include <limits>
-#include <ostream>
 #include <vector>
 
 namespace SAMRAI

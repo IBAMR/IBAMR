@@ -15,8 +15,6 @@
 
 #include "ibamr/PETScKrylovStaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesBlockFactorizationPreconditioner.h"
-#include "ibamr/StaggeredStokesFACPreconditioner.h"
-#include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
 #include "ibamr/StaggeredStokesLevelRelaxationFACOperator.h"
 #include "ibamr/StaggeredStokesOperator.h"
 #include "ibamr/StaggeredStokesPETScLevelSolver.h"
@@ -25,7 +23,6 @@
 #include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
-#include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"

@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBFEPostProcessor.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
@@ -23,9 +24,6 @@
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
-#include "RefineAlgorithm.h"
-#include "RefineOperator.h"
-#include "RefineSchedule.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
@@ -38,8 +36,10 @@
 #include "libmesh/equation_systems.h"
 #include "libmesh/system.h"
 
+#include <stddef.h>
+
+#include <algorithm>
 #include <memory>
-#include <ostream>
 #include <set>
 #include <string>
 #include <utility>

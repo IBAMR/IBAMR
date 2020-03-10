@@ -20,6 +20,7 @@
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/ibtk_utilities.h"
 
+#include "Box.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"

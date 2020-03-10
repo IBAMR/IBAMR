@@ -23,9 +23,7 @@
 
 #include "PoissonSpecifications.h"
 #include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
-#include <ostream>
 #include <vector>
 
 namespace SAMRAI

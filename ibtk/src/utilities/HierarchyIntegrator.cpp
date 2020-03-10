@@ -19,13 +19,14 @@
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/RefinePatchStrategySet.h"
 #include "ibtk/ibtk_enums.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BasePatchHierarchy.h"
-#include "BasePatchLevel.h"
 #include "Box.h"
 #include "CartesianGridGeometry.h"
 #include "CellData.h"
+#include "CellVariable.h"
 #include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
 #include "CoarsenPatchStrategy.h"
@@ -34,7 +35,9 @@
 #include "EdgeData.h"
 #include "FaceData.h"
 #include "GriddingAlgorithm.h"
-#include "IntVector.h"
+#include "HierarchyCellDataOpsReal.h"
+#include "LoadBalancer.h"
+#include "MultiblockDataTranslator.h"
 #include "NodeData.h"
 #include "Patch.h"
 #include "PatchData.h"
@@ -63,6 +66,7 @@
 #include <limits>
 #include <list>
 #include <map>
+#include <memory>
 #include <ostream>
 #include <set>
 #include <string>

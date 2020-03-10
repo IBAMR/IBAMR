@@ -14,6 +14,8 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/LIndexSetData.h"
+#include "ibtk/LNode.h"
+#include "ibtk/LNodeIndex.h"
 #include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
@@ -26,14 +28,10 @@
 #include "Patch.h"
 #include "tbox/Pointer.h"
 
+#include <algorithm>
 #include <array>
+#include <utility>
 #include <vector>
-
-namespace IBTK
-{
-class LNode;
-class LNodeIndex;
-} // namespace IBTK
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

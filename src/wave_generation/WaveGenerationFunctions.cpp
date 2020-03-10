@@ -17,9 +17,29 @@
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/StokesWaveGeneratorStrategy.h"
 #include "ibamr/WaveGenerationFunctions.h"
-#include "ibamr/app_namespaces.h"
+#include "ibamr/WaveUtilities.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
-#include "CartesianGridGeometry.h"
+#include "Box.h"
+#include "CartesianPatchGeometry.h"
+#include "CellData.h"
+#include "CellVariable.h"
+#include "Index.h"
+#include "IntVector.h"
+#include "Patch.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "SideData.h"
+#include "SideGeometry.h"
+#include "SideIndex.h"
+#include "Variable.h"
+#include "VariableContext.h"
+#include "VariableDatabase.h"
+#include "tbox/Pointer.h"
+#include "tbox/Utilities.h"
+
+#include <cmath>
+#include <string>
 
 namespace IBAMR
 {

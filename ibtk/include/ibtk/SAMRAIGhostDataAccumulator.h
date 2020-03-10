@@ -22,11 +22,11 @@
 
 #include <tbox/Pointer.h>
 
-#include <petscvec.h>
-
 #include <BasePatchHierarchy.h>
 #include <RefineSchedule.h>
 #include <Variable.h>
+
+#include <petscvec.h>
 
 #include <vector>
 

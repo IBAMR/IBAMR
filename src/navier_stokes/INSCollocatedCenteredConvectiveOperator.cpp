@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
+#include <IBAMR_config.h>
 
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSCollocatedCenteredConvectiveOperator.h"
@@ -53,8 +53,10 @@
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
+#include <memory>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace SAMRAI

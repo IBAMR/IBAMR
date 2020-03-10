@@ -15,18 +15,22 @@
 
 #include "ibtk/LIndexSetData.h"
 #include "ibtk/LIndexSetDataFactory.h"
+#include "ibtk/LNode.h"
+#include "ibtk/LNodeIndex.h"
+#include "ibtk/LSetDataFactory.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
+#include "Box.h"
+#include "IntVector.h"
 #include "Patch.h"
 #include "PatchData.h"
 #include "PatchDataFactory.h"
+#include "tbox/Arena.h"
 #include "tbox/ArenaManager.h"
+#include "tbox/Pointer.h"
 
-namespace IBTK
-{
-class LNode;
-class LNodeIndex;
-} // namespace IBTK
+#include <algorithm>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

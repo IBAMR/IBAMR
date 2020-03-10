@@ -22,6 +22,7 @@
 #include "tbox/AbstractStream.h"
 #include "tbox/Pointer.h"
 
+#include <algorithm>
 #include <vector>
 
 namespace SAMRAI

@@ -18,6 +18,8 @@
 
 #include "SAMRAIVectorReal.h"
 
+#include <utility>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR

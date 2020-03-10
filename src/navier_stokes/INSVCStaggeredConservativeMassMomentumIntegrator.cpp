@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
+#include <IBAMR_config.h>
 
 #include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
@@ -21,11 +21,15 @@
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
+#include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/HierarchyMathOps.h"
 
+#include "BasePatchHierarchy.h"
+#include "BoundaryBox.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
+#include "CoarseFineBoundary.h"
 #include "FaceData.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchySideDataOpsReal.h"
@@ -35,21 +39,27 @@
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
-#include "SAMRAIVectorReal.h"
 #include "SideData.h"
 #include "SideGeometry.h"
+#include "SideIndex.h"
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
+#include "tbox/Array.h"
+#include "tbox/Database.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
 #include <array>
 #include <limits>
+#include <memory>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace SAMRAI

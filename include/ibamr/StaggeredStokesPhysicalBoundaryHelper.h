@@ -18,15 +18,21 @@
 
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 
+#include "tbox/Pointer.h"
+
 #include <vector>
 
 namespace SAMRAI
 {
 namespace hier
 {
+template <int DIM>
+class Patch;
 } // namespace hier
 namespace pdat
 {
+template <int DIM, class TYPE>
+class SideData;
 } // namespace pdat
 namespace solv
 {

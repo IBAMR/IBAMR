@@ -20,7 +20,9 @@
 
 #include "IntVector.h"
 #include "tbox/Pointer.h"
+#include "tbox/Utilities.h"
 
+#include <ostream>
 #include <vector>
 
 namespace IBTK

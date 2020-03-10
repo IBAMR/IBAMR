@@ -22,10 +22,8 @@
 #include "BoxOverlap.h"
 #include "CellGeometry.h"
 #include "CellOverlap.h"
-#include "Index.h"
 #include "IntVector.h"
 #include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
 #include <ostream>
 #include <string>

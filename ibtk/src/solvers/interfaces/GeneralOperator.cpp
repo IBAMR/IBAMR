@@ -17,13 +17,12 @@
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "IntVector.h"
+#include "Box.h"
 #include "SAMRAIVectorReal.h"
 #include "tbox/Pointer.h"
 
 #include <ostream>
 #include <string>
-#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

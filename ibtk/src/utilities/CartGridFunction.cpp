@@ -19,12 +19,8 @@
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
-#include "PatchLevel.h"
 #include "Variable.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
-#include <ostream>
 #include <string>
 #include <utility>
 

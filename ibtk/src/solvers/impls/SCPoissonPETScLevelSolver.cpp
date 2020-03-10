@@ -15,19 +15,20 @@
 
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/PETScLevelSolver.h"
 #include "ibtk/PETScMatUtilities.h"
 #include "ibtk/PETScVecUtilities.h"
 #include "ibtk/PoissonUtilities.h"
+#include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/SCPoissonPETScLevelSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "IntVector.h"
+#include "BoundaryBox.h"
+#include "Box.h"
+#include "CoarseFineBoundary.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchDescriptor.h"
 #include "PatchGeometry.h"
-#include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "RefineSchedule.h"
 #include "SAMRAIVectorReal.h"
@@ -37,15 +38,16 @@
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include "tbox/Array.h"
 #include "tbox/SAMRAI_MPI.h"
 
-#include "petscmat.h"
-#include "petscsys.h"
 #include "petscvec.h"
+#include <petsclog.h>
 
+#include <algorithm>
+#include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

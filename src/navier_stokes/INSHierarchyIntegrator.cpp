@@ -48,10 +48,10 @@
 #include "tbox/Utilities.h"
 
 #include <algorithm>
-#include <deque>
 #include <limits>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

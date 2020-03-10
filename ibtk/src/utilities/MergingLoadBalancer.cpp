@@ -14,11 +14,16 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/MergingLoadBalancer.h"
+#include "ibtk/box_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
+#include "PatchHierarchy.h"
+#include "ProcessorMapping.h"
 #include "tbox/SAMRAI_MPI.h"
 
+#include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 

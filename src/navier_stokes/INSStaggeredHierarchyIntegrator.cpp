@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
+#include <IBAMR_config.h>
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/ConvectiveOperator.h"
@@ -51,6 +51,7 @@
 #include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/SideDataSynchronization.h"
 #include "ibtk/ibtk_enums.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "ArrayData.h"
 #include "BasePatchHierarchy.h"
@@ -90,6 +91,7 @@
 #include "RobinBcCoefStrategy.h"
 #include "SAMRAIVectorReal.h"
 #include "SideData.h"
+#include "SideIndex.h"
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableContext.h"
@@ -110,6 +112,7 @@
 #include <limits>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 // FORTRAN ROUTINES

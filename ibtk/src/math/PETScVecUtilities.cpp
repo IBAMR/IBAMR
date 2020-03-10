@@ -21,11 +21,14 @@
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
+#include "BoxArray.h"
 #include "BoxList.h"
+#include "CartesianGridGeometry.h"
 #include "CellData.h"
 #include "CellGeometry.h"
 #include "CellIndex.h"
 #include "CellVariable.h"
+#include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
@@ -38,15 +41,15 @@
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "SideVariable.h"
-#include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
-#include "petscsys.h"
+#include "petscao.h"
 #include "petscvec.h"
+#include <petsclog.h>
 
 #include <algorithm>
 #include <array>
@@ -54,15 +57,6 @@
 #include <ostream>
 #include <string>
 #include <vector>
-
-namespace SAMRAI
-{
-namespace hier
-{
-template <int DIM>
-class Index;
-} // namespace hier
-} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

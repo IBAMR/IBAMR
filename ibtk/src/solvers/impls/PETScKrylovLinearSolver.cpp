@@ -17,7 +17,6 @@
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearOperator.h"
-#include "ibtk/LinearSolver.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
 #include "ibtk/PETScMatLOWrapper.h"
 #include "ibtk/PETScPCLSWrapper.h"
@@ -25,32 +24,30 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "IntVector.h"
+#include "Box.h"
 #include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
 #include "tbox/Database.h"
-#include "tbox/PIO.h"
 #include "tbox/Pointer.h"
+#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
-#include "petscerror.h"
 #include "petscksp.h"
 #include "petscmat.h"
-#include "petscoptions.h"
 #include "petscpc.h"
-#include "petscsys.h"
+#include "petscpctypes.h"
 #include "petscvec.h"
+#include <petsclog.h>
 
 #include <mpi.h>
 
 #include <algorithm>
-#include <cmath>
 #include <cstring>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

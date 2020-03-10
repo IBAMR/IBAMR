@@ -14,24 +14,55 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include "ibamr/IBHydrodynamicForceEvaluator.h"
 #include "ibamr/INSStaggeredPressureBcCoef.h"
-#include "ibamr/namespaces.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/IndexUtilities.h"
+#include "ibtk/ibtk_utilities.h"
 
+#include "ArrayData.h"
 #include "ArrayDataBasicOps.h"
+#include "BoundaryBox.h"
+#include "Box.h"
+#include "BoxArray.h"
+#include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
+#include "CellIndex.h"
 #include "CoarseFineBoundary.h"
+#include "GridGeometry.h"
 #include "HierarchyDataOpsManager.h"
-#include "PatchData.h"
+#include "HierarchyDataOpsReal.h"
+#include "Index.h"
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
+#include "Patch.h"
 #include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "RobinBcCoefStrategy.h"
 #include "SideData.h"
+#include "SideGeometry.h"
 #include "SideIndex.h"
+#include "Variable.h"
+#include "VariableContext.h"
+#include "VariableDatabase.h"
+#include "VariableFillPattern.h"
+#include "VisItDataWriter.h"
+#include "tbox/Array.h"
+#include "tbox/Database.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
+
+#include "Eigen/Core"
+#include "Eigen/src/Geometry/OrthoMethods.h"
 
 #include <array>
+#include <cmath>
+#include <fstream>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -1108,7 +1139,7 @@ IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchy<NDIM> > 
             {
                 const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
                 const int bdry_type = 1;
-                const Array<BoundaryBox<NDIM> >& cf_bdry_boxes = cf_bdry.getBoundaries(p(), bdry_type);
+                const tbox::Array<BoundaryBox<NDIM> >& cf_bdry_boxes = cf_bdry.getBoundaries(p(), bdry_type);
                 for (int k = 0; k < cf_bdry_boxes.getSize(); ++k)
                 {
                     const Box<NDIM>& bdry_box = cf_bdry_boxes[k].getBox();

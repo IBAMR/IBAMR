@@ -16,19 +16,44 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <IBTK_config.h>
+
 #include "ibtk/FEDataManager.h"
 #include "ibtk/ibtk_macros.h"
 #include "ibtk/libmesh_utilities.h"
 
+#include "tbox/Utilities.h"
+
 #include "libmesh/equation_systems.h"
+#include "libmesh/fe_base.h"
+#include "libmesh/fe_type.h"
+#include "libmesh/fem_context.h"
+#include "libmesh/libmesh_common.h"
+#include "libmesh/vector_value.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <limits>
 #include <memory>
 #include <vector>
+
+namespace IBTK
+{
+struct SystemData;
+} // namespace IBTK
+
+namespace libMesh
+{
+class Elem;
+class EquationSystems;
+class Point;
+class QBase;
+class System;
+template <typename T>
+class NumericVector;
+} // namespace libMesh
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

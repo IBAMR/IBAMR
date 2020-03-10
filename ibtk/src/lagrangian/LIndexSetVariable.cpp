@@ -15,20 +15,14 @@
 
 #include "ibtk/LIndexSetDataFactory.h"
 #include "ibtk/LIndexSetVariable.h"
-#include "ibtk/LSet.h"       // IWYU pragma: keep
+#include "ibtk/LNode.h"
+#include "ibtk/LNodeIndex.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "IntVector.h"
 #include "Variable.h"
-#include "tbox/Pointer.h"
 
 #include <string>
-
-namespace IBTK
-{
-class LNode;
-class LNodeIndex;
-} // namespace IBTK
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

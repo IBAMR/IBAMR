@@ -19,15 +19,15 @@
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/KrylovFreeBodyMobilitySolver.h"
 #include "ibamr/KrylovMobilitySolver.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h"
 
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/ibtk_utilities.h"
-
+#include "PoissonSpecifications.h"
+#include "tbox/Database.h"
+#include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
-
-#include <limits>
+#include "tbox/Utilities.h"
 
 namespace IBAMR
 {

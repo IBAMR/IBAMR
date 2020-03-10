@@ -13,21 +13,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
+#include <IBTK_config.h>
 
+#include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBFEInstrumentPanel.h"
 #include "ibamr/IBFEMethod.h"
-#include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/FEDataManager.h"
-#include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/LData.h"
-#include "ibtk/LDataManager.h"
-#include "ibtk/LMesh.h"
-#include "ibtk/LNode.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchLevel.h"
@@ -44,34 +38,40 @@
 #include "PatchLevel.h"
 #include "SideData.h"
 #include "SideIndex.h"
+#include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
 #include "libmesh/boundary_info.h"
-#include "libmesh/dense_vector.h"
+#include "libmesh/dense_matrix.h"
+#include "libmesh/dof_map.h"
+#include "libmesh/elem.h"
+#include "libmesh/enum_fe_family.h"
+#include "libmesh/enum_order.h"
+#include "libmesh/enum_parallel_type.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/face_tri3.h"
+#include "libmesh/fe_base.h"
+#include "libmesh/fe_type.h"
+#include "libmesh/fem_context.h"
+#include "libmesh/id_types.h"
+#include "libmesh/libmesh_common.h"
 #include "libmesh/libmesh_version.h"
 #include "libmesh/linear_implicit_system.h"
-#include "libmesh/mesh.h"
-#include "libmesh/mesh_function.h"
+#include "libmesh/mesh_base.h"
+#include "libmesh/node.h"
 #include "libmesh/numeric_vector.h"
 #include "libmesh/point.h"
-#include "libmesh/quadrature_grid.h"
+#include "libmesh/quadrature.h"
+#include "libmesh/quadrature_gauss.h"
 #include "libmesh/serial_mesh.h"
 #include "libmesh/string_to_enum.h"
-
-#include "petscvec.h"
-
-IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
-IBTK_ENABLE_EXTRA_WARNINGS
+#include "libmesh/system.h"
+#include "libmesh/type_vector.h"
+#include "libmesh/variant_filter_iterator.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Geometry" // IWYU pragma: keep
@@ -83,12 +83,21 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <fstream>
 #include <limits>
 #include <map>
-#include <sstream>
+#include <memory>
+#include <set>
 #include <string>
+#include <tuple>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
-using namespace libMesh;
+namespace libMesh
+{
+namespace Parallel
+{
+class Communicator;
+} // namespace Parallel
+} // namespace libMesh
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

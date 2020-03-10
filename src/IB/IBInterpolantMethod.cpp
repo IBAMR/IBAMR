@@ -13,40 +13,35 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBInterpolantMethod.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
-#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IndexUtilities.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/LInitStrategy.h"
+#include "ibtk/LMesh.h"
+#include "ibtk/LNode.h"
 #include "ibtk/LSiloDataWriter.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
-#include "Box.h"
-#include "BoxArray.h"
-#include "BoxList.h"
 #include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIndex.h"
+#include "CellVariable.h"
+#include "CoarsenSchedule.h"
 #include "GriddingAlgorithm.h"
-#include "HierarchyDataOpsReal.h"
-#include "Index.h"
+#include "HierarchyCellDataOpsReal.h"
+#include "HierarchySideDataOpsReal.h"
 #include "IntVector.h"
-#include "LoadBalancer.h"
-#include "Patch.h"
-#include "PatchCellDataOpsReal.h"
+#include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
-#include "RefineSchedule.h"
+#include "RefineAlgorithm.h"
+#include "RefineOperator.h"
+#include "SideVariable.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
@@ -59,29 +54,40 @@
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
-#include <algorithm>
-#include <cmath>
-#include <functional>
-#include <limits>
-#include <numeric>
-#include <ostream>
-#include <set>
-#include <string>
-#include <vector>
+#include "petscvec.h"
+#include <petscsys.h>
 
-namespace IBTK
-{
-class RobinPhysBdryPatchStrategy;
-} // namespace IBTK
+IBTK_DISABLE_EXTRA_WARNINGS
+#include <boost/multi_array.hpp>
+IBTK_ENABLE_EXTRA_WARNINGS
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <limits>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace SAMRAI
 {
 namespace xfer
 {
 template <int DIM>
-class CoarsenSchedule;
+class RefineSchedule;
 } // namespace xfer
 } // namespace SAMRAI
+
+namespace IBTK
+{
+class RobinPhysBdryPatchStrategy;
+} // namespace IBTK
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -16,6 +16,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "Box.h"
 #include "CoarsenPatchStrategy.h"
 #include "IntVector.h"
 

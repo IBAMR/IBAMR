@@ -15,6 +15,7 @@
 #define included_IBAMR_DirectMobilitySolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
 #include "ibamr/ibamr_enums.h"
 
 #include "tbox/Database.h"

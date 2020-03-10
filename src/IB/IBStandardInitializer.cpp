@@ -13,9 +13,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <IBTK_config.h>
+
 #include "ibamr/IBAnchorPointSpec.h"
 #include "ibamr/IBBeamForceSpec.h"
 #include "ibamr/IBInstrumentationSpec.h"
+#include "ibamr/IBRedundantInitializer.h"
 #include "ibamr/IBRodForceSpec.h"
 #include "ibamr/IBSourceSpec.h"
 #include "ibamr/IBSpringForceSpec.h"
@@ -24,26 +27,10 @@
 #include "ibamr/IBTargetPointForceSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
-#include "ibtk/IndexUtilities.h"
-#include "ibtk/LData.h"
-#include "ibtk/LIndexSetData.h"
-#include "ibtk/LNode.h"
-#include "ibtk/LNodeSet.h"
-#include "ibtk/LNodeSetData.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/Streamable.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
-#include "Box.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIndex.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
@@ -51,11 +38,6 @@
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
-
-IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/math/special_functions/round.hpp"
-#include "boost/multi_array.hpp"
-IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <array>
@@ -66,16 +48,14 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <iterator>
 #include <limits>
 #include <map>
+#include <memory>
 #include <numeric>
 #include <ostream>
+#include <set>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
-
-namespace IBTK
-{
-class LDataManager;
-} // namespace IBTK
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

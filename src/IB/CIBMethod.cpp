@@ -16,11 +16,75 @@
 #include "ibamr/CIBMethod.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/MobilityFunctions.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/namespaces.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/LData.h"
+#include "ibtk/LDataManager.h"
+#include "ibtk/LMesh.h"
+#include "ibtk/LNode.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include "BasePatchHierarchy.h"
+#include "BasePatchLevel.h"
+#include "CartesianGridGeometry.h"
+#include "CellData.h"
+#include "CellVariable.h"
+#include "GriddingAlgorithm.h"
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
+#include "Patch.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "RefineAlgorithm.h"
+#include "RefineOperator.h"
+#include "SideData.h"
+#include "SideIterator.h"
+#include "VariableContext.h"
+#include "tbox/Array.h"
+#include "tbox/Database.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
+
+#include "petscis.h"
+#include "petscistypes.h"
+#include <petsclog.h>
+#include <petscsys.h>
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include <boost/multi_array.hpp>
+IBTK_ENABLE_EXTRA_WARNINGS
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include <Eigen/Dense>
+IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <algorithm>
+#include <istream>
+#include <memory>
+
+namespace IBTK
+{
+class RobinPhysBdryPatchStrategy;
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Box;
+} // namespace hier
+namespace xfer
+{
+template <int DIM>
+class CoarsenSchedule;
+template <int DIM>
+class RefineSchedule;
+} // namespace xfer
+} // namespace SAMRAI
 
 namespace IBAMR
 {

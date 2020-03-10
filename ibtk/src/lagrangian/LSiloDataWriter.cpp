@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBTK_config.h"
+#include <IBTK_config.h>
 
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
@@ -25,12 +25,11 @@
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include "petscao.h"
 #include "petscis.h"
-#include "petsclog.h"
+#include "petscistypes.h"
 #include "petscsys.h"
 #include "petscvec.h"
 
@@ -38,8 +37,8 @@
 
 #include <algorithm>
 #include <cstdio>
-#include <functional>
 #include <map>
+#include <memory>
 #include <set>
 #include <sstream>
 #include <string>

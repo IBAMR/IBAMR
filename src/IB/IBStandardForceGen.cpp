@@ -13,7 +13,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <IBTK_config.h>
+
 #include "ibamr/IBBeamForceSpec.h"
+#include "ibamr/IBSpringForceFunctions.h"
 #include "ibamr/IBSpringForceSpec.h"
 #include "ibamr/IBStandardForceGen.h"
 #include "ibamr/IBTargetPointForceSpec.h"
@@ -25,21 +28,27 @@
 #include "ibtk/LMesh.h"
 #include "ibtk/LNode.h"
 #include "ibtk/compiler_hints.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/private/LData-inl.h"
+#include "ibtk/private/LDataManager-inl.h"
+#include "ibtk/private/LMesh-inl.h"
+#include "ibtk/private/LNode-inl.h"
+#include "ibtk/private/LNodeIndex-inl.h"
 
 #include "IntVector.h"
 #include "PatchHierarchy.h"
-#include "PatchLevel.h"
+#include "tbox/Database.h"
+#include "tbox/PIO.h"
 #include "tbox/Pointer.h"
+#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include "petscmat.h"
-#include "petscsys.h"
 #include "petscvec.h"
+#include <petsclog.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
@@ -48,8 +57,10 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <iterator>
 #include <limits>
 #include <map>
+#include <memory>
 #include <ostream>
 #include <set>
+#include <string>
 #include <utility>
 #include <vector>
 

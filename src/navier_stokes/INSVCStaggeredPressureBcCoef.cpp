@@ -21,11 +21,13 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
+#include "ibtk/ibtk_enums.h"
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
+#include "CellData.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
@@ -34,6 +36,7 @@
 #include "SideIndex.h"
 #include "Variable.h"
 #include "VariableContext.h"
+#include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"

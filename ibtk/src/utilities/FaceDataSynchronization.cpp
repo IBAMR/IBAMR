@@ -34,6 +34,8 @@
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
+#include <algorithm>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>

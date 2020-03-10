@@ -14,6 +14,13 @@
 #ifndef included_IBHydrodynamicSurfaceForceEvaluator
 #define included_IBHydrodynamicSurfaceForceEvaluator
 
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <IBTK_config.h>
+
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+
 #include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
@@ -21,14 +28,18 @@
 #include "CellVariable.h"
 #include "RobinBcCoefStrategy.h"
 #include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Core"
 #include "Eigen/Geometry"
 IBTK_ENABLE_EXTRA_WARNINGS
 
+#include <iosfwd>
+#include <limits>
 #include <map>
 #include <memory>
+#include <string>
 #include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -48,6 +59,7 @@ namespace tbox
 {
 template <class TYPE>
 class Pointer;
+class Database;
 } // namespace tbox
 namespace solv
 {

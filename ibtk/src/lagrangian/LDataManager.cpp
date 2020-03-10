@@ -13,6 +13,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <IBTK_config.h>
+
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LData.h"
@@ -34,18 +36,15 @@
 #include "ibtk/LTransaction.h"
 #include "ibtk/ParallelSet.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/compiler_hints.h"
-#include "ibtk/ibtk_macros.h"
-#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
 #include "Box.h"
-#include "BoxArray.h"
 #include "BoxList.h"
 #include "BoxTree.h"
-#include "CartesianCellDoubleWeightedAverage.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
@@ -95,18 +94,21 @@
 
 #include "petscao.h"
 #include "petscis.h"
-#include "petscsys.h"
+#include "petscistypes.h"
 #include "petscvec.h"
+#include <petsclog.h>
+
+#include "Eigen/src/Core/Map.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/math/special_functions/round.hpp"
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <cmath>
 #include <limits>
 #include <map>
+#include <memory>
 #include <numeric>
 #include <ostream>
 #include <set>

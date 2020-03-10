@@ -31,6 +31,7 @@
 
 #include "petscvec.h"
 
+#include <set>
 #include <string>
 #include <vector>
 

@@ -17,6 +17,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
 
 #include "ibtk/CartCellRobinPhysBdryOp.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"

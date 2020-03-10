@@ -23,15 +23,16 @@
 #include "MultiblockDataTranslator.h"
 #include "SAMRAIVectorReal.h"
 #include "tbox/Pointer.h"
+#include "tbox/SAMRAI_MPI.h"
 
-#include "petscmat.h"
 #include "petscsnes.h"
-#include "petscsys.h"
 #include "petscvec.h"
+#include <petsclog.h>
 
 #include <mpi.h>
 
 #include <string>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

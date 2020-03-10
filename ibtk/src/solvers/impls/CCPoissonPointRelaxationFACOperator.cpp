@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBTK_config.h"
+#include <IBTK_config.h>
 
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/CCPoissonSolverManager.h"
@@ -24,7 +24,6 @@
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
-#include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "ibtk/PoissonSolver.h"
@@ -34,17 +33,11 @@
 
 #include "ArrayData.h"
 #include "Box.h"
-#include "BoxList.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
-#include "CellDataFactory.h"
-#include "CellIndex.h"
-#include "CellVariable.h"
 #include "CoarsenOperator.h"
 #include "HierarchyCellDataOpsReal.h"
-#include "Index.h"
-#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchDescriptor.h"
@@ -52,9 +45,7 @@
 #include "PatchLevel.h"
 #include "PoissonSpecifications.h"
 #include "ProcessorMapping.h"
-#include "SAMRAIVectorReal.h"
 #include "SideData.h"
-#include "SideIndex.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
@@ -67,13 +58,8 @@
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
-#include "petscmat.h"
-#include "petscsys.h"
-#include "petscvec.h"
-
-#include <algorithm>
-#include <functional>
 #include <map>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <utility>

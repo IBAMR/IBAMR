@@ -14,14 +14,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "ibtk/app_namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "ComponentSelector.h"
-#include "IntVector.h"
-#include "tbox/Utilities.h"
 
-#include <ostream>
 #include <set>
 #include <vector>
 
@@ -32,6 +29,7 @@ namespace hier
 template <int DIM>
 class Patch;
 } // namespace hier
+
 namespace solv
 {
 template <int DIM>

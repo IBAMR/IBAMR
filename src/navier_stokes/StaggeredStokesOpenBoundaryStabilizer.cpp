@@ -38,7 +38,6 @@
 #include "tbox/Utilities.h"
 
 #include <cmath>
-#include <iosfwd>
 #include <ostream>
 #include <string>
 

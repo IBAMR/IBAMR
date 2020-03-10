@@ -15,7 +15,6 @@
 
 #include "ibtk/AppInitializer.h"
 #include "ibtk/LSiloDataWriter.h"
-#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "VisItDataWriter.h"
@@ -30,6 +29,9 @@
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <petsclog.h>
+#include <petscsys.h>
 
 #include <ostream>
 #include <string>

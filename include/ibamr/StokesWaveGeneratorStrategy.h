@@ -17,7 +17,10 @@
 #define included_StokesWaveGeneratorStrategy
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
+
 #include "ibamr/WaveUtilities.h"
+
+#include "tbox/Pointer.h"
 
 #include <string>
 

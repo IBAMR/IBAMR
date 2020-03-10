@@ -22,6 +22,8 @@
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 
+#include <string>
+
 namespace IBTK
 {
 class LDataManager;

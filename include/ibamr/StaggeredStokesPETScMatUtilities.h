@@ -24,6 +24,7 @@
 #include "petscmat.h"
 
 #include <set>
+#include <string>
 #include <vector>
 
 namespace SAMRAI

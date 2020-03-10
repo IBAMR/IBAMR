@@ -13,10 +13,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <IBTK_config.h>
+
+#include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBFEMethod.h"
 #include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/StokesSpecifications.h"
+#include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/BoxPartitioner.h"
@@ -26,8 +28,10 @@
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/MergingLoadBalancer.h"
+#include "ibtk/PartitioningBox.h"
+#include "ibtk/QuadratureCache.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/ibtk_macros.h"
+#include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
 
@@ -35,19 +39,28 @@
 #include "BasePatchLevel.h"
 #include "BergerRigoutsos.h"
 #include "Box.h"
+#include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellIndex.h"
+#include "CellVariable.h"
 #include "GriddingAlgorithm.h"
+#include "HierarchyCellDataOpsInteger.h"
+#include "HierarchyCellDataOpsReal.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
 #include "Index.h"
 #include "IntVector.h"
+#include "LoadBalanceStrategy.h"
 #include "LoadBalancer.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
+#include "PatchData.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
+#include "RefineAlgorithm.h"
 #include "RefineOperator.h"
+#include "RefineSchedule.h"
+#include "RefineTransactionFactory.h"
 #include "SideData.h"
 #include "SideIndex.h"
 #include "StandardTagAndInitialize.h"
@@ -55,38 +68,47 @@
 #include "VariableDatabase.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
+#include "tbox/InputDatabase.h"
 #include "tbox/MathUtilities.h"
+#include "tbox/MemoryDatabase.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
+#include <ext/new_allocator.h>
 
 #include "libmesh/boundary_info.h"
 #include "libmesh/compare_types.h"
+#include "libmesh/dense_matrix.h"
 #include "libmesh/dense_vector.h"
 #include "libmesh/dof_map.h"
 #include "libmesh/edge.h"
 #include "libmesh/elem.h"
+#include "libmesh/enum_elem_type.h"
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
-#include "libmesh/enum_point_locator_type.h"
+#include "libmesh/enum_parallel_type.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/enum_xdr_mode.h"
 #include "libmesh/equation_systems.h"
-#include "libmesh/fe_compute_data.h"
-#include "libmesh/fe_interface.h"
+#include "libmesh/explicit_system.h"
+#include "libmesh/face.h"
+#include "libmesh/fe_base.h"
 #include "libmesh/fe_type.h"
 #include "libmesh/fem_context.h"
+#include "libmesh/id_types.h"
+#include "libmesh/libmesh_common.h"
+#include "libmesh/libmesh_config.h"
 #include "libmesh/linear_implicit_system.h"
-#include "libmesh/mesh.h"
 #include "libmesh/mesh_base.h"
 #include "libmesh/node.h"
 #include "libmesh/numeric_vector.h"
+#include "libmesh/parameters.h"
 #include "libmesh/petsc_vector.h"
 #include "libmesh/point.h"
-#include "libmesh/point_locator_base.h"
 #include "libmesh/quadrature.h"
+#include "libmesh/quadrature_gauss.h"
 #include "libmesh/sparse_matrix.h"
 #include "libmesh/string_to_enum.h"
 #include "libmesh/system.h"
@@ -97,19 +119,22 @@
 #include "libmesh/vector_value.h"
 
 #include "petscvec.h"
+#include <petsclog.h>
+#include <petscsys.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <iomanip>
 #include <limits>
 #include <memory>
 #include <ostream>
-#include <set>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -118,9 +143,9 @@ namespace SAMRAI
 namespace xfer
 {
 template <int DIM>
-class RefineSchedule;
-template <int DIM>
 class CoarsenSchedule;
+template <int DIM>
+class RefinePatchStrategy;
 } // namespace xfer
 } // namespace SAMRAI
 
@@ -1830,8 +1855,7 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
 
         // We only need to reinitialize FE data when AMR is enabled (which is
         // not yet implemented)
-        if (d_libmesh_use_amr)
-            reinitializeFEData();
+        if (d_libmesh_use_amr) reinitializeFEData();
 
         for (unsigned int part = 0; part < d_num_parts; ++part)
         {

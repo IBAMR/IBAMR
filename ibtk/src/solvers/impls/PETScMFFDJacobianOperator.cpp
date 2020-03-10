@@ -21,24 +21,18 @@
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "IntVector.h"
+#include "Box.h"
 #include "MultiblockDataTranslator.h"
-#include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "tbox/SAMRAI_MPI.h"
 
-#include "petscerror.h"
 #include "petscmat.h"
-#include "petscmath.h"
-#include "petscsnes.h"
 #include "petscsys.h"
 #include "petscvec.h"
 
 #include <mpi.h>
 
 #include <algorithm>
-#include <ostream>
 #include <string>
 #include <utility>
 

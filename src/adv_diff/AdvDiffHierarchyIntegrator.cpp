@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
+#include <IBAMR_config.h>
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
@@ -59,20 +59,21 @@
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
 #include "tbox/Database.h"
-#include "tbox/MathUtilities.h"
 #include "tbox/MemoryDatabase.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
 
+#include <stddef.h>
+
 #include <algorithm>
-#include <deque>
 #include <iterator>
 #include <limits>
 #include <map>
 #include <ostream>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 

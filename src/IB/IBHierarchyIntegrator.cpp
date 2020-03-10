@@ -43,11 +43,13 @@
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
 #include "IntVector.h"
+#include "LoadBalancer.h"
 #include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "RefineAlgorithm.h"
 #include "RefineOperator.h"
+#include "RefinePatchStrategy.h"
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableContext.h"
@@ -61,17 +63,11 @@
 #include "tbox/Utilities.h"
 
 #include <algorithm>
+#include <deque>
+#include <memory>
 #include <ostream>
 #include <string>
-
-namespace SAMRAI
-{
-namespace xfer
-{
-template <int DIM>
-class RefinePatchStrategy;
-} // namespace xfer
-} // namespace SAMRAI
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

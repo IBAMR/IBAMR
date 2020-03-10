@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
+#include <IBAMR_config.h>
 
 #include "ibamr/StaggeredStokesPETScVecUtilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -21,15 +21,16 @@
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
-#include "ibtk/compiler_hints.h"
 
 #include "Box.h"
+#include "BoxArray.h"
 #include "BoxList.h"
 #include "CartesianGridGeometry.h"
 #include "CellData.h"
 #include "CellGeometry.h"
 #include "CellIndex.h"
 #include "CellVariable.h"
+#include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
@@ -49,8 +50,10 @@
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
+#include "petscao.h"
 #include "petscsys.h"
 #include "petscvec.h"
+#include <petsclog.h>
 
 #include <algorithm>
 #include <array>
@@ -130,15 +133,6 @@ extern "C"
                                          const int&,
                                          const double*);
 }
-
-namespace SAMRAI
-{
-namespace hier
-{
-template <int DIM>
-class Index;
-} // namespace hier
-} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

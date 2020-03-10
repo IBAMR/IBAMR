@@ -13,34 +13,85 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/ConstraintIBKinematics.h"
 #include "ibamr/ConstraintIBMethod.h"
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/IBStrategy.h"
+#include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibamr/namespaces.h"
+#include "ibamr/StokesSpecifications.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/FACPreconditioner.h"
+#include "ibtk/FACPreconditionerStrategy.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
+#include "ibtk/LData.h"
+#include "ibtk/LDataManager.h"
+#include "ibtk/LIndexSetData.h"
+#include "ibtk/LMesh.h"
+#include "ibtk/LNode.h"
 #include "ibtk/LNodeSetData.h"
-#include "ibtk/PETScKrylovLinearSolver.h"
+#include "ibtk/LSet.h"
+#include "ibtk/LSetData.h"
+#include "ibtk/LSetDataIterator.h"
+#include "ibtk/LinearOperator.h"
+#include "ibtk/LinearSolver.h"
 #include "ibtk/SideDataSynchronization.h"
 #include "ibtk/ibtk_utilities.h"
 
+#include "ArrayData.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
+#include "CellData.h"
+#include "CellIndex.h"
+#include "CellIterator.h"
+#include "ComponentSelector.h"
 #include "HierarchyDataOpsManager.h"
+#include "HierarchyDataOpsReal.h"
+#include "Patch.h"
 #include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "PoissonSpecifications.h"
+#include "SAMRAIVectorReal.h"
+#include "SideData.h"
 #include "VariableDatabase.h"
+#include "VariableFillPattern.h"
+#include "tbox/Array.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/PIO.h"
+#include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
+#include "petscvec.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include <boost/multi_array.hpp>
+IBTK_ENABLE_EXTRA_WARNINGS
+
 #include <algorithm>
-#include <cmath>
 #include <limits>
-#include <sstream>
 #include <utility>
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Box;
+} // namespace hier
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -1128,8 +1179,8 @@ ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_han
     using StructureParameters = ConstraintIBKinematics::StructureParameters;
     Pointer<ConstraintIBKinematics> ptr_ib_kinematics = d_ib_kinematics[position_handle];
     const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
-    Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
-    Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
+    tbox::Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
+    tbox::Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
     const int coarsest_ln = struct_param.getCoarsestLevelNumber();
     const int finest_ln = struct_param.getFinestLevelNumber();
     const std::vector<std::pair<int, int> >& range = struct_param.getLagIdxRange();
@@ -1475,7 +1526,7 @@ ConstraintIBMethod::calculateRigidTranslationalMomentum()
         if (struct_param.getStructureIsSelfTranslating())
         {
             SAMRAI_MPI::sumReduction(d_rigid_trans_vel_new[struct_no].data(), d_rigid_trans_vel_new[struct_no].size());
-            Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
+            tbox::Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
             for (int d = 0; d < NDIM; ++d)
             {
                 if (calculate_trans_mom[d])
@@ -1585,7 +1636,7 @@ ConstraintIBMethod::calculateRigidRotationalMomentum()
 
 #if (NDIM == 3)
             solveSystemOfEqns(d_rigid_rot_vel_new[struct_no], d_moment_of_inertia_new[struct_no]);
-            Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
+            tbox::Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
             for (int d = 0; d < NDIM; ++d)
             {
                 if (!calculate_rot_mom[d]) d_rigid_rot_vel_new[struct_no][d] = 0.0;

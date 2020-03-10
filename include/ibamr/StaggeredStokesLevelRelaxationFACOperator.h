@@ -18,8 +18,12 @@
 
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
 #include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
+#include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
 
+#include "ibtk/FACPreconditionerStrategy.h"
+
+#include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
 #include "petscksp.h"

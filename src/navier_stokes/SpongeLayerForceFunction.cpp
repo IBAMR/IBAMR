@@ -26,7 +26,6 @@
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
-#include "CellIndex.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
@@ -39,11 +38,8 @@
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
 #include <cmath>
-#include <iosfwd>
-#include <ostream>
 #include <string>
 
 namespace SAMRAI

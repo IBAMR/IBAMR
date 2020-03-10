@@ -13,15 +13,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/GeneralOperator.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "IntVector.h"
+#include "Box.h"
 #include "SAMRAIVectorReal.h"
 #include "tbox/Pointer.h"
 
 #include <string>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

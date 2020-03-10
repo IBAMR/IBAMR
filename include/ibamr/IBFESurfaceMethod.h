@@ -19,6 +19,7 @@
 #include "ibamr/IBStrategy.h"
 
 #include "ibtk/FEDataManager.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
 
 #include "GriddingAlgorithm.h"
@@ -30,7 +31,10 @@
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
+#include "libmesh/vector_value.h"
 
+#include <limits>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -38,6 +42,7 @@
 namespace IBTK
 {
 class RobinPhysBdryPatchStrategy;
+class SAMRAIDataCache;
 } // namespace IBTK
 namespace SAMRAI
 {
@@ -72,6 +77,7 @@ template <typename T>
 class NumericVector;
 template <typename T>
 class PetscVector;
+class MeshBase;
 } // namespace libMesh
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////

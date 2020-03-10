@@ -26,9 +26,7 @@
 #include "PatchDataFactory.h"
 #include "PatchDescriptor.h"
 #include "PatchLevel.h"
-#include "tbox/AbstractStream.h"
 #include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
 #include <ostream>
 

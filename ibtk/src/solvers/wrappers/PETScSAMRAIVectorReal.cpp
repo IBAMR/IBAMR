@@ -24,15 +24,9 @@
 #include "SAMRAIVectorReal.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
 
-#include "petscerror.h"
 #include "petscis.h"
-#include "petscmath.h"
-#include "petscsys.h"
 #include "petscvec.h"
 
 #include <mpi.h>
@@ -40,6 +34,7 @@
 #include <algorithm>
 #include <cmath>
 #include <ostream>
+#include <string>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

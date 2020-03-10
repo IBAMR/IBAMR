@@ -16,10 +16,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "tbox/Database.h"
+#include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
 #include <limits>
 #include <string>
+#include <utility>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

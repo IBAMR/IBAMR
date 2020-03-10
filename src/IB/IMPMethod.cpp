@@ -13,6 +13,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <IBTK_config.h>
+
 #include "ibamr/IMPMethod.h"
 #include "ibamr/MaterialPointSpec.h"
 #include "ibamr/ibamr_utilities.h"
@@ -28,11 +30,9 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeSet.h"
 #include "ibtk/LNodeSetData.h"
-#include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/libmesh_utilities.h"
 
 #include "BasePatchHierarchy.h"
@@ -68,6 +68,7 @@
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
 
+#include "libmesh/compare_types.h"
 #include "libmesh/tensor_value.h"
 #include "libmesh/type_tensor.h"
 #include "libmesh/type_vector.h"
@@ -76,21 +77,19 @@
 #include "petscvec.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/math/special_functions/round.hpp"
-#include "boost/multi_array.hpp"
+#include <boost/math/special_functions/round.hpp>
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <limits>
+#include <memory>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
-
-namespace IBTK
-{
-} // namespace IBTK
 
 using namespace libMesh;
 

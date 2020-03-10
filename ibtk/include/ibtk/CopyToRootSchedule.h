@@ -17,10 +17,12 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "IntVector.h"
+#include "PatchData.h"
 #include "PatchLevel.h"
 #include "tbox/Pointer.h"
 #include "tbox/Schedule.h"
 
+#include <string>
 #include <vector>
 
 namespace SAMRAI

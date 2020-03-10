@@ -33,6 +33,7 @@
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/LinearSolver.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
 #include "ibtk/PETScLevelSolver.h"
 #include "ibtk/RefinePatchStrategySet.h"
@@ -69,8 +70,11 @@
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
+#include "petscksp.h"
+
 #include <algorithm>
 #include <cstring>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <utility>

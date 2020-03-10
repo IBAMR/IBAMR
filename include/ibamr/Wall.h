@@ -21,9 +21,24 @@
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 
+#include "Box.h"
 #include "tbox/Array.h"
+#include "tbox/Pointer.h"
 
 #include "muParser.h"
+
+namespace SAMRAI
+{
+namespace geom
+{
+template <int DIM>
+class CartesianGridGeometry;
+} // namespace geom
+namespace tbox
+{
+class Database;
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

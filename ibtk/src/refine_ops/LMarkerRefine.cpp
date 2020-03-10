@@ -19,7 +19,6 @@
 #include "ibtk/LMarkerSet.h"
 #include "ibtk/LMarkerSetData.h"
 #include "ibtk/LMarkerSetVariable.h"
-#include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
@@ -29,11 +28,12 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
+#include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 
+#include <algorithm>
 #include <array>
 #include <string>
-#include <vector>
 
 namespace SAMRAI
 {

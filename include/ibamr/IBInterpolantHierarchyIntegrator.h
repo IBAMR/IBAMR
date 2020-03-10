@@ -16,7 +16,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
 #include "ibamr/IBHierarchyIntegrator.h"
 
 namespace IBAMR

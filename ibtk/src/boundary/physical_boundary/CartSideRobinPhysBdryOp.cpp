@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBTK_config.h"
+#include <IBTK_config.h>
 
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
@@ -21,13 +21,9 @@
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "ArrayData.h"
-#include "BoundaryBox.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "ComponentSelector.h"
-#include "Index.h"
-#include "IntVector.h"
 #include "Patch.h"
 #include "PatchGeometry.h"
 #include "RobinBcCoefStrategy.h"
@@ -42,6 +38,8 @@
 #include <array>
 #include <ostream>
 #include <set>
+#include <string>
+#include <utility>
 #include <vector>
 
 // FORTRAN ROUTINES

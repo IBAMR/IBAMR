@@ -13,6 +13,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <IBTK_config.h>
+
 #include "ibamr/IBAnchorPointSpec.h"
 #include "ibamr/IBBeamForceSpec.h"
 #include "ibamr/IBInstrumentationSpec.h"
@@ -32,7 +34,6 @@
 #include "ibtk/LNodeSetData.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/Streamable.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "Box.h"
@@ -53,21 +54,16 @@
 #include "tbox/Utilities.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/math/special_functions/round.hpp"
-#include "boost/multi_array.hpp"
+#include <boost/math/special_functions/round.hpp>
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <array>
 #include <cmath>
-#include <ios>
-#include <iosfwd>
-#include <istream>
-#include <iterator>
 #include <limits>
 #include <map>
 #include <numeric>
-#include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
