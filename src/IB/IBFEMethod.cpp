@@ -1828,7 +1828,11 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             }
         }
 
-        reinitializeFEData();
+        // We only need to reinitialize FE data when AMR is enabled (which is
+        // not yet implemented)
+        if (d_libmesh_use_amr)
+            reinitializeFEData();
+
         for (unsigned int part = 0; part < d_num_parts; ++part)
         {
             d_primary_fe_data_managers[part]->reinitElementMappings();
