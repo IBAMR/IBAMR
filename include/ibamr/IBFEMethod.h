@@ -150,6 +150,8 @@ namespace IBAMR
  * </ul>
  *
  * <h2>Options Controlling libMesh Partitioning</h2>
+ * <em>This feature is experimental: at the present time the default settings
+ * have the best performance and are the correct choice.</em>
  *
  * This class can repartition libMesh data in a way that matches SAMRAI's
  * distribution of patches; put another way, if a certain region of space on
@@ -160,19 +162,8 @@ namespace IBAMR
  * descriptions on how this partitioning is performed.
  *
  * The choice of libMesh partitioner depends on the libmesh_partitioner_type
- * parameter in the input database and whether or not workload estimates are
- * available (it is assumed that if workload estimates are available then a
- * load balancer is being used). More exactly:
+ * parameter in the input database:
  * <ul>
- *  <li>If <code>libmesh_partitioner_type</code> is <code>AUTOMATIC</code>
- *      and workload estimates are available then this class will use the
- *      IBTK::BoxPartitioner class to repartition libMesh data after the SAMRAI
- *      data is regridded.</li>
- *
- *  <li>If <code>libmesh_partitioner_type</code> is <code>AUTOMATIC</code> and
- *      workload estimates are not available then this class will never
- *      repartition libMesh data.</li>
- *
  *  <li>If <code>libmesh_partitioner_type</code> is
  *      <code>LIBMESH_DEFAULT</code> then this class will never repartition
  *      libMesh data, since the default libMesh partitioner is already used at
@@ -185,9 +176,9 @@ namespace IBAMR
  *      IBTK::BoxPartitioner every time the Eulerian data is regridded.</li>
  * </ul>
  * The default value for <code>libmesh_partitioner_type</code> is
- * <code>AUTOMATIC</code>. The intent of these choices is to automatically use
- * the fairest (that is, partitioning based on workload estimation)
- * partitioner.
+ * <code>LIBMESH_DEFAULT</code>. The intent of these choices is to
+ * automatically use the fairest (that is, partitioning based on equal work
+ * when computing force densities and L2 projections) partitioner.
  *
  * <h2>Options Controlling IB Data Partitioning</h2>
  *
@@ -1188,7 +1179,7 @@ protected:
      * Type of partitioner to use. See the main documentation of this class
      * for more information.
      */
-    LibmeshPartitionerType d_libmesh_partitioner_type = AUTOMATIC;
+    LibmeshPartitionerType d_libmesh_partitioner_type = LIBMESH_DEFAULT;
 
     /*!
      * Method parameters.

@@ -431,7 +431,6 @@ enum_to_string<MobilityMatrixInverseType>(MobilityMatrixInverseType val)
  */
 enum LibmeshPartitionerType
 {
-    AUTOMATIC,
     LIBMESH_DEFAULT,
     SAMRAI_BOX,
     UNKNOWN_LIBMESH_PARTITIONER_TYPE = -1
@@ -441,7 +440,6 @@ template <>
 inline LibmeshPartitionerType
 string_to_enum<LibmeshPartitionerType>(const std::string& val)
 {
-    if (strcasecmp(val.c_str(), "AUTOMATIC") == 0) return AUTOMATIC;
     if (strcasecmp(val.c_str(), "LIBMESH_DEFAULT") == 0) return LIBMESH_DEFAULT;
     if (strcasecmp(val.c_str(), "SAMRAI_BOX") == 0) return SAMRAI_BOX;
     return UNKNOWN_LIBMESH_PARTITIONER_TYPE;
@@ -451,7 +449,6 @@ template <>
 inline std::string
 enum_to_string<LibmeshPartitionerType>(LibmeshPartitionerType val)
 {
-    if (val == AUTOMATIC) return "AUTOMATIC";
     if (val == LIBMESH_DEFAULT) return "LIBMESH_DEFAULT";
     if (val == SAMRAI_BOX) return "SAMRAI_BOX";
     return "UNKNOWN_LIBMESH_PARTITIONER_TYPE";

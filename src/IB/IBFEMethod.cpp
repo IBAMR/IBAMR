@@ -1789,15 +1789,12 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             if (d_do_log) plog << "IBFEMethod: finished scratch hierarchy regrid" << std::endl;
         }
 
-        // Checking the workload index like this breaks encapsulation, but
-        // since this is inside the library and not user code its not so bad
-        const bool workload_is_setup = d_ib_solver ? d_ib_solver->getWorkloadDataIndex() != IBTK::invalid_index : false;
         // At this point in the code SAMRAI has already redistributed the
         // patches (usually by taking into account the number of IB points on
-        // each patch). Here is the other half: we inform libMesh of the
-        // updated partitioning so that libMesh Elems and Nodes are on the
-        // same processor as the relevant SAMRAI patch.
-        if (d_libmesh_partitioner_type == SAMRAI_BOX || (d_libmesh_partitioner_type == AUTOMATIC && workload_is_setup))
+        // each patch). Here is the other half: if requested, we inform
+        // libMesh of the updated partitioning so that libMesh Elems and Nodes
+        // are on the same processor as the relevant SAMRAI patch.
+        if (d_libmesh_partitioner_type == SAMRAI_BOX)
         {
             for (unsigned int part = 0; part < d_num_parts; ++part)
             {
@@ -3757,10 +3754,8 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 
     if (db->isDouble("epsilon")) d_epsilon = db->getDouble("epsilon");
 
-    if (db->keyExists("libmesh_partitioner_type"))
-    {
-        d_libmesh_partitioner_type = string_to_enum<LibmeshPartitionerType>(db->getString("libmesh_partitioner_type"));
-    }
+    d_libmesh_partitioner_type =
+        string_to_enum<LibmeshPartitionerType>(db->getStringWithDefault("libmesh_partitioner_type", "LIBMESH_DEFAULT"));
     if (db->keyExists("workload_quad_point_weight"))
     {
         d_default_workload_spec.q_point_weight = db->getDouble("workload_quad_point_weight");
