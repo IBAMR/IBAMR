@@ -1,0 +1,4 @@
+Fixed: IBFEMethod::reinitializeFEData() is no longer called after every time
+regrid since it does the same thing every time.
+<br>
+(David Wells, 2020/03/11)

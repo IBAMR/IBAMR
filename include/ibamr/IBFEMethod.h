@@ -1191,6 +1191,12 @@ protected:
     LibmeshPartitionerType d_libmesh_partitioner_type = AUTOMATIC;
 
     /*!
+     * Whether or not to use AMR in the finite element discretization. This
+     * feature is not yet implemented and currently defaults to false.
+     */
+    bool d_libmesh_use_amr = false;
+
+    /*!
      * Method parameters.
      */
     IBTK::FEDataManager::InterpSpec d_default_interp_spec;
