@@ -173,9 +173,63 @@ Please revise the conflict and try again.
 --------------------------------------------------------------------------
 ```
 
-### Setting up scripts for a job scheduler
+### Setting up scripts for SLURM
+This section assumes that you are using SLURM to manage running IBAMR on a
+cluster.
+
+Scientific programs, like IBAMR applications, typically run for long periods of
+time and require known amount of resources: for example, one might want to run
+their IBAMR application with 100 processors for four days.
+
+To allocate resources fairly most clusters use a scheduling program to assign
+jobs to actual computational hardware.
+
+Resource allocation typically require submitting a shell script describing both
+what is required (e.g., amount of time, number of nodes, etc.) and also a
+description of the work. Here is an example job script for running streams:
 ```
+#!/bin/bash
+#SBATCH --partition=debug_queue
+#SBATCH --nodes=2
+#SBATCH --time=00:10:00
+#SBATCH --job-name=run-streams
+# When to send an email - here, send an email when the job starts, finishes,
+# or encounters an error.
+#SBATCH --mail-type=begin,end,error
+# Email address to use.
+#SBATCH --email-user=user@email.com
+# not necessary for most queues on dogwood (those default to exclusive node
+# access), but it can't hurt to ask. This guarantees that we are the only
+# one running things on the provided nodes. Since we typically do not use
+# every processor (but we do want access to all the memory bandwidth) its
+# important to provide this on machines where it is not the default.
+#SBATCH --exclusive
+
+module load openmpi_4.0.1/gcc_9.1.0
+
+cd ~/Documents/Code/C/streams
+mpiexec -map-by ppr:10:socket -bind-to core ./streams
 ```
+Here `mpiexec` knows to work with SLURM to create a total of 40 processes -
+i.e., it will automatically detect the number of nodes and start twenty
+processes on each node (and ten on each socket).
+
+You can submit your job to the job scheduler by running `sbatch script.sb`,
+where `script.sb` is the file name of the script you want to run (such as the
+script given above).
+
+### SLURM tips and tricks
+#### keeping track of jobs
+Try running `squeue -u username` (where `username` is your username) to see the
+current status of your jobs. Running
+```
+watch -n 1 squeue -u username
+```
+will update the result every second.
+
+#### viewing all jobs
+Try running `squeue` to print *all* current jobs on the cluster. Try running
+`finger username` to get more information on a certain user.
 
 ### Final advice
 From the PETSc manual:
