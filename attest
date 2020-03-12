@@ -243,7 +243,13 @@ class Test:
             n_processors = self.n_mpi_processes()
             run_args = [self.executable, self.input_file]
             if 1 < n_processors:
-                run_args = [self._parameters.mpiexec, "-np", str(n_processors)] + run_args
+                # Permit running more processes than we have cores. Also disable
+                # binding processes to specific cores. We need to avoid binding
+                # since on clusters this results in multiple tests being
+                # assigned to the same core (since we have concurrent mpiexec
+                # calls).
+                run_args = [self._parameters.mpiexec, "-np", str(n_processors),
+                            "--bind-to", "none"] + run_args
 
             run_result = subprocess.run(run_args,
                                         stderr=subprocess.PIPE,
