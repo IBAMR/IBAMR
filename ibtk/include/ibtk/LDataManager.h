@@ -456,6 +456,296 @@ public:
                 int coarsest_ln = -1,
                 int finest_ln = -1);
 
+    //\{  One-sided MLS version of interpolation and spreading routines.
+
+    /*!
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the MLS generating function. A default weighting function is used.
+     *
+     * \note This spreading operation does include the scale factor
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
+     *
+     *     f(i,j,k) = f(i,j,k) + Sum_{q,r,s} F(q,r,s) phi_mls(x(i,j,k),X(q,r,s)) ds(q,r,s)
+     *
+     * This is the regularized spreading operation,
+     * which spreads densities, \em NOT values.
+     */
+    void spread(int f_data_idx,
+                int mask_data_idx,
+                SAMRAI::tbox::Pointer<LData> F_data,
+                SAMRAI::tbox::Pointer<LData> X_data,
+                SAMRAI::tbox::Pointer<LData> ds_data,
+                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                int level_num,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+                double fill_data_time = 0.0,
+                bool F_data_ghost_node_update = true,
+                bool X_data_ghost_node_update = true,
+                bool ds_data_ghost_node_update = true);
+
+    /*!
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the MLS generating function. The specified weighting function is
+     * used to perform the MLS procedure.
+     *
+     * \note This spreading operation does include the scale factor
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
+     *
+     *     f(i,j,k) = f(i,j,k) + Sum_{q,r,s} F(q,r,s) phi_mls(x(i,j,k),X(q,r,s)) ds(q,r,s)
+     *
+     * This is the regularized spreading operation,
+     * which spreads densities, \em NOT values.
+     */
+    void spread(int f_data_idx,
+                int mask_data_idx,
+                SAMRAI::tbox::Pointer<LData> F_data,
+                SAMRAI::tbox::Pointer<LData> X_data,
+                SAMRAI::tbox::Pointer<LData> ds_data,
+                const std::string& weighting_fcn,
+                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                int level_num,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+                double fill_data_time = 0.0,
+                bool F_data_ghost_node_update = true,
+                bool X_data_ghost_node_update = true,
+                bool ds_data_ghost_node_update = true);
+
+    /*!
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the MLS generating function. A default weighting function is used.
+     *
+     * \note This spreading operation does include the scale factor
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
+     *
+     *     f(i,j,k) = f(i,j,k) + Sum_{q,r,s} F(q,r,s) phi_mls(x(i,j,k),X(q,r,s)) ds(q,r,s)
+     *
+     * This is the regularized spreading operation,
+     * which spreads densities, \em NOT values.
+     */
+    void spread(int f_data_idx,
+                int mask_data_idx,
+                std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
+                std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
+                std::vector<SAMRAI::tbox::Pointer<LData> >& ds_data,
+                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+                double fill_data_time = 0.0,
+                bool F_data_ghost_node_update = true,
+                bool X_data_ghost_node_update = true,
+                bool ds_data_ghost_node_update = true,
+                int coarsest_ln = -1,
+                int finest_ln = -1);
+
+    /*!
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the MLS generating function. The specified weighting function is
+     * used to perform the MLS procedure.
+     *
+     * \note This spreading operation does include the scale factor
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
+     *
+     *     f(i,j,k) = f(i,j,k) + Sum_{q,r,s} F(q,r,s) phi_mls(x(i,j,k),X(q,r,s)) ds(q,r,s)
+     *
+     * This is the regularized spreading operation,
+     * which spreads densities, \em NOT values.
+     */
+    void spread(int f_data_idx,
+                int mask_data_idx,
+                std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
+                std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
+                std::vector<SAMRAI::tbox::Pointer<LData> >& ds_data,
+                const std::string& weighting_fcn,
+                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+                double fill_data_time = 0.0,
+                bool F_data_ghost_node_update = true,
+                bool X_data_ghost_node_update = true,
+                bool ds_data_ghost_node_update = true,
+                int coarsest_ln = -1,
+                int finest_ln = -1);
+
+    /*!
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the MLS generating function. A default weighting function is used.
+     *
+     * \note This spreading operation does NOT include the scale factor
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
+     *
+     *     f(i,j,k) = f(i,j,k) + Sum_{q,r,s} F(q,r,s) phi_mls(x(i,j,k),X(q,r,s))
+     *
+     * Unlike the standard spreading operation, the
+     * implemented operation spreads values, \em NOT densities.
+     */
+    void spread(int f_data_idx,
+                int mask_data_idx,
+                SAMRAI::tbox::Pointer<LData> F_data,
+                SAMRAI::tbox::Pointer<LData> X_data,
+                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                int level_num,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+                double fill_data_time = 0.0,
+                bool F_data_ghost_node_update = true,
+                bool X_data_ghost_node_update = true);
+
+    /*!
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the MLS generating function. The specified weighting function is
+     * used to perform the MLS procedure.
+     *
+     * \note This spreading operation does NOT include the scale factor
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
+     *
+     *     f(i,j,k) = f(i,j,k) + Sum_{q,r,s} F(q,r,s) phi_mls(x(i,j,k),X(q,r,s))
+     *
+     * Unlike the standard spreading operation, the
+     * implemented operation spreads values, \em NOT densities.
+     */
+    void spread(int f_data_idx,
+                int mask_data_idx,
+                SAMRAI::tbox::Pointer<LData> F_data,
+                SAMRAI::tbox::Pointer<LData> X_data,
+                const std::string& weighting_fcn,
+                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                int level_num,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+                double fill_data_time = 0.0,
+                bool F_data_ghost_node_update = true,
+                bool X_data_ghost_node_update = true);
+
+    /*!
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the MLS generating function. A default weighting function is used.
+     *
+     * \note This spreading operation does NOT include the scale factor
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
+     *
+     *     f(i,j,k) = f(i,j,k) + Sum_{q,r,s} F(q,r,s) phi_mls(x(i,j,k),X(q,r,s))
+     *
+     * Unlike the standard spreading operation, the
+     * implemented operation spreads values, \em NOT densities.
+     */
+    void spread(int f_data_idx,
+                int mask_data_idx,
+                std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
+                std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
+                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+                double fill_data_time = 0.0,
+                bool F_data_ghost_node_update = true,
+                bool X_data_ghost_node_update = true,
+                int coarsest_ln = -1,
+                int finest_ln = -1);
+
+    /*!
+     * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
+     * using the MLS generating function. The specified weighting function is
+     * used to perform the MLS procedure.
+     *
+     * \note This spreading operation does NOT include the scale factor
+     * corresponding to the curvilinear volume element (dq dr ds).  The
+     * spreading formula is
+     *
+     *     f(i,j,k) = f(i,j,k) + Sum_{q,r,s} F(q,r,s) phi_mls(x(i,j,k),X(q,r,s))
+     *
+     * Unlike the standard spreading operation, the
+     * implemented operation spreads values, \em NOT densities.
+     */
+    void spread(int f_data_idx,
+                int mask_data_idx,
+                std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
+                std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
+                const std::string& weighting_fcn,
+                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+                double fill_data_time = 0.0,
+                bool F_data_ghost_node_update = true,
+                bool X_data_ghost_node_update = true,
+                int coarsest_ln = -1,
+                int finest_ln = -1);
+
+    /*!
+     * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
+     * mesh using the MLS generating function. A default weighting function is used.
+     */
+    void interp(int f_data_idx,
+                int mask_data_idx,
+                SAMRAI::tbox::Pointer<LData> F_data,
+                SAMRAI::tbox::Pointer<LData> X_data,
+                int level_num,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& f_synch_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_ghost_fill_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+                double fill_data_time = 0.0);
+
+    /*!
+     * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
+     * mesh using the MLS generating function. The specified weighting function is
+     * used to perform the MLS procedure.
+     */
+    void interp(int f_data_idx,
+                int mask_data_idx,
+                SAMRAI::tbox::Pointer<LData> F_data,
+                SAMRAI::tbox::Pointer<LData> X_data,
+                const std::string& weighting_fcn,
+                int level_num,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& f_synch_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_ghost_fill_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+                double fill_data_time = 0.0);
+
+    /*!
+     * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
+     * mesh using the MLS generating function. A default weighting function is used.
+     */
+    void interp(int f_data_idx,
+                int mask_data_idx,
+                std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
+                std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& f_synch_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_ghost_fill_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+                double fill_data_time = 0.0,
+                int coarsest_ln = -1,
+                int finest_ln = -1);
+
+    /*!
+     * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
+     * mesh using the MLS generating function. The specified weighting function is
+     * used to perform the MLS procedure.
+     */
+    void interp(int f_data_idx,
+                int mask_data_idx,
+                std::vector<SAMRAI::tbox::Pointer<LData> >& F_data,
+                std::vector<SAMRAI::tbox::Pointer<LData> >& X_data,
+                const std::string& weighting_fcn,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& f_synch_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_ghost_fill_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+                double fill_data_time = 0.0,
+                int coarsest_ln = -1,
+                int finest_ln = -1);
+
+    //\}
+
     /*!
      * Register a concrete strategy object with the integrator that specifies
      * the initial configuration of the curvilinear mesh nodes.
