@@ -34,6 +34,7 @@
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/app_namespaces.h>
 
+#include "ibtk/IndexUtilities.h"
 #include <ibtk/AppInitializer.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -43,13 +44,6 @@
 #include "SetFluidProperties.h"
 #include "SetLSProperties.h"
 #include "VelocityInitialCondition.h"
-
-// Function prototypes
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                 Pointer<INSVCStaggeredHierarchyIntegrator> time_integrator,
-                 const int iteration_num,
-                 const double loop_time,
-                 const string& data_dump_dirname);
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -181,12 +175,12 @@ main(int argc, char* argv[])
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
         LSLocateCircularInterface* ptr_LSLocateCircularInterface =
-            new LSLocateCircularInterface("LSLocateCircularInterface", adv_diff_integrator, phi_var, circle);
+            new LSLocateCircularInterface("LSLocateCircularInterface", adv_diff_integrator, phi_var, &circle);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateCircularInterfaceCallbackFunction,
                                                                 static_cast<void*>(ptr_LSLocateCircularInterface));
-        SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", level_set_ops);
+        SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", NULL, level_set_ops);
         adv_diff_integrator->registerResetFunction(
-            phi_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
+            phi_var, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
 
         // LS initial conditions
         if (input_db->keyExists("LevelSetInitialConditions"))
@@ -325,6 +319,20 @@ main(int argc, char* argv[])
             visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
         }
 
+        // Get the probe points from the input file
+        Pointer<Database> probe_db = input_db->getDatabase("ProbePoints");
+        const int num_probes = (probe_db->getAllKeys()).getSize();
+        std::vector<std::vector<double> > probe_points;
+        probe_points.resize(num_probes);
+        for (int i = 0; i < num_probes; ++i)
+        {
+            std::string probe_name = "probe_" + Utilities::intToString(i);
+            probe_points[i].resize(NDIM);
+            probe_db->getDoubleArray(probe_name, &probe_points[i][0], NDIM);
+        }
+        std::ofstream out("output");
+        out << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+
         // File to write to for fluid mass data
         ofstream mass_file;
         mass_file.open("mass_fluid.txt");
@@ -371,6 +379,53 @@ main(int argc, char* argv[])
                 mass_file << std::setprecision(13) << loop_time << "\t" << mass_fluid << std::endl;
             }
 
+            // Print out the x-velocity values at probe locations
+            // Note that it will print the nearest cell center
+            // Max reduction over u_val array to ensure that only processor 0 prints
+            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            int u_idx = var_db->mapVariableAndContextToIndex(time_integrator->getVelocityVariable(),
+                                                             time_integrator->getCurrentContext());
+            std::vector<double> u_val(num_probes);
+            for (int i = 0; i < num_probes; ++i)
+            {
+                u_val[i] = -std::numeric_limits<double>::max();
+                bool found_point_in_patch = false;
+                for (int ln = finest_ln; ln >= coarsest_ln; --ln)
+                {
+                    // Get the cell index for this point
+                    Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                    const CellIndex<NDIM> cell_idx =
+                        IndexUtilities::getCellIndex(&probe_points[i][0], level->getGridGeometry(), level->getRatio());
+                    const int axis = 0;
+                    const SideIndex<NDIM> side_idx(cell_idx, axis, SideIndex<NDIM>::Lower);
+                    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                    {
+                        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                        const Box<NDIM>& patch_box = patch->getBox();
+                        const bool contains_probe = patch_box.contains(side_idx);
+                        if (!contains_probe) continue;
+                        // Get the level set value at this particular cell and print to stream
+                        Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
+                        u_val[i] = (*u_data)(side_idx);
+                        found_point_in_patch = true;
+                        if (found_point_in_patch) break;
+                    }
+                    if (found_point_in_patch) break;
+                }
+            }
+            SAMRAI_MPI::maxReduction(&u_val[0], num_probes);
+            if (!SAMRAI_MPI::getRank())
+            {
+                for (int i = 0; i < num_probes; ++i)
+                {
+                    out << "x-velocity near point (" << probe_points[i][0] << "," << probe_points[i][1]
+#if (NDIM == 3)
+                        << "," << probe_points[i][2]
+#endif
+                        << ") = " << std::setprecision(5) << u_val[i] << std::endl;
+                }
+            }
+
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
             // processing.
@@ -392,11 +447,9 @@ main(int argc, char* argv[])
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
-            if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
-            {
-                output_data(patch_hierarchy, time_integrator, iteration_num, loop_time, postproc_data_dump_dirname);
-            }
         }
+
+        out << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 
         // Close file
         mass_file.close();
@@ -415,33 +468,3 @@ main(int argc, char* argv[])
     SAMRAIManager::shutdown();
     PetscFinalize();
 } // main
-
-void
-output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-            Pointer<INSVCStaggeredHierarchyIntegrator> time_integrator,
-            const int iteration_num,
-            const double loop_time,
-            const string& data_dump_dirname)
-{
-    plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
-    plog << "simulation time is " << loop_time << endl;
-
-    // Write Cartesian data.
-    string file_name = data_dump_dirname + "/" + "hier_data.";
-    char temp_buf[128];
-    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
-    file_name += temp_buf;
-    Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
-    hier_db->create(file_name);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    ComponentSelector hier_data;
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(time_integrator->getVelocityVariable(),
-                                                           time_integrator->getCurrentContext()));
-    hier_data.setFlag(var_db->mapVariableAndContextToIndex(time_integrator->getPressureVariable(),
-                                                           time_integrator->getCurrentContext()));
-    patch_hierarchy->putToDatabase(hier_db->putDatabase("PatchHierarchy"), hier_data);
-    hier_db->putDouble("loop_time", loop_time);
-    hier_db->putInteger("iteration_num", iteration_num);
-    hier_db->close();
-    return;
-} // output_data
