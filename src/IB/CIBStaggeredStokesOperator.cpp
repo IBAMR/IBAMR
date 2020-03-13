@@ -97,9 +97,6 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
 {
     IBAMR_TIMER_START(t_apply);
 
-    // Allocate scratch data.
-    d_x->allocateVectorData();
-
     const double half_time = 0.5 * (d_new_time + d_current_time);
     Pointer<IBStrategy> ib_method_ops = d_cib_strategy;
 
@@ -228,75 +225,11 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     // Delete temporary vectors.
     VecDestroy(&Vrigid);
 
-    // Deallocate scratch data.
-    d_x->deallocateVectorData();
-
     IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(vx[0], &vx0);
     IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(vy[0], &vy0);
 
     IBAMR_TIMER_STOP(t_apply);
 } // apply
-
-void
-CIBStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                    const SAMRAIVectorReal<NDIM, double>& out)
-{
-    IBAMR_TIMER_START(t_initialize_operator_state);
-
-    // Deallocate the operator state if the operator is already initialized.
-    if (d_is_initialized) deallocateOperatorState();
-
-    // Setup solution and rhs vectors.
-    d_x = in.cloneVector(in.getName());
-    d_b = out.cloneVector(out.getName());
-
-    // Setup the interpolation transaction information.
-    d_U_fill_pattern = nullptr;
-    d_P_fill_pattern = nullptr;
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    d_transaction_comps.resize(2);
-    d_transaction_comps[0] = InterpolationTransactionComponent(d_x->getComponentDescriptorIndex(0),
-                                                               in.getComponentDescriptorIndex(0),
-                                                               DATA_REFINE_TYPE,
-                                                               USE_CF_INTERPOLATION,
-                                                               DATA_COARSEN_TYPE,
-                                                               BDRY_EXTRAP_TYPE,
-                                                               CONSISTENT_TYPE_2_BDRY,
-                                                               d_U_bc_coefs,
-                                                               d_U_fill_pattern);
-    d_transaction_comps[1] = InterpolationTransactionComponent(in.getComponentDescriptorIndex(1),
-                                                               DATA_REFINE_TYPE,
-                                                               USE_CF_INTERPOLATION,
-                                                               DATA_COARSEN_TYPE,
-                                                               BDRY_EXTRAP_TYPE,
-                                                               CONSISTENT_TYPE_2_BDRY,
-                                                               d_P_bc_coef,
-                                                               d_P_fill_pattern);
-
-    // Initialize the interpolation operators.
-    d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_x->getPatchHierarchy());
-
-    // Initialize hierarchy math ops object.
-    if (!d_hier_math_ops_external)
-    {
-        d_hier_math_ops = new HierarchyMathOps(d_object_name + "::HierarchyMathOps",
-                                               in.getPatchHierarchy(),
-                                               in.getCoarsestLevelNumber(),
-                                               in.getFinestLevelNumber());
-    }
-#if !defined(NDEBUG)
-    else
-    {
-        TBOX_ASSERT(d_hier_math_ops);
-    }
-#endif
-
-    // Indicate the operator is initialized.
-    d_is_initialized = true;
-
-    IBAMR_TIMER_STOP(t_initialize_operator_state);
-} // initializeOperatorState
 
 void
 CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
