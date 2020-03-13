@@ -814,6 +814,594 @@ LDataManager::interp(const int f_data_idx,
     return;
 } // interp
 
+//\{ One-sided MLS interpolation and spreading operators
+
+void
+LDataManager::spread(const int f_data_idx,
+                     const int mask_data_idx,
+                     Pointer<LData> F_data,
+                     Pointer<LData> X_data,
+                     Pointer<LData> ds_data,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const int level_num,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update,
+                     const bool ds_data_ghost_node_update)
+{
+    spread(f_data_idx,
+           mask_data_idx,
+           F_data,
+           X_data,
+           ds_data,
+           d_default_spread_kernel_fcn,
+           f_phys_bdry_op,
+           level_num,
+           f_prolongation_scheds,
+           fill_data_time,
+           F_data_ghost_node_update,
+           X_data_ghost_node_update,
+           ds_data_ghost_node_update);
+    return;
+} // spread
+
+void
+LDataManager::spread(const int f_data_idx,
+                     const int mask_data_idx,
+                     Pointer<LData> F_data,
+                     Pointer<LData> X_data,
+                     Pointer<LData> ds_data,
+                     const std::string& weighting_fcn,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const int level_num,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update,
+                     const bool ds_data_ghost_node_update)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+#if !defined(NDEBUG)
+    TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
+#endif
+    std::vector<Pointer<LData> > F_data_vec(finest_ln + 1);
+    std::vector<Pointer<LData> > X_data_vec(finest_ln + 1);
+    std::vector<Pointer<LData> > ds_data_vec(finest_ln + 1);
+    F_data_vec[level_num] = F_data;
+    X_data_vec[level_num] = X_data;
+    ds_data_vec[level_num] = ds_data;
+    spread(f_data_idx,
+           mask_data_idx,
+           F_data_vec,
+           X_data_vec,
+           ds_data_vec,
+           weighting_fcn,
+           f_phys_bdry_op,
+           f_prolongation_scheds,
+           fill_data_time,
+           F_data_ghost_node_update,
+           X_data_ghost_node_update,
+           ds_data_ghost_node_update,
+           coarsest_ln,
+           finest_ln);
+    return;
+} // spread
+
+void
+LDataManager::spread(const int f_data_idx,
+                     const int mask_data_idx,
+                     std::vector<Pointer<LData> >& F_data,
+                     std::vector<Pointer<LData> >& X_data,
+                     std::vector<Pointer<LData> >& ds_data,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update,
+                     const bool ds_data_ghost_node_update,
+                     const int coarsest_ln,
+                     const int finest_ln)
+{
+    spread(f_data_idx,
+           mask_data_idx,
+           F_data,
+           X_data,
+           ds_data,
+           d_default_spread_kernel_fcn,
+           f_phys_bdry_op,
+           f_prolongation_scheds,
+           fill_data_time,
+           F_data_ghost_node_update,
+           X_data_ghost_node_update,
+           ds_data_ghost_node_update,
+           coarsest_ln,
+           finest_ln);
+    return;
+} // spread
+
+void
+LDataManager::spread(const int f_data_idx,
+                     const int mask_data_idx,
+                     std::vector<Pointer<LData> >& F_data,
+                     std::vector<Pointer<LData> >& X_data,
+                     std::vector<Pointer<LData> >& ds_data,
+                     const std::string& weighting_fcn,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update,
+                     const bool ds_data_ghost_node_update,
+                     const int coarsest_ln_in,
+                     const int finest_ln_in)
+{
+    IBTK_TIMER_START(t_spread);
+
+    const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
+    const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
+
+    // Compute F*ds.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!levelContainsLagrangianData(ln)) continue;
+
+        if (F_data_ghost_node_update) F_data[ln]->beginGhostUpdate();
+        if (ds_data_ghost_node_update) ds_data[ln]->beginGhostUpdate();
+    }
+    std::vector<Pointer<LData> > F_ds_data(F_data.size());
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!levelContainsLagrangianData(ln)) continue;
+
+        if (F_data_ghost_node_update) F_data[ln]->endGhostUpdate();
+        if (ds_data_ghost_node_update) ds_data[ln]->endGhostUpdate();
+
+        const int depth = F_data[ln]->getDepth();
+        F_ds_data[ln] = new LData("", getNumberOfLocalNodes(ln), depth, d_nonlocal_petsc_indices[ln]);
+        boost::multi_array_ref<double, 2>& F_ds_arr = *F_ds_data[ln]->getGhostedLocalFormVecArray();
+        const boost::multi_array_ref<double, 2>& F_arr = *F_data[ln]->getGhostedLocalFormVecArray();
+        const boost::multi_array_ref<double, 1>& ds_arr = *ds_data[ln]->getGhostedLocalFormArray();
+        for (int k = 0; k < static_cast<int>(F_data[ln]->getLocalNodeCount() + F_data[ln]->getGhostNodeCount()); ++k)
+        {
+            for (int d = 0; d < depth; ++d)
+            {
+                F_ds_arr[k][d] = F_arr[k][d] * ds_arr[k];
+            }
+        }
+        F_ds_data[ln]->restoreArrays();
+        F_data[ln]->restoreArrays();
+        ds_data[ln]->restoreArrays();
+    }
+
+    IBTK_TIMER_STOP(t_spread);
+
+    // Spread data from the Lagrangian mesh to the Eulerian grid.
+    spread(f_data_idx,
+           mask_data_idx,
+           F_ds_data,
+           X_data,
+           weighting_fcn,
+           f_phys_bdry_op,
+           f_prolongation_scheds,
+           fill_data_time,
+           /*F_data_ghost_node_update*/ false,
+           X_data_ghost_node_update,
+           coarsest_ln,
+           finest_ln);
+    return;
+} // spread
+
+void
+LDataManager::spread(const int f_data_idx,
+                     const int mask_data_idx,
+                     Pointer<LData> F_data,
+                     Pointer<LData> X_data,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const int level_num,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update)
+{
+    spread(f_data_idx,
+           mask_data_idx,
+           F_data,
+           X_data,
+           d_default_spread_kernel_fcn,
+           f_phys_bdry_op,
+           level_num,
+           f_prolongation_scheds,
+           fill_data_time,
+           F_data_ghost_node_update,
+           X_data_ghost_node_update);
+    return;
+} // spread
+
+void
+LDataManager::spread(const int f_data_idx,
+                     const int mask_data_idx,
+                     Pointer<LData> F_data,
+                     Pointer<LData> X_data,
+                     const std::string& weighting_fcn,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const int level_num,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+#if !defined(NDEBUG)
+    TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
+#endif
+    std::vector<Pointer<LData> > F_data_vec(finest_ln + 1);
+    std::vector<Pointer<LData> > X_data_vec(finest_ln + 1);
+    F_data_vec[level_num] = F_data;
+    X_data_vec[level_num] = X_data;
+    spread(f_data_idx,
+           mask_data_idx,
+           F_data_vec,
+           X_data_vec,
+           weighting_fcn,
+           f_phys_bdry_op,
+           f_prolongation_scheds,
+           fill_data_time,
+           F_data_ghost_node_update,
+           X_data_ghost_node_update,
+           coarsest_ln,
+           finest_ln);
+    return;
+} // spread
+
+void
+LDataManager::spread(const int f_data_idx,
+                     const int mask_data_idx,
+                     std::vector<Pointer<LData> >& F_data,
+                     std::vector<Pointer<LData> >& X_data,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update,
+                     const int coarsest_ln,
+                     const int finest_ln)
+{
+    spread(f_data_idx,
+           mask_data_idx,
+           F_data,
+           X_data,
+           d_default_spread_kernel_fcn,
+           f_phys_bdry_op,
+           f_prolongation_scheds,
+           fill_data_time,
+           F_data_ghost_node_update,
+           X_data_ghost_node_update,
+           coarsest_ln,
+           finest_ln);
+    return;
+} // spread
+
+void
+LDataManager::spread(const int f_data_idx,
+                     const int mask_data_idx,
+                     std::vector<Pointer<LData> >& F_data,
+                     std::vector<Pointer<LData> >& X_data,
+                     const std::string& weighting_fcn,
+                     RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                     const double fill_data_time,
+                     const bool F_data_ghost_node_update,
+                     const bool X_data_ghost_node_update,
+                     const int coarsest_ln_in,
+                     const int finest_ln_in)
+{
+    IBTK_TIMER_START(t_spread);
+
+    const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
+    const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
+
+    // Zero inactivated components.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        zeroInactivatedComponents(F_data[ln], ln);
+    }
+
+    // Determine the type of data centering.
+    auto var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<Variable<NDIM> > f_var;
+    var_db->mapIndexToVariable(f_data_idx, f_var);
+    Pointer<CellVariable<NDIM, double> > f_cc_var = f_var;
+    Pointer<SideVariable<NDIM, double> > f_sc_var = f_var;
+    const bool cc_data = f_cc_var;
+    const bool sc_data = f_sc_var;
+    TBOX_ASSERT(cc_data || sc_data);
+
+    Pointer<Variable<NDIM> > mask_var;
+    var_db->mapIndexToVariable(mask_data_idx, mask_var);
+    Pointer<CellVariable<NDIM, double> > mask_cc_var = mask_var;
+    Pointer<SideVariable<NDIM, double> > mask_sc_var = mask_var;
+    TBOX_ASSERT((cc_data && mask_cc_var) || (sc_data && mask_sc_var));
+
+    // Make a copy of the Eulerian data.
+    const auto f_copy_data_idx = d_cached_eulerian_data.getCachedPatchDataIndex(f_data_idx);
+    Pointer<HierarchyDataOpsReal<NDIM, double> > f_data_ops =
+        HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+    f_data_ops->swapData(f_copy_data_idx, f_data_idx);
+    f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
+
+    // Start filling Lagrangian ghost node values.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!levelContainsLagrangianData(ln)) continue;
+
+        if (F_data_ghost_node_update) F_data[ln]->beginGhostUpdate();
+        if (X_data_ghost_node_update) X_data[ln]->beginGhostUpdate();
+    }
+
+    // Spread data from the Lagrangian mesh to the Eulerian grid.
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        // If there are coarser levels in the patch hierarchy, prolong data from
+        // the coarser levels before spreading data on this level.
+        if (ln > coarsest_ln && ln < static_cast<int>(f_prolongation_scheds.size()) && f_prolongation_scheds[ln])
+        {
+            f_prolongation_scheds[ln]->fillData(fill_data_time);
+        }
+
+        if (!levelContainsLagrangianData(ln)) continue;
+
+        // Spread data onto the grid.
+        if (F_data_ghost_node_update) F_data[ln]->endGhostUpdate();
+        if (X_data_ghost_node_update) X_data[ln]->endGhostUpdate();
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
+            Pointer<PatchData<NDIM> > mask_data = patch->getPatchData(mask_data_idx);
+            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            const Box<NDIM>& box = idx_data->getGhostBox();
+            if (cc_data)
+            {
+                Pointer<CellData<NDIM, double> > f_cc_data = f_data;
+                Pointer<CellData<NDIM, double> > mask_cc_data = mask_data;
+                LEInteractor::spread(f_cc_data,
+                                     mask_cc_data,
+                                     F_data[ln],
+                                     X_data[ln],
+                                     idx_data,
+                                     patch,
+                                     box,
+                                     periodic_shift,
+                                     weighting_fcn);
+            }
+            if (sc_data)
+            {
+                Pointer<SideData<NDIM, double> > f_sc_data = f_data;
+                Pointer<SideData<NDIM, double> > mask_sc_data = mask_data;
+                LEInteractor::spread(f_sc_data,
+                                     mask_sc_data,
+                                     F_data[ln],
+                                     X_data[ln],
+                                     idx_data,
+                                     patch,
+                                     box,
+                                     periodic_shift,
+                                     weighting_fcn);
+            }
+            if (f_phys_bdry_op)
+            {
+                f_phys_bdry_op->setPatchDataIndex(f_data_idx);
+                f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, fill_data_time, f_data->getGhostCellWidth());
+            }
+        }
+    }
+
+    // Accumulate data.
+    f_data_ops->swapData(f_copy_data_idx, f_data_idx);
+    f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
+
+    IBTK_TIMER_STOP(t_spread);
+    return;
+} // spread
+
+void
+LDataManager::interp(const int f_data_idx,
+                     const int mask_data_idx,
+                     Pointer<LData> F_data,
+                     Pointer<LData> X_data,
+                     const int level_num,
+                     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& f_synch_scheds,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_ghost_fill_scheds,
+                     const double fill_data_time)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+#if !defined(NDEBUG)
+    TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
+#endif
+    std::vector<Pointer<LData> > F_data_vec(finest_ln + 1);
+    std::vector<Pointer<LData> > X_data_vec(finest_ln + 1);
+    F_data_vec[level_num] = F_data;
+    X_data_vec[level_num] = X_data;
+    interp(f_data_idx,
+           mask_data_idx,
+           F_data_vec,
+           X_data_vec,
+           f_synch_scheds,
+           f_ghost_fill_scheds,
+           fill_data_time,
+           coarsest_ln,
+           finest_ln);
+    return;
+} // interp
+
+void
+LDataManager::interp(const int f_data_idx,
+                     const int mask_data_idx,
+                     Pointer<LData> F_data,
+                     Pointer<LData> X_data,
+                     const std::string& weighting_fcn,
+                     const int level_num,
+                     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& f_synch_scheds,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_ghost_fill_scheds,
+                     const double fill_data_time)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+#if !defined(NDEBUG)
+    TBOX_ASSERT(coarsest_ln <= level_num && level_num <= finest_ln);
+#endif
+    std::vector<Pointer<LData> > F_data_vec(finest_ln + 1);
+    std::vector<Pointer<LData> > X_data_vec(finest_ln + 1);
+    F_data_vec[level_num] = F_data;
+    X_data_vec[level_num] = X_data;
+    interp(f_data_idx,
+           mask_data_idx,
+           F_data_vec,
+           X_data_vec,
+           weighting_fcn,
+           f_synch_scheds,
+           f_ghost_fill_scheds,
+           fill_data_time,
+           coarsest_ln,
+           finest_ln);
+    return;
+} // interp
+
+void
+LDataManager::interp(const int f_data_idx,
+                     const int mask_data_idx,
+                     std::vector<Pointer<LData> >& F_data,
+                     std::vector<Pointer<LData> >& X_data,
+                     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& f_synch_scheds,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_ghost_fill_scheds,
+                     const double fill_data_time,
+                     const int coarsest_ln_in,
+                     const int finest_ln_in)
+{
+    interp(f_data_idx,
+           mask_data_idx,
+           F_data,
+           X_data,
+           d_default_interp_kernel_fcn,
+           f_synch_scheds,
+           f_ghost_fill_scheds,
+           fill_data_time,
+           coarsest_ln_in,
+           finest_ln_in);
+
+} // interp
+
+void
+LDataManager::interp(const int f_data_idx,
+                     const int mask_data_idx,
+                     std::vector<Pointer<LData> >& F_data,
+                     std::vector<Pointer<LData> >& X_data,
+                     const std::string& weighting_fcn,
+                     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& f_synch_scheds,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& f_ghost_fill_scheds,
+                     const double fill_data_time,
+                     const int coarsest_ln_in,
+                     const int finest_ln_in)
+{
+    IBTK_TIMER_START(t_interp);
+
+    const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
+    const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    // Determine the type of data centering.
+    Pointer<Variable<NDIM> > f_var;
+    var_db->mapIndexToVariable(f_data_idx, f_var);
+    Pointer<CellVariable<NDIM, double> > f_cc_var = f_var;
+    Pointer<SideVariable<NDIM, double> > f_sc_var = f_var;
+    const bool cc_data = f_cc_var;
+    const bool sc_data = f_sc_var;
+    TBOX_ASSERT(cc_data || sc_data);
+
+    Pointer<Variable<NDIM> > mask_var;
+    var_db->mapIndexToVariable(mask_data_idx, mask_var);
+    Pointer<CellVariable<NDIM, double> > mask_cc_var = mask_var;
+    Pointer<SideVariable<NDIM, double> > mask_sc_var = mask_var;
+    TBOX_ASSERT((cc_data && mask_cc_var) || (sc_data && mask_sc_var));
+
+    // Synchronize Eulerian values.
+    for (int ln = finest_ln; ln > coarsest_ln; --ln)
+    {
+        if (ln < static_cast<int>(f_synch_scheds.size()) && f_synch_scheds[ln])
+        {
+            f_synch_scheds[ln]->coarsenData();
+        }
+    }
+
+    // Interpolate data from the Eulerian grid to the Lagrangian mesh.
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        if (!levelContainsLagrangianData(ln)) continue;
+
+        if (ln < static_cast<int>(f_ghost_fill_scheds.size()) && f_ghost_fill_scheds[ln])
+        {
+            f_ghost_fill_scheds[ln]->fillData(fill_data_time);
+        }
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(level->getRatio());
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
+            Pointer<PatchData<NDIM> > mask_data = patch->getPatchData(mask_data_idx);
+            Pointer<LNodeSetData> idx_data = patch->getPatchData(d_lag_node_index_current_idx);
+            const Box<NDIM>& box = idx_data->getBox();
+            if (cc_data)
+            {
+                Pointer<CellData<NDIM, double> > f_cc_data = f_data;
+                Pointer<CellData<NDIM, double> > mask_cc_data = mask_data;
+                LEInteractor::interpolate(F_data[ln],
+                                          X_data[ln],
+                                          idx_data,
+                                          f_cc_data,
+                                          mask_cc_data,
+                                          patch,
+                                          box,
+                                          periodic_shift,
+                                          weighting_fcn);
+            }
+            if (sc_data)
+            {
+                Pointer<SideData<NDIM, double> > f_sc_data = f_data;
+                Pointer<SideData<NDIM, double> > mask_sc_data = mask_data;
+                LEInteractor::interpolate(F_data[ln],
+                                          X_data[ln],
+                                          idx_data,
+                                          f_sc_data,
+                                          mask_sc_data,
+                                          patch,
+                                          box,
+                                          periodic_shift,
+                                          weighting_fcn);
+            }
+        }
+    }
+
+    // Zero inactivated components.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        zeroInactivatedComponents(F_data[ln], ln);
+    }
+
+    IBTK_TIMER_STOP(t_interp);
+    return;
+} // interp
+
+//\}
+
 void
 LDataManager::registerLInitStrategy(Pointer<LInitStrategy> lag_init)
 {
