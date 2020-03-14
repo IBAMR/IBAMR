@@ -59,14 +59,6 @@ public:
      */
     ~CIBStaggeredStokesOperator();
 
-    //\{ // Operator functionality of IBAMR::StaggeredStokesOperator class.
-    /*!
-     * \brief Compute hierarchy dependent data required for computing y=Ax.
-     */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
-    //\}
-
     //\{ // Additional functionality of CIBStaggeredStokesOperator.
 
     /*!
