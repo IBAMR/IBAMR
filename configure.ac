@@ -205,7 +205,9 @@ AC_CONFIG_FILES([
   examples/level_set/Makefile
   examples/level_set/ex0/Makefile
   examples/level_set/ex1/Makefile
+  examples/moving_least_squares/Makefile
   examples/moving_least_squares/ex0/Makefile
+  examples/moving_least_squares/ex1/Makefile
   examples/multiphase_flow/Makefile
   examples/multiphase_flow/ex0/Makefile
   examples/multiphase_flow/ex1/Makefile

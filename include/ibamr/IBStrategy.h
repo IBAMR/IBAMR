@@ -17,6 +17,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "CoarsenPatchStrategy.h"
 #include "IntVector.h"
@@ -472,6 +473,16 @@ public:
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
+    /*!
+     * Register the masking patch data index with this class.
+     */
+    virtual void registerMaskingPatchDataIndex(int mask_data_idx);
+
+    /*!
+     * Get the masking patch data index registered with this class.
+     */
+    virtual int getMaskingPatchDataIndex();
+
 protected:
     /*!
      * Return a pointer to the INSHierarchyIntegrator object being used with the
@@ -598,6 +609,13 @@ protected:
      * Whether to use "fixed" Lagrangian-Eulerian coupling operators.
      */
     bool d_use_fixed_coupling_ops = false;
+
+    /*!
+     * Patch data index for masking a part of the domain. This is used for one-sided
+     * MLS interpolation and spreading. The user is responsible for managing the patch data
+     * associated with this index, including its allocation and deallocation.
+     */
+    int d_mask_data_idx = IBTK::invalid_index;
 
 private:
     /*!

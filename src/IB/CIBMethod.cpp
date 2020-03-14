@@ -432,7 +432,6 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
             position_lag_data(finest_ln + 1, Pointer<LData>(nullptr));
 
         spread_lag_data[finest_ln] = d_l_data_manager->getLData("lambda", finest_ln);
-        ;
         position_lag_data[finest_ln] = d_l_data_manager->getLData("X", finest_ln);
 
         // Initialize the S[lambda] variable to zero.
@@ -641,8 +640,22 @@ CIBMethod::interpolateVelocity(const int u_data_idx,
         bool* X_half_needs_ghost_fill;
         getVelocityData(&U_half_data, d_half_time);
         getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
-        d_l_data_manager->interp(
-            u_data_idx, *U_half_data, *X_half_data, u_synch_scheds, u_ghost_fill_scheds, data_time);
+        if (d_mask_data_idx != IBTK::invalid_index)
+        {
+            d_l_data_manager->interp(u_data_idx,
+                                     d_mask_data_idx,
+                                     *U_half_data,
+                                     *X_half_data,
+                                     /*weighting_fcn*/ "IB_4",
+                                     u_synch_scheds,
+                                     u_ghost_fill_scheds,
+                                     data_time);
+        }
+        else
+        {
+            d_l_data_manager->interp(
+                u_data_idx, *U_half_data, *X_half_data, u_synch_scheds, u_ghost_fill_scheds, data_time);
+        }
 
         d_lag_velvec_is_initialized = false;
     }
@@ -662,14 +675,45 @@ CIBMethod::spreadForce(
 #if !defined(NDEBUG)
         TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
 #endif
-        if (f_phys_bdry_op == nullptr)
+
+        IBTK::RobinPhysBdryPatchStrategy* phys_bdry_op =
+            (f_phys_bdry_op == nullptr) ? d_u_phys_bdry_op : f_phys_bdry_op;
+
+        std::vector<Pointer<LData> >*F_data, *X_LE_data;
+        bool *F_needs_ghost_fill, *X_LE_needs_ghost_fill;
+        getForceData(&F_data, &F_needs_ghost_fill, data_time);
+        getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
+        resetAnchorPointValues(*F_data,
+                               /*coarsest_ln*/ 0,
+                               /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
+
+        if (d_mask_data_idx != IBTK::invalid_index)
         {
-            IBMethod::spreadForce(f_data_idx, d_u_phys_bdry_op, f_prolongation_scheds, data_time);
+            d_l_data_manager->spread(f_data_idx,
+                                     d_mask_data_idx,
+                                     *F_data,
+                                     *X_LE_data,
+                                     /*weighting_fcn*/ "IB_4",
+                                     phys_bdry_op,
+                                     f_prolongation_scheds,
+                                     data_time,
+                                     *F_needs_ghost_fill,
+                                     *X_LE_needs_ghost_fill);
         }
         else
         {
-            IBMethod::spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
+            d_l_data_manager->spread(f_data_idx,
+                                     *F_data,
+                                     *X_LE_data,
+                                     phys_bdry_op,
+                                     f_prolongation_scheds,
+                                     data_time,
+                                     *F_needs_ghost_fill,
+                                     *X_LE_needs_ghost_fill);
         }
+        *F_needs_ghost_fill = false;
+        *X_LE_needs_ghost_fill = false;
+
         d_constraint_force_is_initialized = false;
     }
 
