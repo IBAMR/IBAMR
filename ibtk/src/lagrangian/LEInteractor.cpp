@@ -3408,12 +3408,12 @@ LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
                    << "  minimum ghost cell width = " << min_ghosts << "\n"
                    << "  ghost cell width         = " << q_gcw_min << "\n");
     }
-    if (mask_gcw_min < stencil_size)
+    if (mask_gcw_min < min_ghosts)
     {
         TBOX_ERROR("LEInteractor::spread(): insufficient ghost cells for Eulerian mask data:\n"
                    << "  kernel function          = " << spread_fcn << "\n"
                    << "  kernel stencil size      = " << stencil_size << "\n"
-                   << "  minimum ghost cell width = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << min_ghosts << "\n"
                    << "  ghost cell width         = " << mask_gcw_min << "\n");
     }
     const IntVector<NDIM> ig_lower = ilower - q_gcw;
@@ -3677,12 +3677,12 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
                    << "  minimum ghost cell width = " << min_ghosts << "\n"
                    << "  ghost cell width         = " << q_gcw_min << "\n");
     }
-    if (mask_gcw_min < stencil_size)
+    if (mask_gcw_min < min_ghosts)
     {
         TBOX_ERROR("LEInteractor::interpolate(): insufficient ghost cells for Eulerian mask data:"
                    << "  kernel function          = " << spread_fcn << "\n"
                    << "  kernel stencil size      = " << stencil_size << "\n"
-                   << "  minimum ghost cell width = " << stencil_size << "\n"
+                   << "  minimum ghost cell width = " << min_ghosts << "\n"
                    << "  ghost cell width         = " << mask_gcw_min << "\n");
     }
 

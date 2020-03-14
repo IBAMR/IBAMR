@@ -312,6 +312,19 @@ void IBStrategy::putToDatabase(Pointer<Database> /*db*/)
     return;
 } // putToDatabase
 
+void
+IBStrategy::registerMaskingPatchDataIndex(int mask_data_idx)
+{
+    d_mask_data_idx = mask_data_idx;
+    return;
+} // registerMaskingPatchDataIndex
+
+int
+IBStrategy::getMaskingPatchDataIndex()
+{
+    return d_mask_data_idx;
+} // getMaskingPatchDataIndex
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 INSHierarchyIntegrator*
