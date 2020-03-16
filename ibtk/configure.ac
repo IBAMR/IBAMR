@@ -141,6 +141,7 @@ Makefile
 examples/Makefile
 examples/CCLaplace/Makefile
 examples/CCPoisson/Makefile
+examples/GhostCells/Makefile
 examples/PETScOps/Makefile
 examples/PETScOps/ProlongationMat/Makefile
 examples/PhysBdryOps/Makefile
