@@ -30,6 +30,7 @@
 #include "PatchHierarchy.h"
 #include "tbox/Pointer.h"
 
+#include "libmesh/coupling_matrix.h"
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
@@ -1075,10 +1076,33 @@ protected:
            d_half_time = std::numeric_limits<double>::quiet_NaN();
 
     /*!
-     * FE data associated with this object.
+     * Meshes provided to this object. These are set up and managed outside
+     * this class. These meshes are modified by IBFEMethod since this class
+     * creates several libMesh Systems (and hence stores DoF information in
+     * these meshes).
      */
     std::vector<libMesh::MeshBase*> d_meshes;
-    int d_max_level_number;
+
+    /*!
+     * Maximum level number in the patch hierarchy.
+     */
+    int d_max_level_number = -1;
+
+    /*!
+     * The libMesh Systems set up by this system (for example, for velocity
+     * projection) consist of one variable per spatial component. By default,
+     * libMesh assumes that all variables in a given System couple to
+     * eachother which, since we only ever solve projection problems in this
+     * class, is not the case. Hence we can save some memory by explicitly
+     * informing libMesh that the variables in a system only couple to
+     * themselves by providing a diagonal coupling matrix to each System.
+     */
+    libMesh::CouplingMatrix d_diagonal_system_coupling;
+
+    /*!
+     * EquationSystems objects, one per part. These contain the actual
+     * matrices and solution vectors for each relevant libMesh system.
+     */
     std::vector<std::unique_ptr<libMesh::EquationSystems> > d_equation_systems;
 
     /// Number of parts owned by the present object.
