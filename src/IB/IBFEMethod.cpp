@@ -381,6 +381,7 @@ IBFEMethod::registerStressNormalizationPart(unsigned int part)
     auto& Phi_system = d_equation_systems[part]->add_system<LinearImplicitSystem>(PHI_SYSTEM_NAME);
     d_equation_systems[part]->parameters.set<Real>("Phi_epsilon") = d_epsilon;
     Phi_system.attach_assemble_function(assemble_poisson);
+    // This system has a single variable so we don't need to also specify diagonal coupling
     Phi_system.add_variable("Phi", d_fe_order[part], d_fe_family[part]);
     return;
 } // registerStressNormalizationPart
@@ -492,6 +493,7 @@ IBFEMethod::registerLagBodySourceFunction(const LagBodySourceFcnData& data, cons
     d_lag_body_source_part[part] = true;
     d_lag_body_source_fcn_data[part] = data;
     auto& Q_system = d_equation_systems[part]->add_system<ExplicitSystem>(SOURCE_SYSTEM_NAME);
+    // This system has a single variable so we don't need to also specify diagonal coupling
     Q_system.add_variable("Q", d_fe_order[part], d_fe_family[part]);
     return;
 } // registerLagBodySourceFunction
@@ -691,9 +693,6 @@ IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int n
 
         *d_U_systems[part]->solution = *d_U_new_vecs[part];
         *d_U_systems[part]->current_local_solution = *d_U_new_vecs[part];
-
-        *d_F_systems[part]->solution = *d_F_half_vecs[part];
-        *d_F_systems[part]->current_local_solution = *d_F_half_vecs[part];
 
         if (d_lag_body_source_part[part])
         {
@@ -941,9 +940,6 @@ IBFEMethod::computeLagrangianForce(const double data_time)
     // RHS vectors don't need ghost entries for the solve so we can skip the other scatter
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
-        // TODO: Commenting out this line changes the solution slightly but
-        // probably speeds up this solve slightly too.
-        d_F_systems[part]->solution->zero();
         d_active_fe_data_managers[part]->computeL2Projection(*d_F_systems[part]->solution,
                                                              *d_F_rhs_vecs[part],
                                                              FORCE_SYSTEM_NAME,
@@ -1241,6 +1237,12 @@ IBFEMethod::initializeFEEquationSystems()
 
     const bool from_restart = RestartManager::getManager()->isFromRestart();
 
+    // Set up the coupling matrix which will be used by each system.
+    d_diagonal_system_coupling.resize(NDIM);
+    for (unsigned int i = 0; i < NDIM; ++i)
+        for (unsigned int j = 0; j < NDIM; ++j)
+            d_diagonal_system_coupling(i, j) = i == j ? 1 : 0;
+
     // Create the FE data managers that manage mappings between the FE mesh
     // parts and the Cartesian grid.
     d_equation_systems.resize(d_num_parts);
@@ -1310,24 +1312,28 @@ IBFEMethod::initializeFEEquationSystems()
             {
                 X_system.add_variable("X_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
+            X_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
 
             auto& dX_system = equation_systems.add_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 dX_system.add_variable("dX_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
+            dX_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
 
             auto& U_system = equation_systems.add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 U_system.add_variable("U_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
+            U_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
 
             auto& F_system = equation_systems.add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 F_system.add_variable("F_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
+            F_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
         }
 
         // Setup cached system vectors.

@@ -30,6 +30,7 @@
 #include "PatchHierarchy.h"
 #include "tbox/Pointer.h"
 
+#include "libmesh/coupling_matrix.h"
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
@@ -1086,6 +1087,17 @@ protected:
      * Maximum level number in the patch hierarchy.
      */
     int d_max_level_number = -1;
+
+    /*!
+     * The libMesh Systems set up by this system (for example, for velocity
+     * projection) consist of one variable per spatial component. By default,
+     * libMesh assumes that all variables in a given System couple to
+     * eachother which, since we only ever solve projection problems in this
+     * class, is not the case. Hence we can save some memory by explicitly
+     * informing libMesh that the variables in a system only couple to
+     * themselves by providing a diagonal coupling matrix to each System.
+     */
+    libMesh::CouplingMatrix d_diagonal_system_coupling;
 
     /*!
      * EquationSystems objects, one per part. These contain the actual
