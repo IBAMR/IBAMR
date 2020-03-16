@@ -1240,8 +1240,7 @@ IBFEMethod::initializeFEEquationSystems()
     // Set up the coupling matrix which will be used by each system.
     d_diagonal_system_coupling.resize(NDIM);
     for (unsigned int i = 0; i < NDIM; ++i)
-        for (unsigned int j = 0; j < NDIM; ++j)
-            d_diagonal_system_coupling(i, j) = i == j ? 1 : 0;
+        for (unsigned int j = 0; j < NDIM; ++j) d_diagonal_system_coupling(i, j) = i == j ? 1 : 0;
 
     // Create the FE data managers that manage mappings between the FE mesh
     // parts and the Cartesian grid.
@@ -1836,8 +1835,7 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
 
         // We only need to reinitialize FE data when AMR is enabled (which is
         // not yet implemented)
-        if (d_libmesh_use_amr)
-            reinitializeFEData();
+        if (d_libmesh_use_amr) reinitializeFEData();
 
         for (unsigned int part = 0; part < d_num_parts; ++part)
         {
