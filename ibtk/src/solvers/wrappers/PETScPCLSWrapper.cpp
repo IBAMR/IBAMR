@@ -20,19 +20,21 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "IntVector.h"
+#include "Box.h"
 #include "MultiblockDataTranslator.h"
 #include "SAMRAIVectorReal.h"
 #include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "tbox/SAMRAI_MPI.h"
 
 #include "petscpc.h"
-#include "petscsys.h"
+#include "petscpctypes.h"
+#include <petsclog.h>
 
 #include <mpi.h>
 
 #include <ostream>
 #include <string>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

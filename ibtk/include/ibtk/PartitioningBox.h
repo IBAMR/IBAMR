@@ -15,13 +15,27 @@
 #define included_IBTK_ibtk_partitioningbox
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
 #include <ibtk/ibtk_utilities.h>
 
 #include <CartesianPatchGeometry.h>
-#include <PatchHierarchy.h>
 
 #include <utility>
 #include <vector>
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchHierarchy;
+} // namespace hier
+namespace geom
+{
+template <int DIM>
+class CartesianPatchGeometry;
+} // namespace geom
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 namespace IBTK

@@ -33,6 +33,8 @@
 #include "muParser.h"
 #include "muParserError.h"
 
+#include <algorithm>
+#include <array>
 #include <map>
 #include <ostream>
 #include <string>

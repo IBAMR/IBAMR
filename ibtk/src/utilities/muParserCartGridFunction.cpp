@@ -24,6 +24,9 @@
 #include "CellData.h"
 #include "CellIndex.h"
 #include "CellIterator.h"
+#include "EdgeData.h"
+#include "EdgeIndex.h"
+#include "EdgeIterator.h"
 #include "FaceData.h"
 #include "FaceIndex.h"
 #include "FaceIterator.h"
@@ -45,7 +48,9 @@
 #include "muParser.h"
 #include "muParserError.h"
 
+#include <algorithm>
 #include <map>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <utility>

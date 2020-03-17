@@ -24,7 +24,6 @@
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h" // IWYU pragma: keep
-#include "CellIndex.h"
 #include "FaceData.h" // IWYU pragma: keep
 #include "FaceIndex.h"
 #include "Index.h"

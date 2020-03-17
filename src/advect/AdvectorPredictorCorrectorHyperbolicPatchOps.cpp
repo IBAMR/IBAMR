@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
+#include <IBAMR_config.h>
 
 #include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 #include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"
@@ -34,7 +34,6 @@
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellDataFactory.h"
-#include "CellIndex.h"
 #include "CellIterator.h"
 #include "CellVariable.h"
 #include "ComponentSelector.h"
@@ -64,7 +63,7 @@
 #include "tbox/Utilities.h"
 
 #include <algorithm>
-#include <cmath>
+#include <cstdlib>
 #include <limits>
 #include <map>
 #include <ostream>

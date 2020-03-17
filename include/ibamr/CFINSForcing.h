@@ -13,15 +13,16 @@
 
 #ifndef included_CFINSForcing
 #define included_CFINSForcing
+
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include "IBAMR_config.h"
+
+#include <IBAMR_config.h>
+#include <IBTK_config.h>
 
 #include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
-#include "ibamr/CFGiesekusRelaxation.h"
-#include "ibamr/CFOldroydBRelaxation.h"
-#include "ibamr/CFRoliePolyRelaxation.h"
+#include "ibamr/CFRelaxationOperator.h"
 #include "ibamr/CFUpperConvectiveOperator.h"
-#include "ibamr/INSStaggeredHierarchyIntegrator.h"
+#include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
 
 #include "ibtk/CartGridFunction.h"
@@ -31,11 +32,14 @@
 #include "ibtk/muParserCartGridFunction.h"
 #include "ibtk/muParserRobinBcCoefs.h"
 
+#include "BasePatchHierarchy.h"
 #include "Box.h"
+#include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
 #include "CellVariable.h"
+#include "FaceVariable.h"
 #include "HierarchyDataOpsManager.h"
 #include "Index.h"
 #include "IntVector.h"
@@ -48,16 +52,20 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
+#include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
-IBTK_DISABLE_EXTRA_WARNINGS
-#include <Eigen/Cholesky>
-#include <Eigen/Core>
-#include <Eigen/Eigenvalues>
-#include <unsupported/Eigen/MatrixFunctions>
-IBTK_ENABLE_EXTRA_WARNINGS
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
+#include <limits>
 #include <string>
 #include <vector>
 

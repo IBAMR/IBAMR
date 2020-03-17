@@ -11,10 +11,54 @@
 //
 // ---------------------------------------------------------------------
 
+#include "ibamr/CFGiesekusRelaxation.h"
 #include "ibamr/CFINSForcing.h"
-#include "ibamr/namespaces.h"
+#include "ibamr/CFOldroydBRelaxation.h"
+#include "ibamr/CFRelaxationOperator.h"
+#include "ibamr/CFRoliePolyRelaxation.h"
+#include "ibamr/ConvectiveOperator.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/muParserRobinBcCoefs.h"
+
+#include "BasePatchHierarchy.h"
+#include "Box.h"
+#include "CartesianGridGeometry.h"
+#include "CartesianPatchGeometry.h"
+#include "CellData.h"
+#include "CellIndex.h"
+#include "CellIterator.h"
+#include "HierarchyDataOpsManager.h"
+#include "HierarchyDataOpsReal.h"
+#include "Index.h"
+#include "MultiblockDataTranslator.h"
+#include "Patch.h"
+#include "PatchData.h"
+#include "PatchGeometry.h"
+#include "RobinBcCoefStrategy.h"
+#include "SideData.h"
+#include "SideIndex.h"
+#include "VariableDatabase.h"
+#include "VisItDataWriter.h"
+#include "tbox/Database.h"
+#include "tbox/PIO.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include <Eigen/Cholesky>
+#include <Eigen/Core>
+#include <Eigen/Eigenvalues>
+#include <unsupported/Eigen/MatrixFunctions>
+IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <algorithm>
+#include <cmath>
+#include <ostream>
+#include <utility>
 
 extern "C"
 {

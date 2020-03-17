@@ -21,16 +21,34 @@
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
+#include <tbox/Pointer.h>
 #include <tbox/SAMRAI_MPI.h>
+#include <tbox/Utilities.h>
 
+#include <petscis.h>
+#include <petscistypes.h>
+#include <petsclog.h>
+#include <petscvec.h>
+
+#include <ArrayData.h>
+#include <BasePatchHierarchy.h>
+#include <Box.h>
+#include <CellData.h>
+#include <CellDataFactory.h>
 #include <CellVariable.h>
-#include <HierarchyDataOpsManager.h>
-#include <PatchHierarchy.h>
+#include <IntVector.h>
+#include <MultiblockDataTranslator.h>
+#include <Patch.h>
+#include <PatchData.h>
 #include <PatchLevel.h>
+#include <SideData.h>
+#include <SideDataFactory.h>
 #include <SideVariable.h>
 #include <Variable.h>
+#include <VariableContext.h>
 #include <VariableDatabase.h>
 
+#include <algorithm>
 #include <numeric>
 #include <string>
 #include <type_traits>

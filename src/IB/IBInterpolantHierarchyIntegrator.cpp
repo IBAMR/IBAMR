@@ -14,18 +14,59 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/BrinkmanPenalizationRigidBodyDynamics.h"
+#include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBInterpolantHierarchyIntegrator.h"
 #include "ibamr/IBInterpolantMethod.h"
 #include "ibamr/IBLevelSetMethod.h"
+#include "ibamr/IBStrategy.h"
+#include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
-#include "ibtk/LData.h"
-#include "ibtk/LDataManager.h"
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/ibtk_enums.h"
+
+#include "CartesianPatchGeometry.h"
+#include "CellData.h"
+#include "GriddingAlgorithm.h"
+#include "IntVector.h"
+#include "Patch.h"
+#include "PatchCellDataOpsReal.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "PatchSideDataOpsReal.h"
+#include "SideData.h"
+#include "Variable.h"
+#include "VariableContext.h"
+#include "VariableDatabase.h"
+#include "tbox/Database.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+#include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
+#include "tbox/Utilities.h"
+
+#include "Eigen/Core"
+
+#include <algorithm>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Box;
+} // namespace hier
+} // namespace SAMRAI
 
 namespace IBAMR
 {
+class BrinkmanPenalizationStrategy;
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 namespace

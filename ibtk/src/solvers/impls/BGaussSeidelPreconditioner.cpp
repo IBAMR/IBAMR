@@ -20,7 +20,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "IntVector.h"
+#include "Box.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
 #include "tbox/ConstPointer.h"
@@ -32,7 +32,6 @@
 #include <ostream>
 #include <string>
 #include <utility>
-#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

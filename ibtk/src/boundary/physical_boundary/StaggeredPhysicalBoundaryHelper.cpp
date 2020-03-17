@@ -21,24 +21,20 @@
 #include "BoundaryBox.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
-#include "Index.h"
-#include "IntVector.h"
 #include "Patch.h"
 #include "PatchGeometry.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "RobinBcCoefStrategy.h"
 #include "SideData.h"
-#include "SideIndex.h"
 #include "Variable.h"
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
 #include <algorithm>
 #include <map>
-#include <ostream>
+#include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 

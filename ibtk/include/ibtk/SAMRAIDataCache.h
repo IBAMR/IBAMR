@@ -16,6 +16,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
@@ -23,6 +24,7 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <string>
 #include <tuple>
 #include <typeindex>
 

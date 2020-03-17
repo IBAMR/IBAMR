@@ -34,6 +34,8 @@ namespace solv
 {
 template <int DIM>
 class RobinBcCoefStrategy;
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
 

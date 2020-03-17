@@ -18,15 +18,27 @@
 #include "ibamr/DirectMobilitySolver.h"
 #include "ibamr/KrylovFreeBodyMobilitySolver.h"
 #include "ibamr/StokesSpecifications.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h"
 
-#include "ibtk/ibtk_utilities.h"
-
-#include "petsc/private/petscimpl.h"
+#include "tbox/Database.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+#include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
+#include "tbox/Utilities.h"
 
-#include <limits>
+#include "petscksp.h"
+#include "petscmat.h"
+#include "petscpc.h"
+#include "petscpctypes.h"
+#include "petscvec.h"
+#include <petsclog.h>
+#include <petscsys.h>
+
+#include <ostream>
+#include <string>
+#include <utility>
 
 namespace IBAMR
 {

@@ -22,6 +22,7 @@
 #include "tbox/Pointer.h"
 
 #include <ostream>
+#include <string>
 #include <vector>
 
 namespace SAMRAI

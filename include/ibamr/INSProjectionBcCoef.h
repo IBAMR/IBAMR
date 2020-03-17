@@ -20,6 +20,7 @@
 
 #include "IntVector.h"
 
+#include <limits>
 #include <vector>
 
 namespace SAMRAI

@@ -28,16 +28,14 @@
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
+#include <algorithm>
 #include <limits>
-#include <ostream>
 #include <vector>
 
 namespace SAMRAI
 {
 namespace hier
 {
-template <int DIM>
-class Patch;
 template <int DIM>
 class Variable;
 } // namespace hier

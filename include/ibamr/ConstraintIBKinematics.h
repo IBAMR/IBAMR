@@ -22,10 +22,24 @@
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
+#include <string>
 #include <utility>
 #include <vector>
+
+namespace IBTK
+{
+class LDataManager;
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace tbox
+{
+class Database;
+} // namespace tbox
+} // namespace SAMRAI
 
 namespace IBAMR
 {

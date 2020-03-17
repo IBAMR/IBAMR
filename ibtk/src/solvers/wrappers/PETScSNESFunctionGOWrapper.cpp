@@ -19,18 +19,18 @@
 #include "ibtk/PETScSNESFunctionGOWrapper.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "IntVector.h"
+#include "Box.h"
 #include "MultiblockDataTranslator.h"
 #include "SAMRAIVectorReal.h"
 #include "tbox/Pointer.h"
+#include "tbox/SAMRAI_MPI.h"
 
-#include "petscsnes.h"
-#include "petscsys.h"
 #include "petscvec.h"
 
 #include <mpi.h>
 
 #include <string>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

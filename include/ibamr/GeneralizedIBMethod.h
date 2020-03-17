@@ -19,6 +19,8 @@
 #include "ibamr/IBKirchhoffRodForceGen.h"
 #include "ibamr/IBMethod.h"
 
+#include "ibtk/LData.h"
+
 #include "Variable.h"
 #include "tbox/Pointer.h"
 

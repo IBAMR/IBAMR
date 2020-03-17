@@ -16,9 +16,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "tbox/ReferenceCounter.h"
+#include "tbox/Utilities.h"
+
 #include <Box.h>
 
 #include <algorithm>
+#include <iterator>
 #include <map>
 #include <set>
 #include <utility>

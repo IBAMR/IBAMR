@@ -14,51 +14,41 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/StaggeredStokesLevelRelaxationFACOperator.h"
+#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
-#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/LinearSolver.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
 #include "ibtk/PETScLevelSolver.h"
 
 #include "ArrayData.h"
-#include "BasePatchLevel.h"
 #include "Box.h"
 #include "BoxList.h"
-#include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
 #include "CellData.h"
-#include "CellIndex.h"
-#include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
-#include "PoissonSpecifications.h"
 #include "ProcessorMapping.h"
 #include "SAMRAIVectorReal.h"
 #include "SideData.h"
 #include "SideGeometry.h"
-#include "SideIndex.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
+#include "tbox/MemoryDatabase.h"
 #include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include "tbox/Timer.h"
+#include "tbox/TimerManager.h"
 
 #include "petscksp.h"
-#include "petscmat.h"
-#include "petscpc.h"
-#include "petscsys.h"
-#include "petscvec.h"
 
 #include <algorithm>
 #include <cstring>
-#include <limits>
-#include <ostream>
+#include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

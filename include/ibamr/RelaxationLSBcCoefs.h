@@ -15,6 +15,7 @@
 #define included_IBAMR_RelaxationLSBcCoefs
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
 #include "ibtk/ibtk_utilities.h"
 
 #include "CartesianGridGeometry.h"
@@ -43,6 +44,8 @@ class ArrayData;
 namespace tbox
 {
 class Database;
+template <class TYPE>
+class Pointer;
 } // namespace tbox
 } // namespace SAMRAI
 

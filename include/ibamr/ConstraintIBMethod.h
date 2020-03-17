@@ -16,6 +16,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <IBTK_config.h>
+
 #include "ibamr/ConstraintIBKinematics.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBMethod.h"
@@ -28,19 +30,47 @@
 #include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
+#include "CellVariable.h"
+#include "HierarchyCellDataOpsReal.h"
+#include "HierarchySideDataOpsReal.h"
+#include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
+#include "MultiblockDataTranslator.h"
 #include "PoissonSpecifications.h"
+#include "SideVariable.h"
+#include "Variable.h"
 #include "VariableContext.h"
+#include "tbox/Database.h"
 #include "tbox/Pointer.h"
+#include "tbox/Utilities.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Dense"
 IBTK_ENABLE_EXTRA_WARNINGS
 
+#include <algorithm>
 #include <fstream>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
+
+namespace IBTK
+{
+class LData;
+class RobinPhysBdryPatchStrategy;
+} // namespace IBTK
+namespace IBAMR
+{
+class ConstraintIBKinematics;
+} // namespace IBAMR
+namespace SAMRAI
+{
+namespace solv
+{
+class PoissonSpecifications;
+} // namespace solv
+} // namespace SAMRAI
 
 namespace IBAMR
 {

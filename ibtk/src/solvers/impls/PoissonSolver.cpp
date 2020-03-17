@@ -16,7 +16,7 @@
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "IntVector.h"
+#include "Box.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "PoissonSpecifications.h"
 #include "RobinBcCoefStrategy.h"
@@ -24,7 +24,6 @@
 #include "tbox/Pointer.h"
 
 #include <string>
-#include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -13,6 +13,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <IBTK_config.h>
+
 #include "ibamr/IBMethod.h"
 #include "ibamr/PenaltyIBMethod.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -22,26 +24,32 @@
 #include "ibtk/LDataManager.h"
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
+#include "BasePatchHierarchy.h"
+#include "BasePatchLevel.h"
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
+#include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include "petscvec.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
+#include <algorithm>
+#include <cmath>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace SAMRAI

@@ -20,10 +20,8 @@
 #include "tbox/Pointer.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/ShutdownRegistry.h"
-#include "tbox/Utilities.h"
 
 #include <map>
-#include <ostream>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -22,12 +22,8 @@
 #include "BoxOverlap.h"
 #include "FaceGeometry.h"
 #include "FaceOverlap.h"
-#include "Index.h"
-#include "IntVector.h"
 #include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
-#include <ostream>
 #include <string>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

@@ -24,13 +24,13 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
+#include "Box.h"
 #include "CartesianGridGeometry.h"
 #include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
 #include "CoarsenSchedule.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
-#include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"
@@ -53,8 +53,10 @@
 #include "tbox/Utilities.h"
 
 #include <algorithm>
+#include <memory>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

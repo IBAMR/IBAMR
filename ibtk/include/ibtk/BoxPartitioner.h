@@ -15,6 +15,7 @@
 #define included_IBTK_ibtk_boxpartitioner
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
 #include <ibtk/PartitioningBox.h>
 
 #include <libmesh/mesh_base.h>
@@ -22,6 +23,13 @@
 #include <libmesh/system.h>
 
 #include <memory>
+#include <string>
+
+namespace libMesh
+{
+class MeshBase;
+class System;
+} // namespace libMesh
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 namespace IBTK

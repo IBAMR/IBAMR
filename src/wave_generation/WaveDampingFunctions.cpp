@@ -16,14 +16,54 @@
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/WaveDampingFunctions.h"
-#include "ibamr/app_namespaces.h"
+#include "ibamr/WaveUtilities.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
 
+#include "BasePatchHierarchy.h"
+#include "BasePatchLevel.h"
+#include "Box.h"
 #include "CartesianGridGeometry.h"
+#include "CartesianPatchGeometry.h"
+#include "CellData.h"
+#include "CellIndex.h"
+#include "CellVariable.h"
+#include "HierarchyCellDataOpsReal.h"
+#include "Index.h"
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
+#include "Patch.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "SideData.h"
+#include "SideGeometry.h"
+#include "SideIndex.h"
+#include "Variable.h"
+#include "VariableContext.h"
+#include "VariableDatabase.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+#include "tbox/Utilities.h"
 
-#include <boost/cstdint.hpp>
 #include <boost/math/tools/roots.hpp>
+
+#include <cmath>
+#include <limits>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
+
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 namespace IBAMR
 {

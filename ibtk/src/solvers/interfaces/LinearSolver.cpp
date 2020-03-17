@@ -13,11 +13,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/GeneralSolver.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "IntVector.h"
+#include "Box.h"
 #include "SAMRAIVectorReal.h"
 #include "tbox/Pointer.h"
 

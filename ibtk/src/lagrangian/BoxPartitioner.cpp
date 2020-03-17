@@ -12,13 +12,21 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include "ibtk/ibtk_utilities.h"
 #include <ibtk/BoxPartitioner.h>
 #include <ibtk/PartitioningBox.h>
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
+#include "tbox/Utilities.h"
 #include <tbox/PIO.h>
 #include <tbox/SAMRAI_MPI.h>
 
+#include "libmesh/id_types.h"
+#include "libmesh/libmesh_config.h"
+#include "libmesh/partitioner.h"
+#include "libmesh/system.h"
+#include "libmesh/type_vector.h"
+#include "libmesh/variant_filter_iterator.h"
 #include <libmesh/elem.h>
 #include <libmesh/mesh_base.h>
 #include <libmesh/node.h>
@@ -28,7 +36,8 @@
 #include <mpi.h>
 
 #include <algorithm>
-#include <vector>
+#include <cstdio>
+#include <sstream>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

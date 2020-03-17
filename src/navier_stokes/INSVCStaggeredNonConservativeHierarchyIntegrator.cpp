@@ -13,26 +13,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
-
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/ConvectiveOperator.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/INSIntermediateVelocityBcCoef.h"
-#include "ibamr/INSProjectionBcCoef.h"
 #include "ibamr/INSStaggeredConvectiveOperatorManager.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredPressureBcCoef.h"
-#include "ibamr/INSVCStaggeredVelocityBcCoef.h"
-#include "ibamr/PETScKrylovStaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/StokesSpecifications.h"
-#include "ibamr/VCStaggeredStokesOperator.h"
 #include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
@@ -40,70 +30,41 @@
 
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartGridFunction.h"
-#include "ibtk/CartSideDoubleDivPreservingRefine.h"
-#include "ibtk/CartSideDoubleRT0Refine.h"
-#include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/CellNoCornersFillPattern.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/NewtonKrylovSolver.h"
-#include "ibtk/PETScKrylovPoissonSolver.h"
 #include "ibtk/PoissonSolver.h"
-#include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/SideDataSynchronization.h"
-#include "ibtk/VCSCViscousOpPointRelaxationFACOperator.h"
-#include "ibtk/VCSCViscousOperator.h"
 #include "ibtk/ibtk_enums.h"
-#include "ibtk/ibtk_utilities.h"
 
-#include "ArrayData.h"
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
-#include "Box.h"
 #include "CartesianGridGeometry.h"
-#include "CartesianPatchGeometry.h"
 #include "CellData.h"
-#include "CellIndex.h"
-#include "CellIterator.h"
 #include "CellVariable.h"
 #include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
 #include "CoarsenSchedule.h"
 #include "ComponentSelector.h"
-#include "EdgeData.h"
 #include "EdgeVariable.h"
-#include "FaceData.h"
-#include "FaceVariable.h"
 #include "GriddingAlgorithm.h"
 #include "HierarchyCellDataOpsReal.h"
-#include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
 #include "HierarchyEdgeDataOpsReal.h"
 #include "HierarchyFaceDataOpsReal.h"
 #include "HierarchyNodeDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
-#include "Index.h"
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "MultiblockDataTranslator.h"
-#include "NodeData.h"
 #include "NodeVariable.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
-#include "PatchSideDataOpsReal.h"
 #include "PoissonSpecifications.h"
-#include "RefineAlgorithm.h"
-#include "RefineOperator.h"
-#include "RefinePatchStrategy.h"
-#include "RefineSchedule.h"
-#include "RobinBcCoefStrategy.h"
 #include "SAMRAIVectorReal.h"
-#include "SideData.h"
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableContext.h"
@@ -112,19 +73,25 @@
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
-#include "tbox/MemoryDatabase.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
-#include <algorithm>
-#include <cmath>
 #include <deque>
 #include <limits>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
+
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

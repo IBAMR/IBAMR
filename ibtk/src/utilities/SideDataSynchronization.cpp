@@ -16,14 +16,13 @@
 #include "ibtk/CartSideDoubleCubicCoarsen.h"
 #include "ibtk/SideDataSynchronization.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
-#include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
+#include "Box.h"
 #include "CartesianGridGeometry.h"
 #include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
 #include "CoarsenSchedule.h"
-#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "RefineAlgorithm.h"
@@ -36,6 +35,8 @@
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
+#include <algorithm>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>

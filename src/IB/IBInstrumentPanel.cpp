@@ -13,7 +13,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
+#include <IBAMR_config.h>
+#include <IBTK_config.h>
 
 #include "ibamr/IBInstrumentPanel.h"
 #include "ibamr/IBInstrumentationSpec.h"
@@ -26,7 +27,6 @@
 #include "ibtk/LDataManager.h"
 #include "ibtk/LMesh.h"
 #include "ibtk/LNode.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchLevel.h"
@@ -56,7 +56,7 @@
 #include "petscvec.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 IBTK_DISABLE_EXTRA_WARNINGS
@@ -68,7 +68,6 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <cmath>
 #include <fstream>
 #include <limits>
-#include <map>
 #include <string>
 #include <utility>
 #include <vector>

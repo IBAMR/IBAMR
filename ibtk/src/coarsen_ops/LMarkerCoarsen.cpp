@@ -17,15 +17,13 @@
 #include "ibtk/LMarkerSet.h"
 #include "ibtk/LMarkerSetData.h"
 #include "ibtk/LMarkerSetVariable.h"
-#include "ibtk/LSetData.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
-#include "Index.h"
-#include "IntVector.h"
 #include "Patch.h"
 #include "tbox/Pointer.h"
 
+#include <algorithm>
 #include <string>
 #include <vector>
 

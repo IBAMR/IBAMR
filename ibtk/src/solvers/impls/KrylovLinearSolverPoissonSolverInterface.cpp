@@ -20,10 +20,7 @@
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "PoissonSpecifications.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
-#include <ostream>
 #include <vector>
 
 namespace SAMRAI

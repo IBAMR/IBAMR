@@ -22,11 +22,9 @@
 #include <mpi.h>
 
 #include <cmath>
+#include <cstdlib>
 #include <ctime>
-#include <iosfwd>
 #include <iostream>
-#include <map>
-#include <ostream>
 #include <set>
 #include <vector>
 

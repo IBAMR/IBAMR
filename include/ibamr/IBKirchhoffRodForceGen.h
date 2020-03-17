@@ -24,6 +24,7 @@
 
 #include "petscmat.h"
 
+#include <stddef.h>
 #include <unistd.h>
 
 #include <array>
@@ -36,6 +37,11 @@ class LDataManager;
 } // namespace IBTK
 namespace SAMRAI
 {
+namespace tbox
+{
+class Database;
+} // namespace tbox
+
 namespace hier
 {
 template <int DIM>

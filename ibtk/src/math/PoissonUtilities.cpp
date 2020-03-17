@@ -14,8 +14,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
+#include "ibtk/IndexUtilities.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/PoissonUtilities.h"
+#include "ibtk/ibtk_enums.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
@@ -26,29 +28,25 @@
 #include "CellData.h"
 #include "CellIndex.h"
 #include "EdgeData.h"
-#include "Index.h"
+#include "EdgeIterator.h"
 #include "IntVector.h"
 #include "NodeData.h"
+#include "NodeIterator.h"
 #include "OutersideData.h"
 #include "Patch.h"
-#include "PatchData.h"
 #include "PatchGeometry.h"
 #include "PoissonSpecifications.h"
 #include "RobinBcCoefStrategy.h"
 #include "SideData.h"
-#include "SideGeometry.h"
 #include "SideIndex.h"
 #include "Variable.h"
 #include "tbox/Array.h"
-#include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
 #include <array>
-#include <functional>
 #include <limits>
 #include <map>
-#include <ostream>
+#include <string>
 #include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

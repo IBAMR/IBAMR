@@ -16,10 +16,6 @@
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "tbox/Utilities.h"
-
-#include <ostream>
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK

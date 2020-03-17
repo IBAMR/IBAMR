@@ -13,22 +13,19 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBTK_config.h"
+#include <IBTK_config.h>
 
-#include "ibtk/CartCellRobinPhysBdryOp.h"
-#include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/PatchMathOps.h"
-#include "ibtk/ibtk_utilities.h"
+#include "ibtk/SAMRAIDataCache.h"
+#include "ibtk/ibtk_enums.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayDataBasicOps.h"
 #include "BasePatchLevel.h"
 #include "BoundaryBox.h"
-#include "Box.h"
 #include "BoxArray.h"
-#include "BoxList.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
@@ -46,10 +43,6 @@
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyFaceDataOpsReal.h"
-#include "HierarchySideDataOpsReal.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
 #include "NodeData.h"
 #include "NodeVariable.h"
 #include "OuterfaceData.h"
@@ -75,14 +68,20 @@
 #include "VariableDatabase.h"
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
-#include "tbox/PIO.h"
 #include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
 #include <ostream>
-#include <string>
 #include <utility>
 #include <vector>
+
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

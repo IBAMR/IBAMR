@@ -18,14 +18,29 @@
 
 #include <ibtk/box_utilities.h>
 
-#include "LoadBalancer.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/PIO.h"
+#include <tbox/PIO.h>
+#include <tbox/Pointer.h>
+#include <tbox/SAMRAI_MPI.h>
+
+#include <Box.h>
+#include <BoxArray.h>
+#include <BoxList.h>
+#include <LoadBalancer.h>
 
 #include <algorithm>
 #include <set>
 #include <utility>
 #include <vector>
+
+namespace SAMRAI
+{
+namespace hier
+{
+class ProcessorMapping;
+template <int DIM>
+class PatchHierarchy;
+} // namespace hier
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

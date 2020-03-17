@@ -14,36 +14,52 @@
 #ifndef included_IBHydrodynamicForceEvaluator
 #define included_IBHydrodynamicForceEvaluator
 
+#include <IBTK_config.h>
+
 #include "ibtk/ibtk_macros.h"
-#include <ibtk/LData.h>
-#include <ibtk/LDataManager.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include "Box.h"
+#include "CellVariable.h"
 #include "RobinBcCoefStrategy.h"
+#include "SideVariable.h"
+#include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "Eigen/Core"
-#include "Eigen/Geometry"
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 IBTK_ENABLE_EXTRA_WARNINGS
 
+#include <iosfwd>
 #include <map>
+#include <string>
 #include <vector>
 
-namespace IBTK
-{
-class LData;
-} // namespace IBTK
 namespace SAMRAI
 {
+namespace appu
+{
+template <int DIM>
+class VisItDataWriter;
+} // namespace appu
 namespace hier
 {
 template <int DIM>
+class Patch;
+template <int DIM>
 class PatchHierarchy;
+template <int DIM>
+class PatchLevel;
 } // namespace hier
+namespace pdat
+{
+template <int DIM>
+class SideIndex;
+} // namespace pdat
 namespace tbox
 {
+class Database;
 template <class TYPE>
 class Pointer;
 } // namespace tbox

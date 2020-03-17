@@ -21,9 +21,32 @@
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 
+#include "CartesianGridGeometry.h"
+#include "IntVector.h"
 #include "tbox/Array.h"
+#include "tbox/Pointer.h"
 
 #include "muParser.h"
+
+#include <vector>
+
+namespace IBTK
+{
+class LData;
+class LDataManager;
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class PatchHierarchy;
+} // namespace hier
+namespace tbox
+{
+class Database;
+} // namespace tbox
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

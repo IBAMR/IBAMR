@@ -26,14 +26,13 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
+#include "Box.h"
 #include "CartesianGridGeometry.h"
-#include "CellVariable.h"
 #include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
 #include "CoarsenPatchStrategy.h"
 #include "CoarsenSchedule.h"
 #include "EdgeVariable.h"
-#include "IntVector.h"
 #include "NodeVariable.h"
 #include "Patch.h"
 #include "PatchData.h"
@@ -54,15 +53,13 @@
 #include "tbox/Utilities.h"
 
 #include <algorithm>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>
 
 namespace SAMRAI
 {
-namespace hier
-{
-} // namespace hier
 namespace solv
 {
 template <int DIM>

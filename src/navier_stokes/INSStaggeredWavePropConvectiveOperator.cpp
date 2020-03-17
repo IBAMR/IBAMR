@@ -12,16 +12,15 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include "IBAMR_config.h"
 
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSStaggeredWavePropConvectiveOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyMathOps.h"
 
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
@@ -44,7 +43,10 @@
 #include "tbox/Utilities.h"
 
 #include <array>
+#include <ostream>
+#include <string>
 #include <utility>
+#include <vector>
 
 namespace SAMRAI
 {

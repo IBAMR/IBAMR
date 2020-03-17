@@ -13,7 +13,9 @@
 
 #ifndef included_CFUpperConvectiveOperator
 #define included_CFUpperConvectiveOperator
+
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
 #include "IBAMR_config.h"
 
 #include "ibamr/AdvDiffConvectiveOperatorManager.h"
@@ -42,6 +44,7 @@
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "SAMRAIVectorReal.h"
+#include "SideVariable.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
@@ -51,6 +54,21 @@
 
 #include <string>
 #include <vector>
+
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+namespace tbox
+{
+class Database;
+} // namespace tbox
+} // namespace SAMRAI
 
 namespace IBAMR
 {

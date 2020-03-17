@@ -13,23 +13,17 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/LSet.h" // IWYU pragma: keep
+#include "ibtk/LMarker.h"
+#include "ibtk/LNode.h"
+#include "ibtk/LNodeIndex.h"
 #include "ibtk/LSetDataFactory.h"
 #include "ibtk/LSetVariable.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "IntVector.h"
 #include "Variable.h"
-#include "tbox/Pointer.h"
 
 #include <string>
-
-namespace IBTK
-{
-class LMarker;
-class LNode;
-class LNodeIndex;
-} // namespace IBTK
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

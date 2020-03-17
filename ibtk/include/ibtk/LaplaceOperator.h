@@ -19,19 +19,11 @@
 #include "ibtk/LinearOperator.h"
 
 #include "PoissonSpecifications.h"
+#include "RobinBcCoefStrategy.h"
 
 #include <memory>
 #include <string>
 #include <vector>
-
-namespace SAMRAI
-{
-namespace solv
-{
-template <int DIM>
-class RobinBcCoefStrategy;
-} // namespace solv
-} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

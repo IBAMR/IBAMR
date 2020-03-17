@@ -15,6 +15,11 @@
 #define included_IBAMR_CIBMobilitySolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include "ibamr/CIBStrategy.h"
+#include "ibamr/DirectMobilitySolver.h"
+#include "ibamr/KrylovFreeBodyMobilitySolver.h"
+#include "ibamr/KrylovMobilitySolver.h"
 #include "ibamr/ibamr_enums.h"
 
 #include "tbox/Database.h"
@@ -22,11 +27,18 @@
 #include "tbox/Pointer.h"
 
 #include "petscksp.h"
+#include "petscvec.h"
 
+#include <string>
 #include <vector>
 
 namespace SAMRAI
 {
+namespace tbox
+{
+class Database;
+} // namespace tbox
+
 namespace solv
 {
 class PoissonSpecifications;

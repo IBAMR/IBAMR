@@ -45,8 +45,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/BrinkmanPenalizationStrategy.h"
-#include "ibamr/namespaces.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
+#include "tbox/Database.h"
 #include "tbox/RestartManager.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

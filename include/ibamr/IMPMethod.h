@@ -20,6 +20,7 @@
 
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
@@ -29,6 +30,7 @@
 
 #include "libmesh/id_types.h"
 
+#include <limits>
 #include <string>
 #include <vector>
 

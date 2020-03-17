@@ -23,9 +23,7 @@
 #include "Patch.h"
 #include "PatchCellDataBasicOps.h"
 #include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
-#include <ostream>
 #include <string>
 
 namespace SAMRAI

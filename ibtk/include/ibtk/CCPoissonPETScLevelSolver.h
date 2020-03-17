@@ -21,6 +21,7 @@
 #include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_utilities.h"
 
+#include "Box.h"
 #include "CellVariable.h"
 #include "IntVector.h"
 #include "RefineSchedule.h"
@@ -30,6 +31,7 @@
 
 #include "petscvec.h"
 
+#include <set>
 #include <string>
 #include <vector>
 

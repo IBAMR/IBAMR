@@ -13,17 +13,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/FACPreconditioner.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "IntVector.h"
+#include "Box.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
 #include "tbox/ConstPointer.h"
-#include "tbox/Pointer.h"
 
-#include <limits>
 #include <ostream>
 #include <string>
 #include <utility>

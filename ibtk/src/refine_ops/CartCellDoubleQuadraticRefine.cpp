@@ -19,17 +19,10 @@
 
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIndex.h"
 #include "CellVariable.h"
-#include "Index.h"
-#include "IntVector.h"
 #include "Patch.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
 #include <array>
-#include <ostream>
 #include <string>
 #include <vector>
 

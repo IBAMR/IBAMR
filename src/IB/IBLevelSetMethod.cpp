@@ -20,7 +20,6 @@
 #include "BasePatchLevel.h"
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
-#include "LoadBalancer.h"
 #include "PatchHierarchy.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"

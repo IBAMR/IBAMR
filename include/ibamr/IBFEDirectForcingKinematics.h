@@ -16,6 +16,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <IBTK_config.h>
+
 #include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
@@ -26,6 +28,7 @@
 IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Core"
 #include "Eigen/Geometry"
+
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <set>

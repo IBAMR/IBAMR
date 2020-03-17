@@ -13,8 +13,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBTK_config.h"
+#include <IBTK_config.h>
 
+#include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/PatchMathOps.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
@@ -22,21 +23,18 @@
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "EdgeData.h" // IWYU pragma: keep
-#include "FaceData.h"
+#include "FaceData.h" // IWYU pragma: keep
 #include "FaceGeometry.h"
-#include "IntVector.h"
 #include "NodeData.h"
 #include "NodeGeometry.h"
-#include "Patch.h"
-#include "PatchFaceDataOpsReal.h"
-#include "PatchSideDataOpsReal.h"
-#include "SideData.h"
+#include "SideData.h" // IWYU pragma: keep
 #include "SideGeometry.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 #include <array>
 #include <ostream>
+#include <string>
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

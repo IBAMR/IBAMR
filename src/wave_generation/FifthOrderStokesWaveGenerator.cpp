@@ -14,11 +14,12 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/FifthOrderStokesWaveGenerator.h"
-#include "ibamr/app_namespaces.h"
-
-#include "ibtk/ibtk_utilities.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "tbox/Database.h"
+
+#include <cmath>
+#include <limits>
 
 namespace IBAMR
 {

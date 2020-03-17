@@ -22,14 +22,14 @@
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "SAMRAIVectorReal.h"
-#include "tbox/Pointer.h"
+#include "tbox/SAMRAI_MPI.h"
 
 #include "petscmat.h"
-#include "petscsys.h"
 
 #include <mpi.h>
 
 #include <string>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

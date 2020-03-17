@@ -13,6 +13,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <IBTK_config.h>
+
 #include "ibamr/IBSourceSpec.h"
 #include "ibamr/IBStandardSourceGen.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -21,8 +23,12 @@
 #include "ibtk/LDataManager.h"
 #include "ibtk/LMesh.h"
 #include "ibtk/LNode.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/private/LData-inl.h"
+#include "ibtk/private/LDataManager-inl.h"
+#include "ibtk/private/LMesh-inl.h"
+#include "ibtk/private/LNode-inl.h"
+#include "ibtk/private/LNodeIndex-inl.h"
 
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
@@ -31,11 +37,12 @@
 #include "tbox/Utilities.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <limits>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>

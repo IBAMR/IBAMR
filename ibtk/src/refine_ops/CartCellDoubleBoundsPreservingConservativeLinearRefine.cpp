@@ -18,21 +18,12 @@
 
 #include "Box.h"
 #include "BoxList.h"
-#include "CartesianCellDoubleConservativeLinearRefine.h"
 #include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellDoubleConstantRefine.h"
-#include "CellIndex.h"
 #include "CellVariable.h"
-#include "Index.h"
-#include "IntVector.h"
 #include "Patch.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
 #include <algorithm>
 #include <limits>
-#include <ostream>
 #include <string>
 
 namespace SAMRAI

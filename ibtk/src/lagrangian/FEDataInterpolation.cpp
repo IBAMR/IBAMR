@@ -14,7 +14,31 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/FEDataInterpolation.h"
+#include "ibtk/libmesh_utilities.h"
 #include "ibtk/namespaces.h"
+
+#include "libmesh/compare_types.h"
+#include "libmesh/dof_map.h"
+#include "libmesh/equation_systems.h"
+#include "libmesh/quadrature.h"
+#include "libmesh/system.h"
+#include "libmesh/type_vector.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include <boost/multi_array.hpp>
+IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <algorithm>
+#include <iterator>
+#include <set>
+
+namespace libMesh
+{
+class Elem;
+class Point;
+template <typename T>
+class NumericVector;
+} // namespace libMesh
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

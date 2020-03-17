@@ -25,10 +25,8 @@
 #include "SideGeometry.h"
 #include "SideOverlap.h"
 #include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
 #include <array>
-#include <ostream>
 #include <string>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

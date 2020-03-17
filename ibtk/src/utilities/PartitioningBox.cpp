@@ -16,10 +16,18 @@
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
+#include "IntVector.h"
+#include "Patch.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "tbox/Pointer.h"
+#include "tbox/Utilities.h"
+
 #include <CartesianPatchGeometry.h>
 
 #include <algorithm>
-#include <type_traits>
+#include <limits>
+#include <string>
 #include <utility>
 #include <vector>
 

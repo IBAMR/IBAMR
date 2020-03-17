@@ -18,12 +18,58 @@
 
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/IBMethod.h"
+#include "ibamr/ibamr_enums.h"
 
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "RobinBcCoefStrategy.h"
+#include "Variable.h"
+#include "VisItDataWriter.h"
+#include "tbox/Pointer.h"
+
+#include "petscmat.h"
+#include "petscvec.h"
+
+#include <iosfwd>
+#include <string>
+#include <utility>
+#include <vector>
+
+namespace IBTK
+{
+class LData;
+class RobinPhysBdryPatchStrategy;
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class BasePatchHierarchy;
+template <int DIM>
+class BasePatchLevel;
+template <int DIM>
+class PatchHierarchy;
+} // namespace hier
+namespace mesh
+{
+template <int DIM>
+class GriddingAlgorithm;
+} // namespace mesh
+namespace tbox
+{
+class Database;
+} // namespace tbox
+namespace xfer
+{
+template <int DIM>
+class CoarsenSchedule;
+template <int DIM>
+class RefineSchedule;
+} // namespace xfer
+} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

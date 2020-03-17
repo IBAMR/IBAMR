@@ -15,19 +15,21 @@
 
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBStrategy.h"
+#include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyMathOps.h"
 
-#include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
 #include "CoarsenAlgorithm.h"
+#include "CoarsenPatchStrategy.h"
 #include "GriddingAlgorithm.h"
 #include "HierarchyDataOpsReal.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
+#include "RefinePatchStrategy.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "tbox/Array.h"
@@ -36,9 +38,15 @@
 #include "tbox/Utilities.h"
 
 #include <algorithm>
-#include <ostream>
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
+
+namespace IBTK
+{
+class RobinPhysBdryPatchStrategy;
+} // namespace IBTK
 
 namespace IBAMR
 {
@@ -47,6 +55,12 @@ class INSHierarchyIntegrator;
 
 namespace SAMRAI
 {
+namespace hier
+{
+template <int DIM>
+class BasePatchHierarchy;
+} // namespace hier
+
 namespace mesh
 {
 template <int DIM>
@@ -55,11 +69,7 @@ class LoadBalancer;
 namespace xfer
 {
 template <int DIM>
-class CoarsenPatchStrategy;
-template <int DIM>
 class CoarsenSchedule;
-template <int DIM>
-class RefinePatchStrategy;
 template <int DIM>
 class RefineSchedule;
 } // namespace xfer

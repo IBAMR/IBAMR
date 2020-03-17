@@ -16,6 +16,8 @@
 #include "ibtk/JacobianOperator.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
+#include <utility>
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK

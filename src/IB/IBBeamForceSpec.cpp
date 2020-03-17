@@ -20,9 +20,6 @@
 #include "ibtk/StreamableManager.h"
 
 #include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
-
-#include <ostream>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

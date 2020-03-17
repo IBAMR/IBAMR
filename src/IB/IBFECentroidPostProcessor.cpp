@@ -13,14 +13,16 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <IBTK_config.h>
+
 #include "ibamr/IBFECentroidPostProcessor.h"
+#include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBFEMethod.h"
 #include "ibamr/IBFEPostProcessor.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/libmesh_utilities.h"
 
 #include "tbox/Utilities.h"
@@ -30,8 +32,7 @@
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
-#include "libmesh/fe_type.h"
-#include "libmesh/fem_context.h"
+#include "libmesh/libmesh_config.h"
 #include "libmesh/mesh_base.h"
 #include "libmesh/numeric_vector.h"
 #include "libmesh/point.h"
@@ -44,21 +45,18 @@
 #include "libmesh/vector_value.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <memory>
-#include <ostream>
-#include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace libMesh
 {
 class Elem;
 } // namespace libMesh
-
-using namespace libMesh;
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

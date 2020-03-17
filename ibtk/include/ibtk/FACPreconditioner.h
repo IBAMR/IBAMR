@@ -19,6 +19,7 @@
 #include "ibtk/LinearSolver.h"
 #include "ibtk/ibtk_enums.h"
 
+#include "Box.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"

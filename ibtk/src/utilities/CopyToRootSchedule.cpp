@@ -23,14 +23,10 @@
 #include "PatchData.h"
 #include "PatchDataFactory.h"
 #include "PatchDescriptor.h"
-#include "PatchLevel.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Schedule.h"
 #include "tbox/Transaction.h"
-#include "tbox/Utilities.h"
 
-#include <ostream>
 #include <utility>
 #include <vector>
 

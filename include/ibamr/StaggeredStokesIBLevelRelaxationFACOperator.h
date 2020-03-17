@@ -19,6 +19,7 @@
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
 #include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/ibamr_enums.h"
 
 #include "ibtk/CartCellRobinPhysBdryOp.h"
@@ -26,6 +27,7 @@
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 
+#include "CellVariable.h"
 #include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
 #include "IntVector.h"
@@ -35,6 +37,7 @@
 #include "RefineOperator.h"
 #include "RefinePatchStrategy.h"
 #include "SAMRAIVectorReal.h"
+#include "SideVariable.h"
 #include "VariableContext.h"
 #include "VariableFillPattern.h"
 #include "tbox/Database.h"
@@ -42,6 +45,7 @@
 
 #include "petscao.h"
 #include "petscmat.h"
+#include "petscvec.h"
 
 #include <array>
 #include <string>
@@ -68,6 +72,8 @@ namespace solv
 {
 template <int DIM>
 class RobinBcCoefStrategy;
+template <int DIM, class TYPE>
+class SAMRAIVectorReal;
 } // namespace solv
 namespace xfer
 {

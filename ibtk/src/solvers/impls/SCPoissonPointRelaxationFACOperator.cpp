@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBTK_config.h"
+#include <IBTK_config.h>
 
 #include "ibtk/CartSideDoubleCubicCoarsen.h"
 #include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
@@ -40,7 +40,6 @@
 #include "CartesianPatchGeometry.h"
 #include "CoarsenOperator.h"
 #include "HierarchySideDataOpsReal.h"
-#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchDescriptor.h"
@@ -67,7 +66,9 @@
 #include "tbox/Utilities.h"
 
 #include <algorithm>
+#include <array>
 #include <map>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <utility>

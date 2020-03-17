@@ -16,6 +16,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <IBTK_config.h>
+
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/ibtk_macros.h"
@@ -26,6 +28,7 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
+#include "PatchLevel.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 

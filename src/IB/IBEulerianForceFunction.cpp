@@ -30,9 +30,7 @@
 #include "SideData.h"
 #include "Variable.h"
 #include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
-#include <ostream>
 #include <string>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

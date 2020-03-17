@@ -13,7 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
+#include <IBAMR_config.h>
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/BrinkmanPenalizationStrategy.h"
@@ -27,7 +27,6 @@
 #include "ibamr/INSVCStaggeredVelocityBcCoef.h"
 #include "ibamr/PETScKrylovStaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
-#include "ibamr/StaggeredStokesFACPreconditioner.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
@@ -35,7 +34,6 @@
 #include "ibamr/VCStaggeredStokesOperator.h"
 #include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CCPoissonSolverManager.h"
@@ -44,14 +42,16 @@
 #include "ibtk/CartSideDoubleRT0Refine.h"
 #include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"
-#include "ibtk/CellNoCornersFillPattern.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/KrylovLinearSolver.h"
+#include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/NewtonKrylovSolver.h"
+#include "ibtk/PETScKrylovLinearSolver.h"
 #include "ibtk/PETScKrylovPoissonSolver.h"
+#include "ibtk/PoissonFACPreconditioner.h"
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/SideDataSynchronization.h"
@@ -72,9 +72,7 @@
 #include "CellVariable.h"
 #include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
-#include "CoarsenSchedule.h"
 #include "ComponentSelector.h"
-#include "EdgeData.h"
 #include "EdgeVariable.h"
 #include "FaceData.h"
 #include "FaceVariable.h"
@@ -88,15 +86,12 @@
 #include "HierarchySideDataOpsReal.h"
 #include "Index.h"
 #include "IntVector.h"
-#include "LocationIndexRobinBcCoefs.h"
 #include "MultiblockDataTranslator.h"
-#include "NodeData.h"
 #include "NodeVariable.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "PatchSideDataOpsReal.h"
-#include "PoissonSpecifications.h"
 #include "RefineAlgorithm.h"
 #include "RefineOperator.h"
 #include "RefinePatchStrategy.h"
@@ -120,10 +115,10 @@
 
 #include <algorithm>
 #include <cmath>
-#include <deque>
 #include <limits>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 // FORTRAN ROUTINES

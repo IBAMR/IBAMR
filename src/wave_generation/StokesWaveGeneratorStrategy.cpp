@@ -16,9 +16,9 @@
 #include "ibamr/StokesWaveGeneratorStrategy.h"
 #include "ibamr/app_namespaces.h"
 
-#include "ibtk/ibtk_utilities.h"
-
 #include "tbox/Database.h"
+
+#include <limits>
 
 namespace IBAMR
 {

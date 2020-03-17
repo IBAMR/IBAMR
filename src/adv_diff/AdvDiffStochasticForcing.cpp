@@ -29,7 +29,6 @@
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellDataFactory.h"
-#include "CellIndex.h"
 #include "CellVariable.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
@@ -54,6 +53,7 @@
 
 #include "muParser.h"
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <ostream>

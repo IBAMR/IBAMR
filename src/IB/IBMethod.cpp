@@ -13,6 +13,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <IBTK_config.h>
+
 #include "ibamr/IBAnchorPointSpec.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBInstrumentPanel.h"
@@ -21,6 +23,7 @@
 #include "ibamr/IBLagrangianSourceStrategy.h"
 #include "ibamr/IBMethod.h"
 #include "ibamr/IBMethodPostProcessStrategy.h"
+#include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyMathOps.h"
@@ -34,8 +37,13 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/PETScMatUtilities.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/private/IndexUtilities-inl.h"
+#include "ibtk/private/LData-inl.h"
+#include "ibtk/private/LDataManager-inl.h"
+#include "ibtk/private/LMesh-inl.h"
+#include "ibtk/private/LNode-inl.h"
+#include "ibtk/private/LNodeIndex-inl.h"
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -45,7 +53,6 @@
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
-#include "CellIndex.h"
 #include "GriddingAlgorithm.h"
 #include "HierarchyDataOpsReal.h"
 #include "Index.h"
@@ -71,9 +78,10 @@
 #include "petscmat.h"
 #include "petscsys.h"
 #include "petscvec.h"
+#include <petsclog.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
@@ -82,10 +90,12 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <cstring>
 #include <functional>
 #include <limits>
+#include <memory>
 #include <numeric>
 #include <ostream>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace IBTK

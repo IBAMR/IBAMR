@@ -20,13 +20,19 @@
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "PoissonSpecifications.h"
-#include "RobinBcCoefStrategy.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
-#include <ostream>
 #include <vector>
+
+namespace SAMRAI
+{
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

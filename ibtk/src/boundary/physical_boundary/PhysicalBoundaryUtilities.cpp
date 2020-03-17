@@ -17,9 +17,7 @@
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BoundaryBox.h"
-#include "BoundaryLookupTable.h"
 #include "Box.h"
-#include "Index.h"
 #include "Patch.h"
 #include "PatchGeometry.h"
 #include "tbox/Array.h"
@@ -27,7 +25,6 @@
 #include "tbox/Utilities.h"
 
 #include <algorithm>
-#include <ostream>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

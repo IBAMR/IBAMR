@@ -20,6 +20,18 @@
 
 #include "ibamr/StokesWaveGeneratorStrategy.h"
 
+#include "tbox/Pointer.h"
+
+#include <string>
+
+namespace SAMRAI
+{
+namespace tbox
+{
+class Database;
+} // namespace tbox
+} // namespace SAMRAI
+
 namespace IBAMR
 {
 /*!

@@ -24,6 +24,10 @@
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
+#include "tbox/Database.h"
+
+#include <cmath>
+#include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

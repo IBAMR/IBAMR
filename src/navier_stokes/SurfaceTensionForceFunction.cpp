@@ -13,42 +13,49 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
+#include <IBAMR_config.h>
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/SurfaceTensionForceFunction.h"
+#include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CartGridFunction.h"
-#include "ibtk/ibtk_utilities.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 
+#include "BasePatchLevel.h"
 #include "Box.h"
-#include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
+#include "CellVariable.h"
+#include "HierarchyCellDataOpsReal.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchData.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
 #include "SideData.h"
 #include "Variable.h"
 #include "VariableContext.h"
+#include "VariableDatabase.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
+#include <algorithm>
 #include <cmath>
-#include <iosfwd>
 #include <ostream>
 #include <string>
+#include <vector>
 
 namespace SAMRAI
 {
-namespace hier
+namespace solv
 {
 template <int DIM>
-class PatchLevel;
-} // namespace hier
+class RobinBcCoefStrategy;
+} // namespace solv
 } // namespace SAMRAI
 
 // FORTRAN ROUTINES

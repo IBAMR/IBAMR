@@ -17,10 +17,6 @@
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
-#include "tbox/Utilities.h"
-
-#include <ostream>
-
 namespace IBAMR
 {
 class StokesSpecifications;

@@ -17,12 +17,20 @@
 
 #include "tbox/Utilities.h"
 
-#include <libmesh/fe.h>
+#include "libmesh/dense_matrix.h"
+#include "libmesh/elem.h"
+#include "libmesh/enum_elem_type.h"
+#include "libmesh/enum_fe_family.h"
+#include "libmesh/enum_order.h"
+#include "libmesh/enum_quadrature_type.h"
+#include "libmesh/type_vector.h"
 #include <libmesh/libmesh_version.h>
 #include <libmesh/point.h>
 #include <libmesh/quadrature.h>
 
 #include <algorithm>
+#include <cmath>
+#include <memory>
 
 namespace IBTK
 {
