@@ -269,6 +269,25 @@ AC_CONFIG_FILES([
   tests/wave_tank/Makefile
 ])
 AC_CONFIG_SUBDIRS([ibtk])
+
+ibamr_version_string=$(cat "$srcdir/VERSION")
+AC_MSG_NOTICE([Configured version of IBAMR is $ibamr_version_string])
+# check if git is available:
+which git>/dev/null
+FOUND_GIT=$?
+if test "$FOUND_GIT" -eq 0 # 0 indicates 'which git' succeeded
+then
+# and we have a git repository:
+    if test -f $srcdir/.git/HEAD
+    then
+        AC_MSG_NOTICE([IBAMR configured with git commit $(git rev-parse HEAD)])
+    else
+        AC_MSG_NOTICE([Current source directory is not a git repository. Skipping git version info.])
+    fi
+else
+    AC_MSG_NOTICE([Current source directory is not a git repository. Skipping git version info.])
+fi
+
 AC_OUTPUT
 echo
 echo "===================================================================="
