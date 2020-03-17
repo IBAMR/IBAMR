@@ -68,8 +68,6 @@
 #include <petsclog.h>
 #include <petscsys.h>
 
-#include <stddef.h>
-
 #include <algorithm>
 #include <memory>
 #include <ostream>

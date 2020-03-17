@@ -15,8 +15,8 @@
 #define included_CFRelaxationOperator
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
 #include <IBAMR_config.h>
+#include <IBTK_config.h>
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"

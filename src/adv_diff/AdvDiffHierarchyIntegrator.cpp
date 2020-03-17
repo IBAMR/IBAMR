@@ -65,8 +65,6 @@
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
 
-#include <stddef.h>
-
 #include <algorithm>
 #include <iterator>
 #include <limits>

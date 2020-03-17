@@ -22,8 +22,6 @@
 
 #include "tbox/Pointer.h"
 
-#include <stddef.h>
-
 #include <utility>
 #include <vector>
 

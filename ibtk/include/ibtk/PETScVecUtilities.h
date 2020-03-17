@@ -18,10 +18,10 @@
 
 #include "tbox/Pointer.h"
 
-#include <RefineSchedule.h>
-
 #include "petscao.h"
 #include "petscvec.h"
+
+#include <RefineSchedule.h>
 
 #include <vector>
 
