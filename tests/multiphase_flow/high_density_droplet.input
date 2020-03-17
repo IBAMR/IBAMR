@@ -1,9 +1,10 @@
+// Test for variable-coefficient regridProjection() for multiphase flows
+
 // application parameters
 R     = 0.2
 L     = 1.0
 XCOM  = L/4.0
 YCOM  = L/2.0
-ZCOM  = L/2.0
 
 
 // material properties
@@ -11,18 +12,23 @@ RHO_O = 1.0
 RHO_I = 1.0e6
 MU_O  = 0.0       //1.0e-12
 MU_I  = 0.0      //1.0e-12
-INSIDE_VELOCITY    = 1.0, 0.0, 0.0
-OUTSIDE_VELOCITY   = 0.0, 0.0, 0.0
+INSIDE_VELOCITY    = 1.0, 0.0
+OUTSIDE_VELOCITY   = 0.0, 0.0
 
 NUM_INTERFACE_CELLS = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 2        // maximum number of levels in locally refined grid
+MAX_LEVELS = 3        // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 
-N = 64                                   // coarsest grid spacing
+N = 16                                   // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 H = L/NFINEST
+
+ProbePoints {
+  probe_0 = XCOM, YCOM
+  probe_1 = 0.5, 0.9
+}
 
 // Level set parameters
 LS_ORDER           = "THIRD_ORDER_ENO"
@@ -41,8 +47,7 @@ LevelSetInitialConditions {
   radius = R
   xcom = XCOM
   ycom = YCOM
-  zcom = ZCOM
-  function = "sqrt((X_0 - xcom)^2 + (X_1 - ycom)^2 + (X_2 - zcom)^2) - radius" 
+  function = "sqrt((X_0 - xcom)^2 + (X_1 - ycom)^2) - radius" 
 }
 
 // Note: Velocity initial conditions are set
@@ -53,22 +58,16 @@ VelocityBcCoefs_0 {
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
-   acoef_function_4 = "1.0"
-   acoef_function_5 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
-   bcoef_function_4 = "0.0"
-   bcoef_function_5 = "0.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
-   gcoef_function_4 = "0.0"
-   gcoef_function_5 = "0.0"
 }
 
 VelocityBcCoefs_1 {
@@ -76,45 +75,16 @@ VelocityBcCoefs_1 {
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
-   acoef_function_4 = "1.0"
-   acoef_function_5 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
-   bcoef_function_4 = "0.0"
-   bcoef_function_5 = "0.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
-   gcoef_function_4 = "0.0"
-   gcoef_function_5 = "0.0"
-}
-
-VelocityBcCoefs_2 {
-   acoef_function_0 = "1.0"
-   acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
-   acoef_function_4 = "1.0"
-   acoef_function_5 = "1.0"
-
-   bcoef_function_0 = "0.0"
-   bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
-   bcoef_function_4 = "0.0"
-   bcoef_function_5 = "0.0"
-
-   gcoef_function_0 = "0.0"
-   gcoef_function_1 = "0.0"
-   gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
-   gcoef_function_4 = "0.0"
-   gcoef_function_5 = "0.0"
 }
 
 PhiBcCoefs {
@@ -122,22 +92,16 @@ PhiBcCoefs {
    acoef_function_1 = "0.0"
    acoef_function_2 = "0.0"
    acoef_function_3 = "0.0"
-   acoef_function_4 = "0.0"
-   acoef_function_5 = "0.0"
 
    bcoef_function_0 = "1.0"
    bcoef_function_1 = "1.0"
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
-   bcoef_function_4 = "1.0"
-   bcoef_function_5 = "1.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
-   gcoef_function_4 = "0.0"
-   gcoef_function_5 = "0.0"
 }
 
 RhoBcCoefs {
@@ -149,22 +113,16 @@ RhoBcCoefs {
    acoef_function_1 = "0.0"
    acoef_function_2 = "0.0"
    acoef_function_3 = "0.0"
-   acoef_function_4 = "0.0"
-   acoef_function_5 = "0.0"
 
    bcoef_function_0 = "1.0"
    bcoef_function_1 = "1.0"
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
-   bcoef_function_4 = "1.0"
-   bcoef_function_5 = "1.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
-   gcoef_function_4 = "0.0"
-   gcoef_function_5 = "0.0"
 }
 
 MuBcCoefs {
@@ -172,22 +130,16 @@ MuBcCoefs {
    acoef_function_1 = "0.0"
    acoef_function_2 = "0.0"
    acoef_function_3 = "0.0"
-   acoef_function_4 = "0.0"
-   acoef_function_5 = "0.0"
 
    bcoef_function_0 = "1.0"
    bcoef_function_1 = "1.0"
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
-   bcoef_function_4 = "1.0"
-   bcoef_function_5 = "1.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
-   gcoef_function_4 = "0.0"
-   gcoef_function_5 = "0.0"
 }
 
 
@@ -195,9 +147,9 @@ MuBcCoefs {
 SOLVER_TYPE                         = "STAGGERED"
 DISCRETIZATION_FORM                 = "CONSERVATIVE"
 START_TIME                          =  0.0e0     // initial simulation time
-END_TIME                            =  2.0e0    // final simulation time
+END_TIME                            =  10.0e0    // final simulation time
 GROW_DT                             =  2.0e0     // growth factor for timesteps
-MAX_INTEGRATOR_STEPS                =  500000  // max number of simulation timesteps
+MAX_INTEGRATOR_STEPS                =  1         // max number of simulation timesteps
 REGRID_INTERVAL                     =  5
 CFL_MAX                             =  0.5   
 NUM_INS_CYCLES                      =  2
@@ -208,7 +160,7 @@ CONVECTIVE_TS_TYPE                  = "MIDPOINT_RULE"    // convective time step
 NORMALIZE_PRESSURE                  = TRUE     
 VORTICITY_TAGGING                   = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                          = 2                          // size of tag buffer used by grid generation algorithm
-DT_MAX                              = 0.032/NFINEST/2
+DT_MAX                              = 0.032/NFINEST
 OUTPUT_U                            = TRUE
 OUTPUT_P                            = TRUE
 OUTPUT_F                            = TRUE
@@ -452,72 +404,71 @@ Main {
    adv_diff_solver_type = ADV_DIFF_SOLVER_TYPE
 
 // log file parameters
-   log_file_name               = "INS3d.log"
+   log_file_name               = "INS2d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = 50*REF_RATIO^(MAX_LEVELS - 1)
-   viz_dump_dirname            = "viz_INS3d"
+   viz_dump_dirname            = "viz_INS2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
    restart_dump_interval       = 0
-   restart_dump_dirname        = "restart_INS3d"
+   restart_dump_dirname        = "restart_INS2d"
 
 // timer dump parameters
    timer_dump_interval         = 0
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0,0) , ( N - 1, N - 1, N - 1) ]
-   x_lo         =   0.0, 0.0, 0.0         // lower end of computational domain.
-   x_up         =   L,   L,   L         // upper end of computational domain.
-   periodic_dimension = 1, 1, 1
+   domain_boxes = [ (0,0) , ( N - 1, N - 1) ]
+   x_lo         =   0.0, 0.0         // lower end of computational domain.
+   x_up         =   L,   L         // upper end of computational domain.
+   periodic_dimension = 1, 1
 }
 
 GriddingAlgorithm {
    max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
    ratio_to_coarser {
-      level_1 = REF_RATIO,REF_RATIO,REF_RATIO  // vector ratio to next coarser level
-      level_2 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_3 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_4 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_5 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_6 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_7 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
+      level_2 = REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO
+      level_4 = REF_RATIO,REF_RATIO
+      level_5 = REF_RATIO,REF_RATIO
+      level_6 = REF_RATIO,REF_RATIO
+      level_7 = REF_RATIO,REF_RATIO
    }
 
    largest_patch_size {
-      level_0 = 2048, 2048, 2048 // largest patch allowed in hierarchy
+      level_0 = 2048, 2048 // largest patch allowed in hierarchy
                           // all finer levels will use same values as level_0...
    }
 
    smallest_patch_size {
-      level_0 =  8, 8, 8 // smallest patch allowed in hierarchy
+      level_0 =  8, 8 // smallest patch allowed in hierarchy
                             // all finer levels will use same values as level_0...
    }
 
    allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
-   efficiency_tolerance   = 0.65e0    // min % of tag cells in new patch level
-   combine_efficiency     = 0.65e0    // chop box if sum of volumes of smaller
+   efficiency_tolerance   = 0.80e0    // min % of tag cells in new patch level
+   combine_efficiency     = 0.80e0    // chop box if sum of volumes of smaller
                                       // boxes < efficiency * vol of large box
 }
 
 StandardTagAndInitialize {
-   // tagging_method = "REFINE_BOXES"
-  tagging_method = "GRADIENT_DETECTOR"
+   tagging_method = "REFINE_BOXES"
    RefineBoxes {
-      level_0 = [( 0 , 0, 0 ),( N - 1 , N - 1 , N - 1 )]
-      level_1 = [( 0 , 0, 0 ),( 2*N - 1 , 2*N - 1 , 2*N - 1)]
-      level_2 = [( 0 , 0, 0 ),( 4*N - 1 , 4*N - 1 , 4*N - 1)]
-      level_3 = [( 0 , 0, 0 ),( 8*N - 1 , 8*N - 1 , 8*N - 1)]
-      level_4 = [( 0 , 0, 0 ),( 16*N - 1 , 16*N - 1 , 16*N - 1 )]
-      level_5 = [( 0 , 0, 0 ),( 32*N - 1 , 32*N - 1 , 32*N - 1)]
-      level_6 = [( 0 , 0, 0 ),( 64*N - 1 , 64*N - 1 , 64*N - 1)]
-      level_7 = [( 0 , 0, 0 ),( 128*N - 1 , 128*N - 1 , 128*N - 1 )]
-      level_8 = [( 0 , 0, 0 ),( 256*N - 1 , 256*N - 1 , 256*N - 1 )]
-      level_9 = [( 0 , 0, 0 ),( 512*N - 1 , 512*N - 1 , 512*N - 1 )]
+      level_0 = [( 0 , 0 ),( N - 1 , N - 1 )]
+      level_1 = [( 0 , 0 ),( 2*N - 1 , 2*N - 1 )]
+      level_2 = [( 0 , 0 ),( 4*N - 1 , 4*N - 1 )]
+      level_3 = [( 0 , 0 ),( 8*N - 1 , 8*N - 1 )]
+      level_4 = [( 0 , 0 ),( 16*N - 1 , 16*N - 1 )]
+      level_5 = [( 0 , 0 ),( 32*N - 1 , 32*N - 1 )]
+      level_6 = [( 0 , 0 ),( 64*N - 1 , 64*N - 1 )]
+      level_7 = [( 0 , 0 ),( 128*N - 1 , 128*N - 1 )]
+      level_8 = [( 0 , 0 ),( 256*N - 1 , 256*N - 1 )]
+      level_9 = [( 0 , 0 ),( 512*N - 1 , 512*N - 1 )]
    }
 }
 
