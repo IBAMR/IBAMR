@@ -704,6 +704,9 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     // Solve the system.
     IBTK_TIMER_START(t_solve_system_hypre);
 
+    d_current_iterations = 0;
+    d_current_residual_norm = 0.0;
+
     if (d_solver_type == "SysPFMG")
     {
         HYPRE_SStructSysPFMGSetMaxIter(d_solver, d_max_iterations);
@@ -793,6 +796,12 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         Pointer<SideData<NDIM, double> > x_data = patch->getPatchData(x_idx);
         copyFromHypre(*x_data, d_sol_vec, patch_box);
     }
+
+    // During initialization we may call this function with zero vectors for
+    // the RHS and solution - in that case we converge with zero iterations
+    // and the relative error is NaN. If this is the case then return true.
+    if (std::isnan(d_current_residual_norm) && d_current_iterations == 0) return true;
+
     return (d_current_residual_norm <= d_rel_residual_tol || d_current_residual_norm <= d_abs_residual_tol);
 } // solveSystem
 
