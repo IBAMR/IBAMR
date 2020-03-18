@@ -424,13 +424,23 @@ def main():
                 invalid_test_inputs.append(input_file_name)
 
     if invalid_test_inputs:
-        print("\nWarning: The tests with input files \n")
+        print("\nWarning: The test(s) with input files \n")
         for invalid_test_input in invalid_test_inputs:
             print("   ", invalid_test_input)
 
-        print("\ncannot be run since either the input or output file "
-                "missing. This usually\nmeans that one of the files is a "
-                "broken link.")
+        print("\ncannot be run since either the input or output file missing. "
+              "This usually means\nthat one of the files is a broken link. "
+              "Broken links to test files occur when\na test exists in one "
+              "revision of IBAMR but not another: for example, if a test\nhas "
+              "been removed then links to its input and output files may still "
+              "be present\nin the build directory. This is usually harmless. "
+              "A good way to get rid of this\nwarning is to delete all test "
+              "input and output files. To achieve this, execute\nthe following "
+              "commands in the build directory:\n"
+              "\n"
+              "    cd tests/\n"
+              "    find ./ -name '*.input' -delete\n"
+              "    find ./ -name '*.output' -delete\n")
 
     unstarted_tests.sort(key=lambda u: u.n_mpi_processes())
 
