@@ -22,9 +22,6 @@
 #include "tbox/AbstractStream.h"
 #include "tbox/Utilities.h"
 
-#include <unistd.h>
-
-#include <ostream>
 #include <string>
 #include <vector>
 

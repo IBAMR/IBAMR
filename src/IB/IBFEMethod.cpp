@@ -76,7 +76,6 @@
 #include "tbox/RestartManager.h"
 #include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
-#include <ext/new_allocator.h>
 
 #include "libmesh/boundary_info.h"
 #include "libmesh/compare_types.h"

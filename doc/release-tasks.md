@@ -41,7 +41,6 @@ GitHub.
 - [ ] Check that we don't call functions like
   `ReplicatedMesh::active_local_elements_end()` inside `for`-loop declarations
   since the end iterator is expensive to compute.
-- [ ] Run *include what you use* and delete unnecessary header inclusions.
 - [ ] Run clang-format on the entire code base.
 
 ## testing

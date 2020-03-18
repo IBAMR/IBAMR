@@ -36,8 +36,6 @@
 #include "libmesh/equation_systems.h"
 #include "libmesh/system.h"
 
-#include <stddef.h>
-
 #include <algorithm>
 #include <memory>
 #include <set>

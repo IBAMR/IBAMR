@@ -24,9 +24,6 @@
 
 #include "petscmat.h"
 
-#include <stddef.h>
-#include <unistd.h>
-
 #include <array>
 #include <vector>
 

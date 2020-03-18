@@ -41,7 +41,6 @@
 #include "VariableDatabase.h"
 #include "tbox/Utilities.h"
 
-#include <ostream>
 #include <utility>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
