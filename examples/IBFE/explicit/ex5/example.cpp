@@ -121,6 +121,7 @@ struct TetherData
 bool use_boundary_mesh 			  = false;
 bool compute_fluid_traction 	  = false;
 
+
 // Tether (penalty) stress function.
 void
 PK1_stress_function(TensorValue<double>& PP,
@@ -725,7 +726,7 @@ postprocess_data(Pointer<Database> input_db,
 
         if (compute_fluid_traction)
             get_values_for_interpolation(TAU_node, *TAU_ghost_vec, dof_indices);
-
+            
         const unsigned int n_qp = qrule->n_points();
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {

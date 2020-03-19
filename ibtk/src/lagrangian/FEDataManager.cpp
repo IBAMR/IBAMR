@@ -2929,7 +2929,9 @@ std::vector<std::pair<Point, Point> >*
 FEDataManager::computeActiveElementBoundingBoxes()
 {
 
+
     IBTK_DEPRECATED_MEMBER_FUNCTION1("FEDataManager", "computeActiveElementBoundingBoxes");
+
 
     // Get the necessary FE data.
     const MeshBase& mesh = d_fe_data->d_es->get_mesh();
