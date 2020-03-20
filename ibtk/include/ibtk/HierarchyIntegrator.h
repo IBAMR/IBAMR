@@ -494,6 +494,24 @@ public:
     void registerApplyGradientDetectorCallback(ApplyGradientDetectorCallbackFcnPtr callback, void* ctx = nullptr);
 
     /*!
+     * Callback function specification to enable further specialization of regridHierarchy().
+     */
+    using RegridHierarchyCallbackFcnPtr =
+        void (*)(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                 double data_time,
+                 bool initial_time,
+                 void* ctx);
+
+    /*!
+     * Register a callback function to enable further specialization of regridHierarchy().
+     *
+     * \note This function will be called after all data owned by the hierarchy is initialized and set, but before the
+     * data is synchronized. If data owned by the integrator is used in this function, it should be synchronized prior
+     * to use by an appropriate coarsening operation.
+     */
+    void registerRegridHierarchyCallback(RegridHierarchyCallbackFcnPtr, void* ctx = nullptr);
+
+    /*!
      * Perform data initialization after the entire hierarchy has been constructed.
      */
     void initializeCompositeHierarchyData(double init_data_time, bool initial_time);
@@ -847,6 +865,14 @@ protected:
                                              bool uses_richardson_extrapolation_too);
 
     /*!
+     * Execute any user-specified regridHierarchy callback functions.
+     */
+    virtual void
+    executeRegridHierarchyCallbackFcns(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                       double data_time,
+                                       bool initial_time);
+
+    /*!
      * Register a ghost cell-filling refine algorithm.
      */
     void registerGhostfillRefineAlgorithm(const std::string& name,
@@ -1125,6 +1151,8 @@ protected:
     std::vector<void*> d_postprocess_integrate_hierarchy_callback_ctxs;
     std::vector<ApplyGradientDetectorCallbackFcnPtr> d_apply_gradient_detector_callbacks;
     std::vector<void*> d_apply_gradient_detector_callback_ctxs;
+    std::vector<RegridHierarchyCallbackFcnPtr> d_regrid_hierarchy_callbacks;
+    std::vector<void*> d_regrid_hierarchy_callback_ctxs;
 
 private:
     /*!
