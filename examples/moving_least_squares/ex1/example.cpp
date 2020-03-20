@@ -70,6 +70,14 @@ ConstrainedNodalVel(Vec /*U_k*/, const RigidDOFVector& /*U*/, const Eigen::Vecto
     return;
 } // ConstrainedNodalVel
 
+void resetMaskData(int sc_mask_idx,
+                   int cc_mask_idx,
+                   Pointer<CartGridFunction> sc_mask_fcn,
+                   Pointer<CartGridFunction> cc_mask_fcn,
+                   double time,
+                   Pointer<PatchHierarchy<NDIM> > hierarchy,
+                   bool needs_allocating);
+
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  LDataManager* l_data_manager,
@@ -285,43 +293,11 @@ main(int argc, char* argv[])
         const int cc_masked_idx = var_db->registerVariableAndContext(p_var, main_ctx, IntVector<NDIM>(n_ghosts));
         visit_data_writer->registerPlotQuantity("cc_mask", "SCALAR", cc_masked_idx);
 
-        const int coarsest_ln = 0;
-        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(sc_masked_idx);
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(cc_masked_idx);
-        }
-
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
 
-        sc_mask->setDataOnPatchHierarchy(sc_masked_idx, u_var, patch_hierarchy, loop_time);
-        cc_mask->setDataOnPatchHierarchy(cc_masked_idx, p_var, patch_hierarchy, loop_time);
-
-        // Fill ghost data.
-        using ITC = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        std::vector<ITC> ghost_cell_components(2);
-        ghost_cell_components[0] = ITC(sc_masked_idx,
-                                       "CONSERVATIVE_LINEAR_REFINE",
-                                       true,
-                                       "CONSERVATIVE_COARSEN",
-                                       "LINEAR",
-                                       false,
-                                       {}, // u_bc_coefs
-                                       nullptr);
-        ghost_cell_components[1] = ITC(cc_masked_idx,
-                                       "LINEAR_REFINE",
-                                       true,
-                                       "CONSERVATIVE_COARSEN",
-                                       "LINEAR",
-                                       false,
-                                       {}, // cc_bc_coefs
-                                       nullptr);
-        HierarchyGhostCellInterpolation ghost_fill_op;
-        ghost_fill_op.initializeOperatorState(ghost_cell_components, patch_hierarchy);
-        ghost_fill_op.fillData(/*time*/ 0.0);
+        resetMaskData(sc_masked_idx, cc_masked_idx, sc_mask, cc_mask, loop_time, patch_hierarchy, true);
 
         // Register sc mask patch data index with CIBMethod
         ib_method_ops->registerMaskingPatchDataIndex(sc_masked_idx);
@@ -363,8 +339,10 @@ main(int argc, char* argv[])
             if (time_integrator->atRegridPoint()) navier_stokes_integrator->setStokesSolverNeedsInit();
             if (ib_method_ops->flagRegrid())
             {
+                pout << "Regridding hierarchy.\n";
                 time_integrator->regridHierarchy();
                 navier_stokes_integrator->setStokesSolverNeedsInit();
+                resetMaskData(sc_masked_idx, cc_masked_idx, sc_mask, cc_mask, loop_time, patch_hierarchy, true);
             }
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
@@ -432,3 +410,53 @@ output_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
 
     return;
 } // output_data
+
+void
+resetMaskData(const int sc_mask_idx,
+              const int cc_mask_idx,
+              Pointer<CartGridFunction> sc_mask_fcn,
+              Pointer<CartGridFunction> cc_mask_fcn,
+              const double time,
+              Pointer<PatchHierarchy<NDIM> > hierarchy,
+              const bool needs_allocating)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; needs_allocating && ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(sc_mask_idx)) level->allocatePatchData(sc_mask_idx);
+        if (!level->checkAllocated(cc_mask_idx)) level->allocatePatchData(cc_mask_idx);
+    }
+
+    auto var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<Variable<NDIM> > u_var, p_var;
+    var_db->mapIndexToVariable(sc_mask_idx, u_var);
+    var_db->mapIndexToVariable(cc_mask_idx, p_var);
+
+    sc_mask_fcn->setDataOnPatchHierarchy(sc_mask_idx, u_var, hierarchy, time);
+    cc_mask_fcn->setDataOnPatchHierarchy(cc_mask_idx, p_var, hierarchy, time);
+
+    // Fill ghost data.
+    using ITC = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    std::vector<ITC> ghost_cell_components(2);
+    ghost_cell_components[0] = ITC(sc_mask_idx,
+                                   "CONSERVATIVE_LINEAR_REFINE",
+                                   true,
+                                   "CONSERVATIVE_COARSEN",
+                                   "LINEAR",
+                                   false,
+                                   {}, // u_bc_coefs
+                                   nullptr);
+    ghost_cell_components[1] = ITC(cc_mask_idx,
+                                   "LINEAR_REFINE",
+                                   true,
+                                   "CONSERVATIVE_COARSEN",
+                                   "LINEAR",
+                                   false,
+                                   {}, // cc_bc_coefs
+                                   nullptr);
+    HierarchyGhostCellInterpolation ghost_fill_op;
+    ghost_fill_op.initializeOperatorState(ghost_cell_components, hierarchy);
+    ghost_fill_op.fillData(time);
+}
