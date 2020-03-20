@@ -484,7 +484,7 @@ protected:
      * Booleans to control spreading constraint force and interpolating
      * to Lagrangian velocities.
      */
-    bool d_constraint_force_is_initialized, d_lag_velvec_is_initialized;
+    bool d_constraint_force_is_initialized = false, d_lag_velvec_is_initialized = false;
 
     /*!
      * Boolean to flag if time integrator needs regriding
@@ -524,8 +524,8 @@ protected:
     // Velocity boundary operator.
     IBTK::RobinPhysBdryPatchStrategy* d_u_phys_bdry_op = nullptr;
 
-    // Fluid density
-    double d_rho;
+    // If we are using steady Stokes solver.
+    bool d_use_steady_stokes = false;
 
 private:
     /*!

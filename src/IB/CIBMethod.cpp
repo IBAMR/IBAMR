@@ -299,7 +299,7 @@ CIBMethod::preprocessIntegrateData(double current_time, double new_time, int num
                 }
             }
 #endif
-            if (MathUtilities<double>::equalEps(d_rho, 0))
+            if (d_use_steady_stokes)
             {
                 d_trans_vel_half[part] = d_trans_vel_current[part];
                 d_rot_vel_half[part] = d_rot_vel_current[part];
@@ -681,7 +681,7 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double dt = MathUtilities<double>::equalEps(d_rho, 0.0) ? 0.0 : (new_time - current_time);
+    const double dt = d_use_steady_stokes ? 0.0 : (new_time - current_time);
 
     // Fill the rotation matrix of structures with rotation angle 0.5*(W^n)*dt.
     IBTK::EigenAlignedVector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
@@ -801,12 +801,11 @@ CIBMethod::midpointStep(double current_time, double new_time)
 {
     const double dt = new_time - current_time;
     int flag_regrid = 0;
-    const bool is_steady_stokes = MathUtilities<double>::equalEps(d_rho, 0.0);
 
     // Fill the rotation matrix of structures with rotation angle (W^n+1)*dt.
     IBTK::EigenAlignedVector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
     setRotationMatrix(
-        is_steady_stokes ? d_rot_vel_new : d_rot_vel_half, d_quaternion_current, d_quaternion_new, rotation_mat, dt);
+        d_use_steady_stokes ? d_rot_vel_new : d_rot_vel_half, d_quaternion_current, d_quaternion_new, rotation_mat, dt);
 
     // Get the grid extents.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
@@ -863,7 +862,7 @@ CIBMethod::midpointStep(double current_time, double new_time)
             {
                 X_new[d] =
                     d_center_of_mass_current[struct_handle][d] + R_dr[d] +
-                    dt * (is_steady_stokes ? d_trans_vel_new[struct_handle][d] : d_trans_vel_half[struct_handle][d]);
+                    dt * (d_use_steady_stokes ? d_trans_vel_new[struct_handle][d] : d_trans_vel_half[struct_handle][d]);
 
                 if (periodic_shift[d])
                 {
@@ -893,7 +892,7 @@ CIBMethod::midpointStep(double current_time, double new_time)
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             new_com[d] = current_com[d] +
-                         dt * (is_steady_stokes ? d_trans_vel_new[struct_no][d] : d_trans_vel_half[struct_no][d]);
+                         dt * (d_use_steady_stokes ? d_trans_vel_new[struct_no][d] : d_trans_vel_half[struct_no][d]);
 
             if (periodic_shift[d])
             {
@@ -1716,6 +1715,7 @@ CIBMethod::flagRegrid() const
 void
 CIBMethod::getFromInput(Pointer<Database> input_db)
 {
+    d_use_steady_stokes = input_db->getBoolWithDefault("use_steady_stokes", d_use_steady_stokes);
     d_output_eul_lambda = input_db->getBoolWithDefault("output_eul_lambda", d_output_eul_lambda);
     d_lambda_dump_interval = input_db->getIntegerWithDefault("lambda_dump_interval", d_lambda_dump_interval);
     if (d_lambda_dump_interval)
