@@ -18,6 +18,8 @@
 #include "ibtk/FECache.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IndexUtilities.h"
+#include "ibtk/JacobianCalculator.h"
 #include "ibtk/JacobianCalculatorCache.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/QuadratureCache.h"
@@ -26,8 +28,6 @@
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
-#include <ibtk/IndexUtilities.h>
-#include <ibtk/JacobianCalculator.h>
 
 #include "BasePatchHierarchy.h"
 #include "Box.h"
@@ -69,6 +69,7 @@
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
+#include "libmesh/boundary_info.h"
 #include "libmesh/dense_matrix.h"
 #include "libmesh/dense_vector.h"
 #include "libmesh/dof_map.h"
