@@ -24,7 +24,7 @@ SETUP_SAMRAI=0
 SAMRAI_BUILD_DIR=$HOME/sfw/samrai/2.4.4/objs-dbg
 
 SETUP_LIBMESH=0
-LIBMESH_BUILD_DIR=$HOME/sfw/libmesh/master-objs-dbg
+LIBMESH_BUILD_DIR=$HOME/sfw/libmesh/master/build-dbg
 
 SETUP_IBAMR=1
 IBAMR_BUILD_DIR=$HOME/code/ibamr-objs-dbg
@@ -32,7 +32,7 @@ IBAMR_PROJECT_ROOT=$HOME/code/IBAMR
 
 intercept_make="make CC=intercept-cc CXX=intercept-c++ MPICH_CC=intercept-cc MPICH_CXX=intercept-cxx OMPI_CC=intercept-cc OMPI_CXX=intercept-cxx"
 
-CXX_COMMAND=/usr/local/Cellar/llvm/9.0.0_1/bin/clang++
+CXX_COMMAND=/usr/local/opt/llvm/bin/clang++
 
 if [ $SETUP_PETSC -eq 1 ]; then
   echo "setting up petsc"
