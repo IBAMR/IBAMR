@@ -306,6 +306,22 @@ public:
         double data_time) override;
 
     /*!
+     * Compute the fluid traction if all jump conditions are applied.
+     */
+    void computeFluidTraction(double current_time, unsigned int part = 0);
+
+    /*!
+     * Compute the interior/exterior pressure used in the calculation of the fluid traction (pressure jump condition
+     * needs to be applied).
+     */
+    void extrapolatePressureForTraction(int p_data_idx, double data_time, unsigned int part = 0);
+
+    /*!
+     * A wrapper to compute the interfacial pressure and fluid traction from the jumps.
+     */
+    void calculateInterfacialFluidForces(int p_data_idx, double data_time);
+
+    /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
@@ -696,7 +712,6 @@ protected:
     bool d_use_velocity_jump_conditions = false;
     libMesh::FEFamily d_velocity_jump_fe_family = libMesh::LAGRANGE;
     bool d_compute_fluid_traction = false;
-    bool d_traction_interior_side = false;
     libMesh::FEFamily d_wss_fe_family = libMesh::LAGRANGE;
     libMesh::FEFamily d_tau_fe_family = libMesh::LAGRANGE;
     bool d_perturb_fe_mesh_nodes = true;
@@ -709,7 +724,6 @@ protected:
     bool d_use_direct_forcing = false;
     double d_wss_calc_width = 0.0;
     double d_p_calc_width = 0.0;
-    double d_traction_activation_time = 0.0; // TODO: Why is this needed?
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
@@ -727,6 +741,12 @@ protected:
     std::vector<LagSurfacePressureFcnData> d_lag_surface_pressure_fcn_data;
     std::vector<LagSurfaceForceFcnData> d_lag_surface_force_fcn_data;
     std::vector<libMesh::VectorValue<double> > d_lag_surface_force_integral;
+
+    /*
+     * Eulerian data.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_p_var;
+    int d_p_scratch_idx = IBTK::invalid_index;
 
     /*
      * Nonuniform load balancing data structures.
