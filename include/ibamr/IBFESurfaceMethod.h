@@ -88,17 +88,33 @@ namespace IBAMR
  * \brief Class IBFESurfaceMethod is an implementation of the abstract base
  * class IBStrategy that provides functionality required by the IB method with
  * a finite element representation of a surface mesh.
+ *
+ * Coupling schemes include both IB formulations (integral operations with
+ * regularized delta function kernels) and an immersed interface method (IIM)
+ * scheme (E. M. Kolahdouz, A. P. S. Bhalla, B. A. Craven, and B. E. Griffith.
+ * An immersed interface method for discrete surfaces. J Comput Phys,
+ * 400:108854 (37 pages), 2020).
+ *
+ * \note When using the IIM implementation, it is recommended that users set
+ * all linear solvers to use tight relative tolerances (1e-10).
  */
 class IBFESurfaceMethod : public IBStrategy
 {
 public:
-    static const std::string COORDS_SYSTEM_NAME;
     static const std::string COORD_MAPPING_SYSTEM_NAME;
+    static const std::string COORDS_SYSTEM_NAME;
     static const std::string FORCE_SYSTEM_NAME;
     static const std::string NORMAL_VELOCITY_SYSTEM_NAME;
+    static const std::string PRESSURE_IN_SYSTEM_NAME;
     static const std::string PRESSURE_JUMP_SYSTEM_NAME;
+    static const std::string PRESSURE_OUT_SYSTEM_NAME;
     static const std::string TANGENTIAL_VELOCITY_SYSTEM_NAME;
+    static const std::string TAU_IN_SYSTEM_NAME;
+    static const std::string TAU_OUT_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
+    static const std::string WSS_IN_SYSTEM_NAME;
+    static const std::string WSS_OUT_SYSTEM_NAME;
+    static const std::array<std::string, NDIM> VELOCITY_JUMP_SYSTEM_NAME;
 
     /*!
      * \brief Constructor.
@@ -459,13 +475,29 @@ public:
 
 protected:
     /*!
-     * Impose (pressure) jump conditions.
+     * Impose the jump conditions.
      */
     void imposeJumpConditions(const int f_data_idx,
-                              libMesh::PetscVector<double>& DP_ghost_vec,
+                              libMesh::PetscVector<double>& P_jump_ghost_vec,
+                              std::array<libMesh::PetscVector<double>*, NDIM>& DU_jump_ghost_vec,
                               libMesh::PetscVector<double>& X_ghost_vec,
                               const double data_time,
                               const unsigned int part);
+
+    /*!
+     * \brief Helper function for checking possible double-counting
+     *  intesection points
+     */
+    bool checkDoubleCountingIntersection(int axis,
+                                         const double* dx,
+                                         const libMesh::VectorValue<double>& n,
+                                         const libMesh::Point& x,
+                                         const libMesh::Point& xi,
+                                         const SAMRAI::pdat::SideIndex<NDIM>& i_s,
+                                         const SAMRAI::pdat::SideIndex<NDIM>& i_s_prime,
+                                         const std::vector<libMesh::Point>& candidate_coords,
+                                         const std::vector<libMesh::Point>& candidate_ref_coords,
+                                         const std::vector<libMesh::VectorValue<double> >& candidate_normals);
 
     /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
@@ -513,6 +545,19 @@ protected:
 
     /*
      * FE data associated with this object.
+     * d_X: coordinates system
+     * d_F: IB force system
+     * d_U: velocity system
+     * d_U_n: normal velocity system
+     * d_U_t: tangential velocity system
+     * d_P_jump: pressure jump system
+     * d_DU_jump: velocity gradient jump system
+     * d_WSS_in: one sided interior shear stress system
+     * d_WSS_out: one sided exterior shear stress system
+     * d_P_in: one sided interior pressure system
+     * d_P_out: one sided exterior pressure system
+     * d_TAU_in: one sided interior fluid traction system
+     * d_TAU_out: one sided exterior fluid traction system
      */
     std::vector<libMesh::MeshBase*> d_meshes;
     int d_max_level_number;
@@ -521,26 +566,139 @@ protected:
     const unsigned int d_num_parts = 1;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_DP_systems;
-    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
-        d_X_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_DP_half_vecs, d_DP_IB_ghost_vecs;
+
+    class LibMeshSystemData
+    {
+    public:
+        LibMeshSystemData() = delete;
+        LibMeshSystemData(const LibMeshSystemData&) = default;
+        LibMeshSystemData(const std::string& system_name,
+                          const bool has_current_vecs,
+                          const bool has_half_vecs,
+                          const bool has_new_vecs,
+                          const bool has_IB_ghost_vecs)
+            : d_system_name(system_name),
+              d_has_current_vecs(has_current_vecs),
+              d_has_half_vecs(has_half_vecs),
+              d_has_new_vecs(has_new_vecs),
+              d_has_IB_ghost_vecs(has_IB_ghost_vecs)
+        {
+            // intentionally blank
+        }
+
+        ~LibMeshSystemData()
+        {
+            free();
+        }
+
+        void init(const std::vector<IBTK::FEDataManager*>& fe_data_managers)
+        {
+            const auto n_parts = fe_data_managers.size();
+            systems.resize(n_parts);
+            current_vecs.resize(n_parts, nullptr);
+            half_vecs.resize(n_parts, nullptr);
+            new_vecs.resize(n_parts, nullptr);
+            IB_ghost_vecs.resize(n_parts, nullptr);
+            for (auto part = 0; part < n_parts; ++part)
+            {
+                libMesh::EquationSystems* es = fe_data_managers[part]->getEquationSystems();
+                systems[part] = &es->get_system(d_system_name);
+                if (d_has_current_vecs)
+                {
+                    current_vecs[part] =
+                        dynamic_cast<libMesh::PetscVector<double>*>(systems[part]->current_local_solution.get());
+                    *current_vecs[part] = *systems[part]->solution;
+                }
+                if (d_has_half_vecs)
+                {
+                    half_vecs[part] = dynamic_cast<libMesh::PetscVector<double>*>(
+                        systems[part]->current_local_solution->clone().release());
+                    *half_vecs[part] = *systems[part]->solution;
+                }
+                if (d_has_new_vecs)
+                {
+                    new_vecs[part] = dynamic_cast<libMesh::PetscVector<double>*>(
+                        systems[part]->current_local_solution->clone().release());
+                    *new_vecs[part] = *systems[part]->solution;
+                }
+                if (d_has_IB_ghost_vecs)
+                {
+                    IB_ghost_vecs[part] = dynamic_cast<libMesh::PetscVector<double>*>(
+                        fe_data_managers[part]->buildGhostedCoordsVector(/*localize_data*/ false));
+                }
+            }
+            d_initialized = true;
+        }
+
+        void free()
+        {
+            if (d_initialized)
+            {
+                const auto n_parts = systems.size();
+                for (auto part = 0; part < n_parts; ++part)
+                {
+                    if (d_has_new_vecs)
+                    {
+                        *systems[part]->current_local_solution = *new_vecs[part];
+                    }
+                    else if (d_has_half_vecs)
+                    {
+                        *systems[part]->current_local_solution = *half_vecs[part];
+                    }
+                    else if (d_has_current_vecs)
+                    {
+                        *systems[part]->current_local_solution = *current_vecs[part];
+                    }
+                    *systems[part]->solution = *systems[part]->current_local_solution;
+                }
+
+                systems.clear();
+                current_vecs.clear();
+                if (d_has_half_vecs)
+                    std::for_each(
+                        half_vecs.begin(), half_vecs.end(), [](libMesh::PetscVector<double>* v) { delete v; });
+                half_vecs.clear();
+                if (d_has_new_vecs)
+                    std::for_each(new_vecs.begin(), new_vecs.end(), [](libMesh::PetscVector<double>* v) { delete v; });
+                new_vecs.clear();
+                IB_ghost_vecs.clear();
+                d_initialized = false;
+            }
+        }
+
+        std::vector<libMesh::System*> systems;
+        std::vector<libMesh::PetscVector<double>*> current_vecs, half_vecs, new_vecs, IB_ghost_vecs;
+
+    private:
+        const std::string d_system_name;
+        const bool d_has_current_vecs, d_has_half_vecs, d_has_new_vecs, d_has_IB_ghost_vecs;
+        bool d_initialized = false;
+    };
+
+    std::vector<std::unique_ptr<LibMeshSystemData> > d_fe_system_data;
+    LibMeshSystemData *d_X = nullptr, *d_U = nullptr, *d_U_n = nullptr, *d_U_t = nullptr, *d_F = nullptr,
+                      *d_P_jump = nullptr, *d_WSS_in = nullptr, *d_WSS_out = nullptr, *d_P_in = nullptr,
+                      *d_P_out = nullptr, *d_TAU_in = nullptr, *d_TAU_out = nullptr;
+    std::array<LibMeshSystemData*, NDIM> d_DU_jump = {};
 
     bool d_fe_equation_systems_initialized = false, d_fe_data_initialized = false;
 
     /*
-     * Method paramters.
+     * Method parameters.
      */
     IBTK::FEDataManager::InterpSpec d_default_interp_spec;
     IBTK::FEDataManager::SpreadSpec d_default_spread_spec;
     IBTK::FEDataManager::WorkloadSpec d_default_workload_spec;
     std::vector<IBTK::FEDataManager::InterpSpec> d_interp_spec;
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
-    bool d_use_jump_conditions = false;
+    bool d_use_pressure_jump_conditions = false;
+    libMesh::FEFamily d_pressure_jump_fe_family = libMesh::LAGRANGE;
+    bool d_use_velocity_jump_conditions = false;
+    libMesh::FEFamily d_velocity_jump_fe_family = libMesh::LAGRANGE;
+    bool d_compute_fluid_traction = false;
+    bool d_traction_interior_side = false;
+    libMesh::FEFamily d_wss_fe_family = libMesh::LAGRANGE;
+    libMesh::FEFamily d_tau_fe_family = libMesh::LAGRANGE;
     bool d_perturb_fe_mesh_nodes = true;
     bool d_normalize_pressure_jump = false;
     std::vector<libMesh::FEFamily> d_fe_family;
@@ -549,6 +707,9 @@ protected:
     std::vector<libMesh::Order> d_default_quad_order;
     bool d_use_consistent_mass_matrix = true;
     bool d_use_direct_forcing = false;
+    double d_wss_calc_width = 0.0;
+    double d_p_calc_width = 0.0;
+    double d_traction_activation_time = 0.0; // TODO: Why is this needed?
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
@@ -594,7 +755,7 @@ protected:
     /*
      * Restart file type for libMesh equation systems (e.g. xda or xdr).
      */
-    std::string d_libmesh_restart_file_extension;
+    std::string d_libmesh_restart_file_extension = "xdr";
 
 private:
     /*!
