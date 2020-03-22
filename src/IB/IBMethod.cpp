@@ -1338,8 +1338,7 @@ IBMethod::interpolatePressure(int p_data_idx,
             }
         }
         SAMRAI_MPI::sumReduction(&d_P_src[ln][0], static_cast<int>(d_P_src[ln].size()));
-        std::transform(
-            d_P_src[ln].begin(), d_P_src[ln].end(), d_P_src[ln].begin(), [=](const double& P) { return P - p_norm; });
+        std::for_each(d_P_src[ln].begin(), d_P_src[ln].end(), [=](double& P) { P -= p_norm; });
 
         // Update the pressures stored by the Lagrangian source strategy.
         d_ib_source_fcn->setSourcePressures(d_P_src[ln], d_hierarchy, ln, data_time, d_l_data_manager);

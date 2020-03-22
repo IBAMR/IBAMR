@@ -228,56 +228,22 @@ IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hie
 
     // Transform all of the cached indices to correspond to a data depth of
     // NDIM.
-    std::transform(d_spring_data[level_number].petsc_mastr_node_idxs.begin(),
-                   d_spring_data[level_number].petsc_mastr_node_idxs.end(),
-                   d_spring_data[level_number].petsc_mastr_node_idxs.begin(),
-                   [](const int& i) { return NDIM * i; });
-    std::transform(d_spring_data[level_number].petsc_slave_node_idxs.begin(),
-                   d_spring_data[level_number].petsc_slave_node_idxs.end(),
-                   d_spring_data[level_number].petsc_slave_node_idxs.begin(),
-                   [](const int& i) { return NDIM * i; });
-    std::transform(d_spring_data[level_number].petsc_global_mastr_node_idxs.begin(),
-                   d_spring_data[level_number].petsc_global_mastr_node_idxs.end(),
-                   d_spring_data[level_number].petsc_global_mastr_node_idxs.begin(),
-                   [](const int& i) { return NDIM * i; });
-    std::transform(d_spring_data[level_number].petsc_global_slave_node_idxs.begin(),
-                   d_spring_data[level_number].petsc_global_slave_node_idxs.end(),
-                   d_spring_data[level_number].petsc_global_slave_node_idxs.begin(),
-                   [](const int& i) { return NDIM * i; });
-
-    std::transform(d_beam_data[level_number].petsc_mastr_node_idxs.begin(),
-                   d_beam_data[level_number].petsc_mastr_node_idxs.end(),
-                   d_beam_data[level_number].petsc_mastr_node_idxs.begin(),
-                   [](const int& i) { return NDIM * i; });
-    std::transform(d_beam_data[level_number].petsc_next_node_idxs.begin(),
-                   d_beam_data[level_number].petsc_next_node_idxs.end(),
-                   d_beam_data[level_number].petsc_next_node_idxs.begin(),
-                   [](const int& i) { return NDIM * i; });
-    std::transform(d_beam_data[level_number].petsc_prev_node_idxs.begin(),
-                   d_beam_data[level_number].petsc_prev_node_idxs.end(),
-                   d_beam_data[level_number].petsc_prev_node_idxs.begin(),
-                   [](const int& i) { return NDIM * i; });
-    std::transform(d_beam_data[level_number].petsc_global_mastr_node_idxs.begin(),
-                   d_beam_data[level_number].petsc_global_mastr_node_idxs.end(),
-                   d_beam_data[level_number].petsc_global_mastr_node_idxs.begin(),
-                   [](const int& i) { return NDIM * i; });
-    std::transform(d_beam_data[level_number].petsc_global_next_node_idxs.begin(),
-                   d_beam_data[level_number].petsc_global_next_node_idxs.end(),
-                   d_beam_data[level_number].petsc_global_next_node_idxs.begin(),
-                   [](const int& i) { return NDIM * i; });
-    std::transform(d_beam_data[level_number].petsc_global_prev_node_idxs.begin(),
-                   d_beam_data[level_number].petsc_global_prev_node_idxs.end(),
-                   d_beam_data[level_number].petsc_global_prev_node_idxs.begin(),
-                   [](const int& i) { return NDIM * i; });
-
-    std::transform(d_target_point_data[level_number].petsc_node_idxs.begin(),
-                   d_target_point_data[level_number].petsc_node_idxs.end(),
-                   d_target_point_data[level_number].petsc_node_idxs.begin(),
-                   [](const int& i) { return NDIM * i; });
-    std::transform(d_target_point_data[level_number].petsc_global_node_idxs.begin(),
-                   d_target_point_data[level_number].petsc_global_node_idxs.end(),
-                   d_target_point_data[level_number].petsc_global_node_idxs.begin(),
-                   [](const int& i) { return NDIM * i; });
+    std::vector<std::vector<int>*> idx_vecs = { &d_spring_data[level_number].petsc_mastr_node_idxs,
+                                                &d_spring_data[level_number].petsc_slave_node_idxs,
+                                                &d_spring_data[level_number].petsc_global_mastr_node_idxs,
+                                                &d_spring_data[level_number].petsc_global_slave_node_idxs,
+                                                &d_beam_data[level_number].petsc_mastr_node_idxs,
+                                                &d_beam_data[level_number].petsc_next_node_idxs,
+                                                &d_beam_data[level_number].petsc_prev_node_idxs,
+                                                &d_beam_data[level_number].petsc_global_mastr_node_idxs,
+                                                &d_beam_data[level_number].petsc_global_next_node_idxs,
+                                                &d_beam_data[level_number].petsc_global_prev_node_idxs,
+                                                &d_target_point_data[level_number].petsc_node_idxs,
+                                                &d_target_point_data[level_number].petsc_global_node_idxs };
+    for (auto v_ptr : idx_vecs)
+    {
+        std::for_each(v_ptr->begin(), v_ptr->end(), [](int& i) { i *= NDIM; });
+    }
 
     // Indicate that the level data has been initialized.
     d_is_initialized[level_number] = true;
