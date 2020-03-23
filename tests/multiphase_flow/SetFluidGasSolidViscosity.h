@@ -63,7 +63,8 @@ public:
           d_num_gas_interface_cells(num_gas_interface_cells),
           d_set_mu_solid(set_mu_solid)
     {
-        // intentionally left blank
+        // avoid an unused variable warning
+        NULL_USE(d_ls_reinit_interval);
         return;
     } // SetFluidGasSolidViscosity
 

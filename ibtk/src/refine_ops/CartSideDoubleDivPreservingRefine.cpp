@@ -105,6 +105,8 @@ CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(Patch<NDIM>& pa
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(fill_time, d_fill_time));
+#else
+    NULL_USE(d_fill_time);
 #endif
     if (d_phys_bdry_op) d_phys_bdry_op->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
     return;
