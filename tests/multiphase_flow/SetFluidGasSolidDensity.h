@@ -66,7 +66,8 @@ public:
           d_num_solid_interface_cells(num_solid_interface_cells),
           d_num_gas_interface_cells(num_gas_interface_cells)
     {
-        // intentionally left blank
+        // avoid an unused variable warning
+        NULL_USE(d_ls_reinit_interval);
         return;
     } // SetFluidGasSolidDensity
 
