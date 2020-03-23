@@ -84,6 +84,7 @@
 #define C_TO_S_FLUX_ADD_FC IBTK_FC_FUNC(ctosfluxadd2d, CTOSFLUXADD2D)
 #define C_TO_S_ANISO_FLUX_ADD_FC IBTK_FC_FUNC(ctosanisofluxadd2d, CTOSANISOFLUXADD2D)
 #define C_TO_S_INTERP_FC IBTK_FC_FUNC(ctosinterp2nd2d, CTOSINTERP2ND2D)
+#define C_TO_S_CWISE_INTERP_FC IBTK_FC_FUNC(ctoscwiseinterp2nd2d, CTOSCWISEINTERP2ND2D)
 #define C_TO_S_HARMONIC_INTERP_FC IBTK_FC_FUNC(ctosharmonicinterp2nd2d, CTOSHARMONICINTERP2ND2D)
 
 #define F_TO_C_CURL_FC IBTK_FC_FUNC(ftoccurl2d, FTOCCURL2D)
@@ -157,6 +158,7 @@
 #define C_TO_S_FLUX_ADD_FC IBTK_FC_FUNC(ctosfluxadd3d, CTOSFLUXADD3D)
 #define C_TO_S_ANISO_FLUX_ADD_FC IBTK_FC_FUNC(ctosanisofluxadd3d, CTOSANISOFLUXADD3D)
 #define C_TO_S_INTERP_FC IBTK_FC_FUNC(ctosinterp2nd3d, CTOSINTERP2ND3D)
+#define C_TO_S_CWISE_INTERP_FC IBTK_FC_FUNC(ctoscwiseinterp2nd3d, CTOSCWISEINTERP2ND3D)
 #define C_TO_S_HARMONIC_INTERP_FC IBTK_FC_FUNC(ctosharmonicinterp2nd3d, CTOSHARMONICINTERP2ND3D)
 
 #define F_TO_C_CURL_FC IBTK_FC_FUNC(ftoccurl3d, FTOCCURL3D)
@@ -998,6 +1000,25 @@ extern "C"
                           ,
                           const int& ilower2,
                           const int& iupper2
+#endif
+    );
+
+    void C_TO_S_CWISE_INTERP_FC(double* u0,
+                                double* u1,
+#if (NDIM == 3)
+                                double* u2,
+#endif
+                                const int& u_gcw,
+                                const double* V,
+                                const int& V_gcw,
+                                const int& ilower0,
+                                const int& iupper0,
+                                const int& ilower1,
+                                const int& iupper1
+#if (NDIM == 3)
+                                ,
+                                const int& ilower2,
+                                const int& iupper2
 #endif
     );
 
@@ -4095,11 +4116,6 @@ PatchMathOps::interp(Pointer<SideData<NDIM, double> > dst,
     const Box<NDIM>& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
-    if (NDIM * dst->getDepth() != src->getDepth())
-    {
-        TBOX_ERROR("PatchMathOps::interp():\n"
-                   << "  src and dst have incompatible depths" << std::endl);
-    }
 
     if (u_ghosts != (dst->getGhostCellWidth()).min())
     {
@@ -4134,12 +4150,42 @@ PatchMathOps::interp(Pointer<SideData<NDIM, double> > dst,
                    << "  dst and src must live on the same patch" << std::endl);
     }
 #endif
-
-    for (int depth = 0; depth < dst->getDepth(); ++depth)
+    if (src->getDepth() == 1)
     {
         // Interpolate.
-        double* const u0 = dst->getPointer(0, depth);
-        double* const u1 = dst->getPointer(1, depth);
+        double* const u0 = dst->getPointer(0);
+        double* const u1 = dst->getPointer(1);
+#if (NDIM == 3)
+        double* const u2 = dst->getPointer(2);
+#endif
+        const double* const V = src->getPointer(0);
+
+        C_TO_S_CWISE_INTERP_FC(u0,
+                               u1,
+#if (NDIM == 3)
+                               u2,
+#endif
+                               u_ghosts,
+                               V,
+                               V_ghosts,
+                               patch_box.lower(0),
+                               patch_box.upper(0),
+                               patch_box.lower(1),
+                               patch_box.upper(1)
+#if (NDIM == 3)
+                                   ,
+                               patch_box.lower(2),
+                               patch_box.upper(2)
+#endif
+        );
+    }
+    else
+    {
+        for (int depth = 0; depth < dst->getDepth(); ++depth)
+        {
+            // Interpolate.
+            double* const u0 = dst->getPointer(0, depth);
+            double* const u1 = dst->getPointer(1, depth);
 #if (NDIM == 3)
         double* const u2 = dst->getPointer(2, depth);
 #endif
@@ -4163,6 +4209,7 @@ PatchMathOps::interp(Pointer<SideData<NDIM, double> > dst,
                          patch_box.upper(2)
 #endif
         );
+        }
     }
     return;
 } // interp

@@ -499,6 +499,7 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string
     if (input_db->keyExists("rho_refine_type")) d_rho_refine_type = input_db->getString("rho_refine_type");
     if (input_db->keyExists("rho_bdry_extrap_type"))
         d_rho_bdry_extrap_type = input_db->getString("rho_bdry_extrap_type");
+    if (input_db->keyExists("use_turbulence_model")) d_use_turb_model = input_db->getBool("use_turbulence_model");
 
     // Initialize all variables.  The velocity, pressure, body force, and fluid
     // source variables were created above in the constructor for the
@@ -780,6 +781,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     const IntVector<NDIM> edge_ghosts = EDGEG;
     const IntVector<NDIM> no_ghosts = 0;
     const IntVector<NDIM> mu_cell_ghosts = MUCELLG;
+    const IntVector<NDIM> mu_t_cell_ghosts = MUCELLG;
 
     registerVariable(d_U_old_current_idx,
                      d_U_old_new_idx,
@@ -917,6 +919,26 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
             new CellVariable<NDIM, double>(d_object_name + "_mu_cc_scratch_var",
                                            /*depth*/ 1);
         d_mu_scratch_idx = var_db->registerVariableAndContext(mu_cc_scratch_var, getScratchContext(), mu_cell_ghosts);
+    }
+
+    // register turbulent viscosity
+    if (d_mu_t_var)
+    {
+        registerVariable(d_mu_t_current_idx,
+                         d_mu_t_new_idx,
+                         d_mu_t_scratch_idx,
+                         d_mu_t_var,
+                         mu_t_cell_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE",
+                         d_mu_t_init_fcn);
+    }
+
+    // Store effective viscosity in case of turbulence
+    if (d_use_turb_model)
+    {
+        d_mu_eff_var = new CellVariable<NDIM, double>(d_mu_var->getName() + "::eff", /*depth*/ 1);
+        registerVariable(d_mu_eff_scratch_idx, d_mu_eff_var, mu_cell_ghosts, getScratchContext());
     }
 
     // Register plot variables that are maintained by the
@@ -1207,6 +1229,10 @@ INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         if (!level->checkAllocated(d_mu_interp_linear_op_idx))
             level->allocatePatchData(d_mu_interp_linear_op_idx, current_time);
         if (!level->checkAllocated(d_rho_linear_op_idx)) level->allocatePatchData(d_rho_linear_op_idx, current_time);
+        if (d_use_turb_model)
+        {
+            if (!level->checkAllocated(d_mu_eff_scratch_idx)) level->allocatePatchData(d_mu_eff_scratch_idx);
+        }
     }
 
     // Preprocess the operators and solvers
@@ -1377,11 +1403,28 @@ INSVCStaggeredHierarchyIntegrator::registerViscosityVariable(Pointer<Variable<ND
     return;
 } // registerViscosityVariable
 
+void
+INSVCStaggeredHierarchyIntegrator::registerTurbulentViscosityVariable(Pointer<CellVariable<NDIM, double> > mu_t_var)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_mu_t_var);
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    d_mu_t_var = mu_t_var;
+    return;
+} // registerViscosityVariable
+
 Pointer<Variable<NDIM> >
 INSVCStaggeredHierarchyIntegrator::getViscosityVariable() const
 {
     return d_mu_var;
 } // getViscosityVariable
+
+Pointer<Variable<NDIM> >
+INSVCStaggeredHierarchyIntegrator::getTurbulentViscosityVariable() const
+{
+    return d_mu_t_var;
+} // getTurbulentViscosityVariable
 
 void
 INSVCStaggeredHierarchyIntegrator::setDensityVCInterpolationType(const IBTK::VCInterpType vc_interp_type)
@@ -1442,6 +1485,18 @@ INSVCStaggeredHierarchyIntegrator::registerViscosityInitialConditions(const Poin
 } // registerViscosityInitialConditions
 
 void
+INSVCStaggeredHierarchyIntegrator::registerTurbulentViscosityInitialConditions(
+    const Pointer<CartGridFunction> mu_t_init_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_mu_t_init_fcn);
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    d_mu_t_init_fcn = mu_t_init_fcn;
+    return;
+} // registerTurbulentViscosityInitialConditions
+
+void
 INSVCStaggeredHierarchyIntegrator::registerViscosityBoundaryConditions(RobinBcCoefStrategy<NDIM>* mu_bc_coef)
 {
 #if !defined(NDEBUG)
@@ -1450,6 +1505,17 @@ INSVCStaggeredHierarchyIntegrator::registerViscosityBoundaryConditions(RobinBcCo
     d_mu_bc_coef = mu_bc_coef;
     return;
 } // registerViscosityBoundaryConditions
+
+void
+INSVCStaggeredHierarchyIntegrator::registerTurbulentViscosityBoundaryConditions(RobinBcCoefStrategy<NDIM>* mu_t_bc_coef)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_mu_t_bc_coef);
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    d_mu_t_bc_coef = mu_t_bc_coef;
+    return;
+} // registerTurbulentViscosityBoundaryConditions
 
 void
 INSVCStaggeredHierarchyIntegrator::setTransportedViscosityVariable(Pointer<CellVariable<NDIM, double> > mu_adv_diff_var)
@@ -1819,10 +1885,30 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     {
         // These options are chosen to ensure that information is propagated
         // conservatively from the coarse cells only
-        InterpolationTransactionComponent mu_bc_component(
-            d_mu_scratch_idx, d_mu_refine_type, false, d_mu_coarsen_type, d_mu_bdry_extrap_type, false, d_mu_bc_coef);
-        d_mu_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-        d_mu_bdry_bc_fill_op->initializeOperatorState(mu_bc_component, d_hierarchy);
+        if (d_use_turb_model)
+        {
+            InterpolationTransactionComponent mu_eff_bc_component(d_mu_eff_scratch_idx,
+                                                                  d_mu_refine_type,
+                                                                  false,
+                                                                  d_mu_coarsen_type,
+                                                                  d_mu_bdry_extrap_type,
+                                                                  false,
+                                                                  d_mu_bc_coef);
+            d_mu_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+            d_mu_bdry_bc_fill_op->initializeOperatorState(mu_eff_bc_component, d_hierarchy);
+        }
+        else
+        {
+            InterpolationTransactionComponent mu_bc_component(d_mu_scratch_idx,
+                                                              d_mu_refine_type,
+                                                              false,
+                                                              d_mu_coarsen_type,
+                                                              d_mu_bdry_extrap_type,
+                                                              false,
+                                                              d_mu_bc_coef);
+            d_mu_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+            d_mu_bdry_bc_fill_op->initializeOperatorState(mu_bc_component, d_hierarchy);
+        }
     }
 
     // Setup the patch boundary synchronization objects.

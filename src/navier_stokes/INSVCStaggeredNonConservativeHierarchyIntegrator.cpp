@@ -919,6 +919,20 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setTransportedMassDensityVaria
     return;
 } // setTransportedMassDensityVariable
 
+Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >
+INSVCStaggeredNonConservativeHierarchyIntegrator::getCellCenteredMassDensityVariable()
+{
+    return d_rho_var;
+} // getCellCenteredMassDensityVariable
+
+std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>
+INSVCStaggeredNonConservativeHierarchyIntegrator::getMassDensityBoundaryConditions()
+{
+    std::vector<RobinBcCoefStrategy<NDIM>*> rho_bc_coefs(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) rho_bc_coefs[d] = d_rho_bc_coef;
+    return rho_bc_coefs;
+} // getMassDensityBoundaryConditions
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void

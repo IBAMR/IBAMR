@@ -228,6 +228,7 @@ AC_CONFIG_FILES([
   examples/navier_stokes/ex4/Makefile
   examples/navier_stokes/ex5/Makefile
   examples/navier_stokes/ex6/Makefile
+  examples/turbulence/ex0/Makefile
   examples/vc_navier_stokes/Makefile
   examples/vc_navier_stokes/ex0/Makefile
   examples/vc_navier_stokes/ex1/Makefile
@@ -249,6 +250,8 @@ AC_CONFIG_FILES([
   src/level_set/fortran/Makefile
   src/navier_stokes/Makefile
   src/navier_stokes/fortran/Makefile
+  src/turbulence/Makefile
+  src/turbulence/fortran/Makefile
   src/utilities/Makefile
   src/wave_generation/Makefile
   tests/Makefile

@@ -229,14 +229,29 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getMassDensityVariable() const;
 
     /*!
+     * Get the mass density variable registered with the hierarchy integrator.
+     */
+    virtual SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getCellCenteredMassDensityVariable() = 0;
+
+    /*!
      * Register a variable viscosity variable with the hierarchy integrator.
      */
     void registerViscosityVariable(SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var);
 
     /*!
+     * Register a variable viscosity variable with the hierarchy integrator.
+     */
+    void registerTurbulentViscosityVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > mu_t_var);
+
+    /*!
      * Get the viscosity variable registered with the hierarchy integrator.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getViscosityVariable() const;
+
+    /*!
+     * Get the viscosity variable registered with the hierarchy integrator.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getTurbulentViscosityVariable() const;
 
     /*!
      * Set the interpolation type used for material properties rho
@@ -288,6 +303,11 @@ public:
      */
     void registerViscosityInitialConditions(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> mu_init_fcn);
 
+    /*!
+     * \brief Supply initial conditions for the turbulent viscosity field, if maintained by the fluid integrator.
+     */
+    void registerTurbulentViscosityInitialConditions(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> mu_t_init_fcn);
+
     /*
      * \brief Pure virtual method to supply boundary conditions for the density field, if maintained by the fluid
      * integrator.
@@ -295,11 +315,22 @@ public:
     virtual void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* rho_bc_coef) = 0;
 
     /*
+     * \brief Pure virtual method to supply boundary conditions for the density field, if maintained by the fluid
+     * integrator.
+     */
+    virtual std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> getMassDensityBoundaryConditions() = 0;
+
+    /*
      * \brief Supply boundary conditions for the density field, if maintained by the fluid integrator.
      *
      * \note The boundary conditions set here will be overwritten if viscosity if being advected.
      */
     void registerViscosityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* mu_bc_coef);
+
+    /*
+     * \brief Supply boundary conditions for the turbulent viscosity field, if maintained by the fluid integrator.
+     */
+    void registerTurbulentViscosityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* mu_t_bc_coef);
 
     /*
      * \brief Set the transported viscosity variable if it is being maintained by the advection-diffusion integrator.
@@ -577,6 +608,7 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_EE_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_rho_var, d_mu_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_mu_t_var, d_mu_eff_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_pressure_D_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_pressure_rhs_D_var;
@@ -646,6 +678,8 @@ protected:
     int d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx;
     int d_N_old_current_idx, d_N_old_new_idx, d_N_old_scratch_idx;
     int d_mu_current_idx, d_mu_new_idx, d_mu_scratch_idx;
+    int d_mu_t_current_idx, d_mu_t_new_idx, d_mu_t_scratch_idx;
+    int d_mu_eff_scratch_idx;
 
     /*
      * Patch data descriptor indices for all "plot" variables managed by the
@@ -677,6 +711,9 @@ protected:
      */
     bool d_rho_is_const = false, d_mu_is_const = false;
 
+    /*! check whether the turbulence model is required for the application */
+    bool d_use_turb_model = false;
+
     /*
      * Variable to indicate the type of interpolation to be done for rho and mu.
      */
@@ -695,7 +732,7 @@ protected:
     /*
      * Objects to set initial condition for density and viscosity when they are maintained by the fluid integrator.
      */
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_rho_init_fcn, d_mu_init_fcn;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_rho_init_fcn, d_mu_init_fcn, d_mu_t_init_fcn;
 
     /*
      * Boundary condition objects for viscosity, which is provided by an appropriate advection-diffusion
@@ -703,6 +740,11 @@ protected:
      * or set by the fluid integrator.
      */
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_mu_bc_coef = nullptr;
+
+    /*
+     * Boundary condition objects for turbulent viscosity
+     */
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_mu_t_bc_coef = nullptr;
 
     /*
      * Variable to keep track of a transported viscosity variable maintained by an advection-diffusion integrator

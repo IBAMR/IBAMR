@@ -113,6 +113,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/Wall.cpp \
 ../src/IB/WallForceEvaluator.cpp \
 ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
+../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
 ../src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp \
@@ -182,6 +183,8 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 ../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 ../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
+../src/turbulence/TurbulenceSSTKOmegaSourceFunction.cpp \
+../src/turbulence/TwoEquationTurbulenceHierarchyIntegrator.cpp \
 ../src/utilities/ConvectiveOperator.cpp \
 ../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
 ../src/wave_generation/IrregularWaveBcCoef.cpp \
@@ -210,7 +213,8 @@ endif
 
 pkg_include_HEADERS += \
 ../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
-../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
+../include/ibamr/AdvDiffCUIConservativeConvectiveOperator.h \
+../include/ibamr/AdvDiffCUIConvectiveOperator.h \
 ../include/ibamr/AdvDiffConvectiveOperatorManager.h \
 ../include/ibamr/AdvDiffHierarchyIntegrator.h \
 ../include/ibamr/AdvDiffPPMConvectiveOperator.h \
@@ -325,6 +329,8 @@ pkg_include_HEADERS += \
 ../include/ibamr/StokesSpecifications.h \
 ../include/ibamr/StokesWaveGeneratorStrategy.h \
 ../include/ibamr/SurfaceTensionForceFunction.h \
+../include/ibamr/TurbulenceSSTKOmegaSourceFunction.h \
+../include/ibamr/TwoEquationTurbulenceHierarchyIntegrator.h \
 ../include/ibamr/VCStaggeredStokesOperator.h \
 ../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
 ../include/ibamr/Wall.h \
@@ -368,7 +374,8 @@ $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing2d.f \
-$(top_builddir)/src/navier_stokes/fortran/navier_stokes_surface_tension_forcing2d.f
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_surface_tension_forcing2d.f \
+$(top_builddir)/src/turbulence/fortran/turbulence_sst_k_omega_source_term2d.f
 
 libIBAMR3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 libIBAMR3d_a_CFLAGS = $(AM_CFLAGS) -DNDIM=3
@@ -391,4 +398,5 @@ $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stabledt3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_derivatives3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing3d.f \
-$(top_builddir)/src/navier_stokes/fortran/navier_stokes_surface_tension_forcing3d.f
+$(top_builddir)/src/navier_stokes/fortran/navier_stokes_surface_tension_forcing3d.f \
+$(top_builddir)/src/turbulence/fortran/turbulence_sst_k_omega_source_term3d.f

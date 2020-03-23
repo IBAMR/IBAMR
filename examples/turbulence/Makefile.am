@@ -13,19 +13,15 @@
 
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = CIB ConstraintIB IB IBFE IBLevelSet IMP adv_diff advect navier_stokes level_set multiphase_flow turbulence vc_navier_stokes wave_tank
+SUBDIRS = ex0
 
-all:
-	if test "$(CONFIGURATION_BUILD_DIR)" != ""; then \
-	  $(MAKE) examples ; \
-	fi ;
-
-COMPLETE_EXAMPLES = CIB ConstraintIB IB IBFE IBLevelSet adv_diff advect navier_stokes level_set multiphase_flow turbulence vc_navier_stokes wave_tank
-# Not all examples can be compiled at the present time
-INCOMPLETE_EXAMPLES = IMP
+COMPLETE_EXAMPLES = $(SUBDIRS)
+INCOMPLETE_EXAMPLES =
 .PHONY: examples $(COMPLETE_EXAMPLES)
 examples: $(COMPLETE_EXAMPLES)
 
 $(COMPLETE_EXAMPLES):
 	cd $@ && $(MAKE) $(AM_MAKEFLAGS) examples
+
+
 
