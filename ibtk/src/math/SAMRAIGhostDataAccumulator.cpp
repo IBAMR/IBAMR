@@ -77,8 +77,6 @@ add_or_get(Pointer<PatchLevel<NDIM> >& level,
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         TBOX_ASSERT(gcw == patch->getPatchData(value_idx)->getGhostCellWidth());
-        Box<NDIM> box;
-        int depth = -1;
         std::vector<ArrayData<NDIM, double>*> values_ptrs;
         std::vector<ArrayData<NDIM, int>*> dofs_ptrs;
         if (cc_data) // semantics are slightly different for side-centered data
@@ -87,11 +85,6 @@ add_or_get(Pointer<PatchLevel<NDIM> >& level,
             Pointer<CellData<NDIM, int> > dof_data = patch->getPatchData(local_dof_idx);
             TBOX_ASSERT(value_data);
             TBOX_ASSERT(dof_data);
-
-            box = value_data->getGhostBox();
-            depth = value_data->getDepth();
-            TBOX_ASSERT(depth == dof_data->getDepth());
-            TBOX_ASSERT(box == dof_data->getGhostBox());
 
             dofs_ptrs.push_back(&dof_data->getArrayData());
             values_ptrs.push_back(&value_data->getArrayData());
@@ -103,11 +96,6 @@ add_or_get(Pointer<PatchLevel<NDIM> >& level,
             TBOX_ASSERT(value_data);
             TBOX_ASSERT(dof_data);
 
-            box = value_data->getGhostBox();
-            depth = value_data->getDepth();
-            TBOX_ASSERT(depth == dof_data->getDepth());
-            TBOX_ASSERT(box == dof_data->getGhostBox());
-
             for (int d = 0; d < NDIM; ++d)
             {
                 dofs_ptrs.push_back(&dof_data->getArrayData(d));
@@ -115,7 +103,6 @@ add_or_get(Pointer<PatchLevel<NDIM> >& level,
             }
         }
 
-        const auto size = box.size() * depth;
         static_assert(std::is_same<PetscInt, int>::value, "only implemented for 32-bit PETSc indices");
         Vec local;
         int ierr = VecGhostGetLocalForm(vec, &local);
@@ -124,6 +111,8 @@ add_or_get(Pointer<PatchLevel<NDIM> >& level,
         IBTK_CHKERRQ(ierr);
         for (unsigned int d = 0; d < dofs_ptrs.size(); ++d)
         {
+            const PetscInt size = dofs_ptrs[d]->getDepth() * dofs_ptrs[d]->getOffset();
+            TBOX_ASSERT(size == values_ptrs[d]->getDepth() * values_ptrs[d]->getOffset());
             if (add)
                 ierr = VecSetValues(local, size, dofs_ptrs[d]->getPointer(), values_ptrs[d]->getPointer(), ADD_VALUES);
             else
