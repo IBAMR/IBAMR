@@ -1123,11 +1123,11 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                     {
                         for (unsigned int k = 0; k < n_basis_jump; ++k)
                         {
-                            const double p_jump_JxW = phi_DU_jump[k][qp] * JxW_jump[qp];
+                            const double p_JxW_jump = phi_DU_jump[k][qp] * JxW_jump[qp];
                             for (unsigned int d = 0; d < NDIM; ++d)
                             {
-                                WSS_in_rhs_e[d](k) += WSS_in(d) * p_jump_JxW;
-                                WSS_out_rhs_e[d](k) += WSS_out(d) * p_jump_JxW;
+                                WSS_in_rhs_e[d](k) += WSS_in(d) * p_JxW_jump;
+                                WSS_out_rhs_e[d](k) += WSS_out(d) * p_JxW_jump;
                             }
                         }
                     }
