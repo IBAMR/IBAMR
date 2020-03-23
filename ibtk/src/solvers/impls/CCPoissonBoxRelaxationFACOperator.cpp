@@ -926,7 +926,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
         std::vector<int> idxn(stencil_sz);
         const int idxm = ghost_box.offset(i);
 
-        std::transform(mat_stencil.begin(), mat_stencil.end(), idxn.begin(), std::bind2nd(std::plus<int>(), idxm));
+        std::transform(mat_stencil.begin(), mat_stencil.end(), idxn.begin(), [=](const int& i) { return i + idxm; });
         ierr = MatSetValues(A, m, &idxm, n, &idxn[0], &mat_vals[0], INSERT_VALUES);
         IBTK_CHKERRQ(ierr);
     }
@@ -1137,7 +1137,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
         std::vector<int> idxn(stencil_sz);
         const int idxm = ghost_box.offset(i);
 
-        std::transform(mat_stencil.begin(), mat_stencil.end(), idxn.begin(), std::bind2nd(std::plus<int>(), idxm));
+        std::transform(mat_stencil.begin(), mat_stencil.end(), idxn.begin(), [=](const int& i) { return i + idxm; });
         ierr = MatSetValues(A, m, &idxm, n, &idxn[0], &mat_vals[0], INSERT_VALUES);
         IBTK_CHKERRQ(ierr);
     }
