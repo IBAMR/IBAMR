@@ -722,8 +722,8 @@ protected:
     std::vector<libMesh::Order> d_default_quad_order;
     bool d_use_consistent_mass_matrix = true;
     bool d_use_direct_forcing = false;
-    double d_wss_calc_width = 0.0;
-    double d_p_calc_width = 0.0;
+    double d_wss_calc_width = 1.05;
+    double d_p_calc_width = 1.3;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
