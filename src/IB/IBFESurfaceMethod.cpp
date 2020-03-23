@@ -432,11 +432,22 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
 {
     batch_vec_ghost_update(
         {
-            d_X->new_vecs, d_U->new_vecs, d_U_n->new_vecs, d_U_t->new_vecs, d_F->half_vecs, d_P_jump->half_vecs,
-                d_WSS_in->half_vecs, d_WSS_out->half_vecs, d_P_in->half_vecs, d_P_out->half_vecs, d_TAU_in->half_vecs,
-                d_TAU_out->half_vecs, d_DU_jump[0]->half_vecs, d_DU_jump[1]->half_vecs,
+            d_X->new_vecs, d_U->new_vecs, d_U_n->new_vecs, d_U_t->new_vecs, d_F->half_vecs
+#if (d_use_pressure_jump_conditions)
+                ,
+                d_P_jump->half_vecs, d_P_in->half_vecs, d_P_out->half_vecs
+#endif
+#if (d_use_velocity_jump_conditions)
+                ,
+                d_WSS_in->half_vecs, d_WSS_out->half_vecs, d_DU_jump[0]->half_vecs, d_DU_jump[1]->half_vecs
 #if (NDIM == 3)
+                ,
                 d_DU_jump[2]->half_vecs
+#endif
+#endif
+#if (d_compute_fluid_traction)
+                ,
+                d_TAU_in->half_vecs, d_TAU_out->half_vecs
 #endif
         },
         INSERT_VALUES,
@@ -446,7 +457,8 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int p_data_idx = var_db->mapVariableAndContextToIndex(getINSHierarchyIntegrator()->getPressureVariable(),
                                                                 getINSHierarchyIntegrator()->getScratchContext());
-    calculateInterfacialFluidForces(p_data_idx, d_new_time); // TODO: Should this be half_time?
+    if (d_compute_fluid_traction)
+        calculateInterfacialFluidForces(p_data_idx, d_new_time); // TODO: Should this be half_time?
 
     // Reset time-dependent Lagrangian data and free FE data structures
     d_fe_system_data.clear();
