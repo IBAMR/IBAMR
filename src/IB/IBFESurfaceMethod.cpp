@@ -310,7 +310,7 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
                                                                                         /*has_current_vecs*/ true,
                                                                                         /*has_half_vecs*/ true,
                                                                                         /*has_new_vecs*/ true,
-                                                                                        /*has_IB_ghost_vecs*/ false)));
+                                                                                        /*has_IB_ghost_vecs*/ true)));
     d_X = d_fe_system_data.back().get();
 
     d_fe_system_data.push_back(std::unique_ptr<LibMeshSystemData>(new LibMeshSystemData(VELOCITY_SYSTEM_NAME,
@@ -486,10 +486,10 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         NumericVector<double>* X_vec = nullptr;
         NumericVector<double>* X_ghost_vec = d_X->IB_ghost_vecs[part];
         const std::array<PetscVector<double>*, NDIM> DU_jump_ghost_vec = {
-            d_DU_jump[0]->IB_ghost_vecs[part],
-            d_DU_jump[1]->IB_ghost_vecs[part],
+            d_use_velocity_jump_conditions ? d_DU_jump[0]->IB_ghost_vecs[part] : nullptr,
+            d_use_velocity_jump_conditions ? d_DU_jump[1]->IB_ghost_vecs[part] : nullptr,
 #if (NDIM > 2)
-            d_DU_jump[2]->IB_ghost_vecs[part],
+            d_use_velocity_jump_conditions ? d_DU_jump[2]->IB_ghost_vecs[part] : nullptr,
 #endif
         };
         if (MathUtilities<double>::equalEps(data_time, d_current_time))
@@ -515,8 +515,8 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         }
         copy_and_synch(*X_vec, *X_ghost_vec);
 
-        NumericVector<double>* WSS_in_vec = d_WSS_in->half_vecs[part];
-        NumericVector<double>* WSS_out_vec = d_WSS_out->half_vecs[part];
+        NumericVector<double>* WSS_in_vec = d_use_velocity_jump_conditions ? d_WSS_in->half_vecs[part] : nullptr;
+        NumericVector<double>* WSS_out_vec = d_use_velocity_jump_conditions ? d_WSS_out->half_vecs[part] : nullptr;
 
         // Extract the mesh.
         EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
@@ -2115,7 +2115,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         NumericVector<double>* X_vec = d_X->half_vecs[part];
         double surface_area = 0.0;
 
-        NumericVector<double>* P_jump_vec = d_P_jump->half_vecs[part];
+        NumericVector<double>* P_jump_vec = d_use_pressure_jump_conditions ? d_P_jump->half_vecs[part] : nullptr;
         std::unique_ptr<NumericVector<double> > P_jump_rhs_vec;
         DenseVector<double> P_jump_rhs_e;
         if (d_use_pressure_jump_conditions)
@@ -2131,7 +2131,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                DU_jump_vec[d] = d_DU_jump[d]->half_vecs[part];
+                DU_jump_vec[d] = d_use_velocity_jump_conditions ? d_DU_jump[d]->half_vecs[part] : nullptr;
                 DU_jump_rhs_vec[d] = DU_jump_vec[d]->zero_clone();
             }
         }
