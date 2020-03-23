@@ -541,8 +541,6 @@ INSVCStaggeredHierarchyIntegrator::~INSVCStaggeredHierarchyIntegrator()
     }
     delete d_P_bc_coef;
     d_P_bc_coef = nullptr;
-    delete d_fill_after_regrid_phys_bdry_bc_op;
-    d_fill_after_regrid_phys_bdry_bc_op = nullptr;
     d_velocity_solver.setNull();
     d_pressure_solver.setNull();
     if (d_U_rhs_vec) d_U_rhs_vec->freeVectorComponents();
@@ -1147,7 +1145,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     d_convective_op = getConvectiveOperator();
 
     // Setup a boundary op to set velocity boundary conditions on regrid.
-    d_fill_after_regrid_phys_bdry_bc_op = new CartSideRobinPhysBdryOp(d_U_scratch_idx, d_U_bc_coefs, false);
+    d_fill_after_regrid_phys_bdry_bc_op.reset(new CartSideRobinPhysBdryOp(d_U_scratch_idx, d_U_bc_coefs, false));
 
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;

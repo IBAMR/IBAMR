@@ -124,7 +124,6 @@ HierarchyIntegrator::HierarchyIntegrator(std::string object_name, Pointer<Databa
     // Create default communications algorithms.
     d_coarsen_algs[SYNCH_CURRENT_DATA_ALG] = new CoarsenAlgorithm<NDIM>();
     d_coarsen_algs[SYNCH_NEW_DATA_ALG] = new CoarsenAlgorithm<NDIM>();
-    d_fill_after_regrid_phys_bdry_bc_op = nullptr;
     return;
 } // HierarchyIntegrator
 
@@ -759,7 +758,7 @@ HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> 
         fill_after_regrid_prolong_patch_strategies.push_back(&fill_after_regrid_extrap_bc_op);
         if (d_fill_after_regrid_phys_bdry_bc_op)
         {
-            fill_after_regrid_prolong_patch_strategies.push_back(d_fill_after_regrid_phys_bdry_bc_op);
+            fill_after_regrid_prolong_patch_strategies.push_back(d_fill_after_regrid_phys_bdry_bc_op.get());
         }
         RefinePatchStrategySet fill_after_regrid_patch_strategy_set(fill_after_regrid_prolong_patch_strategies.begin(),
                                                                     fill_after_regrid_prolong_patch_strategies.end(),
