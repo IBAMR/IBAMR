@@ -430,43 +430,32 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
 void
 IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
 {
-    //~ batch_vec_ghost_update(
-        //~ {
-            //~ d_X->new_vecs, d_U->new_vecs, d_U_n->new_vecs, d_U_t->new_vecs, d_F->half_vecs, d_P_jump->half_vecs,
-                //~ d_WSS_in->half_vecs, d_WSS_out->half_vecs, d_P_in->half_vecs, d_P_out->half_vecs, d_TAU_in->half_vecs,
-                //~ d_TAU_out->half_vecs, d_DU_jump[0]->half_vecs, d_DU_jump[1]->half_vecs,
-//~ #if (NDIM == 3)
-                //~ d_DU_jump[2]->half_vecs
-//~ #endif
-        //~ },
-        //~ INSERT_VALUES,
-        //~ SCATTER_FORWARD);
         
 	std::vector<std::vector<libMesh::PetscVector<double>*> > vec_collection_update = {d_U->new_vecs,d_X->new_vecs,d_U_n->new_vecs,
 																						d_U_t->new_vecs, d_F->half_vecs};
 																						
 	if (d_use_pressure_jump_conditions)
 	{
-		Vec_collection_update.push_back(d_P_jump->half_vecs);
-		Vec_collection_update.push_back(d_P_in->half_vecs);
-		Vec_collection_update.push_back(d_P_out->half_vecs);
+		vec_collection_update.push_back(d_P_jump->half_vecs);
+		vec_collection_update.push_back(d_P_in->half_vecs);
+		vec_collection_update.push_back(d_P_out->half_vecs);
 	} 
 	if (d_use_velocity_jump_conditions)
 	{
-		Vec_collection_update.push_back(d_WSS_in->half_vecs);
-		Vec_collection_update.push_back(d_WSS_out->half_vecs);
-		Vec_collection_update.push_back(d_DU_jump[0]->half_vecs);
-		Vec_collection_update.push_back(d_DU_jump[1]->half_vecs);
+		vec_collection_update.push_back(d_WSS_in->half_vecs);
+		vec_collection_update.push_back(d_WSS_out->half_vecs);
+		vec_collection_update.push_back(d_DU_jump[0]->half_vecs);
+		vec_collection_update.push_back(d_DU_jump[1]->half_vecs);
 #if (NDIM == 3)
-		Vec_collection_update.push_back(d_DU_jump[2]->half_vecs);
+		vec_collection_update.push_back(d_DU_jump[2]->half_vecs);
 #endif
 	}
 	if (d_compute_fluid_traction)
 	{
-		Vec_collection_update.push_back(d_TAU_in->half_vecs);
-		Vec_collection_update.push_back(d_TAU_out->half_vecs);	
+		vec_collection_update.push_back(d_TAU_in->half_vecs);
+		vec_collection_update.push_back(d_TAU_out->half_vecs);	
 	}			
-	batch_vec_ghost_update(Vec_collection_update, INSERT_VALUES, SCATTER_FORWARD);
+	batch_vec_ghost_update(vec_collection_update, INSERT_VALUES, SCATTER_FORWARD);
         
 
     // Evaluate the fluid forces on the interface.
@@ -2010,6 +1999,7 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
     d_P_in->half_vecs[part]->close();
     d_P_out->half_vecs[part]->close();
     d_X->IB_ghost_vecs[part]->close();
+    d_P_jump->half_vecs[part]->close();
 }
 
 void
