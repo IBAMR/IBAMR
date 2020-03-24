@@ -604,12 +604,6 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
     d_half_time = current_time + 0.5 * (new_time - current_time);
 
     // Extract the FE data.
-    d_U_systems.resize(d_num_parts);
-    d_U_current_vecs.resize(d_num_parts);
-    d_U_rhs_vecs.resize(d_num_parts);
-    d_U_new_vecs.resize(d_num_parts);
-    d_U_half_vecs.resize(d_num_parts);
-
     d_F_systems.resize(d_num_parts);
     d_F_half_vecs.resize(d_num_parts);
     d_F_rhs_vecs.resize(d_num_parts);
@@ -627,15 +621,6 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        d_U_systems[part] = &d_equation_systems[part]->get_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
-        d_U_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->current_local_solution.get());
-        if (d_use_ghosted_velocity_rhs)
-            d_U_rhs_vecs[part] = d_U_IB_rhs_vecs[part].get();
-        else
-            d_U_rhs_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->rhs);
-        d_U_new_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->request_vector("new"));
-        d_U_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->request_vector("half"));
-
         d_F_systems[part] = &d_equation_systems[part]->get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
         d_F_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->current_local_solution.get());
         d_F_rhs_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->rhs);
@@ -658,12 +643,6 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
             d_Phi_rhs_vecs[part] = dynamic_cast<PetscVector<double>*>(d_Phi_systems[part]->rhs);
         }
 
-        // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
-        // U^{n+1/2} and U^{n+1} to equal U^{n}.
-        *d_U_current_vecs[part] = *d_U_systems[part]->solution;
-        *d_U_new_vecs[part] = *d_U_current_vecs[part];
-        *d_U_half_vecs[part] = *d_U_current_vecs[part];
-
         *d_F_half_vecs[part] = *d_F_systems[part]->solution;
 
         if (d_lag_body_source_part[part])
@@ -682,8 +661,10 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
         }
     }
 
-    // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}
+    // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
+    // U^{n+1/2} and U^{n+1} to equal U^{n}.
     d_X_vecs->copy("solution", { "current", "new", "half" });
+    d_U_vecs->copy("solution", { "current", "new", "half" });
 
     // Update the mask data.
     getVelocityHierarchyDataOps()->copyData(mask_new_idx, mask_current_idx);
@@ -693,18 +674,17 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
 void
 IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
-    batch_vec_ghost_update({ d_X_vecs->get("new"), d_U_new_vecs, d_F_half_vecs, d_Q_half_vecs, d_Phi_half_vecs },
-                           INSERT_VALUES,
-                           SCATTER_FORWARD);
+    batch_vec_ghost_update(
+        { d_X_vecs->get("new"), d_U_vecs->get("new"), d_F_half_vecs, d_Q_half_vecs, d_Phi_half_vecs },
+        INSERT_VALUES,
+        SCATTER_FORWARD);
 
     d_X_vecs->copy("new", { "solution", "current" });
+    d_U_vecs->copy("new", { "solution", "current" });
 
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         // Reset time-dependent Lagrangian data.
-        *d_U_systems[part]->solution = *d_U_new_vecs[part];
-        *d_U_systems[part]->current_local_solution = *d_U_new_vecs[part];
-
         if (d_lag_body_source_part[part])
         {
             *d_Q_systems[part]->solution = *d_Q_half_vecs[part];
@@ -725,12 +705,6 @@ IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int n
         // Update the coordinate mapping dX = X - s.
         updateCoordinateMapping(part);
     }
-
-    d_U_systems.clear();
-    d_U_current_vecs.clear();
-    d_U_rhs_vecs.clear();
-    d_U_new_vecs.clear();
-    d_U_half_vecs.clear();
 
     d_F_systems.clear();
     d_F_half_vecs.clear();
@@ -778,36 +752,27 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         }
     }
 
-    std::vector<PetscVector<double>*> U_vecs(d_num_parts), X_vecs(d_num_parts);
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        *d_U_rhs_vecs[part] = 0.0;
-        if (MathUtilities<double>::equalEps(data_time, d_current_time))
-        {
-            U_vecs[part] = d_U_current_vecs[part];
-        }
-        else if (MathUtilities<double>::equalEps(data_time, d_half_time))
-        {
-            U_vecs[part] = d_U_half_vecs[part];
-        }
-        else if (MathUtilities<double>::equalEps(data_time, d_new_time))
-        {
-            U_vecs[part] = d_U_new_vecs[part];
-        }
-    }
-
+    std::vector<PetscVector<double>*> U_vecs(d_num_parts), U_rhs_vecs(d_num_parts), X_vecs(d_num_parts);
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         X_vecs = d_X_vecs->get("current");
+        U_vecs = d_U_vecs->get("current");
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
         X_vecs = d_X_vecs->get("half");
+        U_vecs = d_U_vecs->get("half");
     }
     else if (MathUtilities<double>::equalEps(data_time, d_new_time))
     {
         X_vecs = d_X_vecs->get("new");
+        U_vecs = d_U_vecs->get("new");
     }
+
+    if (d_use_ghosted_velocity_rhs)
+        U_rhs_vecs = d_U_vecs->getIBGhosted("tmp");
+    else
+        U_rhs_vecs = d_U_vecs->get("RHS Vector");
 
     std::vector<Pointer<RefineSchedule<NDIM> > > no_fill(u_ghost_fill_scheds.size(), nullptr);
 
@@ -821,17 +786,13 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         if (d_part_is_active[part])
         {
             d_active_fe_data_managers[part]->interpWeighted(u_data_idx,
-                                                            *d_U_rhs_vecs[part],
+                                                            *U_rhs_vecs[part],
                                                             *X_IB_ghost_vecs[part],
                                                             VELOCITY_SYSTEM_NAME,
                                                             no_fill,
                                                             data_time,
                                                             /*close_F*/ false,
                                                             /*close_X*/ false);
-        }
-        else
-        {
-            d_U_rhs_vecs[part]->zero();
         }
     }
 
@@ -841,12 +802,12 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 
     if (d_use_ghosted_velocity_rhs)
     {
-        batch_vec_ghost_update(d_U_rhs_vecs, ADD_VALUES, SCATTER_REVERSE);
-        batch_vec_ghost_update(d_U_rhs_vecs, INSERT_VALUES, SCATTER_FORWARD);
+        batch_vec_ghost_update(U_rhs_vecs, ADD_VALUES, SCATTER_REVERSE);
+        batch_vec_ghost_update(U_rhs_vecs, INSERT_VALUES, SCATTER_FORWARD);
     }
     else
     {
-        batch_vec_assembly(d_U_rhs_vecs);
+        batch_vec_assembly(U_rhs_vecs);
     }
 
     // Solve for the interpolated data.
@@ -855,14 +816,14 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         if (d_part_is_active[part])
         {
             // TODO: Commenting out this line changes the solution slightly.
-            *d_U_systems[part]->solution = *U_vecs[part];
-            d_active_fe_data_managers[part]->computeL2Projection(*d_U_systems[part]->solution,
-                                                                 *d_U_rhs_vecs[part],
+            d_U_vecs->get("solution", part) = *U_vecs[part];
+            d_active_fe_data_managers[part]->computeL2Projection(d_U_vecs->get("solution", part),
+                                                                 *U_rhs_vecs[part],
                                                                  VELOCITY_SYSTEM_NAME,
                                                                  d_interp_spec[part].use_consistent_mass_matrix,
                                                                  /*close_U*/ false,
                                                                  /*close_F*/ false);
-            *U_vecs[part] = *d_U_systems[part]->solution;
+            *U_vecs[part] = d_U_vecs->get("solution", part);
         }
         else
         {
@@ -878,8 +839,10 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
     const double dt = new_time - current_time;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        int ierr = VecWAXPY(
-            d_X_vecs->get("new", part).vec(), dt, d_U_current_vecs[part]->vec(), d_X_vecs->get("current", part).vec());
+        int ierr = VecWAXPY(d_X_vecs->get("new", part).vec(),
+                            dt,
+                            d_U_vecs->get("current", part).vec(),
+                            d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPBYPCZ(d_X_vecs->get("half", part).vec(),
                            0.5,
@@ -906,8 +869,10 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
     const double dt = new_time - current_time;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        int ierr = VecWAXPY(
-            d_X_vecs->get("new", part).vec(), dt, d_U_half_vecs[part]->vec(), d_X_vecs->get("current", part).vec());
+        int ierr = VecWAXPY(d_X_vecs->get("new", part).vec(),
+                            dt,
+                            d_U_vecs->get("half", part).vec(),
+                            d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPBYPCZ(d_X_vecs->get("half", part).vec(),
                            0.5,
@@ -936,10 +901,10 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
     {
         int ierr = VecWAXPY(d_X_vecs->get("new", part).vec(),
                             0.5 * dt,
-                            d_U_current_vecs[part]->vec(),
+                            d_U_vecs->get("current", part).vec(),
                             d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
-        ierr = VecAXPY(d_X_vecs->get("new", part).vec(), 0.5 * dt, d_U_new_vecs[part]->vec());
+        ierr = VecAXPY(d_X_vecs->get("new", part).vec(), 0.5 * dt, d_U_vecs->get("new", part).vec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPBYPCZ(d_X_vecs->get("half", part).vec(),
                            0.5,
@@ -990,7 +955,7 @@ IBFEMethod::computeLagrangianForce(const double data_time)
         {
             d_F_tmp_vecs[part]->zero();
             d_direct_forcing_kinematics_data[part]->computeLagrangianForce(
-                *d_F_tmp_vecs[part], d_X_vecs->get("half", part), *d_U_half_vecs[part], data_time);
+                *d_F_tmp_vecs[part], d_X_vecs->get("half", part), d_U_vecs->get("half", part), data_time);
             int ierr = VecAXPY(d_F_half_vecs[part]->vec(), 1.0, d_F_tmp_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
         }
@@ -1462,6 +1427,7 @@ IBFEMethod::doInitializeFEData(const bool use_present_data)
     // The choice of FEDataManager set is important here since it determines the
     // IB ghost regions.
     d_X_vecs.reset(new LibMeshSystemVectors(d_active_fe_data_managers, COORDS_SYSTEM_NAME));
+    d_U_vecs.reset(new LibMeshSystemVectors(d_active_fe_data_managers, VELOCITY_SYSTEM_NAME));
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Initialize FE equation systems.
@@ -1571,7 +1537,6 @@ IBFEMethod::updateCachedIBGhostedVectors()
 {
     d_F_IB_solution_vecs.resize(d_num_parts);
     d_Q_IB_solution_vecs.resize(d_num_parts);
-    if (d_use_ghosted_velocity_rhs) d_U_IB_rhs_vecs.resize(d_num_parts);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_F_IB_solution_vecs[part] = d_active_fe_data_managers[part]->buildIBGhostedVector(FORCE_SYSTEM_NAME);
@@ -1579,8 +1544,6 @@ IBFEMethod::updateCachedIBGhostedVectors()
         {
             d_Q_IB_solution_vecs[part] = d_active_fe_data_managers[part]->buildIBGhostedVector(SOURCE_SYSTEM_NAME);
         }
-        if (d_use_ghosted_velocity_rhs)
-            d_U_IB_rhs_vecs[part] = d_active_fe_data_managers[part]->buildIBGhostedVector(VELOCITY_SYSTEM_NAME);
     }
 }
 
@@ -1887,6 +1850,7 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
         updateCachedIBGhostedVectors();
 
         d_X_vecs->reinit();
+        d_U_vecs->reinit();
 
         if (d_use_scratch_hierarchy)
         {

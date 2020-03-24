@@ -1162,8 +1162,10 @@ protected:
      */
     std::unique_ptr<IBTK::LibMeshSystemVectors> d_X_vecs;
 
-    /// Vector of pointers to the velocity vectors (both solutions and RHS).
-    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_rhs_vecs, d_U_new_vecs, d_U_half_vecs;
+    /*!
+     * Object managing access to libMesh system vectors for the structure velocity.
+     */
+    std::unique_ptr<IBTK::LibMeshSystemVectors> d_U_vecs;
 
     /*!
      * Vectors of pointers to the body force vectors (both solutions and
