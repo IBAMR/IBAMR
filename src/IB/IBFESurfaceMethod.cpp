@@ -466,7 +466,7 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
 		Vec_collection_update.push_back(d_TAU_in->half_vecs);
 		Vec_collection_update.push_back(d_TAU_out->half_vecs);	
 	}			
-	batch_vec_ghost_update({Vec_collection_update}, INSERT_VALUES, SCATTER_FORWARD);
+	batch_vec_ghost_update(Vec_collection_update, INSERT_VALUES, SCATTER_FORWARD);
         
 
     // Evaluate the fluid forces on the interface.
