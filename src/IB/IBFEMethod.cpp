@@ -160,7 +160,7 @@ namespace IBAMR
 namespace
 {
 // Version of IBFEMethod restart file data.
-static const int IBFE_METHOD_VERSION = 2;
+static const int IBFE_METHOD_VERSION = 3;
 
 inline boundary_id_type
 get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
@@ -604,12 +604,6 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
     d_half_time = current_time + 0.5 * (new_time - current_time);
 
     // Extract the FE data.
-    d_F_systems.resize(d_num_parts);
-    d_F_half_vecs.resize(d_num_parts);
-    d_F_rhs_vecs.resize(d_num_parts);
-    d_F_tmp_vecs.resize(d_num_parts);
-    d_F_IB_ghost_vecs.resize(d_num_parts);
-
     d_Q_systems.resize(d_num_parts);
     d_Q_half_vecs.resize(d_num_parts);
     d_Q_rhs_vecs.resize(d_num_parts);
@@ -621,12 +615,6 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        d_F_systems[part] = &d_equation_systems[part]->get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
-        d_F_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->current_local_solution.get());
-        d_F_rhs_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->rhs);
-        d_F_tmp_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->request_vector("tmp"));
-        d_F_IB_ghost_vecs[part] = d_F_IB_solution_vecs[part].get();
-
         if (d_lag_body_source_part[part])
         {
             d_Q_systems[part] = &d_equation_systems[part]->get_system<ExplicitSystem>(SOURCE_SYSTEM_NAME);
@@ -642,8 +630,6 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
                 dynamic_cast<PetscVector<double>*>(d_Phi_systems[part]->current_local_solution.get());
             d_Phi_rhs_vecs[part] = dynamic_cast<PetscVector<double>*>(d_Phi_systems[part]->rhs);
         }
-
-        *d_F_half_vecs[part] = *d_F_systems[part]->solution;
 
         if (d_lag_body_source_part[part])
         {
@@ -665,6 +651,7 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
     // U^{n+1/2} and U^{n+1} to equal U^{n}.
     d_X_vecs->copy("solution", { "current", "new", "half" });
     d_U_vecs->copy("solution", { "current", "new", "half" });
+    d_F_vecs->copy("solution", { "half" });
 
     // Update the mask data.
     getVelocityHierarchyDataOps()->copyData(mask_new_idx, mask_current_idx);
@@ -675,7 +662,7 @@ void
 IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
     batch_vec_ghost_update(
-        { d_X_vecs->get("new"), d_U_vecs->get("new"), d_F_half_vecs, d_Q_half_vecs, d_Phi_half_vecs },
+        { d_X_vecs->get("new"), d_U_vecs->get("new"), d_F_vecs->get("half"), d_Q_half_vecs, d_Phi_half_vecs },
         INSERT_VALUES,
         SCATTER_FORWARD);
 
@@ -705,12 +692,6 @@ IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int n
         // Update the coordinate mapping dX = X - s.
         updateCoordinateMapping(part);
     }
-
-    d_F_systems.clear();
-    d_F_half_vecs.clear();
-    d_F_rhs_vecs.clear();
-    d_F_tmp_vecs.clear();
-    d_F_IB_ghost_vecs.clear();
 
     d_Q_systems.clear();
     d_Q_half_vecs.clear();
@@ -930,33 +911,33 @@ IBFEMethod::computeLagrangianForce(const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     batch_vec_ghost_update(d_X_vecs->get("half"), INSERT_VALUES, SCATTER_FORWARD);
+    d_F_vecs->zero("RHS Vector");
+    d_F_vecs->zero("tmp");
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         if (d_is_stress_normalization_part[part])
         {
             computeStressNormalization(*d_Phi_half_vecs[part], d_X_vecs->get("half", part), data_time, part);
         }
-        d_F_rhs_vecs[part]->zero();
         assembleInteriorForceDensityRHS(
-            *d_F_rhs_vecs[part], d_X_vecs->get("half", part), d_Phi_half_vecs[part], data_time, part);
+            d_F_vecs->get("RHS Vector", part), d_X_vecs->get("half", part), d_Phi_half_vecs[part], data_time, part);
     }
-    batch_vec_ghost_update(d_F_rhs_vecs, ADD_VALUES, SCATTER_REVERSE);
+    batch_vec_ghost_update(d_F_vecs->get("RHS Vector"), ADD_VALUES, SCATTER_REVERSE);
     // RHS vectors don't need ghost entries for the solve so we can skip the other scatter
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
-        d_active_fe_data_managers[part]->computeL2Projection(*d_F_systems[part]->solution,
-                                                             *d_F_rhs_vecs[part],
+        d_active_fe_data_managers[part]->computeL2Projection(d_F_vecs->get("solution", part),
+                                                             d_F_vecs->get("RHS Vector", part),
                                                              FORCE_SYSTEM_NAME,
                                                              d_use_consistent_mass_matrix,
                                                              /*close_U*/ false,
                                                              /*close_F*/ false);
-        *d_F_half_vecs[part] = *d_F_systems[part]->solution;
+        d_F_vecs->copy("solution", { "half" });
         if (d_direct_forcing_kinematics_data[part])
         {
-            d_F_tmp_vecs[part]->zero();
             d_direct_forcing_kinematics_data[part]->computeLagrangianForce(
-                *d_F_tmp_vecs[part], d_X_vecs->get("half", part), d_U_vecs->get("half", part), data_time);
-            int ierr = VecAXPY(d_F_half_vecs[part]->vec(), 1.0, d_F_tmp_vecs[part]->vec());
+                d_F_vecs->get("tmp", part), d_X_vecs->get("half", part), d_U_vecs->get("half", part), data_time);
+            int ierr = VecAXPY(d_F_vecs->get("half", part).vec(), 1.0, d_F_vecs->get("tmp", part).vec());
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -973,8 +954,9 @@ IBFEMethod::spreadForce(const int f_data_idx,
 
     // Communicate ghost data.
     std::vector<PetscVector<double>*> X_IB_ghost_vecs = d_X_vecs->getIBGhosted("tmp");
-    batch_vec_copy({ d_X_vecs->get("half"), d_F_half_vecs }, { X_IB_ghost_vecs, d_F_IB_ghost_vecs });
-    batch_vec_ghost_update({ X_IB_ghost_vecs, d_F_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
+    std::vector<PetscVector<double>*> F_IB_ghost_vecs = d_F_vecs->getIBGhosted("tmp");
+    batch_vec_copy({ d_X_vecs->get("half"), d_F_vecs->get("half") }, { X_IB_ghost_vecs, F_IB_ghost_vecs });
+    batch_vec_ghost_update({ X_IB_ghost_vecs, F_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
     // set up a new data index for computing forces on the active hierarchy.
     Pointer<PatchHierarchy<NDIM> > hierarchy = d_use_scratch_hierarchy ? d_scratch_hierarchy : d_hierarchy;
@@ -992,7 +974,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
     {
         if (!d_part_is_active[part]) continue;
         PetscVector<double>* X_ghost_vec = X_IB_ghost_vecs[part];
-        PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
+        PetscVector<double>* F_ghost_vec = F_IB_ghost_vecs[part];
         d_active_fe_data_managers[part]->spread(f_scratch_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME);
     }
 
@@ -1038,7 +1020,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
     {
         if (!d_part_is_active[part]) continue;
         PetscVector<double>* X_ghost_vec = X_IB_ghost_vecs[part];
-        PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
+        PetscVector<double>* F_ghost_vec = F_IB_ghost_vecs[part];
         if (d_split_normal_force || d_split_tangential_force)
         {
             if (d_use_jump_conditions && d_split_normal_force)
@@ -1388,8 +1370,7 @@ IBFEMethod::initializeFEEquationSystems()
 
         {
             auto& system = equation_systems.get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
-            const std::array<std::string, 2> vector_names{ { "tmp", "RHS Vector" } };
-            // const std::array<std::string, 1> vector_names{ { "tmp"/*, "RHS Vector"*/ } };
+            const std::array<std::string, 3> vector_names{ { "half", "tmp", "RHS Vector" } };
             for (const std::string& vector_name : vector_names)
             {
                 convert_parallel_to_ghosted(vector_name, system);
@@ -1428,6 +1409,7 @@ IBFEMethod::doInitializeFEData(const bool use_present_data)
     // IB ghost regions.
     d_X_vecs.reset(new LibMeshSystemVectors(d_active_fe_data_managers, COORDS_SYSTEM_NAME));
     d_U_vecs.reset(new LibMeshSystemVectors(d_active_fe_data_managers, VELOCITY_SYSTEM_NAME));
+    d_F_vecs.reset(new LibMeshSystemVectors(d_active_fe_data_managers, FORCE_SYSTEM_NAME));
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Initialize FE equation systems.
@@ -1535,11 +1517,9 @@ IBFEMethod::doInitializeFEData(const bool use_present_data)
 void
 IBFEMethod::updateCachedIBGhostedVectors()
 {
-    d_F_IB_solution_vecs.resize(d_num_parts);
     d_Q_IB_solution_vecs.resize(d_num_parts);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        d_F_IB_solution_vecs[part] = d_active_fe_data_managers[part]->buildIBGhostedVector(FORCE_SYSTEM_NAME);
         if (d_lag_body_source_part[part])
         {
             d_Q_IB_solution_vecs[part] = d_active_fe_data_managers[part]->buildIBGhostedVector(SOURCE_SYSTEM_NAME);
@@ -1851,6 +1831,7 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
 
         d_X_vecs->reinit();
         d_U_vecs->reinit();
+        d_F_vecs->reinit();
 
         if (d_use_scratch_hierarchy)
         {

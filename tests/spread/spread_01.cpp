@@ -325,7 +325,7 @@ main(int argc, char** argv)
             auto& fe_data_manager = *ib_method_ops->getFEDataManager(part_n);
             auto& equation_systems = *fe_data_manager.getEquationSystems();
             auto& force_system = equation_systems.get_system(IBFEMethod::FORCE_SYSTEM_NAME);
-            auto& half_f_vector = dynamic_cast<libMesh::PetscVector<double>&>(*force_system.current_local_solution);
+            auto& half_f_vector = dynamic_cast<libMesh::PetscVector<double>&>(force_system.get_vector("half"));
             for (unsigned int i = half_f_vector.first_local_index(); i < half_f_vector.last_local_index(); ++i)
             {
                 half_f_vector.set(i, i % 10);
@@ -358,7 +358,7 @@ main(int argc, char** argv)
             auto& fe_data_manager = *ib_method_ops->getFEDataManager(0);
             auto& equation_systems = *fe_data_manager.getEquationSystems();
             auto& force_system = equation_systems.get_system(IBFEMethod::FORCE_SYSTEM_NAME);
-            auto& F_vec = dynamic_cast<libMesh::PetscVector<double>&>(*force_system.current_local_solution);
+            auto& F_vec = dynamic_cast<libMesh::PetscVector<double>&>(force_system.get_vector("half"));
             auto& position_system = equation_systems.get_system(IBFEMethod::COORDS_SYSTEM_NAME);
             auto& X_vec = dynamic_cast<libMesh::PetscVector<double>&>(*position_system.current_local_solution);
             fe_data_manager.spread(

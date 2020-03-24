@@ -1168,12 +1168,9 @@ protected:
     std::unique_ptr<IBTK::LibMeshSystemVectors> d_U_vecs;
 
     /*!
-     * Vectors of pointers to the body force vectors (both solutions and
-     * RHS). All of these vectors are owned by the libMesh::System objects
-     * except for the ones in d_F_IB_ghost_vecs, which are owned by the
-     * FEDataManager objects.
+     * Object managing access to libMesh system vectors for the structure force.
      */
-    std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_rhs_vecs, d_F_tmp_vecs, d_F_IB_ghost_vecs;
+    std::unique_ptr<IBTK::LibMeshSystemVectors> d_F_vecs;
 
     /*!
      * Vectors of pointers to the fluid source or sink density vectors. All of
