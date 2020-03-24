@@ -190,6 +190,7 @@ DIM_DEPENDENT_SOURCES += \
 ../src/lagrangian/JacobianCalculator.cpp \
 ../src/lagrangian/FEDataInterpolation.cpp \
 ../src/lagrangian/FEDataManager.cpp \
+../src/utilities/LibMeshSystemVectors.cpp \
 ../src/utilities/libmesh_utilities.cpp
 endif
 
@@ -359,6 +360,7 @@ DIM_DEPENDENT_SOURCES += \
 ../src/lagrangian/JacobianCalculator.h \
 ../include/ibtk/FEDataInterpolation.h \
 ../include/ibtk/FEDataManager.h \
+../include/ibtk/LibMeshSystemVectors.h \
 ../include/ibtk/libmesh_utilities.h
 endif
 
