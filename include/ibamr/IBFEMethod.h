@@ -21,6 +21,7 @@
 #include "ibamr/ibamr_enums.h"
 
 #include "ibtk/FEDataManager.h"
+#include "ibtk/LibMeshSystemVectors.h"
 #include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
@@ -1157,13 +1158,9 @@ protected:
     std::vector<libMesh::ExplicitSystem*> d_X_systems, d_U_systems, d_F_systems, d_Q_systems, d_Phi_systems;
 
     /*!
-     * Vectors of pointers to the position vectors (both solutions and
-     * RHS). All of these vectors are owned by the libMesh::System objects
-     * except for the ones in d_X_IB_ghost_vecs, which are owned by the
-     * FEDataManager objects.
+     * Object managing access to libMesh system vectors for the structure position.
      */
-    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_rhs_vecs, d_X_new_vecs, d_X_half_vecs,
-        d_X_IB_ghost_vecs;
+    std::unique_ptr<IBTK::LibMeshSystemVectors> d_X_vecs;
 
     /// Vector of pointers to the velocity vectors (both solutions and RHS).
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_rhs_vecs, d_U_new_vecs, d_U_half_vecs;
