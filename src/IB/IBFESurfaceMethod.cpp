@@ -442,7 +442,7 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
         //~ INSERT_VALUES,
         //~ SCATTER_FORWARD);
         
-	std::vector<std::vector<libMesh::PetscVector<double>*> > Vec_collection_update = {d_U->new_vecs,d_X->new_vecs,d_U_n->new_vecs,
+	std::vector<std::vector<libMesh::PetscVector<double>*> > vec_collection_update = {d_U->new_vecs,d_X->new_vecs,d_U_n->new_vecs,
 																						d_U_t->new_vecs, d_F->half_vecs};
 																						
 	if (d_use_pressure_jump_conditions)
