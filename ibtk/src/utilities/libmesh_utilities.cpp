@@ -21,7 +21,11 @@
 
 #include "tbox/Utilities.h"
 
+#if LIBMESH_VERSION_LESS_THAN(1, 2, 0)
+#include "libmesh/mesh_tools.h"
+#else
 #include "libmesh/bounding_box.h"
+#endif
 #include "libmesh/dof_map.h"
 #include "libmesh/elem.h"
 #include "libmesh/enum_elem_type.h"
