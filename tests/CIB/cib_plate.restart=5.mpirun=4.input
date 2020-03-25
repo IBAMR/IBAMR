@@ -18,11 +18,15 @@ PERIODIC            = 1
 NORMALIZE_PRESSURE  = TRUE
 NORMALIZE_VELOCITY  = FALSE
 
+// AMR parameters
+MAX_LEVELS = 2                            // maximum number of levels in locally refined grid
+REF_RATIO  = 2                            // refinement ratio between levels
+
 // Gridding
 N = 256
 L = 32.0
 H = 22.0
-DX = L/ N
+DX =  H / (N*REF_RATIO^(MAX_LEVELS - 1))
 
 // solver parameters
 petsc_options_file   = "petsc_options.dat"
@@ -51,11 +55,6 @@ OUTPUT_OMEGA        = TRUE
 OUTPUT_DIV_U        = FALSE
 ENABLE_LOGGING      = FALSE
 
-
-// AMR parameters
-MAX_LEVELS = 1                            // maximum number of levels in locally refined grid
-REF_RATIO  = 4                            // refinement ratio between levels
-
 IBHierarchyIntegrator {
    start_time          = START_TIME
    end_time            = END_TIME
@@ -68,11 +67,11 @@ IBHierarchyIntegrator {
    tag_buffer          = TAG_BUFFER
    enable_logging      = ENABLE_LOGGING
    time_stepping_type  = "MIDPOINT_RULE"
+   max_integrator_steps = 10
 }
 
 num_structures = 1
 CIBMethod {
-   use_steady_stokes     = (RHO == 0.0)
    delta_fcn             = DELTA_FUNCTION
    enable_logging        = ENABLE_LOGGING
    lambda_dirname        = "./Lambda"
@@ -131,28 +130,58 @@ CIBStaggeredStokesSolver
             // no options to set for projection preconditioner
         }
 
-        velocity_solver_type = "HYPRE_LEVEL_SOLVER"
-        velocity_solver_db
+        velocity_solver_type = "PETSC_KRYLOV_SOLVER"
+        velocity_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+        velocity_solver_db 
         {
-            solver_type       = "Split"         // split vx / vy / vz blocks
-            split_solver_type = "PFMG"          // use hypre PFMG MG on the blocks
-            enable_logging    = FALSE
-            max_iterations    = 1               // only works with a single multigrid cycle per iteration
-            rel_residual_tol  = 1.0e-16
-            abs_residual_tol  = 1.0e-50
+            ksp_type = "richardson"
+            max_iterations = 1
         }
+        velocity_precond_db 
+        {
+            ghost_cell_width = 4
+            num_pre_sweeps  = 0
+            num_post_sweeps = 3
+            prolongation_method = "CONSTANT_REFINE"
+            restriction_method  = "CONSERVATIVE_COARSEN"
+            coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+            coarse_solver_rel_residual_tol = 1.0e-12
+            coarse_solver_abs_residual_tol = 1.0e-50
+            coarse_solver_max_iterations = 1
+            coarse_solver_db 
+            {
+                solver_type          = "Split"
+                split_solver_type    = "PFMG"
+                enable_logging       = FALSE
+            }
+         }
 
-        pressure_solver_type = "HYPRE_LEVEL_SOLVER"
-        pressure_solver_db
-        {
-            solver_type          = "PFMG"
-            num_pre_relax_steps  = 2
-            num_post_relax_steps = 2
-            enable_logging       = FALSE
-            max_iterations       = 1            // only a single multigrid cycle per iteration
-            rel_residual_tol     = 1.0e-16
-            abs_residual_tol     = 1.0e-50
-        }
+         pressure_solver_type = "PETSC_KRYLOV_SOLVER"
+         pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+         pressure_solver_db 
+         {
+             ksp_type = "richardson"
+             max_iterations = 1
+         }
+         pressure_precond_db 
+         {
+             num_pre_sweeps  = 0
+             num_post_sweeps = 3
+             prolongation_method = "LINEAR_REFINE"
+             restriction_method  = "CONSERVATIVE_COARSEN"
+             coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+             coarse_solver_rel_residual_tol = 1.0e-12
+             coarse_solver_abs_residual_tol = 1.0e-50
+             coarse_solver_max_iterations = 1
+             coarse_solver_db 
+             {
+                 solver_type          = "PFMG"
+                 num_pre_relax_steps  = 0
+                 num_post_relax_steps = 3
+                 enable_logging       = FALSE
+             }
+         }
+
     }// PCStokesSolver
 
     KrylovMobilitySolver
@@ -179,44 +208,56 @@ CIBStaggeredStokesSolver
         }
 
         velocity_solver_type = "PETSC_KRYLOV_SOLVER"
-        velocity_solver_db
+        velocity_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+        velocity_solver_db 
         {
             ksp_type = "richardson"
             max_iterations = 1
-            rel_residual_tol  = 1.0e-16                    // does not matter
-            abs_residual_tol  = 0                          // does not matter
         }
-        velocity_precond_type = "HYPRE_LEVEL_SOLVER"
-        velocity_precond_db
+        velocity_precond_db 
         {
-            solver_type       = "Split"                    // split vx / vy / vz blocks
-            split_solver_type = "PFMG"                     // use hypre PFMG MG on the blocks
-            enable_logging    = FALSE
-            max_iterations    = 1                          // this should always be 1
-            rel_residual_tol  = 1.0e-16                    // does not matter
-            abs_residual_tol  = 0                          // does not matter
-        }
+            ghost_cell_width = 4
+            num_pre_sweeps  = 0
+            num_post_sweeps = 3
+            prolongation_method = "CONSTANT_REFINE"
+            restriction_method  = "CONSERVATIVE_COARSEN"
+            coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+            coarse_solver_rel_residual_tol = 1.0e-12
+            coarse_solver_abs_residual_tol = 1.0e-50
+            coarse_solver_max_iterations = 1
+            coarse_solver_db 
+            {
+                solver_type          = "Split"
+                split_solver_type    = "PFMG"
+                enable_logging       = FALSE
+            }
+         }
 
-        pressure_solver_type = "PETSC_KRYLOV_SOLVER"
-        pressure_solver_db
-        {
-            ksp_type = "richardson"
-            enable_logging = FALSE
-            max_iterations = 1
-            rel_residual_tol = 1.0e-16
-            abs_residual_tol = 0.0
-        }
-        pressure_precond_type = "HYPRE_LEVEL_SOLVER"
-        pressure_precond_db
-        {
-            solver_type          = "PFMG"                  // use hypre Struct multigrid
-            enable_logging       = FALSE                   // hypre does not give useful statistics so keep at FALSE
-            num_pre_relax_steps  = 2                       // number of pre- sweeps (1, 2, maybe 3)
-            num_post_relax_steps = 2                       // number of post-sweeps (1,2, maybe 3)
-            max_iterations       = 1                       // keep this fixed at 1
-            rel_residual_tol     = 1.0e-16                 // does not matter
-            abs_residual_tol     = 0                       // does not matter
-        }
+         pressure_solver_type = "PETSC_KRYLOV_SOLVER"
+         pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+         pressure_solver_db 
+         {
+             ksp_type = "richardson"
+             max_iterations = 1
+         }
+         pressure_precond_db 
+         {
+             num_pre_sweeps  = 0
+             num_post_sweeps = 3
+             prolongation_method = "LINEAR_REFINE"
+             restriction_method  = "CONSERVATIVE_COARSEN"
+             coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+             coarse_solver_rel_residual_tol = 1.0e-12
+             coarse_solver_abs_residual_tol = 1.0e-50
+             coarse_solver_max_iterations = 1
+             coarse_solver_db 
+             {
+                 solver_type          = "PFMG"
+                 num_pre_relax_steps  = 0
+                 num_post_relax_steps = 3
+                 enable_logging       = FALSE
+             }
+         }
 
     }// KrylovMobilitySolver
 
@@ -243,7 +284,7 @@ CIBStaggeredStokesSolver
 
     } //KrylovFreeBodyMobilitySolver
 
-} // cIBStaggeredStokesSolver
+} // CIBStaggeredStokesSolver
 
 
 INSStaggeredHierarchyIntegrator {
@@ -280,13 +321,13 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","Silo"
-   viz_dump_interval           = 10
+   viz_dump_interval           = 1
    viz_dump_dirname            = "viz_2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 0
-   restart_dump_dirname        = "restart_2d"
+   restart_dump_interval       = 1
+   restart_dump_dirname        = "restart"
 
 // timer dump parameters
    timer_dump_interval         = 1
@@ -371,10 +412,7 @@ GriddingAlgorithm {
 }
 
 StandardTagAndInitialize {
-   tagging_method = "REFINE_BOXES"
-   RefineBoxes {
-      level_0 = [( N/4,N/4 ),( 3*N/4 - 1,N/2 - 1 )],[( N/4,N/2 ),( N/2 - 1,3*N/4 - 1 )]
-   }
+   tagging_method = "GRADIENT_DETECTOR"
 }
 
 LoadBalancer {
