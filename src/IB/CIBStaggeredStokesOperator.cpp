@@ -66,6 +66,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 // Timers.
 static Timer* t_apply;
 static Timer* t_initialize_operator_state;
+static Timer* t_deallocate_operator_state;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -78,7 +79,9 @@ CIBStaggeredStokesOperator::CIBStaggeredStokesOperator(std::string object_name,
     // Setup Timers.
     IBAMR_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBAMR::CIBStaggeredStokesOperator::apply()");
                   t_initialize_operator_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::CIBStaggeredStokesOperator::initializeOperatorState()"););
+                      "IBAMR::CIBStaggeredStokesOperator::initializeOperatorState()");
+                  t_deallocate_operator_state = TimerManager::getManager()->getTimer(
+                      "IBAMR::CIBStaggeredStokesOperator::deallocateOperatorState()"););
 } // CIBStaggeredStokesOperator
 
 void
@@ -248,6 +251,112 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
 
     IBAMR_TIMER_STOP(t_apply);
 } // apply
+
+void
+CIBStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
+                                                    const SAMRAIVectorReal<NDIM, double>& out)
+{
+    IBAMR_TIMER_START(t_initialize_operator_state);
+
+    // Deallocate the operator state if the operator is already initialized.
+    if (d_is_initialized) deallocateOperatorState();
+
+    // Setup solution and rhs vectors.
+    d_x = in.cloneVector(in.getName());
+    d_b = out.cloneVector(out.getName());
+
+    // Allocate scratch data.
+    d_x->allocateVectorData();
+
+    // Setup the interpolation transaction information.
+    //
+    // NOTE: This will ensure that all ghost cell values are filled in communication.  The default communication
+    // patterns setup by StaggeredStokesOperator will omit corners and (in 3D) edges.
+    d_U_fill_pattern = nullptr;
+    d_P_fill_pattern = nullptr;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    d_transaction_comps.resize(2);
+    d_transaction_comps[0] = InterpolationTransactionComponent(d_x->getComponentDescriptorIndex(0),
+                                                               in.getComponentDescriptorIndex(0),
+                                                               DATA_REFINE_TYPE,
+                                                               USE_CF_INTERPOLATION,
+                                                               DATA_COARSEN_TYPE,
+                                                               BDRY_EXTRAP_TYPE,
+                                                               CONSISTENT_TYPE_2_BDRY,
+                                                               d_U_bc_coefs,
+                                                               d_U_fill_pattern);
+    d_transaction_comps[1] = InterpolationTransactionComponent(in.getComponentDescriptorIndex(1),
+                                                               DATA_REFINE_TYPE,
+                                                               USE_CF_INTERPOLATION,
+                                                               DATA_COARSEN_TYPE,
+                                                               BDRY_EXTRAP_TYPE,
+                                                               CONSISTENT_TYPE_2_BDRY,
+                                                               d_P_bc_coef,
+                                                               d_P_fill_pattern);
+
+    // Initialize the interpolation operators.
+    d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_x->getPatchHierarchy());
+
+    // Initialize hierarchy math ops object.
+    if (!d_hier_math_ops_external)
+    {
+        d_hier_math_ops = new HierarchyMathOps(d_object_name + "::HierarchyMathOps",
+                                               in.getPatchHierarchy(),
+                                               in.getCoarsestLevelNumber(),
+                                               in.getFinestLevelNumber());
+    }
+#if !defined(NDEBUG)
+    else
+    {
+        TBOX_ASSERT(d_hier_math_ops);
+    }
+#endif
+
+    // Indicate the operator is initialized.
+    d_is_initialized = true;
+
+    IBAMR_TIMER_STOP(t_initialize_operator_state);
+} // initializeOperatorState
+
+void
+CIBStaggeredStokesOperator::deallocateOperatorState()
+{
+    if (!d_is_initialized) return;
+
+    IBAMR_TIMER_START(t_deallocate_operator_state);
+
+    // Deallocate hierarchy math operations object.
+    if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
+
+    // Deallocate the interpolation operators.
+    d_hier_bdry_fill->deallocateOperatorState();
+    d_hier_bdry_fill.setNull();
+    d_transaction_comps.clear();
+    d_U_fill_pattern.setNull();
+    d_P_fill_pattern.setNull();
+
+    // Deallocate scratch data.
+    d_x->deallocateVectorData();
+
+    // Delete the solution and rhs vectors.
+    d_x->resetLevels(d_x->getCoarsestLevelNumber(),
+                     std::min(d_x->getFinestLevelNumber(), d_x->getPatchHierarchy()->getFinestLevelNumber()));
+    d_x->freeVectorComponents();
+
+    d_b->resetLevels(d_b->getCoarsestLevelNumber(),
+                     std::min(d_b->getFinestLevelNumber(), d_b->getPatchHierarchy()->getFinestLevelNumber()));
+    d_b->freeVectorComponents();
+
+    d_x.setNull();
+    d_b.setNull();
+
+    // Indicate that the operator is NOT initialized.
+    d_is_initialized = false;
+
+    IBAMR_TIMER_STOP(t_deallocate_operator_state);
+    return;
+} // deallocateOperatorState
 
 void
 CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
