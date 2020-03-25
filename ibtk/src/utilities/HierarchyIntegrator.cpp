@@ -443,6 +443,9 @@ HierarchyIntegrator::regridHierarchy()
     const bool initial_time = false;
     initializeCompositeHierarchyData(d_integrator_time, initial_time);
 
+    // execute any registered callbacks
+    executeRegridHierarchyCallbackFcns(d_hierarchy, d_integrator_time, initial_time);
+
     // Synchronize the state data on the patch hierarchy.
     synchronizeHierarchyData(CURRENT_DATA);
     return;
@@ -699,6 +702,13 @@ HierarchyIntegrator::registerApplyGradientDetectorCallback(ApplyGradientDetector
     d_apply_gradient_detector_callback_ctxs.push_back(ctx);
     return;
 } // registerApplyGradientDetectorCallback
+
+void
+HierarchyIntegrator::registerRegridHierarchyCallback(RegridHierarchyCallbackFcnPtr callback, void* ctx)
+{
+    d_regrid_hierarchy_callbacks.push_back(callback);
+    d_regrid_hierarchy_callback_ctxs.push_back(ctx);
+}
 
 void
 HierarchyIntegrator::initializeCompositeHierarchyData(double init_data_time, bool initial_time)
@@ -1414,6 +1424,19 @@ HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const Pointer<Base
     }
     return;
 } // executeApplyGradientDetectorCallbackFcns
+
+void
+HierarchyIntegrator::executeRegridHierarchyCallbackFcns(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                                        const double data_time,
+                                                        const bool initial_time)
+{
+    std::vector<RegridHierarchyCallbackFcnPtr>& callbacks = d_regrid_hierarchy_callbacks;
+    std::vector<void*>& ctxs = d_regrid_hierarchy_callback_ctxs;
+    for (unsigned int k = 0; k < callbacks.size(); ++k)
+    {
+        (*callbacks[k])(hierarchy, data_time, initial_time, ctxs[k]);
+    }
+}
 
 void
 HierarchyIntegrator::registerGhostfillRefineAlgorithm(const std::string& name,
