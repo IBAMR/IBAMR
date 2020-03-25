@@ -71,6 +71,23 @@ public:
      */
     ~CIBStaggeredStokesOperator();
 
+    //\{ // Operator functionality of IBAMR::StaggeredStokesOperator class.
+    /*!
+     * \brief Compute hierarchy dependent data required for computing y=Ax.
+     *
+     * \note CIBStaggeredStokesOperator requires a different communication pattern than StaggeredStokes operator.  In
+     * particular, CIBStaggeredStokesOperator needs ghost cells to be filled in corners and (in 3D) edges.
+     */
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
+
+    /*!
+     * \brief Remove all hierarchy dependent data allocated by
+     * initializeOperatorState().
+     */
+    void deallocateOperatorState() override;
+    //\}
+
     //\{ // Additional functionality of CIBStaggeredStokesOperator.
 
     /*!
