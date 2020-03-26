@@ -34,8 +34,10 @@
 #include <ibamr/CIBStaggeredStokesSolver.h>
 #include <ibamr/DirectMobilitySolver.h>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IBMethod.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
+#include <ibamr/IBStrategySet.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/KrylovMobilitySolver.h>
 #include <ibamr/app_namespaces.h>
@@ -50,8 +52,8 @@
 #include <boost/multi_array.hpp>
 
 // Headers for complex fluids
-#include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include "ibamr/CFINSForcing.h"
+#include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -168,15 +170,18 @@ main(int argc, char* argv[])
 
         // CIB method
         const unsigned int num_structures = input_db->getIntegerWithDefault("num_structures", 2);
-        Pointer<CIBMethod> ib_method_ops =
+        Pointer<CIBMethod> cib_method_ops =
             new CIBMethod("CIBMethod", app_initializer->getComponentDatabase("CIBMethod"), num_structures);
+        Pointer<IBMethod> ib_method_ops = new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
+        std::vector<Pointer<IBStrategy> > ib_strategies{ cib_method_ops, ib_method_ops };
+        Pointer<IBStrategy> ib_strategy_set = new IBStrategySet(ib_strategies.begin(), ib_strategies.end());
 
         // Krylov solver for INS integrator that solves for [u,p,U,L]
         Pointer<CIBStaggeredStokesSolver> CIBSolver =
             new CIBStaggeredStokesSolver("CIBStaggeredStokesSolver",
                                          input_db->getDatabase("CIBStaggeredStokesSolver"),
                                          navier_stokes_integrator,
-                                         ib_method_ops,
+                                         cib_method_ops,
                                          "SP_");
 
         // Register the Krylov solver with INS integrator
@@ -185,7 +190,7 @@ main(int argc, char* argv[])
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
+                                              ib_strategy_set,
                                               navier_stokes_integrator);
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
@@ -203,32 +208,40 @@ main(int argc, char* argv[])
                                         error_detector,
                                         box_generator,
                                         load_balancer);
+        // Configure the CIB solver.
+        Pointer<IBStandardInitializer> cib_initializer = new IBStandardInitializer(
+            "IBStandardInitializer", app_initializer->getComponentDatabase("CIBStandardInitializer"));
+        cib_method_ops->registerLInitStrategy(cib_initializer);
+
         // Configure the IB solver.
         Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
             "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
         ib_method_ops->registerLInitStrategy(ib_initializer);
-/*
-        // Adv diff
-        Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator;
-        adv_diff_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
-            "AdvDiffSemiImplicitHierarchyIntegrator",
-            app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
-        navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
-*/
+        Pointer<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
+        ib_method_ops->registerIBLagrangianForceFunction(ib_force_fcn);
+
+        /*
+                // Adv diff
+                Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator;
+                adv_diff_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
+                    "AdvDiffSemiImplicitHierarchyIntegrator",
+                    app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
+                navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
+        */
         // Specify structure kinematics
         FreeRigidDOFVector upper_dofs, lower_dofs, left_dofs, right_dofs;
         upper_dofs.setZero();
         lower_dofs.setZero();
         left_dofs.setZero();
         right_dofs.setZero();
-        ib_method_ops->setSolveRigidBodyVelocity(0, upper_dofs);
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedUpperVel, NULL, 0);
-        ib_method_ops->setSolveRigidBodyVelocity(1, lower_dofs);
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedLowerVel, NULL, 1);
-        ib_method_ops->setSolveRigidBodyVelocity(2, left_dofs);
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedLeftVel, NULL, 2);
-        ib_method_ops->setSolveRigidBodyVelocity(3, right_dofs);
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedRightVel, NULL, 3);
+        cib_method_ops->setSolveRigidBodyVelocity(0, upper_dofs);
+        cib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedUpperVel, NULL, 0);
+        cib_method_ops->setSolveRigidBodyVelocity(1, lower_dofs);
+        cib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedLowerVel, NULL, 1);
+        cib_method_ops->setSolveRigidBodyVelocity(2, left_dofs);
+        cib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedLeftVel, NULL, 2);
+        cib_method_ops->setSolveRigidBodyVelocity(3, right_dofs);
+        cib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedRightVel, NULL, 3);
 
         // Create initial condition specification objects.
         Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
@@ -245,12 +258,21 @@ main(int argc, char* argv[])
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
-        Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
+        Pointer<LSiloDataWriter> cib_silo_data_writer = app_initializer->getLSiloDataWriter();
+        const std::string ib_dirname = app_initializer->getVizDumpDirectory() + "/boundary_ib";
+        Utilities::recursiveMkdir(ib_dirname);
+        Pointer<LSiloDataWriter> ib_silo_data_writer = new LSiloDataWriter("IBLSiloDataWriter", ib_dirname);
+
         if (uses_visit)
         {
-            ib_initializer->registerLSiloDataWriter(silo_data_writer);
-            ib_method_ops->registerLSiloDataWriter(silo_data_writer);
-            ib_method_ops->registerVisItDataWriter(visit_data_writer);
+            cib_initializer->registerLSiloDataWriter(cib_silo_data_writer);
+            ib_initializer->registerLSiloDataWriter(ib_silo_data_writer);
+
+            cib_method_ops->registerLSiloDataWriter(cib_silo_data_writer);
+            ib_method_ops->registerLSiloDataWriter(ib_silo_data_writer);
+
+            cib_method_ops->registerVisItDataWriter(visit_data_writer);
+
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
 
@@ -277,21 +299,21 @@ main(int argc, char* argv[])
             }
             navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
-/*
-        // Complex fluid forcing
-        Pointer<CFINSForcing> complex_fluid;
-        bool using_exact_u = input_db->getBool("USING_EXACT_U");
-        if (input_db->keyExists("ComplexFluid"))
-        {
-            complex_fluid = new CFINSForcing("ComplexFluidForcing",
-                app_initializer->getComponentDatabase("ComplexFluid"),
-                (Pointer<INSHierarchyIntegrator>)navier_stokes_integrator,
-                grid_geometry,
-                adv_diff_integrator,
-                visit_data_writer);
-            time_integrator->registerBodyForceFunction(complex_fluid);
-        }
-*/
+        /*
+                // Complex fluid forcing
+                Pointer<CFINSForcing> complex_fluid;
+                bool using_exact_u = input_db->getBool("USING_EXACT_U");
+                if (input_db->keyExists("ComplexFluid"))
+                {
+                    complex_fluid = new CFINSForcing("ComplexFluidForcing",
+                        app_initializer->getComponentDatabase("ComplexFluid"),
+                        (Pointer<INSHierarchyIntegrator>)navier_stokes_integrator,
+                        grid_geometry,
+                        adv_diff_integrator,
+                        visit_data_writer);
+                    time_integrator->registerBodyForceFunction(complex_fluid);
+                }
+        */
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
@@ -301,7 +323,7 @@ main(int argc, char* argv[])
             grid_geometry);
 
         // Set physical boundary operator used in spreading.
-        ib_method_ops->setVelocityPhysBdryOp(time_integrator->getVelocityPhysBdryOp());
+        cib_method_ops->setVelocityPhysBdryOp(time_integrator->getVelocityPhysBdryOp());
 
         // Register mobility matrices (if needed)
         std::string mobility_solver_type = input_db->getString("MOBILITY_SOLVER_TYPE");
@@ -336,17 +358,18 @@ main(int argc, char* argv[])
                 mat_name1, prototype_structs1, RPY, std::make_pair(LAPACK_LU, LAPACK_LU), managing_proc);
             direct_solvers->registerStructIDsWithMobilityMat(mat_name1, struct_ids1);
 
-            if (SAMRAI_MPI::getNodes() > 1){
+            if (SAMRAI_MPI::getNodes() > 1)
+            {
                 managing_proc += 1;
             }
             direct_solvers->registerMobilityMat(
-                mat_name2, prototype_structs2, RPY, std::make_pair(LAPACK_LU, LAPACK_LU), 0);//managing_proc);
+                mat_name2, prototype_structs2, RPY, std::make_pair(LAPACK_LU, LAPACK_LU), 0); // managing_proc);
             direct_solvers->registerStructIDsWithMobilityMat(mat_name2, struct_ids2);
             direct_solvers->registerMobilityMat(
-                mat_name3, prototype_structs3, RPY, std::make_pair(LAPACK_LU, LAPACK_LU), 0);//managing_proc);
+                mat_name3, prototype_structs3, RPY, std::make_pair(LAPACK_LU, LAPACK_LU), 0); // managing_proc);
             direct_solvers->registerStructIDsWithMobilityMat(mat_name3, struct_ids3);
             direct_solvers->registerMobilityMat(
-                mat_name4, prototype_structs4, RPY, std::make_pair(LAPACK_LU, LAPACK_LU), 0);//managing_proc);
+                mat_name4, prototype_structs4, RPY, std::make_pair(LAPACK_LU, LAPACK_LU), 0); // managing_proc);
             direct_solvers->registerStructIDsWithMobilityMat(mat_name4, struct_ids4);
         }
         navier_stokes_integrator->setStokesSolverNeedsInit();
@@ -411,22 +434,15 @@ main(int argc, char* argv[])
         ghost_fill_op.fillData(/*time*/ 0.0);
 
         // Register sc mask patch data index with CIBMethod
-        ib_method_ops->registerMaskingPatchDataIndex(sc_masked_idx);
+        cib_method_ops->registerMaskingPatchDataIndex(sc_masked_idx);
 
         if (dump_viz_data && uses_visit)
         {
             pout << "\n\nWriting visualization files...\n\n";
             time_integrator->setupPlotData();
             visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-            silo_data_writer->writePlotData(iteration_num, loop_time);
-        }
-        if (dump_postproc_data)
-        {
-            output_data(patch_hierarchy,
-                        ib_method_ops->getLDataManager(),
-                        iteration_num,
-                        loop_time,
-                        postproc_data_dump_dirname);
+            cib_silo_data_writer->writePlotData(iteration_num, loop_time);
+            ib_silo_data_writer->writePlotData(iteration_num, loop_time);
         }
 
         // Main time step loop.
@@ -448,7 +464,7 @@ main(int argc, char* argv[])
             pout << "Advancing hierarchy by timestep size dt = " << dt << "\n";
 
             if (time_integrator->atRegridPoint()) navier_stokes_integrator->setStokesSolverNeedsInit();
-            if (ib_method_ops->flagRegrid())
+            if (cib_method_ops->flagRegrid())
             {
                 time_integrator->regridHierarchy();
                 navier_stokes_integrator->setStokesSolverNeedsInit();
@@ -457,7 +473,7 @@ main(int argc, char* argv[])
             loop_time += dt;
 
             RigidDOFVector U0;
-            ib_method_ops->getNewRigidBodyVelocity(0, U0);
+            cib_method_ops->getNewRigidBodyVelocity(0, U0);
             pout << "\nRigid body velocity of the structure is : \n" << U0 << "\n";
 
             pout << "\n";
@@ -476,7 +492,8 @@ main(int argc, char* argv[])
                 pout << "\nWriting visualization files...\n\n";
                 time_integrator->setupPlotData();
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-                silo_data_writer->writePlotData(iteration_num, loop_time);
+                cib_silo_data_writer->writePlotData(iteration_num, loop_time);
+                ib_silo_data_writer->writePlotData(iteration_num, loop_time);
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
             {
@@ -488,17 +505,7 @@ main(int argc, char* argv[])
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
-            if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
-            {
-                output_data(patch_hierarchy,
-                            ib_method_ops->getLDataManager(),
-                            iteration_num,
-                            loop_time,
-                            postproc_data_dump_dirname);
-            }
         }
-
-
 
         // Cleanup boundary condition specification objects (when necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
@@ -508,16 +515,3 @@ main(int argc, char* argv[])
     SAMRAIManager::shutdown();
     PetscFinalize();
 } // main
-
-void
-output_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
-            LDataManager* /*l_data_manager*/,
-            const int iteration_num,
-            const double loop_time,
-            const string& /*data_dump_dirname*/)
-{
-    plog << "writing hierarchy data at iteration " << iteration_num << " to disk" << endl;
-    plog << "simulation time is " << loop_time << endl;
-
-    return;
-} // output_data

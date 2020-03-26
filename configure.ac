@@ -208,6 +208,7 @@ AC_CONFIG_FILES([
   examples/moving_least_squares/Makefile
   examples/moving_least_squares/ex0/Makefile
   examples/moving_least_squares/ex1/Makefile
+  examples/moving_least_squares/ex2/Makefile
   examples/multiphase_flow/Makefile
   examples/multiphase_flow/ex0/Makefile
   examples/multiphase_flow/ex1/Makefile

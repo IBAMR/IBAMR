@@ -142,7 +142,7 @@ CIBMethod {
     output_eul_lambda     = TRUE         // defaults to false
 }
 
-IBStandardInitializer {
+CIBStandardInitializer {
     structure_names          = "A", "B", "C", "D"
     posn_shift = 0.0, 0.0
     max_levels      = MAX_LEVELS
@@ -162,6 +162,35 @@ IBStandardInitializer {
       level_number             = MAX_LEVELS - 1
     }
 }
+
+IBMethod {
+   delta_fcn      = DELTA_FUNCTION
+   enable_logging = ENABLE_LOGGING
+}
+
+
+IBStandardInitializer {
+    structure_names          = "A_boundary", "B_boundary", "C_boundary", "D_boundary"
+    posn_shift = 0.0, 0.0
+    max_levels      = MAX_LEVELS
+    A_boundary{
+      level_number             = MAX_LEVELS - 1
+    }
+
+    B_boundary{
+      level_number             = MAX_LEVELS - 1
+    }
+
+    C_boundary{
+      level_number             = MAX_LEVELS - 1
+    }
+
+    D_boundary{
+      level_number             = MAX_LEVELS - 1
+    }
+}
+
+
 
 CIBStaggeredStokesSolver 
 {
