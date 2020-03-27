@@ -56,7 +56,7 @@ Ly = Ny*DX
 
 // solver parameters
 MOBILITY_SOLVER_TYPE = "DIRECT"
-DELTA_FUNCTION       = "IB_6"
+DELTA_FUNCTION       = "IB_3"
 START_TIME           = 0.0e0                         // initial simulation time
 END_TIME             = 2.0//10.0//10000*DT//100                        // final simulation time
 GROW_DT              = 1.0e0                         // growth factor for timesteps
@@ -104,8 +104,8 @@ D2 = D2
 DX = DX
 
 // no mask function for now
-   function_0 = "((X1>=0.5*(D1+D2+DX*0.5)&&X0<=0.5*(D1-D2-DX*0.5))||(X1>=0.5*(D1+D2+DX*0.5)&&X0>=0.5*(D1+D2+DX*0.5))||(X1<=0.5*(D1-D2-DX*0.5)&&X0<=0.5*(D1-D2-DX*0.5))||(X1<=0.5*(D1-D2-DX*0.5)&&X0>=0.5*(D1+D2+DX*0.5)))? 1.0 : 1.0" 
-   function_1 = "((X1>=0.5*(D1+D2+DX*0.5)&&X0<=0.5*(D1-D2-DX*0.5))||(X1>=0.5*(D1+D2+DX*0.5)&&X0>=0.5*(D1+D2+DX*0.5))||(X1<=0.5*(D1-D2-DX*0.5)&&X0<=0.5*(D1-D2-DX*0.5))||(X1<=0.5*(D1-D2-DX*0.5)&&X0>=0.5*(D1+D2+DX*0.5)))? 1.0 : 1.0" 
+   function_0 = "((X1>=0.5*(D1+D2+DX*0.5)&&X0<=0.5*(D1-D2-DX*0.5))||(X1>=0.5*(D1+D2+DX*0.5)&&X0>=0.5*(D1+D2+DX*0.5))||(X1<=0.5*(D1-D2-DX*0.5)&&X0<=0.5*(D1-D2-DX*0.5))||(X1<=0.5*(D1-D2-DX*0.5)&&X0>=0.5*(D1+D2+DX*0.5)))? 1.0 : 0.0"
+   function_1 = "((X1>=0.5*(D1+D2+DX*0.5)&&X0<=0.5*(D1-D2-DX*0.5))||(X1>=0.5*(D1+D2+DX*0.5)&&X0>=0.5*(D1+D2+DX*0.5))||(X1<=0.5*(D1-D2-DX*0.5)&&X0<=0.5*(D1-D2-DX*0.5))||(X1<=0.5*(D1-D2-DX*0.5)&&X0>=0.5*(D1+D2+DX*0.5)))? 1.0 : 0.0"
 }
 
 PressureMask {
@@ -113,7 +113,7 @@ D1 = D1
 D2 = D2
 DX = DX
 
-function = "((X1>=0.5*(D1+D2+DX*0.5)&&X0<=0.5*(D1-D2-DX*0.5))||(X1>=0.5*(D1+D2+DX*0.5)&&X0>=0.5*(D1+D2+DX*0.5))||(X1<=0.5*(D1-D2-DX*0.5)&&X0<=0.5*(D1-D2-DX*0.5))||(X1<=0.5*(D1-D2-DX*0.5)&&X0>=0.5*(D1+D2+DX*0.5)))? 1.0 : 1.0" 
+function = "((X1>=0.5*(D1+D2+DX*0.5)&&X0<=0.5*(D1-D2-DX*0.5))||(X1>=0.5*(D1+D2+DX*0.5)&&X0>=0.5*(D1+D2+DX*0.5))||(X1<=0.5*(D1-D2-DX*0.5)&&X0<=0.5*(D1-D2-DX*0.5))||(X1<=0.5*(D1-D2-DX*0.5)&&X0>=0.5*(D1+D2+DX*0.5)))? 1.0 : 0.0"
 
 }
 
@@ -135,6 +135,7 @@ IBHierarchyIntegrator {
 
 num_structures = 4
 CIBMethod {
+    use_steady_stokes     = (RHO == 0.0)
     delta_fcn             = DELTA_FUNCTION
     enable_logging        = ENABLE_LOGGING
     lambda_dirname        = "./Lambda"
@@ -411,8 +412,8 @@ Main {
 
 CartesianGeometry {
    domain_boxes = [ (0,0),( Nx - 1, Ny - 1) ]
-   x_lo = -2.5*DX, -2.5*DX//0.0, 0.0
-   x_up = L+2.5*DX, W+2.5*DX// 
+   x_lo = -3.0*DX, -3.0*DX//0.0, 0.0
+   x_up = L+3.0*DX, W+3.0*DX//
    periodic_dimension = 0,0
 }
 
