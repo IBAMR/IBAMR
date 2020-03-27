@@ -103,6 +103,31 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const double loop_time,
                  const string& data_dump_dirname);
 
+struct MaskData
+{
+public:
+    MaskData(const int cc_mask_idx,
+             const int sc_mask_idx,
+             Pointer<CartGridFunction> cc_mask_fcn,
+             Pointer<CartGridFunction> sc_mask_fcn)
+        : d_cc_mask_idx(cc_mask_idx), d_sc_mask_idx(sc_mask_idx), d_cc_mask_fcn(cc_mask_fcn), d_sc_mask_fcn(sc_mask_fcn)
+    {
+    }
+
+    void fillMaskData(double time, Pointer<PatchHierarchy<NDIM> > hierarchy);
+
+private:
+    int d_cc_mask_idx = IBTK::invalid_index, d_sc_mask_idx = IBTK::invalid_index;
+    Pointer<CartGridFunction> d_cc_mask_fcn, d_sc_mask_fcn;
+};
+
+static void
+fill_mask_data(Pointer<BasePatchHierarchy<NDIM> > hierarchy, double data_time, bool /*initial_time*/, void* ctx)
+{
+    auto maskData = static_cast<MaskData*>(ctx);
+    maskData->fillMaskData(data_time, hierarchy);
+}
+
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
  * be given on the command line.  For non-restarted case, command line is:     *
@@ -389,49 +414,20 @@ main(int argc, char* argv[])
         const int n_ghosts = LEInteractor::getMinimumGhostWidth(weighting_fcn);
 
         const Pointer<Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
-        const int sc_masked_idx = var_db->registerVariableAndContext(u_var, main_ctx, IntVector<NDIM>(n_ghosts));
+        const int sc_masked_idx = var_db->registerVariableAndContext(u_var, main_ctx, IntVector<NDIM>(n_ghosts + 2));
 
         const Pointer<Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
-        const int cc_masked_idx = var_db->registerVariableAndContext(p_var, main_ctx, IntVector<NDIM>(n_ghosts));
+        const int cc_masked_idx = var_db->registerVariableAndContext(p_var, main_ctx, IntVector<NDIM>(n_ghosts + 2));
         visit_data_writer->registerPlotQuantity("cc_mask", "SCALAR", cc_masked_idx);
 
-        const int coarsest_ln = 0;
-        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(sc_masked_idx);
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(cc_masked_idx);
-        }
+        MaskData maskData(cc_masked_idx, sc_masked_idx, cc_mask, sc_mask);
+        time_integrator->registerRegridHierarchyCallback(&fill_mask_data, static_cast<void*>(&maskData));
 
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
 
-        sc_mask->setDataOnPatchHierarchy(sc_masked_idx, u_var, patch_hierarchy, loop_time);
-        cc_mask->setDataOnPatchHierarchy(cc_masked_idx, p_var, patch_hierarchy, loop_time);
-
-        // Fill ghost data.
-        using ITC = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        std::vector<ITC> ghost_cell_components(2);
-        ghost_cell_components[0] = ITC(sc_masked_idx,
-                                       "CONSERVATIVE_LINEAR_REFINE",
-                                       true,
-                                       "CONSERVATIVE_COARSEN",
-                                       "LINEAR",
-                                       false,
-                                       {}, // u_bc_coefs
-                                       nullptr);
-        ghost_cell_components[1] = ITC(cc_masked_idx,
-                                       "LINEAR_REFINE",
-                                       true,
-                                       "CONSERVATIVE_COARSEN",
-                                       "LINEAR",
-                                       false,
-                                       {}, // cc_bc_coefs
-                                       nullptr);
-        HierarchyGhostCellInterpolation ghost_fill_op;
-        ghost_fill_op.initializeOperatorState(ghost_cell_components, patch_hierarchy);
-        ghost_fill_op.fillData(/*time*/ 0.0);
+        maskData.fillMaskData(loop_time, patch_hierarchy);
 
         // Register sc mask patch data index with CIBMethod
         cib_method_ops->registerMaskingPatchDataIndex(sc_masked_idx);
@@ -515,3 +511,35 @@ main(int argc, char* argv[])
     SAMRAIManager::shutdown();
     PetscFinalize();
 } // main
+
+void
+MaskData::fillMaskData(const double time, Pointer<PatchHierarchy<NDIM> > hierarchy)
+{
+    plog << "Filling mask data at time " << time << ".\n";
+    const int coarsest_ln = 0;
+    const int finest_ln = hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_sc_mask_idx)) level->allocatePatchData(d_sc_mask_idx);
+        if (!level->checkAllocated(d_cc_mask_idx)) level->allocatePatchData(d_cc_mask_idx);
+    }
+    auto var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<Variable<NDIM> > sc_var;
+    Pointer<Variable<NDIM> > cc_var;
+    var_db->mapIndexToVariable(d_sc_mask_idx, sc_var);
+    var_db->mapIndexToVariable(d_cc_mask_idx, cc_var);
+    d_sc_mask_fcn->setDataOnPatchHierarchy(d_sc_mask_idx, sc_var, hierarchy, time);
+    d_cc_mask_fcn->setDataOnPatchHierarchy(d_cc_mask_idx, cc_var, hierarchy, time);
+
+    // Fill ghost data.
+    using ITC = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    std::vector<ITC> ghost_cell_components(2);
+    ghost_cell_components[0] =
+        ITC(d_sc_mask_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, {}, nullptr);
+    ghost_cell_components[1] =
+        ITC(d_cc_mask_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, {}, nullptr);
+    HierarchyGhostCellInterpolation ghost_fill_op;
+    ghost_fill_op.initializeOperatorState(ghost_cell_components, hierarchy);
+    ghost_fill_op.fillData(time);
+}
