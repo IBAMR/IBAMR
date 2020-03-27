@@ -414,10 +414,10 @@ main(int argc, char* argv[])
         const int n_ghosts = LEInteractor::getMinimumGhostWidth(weighting_fcn);
 
         const Pointer<Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
-        const int sc_masked_idx = var_db->registerVariableAndContext(u_var, main_ctx, IntVector<NDIM>(n_ghosts + 2));
+        const int sc_masked_idx = var_db->registerVariableAndContext(u_var, main_ctx, IntVector<NDIM>(n_ghosts));
 
         const Pointer<Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
-        const int cc_masked_idx = var_db->registerVariableAndContext(p_var, main_ctx, IntVector<NDIM>(n_ghosts + 2));
+        const int cc_masked_idx = var_db->registerVariableAndContext(p_var, main_ctx, IntVector<NDIM>(n_ghosts));
         visit_data_writer->registerPlotQuantity("cc_mask", "SCALAR", cc_masked_idx);
 
         MaskData maskData(cc_masked_idx, sc_masked_idx, cc_mask, sc_mask);
