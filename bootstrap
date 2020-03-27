@@ -20,7 +20,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-set -eu
+set -eEu
+trap 'echo "This script encountered an unhandled error when trying to install autotools."' ERR
 
 dir=$(echo "$0" | sed 's,[^/]*$,,')
 test "x${dir}" = "x" && dir='.'
@@ -34,6 +35,9 @@ fi
 # prerequisite versions
 required_automake_version=1.16.1
 required_autoconf_version=2.69
+
+# try looking for tools installed previously by this script
+PATH="$(pwd)/ibtk/contrib/autotools/bin:$PATH"
 
 build_autotools=0
 
@@ -87,7 +91,7 @@ then
             echo "Found libtool executable $libtool with version $detected_libtool_version"
             case "$detected_libtool_version" in
                 *2.4* | *2.2*)
-                    echo "Using libtool $detected_libtool_version"
+                    : # don't do anything if we match
                     ;;
                 *)
                     echo "Libtool version $libtool_version doesn't match, building a new one..."
@@ -109,12 +113,11 @@ then
         if test -x "$automake"
         then
             detected_automake_version=$("$automake" --version | grep -m 1 "GNU automake" | cut -d" " -f4)
+            echo "Found automake executable $automake with version $detected_automake_version"
             if test "$detected_automake_version" != "$required_automake_version"
             then
                 echo "Automake version $detected_automake_version doesn't match, building a new one..."
                 build_autotools=1
-            else
-                echo "Using automake $detected_automake_version"
             fi
         else
             echo "Unable to run automake."
