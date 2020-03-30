@@ -1,0 +1,4 @@
+Fixed: IBAMR::IBFEMethod::spreadTransmissionForceDensity() now works correctly
+with AMR.
+<br>
+(David Wells, 2020/03/30)
