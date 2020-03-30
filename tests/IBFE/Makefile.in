@@ -89,9 +89,10 @@ build_triplet = @build@
 host_triplet = @host@
 EXTRA_PROGRAMS = $(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@am__append_1 = interpolate_velocity_01_2d interpolate_velocity_01_3d \
-@LIBMESH_ENABLED_TRUE@interpolate_velocity_02 explicit_ex0_2d explicit_ex4_2d explicit_ex4_3d \
-@LIBMESH_ENABLED_TRUE@explicit_ex5_2d explicit_ex5_3d explicit_ex8_2d ib_partitioning_01_2d \
-@LIBMESH_ENABLED_TRUE@ib_partitioning_01_3d ib_partitioning_02_2d ib_partitioning_02_3d
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_02 explicit_ex0_2d explicit_ex1_2d explicit_ex4_2d \
+@LIBMESH_ENABLED_TRUE@explicit_ex4_3d explicit_ex5_2d explicit_ex5_3d explicit_ex8_2d \
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_2d ib_partitioning_01_3d ib_partitioning_02_2d \
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_3d
 
 subdir = tests/IBFE
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -129,6 +130,7 @@ CONFIG_CLEAN_VPATH_FILES =
 @LIBMESH_ENABLED_TRUE@	interpolate_velocity_01_3d$(EXEEXT) \
 @LIBMESH_ENABLED_TRUE@	interpolate_velocity_02$(EXEEXT) \
 @LIBMESH_ENABLED_TRUE@	explicit_ex0_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	explicit_ex1_2d$(EXEEXT) \
 @LIBMESH_ENABLED_TRUE@	explicit_ex4_2d$(EXEEXT) \
 @LIBMESH_ENABLED_TRUE@	explicit_ex4_3d$(EXEEXT) \
 @LIBMESH_ENABLED_TRUE@	explicit_ex5_2d$(EXEEXT) \
@@ -151,6 +153,16 @@ am__v_lt_1 =
 explicit_ex0_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(explicit_ex0_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__explicit_ex1_2d_SOURCES_DIST = explicit_ex1.cpp
+@LIBMESH_ENABLED_TRUE@am_explicit_ex1_2d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	explicit_ex1_2d-explicit_ex1.$(OBJEXT)
+explicit_ex1_2d_OBJECTS = $(am_explicit_ex1_2d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@explicit_ex1_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
+explicit_ex1_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(explicit_ex1_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 am__explicit_ex4_2d_SOURCES_DIST = explicit_ex4.cpp
 @LIBMESH_ENABLED_TRUE@am_explicit_ex4_2d_OBJECTS =  \
@@ -287,6 +299,7 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/explicit_ex0_2d-explicit_ex0.Po \
+	./$(DEPDIR)/explicit_ex1_2d-explicit_ex1.Po \
 	./$(DEPDIR)/explicit_ex4_2d-explicit_ex4.Po \
 	./$(DEPDIR)/explicit_ex4_3d-explicit_ex4.Po \
 	./$(DEPDIR)/explicit_ex5_2d-explicit_ex5.Po \
@@ -318,10 +331,10 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(explicit_ex0_2d_SOURCES) $(explicit_ex4_2d_SOURCES) \
-	$(explicit_ex4_3d_SOURCES) $(explicit_ex5_2d_SOURCES) \
-	$(explicit_ex5_3d_SOURCES) $(explicit_ex8_2d_SOURCES) \
-	$(ib_partitioning_01_2d_SOURCES) \
+SOURCES = $(explicit_ex0_2d_SOURCES) $(explicit_ex1_2d_SOURCES) \
+	$(explicit_ex4_2d_SOURCES) $(explicit_ex4_3d_SOURCES) \
+	$(explicit_ex5_2d_SOURCES) $(explicit_ex5_3d_SOURCES) \
+	$(explicit_ex8_2d_SOURCES) $(ib_partitioning_01_2d_SOURCES) \
 	$(ib_partitioning_01_3d_SOURCES) \
 	$(ib_partitioning_02_2d_SOURCES) \
 	$(ib_partitioning_02_3d_SOURCES) \
@@ -329,6 +342,7 @@ SOURCES = $(explicit_ex0_2d_SOURCES) $(explicit_ex4_2d_SOURCES) \
 	$(interpolate_velocity_01_3d_SOURCES) \
 	$(interpolate_velocity_02_SOURCES)
 DIST_SOURCES = $(am__explicit_ex0_2d_SOURCES_DIST) \
+	$(am__explicit_ex1_2d_SOURCES_DIST) \
 	$(am__explicit_ex4_2d_SOURCES_DIST) \
 	$(am__explicit_ex4_3d_SOURCES_DIST) \
 	$(am__explicit_ex5_2d_SOURCES_DIST) \
@@ -644,6 +658,9 @@ SUFFIXES = .f.m4
 @LIBMESH_ENABLED_TRUE@explicit_ex0_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 @LIBMESH_ENABLED_TRUE@explicit_ex0_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 @LIBMESH_ENABLED_TRUE@explicit_ex0_2d_SOURCES = explicit_ex0.cpp
+@LIBMESH_ENABLED_TRUE@explicit_ex1_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@explicit_ex1_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex1_2d_SOURCES = explicit_ex1.cpp
 @LIBMESH_ENABLED_TRUE@explicit_ex4_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 @LIBMESH_ENABLED_TRUE@explicit_ex4_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 @LIBMESH_ENABLED_TRUE@explicit_ex4_2d_SOURCES = explicit_ex4.cpp
@@ -710,6 +727,10 @@ explicit_ex0_2d$(EXEEXT): $(explicit_ex0_2d_OBJECTS) $(explicit_ex0_2d_DEPENDENC
 	@rm -f explicit_ex0_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(explicit_ex0_2d_LINK) $(explicit_ex0_2d_OBJECTS) $(explicit_ex0_2d_LDADD) $(LIBS)
 
+explicit_ex1_2d$(EXEEXT): $(explicit_ex1_2d_OBJECTS) $(explicit_ex1_2d_DEPENDENCIES) $(EXTRA_explicit_ex1_2d_DEPENDENCIES) 
+	@rm -f explicit_ex1_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(explicit_ex1_2d_LINK) $(explicit_ex1_2d_OBJECTS) $(explicit_ex1_2d_LDADD) $(LIBS)
+
 explicit_ex4_2d$(EXEEXT): $(explicit_ex4_2d_OBJECTS) $(explicit_ex4_2d_DEPENDENCIES) $(EXTRA_explicit_ex4_2d_DEPENDENCIES) 
 	@rm -f explicit_ex4_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(explicit_ex4_2d_LINK) $(explicit_ex4_2d_OBJECTS) $(explicit_ex4_2d_LDADD) $(LIBS)
@@ -765,6 +786,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex0_2d-explicit_ex0.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex1_2d-explicit_ex1.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex4_2d-explicit_ex4.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex4_3d-explicit_ex4.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex5_2d-explicit_ex5.Po@am__quote@ # am--include-marker
@@ -821,6 +843,20 @@ explicit_ex0_2d-explicit_ex0.obj: explicit_ex0.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='explicit_ex0.cpp' object='explicit_ex0_2d-explicit_ex0.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex0_2d_CXXFLAGS) $(CXXFLAGS) -c -o explicit_ex0_2d-explicit_ex0.obj `if test -f 'explicit_ex0.cpp'; then $(CYGPATH_W) 'explicit_ex0.cpp'; else $(CYGPATH_W) '$(srcdir)/explicit_ex0.cpp'; fi`
+
+explicit_ex1_2d-explicit_ex1.o: explicit_ex1.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex1_2d_CXXFLAGS) $(CXXFLAGS) -MT explicit_ex1_2d-explicit_ex1.o -MD -MP -MF $(DEPDIR)/explicit_ex1_2d-explicit_ex1.Tpo -c -o explicit_ex1_2d-explicit_ex1.o `test -f 'explicit_ex1.cpp' || echo '$(srcdir)/'`explicit_ex1.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/explicit_ex1_2d-explicit_ex1.Tpo $(DEPDIR)/explicit_ex1_2d-explicit_ex1.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='explicit_ex1.cpp' object='explicit_ex1_2d-explicit_ex1.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex1_2d_CXXFLAGS) $(CXXFLAGS) -c -o explicit_ex1_2d-explicit_ex1.o `test -f 'explicit_ex1.cpp' || echo '$(srcdir)/'`explicit_ex1.cpp
+
+explicit_ex1_2d-explicit_ex1.obj: explicit_ex1.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex1_2d_CXXFLAGS) $(CXXFLAGS) -MT explicit_ex1_2d-explicit_ex1.obj -MD -MP -MF $(DEPDIR)/explicit_ex1_2d-explicit_ex1.Tpo -c -o explicit_ex1_2d-explicit_ex1.obj `if test -f 'explicit_ex1.cpp'; then $(CYGPATH_W) 'explicit_ex1.cpp'; else $(CYGPATH_W) '$(srcdir)/explicit_ex1.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/explicit_ex1_2d-explicit_ex1.Tpo $(DEPDIR)/explicit_ex1_2d-explicit_ex1.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='explicit_ex1.cpp' object='explicit_ex1_2d-explicit_ex1.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex1_2d_CXXFLAGS) $(CXXFLAGS) -c -o explicit_ex1_2d-explicit_ex1.obj `if test -f 'explicit_ex1.cpp'; then $(CYGPATH_W) 'explicit_ex1.cpp'; else $(CYGPATH_W) '$(srcdir)/explicit_ex1.cpp'; fi`
 
 explicit_ex4_2d-explicit_ex4.o: explicit_ex4.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex4_2d_CXXFLAGS) $(CXXFLAGS) -MT explicit_ex4_2d-explicit_ex4.o -MD -MP -MF $(DEPDIR)/explicit_ex4_2d-explicit_ex4.Tpo -c -o explicit_ex4_2d-explicit_ex4.o `test -f 'explicit_ex4.cpp' || echo '$(srcdir)/'`explicit_ex4.cpp
@@ -1122,6 +1158,7 @@ clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/explicit_ex0_2d-explicit_ex0.Po
+	-rm -f ./$(DEPDIR)/explicit_ex1_2d-explicit_ex1.Po
 	-rm -f ./$(DEPDIR)/explicit_ex4_2d-explicit_ex4.Po
 	-rm -f ./$(DEPDIR)/explicit_ex4_3d-explicit_ex4.Po
 	-rm -f ./$(DEPDIR)/explicit_ex5_2d-explicit_ex5.Po
@@ -1180,6 +1217,7 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/explicit_ex0_2d-explicit_ex0.Po
+	-rm -f ./$(DEPDIR)/explicit_ex1_2d-explicit_ex1.Po
 	-rm -f ./$(DEPDIR)/explicit_ex4_2d-explicit_ex4.Po
 	-rm -f ./$(DEPDIR)/explicit_ex4_3d-explicit_ex4.Po
 	-rm -f ./$(DEPDIR)/explicit_ex5_2d-explicit_ex5.Po

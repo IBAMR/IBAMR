@@ -967,7 +967,9 @@ IBFEMethod::spreadForce(const int f_data_idx,
     VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(f_data_idx, f_var);
     auto f_active_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, hierarchy);
     f_active_data_ops->resetLevels(ln, ln);
-    f_active_data_ops->setToScalar(f_scratch_data_idx, 0.0, /*interior_only*/ false);
+    f_active_data_ops->setToScalar(f_scratch_data_idx,
+                                   0.0,
+                                   /*interior_only*/ false);
 
     // Spread interior force density values.
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -1002,7 +1004,9 @@ IBFEMethod::spreadForce(const int f_data_idx,
         const auto f_primary_scratch_data_idx = d_primary_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
         // we have to zero everything here since the scratch to primary
         // communication does not touch ghost cells, which may have junk
-        f_primary_data_ops->setToScalar(f_primary_scratch_data_idx, 0.0, /*interior_only*/ false);
+        f_primary_data_ops->setToScalar(f_primary_scratch_data_idx,
+                                        0.0,
+                                        /*interior_only*/ false);
 
         assertStructureOnFinestLevel();
         getScratchToPrimarySchedule(ln, f_primary_scratch_data_idx, f_scratch_data_idx).fillData(data_time);
@@ -2686,13 +2690,13 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     Pointer<hier::Variable<NDIM> > f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
     const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(f_copy_data_idx);
-    }
+    assertStructureOnFinestLevel();
+    const int level_num = d_primary_fe_data_managers[part]->getLevelNumber();
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+    level->allocatePatchData(f_copy_data_idx);
     Pointer<HierarchyDataOpsReal<NDIM, double> > f_data_ops =
         HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+    f_data_ops->resetLevels(level_num, level_num);
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
@@ -2755,12 +2759,10 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     // onto the grid.
     const std::vector<std::vector<Elem*> >& active_patch_element_map =
         d_primary_fe_data_managers[part]->getActivePatchElementMap();
-    const int level_num = d_primary_fe_data_managers[part]->getLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> F, F_s, n, x;
     double P;
     std::vector<double> T_bdry, x_bdry;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {

@@ -18,9 +18,10 @@ EXTRA_PROGRAMS =
 
 if LIBMESH_ENABLED
 EXTRA_PROGRAMS += interpolate_velocity_01_2d interpolate_velocity_01_3d \
-interpolate_velocity_02 explicit_ex0_2d explicit_ex4_2d explicit_ex4_3d \
-explicit_ex5_2d explicit_ex5_3d explicit_ex8_2d ib_partitioning_01_2d \
-ib_partitioning_01_3d ib_partitioning_02_2d ib_partitioning_02_3d
+interpolate_velocity_02 explicit_ex0_2d explicit_ex1_2d explicit_ex4_2d \
+explicit_ex4_3d explicit_ex5_2d explicit_ex5_3d explicit_ex8_2d \
+ib_partitioning_01_2d ib_partitioning_01_3d ib_partitioning_02_2d \
+ib_partitioning_02_3d
 
 interpolate_velocity_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 interpolate_velocity_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -37,6 +38,10 @@ interpolate_velocity_02_SOURCES = interpolate_velocity_02.cpp
 explicit_ex0_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 explicit_ex0_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 explicit_ex0_2d_SOURCES = explicit_ex0.cpp
+
+explicit_ex1_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+explicit_ex1_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+explicit_ex1_2d_SOURCES = explicit_ex1.cpp
 
 explicit_ex4_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 explicit_ex4_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
