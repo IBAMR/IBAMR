@@ -303,176 +303,370 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
     d_new_time = new_time;
     d_half_time = current_time + 0.5 * (new_time - current_time);
 
-    // Setup FE data structures to setup required vectors.
-    d_fe_system_data.clear();
+    // Extract the FE data.
+    d_X_systems.resize(d_num_parts);
+    d_X_current_vecs.resize(d_num_parts);
+    d_X_new_vecs.resize(d_num_parts);
+    d_X_half_vecs.resize(d_num_parts);
+    d_X_IB_ghost_vecs.resize(d_num_parts);
 
-    d_fe_system_data.push_back(std::unique_ptr<LibMeshSystemData>(new LibMeshSystemData(COORDS_SYSTEM_NAME,
-                                                                                        /*has_current_vecs*/ true,
-                                                                                        /*has_half_vecs*/ true,
-                                                                                        /*has_new_vecs*/ true,
-                                                                                        /*has_IB_ghost_vecs*/ true)));
-    d_X = d_fe_system_data.back().get();
+    d_U_systems.resize(d_num_parts);
+    d_U_current_vecs.resize(d_num_parts);
+    d_U_new_vecs.resize(d_num_parts);
+    d_U_half_vecs.resize(d_num_parts);
 
-    d_fe_system_data.push_back(std::unique_ptr<LibMeshSystemData>(new LibMeshSystemData(VELOCITY_SYSTEM_NAME,
-                                                                                        /*has_current_vecs*/ true,
-                                                                                        /*has_half_vecs*/ true,
-                                                                                        /*has_new_vecs*/ true,
-                                                                                        /*has_IB_ghost_vecs*/ false)));
-    d_U = d_fe_system_data.back().get();
+    d_U_n_systems.resize(d_num_parts);
+    d_U_n_current_vecs.resize(d_num_parts);
+    d_U_n_new_vecs.resize(d_num_parts);
+    d_U_n_half_vecs.resize(d_num_parts);
 
-    d_fe_system_data.push_back(std::unique_ptr<LibMeshSystemData>(new LibMeshSystemData(NORMAL_VELOCITY_SYSTEM_NAME,
-                                                                                        /*has_current_vecs*/ true,
-                                                                                        /*has_half_vecs*/ true,
-                                                                                        /*has_new_vecs*/ true,
-                                                                                        /*has_IB_ghost_vecs*/ false)));
-    d_U_n = d_fe_system_data.back().get();
+    d_U_t_systems.resize(d_num_parts);
+    d_U_t_current_vecs.resize(d_num_parts);
+    d_U_t_new_vecs.resize(d_num_parts);
+    d_U_t_half_vecs.resize(d_num_parts);
 
-    d_fe_system_data.push_back(std::unique_ptr<LibMeshSystemData>(new LibMeshSystemData(TANGENTIAL_VELOCITY_SYSTEM_NAME,
-                                                                                        /*has_current_vecs*/ true,
-                                                                                        /*has_half_vecs*/ true,
-                                                                                        /*has_new_vecs*/ true,
-                                                                                        /*has_IB_ghost_vecs*/ false)));
-    d_U_t = d_fe_system_data.back().get();
+    d_F_systems.resize(d_num_parts);
+    d_F_half_vecs.resize(d_num_parts);
+    d_F_IB_ghost_vecs.resize(d_num_parts);
 
-    d_fe_system_data.push_back(std::unique_ptr<LibMeshSystemData>(new LibMeshSystemData(FORCE_SYSTEM_NAME,
-                                                                                        /*has_current_vecs*/ false,
-                                                                                        /*has_half_vecs*/ true,
-                                                                                        /*has_new_vecs*/ false,
-                                                                                        /*has_IB_ghost_vecs*/ true)));
-    d_F = d_fe_system_data.back().get();
+    d_P_jump_systems.resize(d_num_parts);
+    d_P_jump_half_vecs.resize(d_num_parts);
+    d_P_jump_IB_ghost_vecs.resize(d_num_parts);
 
-    if (d_use_pressure_jump_conditions)
+    d_P_in_systems.resize(d_num_parts);
+    d_P_in_half_vecs.resize(d_num_parts);
+    d_P_in_IB_ghost_vecs.resize(d_num_parts);
+
+    d_P_out_systems.resize(d_num_parts);
+    d_P_out_half_vecs.resize(d_num_parts);
+    d_P_out_IB_ghost_vecs.resize(d_num_parts);
+    for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_fe_system_data.push_back(
-            std::unique_ptr<LibMeshSystemData>(new LibMeshSystemData(PRESSURE_JUMP_SYSTEM_NAME,
-                                                                     /*has_current_vecs*/ false,
-                                                                     /*has_half_vecs*/ true,
-                                                                     /*has_new_vecs*/ false,
-                                                                     /*has_IB_ghost_vecs*/ true)));
-        d_P_jump = d_fe_system_data.back().get();
-
-        d_fe_system_data.push_back(
-            std::unique_ptr<LibMeshSystemData>(new LibMeshSystemData(PRESSURE_IN_SYSTEM_NAME,
-                                                                     /*has_current_vecs*/ false,
-                                                                     /*has_half_vecs*/ true,
-                                                                     /*has_new_vecs*/ false,
-                                                                     /*has_IB_ghost_vecs*/ true)));
-        d_P_in = d_fe_system_data.back().get();
-
-        d_fe_system_data.push_back(
-            std::unique_ptr<LibMeshSystemData>(new LibMeshSystemData(PRESSURE_OUT_SYSTEM_NAME,
-                                                                     /*has_current_vecs*/ false,
-                                                                     /*has_half_vecs*/ true,
-                                                                     /*has_new_vecs*/ false,
-                                                                     /*has_IB_ghost_vecs*/ true)));
-        d_P_out = d_fe_system_data.back().get();
+        d_DU_jump_systems[d].resize(d_num_parts);
+        d_DU_jump_half_vecs[d].resize(d_num_parts);
+        d_DU_jump_IB_ghost_vecs[d].resize(d_num_parts);
     }
+    d_WSS_in_systems.resize(d_num_parts);
+    d_WSS_in_half_vecs.resize(d_num_parts);
+    d_WSS_in_IB_ghost_vecs.resize(d_num_parts);
 
-    if (d_use_velocity_jump_conditions)
+    d_WSS_out_systems.resize(d_num_parts);
+    d_WSS_out_half_vecs.resize(d_num_parts);
+    d_WSS_out_IB_ghost_vecs.resize(d_num_parts);
+
+    d_TAU_in_systems.resize(d_num_parts);
+    d_TAU_in_half_vecs.resize(d_num_parts);
+    d_TAU_in_IB_ghost_vecs.resize(d_num_parts);
+
+    d_TAU_out_systems.resize(d_num_parts);
+    d_TAU_out_half_vecs.resize(d_num_parts);
+    d_TAU_out_IB_ghost_vecs.resize(d_num_parts);
+
+    for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        for (int d = 0; d < NDIM; ++d)
+        d_X_systems[part] = &d_equation_systems[part]->get_system(COORDS_SYSTEM_NAME);
+        d_X_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_X_systems[part]->current_local_solution.get());
+        d_X_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
+            d_X_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+        d_X_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
+            d_X_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+        d_X_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+            d_fe_data_managers[part]->buildGhostedCoordsVector(/*localize_data*/ false));
+
+        d_U_systems[part] = &d_equation_systems[part]->get_system(VELOCITY_SYSTEM_NAME);
+        d_U_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->current_local_solution.get());
+        d_U_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
+            d_U_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+        d_U_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
+            d_U_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+
+        d_U_n_systems[part] = &d_equation_systems[part]->get_system(NORMAL_VELOCITY_SYSTEM_NAME);
+        d_U_n_current_vecs[part] =
+            dynamic_cast<PetscVector<double>*>(d_U_n_systems[part]->current_local_solution.get());
+        d_U_n_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
+            d_U_n_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+        d_U_n_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
+            d_U_n_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+
+        d_U_t_systems[part] = &d_equation_systems[part]->get_system(TANGENTIAL_VELOCITY_SYSTEM_NAME);
+        d_U_t_current_vecs[part] =
+            dynamic_cast<PetscVector<double>*>(d_U_t_systems[part]->current_local_solution.get());
+        d_U_t_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
+            d_U_t_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+        d_U_t_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
+            d_U_t_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+
+        d_F_systems[part] = &d_equation_systems[part]->get_system(FORCE_SYSTEM_NAME);
+        d_F_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->current_local_solution.get());
+        d_F_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+            d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME, /*localize_data*/ false));
+
+        if (d_use_pressure_jump_conditions)
         {
-            d_fe_system_data.push_back(
-                std::unique_ptr<LibMeshSystemData>(new LibMeshSystemData(VELOCITY_JUMP_SYSTEM_NAME[d],
-                                                                         /*has_current_vecs*/ false,
-                                                                         /*has_half_vecs*/ true,
-                                                                         /*has_new_vecs*/ false,
-                                                                         /*has_IB_ghost_vecs*/ true)));
-            d_DU_jump[d] = d_fe_system_data.back().get();
+            d_P_jump_systems[part] = &d_equation_systems[part]->get_system(PRESSURE_JUMP_SYSTEM_NAME);
+            d_P_jump_half_vecs[part] =
+                dynamic_cast<PetscVector<double>*>(d_P_jump_systems[part]->current_local_solution.get());
+            d_P_jump_IB_ghost_vecs[part] =
+                dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(
+                    PRESSURE_JUMP_SYSTEM_NAME, /*localize_data*/ false));
+
+            d_P_in_systems[part] = &d_equation_systems[part]->get_system(PRESSURE_IN_SYSTEM_NAME);
+            d_P_in_half_vecs[part] =
+                dynamic_cast<PetscVector<double>*>(d_P_in_systems[part]->current_local_solution.get());
+            d_P_in_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+                d_fe_data_managers[part]->buildGhostedSolutionVector(PRESSURE_IN_SYSTEM_NAME, /*localize_data*/ false));
+
+            d_P_out_systems[part] = &d_equation_systems[part]->get_system(PRESSURE_OUT_SYSTEM_NAME);
+            d_P_out_half_vecs[part] =
+                dynamic_cast<PetscVector<double>*>(d_P_out_systems[part]->current_local_solution.get());
+            d_P_out_IB_ghost_vecs[part] =
+                dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(
+                    PRESSURE_OUT_SYSTEM_NAME, /*localize_data*/ false));
         }
 
-        d_fe_system_data.push_back(
-            std::unique_ptr<LibMeshSystemData>(new LibMeshSystemData(WSS_IN_SYSTEM_NAME,
-                                                                     /*has_current_vecs*/ false,
-                                                                     /*has_half_vecs*/ true,
-                                                                     /*has_new_vecs*/ false,
-                                                                     /*has_IB_ghost_vecs*/ true)));
-        d_WSS_in = d_fe_system_data.back().get();
+        if (d_use_velocity_jump_conditions)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                d_DU_jump_systems[part][d] = &d_equation_systems[part]->get_system(VELOCITY_JUMP_SYSTEM_NAME[d]);
+                d_DU_jump_half_vecs[part][d] =
+                    dynamic_cast<PetscVector<double>*>(d_DU_jump_systems[part][d]->current_local_solution.get());
+                d_DU_jump_IB_ghost_vecs[part][d] =
+                    dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(
+                        VELOCITY_JUMP_SYSTEM_NAME[d], /*localize_data*/ false));
+            }
+            d_WSS_in_systems[part] = &d_equation_systems[part]->get_system(WSS_IN_SYSTEM_NAME);
+            d_WSS_in_half_vecs[part] =
+                dynamic_cast<PetscVector<double>*>(d_WSS_in_systems[part]->current_local_solution.get());
+            d_WSS_in_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+                d_fe_data_managers[part]->buildGhostedSolutionVector(WSS_IN_SYSTEM_NAME, /*localize_data*/ false));
 
-        d_fe_system_data.push_back(
-            std::unique_ptr<LibMeshSystemData>(new LibMeshSystemData(WSS_OUT_SYSTEM_NAME,
-                                                                     /*has_current_vecs*/ false,
-                                                                     /*has_half_vecs*/ true,
-                                                                     /*has_new_vecs*/ false,
-                                                                     /*has_IB_ghost_vecs*/ true)));
-        d_WSS_out = d_fe_system_data.back().get();
+            d_WSS_out_systems[part] = &d_equation_systems[part]->get_system(WSS_OUT_SYSTEM_NAME);
+            d_WSS_out_half_vecs[part] =
+                dynamic_cast<PetscVector<double>*>(d_WSS_out_systems[part]->current_local_solution.get());
+            d_WSS_out_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+                d_fe_data_managers[part]->buildGhostedSolutionVector(WSS_OUT_SYSTEM_NAME, /*localize_data*/ false));
+        }
+        if (d_use_velocity_jump_conditions && d_use_pressure_jump_conditions)
+        {
+            d_TAU_in_systems[part] = &d_equation_systems[part]->get_system(TAU_IN_SYSTEM_NAME);
+            d_TAU_in_half_vecs[part] =
+                dynamic_cast<PetscVector<double>*>(d_TAU_in_systems[part]->current_local_solution.get());
+            d_TAU_in_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+                d_fe_data_managers[part]->buildGhostedSolutionVector(TAU_IN_SYSTEM_NAME, /*localize_data*/ false));
+
+            d_TAU_out_systems[part] = &d_equation_systems[part]->get_system(TAU_OUT_SYSTEM_NAME);
+            d_TAU_out_half_vecs[part] =
+                dynamic_cast<PetscVector<double>*>(d_TAU_out_systems[part]->current_local_solution.get());
+            d_TAU_out_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+                d_fe_data_managers[part]->buildGhostedSolutionVector(TAU_OUT_SYSTEM_NAME, /*localize_data*/ false));
+        }
+
+        // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
+        // U^{n+1/2} and U^{n+1} to equal U^{n}.
+        *d_X_current_vecs[part] = *d_X_systems[part]->solution;
+        *d_X_new_vecs[part] = *d_X_current_vecs[part];
+        *d_X_half_vecs[part] = *d_X_current_vecs[part];
+
+        *d_U_current_vecs[part] = *d_U_systems[part]->solution;
+        *d_U_new_vecs[part] = *d_U_current_vecs[part];
+        *d_U_half_vecs[part] = *d_U_current_vecs[part];
+
+        *d_U_n_current_vecs[part] = *d_U_n_systems[part]->solution;
+        *d_U_n_new_vecs[part] = *d_U_n_current_vecs[part];
+        *d_U_n_half_vecs[part] = *d_U_n_current_vecs[part];
+
+        *d_U_t_current_vecs[part] = *d_U_t_systems[part]->solution;
+        *d_U_t_new_vecs[part] = *d_U_t_current_vecs[part];
+        *d_U_t_half_vecs[part] = *d_U_t_current_vecs[part];
+
+        *d_F_half_vecs[part] = *d_F_systems[part]->solution;
+
+        if (d_use_pressure_jump_conditions)
+        {
+            *d_P_jump_half_vecs[part] = *d_P_jump_systems[part]->solution;
+            *d_P_in_half_vecs[part] = *d_P_in_systems[part]->solution;
+            *d_P_out_half_vecs[part] = *d_P_out_systems[part]->solution;
+        }
+
+        if (d_use_velocity_jump_conditions)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                *d_DU_jump_half_vecs[part][d] = *d_DU_jump_systems[part][d]->solution;
+            }
+
+            *d_WSS_in_half_vecs[part] = *d_WSS_in_systems[part]->solution;
+            *d_WSS_out_half_vecs[part] = *d_WSS_out_systems[part]->solution;
+        }
+        if (d_use_velocity_jump_conditions && d_use_pressure_jump_conditions)
+        {
+            *d_TAU_in_half_vecs[part] = *d_TAU_in_systems[part]->solution;
+            *d_TAU_out_half_vecs[part] = *d_TAU_out_systems[part]->solution;
+        }
     }
-
-    if (d_use_velocity_jump_conditions && d_use_pressure_jump_conditions)
-    {
-        d_fe_system_data.push_back(
-            std::unique_ptr<LibMeshSystemData>(new LibMeshSystemData(TAU_IN_SYSTEM_NAME,
-                                                                     /*has_current_vecs*/ false,
-                                                                     /*has_half_vecs*/ true,
-                                                                     /*has_new_vecs*/ false,
-                                                                     /*has_IB_ghost_vecs*/ true)));
-        d_TAU_in = d_fe_system_data.back().get();
-
-        d_fe_system_data.push_back(
-            std::unique_ptr<LibMeshSystemData>(new LibMeshSystemData(TAU_OUT_SYSTEM_NAME,
-                                                                     /*has_current_vecs*/ false,
-                                                                     /*has_half_vecs*/ true,
-                                                                     /*has_new_vecs*/ false,
-                                                                     /*has_IB_ghost_vecs*/ true)));
-        d_TAU_out = d_fe_system_data.back().get();
-    }
-
-    // Initialize the FE data structures.
-    //
-    // This will automatically initialize X^{n+1/2} and X^{n+1} to equal X^{n},
-    // and initialize U^{n+1/2} and U^{n+1} to equal U^{n}.
-    std::for_each(d_fe_system_data.begin(),
-                  d_fe_system_data.end(),
-                  [&](std::unique_ptr<LibMeshSystemData>& system_data) { system_data->init(d_fe_data_managers); });
     return;
 } // preprocessIntegrateData
 
 void
 IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
 {
-        
-	std::vector<std::vector<libMesh::PetscVector<double>*> > vec_collection_update = {d_U->new_vecs,d_X->new_vecs,d_U_n->new_vecs,
-																						d_U_t->new_vecs, d_F->half_vecs};
-																						
-	if (d_use_pressure_jump_conditions)
-	{
-		vec_collection_update.push_back(d_P_jump->half_vecs);
-		vec_collection_update.push_back(d_P_in->half_vecs);
-		vec_collection_update.push_back(d_P_out->half_vecs);
-	} 
+    std::vector<std::vector<libMesh::PetscVector<double>*> > vec_collection_update = {
+        d_U_new_vecs, d_X_new_vecs, d_U_n_new_vecs, d_U_t_new_vecs, d_F_half_vecs
+    };
+
+    if (d_use_pressure_jump_conditions)
+    {
+        vec_collection_update.push_back(d_P_jump_half_vecs);
+        vec_collection_update.push_back(d_P_in_half_vecs);
+        vec_collection_update.push_back(d_P_out_half_vecs);
+        } 
 	if (d_use_velocity_jump_conditions)
 	{
-		vec_collection_update.push_back(d_WSS_in->half_vecs);
-		vec_collection_update.push_back(d_WSS_out->half_vecs);
-		vec_collection_update.push_back(d_DU_jump[0]->half_vecs);
-		vec_collection_update.push_back(d_DU_jump[1]->half_vecs);
+            vec_collection_update.push_back(d_WSS_in_half_vecs);
+            vec_collection_update.push_back(d_WSS_out_half_vecs);
+            vec_collection_update.push_back(d_DU_jump_half_vecs[0]);
+            vec_collection_update.push_back(d_DU_jump_half_vecs[1]);
 #if (NDIM == 3)
-		vec_collection_update.push_back(d_DU_jump[2]->half_vecs);
+            vec_collection_update.push_back(d_DU_jump_half_vecs[2]);
 #endif
 	}
 	if (d_compute_fluid_traction)
 	{
-		vec_collection_update.push_back(d_TAU_in->half_vecs);
-		vec_collection_update.push_back(d_TAU_out->half_vecs);	
-	}			
+            vec_collection_update.push_back(d_TAU_in_half_vecs);
+            vec_collection_update.push_back(d_TAU_out_half_vecs);
+        }			
 	batch_vec_ghost_update(vec_collection_update, INSERT_VALUES, SCATTER_FORWARD);
         
-
-    // Evaluate the fluid forces on the interface.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int p_data_idx = var_db->mapVariableAndContextToIndex(getINSHierarchyIntegrator()->getPressureVariable(),
-                                                                getINSHierarchyIntegrator()->getScratchContext());
     if (d_compute_fluid_traction)
+    {
+        // Evaluate the fluid forces on the interface.
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int p_data_idx = var_db->mapVariableAndContextToIndex(getINSHierarchyIntegrator()->getPressureVariable(),
+                                                                    getINSHierarchyIntegrator()->getScratchContext());
         calculateInterfacialFluidForces(p_data_idx, d_new_time); // TODO: Should this be half_time?
-
-    // Reset time-dependent Lagrangian data and free FE data structures
-    d_fe_system_data.clear();
+    }
 
     // Update the coordinate mapping dX = X - s.
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
+        // Reset time-dependent Lagrangian data.
+        *d_X_systems[part]->solution = *d_X_new_vecs[part];
+        *d_X_systems[part]->current_local_solution = *d_X_new_vecs[part];
+        delete d_X_new_vecs[part];
+        delete d_X_half_vecs[part];
+
+        *d_U_systems[part]->solution = *d_U_new_vecs[part];
+        *d_U_systems[part]->current_local_solution = *d_U_new_vecs[part];
+        delete d_U_new_vecs[part];
+        delete d_U_half_vecs[part];
+
+        *d_U_n_systems[part]->solution = *d_U_n_new_vecs[part];
+        *d_U_n_systems[part]->current_local_solution = *d_U_n_new_vecs[part];
+        delete d_U_n_new_vecs[part];
+        delete d_U_n_half_vecs[part];
+
+        *d_U_t_systems[part]->solution = *d_U_t_new_vecs[part];
+        *d_U_t_systems[part]->current_local_solution = *d_U_t_new_vecs[part];
+        delete d_U_t_new_vecs[part];
+        delete d_U_t_half_vecs[part];
+
+        *d_F_systems[part]->solution = *d_F_half_vecs[part];
+        *d_F_systems[part]->current_local_solution = *d_F_half_vecs[part];
+
+        if (d_use_pressure_jump_conditions)
+        {
+            *d_P_jump_systems[part]->solution = *d_P_jump_half_vecs[part];
+            *d_P_jump_systems[part]->current_local_solution = *d_P_jump_half_vecs[part];
+            *d_P_in_systems[part]->solution = *d_P_in_half_vecs[part];
+            *d_P_in_systems[part]->current_local_solution = *d_P_in_half_vecs[part];
+            *d_P_out_systems[part]->solution = *d_P_out_half_vecs[part];
+            *d_P_out_systems[part]->current_local_solution = *d_P_out_half_vecs[part];
+        }
+
+        if (d_use_velocity_jump_conditions)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                *d_DU_jump_systems[part][d]->solution = *d_DU_jump_half_vecs[part][d];
+                *d_DU_jump_systems[part][d]->current_local_solution = *d_DU_jump_half_vecs[part][d];
+            }
+            *d_WSS_in_systems[part]->solution = *d_WSS_in_half_vecs[part];
+            *d_WSS_in_systems[part]->current_local_solution = *d_WSS_in_half_vecs[part];
+            *d_WSS_out_systems[part]->solution = *d_WSS_out_half_vecs[part];
+            *d_WSS_out_systems[part]->current_local_solution = *d_WSS_out_half_vecs[part];
+        }
+        if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions)
+        {
+            *d_TAU_in_systems[part]->solution = *d_TAU_in_half_vecs[part];
+            *d_TAU_in_systems[part]->current_local_solution = *d_TAU_in_half_vecs[part];
+            *d_TAU_out_systems[part]->solution = *d_TAU_out_half_vecs[part];
+            *d_TAU_out_systems[part]->current_local_solution = *d_TAU_out_half_vecs[part];
+        }
+
+        // Update the coordinate mapping dX = X - s.
         updateCoordinateMapping(part);
     }
+
+    d_X_systems.clear();
+    d_X_current_vecs.clear();
+    d_X_new_vecs.clear();
+    d_X_half_vecs.clear();
+    d_X_IB_ghost_vecs.clear();
+
+    d_U_systems.clear();
+    d_U_current_vecs.clear();
+    d_U_new_vecs.clear();
+    d_U_half_vecs.clear();
+
+    d_U_n_systems.clear();
+    d_U_n_current_vecs.clear();
+    d_U_n_new_vecs.clear();
+    d_U_n_half_vecs.clear();
+
+    d_U_t_systems.clear();
+    d_U_t_current_vecs.clear();
+    d_U_t_new_vecs.clear();
+    d_U_t_half_vecs.clear();
+
+    d_F_systems.clear();
+    d_F_half_vecs.clear();
+    d_F_IB_ghost_vecs.clear();
+
+    d_P_jump_systems.clear();
+    d_P_jump_half_vecs.clear();
+    d_P_jump_IB_ghost_vecs.clear();
+
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        d_DU_jump_systems[d].clear();
+        d_DU_jump_half_vecs[d].clear();
+        d_DU_jump_IB_ghost_vecs[d].clear();
+    }
+
+    d_WSS_in_systems.clear();
+    d_WSS_in_half_vecs.clear();
+    d_WSS_in_IB_ghost_vecs.clear();
+
+    d_WSS_out_systems.clear();
+    d_WSS_out_half_vecs.clear();
+    d_WSS_out_IB_ghost_vecs.clear();
+
+    d_P_in_systems.clear();
+    d_P_in_half_vecs.clear();
+    d_P_in_IB_ghost_vecs.clear();
+
+    d_P_out_systems.clear();
+    d_P_out_half_vecs.clear();
+    d_P_out_IB_ghost_vecs.clear();
+
+    d_TAU_in_systems.clear();
+    d_TAU_in_half_vecs.clear();
+    d_TAU_in_IB_ghost_vecs.clear();
+
+    d_TAU_out_systems.clear();
+    d_TAU_out_half_vecs.clear();
+    d_TAU_out_IB_ghost_vecs.clear();
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -501,39 +695,39 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         NumericVector<double>* U_n_vec = nullptr;
         NumericVector<double>* U_t_vec = nullptr;
         NumericVector<double>* X_vec = nullptr;
-        NumericVector<double>* X_ghost_vec = d_X->IB_ghost_vecs[part];
+        NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         const std::array<PetscVector<double>*, NDIM> DU_jump_ghost_vec = {
-            d_use_velocity_jump_conditions ? d_DU_jump[0]->IB_ghost_vecs[part] : nullptr,
-            d_use_velocity_jump_conditions ? d_DU_jump[1]->IB_ghost_vecs[part] : nullptr,
+            d_use_velocity_jump_conditions ? d_DU_jump_IB_ghost_vecs[part][0] : nullptr,
+            d_use_velocity_jump_conditions ? d_DU_jump_IB_ghost_vecs[part][1] : nullptr,
 #if (NDIM > 2)
-            d_use_velocity_jump_conditions ? d_DU_jump[2]->IB_ghost_vecs[part] : nullptr,
+            d_use_velocity_jump_conditions ? d_DU_jump_IB_ghost_vecs[part][2] : nullptr,
 #endif
         };
         if (MathUtilities<double>::equalEps(data_time, d_current_time))
         {
-            U_vec = d_U->current_vecs[part];
-            U_n_vec = d_U_n->current_vecs[part];
-            U_t_vec = d_U_t->current_vecs[part];
-            X_vec = d_X->current_vecs[part];
+            U_vec = d_U_current_vecs[part];
+            U_n_vec = d_U_n_current_vecs[part];
+            U_t_vec = d_U_t_current_vecs[part];
+            X_vec = d_X_current_vecs[part];
         }
         else if (MathUtilities<double>::equalEps(data_time, d_half_time))
         {
-            U_vec = d_U->half_vecs[part];
-            U_n_vec = d_U_n->half_vecs[part];
-            U_t_vec = d_U_t->half_vecs[part];
-            X_vec = d_X->half_vecs[part];
+            U_vec = d_U_half_vecs[part];
+            U_n_vec = d_U_n_half_vecs[part];
+            U_t_vec = d_U_t_half_vecs[part];
+            X_vec = d_X_half_vecs[part];
         }
         else if (MathUtilities<double>::equalEps(data_time, d_new_time))
         {
-            U_vec = d_U->new_vecs[part];
-            U_n_vec = d_U_n->new_vecs[part];
-            U_t_vec = d_U_t->new_vecs[part];
-            X_vec = d_X->new_vecs[part];
+            U_vec = d_U_new_vecs[part];
+            U_n_vec = d_U_n_new_vecs[part];
+            U_t_vec = d_U_t_new_vecs[part];
+            X_vec = d_X_new_vecs[part];
         }
         copy_and_synch(*X_vec, *X_ghost_vec);
 
-        NumericVector<double>* WSS_in_vec = d_use_velocity_jump_conditions ? d_WSS_in->half_vecs[part] : nullptr;
-        NumericVector<double>* WSS_out_vec = d_use_velocity_jump_conditions ? d_WSS_out->half_vecs[part] : nullptr;
+        NumericVector<double>* WSS_in_vec = d_use_velocity_jump_conditions ? d_WSS_in_half_vecs[part] : nullptr;
+        NumericVector<double>* WSS_out_vec = d_use_velocity_jump_conditions ? d_WSS_out_half_vecs[part] : nullptr;
 
         // Extract the mesh.
         EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
@@ -542,7 +736,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         std::unique_ptr<QBase> qrule;
 
         // Extract the FE systems and DOF maps, and setup the FE object.
-        System& U_system = *d_U->systems[part];
+        System& U_system = *d_U_systems[part];
         const DofMap& U_dof_map = U_system.get_dof_map();
         FEDataManager::SystemDofMapCache& U_dof_map_cache =
             *d_fe_data_managers[part]->getDofMapCache(VELOCITY_SYSTEM_NAME);
@@ -1181,9 +1375,9 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 
         if (d_use_velocity_jump_conditions)
         {
-            for (unsigned int d = 0; d < NDIM; ++d) d_DU_jump[d]->IB_ghost_vecs[part]->close();
+            for (unsigned int d = 0; d < NDIM; ++d) d_DU_jump_IB_ghost_vecs[part][d]->close();
         }
-        d_X->IB_ghost_vecs[part]->close();
+        d_X_IB_ghost_vecs[part]->close();
     }
     return;
 } // interpolateVelocity
@@ -1191,57 +1385,57 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 void
 IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int part)
 {
-    batch_vec_ghost_update({ d_WSS_in->half_vecs[part],
-                             d_WSS_out->half_vecs[part],
-                             d_P_in->half_vecs[part],
-                             d_P_out->half_vecs[part],
-                             d_TAU_in->half_vecs[part],
-                             d_TAU_out->half_vecs[part],
-                             d_X->new_vecs[part] },
+    batch_vec_ghost_update({ d_WSS_in_half_vecs[part],
+                             d_WSS_out_half_vecs[part],
+                             d_P_in_half_vecs[part],
+                             d_P_out_half_vecs[part],
+                             d_TAU_in_half_vecs[part],
+                             d_TAU_out_half_vecs[part],
+                             d_X_new_vecs[part] },
                            INSERT_VALUES,
                            SCATTER_FORWARD);
     NumericVector<double>* WSS_in_vec = NULL;
-    NumericVector<double>* WSS_in_ghost_vec = d_WSS_in->IB_ghost_vecs[part];
+    NumericVector<double>* WSS_in_ghost_vec = d_WSS_in_IB_ghost_vecs[part];
 
     NumericVector<double>* WSS_out_vec = NULL;
-    NumericVector<double>* WSS_out_ghost_vec = d_WSS_out->IB_ghost_vecs[part];
+    NumericVector<double>* WSS_out_ghost_vec = d_WSS_out_IB_ghost_vecs[part];
 
     NumericVector<double>* P_in_vec = NULL;
-    NumericVector<double>* P_in_ghost_vec = d_P_in->IB_ghost_vecs[part];
+    NumericVector<double>* P_in_ghost_vec = d_P_in_IB_ghost_vecs[part];
 
     NumericVector<double>* P_out_vec = NULL;
-    NumericVector<double>* P_out_ghost_vec = d_P_out->IB_ghost_vecs[part];
+    NumericVector<double>* P_out_ghost_vec = d_P_out_IB_ghost_vecs[part];
 
-    NumericVector<double>* TAU_in_vec = d_TAU_in->half_vecs[part];
-    NumericVector<double>* TAU_out_vec = d_TAU_out->half_vecs[part];
+    NumericVector<double>* TAU_in_vec = d_TAU_in_half_vecs[part];
+    NumericVector<double>* TAU_out_vec = d_TAU_out_half_vecs[part];
 
     NumericVector<double>* X_vec = NULL;
 
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
-        X_vec = d_X->current_vecs[part];
+        X_vec = d_X_current_vecs[part];
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
-        X_vec = d_X->half_vecs[part];
+        X_vec = d_X_half_vecs[part];
     }
     else if (MathUtilities<double>::equalEps(data_time, d_new_time))
     {
-        X_vec = d_X->new_vecs[part];
+        X_vec = d_X_new_vecs[part];
     }
-    NumericVector<double>* X_ghost_vec = d_X->IB_ghost_vecs[part];
+    NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
     copy_and_synch(*X_vec, *X_ghost_vec);
 
-    WSS_in_vec = d_WSS_in->half_vecs[part];
+    WSS_in_vec = d_WSS_in_half_vecs[part];
     copy_and_synch(*WSS_in_vec, *WSS_in_ghost_vec);
 
-    WSS_out_vec = d_WSS_out->half_vecs[part];
+    WSS_out_vec = d_WSS_out_half_vecs[part];
     copy_and_synch(*WSS_out_vec, *WSS_out_ghost_vec);
 
-    P_in_vec = d_P_in->half_vecs[part];
+    P_in_vec = d_P_in_half_vecs[part];
     copy_and_synch(*P_in_vec, *P_in_ghost_vec);
 
-    P_out_vec = d_P_out->half_vecs[part];
+    P_out_vec = d_P_out_half_vecs[part];
     copy_and_synch(*P_out_vec, *P_out_ghost_vec);
 
     std::unique_ptr<NumericVector<double> > TAU_in_rhs_vec = TAU_in_vec->zero_clone();
@@ -1605,40 +1799,40 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     d_fe_data_managers[part]->computeL2Projection(
         *TAU_out_vec, *TAU_out_rhs_vec, TAU_OUT_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
 
-    d_X->half_vecs[part]->close();
-    d_X->current_vecs[part]->close();
-    d_X->new_vecs[part]->close();
-    d_TAU_in->half_vecs[part]->close();
-    d_WSS_in->half_vecs[part]->close();
-    d_P_in->half_vecs[part]->close();
-    d_TAU_out->half_vecs[part]->close();
-    d_WSS_out->half_vecs[part]->close();
-    d_P_out->half_vecs[part]->close();
+    d_X_half_vecs[part]->close();
+    d_X_current_vecs[part]->close();
+    d_X_new_vecs[part]->close();
+    d_TAU_in_half_vecs[part]->close();
+    d_WSS_in_half_vecs[part]->close();
+    d_P_in_half_vecs[part]->close();
+    d_TAU_out_half_vecs[part]->close();
+    d_WSS_out_half_vecs[part]->close();
+    d_P_out_half_vecs[part]->close();
 
     VecRestoreArray(X_local_vec, &X_local_soln);
     VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
 
-    d_WSS_in->IB_ghost_vecs[part]->close();
-    d_WSS_out->IB_ghost_vecs[part]->close();
+    d_WSS_in_IB_ghost_vecs[part]->close();
+    d_WSS_out_IB_ghost_vecs[part]->close();
 
-    d_P_in->IB_ghost_vecs[part]->close();
-    d_P_out->IB_ghost_vecs[part]->close();
-    d_X->IB_ghost_vecs[part]->close();
+    d_P_in_IB_ghost_vecs[part]->close();
+    d_P_out_IB_ghost_vecs[part]->close();
+    d_X_IB_ghost_vecs[part]->close();
 }
 
 void
 IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const double data_time, unsigned int part)
 {
     batch_vec_ghost_update(
-        { d_P_out->half_vecs[part], d_P_in->half_vecs[part], d_X->new_vecs[part] }, INSERT_VALUES, SCATTER_FORWARD);
+        { d_P_out_half_vecs[part], d_P_in_half_vecs[part], d_X_new_vecs[part] }, INSERT_VALUES, SCATTER_FORWARD);
 
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_fe_data_managers[part]->getPatchHierarchy();
 
-    NumericVector<double>* P_in_vec = d_P_in->half_vecs[part];
-    NumericVector<double>* P_out_vec = d_P_out->half_vecs[part];
-    NumericVector<double>* P_jump_ghost_vec = d_P_jump->IB_ghost_vecs[part];
+    NumericVector<double>* P_in_vec = d_P_in_half_vecs[part];
+    NumericVector<double>* P_out_vec = d_P_out_half_vecs[part];
+    NumericVector<double>* P_jump_ghost_vec = d_P_jump_IB_ghost_vecs[part];
     NumericVector<double>* X_vec = NULL;
-    NumericVector<double>* X_ghost_vec = d_X->IB_ghost_vecs[part];
+    NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
 
     std::unique_ptr<NumericVector<double> > P_in_rhs_vec = (*P_in_vec).zero_clone();
     P_in_rhs_vec->zero();
@@ -1650,15 +1844,15 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
 
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
-        X_vec = d_X->current_vecs[part];
+        X_vec = d_X_current_vecs[part];
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
-        X_vec = d_X->half_vecs[part];
+        X_vec = d_X_half_vecs[part];
     }
     else if (MathUtilities<double>::equalEps(data_time, d_new_time))
     {
-        X_vec = d_X->new_vecs[part];
+        X_vec = d_X_new_vecs[part];
     }
     copy_and_synch(*X_vec, *X_ghost_vec);
 
@@ -1992,14 +2186,14 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
     d_fe_data_managers[part]->computeL2Projection(
         *P_out_vec, *P_out_rhs_vec, PRESSURE_OUT_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
 
-    d_X->half_vecs[part]->close();
-    d_X->current_vecs[part]->close();
-    d_X->new_vecs[part]->close();
+    d_X_half_vecs[part]->close();
+    d_X_current_vecs[part]->close();
+    d_X_new_vecs[part]->close();
 
-    d_P_in->half_vecs[part]->close();
-    d_P_out->half_vecs[part]->close();
-    d_X->IB_ghost_vecs[part]->close();
-    d_P_jump->half_vecs[part]->close();
+    d_P_in_half_vecs[part]->close();
+    d_P_out_half_vecs[part]->close();
+    d_X_IB_ghost_vecs[part]->close();
+    d_P_jump_half_vecs[part]->close();
 }
 
 void
@@ -2011,7 +2205,6 @@ IBFESurfaceMethod::calculateInterfacialFluidForces(const int p_data_idx, double 
                                  << std::endl);
     }
 
-    const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const auto p_scratch_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(d_p_scratch_idx);
     RefineAlgorithm<NDIM> ghost_fill_alg_p;
@@ -2038,20 +2231,20 @@ IBFESurfaceMethod::forwardEulerStep(const double current_time, const double new_
     {
         if (d_use_direct_forcing)
         {
-            ierr = VecCopy(d_X->current_vecs[part]->vec(), d_X->new_vecs[part]->vec());
+            ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
         }
         else
         {
-            ierr = VecWAXPY(
-                d_X->new_vecs[part]->vec(), dt, d_U->current_vecs[part]->vec(), d_X->current_vecs[part]->vec());
+            ierr =
+                VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
         }
         ierr = VecAXPBYPCZ(
-            d_X->half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X->current_vecs[part]->vec(), d_X->new_vecs[part]->vec());
+            d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
-        d_X->new_vecs[part]->close();
-        d_X->half_vecs[part]->close();
+        d_X_new_vecs[part]->close();
+        d_X_half_vecs[part]->close();
     }
     return;
 } // eulerStep
@@ -2065,20 +2258,19 @@ IBFESurfaceMethod::midpointStep(const double current_time, const double new_time
     {
         if (d_use_direct_forcing)
         {
-            ierr = VecCopy(d_X->current_vecs[part]->vec(), d_X->new_vecs[part]->vec());
+            ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
         }
         else
         {
-            ierr =
-                VecWAXPY(d_X->new_vecs[part]->vec(), dt, d_U->half_vecs[part]->vec(), d_X->current_vecs[part]->vec());
+            ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_half_vecs[part]->vec(), d_X_current_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
         }
         ierr = VecAXPBYPCZ(
-            d_X->half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X->current_vecs[part]->vec(), d_X->new_vecs[part]->vec());
+            d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
-        d_X->new_vecs[part]->close();
-        d_X->half_vecs[part]->close();
+        d_X_new_vecs[part]->close();
+        d_X_half_vecs[part]->close();
     }
     return;
 } // midpointStep
@@ -2092,22 +2284,22 @@ IBFESurfaceMethod::trapezoidalStep(const double current_time, const double new_t
     {
         if (d_use_direct_forcing)
         {
-            ierr = VecCopy(d_X->current_vecs[part]->vec(), d_X->new_vecs[part]->vec());
+            ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
         }
         else
         {
             ierr = VecWAXPY(
-                d_X->new_vecs[part]->vec(), 0.5 * dt, d_U->current_vecs[part]->vec(), d_X->current_vecs[part]->vec());
+                d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
-            ierr = VecAXPY(d_X->new_vecs[part]->vec(), 0.5 * dt, d_U->new_vecs[part]->vec());
+            ierr = VecAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_new_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
         }
         ierr = VecAXPBYPCZ(
-            d_X->half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X->current_vecs[part]->vec(), d_X->new_vecs[part]->vec());
+            d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
         IBTK_CHKERRQ(ierr);
-        d_X->new_vecs[part]->close();
-        d_X->half_vecs[part]->close();
+        d_X_new_vecs[part]->close();
+        d_X_half_vecs[part]->close();
     }
     return;
 } // trapezoidalStep
@@ -2116,7 +2308,7 @@ void
 IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
-    batch_vec_ghost_update(d_X->half_vecs, INSERT_VALUES, SCATTER_FORWARD);
+    batch_vec_ghost_update(d_X_half_vecs, INSERT_VALUES, SCATTER_FORWARD);
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
@@ -2124,16 +2316,16 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         const unsigned int dim = mesh.mesh_dimension();
 
         // Setup global and elemental right-hand-side vectors.
-        NumericVector<double>* F_vec = d_F->half_vecs[part];
+        NumericVector<double>* F_vec = d_F_half_vecs[part];
         std::unique_ptr<NumericVector<double> > F_rhs_vec = F_vec->zero_clone();
         std::array<DenseVector<double>, NDIM> F_rhs_e;
         VectorValue<double>& F_integral = d_lag_surface_force_integral[part];
         F_integral.zero();
 
-        NumericVector<double>* X_vec = d_X->half_vecs[part];
+        NumericVector<double>* X_vec = d_X_half_vecs[part];
         double surface_area = 0.0;
 
-        NumericVector<double>* P_jump_vec = d_use_pressure_jump_conditions ? d_P_jump->half_vecs[part] : nullptr;
+        NumericVector<double>* P_jump_vec = d_use_pressure_jump_conditions ? d_P_jump_half_vecs[part] : nullptr;
         std::unique_ptr<NumericVector<double> > P_jump_rhs_vec;
         DenseVector<double> P_jump_rhs_e;
         if (d_use_pressure_jump_conditions)
@@ -2149,7 +2341,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                DU_jump_vec[d] = d_DU_jump[d]->half_vecs[part];
+                DU_jump_vec[d] = d_DU_jump_half_vecs[part][d];
                 DU_jump_rhs_vec[d] = DU_jump_vec[d]->zero_clone();
             }
         }
@@ -2468,12 +2660,16 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         SAMRAI_MPI::sumReduction(&F_integral(0), NDIM);
 
         // Solve for F.
+        F_rhs_vec->close();
         d_fe_data_managers[part]->computeL2Projection(
-            *F_vec, *F_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
+            *F_vec, *F_rhs_vec, FORCE_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
         if (d_use_pressure_jump_conditions)
         {
-            d_fe_data_managers[part]->computeL2Projection(
-                *P_jump_vec, *P_jump_rhs_vec, PRESSURE_JUMP_SYSTEM_NAME, d_use_consistent_mass_matrix);
+            P_jump_rhs_vec->close();
+            d_fe_data_managers[part]->computeL2Projection(*P_jump_vec,
+                                                          *P_jump_rhs_vec,
+                                                          PRESSURE_JUMP_SYSTEM_NAME,
+                                                          d_default_interp_spec.use_consistent_mass_matrix);
             P_jump_rhs_integral = SAMRAI_MPI::sumReduction(P_jump_rhs_integral);
             surface_area = SAMRAI_MPI::sumReduction(surface_area);
             if (d_normalize_pressure_jump) P_jump_vec->add(-P_jump_rhs_integral / surface_area);
@@ -2483,8 +2679,11 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                d_fe_data_managers[part]->computeL2Projection(
-                    *DU_jump_vec[d], *DU_jump_rhs_vec[d], VELOCITY_JUMP_SYSTEM_NAME[d], d_use_consistent_mass_matrix);
+                DU_jump_rhs_vec[d]->close();
+                d_fe_data_managers[part]->computeL2Projection(*DU_jump_vec[d],
+                                                              *DU_jump_rhs_vec[d],
+                                                              VELOCITY_JUMP_SYSTEM_NAME[d],
+                                                              d_default_interp_spec.use_consistent_mass_matrix);
                 DU_jump_vec[d]->close();
             }
         }
@@ -2501,10 +2700,10 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        PetscVector<double>* X_vec = d_X->half_vecs[part];
-        PetscVector<double>* X_ghost_vec = d_X->IB_ghost_vecs[part];
-        PetscVector<double>* F_vec = d_F->half_vecs[part];
-        PetscVector<double>* F_ghost_vec = d_F->IB_ghost_vecs[part];
+        PetscVector<double>* X_vec = d_X_half_vecs[part];
+        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+        PetscVector<double>* F_vec = d_F_half_vecs[part];
+        PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         X_vec->localize(*X_ghost_vec);
         F_vec->localize(*F_ghost_vec);
         d_fe_data_managers[part]->spread(
@@ -2515,16 +2714,16 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
         std::array<PetscVector<double>*, NDIM> DU_jump_vec;
         if (d_use_pressure_jump_conditions)
         {
-            P_jump_vec = d_P_jump->half_vecs[part];
-            P_jump_ghost_vec = d_P_jump->IB_ghost_vecs[part];
+            P_jump_vec = d_P_jump_half_vecs[part];
+            P_jump_ghost_vec = d_P_jump_IB_ghost_vecs[part];
             P_jump_vec->localize(*P_jump_ghost_vec);
         }
         if (d_use_velocity_jump_conditions)
         {
             for (auto d = 0; d < NDIM; ++d)
             {
-                DU_jump_ghost_vec[d] = d_DU_jump[d]->IB_ghost_vecs[part];
-                DU_jump_vec[d] = d_DU_jump[d]->half_vecs[part];
+                DU_jump_ghost_vec[d] = d_DU_jump_IB_ghost_vecs[part][d];
+                DU_jump_vec[d] = d_DU_jump_half_vecs[part][d];
                 DU_jump_vec[d]->localize(*DU_jump_ghost_vec[d]);
             }
         }
@@ -2535,12 +2734,15 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
         }
         if (d_use_velocity_jump_conditions)
         {
-            for (unsigned int d = 0; d < NDIM; ++d) d_DU_jump[d]->IB_ghost_vecs[part]->close();
+            for (unsigned int d = 0; d < NDIM; ++d) d_DU_jump_IB_ghost_vecs[part][d]->close();
         }
         if (d_use_pressure_jump_conditions)
         {
-            d_P_jump->IB_ghost_vecs[part]->close();
+            d_P_jump_IB_ghost_vecs[part]->close();
         }
+
+        d_F_IB_ghost_vecs[part]->close();
+        d_X_IB_ghost_vecs[part]->close();
     }
     return;
 } // spreadForce

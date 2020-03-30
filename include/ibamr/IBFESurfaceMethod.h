@@ -582,120 +582,23 @@ protected:
     const unsigned int d_num_parts = 1;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
-
-    class LibMeshSystemData
-    {
-    public:
-        LibMeshSystemData() = delete;
-        LibMeshSystemData(const LibMeshSystemData&) = default;
-        LibMeshSystemData(const std::string& system_name,
-                          const bool has_current_vecs,
-                          const bool has_half_vecs,
-                          const bool has_new_vecs,
-                          const bool has_IB_ghost_vecs)
-            : d_system_name(system_name),
-              d_has_current_vecs(has_current_vecs),
-              d_has_half_vecs(has_half_vecs),
-              d_has_new_vecs(has_new_vecs),
-              d_has_IB_ghost_vecs(has_IB_ghost_vecs)
-        {
-            // intentionally blank
-        }
-
-        ~LibMeshSystemData()
-        {
-            free();
-        }
-
-        void init(const std::vector<IBTK::FEDataManager*>& fe_data_managers)
-        {
-            const auto n_parts = fe_data_managers.size();
-            systems.resize(n_parts);
-            current_vecs.resize(n_parts, nullptr);
-            half_vecs.resize(n_parts, nullptr);
-            new_vecs.resize(n_parts, nullptr);
-            IB_ghost_vecs.resize(n_parts, nullptr);
-            for (auto part = 0; part < n_parts; ++part)
-            {
-                libMesh::EquationSystems* es = fe_data_managers[part]->getEquationSystems();
-                systems[part] = &es->get_system(d_system_name);
-                if (d_has_current_vecs)
-                {
-                    current_vecs[part] =
-                        dynamic_cast<libMesh::PetscVector<double>*>(systems[part]->current_local_solution.get());
-                    *current_vecs[part] = *systems[part]->solution;
-                }
-                if (d_has_half_vecs)
-                {
-                    half_vecs[part] = dynamic_cast<libMesh::PetscVector<double>*>(
-                        systems[part]->current_local_solution->clone().release());
-                    *half_vecs[part] = *systems[part]->solution;
-                }
-                if (d_has_new_vecs)
-                {
-                    new_vecs[part] = dynamic_cast<libMesh::PetscVector<double>*>(
-                        systems[part]->current_local_solution->clone().release());
-                    *new_vecs[part] = *systems[part]->solution;
-                }
-                if (d_has_IB_ghost_vecs)
-                {
-                    IB_ghost_vecs[part] = dynamic_cast<libMesh::PetscVector<double>*>(
-                        fe_data_managers[part]->buildGhostedCoordsVector(/*localize_data*/ false));
-                }
-            }
-            d_initialized = true;
-        }
-
-        void free()
-        {
-            if (d_initialized)
-            {
-                const auto n_parts = systems.size();
-                for (auto part = 0; part < n_parts; ++part)
-                {
-                    if (d_has_new_vecs)
-                    {
-                        *systems[part]->current_local_solution = *new_vecs[part];
-                    }
-                    else if (d_has_half_vecs)
-                    {
-                        *systems[part]->current_local_solution = *half_vecs[part];
-                    }
-                    else if (d_has_current_vecs)
-                    {
-                        *systems[part]->current_local_solution = *current_vecs[part];
-                    }
-                    *systems[part]->solution = *systems[part]->current_local_solution;
-                }
-
-                systems.clear();
-                current_vecs.clear();
-                if (d_has_half_vecs)
-                    std::for_each(
-                        half_vecs.begin(), half_vecs.end(), [](libMesh::PetscVector<double>* v) { delete v; });
-                half_vecs.clear();
-                if (d_has_new_vecs)
-                    std::for_each(new_vecs.begin(), new_vecs.end(), [](libMesh::PetscVector<double>* v) { delete v; });
-                new_vecs.clear();
-                IB_ghost_vecs.clear();
-                d_initialized = false;
-            }
-        }
-
-        std::vector<libMesh::System*> systems;
-        std::vector<libMesh::PetscVector<double>*> current_vecs, half_vecs, new_vecs, IB_ghost_vecs;
-
-    private:
-        const std::string d_system_name;
-        const bool d_has_current_vecs, d_has_half_vecs, d_has_new_vecs, d_has_IB_ghost_vecs;
-        bool d_initialized = false;
-    };
-
-    std::vector<std::unique_ptr<LibMeshSystemData> > d_fe_system_data;
-    LibMeshSystemData *d_X = nullptr, *d_U = nullptr, *d_U_n = nullptr, *d_U_t = nullptr, *d_F = nullptr,
-                      *d_P_jump = nullptr, *d_WSS_in = nullptr, *d_WSS_out = nullptr, *d_P_in = nullptr,
-                      *d_P_out = nullptr, *d_TAU_in = nullptr, *d_TAU_out = nullptr;
-    std::array<LibMeshSystemData*, NDIM> d_DU_jump = {};
+    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_P_jump_systems,
+        d_WSS_in_systems, d_WSS_out_systems, d_P_in_systems, d_P_out_systems, d_TAU_in_systems, d_TAU_out_systems;
+    std::array<std::vector<libMesh::System*>, NDIM> d_DU_jump_systems;
+    std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
+        d_X_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
+    std::array<std::vector<libMesh::PetscVector<double>*>, NDIM> d_DU_jump_half_vecs, d_DU_jump_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_P_jump_half_vecs, d_P_jump_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_P_in_half_vecs, d_P_in_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_P_out_half_vecs, d_P_out_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_WSS_in_half_vecs, d_WSS_in_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_WSS_out_half_vecs, d_WSS_out_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_TAU_in_half_vecs, d_TAU_in_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_TAU_out_half_vecs, d_TAU_out_IB_ghost_vecs;
 
     bool d_fe_equation_systems_initialized = false, d_fe_data_initialized = false;
 
