@@ -2694,6 +2694,54 @@ FEDataManager::putToDatabase(Pointer<Database> db)
     return;
 } // putToDatabase
 
+void
+FEDataManager::zeroExteriorValues(const CartesianPatchGeometry<NDIM>& patch_geom,
+                                  const std::vector<double>& X_qp,
+                                  std::vector<double>& F_qp)
+{
+    TBOX_ASSERT(X_qp.size() == F_qp.size());
+    // Check that we actually have input in the packed format
+    std::size_t n_qp = X_qp.size() / NDIM;
+    TBOX_ASSERT(n_qp * NDIM == X_qp.size());
+    libMesh::BoundingBox patch_box;
+
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        double min = patch_geom.getXLower()[d];
+        double max = patch_geom.getXUpper()[d];
+        patch_box.min()(d) = min;
+        patch_box.max()(d) = max;
+    }
+    // fill extra dimension with 0.0, which is libMesh's convention
+    for (unsigned int d = NDIM; d < LIBMESH_DIM; ++d)
+    {
+        patch_box.min()(d) = 0.0;
+        patch_box.max()(d) = 0.0;
+    }
+
+    for (unsigned int i = 0; i < n_qp; ++i)
+    {
+        libMesh::Point qp;
+        for (unsigned int d = 0; d < NDIM; ++d) qp(d) = X_qp[i * NDIM + d];
+
+        bool contains_point = true;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            // note that this is a half-open interval
+            if (qp(d) < patch_box.min()(d) || qp(d) >= patch_box.max()(d))
+            {
+                contains_point = false;
+                break;
+            }
+        }
+
+        if (!contains_point)
+        {
+            std::fill(F_qp.begin() + i * NDIM, F_qp.begin() + (i + 1) * NDIM, 0.0);
+        }
+    }
+}
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 FEDataManager::FEDataManager(std::shared_ptr<FEData> fe_data,

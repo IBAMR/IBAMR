@@ -64,6 +64,11 @@ class RobinPhysBdryPatchStrategy;
 
 namespace SAMRAI
 {
+namespace geom
+{
+template <int DIM>
+class CartesianPatchGeometry;
+} // namespace geom
 namespace hier
 {
 template <int DIM>
@@ -933,6 +938,30 @@ public:
      * When assertion checking is active, database pointer must be non-null.
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+
+    /*!
+     * \brief Zero the values corresponding to points on the given patch
+     * (described by @p patch_geometry) that might be duplicated on another
+     * patch.
+     *
+     * In the process of computing either forces on the Lagrangian mesh to
+     * spread to the Eulerian grid or interpolating values from the Eulerian
+     * grid to use in the Lagrangian structure we may, under extraordinary
+     * circumstances, double-count a point that lies on the boundary between
+     * two patches. Note that due to the CFL condition assumed by this class
+     * and the width of the tag buffer used by IBAMR::IBFEMethod we can assume
+     * that no IB point will ever lie on the boundary of the finest grid
+     * level: hence, if a point lies on the boundary of a patch, it must also
+     * lie on the boundary of a neighboring patch.
+     *
+     * Hence, to establish uniqueness, we zero data that lies on the 'upper'
+     * face (corresponding to the unit normal vector pointing towards
+     * infinity) since we are guaranteed, by the previous assumptions, that
+     * that data must also lie on the lower face of a neighboring patch.
+     */
+    static void zeroExteriorValues(const SAMRAI::geom::CartesianPatchGeometry<NDIM>& patch_geom,
+                                   const std::vector<double>& X_qp,
+                                   std::vector<double>& F_qp);
 
 protected:
     /*!
