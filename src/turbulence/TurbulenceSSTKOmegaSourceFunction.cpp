@@ -33,7 +33,9 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include "IBAMR_config.h"
 
+#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/TurbulenceSSTKOmegaSourceFunction.h"
+#include "ibamr/TwoEquationTurbulenceHierarchyIntegrator.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CartGridFunction.h"
@@ -192,11 +194,11 @@ static const double sigma_w2 = 0.856;
 TurbulenceSSTKOmegaSourceFunction::TurbulenceSSTKOmegaSourceFunction(
     const std::string& object_name,
     Pointer<SAMRAI::tbox::Database> input_db,
-    TwoEquationTurbulenceHierarchyIntegrator* turb_kw_integrator,
+    TwoEquationTurbulenceHierarchyIntegrator* turb_hier_integrator,
     INSVCStaggeredHierarchyIntegrator* ins_hier_integrator)
     : CartGridFunction(object_name),
-      d_turb_kw_hierarchy_integrator(turb_kw_integrator),
-      d_ins_hierarchy_integrator(ins_hier_integrator)
+      d_turb_hier_integrator(turb_hier_integrator),
+      d_ins_hier_integrator(ins_hier_integrator)
 {
     double gravity[NDIM];
     if (input_db)
@@ -233,74 +235,65 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchHierarchy(const int data_idx,
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Get the data index of the turbulent viscosity associated with new index.
-    Pointer<CellVariable<NDIM, double> > mu_t_cc_var = d_ins_hierarchy_integrator->getTurbulentViscosityVariable();
-    d_mu_t_ins_cons_new_idx =
-        var_db->mapVariableAndContextToIndex(mu_t_cc_var, d_ins_hierarchy_integrator->getNewContext());
+    Pointer<CellVariable<NDIM, double> > mu_t_cc_var = d_ins_hier_integrator->getTurbulentViscosityVariable();
+    d_mu_t_new_idx = var_db->mapVariableAndContextToIndex(mu_t_cc_var, d_ins_hier_integrator->getNewContext());
 
     // Get the data index of the density associated with new index.
-    Pointer<CellVariable<NDIM, double> > rho_cc_var = d_ins_hierarchy_integrator->getCellCenteredMassDensityVariable();
-    d_rho_ins_cons_new_idx =
-        var_db->mapVariableAndContextToIndex(rho_cc_var, d_ins_hierarchy_integrator->getNewContext());
-    d_rho_ins_cons_scratch_idx =
-        var_db->mapVariableAndContextToIndex(rho_cc_var, d_ins_hierarchy_integrator->getScratchContext());
+    Pointer<CellVariable<NDIM, double> > rho_cc_var = d_ins_hier_integrator->getCellCenteredMassDensityVariable();
+    d_rho_new_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, d_ins_hier_integrator->getNewContext());
+    d_rho_scratch_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, d_ins_hier_integrator->getScratchContext());
     // copying the new index data into scratch index data
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
-    hier_cc_data_ops.copyData(d_rho_ins_cons_scratch_idx, d_rho_ins_cons_new_idx);
+    hier_cc_data_ops.copyData(d_rho_scratch_idx, d_rho_new_idx);
+    std::ofstream rho_new;
+    rho_new.open("rho_new_in_source.dat");
+    hier_cc_data_ops.printData(d_rho_scratch_idx, rho_new);
+    rho_new.close();
 
     // filling ghost cells for density (to be done)
-    std::vector<RobinBcCoefStrategy<NDIM>*> rho_bc_coefs =
-        d_ins_hierarchy_integrator->getMassDensityBoundaryConditions();
+    std::vector<RobinBcCoefStrategy<NDIM>*> rho_bc_coefs = d_ins_hier_integrator->getMassDensityBoundaryConditions();
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent rho_ghost_cc_interpolation(
-        d_rho_ins_cons_scratch_idx, "NONE", true, "CUBIC_COARSEN", "LINEAR", false, rho_bc_coefs);
+        d_rho_scratch_idx, "NONE", true, "CUBIC_COARSEN", "LINEAR", false, rho_bc_coefs);
     HierarchyGhostCellInterpolation rho_ghost_cell_fill_op;
     rho_ghost_cell_fill_op.initializeOperatorState(rho_ghost_cc_interpolation, hierarchy, coarsest_ln, finest_ln);
     rho_ghost_cell_fill_op.fillData(data_time);
 
     // Get the data index of the turbulent kinetic energy, k, associated with new index.
-    Pointer<CellVariable<NDIM, double> > k_var = d_turb_kw_hierarchy_integrator->getTurbulentKineticEnergyVariable();
-    d_k_turb_kw_new_idx = var_db->mapVariableAndContextToIndex(k_var, d_turb_kw_hierarchy_integrator->getNewContext());
-    d_k_turb_kw_scratch_idx =
-        var_db->mapVariableAndContextToIndex(k_var, d_turb_kw_hierarchy_integrator->getScratchContext());
+    Pointer<CellVariable<NDIM, double> > k_var = d_turb_hier_integrator->getKVariable();
+    d_k_new_idx = var_db->mapVariableAndContextToIndex(k_var, d_turb_hier_integrator->getNewContext());
+    d_k_scratch_idx = var_db->mapVariableAndContextToIndex(k_var, d_turb_hier_integrator->getScratchContext());
     // copying the new index data into scratch index data
-    hier_cc_data_ops.copyData(d_k_turb_kw_scratch_idx, d_k_turb_kw_new_idx);
+    hier_cc_data_ops.copyData(d_k_scratch_idx, d_k_new_idx);
 
     // filling ghost cells for turbulent kinetic energy, k.
-    std::vector<RobinBcCoefStrategy<NDIM>*> k_bc_coef = d_turb_kw_hierarchy_integrator->getPhysicalBcCoefsKEqn();
+    std::vector<RobinBcCoefStrategy<NDIM>*> k_bc_coef = d_turb_hier_integrator->getPhysicalBcCoefsKEquation();
     InterpolationTransactionComponent k_ghost_cc_interpolation(
-        d_k_turb_kw_scratch_idx, "NONE", true, "CUBIC_COARSEN", "LINEAR", false, k_bc_coef);
+        d_k_scratch_idx, "NONE", true, "CUBIC_COARSEN", "LINEAR", false, k_bc_coef);
     HierarchyGhostCellInterpolation k_ghost_cell_fill_op;
     k_ghost_cell_fill_op.initializeOperatorState(k_ghost_cc_interpolation, hierarchy, coarsest_ln, finest_ln);
     k_ghost_cell_fill_op.fillData(data_time);
 
     // Get the data index of the turbulent specific dissipation rate, w, associated with new index.
-    Pointer<CellVariable<NDIM, double> > w_var =
-        d_turb_kw_hierarchy_integrator->getTurbulentSpecificDissipationRateVariable();
-    ;
-    d_omega_turb_kw_new_idx =
-        var_db->mapVariableAndContextToIndex(w_var, d_turb_kw_hierarchy_integrator->getNewContext());
-    d_omega_turb_kw_scratch_idx =
-        var_db->mapVariableAndContextToIndex(w_var, d_turb_kw_hierarchy_integrator->getScratchContext());
+    Pointer<CellVariable<NDIM, double> > w_var = d_turb_hier_integrator->getWVariable();
+    d_w_new_idx = var_db->mapVariableAndContextToIndex(w_var, d_turb_hier_integrator->getNewContext());
+    d_w_scratch_idx = var_db->mapVariableAndContextToIndex(w_var, d_turb_hier_integrator->getScratchContext());
     // copying the new index data into scratch index data
-    hier_cc_data_ops.copyData(d_omega_turb_kw_scratch_idx, d_omega_turb_kw_new_idx);
+    hier_cc_data_ops.copyData(d_w_scratch_idx, d_w_new_idx);
 
     // filling ghost cells for turbulent specific dissipation rate, w.
-    std::vector<RobinBcCoefStrategy<NDIM>*> w_bc_coef = d_turb_kw_hierarchy_integrator->getPhysicalBcCoefsWEqn();
+    std::vector<RobinBcCoefStrategy<NDIM>*> w_bc_coef = d_turb_hier_integrator->getPhysicalBcCoefsWEquation();
     InterpolationTransactionComponent w_ghost_cc_interpolation(
-        d_omega_turb_kw_scratch_idx, "NONE", true, "CUBIC_COARSEN", "LINEAR", false, w_bc_coef);
+        d_w_scratch_idx, "NONE", true, "CUBIC_COARSEN", "LINEAR", false, w_bc_coef);
     HierarchyGhostCellInterpolation w_ghost_cell_fill_op;
     w_ghost_cell_fill_op.initializeOperatorState(w_ghost_cc_interpolation, hierarchy, coarsest_ln, finest_ln);
     w_ghost_cell_fill_op.fillData(data_time);
 
     // Get the data index of the blending function,F1, associated with scratch index.
-    Pointer<CellVariable<NDIM, double> > f1_var = d_turb_kw_hierarchy_integrator->getF1Variable();
-    d_f1_turb_kw_scratch_idx =
-        var_db->mapVariableAndContextToIndex(f1_var, d_turb_kw_hierarchy_integrator->getScratchContext());
+    d_f1_scratch_idx = getBlendingFunctionVariableIndex(d_turb_hier_integrator);
 
     // Get the data index of the production variable, associated with scratch index.
-    Pointer<CellVariable<NDIM, double> > p_var = d_turb_kw_hierarchy_integrator->getProductionVariable();
-    d_p_turb_kw_scratch_idx =
-        var_db->mapVariableAndContextToIndex(p_var, d_turb_kw_hierarchy_integrator->getScratchContext());
+    d_p_scratch_idx = getProductionVariableIndex(d_turb_hier_integrator);
 
     // copy the production data
 
@@ -330,6 +323,20 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatch(int data_idx,
 
     return;
 }
+/////////////////////////////// PRIVATE ////////////////////////////
+int
+TurbulenceSSTKOmegaSourceFunction::getBlendingFunctionVariableIndex(
+    Pointer<TwoEquationTurbulenceHierarchyIntegrator> turb_hier_integrator)
+{
+    return turb_hier_integrator->d_F1_scratch_idx;
+} // getBlendingFunctionVariableIndex
+
+int
+TurbulenceSSTKOmegaSourceFunction::getProductionVariableIndex(
+    Pointer<TwoEquationTurbulenceHierarchyIntegrator> turb_hier_integrator)
+{
+    return turb_hier_integrator->d_p_scratch_idx;
+} // getProductionVariableIndex
 
 void
 TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForK(Pointer<CellData<NDIM, double> > k_f_data,
@@ -346,12 +353,12 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForK(Pointer<CellData<NDIM,
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    Pointer<CellData<NDIM, double> > mu_t_data = patch->getPatchData(d_mu_t_ins_cons_new_idx);
+    Pointer<CellData<NDIM, double> > mu_t_data = patch->getPatchData(d_mu_t_new_idx);
 
     // find P = min (G, 10*Beta*k*w)
-    Pointer<CellData<NDIM, double> > k_data = patch->getPatchData(d_k_turb_kw_new_idx);
-    Pointer<CellData<NDIM, double> > w_data = patch->getPatchData(d_omega_turb_kw_new_idx);
-    Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(d_p_turb_kw_scratch_idx);
+    Pointer<CellData<NDIM, double> > k_data = patch->getPatchData(d_k_new_idx);
+    Pointer<CellData<NDIM, double> > w_data = patch->getPatchData(d_w_new_idx);
+    Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(d_p_scratch_idx);
     SST_K_EQN_PRODUCTION(k_f_data->getPointer(),
                          k_f_data->getGhostCellWidth().max(),
                          p_data->getPointer(),
@@ -371,7 +378,9 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForK(Pointer<CellData<NDIM,
                          beta_star);
 
     // routine to calculate buoyancy term
-    Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(d_rho_ins_cons_scratch_idx);
+    Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(d_rho_scratch_idx);
+    std::cout << "Ghost cell width of density is" << rho_data->getGhostCellWidth().max() << std::endl;
+
     SST_K_EQN_BUOYANCY(k_f_data->getPointer(),
                        k_f_data->getGhostCellWidth().max(),
                        mu_t_data->getPointer(),
@@ -413,14 +422,14 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForOmega(Pointer<CellData<N
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    Pointer<CellData<NDIM, double> > mu_t_data = patch->getPatchData(d_mu_t_ins_cons_new_idx);
+    Pointer<CellData<NDIM, double> > mu_t_data = patch->getPatchData(d_mu_t_new_idx);
 
     // routine to calculate (alpha/nut_t)*G
-    Pointer<CellData<NDIM, double> > k_data = patch->getPatchData(d_k_turb_kw_scratch_idx);
-    Pointer<CellData<NDIM, double> > w_data = patch->getPatchData(d_omega_turb_kw_scratch_idx);
-    Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(d_rho_ins_cons_new_idx);
-    Pointer<CellData<NDIM, double> > f1_data = patch->getPatchData(d_f1_turb_kw_scratch_idx);
-    Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(d_p_turb_kw_scratch_idx);
+    Pointer<CellData<NDIM, double> > k_data = patch->getPatchData(d_k_scratch_idx);
+    Pointer<CellData<NDIM, double> > w_data = patch->getPatchData(d_w_scratch_idx);
+    Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(d_rho_new_idx);
+    Pointer<CellData<NDIM, double> > f1_data = patch->getPatchData(d_f1_scratch_idx);
+    Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(d_p_scratch_idx);
 
     SST_W_EQN_PRODUCTION(w_f_data->getPointer(),
                          w_f_data->getGhostCellWidth().max(),

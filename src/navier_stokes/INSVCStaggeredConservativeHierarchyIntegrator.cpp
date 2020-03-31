@@ -500,6 +500,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     // Set the initial guess.
     d_hier_sc_data_ops->copyData(d_U_new_idx, d_U_current_idx);
     d_hier_cc_data_ops->copyData(d_P_new_idx, d_P_current_idx);
+    if (d_use_turb_model) d_hier_cc_data_ops->copyData(d_mu_t_new_idx, d_mu_t_current_idx);
 
     // Set up inhomogeneous BCs.
     d_stokes_solver->setHomogeneousBc(false);
@@ -1683,13 +1684,13 @@ INSVCStaggeredConservativeHierarchyIntegrator::interpolateSCMassDensityToCC(Poin
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
-
+                double sum = 0.0;
                 for (int d = 0; d < NDIM; d++)
                 {
-                    (*rho_cc_data)(ci) += (*rho_interp_data)(ci, d);
+                    sum += (*rho_interp_data)(ci, d);
                 }
 #if (NDIM == 2)
-                (*rho_cc_data)(ci) = 0.5 * (*rho_cc_data)(ci);
+                (*rho_cc_data)(ci) = 0.5 * sum;
 #elif (NDIM == 3)
                 (*rho_cc_data)(ci) = (1.0 / 3.0) * (*rho_cc_data)(ci);
 #endif

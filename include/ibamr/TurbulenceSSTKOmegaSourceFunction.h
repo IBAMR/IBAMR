@@ -40,6 +40,7 @@
 #include "ibamr/ibamr_enums.h"
 
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "CartesianGridGeometry.h"
 #include "IntVector.h"
@@ -50,15 +51,14 @@
 #include <string>
 
 // IBAMR INCLUDES
-#include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
-#include <ibamr/TwoEquationTurbulenceHierarchyIntegrator.h>
-#include <ibamr/app_namespaces.h> //what is the use of this?
+#include <ibamr/app_namespaces.h>
 
-/*namespace IBAMR
+namespace IBAMR
 {
-class AdvDiffSemiImplicitHierarchyIntegrator;
-class INSVCStaggeredConservativeHierarchyIntegrator;
-} */// namespace IBAMR
+class INSVCStaggeredHierarchyIntegrator;
+class TwoEquationTurbulenceHierarchyIntegrator;
+} // namespace IBAMR
+
 namespace SAMRAI
 {
 namespace hier
@@ -139,6 +139,21 @@ public:
 
     //\}
 private:
+    /*!
+     * Get the F1 variable index registered with the TwoEquationTurbulenceHierarchyIntegrator hierarchy
+     * integrator.
+     */
+    int getBlendingFunctionVariableIndex(
+        SAMRAI::tbox::Pointer<TwoEquationTurbulenceHierarchyIntegrator> turb_hier_integrator);
+
+    /*!
+     * Get the production variable index registered with the TwoEquationTurbulenceHierarchyIntegrator
+     * hierarchy integrator.
+     */
+
+    int
+    getProductionVariableIndex(SAMRAI::tbox::Pointer<TwoEquationTurbulenceHierarchyIntegrator> turb_hier_integrator);
+
     /* set the data on patch cells for k*/
     void setDataOnPatchCellForK(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > k_f_data,
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
@@ -154,15 +169,14 @@ private:
                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level);
 
     std::string d_object_name;
-    SAMRAI::tbox::Pointer<TwoEquationTurbulenceHierarchyIntegrator> d_turb_kw_hierarchy_integrator;
-    SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator> d_ins_hierarchy_integrator;
+    SAMRAI::tbox::Pointer<TwoEquationTurbulenceHierarchyIntegrator> d_turb_hier_integrator;
+    SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator> d_ins_hier_integrator;
 
     IBTK::Vector2d d_gravity;
 
-    int d_mu_t_ins_cons_new_idx, d_rho_ins_cons_new_idx;
-    int d_rho_ins_cons_scratch_idx;
-    int d_k_turb_kw_new_idx, d_k_turb_kw_scratch_idx, d_omega_turb_kw_new_idx, d_omega_turb_kw_scratch_idx,
-        d_f1_turb_kw_scratch_idx, d_p_turb_kw_scratch_idx;
+    int d_mu_t_new_idx, d_rho_new_idx;
+    int d_rho_scratch_idx;
+    int d_k_new_idx, d_k_scratch_idx, d_w_new_idx, d_w_scratch_idx, d_f1_scratch_idx, d_p_scratch_idx;
 };
 } // namespace IBAMR
 #endif //#ifndef included_IBAMR_SurfaceTensionForceFunction

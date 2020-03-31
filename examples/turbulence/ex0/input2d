@@ -21,12 +21,12 @@ PressureInitialConditions {
 }
 
 VelocityInitialConditions {
-   function_0 = "1.0"
+   function_0 = "18.45"
    function_1 = "0.0"
 }
 
 TurbulentViscosityInitialConditions{
-    function = "0.0"
+    function = "1.0"
 }
 
 TurbulentKineticEnergyInitialConditions {
@@ -73,6 +73,23 @@ VelocityBcCoefs_1 {
    gcoef_function_3 = "0.0"
 }
 
+MutBcCoefs {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
 KBcCoefs {
    acoef_function_0 = "1.0"
    acoef_function_1 = "0.0"
@@ -111,7 +128,7 @@ WBcCoefs {
 SOLVER_TYPE          = "STAGGERED"
 DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0     // initial simulation time
-END_TIME             =   55.0e0    // final simulation time
+END_TIME             =   0.001    // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
 REGRID_INTERVAL      =   50000000
@@ -131,7 +148,8 @@ OUTPUT_F             = TRUE
 OUTPUT_OMEGA         = TRUE
 OUTPUT_DIV_U         = TRUE
 OUTPUT_RHO           = TRUE
-OUTPUT_MU            = FALSE
+OUTPUT_MU            = TRUE
+OUTPUT_MU_T          = TRUE
 RHO_IS_CONST         = FALSE
 MU_IS_CONST          = FALSE
 ERROR_ON_DT_CHANGE   = FALSE
@@ -177,6 +195,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
    output_Div_U               = OUTPUT_DIV_U
    output_rho                 = OUTPUT_RHO
    output_mu                  = OUTPUT_MU
+   output_mu_t                = OUTPUT_MU_T
    rho_is_const               = RHO_IS_CONST
    mu_is_const                = MU_IS_CONST
    precond_reinit_interval    = PRECOND_REINIT_INTERVAL
@@ -276,6 +295,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator {
    output_Div_U               = OUTPUT_DIV_U
    output_rho                 = OUTPUT_RHO
    output_mu                  = OUTPUT_MU
+   output_mu_t                = OUTPUT_MU_T
    rho_is_const               = RHO_IS_CONST
    mu_is_const                = MU_IS_CONST
    precond_reinit_interval    = PRECOND_REINIT_INTERVAL
@@ -340,9 +360,6 @@ TwoEquationTurbulenceHierarchyIntegrator {
    end_time                      = END_TIME
    grow_dt                       = GROW_DT
    num_cycles                    = TURB_NUM_CYCLES
-   convective_time_stepping_type = TURB_CONVECTIVE_TS_TYPE
-   convective_op_type            = TURB_CONVECTIVE_OP_TYPE
-   convective_difference_form    = TURB_CONVECTIVE_FORM
    k_convective_time_stepping_type = TURB_CONVECTIVE_TS_TYPE
    k_convective_op_type            = TURB_CONVECTIVE_OP_TYPE
    k_convective_difference_form    = TURB_CONVECTIVE_FORM
@@ -353,7 +370,9 @@ TwoEquationTurbulenceHierarchyIntegrator {
    dt_max                        = DT_MAX
    tag_buffer                    = TAG_BUFFER
    enable_logging                = ENABLE_LOGGING
-   wall_location_index           = 2, 3
+   wall_location_index           = 2,3
+   output_k                      = TRUE
+   output_w                      = TRUE
 }
 
 TurbulenceSSTKOmegaSourceFunction{
@@ -371,7 +390,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 10
+   viz_dump_interval           = 1
    viz_dump_dirname            = "turbulent_channel_flow"
    visit_number_procs_per_file = 1
 

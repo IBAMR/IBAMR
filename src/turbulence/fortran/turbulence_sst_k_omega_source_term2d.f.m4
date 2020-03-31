@@ -305,7 +305,7 @@ c
       INTEGER mut_gc
 c
       REAL gx,gy,sigma_t
-
+c
       REAL mut(CELL2d(ilower,iupper,mut_gc))
       REAL rho(CELL2d(ilower,iupper,rho_gc))
       REAL dx(0:NDIM-1)
@@ -320,13 +320,13 @@ c
       INTEGER i0,i1
       REAL    fac0,fac1
 
-      fac0 = 1.d0/dx(0)
-      fac1 = 1.d0/dx(1)
+      fac0 = 1.d0/(2.d0*dx(0))
+      fac1 = 1.d0/(2.d0*dx(1))
 
 
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
-           P(i0,i1)=P(i0,i1)-((mut(i0,i1)/(2.d0*rho(i0,i1)*sigma_t))
+           P(i0,i1)=P(i0,i1)-((mut(i0,i1)/(rho(i0,i1)*sigma_t))
      &              *((fac0*gx*(rho(i0+1,i1)-rho(i0-1,i1)))
      &              +(fac1*gy*(rho(i0,i1+1)-rho(i0,i1-1)))))
          enddo

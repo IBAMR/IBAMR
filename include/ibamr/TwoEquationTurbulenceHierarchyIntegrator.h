@@ -39,6 +39,7 @@
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
+//#include "TurbulenceSSTKOmegaSourceFunction.h"
 
 #include "ibtk/LaplaceOperator.h"
 
@@ -50,6 +51,10 @@
 #include <string>
 #include <vector>
 
+namespace IBAMR
+{
+class TurbulenceSSTKOmegaSourceFunction;
+} // namespace IBAMR
 namespace IBTK
 {
 class CartGridFunction;
@@ -114,45 +119,24 @@ public:
     initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                   SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
     /*!
-     * Register a cell-centered quantity to be advected and diffused by the
-     * hierarchy integrator.
-     *
-     * Data management for the registered quantity will be handled by the
-     * hierarchy integrator.
+     * Register a cell-centered turbulent kinetic energy, \f$ k \f$.
      */
-    void registerTurbulenceKineticEnergy(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var);
+    void registerKVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var);
 
     /*!
-     * Register a cell-centered quantity to be advected and diffused by the
-     * hierarchy integrator.
-     *
-     * Data management for the registered quantity will be handled by the
-     * hierarchy integrator.
+     * Register a cell-centered turbulent specific dissipation rate, \f$ w \f$.
      */
-    void
-    registerTurbulenceSpecificDissipationRate(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var);
-
-    /**
-     * Register a F1 variable with scratch context
-     */
-    void registerBlendingFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > F1_var);
+    void registerWVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var);
 
     /*!
-     * Get the F1 variable registered with the hierarchy integrator.
+     * Get the \f$ k \f$ variable registered with the hierarchy integrator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getF1Variable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getKVariable() const;
     /*!
-     * Get the k variable registered with the hierarchy integrator.
+     * Get the \f$ w \f$ variable registered with the hierarchy integrator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getTurbulentKineticEnergyVariable() const;
-    /*!
-     * Get the w variable registered with the hierarchy integrator.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getTurbulentSpecificDissipationRateVariable() const;
-    /*!
-     * Get the production variable registered with the hierarchy integrator.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getProductionVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getWVariable() const;
+
     /*!
      * Prepare to advance the data from current_time to new_time.
      */
@@ -172,277 +156,173 @@ public:
                                        bool skip_synchronize_new_state_data,
                                        int num_cycles = 1) override;
     /*!
-     * Set the face-centered advection velocity to be used with a cell-centered turbulent kinetic energy,k.
+     * Set the face-centered advection velocity to be used with a cell-centered turbulent kinetic energy,\f$ k \f$.
      *
      * \note The specified advection velocity must have been already registered
      * with the hierarchy integrator.
      */
-    void setAdvectionVelocityKEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
-                                  SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var);
+    void setAdvectionVelocityKEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
+                                       SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var);
     /*!
-     * Set the face-centered advection velocity to be used with a cell-centered turbulent specific dissipation rate,w.
+     * Set the face-centered advection velocity to be used with a cell-centered turbulent specific dissipation rate,\f$
+     * w \f$.
      *
      * \note The specified advection velocity must have been already registered
      * with the hierarchy integrator.
      */
-    void setAdvectionVelocityWEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
-                                  SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var);
-
-    /*!
-     * Set the cell-centered source term to be used with a
-     * cell-centered turbulent kinetic energy, k.
-     *
-     * \note The specified source term must have been already registered with
-     * the hierarchy integrator.
-     */
-    void registerSourceTermKEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
-                                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_F_var);
-
-    /*!
-     * Set the cell-centered source term to be used with a
-     * cell-centered turbulent specific dissipation rate, w.
-     *
-     * \note The specified source term must have been already registered with
-     * the hierarchy integrator.
-     */
-    void registerSourceTermWEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
-                                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_F_var);
+    void setAdvectionVelocityWEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
+                                       SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var);
     /*!
      * Supply an IBTK::CartGridFunction object to compute the source terms appears in
-     * k equation
+     * \f$ k \f$ equation
      */
-    void setSourceTermFunctionKEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
-                                   SAMRAI::tbox::Pointer<IBTK::CartGridFunction> k_F_fcn);
+    void setSourceTermFunctionKEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
+                                        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> k_F_fcn);
     /*!
      * Supply an IBTK::CartGridFunction object to compute the source terms appears in
-     * w equation
+     * \f$ w \f$ equation
      */
-    void setSourceTermFunctionWEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
-                                   SAMRAI::tbox::Pointer<IBTK::CartGridFunction> w_F_fcn);
+    void setSourceTermFunctionWEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
+                                        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> w_F_fcn);
 
     /*!
-     * Set the diffusion time integration scheme for the turbulence kinetic energy, k, that has been
+     * Set the diffusion time integration scheme for the turbulence kinetic energy, \f$ k \f$, that has been
      * registered with the hierarchy integrator.
      */
-    void setDiffusionTimeSteppingTypeKEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
-                                          TimeSteppingType time_stepping_type);
+    void setDiffusionTimeSteppingTypeKEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
+                                               TimeSteppingType time_stepping_type);
     /*!
-     * Set the diffusion time integration scheme for the turbulence specific dissipation rate, w, that has
+     * Set the diffusion time integration scheme for the turbulence specific dissipation rate, \f$ w \f$, that has
      * been registered with the hierarchy integrator.
      */
-    void setDiffusionTimeSteppingTypeWEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
-                                          TimeSteppingType time_stepping_type);
+    void setDiffusionTimeSteppingTypeWEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
+                                               TimeSteppingType time_stepping_type);
     /*!
-     * Set the convective time stepping method to use for turbulent kinetic energy, k.
+     * Set the convective time stepping method to use for turbulent kinetic energy, \f$ k \f$.
      */
-    void setConvectiveTimeSteppingTypeKEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > K_var,
-                                           TimeSteppingType convective_time_stepping_type);
+    void setConvectiveTimeSteppingTypeKEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > K_var,
+                                                TimeSteppingType convective_time_stepping_type);
     /*!
-     * Set the convective time stepping method to use for turbulent specific dissipation rate, w.
+     * Set the convective time stepping method to use for turbulent specific dissipation rate, \f$ w \f$.
      */
-    void setConvectiveTimeSteppingTypeWEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > W_var,
-                                           TimeSteppingType convective_time_stepping_type);
-    /*!
-     * Set the convective differencing form for turbulent kinetic energy, k, that has been
-     * registered with the hierarchy integrator.
-     */
-
-    void setConvectiveDifferencingTypeKEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
-                                           ConvectiveDifferencingType difference_form);
-    /*!
-     * Set the convective differencing form for turbulent specific dissipation rate, w, that has been
-     * registered with the hierarchy integrator.
-     */
-    void setConvectiveDifferencingTypeWEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
-                                           ConvectiveDifferencingType difference_form);
+    void setConvectiveTimeSteppingTypeWEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > W_var,
+                                                TimeSteppingType convective_time_stepping_type);
 
     /*!
      * Set the convective time stepping method used during the initial time step
-     * for the turbulent kinetic energy, k.
+     * for the turbulent kinetic energy, \f$ k \f$.
      *
      * \note This is used \em only when the basic convective time stepping
      * scheme uses a multi-step method such as Adams-Bashforth.
      */
-    void
-    setInitialConvectiveTimeSteppingTypeKEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
-                                             TimeSteppingType init_convective_time_stepping_type);
+    void setInitialConvectiveTimeSteppingTypeKEquation(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
+        TimeSteppingType init_convective_time_stepping_type);
     /*!
      * Set the convective time stepping method used during the initial time step
-     * for the turbulent specific dissipation rate, w.
+     * for the turbulent specific dissipation rate, \f$ w \f$.
      *
      * \note This is used \em only when the basic convective time stepping
      * scheme uses a multi-step method such as Adams-Bashforth.
      */
-    void
-    setInitialConvectiveTimeSteppingTypeWEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
-                                             TimeSteppingType init_convective_time_stepping_type);
+    void setInitialConvectiveTimeSteppingTypeWEquation(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
+        TimeSteppingType init_convective_time_stepping_type);
 
     /*!
-     * Register a variable scalar diffusion coefficient corresponding to turbulent kinetic energy, k,
-     * that has been registered with the hierarchy integrator.
-     */
-    void
-    registerDiffusionCoefficientVariableKEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > D_k_var);
-
-    /*!
-     * Register a variable scalar diffusion coefficient corresponding to turbulent specific dissipation
-     * rate,w, that has been registered with the hierarchy integrator.
-     */
-    void
-    registerDiffusionCoefficientVariableWEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > D_w_var);
-
-    /*!
-     * Set the cell-centered variable diffusion coefficient to be used with a
-     * cell-centered turbulent kinetic energy, k.
-     *
-     * \note The specified source term must have been already registered with
-     * the hierarchy integrator.
-     */
-    void setDiffusionCoefficientVariableKEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
-                                             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > D_k_var);
-
-    /*!
-     * Set the cell-centered variable diffusion coefficient to be used with a
-     * cell-centered turbulent specific dissipation rate, w.
-     *
-     * \note The specified source term must have been already registered with
-     * the hierarchy integrator.
-     */
-    void setDiffusionCoefficientVariableWEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
-                                             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > D_w_var);
-
-    /*!
-     * Set the scalar linear damping coefficient corresponding to turbulent kinetic energy, k,
-     * that has been registered with the hierarchy integrator.
-     */
-    void setDampingCoefficientKEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
-                                   double lambda);
-
-    /*!
-     * Set the scalar linear damping coefficient corresponding to
-     * turbulent specific dissipation rate, w, that has been registered with the hierarchy integrator.
-     */
-    void setDampingCoefficientWEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
-                                   double lambda);
-
-    /*!
-     * Set a grid function to provide initial conditions for turbulent kinetic energy, k, that has
+     * Set a grid function to provide initial conditions for turbulent kinetic energy,  \f$ k \f$, that has
      * been registered with the hierarchy integrator.
      */
-    void setInitialConditionsKEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
-                                  SAMRAI::tbox::Pointer<IBTK::CartGridFunction> k_init);
+    void setInitialConditionsKEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
+                                       SAMRAI::tbox::Pointer<IBTK::CartGridFunction> k_init);
     /*!
-     * Set a grid function to provide initial conditions for turbulent specific dissipation rate, w,
+     * Set a grid function to provide initial conditions for turbulent specific dissipation rate,  \f$ w \f$,
      * that has been registered with the hierarchy integrator.
      */
-    void setInitialConditionsWEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
-                                  SAMRAI::tbox::Pointer<IBTK::CartGridFunction> w_init);
+    void setInitialConditionsWEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
+                                       SAMRAI::tbox::Pointer<IBTK::CartGridFunction> w_init);
     /*!
-     * Set an object to provide boundary conditions for turbulent kinetic energy, k,
+     * Set an object to provide boundary conditions for turbulent kinetic energy,  \f$ k \f$,
      * that has been registered with the hierarchy integrator.
      */
-    void setPhysicalBcCoefKEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
-                               SAMRAI::solv::RobinBcCoefStrategy<NDIM>* k_bc_coef);
+    void setPhysicalBcCoefKEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
+                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* k_bc_coef);
     /*!
      * Set objects to provide boundary conditions for a vector-valued quantity
      * that has been registered with the hierarchy integrator.
      */
-    void setPhysicalBcCoefsKEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
-                                const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& k_bc_coef);
+    void setPhysicalBcCoefsKEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
+                                     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& k_bc_coef);
 
     /*!
-     * Return a k boundary condition object
+     * Return a  \f$ k \f$ boundary condition object
      */
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> getPhysicalBcCoefsKEqn();
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> getPhysicalBcCoefsKEquation();
     /*!
-     * Set an object to provide boundary conditions for turbulent specific dissipation rate, w,
+     * Set an object to provide boundary conditions for turbulent specific dissipation rate,  \f$ w \f$,
      * that has been registered with the hierarchy integrator.
      */
-    void setPhysicalBcCoefWEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
-                               SAMRAI::solv::RobinBcCoefStrategy<NDIM>* w_bc_coef);
+    void setPhysicalBcCoefWEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
+                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* w_bc_coef);
 
     /*!
      * Set objects to provide boundary conditions for a vector-valued quantity
      * that has been registered with the hierarchy integrator.
      */
-    void setPhysicalBcCoefsWEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
-                                const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& w_bc_coef);
+    void setPhysicalBcCoefsWEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
+                                     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& w_bc_coef);
     /*!
-     * Return a k boundary condition object
+     * Return a  \f$ w \f$ boundary condition object
      */
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> getPhysicalBcCoefsWEqn();
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> getPhysicalBcCoefsWEquation();
 
     /*!
      * Get the solver for the Helmholtz equation (time-discretized diffusion
-     * of k equation)
+     * of  \f$ k \f$ equation)
      */
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
-    getHelmholtzSolverKEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var);
+    getHelmholtzSolverKEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var);
 
     /*!
      * Get the solver for the Helmholtz equation (time-discretized diffusion
-     * of w equation)
+     * of  \f$ w \f$ equation)
      */
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
-    getHelmholtzSolverWEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var);
+    getHelmholtzSolverWEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var);
 
     /*!
      * Get the operator to use to evaluate the right-hand side for the Helmholtz
-     * solver (time-discretized diffusion equation of k equation).
+     * solver (time-discretized diffusion equation of  \f$ k \f$ equation).
      */
     SAMRAI::tbox::Pointer<IBTK::LaplaceOperator>
-    getHelmholtzRHSOperatorKEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var);
+    getHelmholtzRHSOperatorKEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var);
 
     /*!
      * Get the operator to use to evaluate the right-hand side for the Helmholtz
-     * solver (time-discretized diffusion equation of w equation).
+     * solver (time-discretized diffusion equation of  \f$ w \f$ equation).
      */
     SAMRAI::tbox::Pointer<IBTK::LaplaceOperator>
-    getHelmholtzRHSOperatorWEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var);
-
-    /*!
-     * Register an operator to compute the convective derivative term u*grad Q
-     * for turbulent kinetic energy, k.
-     */
-    void setConvectiveOperatorKEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var,
-                                   SAMRAI::tbox::Pointer<ConvectiveOperator> convective_op);
-    /*!
-     * Register an operator to compute the convective derivative term u*grad Q
-     * for turbulent specific dissipation rate, w.
-     */
-    void setConvectiveOperatorWEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var,
-                                   SAMRAI::tbox::Pointer<ConvectiveOperator> convective_op);
-
-    /*!
-     * Indicate that all of the convective operators should be (re-)initialized
-     * before the next time step.
-     */
-    void setConvectiveOperatorNeedsInitKEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var);
-    /*!
-     * Indicate that all of the convective operators should be (re-)initialized
-     * before the next time step.
-     */
-    void setConvectiveOperatorNeedsInitWEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var);
+    getHelmholtzRHSOperatorWEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var);
 
     /*!
      * Get the convective operator being used by this solver class for
-     * turbulent kinetic energy, k.
+     * turbulent kinetic energy,  \f$ k \f$.
      *
      * If the convective operator has not already been constructed, then this
      * function will initialize a default convective operator.
      */
     SAMRAI::tbox::Pointer<ConvectiveOperator>
-    getConvectiveOperatorKEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var);
+    getConvectiveOperatorKEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > k_var);
 
     /*!
      * Get the convective operator being used by this solver class for a
-     * turbulent specific dissipation rate, w.
+     * turbulent specific dissipation rate,  \f$ w \f$.
      *
      * If the convective operator has not already been constructed, then this
      * function will initialize a default convective operator.
      */
     SAMRAI::tbox::Pointer<ConvectiveOperator>
-    getConvectiveOperatorWEqn(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var);
+    getConvectiveOperatorWEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > w_var);
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -453,67 +333,47 @@ public:
                                            int finest_level) override;
 
     /*!
-     *
-     * Register INSVCStaggeredConservativeHierarchyIntegrator class which will be
+     * Register INSVCStaggeredHierarchyIntegrator class which will be
      * used to get the variables maintained by this hierarchy integrator.
-     *
      */
     void registerINSVCStaggeredHierarchyIntegrator(
         SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator> ins_hier_integrator);
 
     /*!
-     * Compute the turbulent viscosity
+     * Compute the turbulent viscosity.
+     *
+     * /note The turbulent viscosity is maintained by the INSVCStaggeredHierarchyIntegrator.
      */
     void calculateTurbulentViscosity();
 
 private:
     /*!
-     * Compute the turbulent kinetic energy production
+     * To grant a access to the blending and production variables scratch index to the
+     * TurbulenceSSTKOmegaSourceFunction class.
+     */
+    friend class TurbulenceSSTKOmegaSourceFunction;
+
+    /*!
+     * Compute the turbulent kinetic energy production.
      */
     void calculateTurbulentKEProduction(const double data_time);
 
     /**
-     * compute F1
+     * Compute the belending function.
      */
     void calculateBlendingFunction(const double data_time,
                                    const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
     /**
-     * calculate F2
+     * Calculate F2
      */
     void calculateF2();
 
-    /**
-     * calculate F2
-     */
-    void calculateMuEffective(const int& mu_eff_sc_idx, const int sigma) const;
-
-    /**
-     * Interpolate to a side-centered normal vector/tensor field from a cell-centered
-     * vector/tensor field.
-     *
-     * Interpolate a vector or tensor field from one variable type to another using
-     * (second-order accurate) averaging. When the interpolation occurs over multiple
-     * levels of the hierarchy, second order interpolation is used at the coarse-fine
-     * interface to correct fine values along the interface. When specified, coarse
-     * values on each coarse-fine interface are synchronized after performing the interpolation.
-     *
-     * Note HierarchyMathOps has only a function to interpolate cell-centered vector/tensor field
-     * not for scalar field.
-     */
-    void interpolateCellCenteredToSideCentered(
-        const int dst_idx,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > /*dst_var*/,
-        const bool dst_cf_bdry_synch,
-        const int src_idx,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > /*src_var*/,
-        const SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> src_ghost_fill,
-        const double src_ghost_fill_time);
     /*!
      * Read input values from a given database.
      */
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, bool is_from_restart);
 
-    // cell-centered transport quantites i.e., k and w
+    // Cell-centered transport quantites i.e., \f$ k \f$ and \f$ w \f$
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_k_var, d_k_rhs_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_w_var, d_w_rhs_var;
 
@@ -556,8 +416,6 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var;
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-
     // Transported quantities.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_k_u_var, d_w_u_var;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_k_u_fcn, d_w_u_fcn;
@@ -572,11 +430,11 @@ private:
         d_k_init_convective_time_stepping_type, d_w_diffusion_time_stepping_type, d_w_convective_time_stepping_type,
         d_w_init_convective_time_stepping_type;
 
-    double d_k_damping_coef, d_w_damping_coef;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_k_init, d_w_init;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_k_F_init, d_w_F_init;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_k_bc_coef, d_w_bc_coef, d_mu_eff_bc_coef;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_k_bdry_bc_fill_op, d_w_bdry_bc_fill_op;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_k_bc_coef, d_w_bc_coef;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_k_bdry_bc_fill_op, d_w_bdry_bc_fill_op,
+        d_mu_eff_bdry_bc_fill_op;
 
     /*!
      * Diffusion coefficient data
@@ -637,12 +495,17 @@ private:
      */
     SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator> d_ins_hierarchy_integrator;
 
-    double d_sigma_k, d_sigma_w, d_beta;
+    double d_sigma_k = 0.85, d_sigma_w = 0.5, d_beta = 0.075;
 
-    /*
-     * Read and store the constant density and viscosity
+    /*!
+     * Double precision values are (optional) factors used to rescale the
+     * density and viscosity for plotting.
+     *
+     * Boolean values indicates whether to output various quantities for
+     * visualization.
      */
-    double d_rho_const, d_mu_const;
+    double d_k_scale = 1.0, d_w_scale = 1.0;
+    bool d_output_k = false, d_output_w = false;
 };
 
 } // namespace IBAMR

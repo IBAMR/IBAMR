@@ -147,16 +147,16 @@ main(int argc, char* argv[])
 
         // register turbulent kinetic energy, w
         Pointer<CellVariable<NDIM, double> > k_var = new CellVariable<NDIM, double>("turbulent_kinetic_energy");
-        turb_hier_integrator->registerTurbulenceKineticEnergy(k_var);
+        turb_hier_integrator->registerKVariable(k_var);
 
         // register turbulent specific dissipation rate, w
         Pointer<CellVariable<NDIM, double> > w_var =
             new CellVariable<NDIM, double>("turbulent_specific_dissipation_rate");
-        turb_hier_integrator->registerTurbulenceSpecificDissipationRate(w_var);
+        turb_hier_integrator->registerWVariable(w_var);
 
         // register advection velocity
-        turb_hier_integrator->setAdvectionVelocityKEqn(k_var, time_integrator->getAdvectionVelocityVariable());
-        turb_hier_integrator->setAdvectionVelocityWEqn(w_var, time_integrator->getAdvectionVelocityVariable());
+        turb_hier_integrator->setAdvectionVelocityKEquation(k_var, time_integrator->getAdvectionVelocityVariable());
+        turb_hier_integrator->setAdvectionVelocityWEquation(w_var, time_integrator->getAdvectionVelocityVariable());
 
         // Setup the INS maintained material properties.
         Pointer<Variable<NDIM> > rho_var;
@@ -215,7 +215,7 @@ main(int argc, char* argv[])
                 "k_init",
                 app_initializer->getComponentDatabase("TurbulentKineticEnergyInitialConditions"),
                 grid_geometry);
-            turb_hier_integrator->setInitialConditionsKEqn(k_var, k_init);
+            turb_hier_integrator->setInitialConditionsKEquation(k_var, k_init);
         }
         if (input_db->keyExists("TurbulentSpecificDissipationRateInitialConditions"))
         {
@@ -223,7 +223,7 @@ main(int argc, char* argv[])
                 "w_init",
                 app_initializer->getComponentDatabase("TurbulentSpecificDissipationRateInitialConditions"),
                 grid_geometry);
-            turb_hier_integrator->setInitialConditionsWEqn(w_var, w_init);
+            turb_hier_integrator->setInitialConditionsWEquation(w_var, w_init);
         }
         // Create Eulerian boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
@@ -277,7 +277,7 @@ main(int argc, char* argv[])
         {
             k_bc_coef =
                 new muParserRobinBcCoefs("k_bc_coef", app_initializer->getComponentDatabase("KBcCoefs"), grid_geometry);
-            turb_hier_integrator->setPhysicalBcCoefKEqn(k_var, k_bc_coef);
+            turb_hier_integrator->setPhysicalBcCoefKEquation(k_var, k_bc_coef);
         }
 
         RobinBcCoefStrategy<NDIM>* w_bc_coef = NULL;
@@ -285,7 +285,7 @@ main(int argc, char* argv[])
         {
             w_bc_coef =
                 new muParserRobinBcCoefs("w_bc_coef", app_initializer->getComponentDatabase("WBcCoefs"), grid_geometry);
-            turb_hier_integrator->setPhysicalBcCoefWEqn(w_var, w_bc_coef);
+            turb_hier_integrator->setPhysicalBcCoefWEquation(w_var, w_bc_coef);
         }
 
         // set source terms
@@ -294,8 +294,8 @@ main(int argc, char* argv[])
             app_initializer->getComponentDatabase("TurbulenceSSTKOmegaSourceFunction"),
             turb_hier_integrator,
             time_integrator);
-        turb_hier_integrator->setSourceTermFunctionKEqn(k_var, F_fcn);
-        turb_hier_integrator->setSourceTermFunctionWEqn(w_var, F_fcn);
+        turb_hier_integrator->setSourceTermFunctionKEquation(k_var, F_fcn);
+        turb_hier_integrator->setSourceTermFunctionWEquation(w_var, F_fcn);
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();

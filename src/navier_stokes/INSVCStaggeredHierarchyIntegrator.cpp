@@ -323,6 +323,7 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string
     if (input_db->keyExists("mu_scale")) d_mu_scale = input_db->getDouble("mu_scale");
     if (input_db->keyExists("output_rho")) d_output_rho = input_db->getBool("output_rho");
     if (input_db->keyExists("output_mu")) d_output_mu = input_db->getBool("output_mu");
+    if (input_db->keyExists("output_mu_t")) d_output_mu_t = input_db->getBool("output_mu_t");
 
     // Register solver factory functions for variable coefficient Stokes and
     // viscous solvers
@@ -994,6 +995,11 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         if (d_output_mu && !d_mu_is_const && d_mu_var)
         {
             d_visit_writer->registerPlotQuantity("mu_ins", "SCALAR", d_mu_current_idx, 0, d_mu_scale);
+        }
+
+        if (d_output_mu_t)
+        {
+            d_visit_writer->registerPlotQuantity("mu_t", "SCALAR", d_mu_t_current_idx, 0, d_mu_scale);
         }
 
         if (d_F_fcn && d_output_F)

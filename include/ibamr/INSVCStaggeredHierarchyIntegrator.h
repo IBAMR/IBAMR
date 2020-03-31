@@ -414,6 +414,14 @@ public:
     }
 
     /*!
+     * \brief Get the turbulent viscosity boundary conditions
+     */
+    inline SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getTurbulentViscosityBoundaryConditions() const
+    {
+        return d_mu_t_bc_coef;
+    }
+
+    /*!
      * \brief Get the Brinkman penalization objects registered with this class.
      */
     const std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> >&
@@ -559,7 +567,7 @@ protected:
      * visualization.
      */
     double d_rho_scale = 1.0, d_mu_scale = 1.0;
-    bool d_output_rho = false, d_output_mu = false;
+    bool d_output_rho = false, d_output_mu = false, d_output_mu_t = false;
 
     /*
      * Hierarchy operators and solvers.
