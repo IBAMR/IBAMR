@@ -3617,6 +3617,20 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     else if (db->isString("IB_kernel_fcn"))
         d_default_interp_spec.kernel_fcn = db->getString("IB_kernel_fcn");
 
+    if (db->isBool("interp_use_nodal_quadrature"))
+        d_default_interp_spec.use_nodal_quadrature = db->getBool("interp_use_nodal_quadrature");
+    else if (db->isBool("IB_use_nodal_quadrature"))
+        d_default_interp_spec.use_nodal_quadrature = db->getBool("IB_use_nodal_quadrature");
+    if (d_default_interp_spec.use_nodal_quadrature)
+    {
+        d_default_interp_spec.quad_type = QTRAP;
+        d_default_interp_spec.quad_order = FIRST;
+        d_default_interp_spec.use_adaptive_quadrature = false;
+        d_default_interp_spec.use_consistent_mass_matrix = false;
+        // we default to using a lumped mass matrix, but allow users to choose to use a consistent mass matrix (even
+        // though it seems like a bad idea)
+    }
+
     if (db->isString("interp_quad_type"))
         d_default_interp_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("interp_quad_type"));
     else if (db->isString("IB_quad_type"))
@@ -3642,10 +3656,6 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     else if (db->isBool("IB_use_consistent_mass_matrix"))
         d_default_interp_spec.use_consistent_mass_matrix = db->getBool("IB_use_consistent_mass_matrix");
 
-    if (db->isBool("interp_use_nodal_quadrature"))
-        d_default_interp_spec.use_nodal_quadrature = db->getBool("interp_use_nodal_quadrature");
-    else if (db->isBool("IB_use_nodal_quadrature"))
-        d_default_interp_spec.use_nodal_quadrature = db->getBool("IB_use_nodal_quadrature");
     if (db->isString("vector_assembly_accumulation"))
     {
         const std::string vector_assembly = db->getString("vector_assembly_accumulation");
@@ -3670,6 +3680,17 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     else if (db->isString("IB_kernel_fcn"))
         d_default_spread_spec.kernel_fcn = db->getString("IB_kernel_fcn");
 
+    if (db->isBool("spread_use_nodal_quadrature"))
+        d_default_spread_spec.use_nodal_quadrature = db->getBool("spread_use_nodal_quadrature");
+    else if (db->isBool("IB_use_nodal_quadrature"))
+        d_default_spread_spec.use_nodal_quadrature = db->getBool("IB_use_nodal_quadrature");
+    if (d_default_spread_spec.use_nodal_quadrature)
+    {
+        d_default_spread_spec.quad_type = QTRAP;
+        d_default_spread_spec.quad_order = FIRST;
+        d_default_spread_spec.use_adaptive_quadrature = false;
+    }
+
     if (db->isString("spread_quad_type"))
         d_default_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("spread_quad_type"));
     else if (db->isString("IB_quad_type"))
@@ -3689,11 +3710,6 @@ IBFEMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_default_spread_spec.point_density = db->getDouble("spread_point_density");
     else if (db->isDouble("IB_point_density"))
         d_default_spread_spec.point_density = db->getDouble("IB_point_density");
-
-    if (db->isBool("spread_use_nodal_quadrature"))
-        d_default_spread_spec.use_nodal_quadrature = db->getBool("spread_use_nodal_quadrature");
-    else if (db->isBool("IB_use_nodal_quadrature"))
-        d_default_spread_spec.use_nodal_quadrature = db->getBool("IB_use_nodal_quadrature");
 
     // Force computation settings.
     if (db->isBool("split_normal_force"))
