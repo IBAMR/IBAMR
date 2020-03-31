@@ -592,7 +592,7 @@ public:
      * \return A pointer to a vector, with ghost entries corresponding to
      * relevant IB data, associated with the specified system.
      */
-    std::unique_ptr<libMesh::PetscVector<double> > buildIBGhostedVector(const std::string& system_name) const;
+    std::unique_ptr<libMesh::PetscVector<double> > buildIBGhostedVector(const std::string& system_name);
 
     /*!
      * \return A pointer to the unghosted coordinates (nodal position) vector.
@@ -1036,6 +1036,11 @@ private:
                                 const std::string& system_name);
 
     /*!
+     * Reinitialize IB ghosted DOF data structures for the specified system.
+     */
+    void reinitializeIBGhostedDOFs(const std::string& system_name);
+
+    /*!
      * Read object state from the restart file and initialize class data
      * members.  The database from which the restart data is read is determined
      * by the object_name specified in the constructor.
@@ -1151,6 +1156,7 @@ private:
     std::vector<std::vector<libMesh::Node*> > d_active_patch_node_map;
     std::map<std::string, std::vector<unsigned int> > d_active_patch_ghost_dofs;
     std::vector<std::pair<Point, Point> > d_active_elem_bboxes;
+    std::vector<libMesh::Elem*> d_active_elems;
 
     /*!
      * Ghost vectors for the various equation systems.
