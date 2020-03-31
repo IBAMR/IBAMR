@@ -23,6 +23,7 @@
 #include "ibtk/FEDataManager.h"
 #include "ibtk/LibMeshSystemVectors.h"
 #include "ibtk/SAMRAIDataCache.h"
+#include "ibtk/SAMRAIGhostDataAccumulator.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
 
@@ -936,7 +937,6 @@ protected:
      */
     void spreadTransmissionForceDensity(int f_data_idx,
                                         libMesh::PetscVector<double>& X_ghost_vec,
-                                        IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                                         double data_time,
                                         unsigned int part);
 
@@ -1149,6 +1149,9 @@ protected:
     /// d_scratch_fe_data_managers, dependent on which is actually used in IB
     /// calculations.
     std::vector<IBTK::FEDataManager*> d_active_fe_data_managers;
+
+    /// Pointer to object used to accumulate forces during spreading.
+    std::unique_ptr<IBTK::SAMRAIGhostDataAccumulator> d_ghost_data_accumulator;
 
     /// Minimum ghost cell width.
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;

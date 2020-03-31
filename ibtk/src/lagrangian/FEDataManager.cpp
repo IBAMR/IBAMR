@@ -535,7 +535,7 @@ FEDataManager::reinitElementMappings()
     // Reset the mappings between grid patches and active mesh
     // elements. collectActivePatchElements will populate d_active_elem_bboxes
     // and use it.
-    collectActivePatchElements(d_active_patch_elem_map, d_fe_data->d_level_number, d_ghost_width);
+    collectActivePatchElements(d_active_patch_elem_map, d_fe_data->d_level_number);
     collectActivePatchNodes(d_active_patch_node_map, d_active_patch_elem_map);
 
     // Reset the sets of dofs corresponding to IB ghost data. This is usually
@@ -910,15 +910,12 @@ FEDataManager::spread(const int f_data_idx,
 
             // Spread values from the nodes to the Cartesian grid patch.
             //
-            // NOTE: Values are spread only from those nodes that are within the
-            // ghost cell width of the patch interior.
-            //
             // \todo Fix this for FE structures with periodic boundaries.  Nodes
             // on periodic boundaries will be "double counted".
             //
             // \todo Add warnings for FE structures with periodic boundaries.
             const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), d_ghost_width);
+            const Box<NDIM> spread_box = patch->getBox();
             Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
             if (cc_data)
             {
@@ -1033,12 +1030,11 @@ FEDataManager::spread(const int f_data_idx,
                 qp_offset += n_qp;
             }
 
+            zeroExteriorValues(*patch_geom, X_qp, F_JxW_qp);
+
             // Spread values from the quadrature points to the Cartesian grid
             // patch.
-            //
-            // NOTE: Values are spread only from those quadrature points that
-            // are within the ghost cell width of the patch interior.
-            const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), d_ghost_width);
+            const Box<NDIM> spread_box = patch->getBox();
             Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
             if (cc_data)
             {
@@ -2561,7 +2557,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         // level.
         std::vector<std::vector<Elem*> > active_level_elem_map;
         const IntVector<NDIM> ghost_width = 1;
-        collectActivePatchElements(active_level_elem_map, level_number, ghost_width);
+        collectActivePatchElements(active_level_elem_map, level_number);
         std::vector<unsigned int> X_ghost_dofs;
         std::vector<Elem*> active_level_elems;
         collect_unique_elems(active_level_elems, active_level_elem_map);
@@ -2995,9 +2991,7 @@ FEDataManager::computeActiveElementBoundingBoxes()
 } // computeActiveElementBoundingBoxes
 
 void
-FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& active_patch_elems,
-                                          const int level_number,
-                                          const IntVector<NDIM>& ghost_width)
+FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& active_patch_elems, const int level_number)
 {
     // Get the necessary FE data.
     const MeshBase& mesh = d_fe_data->d_es->get_mesh();
@@ -3012,8 +3006,8 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
 
     // We associate an element with a Cartesian grid patch if the element's
     // bounding box (which is computed based on the bounds of quadrature
-    // points) intersects the patch interior grown by the specified ghost cell
-    // width.
+    // points) intersects the patch interior grown by
+    // d_associated_elem_ghost_width (which is presently assumed to be 1).
     double dx_0 = std::numeric_limits<double>::max();
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
@@ -3069,8 +3063,8 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         libMeshWrappers::BoundingBox patch_bbox;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            patch_bbox.first(d) = pgeom->getXLower()[d] - dx[d] * ghost_width[d];
-            patch_bbox.second(d) = pgeom->getXUpper()[d] + dx[d] * ghost_width[d];
+            patch_bbox.first(d) = pgeom->getXLower()[d] - dx[d] * d_associated_elem_ghost_width(d);
+            patch_bbox.second(d) = pgeom->getXUpper()[d] + dx[d] * d_associated_elem_ghost_width(d);
         }
         for (unsigned int d = NDIM; d < LIBMESH_DIM; ++d)
         {

@@ -1041,14 +1041,15 @@ private:
 
     /*!
      * Collect all of the active elements which are located within a local
-     * Cartesian grid patch grown by the specified ghost cell width.
+     * Cartesian grid patch grown by a ghost width of 1 (like
+     * IBTK::LEInteractor::getMinimumGhostWidth(), we assume that IB points
+     * are allowed to move no more than one cell width between regridding
+     * operations).
      *
      * In this method, the determination as to whether an element is local or
      * not is based on the position of the bounding box of the element.
      */
-    void collectActivePatchElements(std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
-                                    int level_number,
-                                    const SAMRAI::hier::IntVector<NDIM>& ghost_width);
+    void collectActivePatchElements(std::vector<std::vector<libMesh::Elem*> >& active_patch_elems, int level_number);
 
     /*!
      * Collect all of the nodes of the active elements that are located within a
@@ -1168,10 +1169,22 @@ private:
     const SpreadSpec d_default_spread_spec;
 
     /*!
-     * SAMRAI::hier::IntVector object which determines the ghost cell width used
-     * to determine elements that are associated with each Cartesian grid patch.
+     * SAMRAI::hier::IntVector object which determines the required ghost cell
+     * width of this class.
      */
     const SAMRAI::hier::IntVector<NDIM> d_ghost_width;
+
+    /*!
+     * SAMRAI::hier::IntVector object which determines how many ghost cells we
+     * should enlarge a patch by when associating an element with a patch. An
+     * element is associated with a patch when its bounding box (defined as
+     * the bounding box of both its nodes and quadrature points) intersects
+     * the bounding box (including ghost cells) of that patch.
+     *
+     * @note At the present time this is always 1, which matches the
+     * assumption made by IBTK::LEInteractor::getMinimumGhostWidth().
+     */
+    const SAMRAI::hier::IntVector<NDIM> d_associated_elem_ghost_width = SAMRAI::hier::IntVector<NDIM>(1);
 
     /*!
      * Data to manage mappings between mesh elements and grid patches.

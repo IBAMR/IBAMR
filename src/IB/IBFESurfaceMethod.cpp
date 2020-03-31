@@ -24,6 +24,7 @@
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
+#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
@@ -36,6 +37,7 @@
 #include "CellData.h"
 #include "CellIndex.h"
 #include "GriddingAlgorithm.h"
+#include "HierarchyDataOpsManager.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LoadBalancer.h"
@@ -1087,6 +1089,14 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
                                const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
                                const double data_time)
 {
+    const int ln = d_hierarchy->getFinestLevelNumber();
+    const auto f_scratch_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
+    Pointer<hier::Variable<NDIM> > f_var;
+    VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(f_data_idx, f_var);
+    auto f_active_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy);
+    f_active_data_ops->resetLevels(ln, ln);
+    f_active_data_ops->setToScalar(f_scratch_data_idx, 0.0, /*interior_only*/ false);
+
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -1096,16 +1106,41 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         X_vec->localize(*X_ghost_vec);
         F_vec->localize(*F_ghost_vec);
-        d_fe_data_managers[part]->spread(
-            f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op, data_time);
+        d_fe_data_managers[part]->spread(f_scratch_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME);
+
         if (d_use_jump_conditions)
         {
             PetscVector<double>* DP_vec = d_DP_half_vecs[part];
             PetscVector<double>* DP_ghost_vec = d_DP_IB_ghost_vecs[part];
             DP_vec->localize(*DP_ghost_vec);
-            imposeJumpConditions(f_data_idx, *DP_ghost_vec, *X_ghost_vec, data_time, part);
+            imposeJumpConditions(f_scratch_data_idx, *DP_ghost_vec, *X_ghost_vec, data_time, part);
         }
     }
+
+    if (f_phys_bdry_op)
+    {
+        f_phys_bdry_op->setPatchDataIndex(f_scratch_data_idx);
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_scratch_data_idx);
+            f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
+        }
+    }
+
+    {
+        if (!d_ghost_data_accumulator)
+            d_ghost_data_accumulator.reset(new SAMRAIGhostDataAccumulator(d_hierarchy,
+                                                                          f_var,
+                                                                          d_ghosts,
+                                                                          d_hierarchy->getFinestLevelNumber(),
+                                                                          d_hierarchy->getFinestLevelNumber()));
+        d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx);
+    }
+
+    f_active_data_ops->add(f_data_idx, f_data_idx, f_scratch_data_idx);
+
     return;
 } // spreadForce
 

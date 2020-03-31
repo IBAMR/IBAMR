@@ -980,7 +980,29 @@ IBFEMethod::spreadForce(const int f_data_idx,
         d_active_fe_data_managers[part]->spread(f_scratch_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME);
     }
 
-    // Deal with force values spread outside the physical domain.
+    // Handle any transmission conditions.
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        if (!d_part_is_active[part]) continue;
+        PetscVector<double>* X_ghost_vec = X_IB_ghost_vecs[part];
+        PetscVector<double>* F_ghost_vec = F_IB_ghost_vecs[part];
+        if (d_split_normal_force || d_split_tangential_force)
+        {
+            if (d_use_jump_conditions && d_split_normal_force)
+            {
+                imposeJumpConditions(f_scratch_data_idx, *F_ghost_vec, *X_ghost_vec, data_time, part);
+            }
+            if (!d_use_jump_conditions || d_split_tangential_force)
+            {
+                spreadTransmissionForceDensity(f_scratch_data_idx, *X_ghost_vec, data_time, part);
+            }
+        }
+    }
+
+    // Deal with force values spread outside the physical domain. Since these
+    // are spread into ghost regions that don't correspond to actual degrees
+    // of freedom they are ignored by the accumulation step - we have to
+    // handle this before we do that.
     if (f_phys_bdry_op)
     {
         f_phys_bdry_op->setPatchDataIndex(f_scratch_data_idx);
@@ -991,6 +1013,14 @@ IBFEMethod::spreadForce(const int f_data_idx,
             Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_scratch_data_idx);
             f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
         }
+    }
+
+    {
+        auto hierarchy = d_use_scratch_hierarchy ? d_scratch_hierarchy : d_hierarchy;
+        if (!d_ghost_data_accumulator)
+            d_ghost_data_accumulator.reset(new SAMRAIGhostDataAccumulator(
+                hierarchy, f_var, d_ghosts, d_hierarchy->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
+        d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx);
     }
 
     if (d_use_scratch_hierarchy)
@@ -1017,25 +1047,6 @@ IBFEMethod::spreadForce(const int f_data_idx,
         // easier case: f_scratch_data_idx is on the primary hierarchy so we
         // just need to add its values to those in f_data_idx
         f_active_data_ops->add(f_data_idx, f_data_idx, f_scratch_data_idx);
-    }
-
-    // Handle any transmission conditions.
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        if (!d_part_is_active[part]) continue;
-        PetscVector<double>* X_ghost_vec = X_IB_ghost_vecs[part];
-        PetscVector<double>* F_ghost_vec = F_IB_ghost_vecs[part];
-        if (d_split_normal_force || d_split_tangential_force)
-        {
-            if (d_use_jump_conditions && d_split_normal_force)
-            {
-                imposeJumpConditions(f_data_idx, *F_ghost_vec, *X_ghost_vec, data_time, part);
-            }
-            if (!d_use_jump_conditions || d_split_tangential_force)
-            {
-                spreadTransmissionForceDensity(f_data_idx, *X_ghost_vec, f_phys_bdry_op, data_time, part);
-            }
-        }
     }
     return;
 } // spreadForce
@@ -1713,7 +1724,8 @@ IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const 
 void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                          Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
-    // intentionally blank
+    // clear some things that contain data specific to the current patch hierarchy
+    d_ghost_data_accumulator.reset();
     return;
 } // beginDataRedistribution
 
@@ -2670,7 +2682,6 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
 void
 IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
                                            PetscVector<double>& X_ghost_vec,
-                                           RobinPhysBdryPatchStrategy* f_phys_bdry_op,
                                            const double data_time,
                                            const unsigned int part)
 {
@@ -2682,23 +2693,9 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     const bool integrate_tangential_force = d_split_tangential_force;
     if (!integrate_normal_force && !integrate_tangential_force) return;
 
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-
-    // Make a copy of the Eulerian data.
-    Pointer<hier::Variable<NDIM> > f_var;
-    var_db->mapIndexToVariable(f_data_idx, f_var);
-    const int f_copy_data_idx = var_db->registerClonedPatchDataIndex(f_var, f_data_idx);
     assertStructureOnFinestLevel();
     const int level_num = d_primary_fe_data_managers[part]->getLevelNumber();
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
-    level->allocatePatchData(f_copy_data_idx);
-    Pointer<HierarchyDataOpsReal<NDIM, double> > f_data_ops =
-        HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
-    f_data_ops->resetLevels(level_num, level_num);
-    f_data_ops->swapData(f_copy_data_idx, f_data_idx);
-    f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
     // Extract the mesh.
     EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
@@ -2933,26 +2930,13 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
 
         // Spread the boundary forces to the grid.
         const std::string& spread_kernel_fcn = d_spread_spec[part].kernel_fcn;
-        const hier::IntVector<NDIM>& ghost_width = d_primary_fe_data_managers[part]->getGhostCellWidth();
-        const Box<NDIM> spread_box = Box<NDIM>::grow(patch->getBox(), ghost_width);
+        const Box<NDIM> spread_box = patch->getBox();
         Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
+
+        FEDataManager::zeroExteriorValues(*patch_geom, x_bdry, T_bdry);
         LEInteractor::spread(f_data, T_bdry, NDIM, x_bdry, NDIM, patch, spread_box, spread_kernel_fcn);
-        if (f_phys_bdry_op)
-        {
-            f_phys_bdry_op->setPatchDataIndex(f_data_idx);
-            f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
-        }
     }
 
-    // Accumulate data.
-    f_data_ops->swapData(f_copy_data_idx, f_data_idx);
-    f_data_ops->add(f_data_idx, f_data_idx, f_copy_data_idx);
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(f_copy_data_idx);
-    }
-    var_db->removePatchDataIndex(f_copy_data_idx);
     return;
 } // spreadTransmissionForceDensity
 

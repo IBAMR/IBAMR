@@ -6,28 +6,25 @@ IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
 INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field
 locally owned range on 0: [0, 130)
-total length on 0: 302
+total length on 0: 290
 global index ranges on 0:
-[0, 290)
-[770, 782)
+[0, 282)
+[770, 778)
 locally owned range on 1: [130, 514)
-total length on 1: 404
+total length on 1: 396
 global index ranges on 1:
-[130, 530)
-[770, 774)
+[130, 526)
 locally owned range on 2: [514, 642)
-total length on 2: 416
+total length on 2: 402
 global index ranges on 2:
 [514, 642)
-[246, 248)
-[250, 258)
-[506, 508)
-[510, 514)
-[750, 752)
-[754, 1024)
+[250, 252)
+[254, 258)
+[754, 756)
+[758, 1024)
 locally owned range on 3: [642, 1024)
-total length on 3: 516
+total length on 3: 512
 global index ranges on 3:
 [642, 1024)
-[506, 508)
-[510, 642)
+[510, 512)
+[514, 642)
