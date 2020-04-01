@@ -89,17 +89,33 @@ namespace IBAMR
  * \brief Class IBFESurfaceMethod is an implementation of the abstract base
  * class IBStrategy that provides functionality required by the IB method with
  * a finite element representation of a surface mesh.
+ *
+ * Coupling schemes include both IB formulations (integral operations with
+ * regularized delta function kernels) and an immersed interface method (IIM)
+ * scheme (E. M. Kolahdouz, A. P. S. Bhalla, B. A. Craven, and B. E. Griffith.
+ * An immersed interface method for discrete surfaces. J Comput Phys,
+ * 400:108854 (37 pages), 2020).
+ *
+ * \note When using the IIM implementation, it is recommended that users set
+ * all linear solvers to use tight relative tolerances (1e-10).
  */
 class IBFESurfaceMethod : public IBStrategy
 {
 public:
-    static const std::string COORDS_SYSTEM_NAME;
     static const std::string COORD_MAPPING_SYSTEM_NAME;
+    static const std::string COORDS_SYSTEM_NAME;
     static const std::string FORCE_SYSTEM_NAME;
     static const std::string NORMAL_VELOCITY_SYSTEM_NAME;
+    static const std::string PRESSURE_IN_SYSTEM_NAME;
     static const std::string PRESSURE_JUMP_SYSTEM_NAME;
+    static const std::string PRESSURE_OUT_SYSTEM_NAME;
     static const std::string TANGENTIAL_VELOCITY_SYSTEM_NAME;
+    static const std::string TAU_IN_SYSTEM_NAME;
+    static const std::string TAU_OUT_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
+    static const std::string WSS_IN_SYSTEM_NAME;
+    static const std::string WSS_OUT_SYSTEM_NAME;
+    static const std::array<std::string, NDIM> VELOCITY_JUMP_SYSTEM_NAME;
 
     /*!
      * \brief Constructor.
@@ -460,13 +476,28 @@ public:
 
 protected:
     /*!
-     * Impose (pressure) jump conditions.
+     * Impose the jump conditions.
      */
     void imposeJumpConditions(const int f_data_idx,
                               libMesh::PetscVector<double>& DP_ghost_vec,
                               libMesh::PetscVector<double>& X_ghost_vec,
                               const double data_time,
                               const unsigned int part);
+
+    /*!
+     * \brief Helper function for checking possible double-counting
+     *  intesection points
+     */
+    bool checkDoubleCountingIntersection(int axis,
+                                         const double* dx,
+                                         const libMesh::VectorValue<double>& n,
+                                         const libMesh::Point& x,
+                                         const libMesh::Point& xi,
+                                         const SAMRAI::pdat::SideIndex<NDIM>& i_s,
+                                         const SAMRAI::pdat::SideIndex<NDIM>& i_s_prime,
+                                         const std::vector<libMesh::Point>& candidate_coords,
+                                         const std::vector<libMesh::Point>& candidate_ref_coords,
+                                         const std::vector<libMesh::VectorValue<double> >& candidate_normals);
 
     /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
@@ -538,14 +569,20 @@ protected:
     bool d_fe_equation_systems_initialized = false, d_fe_data_initialized = false;
 
     /*
-     * Method paramters.
+     * Method parameters.
      */
     IBTK::FEDataManager::InterpSpec d_default_interp_spec;
     IBTK::FEDataManager::SpreadSpec d_default_spread_spec;
     IBTK::FEDataManager::WorkloadSpec d_default_workload_spec;
     std::vector<IBTK::FEDataManager::InterpSpec> d_interp_spec;
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
-    bool d_use_jump_conditions = false;
+    bool d_use_pressure_jump_conditions = false;
+    libMesh::FEFamily d_pressure_jump_fe_family = libMesh::LAGRANGE;
+    bool d_use_velocity_jump_conditions = false;
+    libMesh::FEFamily d_velocity_jump_fe_family = libMesh::LAGRANGE;
+    bool d_compute_fluid_traction = false;
+    libMesh::FEFamily d_wss_fe_family = libMesh::LAGRANGE;
+    libMesh::FEFamily d_tau_fe_family = libMesh::LAGRANGE;
     bool d_perturb_fe_mesh_nodes = true;
     bool d_normalize_pressure_jump = false;
     std::vector<libMesh::FEFamily> d_fe_family;
@@ -554,6 +591,8 @@ protected:
     std::vector<libMesh::Order> d_default_quad_order;
     bool d_use_consistent_mass_matrix = true;
     bool d_use_direct_forcing = false;
+    double d_wss_calc_width = 0.0;
+    double d_p_calc_width = 0.0;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
@@ -599,7 +638,7 @@ protected:
     /*
      * Restart file type for libMesh equation systems (e.g. xda or xdr).
      */
-    std::string d_libmesh_restart_file_extension;
+    std::string d_libmesh_restart_file_extension = "xdr";
 
 private:
     /*!
