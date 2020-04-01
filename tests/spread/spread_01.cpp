@@ -44,6 +44,7 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/BoxPartitioner.h>
+#include <ibtk/LEInteractor.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -283,7 +284,9 @@ main(int argc, char** argv)
         const Pointer<SAMRAI::hier::Variable<NDIM> > f_var = time_integrator->getBodyForceVariable();
         const Pointer<VariableContext> f_ghost_ctx = var_db->getContext("f_ghost");
 
-        int n_ghosts = 3;
+        int n_ghosts = input_db->keyExists("IB_DELTA_FUNCTION") ?
+                           LEInteractor::getMinimumGhostWidth(input_db->getString("IB_DELTA_FUNCTION")) :
+                           3;
         if (app_initializer->getComponentDatabase("IBFEMethod")->keyExists("min_ghost_cell_width"))
         {
             n_ghosts = app_initializer->getComponentDatabase("IBFEMethod")->getInteger("min_ghost_cell_width");

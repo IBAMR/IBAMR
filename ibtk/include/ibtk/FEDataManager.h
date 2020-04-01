@@ -64,6 +64,11 @@ class RobinPhysBdryPatchStrategy;
 
 namespace SAMRAI
 {
+namespace geom
+{
+template <int DIM>
+class CartesianPatchGeometry;
+} // namespace geom
 namespace hier
 {
 template <int DIM>
@@ -934,6 +939,30 @@ public:
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
+    /*!
+     * \brief Zero the values corresponding to points on the given patch
+     * (described by @p patch_geometry) that might be duplicated on another
+     * patch.
+     *
+     * In the process of computing either forces on the Lagrangian mesh to
+     * spread to the Eulerian grid or interpolating values from the Eulerian
+     * grid to use in the Lagrangian structure we may, under extraordinary
+     * circumstances, double-count a point that lies on the boundary between
+     * two patches. Note that due to the CFL condition assumed by this class
+     * and the width of the tag buffer used by IBAMR::IBFEMethod we can assume
+     * that no IB point will ever lie on the boundary of the finest grid
+     * level: hence, if a point lies on the boundary of a patch, it must also
+     * lie on the boundary of a neighboring patch.
+     *
+     * Hence, to establish uniqueness, we zero data that lies on the 'upper'
+     * face (corresponding to the unit normal vector pointing towards
+     * infinity) since we are guaranteed, by the previous assumptions, that
+     * that data must also lie on the lower face of a neighboring patch.
+     */
+    static void zeroExteriorValues(const SAMRAI::geom::CartesianPatchGeometry<NDIM>& patch_geom,
+                                   const std::vector<double>& X_qp,
+                                   std::vector<double>& F_qp);
+
 protected:
     /*!
      * \brief Constructor.
@@ -1012,14 +1041,15 @@ private:
 
     /*!
      * Collect all of the active elements which are located within a local
-     * Cartesian grid patch grown by the specified ghost cell width.
+     * Cartesian grid patch grown by a ghost width of 1 (like
+     * IBTK::LEInteractor::getMinimumGhostWidth(), we assume that IB points
+     * are allowed to move no more than one cell width between regridding
+     * operations).
      *
      * In this method, the determination as to whether an element is local or
      * not is based on the position of the bounding box of the element.
      */
-    void collectActivePatchElements(std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
-                                    int level_number,
-                                    const SAMRAI::hier::IntVector<NDIM>& ghost_width);
+    void collectActivePatchElements(std::vector<std::vector<libMesh::Elem*> >& active_patch_elems, int level_number);
 
     /*!
      * Collect all of the nodes of the active elements that are located within a
@@ -1144,10 +1174,22 @@ private:
     const SpreadSpec d_default_spread_spec;
 
     /*!
-     * SAMRAI::hier::IntVector object which determines the ghost cell width used
-     * to determine elements that are associated with each Cartesian grid patch.
+     * SAMRAI::hier::IntVector object which determines the required ghost cell
+     * width of this class.
      */
     const SAMRAI::hier::IntVector<NDIM> d_ghost_width;
+
+    /*!
+     * SAMRAI::hier::IntVector object which determines how many ghost cells we
+     * should enlarge a patch by when associating an element with a patch. An
+     * element is associated with a patch when its bounding box (defined as
+     * the bounding box of both its nodes and quadrature points) intersects
+     * the bounding box (including ghost cells) of that patch.
+     *
+     * @note At the present time this is always 1, which matches the
+     * assumption made by IBTK::LEInteractor::getMinimumGhostWidth().
+     */
+    const SAMRAI::hier::IntVector<NDIM> d_associated_elem_ghost_width = SAMRAI::hier::IntVector<NDIM>(1);
 
     /*!
      * Data to manage mappings between mesh elements and grid patches.

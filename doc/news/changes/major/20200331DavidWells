@@ -1,0 +1,7 @@
+Improved: IBTK::FEDataManager, IBAMR::IBFEMethod, and IBAMR::IBFEMethod now only
+associate elements with patches when an element intersects the patch plus a
+ghost region of width 1 (previously we used a width large enough to accomodate
+the IB stencil). This lowers the total number of elements used in velocity
+interpolation and force spreading by about 25%.
+<br>
+(David Wells, 2020/03/31)

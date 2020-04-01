@@ -92,7 +92,7 @@ EXTRA_PROGRAMS = $(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@interpolate_velocity_02 explicit_ex0_2d explicit_ex1_2d explicit_ex4_2d \
 @LIBMESH_ENABLED_TRUE@explicit_ex4_3d explicit_ex5_2d explicit_ex5_3d explicit_ex8_2d \
 @LIBMESH_ENABLED_TRUE@ib_partitioning_01_2d ib_partitioning_01_3d ib_partitioning_02_2d \
-@LIBMESH_ENABLED_TRUE@ib_partitioning_02_3d
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_3d zero_exterior_values_2d zero_exterior_values_3d
 
 subdir = tests/IBFE
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -139,7 +139,9 @@ CONFIG_CLEAN_VPATH_FILES =
 @LIBMESH_ENABLED_TRUE@	ib_partitioning_01_2d$(EXEEXT) \
 @LIBMESH_ENABLED_TRUE@	ib_partitioning_01_3d$(EXEEXT) \
 @LIBMESH_ENABLED_TRUE@	ib_partitioning_02_2d$(EXEEXT) \
-@LIBMESH_ENABLED_TRUE@	ib_partitioning_02_3d$(EXEEXT)
+@LIBMESH_ENABLED_TRUE@	ib_partitioning_02_3d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	zero_exterior_values_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	zero_exterior_values_3d$(EXEEXT)
 am__explicit_ex0_2d_SOURCES_DIST = explicit_ex0.cpp
 @LIBMESH_ENABLED_TRUE@am_explicit_ex0_2d_OBJECTS =  \
 @LIBMESH_ENABLED_TRUE@	explicit_ex0_2d-explicit_ex0.$(OBJEXT)
@@ -283,6 +285,26 @@ interpolate_velocity_02_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(interpolate_velocity_02_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am__zero_exterior_values_2d_SOURCES_DIST = zero_exterior_values.cpp
+@LIBMESH_ENABLED_TRUE@am_zero_exterior_values_2d_OBJECTS = zero_exterior_values_2d-zero_exterior_values.$(OBJEXT)
+zero_exterior_values_2d_OBJECTS =  \
+	$(am_zero_exterior_values_2d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@zero_exterior_values_2d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
+zero_exterior_values_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(zero_exterior_values_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__zero_exterior_values_3d_SOURCES_DIST = zero_exterior_values.cpp
+@LIBMESH_ENABLED_TRUE@am_zero_exterior_values_3d_OBJECTS = zero_exterior_values_3d-zero_exterior_values.$(OBJEXT)
+zero_exterior_values_3d_OBJECTS =  \
+	$(am_zero_exterior_values_3d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@zero_exterior_values_3d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
+zero_exterior_values_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(zero_exterior_values_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -311,7 +333,9 @@ am__depfiles_remade = ./$(DEPDIR)/explicit_ex0_2d-explicit_ex0.Po \
 	./$(DEPDIR)/ib_partitioning_02_3d-ib_partitioning_02.Po \
 	./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po \
 	./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po \
-	./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po
+	./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po \
+	./$(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Po \
+	./$(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -340,7 +364,9 @@ SOURCES = $(explicit_ex0_2d_SOURCES) $(explicit_ex1_2d_SOURCES) \
 	$(ib_partitioning_02_3d_SOURCES) \
 	$(interpolate_velocity_01_2d_SOURCES) \
 	$(interpolate_velocity_01_3d_SOURCES) \
-	$(interpolate_velocity_02_SOURCES)
+	$(interpolate_velocity_02_SOURCES) \
+	$(zero_exterior_values_2d_SOURCES) \
+	$(zero_exterior_values_3d_SOURCES)
 DIST_SOURCES = $(am__explicit_ex0_2d_SOURCES_DIST) \
 	$(am__explicit_ex1_2d_SOURCES_DIST) \
 	$(am__explicit_ex4_2d_SOURCES_DIST) \
@@ -354,7 +380,9 @@ DIST_SOURCES = $(am__explicit_ex0_2d_SOURCES_DIST) \
 	$(am__ib_partitioning_02_3d_SOURCES_DIST) \
 	$(am__interpolate_velocity_01_2d_SOURCES_DIST) \
 	$(am__interpolate_velocity_01_3d_SOURCES_DIST) \
-	$(am__interpolate_velocity_02_SOURCES_DIST)
+	$(am__interpolate_velocity_02_SOURCES_DIST) \
+	$(am__zero_exterior_values_2d_SOURCES_DIST) \
+	$(am__zero_exterior_values_3d_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -688,6 +716,12 @@ SUFFIXES = .f.m4
 @LIBMESH_ENABLED_TRUE@ib_partitioning_02_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 @LIBMESH_ENABLED_TRUE@ib_partitioning_02_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 @LIBMESH_ENABLED_TRUE@ib_partitioning_02_3d_SOURCES = ib_partitioning_02.cpp
+@LIBMESH_ENABLED_TRUE@zero_exterior_values_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@zero_exterior_values_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@zero_exterior_values_2d_SOURCES = zero_exterior_values.cpp
+@LIBMESH_ENABLED_TRUE@zero_exterior_values_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@zero_exterior_values_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@zero_exterior_values_3d_SOURCES = zero_exterior_values.cpp
 all: all-am
 
 .SUFFIXES:
@@ -779,6 +813,14 @@ interpolate_velocity_02$(EXEEXT): $(interpolate_velocity_02_OBJECTS) $(interpola
 	@rm -f interpolate_velocity_02$(EXEEXT)
 	$(AM_V_CXXLD)$(interpolate_velocity_02_LINK) $(interpolate_velocity_02_OBJECTS) $(interpolate_velocity_02_LDADD) $(LIBS)
 
+zero_exterior_values_2d$(EXEEXT): $(zero_exterior_values_2d_OBJECTS) $(zero_exterior_values_2d_DEPENDENCIES) $(EXTRA_zero_exterior_values_2d_DEPENDENCIES) 
+	@rm -f zero_exterior_values_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(zero_exterior_values_2d_LINK) $(zero_exterior_values_2d_OBJECTS) $(zero_exterior_values_2d_LDADD) $(LIBS)
+
+zero_exterior_values_3d$(EXEEXT): $(zero_exterior_values_3d_OBJECTS) $(zero_exterior_values_3d_DEPENDENCIES) $(EXTRA_zero_exterior_values_3d_DEPENDENCIES) 
+	@rm -f zero_exterior_values_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(zero_exterior_values_3d_LINK) $(zero_exterior_values_3d_OBJECTS) $(zero_exterior_values_3d_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -799,6 +841,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -1026,6 +1070,34 @@ interpolate_velocity_02-interpolate_velocity_02.obj: interpolate_velocity_02.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolate_velocity_02_CXXFLAGS) $(CXXFLAGS) -c -o interpolate_velocity_02-interpolate_velocity_02.obj `if test -f 'interpolate_velocity_02.cpp'; then $(CYGPATH_W) 'interpolate_velocity_02.cpp'; else $(CYGPATH_W) '$(srcdir)/interpolate_velocity_02.cpp'; fi`
 
+zero_exterior_values_2d-zero_exterior_values.o: zero_exterior_values.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(zero_exterior_values_2d_CXXFLAGS) $(CXXFLAGS) -MT zero_exterior_values_2d-zero_exterior_values.o -MD -MP -MF $(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Tpo -c -o zero_exterior_values_2d-zero_exterior_values.o `test -f 'zero_exterior_values.cpp' || echo '$(srcdir)/'`zero_exterior_values.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Tpo $(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='zero_exterior_values.cpp' object='zero_exterior_values_2d-zero_exterior_values.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(zero_exterior_values_2d_CXXFLAGS) $(CXXFLAGS) -c -o zero_exterior_values_2d-zero_exterior_values.o `test -f 'zero_exterior_values.cpp' || echo '$(srcdir)/'`zero_exterior_values.cpp
+
+zero_exterior_values_2d-zero_exterior_values.obj: zero_exterior_values.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(zero_exterior_values_2d_CXXFLAGS) $(CXXFLAGS) -MT zero_exterior_values_2d-zero_exterior_values.obj -MD -MP -MF $(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Tpo -c -o zero_exterior_values_2d-zero_exterior_values.obj `if test -f 'zero_exterior_values.cpp'; then $(CYGPATH_W) 'zero_exterior_values.cpp'; else $(CYGPATH_W) '$(srcdir)/zero_exterior_values.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Tpo $(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='zero_exterior_values.cpp' object='zero_exterior_values_2d-zero_exterior_values.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(zero_exterior_values_2d_CXXFLAGS) $(CXXFLAGS) -c -o zero_exterior_values_2d-zero_exterior_values.obj `if test -f 'zero_exterior_values.cpp'; then $(CYGPATH_W) 'zero_exterior_values.cpp'; else $(CYGPATH_W) '$(srcdir)/zero_exterior_values.cpp'; fi`
+
+zero_exterior_values_3d-zero_exterior_values.o: zero_exterior_values.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(zero_exterior_values_3d_CXXFLAGS) $(CXXFLAGS) -MT zero_exterior_values_3d-zero_exterior_values.o -MD -MP -MF $(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Tpo -c -o zero_exterior_values_3d-zero_exterior_values.o `test -f 'zero_exterior_values.cpp' || echo '$(srcdir)/'`zero_exterior_values.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Tpo $(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='zero_exterior_values.cpp' object='zero_exterior_values_3d-zero_exterior_values.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(zero_exterior_values_3d_CXXFLAGS) $(CXXFLAGS) -c -o zero_exterior_values_3d-zero_exterior_values.o `test -f 'zero_exterior_values.cpp' || echo '$(srcdir)/'`zero_exterior_values.cpp
+
+zero_exterior_values_3d-zero_exterior_values.obj: zero_exterior_values.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(zero_exterior_values_3d_CXXFLAGS) $(CXXFLAGS) -MT zero_exterior_values_3d-zero_exterior_values.obj -MD -MP -MF $(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Tpo -c -o zero_exterior_values_3d-zero_exterior_values.obj `if test -f 'zero_exterior_values.cpp'; then $(CYGPATH_W) 'zero_exterior_values.cpp'; else $(CYGPATH_W) '$(srcdir)/zero_exterior_values.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Tpo $(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='zero_exterior_values.cpp' object='zero_exterior_values_3d-zero_exterior_values.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(zero_exterior_values_3d_CXXFLAGS) $(CXXFLAGS) -c -o zero_exterior_values_3d-zero_exterior_values.obj `if test -f 'zero_exterior_values.cpp'; then $(CYGPATH_W) 'zero_exterior_values.cpp'; else $(CYGPATH_W) '$(srcdir)/zero_exterior_values.cpp'; fi`
+
 mostlyclean-libtool:
 	-rm -f *.lo
 
@@ -1171,6 +1243,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po
+	-rm -f ./$(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Po
+	-rm -f ./$(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1230,6 +1304,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po
+	-rm -f ./$(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Po
+	-rm -f ./$(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
