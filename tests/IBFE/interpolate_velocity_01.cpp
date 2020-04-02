@@ -141,8 +141,12 @@ main(int argc, char** argv)
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
-    PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-16");
-    PetscOptionsSetValue(nullptr, "-ksp_atol", "1e-16");
+    // set up options for the linear solver to not depend on the parallel partitioning
+    PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-14");
+    PetscOptionsSetValue(nullptr, "-ksp_atol", "1e-12");
+    PetscOptionsSetValue(nullptr, "-ksp_type", "cg");
+    PetscOptionsSetValue(nullptr, "-pc_type", "jacobi");
+    PetscOptionsSetValue(nullptr, "-pc_jacobi_type", "diagonal");
 
     // prevent a warning about timer initializations
     TimerManager::createManager(nullptr);
@@ -378,7 +382,7 @@ main(int argc, char** argv)
             {
                 plog << std::setprecision(20) << max_norm_errors[i] << "   ";
             }
-            plog << max_norm_errors[n_vars - 1] << std::endl;
+            plog << SAMRAI_MPI::maxReduction(max_norm_errors[n_vars - 1]) << std::endl;
         }
     } // cleanup dynamically allocated objects prior to shutdown
 
