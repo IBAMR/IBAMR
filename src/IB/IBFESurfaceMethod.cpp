@@ -151,6 +151,19 @@ const std::string IBFESurfaceMethod::NORMAL_VELOCITY_SYSTEM_NAME = "IB normal ve
 const std::string IBFESurfaceMethod::PRESSURE_JUMP_SYSTEM_NAME = "IB [[p]] system";
 const std::string IBFESurfaceMethod::TANGENTIAL_VELOCITY_SYSTEM_NAME = "IB tangential velocity system";
 const std::string IBFESurfaceMethod::VELOCITY_SYSTEM_NAME = "IB velocity system";
+const std::string IBFESurfaceMethod::WSS_IN_SYSTEM_NAME = "One sided interior wall shear stress system";
+const std::string IBFESurfaceMethod::WSS_OUT_SYSTEM_NAME = "One sided exterior wall shear stress system";
+const std::string IBFESurfaceMethod::PRESSURE_IN_SYSTEM_NAME = "One sided interior pressure system";
+const std::string IBFESurfaceMethod::PRESSURE_OUT_SYSTEM_NAME = "One sided exterior pressure system";
+const std::string IBFESurfaceMethod::TAU_IN_SYSTEM_NAME = "Interior traction system";
+const std::string IBFESurfaceMethod::TAU_OUT_SYSTEM_NAME = "Exterior traction system";
+const std::array<std::string, NDIM> IBFESurfaceMethod::VELOCITY_JUMP_SYSTEM_NAME = { { "velocity [[du]] jump system",
+                                                                                       "velocity [[dv]] jump system"
+#if (NDIM == 3)
+                                                                                       ,
+                                                                                       "velocity [[dw]] jump system"
+#endif
+} };
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -359,7 +372,7 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
         d_F_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME, /*localize_data*/ false));
 
-        if (d_use_jump_conditions)
+        if (d_use_pressure_jump_conditions)
         {
             d_DP_systems[part] = &d_equation_systems[part]->get_system(PRESSURE_JUMP_SYSTEM_NAME);
             d_DP_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_DP_systems[part]->current_local_solution.get());
@@ -393,7 +406,7 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
         d_F_systems[part]->solution->close();
         d_F_systems[part]->solution->localize(*d_F_half_vecs[part]);
 
-        if (d_use_jump_conditions)
+        if (d_use_pressure_jump_conditions)
         {
             d_DP_systems[part]->solution->close();
             d_DP_systems[part]->solution->localize(*d_DP_half_vecs[part]);
@@ -441,7 +454,7 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
         d_F_systems[part]->solution->close();
         d_F_systems[part]->solution->localize(*d_F_systems[part]->current_local_solution);
 
-        if (d_use_jump_conditions)
+        if (d_use_pressure_jump_conditions)
         {
             d_DP_half_vecs[part]->close();
             *d_DP_systems[part]->solution = *d_DP_half_vecs[part];
@@ -850,7 +863,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         DenseVector<double> F_rhs_e[NDIM];
         NumericVector<double>* DP_vec = d_DP_half_vecs[part];
         std::unique_ptr<NumericVector<double> > DP_rhs_vec =
-            (d_use_jump_conditions ? DP_vec->zero_clone() : std::unique_ptr<NumericVector<double> >());
+            (d_use_pressure_jump_conditions ? DP_vec->zero_clone() : std::unique_ptr<NumericVector<double> >());
         DenseVector<double> DP_rhs_e;
         VectorValue<double>& F_integral = d_lag_surface_force_integral[part];
         F_integral.zero();
@@ -884,11 +897,12 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         // silence some warnings by giving DP_dof_map_cache a bogus, but
         // valid, value if we don't use jump conditions
         FEDataManager::SystemDofMapCache* DP_dof_map_cache =
-            d_use_jump_conditions ? d_fe_data_managers[part]->getDofMapCache(PRESSURE_JUMP_SYSTEM_NAME) : nullptr;
+            d_use_pressure_jump_conditions ? d_fe_data_managers[part]->getDofMapCache(PRESSURE_JUMP_SYSTEM_NAME) :
+                                             nullptr;
         const System* DP_system =
-            d_use_jump_conditions ? &equation_systems->get_system(PRESSURE_JUMP_SYSTEM_NAME) : nullptr;
-        const DofMap* DP_dof_map = d_use_jump_conditions ? &DP_system->get_dof_map() : nullptr;
-        if (d_use_jump_conditions)
+            d_use_pressure_jump_conditions ? &equation_systems->get_system(PRESSURE_JUMP_SYSTEM_NAME) : nullptr;
+        const DofMap* DP_dof_map = d_use_pressure_jump_conditions ? &DP_system->get_dof_map() : nullptr;
+        if (d_use_pressure_jump_conditions)
         {
             FEType DP_fe_type = DP_dof_map->variable_type(0);
             TBOX_ASSERT(DP_fe_type == X_fe_type);
@@ -938,7 +952,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             {
                 F_rhs_e[d].resize(static_cast<int>(F_dof_indices[d].size()));
             }
-            if (d_use_jump_conditions)
+            if (d_use_pressure_jump_conditions)
             {
                 DP_rhs_e.resize(static_cast<int>(F_dof_indices[0].size()));
             }
@@ -1027,7 +1041,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                 for (unsigned int d = 0; d < NDIM; ++d) F_integral(d) += F(d) * JxW[qp];
 
                 const double C_p = F * n * dA / da;
-                if (d_use_jump_conditions)
+                if (d_use_pressure_jump_conditions)
                 {
                     F -= (F * n) * n;
                 }
@@ -1040,9 +1054,9 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                     {
                         F_rhs_e[i](k) += F_qp(i);
                     }
-                    if (d_use_jump_conditions) DP_rhs_e(k) += C_p * phi[k][qp] * JxW[qp];
+                    if (d_use_pressure_jump_conditions) DP_rhs_e(k) += C_p * phi[k][qp] * JxW[qp];
                 }
-                if (d_use_jump_conditions)
+                if (d_use_pressure_jump_conditions)
                 {
                     DP_rhs_integral += C_p * JxW[qp];
                     surface_area += JxW[qp];
@@ -1057,7 +1071,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                 F_dof_map.constrain_element_vector(F_rhs_e[i], dof_id_scratch);
                 F_rhs_vec->add_vector(F_rhs_e[i], dof_id_scratch);
             }
-            if (d_use_jump_conditions)
+            if (d_use_pressure_jump_conditions)
             {
                 dof_id_scratch = DP_dof_map_cache->dof_indices(elem)[0];
                 DP_dof_map->constrain_element_vector(DP_rhs_e, dof_id_scratch);
@@ -1070,7 +1084,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         // Solve for F.
         d_fe_data_managers[part]->computeL2Projection(
             *F_vec, *F_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
-        if (d_use_jump_conditions)
+        if (d_use_pressure_jump_conditions)
         {
             d_fe_data_managers[part]->computeL2Projection(
                 *DP_vec, *DP_rhs_vec, PRESSURE_JUMP_SYSTEM_NAME, d_use_consistent_mass_matrix);
@@ -1108,7 +1122,7 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
         F_vec->localize(*F_ghost_vec);
         d_fe_data_managers[part]->spread(f_scratch_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME);
 
-        if (d_use_jump_conditions)
+        if (d_use_pressure_jump_conditions)
         {
             PetscVector<double>* DP_vec = d_DP_half_vecs[part];
             PetscVector<double>* DP_ghost_vec = d_DP_IB_ghost_vecs[part];
@@ -1251,7 +1265,7 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                 F_system.add_variable("F_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
 
-            if (d_use_jump_conditions)
+            if (d_use_pressure_jump_conditions)
             {
                 auto& DP_system = equation_systems->add_system<System>(PRESSURE_JUMP_SYSTEM_NAME);
                 DP_system.add_variable("C_p", d_fe_order[part], d_fe_family[part]);
@@ -1353,7 +1367,7 @@ IBFESurfaceMethod::initializeFEData()
         F_system.assemble_before_solve = false;
         F_system.assemble();
 
-        if (d_use_jump_conditions)
+        if (d_use_pressure_jump_conditions)
         {
             auto& DP_system = equation_systems->get_system<System>(PRESSURE_JUMP_SYSTEM_NAME);
             DP_system.assemble_before_solve = false;
@@ -1498,7 +1512,9 @@ IBFESurfaceMethod::putToDatabase(Pointer<Database> db)
     db->putInteger("IBFE_METHOD_VERSION", IBFE_METHOD_VERSION);
     db->putInteger("d_num_parts", d_num_parts);
     db->putIntegerArray("d_ghosts", d_ghosts, NDIM);
-    db->putBool("d_use_jump_conditions", d_use_jump_conditions);
+    db->putBool("d_use_velocity_jump_conditions", d_use_velocity_jump_conditions);
+    db->putBool("d_use_pressure_jump_conditions", d_use_pressure_jump_conditions);
+    db->putBool("d_compute_fluid_traction", d_compute_fluid_traction);
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
     db->putBool("d_use_direct_forcing", d_use_direct_forcing);
     return;
@@ -1810,6 +1826,56 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
     return;
 } // imposeJumpConditions
 
+bool
+IBFESurfaceMethod::checkDoubleCountingIntersection(const int axis,
+                                                   const double* const dx,
+                                                   const libMesh::VectorValue<double>& n,
+                                                   const libMesh::Point& x,
+                                                   const libMesh::Point& xi,
+                                                   const SideIndex<NDIM>& i_s,
+                                                   const SideIndex<NDIM>& i_s_prime,
+                                                   const std::vector<libMesh::Point>& candidate_coords,
+                                                   const std::vector<libMesh::Point>& candidate_ref_coords,
+                                                   const std::vector<libMesh::VectorValue<double> >& candidate_normals)
+{
+    bool found_same_intersection_point = false;
+    std::vector<libMesh::Point>::const_iterator x_prime_it = candidate_coords.begin();
+    std::vector<libMesh::Point>::const_iterator xi_prime_it = candidate_ref_coords.begin();
+    std::vector<VectorValue<double> >::const_iterator n_prime_it = candidate_normals.begin();
+    for (; x_prime_it != candidate_coords.end(); ++x_prime_it, ++xi_prime_it, ++n_prime_it)
+    {
+        const libMesh::Point& x_prime = *x_prime_it;
+        const libMesh::Point& xi_prime = *xi_prime_it;
+        const libMesh::Point& n_prime = *n_prime_it;
+        // TODO: Do not use a hard-coded magic number?
+        if (x.absolute_fuzzy_equals(x_prime, 1.0e-5 * dx[axis]))
+        {
+            // WARNING: This check is ONLY
+            // guaranteed to work at edges (where
+            // only two elements meet).  To avoid FE
+            // mesh nodes, set
+            // d_perturb_fe_mesh_nodes to true.
+            found_same_intersection_point = n(axis) * n_prime(axis) > 0.0;
+            if (d_do_log)
+            {
+                plog << "==========\n";
+                plog << "multiple intersections detected:\n";
+                plog << "  x    = " << x << "\n";
+                plog << "  x'   = " << x_prime << "\n";
+                plog << "  xi   = " << xi << "\n";
+                plog << "  xi'  = " << xi_prime << "\n";
+                plog << "  n    = " << n << "\n";
+                plog << "  n'   = " << n_prime << "\n";
+                plog << "  i_s  = " << i_s << "\n";
+                plog << "  i_s' = " << i_s_prime << "\n";
+                plog << "  axis = " << axis << "\n";
+            }
+        }
+        if (found_same_intersection_point) break;
+    }
+    return found_same_intersection_point;
+}
+
 void
 IBFESurfaceMethod::initializeCoordinates(const unsigned int part)
 {
@@ -2110,11 +2176,38 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_default_spread_spec.use_nodal_quadrature = db->getBool("IB_use_nodal_quadrature");
 
     // Force computation settings.
-    if (db->isBool("use_jump_conditions")) d_use_jump_conditions = db->getBool("use_jump_conditions");
-    if (d_use_jump_conditions)
+    if (db->isBool("use_pressure_jump_conditions"))
+        d_use_pressure_jump_conditions = db->getBool("use_pressure_jump_conditions");
+    if (d_use_pressure_jump_conditions)
+    {
+        if (db->isBool("normalize_pressure_jump")) d_normalize_pressure_jump = db->getBool("normalize_pressure_jump");
+        if (db->isString("pressure_jump_fe_family"))
+            d_pressure_jump_fe_family = Utility::string_to_enum<FEFamily>(db->getString("pressure_jump_fe_family"));
+    }
+
+    if (db->isBool("use_velocity_jump_conditions"))
+        d_use_velocity_jump_conditions = db->getBool("use_velocity_jump_conditions");
+    if (d_use_velocity_jump_conditions)
+    {
+        if (db->isDouble("wss_calc_width")) d_wss_calc_width = db->getDouble("wss_calc_width");
+        if (db->isString("velocity_jump_fe_family"))
+            d_velocity_jump_fe_family = Utility::string_to_enum<FEFamily>(db->getString("velocity_jump_fe_family"));
+        if (db->isString("wss_fe_family"))
+            d_wss_fe_family = Utility::string_to_enum<FEFamily>(db->getString("wss_fe_family"));
+    }
+    if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions)
+    {
+        if (db->isString("tau_fe_family"))
+            d_tau_fe_family = Utility::string_to_enum<FEFamily>(db->getString("tau_fe_family"));
+    }
+    if (d_use_pressure_jump_conditions || d_use_velocity_jump_conditions)
     {
         if (db->isBool("perturb_fe_mesh_nodes")) d_perturb_fe_mesh_nodes = db->getBool("perturb_fe_mesh_nodes");
-        if (db->isBool("normalize_pressure_jump")) d_normalize_pressure_jump = db->getBool("normalize_pressure_jump");
+    }
+    if (db->isBool("compute_fluid_traction")) d_compute_fluid_traction = db->getBool("compute_fluid_traction");
+    if (d_compute_fluid_traction)
+    {
+        if (db->isDouble("p_calc_width")) d_p_calc_width = db->getDouble("p_calc_width");
     }
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
@@ -2122,13 +2215,7 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 
     // Restart settings.
     if (db->isString("libmesh_restart_file_extension"))
-    {
         d_libmesh_restart_file_extension = db->getString("libmesh_restart_file_extension");
-    }
-    else
-    {
-        d_libmesh_restart_file_extension = "xdr";
-    }
 
     // Other settings.
     if (db->isInteger("min_ghost_cell_width"))
@@ -2166,7 +2253,7 @@ IBFESurfaceMethod::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
     db->getIntegerArray("d_ghosts", d_ghosts, NDIM);
-    d_use_jump_conditions = db->getBool("d_use_jump_conditions");
+    d_use_pressure_jump_conditions = db->getBool("d_use_pressure_jump_conditions");
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
     d_use_direct_forcing = db->getBool("d_use_direct_forcing");
     return;
