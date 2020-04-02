@@ -6,4 +6,4 @@ IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 4
 INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field
 max vertex distance: 0.0632458
-max norm errors: 0.00021985461615148249592   0.00042962996993445301541   0.00031586477069867058276
+max norm errors: 0.0002198546161414904887   0.00042962996988249457786   0.00031586477066802842728
