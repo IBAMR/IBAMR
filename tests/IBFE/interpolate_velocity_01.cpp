@@ -378,11 +378,13 @@ main(int argc, char** argv)
 
             plog << "max vertex distance: " << SAMRAI_MPI::maxReduction(max_vertex_distance) << std::endl;
             plog << "max norm errors: ";
+            for (double& max_error : max_norm_errors) max_error = SAMRAI_MPI::maxReduction(max_error);
+            plog << std::setprecision(20);
             for (unsigned int i = 0; i < n_vars - 1; ++i)
             {
-                plog << std::setprecision(20) << max_norm_errors[i] << "   ";
+                plog << max_norm_errors[i] << "   ";
             }
-            plog << SAMRAI_MPI::maxReduction(max_norm_errors[n_vars - 1]) << std::endl;
+            plog << max_norm_errors[n_vars - 1] << std::endl;
         }
     } // cleanup dynamically allocated objects prior to shutdown
 
