@@ -1,0 +1,3 @@
+Improved: Support for nodal quadrature for IBTK::FEDataManager and IBAMR::IBFEMethod.
+<br>
+(Boyce Griffith, 2020/04/03)

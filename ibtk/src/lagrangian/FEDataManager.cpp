@@ -101,12 +101,7 @@
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
 
-#include "petscksp.h"
-#include "petscsys.h"
 #include "petscvec.h"
-#include <petsclog.h>
-
-#include <mpi.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include "boost/multi_array.hpp"
@@ -304,7 +299,6 @@ FEData::clearCached()
     d_quadrature_cache.clear();
     d_L2_proj_solver.clear();
     d_L2_proj_matrix.clear();
-    d_L2_proj_matrix_diag.clear();
 }
 
 const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID = 0x100;
@@ -524,6 +518,8 @@ FEDataManager::reinitElementMappings()
     // We reinitialize mappings after repartitioning, so clear the cache since
     // its content is no longer relevant:
     d_fe_data->clearCached();
+    d_L2_proj_matrix_diag.clear();
+    d_L2_proj_matrix_diag_ghost.clear();
 
     // Delete cached hierarchy-dependent data.
     d_active_patch_elem_map.clear();
@@ -823,40 +819,29 @@ FEDataManager::spread(const int f_data_idx,
     JacobianCalculatorCache jacobian_calculator_cache(mesh.spatial_dimension());
 
     // Check to see if we are using nodal quadrature.
-    const bool use_nodal_quadrature =
-        spread_spec.use_nodal_quadrature && (F_fe_type == X_fe_type && F_order == X_order);
+    const bool use_nodal_quadrature = spread_spec.use_nodal_quadrature;
+    if (use_nodal_quadrature) TBOX_ASSERT(F_fe_type == X_fe_type && F_order == X_order);
 
-    // We only use the FECache objects if we do *not* use nodal quadrature so
-    // only perform sanity checks in that case:
-    if (!use_nodal_quadrature)
-    {
-        // This will break, at some point in the future, if we ever use
-        // nonnodal-interpolating finite elements. TODO: more finite elements
-        // will probably work.
-        std::vector<FEFamily> fe_family_whitelist{ LAGRANGE, L2_LAGRANGE };
-        TBOX_ASSERT(std::find(fe_family_whitelist.begin(), fe_family_whitelist.end(), F_fe_type.family) !=
-                    fe_family_whitelist.end());
-        TBOX_ASSERT(std::find(fe_family_whitelist.begin(), fe_family_whitelist.end(), X_fe_type.family) !=
-                    fe_family_whitelist.end());
-    }
+    // This will break, at some point in the future, if we ever use
+    // nonnodal-interpolating finite elements. TODO: more finite elements
+    // will probably work.
+    std::vector<FEFamily> fe_family_whitelist{ LAGRANGE, L2_LAGRANGE };
+    TBOX_ASSERT(std::find(fe_family_whitelist.begin(), fe_family_whitelist.end(), F_fe_type.family) !=
+                fe_family_whitelist.end());
+    TBOX_ASSERT(std::find(fe_family_whitelist.begin(), fe_family_whitelist.end(), X_fe_type.family) !=
+                fe_family_whitelist.end());
 
     if (use_nodal_quadrature)
     {
-        // Store a copy of the F vector.
-        std::unique_ptr<NumericVector<double> > F_vec_bak = F_vec.clone();
-        *F_vec_bak = F_vec;
-
         // Multiply by the nodal volume fractions (to convert densities into
         // values).
-        NumericVector<double>& F_dX_vec = F_vec;
-        const NumericVector<double>& dX_vec = *buildDiagonalL2MassMatrix(system_name);
-        F_dX_vec.pointwise_mult(F_vec, dX_vec);
-        F_dX_vec.close();
+        PetscVector<double>* dX_vec = buildIBGhostedDiagonalL2MassMatrix(system_name);
+        std::unique_ptr<NumericVector<double> > F_x_dX_vec = F_vec.clone();
+        F_x_dX_vec->pointwise_mult(F_vec, *dX_vec);
 
         // Extract local form vectors.
-        auto F_dX_petsc_vec = static_cast<PetscVector<double>*>(&F_dX_vec);
-        const double* const F_dX_local_soln = F_dX_petsc_vec->get_array_read();
-
+        auto F_x_dX_petsc_vec = static_cast<PetscVector<double>*>(F_x_dX_vec.get());
+        const double* const F_x_dX_local_soln = F_x_dX_petsc_vec->get_array_read();
         auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
         const double* const X_local_soln = X_petsc_vec->get_array_read();
 
@@ -869,33 +854,48 @@ FEDataManager::spread(const int f_data_idx,
             const size_t num_active_patch_nodes = patch_nodes.size();
             if (!num_active_patch_nodes) continue;
 
-            // Store the values of F_JxW and X at the nodes.
-            std::vector<double> F_dX_node, X_node;
-            F_dX_node.reserve(n_vars * num_active_patch_nodes);
+            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_x_lower = patch_geom->getXLower();
+            const double* const patch_x_upper = patch_geom->getXUpper();
+            std::array<bool, NDIM> touches_upper_regular_bdry;
+            for (unsigned int d = 0; d < NDIM; ++d)
+                touches_upper_regular_bdry[d] = patch_geom->getTouchesRegularBoundary(d, 1);
+
+            // Store the values of F_JxW and X at the nodes inside the patch.
+            std::vector<double> F_x_dX_node, X_node;
+            F_x_dX_node.reserve(n_vars * num_active_patch_nodes);
             X_node.reserve(NDIM * num_active_patch_nodes);
             std::vector<dof_id_type> F_idxs, X_idxs;
+            IBTK::Point X;
             for (unsigned int k = 0; k < num_active_patch_nodes; ++k)
             {
                 const Node* const n = patch_nodes[k];
-                for (unsigned int i = 0; i < n_vars; ++i)
-                {
-                    IBTK::get_nodal_dof_indices(F_dof_map, n, i, F_idxs);
-                    for (const auto& F_idx : F_idxs)
-                    {
-                        F_dX_node.push_back(F_dX_local_soln[F_dX_petsc_vec->map_global_to_local_index(F_idx)]);
-                    }
-                }
+                bool inside_patch = true;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     IBTK::get_nodal_dof_indices(X_dof_map, n, d, X_idxs);
-                    for (const auto& X_idx : X_idxs)
+                    X[d] = X_local_soln[X_petsc_vec->map_global_to_local_index(X_idxs[0])];
+                    inside_patch =
+                        inside_patch && (X[d] >= patch_x_lower[d]) &&
+                        ((X[d] < patch_x_upper[d]) || (touches_upper_regular_bdry[d] && X[d] <= patch_x_upper[d]));
+                }
+                if (inside_patch)
+                {
+                    for (unsigned int i = 0; i < n_vars; ++i)
                     {
-                        X_node.push_back(X_local_soln[X_petsc_vec->map_global_to_local_index(X_idx)]);
+                        IBTK::get_nodal_dof_indices(F_dof_map, n, i, F_idxs);
+                        for (const auto& F_idx : F_idxs)
+                        {
+                            F_x_dX_node.push_back(
+                                F_x_dX_local_soln[F_x_dX_petsc_vec->map_global_to_local_index(F_idx)]);
+                        }
                     }
+                    X_node.insert(X_node.end(), &X[0], &X[0] + NDIM);
                 }
             }
-            TBOX_ASSERT(F_dX_node.size() == n_vars * num_active_patch_nodes);
-            TBOX_ASSERT(X_node.size() == NDIM * num_active_patch_nodes);
+            TBOX_ASSERT(F_x_dX_node.size() <= n_vars * num_active_patch_nodes);
+            TBOX_ASSERT(X_node.size() <= NDIM * num_active_patch_nodes);
 
             // Spread values from the nodes to the Cartesian grid patch.
             //
@@ -903,29 +903,25 @@ FEDataManager::spread(const int f_data_idx,
             // on periodic boundaries will be "double counted".
             //
             // \todo Add warnings for FE structures with periodic boundaries.
-            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM> spread_box = patch->getBox();
             Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_data_idx);
             if (cc_data)
             {
                 Pointer<CellData<NDIM, double> > f_cc_data = f_data;
                 LEInteractor::spread(
-                    f_cc_data, F_dX_node, n_vars, X_node, NDIM, patch, spread_box, spread_spec.kernel_fcn);
+                    f_cc_data, F_x_dX_node, n_vars, X_node, NDIM, patch, spread_box, spread_spec.kernel_fcn);
             }
             if (sc_data)
             {
                 Pointer<SideData<NDIM, double> > f_sc_data = f_data;
                 LEInteractor::spread(
-                    f_sc_data, F_dX_node, n_vars, X_node, NDIM, patch, spread_box, spread_spec.kernel_fcn);
+                    f_sc_data, F_x_dX_node, n_vars, X_node, NDIM, patch, spread_box, spread_spec.kernel_fcn);
             }
         }
 
         // Restore local form vectors.
-        F_dX_petsc_vec->restore_array();
+        F_x_dX_petsc_vec->restore_array();
         X_petsc_vec->restore_array();
-
-        // Restore the value of the F vector.
-        F_vec = *F_vec_bak;
     }
     else
     {
@@ -1556,30 +1552,47 @@ FEDataManager::interpWeighted(const int f_data_idx,
     if (close_X) X_vec.close();
 
     // Check to see if we are using nodal quadrature.
-    const bool use_nodal_quadrature =
-        interp_spec.use_nodal_quadrature && (F_fe_type == X_fe_type && F_order == X_order);
+    const bool use_nodal_quadrature = interp_spec.use_nodal_quadrature;
+    if (use_nodal_quadrature) TBOX_ASSERT(F_fe_type == X_fe_type && F_order == X_order);
 
-    // We only use the FECache objects if we do *not* use nodal quadrature so
-    // only perform sanity checks in that case:
-    if (!use_nodal_quadrature)
+    // This will break, at some point in the future, if we ever use
+    // nonnodal-interpolating finite elements. TODO: more finite elements
+    // will probably work.
+    std::vector<FEFamily> fe_family_whitelist{ LAGRANGE, L2_LAGRANGE };
+    TBOX_ASSERT(std::find(fe_family_whitelist.begin(), fe_family_whitelist.end(), F_fe_type.family) !=
+                fe_family_whitelist.end());
+    TBOX_ASSERT(std::find(fe_family_whitelist.begin(), fe_family_whitelist.end(), X_fe_type.family) !=
+                fe_family_whitelist.end());
+
+    // Extract local form vectors.
+    auto X_petsc_vec = dynamic_cast<PetscVector<double>*>(&X_vec);
+    TBOX_ASSERT(X_petsc_vec != nullptr);
+    const double* const X_local_soln = X_petsc_vec->get_array_read();
+    // Since we do a lot of assembly in this routine into off-processor
+    // entries we will directly insert into the ghost values (and then
+    // scatter in the calling function with the usual batch function).
+    F_vec.zero();
+    auto F_petsc_vec = dynamic_cast<PetscVector<double>*>(&F_vec);
+    Vec F_local_form = nullptr;
+    double* F_local_soln = nullptr;
+    const bool is_ghosted = F_vec.type() == GHOSTED;
+    if (is_ghosted)
     {
-        // This will break, at some point in the future, if we ever use
-        // nonnodal-interpolating finite elements. TODO: more finite elements
-        // will probably work.
-        std::vector<FEFamily> fe_family_whitelist{ LAGRANGE, L2_LAGRANGE };
-        TBOX_ASSERT(std::find(fe_family_whitelist.begin(), fe_family_whitelist.end(), F_fe_type.family) !=
-                    fe_family_whitelist.end());
-        TBOX_ASSERT(std::find(fe_family_whitelist.begin(), fe_family_whitelist.end(), X_fe_type.family) !=
-                    fe_family_whitelist.end());
+        TBOX_ASSERT(F_petsc_vec != nullptr);
+        int ierr = VecGhostGetLocalForm(F_petsc_vec->vec(), &F_local_form);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGetArray(F_local_form, &F_local_soln);
+        IBTK_CHKERRQ(ierr);
     }
 
     if (use_nodal_quadrature)
     {
-        // Extract the local form vectors.
-        auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
-        const double* const X_local_soln = X_petsc_vec->get_array_read();
+        // Extract local form vectors.
+        PetscVector<double>* dX_vec = buildIBGhostedDiagonalL2MassMatrix(system_name);
+        const double* const dX_local_soln = dX_vec->get_array_read();
 
-        // Interpolate to the nodes.
+        // Loop over the patches to interpolate values to the nodes from the grid, then use these values to compute the
+        // projection of the interpolated velocity field onto the FE basis functions.
         int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
@@ -1604,22 +1617,22 @@ FEDataManager::interpWeighted(const int f_data_idx,
             F_node.reserve(n_vars * num_active_patch_nodes);
             X_node.reserve(NDIM * num_active_patch_nodes);
             std::vector<dof_id_type> F_idxs, X_idxs;
+            IBTK::Point X;
             for (unsigned int k = 0; k < num_active_patch_nodes; ++k)
             {
                 const Node* const n = patch_nodes[k];
-                IBTK::Point X;
                 bool inside_patch = true;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     IBTK::get_nodal_dof_indices(X_dof_map, n, d, X_idxs);
                     X[d] = X_local_soln[X_petsc_vec->map_global_to_local_index(X_idxs[0])];
-                    inside_patch = inside_patch && (X[d] >= patch_x_lower[d]) &&
-                                   ((touches_upper_regular_bdry[d] && X[d] <= patch_x_upper[d]) ||
-                                    (!touches_upper_regular_bdry[d] && X[d] < patch_x_upper[d]));
+                    inside_patch =
+                        inside_patch && (X[d] >= patch_x_lower[d]) &&
+                        ((X[d] < patch_x_upper[d]) || (touches_upper_regular_bdry[d] && X[d] <= patch_x_upper[d]));
                 }
                 if (inside_patch)
                 {
-                    F_node.resize(F_node.size() + n_vars);
+                    F_node.resize(F_node.size() + n_vars, 0.0);
                     X_node.insert(X_node.end(), &X[0], &X[0] + NDIM);
                     for (unsigned int i = 0; i < n_vars; ++i)
                     {
@@ -1653,42 +1666,39 @@ FEDataManager::interpWeighted(const int f_data_idx,
                     F_node, n_vars, X_node, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
             }
 
-            // Insesrt the values of F at the nodes.
-            F_vec.insert(F_node, F_node_idxs);
+            // Apply constraints.
+            DenseVector<double> F_node_vec(F_node.size());
+            std::copy(F_node.begin(), F_node.end(), &F_node_vec(0));
+            F_dof_map.constrain_element_vector(F_node_vec, F_node_idxs);
+
+            // Scale by the diagonal mass matrix.
+            std::vector<dof_id_type> F_local_idxs(F_node_idxs.size());
+            for (unsigned int i = 0; i < F_node_idxs.size(); ++i)
+            {
+                F_local_idxs[i] = F_petsc_vec->map_global_to_local_index(F_node_idxs[i]);
+                TBOX_ASSERT(F_local_idxs[i] == dX_vec->map_global_to_local_index(F_node_idxs[i]));
+                F_node_vec(i) *= dX_local_soln[F_local_idxs[i]];
+            }
+
+            // Insert the values into the global array.
+            if (is_ghosted)
+            {
+                for (unsigned int i = 0; i < F_node_idxs.size(); ++i)
+                {
+                    F_local_soln[F_local_idxs[i]] += F_node_vec(i);
+                }
+            }
+            else
+            {
+                F_vec.add_vector(F_node_vec, F_node_idxs);
+            }
         }
 
         // Restore local form vectors.
-        X_petsc_vec->restore_array();
-
-        // Scale by the diagonal mass matrix.
-        F_vec.close();
-        const NumericVector<double>& dX_vec = *buildDiagonalL2MassMatrix(system_name);
-        F_vec.pointwise_mult(F_vec, dX_vec);
-        if (close_F) F_vec.close();
+        dX_vec->restore_array();
     }
     else
     {
-        // Extract local form vectors.
-        auto X_petsc_vec = dynamic_cast<PetscVector<double>*>(&X_vec);
-        TBOX_ASSERT(X_petsc_vec != nullptr);
-        const double* const X_local_soln = X_petsc_vec->get_array_read();
-        // Since we do a lot of assembly in this routine into off-processor
-        // entries we will directly insert into the ghost values (and then
-        // scatter in the calling function with the usual batch function).
-        F_vec.zero();
-        auto F_petsc_vec = dynamic_cast<PetscVector<double>*>(&F_vec);
-        Vec F_local_form = nullptr;
-        double* F_local_soln = nullptr;
-        const bool is_ghosted = F_vec.type() == GHOSTED;
-        if (is_ghosted)
-        {
-            TBOX_ASSERT(F_petsc_vec != nullptr);
-            int ierr = VecGhostGetLocalForm(F_petsc_vec->vec(), &F_local_form);
-            IBTK_CHKERRQ(ierr);
-            ierr = VecGetArray(F_local_form, &F_local_soln);
-            IBTK_CHKERRQ(ierr);
-        }
-
         // Loop over the patches to interpolate values to the element quadrature
         // points from the grid, then use these values to compute the projection
         // of the interpolated velocity field onto the FE basis functions.
@@ -1837,23 +1847,23 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 qp_offset += n_qp;
             }
         }
+    }
 
-        // Restore local form vectors.
-        X_petsc_vec->restore_array();
-        if (is_ghosted)
+    // Restore local form vectors.
+    X_petsc_vec->restore_array();
+    if (is_ghosted)
+    {
+        int ierr = VecRestoreArray(F_local_form, &F_local_soln);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(F_petsc_vec->vec(), &F_local_form);
+        IBTK_CHKERRQ(ierr);
+
+        if (close_F)
         {
-            int ierr = VecRestoreArray(F_local_form, &F_local_soln);
+            ierr = VecGhostUpdateBegin(F_petsc_vec->vec(), ADD_VALUES, SCATTER_REVERSE);
             IBTK_CHKERRQ(ierr);
-            ierr = VecGhostRestoreLocalForm(F_petsc_vec->vec(), &F_local_form);
+            ierr = VecGhostUpdateEnd(F_petsc_vec->vec(), ADD_VALUES, SCATTER_REVERSE);
             IBTK_CHKERRQ(ierr);
-
-            if (close_F)
-            {
-                ierr = VecGhostUpdateBegin(F_petsc_vec->vec(), ADD_VALUES, SCATTER_REVERSE);
-                IBTK_CHKERRQ(ierr);
-                ierr = VecGhostUpdateEnd(F_petsc_vec->vec(), ADD_VALUES, SCATTER_REVERSE);
-                IBTK_CHKERRQ(ierr);
-            }
         }
     }
 
@@ -2264,7 +2274,7 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
 {
     IBTK_TIMER_START(t_build_diagonal_l2_mass_matrix);
 
-    if (!d_fe_data->d_L2_proj_matrix_diag.count(system_name))
+    if (!d_L2_proj_matrix_diag.count(system_name))
     {
         if (d_enable_logging)
         {
@@ -2378,12 +2388,25 @@ FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
         M_vec->close();
 
         // Store the diagonal mass matrix.
-        d_fe_data->d_L2_proj_matrix_diag[system_name] = std::move(M_vec);
+        d_L2_proj_matrix_diag[system_name] = std::move(M_vec);
     }
 
     IBTK_TIMER_STOP(t_build_diagonal_l2_mass_matrix);
-    return d_fe_data->d_L2_proj_matrix_diag[system_name].get();
+    return d_L2_proj_matrix_diag[system_name].get();
 } // buildDiagonalL2MassMatrix
+
+PetscVector<double>*
+FEDataManager::buildIBGhostedDiagonalL2MassMatrix(const std::string& system_name)
+{
+    if (!d_L2_proj_matrix_diag_ghost.count(system_name))
+    {
+        std::unique_ptr<PetscVector<double> > M_vec = buildIBGhostedVector(system_name);
+        *M_vec = *buildDiagonalL2MassMatrix(system_name);
+        M_vec->close();
+        d_L2_proj_matrix_diag_ghost[system_name] = std::move(M_vec);
+    }
+    return d_L2_proj_matrix_diag_ghost[system_name].get();
+}
 
 bool
 FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
