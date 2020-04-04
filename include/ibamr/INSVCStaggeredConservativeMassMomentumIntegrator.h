@@ -281,6 +281,22 @@ private:
         const double* const dx);
 
     /*!
+     * \brief Compute div[rho_half*u_half*u_adv] with additional upwind stabilization at boundaries
+     */
+    void computeStabilizedConvectiveDerivative(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > N_data,
+        std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> P_half_data,
+        std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> P_upwind_half_data,
+        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
+        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> R_half_data,
+        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> R_upwind_half_data,
+        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_half_data,
+        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_upwind_half_data,
+        const std::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes,
+        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        const int ln);
+
+    /*!
      * \brief Compute the density update rho = a0*rho^0 + a1*rho^1 + a2*dt*(-div[u_adv*rho_half]) + a2*dt*S
      */
     void computeDensityUpdate(
@@ -377,6 +393,11 @@ private:
 
     // Coarse-fine boundary objects.
     std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
+
+    // Variables to specify optional boundary stabilization
+    std::string d_stabilization_type = "NONE";
+    std::array<bool, 2 * NDIM> d_open_bdry;
+    std::array<double, 2 * NDIM> d_width;
 };
 } // namespace IBAMR
 

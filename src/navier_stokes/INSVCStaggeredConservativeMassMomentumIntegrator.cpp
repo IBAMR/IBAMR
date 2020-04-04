@@ -953,6 +953,12 @@ static const int NOGHOSTS = 0;
 // free condition
 static const int CF_GHOST_WIDTH = 1;
 
+inline double
+smooth_kernel(const double r)
+{
+    return std::abs(r) < 1.0 ? 0.5 * (std::cos(M_PI * r) + 1.0) : 0.0;
+} // smooth_kernel
+
 // Timers.
 static Timer* t_apply_convective_operator;
 static Timer* t_integrate;
@@ -965,7 +971,11 @@ static Timer* t_deallocate_integrator;
 INSVCStaggeredConservativeMassMomentumIntegrator::INSVCStaggeredConservativeMassMomentumIntegrator(
     std::string object_name,
     Pointer<Database> input_db)
-    : d_object_name(std::move(object_name)), d_u_sc_bc_coefs(NDIM), d_rho_sc_bc_coefs(NDIM)
+    : d_object_name(std::move(object_name)),
+      d_u_sc_bc_coefs(NDIM),
+      d_rho_sc_bc_coefs(NDIM),
+      d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
+      d_width(array_constant<double, 2 * NDIM>(0.0))
 {
     if (input_db)
     {
@@ -1004,6 +1014,37 @@ INSVCStaggeredConservativeMassMomentumIntegrator::INSVCStaggeredConservativeMass
         {
             d_density_time_stepping_type =
                 IBAMR::string_to_enum<TimeSteppingType>(input_db->getString("density_time_stepping_type"));
+        }
+
+        if (input_db->keyExists("stabilization_type"))
+        {
+            d_stabilization_type = input_db->getString("stabilization_type");
+        }
+        else
+        {
+            d_stabilization_type = "NONE";
+        }
+        if (d_stabilization_type != "NONE" && d_stabilization_type != "UPWIND")
+        {
+            TBOX_ERROR(
+                "INSVCStaggeredConservativeMassMomentumIntegrator: unrecognized "
+                "value for stabilization_type, "
+                << d_stabilization_type << "\n"
+                << "  recognized choices are NONE, UPWIND\n");
+        }
+
+        // Set width and open boundary indicator
+        if (d_stabilization_type == "UPWIND")
+        {
+            for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
+            {
+                const std::string width_key = "width_" + std::to_string(location_index);
+                if (input_db->keyExists(width_key))
+                {
+                    d_width[location_index] = input_db->getDouble(width_key);
+                }
+                if (d_width[location_index] > 0.0) d_open_bdry[location_index] = true;
+            }
         }
         if (input_db->keyExists("enable_logging"))
         {
@@ -1403,8 +1444,11 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
                 std::array<Box<NDIM>, NDIM> side_boxes;
                 std::array<Pointer<FaceData<NDIM, double> >, NDIM> V_adv_data;
                 std::array<Pointer<FaceData<NDIM, double> >, NDIM> V_half_data;
+                std::array<Pointer<FaceData<NDIM, double> >, NDIM> V_upwind_half_data;
                 std::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data;
+                std::array<Pointer<FaceData<NDIM, double> >, NDIM> R_upwind_half_data;
                 std::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data;
+                std::array<Pointer<FaceData<NDIM, double> >, NDIM> P_upwind_half_data;
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
@@ -1425,6 +1469,27 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
                                         side_boxes,
                                         d_density_convective_limiter);
 
+                // Additional data preparation for upwind stabilization and physical boundaries
+                const bool is_stabilized =
+                    (d_stabilization_type == "UPWIND" && patch_geom->getTouchesRegularBoundary());
+                if (is_stabilized)
+                {
+                    for (unsigned int axis = 0; axis < NDIM; ++axis)
+                    {
+                        side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+                        V_upwind_half_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
+                        R_upwind_half_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
+                        P_upwind_half_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
+                    }
+                    interpolateSideQuantity(R_upwind_half_data,
+                                            V_adv_data,
+                                            R_pre_data,
+                                            patch_lower,
+                                            patch_upper,
+                                            side_boxes,
+                                            IBAMR::string_to_enum<LimiterType>("UPWIND"));
+                }
+
                 // Compute the convective derivative with the penultimate density and
                 // velocity, if necessary
                 if ((d_density_time_stepping_type == FORWARD_EULER && step == 0) ||
@@ -1439,10 +1504,38 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
                                             side_boxes,
                                             d_velocity_convective_limiter);
 
+                    if (is_stabilized)
+                    {
+                        interpolateSideQuantity(V_upwind_half_data,
+                                                V_adv_data,
+                                                V_data,
+                                                patch_lower,
+                                                patch_upper,
+                                                side_boxes,
+                                                IBAMR::string_to_enum<LimiterType>("UPWIND"));
+                    }
+
                     IBAMR_TIMER_START(t_apply_convective_operator);
 
-                    computeConvectiveDerivative(
-                        N_data, P_half_data, V_adv_data, R_half_data, V_half_data, side_boxes, dx);
+                    if (!is_stabilized)
+                    {
+                        computeConvectiveDerivative(
+                            N_data, P_half_data, V_adv_data, R_half_data, V_half_data, side_boxes, dx);
+                    }
+                    else
+                    {
+                        computeStabilizedConvectiveDerivative(N_data,
+                                                              P_half_data,
+                                                              P_upwind_half_data,
+                                                              V_adv_data,
+                                                              R_half_data,
+                                                              R_upwind_half_data,
+                                                              V_half_data,
+                                                              V_upwind_half_data,
+                                                              side_boxes,
+                                                              patch,
+                                                              ln);
+                    }
 
                     IBAMR_TIMER_STOP(t_apply_convective_operator);
                 }
@@ -2544,6 +2637,389 @@ INSVCStaggeredConservativeMassMomentumIntegrator::computeConvectiveDerivative(
                               N_data->getGhostCellWidth()(2),
                               N_data->getPointer(axis));
 #endif
+    }
+} // computeConvectiveDerivative
+
+void
+INSVCStaggeredConservativeMassMomentumIntegrator::computeStabilizedConvectiveDerivative(
+    Pointer<SideData<NDIM, double> > N_data,
+    std::array<Pointer<FaceData<NDIM, double> >, NDIM> P_half_data,
+    std::array<Pointer<FaceData<NDIM, double> >, NDIM> P_upwind_half_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> R_upwind_half_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_upwind_half_data,
+    const std::array<Box<NDIM>, NDIM>& side_boxes,
+    const Pointer<Patch<NDIM> > patch,
+    const int ln)
+{
+// Compute the upwinded momentum P_half = R_half * U_half for both limiters
+#if (NDIM == 2)
+    // Specified convective limiter
+    VC_NAVIER_STOKES_COMPUTE_MOMENTUM_FC(side_boxes[0].lower(0),
+                                         side_boxes[0].upper(0),
+                                         side_boxes[0].lower(1),
+                                         side_boxes[0].upper(1),
+                                         P_half_data[0]->getGhostCellWidth()(0),
+                                         P_half_data[0]->getGhostCellWidth()(1),
+                                         P_half_data[0]->getPointer(0),
+                                         P_half_data[0]->getPointer(1),
+                                         R_half_data[0]->getGhostCellWidth()(0),
+                                         R_half_data[0]->getGhostCellWidth()(1),
+                                         R_half_data[0]->getPointer(0),
+                                         R_half_data[0]->getPointer(1),
+                                         U_half_data[0]->getGhostCellWidth()(0),
+                                         U_half_data[0]->getGhostCellWidth()(1),
+                                         U_half_data[0]->getPointer(0),
+                                         U_half_data[0]->getPointer(1),
+                                         side_boxes[1].lower(0),
+                                         side_boxes[1].upper(0),
+                                         side_boxes[1].lower(1),
+                                         side_boxes[1].upper(1),
+                                         P_half_data[1]->getGhostCellWidth()(0),
+                                         P_half_data[1]->getGhostCellWidth()(1),
+                                         P_half_data[1]->getPointer(0),
+                                         P_half_data[1]->getPointer(1),
+                                         R_half_data[1]->getGhostCellWidth()(0),
+                                         R_half_data[1]->getGhostCellWidth()(1),
+                                         R_half_data[1]->getPointer(0),
+                                         R_half_data[1]->getPointer(1),
+                                         U_half_data[1]->getGhostCellWidth()(0),
+                                         U_half_data[1]->getGhostCellWidth()(1),
+                                         U_half_data[1]->getPointer(0),
+                                         U_half_data[1]->getPointer(1));
+
+    // First order upwind limiter
+    VC_NAVIER_STOKES_COMPUTE_MOMENTUM_FC(side_boxes[0].lower(0),
+                                         side_boxes[0].upper(0),
+                                         side_boxes[0].lower(1),
+                                         side_boxes[0].upper(1),
+                                         P_upwind_half_data[0]->getGhostCellWidth()(0),
+                                         P_upwind_half_data[0]->getGhostCellWidth()(1),
+                                         P_upwind_half_data[0]->getPointer(0),
+                                         P_upwind_half_data[0]->getPointer(1),
+                                         R_upwind_half_data[0]->getGhostCellWidth()(0),
+                                         R_upwind_half_data[0]->getGhostCellWidth()(1),
+                                         R_upwind_half_data[0]->getPointer(0),
+                                         R_upwind_half_data[0]->getPointer(1),
+                                         U_upwind_half_data[0]->getGhostCellWidth()(0),
+                                         U_upwind_half_data[0]->getGhostCellWidth()(1),
+                                         U_upwind_half_data[0]->getPointer(0),
+                                         U_upwind_half_data[0]->getPointer(1),
+                                         side_boxes[1].lower(0),
+                                         side_boxes[1].upper(0),
+                                         side_boxes[1].lower(1),
+                                         side_boxes[1].upper(1),
+                                         P_upwind_half_data[1]->getGhostCellWidth()(0),
+                                         P_upwind_half_data[1]->getGhostCellWidth()(1),
+                                         P_upwind_half_data[1]->getPointer(0),
+                                         P_upwind_half_data[1]->getPointer(1),
+                                         R_upwind_half_data[1]->getGhostCellWidth()(0),
+                                         R_upwind_half_data[1]->getGhostCellWidth()(1),
+                                         R_upwind_half_data[1]->getPointer(0),
+                                         R_upwind_half_data[1]->getPointer(1),
+                                         U_upwind_half_data[1]->getGhostCellWidth()(0),
+                                         U_upwind_half_data[1]->getGhostCellWidth()(1),
+                                         U_upwind_half_data[1]->getPointer(0),
+                                         U_upwind_half_data[1]->getPointer(1));
+#endif
+#if (NDIM == 3)
+    // Specified convective limiter
+    VC_NAVIER_STOKES_COMPUTE_MOMENTUM_FC(side_boxes[0].lower(0),
+                                         side_boxes[0].upper(0),
+                                         side_boxes[0].lower(1),
+                                         side_boxes[0].upper(1),
+                                         side_boxes[0].lower(2),
+                                         side_boxes[0].upper(2),
+                                         P_half_data[0]->getGhostCellWidth()(0),
+                                         P_half_data[0]->getGhostCellWidth()(1),
+                                         P_half_data[0]->getGhostCellWidth()(2),
+                                         P_half_data[0]->getPointer(0),
+                                         P_half_data[0]->getPointer(1),
+                                         P_half_data[0]->getPointer(2),
+                                         R_half_data[0]->getGhostCellWidth()(0),
+                                         R_half_data[0]->getGhostCellWidth()(1),
+                                         R_half_data[0]->getGhostCellWidth()(2),
+                                         R_half_data[0]->getPointer(0),
+                                         R_half_data[0]->getPointer(1),
+                                         R_half_data[0]->getPointer(2),
+                                         U_half_data[0]->getGhostCellWidth()(0),
+                                         U_half_data[0]->getGhostCellWidth()(1),
+                                         U_half_data[0]->getGhostCellWidth()(2),
+                                         U_half_data[0]->getPointer(0),
+                                         U_half_data[0]->getPointer(1),
+                                         U_half_data[0]->getPointer(2),
+                                         side_boxes[1].lower(0),
+                                         side_boxes[1].upper(0),
+                                         side_boxes[1].lower(1),
+                                         side_boxes[1].upper(1),
+                                         side_boxes[1].lower(2),
+                                         side_boxes[1].upper(2),
+                                         P_half_data[1]->getGhostCellWidth()(0),
+                                         P_half_data[1]->getGhostCellWidth()(1),
+                                         P_half_data[1]->getGhostCellWidth()(2),
+                                         P_half_data[1]->getPointer(0),
+                                         P_half_data[1]->getPointer(1),
+                                         P_half_data[1]->getPointer(2),
+                                         R_half_data[1]->getGhostCellWidth()(0),
+                                         R_half_data[1]->getGhostCellWidth()(1),
+                                         R_half_data[1]->getGhostCellWidth()(2),
+                                         R_half_data[1]->getPointer(0),
+                                         R_half_data[1]->getPointer(1),
+                                         R_half_data[1]->getPointer(2),
+                                         U_half_data[1]->getGhostCellWidth()(0),
+                                         U_half_data[1]->getGhostCellWidth()(1),
+                                         U_half_data[1]->getGhostCellWidth()(2),
+                                         U_half_data[1]->getPointer(0),
+                                         U_half_data[1]->getPointer(1),
+                                         U_half_data[1]->getPointer(2),
+                                         side_boxes[2].lower(0),
+                                         side_boxes[2].upper(0),
+                                         side_boxes[2].lower(1),
+                                         side_boxes[2].upper(1),
+                                         side_boxes[2].lower(2),
+                                         side_boxes[2].upper(2),
+                                         P_half_data[2]->getGhostCellWidth()(0),
+                                         P_half_data[2]->getGhostCellWidth()(1),
+                                         P_half_data[2]->getGhostCellWidth()(2),
+                                         P_half_data[2]->getPointer(0),
+                                         P_half_data[2]->getPointer(1),
+                                         P_half_data[2]->getPointer(2),
+                                         R_half_data[2]->getGhostCellWidth()(0),
+                                         R_half_data[2]->getGhostCellWidth()(1),
+                                         R_half_data[2]->getGhostCellWidth()(2),
+                                         R_half_data[2]->getPointer(0),
+                                         R_half_data[2]->getPointer(1),
+                                         R_half_data[2]->getPointer(2),
+                                         U_half_data[2]->getGhostCellWidth()(0),
+                                         U_half_data[2]->getGhostCellWidth()(1),
+                                         U_half_data[2]->getGhostCellWidth()(2),
+                                         U_half_data[2]->getPointer(0),
+                                         U_half_data[2]->getPointer(1),
+                                         U_half_data[2]->getPointer(2));
+
+    // First order upwind limiter
+    VC_NAVIER_STOKES_COMPUTE_MOMENTUM_FC(side_boxes[0].lower(0),
+                                         side_boxes[0].upper(0),
+                                         side_boxes[0].lower(1),
+                                         side_boxes[0].upper(1),
+                                         side_boxes[0].lower(2),
+                                         side_boxes[0].upper(2),
+                                         P_upwind_half_data[0]->getGhostCellWidth()(0),
+                                         P_upwind_half_data[0]->getGhostCellWidth()(1),
+                                         P_upwind_half_data[0]->getGhostCellWidth()(2),
+                                         P_upwind_half_data[0]->getPointer(0),
+                                         P_upwind_half_data[0]->getPointer(1),
+                                         P_upwind_half_data[0]->getPointer(2),
+                                         R_upwind_half_data[0]->getGhostCellWidth()(0),
+                                         R_upwind_half_data[0]->getGhostCellWidth()(1),
+                                         R_upwind_half_data[0]->getGhostCellWidth()(2),
+                                         R_upwind_half_data[0]->getPointer(0),
+                                         R_upwind_half_data[0]->getPointer(1),
+                                         R_upwind_half_data[0]->getPointer(2),
+                                         U_upwind_half_data[0]->getGhostCellWidth()(0),
+                                         U_upwind_half_data[0]->getGhostCellWidth()(1),
+                                         U_upwind_half_data[0]->getGhostCellWidth()(2),
+                                         U_upwind_half_data[0]->getPointer(0),
+                                         U_upwind_half_data[0]->getPointer(1),
+                                         U_upwind_half_data[0]->getPointer(2),
+                                         side_boxes[1].lower(0),
+                                         side_boxes[1].upper(0),
+                                         side_boxes[1].lower(1),
+                                         side_boxes[1].upper(1),
+                                         side_boxes[1].lower(2),
+                                         side_boxes[1].upper(2),
+                                         P_upwind_half_data[1]->getGhostCellWidth()(0),
+                                         P_upwind_half_data[1]->getGhostCellWidth()(1),
+                                         P_upwind_half_data[1]->getGhostCellWidth()(2),
+                                         P_upwind_half_data[1]->getPointer(0),
+                                         P_upwind_half_data[1]->getPointer(1),
+                                         P_upwind_half_data[1]->getPointer(2),
+                                         R_upwind_half_data[1]->getGhostCellWidth()(0),
+                                         R_upwind_half_data[1]->getGhostCellWidth()(1),
+                                         R_upwind_half_data[1]->getGhostCellWidth()(2),
+                                         R_upwind_half_data[1]->getPointer(0),
+                                         R_upwind_half_data[1]->getPointer(1),
+                                         R_upwind_half_data[1]->getPointer(2),
+                                         U_upwind_half_data[1]->getGhostCellWidth()(0),
+                                         U_upwind_half_data[1]->getGhostCellWidth()(1),
+                                         U_upwind_half_data[1]->getGhostCellWidth()(2),
+                                         U_upwind_half_data[1]->getPointer(0),
+                                         U_upwind_half_data[1]->getPointer(1),
+                                         U_upwind_half_data[1]->getPointer(2),
+                                         side_boxes[2].lower(0),
+                                         side_boxes[2].upper(0),
+                                         side_boxes[2].lower(1),
+                                         side_boxes[2].upper(1),
+                                         side_boxes[2].lower(2),
+                                         side_boxes[2].upper(2),
+                                         P_upwind_half_data[2]->getGhostCellWidth()(0),
+                                         P_upwind_half_data[2]->getGhostCellWidth()(1),
+                                         P_upwind_half_data[2]->getGhostCellWidth()(2),
+                                         P_upwind_half_data[2]->getPointer(0),
+                                         P_upwind_half_data[2]->getPointer(1),
+                                         P_upwind_half_data[2]->getPointer(2),
+                                         R_upwind_half_data[2]->getGhostCellWidth()(0),
+                                         R_upwind_half_data[2]->getGhostCellWidth()(1),
+                                         R_upwind_half_data[2]->getGhostCellWidth()(2),
+                                         R_upwind_half_data[2]->getPointer(0),
+                                         R_upwind_half_data[2]->getPointer(1),
+                                         R_upwind_half_data[2]->getPointer(2),
+                                         U_upwind_half_data[2]->getGhostCellWidth()(0),
+                                         U_upwind_half_data[2]->getGhostCellWidth()(1),
+                                         U_upwind_half_data[2]->getGhostCellWidth()(2),
+                                         U_upwind_half_data[2]->getPointer(0),
+                                         U_upwind_half_data[2]->getPointer(1),
+                                         U_upwind_half_data[2]->getPointer(2));
+#endif
+
+    // Collect required domain/patch information. Just hacked together at the moment for teting purposes.
+    // TODO: Best way to pass these data?
+    Pointer<GridGeometry<NDIM> > grid_geometry = d_hierarchy->getGridGeometry();
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+    const IntVector<NDIM>& ratio = level->getRatio();
+    const Box<NDIM> domain_box = Box<NDIM>::refine(grid_geometry->getPhysicalDomain()[0], ratio);
+    const Box<NDIM>& patch_box = patch->getBox();
+    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+    const double* const dx = patch_geom->getDx();
+    const double* const x_lower = patch_geom->getXLower();
+    const double* const x_upper = patch_geom->getXUpper();
+
+    // Data storage for first order upwinded convective derivative
+    Pointer<SideData<NDIM, double> > N_upwind_data =
+        new SideData<NDIM, double>(N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth());
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+#if (NDIM == 2)
+        // Specified convective limiter
+        CONVECT_DERIVATIVE_FC(dx,
+                              side_boxes[axis].lower(0),
+                              side_boxes[axis].upper(0),
+                              side_boxes[axis].lower(1),
+                              side_boxes[axis].upper(1),
+                              U_adv_data[axis]->getGhostCellWidth()(0),
+                              U_adv_data[axis]->getGhostCellWidth()(1),
+                              P_half_data[axis]->getGhostCellWidth()(0),
+                              P_half_data[axis]->getGhostCellWidth()(1),
+                              U_adv_data[axis]->getPointer(0),
+                              U_adv_data[axis]->getPointer(1),
+                              P_half_data[axis]->getPointer(0),
+                              P_half_data[axis]->getPointer(1),
+                              N_data->getGhostCellWidth()(0),
+                              N_data->getGhostCellWidth()(1),
+                              N_data->getPointer(axis));
+
+        // First order upwind limiter
+        CONVECT_DERIVATIVE_FC(dx,
+                              side_boxes[axis].lower(0),
+                              side_boxes[axis].upper(0),
+                              side_boxes[axis].lower(1),
+                              side_boxes[axis].upper(1),
+                              U_adv_data[axis]->getGhostCellWidth()(0),
+                              U_adv_data[axis]->getGhostCellWidth()(1),
+                              P_upwind_half_data[axis]->getGhostCellWidth()(0),
+                              P_upwind_half_data[axis]->getGhostCellWidth()(1),
+                              U_adv_data[axis]->getPointer(0),
+                              U_adv_data[axis]->getPointer(1),
+                              P_upwind_half_data[axis]->getPointer(0),
+                              P_upwind_half_data[axis]->getPointer(1),
+                              N_upwind_data->getGhostCellWidth()(0),
+                              N_upwind_data->getGhostCellWidth()(1),
+                              N_upwind_data->getPointer(axis));
+#endif
+#if (NDIM == 3)
+        // Specified convective limiter
+        CONVECT_DERIVATIVE_FC(dx,
+                              side_boxes[axis].lower(0),
+                              side_boxes[axis].upper(0),
+                              side_boxes[axis].lower(1),
+                              side_boxes[axis].upper(1),
+                              side_boxes[axis].lower(2),
+                              side_boxes[axis].upper(2),
+                              U_adv_data[axis]->getGhostCellWidth()(0),
+                              U_adv_data[axis]->getGhostCellWidth()(1),
+                              U_adv_data[axis]->getGhostCellWidth()(2),
+                              P_half_data[axis]->getGhostCellWidth()(0),
+                              P_half_data[axis]->getGhostCellWidth()(1),
+                              P_half_data[axis]->getGhostCellWidth()(2),
+                              U_adv_data[axis]->getPointer(0),
+                              U_adv_data[axis]->getPointer(1),
+                              U_adv_data[axis]->getPointer(2),
+                              P_half_data[axis]->getPointer(0),
+                              P_half_data[axis]->getPointer(1),
+                              P_half_data[axis]->getPointer(2),
+                              N_data->getGhostCellWidth()(0),
+                              N_data->getGhostCellWidth()(1),
+                              N_data->getGhostCellWidth()(2),
+                              N_data->getPointer(axis));
+
+        // First order upwind limiter
+        CONVECT_DERIVATIVE_FC(dx,
+                              side_boxes[axis].lower(0),
+                              side_boxes[axis].upper(0),
+                              side_boxes[axis].lower(1),
+                              side_boxes[axis].upper(1),
+                              side_boxes[axis].lower(2),
+                              side_boxes[axis].upper(2),
+                              U_adv_data[axis]->getGhostCellWidth()(0),
+                              U_adv_data[axis]->getGhostCellWidth()(1),
+                              U_adv_data[axis]->getGhostCellWidth()(2),
+                              P_upwind_half_data[axis]->getGhostCellWidth()(0),
+                              P_upwind_half_data[axis]->getGhostCellWidth()(1),
+                              P_upwind_half_data[axis]->getGhostCellWidth()(2),
+                              U_adv_data[axis]->getPointer(0),
+                              U_adv_data[axis]->getPointer(1),
+                              U_adv_data[axis]->getPointer(2),
+                              P_upwind_half_data[axis]->getPointer(0),
+                              P_upwind_half_data[axis]->getPointer(1),
+                              P_upwind_half_data[axis]->getPointer(2),
+                              N_upwind_data->getGhostCellWidth()(0),
+                              N_upwind_data->getGhostCellWidth()(1),
+                              N_upwind_data->getGhostCellWidth()(2),
+                              N_upwind_data->getPointer(axis));
+#endif
+        // Blend together the first-order upwind and high-order discretizations at
+        // physical boundaries.
+        if (patch_geom->getTouchesRegularBoundary())
+        {
+            Pointer<SideData<NDIM, double> > N_conv_data =
+                new SideData<NDIM, double>(N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth());
+            N_conv_data->copy(*N_data);
+            for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
+            {
+                const unsigned int axis = location_index / 2;
+                const unsigned int side = location_index % 2;
+                const bool is_lower = side == 0;
+                if (d_open_bdry[location_index] && patch_geom->getTouchesRegularBoundary(axis, side))
+                {
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        Box<NDIM> bdry_box = domain_box;
+                        const double width = d_width[location_index];
+                        const int offset = static_cast<int>(width / dx[axis]);
+                        if (is_lower)
+                        {
+                            bdry_box.upper(axis) = domain_box.lower(axis) + offset;
+                        }
+                        else
+                        {
+                            bdry_box.lower(axis) = domain_box.upper(axis) - offset;
+                        }
+                        for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(bdry_box * patch_box, d)); b; b++)
+                        {
+                            const hier::Index<NDIM>& i = b();
+                            const SideIndex<NDIM> i_s(i, d, SideIndex<NDIM>::Lower);
+                            const double x =
+                                x_lower[axis] + dx[axis] * static_cast<double>(i(axis) - patch_box.lower(axis));
+                            const double x_bdry = (is_lower ? x_lower[axis] : x_upper[axis]);
+                            const double fac = smooth_kernel((x - x_bdry) / width);
+                            (*N_data)(i_s) = fac * (*N_upwind_data)(i_s) + (1.0 - fac) * (*N_conv_data)(i_s);
+                        }
+                    }
+                }
+            }
+        }
     }
 } // computeConvectiveDerivative
 
