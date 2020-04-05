@@ -95,6 +95,11 @@ public:
     ~IBHierarchyIntegrator() = default;
 
     /*!
+     * Return the time stepping scheme.
+     */
+    TimeSteppingType getTimeSteppingType() const;
+
+    /*!
      * Return a pointer to the IBStrategy object registered with this
      * integrator.
      */

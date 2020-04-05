@@ -18,6 +18,7 @@
 
 #include "ibtk/ibtk_macros.h"
 
+#include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
 #include "tbox/Utilities.h"
 
@@ -112,6 +113,28 @@ static const bool ENABLE_TIMERS = true;
 
 namespace IBTK
 {
+inline std::string
+get_data_time_str(const double data_time, const double current_time, const double new_time)
+{
+    const double half_time = 0.5 * (current_time + new_time);
+    if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, current_time))
+    {
+        return "current";
+    }
+    else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, half_time))
+    {
+        return "half";
+    }
+    else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, new_time))
+    {
+        return "new";
+    }
+    else
+    {
+        return "unknown";
+    }
+}
+
 template <class T, unsigned N>
 inline std::array<T, N>
 array_constant(const T& v)

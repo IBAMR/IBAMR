@@ -18,6 +18,7 @@
 #include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBFEMethod.h"
 #include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
@@ -651,7 +652,14 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
     // U^{n+1/2} and U^{n+1} to equal U^{n}.
     d_X_vecs->copy("solution", { "current", "new", "half" });
     d_U_vecs->copy("solution", { "current", "new", "half" });
-    d_F_vecs->copy("solution", { "half" });
+    switch (d_ib_solver->getTimeSteppingType())
+    {
+    case MIDPOINT_RULE:
+        d_F_vecs->copy("solution", { "current", "half" });
+        break;
+    default:
+        d_F_vecs->copy("solution", { "current", "new", "half" });
+    }
 
     // Update the mask data.
     getVelocityHierarchyDataOps()->copyData(mask_new_idx, mask_current_idx);
@@ -661,13 +669,16 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
 void
 IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
+    const std::string F_data_time_str = std::move(get_data_time_str(
+        d_ib_solver->getTimeSteppingType() == MIDPOINT_RULE ? d_half_time : d_new_time, d_current_time, d_new_time));
     batch_vec_ghost_update(
-        { d_X_vecs->get("new"), d_U_vecs->get("new"), d_F_vecs->get("half"), d_Q_half_vecs, d_Phi_half_vecs },
+        { d_X_vecs->get("new"), d_U_vecs->get("new"), d_F_vecs->get(F_data_time_str), d_Q_half_vecs, d_Phi_half_vecs },
         INSERT_VALUES,
         SCATTER_FORWARD);
 
     d_X_vecs->copy("new", { "solution", "current" });
     d_U_vecs->copy("new", { "solution", "current" });
+    d_F_vecs->copy(F_data_time_str, { "solution", "current" });
 
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
@@ -715,6 +726,8 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                 const double data_time)
 {
+    const std::string data_time_str = std::move(get_data_time_str(data_time, d_current_time, d_new_time));
+
     if (d_use_scratch_hierarchy)
     {
         assertStructureOnFinestLevel();
@@ -733,35 +746,16 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         }
     }
 
-    std::vector<PetscVector<double>*> U_vecs(d_num_parts), U_rhs_vecs(d_num_parts), X_vecs(d_num_parts);
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
-    {
-        X_vecs = d_X_vecs->get("current");
-        U_vecs = d_U_vecs->get("current");
-    }
-    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
-    {
-        X_vecs = d_X_vecs->get("half");
-        U_vecs = d_U_vecs->get("half");
-    }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
-    {
-        X_vecs = d_X_vecs->get("new");
-        U_vecs = d_U_vecs->get("new");
-    }
-
-    if (d_use_ghosted_velocity_rhs)
-        U_rhs_vecs = d_U_vecs->getIBGhosted("tmp");
-    else
-        U_rhs_vecs = d_U_vecs->get("RHS Vector");
-
-    std::vector<Pointer<RefineSchedule<NDIM> > > no_fill(u_ghost_fill_scheds.size(), nullptr);
-
+    std::vector<PetscVector<double>*> U_vecs = d_U_vecs->get(data_time_str);
+    std::vector<PetscVector<double>*> X_vecs = d_X_vecs->get(data_time_str);
+    std::vector<PetscVector<double>*> U_rhs_vecs =
+        d_use_ghosted_velocity_rhs ? d_U_vecs->getIBGhosted("tmp") : d_U_vecs->get("RHS Vector");
     std::vector<PetscVector<double>*> X_IB_ghost_vecs = d_X_vecs->getIBGhosted("tmp");
     batch_vec_copy(X_vecs, X_IB_ghost_vecs);
     batch_vec_ghost_update(X_IB_ghost_vecs, INSERT_VALUES, SCATTER_FORWARD);
 
     // Build the right-hand-sides to compute the interpolated data.
+    std::vector<Pointer<RefineSchedule<NDIM> > > no_fill(u_ghost_fill_scheds.size(), nullptr);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         if (d_part_is_active[part])
@@ -842,7 +836,33 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
         }
     }
     return;
-} // eulerStep
+} // forwardEulerStep
+
+void
+IBFEMethod::backwardEulerStep(const double current_time, const double new_time)
+{
+    const double dt = new_time - current_time;
+    for (unsigned int part = 0; part < d_num_parts; ++part)
+    {
+        int ierr = VecWAXPY(d_X_vecs->get("new", part).vec(),
+                            dt,
+                            d_U_vecs->get("new", part).vec(),
+                            d_X_vecs->get("current", part).vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPBYPCZ(d_X_vecs->get("half", part).vec(),
+                           0.5,
+                           0.5,
+                           0.0,
+                           d_X_vecs->get("current", part).vec(),
+                           d_X_vecs->get("new", part).vec());
+        IBTK_CHKERRQ(ierr);
+        if (d_direct_forcing_kinematics_data[part])
+        {
+            TBOX_ERROR("IBFEDirectForcingKinematics does not implement backwardEulerStep().\n");
+        }
+    }
+    return;
+} // backwardEulerStep
 
 void
 IBFEMethod::midpointStep(const double current_time, const double new_time)
@@ -909,18 +929,21 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
 void
 IBFEMethod::computeLagrangianForce(const double data_time)
 {
-    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
-    batch_vec_ghost_update(d_X_vecs->get("half"), INSERT_VALUES, SCATTER_FORWARD);
+    const std::string data_time_str = std::move(get_data_time_str(data_time, d_current_time, d_new_time));
+    batch_vec_ghost_update(d_X_vecs->get(data_time_str), INSERT_VALUES, SCATTER_FORWARD);
     d_F_vecs->zero("RHS Vector");
     d_F_vecs->zero("tmp");
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         if (d_is_stress_normalization_part[part])
         {
-            computeStressNormalization(*d_Phi_half_vecs[part], d_X_vecs->get("half", part), data_time, part);
+            computeStressNormalization(*d_Phi_half_vecs[part], d_X_vecs->get(data_time_str, part), data_time, part);
         }
-        assembleInteriorForceDensityRHS(
-            d_F_vecs->get("RHS Vector", part), d_X_vecs->get("half", part), d_Phi_half_vecs[part], data_time, part);
+        assembleInteriorForceDensityRHS(d_F_vecs->get("RHS Vector", part),
+                                        d_X_vecs->get(data_time_str, part),
+                                        d_Phi_half_vecs[part],
+                                        data_time,
+                                        part);
     }
     batch_vec_ghost_update(d_F_vecs->get("RHS Vector"), ADD_VALUES, SCATTER_REVERSE);
     // RHS vectors don't need ghost entries for the solve so we can skip the other scatter
@@ -932,12 +955,14 @@ IBFEMethod::computeLagrangianForce(const double data_time)
                                                              d_use_consistent_mass_matrix,
                                                              /*close_U*/ false,
                                                              /*close_F*/ false);
-        d_F_vecs->copy("solution", { "half" });
+        d_F_vecs->copy("solution", { data_time_str });
         if (d_direct_forcing_kinematics_data[part])
         {
-            d_direct_forcing_kinematics_data[part]->computeLagrangianForce(
-                d_F_vecs->get("tmp", part), d_X_vecs->get("half", part), d_U_vecs->get("half", part), data_time);
-            int ierr = VecAXPY(d_F_vecs->get("half", part).vec(), 1.0, d_F_vecs->get("tmp", part).vec());
+            d_direct_forcing_kinematics_data[part]->computeLagrangianForce(d_F_vecs->get("tmp", part),
+                                                                           d_X_vecs->get(data_time_str, part),
+                                                                           d_U_vecs->get(data_time_str, part),
+                                                                           data_time);
+            int ierr = VecAXPY(d_F_vecs->get(data_time_str, part).vec(), 1.0, d_F_vecs->get("tmp", part).vec());
             IBTK_CHKERRQ(ierr);
         }
     }
@@ -950,12 +975,13 @@ IBFEMethod::spreadForce(const int f_data_idx,
                         const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
                         const double data_time)
 {
-    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    const std::string data_time_str = std::move(get_data_time_str(data_time, d_current_time, d_new_time));
 
     // Communicate ghost data.
     std::vector<PetscVector<double>*> X_IB_ghost_vecs = d_X_vecs->getIBGhosted("tmp");
     std::vector<PetscVector<double>*> F_IB_ghost_vecs = d_F_vecs->getIBGhosted("tmp");
-    batch_vec_copy({ d_X_vecs->get("half"), d_F_vecs->get("half") }, { X_IB_ghost_vecs, F_IB_ghost_vecs });
+    batch_vec_copy({ d_X_vecs->get(data_time_str), d_F_vecs->get(data_time_str) },
+                   { X_IB_ghost_vecs, F_IB_ghost_vecs });
     batch_vec_ghost_update({ X_IB_ghost_vecs, F_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
     // set up a new data index for computing forces on the active hierarchy.

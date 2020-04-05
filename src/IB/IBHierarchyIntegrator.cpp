@@ -83,6 +83,12 @@ static const int IB_HIERARCHY_INTEGRATOR_VERSION = 2;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+TimeSteppingType
+IBHierarchyIntegrator::getTimeSteppingType() const
+{
+    return d_time_stepping_type;
+}
+
 Pointer<IBStrategy>
 IBHierarchyIntegrator::getIBStrategy() const
 {
