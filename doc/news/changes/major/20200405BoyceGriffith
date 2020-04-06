@@ -1,0 +1,3 @@
+Improved: Support for FORWARD_EULER and TRAPEZOIDAL_RULE time stepping in IBAMR::IBFEMethod.
+<br>
+(Boyce Griffith, 2020/04/05)
