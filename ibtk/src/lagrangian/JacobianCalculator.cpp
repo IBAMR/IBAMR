@@ -46,21 +46,18 @@ JacobianCalculator::JacobianCalculator(const JacobianCalculator::key_type quad_k
     quad_rule->init(elem_type);
     d_quad_points = quad_rule->get_points();
     d_quad_weights = quad_rule->get_weights();
-    d_JxW.resize(d_quad_weights.size());
-}
-
-const std::vector<double>&
-JacobianCalculator::get_JxW(const Elem*)
-{
-    TBOX_ERROR("This base class function is not implemented.");
-
-    return d_JxW;
 }
 
 template <int dim, int spacedim>
-LagrangeJacobianCalculator<dim, spacedim>::LagrangeJacobianCalculator(
-    const typename LagrangeJacobianCalculator<dim, spacedim>::key_type quad_key)
-    : JacobianCalculator(quad_key), d_n_nodes(get_n_nodes(std::get<0>(this->d_quad_key)))
+Mapping<dim, spacedim>::Mapping(const typename Mapping<dim, spacedim>::key_type quad_key) : JacobianCalculator(quad_key)
+{
+    d_JxW.resize(this->d_quad_weights.size());
+    d_contravariants.resize(this->d_quad_weights.size());
+}
+
+template <int dim, int spacedim>
+LagrangeMapping<dim, spacedim>::LagrangeMapping(const typename LagrangeMapping<dim, spacedim>::key_type quad_key)
+    : Mapping<dim, spacedim>(quad_key), d_n_nodes(get_n_nodes(std::get<0>(this->d_quad_key)))
 {
 #if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
     TBOX_ASSERT(d_n_nodes <= 27);
@@ -118,11 +115,11 @@ determinant(const double (&A)[3][3])
 } // namespace
 
 template <int dim, int spacedim>
-const std::vector<double>&
-LagrangeJacobianCalculator<dim, spacedim>::get_JxW(const libMesh::Elem* elem)
+const typename Mapping<dim, spacedim>::MappingData&
+LagrangeMapping<dim, spacedim>::get(const libMesh::Elem* elem)
 {
     // static_assert(spacedim <= LIBMESH_DIM);
-    TBOX_ASSERT(elem->type() == std::get<0>(d_quad_key));
+    TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
     std::copy(this->d_quad_weights.begin(), this->d_quad_weights.end(), this->d_JxW.begin());
 
     // max_n_nodes is a constant defined by libMesh - currently 27
@@ -138,7 +135,7 @@ LagrangeJacobianCalculator<dim, spacedim>::get_JxW(const libMesh::Elem* elem)
         for (unsigned int j = 0; j < spacedim; ++j) xs[i][j] = p(j);
     }
 
-    for (unsigned int q = 0; q < d_JxW.size(); ++q)
+    for (unsigned int q = 0; q < this->d_JxW.size(); ++q)
     {
         double contravariant[spacedim][dim]{ { 0.0 } };
         for (unsigned int node_n = 0; node_n < d_n_nodes; ++node_n)
@@ -186,19 +183,19 @@ LagrangeJacobianCalculator<dim, spacedim>::get_JxW(const libMesh::Elem* elem)
         this->d_JxW[q] *= J;
     }
 
-    return this->d_JxW;
+    return this->d_values;
 }
 
-const std::vector<double>&
-Tri3JacobianCalculator::get_JxW(const Elem* elem)
+const typename Mapping<2, 2>::MappingData&
+Tri3Mapping::get(const libMesh::Elem* elem)
 {
-    TBOX_ASSERT(elem->type() == std::get<0>(d_quad_key));
-    std::copy(d_quad_weights.begin(), d_quad_weights.end(), d_JxW.begin());
+    TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
+    std::copy(d_quad_weights.begin(), d_quad_weights.end(), this->d_JxW.begin());
 
     // calculate Jacobians here
-    const Point p0 = elem->point(0);
-    const Point p1 = elem->point(1);
-    const Point p2 = elem->point(2);
+    const libMesh::Point p0 = elem->point(0);
+    const libMesh::Point p1 = elem->point(1);
+    const libMesh::Point p2 = elem->point(2);
 
     const double Jac_00 = p1(0) - p0(0);
     const double Jac_01 = p2(0) - p0(0);
@@ -208,22 +205,22 @@ Tri3JacobianCalculator::get_JxW(const Elem* elem)
     const double J = Jac_00 * Jac_11 - Jac_01 * Jac_10;
 
     TBOX_ASSERT(J > 0.0);
-    for (double& jxw : d_JxW) jxw *= J;
+    for (double& jxw : this->d_JxW) jxw *= J;
 
-    return d_JxW;
+    return this->d_values;
 }
 
-const std::vector<double>&
-Quad4JacobianCalculator::get_JxW(const Elem* elem)
+const typename Mapping<2, 2>::MappingData&
+Quad4Mapping::get(const libMesh::Elem* elem)
 {
-    TBOX_ASSERT(elem->type() == std::get<0>(d_quad_key));
-    std::copy(d_quad_weights.begin(), d_quad_weights.end(), d_JxW.begin());
+    TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
+    std::copy(d_quad_weights.begin(), d_quad_weights.end(), this->d_JxW.begin());
 
     // calculate constants in Jacobians here
-    const Point p0 = elem->point(0);
-    const Point p1 = elem->point(1);
-    const Point p2 = elem->point(2);
-    const Point p3 = elem->point(3);
+    const libMesh::Point p0 = elem->point(0);
+    const libMesh::Point p1 = elem->point(1);
+    const libMesh::Point p2 = elem->point(2);
+    const libMesh::Point p3 = elem->point(3);
 
     const double a_1 = 0.25 * (-p0(0) + p1(0) + p2(0) - p3(0));
     const double b_1 = 0.25 * (-p0(0) - p1(0) + p2(0) + p3(0));
@@ -232,7 +229,7 @@ Quad4JacobianCalculator::get_JxW(const Elem* elem)
     const double b_2 = 0.25 * (-p0(1) - p1(1) + p2(1) + p3(1));
     const double c_2 = 0.25 * (p0(1) - p1(1) + p2(1) - p3(1));
 
-    for (unsigned int i = 0; i < d_JxW.size(); i++)
+    for (unsigned int i = 0; i < this->d_JxW.size(); i++)
     {
         // calculate Jacobians here
         const double x = d_quad_points[i](0);
@@ -246,21 +243,20 @@ Quad4JacobianCalculator::get_JxW(const Elem* elem)
         const double J = Jac_00 * Jac_11 - Jac_01 * Jac_10;
 
         TBOX_ASSERT(J > 0.0);
-        d_JxW[i] *= J;
+        this->d_JxW[i] *= J;
     }
 
-    return d_JxW;
+    return this->d_values;
 }
 
-Quad9JacobianCalculator::Quad9JacobianCalculator(const Quad9JacobianCalculator::key_type quad_key)
-    : JacobianCalculator(quad_key)
+Quad9Mapping::Quad9Mapping(const Quad9Mapping::key_type quad_key) : Mapping<2, 2>(quad_key)
 {
     // This code utilizes an implementation detail of
     // QBase::tensor_product_quad where the x coordinate increases fastest to
     // reconstruct the 1D quadrature rule
     d_n_oned_q_points = static_cast<std::size_t>(std::round(std::sqrt(d_quad_points.size())));
     TBOX_ASSERT(d_n_oned_q_points * d_n_oned_q_points == d_quad_points.size());
-    std::vector<Point> oned_points(d_n_oned_q_points);
+    std::vector<libMesh::Point> oned_points(d_n_oned_q_points);
     for (unsigned int q = 0; q < d_n_oned_q_points; ++q)
     {
         oned_points[q] = d_quad_points[q](0);
@@ -272,7 +268,7 @@ Quad9JacobianCalculator::Quad9JacobianCalculator(const Quad9JacobianCalculator::
     {
         for (unsigned int i = 0; i < d_n_oned_q_points; ++i)
         {
-            TBOX_ASSERT(d_quad_points[q] == Point(oned_points[i](0), oned_points[j](0)));
+            TBOX_ASSERT(d_quad_points[q] == libMesh::Point(oned_points[i](0), oned_points[j](0)));
             ++q;
         }
     }
@@ -295,11 +291,11 @@ Quad9JacobianCalculator::Quad9JacobianCalculator(const Quad9JacobianCalculator::
     }
 }
 
-const std::vector<double>&
-Quad9JacobianCalculator::get_JxW(const Elem* elem)
+const typename Mapping<2, 2>::MappingData&
+Quad9Mapping::get(const libMesh::Elem* elem)
 {
-    TBOX_ASSERT(elem->type() == std::get<0>(d_quad_key));
-    std::copy(d_quad_weights.begin(), d_quad_weights.end(), d_JxW.begin());
+    TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
+    std::copy(d_quad_weights.begin(), d_quad_weights.end(), this->d_JxW.begin());
 
     constexpr std::size_t n_oned_shape_functions = 3;
 
@@ -317,7 +313,7 @@ Quad9JacobianCalculator::get_JxW(const Elem* elem)
     double xs[n_oned_shape_functions][n_oned_shape_functions];
     double ys[n_oned_shape_functions][n_oned_shape_functions];
 
-    Point points[n_oned_shape_functions][n_oned_shape_functions];
+    libMesh::Point points[n_oned_shape_functions][n_oned_shape_functions];
     points[0][0] = elem->point(0);
     points[0][1] = elem->point(4);
     points[0][2] = elem->point(1);
@@ -338,7 +334,7 @@ Quad9JacobianCalculator::get_JxW(const Elem* elem)
         }
     }
 
-    for (unsigned int q = 0; q < d_JxW.size(); q++)
+    for (unsigned int q = 0; q < this->d_JxW.size(); q++)
     {
         double Jac[2][2]{ { 0.0, 0.0 }, { 0.0, 0.0 } };
         // Exploit the fact that Quad9 is a tensor product element by indexing
@@ -359,23 +355,23 @@ Quad9JacobianCalculator::get_JxW(const Elem* elem)
 
         const double J = Jac[0][0] * Jac[1][1] - Jac[0][1] * Jac[1][0];
         TBOX_ASSERT(J > 0.0);
-        d_JxW[q] *= J;
+        this->d_JxW[q] *= J;
     }
 
-    return d_JxW;
+    return this->d_values;
 }
 
-const std::vector<double>&
-Tet4JacobianCalculator::get_JxW(const Elem* elem)
+const typename Mapping<3, 3>::MappingData&
+Tet4Mapping::get(const libMesh::Elem* elem)
 {
-    TBOX_ASSERT(elem->type() == std::get<0>(d_quad_key));
-    std::copy(d_quad_weights.begin(), d_quad_weights.end(), d_JxW.begin());
+    TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
+    std::copy(d_quad_weights.begin(), d_quad_weights.end(), this->d_JxW.begin());
 
     // calculate Jacobians here
-    const Point p0 = elem->point(0);
-    const Point p1 = elem->point(1);
-    const Point p2 = elem->point(2);
-    const Point p3 = elem->point(3);
+    const libMesh::Point p0 = elem->point(0);
+    const libMesh::Point p1 = elem->point(1);
+    const libMesh::Point p2 = elem->point(2);
+    const libMesh::Point p3 = elem->point(3);
 
     const double Jac_00 = p1(0) - p0(0);
     const double Jac_01 = p2(0) - p0(0);
@@ -391,15 +387,22 @@ Tet4JacobianCalculator::get_JxW(const Elem* elem)
                      Jac_20 * (Jac_01 * Jac_12 - Jac_02 * Jac_11);
 
     TBOX_ASSERT(J > 0.0);
-    for (double& jxw : d_JxW) jxw *= J;
+    for (double& jxw : this->d_JxW) jxw *= J;
 
-    return d_JxW;
+    return this->d_values;
 }
 
-template class LagrangeJacobianCalculator<1, 1>;
-template class LagrangeJacobianCalculator<1, 2>;
-template class LagrangeJacobianCalculator<1, 3>;
-template class LagrangeJacobianCalculator<2, 2>;
-template class LagrangeJacobianCalculator<2, 3>;
-template class LagrangeJacobianCalculator<3, 3>;
+template class Mapping<1, 1>;
+template class Mapping<1, 2>;
+template class Mapping<1, 3>;
+template class Mapping<2, 2>;
+template class Mapping<2, 3>;
+template class Mapping<3, 3>;
+
+template class LagrangeMapping<1, 1>;
+template class LagrangeMapping<1, 2>;
+template class LagrangeMapping<1, 3>;
+template class LagrangeMapping<2, 2>;
+template class LagrangeMapping<2, 3>;
+template class LagrangeMapping<3, 3>;
 } // namespace IBTK
