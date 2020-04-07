@@ -28,6 +28,8 @@
 #include <libmesh/point.h>
 #include <libmesh/quadrature.h>
 
+#include <Eigen/Dense>
+
 #include <algorithm>
 #include <cmath>
 #include <memory>
@@ -80,40 +82,6 @@ LagrangeMapping<dim, spacedim>::LagrangeMapping(const typename LagrangeMapping<d
     }
 }
 
-namespace
-{
-// permit compilation with non-square arrays, but always fail at runtime
-template <int M, int N>
-double
-determinant(const double (&)[M][N])
-{
-    TBOX_ASSERT(false);
-    return 0.0;
-}
-
-template <>
-double
-determinant(const double (&A)[1][1])
-{
-    return A[0][0];
-}
-
-template <>
-double
-determinant(const double (&A)[2][2])
-{
-    return A[0][0] * A[1][1] - A[0][1] * A[1][0];
-}
-
-template <>
-double
-determinant(const double (&A)[3][3])
-{
-    return A[0][0] * (A[1][1] * A[2][2] - A[1][2] * A[2][1]) - A[1][0] * (A[0][1] * A[2][2] - A[0][2] * A[2][1]) +
-           A[2][0] * (A[0][1] * A[1][2] - A[0][2] * A[1][1]);
-}
-} // namespace
-
 template <int dim, int spacedim>
 const typename Mapping<dim, spacedim>::MappingData&
 LagrangeMapping<dim, spacedim>::get(const libMesh::Elem* elem)
@@ -137,14 +105,15 @@ LagrangeMapping<dim, spacedim>::get(const libMesh::Elem* elem)
 
     for (unsigned int q = 0; q < this->d_JxW.size(); ++q)
     {
-        double contravariant[spacedim][dim]{ { 0.0 } };
+        auto& contravariant = this->d_contravariants[q];
+        contravariant.setZero();
         for (unsigned int node_n = 0; node_n < d_n_nodes; ++node_n)
         {
             for (unsigned int i = 0; i < spacedim; ++i)
             {
                 for (unsigned int j = 0; j < dim; ++j)
                 {
-                    contravariant[i][j] += xs[node_n][i] * d_dphi[node_n][q][j];
+                    contravariant(i, j) += xs[node_n][i] * d_dphi[node_n][q][j];
                 }
             }
         }
@@ -152,32 +121,12 @@ LagrangeMapping<dim, spacedim>::get(const libMesh::Elem* elem)
         double J = 0.0;
         if (dim == spacedim)
         {
-            J = determinant(contravariant);
+            J = contravariant.determinant();
         }
         else
         {
-            std::array<std::array<double, spacedim>, dim> dx_t;
-            for (unsigned int i = 0; i < spacedim; ++i)
-            {
-                for (unsigned int j = 0; j < dim; ++j)
-                {
-                    dx_t[j][i] = contravariant[i][j];
-                }
-            }
-            double Jac[dim][dim];
-            for (unsigned int i = 0; i < dim; ++i)
-            {
-                for (unsigned int j = 0; j < dim; ++j)
-                {
-                    Jac[i][j] = 0.0;
-                    for (unsigned int k = 0; k < spacedim; ++k)
-                    {
-                        Jac[i][j] += dx_t[i][k] * dx_t[j][k];
-                    }
-                }
-            }
-
-            J = std::sqrt(determinant(Jac));
+            Eigen::Matrix<double, dim, dim> Jac = contravariant.transpose() * contravariant;
+            J = std::sqrt(Jac.determinant());
         }
         TBOX_ASSERT(J > 0.0);
         this->d_JxW[q] *= J;
@@ -192,18 +141,18 @@ Tri3Mapping::get(const libMesh::Elem* elem)
     TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
     std::copy(d_quad_weights.begin(), d_quad_weights.end(), this->d_JxW.begin());
 
-    // calculate Jacobians here
     const libMesh::Point p0 = elem->point(0);
     const libMesh::Point p1 = elem->point(1);
     const libMesh::Point p2 = elem->point(2);
 
-    const double Jac_00 = p1(0) - p0(0);
-    const double Jac_01 = p2(0) - p0(0);
-    const double Jac_10 = p1(1) - p0(1);
-    const double Jac_11 = p2(1) - p0(1);
+    Eigen::Matrix<double, 2, 2> contravariant;
+    contravariant(0, 0) = p1(0) - p0(0);
+    contravariant(0, 1) = p2(0) - p0(0);
+    contravariant(1, 0) = p1(1) - p0(1);
+    contravariant(1, 1) = p2(1) - p0(1);
+    std::fill(this->d_contravariants.begin(), this->d_contravariants.end(), contravariant);
 
-    const double J = Jac_00 * Jac_11 - Jac_01 * Jac_10;
-
+    const double J = contravariant.determinant();
     TBOX_ASSERT(J > 0.0);
     for (double& jxw : this->d_JxW) jxw *= J;
 
@@ -235,12 +184,13 @@ Quad4Mapping::get(const libMesh::Elem* elem)
         const double x = d_quad_points[i](0);
         const double y = d_quad_points[i](1);
 
-        const double Jac_00 = a_1 + c_1 * y;
-        const double Jac_01 = b_1 + c_1 * x;
-        const double Jac_10 = a_2 + c_2 * y;
-        const double Jac_11 = b_2 + c_2 * x;
+        Eigen::Matrix<double, 2, 2>& contravariant = d_contravariants[i];
+        contravariant(0, 0) = a_1 + c_1 * y;
+        contravariant(0, 1) = b_1 + c_1 * x;
+        contravariant(1, 0) = a_2 + c_2 * y;
+        contravariant(1, 1) = b_2 + c_2 * x;
 
-        const double J = Jac_00 * Jac_11 - Jac_01 * Jac_10;
+        const double J = contravariant.determinant();
 
         TBOX_ASSERT(J > 0.0);
         this->d_JxW[i] *= J;
@@ -336,7 +286,8 @@ Quad9Mapping::get(const libMesh::Elem* elem)
 
     for (unsigned int q = 0; q < this->d_JxW.size(); q++)
     {
-        double Jac[2][2]{ { 0.0, 0.0 }, { 0.0, 0.0 } };
+        Eigen::Matrix<double, 2, 2>& contravariant = d_contravariants[q];
+        contravariant.setZero();
         // Exploit the fact that Quad9 is a tensor product element by indexing
         // the x component of each tensor product shape function with j and
         // the y component with i
@@ -346,14 +297,14 @@ Quad9Mapping::get(const libMesh::Elem* elem)
         {
             for (unsigned int j = 0; j < n_oned_shape_functions; ++j)
             {
-                Jac[0][0] += xs[i][j] * d_dphi(j, q_point_x) * d_phi(i, q_point_y);
-                Jac[0][1] += xs[i][j] * d_phi(j, q_point_x) * d_dphi(i, q_point_y);
-                Jac[1][0] += ys[i][j] * d_dphi(j, q_point_x) * d_phi(i, q_point_y);
-                Jac[1][1] += ys[i][j] * d_phi(j, q_point_x) * d_dphi(i, q_point_y);
+                contravariant(0, 0) += xs[i][j] * d_dphi(j, q_point_x) * d_phi(i, q_point_y);
+                contravariant(0, 1) += xs[i][j] * d_phi(j, q_point_x) * d_dphi(i, q_point_y);
+                contravariant(1, 0) += ys[i][j] * d_dphi(j, q_point_x) * d_phi(i, q_point_y);
+                contravariant(1, 1) += ys[i][j] * d_phi(j, q_point_x) * d_dphi(i, q_point_y);
             }
         }
 
-        const double J = Jac[0][0] * Jac[1][1] - Jac[0][1] * Jac[1][0];
+        const double J = contravariant.determinant();
         TBOX_ASSERT(J > 0.0);
         this->d_JxW[q] *= J;
     }
@@ -373,18 +324,19 @@ Tet4Mapping::get(const libMesh::Elem* elem)
     const libMesh::Point p2 = elem->point(2);
     const libMesh::Point p3 = elem->point(3);
 
-    const double Jac_00 = p1(0) - p0(0);
-    const double Jac_01 = p2(0) - p0(0);
-    const double Jac_02 = p3(0) - p0(0);
-    const double Jac_10 = p1(1) - p0(1);
-    const double Jac_11 = p2(1) - p0(1);
-    const double Jac_12 = p3(1) - p0(1);
-    const double Jac_20 = p1(2) - p0(2);
-    const double Jac_21 = p2(2) - p0(2);
-    const double Jac_22 = p3(2) - p0(2);
+    Eigen::Matrix<double, 3, 3> contravariant;
+    contravariant(0, 0) = p1(0) - p0(0);
+    contravariant(0, 1) = p2(0) - p0(0);
+    contravariant(0, 2) = p3(0) - p0(0);
+    contravariant(1, 0) = p1(1) - p0(1);
+    contravariant(1, 1) = p2(1) - p0(1);
+    contravariant(1, 2) = p3(1) - p0(1);
+    contravariant(2, 0) = p1(2) - p0(2);
+    contravariant(2, 1) = p2(2) - p0(2);
+    contravariant(2, 2) = p3(2) - p0(2);
+    std::fill(d_contravariants.begin(), d_contravariants.end(), contravariant);
 
-    const double J = Jac_00 * (Jac_11 * Jac_22 - Jac_12 * Jac_21) - Jac_10 * (Jac_01 * Jac_22 - Jac_02 * Jac_21) +
-                     Jac_20 * (Jac_01 * Jac_12 - Jac_02 * Jac_11);
+    const double J = contravariant.determinant();
 
     TBOX_ASSERT(J > 0.0);
     for (double& jxw : this->d_JxW) jxw *= J;
