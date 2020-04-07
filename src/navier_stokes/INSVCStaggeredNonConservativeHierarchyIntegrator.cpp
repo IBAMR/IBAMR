@@ -919,12 +919,6 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setTransportedMassDensityVaria
     return;
 } // setTransportedMassDensityVariable
 
-Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >
-INSVCStaggeredNonConservativeHierarchyIntegrator::getCellCenteredMassDensityVariable()
-{
-    return d_rho_var;
-} // getCellCenteredMassDensityVariable
-
 std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>
 INSVCStaggeredNonConservativeHierarchyIntegrator::getMassDensityBoundaryConditions()
 {

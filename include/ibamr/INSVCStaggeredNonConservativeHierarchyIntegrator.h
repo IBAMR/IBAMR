@@ -143,10 +143,6 @@ public:
     void setTransportedMassDensityVariable(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > rho_adv_diff_var);
 
-    /*!
-     * Get the cell-centered mass density variable registered with the hierarchy integrator.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getCellCenteredMassDensityVariable() override;
 
     /*
      * \brief Return the boundary conditions for the density field, which is maintained by this integrator

@@ -229,11 +229,6 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getMassDensityVariable() const;
 
     /*!
-     * Get the mass density variable registered with the hierarchy integrator.
-     */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getCellCenteredMassDensityVariable() = 0;
-
-    /*!
      * Register a variable viscosity variable with the hierarchy integrator.
      */
     void registerViscosityVariable(SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var);

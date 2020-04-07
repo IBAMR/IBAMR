@@ -186,20 +186,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
                "been registered.\n");
     }
 
-    if (d_use_turb_model)
-    {
-        d_rho_cc_var = new CellVariable<NDIM, double>(d_rho_var->getName() + "::cc", /*depth*/ 1);
-        // needed for turbulence
-        registerVariable(d_rho_cc_current_idx,
-                         d_rho_cc_new_idx,
-                         d_rho_cc_scratch_idx,
-                         d_rho_cc_var,
-                         cell_ghosts,
-                         d_rho_coarsen_type,
-                         d_rho_refine_type,
-                         d_rho_init_fcn);
-    }
-
     // Register variables for plotting.
     registerVariable(d_rho_interp_cc_idx, d_rho_interp_cc_var, no_ghosts, getCurrentContext());
     if (d_visit_writer)
@@ -269,11 +255,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx,
                                  d_rho_sc_current_idx,
                                  /*interior_only*/ true);
-    if (d_use_turb_model)
-    {
-        // Interpolate the side centered density variable into cell-center
-        interpolateSCMassDensityToCC(getCurrentContext());
-    }
 
     if (!d_mu_is_const && d_mu_var)
     {
@@ -343,7 +324,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
             d_hier_cc_data_ops->copyData(d_mu_t_scratch_idx,
                                          d_mu_t_current_idx,
                                          /*interior_only*/ true);
-            d_hier_cc_data_ops->add(d_mu_eff_scratch_idx, d_mu_t_scratch_idx, d_mu_scratch_idx);
+            d_hier_cc_data_ops->add(d_mu_scratch_idx, d_mu_t_scratch_idx, d_mu_scratch_idx);
             d_mu_bdry_bc_fill_op->fillData(current_time);
 
             // Interpolate onto node or edge centers
@@ -352,8 +333,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
                 d_hier_math_ops->interp(d_mu_interp_idx,
                                         d_mu_interp_var,
                                         /*dst_ghost_interp*/ true,
-                                        d_mu_eff_scratch_idx,
-                                        d_mu_eff_var,
+                                        d_mu_scratch_idx,
+                                        d_mu_var,
                                         d_no_fill_op,
                                         current_time);
             }
@@ -362,8 +343,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
                 d_hier_math_ops->harmonic_interp(d_mu_interp_idx,
                                                  d_mu_interp_var,
                                                  /*dst_ghost_interp*/ true,
-                                                 d_mu_eff_scratch_idx,
-                                                 d_mu_eff_var,
+                                                 d_mu_scratch_idx,
+                                                 d_mu_var,
                                                  d_no_fill_op,
                                                  current_time);
             }
@@ -500,7 +481,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     // Set the initial guess.
     d_hier_sc_data_ops->copyData(d_U_new_idx, d_U_current_idx);
     d_hier_cc_data_ops->copyData(d_P_new_idx, d_P_current_idx);
-    if (d_use_turb_model) d_hier_cc_data_ops->copyData(d_mu_t_new_idx, d_mu_t_current_idx);
+
+    if (d_use_turb_model)
+    {
+        d_hier_cc_data_ops->copyData(d_mu_t_new_idx, d_mu_t_current_idx);
+    }
 
     // Set up inhomogeneous BCs.
     d_stokes_solver->setHomogeneousBc(false);
@@ -676,7 +661,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
             d_hier_cc_data_ops->copyData(d_mu_t_scratch_idx,
                                          d_mu_t_new_idx,
                                          /*interior_only*/ true);
-            d_hier_cc_data_ops->add(d_mu_eff_scratch_idx, d_mu_t_scratch_idx, d_mu_scratch_idx);
+            d_hier_cc_data_ops->add(d_mu_scratch_idx, d_mu_t_scratch_idx, d_mu_scratch_idx);
+            std::ofstream mu_eff;
+            mu_eff.open("mu_eff_INSVC.dat");
+            d_hier_cc_data_ops->printData(d_mu_scratch_idx, mu_eff);
+            mu_eff.close();
             d_mu_bdry_bc_fill_op->fillData(new_time);
 
             // Interpolate onto node or edge centers
@@ -685,8 +674,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
                 d_hier_math_ops->interp(d_mu_interp_idx,
                                         d_mu_interp_var,
                                         /*dst_ghost_interp*/ true,
-                                        d_mu_eff_scratch_idx,
-                                        d_mu_eff_var,
+                                        d_mu_scratch_idx,
+                                        d_mu_var,
                                         d_no_fill_op,
                                         new_time);
             }
@@ -695,8 +684,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
                 d_hier_math_ops->harmonic_interp(d_mu_interp_idx,
                                                  d_mu_interp_var,
                                                  /*dst_ghost_interp*/ true,
-                                                 d_mu_eff_scratch_idx,
-                                                 d_mu_eff_var,
+                                                 d_mu_scratch_idx,
+                                                 d_mu_var,
                                                  d_no_fill_op,
                                                  new_time);
             }
@@ -704,6 +693,10 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
             {
                 TBOX_ERROR("this statement should not be reached");
             }
+            std::ofstream mu_eff_interp;
+            mu_eff_interp.open("mu_eff_interp.dat");
+            d_hier_nc_data_ops->printData(d_mu_interp_idx, mu_eff_interp);
+            mu_eff_interp.close();
         }
 
         // Store the viscosities for later use
@@ -768,10 +761,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
     d_hier_sc_data_ops->copyData(d_rho_sc_new_idx,
                                  rho_sc_new_idx,
                                  /*interior_only*/ true);
-    if (d_use_turb_model)
-    {
-        interpolateSCMassDensityToCC(getNewContext());
-    }
 
     // Copy new into scratch
     d_hier_sc_data_ops->copyData(d_rho_sc_scratch_idx, d_rho_sc_new_idx);
@@ -979,12 +968,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::getMassDensityBoundaryConditions(
 {
     return d_rho_sc_bc_coefs;
 } // getMassDensityBoundaryConditions
-
-Pointer<CellVariable<NDIM, double> >
-INSVCStaggeredConservativeHierarchyIntegrator::getCellCenteredMassDensityVariable()
-{
-    return d_rho_cc_var;
-} // getCellCenteredMassDensityVariable
 
 void
 INSVCStaggeredConservativeHierarchyIntegrator::registerMassDensitySourceTerm(Pointer<CartGridFunction> S_fcn)
@@ -1320,7 +1303,16 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
 #elif (NDIM == 3)
             d_hier_ec_data_ops->scale(d_velocity_D_idx, A_scale * (-K), d_mu_interp_idx, /*interior_only*/ false);
 #endif
-            d_hier_cc_data_ops->scale(d_velocity_D_cc_idx, A_scale * (-K), d_mu_scratch_idx, /*interior_only*/ false);
+            if (!d_use_turb_model)
+            {
+                d_hier_cc_data_ops->scale(
+                    d_velocity_D_cc_idx, A_scale * (-K), d_mu_scratch_idx, /*interior_only*/ false);
+            }
+            else
+            {
+                d_hier_cc_data_ops->scale(
+                    d_velocity_D_cc_idx, A_scale * (-K), d_mu_scratch_idx, /*interior_only*/ false);
+            }
         }
     }
     U_problem_coefs.setCPatchDataId(d_velocity_C_idx);
@@ -1647,59 +1639,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
     }
     return;
 } // resetSolverVectors
-
-void
-INSVCStaggeredConservativeHierarchyIntegrator::interpolateSCMassDensityToCC(Pointer<VariableContext> ctx)
-{
-#if (!NDEBUG)
-    TBOX_ASSERT(d_rho_sc_var);
-    TBOX_ASSERT(d_rho_cc_var);
-#endif
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int rho_sc_idx = var_db->mapVariableAndContextToIndex(d_rho_sc_var, ctx);
-    const int rho_interp_idx = var_db->mapVariableAndContextToIndex(d_rho_interp_cc_var, getCurrentContext());
-    const int rho_cc_idx = var_db->mapVariableAndContextToIndex(d_rho_cc_var, ctx);
-    static const bool synch_cf_interface = true;
-
-    d_hier_math_ops->interp(rho_interp_idx,
-                            d_rho_interp_cc_var,
-                            rho_sc_idx,
-                            d_rho_sc_var,
-                            d_no_fill_op,
-                            d_integrator_time,
-                            synch_cf_interface);
-    for (int ln = coarsest_ln; ln <= finest_ln; ln++)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-
-        for (PatchLevelIterator<NDIM> p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > rho_cc_data = patch->getPatchData(rho_cc_idx);
-            Pointer<CellData<NDIM, double> > rho_interp_data = patch->getPatchData(rho_interp_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
-            {
-                CellIndex<NDIM> ci(it());
-                double sum = 0.0;
-                for (int d = 0; d < NDIM; d++)
-                {
-                    sum += (*rho_interp_data)(ci, d);
-                }
-#if (NDIM == 2)
-                (*rho_cc_data)(ci) = 0.5 * sum;
-#elif (NDIM == 3)
-                (*rho_cc_data)(ci) = (1.0 / 3.0) * (*rho_cc_data)(ci);
-#endif
-            }
-        }
-    }
-    return;
-} // interpolateSCMassDensityToCC
-
 //////////////////////////////////////////////////////////////////////////////
 
 } // namespace IBAMR

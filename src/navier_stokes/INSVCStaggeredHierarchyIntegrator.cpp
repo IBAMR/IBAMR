@@ -922,22 +922,22 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         d_mu_scratch_idx = var_db->registerVariableAndContext(mu_cc_scratch_var, getScratchContext(), mu_cell_ghosts);
     }
 
-    // register turbulent viscosity
-    if (d_mu_t_var)
-    {
-        registerVariable(d_mu_t_current_idx,
-                         d_mu_t_new_idx,
-                         d_mu_t_scratch_idx,
-                         d_mu_t_var,
-                         mu_t_cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
-                         d_mu_t_init_fcn);
-    }
-
-    // Store effective viscosity in case of turbulence
     if (d_use_turb_model)
     {
+        // register turbulent viscosity
+        if (d_mu_t_var)
+        {
+            registerVariable(d_mu_t_current_idx,
+                             d_mu_t_new_idx,
+                             d_mu_t_scratch_idx,
+                             d_mu_t_var,
+                             mu_t_cell_ghosts,
+                             "CONSERVATIVE_COARSEN",
+                             "CONSERVATIVE_LINEAR_REFINE",
+                             d_mu_t_init_fcn);
+        }
+
+        // Store effective viscosity in case of turbulence
         d_mu_eff_var = new CellVariable<NDIM, double>(d_mu_var->getName() + "::eff", /*depth*/ 1);
         registerVariable(d_mu_eff_scratch_idx, d_mu_eff_var, mu_cell_ghosts, getScratchContext());
     }
@@ -996,12 +996,13 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         {
             d_visit_writer->registerPlotQuantity("mu_ins", "SCALAR", d_mu_current_idx, 0, d_mu_scale);
         }
-
-        if (d_output_mu_t)
+        if (d_use_turb_model)
         {
-            d_visit_writer->registerPlotQuantity("mu_t", "SCALAR", d_mu_t_current_idx, 0, d_mu_scale);
+            if (d_output_mu_t)
+            {
+                d_visit_writer->registerPlotQuantity("mu_t", "SCALAR", d_mu_t_current_idx, 0, d_mu_scale);
+            }
         }
-
         if (d_F_fcn && d_output_F)
         {
             d_visit_writer->registerPlotQuantity("F", "VECTOR", d_F_cc_idx, 0, d_F_scale);
@@ -1237,7 +1238,8 @@ INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         if (!level->checkAllocated(d_rho_linear_op_idx)) level->allocatePatchData(d_rho_linear_op_idx, current_time);
         if (d_use_turb_model)
         {
-            if (!level->checkAllocated(d_mu_eff_scratch_idx)) level->allocatePatchData(d_mu_eff_scratch_idx);
+            if (!level->checkAllocated(d_mu_eff_scratch_idx))
+                level->allocatePatchData(d_mu_eff_scratch_idx, current_time);
         }
     }
 
@@ -1893,15 +1895,15 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
         // conservatively from the coarse cells only
         if (d_use_turb_model)
         {
-            InterpolationTransactionComponent mu_eff_bc_component(d_mu_eff_scratch_idx,
-                                                                  d_mu_refine_type,
-                                                                  false,
-                                                                  d_mu_coarsen_type,
-                                                                  d_mu_bdry_extrap_type,
-                                                                  false,
-                                                                  d_mu_bc_coef);
+            InterpolationTransactionComponent mu_bc_component(d_mu_scratch_idx,
+                                                              d_mu_refine_type,
+                                                              false,
+                                                              d_mu_coarsen_type,
+                                                              d_mu_bdry_extrap_type,
+                                                              false,
+                                                              d_mu_bc_coef);
             d_mu_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-            d_mu_bdry_bc_fill_op->initializeOperatorState(mu_eff_bc_component, d_hierarchy);
+            d_mu_bdry_bc_fill_op->initializeOperatorState(mu_bc_component, d_hierarchy);
         }
         else
         {
@@ -2093,7 +2095,6 @@ INSVCStaggeredHierarchyIntegrator::copySideToFace(const int U_fc_idx,
 } // copySideToFace
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
-
 void
 INSVCStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double current_time, const double new_time)
 {

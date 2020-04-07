@@ -144,10 +144,6 @@ public:
      */
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> getMassDensityBoundaryConditions() override;
 
-    /*!
-     * Get the cell-centered mass density variable registered with the hierarchy integrator.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getCellCenteredMassDensityVariable() override;
 
     /*!
      * \brief Supply a source term for the mass update equation.
@@ -267,16 +263,10 @@ private:
                             int cycle_num);
 
     /*!
-     * Interpolating the side centered density to cell-centered density
-     * using bilinear interpolation
-     */
-    void interpolateSCMassDensityToCC(SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
-
-    /*!
      * Side-centered density variable required for conservative discretization
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_cc_var;
+
     /*
      * Patch data descriptor indices for all "state" variables managed by the
      * integrator.
@@ -284,7 +274,6 @@ private:
      * State variables have three contexts: current, scratch, and new.
      */
     int d_rho_sc_current_idx, d_rho_sc_scratch_idx, d_rho_sc_new_idx;
-    int d_rho_cc_current_idx, d_rho_cc_scratch_idx, d_rho_cc_new_idx;
 
     /*
      * Boundary condition object for the side-centered density variable maintained

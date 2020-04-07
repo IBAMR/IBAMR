@@ -446,7 +446,7 @@ c
      & P,P_gc,
      & mut,mut_gc,
      & rho,rho_gc,
-     & F_1,F_1_gc,
+     & F1,F1_gc,
      & ilower0,iupper0,
      & ilower1,iupper1,
      & ilower2,iupper2,
@@ -458,11 +458,11 @@ c     Input
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
-      INTEGER F_1_gc,rho_gc,mut_gc
+      INTEGER F1_gc,rho_gc,mut_gc
 
       REAL alpha_1,alpha_2
 
-      REAL F_1(CELL3d(ilower,iupper,F_1_gc))
+      REAL F1(CELL3d(ilower,iupper,F1_gc))
       REAL rho(CELL3d(ilower,iupper,rho_gc))
       REAL mut(CELL3d(ilower,iupper,mut_gc))
 
@@ -481,7 +481,7 @@ c    Local variables.
       do i2 = ilower2,iupper2
         do i1 = ilower1,iupper1
           do i0 = ilower0,iupper0
-            alpha=(F_1(i0,i1,i2)*alpha_1)+((1.d0-F_1(i0,i1,i2))*alpha_2)
+            alpha=(F1(i0,i1,i2)*alpha_1)+((1.d0-F1(i0,i1,i2))*alpha_2)
           w_f(i0,i1,i2)=(alpha*rho(i0,i1,i2)/mut(i0,i1,i2))*P(i0,i1,i2)
           enddo
         enddo
@@ -500,9 +500,9 @@ c
 c
 c
       subroutine sst_w_eqn_crossdiffusion_3d(
-     & S,S_gc,
+     & w_f,w_f_gc,
      & rho,rho_gc,
-     & F_1,F_1_gc,
+     & F1,F1_gc,
      & k,k_gc,
      & w,w_gc,
      & sigma_w2,
@@ -515,12 +515,12 @@ c
 
 c     input variables
       REAL sigma_w2
-      INTEGER F_1_gc,rho_gc,k_gc,w_gc
+      INTEGER F1_gc,rho_gc,k_gc,w_gc
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
 
-      REAL F_1(CELL3d(ilower,iupper,F_1_gc))
+      REAL F1(CELL3d(ilower,iupper,F1_gc))
       REAL rho(CELL3d(ilower,iupper,rho_gc))
       REAL k(CELL3d(ilower,iupper,k_gc))
       REAL w(CELL3d(ilower,iupper,w_gc))
@@ -528,8 +528,8 @@ c     input variables
 
 c     output variables
 
-      INTEGER S_gc
-      REAL S(CELL3d(ilower,iupper,S_gc))
+      INTEGER w_f_gc
+      REAL w_f(CELL3d(ilower,iupper,w_f_gc))
 
 c    Local variables.
       INTEGER i0,i1,i2
@@ -549,7 +549,7 @@ c    Local variables.
      &                     *(w(i0,i1+1,i2)-w(i0,i1-1,i2))))
      &    +(fac2*((k(i0,i1,i2+1)-k(i0,i1,i2-1))
      &                     *(w(i0,i1,i2+1)-w(i0,i1,i2-1))))
-          S(i0,i1,i2) = S(i0,i1,i2)+((2.d0*(1.d0-F_1(i0,i1,i2))
+          w_f(i0,i1,i2) = w_f(i0,i1,i2)+((2.d0*(1.d0-F1(i0,i1,i2))
      &             *rho(i0,i1,i2)*sigma_w2*grad_k_grad_w)/w(i0,i1,i2))
           enddo
         enddo

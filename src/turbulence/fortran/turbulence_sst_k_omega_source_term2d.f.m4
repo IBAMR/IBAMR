@@ -71,7 +71,7 @@ c
      &               +(U0(i0,i1+1)-U0(i0,i1-1)))
             del_v_del_x = fac3*((U1(i0+1,i1+1)-U1(i0-1,i1+1))
      &               +(U1(i0+1,i1)-U1(i0-1,i1)))
-            P(i0,i1) =mut(i0,i1)*(2.d0*(del_u_del_x**2.d0+
+            P(i0,i1) = mut(i0,i1)*(2.d0*(del_u_del_x**2.d0+
      &      del_v_del_y**2.d0)+(del_u_del_y+del_v_del_x)**2.d0)
          enddo
       enddo
@@ -79,7 +79,6 @@ c
       return
       end
 cccccc
-
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -126,7 +125,7 @@ c
       INTEGER F1_gc
       REAL F1(CELL2d(ilower,iupper,F1_gc))
 c
-c    Local variables.
+c     Local variables.
       INTEGER i0,i1
       REAL grad_k_dot_w
       REAL cross_diffusion,first_term
@@ -266,8 +265,8 @@ c    Local variables.
         do i0 = ilower0,iupper0
             strain_rate_mag = sqrt(P(i0,i1)/(2.d0*mu_t(i0,i1)))
             mu_t(i0,i1) = a1*rho(i0,i1)*k(i0,i1)
-     &                    /max(a1*w(i0,i1), sqrt(2.d0)
-     &                    *strain_rate_mag*F2(i0,i1))
+     &                  / max(a1*w(i0,i1), sqrt(2.d0)
+     &                  * strain_rate_mag*F2(i0,i1))
         enddo
       enddo
 c
@@ -276,7 +275,7 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Computes G_b = - (1/(rho* sigma_t)*mut*grad_rho . g
+c     Computes G_b = - (1/(rho*sigma_t)*mut*grad_rho . g
 c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -322,8 +321,8 @@ c
 
       fac0 = 1.d0/(2.d0*dx(0))
       fac1 = 1.d0/(2.d0*dx(1))
-
-
+c
+c
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
            P(i0,i1)=P(i0,i1)-((mut(i0,i1)/(rho(i0,i1)*sigma_t))
@@ -331,14 +330,14 @@ c
      &              +(fac1*gy*(rho(i0,i1+1)-rho(i0,i1-1)))))
          enddo
       enddo
-
+c
       return
       end
-
+c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Computes P_k = min (G, 10*beta_star*k*w)
+c     Computes P_k = min(G, 10*beta_star*k*w)
 c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -353,40 +352,40 @@ c
      & ilower0,iupper0,
      & ilower1,iupper1,
      & beta_star)
-
+c
       implicit none
-
+c
 c     Input
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER k_gc,w_gc
-
+c
       REAL beta_star
-
+c
       REAL k(CELL2d(ilower,iupper,k_gc))
       REAL w(CELL2d(ilower,iupper,w_gc))
-
+c
 c     output
-
+c
       INTEGER P_gc
       REAL P(CELL2d(ilower,iupper,P_gc))
-
+c
       INTEGER k_f_gc
       REAL k_f(CELL2d(ilower,iupper,k_f_gc))
-
-
+c
+c
 c    Local variables.
       INTEGER i0,i1
-
+c
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
-          k_f(i0,i1)=Min(P(i0,i1),(10.d0*beta_star*k(i0,i1)*w(i0,i1)))
+          k_f(i0,i1) = min(P(i0,i1),(10.d0*beta_star*k(i0,i1)*w(i0,i1)))
         enddo
       enddo
-
+c
       return
       end
-
+c
 c Fortran routines for omega equation source terms
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -401,44 +400,41 @@ c
      & P,P_gc,
      & mut,mut_gc,
      & rho,rho_gc,
-     & F_1,F_1_gc,
+     & F1,F1_gc,
      & ilower0,iupper0,
      & ilower1,iupper1,
      & alpha_1,alpha_2)
-
+c
       implicit none
-
+c
 c     Input
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
-      INTEGER F_1_gc,rho_gc,mut_gc
-
+      INTEGER F1_gc,rho_gc,mut_gc,P_gc
+c
       REAL alpha_1,alpha_2
-
-      REAL F_1(CELL2d(ilower,iupper,F_1_gc))
+c
+      REAL F1(CELL2d(ilower,iupper,F1_gc))
       REAL rho(CELL2d(ilower,iupper,rho_gc))
       REAL mut(CELL2d(ilower,iupper,mut_gc))
-
-c     output
-
-      INTEGER P_gc
       REAL P(CELL2d(ilower,iupper,P_gc))
-
+c
+c     output
+c
       INTEGER w_f_gc
       REAL w_f(CELL2d(ilower,iupper,w_f_gc))
-
-
+c
+c
 c    Local variables.
       INTEGER i0,i1
       REAL alpha
-
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
-         alpha=(F_1(i0,i1)*alpha_1)+((1.d0-F_1(i0,i1))*alpha_2)
-         w_f(i0,i1)=(alpha*rho(i0,i1)/mut(i0,i1))*P(i0,i1)
+            alpha = F1(i0,i1)*alpha_1 + (1.d0-F1(i0,i1))*alpha_2
+            w_f(i0,i1) = P(i0,i1)*alpha*rho(i0,i1)/mut(i0,i1)
          enddo
       enddo
-
+c
       return
       end
 c
@@ -452,53 +448,53 @@ c
 c
 c
       subroutine sst_w_eqn_crossdiffusion_2d(
-     & S,S_gc,
+     & w_f,w_f_gc,
      & rho,rho_gc,
-     & F_1,F_1_gc,
+     & F1,F1_gc,
      & k,k_gc,
      & w,w_gc,
      & sigma_w2,
      & ilower0,iupper0,
      & ilower1,iupper1,
      & dx)
-
+c
       implicit none
-
+c
 c     input variables
       REAL sigma_w2
-      INTEGER F_1_gc,rho_gc,k_gc,w_gc
+      INTEGER F1_gc,rho_gc,k_gc,w_gc
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
-
-      REAL F_1(CELL2d(ilower,iupper,F_1_gc))
+c
+      REAL F1(CELL2d(ilower,iupper,F1_gc))
       REAL rho(CELL2d(ilower,iupper,rho_gc))
       REAL k(CELL2d(ilower,iupper,k_gc))
       REAL w(CELL2d(ilower,iupper,w_gc))
       REAL dx(0:NDIM-1)
 
 c     output variables
-
-      INTEGER S_gc
-      REAL S(CELL2d(ilower,iupper,S_gc))
-
+c
+      INTEGER w_f_gc
+      REAL w_f(CELL2d(ilower,iupper,w_f_gc))
+c
 c    Local variables.
       INTEGER i0,i1
       REAL grad_k_grad_w
       REAL fac0,fac1
-
+c
       fac0 = 1.d0/(4.d0*dx(0)*dx(0))
       fac1 = 1.d0/(4.d0*dx(1)*dx(1))
-
-
+c
+c
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
          grad_k_grad_w = (fac0*((k(i0+1,i1)-k(i0-1,i1))*(w(i0+1,i1)
      &                     -w(i0-1,i1))))+(fac1*((k(i0,i1+1)-k(i0,i1-1))
      &                     *(w(i0,i1+1)-w(i0,i1-1))))
-          S(i0,i1) = S(i0,i1)+((2.d0*(1.d0-F_1(i0,i1))*rho(i0,i1)
-     &             *sigma_w2*grad_k_grad_w)/w(i0,i1))
+         w_f(i0,i1) = w_f(i0,i1) + ((2.d0*(1.d0-F1(i0,i1))*rho(i0,i1)
+     &                *sigma_w2*grad_k_grad_w)/w(i0,i1))
          enddo
       enddo
-
+c
       return
       end

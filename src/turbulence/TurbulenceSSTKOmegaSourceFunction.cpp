@@ -176,16 +176,11 @@ namespace
 {
 // turbulent Prandtl number
 static const double sigma_t = 0.85;
-
 static const double beta_star = 0.09;
 
 // alpha
 static const double alpha_1 = 0.5532;
 static const double alpha_2 = 0.4403;
-
-// beta
-static const double beta_1 = 0.075;
-static const double beta_2 = 0.0828;
 
 // sigma_w2
 static const double sigma_w2 = 0.856;
@@ -239,10 +234,11 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchHierarchy(const int data_idx,
     d_mu_t_new_idx = var_db->mapVariableAndContextToIndex(mu_t_cc_var, d_ins_hier_integrator->getNewContext());
 
     // Get the data index of the density associated with new index.
-    Pointer<CellVariable<NDIM, double> > rho_cc_var = d_ins_hier_integrator->getCellCenteredMassDensityVariable();
-    d_rho_new_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, d_ins_hier_integrator->getNewContext());
-    d_rho_scratch_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, d_ins_hier_integrator->getScratchContext());
-    // copying the new index data into scratch index data
+    Pointer<CellVariable<NDIM, double> > rho_cc_var = d_turb_hier_integrator->getCellCenteredMassDensityVariable();
+    d_rho_new_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, d_turb_hier_integrator->getNewContext());
+    d_rho_scratch_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, d_turb_hier_integrator->getScratchContext());
+
+    // copying the new index data into scratch index data.
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
     hier_cc_data_ops.copyData(d_rho_scratch_idx, d_rho_new_idx);
     std::ofstream rho_new;
@@ -250,39 +246,42 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchHierarchy(const int data_idx,
     hier_cc_data_ops.printData(d_rho_scratch_idx, rho_new);
     rho_new.close();
 
-    // filling ghost cells for density (to be done)
+    // filling ghost cells for density. INSVCStaggeredConservativeHierarchyIntegrator
+    // class works with side-centered density which has NDIM components whereas
+    // TwoEquationTurbulenceHierarchyIntegrator class works with cell-centered density.
+    // Therefore, consider either one element of the vector for density bc_coef object.
     std::vector<RobinBcCoefStrategy<NDIM>*> rho_bc_coefs = d_ins_hier_integrator->getMassDensityBoundaryConditions();
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent rho_ghost_cc_interpolation(
-        d_rho_scratch_idx, "NONE", true, "CUBIC_COARSEN", "LINEAR", false, rho_bc_coefs);
+        d_rho_scratch_idx, "NONE", true, "CUBIC_COARSEN", "LINEAR", false, rho_bc_coefs[0]);
     HierarchyGhostCellInterpolation rho_ghost_cell_fill_op;
     rho_ghost_cell_fill_op.initializeOperatorState(rho_ghost_cc_interpolation, hierarchy, coarsest_ln, finest_ln);
     rho_ghost_cell_fill_op.fillData(data_time);
 
-    // Get the data index of the turbulent kinetic energy, k, associated with new index.
+    // Get the data index of the k variable associated with the new index.
     Pointer<CellVariable<NDIM, double> > k_var = d_turb_hier_integrator->getKVariable();
     d_k_new_idx = var_db->mapVariableAndContextToIndex(k_var, d_turb_hier_integrator->getNewContext());
     d_k_scratch_idx = var_db->mapVariableAndContextToIndex(k_var, d_turb_hier_integrator->getScratchContext());
     // copying the new index data into scratch index data
     hier_cc_data_ops.copyData(d_k_scratch_idx, d_k_new_idx);
 
-    // filling ghost cells for turbulent kinetic energy, k.
-    std::vector<RobinBcCoefStrategy<NDIM>*> k_bc_coef = d_turb_hier_integrator->getPhysicalBcCoefsKEquation();
+    // filling ghost cells for k variable.
+    RobinBcCoefStrategy<NDIM>* k_bc_coef = d_turb_hier_integrator->getPhysicalBcCoefKEquation();
     InterpolationTransactionComponent k_ghost_cc_interpolation(
         d_k_scratch_idx, "NONE", true, "CUBIC_COARSEN", "LINEAR", false, k_bc_coef);
     HierarchyGhostCellInterpolation k_ghost_cell_fill_op;
     k_ghost_cell_fill_op.initializeOperatorState(k_ghost_cc_interpolation, hierarchy, coarsest_ln, finest_ln);
     k_ghost_cell_fill_op.fillData(data_time);
 
-    // Get the data index of the turbulent specific dissipation rate, w, associated with new index.
+    // Get the data index of the w variable, associated with the new index.
     Pointer<CellVariable<NDIM, double> > w_var = d_turb_hier_integrator->getWVariable();
     d_w_new_idx = var_db->mapVariableAndContextToIndex(w_var, d_turb_hier_integrator->getNewContext());
     d_w_scratch_idx = var_db->mapVariableAndContextToIndex(w_var, d_turb_hier_integrator->getScratchContext());
     // copying the new index data into scratch index data
     hier_cc_data_ops.copyData(d_w_scratch_idx, d_w_new_idx);
 
-    // filling ghost cells for turbulent specific dissipation rate, w.
-    std::vector<RobinBcCoefStrategy<NDIM>*> w_bc_coef = d_turb_hier_integrator->getPhysicalBcCoefsWEquation();
+    // filling ghost cells for  w variable.
+    RobinBcCoefStrategy<NDIM>* w_bc_coef = d_turb_hier_integrator->getPhysicalBcCoefWEquation();
     InterpolationTransactionComponent w_ghost_cc_interpolation(
         d_w_scratch_idx, "NONE", true, "CUBIC_COARSEN", "LINEAR", false, w_bc_coef);
     HierarchyGhostCellInterpolation w_ghost_cell_fill_op;
@@ -318,8 +317,10 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatch(int data_idx,
     {
         setDataOnPatchCellForK(f_data, patch, data_time, initial_time, level);
     }
-    if (var->getName() == "turbulent_specific_dissipation_rate::F")
+    else if (var->getName() == "turbulent_specific_dissipation_rate::F")
+    {
         setDataOnPatchCellForOmega(f_data, patch, data_time, initial_time, level);
+    }
 
     return;
 }
@@ -377,9 +378,13 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForK(Pointer<CellData<NDIM,
 #endif
                          beta_star);
 
+    std::ofstream k_prod;
+    k_prod.open("k_prod.dat");
+    k_f_data->print(patch_box, k_prod);
+    k_prod.close();
+
     // routine to calculate buoyancy term
     Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(d_rho_scratch_idx);
-    std::cout << "Ghost cell width of density is" << rho_data->getGhostCellWidth().max() << std::endl;
 
     SST_K_EQN_BUOYANCY(k_f_data->getPointer(),
                        k_f_data->getGhostCellWidth().max(),
@@ -402,7 +407,10 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForK(Pointer<CellData<NDIM,
                        patch_box.upper(2),
 #endif
                        dx);
-
+    std::ofstream k_buoy;
+    k_buoy.open("k_buoy.dat");
+    k_f_data->print(patch_box, k_buoy);
+    k_buoy.close();
     return;
 }
 
@@ -413,24 +421,19 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForOmega(Pointer<CellData<N
                                                               const bool initial_time,
                                                               Pointer<PatchLevel<NDIM> > level)
 {
-    if (initial_time)
-    {
-        w_f_data->fillAll(0.0);
-    }
-
     const Box<NDIM>& patch_box = patch->getBox();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     Pointer<CellData<NDIM, double> > mu_t_data = patch->getPatchData(d_mu_t_new_idx);
 
-    // routine to calculate (alpha/nut_t)*G
     Pointer<CellData<NDIM, double> > k_data = patch->getPatchData(d_k_scratch_idx);
     Pointer<CellData<NDIM, double> > w_data = patch->getPatchData(d_w_scratch_idx);
     Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(d_rho_new_idx);
     Pointer<CellData<NDIM, double> > f1_data = patch->getPatchData(d_f1_scratch_idx);
     Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(d_p_scratch_idx);
 
+    // routine to calculate (alpha/nut)*G
     SST_W_EQN_PRODUCTION(w_f_data->getPointer(),
                          w_f_data->getGhostCellWidth().max(),
                          p_data->getPointer(),
@@ -451,6 +454,10 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForOmega(Pointer<CellData<N
 #endif
                          alpha_1,
                          alpha_2);
+    std::ofstream w_f_after_production;
+    w_f_after_production.open("w_f_after_production.dat");
+    w_f_data->print(patch_box, w_f_after_production);
+    w_f_after_production.close();
 
     SST_W_EQN_CROSSDIFFUSION(w_f_data->getPointer(),
                              w_f_data->getGhostCellWidth().max(),
@@ -472,6 +479,10 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForOmega(Pointer<CellData<N
                              patch_box.upper(2),
 #endif
                              dx);
+    std::ofstream w_f_after_cross_diff;
+    w_f_after_cross_diff.open("w_f_after_cross_diff.dat");
+    w_f_data->print(patch_box, w_f_after_cross_diff);
+    w_f_after_cross_diff.close();
 }
 
 } // namespace IBAMR

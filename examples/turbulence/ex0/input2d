@@ -8,13 +8,14 @@ WALL_LOCATION_INDEX = 2, 3
 
 // grid spacing parameters
 L          = 1.0
-MAX_LEVELS = 1       // maximum number of levels in locally refined grid
+MAX_LEVELS = 3       // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 REF_RATIO_FINEST = 2  // refinement ratio for the finest level.
 
 N = 50                                 // coarsest grid spacing
+H_COARSEST = N                          // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
-HFINEST = L/NFINEST
+HFINEST = LENGTH/NFINEST
 
 PressureInitialConditions {
    function = "0.0"
@@ -34,7 +35,7 @@ TurbulentKineticEnergyInitialConditions {
 }
 
 TurbulentSpecificDissipationRateInitialConditions {
-   function = "1.4662"
+   function = "1.466"
 }
 
 
@@ -73,6 +74,40 @@ VelocityBcCoefs_1 {
    gcoef_function_3 = "0.0"
 }
 
+RhoBcCoefs {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+MuBcCoefs {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
 MutBcCoefs {
    acoef_function_0 = "0.0"
    acoef_function_1 = "0.0"
@@ -89,6 +124,7 @@ MutBcCoefs {
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
 }
+
 
 KBcCoefs {
    acoef_function_0 = "1.0"
@@ -128,7 +164,7 @@ WBcCoefs {
 SOLVER_TYPE          = "STAGGERED"
 DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0     // initial simulation time
-END_TIME             =   0.001    // final simulation time
+END_TIME             =   0.01    // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
 REGRID_INTERVAL      =   50000000
@@ -141,7 +177,7 @@ NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "CUI"
 NORMALIZE_PRESSURE   = FALSE
 VORTICITY_TAGGING    = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
-DT_MAX               = 0.001                      // /(REF_RATIO^(MAX_LEVELS - 1))
+DT_MAX               = 0.0001                      // /(REF_RATIO^(MAX_LEVELS - 1))
 OUTPUT_U             = TRUE
 OUTPUT_P             = TRUE
 OUTPUT_F             = TRUE
@@ -150,6 +186,7 @@ OUTPUT_DIV_U         = TRUE
 OUTPUT_RHO           = TRUE
 OUTPUT_MU            = TRUE
 OUTPUT_MU_T          = TRUE
+OUTPUT_MU_EFF        = TRUE
 RHO_IS_CONST         = FALSE
 MU_IS_CONST          = FALSE
 ERROR_ON_DT_CHANGE   = FALSE
@@ -196,6 +233,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
    output_rho                 = OUTPUT_RHO
    output_mu                  = OUTPUT_MU
    output_mu_t                = OUTPUT_MU_T
+   output_mu_eff              = OUTPUT_MU_EFF
    rho_is_const               = RHO_IS_CONST
    mu_is_const                = MU_IS_CONST
    precond_reinit_interval    = PRECOND_REINIT_INTERVAL
@@ -373,10 +411,13 @@ TwoEquationTurbulenceHierarchyIntegrator {
    wall_location_index           = 2,3
    output_k                      = TRUE
    output_w                      = TRUE
+   
+   k_precond_type = "LEVEL_RELAXATION_FAC_PRECONDITIONER"
+   w_precond_type = "LEVEL_RELAXATION_FAC_PRECONDITIONER"
 }
 
 TurbulenceSSTKOmegaSourceFunction{
-gravity = 0.0, -9.81
+gravity = 0.0, 0.0
 }
 
 Main {
@@ -436,21 +477,38 @@ GriddingAlgorithm {
    combine_efficiency     = 0.80e0    // chop box if sum of volumes of smaller
                                       // boxes < efficiency * vol of large box
 }
+x_lower_index_0 = int(0.0/H_COARSEST)
+y_lower_index_0 = int(0.0/H_COARSEST)
+x_upper_index_0 = int(LENGTH/H_COARSEST)
+y_upper_index_0 = int((HEIGHT/8)/H_COARSEST)
+
+x_lower_index_1 = int(0.0/H_COARSEST)
+y_lower_index_1 = int((HEIGHT-(HEIGHT/8))/H_COARSEST)
+x_upper_index_1 = int(LENGTH/H_COARSEST)
+y_upper_index_1 = int(HEIGHT/H_COARSEST)
+
+x_lower_index_2 = int(0.0/H_COARSEST)
+y_lower_index_2 = int((HEIGHT/8)/H_COARSEST)
+x_upper_index_2 = int(LENGTH/H_COARSEST)
+y_upper_index_2 = int((HEIGHT/4)/H_COARSEST)
+
+x_lower_index_3 = int(0.0/H_COARSEST)
+y_lower_index_3 = int((HEIGHT/4)/H_COARSEST)
+x_upper_index_3 = int(LENGTH/H_COARSEST)
+y_upper_index_3 = int((HEIGHT-(HEIGHT/8))/H_COARSEST)
 
 StandardTagAndInitialize {
-   tagging_method = "REFINE_BOXES"
+   tagging_method = "GRADIENT_DETECTOR"
    RefineBoxes {
-      level_0 = [( 0 , 0 ),( N - 1 , N - 1 )]
-      level_1 = [( 0 , 0 ),( 2*N - 1 , 2*N - 1 )]
-      level_2 = [( 0 , 0 ),( 4*N - 1 , 4*N - 1 )]
-      level_3 = [( 0 , 0 ),( 8*N - 1 , 8*N - 1 )]
-      level_4 = [( 0 , 0 ),( 16*N - 1 , 16*N - 1 )]
-      level_5 = [( 0 , 0 ),( 32*N - 1 , 32*N - 1 )]
-      level_6 = [( 0 , 0 ),( 64*N - 1 , 64*N - 1 )]
-      level_7 = [( 0 , 0 ),( 128*N - 1 , 128*N - 1 )]
-      level_8 = [( 0 , 0 ),( 256*N - 1 , 256*N - 1 )]
-      level_9 = [( 0 , 0 ),( 512*N - 1 , 512*N - 1 )]
-   }
+      Level0{
+        boxes_0 = [ ( x_lower_index_0 , y_lower_index_0 ) , ( x_upper_index_0 , y_upper_index_0 ) ]
+        boxes_1 = [ ( x_lower_index_1 , y_lower_index_1 ) , ( x_upper_index_1 , y_upper_index_1 ) ]
+        }
+        Level1{
+        boxes_0 = [ ( x_lower_index_2 , y_lower_index_2 ) , ( x_upper_index_2 , y_upper_index_2 ) ]
+        boxes_1 = [ ( x_lower_index_3 , y_lower_index_3 ) , ( x_upper_index_3 , y_upper_index_3 ) ]
+        }
+      }
 }
 
 LoadBalancer {
