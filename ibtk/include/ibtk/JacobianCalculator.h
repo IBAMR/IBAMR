@@ -19,6 +19,7 @@
 #include <IBTK_config.h>
 
 #include <ibtk/ibtk_macros.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include "tbox/Utilities.h"
 
@@ -68,17 +69,75 @@ protected:
 
     std::vector<libMesh::Point> d_quad_points;
     std::vector<double> d_quad_weights;
-
-    std::vector<double> d_JxW;
 };
 
-/*
+/*!
+ * Class which can calculate both JxW and contravariant values.
+ */
+template <int dim, int spacedim = dim>
+class Mapping : public JacobianCalculator
+{
+protected:
+    /*!
+     * Actual data computed on an element.
+     */
+    struct MappingData
+    {
+        std::vector<double> d_JxW;
+
+        EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> > d_contravariants;
+    };
+
+public:
+    /*!
+     * Key type. Completely describes (excepting p-refinement) a libMesh
+     * quadrature rule.
+     */
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+
+    /*!
+     * Constructor.
+     */
+    Mapping(const key_type quad_key);
+
+    /*!
+     * Calculate the JxW values on the given element and return a reference to
+     * the result.
+     */
+    const std::vector<double>& get_JxW(const libMesh::Elem* elem) override
+    {
+        return get(elem).d_JxW;
+    }
+
+    /*!
+     * Calculate both the contravariants and JxW values.
+     */
+    virtual const MappingData& get(const libMesh::Elem* elem) = 0;
+
+protected:
+    /*!
+     * Actual data computed on an element.
+     */
+    MappingData d_values;
+
+    /*!
+     * Convenience reference.
+     */
+    std::vector<double>& d_JxW = d_values.d_JxW;
+
+    /*!
+     * Convenience reference.
+     */
+    EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> >& d_contravariants = d_values.d_contravariants;
+};
+
+/*!
  * A generic implementation for Lagrange-type elements: works for all elements
  * in that family but is less efficient than the specialized classes for
  * lower-order or tensor-product elements. Supports nonzero codimension.
  */
 template <int dim, int spacedim = dim>
-class LagrangeJacobianCalculator : public JacobianCalculator
+class LagrangeMapping : public Mapping<dim, spacedim>
 {
 public:
     /**
@@ -90,9 +149,9 @@ public:
     /**
      * Constructor.
      */
-    LagrangeJacobianCalculator(const key_type quad_key);
+    LagrangeMapping(const key_type quad_key);
 
-    virtual const std::vector<double>& get_JxW(const libMesh::Elem* elem) override;
+    virtual const typename Mapping<dim, spacedim>::MappingData& get(const libMesh::Elem* elem) override;
 
 protected:
     /**
@@ -110,37 +169,37 @@ protected:
 /*
  * Specialization for TRI3 elements with codimension zero.
  */
-class Tri3JacobianCalculator : public JacobianCalculator
+class Tri3Mapping : public Mapping<2, 2>
 {
 public:
     /**
      * Explicitly use the base class' constructor (this class does not require
      * any additional setup).
      */
-    using JacobianCalculator::JacobianCalculator;
+    using Mapping<2, 2>::Mapping;
 
-    virtual const std::vector<double>& get_JxW(const libMesh::Elem* elem) override;
+    virtual const Mapping<2, 2>::MappingData& get(const libMesh::Elem* elem) override;
 };
 
 /*
  * Specialization for QUAD4 elements with codimension zero.
  */
-class Quad4JacobianCalculator : public JacobianCalculator
+class Quad4Mapping : public Mapping<2, 2>
 {
 public:
     /**
      * Explicitly use the base class' constructor (this class does not require
      * any additional setup).
      */
-    using JacobianCalculator::JacobianCalculator;
+    using Mapping<2, 2>::Mapping;
 
-    virtual const std::vector<double>& get_JxW(const libMesh::Elem* elem) override;
+    virtual const Mapping<2, 2>::MappingData& get(const libMesh::Elem* elem) override;
 };
 
 /*
  * Specialization for QUAD9 elements with codimension zero.
  */
-class Quad9JacobianCalculator : public JacobianCalculator
+class Quad9Mapping : public Mapping<2, 2>
 {
 public:
     /**
@@ -152,9 +211,9 @@ public:
     /**
      * Constructor.
      */
-    Quad9JacobianCalculator(const key_type quad_key);
+    Quad9Mapping(const key_type quad_key);
 
-    virtual const std::vector<double>& get_JxW(const libMesh::Elem* elem) override;
+    virtual const Mapping<2, 2>::MappingData& get(const libMesh::Elem* elem) override;
 
 protected:
     /**
@@ -179,16 +238,16 @@ protected:
 /*
  * Specialization for TET4 elements.
  */
-class Tet4JacobianCalculator : public JacobianCalculator
+class Tet4Mapping : public Mapping<3, 3>
 {
 public:
     /**
      * Explicitly use the base class' constructor (this class does not require
      * any additional setup).
      */
-    using JacobianCalculator::JacobianCalculator;
+    using Mapping<3, 3>::Mapping;
 
-    virtual const std::vector<double>& get_JxW(const libMesh::Elem* elem) override;
+    virtual const typename Mapping<3, 3>::MappingData& get(const libMesh::Elem* elem) override;
 };
 } // namespace IBTK
 
