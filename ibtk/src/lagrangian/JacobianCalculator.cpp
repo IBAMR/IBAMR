@@ -65,8 +65,59 @@ Mapping<dim, spacedim>::Mapping(const typename Mapping<dim, spacedim>::key_type 
         if (d_update_flags | FEUpdateFlags::update_jacobians) d_update_flags |= update_contravariants;
     }
 
-    d_JxW.resize(this->d_quad_weights.size());
-    d_contravariants.resize(this->d_quad_weights.size());
+    if (d_update_flags | FEUpdateFlags::update_contravariants) d_contravariants.resize(this->d_quad_weights.size());
+
+    if (d_update_flags | FEUpdateFlags::update_jacobians) d_Jacobians.resize(this->d_quad_weights.size());
+
+    if (d_update_flags | FEUpdateFlags::update_JxW) d_JxW.resize(this->d_quad_weights.size());
+}
+
+template <int dim, int spacedim>
+void
+Mapping<dim, spacedim>::reinit(const libMesh::Elem* elem)
+{
+    if (d_update_flags & FEUpdateFlags::update_contravariants) fillContravariants(elem);
+    if (d_update_flags & FEUpdateFlags::update_jacobians) fillJacobians();
+    if (d_update_flags & FEUpdateFlags::update_JxW) fillJxW();
+}
+
+template <int dim, int spacedim>
+bool
+Mapping<dim, spacedim>::isAffine() const
+{
+    return false;
+}
+
+template <int dim, int spacedim>
+void
+Mapping<dim, spacedim>::fillJacobians()
+{
+    for (unsigned int q = 0; q < d_contravariants.size(); ++q)
+    {
+        if (dim == spacedim)
+        {
+            d_Jacobians[q] = d_contravariants[q].determinant();
+        }
+        else
+        {
+            Eigen::Matrix<double, dim, dim> Jac = d_contravariants[q].transpose() * d_contravariants[q];
+            d_Jacobians[q] = std::sqrt(Jac.determinant());
+        }
+        TBOX_ASSERT(d_Jacobians[q] > 0.0);
+
+        if (isAffine()) break;
+    }
+
+    if (isAffine()) std::fill(d_Jacobians.begin() + 1, d_Jacobians.end(), d_Jacobians[0]);
+
+    return;
+}
+
+template <int dim, int spacedim>
+void
+Mapping<dim, spacedim>::fillJxW()
+{
+    for (unsigned int q = 0; q < d_Jacobians.size(); ++q) d_JxW[q] = d_quad_weights[q] * d_Jacobians[q];
 }
 
 template <int dim, int spacedim>
@@ -97,11 +148,10 @@ LagrangeMapping<dim, spacedim>::LagrangeMapping(const typename LagrangeMapping<d
 
 template <int dim, int spacedim>
 void
-LagrangeMapping<dim, spacedim>::reinit(const libMesh::Elem* elem)
+LagrangeMapping<dim, spacedim>::fillContravariants(const libMesh::Elem* elem)
 {
     // static_assert(spacedim <= LIBMESH_DIM);
     TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
-    std::copy(this->d_quad_weights.begin(), this->d_quad_weights.end(), this->d_JxW.begin());
 
     // max_n_nodes is a constant defined by libMesh - currently 27
 #if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
@@ -130,29 +180,15 @@ LagrangeMapping<dim, spacedim>::reinit(const libMesh::Elem* elem)
                 }
             }
         }
-
-        double J = 0.0;
-        if (dim == spacedim)
-        {
-            J = contravariant.determinant();
-        }
-        else
-        {
-            Eigen::Matrix<double, dim, dim> Jac = contravariant.transpose() * contravariant;
-            J = std::sqrt(Jac.determinant());
-        }
-        TBOX_ASSERT(J > 0.0);
-        this->d_JxW[q] *= J;
     }
 
     return;
 }
 
 void
-Tri3Mapping::reinit(const libMesh::Elem* elem)
+Tri3Mapping::fillContravariants(const libMesh::Elem* elem)
 {
     TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
-    std::copy(d_quad_weights.begin(), d_quad_weights.end(), this->d_JxW.begin());
 
     const libMesh::Point p0 = elem->point(0);
     const libMesh::Point p1 = elem->point(1);
@@ -165,18 +201,19 @@ Tri3Mapping::reinit(const libMesh::Elem* elem)
     contravariant(1, 1) = p2(1) - p0(1);
     std::fill(this->d_contravariants.begin(), this->d_contravariants.end(), contravariant);
 
-    const double J = contravariant.determinant();
-    TBOX_ASSERT(J > 0.0);
-    for (double& jxw : this->d_JxW) jxw *= J;
-
     return;
 }
 
+bool
+Tri3Mapping::isAffine() const
+{
+    return true;
+}
+
 void
-Quad4Mapping::reinit(const libMesh::Elem* elem)
+Quad4Mapping::fillContravariants(const libMesh::Elem* elem)
 {
     TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
-    std::copy(d_quad_weights.begin(), d_quad_weights.end(), this->d_JxW.begin());
 
     // calculate constants in Jacobians here
     const libMesh::Point p0 = elem->point(0);
@@ -202,11 +239,6 @@ Quad4Mapping::reinit(const libMesh::Elem* elem)
         contravariant(0, 1) = b_1 + c_1 * x;
         contravariant(1, 0) = a_2 + c_2 * y;
         contravariant(1, 1) = b_2 + c_2 * x;
-
-        const double J = contravariant.determinant();
-
-        TBOX_ASSERT(J > 0.0);
-        this->d_JxW[i] *= J;
     }
 
     return;
@@ -256,10 +288,9 @@ Quad9Mapping::Quad9Mapping(const Quad9Mapping::key_type quad_key, FEUpdateFlags 
 }
 
 void
-Quad9Mapping::reinit(const libMesh::Elem* elem)
+Quad9Mapping::fillContravariants(const libMesh::Elem* elem)
 {
     TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
-    std::copy(d_quad_weights.begin(), d_quad_weights.end(), this->d_JxW.begin());
 
     constexpr std::size_t n_oned_shape_functions = 3;
 
@@ -317,20 +348,15 @@ Quad9Mapping::reinit(const libMesh::Elem* elem)
                 contravariant(1, 1) += ys[i][j] * d_phi(j, q_point_x) * d_dphi(i, q_point_y);
             }
         }
-
-        const double J = contravariant.determinant();
-        TBOX_ASSERT(J > 0.0);
-        this->d_JxW[q] *= J;
     }
 
     return;
 }
 
 void
-Tet4Mapping::reinit(const libMesh::Elem* elem)
+Tet4Mapping::fillContravariants(const libMesh::Elem* elem)
 {
     TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
-    std::copy(d_quad_weights.begin(), d_quad_weights.end(), this->d_JxW.begin());
 
     // calculate Jacobians here
     const libMesh::Point p0 = elem->point(0);
@@ -350,12 +376,13 @@ Tet4Mapping::reinit(const libMesh::Elem* elem)
     contravariant(2, 2) = p3(2) - p0(2);
     std::fill(d_contravariants.begin(), d_contravariants.end(), contravariant);
 
-    const double J = contravariant.determinant();
-
-    TBOX_ASSERT(J > 0.0);
-    for (double& jxw : this->d_JxW) jxw *= J;
-
     return;
+}
+
+bool
+Tet4Mapping::isAffine() const
+{
+    return true;
 }
 
 template class Mapping<1, 1>;

@@ -91,7 +91,7 @@ public:
      */
     Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
-    virtual void reinit(const libMesh::Elem* elem) = 0;
+    virtual void reinit(const libMesh::Elem* elem);
 
     /*!
      * Calculate the JxW values on the given element and return a reference to
@@ -110,14 +110,49 @@ protected:
     FEUpdateFlags d_update_flags;
 
     /*!
+     * Array of contravariants.
+     */
+    EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> > d_contravariants;
+
+    /*!
+     * Array of Jacobians.
+     */
+    std::vector<double> d_Jacobians;
+
+    /*!
      * Array of JxW values.
      */
     std::vector<double> d_JxW;
 
     /*!
-     * Array of contravariants.
+     * Array of mapped quadrature points.
      */
-    EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> > d_contravariants;
+    std::vector<libMesh::Point> d_quadrature_points;
+
+    /*!
+     * Boolean indicating that the mapping is affine - if it is we can skip
+     * some computations. The default implementation returns false. Inheriting
+     * classes should overload this they represent affine mappings.
+     */
+    virtual bool isAffine() const;
+
+    /*!
+     * Compute the contravariants. Since this depends on the element geometry
+     * there is no default implementation.
+     */
+    virtual void fillContravariants(const libMesh::Elem* elem) = 0;
+
+    /*!
+     * Compute determinants of contravariants (the Jacobians). The default
+     * implementation given here is usually the correct one.
+     */
+    virtual void fillJacobians();
+
+    /*!
+     * Compute JxW values. The default implementation given here is usually the
+     * correct one.
+     */
+    virtual void fillJxW();
 };
 
 /*!
@@ -140,9 +175,9 @@ public:
      */
     LagrangeMapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
-    virtual void reinit(const libMesh::Elem* elem) override;
-
 protected:
+    virtual void fillContravariants(const libMesh::Elem* elem) override;
+
     /**
      * Number of nodes for the considered element type.
      */
@@ -167,7 +202,10 @@ public:
      */
     using Mapping<2, 2>::Mapping;
 
-    virtual void reinit(const libMesh::Elem* elem) override;
+protected:
+    virtual void fillContravariants(const libMesh::Elem* elem) override;
+
+    virtual bool isAffine() const override;
 };
 
 /*
@@ -182,7 +220,8 @@ public:
      */
     using Mapping<2, 2>::Mapping;
 
-    virtual void reinit(const libMesh::Elem* elem) override;
+protected:
+    virtual void fillContravariants(const libMesh::Elem* elem) override;
 };
 
 /*
@@ -202,9 +241,9 @@ public:
      */
     Quad9Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
-    virtual void reinit(const libMesh::Elem* elem) override;
-
 protected:
+    virtual void fillContravariants(const libMesh::Elem* elem) override;
+
     /**
      * Number of 1D quadrature points in the rule used to generate the 2D
      * tensor product rule.
@@ -236,7 +275,10 @@ public:
      */
     using Mapping<3, 3>::Mapping;
 
-    virtual void reinit(const libMesh::Elem* elem) override;
+protected:
+    virtual void fillContravariants(const libMesh::Elem* elem) override;
+
+    virtual bool isAffine() const override;
 };
 } // namespace IBTK
 
