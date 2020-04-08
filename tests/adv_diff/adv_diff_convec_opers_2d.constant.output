@@ -1,0 +1,16 @@
+Error using: CENTERED:
+  L1-norm :0.0069359
+  L2-norm :0.0120674
+  max-norm:0.153007
+Error using: CUI:
+  L1-norm :0.012229
+  L2-norm :0.0399823
+  max-norm:0.385051
+Error using: PPM:
+  L1-norm :0.00481185
+  L2-norm :0.0174782
+  max-norm:0.217064
+Error using: WAVE_PROP:
+  L1-norm :0.00434733
+  L2-norm :0.0166877
+  max-norm:0.20535
