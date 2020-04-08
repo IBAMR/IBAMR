@@ -60,8 +60,65 @@ enum FEUpdateFlags
     /**
      * Update dphi (shape function gradients).
      */
-    update_dphi = 2
+    update_dphi = 2,
+
+    /**
+     * Update mapping contravariants.
+     */
+    update_contravariants = 4,
+
+    /**
+     * Update mapping Jacobians.
+     */
+    update_jacobians = 8,
+
+    /**
+     * Update JxW values.
+     */
+    update_JxW = 16,
+
+    /**
+     * Update mapped quadrature points.
+     */
+    update_quadrature_points = 32
 };
+
+/**
+ * Permit modifying FEUpdateFlags as though it were an integer type.
+ */
+inline FEUpdateFlags operator&(const FEUpdateFlags f1, const FEUpdateFlags f2)
+{
+    return static_cast<FEUpdateFlags>(static_cast<unsigned int>(f1) & static_cast<unsigned int>(f2));
+}
+
+/**
+ * Permit modifying FEUpdateFlags as though it were an integer type.
+ */
+inline FEUpdateFlags
+operator|(const FEUpdateFlags f1, const FEUpdateFlags f2)
+{
+    return static_cast<FEUpdateFlags>(static_cast<unsigned int>(f1) | static_cast<unsigned int>(f2));
+}
+
+/**
+ * Permit modifying FEUpdateFlags as though it were an integer type.
+ */
+inline FEUpdateFlags&
+operator|=(FEUpdateFlags& f1, const FEUpdateFlags f2)
+{
+    f1 = f1 | f2;
+    return f1;
+}
+
+/**
+ * Permit modifying FEUpdateFlags as though it were an integer type.
+ */
+inline FEUpdateFlags&
+operator&=(FEUpdateFlags& f1, const FEUpdateFlags f2)
+{
+    f1 = f1 & f2;
+    return f1;
+}
 
 /**
  * \brief Class storing multiple libMesh::FE objects, each corresponding to a

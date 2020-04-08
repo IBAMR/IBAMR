@@ -51,15 +51,28 @@ JacobianCalculator::JacobianCalculator(const JacobianCalculator::key_type quad_k
 }
 
 template <int dim, int spacedim>
-Mapping<dim, spacedim>::Mapping(const typename Mapping<dim, spacedim>::key_type quad_key) : JacobianCalculator(quad_key)
+Mapping<dim, spacedim>::Mapping(const typename Mapping<dim, spacedim>::key_type quad_key,
+                                const FEUpdateFlags update_flags)
+    : JacobianCalculator(quad_key)
 {
+    d_update_flags = update_flags;
+
+    // make sure dependencies are satisfied. These dependencies are only true
+    // for Lagrange-type mappings.
+    {
+        if (d_update_flags | FEUpdateFlags::update_JxW) d_update_flags |= update_jacobians;
+
+        if (d_update_flags | FEUpdateFlags::update_jacobians) d_update_flags |= update_contravariants;
+    }
+
     d_JxW.resize(this->d_quad_weights.size());
     d_contravariants.resize(this->d_quad_weights.size());
 }
 
 template <int dim, int spacedim>
-LagrangeMapping<dim, spacedim>::LagrangeMapping(const typename LagrangeMapping<dim, spacedim>::key_type quad_key)
-    : Mapping<dim, spacedim>(quad_key), d_n_nodes(get_n_nodes(std::get<0>(this->d_quad_key)))
+LagrangeMapping<dim, spacedim>::LagrangeMapping(const typename LagrangeMapping<dim, spacedim>::key_type quad_key,
+                                                const FEUpdateFlags update_flags)
+    : Mapping<dim, spacedim>(quad_key, update_flags), d_n_nodes(get_n_nodes(std::get<0>(this->d_quad_key)))
 {
 #if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
     TBOX_ASSERT(d_n_nodes <= 27);
@@ -199,7 +212,8 @@ Quad4Mapping::get(const libMesh::Elem* elem)
     return this->d_values;
 }
 
-Quad9Mapping::Quad9Mapping(const Quad9Mapping::key_type quad_key) : Mapping<2, 2>(quad_key)
+Quad9Mapping::Quad9Mapping(const Quad9Mapping::key_type quad_key, FEUpdateFlags update_flags)
+    : Mapping<2, 2>(quad_key, update_flags)
 {
     // This code utilizes an implementation detail of
     // QBase::tensor_product_quad where the x coordinate increases fastest to

@@ -18,6 +18,7 @@
 
 #include <IBTK_config.h>
 
+#include <ibtk/FECache.h>
 #include <ibtk/ibtk_macros.h>
 #include <ibtk/ibtk_utilities.h>
 
@@ -72,7 +73,8 @@ protected:
 };
 
 /*!
- * Class which can calculate both JxW and contravariant values.
+ * Class which can calculate various quantities related to the mapping from
+ * the reference element to an element in a mesh.
  */
 template <int dim, int spacedim = dim>
 class Mapping : public JacobianCalculator
@@ -98,7 +100,7 @@ public:
     /*!
      * Constructor.
      */
-    Mapping(const key_type quad_key);
+    Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
     /*!
      * Calculate the JxW values on the given element and return a reference to
@@ -109,12 +111,17 @@ public:
         return get(elem).d_JxW;
     }
 
+protected:
+    /*!
+     *
+     */
+    FEUpdateFlags d_update_flags;
+
     /*!
      * Calculate both the contravariants and JxW values.
      */
     virtual const MappingData& get(const libMesh::Elem* elem) = 0;
 
-protected:
     /*!
      * Actual data computed on an element.
      */
@@ -149,7 +156,7 @@ public:
     /**
      * Constructor.
      */
-    LagrangeMapping(const key_type quad_key);
+    LagrangeMapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
     virtual const typename Mapping<dim, spacedim>::MappingData& get(const libMesh::Elem* elem) override;
 
@@ -211,7 +218,7 @@ public:
     /**
      * Constructor.
      */
-    Quad9Mapping(const key_type quad_key);
+    Quad9Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
     virtual const Mapping<2, 2>::MappingData& get(const libMesh::Elem* elem) override;
 
