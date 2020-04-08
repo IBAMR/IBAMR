@@ -79,21 +79,6 @@ protected:
 template <int dim, int spacedim = dim>
 class Mapping : public JacobianCalculator
 {
-protected:
-    /*!
-     * Actual data computed on an element.
-     */
-    struct MappingData
-    {
-        EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> > d_contravariants;
-
-        std::vector<double> d_J;
-
-        std::vector<double> d_JxW;
-
-        std::vector<libMesh::Point> d_mapped_q_points;
-    };
-
 public:
     /*!
      * Key type. Completely describes (excepting p-refinement) a libMesh
@@ -125,19 +110,14 @@ protected:
     FEUpdateFlags d_update_flags;
 
     /*!
-     * Actual data computed on an element.
+     * Array of JxW values.
      */
-    MappingData d_values;
+    std::vector<double> d_JxW;
 
     /*!
-     * Convenience reference.
+     * Array of contravariants.
      */
-    std::vector<double>& d_JxW = d_values.d_JxW;
-
-    /*!
-     * Convenience reference.
-     */
-    EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> >& d_contravariants = d_values.d_contravariants;
+    EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> > d_contravariants;
 };
 
 /*!
