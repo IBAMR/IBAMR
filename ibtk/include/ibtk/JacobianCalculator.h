@@ -85,9 +85,13 @@ protected:
      */
     struct MappingData
     {
+        EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> > d_contravariants;
+
+        std::vector<double> d_J;
+
         std::vector<double> d_JxW;
 
-        EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> > d_contravariants;
+        std::vector<libMesh::Point> d_mapped_q_points;
     };
 
 public:
@@ -102,13 +106,16 @@ public:
      */
     Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
+    virtual void reinit(const libMesh::Elem* elem) = 0;
+
     /*!
      * Calculate the JxW values on the given element and return a reference to
      * the result.
      */
     const std::vector<double>& get_JxW(const libMesh::Elem* elem) override
     {
-        return get(elem).d_JxW;
+        reinit(elem);
+        return d_JxW;
     }
 
 protected:
@@ -116,11 +123,6 @@ protected:
      *
      */
     FEUpdateFlags d_update_flags;
-
-    /*!
-     * Calculate both the contravariants and JxW values.
-     */
-    virtual const MappingData& get(const libMesh::Elem* elem) = 0;
 
     /*!
      * Actual data computed on an element.
@@ -158,7 +160,7 @@ public:
      */
     LagrangeMapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
-    virtual const typename Mapping<dim, spacedim>::MappingData& get(const libMesh::Elem* elem) override;
+    virtual void reinit(const libMesh::Elem* elem) override;
 
 protected:
     /**
@@ -185,7 +187,7 @@ public:
      */
     using Mapping<2, 2>::Mapping;
 
-    virtual const Mapping<2, 2>::MappingData& get(const libMesh::Elem* elem) override;
+    virtual void reinit(const libMesh::Elem* elem) override;
 };
 
 /*
@@ -200,7 +202,7 @@ public:
      */
     using Mapping<2, 2>::Mapping;
 
-    virtual const Mapping<2, 2>::MappingData& get(const libMesh::Elem* elem) override;
+    virtual void reinit(const libMesh::Elem* elem) override;
 };
 
 /*
@@ -220,7 +222,7 @@ public:
      */
     Quad9Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
-    virtual const Mapping<2, 2>::MappingData& get(const libMesh::Elem* elem) override;
+    virtual void reinit(const libMesh::Elem* elem) override;
 
 protected:
     /**
@@ -254,7 +256,7 @@ public:
      */
     using Mapping<3, 3>::Mapping;
 
-    virtual const typename Mapping<3, 3>::MappingData& get(const libMesh::Elem* elem) override;
+    virtual void reinit(const libMesh::Elem* elem) override;
 };
 } // namespace IBTK
 

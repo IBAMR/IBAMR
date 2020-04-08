@@ -96,8 +96,8 @@ LagrangeMapping<dim, spacedim>::LagrangeMapping(const typename LagrangeMapping<d
 }
 
 template <int dim, int spacedim>
-const typename Mapping<dim, spacedim>::MappingData&
-LagrangeMapping<dim, spacedim>::get(const libMesh::Elem* elem)
+void
+LagrangeMapping<dim, spacedim>::reinit(const libMesh::Elem* elem)
 {
     // static_assert(spacedim <= LIBMESH_DIM);
     TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
@@ -145,11 +145,11 @@ LagrangeMapping<dim, spacedim>::get(const libMesh::Elem* elem)
         this->d_JxW[q] *= J;
     }
 
-    return this->d_values;
+    return;
 }
 
-const typename Mapping<2, 2>::MappingData&
-Tri3Mapping::get(const libMesh::Elem* elem)
+void
+Tri3Mapping::reinit(const libMesh::Elem* elem)
 {
     TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
     std::copy(d_quad_weights.begin(), d_quad_weights.end(), this->d_JxW.begin());
@@ -169,11 +169,11 @@ Tri3Mapping::get(const libMesh::Elem* elem)
     TBOX_ASSERT(J > 0.0);
     for (double& jxw : this->d_JxW) jxw *= J;
 
-    return this->d_values;
+    return;
 }
 
-const typename Mapping<2, 2>::MappingData&
-Quad4Mapping::get(const libMesh::Elem* elem)
+void
+Quad4Mapping::reinit(const libMesh::Elem* elem)
 {
     TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
     std::copy(d_quad_weights.begin(), d_quad_weights.end(), this->d_JxW.begin());
@@ -209,7 +209,7 @@ Quad4Mapping::get(const libMesh::Elem* elem)
         this->d_JxW[i] *= J;
     }
 
-    return this->d_values;
+    return;
 }
 
 Quad9Mapping::Quad9Mapping(const Quad9Mapping::key_type quad_key, FEUpdateFlags update_flags)
@@ -255,8 +255,8 @@ Quad9Mapping::Quad9Mapping(const Quad9Mapping::key_type quad_key, FEUpdateFlags 
     }
 }
 
-const typename Mapping<2, 2>::MappingData&
-Quad9Mapping::get(const libMesh::Elem* elem)
+void
+Quad9Mapping::reinit(const libMesh::Elem* elem)
 {
     TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
     std::copy(d_quad_weights.begin(), d_quad_weights.end(), this->d_JxW.begin());
@@ -323,11 +323,11 @@ Quad9Mapping::get(const libMesh::Elem* elem)
         this->d_JxW[q] *= J;
     }
 
-    return this->d_values;
+    return;
 }
 
-const typename Mapping<3, 3>::MappingData&
-Tet4Mapping::get(const libMesh::Elem* elem)
+void
+Tet4Mapping::reinit(const libMesh::Elem* elem)
 {
     TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
     std::copy(d_quad_weights.begin(), d_quad_weights.end(), this->d_JxW.begin());
@@ -355,7 +355,7 @@ Tet4Mapping::get(const libMesh::Elem* elem)
     TBOX_ASSERT(J > 0.0);
     for (double& jxw : this->d_JxW) jxw *= J;
 
-    return this->d_values;
+    return;
 }
 
 template class Mapping<1, 1>;
