@@ -629,15 +629,15 @@ postprocess_data(Pointer<Database> input_db,
     double F_integral[NDIM];
     for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
 
-    System& x_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
     System& U_system = equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
-    NumericVector<double>* x_vec = x_system.solution.get();
-    NumericVector<double>* x_ghost_vec = x_system.current_local_solution.get();
-    x_vec->localize(*x_ghost_vec);
+    NumericVector<double>* X_vec = X_system.solution.get();
+    NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
+    copy_and_synch(*X_vec, *X_ghost_vec);
     NumericVector<double>* U_vec = U_system.solution.get();
     NumericVector<double>* U_ghost_vec = U_system.current_local_solution.get();
-    U_vec->localize(*U_ghost_vec);
-    const DofMap& dof_map = x_system.get_dof_map();
+    copy_and_synch(*U_vec, *U_ghost_vec);
+    const DofMap& dof_map = X_system.get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
 
     std::unique_ptr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
@@ -676,7 +676,7 @@ postprocess_data(Pointer<Database> input_db,
         {
             dof_map.dof_indices(elem, dof_indices[d], d);
         }
-        get_values_for_interpolation(x_node, *x_ghost_vec, dof_indices);
+        get_values_for_interpolation(x_node, *X_ghost_vec, dof_indices);
         get_values_for_interpolation(U_node, *U_ghost_vec, dof_indices);
 
         const unsigned int n_qp = qrule->n_points();

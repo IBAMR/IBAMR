@@ -486,7 +486,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     System& F_system = equation_systems->get_system(IBFEMethod::FORCE_SYSTEM_NAME);
     NumericVector<double>* F_vec = F_system.solution.get();
     NumericVector<double>* F_ghost_vec = F_system.current_local_solution.get();
-    F_vec->localize(*F_ghost_vec);
+    copy_and_synch(*F_vec, *F_ghost_vec);
     const DofMap& dof_map = F_system.get_dof_map();
     FEType fe_type = dof_map.variable_type(0);
     std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
