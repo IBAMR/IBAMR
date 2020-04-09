@@ -325,7 +325,7 @@ main(int argc, char* argv[])
             }
             X_coords.close();
             X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
-            X_system.solution->localize(*X_system.current_local_solution);
+            copy_and_synch(*X_system.solution, *X_system.current_local_solution);
         }
 
         x_solid_system->assemble_before_solve = false;
@@ -467,10 +467,10 @@ main(int argc, char* argv[])
                 }
                 X_coords.close();
                 X_system.get_dof_map().enforce_constraints_exactly(X_system, &X_coords);
-                X_system.solution->localize(*X_system.current_local_solution);
+                copy_and_synch(X_coords, *X_system.current_local_solution);
                 U_coords.close();
                 U_system.get_dof_map().enforce_constraints_exactly(U_system, &U_coords);
-                U_system.solution->localize(*U_system.current_local_solution);
+                copy_and_synch(U_coords, *U_system.current_local_solution);
             }
 
             pout << "\n";

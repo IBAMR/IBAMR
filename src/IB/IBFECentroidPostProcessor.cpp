@@ -160,9 +160,8 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
     fe.evalQuadraturePoints();
 
     auto& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
-    X_system.solution->localize(*X_system.current_local_solution);
     NumericVector<double>& X_data = *(X_system.current_local_solution);
-    X_data.close();
+    copy_and_synch(*X_system.solution, X_data);
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_data);

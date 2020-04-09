@@ -1,0 +1,5 @@
+Fixed: The remaining calls to <tt>libMesh::PetscVector::localize()</tt> outside
+IBAMR::IBFESurfaceMethod have all been removed. The way we used this function
+was known to leak memory.
+<br>
+(David Wells, 2020/04/08)

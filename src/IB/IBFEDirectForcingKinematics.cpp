@@ -551,7 +551,7 @@ IBFEDirectForcingKinematics::computeCOMOfStructure(Eigen::Vector3d& X0)
 
     // Extract the FE system and DOF map, and setup the FE object.
     System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
-    X_system.solution->localize(*X_system.current_local_solution);
+    copy_and_synch(*X_system.solution, *X_system.current_local_solution);
     DofMap& X_dof_map = X_system.get_dof_map();
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
@@ -619,7 +619,7 @@ IBFEDirectForcingKinematics::computeMOIOfStructure(Eigen::Matrix3d& I, const Eig
 
     // Extract the FE system and DOF map, and setup the FE object.
     System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
-    X_system.solution->localize(*X_system.current_local_solution);
+    copy_and_synch(*X_system.solution, *X_system.current_local_solution);
     DofMap& X_dof_map = X_system.get_dof_map();
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
