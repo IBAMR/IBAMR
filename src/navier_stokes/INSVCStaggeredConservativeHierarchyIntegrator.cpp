@@ -289,9 +289,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
         d_hier_cc_data_ops->copyData(d_mu_scratch_idx,
                                      mu_current_idx,
                                      /*interior_only*/ true);
+        d_mu_bdry_bc_fill_op->fillData(current_time);
         if (!d_use_turb_model)
         {
-            d_mu_bdry_bc_fill_op->fillData(current_time);
             // Interpolate onto node or edge centers
             if (d_mu_vc_interp_type == VC_AVERAGE_INTERP)
             {
@@ -324,8 +324,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
             d_hier_cc_data_ops->copyData(d_mu_t_scratch_idx,
                                          d_mu_t_current_idx,
                                          /*interior_only*/ true);
-            d_hier_cc_data_ops->add(d_mu_scratch_idx, d_mu_t_scratch_idx, d_mu_scratch_idx);
-            d_mu_bdry_bc_fill_op->fillData(current_time);
+            d_mu_t_bdry_bc_fill_op->fillData(current_time);
+            d_hier_cc_data_ops->add(d_mu_scratch_idx, d_mu_t_scratch_idx, d_mu_scratch_idx, /*interior_only*/ false);
 
             // Interpolate onto node or edge centers
             if (d_mu_vc_interp_type == VC_AVERAGE_INTERP)

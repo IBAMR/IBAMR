@@ -630,7 +630,6 @@ TwoEquationTurbulenceHierarchyIntegrator::preprocessIntegrateHierarchy(const dou
                                  << enum_to_string<TimeSteppingType>(d_k_diffusion_time_stepping_type) << " \n"
                                  << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
     }
-    std::cout << "alpha is" << alpha << std::endl;
     PoissonSpecifications k_solver_spec(d_object_name + "::solver_spec::" + d_k_var->getName());
     PoissonSpecifications k_rhs_op_spec(d_object_name + "::rhs_op_spec::" + d_k_var->getName());
 
@@ -653,16 +652,24 @@ TwoEquationTurbulenceHierarchyIntegrator::preprocessIntegrateHierarchy(const dou
     d_mu_var = d_ins_hierarchy_integrator->getViscosityVariable();
     const int mu_current_idx =
         var_db->mapVariableAndContextToIndex(d_mu_var, d_ins_hierarchy_integrator->getCurrentContext());
+    const int mu_scratch_idx =
+        var_db->mapVariableAndContextToIndex(d_mu_var, d_ins_hierarchy_integrator->getScratchContext());
+    d_hier_cc_data_ops->copyData(mu_scratch_idx, mu_current_idx);
+    d_mu_bdry_bc_fill_op->fillData(current_time);
 
     // Calculate F1 and blend the coefficients
     calculateBlendingFunction(current_time, getCurrentContext());
     d_mu_t_var = d_ins_hierarchy_integrator->getTurbulentViscosityVariable();
     const int mu_t_current_idx =
         var_db->mapVariableAndContextToIndex(d_mu_t_var, d_ins_hierarchy_integrator->getCurrentContext());
-    d_mu_eff_scratch_idx = var_db->mapVariableAndContextToIndex(d_mu_eff_var, getScratchContext());
-    d_hier_cc_data_ops->axpy(d_mu_eff_scratch_idx, d_sigma_k, mu_t_current_idx, mu_current_idx);
+    const int mu_t_scratch_idx =
+        var_db->mapVariableAndContextToIndex(d_mu_t_var, d_ins_hierarchy_integrator->getScratchContext());
+    d_hier_cc_data_ops->copyData(mu_t_scratch_idx, mu_t_current_idx);
+    d_mu_t_bdry_bc_fill_op->fillData(current_time);
 
-    d_mu_eff_bdry_bc_fill_op->fillData(current_time);
+    d_mu_eff_scratch_idx = var_db->mapVariableAndContextToIndex(d_mu_eff_var, getScratchContext());
+    d_hier_cc_data_ops->axpy(
+        d_mu_eff_scratch_idx, d_sigma_k, mu_t_scratch_idx, mu_scratch_idx, false /*interior_only*/);
 
     // Interpolate the cell-centered mu_eff to side-centered
     d_hier_math_ops->interp(k_diff_coef_current_idx,
@@ -677,10 +684,6 @@ TwoEquationTurbulenceHierarchyIntegrator::preprocessIntegrateHierarchy(const dou
     k_rhs_op_spec.setDPatchDataId(k_diff_coef_rhs_scratch_idx);
 
     d_hier_sc_data_ops->scale(k_diff_coef_scratch_idx, -alpha, k_diff_coef_current_idx);
-    /*std::ofstream k_diff_scratch;
-    k_diff_scratch.open("k_diff_scratch.dat");
-    d_hier_sc_data_ops->printData(k_diff_coef_scratch_idx, k_diff_scratch);
-    k_diff_scratch.close();*/
     k_solver_spec.setDPatchDataId(k_diff_coef_scratch_idx);
 
     // Initialize the RHS operator and compute the RHS vector for k equation.
@@ -721,7 +724,6 @@ TwoEquationTurbulenceHierarchyIntegrator::preprocessIntegrateHierarchy(const dou
         d_k_solver_needs_init = false;
     }
 
-    // d_hier_cc_data_ops->setToScalar(k_rhs_scratch_idx, 0.0);
     // Account for the convective difference term.
     if (d_k_u_var)
     {
@@ -813,26 +815,15 @@ TwoEquationTurbulenceHierarchyIntegrator::preprocessIntegrateHierarchy(const dou
 
     // set rho/dt.
     d_hier_cc_data_ops->scale(d_w_temp_rhs_idx, 1.0 / dt, rho_cc_current_idx);
-
-    // Set rho*beta*w^n*w^n.
-    d_hier_cc_data_ops->multiply(d_w_dissipation_idx, rho_cc_current_idx, w_current_idx);
-    d_hier_cc_data_ops->scale(d_w_dissipation_idx, d_beta, d_w_dissipation_idx);
-    d_hier_cc_data_ops->multiply(d_w_dissipation_idx, d_w_dissipation_idx, w_current_idx);
-
-    d_hier_cc_data_ops->add(d_w_temp_rhs_idx, d_w_temp_rhs_idx, d_w_dissipation_idx);
     w_rhs_op_spec.setCPatchDataId(d_w_temp_rhs_idx);
 
     // set 2.0*rho*beta*omega
     d_hier_cc_data_ops->multiply(d_w_dissipation_idx, rho_cc_current_idx, w_current_idx);
-    d_hier_cc_data_ops->axpy(d_w_C_idx, 2.0 * d_beta, d_w_dissipation_idx, d_w_temp_rhs_idx);
-    std::ofstream w_c;
-    w_c.open("w_c.dat");
-    d_hier_cc_data_ops->printData(d_w_C_idx, w_c);
-    w_c.close();
+    d_hier_cc_data_ops->axpy(d_w_C_idx, d_beta, d_w_dissipation_idx, d_w_temp_rhs_idx);
     w_solver_spec.setCPatchDataId(d_w_C_idx);
 
-    d_hier_cc_data_ops->axpy(d_mu_eff_scratch_idx, d_sigma_w, mu_t_current_idx, mu_current_idx);
-    d_mu_eff_bdry_bc_fill_op->fillData(current_time);
+    d_hier_cc_data_ops->axpy(
+        d_mu_eff_scratch_idx, d_sigma_w, mu_t_scratch_idx, mu_scratch_idx, false /*interior_only*/);
 
     // Interpolate the cell-centered mu_eff to side-centered
     d_hier_math_ops->interp(w_diff_coef_current_idx,
@@ -848,10 +839,6 @@ TwoEquationTurbulenceHierarchyIntegrator::preprocessIntegrateHierarchy(const dou
     w_rhs_op_spec.setDPatchDataId(w_diff_coef_rhs_scratch_idx);
 
     d_hier_sc_data_ops->scale(w_diff_coef_scratch_idx, -alpha, w_diff_coef_current_idx);
-    std::ofstream w_diff_scratch;
-    w_diff_scratch.open("w_diff_scratch.dat");
-    d_hier_sc_data_ops->printData(w_diff_coef_scratch_idx, w_diff_scratch);
-    w_diff_scratch.close();
     // d_hier_sc_data_ops->setToScalar(w_diff_coef_scratch_idx, 0.0);
     w_solver_spec.setDPatchDataId(w_diff_coef_scratch_idx);
 
@@ -893,7 +880,6 @@ TwoEquationTurbulenceHierarchyIntegrator::preprocessIntegrateHierarchy(const dou
         d_w_solver_needs_init = false;
     }
 
-    // d_hier_cc_data_ops->setToScalar(w_rhs_scratch_idx, 0.0);
     // Account for the convective difference term.
     if (d_w_u_var)
     {
@@ -981,9 +967,13 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
     const int rho_cc_new_idx = var_db->mapVariableAndContextToIndex(d_rho_cc_var, getNewContext());
     d_mu_var = d_ins_hierarchy_integrator->getViscosityVariable();
     const int mu_new_idx = var_db->mapVariableAndContextToIndex(d_mu_var, d_ins_hierarchy_integrator->getNewContext());
+    const int mu_scratch_idx =
+        var_db->mapVariableAndContextToIndex(d_mu_var, d_ins_hierarchy_integrator->getScratchContext());
     d_mu_t_var = d_ins_hierarchy_integrator->getTurbulentViscosityVariable();
     const int mu_t_new_idx =
         var_db->mapVariableAndContextToIndex(d_mu_t_var, d_ins_hierarchy_integrator->getNewContext());
+    const int mu_t_scratch_idx =
+        var_db->mapVariableAndContextToIndex(d_mu_t_var, d_ins_hierarchy_integrator->getScratchContext());
     d_mu_eff_scratch_idx = var_db->mapVariableAndContextToIndex(d_mu_eff_var, getScratchContext());
     if (cycle_num > 0)
     {
@@ -1018,8 +1008,12 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
         calculateBlendingFunction(new_time, getNewContext());
 
         // Update the diffusion coefficient.
-        d_hier_cc_data_ops->axpy(d_mu_eff_scratch_idx, d_sigma_k, mu_t_new_idx, mu_new_idx);
-        d_mu_eff_bdry_bc_fill_op->fillData(new_time);
+        d_hier_cc_data_ops->copyData(mu_t_scratch_idx, mu_t_new_idx);
+        d_hier_cc_data_ops->copyData(mu_scratch_idx, mu_new_idx);
+        d_mu_t_bdry_bc_fill_op->fillData(new_time);
+        d_mu_bdry_bc_fill_op->fillData(new_time);
+        d_hier_cc_data_ops->axpy(
+            d_mu_eff_scratch_idx, d_sigma_k, mu_t_scratch_idx, mu_scratch_idx, /*interior_only*/ false);
 
         // Interpolate the cell-centered mu_eff to side-centered
         d_hier_math_ops->interp(k_diff_coef_new_idx,
@@ -1111,17 +1105,6 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
         }
         if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
         {
-            if (cycle_num > 0)
-            {
-                std::ofstream k_N_scratch;
-                k_N_scratch.open("k_N_scratch.dat");
-                d_hier_cc_data_ops->printData(k_N_scratch_idx, k_N_scratch);
-                k_N_scratch.close();
-                std::ofstream k_rhs_scratch;
-                k_rhs_scratch.open("k_rhs_scratch.dat");
-                d_hier_cc_data_ops->printData(k_rhs_scratch_idx, k_rhs_scratch);
-                k_rhs_scratch.close();
-            }
             d_hier_cc_data_ops->axpy(k_rhs_scratch_idx, -1.0, k_N_scratch_idx, k_rhs_scratch_idx);
         }
         else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
@@ -1140,39 +1123,23 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
     {
         d_k_F_fcn->setDataOnPatchHierarchy(k_F_scratch_idx, d_k_F_var, d_hierarchy, half_time);
         d_hier_cc_data_ops->axpy(k_rhs_scratch_idx, +1.0, k_F_scratch_idx, k_rhs_scratch_idx);
-        if (cycle_num > 0)
-        {
-            std::ofstream k_F;
-            k_F.open("k_F.dat");
-            d_hier_cc_data_ops->printData(k_F_scratch_idx, k_F);
-            k_F.close();
-            std::ofstream k_rhs;
-            k_rhs.open("k_rhs.dat");
-            d_hier_cc_data_ops->printData(k_rhs_scratch_idx, k_rhs);
-            k_rhs.close();
-        }
     }
 
     // Solve for k(n+1).
     Pointer<PoissonSolver> k_solver = d_k_solver;
     k_solver->solveSystem(*d_k_sol, *d_k_rhs);
     d_hier_cc_data_ops->copyData(k_new_idx, k_scratch_idx);
-    std::ofstream k_new;
-    k_new.open("k_new.dat");
-    d_hier_cc_data_ops->printData(k_new_idx, k_new);
-    k_new.close();
     if (d_enable_logging && d_enable_logging_solver_iterations)
-        plog << d_object_name
-             << "::integrateHierarchy(): diffusion solve number of iterations = " << k_solver->getNumIterations()
+        plog << d_object_name << ":" << d_k_var->getName()
+             << "::integrateHierarchy():diffusion solve number of iterations = " << k_solver->getNumIterations()
              << "\n";
     if (d_enable_logging)
-        plog << d_object_name
-             << "::integrateHierarchy(): diffusion solve residual norm        = " << k_solver->getResidualNorm()
-             << "\n";
+        plog << d_object_name << ":" << d_k_var->getName()
+             << "::integrateHierarchy():diffusion solve residual norm        = " << k_solver->getResidualNorm() << "\n";
     if (k_solver->getNumIterations() == k_solver->getMaxIterations())
     {
-        pout << d_object_name << "::integrateHierarchy():"
-             << "  WARNING: linear solver iterations == max iterations\n";
+        pout << d_object_name << ":" << d_k_var->getName()
+             << "::integrateHierarchy():WARNING: linear solver iterations == max iterations\n";
     }
     // Reset the right-hand side vector.
     if (d_k_u_var)
@@ -1206,7 +1173,7 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
 
         // set 2.0*rho*beta*omega.
         d_hier_cc_data_ops->multiply(d_w_dissipation_idx, rho_cc_new_idx, w_new_idx);
-        d_hier_cc_data_ops->axpy(d_w_C_idx, 2.0 * d_beta, d_w_dissipation_idx, d_w_temp_idx);
+        d_hier_cc_data_ops->axpy(d_w_C_idx, d_beta, d_w_dissipation_idx, d_w_temp_idx);
 
         double alpha = 0.0;
         switch (d_w_diffusion_time_stepping_type)
@@ -1228,9 +1195,8 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
         }
 
         // Update the diffusion coefficient.
-        d_hier_cc_data_ops->axpy(d_mu_eff_scratch_idx, d_sigma_w, mu_t_new_idx, mu_new_idx);
-
-        d_mu_eff_bdry_bc_fill_op->fillData(new_time);
+        d_hier_cc_data_ops->axpy(
+            d_mu_eff_scratch_idx, d_sigma_w, mu_t_scratch_idx, mu_scratch_idx, /*interior_only*/ false);
 
         // Interpolate the cell-centered mu_eff to side-centered.
         d_hier_math_ops->interp(w_diff_coef_new_idx,
@@ -1322,17 +1288,6 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
         if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
         {
             d_hier_cc_data_ops->axpy(w_rhs_scratch_idx, -1.0, w_N_scratch_idx, w_rhs_scratch_idx);
-            if (cycle_num > 0)
-            {
-                std::ofstream w_N_scratch;
-                w_N_scratch.open("w_N_scratch.dat");
-                d_hier_cc_data_ops->printData(w_N_scratch_idx, w_N_scratch);
-                w_N_scratch.close();
-                std::ofstream w_rhs_scratch;
-                w_rhs_scratch.open("w_rhs_scratch.dat");
-                d_hier_cc_data_ops->printData(w_rhs_scratch_idx, w_rhs_scratch);
-                w_rhs_scratch.close();
-            }
         }
         else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
         {
@@ -1347,39 +1302,24 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
     {
         d_w_F_fcn->setDataOnPatchHierarchy(w_F_scratch_idx, d_w_F_var, d_hierarchy, half_time);
         d_hier_cc_data_ops->axpy(w_rhs_scratch_idx, +1.0, w_F_scratch_idx, w_rhs_scratch_idx);
-        if (cycle_num == 0)
-        {
-            std::ofstream w_F;
-            w_F.open("w_F.dat");
-            d_hier_cc_data_ops->printData(w_F_scratch_idx, w_F);
-            w_F.close();
-            std::ofstream w_rhs;
-            w_rhs.open("w_rhs.dat");
-            d_hier_cc_data_ops->printData(w_rhs_scratch_idx, w_rhs);
-            w_rhs.close();
-        }
     }
 
     // Solve for w(n+1).
     Pointer<PoissonSolver> w_solver = d_w_solver;
     w_solver->solveSystem(*d_w_sol, *d_w_rhs);
     d_hier_cc_data_ops->copyData(w_new_idx, w_scratch_idx);
-    std::ofstream w_new;
-    w_new.open("w_new.dat");
-    d_hier_cc_data_ops->printData(w_new_idx, w_new);
-    w_new.close();
 
     if (d_enable_logging && d_enable_logging_solver_iterations)
-        plog << d_object_name
+        plog << d_object_name << ":" << d_w_var->getName()
              << "::integrateHierarchy(): diffusion solve number of iterations = " << w_solver->getNumIterations()
              << "\n";
     if (d_enable_logging)
-        plog << d_object_name
+        plog << d_object_name << ":" << d_w_var->getName()
              << "::integrateHierarchy(): diffusion solve residual norm        = " << w_solver->getResidualNorm()
              << "\n";
     if (w_solver->getNumIterations() == w_solver->getMaxIterations())
     {
-        pout << d_object_name << "::integrateHierarchy():"
+        pout << d_object_name << ":" << d_w_var->getName() << "::integrateHierarchy():"
              << "  WARNING: linear solver iterations == max iterations\n";
     }
     // Reset the right-hand side vector.
@@ -1389,13 +1329,6 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
         if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
         {
             d_hier_cc_data_ops->axpy(w_rhs_scratch_idx, +1.0, w_N_scratch_idx, w_rhs_scratch_idx);
-            if (cycle_num == 0)
-            {
-                std::ofstream w_rhs_midpoint_reset;
-                w_rhs_midpoint_reset.open("w_rhs_midpoint_reset.dat");
-                d_hier_cc_data_ops->printData(w_rhs_scratch_idx, w_rhs_midpoint_reset);
-                w_rhs_midpoint_reset.close();
-            }
         }
         else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
         {
@@ -1405,13 +1338,6 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
     if (d_w_F_fcn)
     {
         d_hier_cc_data_ops->axpy(w_rhs_scratch_idx, -1.0, w_F_scratch_idx, w_rhs_scratch_idx);
-        if (cycle_num == 0)
-        {
-            std::ofstream w_rhs_F_reset;
-            w_rhs_F_reset.open("w_rhs_F_reset.dat");
-            d_hier_cc_data_ops->printData(w_rhs_scratch_idx, w_rhs_F_reset);
-            w_rhs_F_reset.close();
-        }
         d_hier_cc_data_ops->copyData(w_F_new_idx, w_F_scratch_idx);
     }
 
@@ -1451,31 +1377,6 @@ TwoEquationTurbulenceHierarchyIntegrator::postprocessIntegrateHierarchy(const do
         level->deallocatePatchData(d_w_C_idx);
         level->deallocatePatchData(d_rho_vec_cc_idx);
     }
-
-    // Determine the CFL number.
-    /*double cfl_max = 0.0;
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int u_new_idx = var_db->mapVariableAndContextToIndex(d_k_u_var, getNewContext());
-    PatchFaceDataOpsReal<NDIM, double> patch_fc_ops;
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-            const double* const dx = pgeom->getDx();
-            const double dx_min = *(std::min_element(dx, dx + NDIM));
-            Pointer<FaceData<NDIM, double> > k_fc_new_data = patch->getPatchData(u_new_idx);
-            double u_max = 0.0;
-            u_max = patch_fc_ops.maxNorm(k_fc_new_data, patch_box);
-            cfl_max = std::max(cfl_max, u_max * dt / dx_min);
-        }
-    }
-    cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
-    if (d_enable_logging)
-        plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number  = " << cfl_max << "\n";*/
 
     // Execute any registered callbacks.
     executePostprocessIntegrateHierarchyCallbackFcns(
@@ -1887,18 +1788,34 @@ TwoEquationTurbulenceHierarchyIntegrator::resetHierarchyConfigurationSpecialized
     d_w_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_w_bdry_bc_fill_op->initializeOperatorState(w_bc_component, d_hierarchy);
 
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* mu_bc_coef = d_ins_hierarchy_integrator->getViscosityBoundaryConditions();
+    Pointer<CellVariable<NDIM, double> > mu_var = d_ins_hierarchy_integrator->getViscosityVariable();
+    const int mu_scratch_idx =
+        var_db->mapVariableAndContextToIndex(mu_var, d_ins_hierarchy_integrator->getScratchContext());
+    InterpolationTransactionComponent mu_bc_component(mu_scratch_idx,
+                                                      DATA_REFINE_TYPE,
+                                                      USE_CF_INTERPOLATION,
+                                                      DATA_COARSEN_TYPE,
+                                                      BDRY_EXTRAP_TYPE,
+                                                      CONSISTENT_TYPE_2_BDRY,
+                                                      mu_bc_coef);
+    d_mu_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    d_mu_bdry_bc_fill_op->initializeOperatorState(mu_bc_component, d_hierarchy);
+
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* mu_t_bc_coef =
         d_ins_hierarchy_integrator->getTurbulentViscosityBoundaryConditions();
-
-    InterpolationTransactionComponent mu_eff_bc_component(d_mu_eff_scratch_idx,
-                                                          DATA_REFINE_TYPE,
-                                                          USE_CF_INTERPOLATION,
-                                                          DATA_COARSEN_TYPE,
-                                                          BDRY_EXTRAP_TYPE,
-                                                          CONSISTENT_TYPE_2_BDRY,
-                                                          mu_t_bc_coef);
-    d_mu_eff_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_mu_eff_bdry_bc_fill_op->initializeOperatorState(mu_eff_bc_component, d_hierarchy);
+    Pointer<CellVariable<NDIM, double> > mu_t_var = d_ins_hierarchy_integrator->getTurbulentViscosityVariable();
+    const int mu_t_scratch_idx =
+        var_db->mapVariableAndContextToIndex(mu_t_var, d_ins_hierarchy_integrator->getScratchContext());
+    InterpolationTransactionComponent mu_t_bc_component(mu_t_scratch_idx,
+                                                        DATA_REFINE_TYPE,
+                                                        USE_CF_INTERPOLATION,
+                                                        DATA_COARSEN_TYPE,
+                                                        BDRY_EXTRAP_TYPE,
+                                                        CONSISTENT_TYPE_2_BDRY,
+                                                        mu_t_bc_coef);
+    d_mu_t_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    d_mu_t_bdry_bc_fill_op->initializeOperatorState(mu_t_bc_component, d_hierarchy);
 
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
 
@@ -1999,10 +1916,6 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateTurbulentViscosity()
                          patch_box.upper(2),
 #endif
                          a1);
-            std::ofstream mu_t;
-            mu_t.open("mu_t_new.dat");
-            mu_t_data->print(patch_box, mu_t);
-            mu_t.close();
         }
     }
 
@@ -2082,7 +1995,7 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateTurbulentKEProduction(const d
     }
 
     return;
-} // calculateProduction
+} // calculateTurbulentKEProduction
 
 void
 TwoEquationTurbulenceHierarchyIntegrator::calculateF2()
@@ -2112,10 +2025,6 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateF2()
             Pointer<CellData<NDIM, double> > w_data = patch->getPatchData(d_w_new_idx);
             Pointer<CellData<NDIM, double> > F2_data = patch->getPatchData(d_F2_scratch_idx);
             Pointer<CellData<NDIM, double> > d_data = patch->getPatchData(d_distance_to_closest_surface_scratch_idx);
-            /* std::ofstream min_distance;
-            min_distance.open("min_distance.dat");
-            d_data->print(patch_box, min_distance);
-            min_distance.close(); */
 
             // routine to calculate blending function
             SST_F2_FCN(F2_data->getPointer(),
@@ -2139,10 +2048,6 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateF2()
                        patch_box.upper(2),
 #endif
                        beta_star);
-            std::ofstream F2;
-            F2.open("F2.dat");
-            F2_data->print(patch_box, F2);
-            F2.close();
         }
     }
     return;

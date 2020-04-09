@@ -17,7 +17,7 @@ include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Computes P = mut*grad_U:(grad U + grad U^T)
+c     Computes P = mut*(grad U + grad U^T):grad_U
 c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -40,14 +40,12 @@ c
       INTEGER mut_gc
 
       REAL mut(CELL2d(ilower,iupper,mut_gc))
-
       REAL U0(SIDE2d0VECG(ilower,iupper,U_gc))
       REAL U1(SIDE2d1VECG(ilower,iupper,U_gc))
       REAL dx(0:NDIM-1)
 c
 c     Output.
       INTEGER P_gc
-
       REAL P(CELL2d(ilower,iupper,P_gc))
 c
 c     Local variables.
@@ -58,8 +56,8 @@ c
 c
 c     Compute the Production term of k and omega equation.
 c
-      fac0 = 1.d0/(dx(0)*dx(0))
-      fac1 = 1.d0/(dx(1)*dx(1))
+      fac0 = 1.d0/dx(0)
+      fac1 = 1.d0/dx(1)
       fac2 = 1.d0/(4.d0*dx(1))
       fac3 = 1.d0/(4.d0*dx(0))
 c
@@ -285,10 +283,10 @@ c
       subroutine sst_k_eqn_buoyancy_2d(
      &     P,P_gc,
      &     mut,mut_gc,
+     &     rho,rho_gc,
      &     gx,
      &     gy,
      &     sigma_t,
-     &     rho,rho_gc,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     dx)
@@ -356,19 +354,19 @@ c
       implicit none
 c
 c     Input
-      INTEGER ilower0,iupper0
-      INTEGER ilower1,iupper1
-      INTEGER k_gc,w_gc
+      INTEGER ilower0, iupper0
+      INTEGER ilower1, iupper1
+      INTEGER k_gc, w_gc, P_gc
+
 c
       REAL beta_star
 c
       REAL k(CELL2d(ilower,iupper,k_gc))
       REAL w(CELL2d(ilower,iupper,w_gc))
+      REAL P(CELL2d(ilower,iupper,P_gc))
 c
 c     output
 c
-      INTEGER P_gc
-      REAL P(CELL2d(ilower,iupper,P_gc))
 c
       INTEGER k_f_gc
       REAL k_f(CELL2d(ilower,iupper,k_f_gc))

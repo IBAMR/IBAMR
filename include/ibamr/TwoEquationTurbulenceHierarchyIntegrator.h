@@ -428,7 +428,7 @@ private:
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_k_bc_coef = nullptr;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_w_bc_coef = nullptr;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_k_bdry_bc_fill_op, d_w_bdry_bc_fill_op,
-        d_mu_eff_bdry_bc_fill_op;
+        d_mu_bdry_bc_fill_op, d_mu_t_bdry_bc_fill_op;
 
     /*!
      * Diffusion coefficient data

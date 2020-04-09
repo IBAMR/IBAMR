@@ -63,9 +63,9 @@ c
 c
 c     Compute the Production term of k and omega equation.
 c
-      fac0 = 1.d0/(dx(0)*dx(0))
-      fac1 = 1.d0/(dx(1)*dx(1))
-      fac2 = 1.d0/(dx(2)*dx(2))
+      fac0 = 1.d0/dx(0)
+      fac1 = 1.d0/dx(1)
+      fac2 = 1.d0/dx(2)
       fac3 = 1.d0/(4.d0*dx(1))
       fac4 = 1.d0/(4.d0*dx(0))
       fac5 = 1.d0/(4.d0*dx(2))

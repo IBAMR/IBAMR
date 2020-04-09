@@ -91,14 +91,14 @@ extern "C"
                             const int&,
                             const double*,
                             const int&,
+                            const double*,
+                            const int&,
                             const double&,
                             const double&,
 #if (NDIM == 3)
                             const double&,
 #endif
                             const double&,
-                            const double*,
-                            const int&,
                             const int&,
                             const int&,
                             const int&,
@@ -223,7 +223,6 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchHierarchy(const int data_idx,
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
-    //
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
 
@@ -249,7 +248,7 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchHierarchy(const int data_idx,
     // filling ghost cells for density. INSVCStaggeredConservativeHierarchyIntegrator
     // class works with side-centered density which has NDIM components whereas
     // TwoEquationTurbulenceHierarchyIntegrator class works with cell-centered density.
-    // Therefore, consider either one element of the vector for density bc_coef object.
+    // Therefore, consider any one element of the bc_coef vector for density bc_coef object.
     std::vector<RobinBcCoefStrategy<NDIM>*> rho_bc_coefs = d_ins_hier_integrator->getMassDensityBoundaryConditions();
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent rho_ghost_cc_interpolation(
@@ -346,10 +345,6 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForK(Pointer<CellData<NDIM,
                                                           const bool initial_time,
                                                           Pointer<PatchLevel<NDIM> > level)
 {
-    if (initial_time)
-    {
-        k_f_data->fillAll(0.0);
-    }
     const Box<NDIM>& patch_box = patch->getBox();
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
@@ -378,11 +373,6 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForK(Pointer<CellData<NDIM,
 #endif
                          beta_star);
 
-    std::ofstream k_prod;
-    k_prod.open("k_prod.dat");
-    k_f_data->print(patch_box, k_prod);
-    k_prod.close();
-
     // routine to calculate buoyancy term
     Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(d_rho_scratch_idx);
 
@@ -390,14 +380,14 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForK(Pointer<CellData<NDIM,
                        k_f_data->getGhostCellWidth().max(),
                        mu_t_data->getPointer(),
                        mu_t_data->getGhostCellWidth().max(),
+                       rho_data->getPointer(),
+                       rho_data->getGhostCellWidth().max(),
                        d_gravity[0],
                        d_gravity[1],
 #if (NDIM == 3)
                        d_gravity[2],
 #endif
                        sigma_t,
-                       rho_data->getPointer(),
-                       rho_data->getGhostCellWidth().max(),
                        patch_box.lower(0),
                        patch_box.upper(0),
                        patch_box.lower(1),
@@ -407,10 +397,6 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForK(Pointer<CellData<NDIM,
                        patch_box.upper(2),
 #endif
                        dx);
-    std::ofstream k_buoy;
-    k_buoy.open("k_buoy.dat");
-    k_f_data->print(patch_box, k_buoy);
-    k_buoy.close();
     return;
 }
 
@@ -454,10 +440,6 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForOmega(Pointer<CellData<N
 #endif
                          alpha_1,
                          alpha_2);
-    std::ofstream w_f_after_production;
-    w_f_after_production.open("w_f_after_production.dat");
-    w_f_data->print(patch_box, w_f_after_production);
-    w_f_after_production.close();
 
     SST_W_EQN_CROSSDIFFUSION(w_f_data->getPointer(),
                              w_f_data->getGhostCellWidth().max(),
@@ -479,10 +461,6 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForOmega(Pointer<CellData<N
                              patch_box.upper(2),
 #endif
                              dx);
-    std::ofstream w_f_after_cross_diff;
-    w_f_after_cross_diff.open("w_f_after_cross_diff.dat");
-    w_f_data->print(patch_box, w_f_after_cross_diff);
-    w_f_after_cross_diff.close();
 }
 
 } // namespace IBAMR

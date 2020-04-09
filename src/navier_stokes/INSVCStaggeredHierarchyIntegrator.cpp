@@ -1904,6 +1904,16 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                               d_mu_bc_coef);
             d_mu_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
             d_mu_bdry_bc_fill_op->initializeOperatorState(mu_bc_component, d_hierarchy);
+
+            InterpolationTransactionComponent mu_t_bc_component(d_mu_t_scratch_idx,
+                                                                d_mu_refine_type,
+                                                                false,
+                                                                d_mu_coarsen_type,
+                                                                d_mu_bdry_extrap_type,
+                                                                false,
+                                                                d_mu_t_bc_coef);
+            d_mu_t_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+            d_mu_t_bdry_bc_fill_op->initializeOperatorState(mu_t_bc_component, d_hierarchy);
         }
         else
         {

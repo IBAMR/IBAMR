@@ -8,7 +8,7 @@ WALL_LOCATION_INDEX = 2, 3
 
 // grid spacing parameters
 L          = 1.0
-MAX_LEVELS = 3       // maximum number of levels in locally refined grid
+MAX_LEVELS = 1       // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 REF_RATIO_FINEST = 2  // refinement ratio for the finest level.
 
@@ -164,7 +164,7 @@ WBcCoefs {
 SOLVER_TYPE          = "STAGGERED"
 DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0     // initial simulation time
-END_TIME             =   0.01    // final simulation time
+END_TIME             =   0.0001    // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
 REGRID_INTERVAL      =   50000000
@@ -477,25 +477,26 @@ GriddingAlgorithm {
    combine_efficiency     = 0.80e0    // chop box if sum of volumes of smaller
                                       // boxes < efficiency * vol of large box
 }
-x_lower_index_0 = int(0.0/H_COARSEST)
-y_lower_index_0 = int(0.0/H_COARSEST)
-x_upper_index_0 = int(LENGTH/H_COARSEST)
-y_upper_index_0 = int((HEIGHT/8)/H_COARSEST)
 
-x_lower_index_1 = int(0.0/H_COARSEST)
-y_lower_index_1 = int((HEIGHT-(HEIGHT/8))/H_COARSEST)
-x_upper_index_1 = int(LENGTH/H_COARSEST)
-y_upper_index_1 = int(HEIGHT/H_COARSEST)
+x_lower_index_0 = 0
+y_lower_index_0 = int((N/8) - 1)
+x_upper_index_0 = int(10*N - 1)
+y_upper_index_0 = int((N/4) - 1)
 
-x_lower_index_2 = int(0.0/H_COARSEST)
-y_lower_index_2 = int((HEIGHT/8)/H_COARSEST)
-x_upper_index_2 = int(LENGTH/H_COARSEST)
-y_upper_index_2 = int((HEIGHT/4)/H_COARSEST)
+x_lower_index_1 = 0
+y_lower_index_1 = int((3*N/4) - 1)
+x_upper_index_1 = int(10*N - 1)
+y_upper_index_1 = int((7*N/8) - 1)
 
-x_lower_index_3 = int(0.0/H_COARSEST)
-y_lower_index_3 = int((HEIGHT/4)/H_COARSEST)
-x_upper_index_3 = int(LENGTH/H_COARSEST)
-y_upper_index_3 = int((HEIGHT-(HEIGHT/8))/H_COARSEST)
+x_lower_index_2 = 0 // int(0.0/H_COARSEST)
+y_lower_index_2 = 0 // int(0.0/H_COARSEST)
+x_upper_index_2 = int (10*N - 1) // int(LENGTH/H_COARSEST)
+y_upper_index_2 = int((N/8) - 1) // int((HEIGHT/8)/H_COARSEST)
+
+x_lower_index_3 = 0
+y_lower_index_3 = int((7*N/8) - 1)
+x_upper_index_3 = int(10*N - 1)
+y_upper_index_3 = int(N - 1)
 
 StandardTagAndInitialize {
    tagging_method = "GRADIENT_DETECTOR"
