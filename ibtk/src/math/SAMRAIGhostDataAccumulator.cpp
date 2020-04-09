@@ -160,16 +160,16 @@ SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(Pointer<BasePatchHierarch
     }
     TBOX_ASSERT(depth != 0);
 
-    // make sure that we always have unique variable names (the
-    // VariableDatabase never deletes variables)
-    static int index = 0;
-    const std::string name = "SAMRAIGhostDataAccumulator::dof_" + std::to_string(index);
-    ++index;
+    const std::string name = "SAMRAIGhostDataAccumulator::dof_" + var->getName();
 
     // Create the dof indexing variable and its data:
     d_vecs.resize(d_finest_ln + 1); // be lazy and index this array directly by level number
-    Pointer<Variable<NDIM> > dof_var = d_cc_data ? Pointer<Variable<NDIM> >(new CellVariable<NDIM, int>(name, depth)) :
-                                                   Pointer<Variable<NDIM> >(new SideVariable<NDIM, int>(name, depth));
+    Pointer<Variable<NDIM> > dof_var;
+    if (var_db->checkVariableExists(name))
+        dof_var = var_db->getVariable(name);
+    else
+        dof_var = d_cc_data ? Pointer<Variable<NDIM> >(new CellVariable<NDIM, int>(name, depth)) :
+                              Pointer<Variable<NDIM> >(new SideVariable<NDIM, int>(name, depth));
 
     d_global_dof_idx = var_db->registerVariableAndContext(dof_var, context, d_gcw);
     d_local_dof_idx = var_db->registerClonedPatchDataIndex(dof_var, d_global_dof_idx);
