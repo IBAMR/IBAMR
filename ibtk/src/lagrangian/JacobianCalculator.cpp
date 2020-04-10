@@ -50,6 +50,10 @@ JacobianCalculator::JacobianCalculator(const JacobianCalculator::key_type quad_k
     d_quad_weights = quad_rule->get_weights();
 }
 
+//
+// Mapping
+//
+
 template <int dim, int spacedim>
 Mapping<dim, spacedim>::Mapping(const typename Mapping<dim, spacedim>::key_type quad_key,
                                 const FEUpdateFlags update_flags)
@@ -120,6 +124,10 @@ Mapping<dim, spacedim>::fillJxW()
     for (unsigned int q = 0; q < d_Jacobians.size(); ++q) d_JxW[q] = d_quad_weights[q] * d_Jacobians[q];
 }
 
+//
+// LagrangeMapping
+//
+
 template <int dim, int spacedim>
 LagrangeMapping<dim, spacedim>::LagrangeMapping(const typename LagrangeMapping<dim, spacedim>::key_type quad_key,
                                                 const FEUpdateFlags update_flags)
@@ -185,6 +193,10 @@ LagrangeMapping<dim, spacedim>::fillContravariants(const libMesh::Elem* elem)
     return;
 }
 
+//
+// Tri3Mapping
+//
+
 void
 Tri3Mapping::fillContravariants(const libMesh::Elem* elem)
 {
@@ -209,6 +221,10 @@ Tri3Mapping::isAffine() const
 {
     return true;
 }
+
+//
+// Quad4Mapping
+//
 
 void
 Quad4Mapping::fillContravariants(const libMesh::Elem* elem)
@@ -243,6 +259,10 @@ Quad4Mapping::fillContravariants(const libMesh::Elem* elem)
 
     return;
 }
+
+//
+// Quad9Mapping
+//
 
 Quad9Mapping::Quad9Mapping(const Quad9Mapping::key_type quad_key, FEUpdateFlags update_flags)
     : Mapping<2, 2>(quad_key, update_flags)
@@ -353,6 +373,10 @@ Quad9Mapping::fillContravariants(const libMesh::Elem* elem)
     return;
 }
 
+//
+// Tet4Mapping
+//
+
 void
 Tet4Mapping::fillContravariants(const libMesh::Elem* elem)
 {
@@ -384,6 +408,10 @@ Tet4Mapping::isAffine() const
 {
     return true;
 }
+
+//
+// Instantiations
+//
 
 template class Mapping<1, 1>;
 template class Mapping<1, 2>;
