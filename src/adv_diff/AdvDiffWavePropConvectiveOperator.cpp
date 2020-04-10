@@ -107,7 +107,7 @@ namespace IBAMR
 AdvDiffWavePropConvectiveOperator::AdvDiffWavePropConvectiveOperator(
     std::string object_name,
     Pointer<CellVariable<NDIM, double> > Q_var,
-    Pointer<Database> /*input_db*/,
+    Pointer<Database> input_db,
     const ConvectiveDifferencingType differencing_form,
     std::vector<RobinBcCoefStrategy<NDIM>*> conc_bc_coefs)
     : ConvectiveOperator(std::move(object_name), differencing_form),
@@ -123,6 +123,18 @@ AdvDiffWavePropConvectiveOperator::AdvDiffWavePropConvectiveOperator(
             << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
             << " \n"
             << "  valid choices are: ADVECTIVE\n");
+    }
+
+    if (input_db)
+    {
+        if (input_db->keyExists("outflow_bdry_extrap_type"))
+            d_outflow_bdry_extrap_type = input_db->getString("outflow_bdry_extrap_type");
+        if (input_db->keyExists("bdry_extrap_type"))
+        {
+            TBOX_ERROR("AdvDiffWavePropConvectiveOperator::AdvDiffWavePropConvectiveOperator():\n"
+                       << "  input database key ``bdry_extrap_type'' has been changed to "
+                          "``outflow_bdry_extrap_type''\n");
+        }
     }
 
     // Register some scratch variables

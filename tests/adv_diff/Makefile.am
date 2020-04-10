@@ -14,7 +14,7 @@
 include $(top_srcdir)/config/Make-rules
 
 
-EXTRA_PROGRAMS = adv_diff_01_2d adv_diff_01_3d adv_diff_02_2d adv_diff_02_3d adv_diff_03_2d
+EXTRA_PROGRAMS = adv_diff_01_2d adv_diff_01_3d adv_diff_02_2d adv_diff_02_3d adv_diff_03_2d adv_diff_convec_opers_2d adv_diff_convec_opers_3d
 
 adv_diff_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 adv_diff_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -35,6 +35,14 @@ adv_diff_02_3d_SOURCES = adv_diff_02.cpp
 adv_diff_03_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 adv_diff_03_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 adv_diff_03_2d_SOURCES = adv_diff_03.cpp
+
+adv_diff_convec_opers_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+adv_diff_convec_opers_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+adv_diff_convec_opers_2d_SOURCES = adv_diff_convec_opers.cpp
+
+adv_diff_convec_opers_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+adv_diff_convec_opers_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+adv_diff_convec_opers_3d_SOURCES = adv_diff_convec_opers.cpp
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
