@@ -539,6 +539,20 @@ IBFEMethod::registerDirectForcingKinematics(Pointer<IBFEDirectForcingKinematics>
     return;
 } // registerDirectForcingKinematics
 
+void
+IBFEMethod::registerPoroelasticPart(const double permeability, const unsigned int part)
+{
+    TBOX_ASSERT(part < d_num_parts);
+    if (d_ib_solver->getTimeSteppingType() == MIDPOINT_RULE)
+    {
+        TBOX_ERROR(
+            "IBFEMethod::registerPoroelasticPart(): poroelasticity currently does not support MIDPOINT_RULE time "
+            "stepping\n");
+    }
+    d_poroelastic_part[part] = true;
+    d_permeability[part] = permeability;
+}
+
 const IntVector<NDIM>&
 IBFEMethod::getMinimumGhostCellWidth() const
 {
@@ -819,6 +833,12 @@ IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
                             d_U_vecs->get("current", part).vec(),
                             d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
+        if (d_poroelastic_part[part])
+        {
+            ierr = VecAXPY(
+                d_X_vecs->get("new", part).vec(), dt / d_permeability[part], d_F_vecs->get("current", part).vec());
+            IBTK_CHKERRQ(ierr);
+        }
         ierr = VecAXPBYPCZ(d_X_vecs->get("half", part).vec(),
                            0.5,
                            0.5,
@@ -849,6 +869,21 @@ IBFEMethod::backwardEulerStep(const double current_time, const double new_time)
                             d_U_vecs->get("new", part).vec(),
                             d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
+        if (d_poroelastic_part[part])
+        {
+            if (d_ib_solver->getCurrentCycleNumber() == 0)
+            {
+                ierr = VecAXPY(
+                    d_X_vecs->get("new", part).vec(), dt / d_permeability[part], d_F_vecs->get("current", part).vec());
+                IBTK_CHKERRQ(ierr);
+            }
+            else
+            {
+                ierr = VecAXPY(
+                    d_X_vecs->get("new", part).vec(), dt / d_permeability[part], d_F_vecs->get("new", part).vec());
+                IBTK_CHKERRQ(ierr);
+            }
+        }
         ierr = VecAXPBYPCZ(d_X_vecs->get("half", part).vec(),
                            0.5,
                            0.5,
@@ -875,6 +910,10 @@ IBFEMethod::midpointStep(const double current_time, const double new_time)
                             d_U_vecs->get("half", part).vec(),
                             d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
+        if (d_poroelastic_part[part])
+        {
+            TBOX_ERROR("IBFEMethod::midpointStep(): not implemented for poroelastic models\n");
+        }
         ierr = VecAXPBYPCZ(d_X_vecs->get("half", part).vec(),
                            0.5,
                            0.5,
@@ -906,6 +945,25 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
                             d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPY(d_X_vecs->get("new", part).vec(), 0.5 * dt, d_U_vecs->get("new", part).vec());
+        if (d_poroelastic_part[part])
+        {
+            if (d_ib_solver->getCurrentCycleNumber() == 0)
+            {
+                ierr = VecAXPY(
+                    d_X_vecs->get("new", part).vec(), dt / d_permeability[part], d_F_vecs->get("current", part).vec());
+                IBTK_CHKERRQ(ierr);
+            }
+            else
+            {
+                ierr = VecAXPBYPCZ(d_X_vecs->get("new", part).vec(),
+                                   0.5 * dt / d_permeability[part],
+                                   0.5 * dt / d_permeability[part],
+                                   1.0,
+                                   d_F_vecs->get("current", part).vec(),
+                                   d_F_vecs->get("new", part).vec());
+                IBTK_CHKERRQ(ierr);
+            }
+        }
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPBYPCZ(d_X_vecs->get("half", part).vec(),
                            0.5,
@@ -3541,6 +3599,8 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     d_lag_body_source_part.resize(d_num_parts, false);
     d_lag_body_source_fcn_data.resize(d_num_parts);
     d_direct_forcing_kinematics_data.resize(d_num_parts, Pointer<IBFEDirectForcingKinematics>(nullptr));
+    d_poroelastic_part.resize(d_num_parts, false);
+    d_permeability.resize(d_num_parts, 0.0);
 
     // Determine whether we should use first-order or second-order shape
     // functions for each part of the structure.

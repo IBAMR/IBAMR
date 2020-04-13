@@ -619,6 +619,11 @@ public:
                                          unsigned int part = 0);
 
     /*!
+     * Register that a part is poroelastic.
+     */
+    void registerPoroelasticPart(double permeability, unsigned int part = 0);
+
+    /*!
      * Return the number of ghost cells required by the Lagrangian-Eulerian
      * interaction routines.
      */
@@ -1293,6 +1298,12 @@ protected:
     bool d_has_lag_body_source_parts = false;
     std::vector<bool> d_lag_body_source_part;
     std::vector<LagBodySourceFcnData> d_lag_body_source_fcn_data;
+
+    /*!
+     * permeability data structures.
+     */
+    std::vector<bool> d_poroelastic_part;
+    std::vector<double> d_permeability;
 
     /*!
      * Nonuniform load balancing data structures.
