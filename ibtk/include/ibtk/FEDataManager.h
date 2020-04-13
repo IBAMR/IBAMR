@@ -59,6 +59,7 @@ IBTK_ENABLE_EXTRA_WARNINGS
 namespace IBTK
 {
 class FEDataManager;
+class FEProjector;
 class RobinPhysBdryPatchStrategy;
 } // namespace IBTK
 
@@ -195,9 +196,9 @@ public:
 
     /*!
      * Clear all cached (i.e., computed at first request and then stored for
-     * future calls) data.
+     * future calls) data that depends on the Eulerian data partitioning.
      */
-    void clearCached();
+    void clearPatchHierarchyDependentData();
 
 protected:
     /*!
@@ -237,13 +238,6 @@ protected:
      * Mapping between system numbers and SystemDofMapCache objects.
      */
     std::map<unsigned int, std::unique_ptr<SystemDofMapCache> > d_system_dof_map_cache;
-
-    /*!
-     * Linear solvers and related data for performing interpolation in the IB-FE
-     * framework.
-     */
-    std::map<std::string, std::unique_ptr<libMesh::LinearSolver<double> > > d_L2_proj_solver;
-    std::map<std::string, std::unique_ptr<libMesh::SparseMatrix<double> > > d_L2_proj_matrix;
 
     /**
      * Permit FEDataManager to directly examine the internals of this class.
@@ -368,9 +362,13 @@ protected:
     std::shared_ptr<FEData> d_fe_data;
 
     /*!
-     * Vector representations of diagonal mass matrices.
+     * FEProjector object that handles L2 projection functionality.
      */
-    std::map<std::string, std::unique_ptr<libMesh::NumericVector<double> > > d_L2_proj_matrix_diag;
+    std::shared_ptr<FEProjector> d_fe_projector;
+
+    /*!
+     * IB ghosted diagonal mass matrix representations.
+     */
     std::map<std::string, std::unique_ptr<libMesh::PetscVector<double> > > d_L2_proj_matrix_diag_ghost;
 
 public:

@@ -107,6 +107,7 @@ host_triplet = @host@
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/JacobianCalculator.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/FEDataInterpolation.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/FEDataManager.cpp \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/FEProjector.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/LibMeshSystemIBVectors.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/LibMeshSystemVectors.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libmesh_utilities.cpp \
@@ -114,6 +115,7 @@ host_triplet = @host@
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/JacobianCalculator.h \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/FEDataInterpolation.h \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/FEDataManager.h \
+@LIBMESH_ENABLED_TRUE@	../include/ibtk/FEProjector.h \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/LibMeshSystemIBVectors.h \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/LibMeshSystemVectors.h \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/libmesh_utilities.h
@@ -336,13 +338,14 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/lagrangian/JacobianCalculator.cpp \
 	../src/lagrangian/FEDataInterpolation.cpp \
 	../src/lagrangian/FEDataManager.cpp \
+	../src/lagrangian/FEProjector.cpp \
 	../src/utilities/LibMeshSystemIBVectors.cpp \
 	../src/utilities/LibMeshSystemVectors.cpp \
 	../src/utilities/libmesh_utilities.cpp \
 	../include/lagrangian/BoxPartitioner.h \
 	../src/lagrangian/JacobianCalculator.h \
 	../include/ibtk/FEDataInterpolation.h \
-	../include/ibtk/FEDataManager.h \
+	../include/ibtk/FEDataManager.h ../include/ibtk/FEProjector.h \
 	../include/ibtk/LibMeshSystemIBVectors.h \
 	../include/ibtk/LibMeshSystemVectors.h \
 	../include/ibtk/libmesh_utilities.h \
@@ -370,6 +373,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-JacobianCalculator.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-FEDataInterpolation.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-FEDataManager.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-FEProjector.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK2d_a-LibMeshSystemVectors.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK2d_a-libmesh_utilities.$(OBJEXT)
@@ -639,13 +643,14 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/lagrangian/JacobianCalculator.cpp \
 	../src/lagrangian/FEDataInterpolation.cpp \
 	../src/lagrangian/FEDataManager.cpp \
+	../src/lagrangian/FEProjector.cpp \
 	../src/utilities/LibMeshSystemIBVectors.cpp \
 	../src/utilities/LibMeshSystemVectors.cpp \
 	../src/utilities/libmesh_utilities.cpp \
 	../include/lagrangian/BoxPartitioner.h \
 	../src/lagrangian/JacobianCalculator.h \
 	../include/ibtk/FEDataInterpolation.h \
-	../include/ibtk/FEDataManager.h \
+	../include/ibtk/FEDataManager.h ../include/ibtk/FEProjector.h \
 	../include/ibtk/LibMeshSystemIBVectors.h \
 	../include/ibtk/LibMeshSystemVectors.h \
 	../include/ibtk/libmesh_utilities.h \
@@ -673,6 +678,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-JacobianCalculator.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-FEDataInterpolation.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-FEDataManager.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-FEProjector.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK3d_a-LibMeshSystemVectors.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK3d_a-libmesh_utilities.$(OBJEXT)
@@ -879,6 +885,7 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-BoxPartitioner.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataInterpolation.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataManager.Po \
+	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEProjector.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-JacobianCalculator.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LData.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LDataManager.Po \
@@ -901,6 +908,7 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-BoxPartitioner.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEDataInterpolation.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEDataManager.Po \
+	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEProjector.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-JacobianCalculator.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LData.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LDataManager.Po \
@@ -2331,6 +2339,9 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/lagrangian/libIBTK2d_a-FEDataManager.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
+../src/lagrangian/libIBTK2d_a-FEProjector.$(OBJEXT):  \
+	../src/lagrangian/$(am__dirstamp) \
+	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -2819,6 +2830,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/lagrangian/libIBTK3d_a-FEDataManager.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
+../src/lagrangian/libIBTK3d_a-FEProjector.$(OBJEXT):  \
+	../src/lagrangian/$(am__dirstamp) \
+	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -2960,6 +2974,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-BoxPartitioner.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataInterpolation.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataManager.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEProjector.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-JacobianCalculator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LData.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LDataManager.Po@am__quote@ # am--include-marker
@@ -2982,6 +2997,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-BoxPartitioner.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEDataInterpolation.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEDataManager.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEProjector.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-JacobianCalculator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LData.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LDataManager.Po@am__quote@ # am--include-marker
@@ -4966,6 +4982,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-FEDataManager.obj `if test -f '../src/lagrangian/FEDataManager.cpp'; then $(CYGPATH_W) '../src/lagrangian/FEDataManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/FEDataManager.cpp'; fi`
 
+../src/lagrangian/libIBTK2d_a-FEProjector.o: ../src/lagrangian/FEProjector.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-FEProjector.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEProjector.Tpo -c -o ../src/lagrangian/libIBTK2d_a-FEProjector.o `test -f '../src/lagrangian/FEProjector.cpp' || echo '$(srcdir)/'`../src/lagrangian/FEProjector.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEProjector.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEProjector.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/FEProjector.cpp' object='../src/lagrangian/libIBTK2d_a-FEProjector.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-FEProjector.o `test -f '../src/lagrangian/FEProjector.cpp' || echo '$(srcdir)/'`../src/lagrangian/FEProjector.cpp
+
+../src/lagrangian/libIBTK2d_a-FEProjector.obj: ../src/lagrangian/FEProjector.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-FEProjector.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEProjector.Tpo -c -o ../src/lagrangian/libIBTK2d_a-FEProjector.obj `if test -f '../src/lagrangian/FEProjector.cpp'; then $(CYGPATH_W) '../src/lagrangian/FEProjector.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/FEProjector.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEProjector.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEProjector.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/FEProjector.cpp' object='../src/lagrangian/libIBTK2d_a-FEProjector.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-FEProjector.obj `if test -f '../src/lagrangian/FEProjector.cpp'; then $(CYGPATH_W) '../src/lagrangian/FEProjector.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/FEProjector.cpp'; fi`
+
 ../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.o: ../src/utilities/LibMeshSystemIBVectors.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Tpo -c -o ../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.o `test -f '../src/utilities/LibMeshSystemIBVectors.cpp' || echo '$(srcdir)/'`../src/utilities/LibMeshSystemIBVectors.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Po
@@ -6758,6 +6788,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-FEDataManager.obj `if test -f '../src/lagrangian/FEDataManager.cpp'; then $(CYGPATH_W) '../src/lagrangian/FEDataManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/FEDataManager.cpp'; fi`
 
+../src/lagrangian/libIBTK3d_a-FEProjector.o: ../src/lagrangian/FEProjector.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-FEProjector.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEProjector.Tpo -c -o ../src/lagrangian/libIBTK3d_a-FEProjector.o `test -f '../src/lagrangian/FEProjector.cpp' || echo '$(srcdir)/'`../src/lagrangian/FEProjector.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEProjector.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEProjector.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/FEProjector.cpp' object='../src/lagrangian/libIBTK3d_a-FEProjector.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-FEProjector.o `test -f '../src/lagrangian/FEProjector.cpp' || echo '$(srcdir)/'`../src/lagrangian/FEProjector.cpp
+
+../src/lagrangian/libIBTK3d_a-FEProjector.obj: ../src/lagrangian/FEProjector.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-FEProjector.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEProjector.Tpo -c -o ../src/lagrangian/libIBTK3d_a-FEProjector.obj `if test -f '../src/lagrangian/FEProjector.cpp'; then $(CYGPATH_W) '../src/lagrangian/FEProjector.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/FEProjector.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEProjector.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEProjector.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/FEProjector.cpp' object='../src/lagrangian/libIBTK3d_a-FEProjector.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-FEProjector.obj `if test -f '../src/lagrangian/FEProjector.cpp'; then $(CYGPATH_W) '../src/lagrangian/FEProjector.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/FEProjector.cpp'; fi`
+
 ../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.o: ../src/utilities/LibMeshSystemIBVectors.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Tpo -c -o ../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.o `test -f '../src/utilities/LibMeshSystemIBVectors.cpp' || echo '$(srcdir)/'`../src/utilities/LibMeshSystemIBVectors.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Po
@@ -7047,6 +7091,7 @@ distclean: distclean-am
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-BoxPartitioner.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataInterpolation.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataManager.Po
+	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEProjector.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-JacobianCalculator.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LData.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LDataManager.Po
@@ -7069,6 +7114,7 @@ distclean: distclean-am
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-BoxPartitioner.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEDataInterpolation.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEDataManager.Po
+	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEProjector.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-JacobianCalculator.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LData.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LDataManager.Po
@@ -7361,6 +7407,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-BoxPartitioner.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataInterpolation.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataManager.Po
+	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEProjector.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-JacobianCalculator.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LData.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LDataManager.Po
@@ -7383,6 +7430,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-BoxPartitioner.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEDataInterpolation.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEDataManager.Po
+	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEProjector.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-JacobianCalculator.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LData.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LDataManager.Po
