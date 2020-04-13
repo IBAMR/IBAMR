@@ -28,7 +28,7 @@
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
-#include "ibtk/LibMeshSystemVectors.h"
+#include "ibtk/LibMeshSystemIBVectors.h"
 #include "ibtk/MergingLoadBalancer.h"
 #include "ibtk/PartitioningBox.h"
 #include "ibtk/QuadratureCache.h"
@@ -1448,9 +1448,9 @@ IBFEMethod::doInitializeFEData(const bool use_present_data)
 {
     // The choice of FEDataManager set is important here since it determines the
     // IB ghost regions.
-    d_X_vecs.reset(new LibMeshSystemVectors(d_active_fe_data_managers, COORDS_SYSTEM_NAME));
-    d_U_vecs.reset(new LibMeshSystemVectors(d_active_fe_data_managers, VELOCITY_SYSTEM_NAME));
-    d_F_vecs.reset(new LibMeshSystemVectors(d_active_fe_data_managers, FORCE_SYSTEM_NAME));
+    d_X_vecs.reset(new LibMeshSystemIBVectors(d_active_fe_data_managers, COORDS_SYSTEM_NAME));
+    d_U_vecs.reset(new LibMeshSystemIBVectors(d_active_fe_data_managers, VELOCITY_SYSTEM_NAME));
+    d_F_vecs.reset(new LibMeshSystemIBVectors(d_active_fe_data_managers, FORCE_SYSTEM_NAME));
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Initialize FE equation systems.
