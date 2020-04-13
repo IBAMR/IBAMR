@@ -16,8 +16,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ibtk/FEDataManager.h>
-
 #include <libmesh/equation_systems.h>
 #include <libmesh/petsc_vector.h>
 #include <libmesh/system.h>
@@ -34,10 +32,10 @@ namespace IBTK
 /*!
  * \brief Class LibMeshSystemVectors is a convenience class that manages
  * access to libMesh vectors for the same system defined on multiple
- * parts. This class supports access to vectors ghosted with the Lagrangian
- * partitioning (i.e., libMesh's computed partitioning) as well as the IB
- * partitioning (i.e., the partitioning based on the distribution of SAMRAI
- * data).
+ * parts. This class only supports access to vectors ghosted with the Lagrangian
+ * partitioning (i.e., libMesh's computed partitioning).  The subclass
+ * LibMeshSystemIBVectors provides access to the IB partitioning (i.e., the
+ * partitioning based on the distribution of SAMRAI data).
  *
  * A libMesh::System stores vectors in two different ways: the
  * <tt>solution</tt> and <tt>current_local_solution</tt> vectors are stored
@@ -57,7 +55,7 @@ namespace IBTK
  * ghost data computed by the System) and registered for projection (i.e., if
  * the mesh changes, these vectors will be automatically updated).
  *
- * This class stores information that depends on SAMRAI's parallel
+ * This class may store information that depends on SAMRAI's parallel
  * partitioning: LibMeshSystemVectors::reinit() should be called after
  * regridding to clear this data.
  *
@@ -70,20 +68,8 @@ public:
     /*!
      * Constructor.
      *
-     * @param[in] fe_data_managers IBTK::FEDataManager objects for each
-     * part. These are used to get libMesh vectors with ghost regions
-     * corresponding to the Eulerian partitioning.
-     *
-     * @param[in] system_name Name of the libMesh::System whose vectors we are accessing.
-     */
-    LibMeshSystemVectors(const std::vector<IBTK::FEDataManager*>& fe_data_managers, std::string system_name);
-
-    /*!
-     * Constructor, taking a mask argument indicating which systems actually exist.
-     *
-     * @param[in] fe_data_managers IBTK::FEDataManager objects for each
-     * part. These are used to get libMesh vectors with ghost regions
-     * corresponding to the Eulerian partitioning.
+     * @param[in] equation_systems libMesh::EquationSystems objects for each
+     * part.
      *
      * @param[in] part_mask A vector indicating on which parts the given
      * system actually exists (for example, only some parts have fluid
@@ -91,9 +77,19 @@ public:
      *
      * @param[in] system_name Name of the libMesh::System whose vectors we are accessing.
      */
-    LibMeshSystemVectors(const std::vector<IBTK::FEDataManager*>& fe_data_managers,
+    LibMeshSystemVectors(const std::vector<libMesh::EquationSystems*>& equation_systems,
                          const std::vector<bool>& part_mask,
                          std::string system_name);
+
+    /*!
+     * Constructor.
+     *
+     * @param[in] equation_systems libMesh::EquationSystems objects for each
+     * part.
+     *
+     * @param[in] system_name Name of the libMesh::System whose vectors we are accessing.
+     */
+    LibMeshSystemVectors(const std::vector<libMesh::EquationSystems*>& equation_systems, std::string system_name);
 
     /*!
      * Get a specific vector for a specific part. These vectors are managed by
@@ -108,15 +104,6 @@ public:
     libMesh::PetscVector<double>& get(const std::string& vec_name, const unsigned int part);
 
     /*!
-     * Get an IB-ghosted vector for a specific part.
-     *
-     * @param[in] vec_name Name of the vector.
-     *
-     * @param[in] part Part number.
-     */
-    libMesh::PetscVector<double>& getIBGhosted(const std::string& vec_name, const unsigned int part);
-
-    /*!
      * Get, for each part, the vector corresponding to the name @p
      * vec_name. These vectors are managed by libMesh::System objects.
      *
@@ -126,21 +113,10 @@ public:
      */
     std::vector<libMesh::PetscVector<double>*> get(const std::string& vec_name);
 
-    /**
-     * Get, for each part, the IB-ghosted vectors corresponding to the name @p
-     * vec_name These vectors are ghosted with values determined by
-     * IBTK::FEDataManager (i.e., based on SAMRAI's parallel partitioning).
-     *
-     * @note These vectors are managed by this object: the ghosted information
-     * will not be valid after a regrid.
-     */
-    std::vector<libMesh::PetscVector<double>*> getIBGhosted(const std::string& vec_name);
-
     /*!
-     * Reinitialize the object. This method must be called after the Eulerian
-     * data is updated.
+     * Reinitialize the object.
      */
-    void reinit();
+    virtual void reinit();
 
     /*!
      * Convenience function for copying libMesh vectors.
@@ -158,14 +134,17 @@ public:
     void zero(const std::string& vec_name);
 
 protected:
+    LibMeshSystemVectors(const std::vector<bool>& part_mask, std::string system_name);
+
+    /// Returns false if a standard libMesh vector; otherwise returns true.
+    inline bool vec_stored_in_map(const std::string& vec_name)
+    {
+        if (vec_name == "solution" || vec_name == "current" || vec_name == "current_local_solution") return false;
+        return true;
+    }
+
     /// Check if a vector exists and, if not, add it.
     void maybeAdd(const std::string& vec_name);
-
-    /// Add an IB ghosted vector.
-    std::vector<std::unique_ptr<libMesh::PetscVector<double> > >& maybeAddIBGhosted(const std::string& vec_name);
-
-    /// Pointers to IBTK::FEDataManager objects. These are needed to get IB ghosted vectors.
-    std::vector<IBTK::FEDataManager*> d_fe_data_managers;
 
     /// Mask indicating which parts actually have a system with the given name.
     std::vector<bool> d_part_mask;
@@ -175,9 +154,6 @@ protected:
 
     /// libMesh::System objects.
     std::vector<libMesh::System*> d_systems;
-
-    /// Previously computed IB ghosted vectors.
-    std::map<std::string, std::vector<std::unique_ptr<libMesh::PetscVector<double> > > > d_ib_ghosted_vectors;
 };
 } // namespace IBTK
 

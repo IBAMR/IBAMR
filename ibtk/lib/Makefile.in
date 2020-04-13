@@ -107,12 +107,14 @@ host_triplet = @host@
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/JacobianCalculator.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/FEDataInterpolation.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/FEDataManager.cpp \
+@LIBMESH_ENABLED_TRUE@	../src/utilities/LibMeshSystemIBVectors.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/LibMeshSystemVectors.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libmesh_utilities.cpp \
 @LIBMESH_ENABLED_TRUE@	../include/lagrangian/BoxPartitioner.h \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/JacobianCalculator.h \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/FEDataInterpolation.h \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/FEDataManager.h \
+@LIBMESH_ENABLED_TRUE@	../include/ibtk/LibMeshSystemIBVectors.h \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/LibMeshSystemVectors.h \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/libmesh_utilities.h
 subdir = lib
@@ -334,12 +336,14 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/lagrangian/JacobianCalculator.cpp \
 	../src/lagrangian/FEDataInterpolation.cpp \
 	../src/lagrangian/FEDataManager.cpp \
+	../src/utilities/LibMeshSystemIBVectors.cpp \
 	../src/utilities/LibMeshSystemVectors.cpp \
 	../src/utilities/libmesh_utilities.cpp \
 	../include/lagrangian/BoxPartitioner.h \
 	../src/lagrangian/JacobianCalculator.h \
 	../include/ibtk/FEDataInterpolation.h \
 	../include/ibtk/FEDataManager.h \
+	../include/ibtk/LibMeshSystemIBVectors.h \
 	../include/ibtk/LibMeshSystemVectors.h \
 	../include/ibtk/libmesh_utilities.h \
 	$(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation2d.f \
@@ -366,6 +370,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-JacobianCalculator.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-FEDataInterpolation.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-FEDataManager.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK2d_a-LibMeshSystemVectors.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK2d_a-libmesh_utilities.$(OBJEXT)
 am__objects_3 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
@@ -634,12 +639,14 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/lagrangian/JacobianCalculator.cpp \
 	../src/lagrangian/FEDataInterpolation.cpp \
 	../src/lagrangian/FEDataManager.cpp \
+	../src/utilities/LibMeshSystemIBVectors.cpp \
 	../src/utilities/LibMeshSystemVectors.cpp \
 	../src/utilities/libmesh_utilities.cpp \
 	../include/lagrangian/BoxPartitioner.h \
 	../src/lagrangian/JacobianCalculator.h \
 	../include/ibtk/FEDataInterpolation.h \
 	../include/ibtk/FEDataManager.h \
+	../include/ibtk/LibMeshSystemIBVectors.h \
 	../include/ibtk/LibMeshSystemVectors.h \
 	../include/ibtk/libmesh_utilities.h \
 	$(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation3d.f \
@@ -666,6 +673,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-JacobianCalculator.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-FEDataInterpolation.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-FEDataManager.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK3d_a-LibMeshSystemVectors.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK3d_a-libmesh_utilities.$(OBJEXT)
 am__objects_5 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
@@ -1041,6 +1049,7 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po \
+	../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemVectors.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po \
@@ -1075,6 +1084,7 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po \
+	../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemVectors.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po \
@@ -2321,6 +2331,9 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/lagrangian/libIBTK2d_a-FEDataManager.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-LibMeshSystemVectors.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -2806,6 +2819,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/lagrangian/libIBTK3d_a-FEDataManager.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-LibMeshSystemVectors.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -3114,6 +3130,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemVectors.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po@am__quote@ # am--include-marker
@@ -3148,6 +3165,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemVectors.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po@am__quote@ # am--include-marker
@@ -4948,6 +4966,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-FEDataManager.obj `if test -f '../src/lagrangian/FEDataManager.cpp'; then $(CYGPATH_W) '../src/lagrangian/FEDataManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/FEDataManager.cpp'; fi`
 
+../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.o: ../src/utilities/LibMeshSystemIBVectors.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Tpo -c -o ../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.o `test -f '../src/utilities/LibMeshSystemIBVectors.cpp' || echo '$(srcdir)/'`../src/utilities/LibMeshSystemIBVectors.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/LibMeshSystemIBVectors.cpp' object='../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.o `test -f '../src/utilities/LibMeshSystemIBVectors.cpp' || echo '$(srcdir)/'`../src/utilities/LibMeshSystemIBVectors.cpp
+
+../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.obj: ../src/utilities/LibMeshSystemIBVectors.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Tpo -c -o ../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.obj `if test -f '../src/utilities/LibMeshSystemIBVectors.cpp'; then $(CYGPATH_W) '../src/utilities/LibMeshSystemIBVectors.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/LibMeshSystemIBVectors.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/LibMeshSystemIBVectors.cpp' object='../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.obj `if test -f '../src/utilities/LibMeshSystemIBVectors.cpp'; then $(CYGPATH_W) '../src/utilities/LibMeshSystemIBVectors.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/LibMeshSystemIBVectors.cpp'; fi`
+
 ../src/utilities/libIBTK2d_a-LibMeshSystemVectors.o: ../src/utilities/LibMeshSystemVectors.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-LibMeshSystemVectors.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemVectors.Tpo -c -o ../src/utilities/libIBTK2d_a-LibMeshSystemVectors.o `test -f '../src/utilities/LibMeshSystemVectors.cpp' || echo '$(srcdir)/'`../src/utilities/LibMeshSystemVectors.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemVectors.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemVectors.Po
@@ -6726,6 +6758,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-FEDataManager.obj `if test -f '../src/lagrangian/FEDataManager.cpp'; then $(CYGPATH_W) '../src/lagrangian/FEDataManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/FEDataManager.cpp'; fi`
 
+../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.o: ../src/utilities/LibMeshSystemIBVectors.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Tpo -c -o ../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.o `test -f '../src/utilities/LibMeshSystemIBVectors.cpp' || echo '$(srcdir)/'`../src/utilities/LibMeshSystemIBVectors.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/LibMeshSystemIBVectors.cpp' object='../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.o `test -f '../src/utilities/LibMeshSystemIBVectors.cpp' || echo '$(srcdir)/'`../src/utilities/LibMeshSystemIBVectors.cpp
+
+../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.obj: ../src/utilities/LibMeshSystemIBVectors.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Tpo -c -o ../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.obj `if test -f '../src/utilities/LibMeshSystemIBVectors.cpp'; then $(CYGPATH_W) '../src/utilities/LibMeshSystemIBVectors.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/LibMeshSystemIBVectors.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/LibMeshSystemIBVectors.cpp' object='../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.obj `if test -f '../src/utilities/LibMeshSystemIBVectors.cpp'; then $(CYGPATH_W) '../src/utilities/LibMeshSystemIBVectors.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/LibMeshSystemIBVectors.cpp'; fi`
+
 ../src/utilities/libIBTK3d_a-LibMeshSystemVectors.o: ../src/utilities/LibMeshSystemVectors.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-LibMeshSystemVectors.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemVectors.Tpo -c -o ../src/utilities/libIBTK3d_a-LibMeshSystemVectors.o `test -f '../src/utilities/LibMeshSystemVectors.cpp' || echo '$(srcdir)/'`../src/utilities/LibMeshSystemVectors.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemVectors.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemVectors.Po
@@ -7171,6 +7217,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemVectors.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po
@@ -7205,6 +7252,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemVectors.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po
@@ -7483,6 +7531,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemVectors.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-MergingLoadBalancer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po
@@ -7517,6 +7566,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemVectors.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-MergingLoadBalancer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po

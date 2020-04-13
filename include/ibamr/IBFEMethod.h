@@ -21,7 +21,7 @@
 #include "ibamr/ibamr_enums.h"
 
 #include "ibtk/FEDataManager.h"
-#include "ibtk/LibMeshSystemVectors.h"
+#include "ibtk/LibMeshSystemIBVectors.h"
 #include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/SAMRAIGhostDataAccumulator.h"
 #include "ibtk/ibtk_utilities.h"
@@ -1169,17 +1169,17 @@ protected:
     /*!
      * Object managing access to libMesh system vectors for the structure position.
      */
-    std::unique_ptr<IBTK::LibMeshSystemVectors> d_X_vecs;
+    std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_X_vecs;
 
     /*!
      * Object managing access to libMesh system vectors for the structure velocity.
      */
-    std::unique_ptr<IBTK::LibMeshSystemVectors> d_U_vecs;
+    std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_U_vecs;
 
     /*!
      * Object managing access to libMesh system vectors for the structure force.
      */
-    std::unique_ptr<IBTK::LibMeshSystemVectors> d_F_vecs;
+    std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_F_vecs;
 
     /*!
      * Vectors of pointers to the fluid source or sink density vectors. All of
