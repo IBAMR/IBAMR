@@ -94,6 +94,7 @@ host_triplet = @host@
 @LIBMESH_ENABLED_TRUE@am__append_3 = 
 @LIBMESH_ENABLED_TRUE@am__append_4 = 
 @LIBMESH_ENABLED_TRUE@am__append_5 = \
+@LIBMESH_ENABLED_TRUE@  ../src/IB/FEMechanicsExplicitIntegrator.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFECentroidPostProcessor.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFEDirectForcingKinematics.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFEInstrumentPanel.cpp \
@@ -107,6 +108,7 @@ host_triplet = @host@
 @LIBMESH_ENABLED_TRUE@  ../src/level_set/FESurfaceDistanceEvaluator.cpp
 
 @LIBMESH_ENABLED_TRUE@am__append_6 = \
+@LIBMESH_ENABLED_TRUE@  ../include/ibamr/FEMechanicsExplicitIntegrator.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/FESurfaceDistanceEvaluator.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFECentroidPostProcessor.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEDirectForcingKinematics.h \
@@ -326,6 +328,7 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	../src/wave_generation/StokesWaveGeneratorStrategy.cpp \
 	../src/wave_generation/WaveDampingFunctions.cpp \
 	../src/wave_generation/WaveGenerationFunctions.cpp \
+	../src/IB/FEMechanicsExplicitIntegrator.cpp \
 	../src/IB/IBFECentroidPostProcessor.cpp \
 	../src/IB/IBFEDirectForcingKinematics.cpp \
 	../src/IB/IBFEInstrumentPanel.cpp ../src/IB/IBFEMethod.cpp \
@@ -353,7 +356,8 @@ am__libIBAMR2d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers2d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing2d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_surface_tension_forcing2d.f
-@LIBMESH_ENABLED_TRUE@am__objects_2 = ../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@am__objects_2 = ../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFEDirectForcingKinematics.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFEMethod.$(OBJEXT) \
@@ -654,6 +658,7 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	../src/wave_generation/StokesWaveGeneratorStrategy.cpp \
 	../src/wave_generation/WaveDampingFunctions.cpp \
 	../src/wave_generation/WaveGenerationFunctions.cpp \
+	../src/IB/FEMechanicsExplicitIntegrator.cpp \
 	../src/IB/IBFECentroidPostProcessor.cpp \
 	../src/IB/IBFEDirectForcingKinematics.cpp \
 	../src/IB/IBFEInstrumentPanel.cpp ../src/IB/IBFEMethod.cpp \
@@ -681,7 +686,8 @@ am__libIBAMR3d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_staggered_helpers3d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing3d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_surface_tension_forcing3d.f
-@LIBMESH_ENABLED_TRUE@am__objects_4 = ../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@am__objects_4 = ../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFEDirectForcingKinematics.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFEMethod.$(OBJEXT) \
@@ -876,6 +882,7 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigid
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-DirectMobilitySolver.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpec.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpecFactory.Po \
@@ -942,6 +949,7 @@ am__depfiles_remade = ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigid
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-DirectMobilitySolver.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpec.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpecFactory.Po \
@@ -1351,6 +1359,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/RNG.h \
 	../include/ibamr/Wall.h ../include/ibamr/WallForceEvaluator.h \
 	../include/ibamr/WaveDampingFunctions.h \
 	../include/ibamr/WaveGenerationFunctions.h \
+	../include/ibamr/FEMechanicsExplicitIntegrator.h \
 	../include/ibamr/FESurfaceDistanceEvaluator.h \
 	../include/ibamr/IBFECentroidPostProcessor.h \
 	../include/ibamr/IBFEDirectForcingKinematics.h \
@@ -2440,6 +2449,8 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/wave_generation/libIBAMR2d_a-WaveGenerationFunctions.$(OBJEXT):  \
 	../src/wave_generation/$(am__dirstamp) \
 	../src/wave_generation/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBFEDirectForcingKinematics.$(OBJEXT):  \
@@ -2901,6 +2912,8 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/wave_generation/libIBAMR3d_a-WaveGenerationFunctions.$(OBJEXT):  \
 	../src/wave_generation/$(am__dirstamp) \
 	../src/wave_generation/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBFEDirectForcingKinematics.$(OBJEXT):  \
@@ -3017,6 +3030,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-DirectMobilitySolver.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpec.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpecFactory.Po@am__quote@ # am--include-marker
@@ -3083,6 +3097,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-DirectMobilitySolver.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpec.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpecFactory.Po@am__quote@ # am--include-marker
@@ -5237,6 +5252,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_generation/libIBAMR2d_a-WaveGenerationFunctions.obj `if test -f '../src/wave_generation/WaveGenerationFunctions.cpp'; then $(CYGPATH_W) '../src/wave_generation/WaveGenerationFunctions.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_generation/WaveGenerationFunctions.cpp'; fi`
 
+../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.o: ../src/IB/FEMechanicsExplicitIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Tpo -c -o ../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.o `test -f '../src/IB/FEMechanicsExplicitIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/FEMechanicsExplicitIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/FEMechanicsExplicitIntegrator.cpp' object='../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.o `test -f '../src/IB/FEMechanicsExplicitIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/FEMechanicsExplicitIntegrator.cpp
+
+../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.obj: ../src/IB/FEMechanicsExplicitIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Tpo -c -o ../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.obj `if test -f '../src/IB/FEMechanicsExplicitIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/FEMechanicsExplicitIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/FEMechanicsExplicitIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/FEMechanicsExplicitIntegrator.cpp' object='../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.obj `if test -f '../src/IB/FEMechanicsExplicitIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/FEMechanicsExplicitIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/FEMechanicsExplicitIntegrator.cpp'; fi`
+
 ../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.o: ../src/IB/IBFECentroidPostProcessor.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Tpo -c -o ../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.o `test -f '../src/IB/IBFECentroidPostProcessor.cpp' || echo '$(srcdir)/'`../src/IB/IBFECentroidPostProcessor.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Po
@@ -7295,6 +7324,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_generation/libIBAMR3d_a-WaveGenerationFunctions.obj `if test -f '../src/wave_generation/WaveGenerationFunctions.cpp'; then $(CYGPATH_W) '../src/wave_generation/WaveGenerationFunctions.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_generation/WaveGenerationFunctions.cpp'; fi`
 
+../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.o: ../src/IB/FEMechanicsExplicitIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Tpo -c -o ../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.o `test -f '../src/IB/FEMechanicsExplicitIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/FEMechanicsExplicitIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/FEMechanicsExplicitIntegrator.cpp' object='../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.o `test -f '../src/IB/FEMechanicsExplicitIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/FEMechanicsExplicitIntegrator.cpp
+
+../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.obj: ../src/IB/FEMechanicsExplicitIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Tpo -c -o ../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.obj `if test -f '../src/IB/FEMechanicsExplicitIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/FEMechanicsExplicitIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/FEMechanicsExplicitIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/FEMechanicsExplicitIntegrator.cpp' object='../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.obj `if test -f '../src/IB/FEMechanicsExplicitIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/FEMechanicsExplicitIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/FEMechanicsExplicitIntegrator.cpp'; fi`
+
 ../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.o: ../src/IB/IBFECentroidPostProcessor.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Tpo -c -o ../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.o `test -f '../src/IB/IBFECentroidPostProcessor.cpp' || echo '$(srcdir)/'`../src/IB/IBFECentroidPostProcessor.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Po
@@ -7651,6 +7694,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-DirectMobilitySolver.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpecFactory.Po
@@ -7717,6 +7761,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-DirectMobilitySolver.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpecFactory.Po
@@ -7992,6 +8037,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-DirectMobilitySolver.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpecFactory.Po
@@ -8058,6 +8104,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-DirectMobilitySolver.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpecFactory.Po
