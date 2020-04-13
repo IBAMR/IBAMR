@@ -52,7 +52,7 @@
 namespace ModelData
 {
 // Problem parameters.
-static const double mu = 10.0;
+static double mu_s = 10.0;
 
 // Stress tensor functions.
 void
@@ -66,7 +66,7 @@ PK1_dev_stress_function(TensorValue<double>& PP,
                         double /*time*/,
                         void* /*ctx*/)
 {
-    PP = mu * FF;
+    PP = mu_s * FF;
     return;
 } // PK1_dev_stress_function
 
@@ -81,9 +81,28 @@ PK1_dil_stress_function(TensorValue<double>& PP,
                         double /*time*/,
                         void* /*ctx*/)
 {
-    PP = -mu * tensor_inverse_transpose(FF, NDIM);
+    PP = -mu_s * tensor_inverse_transpose(FF, NDIM);
     return;
 } // PK1_dil_stress_function
+
+static double kappa_s = 0.0;
+void
+tether_force_function(VectorValue<double>& F,
+                      const TensorValue<double>& /*FF*/,
+                      const libMesh::Point& x,
+                      const libMesh::Point& X,
+                      Elem* const /*elem*/,
+                      const vector<const vector<double>*>& /*var_data*/,
+                      const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                      double /*time*/,
+                      void* /*ctx*/)
+{
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        F(d) = kappa_s * (X(d) - x(d));
+    }
+    return;
+} // tether_force_function
 } // namespace ModelData
 using namespace ModelData;
 
@@ -271,6 +290,8 @@ main(int argc, char* argv[])
                                         load_balancer);
 
         // Configure the IBFE solver.
+        ModelData::mu_s = input_db->getDoubleWithDefault("MU_S", mu_s);
+        ModelData::kappa_s = input_db->getDoubleWithDefault("KAPPA_S", kappa_s);
         IBFEMethod::PK1StressFcnData PK1_dev_stress_data(PK1_dev_stress_function);
         IBFEMethod::PK1StressFcnData PK1_dil_stress_data(PK1_dil_stress_function);
         PK1_dev_stress_data.quad_order =
@@ -279,6 +300,10 @@ main(int argc, char* argv[])
             Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER", "FIRST"));
         ib_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
         ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
+        IBFEMethod::LagBodyForceFcnData body_fcn_data(tether_force_function);
+        ib_method_ops->registerLagBodyForceFunction(body_fcn_data);
+        double porosity = input_db->getDoubleWithDefault("POROSITY", 0.0);
+        if (porosity > 0.0) ib_method_ops->registerPoroelasticPart(porosity);
         ib_method_ops->initializeFEEquationSystems();
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
