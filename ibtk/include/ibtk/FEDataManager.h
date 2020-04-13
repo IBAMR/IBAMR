@@ -59,6 +59,7 @@ IBTK_ENABLE_EXTRA_WARNINGS
 namespace IBTK
 {
 class FEDataManager;
+class FEProjector;
 class RobinPhysBdryPatchStrategy;
 } // namespace IBTK
 
@@ -368,9 +369,13 @@ protected:
     std::shared_ptr<FEData> d_fe_data;
 
     /*!
-     * Vector representations of diagonal mass matrices.
+     * FEProjector object that handles L2 projection functionality.
      */
-    std::map<std::string, std::unique_ptr<libMesh::NumericVector<double> > > d_L2_proj_matrix_diag;
+    std::shared_ptr<FEProjector> d_fe_projector;
+
+    /*!
+     * IB ghosted diagonal mass matrix representations.
+     */
     std::map<std::string, std::unique_ptr<libMesh::PetscVector<double> > > d_L2_proj_matrix_diag_ghost;
 
 public:
