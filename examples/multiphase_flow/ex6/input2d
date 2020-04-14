@@ -40,6 +40,15 @@ APPLY_MASS_CONSTRAINT = FALSE
 LS_TAG_VALUE = 0.0
 LS_TAG_ABS_THRESH = 2.0*L/Nx
 
+// Level set initial conditions
+LevelSetInitialConditions {
+  radius = R
+  xcom = XCOM
+  ycom = YCOM
+  d = "sqrt((X_0 - xcom)^2 + (X_1 - ycom)^2) - radius" 
+  function = "d < 0 ? sqrt((X_0 - xcom)^2 + (X_1 - ycom)^2) - radius  : 2.0"
+}
+
 // surface tension parameters
 DELTA_FUNCTION = "IB_4"
 SIGMA = 1.0/0.126
