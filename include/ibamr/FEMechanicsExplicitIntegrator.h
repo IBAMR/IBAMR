@@ -78,6 +78,12 @@ public:
     ~FEMechanicsExplicitIntegrator() override;
 
     /*!
+     * Return a pointer to the finite element data object for the
+     * specified part.
+     */
+    IBTK::FEData* getFEData(unsigned int part = 0) const;
+
+    /*!
      * Typedef specifying interface for coordinate mapping function.
      */
     using CoordinateMappingFcnPtr = void (*)(libMesh::Point& x, const libMesh::Point& X, void* ctx);

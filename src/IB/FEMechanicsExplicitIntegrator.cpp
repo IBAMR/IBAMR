@@ -221,6 +221,13 @@ FEMechanicsExplicitIntegrator::~FEMechanicsExplicitIntegrator()
     }
 }
 
+FEData*
+FEMechanicsExplicitIntegrator::getFEData(unsigned int part) const
+{
+    TBOX_ASSERT(part < d_num_parts);
+    return d_fe_data[part].get();
+}
+
 void
 FEMechanicsExplicitIntegrator::registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data,
                                                                         const unsigned int part)
