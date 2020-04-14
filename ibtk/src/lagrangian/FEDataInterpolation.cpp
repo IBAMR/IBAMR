@@ -49,9 +49,13 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 FEDataInterpolation::FEDataInterpolation(const unsigned int dim, FEDataManager* const fe_data_manager)
-    : d_dim(dim), d_fe_data_manager(fe_data_manager)
+    : d_dim(dim), d_fe_data_manager(fe_data_manager), d_fe_data(d_fe_data_manager->getFEData())
 {
-    return;
+}
+
+FEDataInterpolation::FEDataInterpolation(const unsigned int dim, std::shared_ptr<FEData> fe_data)
+    : d_dim(dim), d_fe_data_manager(nullptr), d_fe_data(fe_data)
+{
 }
 
 void
@@ -137,7 +141,7 @@ FEDataInterpolation::registerInterpolatedSystem(const System& system,
     // collection of variables/data.  In either case, we need to register it here.
     const size_t system_idx = d_systems.size();
     d_systems.push_back(&system);
-    d_system_dof_map_caches.push_back(d_fe_data_manager->getDofMapCache(system.name()));
+    d_system_dof_map_caches.push_back(d_fe_data->getDofMapCache(system.name()));
     std::set<int> all_vars_set;
     all_vars_set.insert(vars.begin(), vars.end());
     all_vars_set.insert(grad_vars.begin(), grad_vars.end());
@@ -204,6 +208,7 @@ void
 FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
 {
     TBOX_ASSERT(!d_initialized);
+    if (use_IB_ghosted_vecs) TBOX_ASSERT(d_fe_data_manager);
 
     // Collect the distinct FETypes to be used.
     std::set<FEType> fe_type_set;

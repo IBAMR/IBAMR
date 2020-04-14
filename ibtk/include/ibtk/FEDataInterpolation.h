@@ -68,6 +68,8 @@ class FEDataInterpolation
 public:
     FEDataInterpolation(unsigned int dim, FEDataManager* const fe_data_manager);
 
+    FEDataInterpolation(unsigned int dim, std::shared_ptr<FEData> fe_data);
+
     ~FEDataInterpolation() = default;
 
     inline void attachQuadratureRule(libMesh::QBase* qrule)
@@ -339,6 +341,7 @@ private:
 
     const unsigned int d_dim;
     FEDataManager* const d_fe_data_manager;
+    std::shared_ptr<FEData> d_fe_data;
     bool d_initialized = false;
     bool d_eval_q_point = false, d_eval_JxW = false, d_eval_q_point_face = false, d_eval_JxW_face = false,
          d_eval_normal_face = false;
