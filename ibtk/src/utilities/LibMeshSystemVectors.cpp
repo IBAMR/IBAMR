@@ -13,7 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ibtk/FEDataManager.h>
 #include <ibtk/LibMeshSystemVectors.h>
 
 #include <tbox/Utilities.h>
@@ -29,48 +28,28 @@
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
-namespace
-{
-bool
-vec_stored_in_map(const std::string& vec_name)
-{
-    if (vec_name == "solution" || vec_name == "current" || vec_name == "current_local_solution") return false;
-    return true;
-}
-} // namespace
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBTK
 {
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
-LibMeshSystemVectors::LibMeshSystemVectors(const std::vector<IBTK::FEDataManager*>& fe_data_managers,
+LibMeshSystemVectors::LibMeshSystemVectors(const std::vector<libMesh::EquationSystems*>& equation_systems,
                                            std::string system_name)
-    : d_fe_data_managers(fe_data_managers), d_system_name(std::move(system_name))
+    : LibMeshSystemVectors(equation_systems, std::vector<bool>(equation_systems.size(), true), system_name)
 {
-    d_part_mask.resize(fe_data_managers.size());
-    std::fill(d_part_mask.begin(), d_part_mask.end(), true);
-    TBOX_ASSERT(fe_data_managers.size() > 0);
-    for (IBTK::FEDataManager* fe_data_manager : d_fe_data_managers)
-    {
-        libMesh::EquationSystems* es = fe_data_manager->getEquationSystems();
-        d_systems.push_back(&es->get_system(d_system_name));
-    }
 }
 
-LibMeshSystemVectors::LibMeshSystemVectors(const std::vector<IBTK::FEDataManager*>& fe_data_managers,
+LibMeshSystemVectors::LibMeshSystemVectors(const std::vector<libMesh::EquationSystems*>& equation_systems,
                                            const std::vector<bool>& part_mask,
                                            std::string system_name)
-    : d_fe_data_managers(fe_data_managers), d_part_mask(part_mask), d_system_name(std::move(system_name))
+    : d_part_mask(part_mask), d_system_name(std::move(system_name))
 {
-    TBOX_ASSERT(fe_data_managers.size() > 0);
-    TBOX_ASSERT(part_mask.size() == fe_data_managers.size());
-    for (unsigned int part = 0; part < d_fe_data_managers.size(); ++part)
+    TBOX_ASSERT(part_mask.size() == equation_systems.size());
+    for (unsigned int part = 0; part < equation_systems.size(); ++part)
     {
-        libMesh::EquationSystems* es = d_fe_data_managers[part]->getEquationSystems();
         if (d_part_mask[part])
-            d_systems.push_back(&es->get_system(d_system_name));
+            d_systems.push_back(&equation_systems[part]->get_system(d_system_name));
         else
             d_systems.push_back(nullptr);
     }
@@ -79,7 +58,7 @@ LibMeshSystemVectors::LibMeshSystemVectors(const std::vector<IBTK::FEDataManager
 libMesh::PetscVector<double>&
 LibMeshSystemVectors::get(const std::string& vec_name, const unsigned int part)
 {
-    TBOX_ASSERT(part < d_fe_data_managers.size());
+    TBOX_ASSERT(part < d_systems.size());
     TBOX_ASSERT(d_part_mask[part]);
     if (!vec_stored_in_map(vec_name))
     {
@@ -93,19 +72,11 @@ LibMeshSystemVectors::get(const std::string& vec_name, const unsigned int part)
     return dynamic_cast<libMesh::PetscVector<double>&>(d_systems[part]->get_vector(vec_name));
 }
 
-libMesh::PetscVector<double>&
-LibMeshSystemVectors::getIBGhosted(const std::string& vec_name, const unsigned int part)
-{
-    TBOX_ASSERT(part < d_fe_data_managers.size());
-    TBOX_ASSERT(d_part_mask[part]);
-    return *maybeAddIBGhosted(vec_name)[part];
-}
-
 std::vector<libMesh::PetscVector<double>*>
 LibMeshSystemVectors::get(const std::string& vec_name)
 {
     std::vector<libMesh::PetscVector<double>*> result;
-    for (unsigned int part = 0; part < d_fe_data_managers.size(); ++part)
+    for (unsigned int part = 0; part < d_systems.size(); ++part)
     {
         if (d_part_mask[part])
             result.push_back(&get(vec_name, part));
@@ -116,19 +87,9 @@ LibMeshSystemVectors::get(const std::string& vec_name)
     return result;
 }
 
-std::vector<libMesh::PetscVector<double>*>
-LibMeshSystemVectors::getIBGhosted(const std::string& vec_name)
-{
-    std::vector<std::unique_ptr<libMesh::PetscVector<double> > >& stored_vectors = maybeAddIBGhosted(vec_name);
-    std::vector<libMesh::PetscVector<double>*> result;
-    for (std::unique_ptr<libMesh::PetscVector<double> >& ptr : stored_vectors) result.push_back(ptr.get());
-    return result;
-}
-
 void
 LibMeshSystemVectors::reinit()
 {
-    d_ib_ghosted_vectors.clear();
 }
 
 void
@@ -139,7 +100,7 @@ LibMeshSystemVectors::copy(const std::string& source, const std::vector<std::str
     for (const std::string& dest : dests)
     {
         maybeAdd(dest);
-        for (unsigned int part = 0; part < d_fe_data_managers.size(); ++part)
+        for (unsigned int part = 0; part < d_systems.size(); ++part)
         {
             if (d_part_mask[part])
             {
@@ -156,7 +117,7 @@ LibMeshSystemVectors::zero(const std::string& vec_name)
 {
     // The source vectors must already exist
     bool vec_exists = false;
-    for (unsigned int part = 0; part < d_fe_data_managers.size(); ++part)
+    for (unsigned int part = 0; part < d_systems.size(); ++part)
         if (d_part_mask[part] && d_systems[part]->request_vector(vec_name))
         {
             vec_exists = true;
@@ -165,7 +126,7 @@ LibMeshSystemVectors::zero(const std::string& vec_name)
 
     TBOX_ASSERT(vec_exists);
     std::vector<libMesh::PetscVector<double>*> vecs = get(vec_name);
-    for (unsigned int part = 0; part < d_fe_data_managers.size(); ++part)
+    for (unsigned int part = 0; part < d_systems.size(); ++part)
         if (d_part_mask[part]) vecs[part]->zero();
 }
 
@@ -175,27 +136,16 @@ void
 LibMeshSystemVectors::maybeAdd(const std::string& vec_name)
 {
     bool vec_exists = false;
-    for (unsigned int part = 0; part < d_fe_data_managers.size(); ++part)
+    for (unsigned int part = 0; part < d_systems.size(); ++part)
         if (d_part_mask[part] && d_systems[part]->request_vector(vec_name))
         {
             vec_exists = true;
             break;
         }
     if (vec_stored_in_map(vec_name) && !vec_exists)
-        for (unsigned int part = 0; part < d_fe_data_managers.size(); ++part)
+        for (unsigned int part = 0; part < d_systems.size(); ++part)
             if (d_part_mask[part])
                 d_systems[part]->add_vector(vec_name, /*projections*/ true, /*type*/ libMesh::GHOSTED);
-}
-
-std::vector<std::unique_ptr<libMesh::PetscVector<double> > >&
-LibMeshSystemVectors::maybeAddIBGhosted(const std::string& vec_name)
-{
-    std::vector<std::unique_ptr<libMesh::PetscVector<double> > >& stored_vectors = d_ib_ghosted_vectors[vec_name];
-    if (stored_vectors.empty())
-        for (unsigned int part = 0; part < d_fe_data_managers.size(); ++part)
-            if (d_part_mask[part])
-                stored_vectors.emplace_back(d_fe_data_managers[part]->buildIBGhostedVector(d_system_name));
-    return stored_vectors;
 }
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
