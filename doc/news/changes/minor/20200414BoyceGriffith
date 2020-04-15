@@ -1,0 +1,3 @@
+Improved: Factor out FE projection functionality from FEDataManager.
+<br>
+(Boyce Griffith, 2020/04/13)

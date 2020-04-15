@@ -17,6 +17,7 @@
 
 #include "ibtk/FECache.h"
 #include "ibtk/FEDataManager.h"
+#include "ibtk/FEProjector.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/JacobianCalculator.h"
@@ -151,9 +152,6 @@ static Timer* t_prolong_data;
 static Timer* t_interp;
 static Timer* t_interp_weighted;
 static Timer* t_restrict_data;
-static Timer* t_build_l2_projection_solver;
-static Timer* t_build_diagonal_l2_mass_matrix;
-static Timer* t_compute_l2_projection;
 static Timer* t_update_workload_estimates;
 static Timer* t_initialize_level_data;
 static Timer* t_reset_hierarchy_configuration;
@@ -293,12 +291,10 @@ FEData::getDofMapCache(unsigned int system_num)
 } // getDofMapCache
 
 void
-FEData::clearCached()
+FEData::clearPatchHierarchyDependentData()
 {
     d_system_dof_map_cache.clear();
     d_quadrature_cache.clear();
-    d_L2_proj_solver.clear();
-    d_L2_proj_matrix.clear();
 }
 
 const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID = 0x100;
@@ -517,8 +513,9 @@ FEDataManager::reinitElementMappings()
 
     // We reinitialize mappings after repartitioning, so clear the cache since
     // its content is no longer relevant:
-    d_fe_data->clearCached();
-    d_L2_proj_matrix_diag.clear();
+    d_fe_data->clearPatchHierarchyDependentData();
+
+    // The ghosted diagonal mass matrix needs to be rebuilt after repartitioning.
     d_L2_proj_matrix_diag_ghost.clear();
 
     // Delete cached hierarchy-dependent data.
@@ -2139,260 +2136,13 @@ FEDataManager::restrictData(const int f_data_idx,
 std::pair<LinearSolver<double>*, SparseMatrix<double>*>
 FEDataManager::buildL2ProjectionSolver(const std::string& system_name)
 {
-    IBTK_TIMER_START(t_build_l2_projection_solver);
-
-    if (!d_fe_data->d_L2_proj_solver.count(system_name) || !d_fe_data->d_L2_proj_matrix.count(system_name))
-    {
-        if (d_enable_logging)
-        {
-            plog << "FEDataManager::buildL2ProjectionSolver(): building L2 projection solver for system: "
-                 << system_name << "\n";
-        }
-
-        // Extract the mesh.
-        const MeshBase& mesh = d_fe_data->d_es->get_mesh();
-        const Parallel::Communicator& comm = mesh.comm();
-        const unsigned int dim = mesh.mesh_dimension();
-
-        // Extract the FE system and DOF map, and setup the FE object.
-        System& system = d_fe_data->d_es->get_system(system_name);
-        const int sys_num = system.number();
-        DofMap& dof_map = system.get_dof_map();
-        FEData::SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
-        dof_map.compute_sparsity(mesh);
-        FEType fe_type = dof_map.variable_type(0);
-        std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
-        std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
-        fe->attach_quadrature_rule(qrule.get());
-        const std::vector<double>& JxW = fe->get_JxW();
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
-
-        // Build solver components.
-        std::unique_ptr<LinearSolver<double> > solver = LinearSolver<double>::build(comm);
-        solver->init();
-
-        std::unique_ptr<SparseMatrix<double> > M_mat = SparseMatrix<double>::build(comm);
-        M_mat->attach_dof_map(dof_map);
-        M_mat->init();
-
-        // Loop over the mesh to construct the system matrix.
-        DenseMatrix<double> M_e;
-        std::vector<libMesh::dof_id_type> dof_id_scratch;
-        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
-        {
-            const Elem* const elem = *el_it;
-            fe->reinit(elem);
-
-            const auto& dof_indices = dof_map_cache.dof_indices(elem);
-            for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
-            {
-                const auto& dof_indices_var = dof_indices[var_num];
-                const auto dof_indices_sz = static_cast<unsigned int>(dof_indices_var.size());
-                M_e.resize(dof_indices_sz, dof_indices_sz);
-                const size_t n_basis = dof_indices_var.size();
-                const unsigned int n_qp = qrule->n_points();
-                for (unsigned int i = 0; i < n_basis; ++i)
-                {
-                    for (unsigned int j = 0; j < n_basis; ++j)
-                    {
-                        for (unsigned int qp = 0; qp < n_qp; ++qp)
-                        {
-                            M_e(i, j) += (phi[i][qp] * phi[j][qp]) * JxW[qp];
-                        }
-                    }
-                }
-                dof_id_scratch = dof_indices_var;
-                dof_map.constrain_element_matrix(M_e, dof_id_scratch);
-                M_mat->add_matrix(M_e, dof_id_scratch);
-            }
-        }
-
-        // Flush assemble the matrix.
-        M_mat->close();
-
-        // Reset values at Dirichlet boundaries.
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
-        {
-            Elem* const elem = *el_it;
-            for (unsigned int side = 0; side < elem->n_sides(); ++side)
-            {
-                if (elem->neighbor_ptr(side)) continue;
-                static const boundary_id_type dirichlet_bdry_id_set[3] = { ZERO_DISPLACEMENT_X_BDRY_ID,
-                                                                           ZERO_DISPLACEMENT_Y_BDRY_ID,
-                                                                           ZERO_DISPLACEMENT_Z_BDRY_ID };
-                std::vector<boundary_id_type> bdry_ids;
-                mesh.boundary_info->boundary_ids(elem, side, bdry_ids);
-                const boundary_id_type dirichlet_bdry_ids = get_dirichlet_bdry_ids(bdry_ids);
-                if (!dirichlet_bdry_ids) continue;
-                fe->reinit(elem);
-                for (unsigned int n = 0; n < elem->n_nodes(); ++n)
-                {
-                    if (elem->is_node_on_side(n, side))
-                    {
-                        const Node* const node = elem->node_ptr(n);
-                        const auto& dof_indices = dof_map_cache.dof_indices(elem);
-                        for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
-                        {
-                            const unsigned int n_comp = node->n_comp(sys_num, var_num);
-                            for (unsigned int comp = 0; comp < n_comp; ++comp)
-                            {
-                                if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[comp])) continue;
-                                const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
-                                if (!dof_map.is_constrained_dof(node_dof_index)) continue;
-                                for (const auto& idx : dof_indices[var_num])
-                                {
-                                    M_mat->set(node_dof_index, idx, (node_dof_index == idx ? 1.0 : 0.0));
-                                    M_mat->set(idx, node_dof_index, (node_dof_index == idx ? 1.0 : 0.0));
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Assemble the matrix.
-        M_mat->close();
-
-        // Setup the solver.
-        solver->reuse_preconditioner(true);
-
-        // Store the solver, mass matrix, and configuration options.
-        d_fe_data->d_L2_proj_solver[system_name] = std::move(solver);
-        d_fe_data->d_L2_proj_matrix[system_name] = std::move(M_mat);
-    }
-
-    IBTK_TIMER_STOP(t_build_l2_projection_solver);
-    return std::make_pair(d_fe_data->d_L2_proj_solver[system_name].get(),
-                          d_fe_data->d_L2_proj_matrix[system_name].get());
+    return d_fe_projector->buildL2ProjectionSolver(system_name);
 } // buildL2ProjectionSolver
 
 NumericVector<double>*
 FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
 {
-    IBTK_TIMER_START(t_build_diagonal_l2_mass_matrix);
-
-    if (!d_L2_proj_matrix_diag.count(system_name))
-    {
-        if (d_enable_logging)
-        {
-            plog << "FEDataManager::buildDiagonalL2MassMatrix(): building diagonal L2 mass matrix for system: "
-                 << system_name << "\n";
-        }
-
-        // Extract the mesh.
-        const MeshBase& mesh = d_fe_data->d_es->get_mesh();
-        const unsigned int dim = mesh.mesh_dimension();
-
-        // Extract the FE system and DOF map, and setup the FE object.
-        System& system = d_fe_data->d_es->get_system(system_name);
-        const int sys_num = system.number();
-        DofMap& dof_map = system.get_dof_map();
-        FEData::SystemDofMapCache& dof_map_cache = *getDofMapCache(system_name);
-        dof_map.compute_sparsity(mesh);
-        FEType fe_type = dof_map.variable_type(0);
-        std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
-        std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
-        fe->attach_quadrature_rule(qrule.get());
-        const std::vector<double>& JxW = fe->get_JxW();
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
-
-        // Build solver components.
-        std::unique_ptr<NumericVector<double> > M_vec = system.solution->zero_clone();
-
-        // Loop over the mesh to construct the system matrix.
-        DenseMatrix<double> M_e;
-        DenseVector<double> M_e_vec;
-        std::vector<libMesh::dof_id_type> dof_id_scratch;
-        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
-        {
-            const Elem* const elem = *el_it;
-            fe->reinit(elem);
-            const auto& dof_indices = dof_map_cache.dof_indices(elem);
-            for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
-            {
-                const auto dof_indices_sz = static_cast<unsigned int>(dof_indices[var_num].size());
-                M_e.resize(dof_indices_sz, dof_indices_sz);
-                M_e_vec.resize(dof_indices_sz);
-                const size_t n_basis = dof_indices[var_num].size();
-                const unsigned int n_qp = qrule->n_points();
-                for (unsigned int i = 0; i < n_basis; ++i)
-                {
-                    for (unsigned int j = 0; j < n_basis; ++j)
-                    {
-                        for (unsigned int qp = 0; qp < n_qp; ++qp)
-                        {
-                            M_e(i, j) += (phi[i][qp] * phi[j][qp]) * JxW[qp];
-                        }
-                    }
-                }
-
-                const double vol = elem->volume();
-                double tr_M = 0.0;
-                for (unsigned int i = 0; i < n_basis; ++i) tr_M += M_e(i, i);
-                for (unsigned int i = 0; i < n_basis; ++i)
-                {
-                    M_e_vec(i) = vol * M_e(i, i) / tr_M;
-                }
-
-                dof_id_scratch = dof_indices[var_num];
-                dof_map.constrain_element_vector(M_e_vec, dof_id_scratch);
-                M_vec->add_vector(M_e_vec, dof_id_scratch);
-            }
-        }
-
-        // Flush assemble the matrix.
-        M_vec->close();
-
-        // Reset values at Dirichlet boundaries.
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
-        {
-            Elem* const elem = *el_it;
-            for (unsigned int side = 0; side < elem->n_sides(); ++side)
-            {
-                if (elem->neighbor_ptr(side)) continue;
-                static const boundary_id_type dirichlet_bdry_id_set[3] = { ZERO_DISPLACEMENT_X_BDRY_ID,
-                                                                           ZERO_DISPLACEMENT_Y_BDRY_ID,
-                                                                           ZERO_DISPLACEMENT_Z_BDRY_ID };
-                std::vector<boundary_id_type> bdry_ids;
-                mesh.boundary_info->boundary_ids(elem, side, bdry_ids);
-                const boundary_id_type dirichlet_bdry_ids = get_dirichlet_bdry_ids(bdry_ids);
-                if (!dirichlet_bdry_ids) continue;
-                fe->reinit(elem);
-                for (unsigned int n = 0; n < elem->n_nodes(); ++n)
-                {
-                    if (elem->is_node_on_side(n, side))
-                    {
-                        const Node* const node = elem->node_ptr(n);
-                        for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
-                        {
-                            const unsigned int n_comp = node->n_comp(sys_num, var_num);
-                            for (unsigned int comp = 0; comp < n_comp; ++comp)
-                            {
-                                if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[comp])) continue;
-                                const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
-                                if (!dof_map.is_constrained_dof(node_dof_index)) continue;
-                                M_vec->set(node_dof_index, 1.0);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Assemble the vector.
-        M_vec->close();
-
-        // Store the diagonal mass matrix.
-        d_L2_proj_matrix_diag[system_name] = std::move(M_vec);
-    }
-
-    IBTK_TIMER_STOP(t_build_diagonal_l2_mass_matrix);
-    return d_L2_proj_matrix_diag[system_name].get();
+    return d_fe_projector->buildDiagonalL2MassMatrix(system_name);
 } // buildDiagonalL2MassMatrix
 
 PetscVector<double>*
@@ -2401,7 +2151,7 @@ FEDataManager::buildIBGhostedDiagonalL2MassMatrix(const std::string& system_name
     if (!d_L2_proj_matrix_diag_ghost.count(system_name))
     {
         std::unique_ptr<PetscVector<double> > M_vec = buildIBGhostedVector(system_name);
-        *M_vec = *buildDiagonalL2MassMatrix(system_name);
+        *M_vec = *d_fe_projector->buildDiagonalL2MassMatrix(system_name);
         M_vec->close();
         d_L2_proj_matrix_diag_ghost[system_name] = std::move(M_vec);
     }
@@ -2418,52 +2168,14 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
                                    const double tol,
                                    const unsigned int max_its)
 {
-    IBTK_TIMER_START(t_compute_l2_projection);
-
-    int ierr;
-    bool converged = false;
-
-    if (close_F) F_vec.close();
-    const System& system = d_fe_data->d_es->get_system(system_name);
-    const DofMap& dof_map = system.get_dof_map();
-    if (consistent_mass_matrix)
-    {
-        std::pair<libMesh::LinearSolver<double>*, SparseMatrix<double>*> proj_solver_components =
-            buildL2ProjectionSolver(system_name);
-        auto solver = static_cast<PetscLinearSolver<double>*>(proj_solver_components.first);
-        auto M_mat = static_cast<PetscMatrix<double>*>(proj_solver_components.second);
-        PetscBool rtol_set;
-        double runtime_rtol;
-        ierr = PetscOptionsGetReal(nullptr, "", "-ksp_rtol", &runtime_rtol, &rtol_set);
-        IBTK_CHKERRQ(ierr);
-        PetscBool max_it_set;
-        int runtime_max_it;
-        ierr = PetscOptionsGetInt(nullptr, "", "-ksp_max_it", &runtime_max_it, &max_it_set);
-        IBTK_CHKERRQ(ierr);
-        ierr = KSPSetFromOptions(solver->ksp());
-        IBTK_CHKERRQ(ierr);
-        solver->solve(
-            *M_mat, *M_mat, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
-        KSPConvergedReason reason;
-        ierr = KSPGetConvergedReason(solver->ksp(), &reason);
-        IBTK_CHKERRQ(ierr);
-        converged = reason > 0;
-    }
-    else
-    {
-        auto M_diag_vec = static_cast<PetscVector<double>*>(buildDiagonalL2MassMatrix(system_name));
-        Vec M_diag_petsc_vec = M_diag_vec->vec();
-        Vec U_petsc_vec = static_cast<PetscVector<double>*>(&U_vec)->vec();
-        Vec F_petsc_vec = static_cast<PetscVector<double>*>(&F_vec)->vec();
-        ierr = VecPointwiseDivide(U_petsc_vec, F_petsc_vec, M_diag_petsc_vec);
-        IBTK_CHKERRQ(ierr);
-        converged = true;
-    }
-    if (close_U) U_vec.close();
-    dof_map.enforce_constraints_exactly(system, &U_vec);
-
-    IBTK_TIMER_STOP(t_compute_l2_projection);
-    return converged;
+    return d_fe_projector->computeL2Projection(*static_cast<PetscVector<double>*>(&U_vec),
+                                               *static_cast<PetscVector<double>*>(&F_vec),
+                                               system_name,
+                                               consistent_mass_matrix,
+                                               close_U,
+                                               close_F,
+                                               tol,
+                                               max_its);
 } // computeL2Projection
 
 bool
@@ -2761,6 +2473,7 @@ FEDataManager::FEDataManager(std::shared_ptr<FEData> fe_data,
                              std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
                              bool register_for_restart)
     : d_fe_data(fe_data),
+      d_fe_projector(new FEProjector(d_fe_data)),
       COORDINATES_SYSTEM_NAME(d_fe_data->d_coordinates_system_name),
       d_object_name(std::move(object_name)),
       d_registered_for_restart(register_for_restart),
@@ -2794,6 +2507,9 @@ FEDataManager::FEDataManager(std::shared_ptr<FEData> fe_data,
     // Create a data caching object if one was not provided to the constructor.
     if (!d_eulerian_data_cache) d_eulerian_data_cache.reset(new SAMRAIDataCache());
 
+    // Setup the FE projector logging state.
+    d_fe_projector->setLoggingEnabled(getLoggingEnabled());
+
     // Setup Timers.
     IBTK_DO_ONCE(
         t_reinit_element_mappings =
@@ -2806,11 +2522,6 @@ FEDataManager::FEDataManager(std::shared_ptr<FEData> fe_data,
         t_interp_weighted = TimerManager::getManager()->getTimer("IBTK::FEDataManager::interpWeighted()");
         t_interp = TimerManager::getManager()->getTimer("IBTK::FEDataManager::interp()");
         t_restrict_data = TimerManager::getManager()->getTimer("IBTK::FEDataManager::restrictData()");
-        t_build_l2_projection_solver =
-            TimerManager::getManager()->getTimer("IBTK::FEDataManager::buildL2ProjectionSolver()");
-        t_build_diagonal_l2_mass_matrix =
-            TimerManager::getManager()->getTimer("IBTK::FEDataManager::buildDiagonalL2MassMatrix()");
-        t_compute_l2_projection = TimerManager::getManager()->getTimer("IBTK::FEDataManager::computeL2Projection()");
         t_update_workload_estimates =
             TimerManager::getManager()->getTimer("IBTK::FEDataManager::updateWorkloadEstimates()");
         t_initialize_level_data = TimerManager::getManager()->getTimer("IBTK::FEDataManager::initializeLevelData()");
@@ -2852,6 +2563,7 @@ void
 FEDataManager::setLoggingEnabled(bool enable_logging)
 {
     d_enable_logging = enable_logging;
+    d_fe_projector->setLoggingEnabled(enable_logging);
     return;
 } // setLoggingEnabled
 
