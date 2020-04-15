@@ -330,6 +330,30 @@ libmesh_restart_file_name(const std::string& restart_dump_dirname,
                      << std::setfill('0') << std::right << time_step_number << "." << extension;
     return file_name_prefix.str();
 }
+
+void
+build_ib_ghosted_system_data(std::vector<SystemData>& ghosted_system_data,
+                             std::vector<std::unique_ptr<NumericVector<double> > >& ib_ghost_system_vecs,
+                             const std::vector<SystemData>& unghosted_system_data,
+                             FEDataManager* const fe_data_manager)
+{
+    ghosted_system_data.clear();
+    ib_ghost_system_vecs.clear();
+    EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
+    for (const SystemData& system_data : unghosted_system_data)
+    {
+        const std::string& system_name = system_data.system_name;
+        const System& system = equation_systems->get_system(system_name);
+        NumericVector<double>* original_system_vec = system_data.system_vec;
+        if (!original_system_vec) original_system_vec = system.current_local_solution.get();
+        ib_ghost_system_vecs.emplace_back(fe_data_manager->buildIBGhostedVector(system_name));
+        copy_and_synch(*original_system_vec, *ib_ghost_system_vecs.back(), /*close_v_in*/ false);
+        ghosted_system_data.emplace_back(
+            SystemData(system_name, system_data.vars, system_data.grad_vars, ib_ghost_system_vecs.back().get()));
+    }
+    return;
+}
+
 } // namespace
 
 const std::string IBFEMethod::COORDS_SYSTEM_NAME = "IB coordinates system";
@@ -1105,7 +1129,7 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
-        FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]);
+        FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]->getFEData());
         std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, FIFTH);
         fe.attachQuadratureRule(qrule.get());
         fe.evalQuadraturePoints();
@@ -1116,7 +1140,7 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         std::vector<size_t> Q_fcn_system_idxs;
         fe.setupInterpolatedSystemDataIndexes(
             Q_fcn_system_idxs, d_lag_body_source_fcn_data[part].system_data, &equation_systems);
-        fe.init(/*use_IB_ghosted_vecs*/ false);
+        fe.init();
 
         const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
         const std::vector<double>& JxW = fe.getQuadratureWeights();
@@ -2045,7 +2069,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     std::vector<int> X_vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) X_vars[d] = d;
 
-    FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]);
+    FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]->getFEData());
     std::unique_ptr<QBase> qrule_face = QBase::build(QGAUSS, dim - 1, FIFTH);
     fe.attachQuadratureRuleFace(qrule_face.get());
     fe.evalNormalsFace();
@@ -2067,7 +2091,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     std::vector<size_t> surface_pressure_fcn_system_idxs;
     fe.setupInterpolatedSystemDataIndexes(
         surface_pressure_fcn_system_idxs, d_lag_surface_pressure_fcn_data[part].system_data, &equation_systems);
-    fe.init(/*use_IB_ghosted_vecs*/ false);
+    fe.init();
 
     const std::vector<libMesh::Point>& q_point_face = fe.getQuadraturePointsFace();
     const std::vector<double>& JxW_face = fe.getQuadratureWeightsFace();
@@ -2284,7 +2308,7 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
-        FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]);
+        FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]->getFEData());
         std::unique_ptr<QBase> qrule =
             QBase::build(d_PK1_stress_fcn_data[part][k].quad_type, dim, d_PK1_stress_fcn_data[part][k].quad_order);
         std::unique_ptr<QBase> qrule_face =
@@ -2302,7 +2326,7 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
         std::vector<size_t> PK1_fcn_system_idxs;
         fe.setupInterpolatedSystemDataIndexes(
             PK1_fcn_system_idxs, d_PK1_stress_fcn_data[part][k].system_data, &equation_systems);
-        fe.init(/*use_IB_ghosted_vecs*/ false);
+        fe.init();
 
         const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
         const std::vector<double>& JxW = fe.getQuadratureWeights();
@@ -2471,7 +2495,7 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
     std::vector<int> Phi_vars(1, 0);
     std::vector<int> no_vars;
 
-    FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]);
+    FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]->getFEData());
     std::unique_ptr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
     std::unique_ptr<QBase> qrule_face = QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
     fe.attachQuadratureRule(qrule.get());
@@ -2495,7 +2519,7 @@ IBFEMethod::assembleInteriorForceDensityRHS(PetscVector<double>& G_rhs_vec,
     std::vector<size_t> surface_pressure_fcn_system_idxs;
     fe.setupInterpolatedSystemDataIndexes(
         surface_pressure_fcn_system_idxs, d_lag_surface_pressure_fcn_data[part].system_data, &equation_systems);
-    fe.init(/*use_IB_ghosted_vecs*/ false);
+    fe.init();
 
     const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
     const std::vector<double>& JxW = fe.getQuadratureWeights();
@@ -2742,7 +2766,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
-    FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]);
+    FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]->getFEData());
     std::unique_ptr<QBase> default_qrule_face =
         QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
     fe.attachQuadratureRuleFace(default_qrule_face.get());
@@ -2750,20 +2774,43 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     fe.evalQuadraturePointsFace();
     fe.evalQuadratureWeightsFace();
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_ghost_vec);
+
     const size_t num_PK1_fcns = d_PK1_stress_fcn_data[part].size();
     std::vector<std::vector<size_t> > PK1_fcn_system_idxs(num_PK1_fcns);
+    std::vector<std::vector<SystemData> > PK1_stress_fcn_ghosted_system_data(num_PK1_fcns);
+    std::vector<std::vector<std::unique_ptr<NumericVector<double> > > > PK1_stress_fcn_ghosted_system_vecs(
+        num_PK1_fcns);
     for (unsigned int k = 0; k < num_PK1_fcns; ++k)
     {
+        build_ib_ghosted_system_data(PK1_stress_fcn_ghosted_system_data[k],
+                                     PK1_stress_fcn_ghosted_system_vecs[k],
+                                     d_PK1_stress_fcn_data[part][k].system_data,
+                                     d_primary_fe_data_managers[part]);
         fe.setupInterpolatedSystemDataIndexes(
-            PK1_fcn_system_idxs[k], d_PK1_stress_fcn_data[part][k].system_data, &equation_systems);
+            PK1_fcn_system_idxs[k], PK1_stress_fcn_ghosted_system_data[k], &equation_systems);
     }
+
     std::vector<size_t> surface_force_fcn_system_idxs;
+    std::vector<SystemData> surface_force_fcn_ghosted_system_data;
+    std::vector<std::unique_ptr<NumericVector<double> > > surface_force_fcn_ghosted_system_vecs;
+    build_ib_ghosted_system_data(surface_force_fcn_ghosted_system_data,
+                                 surface_force_fcn_ghosted_system_vecs,
+                                 d_lag_surface_force_fcn_data[part].system_data,
+                                 d_primary_fe_data_managers[part]);
     fe.setupInterpolatedSystemDataIndexes(
-        surface_force_fcn_system_idxs, d_lag_surface_force_fcn_data[part].system_data, &equation_systems);
+        surface_force_fcn_system_idxs, surface_force_fcn_ghosted_system_data, &equation_systems);
+
     std::vector<size_t> surface_pressure_fcn_system_idxs;
+    std::vector<SystemData> surface_pressure_fcn_ghosted_system_data;
+    std::vector<std::unique_ptr<NumericVector<double> > > surface_pressure_fcn_ghosted_system_vecs;
+    build_ib_ghosted_system_data(surface_pressure_fcn_ghosted_system_data,
+                                 surface_pressure_fcn_ghosted_system_vecs,
+                                 d_lag_surface_pressure_fcn_data[part].system_data,
+                                 d_primary_fe_data_managers[part]);
     fe.setupInterpolatedSystemDataIndexes(
-        surface_pressure_fcn_system_idxs, d_lag_surface_pressure_fcn_data[part].system_data, &equation_systems);
-    fe.init(/*use_IB_ghosted_vecs*/ true);
+        surface_pressure_fcn_system_idxs, surface_pressure_fcn_ghosted_system_data, &equation_systems);
+
+    fe.init();
 
     const std::vector<libMesh::Point>& q_point_face = fe.getQuadraturePointsFace();
     const std::vector<double>& JxW_face = fe.getQuadratureWeightsFace();
@@ -3002,27 +3049,50 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
     std::vector<int> no_vars;
 
-    FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]);
+    FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]->getFEData());
     std::unique_ptr<QBase> qrule_face = QBase::build(d_default_quad_type[part], dim - 1, d_default_quad_order[part]);
     fe.attachQuadratureRuleFace(qrule_face.get());
     fe.evalQuadraturePointsFace();
     fe.evalNormalsFace();
     const size_t G_sys_idx = fe.registerInterpolatedSystem(G_system, vars, no_vars, &G_ghost_vec);
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_ghost_vec);
+
     const size_t num_PK1_fcns = d_PK1_stress_fcn_data[part].size();
     std::vector<std::vector<size_t> > PK1_fcn_system_idxs(num_PK1_fcns);
+    std::vector<std::vector<SystemData> > PK1_stress_fcn_ghosted_system_data(num_PK1_fcns);
+    std::vector<std::vector<std::unique_ptr<NumericVector<double> > > > PK1_stress_fcn_ghosted_system_vecs(
+        num_PK1_fcns);
     for (unsigned int k = 0; k < num_PK1_fcns; ++k)
     {
+        build_ib_ghosted_system_data(PK1_stress_fcn_ghosted_system_data[k],
+                                     PK1_stress_fcn_ghosted_system_vecs[k],
+                                     d_PK1_stress_fcn_data[part][k].system_data,
+                                     d_primary_fe_data_managers[part]);
         fe.setupInterpolatedSystemDataIndexes(
-            PK1_fcn_system_idxs[k], d_PK1_stress_fcn_data[part][k].system_data, &equation_systems);
+            PK1_fcn_system_idxs[k], PK1_stress_fcn_ghosted_system_data[k], &equation_systems);
     }
+
     std::vector<size_t> surface_force_fcn_system_idxs;
+    std::vector<SystemData> surface_force_fcn_ghosted_system_data;
+    std::vector<std::unique_ptr<NumericVector<double> > > surface_force_fcn_ghosted_system_vecs;
+    build_ib_ghosted_system_data(surface_force_fcn_ghosted_system_data,
+                                 surface_force_fcn_ghosted_system_vecs,
+                                 d_lag_surface_force_fcn_data[part].system_data,
+                                 d_primary_fe_data_managers[part]);
     fe.setupInterpolatedSystemDataIndexes(
-        surface_force_fcn_system_idxs, d_lag_surface_force_fcn_data[part].system_data, &equation_systems);
+        surface_force_fcn_system_idxs, surface_force_fcn_ghosted_system_data, &equation_systems);
+
     std::vector<size_t> surface_pressure_fcn_system_idxs;
+    std::vector<SystemData> surface_pressure_fcn_ghosted_system_data;
+    std::vector<std::unique_ptr<NumericVector<double> > > surface_pressure_fcn_ghosted_system_vecs;
+    build_ib_ghosted_system_data(surface_pressure_fcn_ghosted_system_data,
+                                 surface_pressure_fcn_ghosted_system_vecs,
+                                 d_lag_surface_pressure_fcn_data[part].system_data,
+                                 d_primary_fe_data_managers[part]);
     fe.setupInterpolatedSystemDataIndexes(
-        surface_pressure_fcn_system_idxs, d_lag_surface_pressure_fcn_data[part].system_data, &equation_systems);
-    fe.init(/*use_IB_ghosted_vecs*/ true);
+        surface_pressure_fcn_system_idxs, surface_pressure_fcn_ghosted_system_data, &equation_systems);
+
+    fe.init();
 
     const std::vector<libMesh::Point>& q_point_face = fe.getQuadraturePointsFace();
     const std::vector<libMesh::Point>& normal_face = fe.getNormalsFace();

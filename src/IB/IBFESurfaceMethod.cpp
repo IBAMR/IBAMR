@@ -921,7 +921,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         dphi_dxi[0] = &fe->get_dphidxi();
         if (NDIM > 2) dphi_dxi[1] = &fe->get_dphideta();
 
-        FEDataInterpolation fe_interpolator(dim, d_fe_data_managers[part]);
+        FEDataInterpolation fe_interpolator(dim, d_fe_data_managers[part]->getFEData());
         fe_interpolator.attachQuadratureRule(qrule.get());
         std::vector<size_t> surface_force_fcn_system_idxs;
         fe_interpolator.setupInterpolatedSystemDataIndexes(
@@ -929,7 +929,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         std::vector<size_t> surface_pressure_fcn_system_idxs;
         fe_interpolator.setupInterpolatedSystemDataIndexes(
             surface_pressure_fcn_system_idxs, d_lag_surface_pressure_fcn_data[part].system_data, equation_systems);
-        fe_interpolator.init(/*use_IB_ghosted_vecs*/ false);
+        fe_interpolator.init();
 
         std::vector<const std::vector<double>*> surface_force_var_data, surface_pressure_var_data;
         std::vector<const std::vector<VectorValue<double> >*> surface_force_grad_var_data,

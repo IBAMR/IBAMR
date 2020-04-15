@@ -60,13 +60,13 @@ class NumericVector;
 namespace IBTK
 {
 /*!
- * \brief Class FEDataInterpolation manages data requred to evaluate one or more FE field variables at a collection of
+ * \brief Class FEDataInterpolation manages data required to evaluate one or more FE field variables at a collection of
  * points, possibly (not not necessarily) corresponding to the points of a quadrature rule.
  */
 class FEDataInterpolation
 {
 public:
-    FEDataInterpolation(unsigned int dim, FEDataManager* const fe_data_manager);
+    FEDataInterpolation(unsigned int dim, std::shared_ptr<FEData> fe_data);
 
     ~FEDataInterpolation() = default;
 
@@ -235,7 +235,7 @@ public:
     size_t registerInterpolatedSystem(const libMesh::System& system,
                                       const std::vector<int>& vars = std::vector<int>(1, 0),
                                       const std::vector<int>& grad_vars = std::vector<int>(),
-                                      libMesh::NumericVector<double>* system_data = nullptr);
+                                      libMesh::NumericVector<double>* system_vec = nullptr);
 
     /*!
      * \brief Get the variable data for all of the systems.
@@ -274,11 +274,11 @@ public:
                                      const unsigned int qp);
 
     /*!
-     * \brief Initialize all of the data structures requred to evaluate the FE shape functions, quadrature rules, etc.
+     * \brief Initialize all of the data structures required to evaluate the FE shape functions, quadrature rules, etc.
      *
      * NOTE: This method must be called before reinitializing data on individual elements.
      */
-    void init(bool use_IB_ghosted_vecs);
+    void init();
 
     /*!
      * \brief Reinitialize the FE shape functions, quadrature rules, etc. for the specified element.
@@ -290,7 +290,7 @@ public:
                 const std::vector<double>* weights = nullptr);
 
     /*!
-     * \brief Reinitialize the FE shape functions, quadrature rules, etc. for the specified side of the specificed
+     * \brief Reinitialize the FE shape functions, quadrature rules, etc. for the specified side of the specified
      * element.
      *
      * NOTE: Nodal values are set by calling collectDataForInterpolation().
@@ -338,7 +338,7 @@ private:
                       const std::vector<const std::vector<std::vector<libMesh::VectorValue<double> > >*>& dphi_data);
 
     const unsigned int d_dim;
-    FEDataManager* const d_fe_data_manager;
+    std::shared_ptr<FEData> d_fe_data;
     bool d_initialized = false;
     bool d_eval_q_point = false, d_eval_JxW = false, d_eval_q_point_face = false, d_eval_JxW_face = false,
          d_eval_normal_face = false;
@@ -352,7 +352,7 @@ private:
     std::vector<FEDataManager::SystemDofMapCache*> d_system_dof_map_caches;
     std::vector<std::vector<int> > d_system_all_vars, d_system_vars, d_system_grad_vars;
     std::vector<std::vector<size_t> > d_system_var_idx, d_system_grad_var_idx;
-    std::vector<libMesh::NumericVector<double>*> d_system_data;
+    std::vector<libMesh::NumericVector<double>*> d_system_vecs;
     std::vector<std::vector<size_t> > d_system_var_fe_type_idx, d_system_grad_var_fe_type_idx;
     std::vector<std::vector<std::vector<double> > > d_system_var_data;
     std::vector<std::vector<std::vector<libMesh::VectorValue<double> > > > d_system_grad_var_data;

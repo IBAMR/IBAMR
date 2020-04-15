@@ -48,8 +48,8 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FEDataInterpolation::FEDataInterpolation(const unsigned int dim, FEDataManager* const fe_data_manager)
-    : d_dim(dim), d_fe_data_manager(fe_data_manager)
+FEDataInterpolation::FEDataInterpolation(const unsigned int dim, std::shared_ptr<FEData> fe_data)
+    : d_dim(dim), d_fe_data(std::move(fe_data))
 {
     return;
 }
@@ -109,7 +109,7 @@ size_t
 FEDataInterpolation::registerInterpolatedSystem(const System& system,
                                                 const std::vector<int>& vars,
                                                 const std::vector<int>& grad_vars,
-                                                NumericVector<double>* system_data)
+                                                NumericVector<double>* system_vec)
 {
     TBOX_ASSERT(!d_initialized && (!vars.empty() || !grad_vars.empty()));
     const unsigned int sys_num = system.number();
@@ -128,7 +128,7 @@ FEDataInterpolation::registerInterpolatedSystem(const System& system,
             bool same_data = true;
             same_data = same_data && (vars == d_system_vars[system_idx]);
             same_data = same_data && (grad_vars == d_system_grad_vars[system_idx]);
-            same_data = same_data && (system_data == d_system_data[system_idx]);
+            same_data = same_data && (system_vec == d_system_vecs[system_idx]);
             if (same_data) return system_idx;
         }
     }
@@ -137,7 +137,7 @@ FEDataInterpolation::registerInterpolatedSystem(const System& system,
     // collection of variables/data.  In either case, we need to register it here.
     const size_t system_idx = d_systems.size();
     d_systems.push_back(&system);
-    d_system_dof_map_caches.push_back(d_fe_data_manager->getDofMapCache(system.name()));
+    d_system_dof_map_caches.push_back(d_fe_data->getDofMapCache(system.name()));
     std::set<int> all_vars_set;
     all_vars_set.insert(vars.begin(), vars.end());
     all_vars_set.insert(grad_vars.begin(), grad_vars.end());
@@ -157,7 +157,7 @@ FEDataInterpolation::registerInterpolatedSystem(const System& system,
         grad_var_idx[k] = std::distance(all_vars.begin(), std::find(all_vars.begin(), all_vars.end(), grad_vars[k]));
     }
     d_system_grad_var_idx.push_back(grad_var_idx);
-    d_system_data.push_back(system_data);
+    d_system_vecs.push_back(system_vec);
     return system_idx;
 }
 
@@ -201,7 +201,7 @@ FEDataInterpolation::setInterpolatedDataPointers(std::vector<const std::vector<d
 }
 
 void
-FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
+FEDataInterpolation::init()
 {
     TBOX_ASSERT(!d_initialized);
 
@@ -243,15 +243,8 @@ FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
         const System& system = *d_systems[system_idx];
         const DofMap& system_dof_map = system.get_dof_map();
 
-        NumericVector<double>*& system_data = d_system_data[system_idx];
-        if (!system_data) system_data = system.current_local_solution.get();
-        if (use_IB_ghosted_vecs)
-        {
-            NumericVector<double>* ghost_data =
-                d_fe_data_manager->buildGhostedSolutionVector(system.name(), /*synch_data*/ false);
-            copy_and_synch(*system_data, *ghost_data, /*close_v_in*/ false);
-            system_data = ghost_data;
-        }
+        NumericVector<double>*& system_vec = d_system_vecs[system_idx];
+        if (!system_vec) system_vec = system.current_local_solution.get();
 
         const std::vector<int>& vars = d_system_vars[system_idx];
         d_system_var_fe_type_idx[system_idx].resize(vars.size(), -1);
@@ -387,10 +380,10 @@ FEDataInterpolation::collectDataForInterpolation(const Elem* const elem)
     {
         FEDataManager::SystemDofMapCache* system_dof_map_cache = d_system_dof_map_caches[system_idx];
         // Get the DOF mappings and local data for all variables.
-        NumericVector<double>* system_data = d_system_data[system_idx];
+        NumericVector<double>* system_vec = d_system_vecs[system_idx];
         const auto& dof_indices = system_dof_map_cache->dof_indices(d_current_elem);
         boost::multi_array<double, 2>& elem_data = d_system_elem_data[system_idx];
-        get_values_for_interpolation(elem_data, *system_data, dof_indices);
+        get_values_for_interpolation(elem_data, *system_vec, dof_indices);
     }
     return;
 }
