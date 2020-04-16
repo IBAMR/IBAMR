@@ -155,7 +155,7 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
     std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, NDIM, CONSTANT);
 
     // Set up all system data required to evaluate the mesh functions.
-    FEDataInterpolation fe(dim, d_fe_data_manager);
+    FEDataInterpolation fe(dim, d_fe_data_manager->getFEData());
     fe.attachQuadratureRule(qrule.get());
     fe.evalQuadraturePoints();
 
@@ -203,7 +203,7 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
             tensor_var_fcn_system_idxs[k], d_tensor_var_system_data[k], equation_systems);
     }
 
-    fe.init(/*use_IB_ghosted_vecs*/ false);
+    fe.init();
 
     const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
 
