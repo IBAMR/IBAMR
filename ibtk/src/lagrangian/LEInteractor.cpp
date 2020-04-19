@@ -1114,17 +1114,18 @@ perform_mls(const int stencil_sz,
 
 } // perform_mls
 
+
 void
-get_mls_weights(const std::string& kernel_fcn,
-                const double* const X,
-                const double* const X_shift,
-                const double* const dx,
-                const double* const x_lower,
-                const int* const ilower,
-                const ArrayData<NDIM, double>& mask_data,
-                int* stencil_lower,
-                int* stencil_upper,
-                MLSWeight& Psi)
+get_mls_weights(const std::string &kernel_fcn,
+                const double *const X,
+                const double *const X_shift,
+                const double *const dx,
+                const double *const x_lower,
+                const int *const ilower,
+                const ArrayData<NDIM, double> &mask_data,
+                int *stencil_lower,
+                int *stencil_upper,
+                MLSWeight &Psi)
 {
     Weight::extent_gen extents;
 
@@ -1155,6 +1156,50 @@ get_mls_weights(const std::string& kernel_fcn,
             D[d][3] = 0.125 * (1.0 + 2.0 * r - q);
         }
         perform_mls(stencil_sz, X, stencil_lower, stencil_upper, p_start, dx, mask_data, D, Psi);
+
+    }
+    else if (kernel_fcn == "IB_6")
+    {
+
+        // Resize some arrays.
+        const int stencil_sz = LEInteractor::getStencilSize("IB_6");
+        TensorProductWeights D;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            D[d].resize(extents[stencil_sz]);
+        }
+
+        double K = 59.0 / 60.0 - sqrt(29.0) / 20.0;
+        double alpha = 28;
+
+        // Determine the interpolation stencil corresponding to the position
+        // of X within the cell and compute the regular IB weights.
+        double X_dx, r, p_start[NDIM];
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            X_dx = (X[d] + X_shift[d] - x_lower[d]) / dx[d];
+            stencil_lower[d] = NINT(X_dx) + ilower[d] - stencil_sz / 2;
+            stencil_upper[d] = stencil_lower[d] + stencil_sz - 1;
+
+            r = X_dx - ((stencil_lower[d] + 2 - ilower[d]) + 0.5);
+
+            p_start[d] = X[d] - (r + 2) * dx[d];
+
+            double beta = (9.0 / 4.0) - (3.0 / 2.0) * (K + r * r) + ((22.0 / 3.0) - 7 * K) * r - (7.0 / 3.0) * pow(r, 3);
+            double gamma = (1.0 / 4.0) * ( ((161.0 / 36.0) - (59.0 / 6.0) * K + 5 * K * K) * (1.0 / 2.0) * r * r + (-(109.0 / 24.0) + 5 * K) * (1.0 / 3.0) * pow(r, 4) + (5.0 / 18.0) * pow(r, 6) );
+            double discr = beta * beta - 4 * alpha * gamma;
+            double val = (3.0 / 2.0) - K;
+            double pm3 = (-beta + (val > 0 ? 1.0 : (val == 0 ? 0.0 : -1.0)) * sqrt(discr)) / (2 * alpha);
+            D[d][5] = pm3;
+            D[d][4] = -3 * pm3 - (1.0 / 16.0) + (1.0 / 8.0) * (K + r * r) + (1.0 / 12.0) * (3.0 * K - 1.0) * r + (1.0 / 12.0) * pow(r, 3);
+            D[d][3] =  2 * pm3 + (1.0 / 4.0)  +  (1.0 / 6.0) * (4 - 3 * K) * r -  (1.0 / 6.0) * pow(r, 3);
+            D[d][2]  =  2 * pm3 + (5.0 / 8.0)  - (1.0 / 4.0) * (K + r * r);
+            D[d][1] = -3 * pm3 + (1.0 / 4.0) -  (1.0 / 6.0) * (4 - 3 * K) * r +  (1.0 / 6.0) * pow(r, 3);
+            D[d][0] =    pm3 - (1.0 / 16.0) + (1.0 / 8.0) * (K + r * r) - (1.0 / 12.0) * (3 * K - 1) * r - (1.0 / 12.0) * pow(r, 3);
+
+        }
+        perform_mls(stencil_sz, X, stencil_lower, stencil_upper, p_start, dx, mask_data, D, Psi);
+
     }
     else if (kernel_fcn == "USER_DEFINED")
     {

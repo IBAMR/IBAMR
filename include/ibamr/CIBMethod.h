@@ -527,6 +527,8 @@ protected:
     // If we are using steady Stokes solver.
     bool d_use_steady_stokes = false;
 
+    std::string d_weighting_fcn = "IB_4";
+
 private:
     /*!
      * \brief Set additional values from input database.

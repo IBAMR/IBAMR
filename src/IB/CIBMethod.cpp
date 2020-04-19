@@ -646,7 +646,7 @@ CIBMethod::interpolateVelocity(const int u_data_idx,
                                      d_mask_data_idx,
                                      *U_half_data,
                                      *X_half_data,
-                                     /*weighting_fcn*/ "IB_4",
+                                     d_weighting_fcn,
                                      u_synch_scheds,
                                      u_ghost_fill_scheds,
                                      data_time);
@@ -693,7 +693,7 @@ CIBMethod::spreadForce(
                                      d_mask_data_idx,
                                      *F_data,
                                      *X_LE_data,
-                                     /*weighting_fcn*/ "IB_4",
+                                     d_weighting_fcn,
                                      phys_bdry_op,
                                      f_prolongation_scheds,
                                      data_time,
@@ -1800,6 +1800,7 @@ CIBMethod::getFromInput(Pointer<Database> input_db)
             d_reg_filename[struct_no] = weight_filenames[struct_no];
         }
     }
+    d_weighting_fcn = input_db->getStringWithDefault("weighting_fcn", d_weighting_fcn);
 
     return;
 } // getFromInput
