@@ -1129,12 +1129,13 @@ get_mls_weights(const std::string &kernel_fcn,
                 const int *const q_gcw)
 {
     Weight::extent_gen extents;
+    const int stencil_sz = LEInteractor::getStencilSize(kernel_fcn);
+    TensorProductWeights D;
+    double p_start[NDIM];
 
     if (kernel_fcn == "IB_4")
     {
         // Resize some arrays.
-        const int stencil_sz = LEInteractor::getStencilSize("IB_4");
-        TensorProductWeights D;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             D[d].resize(extents[stencil_sz]);
@@ -1142,7 +1143,7 @@ get_mls_weights(const std::string &kernel_fcn,
 
         // Determine the interpolation stencil corresponding to the position
         // of X within the cell and compute the regular IB weights.
-        double X_dx, q, r, p_start[NDIM];
+        double X_dx, q, r;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             X_dx = (X[d] + X_shift[d] - x_lower[d]) / dx[d];
@@ -1156,15 +1157,11 @@ get_mls_weights(const std::string &kernel_fcn,
             D[d][2] = 0.125 * (1.0 + 2.0 * r + q);
             D[d][3] = 0.125 * (1.0 + 2.0 * r - q);
         }
-        perform_mls(stencil_sz, X, stencil_lower, stencil_upper, p_start, dx, mask_data, D, Psi);
-
     }
     else if (kernel_fcn == "IB_6")
     {
 
         // Resize some arrays.
-        const int stencil_sz = LEInteractor::getStencilSize("IB_6");
-        TensorProductWeights D;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             D[d].resize(extents[stencil_sz]);
@@ -1175,36 +1172,38 @@ get_mls_weights(const std::string &kernel_fcn,
 
         // Determine the interpolation stencil corresponding to the position
         // of X within the cell and compute the regular IB weights.
-        double X_dx, r, p_start[NDIM];
+        double X_dx, r;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             X_dx = (X[d] + X_shift[d] - x_lower[d]) / dx[d];
             stencil_lower[d] = NINT(X_dx) + ilower[d] - stencil_sz / 2;
             stencil_upper[d] = stencil_lower[d] + stencil_sz - 1;
-
+        
             r = X_dx - ((stencil_lower[d] + 2 - ilower[d]) + 0.5);
-
+        
             p_start[d] = X[d] - (r + 2) * dx[d];
-
-            double beta = (9.0 / 4.0) - (3.0 / 2.0) * (K + r * r) + ((22.0 / 3.0) - 7 * K) * r - (7.0 / 3.0) * pow(r, 3);
-            double gamma = (1.0 / 4.0) * ( ((161.0 / 36.0) - (59.0 / 6.0) * K + 5 * K * K) * (1.0 / 2.0) * r * r + (-(109.0 / 24.0) + 5 * K) * (1.0 / 3.0) * pow(r, 4) + (5.0 / 18.0) * pow(r, 6) );
+        
+            double r2 = r * r;
+            double r3 = r2 * r;
+            double r4 = r3 * r;
+            double r5 = r4 * r;
+            double r6 = r5 * r;
+            double beta = (9.0 / 4.0) - (3.0 / 2.0) * (K + r * r) + ((22.0 / 3.0) - 7 * K) * r - (7.0 / 3.0) * r3;
+            double gamma = (1.0 / 4.0) * ( ((161.0 / 36.0) - (59.0 / 6.0) * K + 5 * K * K) * (1.0 / 2.0) * r * r + (-(109.0 / 24.0) + 5 * K) * (1.0 / 3.0) * r4 + (5.0 / 18.0) * r6 );
             double discr = beta * beta - 4 * alpha * gamma;
             double val = (3.0 / 2.0) - K;
             double pm3 = (-beta + (val > 0 ? 1.0 : (val == 0 ? 0.0 : -1.0)) * sqrt(discr)) / (2 * alpha);
             D[d][5] = pm3;
-            D[d][4] = -3 * pm3 - (1.0 / 16.0) + (1.0 / 8.0) * (K + r * r) + (1.0 / 12.0) * (3.0 * K - 1.0) * r + (1.0 / 12.0) * pow(r, 3);
-            D[d][3] =  2 * pm3 + (1.0 / 4.0)  +  (1.0 / 6.0) * (4 - 3 * K) * r -  (1.0 / 6.0) * pow(r, 3);
-            D[d][2]  =  2 * pm3 + (5.0 / 8.0)  - (1.0 / 4.0) * (K + r * r);
-            D[d][1] = -3 * pm3 + (1.0 / 4.0) -  (1.0 / 6.0) * (4 - 3 * K) * r +  (1.0 / 6.0) * pow(r, 3);
-            D[d][0] =    pm3 - (1.0 / 16.0) + (1.0 / 8.0) * (K + r * r) - (1.0 / 12.0) * (3 * K - 1) * r - (1.0 / 12.0) * pow(r, 3);
-
+            D[d][4] = -3 * pm3 - (1.0 / 16.0) + (1.0 / 8.0) * (K + r * r) + (1.0 / 12.0) * (3.0 * K - 1.0) * r + (1.0 / 12.0) * r3;
+            D[d][3] = 2 * pm3 + (1.0 / 4.0)  +  (1.0 / 6.0) * (4 - 3 * K) * r -  (1.0 / 6.0) * r3;
+            D[d][2] = 2 * pm3 + (5.0 / 8.0)  - (1.0 / 4.0) * (K + r * r);
+            D[d][1] = -3 * pm3 + (1.0 / 4.0) -  (1.0 / 6.0) * (4 - 3 * K) * r +  (1.0 / 6.0) * r3;
+            D[d][0] = pm3 - (1.0 / 16.0) + (1.0 / 8.0) * (K + r * r) - (1.0 / 12.0) * (3 * K - 1) * r - (1.0 / 12.0) * r3;
+        
         }
-        perform_mls(stencil_sz, X, stencil_lower, stencil_upper, p_start, dx, mask_data, D, Psi);
-
     }
     else if (kernel_fcn == "BSPLINE_5")
     {
-        const int stencil_sz = LEInteractor::getStencilSize("BSPLINE_5");
         std::array<double, NDIM> X_cell;
         std::array<int, NDIM> stencil_center;
 
@@ -1220,7 +1219,6 @@ get_mls_weights(const std::string &kernel_fcn,
 
           for (unsigned int d = 0; d < NDIM; ++d)
           {
-
               stencil_lower[d] = stencil_center[d] - 2;
               stencil_upper[d] = stencil_center[d] + 2;
 
@@ -1230,13 +1228,11 @@ get_mls_weights(const std::string &kernel_fcn,
 
 
         // Compute the kernel function weights.
-        TensorProductWeights D;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             D[d].resize(extents[stencil_sz]);
         }
 
-        double p_start[NDIM];
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             p_start[d] = X_cell[d] + static_cast<double>(stencil_lower[d] - stencil_center[d]) * dx[d];
@@ -1264,47 +1260,74 @@ get_mls_weights(const std::string &kernel_fcn,
                 }
             }
         }
-
-        perform_mls(stencil_sz, X, stencil_lower, stencil_upper, p_start, dx, mask_data, D, Psi);
-
     }
     else if (kernel_fcn == "BSPLINE_6")
     {
-      // Resize some arrays.
-        const int stencil_sz = LEInteractor::getStencilSize("BSPLINE_6");
-        TensorProductWeights D;
+        std::array<double, NDIM> X_cell;
+        std::array<int, NDIM> stencil_center;
+
+        // Determine the Cartesian cell in which X is located.
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            D[d].resize(extents[stencil_sz]);
+            stencil_center[d] = static_cast<int>(std::floor((X[d] + X_shift[d] - x_lower[d]) / dx[d])) + ilower[d];
+            X_cell[d] = x_lower[d] + (static_cast<double>(stencil_center[d] - ilower[d]) + 0.5) * dx[d];
         }
 
+        // Determine the interpolation stencil corresponding to the position of
+        // X within the cell.
 
-        // Determine the interpolation stencil corresponding to the position
-        // of X within the cell and compute the regular IB weights.
-        double X_dx, r, p_start[NDIM];
+          for (unsigned int d = 0; d < NDIM; ++d)
+          {
+              if (X[d] < X_cell[d])
+              {
+                  stencil_lower[d] = stencil_center[d] - 3;
+                  stencil_upper[d] = stencil_center[d] + 2;
+              }
+              else
+              {
+                  stencil_lower[d] = stencil_center[d] - 2;
+                  stencil_upper[d] = stencil_center[d] + 3;
+              }
+          }
+
+
+        // Compute the kernel function weights.
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            X_dx = (X[d] + X_shift[d] - x_lower[d]) / dx[d];
-            stencil_lower[d] = NINT(X_dx) + ilower[d] - stencil_sz / 2;
-            stencil_upper[d] = stencil_lower[d] + stencil_sz - 1;
-
-            r = X_dx - ((stencil_lower[d] + 2 - ilower[d]) + 0.5);
-
-            p_start[d] = X[d] - (r + 2) * dx[d];
-
-            double kappa = (1-r)+3;
-            D[d][5] = 1.0/120.0*(-pow(kappa+2,5)+30*pow(kappa+2,4)-360*pow(kappa+2,3)+2160*pow(kappa+2,2)-6480*(kappa+2)+7776);
-            D[d][4] = 1.0/120.0*(5*pow(kappa+1,5)-120*pow(kappa+1,4)+1140*pow(kappa+1,3)-5340*pow(kappa+1,2)+12270*(kappa+1)-10974);
-            D[d][3] = 1.0/60.0*(-5*pow(kappa,5)+90*pow(kappa,4)-630*pow(kappa,3)+2130*pow(kappa,2)-3465*kappa+2193);
-            kappa = r+3;
-            D[d][2] = 1.0/60.0*(-5*pow(kappa,5)+90*pow(kappa,4)-630*pow(kappa,3)+2130*pow(kappa,2)-3465*kappa+2193);
-            D[d][1] = 1.0/120.0*(5*pow(kappa+1,5)-120*pow(kappa+1,4)+1140*pow(kappa+1,3)-5340*pow(kappa+1,2)+12270*(kappa+1)-10974);
-            D[d][0] = 1.0/120.0*(-pow(kappa+2,5)+30*pow(kappa+2,4)-360*pow(kappa+2,3)+2160*pow(kappa+2,2)-6480*(kappa+2)+7776);
-
+            D[d].resize(extents[6]);
         }
-        
-        perform_mls(stencil_sz, X, stencil_lower, stencil_upper, p_start, dx, mask_data, D, Psi);
 
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            p_start[d] = X_cell[d] + static_cast<double>(stencil_lower[d] - stencil_center[d]) * dx[d];
+            for (int k = 0, j = stencil_lower[d]; j <= stencil_upper[d]; ++j, ++k)
+            {
+                double X_cell_cur = x_lower[d] + (static_cast<double>(j - ilower[d]) + 0.5) * dx[d];
+                double x = (X[d] + X_shift[d] - X_cell_cur) / dx[d];
+                double modx = abs(x);
+                double r = modx + 3;
+                double r2 = r * r;
+                double r3 = r2 * r;
+                double r4 = r3 * r;
+                double r5 = r4 * r;
+                if (modx < 1)
+                {
+                    D[d][k] = 1.0 / 60.0 * (2193 - 3465 * r + 2130 * r2 - 630 * r3 + 90 * r4 - 5 * r5);
+                }
+                else if (modx < 2)
+                {
+                    D[d][k] = (1.0 / 120.0) * (-10974 + 12270 * r - 5340 * r2 + 1140 * r3 - 120 * r4 + 5 * r5);
+                }
+                else if (modx < 3)
+                {
+                    D[d][k] = (1.0 / 120) * (7776 - 6480 * r + 2160 * r2 - 360 * r3 + 30 * r4 - r5);
+                }
+                else
+                {
+                    D[d][k] = 0.0;
+                }
+            }
+        }
     }
     else if (kernel_fcn == "USER_DEFINED")
     {
@@ -1320,19 +1343,19 @@ get_mls_weights(const std::string &kernel_fcn,
 
         // Determine the interpolation stencil corresponding to the position of
         // X within the cell.
-        if (LEInteractor::s_kernel_fcn_stencil_size % 2 == 0)
+        if (stencil_sz % 2 == 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if (X[d] < X_cell[d])
                 {
-                    stencil_lower[d] = stencil_center[d] - LEInteractor::s_kernel_fcn_stencil_size / 2;
-                    stencil_upper[d] = stencil_center[d] + LEInteractor::s_kernel_fcn_stencil_size / 2 - 1;
+                    stencil_lower[d] = stencil_center[d] - stencil_sz / 2;
+                    stencil_upper[d] = stencil_center[d] + stencil_sz / 2 - 1;
                 }
                 else
                 {
-                    stencil_lower[d] = stencil_center[d] - LEInteractor::s_kernel_fcn_stencil_size / 2 + 1;
-                    stencil_upper[d] = stencil_center[d] + LEInteractor::s_kernel_fcn_stencil_size / 2;
+                    stencil_lower[d] = stencil_center[d] - stencil_sz / 2 + 1;
+                    stencil_upper[d] = stencil_center[d] + stencil_sz / 2;
                 }
             }
         }
@@ -1340,19 +1363,17 @@ get_mls_weights(const std::string &kernel_fcn,
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                stencil_lower[d] = stencil_center[d] - LEInteractor::s_kernel_fcn_stencil_size / 2;
-                stencil_upper[d] = stencil_center[d] + LEInteractor::s_kernel_fcn_stencil_size / 2;
+                stencil_lower[d] = stencil_center[d] - stencil_sz / 2;
+                stencil_upper[d] = stencil_center[d] + stencil_sz / 2;
             }
         }
 
         // Compute the kernel function weights.
-        TensorProductWeights D;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            D[d].resize(extents[LEInteractor::s_kernel_fcn_stencil_size]);
+            D[d].resize(extents[stencil_sz]);
         }
 
-        double p_start[NDIM];
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             p_start[d] = X_cell[d] + static_cast<double>(stencil_lower[d] - stencil_center[d]) * dx[d];
@@ -1362,10 +1383,9 @@ get_mls_weights(const std::string &kernel_fcn,
                     (X[d] + X_shift[d] - (X_cell[d] + static_cast<double>(j - stencil_center[d]) * dx[d])) / dx[d]);
             }
         }
-        perform_mls(
-            LEInteractor::s_kernel_fcn_stencil_size, X, stencil_lower, stencil_upper, p_start, dx, mask_data, D, Psi);
     }
 
+    perform_mls(stencil_sz, X, stencil_lower, stencil_upper, p_start, dx, mask_data, D, Psi);
     return;
 } // get_mls_weights
 
