@@ -1114,17 +1114,19 @@ perform_mls(const int stencil_sz,
 
 } // perform_mls
 
+
 void
-get_mls_weights(const std::string& kernel_fcn,
-                const double* const X,
-                const double* const X_shift,
-                const double* const dx,
-                const double* const x_lower,
-                const int* const ilower,
-                const ArrayData<NDIM, double>& mask_data,
-                int* stencil_lower,
-                int* stencil_upper,
-                MLSWeight& Psi)
+get_mls_weights(const std::string &kernel_fcn,
+                const double *const X,
+                const double *const X_shift,
+                const double *const dx,
+                const double *const x_lower,
+                const int *const ilower,
+                const ArrayData<NDIM, double> &mask_data,
+                int *stencil_lower,
+                int *stencil_upper,
+                MLSWeight &Psi,
+                const int *const q_gcw)
 {
     Weight::extent_gen extents;
 
@@ -1197,6 +1199,110 @@ get_mls_weights(const std::string& kernel_fcn,
             D[d][0] =    pm3 - (1.0 / 16.0) + (1.0 / 8.0) * (K + r * r) - (1.0 / 12.0) * (3 * K - 1) * r - (1.0 / 12.0) * pow(r, 3);
 
         }
+        perform_mls(stencil_sz, X, stencil_lower, stencil_upper, p_start, dx, mask_data, D, Psi);
+
+    }
+    else if (kernel_fcn == "BSPLINE_5")
+    {
+        const int stencil_sz = LEInteractor::getStencilSize("BSPLINE_5");
+        std::array<double, NDIM> X_cell;
+        std::array<int, NDIM> stencil_center;
+
+        // Determine the Cartesian cell in which X is located.
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            stencil_center[d] = static_cast<int>(std::floor((X[d] + X_shift[d] - x_lower[d]) / dx[d])) + ilower[d];
+            X_cell[d] = x_lower[d] + (static_cast<double>(stencil_center[d] - ilower[d]) + 0.5) * dx[d];
+        }
+
+        // Determine the interpolation stencil corresponding to the position of
+        // X within the cell.
+
+          for (unsigned int d = 0; d < NDIM; ++d)
+          {
+
+              stencil_lower[d] = stencil_center[d] - 2;
+              stencil_upper[d] = stencil_center[d] + 2;
+
+              stencil_lower[d] = max(stencil_lower[d], stencil_lower[d] - q_gcw[d]);
+              stencil_upper[d] = min(stencil_upper[d], stencil_upper[d] + q_gcw[d]);
+          }
+
+
+        // Compute the kernel function weights.
+        TensorProductWeights D;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            D[d].resize(extents[stencil_sz]);
+        }
+
+        double p_start[NDIM];
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            p_start[d] = X_cell[d] + static_cast<double>(stencil_lower[d] - stencil_center[d]) * dx[d];
+            for (int k = 0, j = stencil_lower[d]; j <= stencil_upper[d]; ++j, ++k)
+            {
+                double X_cell_cur = x_lower[d] + (static_cast<double>(j - ilower[d]) + 0.5) * dx[d];
+                double x = (X[d] + X_shift[d] - X_cell_cur) / dx[d];
+                double modx = abs(x);
+                double r = modx + 2.5;
+                double r2 = r*r;
+                double r3 = r2*r;
+                double r4 = r3*r;
+                if (modx < 0.5)
+                {
+                  D[d][k] = 1.0/24.0 * (6*r4 - 60*r3 + 210*r2 - 300*r + 155);
+                } else if (modx < 1.5)
+                {
+                  D[d][k] = (1.0/24.0)*(-4*r4 + 60*r3 - 330*r2 + 780*r - 655);
+                } else if (modx < 2.5)
+                {
+                  D[d][k] = (1.0/24)*(r4 - 20*r3 + 150*r2 - 500*r + 625);
+                } else
+                {
+                  D[d][k] = 0.0;
+                }
+            }
+        }
+
+        perform_mls(stencil_sz, X, stencil_lower, stencil_upper, p_start, dx, mask_data, D, Psi);
+
+    }
+    else if (kernel_fcn == "BSPLINE_6")
+    {
+      // Resize some arrays.
+        const int stencil_sz = LEInteractor::getStencilSize("BSPLINE_6");
+        TensorProductWeights D;
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            D[d].resize(extents[stencil_sz]);
+        }
+
+
+        // Determine the interpolation stencil corresponding to the position
+        // of X within the cell and compute the regular IB weights.
+        double X_dx, r, p_start[NDIM];
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            X_dx = (X[d] + X_shift[d] - x_lower[d]) / dx[d];
+            stencil_lower[d] = NINT(X_dx) + ilower[d] - stencil_sz / 2;
+            stencil_upper[d] = stencil_lower[d] + stencil_sz - 1;
+
+            r = X_dx - ((stencil_lower[d] + 2 - ilower[d]) + 0.5);
+
+            p_start[d] = X[d] - (r + 2) * dx[d];
+
+            double kappa = (1-r)+3;
+            D[d][5] = 1.0/120.0*(-pow(kappa+2,5)+30*pow(kappa+2,4)-360*pow(kappa+2,3)+2160*pow(kappa+2,2)-6480*(kappa+2)+7776);
+            D[d][4] = 1.0/120.0*(5*pow(kappa+1,5)-120*pow(kappa+1,4)+1140*pow(kappa+1,3)-5340*pow(kappa+1,2)+12270*(kappa+1)-10974);
+            D[d][3] = 1.0/60.0*(-5*pow(kappa,5)+90*pow(kappa,4)-630*pow(kappa,3)+2130*pow(kappa,2)-3465*kappa+2193);
+            kappa = r+3;
+            D[d][2] = 1.0/60.0*(-5*pow(kappa,5)+90*pow(kappa,4)-630*pow(kappa,3)+2130*pow(kappa,2)-3465*kappa+2193);
+            D[d][1] = 1.0/120.0*(5*pow(kappa+1,5)-120*pow(kappa+1,4)+1140*pow(kappa+1,3)-5340*pow(kappa+1,2)+12270*(kappa+1)-10974);
+            D[d][0] = 1.0/120.0*(-pow(kappa+2,5)+30*pow(kappa+2,4)-360*pow(kappa+2,3)+2160*pow(kappa+2,2)-6480*(kappa+2)+7776);
+
+        }
+        
         perform_mls(stencil_sz, X, stencil_lower, stencil_upper, p_start, dx, mask_data, D, Psi);
 
     }
@@ -2252,7 +2358,8 @@ LEInteractor::interpolate(double* const Q_data,
                             mask_data->getArrayData(),
                             stencil_lower,
                             stencil_upper,
-                            Psi);
+                            Psi,
+                            q_gcw);
 
             for (int comp = 0; comp < Q_depth; ++comp)
             {
@@ -2540,7 +2647,8 @@ LEInteractor::interpolate(double* const Q_data,
                                 mask_data->getArrayData(axis),
                                 stencil_lower,
                                 stencil_upper,
-                                Psi);
+                                Psi,
+                                q_gcw);
                 interpolate_data(stencil_sz,
                                  ig_lower,
                                  ig_upper,
@@ -3499,7 +3607,8 @@ LEInteractor::spread(Pointer<CellData<NDIM, double> > q_data,
                             mask_data->getArrayData(),
                             stencil_lower,
                             stencil_upper,
-                            Psi);
+                            Psi,
+                            q_gcw);
 
             for (int comp = 0; comp < Q_depth; ++comp)
             {
@@ -3781,7 +3890,8 @@ LEInteractor::spread(Pointer<SideData<NDIM, double> > q_data,
                                 mask_data->getArrayData(axis),
                                 stencil_lower,
                                 stencil_upper,
-                                Psi);
+                                Psi,
+                                q_gcw);
                 spread_data(stencil_sz,
                             ig_lower,
                             ig_upper,
