@@ -38,11 +38,21 @@
 #include <ibamr/app_namespaces.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IndexUtilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include <numeric>
+
 // Application
 #include "SetFluidProperties.h"
+
+void compute_velocity_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                              const int u_idx,
+                              double lower_coordiantes[NDIM],
+                              double upper_coordiantes[NDIM],
+                              const double data_time,
+                              const string& data_dump_dirname);
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -358,12 +368,30 @@ main(int argc, char* argv[])
                 time_integrator->setupPlotData();
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
             }
+            if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
+            {
+                Pointer<SideVariable<NDIM, double> > u_var = time_integrator->getVelocityVariable();
+                VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+                const int u_idx = var_db->mapVariableAndContextToIndex(u_var, time_integrator->getCurrentContext());
+                double lower_coordinates[NDIM], upper_coordinates[NDIM];
+                if (input_db->keyExists("output_velocity_profile"))
+                {
+                    Pointer<Database> db = input_db->getDatabase("output_velocity_profile");
+                    db->getDoubleArray("lower_coordinates", lower_coordinates, NDIM);
+                    db->getDoubleArray("upper_coordinates", upper_coordinates, NDIM);
+                }
+                compute_velocity_profile(patch_hierarchy,
+                                         u_idx,
+                                         lower_coordinates,
+                                         upper_coordinates,
+                                         loop_time,
+                                         postproc_data_dump_dirname);
+            }
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-
         // Cleanup other dumb pointers
         delete ptr_SetFluidProperties;
 
@@ -372,3 +400,112 @@ main(int argc, char* argv[])
     SAMRAIManager::shutdown();
     PetscFinalize();
 } // main
+
+void
+compute_velocity_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                         const int u_idx,
+                         double lower_coordinates[NDIM],
+                         double upper_coordinates[NDIM],
+                         const double data_time,
+                         const string& data_dump_dirname)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+    const double x_loc = lower_coordinates[0];
+    const double y_loc_min = lower_coordinates[1];
+    const double y_loc_max = upper_coordinates[1];
+    const double X_min[2] = { x_loc, y_loc_min };
+    const double X_max[2] = { x_loc, y_loc_max };
+    vector<double> pos_values;
+    for (int ln = finest_ln; ln >= coarsest_ln; --ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const CellIndex<NDIM>& patch_lower = patch_box.lower();
+            const CellIndex<NDIM>& patch_upper = patch_box.upper();
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_x_lower = patch_geom->getXLower();
+            const double* const patch_x_upper = patch_geom->getXUpper();
+            const double* const patch_dx = patch_geom->getDx();
+            const bool inside_patch = x_loc >= patch_x_lower[0] && x_loc <= patch_x_upper[0] &&
+                                      !(patch_x_upper[1] < y_loc_min || patch_x_lower[1] > y_loc_max);
+            if (!inside_patch) continue;
+            // Entire box containing the required data.
+            Box<NDIM> box(IndexUtilities::getCellIndex(
+                              &X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper),
+                          IndexUtilities::getCellIndex(
+                              &X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper));
+            // Part of the box on this patch
+            Box<NDIM> trim_box = patch_box * box;
+            BoxList<NDIM> iterate_box_list = trim_box;
+            // Trim the box covered by the finer region
+            BoxList<NDIM> covered_boxes;
+            if (ln < finest_ln)
+            {
+                BoxArray<NDIM> refined_region_boxes;
+                Pointer<PatchLevel<NDIM> > next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+                refined_region_boxes = next_finer_level->getBoxes();
+                refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
+                for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
+                {
+                    const Box<NDIM> refined_box = refined_region_boxes[i];
+                    const Box<NDIM> covered_box = trim_box * refined_box;
+                    covered_boxes.unionBoxes(covered_box);
+                }
+            }
+            iterate_box_list.removeIntersections(covered_boxes);
+            // Loop over the boxes and store the location and interpolated value.
+            Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
+            for (BoxList<NDIM>::Iterator lit(iterate_box_list); lit; lit++)
+            {
+                const Box<NDIM>& iterate_box = *lit;
+                for (Box<NDIM>::Iterator bit(iterate_box); bit; bit++)
+                {
+                    const CellIndex<NDIM>& lower_idx = *bit;
+                    CellIndex<NDIM> upper_idx = lower_idx;
+                    upper_idx(0) += 1;
+                    const double y = patch_x_lower[1] + patch_dx[1] * (lower_idx(1) - patch_lower(1) + 0.5);
+                    const double x0 = patch_x_lower[0] + patch_dx[0] * (lower_idx(0) - patch_lower(0));
+                    const double x1 = x0 + patch_dx[0];
+                    const double u0 = (*u_data)(SideIndex<NDIM>(lower_idx, 0, SideIndex<NDIM>::Lower));
+                    const double u1 = (*u_data)(SideIndex<NDIM>(upper_idx, 0, SideIndex<NDIM>::Lower));
+                    pos_values.push_back(y);
+                    pos_values.push_back(u0 + (u1 - u0) * (x_loc - x0) / (x1 - x0));
+                }
+            }
+        }
+    }
+    const int nprocs = SAMRAI_MPI::getNodes();
+    const int rank = SAMRAI_MPI::getRank();
+    vector<int> data_size(nprocs, 0);
+    data_size[rank] = static_cast<int>(pos_values.size());
+    SAMRAI_MPI::sumReduction(&data_size[0], nprocs);
+    int offset = 0;
+    offset = std::accumulate(&data_size[0], &data_size[rank], offset);
+    int size_array = 0;
+    size_array = std::accumulate(&data_size[0], &data_size[0] + nprocs, size_array);
+    // Write out the result in a file.
+    string file_name = data_dump_dirname + "/" + "u_y_";
+    char temp_buf[128];
+    sprintf(temp_buf, "%.8f", data_time);
+    file_name += temp_buf;
+    MPI_Status status;
+    MPI_Offset mpi_offset;
+    MPI_File file;
+    MPI_File_open(MPI_COMM_WORLD, file_name.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
+    // First write the total size of the array.
+    if (rank == 0)
+    {
+        mpi_offset = 0;
+        MPI_File_seek(file, mpi_offset, MPI_SEEK_SET);
+        MPI_File_write(file, &size_array, 1, MPI_INT, &status);
+    }
+    mpi_offset = sizeof(double) * offset + sizeof(int);
+    MPI_File_seek(file, mpi_offset, MPI_SEEK_SET);
+    MPI_File_write(file, &pos_values[0], data_size[rank], MPI_DOUBLE, &status);
+    MPI_File_close(&file);
+    return;
+} // compute_velocity_profile

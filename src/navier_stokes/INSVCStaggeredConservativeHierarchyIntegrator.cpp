@@ -625,10 +625,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
         d_hier_cc_data_ops->copyData(d_mu_scratch_idx,
                                      mu_new_idx,
                                      /*interior_only*/ true);
+        d_mu_bdry_bc_fill_op->fillData(new_time);
         if (!d_use_turb_model)
         {
-            d_mu_bdry_bc_fill_op->fillData(new_time);
-
             // Interpolate onto node or edge centers
             if (d_mu_vc_interp_type == VC_AVERAGE_INTERP)
             {
@@ -661,12 +660,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
             d_hier_cc_data_ops->copyData(d_mu_t_scratch_idx,
                                          d_mu_t_new_idx,
                                          /*interior_only*/ true);
-            d_hier_cc_data_ops->add(d_mu_scratch_idx, d_mu_t_scratch_idx, d_mu_scratch_idx);
-            std::ofstream mu_eff;
-            mu_eff.open("mu_eff_INSVC.dat");
-            d_hier_cc_data_ops->printData(d_mu_scratch_idx, mu_eff);
-            mu_eff.close();
-            d_mu_bdry_bc_fill_op->fillData(new_time);
+            d_mu_t_bdry_bc_fill_op->fillData(new_time);
+            d_hier_cc_data_ops->add(d_mu_scratch_idx, d_mu_t_scratch_idx, d_mu_scratch_idx, false /*interior_only*/);
 
             // Interpolate onto node or edge centers
             if (d_mu_vc_interp_type == VC_AVERAGE_INTERP)
@@ -693,10 +688,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
             {
                 TBOX_ERROR("this statement should not be reached");
             }
-            std::ofstream mu_eff_interp;
-            mu_eff_interp.open("mu_eff_interp.dat");
-            d_hier_nc_data_ops->printData(d_mu_interp_idx, mu_eff_interp);
-            mu_eff_interp.close();
         }
 
         // Store the viscosities for later use

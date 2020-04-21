@@ -12,10 +12,16 @@ MAX_LEVELS = 1       // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 REF_RATIO_FINEST = 2  // refinement ratio for the finest level.
 
-N = 50                                 // coarsest grid spacing
+N = 400                                 // coarsest grid spacing
 H_COARSEST = N                          // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 HFINEST = LENGTH/NFINEST
+
+// writing the velocity profile across x near the outlet
+output_velocity_profile{
+lower_coordinates = 19.8, 0
+upper_coordinates = 19.8, 2
+}
 
 PressureInitialConditions {
    function = "0.0"
@@ -27,15 +33,15 @@ VelocityInitialConditions {
 }
 
 TurbulentViscosityInitialConditions{
-    function = "1.0"
+    function = "0.075"
 }
 
 TurbulentKineticEnergyInitialConditions {
-   function = "0.00316"
+   function = "1.0769"
 }
 
 TurbulentSpecificDissipationRateInitialConditions {
-   function = "1.466"
+   function = "13.533"
 }
 
 
@@ -109,17 +115,17 @@ MuBcCoefs {
 }
 
 MutBcCoefs {
-   acoef_function_0 = "0.0"
+   acoef_function_0 = "1.0"
    acoef_function_1 = "0.0"
-   acoef_function_2 = "0.0"
-   acoef_function_3 = "0.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
 
-   bcoef_function_0 = "1.0"
+   bcoef_function_0 = "0.0"
    bcoef_function_1 = "1.0"
-   bcoef_function_2 = "1.0"
-   bcoef_function_3 = "1.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "0.0"
+   gcoef_function_0 = "0.0795"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
@@ -137,7 +143,7 @@ KBcCoefs {
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "0.00316"
+   gcoef_function_0 = "1.0769"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
@@ -154,17 +160,17 @@ WBcCoefs {
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "1.4662"
+   gcoef_function_0 = "13.533"
    gcoef_function_1 = "0.0"
-   gcoef_function_2 = "54400.0"
-   gcoef_function_3 = "54400.0"
+   gcoef_function_2 = "850.0"
+   gcoef_function_3 = "850.0"
 }
 
 // Simulation Parameters
 SOLVER_TYPE          = "STAGGERED"
 DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0     // initial simulation time
-END_TIME             =   0.0001    // final simulation time
+END_TIME             =   10000.0    // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
 REGRID_INTERVAL      =   50000000
@@ -177,7 +183,7 @@ NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "CUI"
 NORMALIZE_PRESSURE   = FALSE
 VORTICITY_TAGGING    = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
-DT_MAX               = 0.0001                      // /(REF_RATIO^(MAX_LEVELS - 1))
+DT_MAX               = 0.005                      // /(REF_RATIO^(MAX_LEVELS - 1))
 OUTPUT_U             = TRUE
 OUTPUT_P             = TRUE
 OUTPUT_F             = TRUE
@@ -412,8 +418,8 @@ TwoEquationTurbulenceHierarchyIntegrator {
    output_k                      = TRUE
    output_w                      = TRUE
    
-   k_precond_type = "LEVEL_RELAXATION_FAC_PRECONDITIONER"
-   w_precond_type = "LEVEL_RELAXATION_FAC_PRECONDITIONER"
+   // k_precond_type = "LEVEL_RELAXATION_FAC_PRECONDITIONER"
+   // w_precond_type = "LEVEL_RELAXATION_FAC_PRECONDITIONER"
 }
 
 TurbulenceSSTKOmegaSourceFunction{
@@ -431,13 +437,17 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 1
+   viz_dump_interval           = 100
    viz_dump_dirname            = "turbulent_channel_flow"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
    restart_dump_interval       = 0
    restart_dump_dirname        = "restart_INS2d"
+   
+// post-processing data output parameters
+    data_dump_interval         = 1
+    data_dump_dirname          = "velocity_profile"
 
 // timer dump parameters
    timer_dump_interval         = 0

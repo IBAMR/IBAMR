@@ -321,11 +321,11 @@ c
       subroutine sst_k_eqn_buoyancy_3d(
      &     P,P_gc,
      &     mut,mut_gc,
+     &     rho,rho_gc,
      &     gx,
      &     gy,
      &     gz,
      &     sigma_t,
-     &     rho,rho_gc,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     ilower2,iupper2,

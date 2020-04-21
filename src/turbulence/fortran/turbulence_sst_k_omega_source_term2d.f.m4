@@ -19,7 +19,6 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Computes P = mut*(grad U + grad U^T):grad_U
 c
-c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine production_2d(

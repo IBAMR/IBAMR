@@ -87,6 +87,24 @@ class PatchLevel;
 
 extern "C"
 {
+    void SST_K_EQN_PRODUCTION(const double*,
+                              const int&,
+                              const double*,
+                              const int&,
+                              const double*,
+                              const int&,
+                              const double*,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+                              const int&,
+#if (NDIM == 3)
+                              const int&,
+                              const int&,
+#endif
+                              const double&);
+
     void SST_K_EQN_BUOYANCY(const double*,
                             const int&,
                             const double*,
@@ -108,24 +126,6 @@ extern "C"
                             const int&,
 #endif
                             const double*);
-
-    void SST_K_EQN_PRODUCTION(const double*,
-                              const int&,
-                              const double*,
-                              const int&,
-                              const double*,
-                              const int&,
-                              const double*,
-                              const int&,
-                              const int&,
-                              const int&,
-                              const int&,
-                              const int&,
-#if (NDIM == 3)
-                              const int&,
-                              const int&,
-#endif
-                              const double&);
 
     void SST_W_EQN_PRODUCTION(const double*,
                               const int&,
@@ -240,10 +240,6 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchHierarchy(const int data_idx,
     // copying the new index data into scratch index data.
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
     hier_cc_data_ops.copyData(d_rho_scratch_idx, d_rho_new_idx);
-    std::ofstream rho_new;
-    rho_new.open("rho_new_in_source.dat");
-    hier_cc_data_ops.printData(d_rho_scratch_idx, rho_new);
-    rho_new.close();
 
     // filling ghost cells for density. INSVCStaggeredConservativeHierarchyIntegrator
     // class works with side-centered density which has NDIM components whereas

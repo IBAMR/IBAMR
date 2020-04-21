@@ -1891,19 +1891,13 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 
     if (!d_mu_is_const)
     {
-        // These options are chosen to ensure that information is propagated
-        // conservatively from the coarse cells only
+        InterpolationTransactionComponent mu_bc_component(
+            d_mu_scratch_idx, d_mu_refine_type, false, d_mu_coarsen_type, d_mu_bdry_extrap_type, false, d_mu_bc_coef);
+        d_mu_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+        d_mu_bdry_bc_fill_op->initializeOperatorState(mu_bc_component, d_hierarchy);
+
         if (d_use_turb_model)
         {
-            InterpolationTransactionComponent mu_bc_component(d_mu_scratch_idx,
-                                                              d_mu_refine_type,
-                                                              false,
-                                                              d_mu_coarsen_type,
-                                                              d_mu_bdry_extrap_type,
-                                                              false,
-                                                              d_mu_bc_coef);
-            d_mu_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-            d_mu_bdry_bc_fill_op->initializeOperatorState(mu_bc_component, d_hierarchy);
 
             InterpolationTransactionComponent mu_t_bc_component(d_mu_t_scratch_idx,
                                                                 d_mu_refine_type,
@@ -1914,18 +1908,6 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                                 d_mu_t_bc_coef);
             d_mu_t_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
             d_mu_t_bdry_bc_fill_op->initializeOperatorState(mu_t_bc_component, d_hierarchy);
-        }
-        else
-        {
-            InterpolationTransactionComponent mu_bc_component(d_mu_scratch_idx,
-                                                              d_mu_refine_type,
-                                                              false,
-                                                              d_mu_coarsen_type,
-                                                              d_mu_bdry_extrap_type,
-                                                              false,
-                                                              d_mu_bc_coef);
-            d_mu_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-            d_mu_bdry_bc_fill_op->initializeOperatorState(mu_bc_component, d_hierarchy);
         }
     }
 
