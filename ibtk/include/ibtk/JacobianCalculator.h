@@ -91,6 +91,9 @@ public:
      */
     Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
+    /*!
+     * Recalculate relevant quantities for the provided element.
+     */
     virtual void reinit(const libMesh::Elem* elem);
 
     /*!
@@ -105,7 +108,7 @@ public:
 
 protected:
     /*!
-     *
+     * Computed update flags for the mapping.
      */
     FEUpdateFlags d_update_flags;
 
@@ -190,7 +193,7 @@ protected:
     boost::multi_array<std::array<double, dim>, 2> d_dphi;
 };
 
-/*
+/*!
  * Specialization for TRI3 elements with codimension zero.
  */
 class Tri3Mapping : public Mapping<2, 2>
@@ -208,7 +211,7 @@ protected:
     virtual bool isAffine() const override;
 };
 
-/*
+/*!
  * Specialization for QUAD4 elements with codimension zero.
  */
 class Quad4Mapping : public Mapping<2, 2>
@@ -224,7 +227,7 @@ protected:
     virtual void fillContravariants(const libMesh::Elem* elem) override;
 };
 
-/*
+/*!
  * Specialization for QUAD9 elements with codimension zero.
  */
 class Quad9Mapping : public Mapping<2, 2>
@@ -263,7 +266,7 @@ protected:
     libMesh::DenseMatrix<double> d_dphi;
 };
 
-/*
+/*!
  * Specialization for TET4 elements.
  */
 class Tet4Mapping : public Mapping<3, 3>
