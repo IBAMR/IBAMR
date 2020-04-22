@@ -114,9 +114,12 @@ protected:
 
 /*!
  * Class which can calculate various quantities related to the mapping from
- * the reference element to an element in a mesh.
+ * the reference element to an element in a mesh for nodal elements.
+ *
+ * @tparam n_nodes Number of nodes of the element: defaults to runtime
+ * calculation (-1).
  */
-template <int dim, int spacedim = dim>
+template <int dim, int spacedim = dim, int n_nodes = -1>
 class Mapping : public JacobianCalculator
 {
 public:
@@ -173,6 +176,13 @@ protected:
     std::vector<libMesh::Point> d_quadrature_points;
 
     /*!
+     * Object that computes quadrature point locations. This is sufficiently
+     * different from the rest of the mapping code that it is implemented in
+     * another class.
+     */
+    PointMap<dim, spacedim, n_nodes> d_point_map;
+
+    /*!
      * Boolean indicating that the mapping is affine - if it is we can skip
      * some computations. The default implementation returns false. Inheriting
      * classes should overload this they represent affine mappings.
@@ -196,6 +206,11 @@ protected:
      * correct one.
      */
     virtual void fillJxW();
+
+    /*!
+     * Compute the positions of quadrature points on the current element.
+     */
+    virtual void fillQuadraturePoints(const libMesh::Elem* elem);
 };
 
 /*!
@@ -236,14 +251,14 @@ protected:
 /*!
  * Specialization for TRI3 elements with codimension zero.
  */
-class Tri3Mapping : public Mapping<2, 2>
+class Tri3Mapping : public Mapping<2, 2, 3>
 {
 public:
     /**
      * Explicitly use the base class' constructor (this class does not require
      * any additional setup).
      */
-    using Mapping<2, 2>::Mapping;
+    using Mapping<2, 2, 3>::Mapping;
 
 protected:
     virtual void fillContravariants(const libMesh::Elem* elem) override;
@@ -254,14 +269,14 @@ protected:
 /*!
  * Specialization for QUAD4 elements with codimension zero.
  */
-class Quad4Mapping : public Mapping<2, 2>
+class Quad4Mapping : public Mapping<2, 2, 4>
 {
 public:
     /**
      * Explicitly use the base class' constructor (this class does not require
      * any additional setup).
      */
-    using Mapping<2, 2>::Mapping;
+    using Mapping<2, 2, 4>::Mapping;
 
 protected:
     virtual void fillContravariants(const libMesh::Elem* elem) override;
@@ -270,7 +285,7 @@ protected:
 /*!
  * Specialization for QUAD9 elements with codimension zero.
  */
-class Quad9Mapping : public Mapping<2, 2>
+class Quad9Mapping : public Mapping<2, 2, 9>
 {
 public:
     /**
@@ -309,14 +324,14 @@ protected:
 /*!
  * Specialization for TET4 elements.
  */
-class Tet4Mapping : public Mapping<3, 3>
+class Tet4Mapping : public Mapping<3, 3, 4>
 {
 public:
     /**
      * Explicitly use the base class' constructor (this class does not require
      * any additional setup).
      */
-    using Mapping<3, 3>::Mapping;
+    using Mapping<3, 3, 4>::Mapping;
 
 protected:
     virtual void fillContravariants(const libMesh::Elem* elem) override;

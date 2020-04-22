@@ -104,10 +104,10 @@ JacobianCalculator::JacobianCalculator(const JacobianCalculator::key_type quad_k
 // Mapping
 //
 
-template <int dim, int spacedim>
-Mapping<dim, spacedim>::Mapping(const typename Mapping<dim, spacedim>::key_type quad_key,
-                                const FEUpdateFlags update_flags)
-    : JacobianCalculator(quad_key)
+template <int dim, int spacedim, int n_nodes>
+Mapping<dim, spacedim, n_nodes>::Mapping(const typename Mapping<dim, spacedim, n_nodes>::key_type quad_key,
+                                         const FEUpdateFlags update_flags)
+    : JacobianCalculator(quad_key), d_point_map(std::get<0>(d_quad_key), d_quad_points)
 {
     d_update_flags = update_flags;
 
@@ -124,27 +124,31 @@ Mapping<dim, spacedim>::Mapping(const typename Mapping<dim, spacedim>::key_type 
     if (d_update_flags | FEUpdateFlags::update_jacobians) d_Jacobians.resize(this->d_quad_weights.size());
 
     if (d_update_flags | FEUpdateFlags::update_JxW) d_JxW.resize(this->d_quad_weights.size());
+
+    if (d_update_flags | FEUpdateFlags::update_quadrature_points)
+        d_quadrature_points.resize(this->d_quad_weights.size());
 }
 
-template <int dim, int spacedim>
+template <int dim, int spacedim, int n_nodes>
 void
-Mapping<dim, spacedim>::reinit(const libMesh::Elem* elem)
+Mapping<dim, spacedim, n_nodes>::reinit(const libMesh::Elem* elem)
 {
     if (d_update_flags & FEUpdateFlags::update_contravariants) fillContravariants(elem);
     if (d_update_flags & FEUpdateFlags::update_jacobians) fillJacobians();
     if (d_update_flags & FEUpdateFlags::update_JxW) fillJxW();
+    if (d_update_flags & FEUpdateFlags::update_quadrature_points) fillQuadraturePoints(elem);
 }
 
-template <int dim, int spacedim>
+template <int dim, int spacedim, int n_nodes>
 bool
-Mapping<dim, spacedim>::isAffine() const
+Mapping<dim, spacedim, n_nodes>::isAffine() const
 {
     return false;
 }
 
-template <int dim, int spacedim>
+template <int dim, int spacedim, int n_nodes>
 void
-Mapping<dim, spacedim>::fillJacobians()
+Mapping<dim, spacedim, n_nodes>::fillJacobians()
 {
     for (unsigned int q = 0; q < d_contravariants.size(); ++q)
     {
@@ -167,11 +171,28 @@ Mapping<dim, spacedim>::fillJacobians()
     return;
 }
 
-template <int dim, int spacedim>
+template <int dim, int spacedim, int n_nodes>
 void
-Mapping<dim, spacedim>::fillJxW()
+Mapping<dim, spacedim, n_nodes>::fillJxW()
 {
     for (unsigned int q = 0; q < d_Jacobians.size(); ++q) d_JxW[q] = d_quad_weights[q] * d_Jacobians[q];
+}
+
+template <int dim, int spacedim, int n_nodes>
+void
+Mapping<dim, spacedim, n_nodes>::fillQuadraturePoints(const libMesh::Elem* elem)
+{
+    libMesh::Point nodes[27];
+
+    if (n_nodes != -1) TBOX_ASSERT(n_nodes == elem->n_nodes());
+    const auto n_nodes_ = n_nodes == -1 ? elem->n_nodes() : n_nodes;
+    TBOX_ASSERT(n_nodes_ <= 27);
+    for (unsigned int node_n = 0; node_n < n_nodes_; ++node_n)
+    {
+        nodes[node_n] = static_cast<const libMesh::Point&>(*elem->node_ptr(node_n));
+    }
+
+    d_point_map.getMappedQuadraturePoints(std::begin(nodes), std::begin(nodes) + n_nodes_, d_quadrature_points);
 }
 
 //
@@ -315,7 +336,7 @@ Quad4Mapping::fillContravariants(const libMesh::Elem* elem)
 //
 
 Quad9Mapping::Quad9Mapping(const Quad9Mapping::key_type quad_key, FEUpdateFlags update_flags)
-    : Mapping<2, 2>(quad_key, update_flags)
+    : Mapping<2, 2, 9>(quad_key, update_flags)
 {
     // This code utilizes an implementation detail of
     // QBase::tensor_product_quad where the x coordinate increases fastest to
@@ -476,4 +497,10 @@ template class LagrangeMapping<1, 3>;
 template class LagrangeMapping<2, 2>;
 template class LagrangeMapping<2, 3>;
 template class LagrangeMapping<3, 3>;
+
+template class Mapping<2, 2, 3>;
+template class Mapping<2, 2, 4>;
+template class Mapping<2, 2, 9>;
+template class Mapping<3, 3, 4>;
+
 } // namespace IBTK
