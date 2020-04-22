@@ -113,14 +113,72 @@ protected:
 };
 
 /*!
- * Class which can calculate various quantities related to the mapping from
- * the reference element to an element in a mesh for nodal elements.
+ * Abstract class defining the interface to a mapping.
+ */
+template <int dim, int spacedim = dim>
+class Mapping
+{
+public:
+    /*!
+     * Recalculate relevant quantities for the provided element.
+     */
+    virtual void reinit(const libMesh::Elem* elem) = 0;
+
+    /*!
+     * Get the current jacobian times quadrature weight (JxW) values.
+     */
+    virtual const std::vector<double>& getJxW() const = 0;
+
+    /*!
+     * Get the positions of the quadrature points on the current element.
+     */
+    virtual const std::vector<libMesh::Point>& getQuadraturePoints() const = 0;
+
+    /*!
+     * Standard 'quadrature key' alias - all the information to completely
+     * define a libMesh quadrature rule.
+     */
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+
+    /*!
+     * Return a pointer to the correct mapping for a given quadrature key and
+     * update flags object.
+     */
+    static std::unique_ptr<Mapping<dim, spacedim> > build(const key_type key, const FEUpdateFlags update_flags);
+
+    virtual ~Mapping<dim, spacedim>() = default;
+
+protected:
+    /*!
+     * Compute the contravariants. In general each mapping will have to overload this function.
+     */
+    virtual void fillContravariants(const libMesh::Elem* elem) = 0;
+
+    /*!
+     * Compute determinants of contravariants (the Jacobians).
+     */
+    virtual void fillJacobians() = 0;
+
+    /*!
+     * Compute JxW values.
+     */
+    virtual void fillJxW() = 0;
+
+    /*!
+     * Compute the positions of quadrature points on the current element.
+     */
+    virtual void fillQuadraturePoints(const libMesh::Elem* elem) = 0;
+};
+
+/*!
+ * Base class for all nodal mappings (i.e., mappings corresponding to
+ * Lagrange-type finite element spaces).
  *
  * @tparam n_nodes Number of nodes of the element: defaults to runtime
  * calculation (-1).
  */
 template <int dim, int spacedim = dim, int n_nodes = -1>
-class Mapping : public JacobianCalculator
+class NodalMapping : public Mapping<dim, spacedim>, public JacobianCalculator
 {
 public:
     /*!
@@ -132,21 +190,40 @@ public:
     /*!
      * Constructor.
      */
-    Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
+    NodalMapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
     /*!
      * Recalculate relevant quantities for the provided element.
      */
-    virtual void reinit(const libMesh::Elem* elem);
+    virtual void reinit(const libMesh::Elem* elem) override;
 
     /*!
      * Calculate the JxW values on the given element and return a reference to
      * the result.
+     *
+     * @deprecated This function only exists for compatibility with the older
+     * JacobianCalculator class.
      */
     const std::vector<double>& get_JxW(const libMesh::Elem* elem) override
     {
         reinit(elem);
         return d_JxW;
+    }
+
+    virtual const std::vector<double>& getJxW() const override
+    {
+#ifndef NDEBUG
+        TBOX_ASSERT(d_update_flags & FEUpdateFlags::update_JxW);
+#endif
+        return d_JxW;
+    }
+
+    virtual const std::vector<libMesh::Point>& getQuadraturePoints() const override
+    {
+#ifndef NDEBUG
+        TBOX_ASSERT(d_update_flags & FEUpdateFlags::update_quadrature_points);
+#endif
+        return d_quadrature_points;
     }
 
 protected:
@@ -190,27 +267,21 @@ protected:
     virtual bool isAffine() const;
 
     /*!
-     * Compute the contravariants. Since this depends on the element geometry
-     * there is no default implementation.
-     */
-    virtual void fillContravariants(const libMesh::Elem* elem) = 0;
-
-    /*!
      * Compute determinants of contravariants (the Jacobians). The default
      * implementation given here is usually the correct one.
      */
-    virtual void fillJacobians();
+    virtual void fillJacobians() override;
 
     /*!
      * Compute JxW values. The default implementation given here is usually the
      * correct one.
      */
-    virtual void fillJxW();
+    virtual void fillJxW() override;
 
     /*!
      * Compute the positions of quadrature points on the current element.
      */
-    virtual void fillQuadraturePoints(const libMesh::Elem* elem);
+    virtual void fillQuadraturePoints(const libMesh::Elem* elem) override;
 };
 
 /*!
@@ -219,7 +290,7 @@ protected:
  * lower-order or tensor-product elements. Supports nonzero codimension.
  */
 template <int dim, int spacedim = dim>
-class LagrangeMapping : public Mapping<dim, spacedim>
+class LagrangeMapping : public NodalMapping<dim, spacedim>
 {
 public:
     /**
@@ -251,14 +322,14 @@ protected:
 /*!
  * Specialization for TRI3 elements with codimension zero.
  */
-class Tri3Mapping : public Mapping<2, 2, 3>
+class Tri3Mapping : public NodalMapping<2, 2, 3>
 {
 public:
     /**
      * Explicitly use the base class' constructor (this class does not require
      * any additional setup).
      */
-    using Mapping<2, 2, 3>::Mapping;
+    using NodalMapping<2, 2, 3>::NodalMapping;
 
 protected:
     virtual void fillContravariants(const libMesh::Elem* elem) override;
@@ -269,14 +340,14 @@ protected:
 /*!
  * Specialization for QUAD4 elements with codimension zero.
  */
-class Quad4Mapping : public Mapping<2, 2, 4>
+class Quad4Mapping : public NodalMapping<2, 2, 4>
 {
 public:
     /**
      * Explicitly use the base class' constructor (this class does not require
      * any additional setup).
      */
-    using Mapping<2, 2, 4>::Mapping;
+    using NodalMapping<2, 2, 4>::NodalMapping;
 
 protected:
     virtual void fillContravariants(const libMesh::Elem* elem) override;
@@ -285,7 +356,7 @@ protected:
 /*!
  * Specialization for QUAD9 elements with codimension zero.
  */
-class Quad9Mapping : public Mapping<2, 2, 9>
+class Quad9Mapping : public NodalMapping<2, 2, 9>
 {
 public:
     /**
@@ -324,20 +395,29 @@ protected:
 /*!
  * Specialization for TET4 elements.
  */
-class Tet4Mapping : public Mapping<3, 3, 4>
+class Tet4Mapping : public NodalMapping<3, 3, 4>
 {
 public:
     /**
      * Explicitly use the base class' constructor (this class does not require
      * any additional setup).
      */
-    using Mapping<3, 3, 4>::Mapping;
+    using NodalMapping<3, 3, 4>::NodalMapping;
 
 protected:
     virtual void fillContravariants(const libMesh::Elem* elem) override;
 
     virtual bool isAffine() const override;
 };
+
+// Specialization of build for 2D
+template <>
+std::unique_ptr<Mapping<2, 2> > Mapping<2, 2>::build(const key_type key, const FEUpdateFlags update_flags);
+
+// Specialization of build for 3D
+template <>
+std::unique_ptr<Mapping<3, 3> > Mapping<3, 3>::build(const key_type key, const FEUpdateFlags update_flags);
+
 } // namespace IBTK
 
 #endif //#ifndef included_IBTK_JacobianCalculator
