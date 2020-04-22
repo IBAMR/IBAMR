@@ -36,6 +36,56 @@
 
 namespace IBTK
 {
+//
+// PointMap
+//
+
+template <int dim, int spacedim, int n_nodes>
+PointMap<dim, spacedim, n_nodes>::PointMap(const libMesh::ElemType elem_type,
+                                           const std::vector<libMesh::Point>& q_points)
+    : d_reference_q_points(q_points)
+{
+    const int n_nodes_ = n_nodes == -1 ? get_n_nodes(elem_type) : n_nodes;
+    const auto elem_order = get_default_order(elem_type);
+    d_phi.resize(n_nodes_, d_reference_q_points.size());
+    for (int i = 0; i < n_nodes_; ++i)
+    {
+        for (unsigned int q = 0; q < d_reference_q_points.size(); ++q)
+        {
+            using FE = libMesh::FE<dim, libMesh::LAGRANGE>;
+            d_phi(i, q) = FE::shape(elem_type, elem_order, i, d_reference_q_points[q]);
+        }
+    }
+}
+
+template <int dim, int spacedim, int n_nodes>
+void
+PointMap<dim, spacedim, n_nodes>::getMappedQuadraturePoints(const libMesh::Point* nodes,
+                                                            const libMesh::Point* nodes_end,
+                                                            std::vector<libMesh::Point>& physical_q_points)
+{
+    if (n_nodes != -1) TBOX_ASSERT(nodes_end - nodes == n_nodes);
+    const int n_nodes_ = n_nodes == -1 ? nodes_end - nodes : n_nodes;
+    TBOX_ASSERT(d_reference_q_points.size() == physical_q_points.size());
+    TBOX_ASSERT(static_cast<std::size_t>(n_nodes_) == d_phi.m());
+    // assumes same node ordering in the input node array as is stored in d_phi
+    for (unsigned int q = 0; q < d_reference_q_points.size(); ++q)
+    {
+        physical_q_points[q] = 0.0;
+        for (int i = 0; i < n_nodes_; ++i)
+        {
+            for (int d = 0; d < spacedim; ++d)
+            {
+                physical_q_points[q](d) += d_phi(i, q) * nodes[i](d);
+            }
+        }
+    }
+}
+
+//
+// JacobianCalculator
+//
+
 JacobianCalculator::JacobianCalculator(const JacobianCalculator::key_type quad_key) : d_quad_key(quad_key)
 {
     const ElemType elem_type = std::get<0>(d_quad_key);

@@ -43,6 +43,46 @@ IBTK_ENABLE_EXTRA_WARNINGS
 
 namespace IBTK
 {
+/**
+ * Internal class that computes mapped quadrature point locations for
+ * Lagrange-type interpolatory elements.
+ *
+ * @tparam dim Logical dimension of the mesh.
+ *
+ * @tparam spacedim Spatial dimension of the mesh (i.e., nodes have spacedim
+ * meaningful coordinates).
+ *
+ * @tparam n_nodes Number of nodes on an element. Defaults to -1, meaning a
+ * run-time calculation of the number of nodes. This template parameter is
+ * useful for first-order elements since the number is small and providing it
+ * improves performance.
+ */
+template <int dim, int spacedim = dim, int n_nodes = -1>
+class PointMap
+{
+public:
+    PointMap(const libMesh::ElemType elem_type, const std::vector<libMesh::Point>& q_points);
+
+    /**
+     * Calculate mapped quadrature points.
+     */
+    void getMappedQuadraturePoints(const libMesh::Point* begin,
+                                   const libMesh::Point* end,
+                                   std::vector<libMesh::Point>& physical_q_points);
+
+protected:
+    /**
+     * Quadrature points on the reference element.
+     */
+    std::vector<libMesh::Point> d_reference_q_points;
+
+    /**
+     * Table containing the values of 1D shape functions (which, with a tensor
+     * product, define the mapping) at reference quadrature points.
+     */
+    libMesh::DenseMatrix<double> d_phi;
+};
+
 class JacobianCalculator
 {
 public:
