@@ -1437,7 +1437,8 @@ IBFESurfaceMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy,
 void IBFESurfaceMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                                 Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
-    // intentionally blank
+    // clear some things that contain data specific to the current patch hierarchy
+    d_ghost_data_accumulator.reset();
     return;
 } // beginDataRedistribution
 
