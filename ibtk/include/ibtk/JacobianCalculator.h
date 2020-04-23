@@ -43,6 +43,11 @@ IBTK_ENABLE_EXTRA_WARNINGS
 
 namespace IBTK
 {
+class Tet10Mapping;
+}
+
+namespace IBTK
+{
 /**
  * Internal class that computes mapped quadrature point locations for
  * Lagrange-type interpolatory elements.
@@ -408,6 +413,42 @@ protected:
     virtual void fillContravariants(const libMesh::Elem* elem) override;
 
     virtual bool isAffine() const override;
+
+    friend class Tet10Mapping;
+};
+
+/*!
+ * Specialization for TET10 elements. Since, for most applications and in the
+ * reference configuration, most TET10 elements are actually affine this class
+ * tries use the TET4 mapping whenever possible.
+ */
+class Tet10Mapping : public LagrangeMapping<3, 3>
+{
+public:
+    /*!
+     * Key type. Completely describes (excepting p-refinement) a libMesh
+     * quadrature rule.
+     */
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+
+    /*!
+     * Constructor.
+     */
+    Tet10Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
+
+    virtual void reinit(const libMesh::Elem* elem) override;
+
+protected:
+    /*!
+     * TET4 mapping that is used whenever the given elem is affine.
+     */
+    Tet4Mapping tet4_mapping;
+
+    /*!
+     * Utility function that determines if the element is affine (i.e., all
+     * nodes at edge midpoints are averages of corners)
+     */
+    static bool elem_is_affine(const libMesh::Elem* elem);
 };
 
 // Specialization of build for 2D

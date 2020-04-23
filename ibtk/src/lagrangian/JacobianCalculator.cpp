@@ -131,9 +131,10 @@ Mapping<3, 3>::build(const key_type key, const FEUpdateFlags update_flags)
     {
     case libMesh::ElemType::TET4:
         return std::unique_ptr<Mapping<3, 3> >(new Tet4Mapping(key, update_flags));
+    case libMesh::ElemType::TET10:
+        return std::unique_ptr<Mapping<3, 3> >(new Tet10Mapping(key, update_flags));
     case libMesh::ElemType::HEX8:
     case libMesh::ElemType::HEX27:
-    case libMesh::ElemType::TET10:
         return std::unique_ptr<Mapping<3, 3> >(new LagrangeMapping<3, 3>(key, update_flags));
     default:
         TBOX_ASSERT(false);
@@ -234,7 +235,10 @@ NodalMapping<dim, spacedim, n_nodes>::fillQuadraturePoints(const libMesh::Elem* 
 {
     libMesh::Point nodes[27];
 
-    if (n_nodes != -1) TBOX_ASSERT(n_nodes == elem->n_nodes());
+    // We occasionally (e.g., TET10 and TET4) want to call the lower-order
+    // mapping from the higher-order mapping, so permit elements with more
+    // nodes in that code
+    if (n_nodes != -1) TBOX_ASSERT(n_nodes <= elem->n_nodes());
     const auto n_nodes_ = n_nodes == -1 ? elem->n_nodes() : n_nodes;
     TBOX_ASSERT(n_nodes_ <= 27);
     for (unsigned int node_n = 0; node_n < n_nodes_; ++node_n)
@@ -501,7 +505,9 @@ Quad9Mapping::fillContravariants(const libMesh::Elem* elem)
 void
 Tet4Mapping::fillContravariants(const libMesh::Elem* elem)
 {
-    TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
+    // also permit TET10
+    const auto type = elem->type();
+    TBOX_ASSERT(type == libMesh::TET4 || type == libMesh::TET10);
 
     // calculate Jacobians here
     const libMesh::Point p0 = elem->point(0);
@@ -528,6 +534,47 @@ bool
 Tet4Mapping::isAffine() const
 {
     return true;
+}
+
+//
+// Tet10Mapping
+//
+
+Tet10Mapping::Tet10Mapping(const key_type quad_key, const FEUpdateFlags update_flags)
+    : LagrangeMapping<3, 3>(quad_key, update_flags),
+      tet4_mapping(std::make_tuple(libMesh::TET4, std::get<1>(quad_key), std::get<2>(quad_key)), update_flags)
+{
+}
+
+void
+Tet10Mapping::reinit(const libMesh::Elem* elem)
+{
+    if (elem_is_affine(elem))
+    {
+        tet4_mapping.reinit(elem);
+        // If we ever add more fields to the mapping classes we will need to
+        // duplicate them here
+        std::swap(d_contravariants, tet4_mapping.d_contravariants);
+        std::swap(d_Jacobians, tet4_mapping.d_Jacobians);
+        std::swap(d_JxW, tet4_mapping.d_JxW);
+        std::swap(d_quadrature_points, tet4_mapping.d_quadrature_points);
+    }
+    else
+        LagrangeMapping<3, 3>::reinit(elem);
+}
+
+bool
+Tet10Mapping::elem_is_affine(const libMesh::Elem* elem)
+{
+    std::array<libMesh::Point, 10> nodes;
+    for (unsigned int n = 0; n < 10; ++n) nodes[n] = elem->node_ref(n);
+    const double tol = 1e-16;
+    return nodes[4].relative_fuzzy_equals(0.5 * (nodes[0] + nodes[1]), tol) &&
+           nodes[5].relative_fuzzy_equals(0.5 * (nodes[1] + nodes[2]), tol) &&
+           nodes[6].relative_fuzzy_equals(0.5 * (nodes[0] + nodes[2]), tol) &&
+           nodes[7].relative_fuzzy_equals(0.5 * (nodes[0] + nodes[3]), tol) &&
+           nodes[8].relative_fuzzy_equals(0.5 * (nodes[1] + nodes[3]), tol) &&
+           nodes[9].relative_fuzzy_equals(0.5 * (nodes[2] + nodes[3]), tol);
 }
 
 //
