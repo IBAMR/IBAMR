@@ -24,6 +24,7 @@
 
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/PETScMatUtilities.h"
 
 #include "ArrayData.h"
@@ -49,7 +50,6 @@
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include "petscksp.h"
@@ -249,7 +249,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
         const int P_sol_idx = solution.getComponentDescriptorIndex(1);
 
         // Update the residual, r = f - A*u, to include the IB part of the operator.
-        int rank = SAMRAI_MPI::getRank();
+        int rank = IBTK_MPI::getRank();
         for (int ln = coarsest_level_num; ln <= finest_level_num; ++ln)
         {
             Vec solution_vec, residual_vec;
@@ -294,7 +294,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorReal<ND
         const int P_rhs_idx = rhs.getComponentDescriptorIndex(1);
 
         // Compute the residual, r = f - A*u.
-        int rank = SAMRAI_MPI::getRank();
+        int rank = IBTK_MPI::getRank();
         for (int ln = coarsest_level_num; ln <= finest_level_num; ++ln)
         {
             Vec solution_vec;

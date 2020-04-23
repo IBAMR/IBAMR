@@ -16,10 +16,9 @@
 #include "ibamr/IBInstrumentationSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/StreamableFactory.h"
 #include "ibtk/StreamableManager.h"
-
-#include "tbox/SAMRAI_MPI.h"
 
 #include <algorithm>
 #include <string>
@@ -42,7 +41,7 @@ IBInstrumentationSpec::registerWithStreamableManager()
     // register the factory class with the StreamableManager, and to ensure that
     // all processes employ the same class ID for the IBInstrumentationSpec
     // object.
-    SAMRAI_MPI::barrier();
+    IBTK_MPI::barrier();
     if (!getIsRegisteredWithStreamableManager())
     {
 #if !defined(NDEBUG)
@@ -50,7 +49,7 @@ IBInstrumentationSpec::registerWithStreamableManager()
 #endif
         STREAMABLE_CLASS_ID = StreamableManager::getManager()->registerFactory(new IBInstrumentationSpecFactory());
     }
-    SAMRAI_MPI::barrier();
+    IBTK_MPI::barrier();
     return;
 } // registerWithStreamableManager
 

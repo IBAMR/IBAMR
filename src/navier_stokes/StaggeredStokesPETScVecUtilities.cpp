@@ -19,6 +19,7 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
 
@@ -47,7 +48,6 @@
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include "petscao.h"
@@ -345,7 +345,7 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelAO(AO& ao,
     p_ao_offset = u_ao_offset + n_u_samrai_dofs;
 
     // Compute PETSc to SAMRAI index mapping
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int n_local = num_dofs_per_proc[mpi_rank];
     const int i_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int i_upper = i_lower + n_local;
@@ -655,11 +655,11 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
 
     // Determine the number of DOFs local to each MPI process and compute the
     // local DOF index offset.
-    const int mpi_size = SAMRAI_MPI::getNodes();
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_size = IBTK_MPI::getNodes();
+    const int mpi_rank = IBTK_MPI::getRank();
     num_dofs_per_proc.resize(mpi_size);
     std::fill(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
-    SAMRAI_MPI::allGather(local_dof_count, &num_dofs_per_proc[0]);
+    IBTK_MPI::allGather(local_dof_count, &num_dofs_per_proc[0]);
     const int local_dof_offset = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
 
     // Assign local DOF indices.

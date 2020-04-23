@@ -20,6 +20,7 @@
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/ibtk_utilities.h"
 
@@ -32,7 +33,6 @@
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
@@ -224,7 +224,7 @@ DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
     // Allocate the actual matrices.
     const int mobility_mat_size = num_nodes * NDIM;
     const int body_mobility_mat_size = d_mat_parts_map[mat_name] * s_max_free_dofs;
-    const int rank = SAMRAI_MPI::getRank();
+    const int rank = IBTK_MPI::getRank();
 
     if (rank == managing_proc)
     {
@@ -322,7 +322,7 @@ DirectMobilitySolver::solveSystem(Vec x, Vec b)
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
 
-    const int rank = SAMRAI_MPI::getRank();
+    const int rank = IBTK_MPI::getRank();
     static const int data_depth = NDIM;
 
     for (const auto& petsc_mat_pair : d_petsc_mat_map)
@@ -375,7 +375,7 @@ DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
 
-    const int rank = SAMRAI_MPI::getRank();
+    const int rank = IBTK_MPI::getRank();
     static const int data_depth = s_max_free_dofs;
 
     for (const auto& petsc_mat_pair : d_petsc_mat_map)
@@ -426,7 +426,7 @@ DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
 
     IBAMR_TIMER_START(t_initialize_solver_state);
 
-    int rank = SAMRAI_MPI::getRank();
+    int rank = IBTK_MPI::getRank();
     auto managed_mats = static_cast<unsigned>(d_mat_map.size());
 
     static bool recreate_mobility_matrices = true;
@@ -565,7 +565,7 @@ DirectMobilitySolver::getFromInput(Pointer<Database> input_db)
 void
 DirectMobilitySolver::factorizeMobilityMatrix()
 {
-    int rank = SAMRAI_MPI::getRank();
+    int rank = IBTK_MPI::getRank();
     for (const auto& petsc_mat_pair : d_petsc_mat_map)
     {
         const std::string& mat_name = petsc_mat_pair.first;
@@ -586,7 +586,7 @@ DirectMobilitySolver::factorizeMobilityMatrix()
 void
 DirectMobilitySolver::constructBodyMobilityMatrix()
 {
-    int rank = SAMRAI_MPI::getRank();
+    int rank = IBTK_MPI::getRank();
     for (const auto& petsc_mat_pair : d_petsc_mat_map)
     {
         const std::string& mat_name = petsc_mat_pair.first;
@@ -626,7 +626,7 @@ DirectMobilitySolver::constructBodyMobilityMatrix()
 void
 DirectMobilitySolver::factorizeBodyMobilityMatrix()
 {
-    int rank = SAMRAI_MPI::getRank();
+    int rank = IBTK_MPI::getRank();
     for (const auto& petsc_mat_pair : d_petsc_mat_map)
     {
         const std::string& mat_name = petsc_mat_pair.first;

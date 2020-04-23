@@ -49,6 +49,7 @@
 #include "ibamr/FESurfaceDistanceEvaluator.h"
 #include "ibamr/app_namespaces.h"
 
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/ibtk_utilities.h"
 
@@ -73,7 +74,6 @@
 #include "VariableDatabase.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
@@ -266,8 +266,8 @@ FESurfaceDistanceEvaluator::mapIntersections()
 #endif
         }
     }
-    SAMRAI_MPI::minReduction(elem_bl.data(), 3);
-    SAMRAI_MPI::maxReduction(elem_tr.data(), 3);
+    IBTK_MPI::minReduction(elem_bl.data(), 3);
+    IBTK_MPI::maxReduction(elem_tr.data(), 3);
 
     // Structure bounding box, taking into account ghost cell width.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
@@ -689,7 +689,7 @@ FESurfaceDistanceEvaluator::updateSignAwayFromInterface(int D_idx,
                           large_distance,
                           n_local_updates);
         }
-        n_global_updates = SAMRAI_MPI::sumReduction(n_local_updates);
+        n_global_updates = IBTK_MPI::sumReduction(n_local_updates);
     }
 
     // Copy D_iter_idx to D_idx and deallocate D_iter_idx.

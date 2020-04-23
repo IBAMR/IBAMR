@@ -22,6 +22,7 @@
 #include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/ibtk_utilities.h"
 
@@ -47,7 +48,6 @@
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include "Eigen/Core"
@@ -183,7 +183,7 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
     computeHydrodynamicForceTorque(
         pressure_force, viscous_force, pressure_torque, viscous_torque, X0, time, time, time);
 
-    if (d_write_to_file && SAMRAI_MPI::getRank() == 0)
+    if (d_write_to_file && IBTK_MPI::getRank() == 0)
     {
         *d_hydro_force_stream << time << '\t' << pressure_force[0] << '\t' << pressure_force[1] << '\t'
                               << pressure_force[2] << '\t' << viscous_force[0] << '\t' << viscous_force[1] << '\t'
@@ -348,10 +348,10 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
         }
     }
     // Sum the net force and torque across processors.
-    SAMRAI_MPI::sumReduction(pressure_force.data(), pressure_force.size());
-    SAMRAI_MPI::sumReduction(viscous_force.data(), viscous_force.size());
-    SAMRAI_MPI::sumReduction(pressure_torque.data(), pressure_torque.size());
-    SAMRAI_MPI::sumReduction(viscous_torque.data(), viscous_force.size());
+    IBTK_MPI::sumReduction(pressure_force.data(), pressure_force.size());
+    IBTK_MPI::sumReduction(viscous_force.data(), viscous_force.size());
+    IBTK_MPI::sumReduction(pressure_torque.data(), pressure_torque.size());
+    IBTK_MPI::sumReduction(viscous_torque.data(), viscous_force.size());
 
     // Deallocate patch data
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -381,7 +381,7 @@ IBHydrodynamicSurfaceForceEvaluator::writeToFile(bool write_to_file)
     d_write_to_file = write_to_file;
 
     // Set up the streams for printing force and torque
-    if (d_write_to_file && SAMRAI_MPI::getRank() == 0)
+    if (d_write_to_file && IBTK_MPI::getRank() == 0)
     {
         std::string force;
         force = "Hydro_Force_" + d_ls_solid_var->getName();

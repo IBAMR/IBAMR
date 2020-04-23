@@ -27,6 +27,7 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/PoissonSolver.h"
 
@@ -978,7 +979,7 @@ AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
             }
         }
     }
-    return SAMRAI_MPI::minReduction(dt);
+    return IBTK_MPI::minReduction(dt);
 } // getMaximumTimeStepSizeSpecialized
 
 void

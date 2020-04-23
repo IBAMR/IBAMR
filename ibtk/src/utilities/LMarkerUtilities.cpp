@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/LMarker.h"
@@ -51,7 +52,6 @@
 #include "VariableDatabase.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include <algorithm>
@@ -119,8 +119,8 @@ LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init_posns,
     if (mark_input_file_name.empty()) return 0;
 
     // Read in the initial marker positions.
-    const int mpi_rank = SAMRAI_MPI::getRank();
-    const int mpi_size = SAMRAI_MPI::getNodes();
+    const int mpi_rank = IBTK_MPI::getRank();
+    const int mpi_size = IBTK_MPI::getNodes();
 
     const double* const grid_xLower = grid_geom->getXLower();
     const double* const grid_xUpper = grid_geom->getXUpper();
@@ -744,7 +744,7 @@ LMarkerUtilities::countMarkers(const int mark_idx,
             num_marks += countMarkersOnPatch(mark_data);
         }
     }
-    return static_cast<unsigned int>(SAMRAI_MPI::sumReduction(static_cast<int>(num_marks)));
+    return static_cast<unsigned int>(IBTK_MPI::sumReduction(static_cast<int>(num_marks)));
 } // countMarkers
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

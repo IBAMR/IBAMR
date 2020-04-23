@@ -19,6 +19,7 @@
 #include "ibtk/FEDataManager.h"
 #include "ibtk/FEProjector.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/JacobianCalculator.h"
 #include "ibtk/JacobianCalculatorCache.h"
@@ -64,7 +65,6 @@
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/ShutdownRegistry.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
@@ -2730,8 +2730,8 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
 
         if (d_enable_logging)
         {
-            const int n_processes = SAMRAI::tbox::SAMRAI_MPI::getNodes();
-            const int current_rank = SAMRAI::tbox::SAMRAI_MPI::getRank();
+            const int n_processes = IBTK_MPI::getNodes();
+            const int current_rank = IBTK_MPI::getRank();
             const auto right_padding = std::size_t(std::log10(n_processes)) + 1;
 
             std::vector<unsigned long> n_q_points_on_processors(n_processes);
@@ -2742,7 +2742,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
                                            n_q_points_on_processors.size(),
                                            MPI_UNSIGNED_LONG,
                                            MPI_SUM,
-                                           SAMRAI::tbox::SAMRAI_MPI::commWorld);
+                                           IBTK_MPI::getCommunicator());
             TBOX_ASSERT(ierr == 0);
             if (current_rank == 0)
             {
@@ -2804,7 +2804,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
         dx_0 = std::min(dx_0, *std::min_element(pgeom->getDx(), pgeom->getDx() + NDIM));
     }
-    dx_0 = SAMRAI_MPI::minReduction(dx_0);
+    dx_0 = IBTK_MPI::minReduction(dx_0);
     TBOX_ASSERT(dx_0 != std::numeric_limits<double>::max());
 
     // be a bit paranoid by computing bounding boxes for elements as the union

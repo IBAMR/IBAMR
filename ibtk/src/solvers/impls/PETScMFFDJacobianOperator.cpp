@@ -15,6 +15,7 @@
 
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/JacobianOperator.h"
 #include "ibtk/PETScMFFDJacobianOperator.h"
 #include "ibtk/PETScNewtonKrylovSolver.h"
@@ -24,7 +25,6 @@
 #include "Box.h"
 #include "MultiblockDataTranslator.h"
 #include "SAMRAIVectorReal.h"
-#include "tbox/SAMRAI_MPI.h"
 
 #include "petscmat.h"
 #include "petscsys.h"

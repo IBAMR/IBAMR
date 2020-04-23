@@ -13,12 +13,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/StreamableFactory.h"
 #include "ibtk/StreamableManager.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/ShutdownRegistry.h"
 
 #include <map>
@@ -84,9 +84,9 @@ StreamableManager::registerFactory(Pointer<StreamableFactory> factory)
 #endif
     // These barriers ensure that each factory is assigned the same class ID
     // number on each MPI process.
-    SAMRAI_MPI::barrier();
+    IBTK_MPI::barrier();
     const int factory_id = createUniqueID();
-    SAMRAI_MPI::barrier();
+    IBTK_MPI::barrier();
     factory->setStreamableClassID(factory_id);
     d_factory_map[factory_id] = factory;
     return factory_id;

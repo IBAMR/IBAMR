@@ -17,8 +17,9 @@
 #include "ibamr/RNG.h"
 #include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
+#include "ibtk/IBTK_MPI.h"
+
 #include "tbox/Database.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include <algorithm>
@@ -159,7 +160,7 @@ IrregularWaveGenerator::getVelocity(const double x, const double z_plus_d, const
 void
 IrregularWaveGenerator::printWaveData(ofstream& ostream) const
 {
-    if (!SAMRAI_MPI::getRank())
+    if (!IBTK_MPI::getRank())
     {
         for (int i = 0; i < d_num_waves; ++i)
         {
