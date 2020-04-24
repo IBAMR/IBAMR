@@ -15,6 +15,8 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CCLaplaceOperator.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/PETScVecUtilities.h>
 #include <ibtk/SAMRAIGhostDataAccumulator.h>
@@ -40,11 +42,8 @@
 int
 main(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     // prevent a warning about timer initializations
     TimerManager::createManager(nullptr);
@@ -170,7 +169,7 @@ main(int argc, char* argv[])
             IBTK::VectorNd x_up;
             std::copy(patch_geo->getXLower(), patch_geo->getXLower() + NDIM, x_lo.data());
             std::copy(patch_geo->getXUpper(), patch_geo->getXUpper() + NDIM, x_up.data());
-            out << "\nRank: " << SAMRAI_MPI::getRank() << '\n';
+            out << "\nRank: " << IBTK_MPI::getRank() << '\n';
             out << "x lower:\n" << x_lo << '\n';
             out << "x upper:\n" << x_up << '\n';
 
@@ -186,13 +185,8 @@ main(int argc, char* argv[])
                 u_data->print(patch_box, out, 16);
             }
         }
-        SAMRAI_MPI::barrier();
+        IBTK_MPI::barrier();
 
         print_strings_on_plog_0(out.str());
     }
-
-    // At this point all SAMRAI, PETSc, and IBAMR objects have been cleaned
-    // up, so we shut things down in the opposite order of initialization:
-    SAMRAIManager::shutdown();
-    PetscFinalize();
 } // run_example

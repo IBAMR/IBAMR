@@ -28,6 +28,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
 #include <ibtk/FEMapCache.h>
+#include <ibtk/IBTKInit.h>
 #include <ibtk/JacobianCalculator.h>
 #include <ibtk/QuadratureCache.h>
 #include <ibtk/libmesh_utilities.h>
@@ -98,10 +99,9 @@ test(LibMeshInit& init)
 int
 main(int argc, char** argv)
 {
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     // 2d
     test<2, FIRST, LAGRANGE, TRI3>(init);

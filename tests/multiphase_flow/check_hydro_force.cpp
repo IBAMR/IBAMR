@@ -41,6 +41,8 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
@@ -117,11 +119,8 @@ calculate_distance_analytically(Pointer<PatchHierarchy<NDIM> > patch_hierarchy, 
 int
 main(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     // Increase maximum patch data component indices
     SAMRAIManager::setMaxNumberPatchDataEntries(2500);
@@ -421,7 +420,7 @@ main(int argc, char* argv[])
         force_evaluator.computeHydrodynamicForceTorque(
             pressure_force, viscous_force, pressure_torque, viscous_torque, circle.X0);
 
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             std::ofstream out("output");
             out << "Vertical pressure force analytical = " << M_PI * circle.R * circle.R << std::endl;
@@ -442,7 +441,5 @@ main(int argc, char* argv[])
 
     } // cleanup dynamically allocated objects prior to shutdown
 
-    SAMRAIManager::shutdown();
-    PetscFinalize();
     return 0;
 } // main

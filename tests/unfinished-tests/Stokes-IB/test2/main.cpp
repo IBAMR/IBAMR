@@ -37,6 +37,7 @@
 #include <ibamr/app_namespaces.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -63,11 +64,8 @@ void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 int
 main(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -227,7 +225,7 @@ main(int argc, char* argv[])
 
         // Streams to write-out data.
         std::ofstream C_D_stream, C_L_stream;
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             C_D_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
             C_L_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
@@ -283,7 +281,7 @@ main(int argc, char* argv[])
         }
 
         // Close the logging streams.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             C_D_stream.close();
             C_L_stream.close();
@@ -295,8 +293,6 @@ main(int argc, char* argv[])
 
     } // cleanup dynamically allocated objects prior to shutdown
 
-    SAMRAIManager::shutdown();
-    PetscFinalize();
     return 0;
 } // main
 
@@ -320,8 +316,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
             F[d] += F_arr[k][d];
         }
     }
-    SAMRAI_MPI::sumReduction(F, NDIM);
-    if (SAMRAI_MPI::getRank() == 0)
+    IBTK_MPI::sumReduction(F, NDIM);
+    if (IBTK_MPI::getRank() == 0)
     {
         C_D_stream.precision(12);
         C_D_stream.setf(ios::fixed, ios::floatfield);

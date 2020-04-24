@@ -23,6 +23,7 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
 #include <ibtk/libmesh_utilities.h>
 
 // Set up application namespace declarations
@@ -59,10 +60,9 @@ log_max_edge_length(const ReplicatedMesh& mesh)
 int
 main(int argc, char** argv)
 {
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    const LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     {
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
@@ -120,6 +120,4 @@ main(int argc, char** argv)
             log_max_edge_length(mesh);
         }
     }
-
-    SAMRAIManager::shutdown();
 } // main

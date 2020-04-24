@@ -41,6 +41,8 @@
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartExtrapPhysBdryOp.h>
 #include <ibtk/CartSideRobinPhysBdryOp.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/PhysicalBoundaryUtilities.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
@@ -59,11 +61,8 @@
 int
 main(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     { // cleanup dynamically allocated objects prior to shutdown
         // prevent a warning about timer initialization
@@ -173,8 +172,5 @@ main(int argc, char* argv[])
         }
 
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
-    PetscFinalize();
     return 0;
 } // main

@@ -61,6 +61,8 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
@@ -244,9 +246,9 @@ calculate_error_near_band(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
             }
         }
     }
-    num_interface_pts = SAMRAI_MPI::sumReduction(num_interface_pts);
-    E_interface = SAMRAI_MPI::sumReduction(E_interface);
-    volume_near_interface = SAMRAI_MPI::sumReduction(volume_near_interface);
+    num_interface_pts = IBTK_MPI::sumReduction(num_interface_pts);
+    E_interface = IBTK_MPI::sumReduction(E_interface);
+    volume_near_interface = IBTK_MPI::sumReduction(volume_near_interface);
 
     return;
 } // calculate_error_near_band
@@ -439,11 +441,9 @@ static double shift_x, shift_y;
 int
 main(int argc, char* argv[])
 {
-    // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    const LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     // Increase maximum patch data component indices
     SAMRAIManager::setMaxNumberPatchDataEntries(2500);
@@ -1080,7 +1080,7 @@ main(int argc, char* argv[])
 
         // Open streams to save position and velocity of the structure.
         ofstream rbd_stream;
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             rbd_stream.open("output");
         }
@@ -1131,7 +1131,7 @@ main(int argc, char* argv[])
                 TimerManager::getManager()->print(plog);
             }
 
-            if (SAMRAI_MPI::getRank() == 0)
+            if (IBTK_MPI::getRank() == 0)
             {
                 const Eigen::Vector3d& rbd_posn = bp_rbd->getCurrentCOMPosn();
                 const Eigen::Vector3d& rbd_trans_vel = bp_rbd->getCurrentCOMTransVelocity();
@@ -1150,7 +1150,7 @@ main(int argc, char* argv[])
         }
 
         // Close the logging streams.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             rbd_stream.close();
         }
@@ -1165,6 +1165,5 @@ main(int argc, char* argv[])
 
     } // cleanup dynamically allocated objects prior to shutdown
 
-    SAMRAIManager::shutdown();
     return 0;
 } // main

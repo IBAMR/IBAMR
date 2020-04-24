@@ -21,6 +21,8 @@
 #include <ibamr/app_namespaces.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/StableCentroidPartitioner.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -56,11 +58,9 @@
 int
 main(int argc, char** argv)
 {
-    // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    const LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     // prevent a warning about timer initializations
     TimerManager::createManager(nullptr);
@@ -246,8 +246,8 @@ main(int argc, char** argv)
         const int length_tag = 1;
         const int index_tag = 2;
 
-        const int rank = SAMRAI_MPI::getRank();
-        const int n_nodes = SAMRAI_MPI::getNodes();
+        const int rank = IBTK_MPI::getRank();
+        const int n_nodes = IBTK_MPI::getNodes();
 
         if (rank == 0)
         {
@@ -276,15 +276,16 @@ main(int argc, char** argv)
                 }
                 else
                 {
-                    int ierr = MPI_Recv(bounds, 2, MPIU_INT, r, range_tag, SAMRAI_MPI::commWorld, MPI_STATUS_IGNORE);
+                    int ierr =
+                        MPI_Recv(bounds, 2, MPIU_INT, r, range_tag, IBTK_MPI::getCommunicator(), MPI_STATUS_IGNORE);
                     TBOX_ASSERT(ierr == 0);
 
                     PetscInt n = -1;
-                    ierr = MPI_Recv(&n, 1, MPIU_INT, r, length_tag, SAMRAI_MPI::commWorld, MPI_STATUS_IGNORE);
+                    ierr = MPI_Recv(&n, 1, MPIU_INT, r, length_tag, IBTK_MPI::getCommunicator(), MPI_STATUS_IGNORE);
                     TBOX_ASSERT(ierr == 0);
                     indices.resize(n);
-                    ierr =
-                        MPI_Recv(indices.data(), n, MPIU_INT, r, index_tag, SAMRAI_MPI::commWorld, MPI_STATUS_IGNORE);
+                    ierr = MPI_Recv(
+                        indices.data(), n, MPIU_INT, r, index_tag, IBTK_MPI::getCommunicator(), MPI_STATUS_IGNORE);
                     TBOX_ASSERT(ierr == 0);
                 }
 
@@ -318,7 +319,7 @@ main(int argc, char** argv)
             PetscInt bounds[2];
             int ierr = VecGetOwnershipRange(petsc_vec, &bounds[0], &bounds[1]);
             TBOX_ASSERT(ierr == 0);
-            ierr = MPI_Send(bounds, 2, MPIU_INT, 0, range_tag, SAMRAI_MPI::commWorld);
+            ierr = MPI_Send(bounds, 2, MPIU_INT, 0, range_tag, IBTK_MPI::getCommunicator());
             TBOX_ASSERT(ierr == 0);
 
             // send locally stored global indices
@@ -333,13 +334,11 @@ main(int argc, char** argv)
             ierr = ISLocalToGlobalMappingGetIndices(mapping, &indices);
             TBOX_ASSERT(ierr == 0);
 
-            ierr = MPI_Send(&n, 1, MPIU_INT, 0, length_tag, SAMRAI_MPI::commWorld);
+            ierr = MPI_Send(&n, 1, MPIU_INT, 0, length_tag, IBTK_MPI::getCommunicator());
             TBOX_ASSERT(ierr == 0);
 
-            ierr = MPI_Send(indices, n, MPIU_INT, 0, index_tag, SAMRAI_MPI::commWorld);
+            ierr = MPI_Send(indices, n, MPIU_INT, 0, index_tag, IBTK_MPI::getCommunicator());
             TBOX_ASSERT(ierr == 0);
         }
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
 } // main

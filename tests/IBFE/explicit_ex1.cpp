@@ -41,6 +41,8 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/StableCentroidPartitioner.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -121,11 +123,9 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 int
 main(int argc, char* argv[])
 {
-    // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    const LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-16");
     PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-16");
@@ -409,7 +409,7 @@ main(int argc, char* argv[])
 
         // Open streams to save volume of structure.
         ofstream volume_stream;
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             volume_stream.open("volume.curve", ios_base::out | ios_base::trunc);
         }
@@ -513,14 +513,14 @@ main(int argc, char* argv[])
                     J_integral += abs(FF.det()) * JxW[qp];
                 }
             }
-            J_integral = SAMRAI_MPI::sumReduction(J_integral);
+            J_integral = IBTK_MPI::sumReduction(J_integral);
 
             const auto old_precision = plog.precision();
             plog.precision(12);
             plog << "volume is " << J_integral << std::endl;
             plog.precision(old_precision);
 
-            if (SAMRAI_MPI::getRank() == 0)
+            if (IBTK_MPI::getRank() == 0)
             {
                 volume_stream.precision(12);
                 volume_stream.setf(ios::fixed, ios::floatfield);
@@ -529,7 +529,7 @@ main(int argc, char* argv[])
         }
 
         // Close the logging streams.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             volume_stream.close();
         }
@@ -539,8 +539,6 @@ main(int argc, char* argv[])
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
 } // main
 
 void
@@ -558,7 +556,7 @@ output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     // Write Cartesian data.
     string file_name = data_dump_dirname + "/" + "hier_data.";
     char temp_buf[128];
-    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
+    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, IBTK_MPI::getRank());
     file_name += temp_buf;
     Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
     hier_db->create(file_name);

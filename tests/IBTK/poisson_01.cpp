@@ -30,6 +30,7 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CCPoissonSolverManager.h>
+#include <ibtk/IBTKInit.h>
 #include <ibtk/muParserCartGridFunction.h>
 
 // Set up application namespace declarations
@@ -40,11 +41,8 @@
 int
 main(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     // prevent a warning about timer initializations
     TimerManager::createManager(nullptr);
@@ -207,7 +205,4 @@ main(int argc, char* argv[])
             }
         }
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
-    PetscFinalize();
 } // main

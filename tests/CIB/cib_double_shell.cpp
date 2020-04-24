@@ -43,6 +43,8 @@
 #include <ibamr/app_namespaces.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -121,18 +123,14 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 int
 main(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
-    SAMRAIManager::setMaxNumberPatchDataEntries(2054);
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     // Several parts of the code (such as LDataManager) expect mesh files,
     // specified in the input file, to exist in the current working
     // directory. Since tests are run in temporary directories we need to regenerate these input
     // to work. We also create a petsc options file for CIB solvers.
-    if (SAMRAI_MPI::getRank() == 0)
+    if (IBTK_MPI::getRank() == 0)
     {
         std::ifstream shell_in_vertex_stream(SOURCE_DIR "/shell_3d_in.vertex");
         std::ofstream shell_in_cwd("shell_3d_in.vertex");
@@ -323,7 +321,7 @@ main(int argc, char* argv[])
             direct_solvers->registerStructIDsWithMobilityMat(mat_name1, struct_ids1);
 
             int next_proc = 0;
-            if (SAMRAI_MPI::getNodes() > 1) next_proc = 1;
+            if (IBTK_MPI::getNodes() > 1) next_proc = 1;
             direct_solvers->registerMobilityMat(
                 mat_name2, prototype_structs2, EMPIRICAL, std::make_pair(LAPACK_SVD, LAPACK_SVD), next_proc);
             direct_solvers->registerStructIDsWithMobilityMat(mat_name2, struct_ids2);
@@ -416,7 +414,7 @@ main(int argc, char* argv[])
 
         // File to write the output data
         ofstream output_file;
-        if (!SAMRAI_MPI::getRank()) output_file.open("output");
+        if (!IBTK_MPI::getRank()) output_file.open("output");
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
@@ -469,7 +467,7 @@ main(int argc, char* argv[])
             ib_method_ops->getNewRigidBodyVelocity(1, U);
             pout << "\n\nRigid body velocity of structure 1 is : \n" << U << "\n\n";
 
-            if (!SAMRAI_MPI::getRank())
+            if (!IBTK_MPI::getRank())
             {
                 output_file << std::setprecision(13) << "\n\nNet rigid force and torque on structure 0 is : \n"
                             << ib_method_ops->getNetRigidGeneralizedForce(0) << "\n\n"
@@ -546,15 +544,12 @@ main(int argc, char* argv[])
         }
 
         // Close file
-        if (!SAMRAI_MPI::getRank()) output_file.close();
+        if (!IBTK_MPI::getRank()) output_file.close();
 
         // Cleanup boundary condition specification objects (when necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
-    PetscFinalize();
 } // main
 
 void

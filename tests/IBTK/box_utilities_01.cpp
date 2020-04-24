@@ -11,10 +11,11 @@
 //
 // ---------------------------------------------------------------------
 
+#include "ibtk/IBTK_MPI.h"
+#include <ibtk/IBTKInit.h>
 #include <ibtk/box_utilities.h>
 
 #include <tbox/SAMRAIManager.h>
-#include <tbox/SAMRAI_MPI.h>
 
 #include <petscsys.h>
 
@@ -36,11 +37,8 @@ check_box_contained(const std::vector<hier::Box<NDIM> >& boxes, const hier::Box<
 int
 main(int argc, char** argv)
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    tbox::SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    tbox::SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    tbox::SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTK::IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     std::ofstream out("output");
 
@@ -149,7 +147,4 @@ main(int argc, char** argv)
             }
         }
     }
-
-    tbox::SAMRAIManager::shutdown();
-    PetscFinalize();
 }

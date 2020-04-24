@@ -34,6 +34,8 @@
 #include <ibtk/CartSideDoubleRT0Refine.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 
 // Set up application namespace declarations
@@ -50,14 +52,11 @@
 int
 main(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     // this test only works in serial
-    TBOX_ASSERT(SAMRAI_MPI::getNodes() == 1);
+    TBOX_ASSERT(IBTK_MPI::getNodes() == 1);
 
     // prevent a warning about timer initializations
     TimerManager::createManager(nullptr);
@@ -186,9 +185,4 @@ main(int argc, char* argv[])
         visit_writer->writePlotData(patch_hierarchy, 0, 0.0);
 #endif
     }
-
-    // At this point all SAMRAI, PETSc, and IBAMR objects have been cleaned
-    // up, so we shut things down in the opposite order of initialization:
-    SAMRAIManager::shutdown();
-    PetscFinalize();
 }

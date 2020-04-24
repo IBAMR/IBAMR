@@ -53,7 +53,6 @@ IBTKInit::IBTKInit(int argc, char** argv, MPI_Comm communicator, char* petsc_fil
 
 IBTKInit::~IBTKInit()
 {
-    pout << "IBTKInit destructor called. Shutting down libraries.\n";
     SAMRAIManager::shutdown();
 #if SAMRAI_VERSION_MAJOR > 2
     SAMRAIManager::finalize();

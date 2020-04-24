@@ -44,6 +44,8 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/FEProjector.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/StableCentroidPartitioner.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -136,11 +138,9 @@ coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*
 int
 main(int argc, char** argv)
 {
-    // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    const LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     // set up options for the linear solver to not depend on the parallel partitioning
     PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-14");
@@ -400,9 +400,9 @@ main(int argc, char** argv)
                 }
             }
 
-            plog << "max vertex distance: " << SAMRAI_MPI::maxReduction(max_vertex_distance) << std::endl;
+            plog << "max vertex distance: " << IBTK_MPI::maxReduction(max_vertex_distance) << std::endl;
             plog << "max norm errors: ";
-            for (double& max_error : max_norm_errors) max_error = SAMRAI_MPI::maxReduction(max_error);
+            for (double& max_error : max_norm_errors) max_error = IBTK_MPI::maxReduction(max_error);
             plog << std::setprecision(20);
             for (unsigned int i = 0; i < n_vars - 1; ++i)
             {
@@ -420,6 +420,4 @@ main(int argc, char** argv)
             }
         }
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
 } // main

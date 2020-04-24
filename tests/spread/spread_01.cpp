@@ -44,6 +44,8 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -100,11 +102,9 @@ periodic_coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s,
 int
 main(int argc, char** argv)
 {
-    // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    const LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-16");
     PetscOptionsSetValue(nullptr, "-ksp_atol", "1e-16");
@@ -319,7 +319,7 @@ main(int argc, char** argv)
         // only regrid if we are in parallel - do this to avoid weird problems
         // with inconsistent initial partitionings (see
         // IBFEMethod::d_skip_initial_workload_log)
-        if (SAMRAI_MPI::getNodes() != 1) time_integrator->regridHierarchy();
+        if (IBTK_MPI::getNodes() != 1) time_integrator->regridHierarchy();
 
         // Now for the actual test. Set up a new variable containing ghost data:
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -379,7 +379,7 @@ main(int argc, char** argv)
         }
 
         std::ostringstream out;
-        if (SAMRAI_MPI::getNodes() != 1)
+        if (IBTK_MPI::getNodes() != 1)
         {
             // partitioning is only relevant when there are multiple processors
             Pointer<PatchLevel<NDIM> > patch_level =
@@ -388,7 +388,7 @@ main(int argc, char** argv)
             plog << "hierarchy boxes:\n";
             for (int i = 0; i < boxes.size(); ++i) plog << boxes[i] << '\n';
             // rank is only relevant when there are multiple processors
-            out << "\nrank: " << SAMRAI_MPI::getRank() << '\n';
+            out << "\nrank: " << IBTK_MPI::getRank() << '\n';
         }
 
         // Test the accumulation code when we have meshes that are against the
@@ -461,10 +461,8 @@ main(int argc, char** argv)
                 // f_data->print(patch_box, plog, 16);
             }
         }
-        SAMRAI_MPI::barrier();
+        IBTK_MPI::barrier();
 
         print_strings_on_plog_0(out.str());
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
 } // main

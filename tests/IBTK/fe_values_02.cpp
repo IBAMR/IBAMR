@@ -29,6 +29,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
 #include <ibtk/FEValues.h>
+#include <ibtk/IBTKInit.h>
 #include <ibtk/libmesh_utilities.h>
 
 // Set up application namespace declarations
@@ -195,10 +196,9 @@ test(LibMeshInit& init, const MeshType mesh_type = MeshType::libmesh)
 int
 main(int argc, char** argv)
 {
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     // 2d, libMesh meshes:
     test<1, FIRST, LAGRANGE, TRI3>(init);
