@@ -119,7 +119,7 @@ InterpolationUtilities::interpolate(const vector<double>& X,
         Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(data_idx_temp);
     }
-    q_val = SAMRAI_MPI::sumReduction(q_val);
+    q_val = IBTK_MPI::sumReduction(q_val);
     return q_val;
 }
 
@@ -244,7 +244,7 @@ InterpolationUtilities::interpolateL2(const std::vector<double>& X,
             }
         }
     }
-    q_val = SAMRAI_MPI::sumReduction(q_val);
+    q_val = IBTK_MPI::sumReduction(q_val);
 
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {

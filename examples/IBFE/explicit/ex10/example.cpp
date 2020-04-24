@@ -40,6 +40,8 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/libmesh_utilities.h>
@@ -91,11 +93,9 @@ void postprocess_data(double loop_time, Pointer<IBFEDirectForcingKinematics> df_
 int
 main(int argc, char* argv[])
 {
-    // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    const LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -345,7 +345,7 @@ main(int argc, char* argv[])
         }
 
         // Open streams to save COM position and velocity.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             X_stream.open("X.curve", ios_base::out | ios_base::trunc);
             U_stream.open("U.curve", ios_base::out | ios_base::trunc);
@@ -414,7 +414,7 @@ main(int argc, char* argv[])
         }
 
         // Close the logging streams.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             X_stream.close();
             U_stream.close();
@@ -425,8 +425,6 @@ main(int argc, char* argv[])
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
 } // main
 
 void
@@ -435,7 +433,7 @@ postprocess_data(double loop_time, Pointer<IBFEDirectForcingKinematics> df_kinem
     const Eigen::Vector3d& X = df_kinematics_ops->getStructureCOM();
     const Eigen::Vector3d& U = df_kinematics_ops->getCOMTransVelocity();
     const Eigen::Vector3d& W = df_kinematics_ops->getCOMRotVelocity();
-    if (SAMRAI_MPI::getRank() == 0)
+    if (IBTK_MPI::getRank() == 0)
     {
         X_stream << loop_time << "\t" << X[0] << "\t" << X[1] << endl;
         U_stream << loop_time << "\t" << U[0] << "\t" << U[1] << "\t" << W[2] << endl;

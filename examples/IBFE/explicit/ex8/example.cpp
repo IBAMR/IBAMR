@@ -40,6 +40,8 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -287,7 +289,7 @@ compute_inflow_flux(const Pointer<PatchHierarchy<NDIM> > hierarchy, const int U_
             }
         }
     }
-    SAMRAI_MPI::sumReduction(&Q_in, 1);
+    IBTK_MPI::sumReduction(&Q_in, 1);
     return Q_in;
 }
 
@@ -314,11 +316,9 @@ using namespace ModelData;
 int
 main(int argc, char* argv[])
 {
-    // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    //  SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    const LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -647,8 +647,8 @@ main(int argc, char* argv[])
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
-            J_dil_min = SAMRAI_MPI::minReduction(J_dil_min);
-            J_dil_max = SAMRAI_MPI::maxReduction(J_dil_max);
+            J_dil_min = IBTK_MPI::minReduction(J_dil_min);
+            J_dil_max = IBTK_MPI::maxReduction(J_dil_max);
 
             pout << "J_min = " << J_dil_min << "\n"
                  << "J_max = " << J_dil_max << "\n";
@@ -725,6 +725,4 @@ main(int argc, char* argv[])
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
 } // runExample

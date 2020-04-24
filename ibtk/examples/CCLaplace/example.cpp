@@ -29,6 +29,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CCLaplaceOperator.h>
+#include <ibtk/IBTKInit.h>
 #include <ibtk/muParserCartGridFunction.h>
 
 // Set up application namespace declarations
@@ -44,11 +45,8 @@
 int
 main(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     // Since SAMRAI and PETSc both require finalization routines we have to
     // ensure that no SAMRAI or PETSc objects are active at the point where we
@@ -257,9 +255,4 @@ main(int argc, char* argv[])
         // Output data for plotting.
         visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);
     }
-
-    // At this point all SAMRAI, PETSc, and IBAMR objects have been cleaned
-    // up, so we shut things down in the opposite order of initialization:
-    SAMRAIManager::shutdown();
-    PetscFinalize();
 } // main

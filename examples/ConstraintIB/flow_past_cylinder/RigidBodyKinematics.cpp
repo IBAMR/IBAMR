@@ -16,8 +16,9 @@
 /////////////////////////////////// INCLUDES /////////////////////////////////////
 
 // SAMRAI INCLUDES
+#include "ibtk/IBTK_MPI.h"
+
 #include "tbox/PIO.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 // IBAMR INCLUDES

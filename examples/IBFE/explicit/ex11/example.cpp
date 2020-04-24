@@ -40,6 +40,8 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/ibtk_utilities.h>
 #include <ibtk/libmesh_utilities.h>
@@ -126,11 +128,9 @@ void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 int
 main(int argc, char* argv[])
 {
-    // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    const LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -380,7 +380,7 @@ main(int argc, char* argv[])
         }
 
         // Open streams to save lift and drag coefficients.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             drag_stream.open("C_D.curve", ios_base::out | ios_base::trunc);
             lift_stream.open("C_L.curve", ios_base::out | ios_base::trunc);
@@ -455,7 +455,7 @@ main(int argc, char* argv[])
         }
 
         // Close the logging streams.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             drag_stream.close();
             lift_stream.close();
@@ -466,8 +466,6 @@ main(int argc, char* argv[])
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
 } // main
 
 void
@@ -521,11 +519,11 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
             }
         }
     }
-    SAMRAI_MPI::sumReduction(F_integral, NDIM);
+    IBTK_MPI::sumReduction(F_integral, NDIM);
     static const double rho = 1.0;
     static const double U_max = 1.0;
     static const double D = 2.0 * R;
-    if (SAMRAI_MPI::getRank() == 0)
+    if (IBTK_MPI::getRank() == 0)
     {
         drag_stream << loop_time << " " << -F_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
         lift_stream << loop_time << " " << -F_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
