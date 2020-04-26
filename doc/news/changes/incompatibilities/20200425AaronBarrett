@@ -1,0 +1,8 @@
+New: IBAMR now requires the initialization object IBTKInit to be created upon
+program start. IBTKInit is responsible for initializing and deinitializing all
+libraries as well as registering the MPI communicator with IBTK_MPI. All
+SAMRAI_MPI calls in the library have been replaced with respective IBTK_MPI
+calls. The perl script scripts/code_updates/update_mpi_calls.pl will
+automatically complete most of the changes.
+<br>
+(Aaron Barrett, 2020/04/25)
