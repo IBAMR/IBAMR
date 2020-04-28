@@ -14,10 +14,10 @@ IBHierarchyIntegrator::advanceHierarchy(): regridding prior to timestep 0
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
 FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
-quadrature points on processor 0 = 4002
-quadrature points on processor 1 = 3232
-quadrature points on processor 2 = 3462
-quadrature points on processor 3 = 3800
+quadrature points on processor 0 = 1082
+quadrature points on processor 1 = 887
+quadrature points on processor 2 = 939
+quadrature points on processor 3 = 1031
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
