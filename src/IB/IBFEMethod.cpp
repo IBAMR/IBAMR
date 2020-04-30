@@ -693,8 +693,8 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
 void
 IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
-    const std::string F_data_time_str = std::move(get_data_time_str(
-        d_ib_solver->getTimeSteppingType() == MIDPOINT_RULE ? d_half_time : d_new_time, d_current_time, d_new_time));
+    const std::string F_data_time_str = get_data_time_str(
+        d_ib_solver->getTimeSteppingType() == MIDPOINT_RULE ? d_half_time : d_new_time, d_current_time, d_new_time);
     batch_vec_ghost_update(
         { d_X_vecs->get("new"), d_U_vecs->get("new"), d_F_vecs->get(F_data_time_str), d_Q_half_vecs, d_Phi_half_vecs },
         INSERT_VALUES,
@@ -750,7 +750,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                 const double data_time)
 {
-    const std::string data_time_str = std::move(get_data_time_str(data_time, d_current_time, d_new_time));
+    const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
 
     if (d_use_scratch_hierarchy)
     {
@@ -953,7 +953,7 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
 void
 IBFEMethod::computeLagrangianForce(const double data_time)
 {
-    const std::string data_time_str = std::move(get_data_time_str(data_time, d_current_time, d_new_time));
+    const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
     batch_vec_ghost_update(d_X_vecs->get(data_time_str), INSERT_VALUES, SCATTER_FORWARD);
     d_F_vecs->zero("RHS Vector");
     d_F_vecs->zero("tmp");
@@ -999,7 +999,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
                         const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
                         const double data_time)
 {
-    const std::string data_time_str = std::move(get_data_time_str(data_time, d_current_time, d_new_time));
+    const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
 
     // Communicate ghost data.
     std::vector<PetscVector<double>*> X_IB_ghost_vecs = d_X_vecs->getIBGhosted("tmp");
