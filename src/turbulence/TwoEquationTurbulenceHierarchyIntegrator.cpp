@@ -266,7 +266,7 @@ FrictionVelocityFunctor::operator()(const double& U_tau)
     const double b = 0.5 * (d_plus * kappa / c + 1.0 / d_plus);
     const double kappa_star = kappa * delta / nu;
     const double b_star = b * delta / nu;
-    double fx = (U_s / U_tau) - (log(1.0 + (kappa_star * U_tau)) / kappa) -
+    double fx = (U_s / U_tau) - (log(1.0 + kappa_star * U_tau) / kappa) -
                 c * (1.0 - exp(-delta * U_tau / (nu * d_plus)) - (exp(-b_star * U_tau) * delta * U_tau / nu * d_plus));
     double dx =
         -U_s / (U_tau * U_tau) - kappa_star / kappa * 1.0 / (1.0 + kappa_star * U_tau) -
@@ -2463,10 +2463,10 @@ TwoEquationTurbulenceHierarchyIntegrator::applyWallFunction(const double data_ti
                                 const double mu = 0.5 * ((*mu_data)(si.toCell(0)) + (*mu_data)(si.toCell(1)));
                                 const double rho = 0.5 * ((*rho_data)(si.toCell(0)) + (*rho_data)(si.toCell(1)));
                                 friction_velocity.nu = mu / rho;
-                                friction_velocity.U_s = ((*U_data)(si_1) + (*U_data)(si_2)) / 2.0;
+                                friction_velocity.U_s = 0.5 * ((*U_data)(si_1) + (*U_data)(si_2));
                                 (*U_tau_data)(si) = boost::math::tools::newton_raphson_iterate(
                                     friction_velocity, guess, min, max, get_digits, it);
-                                (*yplus_sc_data)(si) = rho * (*U_tau_data)(si)*patch_dx[axis] / 2.0 * mu;
+                                (*yplus_sc_data)(si) = rho * (*U_tau_data)(si)*patch_dx[axis] / (2.0 * mu);
                             }
                             // top boundary
                             else if (axis == 1 && side == 1 && si(1) == number_of_indices(axis) - 1 && d == 0)
@@ -2478,10 +2478,10 @@ TwoEquationTurbulenceHierarchyIntegrator::applyWallFunction(const double data_ti
                                 const double rho = 0.5 * ((*rho_data)(si.toCell(0)) + (*rho_data)(si.toCell(1)));
 
                                 friction_velocity.nu = mu / rho;
-                                friction_velocity.U_s = ((*U_data)(si_1) + (*U_data)(si_2)) / 2.0;
+                                friction_velocity.U_s = 0.5 * ((*U_data)(si_1) + (*U_data)(si_2));
                                 (*U_tau_data)(si) = boost::math::tools::newton_raphson_iterate(
                                     friction_velocity, guess, min, max, get_digits, it);
-                                (*yplus_sc_data)(si) = rho * (*U_tau_data)(si)*patch_dx[axis] / 2.0 * mu;
+                                (*yplus_sc_data)(si) = rho * (*U_tau_data)(si)*patch_dx[axis] / (2.0 * mu);
                             }
                         }
                     }
@@ -2534,7 +2534,7 @@ TwoEquationTurbulenceHierarchyIntegrator::postProcessTurbulentVariablesBasedonYp
             Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_new_idx);
             Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(rho_new_idx);
 
-            Pointer<SideData<NDIM, double> > U_tau_data = patch->getPatchData(U_tau_cc_idx);
+            Pointer<CellData<NDIM, double> > U_tau_data = patch->getPatchData(U_tau_cc_idx);
 
             IBTK::VectorNd number_of_indices(NDIM);
             for (int d = 0; d < NDIM; d++)
@@ -2574,7 +2574,7 @@ TwoEquationTurbulenceHierarchyIntegrator::postProcessTurbulentVariablesBasedonYp
                             for (unsigned int d = 0; d < NDIM; d++)
                             {
                                 sum += (*yplus_data)(ci, d);
-                                sum_1 += (*yplus_data)(ci, d);
+                                sum_1 += (*U_tau_data)(ci, d);
                             }
                             double y_plus = 0.5 * sum;
                             double U_tau = 0.5 * sum_1;
@@ -2584,9 +2584,9 @@ TwoEquationTurbulenceHierarchyIntegrator::postProcessTurbulentVariablesBasedonYp
                                 (*k_data)(ci) = (*distance_to_closest_surface_data)(ci) * (*k_data)(ci_1) /
                                                 (*distance_to_closest_surface_data)(ci_1);
 
-                                (*w_data)(ci) = 6.0 * (*mu_data)(ci) / (*rho_data)(ci)*BETA_1 *
-                                                (*distance_to_closest_surface_data)(ci) *
-                                                (*distance_to_closest_surface_data)(ci);
+                                (*w_data)(ci) = 6.0 * (*mu_data)(ci) /
+                                                ((*rho_data)(ci)*BETA_1 * (*distance_to_closest_surface_data)(ci) *
+                                                 (*distance_to_closest_surface_data)(ci));
                             }
                             else
                             {

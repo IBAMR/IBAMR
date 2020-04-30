@@ -1715,6 +1715,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::postProcessVelocityBasedonYplus()
                                     U_tau * ((log(1.0 + KAPPA * yplus) / KAPPA) +
                                              c * (1.0 - exp(-yplus / DPLUS) - yplus * exp(-b_const * yplus) / DPLUS));
                             }
+                            else if ((axis == 1 && side == 0 && si(1) == 0 && d == 1) ||
+                                     (axis == 1 && side == 1 && si(1) == number_of_indices(axis) - 1 && d == 1))
+                            {
+                                (*U_data)(si) = 0.0;
+                            }
                         }
                     }
                 }
