@@ -176,7 +176,10 @@ merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::Box<NDIM> >& input_b
         // 2. sort faces by size in *descending* order:
         std::vector<std::pair<hier::Index<NDIM>, hier::Index<NDIM> > > faces;
         for (const auto& pair : face_to_boxes) faces.push_back(pair.first);
-        std::sort(faces.begin(), faces.end(), IndexPairMagnitudeGreater());
+        // Since some faces have equal magnitudes but don't refer to the same
+        // slice of index space, use a stable sort to get platform-independent
+        // iteration order in step 3:
+        std::stable_sort(faces.begin(), faces.end(), IndexPairMagnitudeGreater());
 
         // 3. merge boxes.
         std::set<hier::Box<NDIM>, BoxLexical> removed_boxes;
