@@ -342,6 +342,18 @@ private:
      */
     void calculateF2();
 
+    /**
+     * A wall function is applied. The values of \f$ u, v, k, \omega \f$ are modified in the near
+     * wall cell based on the log law.
+     */
+    void applyWallFunction(const double data_time);
+
+    /**
+     * Postprocess the \f$ k \f$ and \f$ w \f$ values. If \f$ y^+ \f$ is less than 11, use viscous
+     * sublayer boundary conditions. Otherwise, use inertial sublayer boundary conditions.
+     */
+    void postProcessTurbulentVariablesBasedonYplus();
+
     /*!
      * Read input values from a given database.
      */
@@ -377,10 +389,21 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_p_var;
 
     /*!
+     * Cell-centered variable to store y<SUP>+</SUP>.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_yplus_cc_var;
+
+    /*!
+     * Cell-centered variable to store friction velocity \f$ u_\tau \f$.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_U_tau_cc_var;
+
+    /*!
      * Variable to store the distance from the nearest surface.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_distance_to_closest_surface_var;
     SAMRAI::tbox::Array<int> d_wall_location_index;
+    double d_distance_to_virtual_point;
 
     /*!
      * Viscosity variables.
@@ -428,7 +451,7 @@ private:
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_k_bc_coef = nullptr;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_w_bc_coef = nullptr;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_k_bdry_bc_fill_op, d_w_bdry_bc_fill_op,
-        d_mu_bdry_bc_fill_op, d_mu_t_bdry_bc_fill_op;
+        d_mu_bdry_bc_fill_op, d_mu_t_bdry_bc_fill_op, d_rho_bdry_bc_fill_op;
 
     /*!
      * Diffusion coefficient data
@@ -476,9 +499,18 @@ private:
      */
     int d_F1_scratch_idx, d_F2_scratch_idx, d_p_scratch_idx, d_distance_to_closest_surface_scratch_idx;
     int d_mu_eff_scratch_idx;
+
+    /*
+     * Patch data descriptor indices for all "plot" variables managed by the
+     * integrator.
+     *
+     * Plot variables have one context: current.
+     */
+
     int d_k_temp_idx, d_w_temp_idx, d_k_temp_rhs_idx, d_w_temp_rhs_idx;
     int d_k_dissipation_idx, d_w_dissipation_idx;
     int d_k_C_idx, d_w_C_idx;
+    int d_yplus_cc_idx, d_U_tau_cc_idx;
 
     /*!
      * Pointer to INSVCStaggeredConservativeHierarchyIntegrator integrator.

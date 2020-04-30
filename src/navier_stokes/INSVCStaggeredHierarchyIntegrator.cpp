@@ -501,6 +501,7 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string
     if (input_db->keyExists("rho_bdry_extrap_type"))
         d_rho_bdry_extrap_type = input_db->getString("rho_bdry_extrap_type");
     if (input_db->keyExists("use_turbulence_model")) d_use_turb_model = input_db->getBool("use_turbulence_model");
+    if (d_use_turb_model) d_wall_location_index = input_db->getIntegerArray("wall_location_index");
 
     // Initialize all variables.  The velocity, pressure, body force, and fluid
     // source variables were created above in the constructor for the
@@ -924,7 +925,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
     if (d_use_turb_model)
     {
-        // register turbulent viscosity
+        // Register turbulent viscosity.
         if (d_mu_t_var)
         {
             registerVariable(d_mu_t_current_idx,
@@ -940,6 +941,14 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         // Store effective viscosity in case of turbulence
         d_mu_eff_var = new CellVariable<NDIM, double>(d_mu_var->getName() + "::eff", /*depth*/ 1);
         registerVariable(d_mu_eff_scratch_idx, d_mu_eff_var, mu_cell_ghosts, getScratchContext());
+
+        // Friction velocity for wall function.
+        d_U_tau_var = new SideVariable<NDIM, double>("u_tau", /*depth*/ 1);
+        registerVariable(d_U_tau_scratch_idx, d_U_tau_var, side_ghosts, getScratchContext());
+
+        // non-dimensional wall distance for wall function.
+        d_yplus_var = new SideVariable<NDIM, double>("yplus", /*depth*/ 1);
+        registerVariable(d_yplus_scratch_idx, d_yplus_var, side_ghosts, getScratchContext());
     }
 
     // Register plot variables that are maintained by the
@@ -1238,8 +1247,10 @@ INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         if (!level->checkAllocated(d_rho_linear_op_idx)) level->allocatePatchData(d_rho_linear_op_idx, current_time);
         if (d_use_turb_model)
         {
-            if (!level->checkAllocated(d_mu_eff_scratch_idx))
-                level->allocatePatchData(d_mu_eff_scratch_idx, current_time);
+            if (!level->checkAllocated(d_U_tau_scratch_idx))
+                level->allocatePatchData(d_U_tau_scratch_idx, current_time);
+            if (!level->checkAllocated(d_yplus_scratch_idx))
+                level->allocatePatchData(d_yplus_scratch_idx, current_time);
         }
     }
 
@@ -1356,6 +1367,8 @@ INSVCStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double cu
         level->deallocatePatchData(d_mu_interp_idx);
         level->deallocatePatchData(d_N_full_idx);
         if (d_mu_var.isNull()) level->deallocatePatchData(d_mu_scratch_idx);
+        if (d_use_turb_model) level->deallocatePatchData(d_U_tau_scratch_idx);
+        if (d_use_turb_model) level->deallocatePatchData(d_yplus_scratch_idx);
     }
 
     // Postprocess Brinkman penalization objects.
@@ -1433,6 +1446,18 @@ INSVCStaggeredHierarchyIntegrator::getTurbulentViscosityVariable() const
 {
     return d_mu_t_var;
 } // getTurbulentViscosityVariable
+
+Pointer<SideVariable<NDIM, double> >
+INSVCStaggeredHierarchyIntegrator::getYplusVariable() const
+{
+    return d_yplus_var;
+} // getYplusVariable
+
+Pointer<SideVariable<NDIM, double> >
+INSVCStaggeredHierarchyIntegrator::getUtauVariable() const
+{
+    return d_U_tau_var;
+} // getUtauVariable
 
 void
 INSVCStaggeredHierarchyIntegrator::setDensityVCInterpolationType(const IBTK::VCInterpType vc_interp_type)

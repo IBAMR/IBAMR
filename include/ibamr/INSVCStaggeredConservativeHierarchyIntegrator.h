@@ -263,6 +263,11 @@ private:
                             int cycle_num);
 
     /*!
+     * Post-process the velocity based on the non-dimensional wall distance \f$ y^+ \f$.
+     */
+
+    void postProcessVelocityBasedonYplus();
+    /*!
      * Side-centered density variable required for conservative discretization
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var;

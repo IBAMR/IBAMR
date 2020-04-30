@@ -401,7 +401,7 @@ public:
     }
 
     /*!
-     * \brief Get the viscosity boundary conditions
+     * \brief Get the viscosity boundary conditions.
      */
     inline SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getViscosityBoundaryConditions() const
     {
@@ -409,12 +409,22 @@ public:
     }
 
     /*!
-     * \brief Get the turbulent viscosity boundary conditions
+     * \brief Get the turbulent viscosity boundary conditions.
      */
     inline SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getTurbulentViscosityBoundaryConditions() const
     {
         return d_mu_t_bc_coef;
     }
+
+    /*!
+     * \brief Get the friction velocity, \f$ u_\tau \f$ patch data index.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > getUtauVariable() const;
+
+    /*!
+     * \brief Get the non-dimensional wall distance, \f$ y^+ \f$ variable.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > getYplusVariable() const;
 
     /*!
      * \brief Get the Brinkman penalization objects registered with this class.
@@ -556,6 +566,11 @@ protected:
         d_mu_t_bdry_bc_fill_op;
 
     /*!
+     * Store the location index of wall boundary which will be used for wall function.
+     */
+    SAMRAI::tbox::Array<int> d_wall_location_index;
+
+    /*!
      * Double precision values are (optional) factors used to rescale the
      * density and viscosity for plotting.
      *
@@ -613,6 +628,9 @@ protected:
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_rho_var, d_mu_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_mu_t_var, d_mu_eff_var;
+    // For turbulence wall-functions.
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_tau_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_yplus_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_pressure_D_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_pressure_rhs_D_var;
@@ -683,7 +701,6 @@ protected:
     int d_N_old_current_idx, d_N_old_new_idx, d_N_old_scratch_idx;
     int d_mu_current_idx, d_mu_new_idx, d_mu_scratch_idx;
     int d_mu_t_current_idx, d_mu_t_new_idx, d_mu_t_scratch_idx;
-    int d_mu_eff_scratch_idx;
 
     /*
      * Patch data descriptor indices for all "plot" variables managed by the
@@ -702,8 +719,9 @@ protected:
     int d_Omega_Norm_idx, d_U_regrid_idx, d_U_src_idx, d_indicator_idx, d_F_div_idx;
     int d_velocity_C_idx, d_velocity_L_idx, d_velocity_D_idx, d_velocity_D_cc_idx, d_pressure_D_idx;
     int d_velocity_rhs_C_idx, d_velocity_rhs_D_idx, d_pressure_rhs_D_idx;
-    int d_mu_interp_idx;
+    int d_mu_interp_idx, d_mu_eff_scratch_idx;
     int d_N_full_idx;
+    int d_yplus_scratch_idx, d_U_tau_scratch_idx;
 
     /*
      * Persistent patch data indices for the density and viscosity used in the linear operators

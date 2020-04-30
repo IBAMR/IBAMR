@@ -67,6 +67,8 @@
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
 
+#include <boost/math/tools/roots.hpp>
+
 #include <algorithm>
 #include <deque>
 #include <iterator>
@@ -206,22 +208,27 @@ namespace
 // Turbulence model constants.
 
 // sigma_k.
-static const double sigma_k1 = 0.85;
-static const double sigma_k2 = 1.0;
+static const double SIGMA_K1 = 0.85;
+static const double SIGMA_K2 = 1.0;
 
 // sigma_w.
-static const double sigma_w1 = 0.5;
-static const double sigma_w2 = 0.856;
+static const double SIGMA_W1 = 0.5;
+static const double SIGMA_W2 = 0.856;
 
 // beta.
-static const double beta_1 = 0.075;
-static const double beta_2 = 0.0828;
+static const double BETA_1 = 0.075;
+static const double BETA_2 = 0.0828;
 
 // beta_star.
-static const double beta_star = 0.09;
+static const double BETA_STAR = 0.09;
 
 // a1.
-static const double a1 = 0.31;
+static const double A1 = 0.31;
+
+// Constants appear in wall function.
+static const double KAPPA = 0.4187;
+static const double E = 9.793;
+static const double DPLUS = 9.793;
 
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
@@ -239,6 +246,35 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
+
+struct FrictionVelocityFunctor
+{
+    std::pair<double, double> operator()(const double& U_tau);
+    double kappa, E, d_plus, delta, nu;
+    static double s_newton_guess, s_newton_min, s_newton_max;
+    double U_s;
+};
+
+double FrictionVelocityFunctor::s_newton_guess = 1.0;
+double FrictionVelocityFunctor::s_newton_max = 100.0;
+double FrictionVelocityFunctor::s_newton_min = 0.01;
+
+std::pair<double, double>
+FrictionVelocityFunctor::operator()(const double& U_tau)
+{
+    const double c = log(E / kappa) / kappa;
+    const double b = 0.5 * (d_plus * kappa / c + 1.0 / d_plus);
+    const double kappa_star = kappa * delta / nu;
+    const double b_star = b * delta / nu;
+    double fx = (U_s / U_tau) - (log(1.0 + (kappa_star * U_tau)) / kappa) -
+                c * (1.0 - exp(-delta * U_tau / (nu * d_plus)) - (exp(-b_star * U_tau) * delta * U_tau / nu * d_plus));
+    double dx =
+        -U_s / (U_tau * U_tau) - kappa_star / kappa * 1.0 / (1.0 + kappa_star * U_tau) -
+        c * delta *
+            (exp(-delta * U_tau / (nu * d_plus)) - exp(-b_star * U_tau) + b_star * U_tau * exp(-b_star * U_tau)) /
+            (nu * d_plus);
+    return std::make_pair(fx, dx);
+}
 } // namespace
   //
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -260,6 +296,7 @@ TwoEquationTurbulenceHierarchyIntegrator::TwoEquationTurbulenceHierarchyIntegrat
     d_w_convective_op_input_db = new MemoryDatabase(d_object_name + "::w_convective_op_input_db");
 
     d_wall_location_index = input_db->getIntegerArray("wall_location_index");
+    d_distance_to_virtual_point = input_db->getDoubleWithDefault("distance_to_virtual_point", 2.0);
     getFromInput(input_db, from_restart);
 
     // Get plotting options from database
@@ -494,6 +531,7 @@ TwoEquationTurbulenceHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<
     d_w_C_var = new CellVariable<NDIM, double>(d_w_var->getName() + "::C");
     d_w_C_idx = var_db->registerVariableAndContext(d_w_C_var, getCurrentContext(), no_ghosts);
 
+    // you dont need to register this
     d_rho_cc_var = new CellVariable<NDIM, double>("rho::cc", /*depth*/ 1);
     registerVariable(d_rho_cc_current_idx,
                      d_rho_cc_new_idx,
@@ -507,6 +545,12 @@ TwoEquationTurbulenceHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<
     // function.
     d_rho_vec_cc_var = new CellVariable<NDIM, double>("rho_vec_cc", NDIM);
     d_rho_vec_cc_idx = var_db->registerVariableAndContext(d_rho_vec_cc_var, getCurrentContext(), cell_ghosts);
+
+    d_yplus_cc_var = new CellVariable<NDIM, double>("y_plus", NDIM);
+    d_yplus_cc_idx = var_db->registerVariableAndContext(d_yplus_cc_var, getCurrentContext(), cell_ghosts);
+
+    d_U_tau_cc_var = new CellVariable<NDIM, double>("U_tau", NDIM);
+    d_U_tau_cc_idx = var_db->registerVariableAndContext(d_U_tau_cc_var, getCurrentContext(), cell_ghosts);
 
     // Setup coarsening communications algorithms, used in synchronizing refined
     // regions of coarse data with the underlying fine data.
@@ -581,6 +625,8 @@ TwoEquationTurbulenceHierarchyIntegrator::preprocessIntegrateHierarchy(const dou
         if (!level->checkAllocated(d_k_C_idx)) level->allocatePatchData(d_k_C_idx, current_time);
         if (!level->checkAllocated(d_w_C_idx)) level->allocatePatchData(d_w_C_idx, current_time);
         if (!level->checkAllocated(d_rho_vec_cc_idx)) level->allocatePatchData(d_rho_vec_cc_idx, current_time);
+        if (!level->checkAllocated(d_yplus_cc_idx)) level->allocatePatchData(d_yplus_cc_idx, current_time);
+        if (!level->checkAllocated(d_U_tau_cc_idx)) level->allocatePatchData(d_U_tau_cc_idx, current_time);
     }
 
     // Update the advection velocity for k.
@@ -645,7 +691,7 @@ TwoEquationTurbulenceHierarchyIntegrator::preprocessIntegrateHierarchy(const dou
     // set rho*beta_star*omega
     d_w_current_idx = var_db->mapVariableAndContextToIndex(d_w_var, getCurrentContext());
     d_hier_cc_data_ops->multiply(d_k_dissipation_idx, rho_cc_current_idx, d_w_current_idx);
-    d_hier_cc_data_ops->scale(d_k_C_idx, beta_star, d_k_dissipation_idx);
+    d_hier_cc_data_ops->scale(d_k_C_idx, BETA_STAR, d_k_dissipation_idx);
     d_hier_cc_data_ops->add(d_k_C_idx, d_k_C_idx, d_k_temp_rhs_idx);
     k_solver_spec.setCPatchDataId(d_k_C_idx);
 
@@ -982,7 +1028,7 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
 
         // set rho*beta_star*omega.
         d_hier_cc_data_ops->multiply(d_k_dissipation_idx, rho_cc_new_idx, w_new_idx);
-        d_hier_cc_data_ops->scale(d_k_C_idx, beta_star, d_k_dissipation_idx);
+        d_hier_cc_data_ops->scale(d_k_C_idx, BETA_STAR, d_k_dissipation_idx);
         d_hier_cc_data_ops->add(d_k_C_idx, d_k_C_idx, d_k_temp_idx);
 
         double alpha = 0.0;
@@ -1341,6 +1387,35 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
         d_hier_cc_data_ops->copyData(w_F_new_idx, w_F_scratch_idx);
     }
 
+    // Find the U_tau and yplus from the wall law.
+    applyWallFunction(new_time);
+
+    Pointer<SideVariable<NDIM, double> > yplus_sc_var = d_ins_hierarchy_integrator->getYplusVariable();
+    Pointer<SideVariable<NDIM, double> > U_tau_sc_var = d_ins_hierarchy_integrator->getUtauVariable();
+    const int yplus_sc_idx =
+        var_db->mapVariableAndContextToIndex(yplus_sc_var, d_ins_hierarchy_integrator->getScratchContext());
+    const int U_tau_sc_idx =
+        var_db->mapVariableAndContextToIndex(U_tau_sc_var, d_ins_hierarchy_integrator->getScratchContext());
+    std::ofstream y_plus;
+    y_plus.open("y_plus.dat");
+    d_hier_sc_data_ops->printData(yplus_sc_idx, y_plus);
+    y_plus.close();
+
+    const int yplus_cc_idx = var_db->mapVariableAndContextToIndex(d_yplus_cc_var, getCurrentContext());
+    const int U_tau_cc_idx = var_db->mapVariableAndContextToIndex(d_U_tau_cc_var, getCurrentContext());
+    static const bool synch_cf_interface = true;
+
+    // Interpolate the side-centered yplus to cell.
+    d_hier_math_ops->interp(
+        yplus_cc_idx, d_yplus_cc_var, yplus_sc_idx, yplus_sc_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
+
+    // Interpolate the side-centered U_tau to cell.
+    d_hier_math_ops->interp(
+        U_tau_cc_idx, d_U_tau_cc_var, U_tau_sc_idx, U_tau_sc_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
+
+    // Based on the yplus, set the wall boundary conditions for k and w variables.
+    postProcessTurbulentVariablesBasedonYplus();
+
     // Update the turbulent viscosity.
     calculateF2();
     calculateTurbulentViscosity();
@@ -1376,6 +1451,7 @@ TwoEquationTurbulenceHierarchyIntegrator::postprocessIntegrateHierarchy(const do
         level->deallocatePatchData(d_k_C_idx);
         level->deallocatePatchData(d_w_C_idx);
         level->deallocatePatchData(d_rho_vec_cc_idx);
+        level->deallocatePatchData(d_yplus_cc_idx);
     }
 
     // Execute any registered callbacks.
@@ -1817,6 +1893,19 @@ TwoEquationTurbulenceHierarchyIntegrator::resetHierarchyConfigurationSpecialized
     d_mu_t_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_mu_t_bdry_bc_fill_op->initializeOperatorState(mu_t_bc_component, d_hierarchy);
 
+    std::vector<RobinBcCoefStrategy<NDIM>*> rho_bc_coefs =
+        d_ins_hierarchy_integrator->getMassDensityBoundaryConditions();
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    InterpolationTransactionComponent rho_ghost_cc_interpolation(d_rho_cc_scratch_idx,
+                                                                 DATA_REFINE_TYPE,
+                                                                 USE_CF_INTERPOLATION,
+                                                                 DATA_COARSEN_TYPE,
+                                                                 BDRY_EXTRAP_TYPE,
+                                                                 CONSISTENT_TYPE_2_BDRY,
+                                                                 rho_bc_coefs[0]);
+    d_rho_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    d_rho_bdry_bc_fill_op->initializeOperatorState(rho_ghost_cc_interpolation, d_hierarchy);
+
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
 
     // Reset the solution and rhs vectors.
@@ -1915,7 +2004,7 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateTurbulentViscosity()
                          patch_box.lower(2),
                          patch_box.upper(2),
 #endif
-                         a1);
+                         A1);
         }
     }
 
@@ -1933,18 +2022,18 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateTurbulentKEProduction(const d
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
         d_p_scratch_idx = var_db->mapVariableAndContextToIndex(d_p_var, getScratchContext());
-        Pointer<SideVariable<NDIM, double> > u_var = d_ins_hierarchy_integrator->getVelocityVariable();
-        const int u_new_idx = var_db->mapVariableAndContextToIndex(u_var, d_ins_hierarchy_integrator->getNewContext());
-        const int u_scratch_idx =
-            var_db->mapVariableAndContextToIndex(u_var, d_ins_hierarchy_integrator->getScratchContext());
-        d_hier_sc_data_ops->copyData(u_scratch_idx, u_new_idx);
+        Pointer<SideVariable<NDIM, double> > U_var = d_ins_hierarchy_integrator->getVelocityVariable();
+        const int U_new_idx = var_db->mapVariableAndContextToIndex(U_var, d_ins_hierarchy_integrator->getNewContext());
+        const int U_scratch_idx =
+            var_db->mapVariableAndContextToIndex(U_var, d_ins_hierarchy_integrator->getScratchContext());
+        d_hier_sc_data_ops->copyData(U_scratch_idx, U_new_idx);
 
         // filling ghost cells for velocity
         std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs =
             d_ins_hierarchy_integrator->getVelocityBoundaryConditions();
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         InterpolationTransactionComponent U_ghost_cc_interpolation(
-            u_scratch_idx, "NONE", true, "CUBIC_COARSEN", "LINEAR", false, U_bc_coefs);
+            U_scratch_idx, "NONE", true, "CUBIC_COARSEN", "LINEAR", false, U_bc_coefs);
         HierarchyGhostCellInterpolation U_ghost_cell_fill_op;
         U_ghost_cell_fill_op.initializeOperatorState(U_ghost_cc_interpolation, d_hierarchy, coarsest_ln, finest_ln);
         U_ghost_cell_fill_op.fillData(data_time);
@@ -1957,7 +2046,7 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateTurbulentKEProduction(const d
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_scratch_idx);
+            Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(U_scratch_idx);
 
             const IntVector<NDIM>& u_ghost_cells = u_data->getGhostCellWidth();
             const Box<NDIM>& patch_box = patch->getBox();
@@ -2047,7 +2136,7 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateF2()
                        patch_box.lower(2),
                        patch_box.upper(2),
 #endif
-                       beta_star);
+                       BETA_STAR);
         }
     }
     return;
@@ -2078,6 +2167,7 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateBlendingFunction(const double
             Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
             const double* grid_lower = grid_geom->getXLower();
             const double* grid_upper = grid_geom->getXUpper();
+            const double* spatial_coord[2] = { grid_lower, grid_upper };
 
             Pointer<CellData<NDIM, double> > d_data = patch->getPatchData(d_distance_to_closest_surface_scratch_idx);
             double distance = 0.0;
@@ -2091,31 +2181,15 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateBlendingFunction(const double
                     cell_coord[d] = patch_X_lower[d] + patch_dx[d] * (ci(d) - patch_lower_index(d) + 0.5);
                 }
 
-                // This is set for only 2D.
-                std::vector<double> distance_to_surface(4, std::numeric_limits<int>::max());
+                // This is set for 3D also.
+                std::vector<double> distance_to_surface(2 * NDIM, std::numeric_limits<int>::max());
 
                 for (int i = 0; i < d_wall_location_index.size(); i++)
                 {
-                    if (d_wall_location_index[i] == 0)
-                    {
-                        distance = std::abs(grid_lower[0] - cell_coord[0]);
-                        distance_to_surface[i] = distance;
-                    }
-                    else if (d_wall_location_index[i] == 1)
-                    {
-                        distance = std::abs(grid_upper[0] - cell_coord[0]);
-                        distance_to_surface[i] = distance;
-                    }
-                    else if (d_wall_location_index[i] == 2)
-                    {
-                        distance = std::abs(grid_lower[1] - cell_coord[1]);
-                        distance_to_surface[i] = distance;
-                    }
-                    else if (d_wall_location_index[i] == 3)
-                    {
-                        distance = std::abs(grid_upper[1] - cell_coord[1]);
-                        distance_to_surface[i] = distance;
-                    }
+                    // since we need both modulo and division here, using div() function.
+                    std::div_t coord = std::div(d_wall_location_index[i], 2);
+                    distance = std::abs(spatial_coord[coord.rem][coord.quot] - cell_coord[coord.quot]);
+                    distance_to_surface[i] = distance;
                 }
                 (*d_data)(ci) = *min_element(distance_to_surface.begin(), distance_to_surface.end());
             }
@@ -2174,8 +2248,8 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateBlendingFunction(const double
                              mu_data->getGhostCellWidth().max(),
                              d_data->getPointer(),
                              d_data->getGhostCellWidth().max(),
-                             beta_star,
-                             sigma_w2,
+                             BETA_STAR,
+                             SIGMA_W2,
                              patch_box.lower(0),
                              patch_box.upper(0),
                              patch_box.lower(1),
@@ -2191,9 +2265,9 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateBlendingFunction(const double
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
-                d_sigma_k = (*F1_data)(ci)*sigma_k1 + (1.0 - (*F1_data)(ci)) * sigma_k2;
-                d_sigma_w = (*F1_data)(ci)*sigma_w1 + (1.0 - (*F1_data)(ci)) * sigma_w2;
-                d_beta = (*F1_data)(ci)*beta_1 + (1.0 - (*F1_data)(ci)) * beta_2;
+                d_sigma_k = (*F1_data)(ci)*SIGMA_K1 + (1.0 - (*F1_data)(ci)) * SIGMA_K2;
+                d_sigma_w = (*F1_data)(ci)*SIGMA_W1 + (1.0 - (*F1_data)(ci)) * SIGMA_W2;
+                d_beta = (*F1_data)(ci)*BETA_1 + (1.0 - (*F1_data)(ci)) * BETA_2;
             }
         }
     }
@@ -2250,13 +2324,285 @@ TwoEquationTurbulenceHierarchyIntegrator::interpolateSCMassDensityToCC(Pointer<V
 #if (NDIM == 2)
                 (*rho_cc_data)(ci) = 0.5 * sum;
 #elif (NDIM == 3)
-                (*rho_cc_data)(ci) = (1.0 / 3.0) * sum;
+                (*rho_cc_data)(ci) = 1.0 / 3.0 * sum;
 #endif
             }
         }
     }
     return;
 } // interpolateSCMassDensityToCC
+
+void
+TwoEquationTurbulenceHierarchyIntegrator::applyWallFunction(const double data_time)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    FrictionVelocityFunctor friction_velocity;
+    friction_velocity.d_plus = 11.0;
+    friction_velocity.kappa = 0.4187;
+    friction_velocity.E = 9.793;
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ln++)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        Pointer<SideVariable<NDIM, double> > U_var = d_ins_hierarchy_integrator->getVelocityVariable();
+        const int U_new_idx = var_db->mapVariableAndContextToIndex(U_var, d_ins_hierarchy_integrator->getNewContext());
+        const int U_scratch_idx =
+            var_db->mapVariableAndContextToIndex(U_var, d_ins_hierarchy_integrator->getScratchContext());
+        d_hier_sc_data_ops->copyData(U_scratch_idx, U_new_idx);
+
+        Pointer<SideVariable<NDIM, double> > U_tau_sc_var = d_ins_hierarchy_integrator->getUtauVariable();
+        const int U_tau_sc_idx =
+            var_db->mapVariableAndContextToIndex(U_tau_sc_var, d_ins_hierarchy_integrator->getScratchContext());
+        Pointer<SideVariable<NDIM, double> > yplus_sc_var = d_ins_hierarchy_integrator->getYplusVariable();
+        const int yplus_sc_idx =
+            var_db->mapVariableAndContextToIndex(yplus_sc_var, d_ins_hierarchy_integrator->getScratchContext());
+
+        Pointer<CellVariable<NDIM, double> > mu_var = d_ins_hierarchy_integrator->getViscosityVariable();
+        const int mu_new_idx =
+            var_db->mapVariableAndContextToIndex(mu_var, d_ins_hierarchy_integrator->getNewContext());
+        const int mu_scratch_idx =
+            var_db->mapVariableAndContextToIndex(mu_var, d_ins_hierarchy_integrator->getScratchContext());
+        d_hier_cc_data_ops->copyData(mu_scratch_idx, mu_new_idx);
+        d_mu_bdry_bc_fill_op->fillData(data_time);
+
+        const int rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_cc_var, getNewContext());
+        const int rho_scratch_idx = var_db->mapVariableAndContextToIndex(d_rho_cc_var, getScratchContext());
+        d_hier_cc_data_ops->copyData(rho_scratch_idx, rho_new_idx);
+        d_rho_bdry_bc_fill_op->fillData(data_time);
+
+        // k and w.
+        const int k_new_idx = var_db->mapVariableAndContextToIndex(d_k_var, getNewContext());
+        const int w_new_idx = var_db->mapVariableAndContextToIndex(d_w_var, getNewContext());
+
+        // filling ghost cells for velocity
+        /*std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs =
+            d_ins_hierarchy_integrator->getVelocityBoundaryConditions();
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+        InterpolationTransactionComponent U_ghost_cc_interpolation(
+            U_scratch_idx, "NONE", true, "CUBIC_COARSEN", "LINEAR", false, U_bc_coefs);
+        HierarchyGhostCellInterpolation U_ghost_cell_fill_op;
+        U_ghost_cell_fill_op.initializeOperatorState(U_ghost_cc_interpolation, d_hierarchy, coarsest_ln, finest_ln);
+        U_ghost_cell_fill_op.fillData(data_time);*/
+
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_dx = patch_geom->getDx();
+            Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+            const double* grid_lower = grid_geom->getXLower();
+            const double* grid_upper = grid_geom->getXUpper();
+            Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(U_new_idx);
+            Pointer<SideData<NDIM, double> > U_tau_data = patch->getPatchData(U_tau_sc_idx);
+            Pointer<SideData<NDIM, double> > yplus_sc_data = patch->getPatchData(yplus_sc_idx);
+
+            Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_scratch_idx);
+            Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(rho_scratch_idx);
+
+            Pointer<CellData<NDIM, double> > k_data = patch->getPatchData(k_new_idx);
+            Pointer<CellData<NDIM, double> > w_data = patch->getPatchData(w_new_idx);
+
+            IBTK::VectorNd number_of_indices(NDIM);
+            for (int d = 0; d < NDIM; d++)
+            {
+                number_of_indices(d) = (grid_upper[d] - grid_lower[d]) / patch_dx[d];
+            }
+            friction_velocity.delta = d_distance_to_virtual_point * patch_dx[1];
+
+            // Set up Newton itertion
+            const double guess = FrictionVelocityFunctor::s_newton_guess;
+            const double min = FrictionVelocityFunctor::s_newton_min;
+            const double max = FrictionVelocityFunctor::s_newton_max;
+
+            // Accuracy doubles at each step, so stop when just over half of the
+            // digits are correct, and rely on that step to polish off the remainder:
+            auto get_digits = static_cast<int>(std::numeric_limits<double>::digits * 0.6);
+            const boost::uintmax_t maxit = 50;
+            boost::uintmax_t it = maxit;
+
+            if (!patch_geom->getTouchesRegularBoundary()) continue;
+
+            for (int i = 0; i < d_wall_location_index.size(); i++)
+            {
+                const unsigned int axis = d_wall_location_index[i] / 2;
+                const unsigned int side = d_wall_location_index[i] % 2;
+                const bool is_lower = side == 0;
+                if (patch_geom->getTouchesRegularBoundary(axis, side))
+                {
+                    Box<NDIM> bdry_box = patch_box;
+                    if (is_lower)
+                    {
+                        bdry_box.upper(axis) = patch_box.lower(axis) + d_distance_to_virtual_point;
+                    }
+                    else
+                    {
+                        bdry_box.lower(axis) = patch_box.upper(axis) - d_distance_to_virtual_point;
+                    }
+
+                    Box<NDIM> trim_box = patch_box * bdry_box;
+                    for (unsigned int d = 0; d < NDIM; d++)
+                    {
+                        for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(trim_box, d)); b; b++)
+                        {
+                            SideIndex<NDIM> si(b(), d, SideIndex<NDIM>::Lower);
+                            IntVector<NDIM> index_1(0, 1);
+                            IntVector<NDIM> index_2(0, 2);
+                            SideIndex<NDIM> si_1, si_2;
+
+                            // bottom boundary.
+                            if (axis == 1 && side == 0 && si(1) == 0 && d == 0)
+                            {
+                                si_1 = si + index_1;
+                                si_2 = si + index_2;
+
+                                const double mu = 0.5 * ((*mu_data)(si.toCell(0)) + (*mu_data)(si.toCell(1)));
+                                const double rho = 0.5 * ((*rho_data)(si.toCell(0)) + (*rho_data)(si.toCell(1)));
+                                friction_velocity.nu = mu / rho;
+                                friction_velocity.U_s = ((*U_data)(si_1) + (*U_data)(si_2)) / 2.0;
+                                (*U_tau_data)(si) = boost::math::tools::newton_raphson_iterate(
+                                    friction_velocity, guess, min, max, get_digits, it);
+                                (*yplus_sc_data)(si) = rho * (*U_tau_data)(si)*patch_dx[axis] / 2.0 * mu;
+                            }
+                            // top boundary
+                            else if (axis == 1 && side == 1 && si(1) == number_of_indices(axis) - 1 && d == 0)
+                            {
+                                si_1 = si - index_1;
+                                si_2 = si - index_2;
+
+                                const double mu = 0.5 * ((*mu_data)(si.toCell(0)) + (*mu_data)(si.toCell(1)));
+                                const double rho = 0.5 * ((*rho_data)(si.toCell(0)) + (*rho_data)(si.toCell(1)));
+
+                                friction_velocity.nu = mu / rho;
+                                friction_velocity.U_s = ((*U_data)(si_1) + (*U_data)(si_2)) / 2.0;
+                                (*U_tau_data)(si) = boost::math::tools::newton_raphson_iterate(
+                                    friction_velocity, guess, min, max, get_digits, it);
+                                (*yplus_sc_data)(si) = rho * (*U_tau_data)(si)*patch_dx[axis] / 2.0 * mu;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return;
+} // applyWallFunction
+
+void
+TwoEquationTurbulenceHierarchyIntegrator::postProcessTurbulentVariablesBasedonYplus()
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ln++)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int yplus_cc_idx = var_db->mapVariableAndContextToIndex(d_yplus_cc_var, getCurrentContext());
+        const int U_tau_cc_idx = var_db->mapVariableAndContextToIndex(d_U_tau_cc_var, getCurrentContext());
+        ;
+        const int k_new_idx = var_db->mapVariableAndContextToIndex(d_k_var, getNewContext());
+        const int w_new_idx = var_db->mapVariableAndContextToIndex(d_w_var, getNewContext());
+        const int distance_to_closest_surface_idx =
+            var_db->mapVariableAndContextToIndex(d_distance_to_closest_surface_var, getScratchContext());
+
+        Pointer<CellVariable<NDIM, double> > mu_var = d_ins_hierarchy_integrator->getViscosityVariable();
+        const int mu_new_idx =
+            var_db->mapVariableAndContextToIndex(mu_var, d_ins_hierarchy_integrator->getNewContext());
+        const int rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_cc_var, getNewContext());
+
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_dx = patch_geom->getDx();
+            Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+            const double* grid_lower = grid_geom->getXLower();
+            const double* grid_upper = grid_geom->getXUpper();
+
+            Pointer<CellData<NDIM, double> > yplus_data = patch->getPatchData(yplus_cc_idx);
+            Pointer<CellData<NDIM, double> > k_data = patch->getPatchData(k_new_idx);
+            Pointer<CellData<NDIM, double> > w_data = patch->getPatchData(w_new_idx);
+            Pointer<CellData<NDIM, double> > distance_to_closest_surface_data =
+                patch->getPatchData(distance_to_closest_surface_idx);
+
+            Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_new_idx);
+            Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(rho_new_idx);
+
+            Pointer<SideData<NDIM, double> > U_tau_data = patch->getPatchData(U_tau_cc_idx);
+
+            IBTK::VectorNd number_of_indices(NDIM);
+            for (int d = 0; d < NDIM; d++)
+            {
+                number_of_indices(d) = (grid_upper[d] - grid_lower[d]) / patch_dx[d];
+            }
+            if (!patch_geom->getTouchesRegularBoundary()) continue;
+
+            for (int i = 0; i < d_wall_location_index.size(); i++)
+            {
+                const unsigned int axis = d_wall_location_index[i] / 2;
+                const unsigned int side = d_wall_location_index[i] % 2;
+                const bool is_lower = side == 0;
+                if (patch_geom->getTouchesRegularBoundary(axis, side))
+                {
+                    Box<NDIM> bdry_box = patch_box;
+                    if (is_lower)
+                    {
+                        bdry_box.upper(axis) = patch_box.lower(axis) + d_distance_to_virtual_point;
+                    }
+                    else
+                    {
+                        bdry_box.lower(axis) = patch_box.upper(axis) - d_distance_to_virtual_point;
+                    }
+
+                    Box<NDIM> trim_box = patch_box * bdry_box;
+
+                    for (Box<NDIM>::Iterator b(trim_box); b; b++)
+                    {
+                        CellIndex<NDIM> ci(b());
+                        IntVector<NDIM> index_1(0, 1);
+                        CellIndex<NDIM> ci_1;
+                        if (ci(1) == 0 || ci(1) == number_of_indices(1) - 1)
+                        {
+                            ci_1 = (ci(1) == 0) ? ci + index_1 : ci - index_1;
+                            double sum = 0.0, sum_1 = 0.0;
+                            for (unsigned int d = 0; d < NDIM; d++)
+                            {
+                                sum += (*yplus_data)(ci, d);
+                                sum_1 += (*yplus_data)(ci, d);
+                            }
+                            double y_plus = 0.5 * sum;
+                            double U_tau = 0.5 * sum_1;
+                            if (y_plus <= 11.0)
+                            {
+                                // lineear interpolation.
+                                (*k_data)(ci) = (*distance_to_closest_surface_data)(ci) * (*k_data)(ci_1) /
+                                                (*distance_to_closest_surface_data)(ci_1);
+
+                                (*w_data)(ci) = 6.0 * (*mu_data)(ci) / (*rho_data)(ci)*BETA_1 *
+                                                (*distance_to_closest_surface_data)(ci) *
+                                                (*distance_to_closest_surface_data)(ci);
+                            }
+                            else
+                            {
+                                (*k_data)(ci) = U_tau * U_tau / sqrt(BETA_STAR);
+
+                                (*w_data)(ci) =
+                                    U_tau / sqrt(BETA_STAR * KAPPA * (*distance_to_closest_surface_data)(ci));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return;
+} // postProcessTurbulentVariablesBasedonYplus
 
 void
 TwoEquationTurbulenceHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_from_restart)

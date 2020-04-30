@@ -41,6 +41,7 @@
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
+#include "CartesianPatchGeometry.h"
 #include "CellVariable.h"
 #include "ComponentSelector.h"
 #include "EdgeVariable.h"
@@ -108,6 +109,12 @@ static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
+
+// Constants appear in wall function.
+static const double KAPPA = 0.4187;
+static const double E = 9.793;
+static const double DPLUS = 9.793;
+
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -484,6 +491,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
 
     if (d_use_turb_model)
     {
+        d_hier_cc_data_ops->copyData(d_mu_new_idx, d_mu_current_idx);
         d_hier_cc_data_ops->copyData(d_mu_t_new_idx, d_mu_t_current_idx);
     }
 
@@ -1593,6 +1601,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
     d_hier_sc_data_ops->copyData(d_U_new_idx, sol_vec->getComponentDescriptorIndex(0));
     d_hier_cc_data_ops->copyData(d_P_new_idx, sol_vec->getComponentDescriptorIndex(1));
 
+    // compute the velocity based on wall law for the wall boundary cells.
+    if (d_use_turb_model) postProcessVelocityBasedonYplus();
+
     // Scale pressure solution if necessary
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -1630,6 +1641,89 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
     }
     return;
 } // resetSolverVectors
+
+void
+INSVCStaggeredConservativeHierarchyIntegrator::postProcessVelocityBasedonYplus()
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    const double c = log(E / KAPPA) / KAPPA;
+    const double b_const = 0.5 * (DPLUS * KAPPA / c + 1.0 / DPLUS);
+    for (int ln = coarsest_ln; ln <= finest_ln; ln++)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int yplus_sc_idx = var_db->mapVariableAndContextToIndex(d_yplus_var, getScratchContext());
+        const int U_tau_sc_idx = var_db->mapVariableAndContextToIndex(d_U_tau_var, getScratchContext());
+        const int U_new_idx = var_db->mapVariableAndContextToIndex(d_U_var, getNewContext());
+
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_dx = patch_geom->getDx();
+            Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+            const double* grid_lower = grid_geom->getXLower();
+            const double* grid_upper = grid_geom->getXUpper();
+
+            Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(U_new_idx);
+            Pointer<SideData<NDIM, double> > U_tau_data = patch->getPatchData(U_tau_sc_idx);
+            Pointer<SideData<NDIM, double> > yplus_data = patch->getPatchData(yplus_sc_idx);
+
+            IBTK::VectorNd number_of_indices(NDIM);
+            for (int d = 0; d < NDIM; d++)
+            {
+                number_of_indices(d) = (grid_upper[d] - grid_lower[d]) / patch_dx[d];
+            }
+
+            const double distance_to_virtual_point = 2.0; // 2*dy.
+            if (!patch_geom->getTouchesRegularBoundary()) continue;
+
+            for (int i = 0; i < d_wall_location_index.size(); i++)
+            {
+                const unsigned int axis = d_wall_location_index[i] / 2;
+                const unsigned int side = d_wall_location_index[i] % 2;
+                const bool is_lower = side == 0;
+                if (patch_geom->getTouchesRegularBoundary(axis, side))
+                {
+                    Box<NDIM> bdry_box = patch_box;
+                    if (is_lower)
+                    {
+                        bdry_box.upper(axis) = patch_box.lower(axis) + distance_to_virtual_point;
+                    }
+                    else
+                    {
+                        bdry_box.lower(axis) = patch_box.upper(axis) - distance_to_virtual_point;
+                    }
+
+                    Box<NDIM> trim_box = patch_box * bdry_box;
+                    for (unsigned int d = 0; d < NDIM; d++)
+                    {
+                        for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(trim_box, d)); b; b++)
+                        {
+                            SideIndex<NDIM> si(b(), d, SideIndex<NDIM>::Lower);
+                            const double U_tau = (*U_tau_data)(si);
+                            const double yplus = (*yplus_data)(si);
+                            // bottom boundary.
+                            if ((axis == 1 && side == 0 && si(1) == 0 && d == 0) ||
+                                (axis == 1 && side == 1 && si(1) == number_of_indices(axis) - 1 && d == 0))
+                            {
+                                (*U_data)(si) =
+                                    U_tau * ((log(1.0 + KAPPA * yplus) / KAPPA) +
+                                             c * (1.0 - exp(-yplus / DPLUS) - yplus * exp(-b_const * yplus) / DPLUS));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return;
+} // postProcessVelocityBasedonYplus
+
 //////////////////////////////////////////////////////////////////////////////
 
 } // namespace IBAMR

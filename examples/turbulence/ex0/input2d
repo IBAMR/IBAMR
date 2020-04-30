@@ -5,6 +5,7 @@ LENGTH = 20.0
 RHO = 1.0
 MU  = 0.0017
 WALL_LOCATION_INDEX = 2, 3
+DISTANCE_TO_VIRTUAL_POINT = 2.0
 
 // grid spacing parameters
 L          = 1.0
@@ -12,7 +13,7 @@ MAX_LEVELS = 1       // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 REF_RATIO_FINEST = 2  // refinement ratio for the finest level.
 
-N = 400                                 // coarsest grid spacing
+N = 200                                 // coarsest grid spacing
 H_COARSEST = N                          // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 HFINEST = LENGTH/NFINEST
@@ -249,7 +250,8 @@ INSVCStaggeredConservativeHierarchyIntegrator {
    max_integrator_steps       = MAX_INTEGRATOR_STEPS
    explicitly_remove_nullspace= EXPLICITLY_REMOVE_NULLSPACE
    num_cycles                 = NUM_INS_CYCLES
-   use_turbulence_model           = USE_TURBULENCE_MODEL
+   use_turbulence_model       = USE_TURBULENCE_MODEL
+   wall_location_index        = 2,3
 
    // Solver parameters
       velocity_solver_type = "VC_VELOCITY_PETSC_KRYLOV_SOLVER"
@@ -349,7 +351,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator {
    max_integrator_steps       = MAX_INTEGRATOR_STEPS
    explicitly_remove_nullspace= EXPLICITLY_REMOVE_NULLSPACE
    num_cycles                 = NUM_INS_CYCLES
-   use_turbulence_model           = USE_TURBULENCE_MODEL
+   use_turbulence_model       = USE_TURBULENCE_MODEL
+   wall_location_index        = 2,3
 
    // Solver parameters
    velocity_solver_type = "VC_VELOCITY_PETSC_KRYLOV_SOLVER"
@@ -400,23 +403,24 @@ INSVCStaggeredNonConservativeHierarchyIntegrator {
 }
 
 TwoEquationTurbulenceHierarchyIntegrator {
-   start_time                    = START_TIME
-   end_time                      = END_TIME
-   grow_dt                       = GROW_DT
-   num_cycles                    = TURB_NUM_CYCLES
+   start_time                      = START_TIME
+   end_time                        = END_TIME
+   grow_dt                         = GROW_DT
+   num_cycles                      = TURB_NUM_CYCLES
    k_convective_time_stepping_type = TURB_CONVECTIVE_TS_TYPE
    k_convective_op_type            = TURB_CONVECTIVE_OP_TYPE
    k_convective_difference_form    = TURB_CONVECTIVE_FORM
    w_convective_time_stepping_type = TURB_CONVECTIVE_TS_TYPE
    w_convective_op_type            = TURB_CONVECTIVE_OP_TYPE
    w_convective_difference_form    = TURB_CONVECTIVE_FORM
-   cfl                           = CFL_MAX
-   dt_max                        = DT_MAX
-   tag_buffer                    = TAG_BUFFER
-   enable_logging                = ENABLE_LOGGING
-   wall_location_index           = 2,3
-   output_k                      = TRUE
-   output_w                      = TRUE
+   cfl                             = CFL_MAX
+   dt_max                          = DT_MAX
+   tag_buffer                      = TAG_BUFFER
+   enable_logging                  = ENABLE_LOGGING
+   wall_location_index             = 2,3
+   output_k                        = TRUE
+   output_w                        = TRUE
+   distance_to_virtual_point        = DISTANCE_TO_VIRTUAL_POINT
    
    // k_precond_type = "LEVEL_RELAXATION_FAC_PRECONDITIONER"
    // w_precond_type = "LEVEL_RELAXATION_FAC_PRECONDITIONER"
@@ -509,7 +513,7 @@ x_upper_index_3 = int(10*N - 1)
 y_upper_index_3 = int(N - 1)
 
 StandardTagAndInitialize {
-   tagging_method = "GRADIENT_DETECTOR"
+   tagging_method = "REFINE_BOXES"
    RefineBoxes {
       Level0{
         boxes_0 = [ ( x_lower_index_0 , y_lower_index_0 ) , ( x_upper_index_0 , y_upper_index_0 ) ]
