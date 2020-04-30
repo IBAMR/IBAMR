@@ -182,26 +182,6 @@ collect_unique_elems(std::vector<Elem*>& elems, const ContainerOfContainers& ele
     elems.assign(elem_set.begin(), elem_set.end());
     return;
 } // collect_unique_elems
-
-inline boundary_id_type
-get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
-{
-    boundary_id_type dirichlet_bdry_ids = 0;
-    for (const auto& bdry_id : bdry_ids)
-    {
-        if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID ||
-            bdry_id == FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID ||
-            bdry_id == FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID ||
-            bdry_id == FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID ||
-            bdry_id == FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID ||
-            bdry_id == FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID ||
-            bdry_id == FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID)
-        {
-            dirichlet_bdry_ids |= bdry_id;
-        }
-    }
-    return dirichlet_bdry_ids;
-} // get_dirichlet_bdry_ids
 } // namespace
 
 FEData::FEData(std::string object_name, const bool register_for_restart)

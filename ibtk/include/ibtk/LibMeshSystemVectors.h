@@ -88,6 +88,11 @@ public:
     LibMeshSystemVectors(const std::vector<libMesh::EquationSystems*>& equation_systems, std::string system_name);
 
     /*!
+     * Destructor. Made virtual to aid inheritance.
+     */
+    virtual ~LibMeshSystemVectors() = default;
+
+    /*!
      * Get a specific vector for a specific part. These vectors are managed by
      * libMesh::System objects.
      *
