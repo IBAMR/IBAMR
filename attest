@@ -452,6 +452,7 @@ def main():
     # 2. Run the tests!
     processors_in_use = 0
     n_tests = len(unstarted_tests)
+    n_executing_tests = 0
     n_passed_tests = 0
     n_finished_tests = 0
     failed_test_outputs = list()
@@ -470,6 +471,7 @@ def main():
         with result_update_lock:
             nonlocal n_passed_tests
             nonlocal processors_in_use
+            nonlocal n_executing_tests
             nonlocal failed_test_outputs
             nonlocal n_finished_tests
             test_output = future.result()
@@ -483,6 +485,7 @@ def main():
                 failed_test_outputs.append(test_output)
             processors_in_use -= test_output.n_mpi_processes()
             n_finished_tests += 1
+            n_executing_tests -= 1
 
             worker_available.set()
 
@@ -507,12 +510,15 @@ def main():
                     future = executor.submit(test.run)
                     future.add_done_callback(deal_with_result)
                     processors_in_use += test.n_mpi_processes()
+                    n_executing_tests += 1
                 index -= 1
 
-            # wait until at least one worker is available to try and add more
-            # tests:
+            # Set 'no workers available' if either:
+            # 1. we have maxed out the number of processors
+            # 2. we can only start one test (e.g., we have 6 processors and only
+            #    tests that require 4 processors remaining)
             with result_update_lock:
-                if n_processors <= processors_in_use:
+                if n_processors <= processors_in_use or n_executing_tests == 1:
                     worker_available.clear()
 
             worker_available.wait()
