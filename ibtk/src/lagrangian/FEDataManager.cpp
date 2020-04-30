@@ -2617,14 +2617,9 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
         // Determine the number of element quadrature points associated with
         // each Cartesian grid cell.
         boost::multi_array<double, 2> X_node;
-        Point X_qp;
         int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
-            const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
-            const size_t num_active_patch_elems = patch_elems.size();
-            if (!num_active_patch_elems) continue;
-
             const Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
@@ -2633,32 +2628,64 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
 
             Pointer<CellData<NDIM, double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
 
-            for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+            // nodal case:
+            if (d_default_interp_spec.use_nodal_quadrature || d_default_spread_spec.use_nodal_quadrature)
             {
-                Elem* const elem = patch_elems[e_idx];
-                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
-                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+                // The relevant collection of nodes.
+                const std::vector<Node*>& patch_nodes = d_active_patch_node_map[local_patch_num];
+                const size_t num_active_patch_nodes = patch_nodes.size();
 
-                const quad_key_type key = getQuadratureKey(d_default_interp_spec.quad_type,
-                                                           d_default_interp_spec.quad_order,
-                                                           d_default_interp_spec.use_adaptive_quadrature,
-                                                           d_default_interp_spec.point_density,
-                                                           elem,
-                                                           X_node,
-                                                           patch_dx_min);
-                const FEBase& X_fe = X_fe_cache(key, elem);
-                const QBase& qrule = d_fe_data->d_quadrature_cache[key];
-                const std::vector<std::vector<double> >& X_phi = X_fe.get_phi();
-                TBOX_ASSERT(qrule.n_points() == X_phi[0].size());
-
-                for (unsigned int qp = 0; qp < qrule.n_points(); ++qp)
+                std::vector<dof_id_type> X_idxs;
+                IBTK::Point X_qp;
+                for (unsigned int k = 0; k < num_active_patch_nodes; ++k)
                 {
-                    interpolate(&X_qp[0], qp, X_node, X_phi);
+                    const Node* const n = patch_nodes[k];
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        IBTK::get_nodal_dof_indices(X_dof_map, n, d, X_idxs);
+                        X_qp[d] = X_local_soln[X_petsc_vec->map_global_to_local_index(X_idxs[0])];
+                    }
                     const hier::Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
                     if (patch_box.contains(i))
                     {
                         (*qp_count_data)(i) += 1.0;
                         ++n_local_q_points;
+                    }
+                }
+            }
+            // non-nodal case:
+            else if (!d_default_interp_spec.use_nodal_quadrature || !d_default_spread_spec.use_nodal_quadrature)
+            {
+                const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
+                const size_t num_active_patch_elems = patch_elems.size();
+                for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+                {
+                    Elem* const elem = patch_elems[e_idx];
+                    const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
+                    get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+
+                    const quad_key_type key = getQuadratureKey(d_default_interp_spec.quad_type,
+                                                               d_default_interp_spec.quad_order,
+                                                               d_default_interp_spec.use_adaptive_quadrature,
+                                                               d_default_interp_spec.point_density,
+                                                               elem,
+                                                               X_node,
+                                                               patch_dx_min);
+                    const FEBase& X_fe = X_fe_cache(key, elem);
+                    const QBase& qrule = d_fe_data->d_quadrature_cache[key];
+                    const std::vector<std::vector<double> >& X_phi = X_fe.get_phi();
+                    TBOX_ASSERT(qrule.n_points() == X_phi[0].size());
+
+                    Point X_qp;
+                    for (unsigned int qp = 0; qp < qrule.n_points(); ++qp)
+                    {
+                        interpolate(&X_qp[0], qp, X_node, X_phi);
+                        const hier::Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
+                        if (patch_box.contains(i))
+                        {
+                            (*qp_count_data)(i) += 1.0;
+                            ++n_local_q_points;
+                        }
                     }
                 }
             }

@@ -13,6 +13,11 @@ IBHierarchyIntegrator::advanceHierarchy(): time interval = [0,0.00130208], dt = 
 IBHierarchyIntegrator::advanceHierarchy(): regridding prior to timestep 0
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
+FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
+quadrature points on processor 0 = 1082
+quadrature points on processor 1 = 887
+quadrature points on processor 2 = 939
+quadrature points on processor 3 = 1031
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
@@ -21,11 +26,14 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing in
 IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
 IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
+FEProjector::buildL2ProjectionSolver(): building L2 projection solver for system: IB force system
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
+FEProjector::buildDiagonalL2MassMatrix(): building diagonal L2 mass matrix for system: IB force system
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 6.84272e-13
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.11168e-13
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+FEProjector::buildDiagonalL2MassMatrix(): building diagonal L2 mass matrix for system: IB velocity system
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0554202
