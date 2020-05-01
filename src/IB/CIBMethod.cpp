@@ -593,7 +593,7 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
         for (const auto& node_idx : local_nodes)
         {
             const int local_idx = node_idx->getLocalPETScIndex();
-            const Vector& displacement_0 = node_idx->getInitialPeriodicDisplacement();
+            const IBTK::Vector& displacement_0 = node_idx->getInitialPeriodicDisplacement();
             double* const X0_unshifted = &X0_unshifted_data_array[local_idx][0];
             const double* const X0 = &X0_data_array[local_idx][0];
 
