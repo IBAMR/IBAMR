@@ -313,6 +313,16 @@ public:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getCellCenteredMassDensityVariable();
 
+    /*!
+     *  Get the cell-centered friction velocity \f$u_tau\f$.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getCellCenteredUtauVariable();
+
+    /*!
+     *  Get the cell-centered non-dimesional wall distance \f$y^+\f$.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getCellCenteredYplusVariable();
+
 private:
     /*!
      * To grant a access to the blending and production variables scratch index to the
@@ -353,6 +363,16 @@ private:
      * sublayer boundary conditions. Otherwise, use inertial sublayer boundary conditions.
      */
     void postProcessTurbulentVariablesBasedonYplus();
+
+    /**
+     * function to write u_tau and yplus
+     */
+    void compute_Utau_and_yplus(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                                const int U_tau_idx,
+                                const int yplus_idx,
+                                SAMRAI::tbox::Array<int> wall_location_index,
+                                const double data_time,
+                                const std::string& data_dump_dirname);
 
     /*!
      * Read input values from a given database.

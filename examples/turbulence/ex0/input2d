@@ -13,7 +13,7 @@ MAX_LEVELS = 1       // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 REF_RATIO_FINEST = 2  // refinement ratio for the finest level.
 
-N = 200                                 // coarsest grid spacing
+N = 25                                 // coarsest grid spacing
 H_COARSEST = N                          // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
 HFINEST = LENGTH/NFINEST
@@ -171,7 +171,7 @@ WBcCoefs {
 SOLVER_TYPE          = "STAGGERED"
 DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0     // initial simulation time
-END_TIME             =   10000.0    // final simulation time
+END_TIME             =   0.001    // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
 REGRID_INTERVAL      =   50000000
@@ -184,7 +184,7 @@ NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "CUI"
 NORMALIZE_PRESSURE   = FALSE
 VORTICITY_TAGGING    = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
-DT_MAX               = 0.005                      // /(REF_RATIO^(MAX_LEVELS - 1))
+DT_MAX               = 0.0001                      // /(REF_RATIO^(MAX_LEVELS - 1))
 OUTPUT_U             = TRUE
 OUTPUT_P             = TRUE
 OUTPUT_F             = TRUE
@@ -441,7 +441,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 100
+   viz_dump_interval           = 1000
    viz_dump_dirname            = "turbulent_channel_flow"
    visit_number_procs_per_file = 1
 
@@ -450,7 +450,7 @@ Main {
    restart_dump_dirname        = "restart_INS2d"
    
 // post-processing data output parameters
-    data_dump_interval         = 1
+    data_dump_interval         = 10
     data_dump_dirname          = "velocity_profile"
 
 // timer dump parameters
