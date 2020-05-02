@@ -1622,6 +1622,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
             TBOX_ASSERT(X_node.size() <= NDIM * num_active_patch_nodes);
             TBOX_ASSERT(F_node_idxs.size() <= n_vars * num_active_patch_nodes);
 
+            if (F_node.empty()) continue;
+
             // Interpolate values from the Cartesian grid patch to the nodes.
             //
             // NOTE: The only nodes that are treated here are the nodes that are
@@ -1643,18 +1645,13 @@ FEDataManager::interpWeighted(const int f_data_idx,
                     F_node, n_vars, X_node, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
             }
 
-            // Apply constraints.
-            DenseVector<double> F_node_vec(F_node.size());
-            std::copy(F_node.begin(), F_node.end(), &F_node_vec(0));
-            F_dof_map.constrain_element_vector(F_node_vec, F_node_idxs);
-
             // Scale by the diagonal mass matrix.
             std::vector<dof_id_type> F_local_idxs(F_node_idxs.size());
             for (unsigned int i = 0; i < F_node_idxs.size(); ++i)
             {
                 F_local_idxs[i] = F_petsc_vec->map_global_to_local_index(F_node_idxs[i]);
                 TBOX_ASSERT(F_local_idxs[i] == dX_vec->map_global_to_local_index(F_node_idxs[i]));
-                F_node_vec(i) *= dX_local_soln[F_local_idxs[i]];
+                F_node[i] *= dX_local_soln[F_local_idxs[i]];
             }
 
             // Insert the values into the global array.
@@ -1662,12 +1659,12 @@ FEDataManager::interpWeighted(const int f_data_idx,
             {
                 for (unsigned int i = 0; i < F_node_idxs.size(); ++i)
                 {
-                    F_local_soln[F_local_idxs[i]] += F_node_vec(i);
+                    F_local_soln[F_local_idxs[i]] += F_node[i];
                 }
             }
             else
             {
-                F_vec.add_vector(F_node_vec, F_node_idxs);
+                F_vec.add_vector(F_node, F_node_idxs);
             }
         }
 
