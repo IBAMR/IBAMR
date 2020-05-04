@@ -971,7 +971,8 @@ public:
      */
     static void zeroExteriorValues(const SAMRAI::geom::CartesianPatchGeometry<NDIM>& patch_geom,
                                    const std::vector<double>& X_qp,
-                                   std::vector<double>& F_qp);
+                                   std::vector<double>& F_qp,
+                                   int n_vars);
 
 protected:
     /*!

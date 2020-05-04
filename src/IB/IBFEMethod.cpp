@@ -418,6 +418,7 @@ IBFEMethod::registerStressNormalizationPart(unsigned int part)
 void
 IBFEMethod::registerLagBodySourceFunction(const LagBodySourceFcnData& data, const unsigned int part)
 {
+    TBOX_ASSERT(d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_meshes.size());
     if (d_lag_body_source_part[part]) return;
     d_has_lag_body_source_parts = true;
@@ -2287,7 +2288,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         const Box<NDIM> spread_box = patch->getBox();
         Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
 
-        FEDataManager::zeroExteriorValues(*patch_geom, x_bdry, T_bdry);
+        FEDataManager::zeroExteriorValues(*patch_geom, x_bdry, T_bdry, NDIM);
         LEInteractor::spread(f_data, T_bdry, NDIM, x_bdry, NDIM, patch, spread_box, spread_kernel_fcn);
     }
 
