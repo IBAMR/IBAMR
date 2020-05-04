@@ -401,7 +401,6 @@ void
 FEDataInterpolation::interpolate(const Elem* const elem)
 {
     TBOX_ASSERT(d_initialized);
-    TBOX_ASSERT(d_qrule);
     TBOX_ASSERT(elem == d_current_elem);
     interpolateCommon(d_system_var_data, d_system_grad_var_data, d_phi, d_dphi);
     return;
@@ -411,7 +410,6 @@ void
 FEDataInterpolation::interpolate(const Elem* const elem, const unsigned int side)
 {
     TBOX_ASSERT(d_initialized);
-    TBOX_ASSERT(d_qrule_face);
     TBOX_ASSERT(elem == d_current_elem);
     TBOX_ASSERT(side == d_current_side);
     interpolateCommon(d_system_var_data, d_system_grad_var_data, d_phi_face, d_dphi_face);
