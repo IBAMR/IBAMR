@@ -992,7 +992,7 @@ FEDataManager::spread(const int f_data_idx,
                 qp_offset += n_qp;
             }
 
-            zeroExteriorValues(*patch_geom, X_qp, F_JxW_qp);
+            zeroExteriorValues(*patch_geom, X_qp, F_JxW_qp, n_vars);
 
             // Spread values from the quadrature points to the Cartesian grid
             // patch.
@@ -2394,12 +2394,13 @@ FEDataManager::putToDatabase(Pointer<Database> db)
 void
 FEDataManager::zeroExteriorValues(const CartesianPatchGeometry<NDIM>& patch_geom,
                                   const std::vector<double>& X_qp,
-                                  std::vector<double>& F_qp)
+                                  std::vector<double>& F_qp,
+                                  const int n_vars)
 {
-    TBOX_ASSERT(X_qp.size() == F_qp.size());
     // Check that we actually have input in the packed format
     std::size_t n_qp = X_qp.size() / NDIM;
     TBOX_ASSERT(n_qp * NDIM == X_qp.size());
+    TBOX_ASSERT(F_qp.size() == n_vars * n_qp);
     libMesh::BoundingBox patch_box;
 
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -2434,7 +2435,7 @@ FEDataManager::zeroExteriorValues(const CartesianPatchGeometry<NDIM>& patch_geom
 
         if (!contains_point)
         {
-            std::fill(F_qp.begin() + i * NDIM, F_qp.begin() + (i + 1) * NDIM, 0.0);
+            std::fill(F_qp.begin() + i * n_vars, F_qp.begin() + (i + 1) * n_vars, 0.0);
         }
     }
 }

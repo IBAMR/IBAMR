@@ -127,6 +127,22 @@ PK1_dil_stress_function(TensorValue<double>& PP,
     PP = 2.0 * (-p0_s + beta_s * log(FF.det())) * tensor_inverse_transpose(FF, NDIM);
     return;
 } // PK1_dil_stress_function
+
+static double uniform_body_source_strength = 0.0;
+void
+lag_body_source_function(double& Q,
+                         const TensorValue<double>& /*FF*/,
+                         const libMesh::Point& /*X*/,
+                         const libMesh::Point& /*s*/,
+                         Elem* /*elem*/,
+                         const std::vector<const std::vector<double>*>& /*system_var_data*/,
+                         const std::vector<const std::vector<VectorValue<double> >*>& /*system_grad_var_data*/,
+                         double /*data_time*/,
+                         void* /*ctx*/)
+{
+    Q = uniform_body_source_strength;
+    return;
+} // lag_body_source_function
 } // namespace ModelData
 using namespace ModelData;
 
@@ -340,6 +356,11 @@ main(int argc, char** argv)
             ib_method_ops->registerStressNormalizationPart();
         }
         ib_method_ops->initializeFEEquationSystems();
+        if (input_db->isDouble("BODY_SOURCE_STRENGTH"))
+        {
+            uniform_body_source_strength = input_db->getDouble("BODY_SOURCE_STRENGTH");
+            ib_method_ops->registerLagBodySourceFunction(lag_body_source_function);
+        }
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Create Eulerian initial condition specification objects.

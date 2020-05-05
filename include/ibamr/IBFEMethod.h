@@ -16,6 +16,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/FEMechanicsBase.h"
 #include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBStrategy.h"
 #include "ibamr/ibamr_enums.h"
@@ -302,30 +303,25 @@ class IBFEDirectForcingKinematics;
  * <h2>Handling Restart Data</h2>
  * The caching of the IBFE restart data is not managed by SAMRAI's
  * SAMRAI::tbox::RestartManager. It is instead handled by
- * IBFEMethod::writeFEDataToRestartFile() given a restart_dump_dirname and
+ * FEMechanicsBase::writeFEDataToRestartFile() given a restart_dump_dirname and
  * time_step_number. Each instance of IBFEMethod is registered for restart by
  * default, but the this option can be turned off. During a restart, the data
  * is handled by the SAMRAI::tbox::RestartManager automatically to reinitiate
  * the IBFEMethod.
  */
-class IBFEMethod : public IBStrategy
+class IBFEMethod : public FEMechanicsBase, public IBStrategy
 {
 public:
-    static const std::string COORDS_SYSTEM_NAME;
-    static const std::string COORD_MAPPING_SYSTEM_NAME;
-    static const std::string FORCE_SYSTEM_NAME;
-    static const std::string PHI_SYSTEM_NAME;
     static const std::string SOURCE_SYSTEM_NAME;
-    static const std::string VELOCITY_SYSTEM_NAME;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > mask_var;
     int mask_current_idx, mask_new_idx, mask_scratch_idx;
 
     /*!
-     * \brief Constructor.
+     * \brief Constructor for a single-part model.
      */
     IBFEMethod(const std::string& object_name,
-               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+               const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
                libMesh::MeshBase* mesh,
                int max_level_number,
                bool register_for_restart = true,
@@ -333,10 +329,10 @@ public:
                unsigned int restart_restore_number = 0);
 
     /*!
-     * \brief Constructor.
+     * \brief Constructor for a multi-part model.
      */
     IBFEMethod(const std::string& object_name,
-               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+               const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
                const std::vector<libMesh::MeshBase*>& meshes,
                int max_level_number,
                bool register_for_restart = true,
@@ -344,9 +340,24 @@ public:
                unsigned int restart_restore_number = 0);
 
     /*!
-     * \brief Destructor.
+     * \brief Deleted default constructor.
      */
-    ~IBFEMethod();
+    IBFEMethod() = delete;
+
+    /*!
+     * \brief Deleted copy constructor.
+     */
+    IBFEMethod(const IBFEMethod& from) = delete;
+
+    /*!
+     * \brief Deleted assignment operator.
+     */
+    IBFEMethod& operator=(const IBFEMethod& that) = delete;
+
+    /*!
+     * \brief Defaulted destructor.
+     */
+    ~IBFEMethod() override = default;
 
     /*!
      * Return a pointer to the finite element data manager object for the
@@ -360,224 +371,6 @@ public:
     void registerStressNormalizationPart(unsigned int part = 0);
 
     /*!
-     * Typedef specifying interface for coordinate mapping function.
-     */
-    using CoordinateMappingFcnPtr = void (*)(libMesh::Point& x, const libMesh::Point& X, void* ctx);
-
-    /*!
-     * Struct encapsulating coordinate mapping function data.
-     */
-    struct CoordinateMappingFcnData
-    {
-        CoordinateMappingFcnData(CoordinateMappingFcnPtr fcn = nullptr, void* ctx = nullptr) : fcn(fcn), ctx(ctx)
-        {
-        }
-
-        CoordinateMappingFcnPtr fcn;
-        void* ctx;
-    };
-
-    /*!
-     * Register the (optional) function used to initialize the physical
-     * coordinates from the Lagrangian coordinates.
-     *
-     * \note If no function is provided, the initial physical coordinates are
-     * taken to be the same as the Lagrangian coordinate system, i.e., the
-     * initial coordinate mapping is assumed to be the identity mapping.
-     */
-    void registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data, unsigned int part = 0);
-
-    /*!
-     * Get the initial coordinate mapping function data.
-     */
-    CoordinateMappingFcnData getInitialCoordinateMappingFunction(unsigned int part = 0) const;
-
-    /*!
-     * Typedef specifying interface for initial velocity specification function.
-     */
-    using InitialVelocityFcnPtr = void (*)(libMesh::VectorValue<double>& U0, const libMesh::Point& X0, void* ctx);
-
-    /*!
-     * Struct encapsulating initial velocity specification function data.
-     */
-    struct InitialVelocityFcnData
-    {
-        InitialVelocityFcnData(InitialVelocityFcnPtr fcn = nullptr, void* ctx = nullptr) : fcn(fcn), ctx(ctx)
-        {
-        }
-
-        InitialVelocityFcnPtr fcn;
-        void* ctx;
-    };
-
-    /*!
-     * Register the (optional) function used to initialize the velocity of the
-     * solid mesh.
-     *
-     * \note If no function is provided, the initial velocity is taken to be
-     * zero.
-     */
-    void registerInitialVelocityFunction(const InitialVelocityFcnData& data, unsigned int part = 0);
-
-    /*!
-     * Get the initial velocity function data.
-     */
-    InitialVelocityFcnData getInitialVelocityFunction(unsigned int part = 0) const;
-
-    /*!
-     * Typedef specifying interface for PK1 stress tensor function.
-     */
-    using PK1StressFcnPtr = IBTK::TensorMeshFcnPtr;
-
-    /*!
-     * Struct encapsulating PK1 stress tensor function data.
-     */
-    struct PK1StressFcnData
-    {
-        PK1StressFcnData(PK1StressFcnPtr fcn = nullptr,
-                         const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                         void* const ctx = nullptr,
-                         const libMesh::QuadratureType& quad_type = libMesh::INVALID_Q_RULE,
-                         const libMesh::Order& quad_order = libMesh::INVALID_ORDER)
-            : fcn(fcn), system_data(system_data), ctx(ctx), quad_type(quad_type), quad_order(quad_order)
-        {
-        }
-
-        PK1StressFcnPtr fcn;
-        std::vector<IBTK::SystemData> system_data;
-        void* ctx;
-        libMesh::QuadratureType quad_type;
-        libMesh::Order quad_order;
-    };
-
-    /*!
-     * Register the (optional) function to compute the first Piola-Kirchhoff
-     * stress tensor, used to compute the forces on the Lagrangian finite
-     * element mesh.
-     *
-     * \note It is possible to register multiple PK1 stress functions with this
-     * class.  This is intended to be used to implement selective reduced
-     * integration.
-     */
-    void registerPK1StressFunction(const PK1StressFcnData& data, unsigned int part = 0);
-
-    /*!
-     * Get the PK1 stress function data.
-     */
-    std::vector<PK1StressFcnData> getPK1StressFunction(unsigned int part = 0) const;
-
-    /*!
-     * Typedef specifying interface for Lagrangian body force distribution
-     * function.
-     */
-    using LagBodyForceFcnPtr = IBTK::VectorMeshFcnPtr;
-
-    /*!
-     * Struct encapsulating Lagrangian body force distribution data.
-     */
-    struct LagBodyForceFcnData
-    {
-        LagBodyForceFcnData(LagBodyForceFcnPtr fcn = nullptr,
-                            const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                            void* const ctx = nullptr)
-            : fcn(fcn), system_data(system_data), ctx(ctx)
-        {
-        }
-
-        LagBodyForceFcnPtr fcn;
-        std::vector<IBTK::SystemData> system_data;
-        void* ctx;
-    };
-
-    /*!
-     * Register the (optional) function to compute body force distributions on
-     * the Lagrangian finite element mesh.
-     *
-     * \note It is \em NOT possible to register multiple body force functions
-     * with this class.
-     */
-    void registerLagBodyForceFunction(const LagBodyForceFcnData& data, unsigned int part = 0);
-
-    /*!
-     * Get the Lagrangian body force function data.
-     */
-    LagBodyForceFcnData getLagBodyForceFunction(unsigned int part = 0) const;
-
-    /*!
-     * Typedef specifying interface for Lagrangian pressure force distribution
-     * function.
-     */
-    using LagSurfacePressureFcnPtr = IBTK::ScalarSurfaceFcnPtr;
-
-    /*!
-     * Struct encapsulating Lagrangian surface pressure distribution data.
-     */
-    struct LagSurfacePressureFcnData
-    {
-        LagSurfacePressureFcnData(LagSurfacePressureFcnPtr fcn = nullptr,
-                                  const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                                  void* const ctx = nullptr)
-            : fcn(fcn), system_data(system_data), ctx(ctx)
-        {
-        }
-
-        LagSurfacePressureFcnPtr fcn;
-        std::vector<IBTK::SystemData> system_data;
-        void* ctx;
-    };
-
-    /*!
-     * Register the (optional) function to compute surface pressure
-     * distributions on the Lagrangian finite element mesh.
-     *
-     * \note It is \em NOT possible to register multiple pressure functions with
-     * this class.
-     */
-    void registerLagSurfacePressureFunction(const LagSurfacePressureFcnData& data, unsigned int part = 0);
-
-    /*!
-     * Get the Lagrangian surface pressure function data.
-     */
-    LagSurfacePressureFcnData getLagSurfacePressureFunction(unsigned int part = 0) const;
-
-    /*!
-     * Typedef specifying interface for Lagrangian surface force distribution
-     * function.
-     */
-    using LagSurfaceForceFcnPtr = IBTK::VectorSurfaceFcnPtr;
-
-    /*!
-     * Struct encapsulating Lagrangian surface force distribution data.
-     */
-    struct LagSurfaceForceFcnData
-    {
-        LagSurfaceForceFcnData(LagSurfaceForceFcnPtr fcn = nullptr,
-                               const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
-                               void* const ctx = nullptr)
-            : fcn(fcn), system_data(system_data), ctx(ctx)
-        {
-        }
-
-        LagSurfaceForceFcnPtr fcn;
-        std::vector<IBTK::SystemData> system_data;
-        void* ctx;
-    };
-
-    /*!
-     * Register the (optional) function to compute surface force distributions
-     * on the Lagrangian finite element mesh.
-     *
-     * \note It is \em NOT possible to register multiple surface force functions
-     * with this class.
-     */
-    void registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, unsigned int part = 0);
-
-    /*!
-     * Get the Lagrangian surface force function data.
-     */
-    LagSurfaceForceFcnData getLagSurfaceForceFunction(unsigned int part = 0) const;
-
-    /*!
      * Typedef specifying interface for Lagrangian mass source/sink distribution
      * function.
      */
@@ -589,9 +382,9 @@ public:
     struct LagBodySourceFcnData
     {
         LagBodySourceFcnData(LagBodySourceFcnPtr fcn = nullptr,
-                             const std::vector<IBTK::SystemData>& system_data = std::vector<IBTK::SystemData>(),
+                             std::vector<IBTK::SystemData> system_data = std::vector<IBTK::SystemData>(),
                              void* const ctx = nullptr)
-            : fcn(fcn), system_data(system_data), ctx(ctx)
+            : fcn(fcn), system_data(std::move(system_data)), ctx(ctx)
         {
         }
 
@@ -615,7 +408,7 @@ public:
      * Register the (optional) direct forcing kinematics object with the finite
      * element mesh.
      */
-    void registerDirectForcingKinematics(SAMRAI::tbox::Pointer<IBAMR::IBFEDirectForcingKinematics> data,
+    void registerDirectForcingKinematics(const SAMRAI::tbox::Pointer<IBAMR::IBFEDirectForcingKinematics>& data,
                                          unsigned int part = 0);
 
     /*!
@@ -766,24 +559,6 @@ public:
     void setSpreadSpec(const IBTK::FEDataManager::SpreadSpec& spread_spec, unsigned int part = 0);
 
     /*!
-     * Initialize the FE equation systems objects.  This method must be called
-     * prior to calling initializeFEData().
-     */
-    void initializeFEEquationSystems();
-
-    /*!
-     * Initialize FE data.  This method must be called prior to calling
-     * IBHierarchyIntegrator::initializePatchHierarchy().
-     */
-    void initializeFEData();
-
-    /*!
-     * Reinitialize FE data by calling `reinit` on each part's EquationSystem,
-     * reassembling the system matrices, and setting boundary conditions.
-     */
-    void reinitializeFEData();
-
-    /*!
      * \brief Register Eulerian variables with the parent IBHierarchyIntegrator.
      */
     void registerEulerianVariables() override;
@@ -823,7 +598,7 @@ public:
      * specified <code>workload_data_idx</code>.
      */
     void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                             const int workload_data_idx) override;
+                             int workload_data_idx) override;
 
     /*!
      * Begin redistributing Lagrangian data prior to regridding the patch
@@ -894,24 +669,6 @@ public:
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*!
-     * For technical reasons this class does not use SAMRAI's RestartManager, so
-     * restart files must be separately written for the IBFE objects. This function
-     * saves the solutions to the defined EquationSystems in an xdr file in
-     * restart_dump_dirname for each FE part. An example snippet is included below to show
-     * the distinct IBFE restart data saving step. The data will then be automatically
-     * read back into the system along with the RestartManager data during restart.
-     *
-     * @code
-     * if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
-     * {
-     *     RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
-     *     ib_method_ops->writeFEDataToRestartFile(restart_dump_dirname, iteration_num);
-     * }
-     * @endcode
-     */
-    void writeFEDataToRestartFile(const std::string& restart_dump_dirname, unsigned int time_step_number);
-
-    /*!
      * Return a pointer to the scratch hierarchy used by this object. See the
      * main documentation of this class for more information.
      */
@@ -919,23 +676,26 @@ public:
 
 protected:
     /*!
-     * \brief Compute the stress normalization field Phi.
+     * Do the actual work in initializeFEEquationSystems.
      */
-    void computeStressNormalization(libMesh::PetscVector<double>& Phi_vec,
+    virtual void doInitializeFEEquationSystems() override;
+
+    /*!
+     * Do the actual work in reinitializeFEData and initializeFEData. if @p
+     * use_present_data is `true` then the current content of the solution
+     * vectors is used: more exactly, the coordinates and velocities (computed
+     * by initializeCoordinates and initializeVelocity) are considered as
+     * being up to date, as is the direct forcing kinematic data.
+     */
+    virtual void doInitializeFEData(bool use_present_data) override;
+
+    /*!
+     * \brief Compute the stress normalization field.
+     */
+    void computeStressNormalization(libMesh::PetscVector<double>& P_vec,
                                     libMesh::PetscVector<double>& X_vec,
                                     double data_time,
                                     unsigned int part);
-
-    /*!
-     * \brief Assemble the RHS for the interior elastic density, possibly
-     * splitting off the normal component of the transmission force along the
-     * physical boundary of the Lagrangian structure.
-     */
-    void assembleInteriorForceDensityRHS(libMesh::PetscVector<double>& G_rhs_vec,
-                                         libMesh::PetscVector<double>& X_vec,
-                                         libMesh::PetscVector<double>* Phi_vec,
-                                         double data_time,
-                                         unsigned int part);
 
     /*!
      * \brief Spread the transmission force density along the physical boundary
@@ -958,25 +718,6 @@ protected:
                               unsigned int part);
 
     /*!
-     * \brief Initialize the physical coordinates using the supplied coordinate
-     * mapping function.  If no function is provided, the initial coordinates
-     * are taken to be the Lagrangian coordinates.
-     */
-    void initializeCoordinates(unsigned int part);
-
-    /*!
-     * \brief Compute dX = x - X, useful mainly for visualization purposes.
-     */
-    void updateCoordinateMapping(unsigned int part);
-
-    /*!
-     * \brief Initialize the velocity field using the supplied initial velocity
-     * specification function.  If no function is provided, the initial
-     * velocity is taken to be zero.
-     */
-    void initializeVelocity(unsigned int part);
-
-    /*!
      * Get the transfer schedule from the primary hierarchy to the scratch
      * hierarchy associated with the given level and index. If necessary the
      * schedule is created and stored in a map.
@@ -985,9 +726,9 @@ protected:
      * for filling ghost data at physical boundaries.
      */
     SAMRAI::xfer::RefineSchedule<NDIM>&
-    getPrimaryToScratchSchedule(const int level_number,
-                                const int primary_data_idx,
-                                const int scratch_data_idx,
+    getPrimaryToScratchSchedule(int level_number,
+                                int primary_data_idx,
+                                int scratch_data_idx,
                                 SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
 
     /*!
@@ -999,15 +740,10 @@ protected:
      * for filling ghost data at physical boundaries.
      */
     SAMRAI::xfer::RefineSchedule<NDIM>&
-    getScratchToPrimarySchedule(const int level_number,
-                                const int primary_data_idx,
-                                const int scratch_data_idx,
+    getScratchToPrimarySchedule(int level_number,
+                                int primary_data_idx,
+                                int scratch_data_idx,
                                 SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
-
-    /*!
-     * Indicates whether the integrator should output logging messages.
-     */
-    bool d_do_log = false;
 
     /*!
      * Whether or not the initial (i.e., before the regrid prior to
@@ -1094,45 +830,10 @@ protected:
     std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
         d_scratch_transfer_backward_schedules;
 
-    /*
-     * The current time step interval.
-     */
-    double d_current_time = std::numeric_limits<double>::quiet_NaN(),
-           d_new_time = std::numeric_limits<double>::quiet_NaN(),
-           d_half_time = std::numeric_limits<double>::quiet_NaN();
-
-    /*!
-     * Meshes provided to this object. These are set up and managed outside
-     * this class. These meshes are modified by IBFEMethod since this class
-     * creates several libMesh Systems (and hence stores DoF information in
-     * these meshes).
-     */
-    std::vector<libMesh::MeshBase*> d_meshes;
-
     /*!
      * Maximum level number in the patch hierarchy.
      */
     int d_max_level_number = -1;
-
-    /*!
-     * The libMesh Systems set up by this system (for example, for velocity
-     * projection) consist of one variable per spatial component. By default,
-     * libMesh assumes that all variables in a given System couple to
-     * eachother which, since we only ever solve projection problems in this
-     * class, is not the case. Hence we can save some memory by explicitly
-     * informing libMesh that the variables in a system only couple to
-     * themselves by providing a diagonal coupling matrix to each System.
-     */
-    libMesh::CouplingMatrix d_diagonal_system_coupling;
-
-    /*!
-     * EquationSystems objects, one per part. These contain the actual
-     * matrices and solution vectors for each relevant libMesh system.
-     */
-    std::vector<std::unique_ptr<libMesh::EquationSystems> > d_equation_systems;
-
-    /// Number of parts owned by the present object.
-    const unsigned int d_num_parts = 1;
 
     /// Indexing information determining whether a given part is active or not.
     /// The default state for each part is to be active. Parts are active
@@ -1162,47 +863,39 @@ protected:
     /// Minimum ghost cell width.
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
 
-    /// Vectors of pointers to the systems for each part (for position, velocity, force
-    /// density, sources, and body stress normalization).
-    std::vector<libMesh::ExplicitSystem*> d_X_systems, d_U_systems, d_F_systems, d_Q_systems, d_Phi_systems;
+    /// Vectors of pointers to the systems for each part (for sources; other
+    /// systems are handled by the base class).
+    std::vector<libMesh::ExplicitSystem*> d_Q_systems;
 
     /*!
-     * Object managing access to libMesh system vectors for the structure position.
+     * Object managing access to libMesh system vectors for the source/sink
+     * strength.
      */
-    std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_X_vecs;
+    std::unique_ptr<IBTK::LibMeshSystemVectors> d_Q_vecs;
 
     /*!
-     * Object managing access to libMesh system vectors for the structure velocity.
+     * Object managing access to libMesh system vectors for the position that
+     * include IB ghosting information.
      */
-    std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_U_vecs;
+    std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_X_IB_vecs;
 
     /*!
-     * Object managing access to libMesh system vectors for the structure force.
+     * Object managing access to libMesh system vectors for the velocity that
+     * include IB ghosting information.
      */
-    std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_F_vecs;
+    std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_U_IB_vecs;
 
     /*!
-     * Vectors of pointers to the fluid source or sink density vectors. All of
-     * these vectors are owned by the libMesh::System objects except for the
-     * ones in d_Q_IB_ghost_vecs, which are owned by the FEDataManager
-     * objects.
+     * Object managing access to libMesh system vectors for the force that
+     * include IB ghosting information.
      */
-    std::vector<libMesh::PetscVector<double>*> d_Q_half_vecs, d_Q_rhs_vecs, d_Q_IB_ghost_vecs;
-
-    /// Vector of pointers to body stress normalization vectors (both solutions and RHS).
-    std::vector<libMesh::PetscVector<double>*> d_Phi_half_vecs, d_Phi_rhs_vecs;
+    std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_F_IB_vecs;
 
     /*!
-     * Vectors containing entries for relevant IB ghost data: see
-     * FEDataManager::buildIBGhostedVector.
-     *
-     * Unlike the other vectors, d_U_IB_rhs_vecs is for assembly and may not
-     * be used: see the main documentation of this class for more information.
+     * Object managing access to libMesh system vectors for the source/sink
+     * strength that include IB ghosting information.
      */
-    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_F_IB_solution_vecs;
-    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_Q_IB_solution_vecs;
-    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_U_IB_rhs_vecs;
-    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_X_IB_solution_vecs;
+    std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_Q_IB_vecs;
 
     /*!
      * Whether or not to use the ghost region for velocity assembly. See the
@@ -1211,32 +904,7 @@ protected:
     bool d_use_ghosted_velocity_rhs = true;
 
     /*!
-     * Whether or not the libMesh equation systems objects have been
-     * initialized (i.e., whether or not initializeFEEquationSystems has been
-     * called).
-     */
-    bool d_fe_equation_systems_initialized = false;
-
-    /*!
-     * Whether or not all finite element data (including that initialized by
-     * initializeFEEquationSystems), such system matrices, is available.
-     */
-    bool d_fe_data_initialized = false;
-
-    /*!
-     * Type of partitioner to use. See the main documentation of this class
-     * for more information.
-     */
-    LibmeshPartitionerType d_libmesh_partitioner_type = LIBMESH_DEFAULT;
-
-    /*!
-     * Whether or not to use AMR in the finite element discretization. This
-     * feature is not yet implemented and currently defaults to false.
-     */
-    bool d_libmesh_use_amr = false;
-
-    /*!
-     * Method parameters.
+     * IBFE method parameters.
      */
     IBTK::FEDataManager::InterpSpec d_default_interp_spec;
     IBTK::FEDataManager::SpreadSpec d_default_spread_spec;
@@ -1246,46 +914,18 @@ protected:
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
     bool d_split_normal_force = false, d_split_tangential_force = false;
     bool d_use_jump_conditions = false;
-    std::vector<libMesh::FEFamily> d_fe_family;
-    std::vector<libMesh::Order> d_fe_order;
-    std::vector<libMesh::QuadratureType> d_default_quad_type;
-    std::vector<libMesh::Order> d_default_quad_order;
-    bool d_use_consistent_mass_matrix = true;
 
     /*!
      * Data related to handling stress normalization.
      */
     double d_epsilon = 0.0;
     bool d_has_stress_normalization_parts = false;
-    std::vector<bool> d_is_stress_normalization_part;
-
-    /*!
-     * Functions used to compute the initial coordinates of the Lagrangian mesh.
-     */
-    std::vector<CoordinateMappingFcnData> d_coordinate_mapping_fcn_data;
-
-    /*!
-     * Functions used to compute the initial coordinates of the Lagrangian mesh.
-     */
-    std::vector<InitialVelocityFcnData> d_initial_velocity_fcn_data;
-
-    /*!
-     * Functions used to compute the first Piola-Kirchhoff stress tensor.
-     */
-    std::vector<std::vector<PK1StressFcnData> > d_PK1_stress_fcn_data;
+    std::vector<bool> d_stress_normalization_part;
 
     /*!
      * Objects used to impose direct forcing kinematics.
      */
     std::vector<SAMRAI::tbox::Pointer<IBAMR::IBFEDirectForcingKinematics> > d_direct_forcing_kinematics_data;
-
-    /*!
-     * Functions used to compute additional body and surface forces on the
-     * Lagrangian mesh.
-     */
-    std::vector<LagBodyForceFcnData> d_lag_body_force_fcn_data;
-    std::vector<LagSurfacePressureFcnData> d_lag_surface_pressure_fcn_data;
-    std::vector<LagSurfaceForceFcnData> d_lag_surface_force_fcn_data;
 
     /*!
      * Functions used to compute source/sink strength on the Lagrangian mesh.
@@ -1299,29 +939,6 @@ protected:
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
     int d_workload_idx = IBTK::invalid_index;
-
-    /*!
-     * The object name is used as a handle to databases stored in restart files
-     * and for error reporting purposes.
-     */
-    std::string d_object_name;
-
-    /*!
-     * A boolean value indicating whether the class is registered with the
-     * restart database.
-     */
-    bool d_registered_for_restart;
-
-    /*!
-     * Directory and time step number to use when restarting.
-     */
-    std::string d_libmesh_restart_read_dir;
-    int d_libmesh_restart_restore_number;
-
-    /*!
-     * Restart file type for libMesh equation systems (e.g. xda or xdr).
-     */
-    std::string d_libmesh_restart_file_extension;
 
     /*!
      * database for the GriddingAlgorithm used with the scratch hierarchy.
@@ -1369,67 +986,25 @@ protected:
 
 private:
     /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    IBFEMethod();
-
-    /*!
-     * \brief Copy constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     *
-     * \param from The value to copy to this object.
-     */
-    IBFEMethod(const IBFEMethod& from) = delete;
-
-    /*!
-     * \brief Assignment operator.
-     *
-     * \note This operator is not implemented and should not be used.
-     *
-     * \param that The value to assign to this object.
-     *
-     * \return A reference to this object.
-     */
-    IBFEMethod& operator=(const IBFEMethod& that) = delete;
-
-    /*!
      * Implementation of class constructor.
      */
     void commonConstructor(const std::string& object_name,
-                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                           const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
                            const std::vector<libMesh::MeshBase*>& meshes,
                            int max_level_number,
-                           bool register_for_restart,
                            const std::string& restart_read_dirname,
                            unsigned int restart_restore_number);
 
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data
      * members.
      */
     void getFromRestart();
-
-    /*!
-     * Do the actual work in reinitializeFEData and initializeFEData. if @p
-     * use_present_data is `true` then the current content of the solution
-     * vectors is used: more exactly, the coordinates and velocities (computed
-     * by initializeCoordinates and initializeVelocity) are considered as
-     * being up to date, as is the direct forcing kinematic data.
-     */
-    void doInitializeFEData(const bool use_present_data);
-
-    /*!
-     * Update the caches of IB-ghosted vectors.
-     */
-    void updateCachedIBGhostedVectors();
 
     /*!
      * At the present time this class and FEDataManager assume that the finite
