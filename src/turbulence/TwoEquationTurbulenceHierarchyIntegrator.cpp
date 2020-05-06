@@ -1411,8 +1411,12 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
         U_tau_cc_idx, d_U_tau_cc_var, U_tau_sc_idx, U_tau_sc_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
 
     if (cycle_num > 0)
-        compute_Utau_and_yplus(
-            d_hierarchy, U_tau_sc_idx, yplus_sc_idx, d_wall_location_index, new_time, "velocity_profile");
+        compute_Utau_and_yplus(d_hierarchy,
+                               U_tau_sc_idx,
+                               yplus_sc_idx,
+                               d_wall_location_index,
+                               new_time,
+                               "velocity_profile_multiple_locations");
 
     // Based on the yplus, set the wall boundary conditions for k and w variables.
     postProcessTurbulentVariablesBasedonYplus();
@@ -2686,6 +2690,7 @@ TwoEquationTurbulenceHierarchyIntegrator::compute_Utau_and_yplus(Pointer<PatchHi
                             SideIndex<NDIM> si_1, si_2;
 
                             const double x = patch_x_lower[0] + patch_dx[0] * (si(0) - patch_lower(0));
+
                             // bottom boundary.
                             if (axis == 1 && side == 0 && si(1) == 0 && d == 0)
                             {
@@ -2715,13 +2720,29 @@ TwoEquationTurbulenceHierarchyIntegrator::compute_Utau_and_yplus(Pointer<PatchHi
 
     const int nprocs = SAMRAI_MPI::getNodes();
     const int rank = SAMRAI_MPI::getRank();
-    std::vector<int> data_size(nprocs, 0);
+    std::vector<int> data_size(nprocs, 0), data_size1(nprocs, 0), data_size2(nprocs, 0), data_size3(nprocs, 0);
     data_size[rank] = static_cast<int>(utau_bottom_values.size());
+    data_size1[rank] = static_cast<int>(yplus_bottom_values.size());
+    data_size2[rank] = static_cast<int>(utau_top_values.size());
+    data_size1[rank] = static_cast<int>(yplus_top_values.size());
+
     SAMRAI_MPI::sumReduction(&data_size[0], nprocs);
-    int offset = 0;
+    SAMRAI_MPI::sumReduction(&data_size1[0], nprocs);
+    SAMRAI_MPI::sumReduction(&data_size2[0], nprocs);
+    SAMRAI_MPI::sumReduction(&data_size3[0], nprocs);
+
+    int offset = 0, offset1 = 0, offset2 = 0, offset3 = 0;
     offset = std::accumulate(&data_size[0], &data_size[rank], offset);
-    int size_array = 0;
+    offset1 = std::accumulate(&data_size1[0], &data_size1[rank], offset1);
+    offset2 = std::accumulate(&data_size2[0], &data_size2[rank], offset2);
+    offset3 = std::accumulate(&data_size3[0], &data_size3[rank], offset3);
+
+    int size_array = 0, size_array1 = 0, size_array2 = 0, size_array3 = 0;
     size_array = std::accumulate(&data_size[0], &data_size[0] + nprocs, size_array);
+    size_array1 = std::accumulate(&data_size1[0], &data_size1[0] + nprocs, size_array1);
+    size_array2 = std::accumulate(&data_size2[0], &data_size2[0] + nprocs, size_array2);
+    size_array3 = std::accumulate(&data_size3[0], &data_size3[0] + nprocs, size_array3);
+
     // Write out the result in a file.
     std::string file_name = data_dump_dirname + "/" + "utau_bottom_";
     std::string file_name1 = data_dump_dirname + "/" + "yplus_bottom_";
@@ -2734,7 +2755,7 @@ TwoEquationTurbulenceHierarchyIntegrator::compute_Utau_and_yplus(Pointer<PatchHi
     file_name2 += temp_buf;
     file_name3 += temp_buf;
     MPI_Status status;
-    MPI_Offset mpi_offset;
+    MPI_Offset mpi_offset, mpi_offset1, mpi_offset2, mpi_offset3;
     MPI_File file;
     MPI_File_open(MPI_COMM_WORLD, file_name.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
     MPI_File file1;
@@ -2746,28 +2767,31 @@ TwoEquationTurbulenceHierarchyIntegrator::compute_Utau_and_yplus(Pointer<PatchHi
     // First write the total size of the array.
     if (rank == 0)
     {
-        mpi_offset = 0;
+        mpi_offset = 0, mpi_offset1 = 0, mpi_offset2 = 0, mpi_offset3 = 0;
         MPI_File_seek(file, mpi_offset, MPI_SEEK_SET);
         MPI_File_write(file, &size_array, 1, MPI_INT, &status);
-        MPI_File_seek(file1, mpi_offset, MPI_SEEK_SET);
-        MPI_File_write(file1, &size_array, 1, MPI_INT, &status);
-        MPI_File_seek(file2, mpi_offset, MPI_SEEK_SET);
-        MPI_File_write(file2, &size_array, 1, MPI_INT, &status);
-        MPI_File_seek(file3, mpi_offset, MPI_SEEK_SET);
-        MPI_File_write(file3, &size_array, 1, MPI_INT, &status);
+        MPI_File_seek(file1, mpi_offset1, MPI_SEEK_SET);
+        MPI_File_write(file1, &size_array1, 1, MPI_INT, &status);
+        MPI_File_seek(file2, mpi_offset2, MPI_SEEK_SET);
+        MPI_File_write(file2, &size_array2, 1, MPI_INT, &status);
+        MPI_File_seek(file3, mpi_offset3, MPI_SEEK_SET);
+        MPI_File_write(file3, &size_array3, 1, MPI_INT, &status);
     }
     mpi_offset = sizeof(double) * offset + sizeof(int);
+    mpi_offset1 = sizeof(double) * offset1 + sizeof(int);
+    mpi_offset2 = sizeof(double) * offset2 + sizeof(int);
+    mpi_offset3 = sizeof(double) * offset3 + sizeof(int);
     MPI_File_seek(file, mpi_offset, MPI_SEEK_SET);
     MPI_File_write(file, &utau_bottom_values[0], data_size[rank], MPI_DOUBLE, &status);
     MPI_File_close(&file);
-    MPI_File_seek(file1, mpi_offset, MPI_SEEK_SET);
-    MPI_File_write(file1, &yplus_bottom_values[0], data_size[rank], MPI_DOUBLE, &status);
+    MPI_File_seek(file1, mpi_offset1, MPI_SEEK_SET);
+    MPI_File_write(file1, &yplus_bottom_values[0], data_size1[rank], MPI_DOUBLE, &status);
     MPI_File_close(&file1);
-    MPI_File_seek(file2, mpi_offset, MPI_SEEK_SET);
-    MPI_File_write(file2, &utau_top_values[0], data_size[rank], MPI_DOUBLE, &status);
+    MPI_File_seek(file2, mpi_offset2, MPI_SEEK_SET);
+    MPI_File_write(file2, &utau_top_values[0], data_size2[rank], MPI_DOUBLE, &status);
     MPI_File_close(&file2);
-    MPI_File_seek(file3, mpi_offset, MPI_SEEK_SET);
-    MPI_File_write(file3, &yplus_top_values[0], data_size[rank], MPI_DOUBLE, &status);
+    MPI_File_seek(file3, mpi_offset3, MPI_SEEK_SET);
+    MPI_File_write(file3, &yplus_top_values[0], data_size3[rank], MPI_DOUBLE, &status);
     MPI_File_close(&file3);
     return;
 } // compute_Utau_and_yplus

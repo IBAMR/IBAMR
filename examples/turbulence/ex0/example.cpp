@@ -46,6 +46,7 @@
 
 // Application
 #include "SetFluidProperties.h"
+#include "USourceFunction.h"
 
 void compute_velocity_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                               const int u_idx,
@@ -304,7 +305,18 @@ main(int argc, char* argv[])
             turb_hier_integrator->setPhysicalBcCoefWEquation(w_var, w_bc_coef);
         }
 
-        // set source terms
+        double analytical_pr_gradient = 0.0;
+        if (input_db->keyExists("AnalyticalPressureGradient"))
+            analytical_pr_gradient = input_db->getDouble("AnalyticalPressureGradient");
+
+        // Create object for source term classes and register it with the hierarchy integrator
+        Pointer<CartGridFunction> u_source_fcn =
+            new USourceFunction("USourceFunction",
+                                grid_geometry,
+                                app_initializer->getComponentDatabase("USourceFunction"),
+                                analytical_pr_gradient);
+        time_integrator->registerBodyForceFunction(u_source_fcn);
+
         Pointer<TurbulenceSSTKOmegaSourceFunction> F_fcn = new TurbulenceSSTKOmegaSourceFunction(
             "TurbulenceSSTKOmegaSourceFunction",
             app_initializer->getComponentDatabase("TurbulenceSSTKOmegaSourceFunction"),
@@ -382,19 +394,26 @@ main(int argc, char* argv[])
                 Pointer<CellVariable<NDIM, double> > yplus_var = turb_hier_integrator->getCellCenteredYplusVariable();
                 VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
                 const int u_idx = var_db->mapVariableAndContextToIndex(u_var, time_integrator->getCurrentContext());
-                double lower_coordinates[NDIM], upper_coordinates[NDIM];
+
                 if (input_db->keyExists("output_velocity_profile"))
                 {
+                    double lower_coordinates[NDIM], upper_coordinates[NDIM];
                     Pointer<Database> db = input_db->getDatabase("output_velocity_profile");
-                    db->getDoubleArray("lower_coordinates", lower_coordinates, NDIM);
-                    db->getDoubleArray("upper_coordinates", upper_coordinates, NDIM);
+                    const int number_of_locations = db->getIntegerWithDefault("number_of_locations", 1);
+
+                    for (int d = 0; d < number_of_locations; d++)
+                    {
+                        std::cout << "how much time I enter d loop\n" << std::endl;
+                        db->getDoubleArray("lower_coordinates_" + std::to_string(d), lower_coordinates, NDIM);
+                        db->getDoubleArray("upper_coordinates_" + std::to_string(d), upper_coordinates, NDIM);
+                        compute_velocity_profile(patch_hierarchy,
+                                                 u_idx,
+                                                 lower_coordinates,
+                                                 upper_coordinates,
+                                                 loop_time,
+                                                 postproc_data_dump_dirname);
+                    }
                 }
-                compute_velocity_profile(patch_hierarchy,
-                                         u_idx,
-                                         lower_coordinates,
-                                         upper_coordinates,
-                                         loop_time,
-                                         postproc_data_dump_dirname);
 
                 /*const int U_tau_idx = var_db->mapVariableAndContextToIndex(u_tau_var,
                 turb_hier_integrator->getCurrentContext()); const int yplus_idx =
@@ -436,6 +455,7 @@ compute_velocity_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
     const double x_loc = lower_coordinates[0];
+    std::cout << "x_loc is\t" << x_loc << std::endl;
     const double y_loc_min = lower_coordinates[1];
     const double y_loc_max = upper_coordinates[1];
     const double X_min[2] = { x_loc, y_loc_min };
@@ -512,7 +532,7 @@ compute_velocity_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     int size_array = 0;
     size_array = std::accumulate(&data_size[0], &data_size[0] + nprocs, size_array);
     // Write out the result in a file.
-    string file_name = data_dump_dirname + "/" + "u_y_";
+    string file_name = data_dump_dirname + "/" + "u_y_" + std::to_string(x_loc) + "_";
     char temp_buf[128];
     sprintf(temp_buf, "%.8f", data_time);
     file_name += temp_buf;

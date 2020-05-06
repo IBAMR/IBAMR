@@ -129,7 +129,8 @@ am__EXEEXT_3 = $(am__EXEEXT_1) $(am__EXEEXT_2)
 @SAMRAI2D_ENABLED_TRUE@am__EXEEXT_4 = $(am__EXEEXT_3)
 @SAMRAI3D_ENABLED_TRUE@am__EXEEXT_5 = $(am__EXEEXT_3)
 am__objects_1 = main2d-example.$(OBJEXT) \
-	main2d-SetFluidProperties.$(OBJEXT)
+	main2d-SetFluidProperties.$(OBJEXT) \
+	main2d-USourceFunction.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -141,7 +142,8 @@ main2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__objects_2 = main3d-example.$(OBJEXT) \
-	main3d-SetFluidProperties.$(OBJEXT)
+	main3d-SetFluidProperties.$(OBJEXT) \
+	main3d-USourceFunction.$(OBJEXT)
 am_main3d_OBJECTS = $(am__objects_2)
 main3d_OBJECTS = $(am_main3d_OBJECTS)
 main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
@@ -164,8 +166,10 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/main2d-SetFluidProperties.Po \
+	./$(DEPDIR)/main2d-USourceFunction.Po \
 	./$(DEPDIR)/main2d-example.Po \
 	./$(DEPDIR)/main3d-SetFluidProperties.Po \
+	./$(DEPDIR)/main3d-USourceFunction.Po \
 	./$(DEPDIR)/main3d-example.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -186,6 +190,24 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CFLAGS) $(CFLAGS)
+AM_V_CC = $(am__v_CC_@AM_V@)
+am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
+am__v_CC_0 = @echo "  CC      " $@;
+am__v_CC_1 = 
+CCLD = $(CC)
+LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_CCLD = $(am__v_CCLD_@AM_V@)
+am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
+am__v_CCLD_0 = @echo "  CCLD    " $@;
+am__v_CCLD_1 = 
 SOURCES = $(main2d_SOURCES) $(main3d_SOURCES)
 DIST_SOURCES = $(main2d_SOURCES) $(main3d_SOURCES)
 am__can_run_installinfo = \
@@ -479,7 +501,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXAMPLE_DRIVER = example.cpp SetFluidProperties.cpp
+EXAMPLE_DRIVER = example.cpp SetFluidProperties.cpp SetFluidProperties.h USourceFunction.cpp USourceFunction.h
 EXTRA_DIST = input2d input3d
 EXAMPLES = $(am__append_1) $(am__append_3)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -538,8 +560,10 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidProperties.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-USourceFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-example.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-SetFluidProperties.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-USourceFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-example.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -600,6 +624,20 @@ main2d-SetFluidProperties.obj: SetFluidProperties.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetFluidProperties.obj `if test -f 'SetFluidProperties.cpp'; then $(CYGPATH_W) 'SetFluidProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidProperties.cpp'; fi`
 
+main2d-USourceFunction.o: USourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-USourceFunction.o -MD -MP -MF $(DEPDIR)/main2d-USourceFunction.Tpo -c -o main2d-USourceFunction.o `test -f 'USourceFunction.cpp' || echo '$(srcdir)/'`USourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-USourceFunction.Tpo $(DEPDIR)/main2d-USourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='USourceFunction.cpp' object='main2d-USourceFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-USourceFunction.o `test -f 'USourceFunction.cpp' || echo '$(srcdir)/'`USourceFunction.cpp
+
+main2d-USourceFunction.obj: USourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-USourceFunction.obj -MD -MP -MF $(DEPDIR)/main2d-USourceFunction.Tpo -c -o main2d-USourceFunction.obj `if test -f 'USourceFunction.cpp'; then $(CYGPATH_W) 'USourceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/USourceFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-USourceFunction.Tpo $(DEPDIR)/main2d-USourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='USourceFunction.cpp' object='main2d-USourceFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-USourceFunction.obj `if test -f 'USourceFunction.cpp'; then $(CYGPATH_W) 'USourceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/USourceFunction.cpp'; fi`
+
 main3d-example.o: example.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-example.o -MD -MP -MF $(DEPDIR)/main3d-example.Tpo -c -o main3d-example.o `test -f 'example.cpp' || echo '$(srcdir)/'`example.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-example.Tpo $(DEPDIR)/main3d-example.Po
@@ -627,6 +665,20 @@ main3d-SetFluidProperties.obj: SetFluidProperties.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidProperties.cpp' object='main3d-SetFluidProperties.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-SetFluidProperties.obj `if test -f 'SetFluidProperties.cpp'; then $(CYGPATH_W) 'SetFluidProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidProperties.cpp'; fi`
+
+main3d-USourceFunction.o: USourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-USourceFunction.o -MD -MP -MF $(DEPDIR)/main3d-USourceFunction.Tpo -c -o main3d-USourceFunction.o `test -f 'USourceFunction.cpp' || echo '$(srcdir)/'`USourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-USourceFunction.Tpo $(DEPDIR)/main3d-USourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='USourceFunction.cpp' object='main3d-USourceFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-USourceFunction.o `test -f 'USourceFunction.cpp' || echo '$(srcdir)/'`USourceFunction.cpp
+
+main3d-USourceFunction.obj: USourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-USourceFunction.obj -MD -MP -MF $(DEPDIR)/main3d-USourceFunction.Tpo -c -o main3d-USourceFunction.obj `if test -f 'USourceFunction.cpp'; then $(CYGPATH_W) 'USourceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/USourceFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-USourceFunction.Tpo $(DEPDIR)/main3d-USourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='USourceFunction.cpp' object='main3d-USourceFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-USourceFunction.obj `if test -f 'USourceFunction.cpp'; then $(CYGPATH_W) 'USourceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/USourceFunction.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -760,8 +812,10 @@ clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/main2d-SetFluidProperties.Po
+	-rm -f ./$(DEPDIR)/main2d-USourceFunction.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f ./$(DEPDIR)/main3d-SetFluidProperties.Po
+	-rm -f ./$(DEPDIR)/main3d-USourceFunction.Po
 	-rm -f ./$(DEPDIR)/main3d-example.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -809,8 +863,10 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/main2d-SetFluidProperties.Po
+	-rm -f ./$(DEPDIR)/main2d-USourceFunction.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f ./$(DEPDIR)/main3d-SetFluidProperties.Po
+	-rm -f ./$(DEPDIR)/main3d-USourceFunction.Po
 	-rm -f ./$(DEPDIR)/main3d-example.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
