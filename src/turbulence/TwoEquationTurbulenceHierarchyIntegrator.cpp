@@ -298,6 +298,7 @@ TwoEquationTurbulenceHierarchyIntegrator::TwoEquationTurbulenceHierarchyIntegrat
 
     d_wall_location_index = input_db->getIntegerArray("wall_location_index");
     d_distance_to_virtual_point = input_db->getDoubleWithDefault("distance_to_virtual_point", 2.0);
+
     getFromInput(input_db, from_restart);
 
     // Get plotting options from database
@@ -1410,13 +1411,13 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
     d_hier_math_ops->interp(
         U_tau_cc_idx, d_U_tau_cc_var, U_tau_sc_idx, U_tau_sc_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
 
-    if (cycle_num > 0)
+    /* if (cycle_num > 0)
         compute_Utau_and_yplus(d_hierarchy,
                                U_tau_sc_idx,
                                yplus_sc_idx,
                                d_wall_location_index,
                                new_time,
-                               "velocity_profile_multiple_locations");
+                               "velocity_profile");*/
 
     // Based on the yplus, set the wall boundary conditions for k and w variables.
     postProcessTurbulentVariablesBasedonYplus();
@@ -1456,7 +1457,10 @@ TwoEquationTurbulenceHierarchyIntegrator::postprocessIntegrateHierarchy(const do
         level->deallocatePatchData(d_k_C_idx);
         level->deallocatePatchData(d_w_C_idx);
         level->deallocatePatchData(d_rho_vec_cc_idx);
-        level->deallocatePatchData(d_yplus_cc_idx);
+        // These two indexes are not deallocated because these two values are
+        // required in example.cpp to plot the yplus and U_tau profile.
+        // level->deallocatePatchData(d_yplus_cc_idx);
+        // level->deallocatePatchData(d_U_tau_cc_idx);
     }
 
     // Execute any registered callbacks.
@@ -2393,14 +2397,14 @@ TwoEquationTurbulenceHierarchyIntegrator::applyWallFunction(const double data_ti
         d_rho_bdry_bc_fill_op->fillData(data_time);
 
         // filling ghost cells for velocity
-        /*std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs =
+        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> U_bc_coefs =
             d_ins_hierarchy_integrator->getVelocityBoundaryConditions();
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         InterpolationTransactionComponent U_ghost_cc_interpolation(
             U_scratch_idx, "NONE", true, "CUBIC_COARSEN", "LINEAR", false, U_bc_coefs);
         HierarchyGhostCellInterpolation U_ghost_cell_fill_op;
         U_ghost_cell_fill_op.initializeOperatorState(U_ghost_cc_interpolation, d_hierarchy, coarsest_ln, finest_ln);
-        U_ghost_cell_fill_op.fillData(data_time);*/
+        U_ghost_cell_fill_op.fillData(data_time);
 
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -2516,7 +2520,6 @@ TwoEquationTurbulenceHierarchyIntegrator::postProcessTurbulentVariablesBasedonYp
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int yplus_cc_idx = var_db->mapVariableAndContextToIndex(d_yplus_cc_var, getCurrentContext());
         const int U_tau_cc_idx = var_db->mapVariableAndContextToIndex(d_U_tau_cc_var, getCurrentContext());
-        ;
         const int k_new_idx = var_db->mapVariableAndContextToIndex(d_k_var, getNewContext());
         const int w_new_idx = var_db->mapVariableAndContextToIndex(d_w_var, getNewContext());
         const int distance_to_closest_surface_idx =
@@ -2537,7 +2540,6 @@ TwoEquationTurbulenceHierarchyIntegrator::postProcessTurbulentVariablesBasedonYp
             const double* grid_lower = grid_geom->getXLower();
             const double* grid_upper = grid_geom->getXUpper();
 
-            Pointer<CellData<NDIM, double> > yplus_data = patch->getPatchData(yplus_cc_idx);
             Pointer<CellData<NDIM, double> > k_data = patch->getPatchData(k_new_idx);
             Pointer<CellData<NDIM, double> > w_data = patch->getPatchData(w_new_idx);
             Pointer<CellData<NDIM, double> > distance_to_closest_surface_data =
@@ -2547,6 +2549,7 @@ TwoEquationTurbulenceHierarchyIntegrator::postProcessTurbulentVariablesBasedonYp
             Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(rho_new_idx);
 
             Pointer<CellData<NDIM, double> > U_tau_data = patch->getPatchData(U_tau_cc_idx);
+            Pointer<CellData<NDIM, double> > yplus_data = patch->getPatchData(yplus_cc_idx);
 
             IBTK::VectorNd number_of_indices(NDIM);
             for (int d = 0; d < NDIM; d++)
@@ -2588,10 +2591,11 @@ TwoEquationTurbulenceHierarchyIntegrator::postProcessTurbulentVariablesBasedonYp
                                 sum += (*yplus_data)(ci, d);
                                 sum_1 += (*U_tau_data)(ci, d);
                             }
-                            // True only for equidistant cells. i.e., dx = dy.
-                            double y_plus = 0.5 * sum;
+                            // True only for equidistant cells.
+                            double yplus = 0.5 * sum;
                             double U_tau = 0.5 * sum_1;
-                            if (y_plus <= 11.0)
+
+                            if (yplus <= 11.0)
                             {
                                 // lineear interpolation.
                                 (*k_data)(ci) = (*distance_to_closest_surface_data)(ci) * (*k_data)(ci_1) /
@@ -2683,12 +2687,6 @@ TwoEquationTurbulenceHierarchyIntegrator::compute_Utau_and_yplus(Pointer<PatchHi
                         for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(trim_box, d)); b; b++)
                         {
                             SideIndex<NDIM> si(b(), d, SideIndex<NDIM>::Lower);
-
-                            // only for horizontal boundaries.
-                            IntVector<NDIM> index_1(0, 1);
-                            IntVector<NDIM> index_2(0, 2);
-                            SideIndex<NDIM> si_1, si_2;
-
                             const double x = patch_x_lower[0] + patch_dx[0] * (si(0) - patch_lower(0));
 
                             // bottom boundary.
@@ -2724,7 +2722,7 @@ TwoEquationTurbulenceHierarchyIntegrator::compute_Utau_and_yplus(Pointer<PatchHi
     data_size[rank] = static_cast<int>(utau_bottom_values.size());
     data_size1[rank] = static_cast<int>(yplus_bottom_values.size());
     data_size2[rank] = static_cast<int>(utau_top_values.size());
-    data_size1[rank] = static_cast<int>(yplus_top_values.size());
+    data_size3[rank] = static_cast<int>(yplus_top_values.size());
 
     SAMRAI_MPI::sumReduction(&data_size[0], nprocs);
     SAMRAI_MPI::sumReduction(&data_size1[0], nprocs);

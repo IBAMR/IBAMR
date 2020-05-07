@@ -37,10 +37,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    USourceFunction(const string& object_name,
-                    Pointer<GridGeometry<NDIM> > grid_geom,
-                    Pointer<Database> input_db,
-                    const double analytical_pr_gradient);
+    USourceFunction(const string& object_name, Pointer<GridGeometry<NDIM> > grid_geom, Pointer<Database> input_db);
 
     /*!
      * \brief Destructor.
@@ -109,7 +106,7 @@ private:
      * The analytical pressure gradient which will be added in x-momentum equation
      * as source term.
      */
-    const double d_analytical_pr_gradient;
+    double d_analytical_pr_gradient;
 };
 
 /////////////////////////////// INLINE ///////////////////////////////////////

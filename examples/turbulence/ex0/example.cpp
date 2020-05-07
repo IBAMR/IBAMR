@@ -305,16 +305,9 @@ main(int argc, char* argv[])
             turb_hier_integrator->setPhysicalBcCoefWEquation(w_var, w_bc_coef);
         }
 
-        double analytical_pr_gradient = 0.0;
-        if (input_db->keyExists("AnalyticalPressureGradient"))
-            analytical_pr_gradient = input_db->getDouble("AnalyticalPressureGradient");
-
         // Create object for source term classes and register it with the hierarchy integrator
-        Pointer<CartGridFunction> u_source_fcn =
-            new USourceFunction("USourceFunction",
-                                grid_geometry,
-                                app_initializer->getComponentDatabase("USourceFunction"),
-                                analytical_pr_gradient);
+        Pointer<CartGridFunction> u_source_fcn = new USourceFunction(
+            "USourceFunction", grid_geometry, app_initializer->getComponentDatabase("USourceFunction"));
         time_integrator->registerBodyForceFunction(u_source_fcn);
 
         Pointer<TurbulenceSSTKOmegaSourceFunction> F_fcn = new TurbulenceSSTKOmegaSourceFunction(
@@ -403,7 +396,6 @@ main(int argc, char* argv[])
 
                     for (int d = 0; d < number_of_locations; d++)
                     {
-                        std::cout << "how much time I enter d loop\n" << std::endl;
                         db->getDoubleArray("lower_coordinates_" + std::to_string(d), lower_coordinates, NDIM);
                         db->getDoubleArray("upper_coordinates_" + std::to_string(d), upper_coordinates, NDIM);
                         compute_velocity_profile(patch_hierarchy,
@@ -415,20 +407,16 @@ main(int argc, char* argv[])
                     }
                 }
 
-                /*const int U_tau_idx = var_db->mapVariableAndContextToIndex(u_tau_var,
-                turb_hier_integrator->getCurrentContext()); const int yplus_idx =
-                var_db->mapVariableAndContextToIndex(yplus_var, turb_hier_integrator->getCurrentContext());
+                const int U_tau_idx =
+                    var_db->mapVariableAndContextToIndex(u_tau_var, turb_hier_integrator->getCurrentContext());
+                const int yplus_idx =
+                    var_db->mapVariableAndContextToIndex(yplus_var, turb_hier_integrator->getCurrentContext());
 
                 SAMRAI::tbox::Array<int> wall_location_index;
                 if(input_db->keyExists("WALL_LOCATION_INDEX"))
                      wall_location_index = input_db->getIntegerArray("WALL_LOCATION_INDEX");
-                std::cout << "wall_location_index is\t" << wall_location_index.size() << std::endl;
-                compute_Utau_and_yplus(patch_hierarchy,
-                                       U_tau_idx,
-                                       yplus_idx,
-                                       wall_location_index,
-                                       loop_time,
-                                       postproc_data_dump_dirname);*/
+                compute_Utau_and_yplus(
+                    patch_hierarchy, U_tau_idx, yplus_idx, wall_location_index, loop_time, postproc_data_dump_dirname);
             }
         }
 
@@ -455,7 +443,6 @@ compute_velocity_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
     const double x_loc = lower_coordinates[0];
-    std::cout << "x_loc is\t" << x_loc << std::endl;
     const double y_loc_min = lower_coordinates[1];
     const double y_loc_max = upper_coordinates[1];
     const double X_min[2] = { x_loc, y_loc_min };
@@ -564,7 +551,7 @@ compute_Utau_and_yplus(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 {
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    vector<double> pos_values;
+    vector<double> utau_bottom_values, yplus_bottom_values, utau_top_values, yplus_top_values;
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
         Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
@@ -612,61 +599,113 @@ compute_Utau_and_yplus(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                         bdry_box.lower(axis) = patch_box.upper(axis) - distance_to_virtual_point;
                     }
                     Box<NDIM> trim_box = patch_box * bdry_box;
-                    for (Box<NDIM>::Iterator b(trim_box); b; b++)
+                    for (unsigned int d = 0; d < NDIM; d++)
                     {
-                        CellIndex<NDIM> ci(b());
-                        IntVector<NDIM> index_1(0, 1);
-                        CellIndex<NDIM> ci_1;
-                        if (ci(1) == 0) // || ci(1) == number_of_indices(1) - 1)
+                        for (Box<NDIM>::Iterator b(trim_box); b; b++)
                         {
-                            ci_1 = (ci(1) == 0) ? ci + index_1 : ci - index_1;
-                            const double x = patch_x_lower[0] + patch_dx[0] * (ci(0) - patch_lower(0) + 0.5);
-                            double sum = 0.0, sum_1 = 0.0;
-                            for (unsigned int d = 0; d < NDIM; d++)
+                            SideIndex<NDIM> si(b(), d, SideIndex<NDIM>::Lower);
+                            const double x = patch_x_lower[0] + patch_dx[0] * (si(0) - patch_lower(0));
+
+                            // bottom boundary.
+                            if (axis == 1 && side == 0 && si(1) == 0 && d == 0)
                             {
-                                sum += (*yplus_data)(ci, d);
-                                sum_1 += (*U_tau_data)(ci, d);
+                                const double u_tau = (*U_tau_data)(si);
+                                const double yplus = (*yplus_data)(si);
+                                utau_bottom_values.push_back(x);
+                                utau_bottom_values.push_back(u_tau);
+                                yplus_bottom_values.push_back(x);
+                                yplus_bottom_values.push_back(yplus);
                             }
-                            // True only for equidistant cells. i.e., dx = dy.
-                            double y_plus = 0.5 * sum;
-                            double U_tau = 0.5 * sum_1;
-                            pos_values.push_back(x);
-                            pos_values.push_back(U_tau);
+                            // top boundary
+                            else if (axis == 1 && side == 1 && si(1) == number_of_indices(axis) - 1 && d == 0)
+                            {
+                                const double u_tau = (*U_tau_data)(si);
+                                const double yplus = (*yplus_data)(si);
+                                utau_top_values.push_back(x);
+                                utau_top_values.push_back(u_tau);
+                                yplus_top_values.push_back(x);
+                                yplus_top_values.push_back(yplus);
+                            }
                         }
                     }
                 }
             }
         }
     }
-    std::cout << "size of position value vector\t" << pos_values.size() << std::endl;
     const int nprocs = SAMRAI_MPI::getNodes();
     const int rank = SAMRAI_MPI::getRank();
-    vector<int> data_size(nprocs, 0);
-    data_size[rank] = static_cast<int>(pos_values.size());
+    std::vector<int> data_size(nprocs, 0), data_size1(nprocs, 0), data_size2(nprocs, 0), data_size3(nprocs, 0);
+    data_size[rank] = static_cast<int>(utau_bottom_values.size());
+    data_size1[rank] = static_cast<int>(yplus_bottom_values.size());
+    data_size2[rank] = static_cast<int>(utau_top_values.size());
+    data_size3[rank] = static_cast<int>(yplus_top_values.size());
+
     SAMRAI_MPI::sumReduction(&data_size[0], nprocs);
-    int offset = 0;
+    SAMRAI_MPI::sumReduction(&data_size1[0], nprocs);
+    SAMRAI_MPI::sumReduction(&data_size2[0], nprocs);
+    SAMRAI_MPI::sumReduction(&data_size3[0], nprocs);
+
+    int offset = 0, offset1 = 0, offset2 = 0, offset3 = 0;
     offset = std::accumulate(&data_size[0], &data_size[rank], offset);
-    int size_array = 0;
+    offset1 = std::accumulate(&data_size1[0], &data_size1[rank], offset1);
+    offset2 = std::accumulate(&data_size2[0], &data_size2[rank], offset2);
+    offset3 = std::accumulate(&data_size3[0], &data_size3[rank], offset3);
+
+    int size_array = 0, size_array1 = 0, size_array2 = 0, size_array3 = 0;
     size_array = std::accumulate(&data_size[0], &data_size[0] + nprocs, size_array);
+    size_array1 = std::accumulate(&data_size1[0], &data_size1[0] + nprocs, size_array1);
+    size_array2 = std::accumulate(&data_size2[0], &data_size2[0] + nprocs, size_array2);
+    size_array3 = std::accumulate(&data_size3[0], &data_size3[0] + nprocs, size_array3);
+
     // Write out the result in a file.
-    string file_name = data_dump_dirname + "/" + "utau_yplus_";
+    std::string file_name = data_dump_dirname + "/" + "utau_bottom_";
+    std::string file_name1 = data_dump_dirname + "/" + "yplus_bottom_";
+    std::string file_name2 = data_dump_dirname + "/" + "utau_top_";
+    std::string file_name3 = data_dump_dirname + "/" + "yplus_top_";
     char temp_buf[128];
     sprintf(temp_buf, "%.8f", data_time);
     file_name += temp_buf;
+    file_name1 += temp_buf;
+    file_name2 += temp_buf;
+    file_name3 += temp_buf;
     MPI_Status status;
-    MPI_Offset mpi_offset;
+    MPI_Offset mpi_offset, mpi_offset1, mpi_offset2, mpi_offset3;
     MPI_File file;
     MPI_File_open(MPI_COMM_WORLD, file_name.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
+    MPI_File file1;
+    MPI_File_open(MPI_COMM_WORLD, file_name1.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file1);
+    MPI_File file2;
+    MPI_File_open(MPI_COMM_WORLD, file_name2.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file2);
+    MPI_File file3;
+    MPI_File_open(MPI_COMM_WORLD, file_name3.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file3);
     // First write the total size of the array.
     if (rank == 0)
     {
-        mpi_offset = 0;
+        mpi_offset = 0, mpi_offset1 = 0, mpi_offset2 = 0, mpi_offset3 = 0;
         MPI_File_seek(file, mpi_offset, MPI_SEEK_SET);
         MPI_File_write(file, &size_array, 1, MPI_INT, &status);
+        MPI_File_seek(file1, mpi_offset1, MPI_SEEK_SET);
+        MPI_File_write(file1, &size_array1, 1, MPI_INT, &status);
+        MPI_File_seek(file2, mpi_offset2, MPI_SEEK_SET);
+        MPI_File_write(file2, &size_array2, 1, MPI_INT, &status);
+        MPI_File_seek(file3, mpi_offset3, MPI_SEEK_SET);
+        MPI_File_write(file3, &size_array3, 1, MPI_INT, &status);
     }
     mpi_offset = sizeof(double) * offset + sizeof(int);
+    mpi_offset1 = sizeof(double) * offset1 + sizeof(int);
+    mpi_offset2 = sizeof(double) * offset2 + sizeof(int);
+    mpi_offset3 = sizeof(double) * offset3 + sizeof(int);
     MPI_File_seek(file, mpi_offset, MPI_SEEK_SET);
-    MPI_File_write(file, &pos_values[0], data_size[rank], MPI_DOUBLE, &status);
+    MPI_File_write(file, &utau_bottom_values[0], data_size[rank], MPI_DOUBLE, &status);
     MPI_File_close(&file);
+    MPI_File_seek(file1, mpi_offset1, MPI_SEEK_SET);
+    MPI_File_write(file1, &yplus_bottom_values[0], data_size1[rank], MPI_DOUBLE, &status);
+    MPI_File_close(&file1);
+    MPI_File_seek(file2, mpi_offset2, MPI_SEEK_SET);
+    MPI_File_write(file2, &utau_top_values[0], data_size2[rank], MPI_DOUBLE, &status);
+    MPI_File_close(&file2);
+    MPI_File_seek(file3, mpi_offset3, MPI_SEEK_SET);
+    MPI_File_write(file3, &yplus_top_values[0], data_size3[rank], MPI_DOUBLE, &status);
+    MPI_File_close(&file3);
     return;
 } // compute_Utau_and_yplus

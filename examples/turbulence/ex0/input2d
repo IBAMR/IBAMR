@@ -1,6 +1,6 @@
 // computational domain
 HEIGHT = 2.0
-LENGTH = 20.0
+LENGTH = 2.0
 
 RHO = 1.0
 MU  = 0.0017
@@ -26,14 +26,14 @@ HFINEST = LENGTH/NFINEST
 // writing the velocity profile across x near the outlet
 output_velocity_profile{
 number_of_locations = 4
-lower_coordinates_0 = 18.0, 0.0
-upper_coordinates_0 = 18.0, 2.0
-lower_coordinates_1 = 27.0, 0.0
-upper_coordinates_1 = 27.0, 2.0
-lower_coordinates_2 = 35.0, 0.0
-upper_coordinates_2 = 35.0, 2.0
-lower_coordinates_3 = 38.0, 0.0
-upper_coordinates_3 = 38.0, 2.0
+lower_coordinates_0 = 0.5, 0.0
+upper_coordinates_0 = 0.5, 2.0
+lower_coordinates_1 = 1.0, 0.0
+upper_coordinates_1 = 1.0, 2.0
+lower_coordinates_2 = 1.5, 0.0
+upper_coordinates_2 = 1.5, 2.0
+lower_coordinates_3 = 1.8, 0.0
+upper_coordinates_3 = 1.8, 2.0
 }
 
 PressureInitialConditions {
@@ -183,7 +183,7 @@ WBcCoefs {
 SOLVER_TYPE          = "STAGGERED"
 DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0     // initial simulation time
-END_TIME             =   0.001    // final simulation time
+END_TIME             =   0.1    // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
 REGRID_INTERVAL      =   50000000
@@ -462,15 +462,15 @@ Main {
    restart_dump_dirname        = "restart_INS2d"
    
 // post-processing data output parameters
-    data_dump_interval         = 100
-    data_dump_dirname          = "velocity_profile_multiple_locations"
+    data_dump_interval         = 10
+    data_dump_dirname          = "velocity_profile"
 
 // timer dump parameters
    timer_dump_interval         = 0
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0) , ( 10*N - 1, N - 1) ]
+   domain_boxes = [ (0,0) , ( N - 1, N - 1) ]
    x_lo         =   0.0,   0.0           // lower end of computational domain.
    x_up         =   LENGTH,   HEIGHT         // upper end of computational domain.
    periodic_dimension = 1, 0
