@@ -227,6 +227,24 @@ IBFESurfaceMethod::getFEDataManager(const unsigned int part) const
 } // getFEDataManager
 
 void
+IBFESurfaceMethod::registerTangentialVelocityMotion(const unsigned int part)
+{
+    TBOX_ASSERT(part < d_num_parts);
+    d_use_tangential_velocity[part] = true;
+    return;
+} // registerTangentialVelocityMotion
+
+
+void
+IBFESurfaceMethod::registerPressureJumpNormalization(const unsigned int part)
+{
+    TBOX_ASSERT(part < d_num_parts);
+    TBOX_ASSERT(d_use_pressure_jump_conditions);
+    d_normalize_pressure_jump[part] = true;
+    return;
+} // registerTangentialVelocityMotion
+
+void
 IBFESurfaceMethod::registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data,
                                                             const unsigned int part)
 {
@@ -302,6 +320,9 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
     d_current_time = current_time;
     d_new_time = new_time;
     d_half_time = current_time + 0.5 * (new_time - current_time);
+    
+    d_use_tangential_velocity.resize(d_num_parts);
+    d_use_tangential_velocity.resize(d_num_parts);
 
     // Extract the FE data.
     d_X_systems.resize(d_num_parts);
@@ -2234,7 +2255,14 @@ IBFESurfaceMethod::forwardEulerStep(const double current_time, const double new_
             ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
         }
-        else
+        else if (d_use_tangential_velocity[part])
+        {
+            ierr =
+                VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_t_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
+            IBTK_CHKERRQ(ierr);
+			
+		}
+		else
         {
             ierr =
                 VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
@@ -2261,6 +2289,11 @@ IBFESurfaceMethod::midpointStep(const double current_time, const double new_time
             ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
         }
+        else if (d_use_tangential_velocity[part])
+        {
+			ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_t_half_vecs[part]->vec(), d_X_current_vecs[part]->vec());
+            IBTK_CHKERRQ(ierr);
+		}
         else
         {
             ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_half_vecs[part]->vec(), d_X_current_vecs[part]->vec());
@@ -2287,7 +2320,15 @@ IBFESurfaceMethod::trapezoidalStep(const double current_time, const double new_t
             ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
         }
-        else
+        else if (d_use_tangential_velocity[part])
+        {
+		    ierr = VecWAXPY(
+                d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_t_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_t_new_vecs[part]->vec());
+            IBTK_CHKERRQ(ierr);
+		}
+		else
         {
             ierr = VecWAXPY(
                 d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
@@ -2672,7 +2713,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                                                           d_default_interp_spec.use_consistent_mass_matrix);
             P_jump_rhs_integral = SAMRAI_MPI::sumReduction(P_jump_rhs_integral);
             surface_area = SAMRAI_MPI::sumReduction(surface_area);
-            if (d_normalize_pressure_jump) P_jump_vec->add(-P_jump_rhs_integral / surface_area);
+            if (d_normalize_pressure_jump[part]) P_jump_vec->add(-P_jump_rhs_integral / surface_area);
             P_jump_vec->close();
         }
         if (d_use_velocity_jump_conditions)
@@ -4198,7 +4239,6 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_use_pressure_jump_conditions = db->getBool("use_pressure_jump_conditions");
     if (d_use_pressure_jump_conditions)
     {
-        if (db->isBool("normalize_pressure_jump")) d_normalize_pressure_jump = db->getBool("normalize_pressure_jump");
         if (db->isString("pressure_jump_fe_family"))
             d_pressure_jump_fe_family = Utility::string_to_enum<FEFamily>(db->getString("pressure_jump_fe_family"));
     }

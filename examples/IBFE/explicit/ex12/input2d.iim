@@ -64,7 +64,7 @@ SECOND_ORDER_PRESSURE_UPDATE = TRUE
 
 VelocityBcCoefs_0 {
    t_half = 0.5
-   tau = 0.125
+   tau = 0.25
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "0.0"
@@ -76,7 +76,7 @@ VelocityBcCoefs_0 {
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = "(tanh((t-t_half)/tau)+tanh(t_half/tau))/(1+tanh(t_half/tau))" //"(tanh(t/2-t_half/tau)+tanh(t_half/tau))/(1+tanh(t_half/tau))"
+   gcoef_function_0 = "(tanh(t/2-t_half/tau)+tanh(t_half/tau))/(1+tanh(t_half/tau))"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
@@ -95,7 +95,7 @@ VelocityBcCoefs_1 {
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 =  "cos(pi*X_1/16.0)*exp(-2.0*t)"
+   gcoef_function_0 = "cos(pi*X_1/L)*exp(-2.0*t)"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"

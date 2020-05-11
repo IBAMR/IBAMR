@@ -168,6 +168,23 @@ public:
     };
 
     /*!
+     * Register relevant part to only use the tangential component of the Lagrangian velocity 
+     * for displacement. The lack of normal velocity needs to be compensated by a large
+     * frictional penalty force (direct forcing for the normal velocity)
+     *
+     * \note If no function is provided, all parts will be moving according to the full Lagrangian velocity 
+     */
+    void registerTangentialVelocityMotion(unsigned int part = 0);
+    
+    
+     /*!
+     * Register relevant part for which we would like to normalize the pressure jump. 
+     *
+     * \note This is only recommended for enclosed bodies.
+     */
+    void registerPressureJumpNormalization(unsigned int part = 0);
+    
+    /*!
      * Register the (optional) function used to initialize the physical
      * coordinates from the Lagrangian coordinates.
      *
@@ -578,7 +595,8 @@ protected:
     std::vector<libMesh::MeshBase*> d_meshes;
     int d_max_level_number;
     std::vector<libMesh::EquationSystems*> d_equation_systems;
-
+	std::vector<bool> d_use_tangential_velocity = {false};
+	std::vector<bool> d_normalize_pressure_jump = {false};
     const unsigned int d_num_parts = 1;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
@@ -618,7 +636,6 @@ protected:
     libMesh::FEFamily d_wss_fe_family = libMesh::LAGRANGE;
     libMesh::FEFamily d_tau_fe_family = libMesh::LAGRANGE;
     bool d_perturb_fe_mesh_nodes = true;
-    bool d_normalize_pressure_jump = false;
     std::vector<libMesh::FEFamily> d_fe_family;
     std::vector<libMesh::Order> d_fe_order;
     std::vector<libMesh::QuadratureType> d_default_quad_type;
