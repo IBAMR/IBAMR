@@ -218,6 +218,14 @@ FEMechanicsBase::~FEMechanicsBase()
     }
 }
 
+libMesh::EquationSystems*
+FEMechanicsBase::getEquationSystems(const unsigned int part) const
+{
+    TBOX_ASSERT(d_fe_equation_systems_initialized);
+    TBOX_ASSERT(part < d_meshes.size());
+    return d_equation_systems[part].get();
+}
+
 std::shared_ptr<FEData>
 FEMechanicsBase::getFEData(const unsigned int part) const
 {

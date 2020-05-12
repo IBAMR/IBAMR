@@ -33,6 +33,7 @@
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
+#include "libmesh/equation_systems.h"
 #include "libmesh/explicit_system.h"
 
 #include <string>
@@ -97,6 +98,11 @@ public:
      * Destructor.
      */
     virtual ~FEMechanicsBase() override;
+
+    /*!
+     * Return a pointer to the equations system object for the specified part.
+     */
+    libMesh::EquationSystems* getEquationSystems(unsigned int part = 0) const;
 
     /*!
      * Return a pointer to the FEData object for the specified part.

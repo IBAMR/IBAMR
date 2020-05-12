@@ -189,6 +189,7 @@ DIM_INDEPENDENT_SOURCES = \
 if LIBMESH_ENABLED
   DIM_INDEPENDENT_SOURCES += \
   ../src/IB/FEMechanicsBase.cpp \
+  ../src/IB/FEMechanicsExplicitIntegrator.cpp \
   ../src/IB/IBFECentroidPostProcessor.cpp \
   ../src/IB/IBFEDirectForcingKinematics.cpp \
   ../src/IB/IBFEInstrumentPanel.cpp \
@@ -331,6 +332,7 @@ pkg_include_HEADERS += \
 if LIBMESH_ENABLED
   pkg_include_HEADERS += \
   ../include/ibamr/FEMechanicsBase.h \
+  ../include/ibamr/FEMechanicsExplicitIntegrator.h \
   ../include/ibamr/FESurfaceDistanceEvaluator.h \
   ../include/ibamr/IBFECentroidPostProcessor.h \
   ../include/ibamr/IBFEDirectForcingKinematics.h \
