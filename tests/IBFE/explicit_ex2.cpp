@@ -21,6 +21,8 @@
 #include <petscsys.h>
 
 // Headers for basic SAMRAI objects
+#include <tbox/Logger.h>
+
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <LoadBalancer.h>
@@ -120,6 +122,10 @@ main(int argc, char* argv[])
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
+
+    // suppress warnings caused by using a refinement ratio of 4 and not
+    // setting up coarsening correctly
+    SAMRAI::tbox::Logger::getInstance()->setWarning(false);
 
     PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-16");
     PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-16");

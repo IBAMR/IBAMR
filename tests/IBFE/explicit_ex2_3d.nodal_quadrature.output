@@ -6,12 +6,6 @@ INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field
 INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve number of iterations = 0
 INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
-Warning in file ``../../../ibtk/lib/../src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp'' at line 126
-WARNING MESSAGE: 
-CartCellDoubleCubicCoarsen::coarsen():
-  cubic coarsening requires a refinement ratio of 4 or larger.
-  reverting to weighted averaging.
-
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 0
@@ -25,12 +19,6 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing co
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
-Warning in file ``../../../ibtk/lib/../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp'' at line 134
-WARNING MESSAGE: 
-CartSideDoubleCubicCoarsen::coarsen():
-  cubic coarsening requires a refinement ratio of 4 or larger.
-  reverting to weighted averaging.
-
 IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
 IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
