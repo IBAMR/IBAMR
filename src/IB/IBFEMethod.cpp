@@ -807,7 +807,10 @@ IBFEMethod::computeLagrangianForce(const double data_time)
                                                              d_use_consistent_mass_matrix,
                                                              /*close_U*/ false,
                                                              /*close_F*/ false);
-        d_F_vecs->copy("solution", { data_time_str });
+    }
+    d_F_vecs->copy("solution", { data_time_str });
+    for (unsigned part = 0; part < d_meshes.size(); ++part)
+    {
         if (d_direct_forcing_kinematics_data[part])
         {
             d_direct_forcing_kinematics_data[part]->computeLagrangianForce(d_F_vecs->get("tmp", part),
