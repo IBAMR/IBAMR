@@ -37,6 +37,23 @@
 namespace IBTK
 {
 //
+// Helper functions
+//
+template <int dim, int spacedim>
+inline Eigen::Matrix<double, dim, spacedim>
+getCovariant(const Eigen::Matrix<double, dim, spacedim>& contravariant)
+{
+    return contravariant * (contravariant.transpose() * contravariant).inverse();
+}
+
+template <int dim>
+inline Eigen::Matrix<double, dim, dim>
+getCovariant(const Eigen::Matrix<double, dim, dim>& contravariant)
+{
+    return contravariant.inverse().transpose();
+}
+
+//
 // PointMap
 //
 
@@ -168,9 +185,12 @@ NodalMapping<dim, spacedim, n_nodes>::NodalMapping(
         if (d_update_flags | FEUpdateFlags::update_JxW) d_update_flags |= update_jacobians;
 
         if (d_update_flags | FEUpdateFlags::update_jacobians) d_update_flags |= update_contravariants;
+
+        if (d_update_flags | FEUpdateFlags::update_covariants) d_update_flags |= update_contravariants;
     }
 
     if (d_update_flags | FEUpdateFlags::update_contravariants) d_contravariants.resize(this->d_quad_weights.size());
+    if (d_update_flags | FEUpdateFlags::update_covariants) d_covariants.resize(this->d_quad_weights.size());
 
     if (d_update_flags | FEUpdateFlags::update_jacobians) d_Jacobians.resize(this->d_quad_weights.size());
 
@@ -184,7 +204,8 @@ template <int dim, int spacedim, int n_nodes>
 void
 NodalMapping<dim, spacedim, n_nodes>::reinit(const libMesh::Elem* elem)
 {
-    if (d_update_flags & FEUpdateFlags::update_contravariants) this->fillContravariants(elem);
+    if (d_update_flags & FEUpdateFlags::update_contravariants || d_update_flags & FEUpdateFlags::update_covariants)
+        this->fillTransforms(elem);
     if (d_update_flags & FEUpdateFlags::update_jacobians) this->fillJacobians();
     if (d_update_flags & FEUpdateFlags::update_JxW) this->fillJxW();
     if (d_update_flags & FEUpdateFlags::update_quadrature_points) this->fillQuadraturePoints(elem);
@@ -281,7 +302,7 @@ LagrangeMapping<dim, spacedim>::LagrangeMapping(const typename LagrangeMapping<d
 
 template <int dim, int spacedim>
 void
-LagrangeMapping<dim, spacedim>::fillContravariants(const libMesh::Elem* elem)
+LagrangeMapping<dim, spacedim>::fillTransforms(const libMesh::Elem* elem)
 {
     // static_assert(spacedim <= LIBMESH_DIM);
     TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
@@ -315,6 +336,14 @@ LagrangeMapping<dim, spacedim>::fillContravariants(const libMesh::Elem* elem)
         }
     }
 
+    if (this->d_update_flags & FEUpdateFlags::update_covariants)
+    {
+        for (unsigned int q = 0; q < this->d_JxW.size(); ++q)
+        {
+            this->d_covariants[q] = getCovariant(this->d_contravariants[q]);
+        }
+    }
+
     return;
 }
 
@@ -323,8 +352,9 @@ LagrangeMapping<dim, spacedim>::fillContravariants(const libMesh::Elem* elem)
 //
 
 void
-Tri3Mapping::fillContravariants(const libMesh::Elem* elem)
+Tri3Mapping::fillTransforms(const libMesh::Elem* elem)
 {
+    TBOX_ASSERT(this->d_update_flags & FEUpdateFlags::update_contravariants);
     TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
 
     const libMesh::Point p0 = elem->point(0);
@@ -337,6 +367,12 @@ Tri3Mapping::fillContravariants(const libMesh::Elem* elem)
     contravariant(1, 0) = p1(1) - p0(1);
     contravariant(1, 1) = p2(1) - p0(1);
     std::fill(this->d_contravariants.begin(), this->d_contravariants.end(), contravariant);
+
+    if (this->d_update_flags & FEUpdateFlags::update_covariants)
+    {
+        const Eigen::Matrix<double, 2, 2> covariant = getCovariant(contravariant);
+        std::fill(this->d_covariants.begin(), this->d_covariants.end(), covariant);
+    }
 
     return;
 }
@@ -352,8 +388,9 @@ Tri3Mapping::isAffine() const
 //
 
 void
-Quad4Mapping::fillContravariants(const libMesh::Elem* elem)
+Quad4Mapping::fillTransforms(const libMesh::Elem* elem)
 {
+    TBOX_ASSERT(this->d_update_flags & FEUpdateFlags::update_contravariants);
     TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
 
     // calculate constants in Jacobians here
@@ -380,6 +417,15 @@ Quad4Mapping::fillContravariants(const libMesh::Elem* elem)
         contravariant(0, 1) = b_1 + c_1 * x;
         contravariant(1, 0) = a_2 + c_2 * y;
         contravariant(1, 1) = b_2 + c_2 * x;
+    }
+
+    if (this->d_update_flags & FEUpdateFlags::update_covariants)
+    {
+        for (unsigned int q = 0; q < this->d_JxW.size(); ++q)
+        {
+            const auto& contravariant = this->d_contravariants[q];
+            d_covariants[q] = getCovariant(contravariant);
+        }
     }
 
     return;
@@ -433,8 +479,9 @@ Quad9Mapping::Quad9Mapping(const Quad9Mapping::key_type quad_key, FEUpdateFlags 
 }
 
 void
-Quad9Mapping::fillContravariants(const libMesh::Elem* elem)
+Quad9Mapping::fillTransforms(const libMesh::Elem* elem)
 {
+    TBOX_ASSERT(this->d_update_flags & FEUpdateFlags::update_contravariants);
     TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
 
     constexpr std::size_t n_oned_shape_functions = 3;
@@ -495,6 +542,15 @@ Quad9Mapping::fillContravariants(const libMesh::Elem* elem)
         }
     }
 
+    if (this->d_update_flags & FEUpdateFlags::update_covariants)
+    {
+        for (unsigned int q = 0; q < this->d_JxW.size(); ++q)
+        {
+            const auto& contravariant = this->d_contravariants[q];
+            d_covariants[q] = getCovariant(contravariant);
+        }
+    }
+
     return;
 }
 
@@ -503,8 +559,9 @@ Quad9Mapping::fillContravariants(const libMesh::Elem* elem)
 //
 
 void
-Tet4Mapping::fillContravariants(const libMesh::Elem* elem)
+Tet4Mapping::fillTransforms(const libMesh::Elem* elem)
 {
+    TBOX_ASSERT(this->d_update_flags & FEUpdateFlags::update_contravariants);
     // also permit TET10
     const auto type = elem->type();
     TBOX_ASSERT(type == libMesh::TET4 || type == libMesh::TET10);
@@ -526,6 +583,12 @@ Tet4Mapping::fillContravariants(const libMesh::Elem* elem)
     contravariant(2, 1) = p2(2) - p0(2);
     contravariant(2, 2) = p3(2) - p0(2);
     std::fill(d_contravariants.begin(), d_contravariants.end(), contravariant);
+
+    if (this->d_update_flags & FEUpdateFlags::update_covariants)
+    {
+        const Eigen::Matrix<double, 3, 3> covariant = getCovariant(contravariant);
+        std::fill(this->d_covariants.begin(), this->d_covariants.end(), covariant);
+    }
 
     return;
 }
@@ -555,6 +618,7 @@ Tet10Mapping::reinit(const libMesh::Elem* elem)
         // If we ever add more fields to the mapping classes we will need to
         // duplicate them here
         std::swap(d_contravariants, tet4_mapping.d_contravariants);
+        std::swap(d_covariants, tet4_mapping.d_covariants);
         std::swap(d_Jacobians, tet4_mapping.d_Jacobians);
         std::swap(d_JxW, tet4_mapping.d_JxW);
         std::swap(d_quadrature_points, tet4_mapping.d_quadrature_points);

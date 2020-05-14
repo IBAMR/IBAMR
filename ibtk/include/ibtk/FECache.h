@@ -68,25 +68,31 @@ enum FEUpdateFlags
     update_contravariants = 4,
 
     /**
+     * Update mapping covariants.
+     */
+    update_covariants = 8,
+
+    /**
      * Update mapping Jacobians.
      */
-    update_jacobians = 8,
+    update_jacobians = 16,
 
     /**
      * Update JxW values.
      */
-    update_JxW = 16,
+    update_JxW = 32,
 
     /**
      * Update mapped quadrature points.
      */
-    update_quadrature_points = 32
+    update_quadrature_points = 64
 };
 
 /**
  * Permit modifying FEUpdateFlags as though it were an integer type.
  */
-inline FEUpdateFlags operator&(const FEUpdateFlags f1, const FEUpdateFlags f2)
+inline FEUpdateFlags
+operator&(const FEUpdateFlags f1, const FEUpdateFlags f2)
 {
     return static_cast<FEUpdateFlags>(static_cast<unsigned int>(f1) & static_cast<unsigned int>(f2));
 }

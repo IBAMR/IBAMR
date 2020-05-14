@@ -140,6 +140,16 @@ public:
     virtual const std::vector<libMesh::Point>& getQuadraturePoints() const = 0;
 
     /*!
+     * Get the contravariants.
+     */
+    virtual const EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> >& getContravariants() const = 0;
+
+    /*!
+     * Get the covariants.
+     */
+    virtual const EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> >& getCovariants() const = 0;
+
+    /*!
      * Standard 'quadrature key' alias - all the information to completely
      * define a libMesh quadrature rule.
      */
@@ -155,9 +165,10 @@ public:
 
 protected:
     /*!
-     * Compute the contravariants. In general each mapping will have to overload this function.
+     * Compute the contravariants and covariants. In general each mapping will
+     * have to overload this function.
      */
-    virtual void fillContravariants(const libMesh::Elem* elem) = 0;
+    virtual void fillTransforms(const libMesh::Elem* elem) = 0;
 
     /*!
      * Compute determinants of contravariants (the Jacobians).
@@ -231,6 +242,22 @@ public:
         return d_quadrature_points;
     }
 
+    virtual const EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> >& getContravariants() const override
+    {
+#ifndef NDEBUG
+        TBOX_ASSERT(d_update_flags & FEUpdateFlags::update_contravariants);
+#endif
+        return d_contravariants;
+    }
+
+    virtual const EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> >& getCovariants() const override
+    {
+#ifndef NDEBUG
+        TBOX_ASSERT(d_update_flags & FEUpdateFlags::update_covariants);
+#endif
+        return d_covariants;
+    }
+
 protected:
     /*!
      * Computed update flags for the mapping.
@@ -241,6 +268,12 @@ protected:
      * Array of contravariants.
      */
     EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> > d_contravariants;
+
+    /*!
+     * Array of covariants (i.e., the transpose of the inverse of the
+     * covariants when dim == spacedim)
+     */
+    EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> > d_covariants;
 
     /*!
      * Array of Jacobians.
@@ -310,7 +343,7 @@ public:
     LagrangeMapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
 protected:
-    virtual void fillContravariants(const libMesh::Elem* elem) override;
+    virtual void fillTransforms(const libMesh::Elem* elem) override;
 
     /**
      * Number of nodes for the considered element type.
@@ -337,7 +370,7 @@ public:
     using NodalMapping<2, 2, 3>::NodalMapping;
 
 protected:
-    virtual void fillContravariants(const libMesh::Elem* elem) override;
+    virtual void fillTransforms(const libMesh::Elem* elem) override;
 
     virtual bool isAffine() const override;
 };
@@ -355,7 +388,7 @@ public:
     using NodalMapping<2, 2, 4>::NodalMapping;
 
 protected:
-    virtual void fillContravariants(const libMesh::Elem* elem) override;
+    virtual void fillTransforms(const libMesh::Elem* elem) override;
 };
 
 /*!
@@ -376,7 +409,7 @@ public:
     Quad9Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
 protected:
-    virtual void fillContravariants(const libMesh::Elem* elem) override;
+    virtual void fillTransforms(const libMesh::Elem* elem) override;
 
     /**
      * Number of 1D quadrature points in the rule used to generate the 2D
@@ -410,7 +443,7 @@ public:
     using NodalMapping<3, 3, 4>::NodalMapping;
 
 protected:
-    virtual void fillContravariants(const libMesh::Elem* elem) override;
+    virtual void fillTransforms(const libMesh::Elem* elem) override;
 
     virtual bool isAffine() const override;
 
