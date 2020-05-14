@@ -327,8 +327,8 @@ protected:
  * in that family but is less efficient than the specialized classes for
  * lower-order or tensor-product elements. Supports nonzero codimension.
  */
-template <int dim, int spacedim = dim>
-class LagrangeMapping : public NodalMapping<dim, spacedim>
+template <int dim, int spacedim = dim, int n_nodes = -1>
+class LagrangeMapping : public NodalMapping<dim, spacedim, n_nodes>
 {
 public:
     /**
@@ -455,7 +455,7 @@ protected:
  * reference configuration, most TET10 elements are actually affine this class
  * tries use the TET4 mapping whenever possible.
  */
-class Tet10Mapping : public LagrangeMapping<3, 3>
+class Tet10Mapping : public LagrangeMapping<3, 3, 10>
 {
 public:
     /*!

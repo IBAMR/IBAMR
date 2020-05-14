@@ -260,9 +260,9 @@ NodalMapping<dim, spacedim, n_nodes>::fillQuadraturePoints(const libMesh::Elem* 
     // mapping from the higher-order mapping, so permit elements with more
     // nodes in that code
     if (n_nodes != -1) TBOX_ASSERT(n_nodes <= elem->n_nodes());
-    const auto n_nodes_ = n_nodes == -1 ? elem->n_nodes() : n_nodes;
+    const int n_nodes_ = n_nodes == -1 ? elem->n_nodes() : n_nodes;
     TBOX_ASSERT(n_nodes_ <= 27);
-    for (unsigned int node_n = 0; node_n < n_nodes_; ++node_n)
+    for (int node_n = 0; node_n < n_nodes_; ++node_n)
     {
         nodes[node_n] = static_cast<const libMesh::Point&>(*elem->node_ptr(node_n));
     }
@@ -274,11 +274,14 @@ NodalMapping<dim, spacedim, n_nodes>::fillQuadraturePoints(const libMesh::Elem* 
 // LagrangeMapping
 //
 
-template <int dim, int spacedim>
-LagrangeMapping<dim, spacedim>::LagrangeMapping(const typename LagrangeMapping<dim, spacedim>::key_type quad_key,
-                                                const FEUpdateFlags update_flags)
-    : NodalMapping<dim, spacedim>(quad_key, update_flags), d_n_nodes(get_n_nodes(std::get<0>(this->d_quad_key)))
+template <int dim, int spacedim, int n_nodes>
+LagrangeMapping<dim, spacedim, n_nodes>::LagrangeMapping(
+    const typename LagrangeMapping<dim, spacedim, n_nodes>::key_type quad_key,
+    const FEUpdateFlags update_flags)
+    : NodalMapping<dim, spacedim, n_nodes>(quad_key, update_flags),
+      d_n_nodes(n_nodes == -1 ? get_n_nodes(std::get<0>(this->d_quad_key)) : n_nodes)
 {
+    if (n_nodes != -1) TBOX_ASSERT(d_n_nodes == n_nodes);
 #if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
     TBOX_ASSERT(d_n_nodes <= 27);
 #else
@@ -300,12 +303,12 @@ LagrangeMapping<dim, spacedim>::LagrangeMapping(const typename LagrangeMapping<d
     }
 }
 
-template <int dim, int spacedim>
+template <int dim, int spacedim, int n_nodes>
 void
-LagrangeMapping<dim, spacedim>::fillTransforms(const libMesh::Elem* elem)
+LagrangeMapping<dim, spacedim, n_nodes>::fillTransforms(const libMesh::Elem* elem)
 {
-    // static_assert(spacedim <= LIBMESH_DIM);
-    TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
+    TBOX_ASSERT(this->d_update_flags & FEUpdateFlags::update_contravariants);
+    TBOX_ASSERT(d_n_nodes <= elem->n_nodes());
 
     // max_n_nodes is a constant defined by libMesh - currently 27
 #if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
@@ -314,7 +317,8 @@ LagrangeMapping<dim, spacedim>::fillTransforms(const libMesh::Elem* elem)
     double xs[libMesh::Elem::max_n_nodes][spacedim];
 #endif
 
-    for (unsigned int i = 0; i < d_n_nodes; ++i)
+    const int n_nodes_ = n_nodes == -1 ? d_n_nodes : n_nodes;
+    for (int i = 0; i < n_nodes_; ++i)
     {
         const libMesh::Point p = elem->point(i);
         for (unsigned int j = 0; j < spacedim; ++j) xs[i][j] = p(j);
@@ -324,7 +328,7 @@ LagrangeMapping<dim, spacedim>::fillTransforms(const libMesh::Elem* elem)
     {
         auto& contravariant = this->d_contravariants[q];
         contravariant.setZero();
-        for (unsigned int node_n = 0; node_n < d_n_nodes; ++node_n)
+        for (int node_n = 0; node_n < n_nodes_; ++node_n)
         {
             for (unsigned int i = 0; i < spacedim; ++i)
             {
@@ -604,7 +608,7 @@ Tet4Mapping::isAffine() const
 //
 
 Tet10Mapping::Tet10Mapping(const key_type quad_key, const FEUpdateFlags update_flags)
-    : LagrangeMapping<3, 3>(quad_key, update_flags),
+    : LagrangeMapping<3, 3, 10>(quad_key, update_flags),
       tet4_mapping(std::make_tuple(libMesh::TET4, std::get<1>(quad_key), std::get<2>(quad_key)), update_flags)
 {
 }
@@ -624,7 +628,7 @@ Tet10Mapping::reinit(const libMesh::Elem* elem)
         std::swap(d_quadrature_points, tet4_mapping.d_quadrature_points);
     }
     else
-        LagrangeMapping<3, 3>::reinit(elem);
+        LagrangeMapping<3, 3, 10>::reinit(elem);
 }
 
 bool
