@@ -636,14 +636,23 @@ bool
 Tet10Mapping::elem_is_affine(const libMesh::Elem* elem)
 {
     std::array<libMesh::Point, 10> nodes;
-    for (unsigned int n = 0; n < 10; ++n) nodes[n] = elem->node_ref(n);
-    const double tol = 1e-16;
-    return nodes[4].relative_fuzzy_equals(0.5 * (nodes[0] + nodes[1]), tol) &&
-           nodes[5].relative_fuzzy_equals(0.5 * (nodes[1] + nodes[2]), tol) &&
-           nodes[6].relative_fuzzy_equals(0.5 * (nodes[0] + nodes[2]), tol) &&
-           nodes[7].relative_fuzzy_equals(0.5 * (nodes[0] + nodes[3]), tol) &&
-           nodes[8].relative_fuzzy_equals(0.5 * (nodes[1] + nodes[3]), tol) &&
-           nodes[9].relative_fuzzy_equals(0.5 * (nodes[2] + nodes[3]), tol);
+    for (unsigned int n = 0; n < nodes.size(); ++n) nodes[n] = elem->node_ref(n);
+
+    // try to determine the size of the coordinates to use as the tolerance.
+    double characteristic_point_size = 0.0;
+    for (int d = 0; d < LIBMESH_DIM; ++d)
+    {
+        characteristic_point_size += std::abs(nodes[0](d));
+        characteristic_point_size += std::abs(nodes[3](d));
+    }
+    const double tol = 1e-16 * characteristic_point_size;
+
+    return nodes[4].absolute_fuzzy_equals(0.5 * (nodes[0] + nodes[1]), tol) &&
+           nodes[5].absolute_fuzzy_equals(0.5 * (nodes[1] + nodes[2]), tol) &&
+           nodes[6].absolute_fuzzy_equals(0.5 * (nodes[0] + nodes[2]), tol) &&
+           nodes[7].absolute_fuzzy_equals(0.5 * (nodes[0] + nodes[3]), tol) &&
+           nodes[8].absolute_fuzzy_equals(0.5 * (nodes[1] + nodes[3]), tol) &&
+           nodes[9].absolute_fuzzy_equals(0.5 * (nodes[2] + nodes[3]), tol);
 }
 
 //
