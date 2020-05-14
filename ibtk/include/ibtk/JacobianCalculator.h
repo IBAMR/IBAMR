@@ -349,7 +349,7 @@ protected:
     /**
      * Number of nodes for the considered element type.
      */
-    const std::size_t d_n_nodes;
+    const int d_n_nodes;
 
     /**
      * Values of shape function gradients on the reference element at

@@ -293,7 +293,7 @@ LagrangeMapping<dim, spacedim, n_nodes>::LagrangeMapping(
     typename decltype(d_dphi)::extent_gen extents;
     d_dphi.resize(extents[d_n_nodes][this->d_quad_points.size()]);
 
-    for (unsigned int node_n = 0; node_n < d_n_nodes; ++node_n)
+    for (int node_n = 0; node_n < d_n_nodes; ++node_n)
     {
         for (unsigned int q = 0; q < this->d_quad_points.size(); ++q)
         {
