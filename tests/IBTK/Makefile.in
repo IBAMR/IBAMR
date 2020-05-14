@@ -102,7 +102,7 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	ghost_indices_01_3d$(EXEEXT) ibtk_init$(EXEEXT) \
 	$(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@am__append_1 = elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
-@LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d mapping_01
+@LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d mapping_01 fe_values_01
 
 subdir = tests/IBTK
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -140,7 +140,8 @@ CONFIG_CLEAN_VPATH_FILES =
 @LIBMESH_ENABLED_TRUE@	jacobian_calc_01$(EXEEXT) \
 @LIBMESH_ENABLED_TRUE@	bounding_boxes_01_2d$(EXEEXT) \
 @LIBMESH_ENABLED_TRUE@	bounding_boxes_01_3d$(EXEEXT) \
-@LIBMESH_ENABLED_TRUE@	mapping_01$(EXEEXT)
+@LIBMESH_ENABLED_TRUE@	mapping_01$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	fe_values_01$(EXEEXT)
 am__bounding_boxes_01_2d_SOURCES_DIST = bounding_boxes_01.cpp
 @LIBMESH_ENABLED_TRUE@am_bounding_boxes_01_2d_OBJECTS = bounding_boxes_01_2d-bounding_boxes_01.$(OBJEXT)
 bounding_boxes_01_2d_OBJECTS = $(am_bounding_boxes_01_2d_OBJECTS)
@@ -196,6 +197,15 @@ elem_hmax_02_OBJECTS = $(am_elem_hmax_02_OBJECTS)
 @LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 elem_hmax_02_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(elem_hmax_02_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am__fe_values_01_SOURCES_DIST = fe_values_01.cpp
+@LIBMESH_ENABLED_TRUE@am_fe_values_01_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	fe_values_01-fe_values_01.$(OBJEXT)
+fe_values_01_OBJECTS = $(am_fe_values_01_OBJECTS)
+@LIBMESH_ENABLED_TRUE@fe_values_01_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
+fe_values_01_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(fe_values_01_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_ghost_accumulation_01_2d_OBJECTS =  \
 	ghost_accumulation_01_2d-ghost_accumulation_01.$(OBJEXT)
@@ -411,6 +421,7 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/box_utilities_01_3d-box_utilities_01.Po \
 	./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po \
 	./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po \
+	./$(DEPDIR)/fe_values_01-fe_values_01.Po \
 	./$(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Po \
 	./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po \
 	./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po \
@@ -458,7 +469,8 @@ am__v_CXXLD_1 =
 SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(bounding_boxes_01_3d_SOURCES) $(box_utilities_01_2d_SOURCES) \
 	$(box_utilities_01_3d_SOURCES) $(elem_hmax_01_SOURCES) \
-	$(elem_hmax_02_SOURCES) $(ghost_accumulation_01_2d_SOURCES) \
+	$(elem_hmax_02_SOURCES) $(fe_values_01_SOURCES) \
+	$(ghost_accumulation_01_2d_SOURCES) \
 	$(ghost_accumulation_01_3d_SOURCES) \
 	$(ghost_indices_01_2d_SOURCES) $(ghost_indices_01_3d_SOURCES) \
 	$(ibtk_init_SOURCES) $(jacobian_calc_01_SOURCES) \
@@ -479,6 +491,7 @@ DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(box_utilities_01_2d_SOURCES) $(box_utilities_01_3d_SOURCES) \
 	$(am__elem_hmax_01_SOURCES_DIST) \
 	$(am__elem_hmax_02_SOURCES_DIST) \
+	$(am__fe_values_01_SOURCES_DIST) \
 	$(ghost_accumulation_01_2d_SOURCES) \
 	$(ghost_accumulation_01_3d_SOURCES) \
 	$(ghost_indices_01_2d_SOURCES) $(ghost_indices_01_3d_SOURCES) \
@@ -861,6 +874,9 @@ vc_viscous_solver_3d_SOURCES = vc_viscous_solver.cpp
 @LIBMESH_ENABLED_TRUE@mapping_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 @LIBMESH_ENABLED_TRUE@mapping_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 @LIBMESH_ENABLED_TRUE@mapping_01_SOURCES = mapping_01.cpp
+@LIBMESH_ENABLED_TRUE@fe_values_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@fe_values_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@fe_values_01_SOURCES = fe_values_01.cpp
 box_utilities_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 box_utilities_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 box_utilities_01_2d_SOURCES = box_utilities_01.cpp
@@ -937,6 +953,10 @@ elem_hmax_01$(EXEEXT): $(elem_hmax_01_OBJECTS) $(elem_hmax_01_DEPENDENCIES) $(EX
 elem_hmax_02$(EXEEXT): $(elem_hmax_02_OBJECTS) $(elem_hmax_02_DEPENDENCIES) $(EXTRA_elem_hmax_02_DEPENDENCIES) 
 	@rm -f elem_hmax_02$(EXEEXT)
 	$(AM_V_CXXLD)$(elem_hmax_02_LINK) $(elem_hmax_02_OBJECTS) $(elem_hmax_02_LDADD) $(LIBS)
+
+fe_values_01$(EXEEXT): $(fe_values_01_OBJECTS) $(fe_values_01_DEPENDENCIES) $(EXTRA_fe_values_01_DEPENDENCIES) 
+	@rm -f fe_values_01$(EXEEXT)
+	$(AM_V_CXXLD)$(fe_values_01_LINK) $(fe_values_01_OBJECTS) $(fe_values_01_LDADD) $(LIBS)
 
 ghost_accumulation_01_2d$(EXEEXT): $(ghost_accumulation_01_2d_OBJECTS) $(ghost_accumulation_01_2d_DEPENDENCIES) $(EXTRA_ghost_accumulation_01_2d_DEPENDENCIES) 
 	@rm -f ghost_accumulation_01_2d$(EXEEXT)
@@ -1050,6 +1070,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/box_utilities_01_3d-box_utilities_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fe_values_01-fe_values_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po@am__quote@ # am--include-marker
@@ -1189,6 +1210,20 @@ elem_hmax_02-elem_hmax_02.obj: elem_hmax_02.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='elem_hmax_02.cpp' object='elem_hmax_02-elem_hmax_02.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(elem_hmax_02_CXXFLAGS) $(CXXFLAGS) -c -o elem_hmax_02-elem_hmax_02.obj `if test -f 'elem_hmax_02.cpp'; then $(CYGPATH_W) 'elem_hmax_02.cpp'; else $(CYGPATH_W) '$(srcdir)/elem_hmax_02.cpp'; fi`
+
+fe_values_01-fe_values_01.o: fe_values_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_values_01_CXXFLAGS) $(CXXFLAGS) -MT fe_values_01-fe_values_01.o -MD -MP -MF $(DEPDIR)/fe_values_01-fe_values_01.Tpo -c -o fe_values_01-fe_values_01.o `test -f 'fe_values_01.cpp' || echo '$(srcdir)/'`fe_values_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fe_values_01-fe_values_01.Tpo $(DEPDIR)/fe_values_01-fe_values_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fe_values_01.cpp' object='fe_values_01-fe_values_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_values_01_CXXFLAGS) $(CXXFLAGS) -c -o fe_values_01-fe_values_01.o `test -f 'fe_values_01.cpp' || echo '$(srcdir)/'`fe_values_01.cpp
+
+fe_values_01-fe_values_01.obj: fe_values_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_values_01_CXXFLAGS) $(CXXFLAGS) -MT fe_values_01-fe_values_01.obj -MD -MP -MF $(DEPDIR)/fe_values_01-fe_values_01.Tpo -c -o fe_values_01-fe_values_01.obj `if test -f 'fe_values_01.cpp'; then $(CYGPATH_W) 'fe_values_01.cpp'; else $(CYGPATH_W) '$(srcdir)/fe_values_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fe_values_01-fe_values_01.Tpo $(DEPDIR)/fe_values_01-fe_values_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fe_values_01.cpp' object='fe_values_01-fe_values_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_values_01_CXXFLAGS) $(CXXFLAGS) -c -o fe_values_01-fe_values_01.obj `if test -f 'fe_values_01.cpp'; then $(CYGPATH_W) 'fe_values_01.cpp'; else $(CYGPATH_W) '$(srcdir)/fe_values_01.cpp'; fi`
 
 ghost_accumulation_01_2d-ghost_accumulation_01.o: ghost_accumulation_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ghost_accumulation_01_2d_CXXFLAGS) $(CXXFLAGS) -MT ghost_accumulation_01_2d-ghost_accumulation_01.o -MD -MP -MF $(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Tpo -c -o ghost_accumulation_01_2d-ghost_accumulation_01.o `test -f 'ghost_accumulation_01.cpp' || echo '$(srcdir)/'`ghost_accumulation_01.cpp
@@ -1677,6 +1712,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/box_utilities_01_3d-box_utilities_01.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
+	-rm -f ./$(DEPDIR)/fe_values_01-fe_values_01.Po
 	-rm -f ./$(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po
@@ -1753,6 +1789,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/box_utilities_01_3d-box_utilities_01.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
+	-rm -f ./$(DEPDIR)/fe_values_01-fe_values_01.Po
 	-rm -f ./$(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po

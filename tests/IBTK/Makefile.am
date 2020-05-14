@@ -23,7 +23,7 @@ ghost_indices_01_3d ibtk_init
 
 if LIBMESH_ENABLED
 EXTRA_PROGRAMS += elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
-bounding_boxes_01_3d mapping_01
+bounding_boxes_01_3d mapping_01 fe_values_01
 endif
 
 if LIBMESH_ENABLED
@@ -136,6 +136,12 @@ if LIBMESH_ENABLED
 mapping_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 mapping_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 mapping_01_SOURCES = mapping_01.cpp
+endif
+
+if LIBMESH_ENABLED
+fe_values_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+fe_values_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+fe_values_01_SOURCES = fe_values_01.cpp
 endif
 
 box_utilities_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
