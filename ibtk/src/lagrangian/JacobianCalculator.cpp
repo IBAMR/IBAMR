@@ -151,8 +151,9 @@ Mapping<3, 3>::build(const key_type key, const FEUpdateFlags update_flags)
     case libMesh::ElemType::TET10:
         return std::unique_ptr<Mapping<3, 3> >(new Tet10Mapping(key, update_flags));
     case libMesh::ElemType::HEX8:
-    case libMesh::ElemType::HEX27:
         return std::unique_ptr<Mapping<3, 3> >(new LagrangeMapping<3, 3>(key, update_flags));
+    case libMesh::ElemType::HEX27:
+        return std::unique_ptr<Mapping<3, 3> >(new Hex27Mapping(key, update_flags));
     default:
         TBOX_ASSERT(false);
     }
@@ -643,6 +644,74 @@ Tet10Mapping::elem_is_affine(const libMesh::Elem* elem)
            nodes[7].relative_fuzzy_equals(0.5 * (nodes[0] + nodes[3]), tol) &&
            nodes[8].relative_fuzzy_equals(0.5 * (nodes[1] + nodes[3]), tol) &&
            nodes[9].relative_fuzzy_equals(0.5 * (nodes[2] + nodes[3]), tol);
+}
+
+//
+// Hex27Mapping
+//
+
+Hex27Mapping::Hex27Mapping(const key_type quad_key, const FEUpdateFlags update_flags)
+    : LagrangeMapping<3, 3, 27>(quad_key, update_flags),
+      hex8_mapping(std::make_tuple(libMesh::HEX8, std::get<1>(quad_key), std::get<2>(quad_key)), update_flags)
+{
+}
+
+void
+Hex27Mapping::reinit(const libMesh::Elem* elem)
+{
+    if (elem_is_trilinear(elem))
+    {
+        hex8_mapping.reinit(elem);
+        // If we ever add more fields to the mapping classes we will need to
+        // duplicate them here
+        std::swap(d_contravariants, hex8_mapping.d_contravariants);
+        std::swap(d_covariants, hex8_mapping.d_covariants);
+        std::swap(d_Jacobians, hex8_mapping.d_Jacobians);
+        std::swap(d_JxW, hex8_mapping.d_JxW);
+        std::swap(d_quadrature_points, hex8_mapping.d_quadrature_points);
+    }
+    else
+        LagrangeMapping<3, 3, 27>::reinit(elem);
+}
+
+bool
+Hex27Mapping::elem_is_trilinear(const libMesh::Elem* elem)
+{
+    std::array<libMesh::Point, 27> nodes;
+    for (unsigned int n = 0; n < nodes.size(); ++n) nodes[n] = elem->node_ref(n);
+
+    // try to determine the size of the coordinates to use as the tolerance.
+    double characteristic_point_size = 0.0;
+    for (int d = 0; d < LIBMESH_DIM; ++d)
+    {
+        characteristic_point_size += std::abs(nodes[0](d));
+        characteristic_point_size += std::abs(nodes[6](d));
+    }
+    const double tol = 1e-16 * characteristic_point_size;
+
+    return
+        // line midpoints
+        nodes[8].absolute_fuzzy_equals(0.5 * (nodes[0] + nodes[1]), tol) &&
+        nodes[9].absolute_fuzzy_equals(0.5 * (nodes[1] + nodes[2]), tol) &&
+        nodes[10].absolute_fuzzy_equals(0.5 * (nodes[2] + nodes[3]), tol) &&
+        nodes[11].absolute_fuzzy_equals(0.5 * (nodes[0] + nodes[3]), tol) &&
+        nodes[12].absolute_fuzzy_equals(0.5 * (nodes[0] + nodes[4]), tol) &&
+        nodes[13].absolute_fuzzy_equals(0.5 * (nodes[1] + nodes[5]), tol) &&
+        nodes[14].absolute_fuzzy_equals(0.5 * (nodes[2] + nodes[6]), tol) &&
+        nodes[15].absolute_fuzzy_equals(0.5 * (nodes[3] + nodes[7]), tol) &&
+        nodes[16].absolute_fuzzy_equals(0.5 * (nodes[4] + nodes[5]), tol) &&
+        nodes[17].absolute_fuzzy_equals(0.5 * (nodes[5] + nodes[6]), tol) &&
+        nodes[18].absolute_fuzzy_equals(0.5 * (nodes[6] + nodes[7]), tol) &&
+        nodes[19].absolute_fuzzy_equals(0.5 * (nodes[4] + nodes[7]), tol) &&
+        // face midpoints
+        nodes[20].absolute_fuzzy_equals(0.5 * (nodes[8] + nodes[10]), tol) &&
+        nodes[21].absolute_fuzzy_equals(0.5 * (nodes[8] + nodes[16]), tol) &&
+        nodes[22].absolute_fuzzy_equals(0.5 * (nodes[9] + nodes[17]), tol) &&
+        nodes[23].absolute_fuzzy_equals(0.5 * (nodes[10] + nodes[18]), tol) &&
+        nodes[24].absolute_fuzzy_equals(0.5 * (nodes[11] + nodes[19]), tol) &&
+        nodes[25].absolute_fuzzy_equals(0.5 * (nodes[16] + nodes[18]), tol) &&
+        // cell center
+        nodes[26].absolute_fuzzy_equals(0.5 * (nodes[20] + nodes[25]), tol);
 }
 
 //

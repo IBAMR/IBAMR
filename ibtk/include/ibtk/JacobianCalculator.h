@@ -44,7 +44,8 @@ IBTK_ENABLE_EXTRA_WARNINGS
 namespace IBTK
 {
 class Tet10Mapping;
-}
+class Hex27Mapping;
+} // namespace IBTK
 
 namespace IBTK
 {
@@ -355,6 +356,8 @@ protected:
      * quadrature points.
      */
     boost::multi_array<std::array<double, dim>, 2> d_dphi;
+
+    friend class Hex27Mapping;
 };
 
 /*!
@@ -482,6 +485,40 @@ protected:
      * nodes at edge midpoints are averages of corners)
      */
     static bool elem_is_affine(const libMesh::Elem* elem);
+};
+
+/*!
+ * Specialization for HEX27 elements. Since, for most applications and in the
+ * reference configuration, most HEX27 elements are actually trilinear, this
+ * class tries use the lower degree mapping whenever possible.
+ */
+class Hex27Mapping : public LagrangeMapping<3, 3, 27>
+{
+public:
+    /*!
+     * Key type. Completely describes (excepting p-refinement) a libMesh
+     * quadrature rule.
+     */
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+
+    /*!
+     * Constructor.
+     */
+    Hex27Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
+
+    virtual void reinit(const libMesh::Elem* elem) override;
+
+protected:
+    /*!
+     * HEX8 mapping that is used whenever the given elem is trilinear.
+     */
+    LagrangeMapping<3, 3, 8> hex8_mapping;
+
+    /*!
+     * Utility function that determines if the element is trilinear (i.e., all
+     * nodes at edge midpoints are averages of corners)
+     */
+    static bool elem_is_trilinear(const libMesh::Elem* elem);
 };
 
 // Specialization of build for 2D
