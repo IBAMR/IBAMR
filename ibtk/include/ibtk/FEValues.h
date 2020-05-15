@@ -36,16 +36,13 @@
 namespace IBTK
 {
 /**
- * Class like libMesh::FE for element shape function calculations, but
- * optimized for isoparametric Lagrange finite elements.
+ * Class defining the interface to FEValues in a dimension-independent way to
+ * improve compatibility with libMesh.
  */
-template <int dim, int spacedim = dim>
-class FEValues
+class FEValuesBase
 {
 public:
-    FEValues(libMesh::QBase* qrule, const FEUpdateFlags update_flags);
-
-    virtual void reinit(const libMesh::Elem* elem);
+    virtual void reinit(const libMesh::Elem* elem) = 0;
 
     inline const std::vector<double>& getJxW() const
     {
@@ -67,9 +64,10 @@ public:
         return d_shape_gradients;
     }
 
-protected:
-    libMesh::QBase* d_qrule;
+    static std::unique_ptr<FEValuesBase>
+    build(const int dim, const int spacedim, libMesh::QBase* qrule, const FEUpdateFlags update_flags);
 
+protected:
     std::vector<double> d_JxW;
 
     std::vector<libMesh::Point> d_quadrature_points;
@@ -77,6 +75,22 @@ protected:
     std::vector<std::vector<double> > d_shape_values;
 
     std::vector<std::vector<libMesh::VectorValue<double> > > d_shape_gradients;
+};
+
+/**
+ * Class like libMesh::FE for element shape function calculations, but
+ * optimized for isoparametric Lagrange finite elements.
+ */
+template <int dim, int spacedim = dim>
+class FEValues : public FEValuesBase
+{
+public:
+    FEValues(libMesh::QBase* qrule, const FEUpdateFlags update_flags);
+
+    virtual void reinit(const libMesh::Elem* elem) override;
+
+protected:
+    libMesh::QBase* d_qrule;
 
     /**
      * Reference values, extracted from libMesh.

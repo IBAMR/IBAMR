@@ -42,8 +42,52 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-template <int dim>
-FEValues<dim>::FEValues(libMesh::QBase* qrule, const FEUpdateFlags update_flags)
+std::unique_ptr<FEValuesBase>
+FEValuesBase::build(const int dim, const int spacedim, libMesh::QBase* qrule, const FEUpdateFlags update_flags)
+{
+    TBOX_ASSERT(dim <= spacedim);
+    switch (dim)
+    {
+    case 1:
+        switch (spacedim)
+        {
+        case 1:
+            return std::unique_ptr<FEValuesBase>(new FEValues<1, 1>(qrule, update_flags));
+        case 2:
+            return std::unique_ptr<FEValuesBase>(new FEValues<1, 2>(qrule, update_flags));
+        case 3:
+            return std::unique_ptr<FEValuesBase>(new FEValues<1, 3>(qrule, update_flags));
+        default:
+            break;
+        }
+        break;
+    case 2:
+        switch (spacedim)
+        {
+        case 2:
+            return std::unique_ptr<FEValuesBase>(new FEValues<2, 2>(qrule, update_flags));
+        case 3:
+            return std::unique_ptr<FEValuesBase>(new FEValues<2, 3>(qrule, update_flags));
+        default:
+            break;
+        }
+        break;
+    case 3:
+        TBOX_ASSERT(spacedim == dim);
+        return std::unique_ptr<FEValuesBase>(new FEValues<3, 3>(qrule, update_flags));
+    default:
+        break;
+    }
+
+    // we shouldn't be able to get here
+    TBOX_ERROR("FEValuesBase::build():\n"
+               << "This function only supports dim and spacedim equal to 1, 2, "
+               << "or 3 and dim <= spacedim." << std::endl);
+    return {};
+}
+
+template <int dim, int spacedim>
+FEValues<dim, spacedim>::FEValues(libMesh::QBase* qrule, const FEUpdateFlags update_flags)
     : d_qrule(qrule), d_update_flags(update_flags)
 {
     // set up update flag dependencies:
@@ -56,6 +100,9 @@ FEValues<dim, spacedim>::reinit(const libMesh::Elem* elem)
 {
     // some things are not yet implemented
     TBOX_ASSERT(elem->p_level() == 0);
+    // dim is only available at runtime with libMesh
+    TBOX_ASSERT(elem->dim() == dim);
+    // TODO - find a way to assert that the spatial dimension is right
 
     const libMesh::ElemType elem_type = elem->type();
     // maybe update the quadrature rule:
@@ -70,7 +117,7 @@ FEValues<dim, spacedim>::reinit(const libMesh::Elem* elem)
     auto map_iter = d_mappings.find(elem_type);
     if (map_iter == d_mappings.end())
     {
-        typename decltype(d_mappings)::value_type new_entry {elem_type, nullptr};
+        typename decltype(d_mappings)::value_type new_entry{ elem_type, nullptr };
         map_iter = d_mappings.insert(map_iter, std::move(new_entry));
         const std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order> key{ elem_type,
                                                                                           d_qrule->type(),
