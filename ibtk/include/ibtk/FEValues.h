@@ -39,7 +39,7 @@ namespace IBTK
  * Class like libMesh::FE for element shape function calculations, but
  * optimized for isoparametric Lagrange finite elements.
  */
-template <int dim>
+template <int dim, int spacedim = dim>
 class FEValues
 {
 public:
@@ -103,7 +103,7 @@ protected:
     /*
      * Mappings, indexed by element type.
      */
-    std::map<libMesh::ElemType, std::unique_ptr<Mapping<dim> > > d_mappings;
+    std::map<libMesh::ElemType, std::unique_ptr<Mapping<dim, spacedim> > > d_mappings;
 
     /*
      * Reference values, indexed by element type.

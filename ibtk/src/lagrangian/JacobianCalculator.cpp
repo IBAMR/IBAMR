@@ -40,8 +40,8 @@ namespace IBTK
 // Helper functions
 //
 template <int dim, int spacedim>
-inline Eigen::Matrix<double, dim, spacedim>
-getCovariant(const Eigen::Matrix<double, dim, spacedim>& contravariant)
+inline Eigen::Matrix<double, spacedim, dim>
+getCovariant(const Eigen::Matrix<double, spacedim, dim>& contravariant)
 {
     return contravariant * (contravariant.transpose() * contravariant).inverse();
 }
