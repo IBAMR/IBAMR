@@ -260,7 +260,7 @@ NodalMapping<dim, spacedim, n_nodes>::fillQuadraturePoints(const libMesh::Elem* 
     // We occasionally (e.g., TET10 and TET4) want to call the lower-order
     // mapping from the higher-order mapping, so permit elements with more
     // nodes in that code
-    if (n_nodes != -1) TBOX_ASSERT(n_nodes <= elem->n_nodes());
+    if (n_nodes != -1) TBOX_ASSERT(n_nodes <= static_cast<int>(elem->n_nodes()));
     const int n_nodes_ = n_nodes == -1 ? elem->n_nodes() : n_nodes;
     TBOX_ASSERT(n_nodes_ <= 27);
     for (int node_n = 0; node_n < n_nodes_; ++node_n)
@@ -286,7 +286,7 @@ LagrangeMapping<dim, spacedim, n_nodes>::LagrangeMapping(
 #if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
     TBOX_ASSERT(d_n_nodes <= 27);
 #else
-    TBOX_ASSERT(d_n_nodes <= libMesh::Elem::max_n_nodes);
+    TBOX_ASSERT(d_n_nodes <= static_cast<int>(libMesh::Elem::max_n_nodes));
 #endif
     const libMesh::ElemType elem_type = std::get<0>(this->d_quad_key);
 
@@ -309,7 +309,7 @@ void
 LagrangeMapping<dim, spacedim, n_nodes>::fillTransforms(const libMesh::Elem* elem)
 {
     TBOX_ASSERT(this->d_update_flags & FEUpdateFlags::update_contravariants);
-    TBOX_ASSERT(d_n_nodes <= elem->n_nodes());
+    TBOX_ASSERT(d_n_nodes <= static_cast<int>(elem->n_nodes()));
 
     // max_n_nodes is a constant defined by libMesh - currently 27
 #if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
