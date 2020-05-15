@@ -44,7 +44,8 @@ IBTK_ENABLE_EXTRA_WARNINGS
 namespace IBTK
 {
 class Tet10Mapping;
-}
+class Hex27Mapping;
+} // namespace IBTK
 
 namespace IBTK
 {
@@ -140,6 +141,16 @@ public:
     virtual const std::vector<libMesh::Point>& getQuadraturePoints() const = 0;
 
     /*!
+     * Get the contravariants.
+     */
+    virtual const EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> >& getContravariants() const = 0;
+
+    /*!
+     * Get the covariants.
+     */
+    virtual const EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> >& getCovariants() const = 0;
+
+    /*!
      * Standard 'quadrature key' alias - all the information to completely
      * define a libMesh quadrature rule.
      */
@@ -155,9 +166,10 @@ public:
 
 protected:
     /*!
-     * Compute the contravariants. In general each mapping will have to overload this function.
+     * Compute the contravariants and covariants. In general each mapping will
+     * have to overload this function.
      */
-    virtual void fillContravariants(const libMesh::Elem* elem) = 0;
+    virtual void fillTransforms(const libMesh::Elem* elem) = 0;
 
     /*!
      * Compute determinants of contravariants (the Jacobians).
@@ -231,6 +243,22 @@ public:
         return d_quadrature_points;
     }
 
+    virtual const EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> >& getContravariants() const override
+    {
+#ifndef NDEBUG
+        TBOX_ASSERT(d_update_flags & FEUpdateFlags::update_contravariants);
+#endif
+        return d_contravariants;
+    }
+
+    virtual const EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> >& getCovariants() const override
+    {
+#ifndef NDEBUG
+        TBOX_ASSERT(d_update_flags & FEUpdateFlags::update_covariants);
+#endif
+        return d_covariants;
+    }
+
 protected:
     /*!
      * Computed update flags for the mapping.
@@ -241,6 +269,12 @@ protected:
      * Array of contravariants.
      */
     EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> > d_contravariants;
+
+    /*!
+     * Array of covariants (i.e., the transpose of the inverse of the
+     * covariants when dim == spacedim)
+     */
+    EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> > d_covariants;
 
     /*!
      * Array of Jacobians.
@@ -294,8 +328,8 @@ protected:
  * in that family but is less efficient than the specialized classes for
  * lower-order or tensor-product elements. Supports nonzero codimension.
  */
-template <int dim, int spacedim = dim>
-class LagrangeMapping : public NodalMapping<dim, spacedim>
+template <int dim, int spacedim = dim, int n_nodes = -1>
+class LagrangeMapping : public NodalMapping<dim, spacedim, n_nodes>
 {
 public:
     /**
@@ -310,18 +344,20 @@ public:
     LagrangeMapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
 protected:
-    virtual void fillContravariants(const libMesh::Elem* elem) override;
+    virtual void fillTransforms(const libMesh::Elem* elem) override;
 
     /**
      * Number of nodes for the considered element type.
      */
-    const std::size_t d_n_nodes;
+    const int d_n_nodes;
 
     /**
      * Values of shape function gradients on the reference element at
      * quadrature points.
      */
     boost::multi_array<std::array<double, dim>, 2> d_dphi;
+
+    friend class Hex27Mapping;
 };
 
 /*!
@@ -337,7 +373,7 @@ public:
     using NodalMapping<2, 2, 3>::NodalMapping;
 
 protected:
-    virtual void fillContravariants(const libMesh::Elem* elem) override;
+    virtual void fillTransforms(const libMesh::Elem* elem) override;
 
     virtual bool isAffine() const override;
 };
@@ -355,7 +391,7 @@ public:
     using NodalMapping<2, 2, 4>::NodalMapping;
 
 protected:
-    virtual void fillContravariants(const libMesh::Elem* elem) override;
+    virtual void fillTransforms(const libMesh::Elem* elem) override;
 };
 
 /*!
@@ -376,7 +412,7 @@ public:
     Quad9Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
 protected:
-    virtual void fillContravariants(const libMesh::Elem* elem) override;
+    virtual void fillTransforms(const libMesh::Elem* elem) override;
 
     /**
      * Number of 1D quadrature points in the rule used to generate the 2D
@@ -410,7 +446,7 @@ public:
     using NodalMapping<3, 3, 4>::NodalMapping;
 
 protected:
-    virtual void fillContravariants(const libMesh::Elem* elem) override;
+    virtual void fillTransforms(const libMesh::Elem* elem) override;
 
     virtual bool isAffine() const override;
 
@@ -422,7 +458,7 @@ protected:
  * reference configuration, most TET10 elements are actually affine this class
  * tries use the TET4 mapping whenever possible.
  */
-class Tet10Mapping : public LagrangeMapping<3, 3>
+class Tet10Mapping : public LagrangeMapping<3, 3, 10>
 {
 public:
     /*!
@@ -449,6 +485,40 @@ protected:
      * nodes at edge midpoints are averages of corners)
      */
     static bool elem_is_affine(const libMesh::Elem* elem);
+};
+
+/*!
+ * Specialization for HEX27 elements. Since, for most applications and in the
+ * reference configuration, most HEX27 elements are actually trilinear, this
+ * class tries use the lower degree mapping whenever possible.
+ */
+class Hex27Mapping : public LagrangeMapping<3, 3, 27>
+{
+public:
+    /*!
+     * Key type. Completely describes (excepting p-refinement) a libMesh
+     * quadrature rule.
+     */
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+
+    /*!
+     * Constructor.
+     */
+    Hex27Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
+
+    virtual void reinit(const libMesh::Elem* elem) override;
+
+protected:
+    /*!
+     * HEX8 mapping that is used whenever the given elem is trilinear.
+     */
+    LagrangeMapping<3, 3, 8> hex8_mapping;
+
+    /*!
+     * Utility function that determines if the element is trilinear (i.e., all
+     * nodes at edge midpoints are averages of corners)
+     */
+    static bool elem_is_trilinear(const libMesh::Elem* elem);
 };
 
 // Specialization of build for 2D

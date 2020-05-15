@@ -37,6 +37,23 @@
 namespace IBTK
 {
 //
+// Helper functions
+//
+template <int dim, int spacedim>
+inline Eigen::Matrix<double, dim, spacedim>
+getCovariant(const Eigen::Matrix<double, dim, spacedim>& contravariant)
+{
+    return contravariant * (contravariant.transpose() * contravariant).inverse();
+}
+
+template <int dim>
+inline Eigen::Matrix<double, dim, dim>
+getCovariant(const Eigen::Matrix<double, dim, dim>& contravariant)
+{
+    return contravariant.inverse().transpose();
+}
+
+//
 // PointMap
 //
 
@@ -134,8 +151,9 @@ Mapping<3, 3>::build(const key_type key, const FEUpdateFlags update_flags)
     case libMesh::ElemType::TET10:
         return std::unique_ptr<Mapping<3, 3> >(new Tet10Mapping(key, update_flags));
     case libMesh::ElemType::HEX8:
-    case libMesh::ElemType::HEX27:
         return std::unique_ptr<Mapping<3, 3> >(new LagrangeMapping<3, 3>(key, update_flags));
+    case libMesh::ElemType::HEX27:
+        return std::unique_ptr<Mapping<3, 3> >(new Hex27Mapping(key, update_flags));
     default:
         TBOX_ASSERT(false);
     }
@@ -168,9 +186,12 @@ NodalMapping<dim, spacedim, n_nodes>::NodalMapping(
         if (d_update_flags | FEUpdateFlags::update_JxW) d_update_flags |= update_jacobians;
 
         if (d_update_flags | FEUpdateFlags::update_jacobians) d_update_flags |= update_contravariants;
+
+        if (d_update_flags | FEUpdateFlags::update_covariants) d_update_flags |= update_contravariants;
     }
 
     if (d_update_flags | FEUpdateFlags::update_contravariants) d_contravariants.resize(this->d_quad_weights.size());
+    if (d_update_flags | FEUpdateFlags::update_covariants) d_covariants.resize(this->d_quad_weights.size());
 
     if (d_update_flags | FEUpdateFlags::update_jacobians) d_Jacobians.resize(this->d_quad_weights.size());
 
@@ -184,7 +205,8 @@ template <int dim, int spacedim, int n_nodes>
 void
 NodalMapping<dim, spacedim, n_nodes>::reinit(const libMesh::Elem* elem)
 {
-    if (d_update_flags & FEUpdateFlags::update_contravariants) this->fillContravariants(elem);
+    if (d_update_flags & FEUpdateFlags::update_contravariants || d_update_flags & FEUpdateFlags::update_covariants)
+        this->fillTransforms(elem);
     if (d_update_flags & FEUpdateFlags::update_jacobians) this->fillJacobians();
     if (d_update_flags & FEUpdateFlags::update_JxW) this->fillJxW();
     if (d_update_flags & FEUpdateFlags::update_quadrature_points) this->fillQuadraturePoints(elem);
@@ -239,9 +261,9 @@ NodalMapping<dim, spacedim, n_nodes>::fillQuadraturePoints(const libMesh::Elem* 
     // mapping from the higher-order mapping, so permit elements with more
     // nodes in that code
     if (n_nodes != -1) TBOX_ASSERT(n_nodes <= elem->n_nodes());
-    const auto n_nodes_ = n_nodes == -1 ? elem->n_nodes() : n_nodes;
+    const int n_nodes_ = n_nodes == -1 ? elem->n_nodes() : n_nodes;
     TBOX_ASSERT(n_nodes_ <= 27);
-    for (unsigned int node_n = 0; node_n < n_nodes_; ++node_n)
+    for (int node_n = 0; node_n < n_nodes_; ++node_n)
     {
         nodes[node_n] = static_cast<const libMesh::Point&>(*elem->node_ptr(node_n));
     }
@@ -253,11 +275,14 @@ NodalMapping<dim, spacedim, n_nodes>::fillQuadraturePoints(const libMesh::Elem* 
 // LagrangeMapping
 //
 
-template <int dim, int spacedim>
-LagrangeMapping<dim, spacedim>::LagrangeMapping(const typename LagrangeMapping<dim, spacedim>::key_type quad_key,
-                                                const FEUpdateFlags update_flags)
-    : NodalMapping<dim, spacedim>(quad_key, update_flags), d_n_nodes(get_n_nodes(std::get<0>(this->d_quad_key)))
+template <int dim, int spacedim, int n_nodes>
+LagrangeMapping<dim, spacedim, n_nodes>::LagrangeMapping(
+    const typename LagrangeMapping<dim, spacedim, n_nodes>::key_type quad_key,
+    const FEUpdateFlags update_flags)
+    : NodalMapping<dim, spacedim, n_nodes>(quad_key, update_flags),
+      d_n_nodes(n_nodes == -1 ? get_n_nodes(std::get<0>(this->d_quad_key)) : n_nodes)
 {
+    if (n_nodes != -1) TBOX_ASSERT(d_n_nodes == n_nodes);
 #if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
     TBOX_ASSERT(d_n_nodes <= 27);
 #else
@@ -268,7 +293,7 @@ LagrangeMapping<dim, spacedim>::LagrangeMapping(const typename LagrangeMapping<d
     typename decltype(d_dphi)::extent_gen extents;
     d_dphi.resize(extents[d_n_nodes][this->d_quad_points.size()]);
 
-    for (unsigned int node_n = 0; node_n < d_n_nodes; ++node_n)
+    for (int node_n = 0; node_n < d_n_nodes; ++node_n)
     {
         for (unsigned int q = 0; q < this->d_quad_points.size(); ++q)
         {
@@ -279,12 +304,12 @@ LagrangeMapping<dim, spacedim>::LagrangeMapping(const typename LagrangeMapping<d
     }
 }
 
-template <int dim, int spacedim>
+template <int dim, int spacedim, int n_nodes>
 void
-LagrangeMapping<dim, spacedim>::fillContravariants(const libMesh::Elem* elem)
+LagrangeMapping<dim, spacedim, n_nodes>::fillTransforms(const libMesh::Elem* elem)
 {
-    // static_assert(spacedim <= LIBMESH_DIM);
-    TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
+    TBOX_ASSERT(this->d_update_flags & FEUpdateFlags::update_contravariants);
+    TBOX_ASSERT(d_n_nodes <= elem->n_nodes());
 
     // max_n_nodes is a constant defined by libMesh - currently 27
 #if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
@@ -293,7 +318,8 @@ LagrangeMapping<dim, spacedim>::fillContravariants(const libMesh::Elem* elem)
     double xs[libMesh::Elem::max_n_nodes][spacedim];
 #endif
 
-    for (unsigned int i = 0; i < d_n_nodes; ++i)
+    const int n_nodes_ = n_nodes == -1 ? d_n_nodes : n_nodes;
+    for (int i = 0; i < n_nodes_; ++i)
     {
         const libMesh::Point p = elem->point(i);
         for (unsigned int j = 0; j < spacedim; ++j) xs[i][j] = p(j);
@@ -303,7 +329,7 @@ LagrangeMapping<dim, spacedim>::fillContravariants(const libMesh::Elem* elem)
     {
         auto& contravariant = this->d_contravariants[q];
         contravariant.setZero();
-        for (unsigned int node_n = 0; node_n < d_n_nodes; ++node_n)
+        for (int node_n = 0; node_n < n_nodes_; ++node_n)
         {
             for (unsigned int i = 0; i < spacedim; ++i)
             {
@@ -315,6 +341,14 @@ LagrangeMapping<dim, spacedim>::fillContravariants(const libMesh::Elem* elem)
         }
     }
 
+    if (this->d_update_flags & FEUpdateFlags::update_covariants)
+    {
+        for (unsigned int q = 0; q < this->d_JxW.size(); ++q)
+        {
+            this->d_covariants[q] = getCovariant(this->d_contravariants[q]);
+        }
+    }
+
     return;
 }
 
@@ -323,8 +357,9 @@ LagrangeMapping<dim, spacedim>::fillContravariants(const libMesh::Elem* elem)
 //
 
 void
-Tri3Mapping::fillContravariants(const libMesh::Elem* elem)
+Tri3Mapping::fillTransforms(const libMesh::Elem* elem)
 {
+    TBOX_ASSERT(this->d_update_flags & FEUpdateFlags::update_contravariants);
     TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
 
     const libMesh::Point p0 = elem->point(0);
@@ -337,6 +372,12 @@ Tri3Mapping::fillContravariants(const libMesh::Elem* elem)
     contravariant(1, 0) = p1(1) - p0(1);
     contravariant(1, 1) = p2(1) - p0(1);
     std::fill(this->d_contravariants.begin(), this->d_contravariants.end(), contravariant);
+
+    if (this->d_update_flags & FEUpdateFlags::update_covariants)
+    {
+        const Eigen::Matrix<double, 2, 2> covariant = getCovariant(contravariant);
+        std::fill(this->d_covariants.begin(), this->d_covariants.end(), covariant);
+    }
 
     return;
 }
@@ -352,8 +393,9 @@ Tri3Mapping::isAffine() const
 //
 
 void
-Quad4Mapping::fillContravariants(const libMesh::Elem* elem)
+Quad4Mapping::fillTransforms(const libMesh::Elem* elem)
 {
+    TBOX_ASSERT(this->d_update_flags & FEUpdateFlags::update_contravariants);
     TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
 
     // calculate constants in Jacobians here
@@ -380,6 +422,15 @@ Quad4Mapping::fillContravariants(const libMesh::Elem* elem)
         contravariant(0, 1) = b_1 + c_1 * x;
         contravariant(1, 0) = a_2 + c_2 * y;
         contravariant(1, 1) = b_2 + c_2 * x;
+    }
+
+    if (this->d_update_flags & FEUpdateFlags::update_covariants)
+    {
+        for (unsigned int q = 0; q < this->d_JxW.size(); ++q)
+        {
+            const auto& contravariant = this->d_contravariants[q];
+            d_covariants[q] = getCovariant(contravariant);
+        }
     }
 
     return;
@@ -433,8 +484,9 @@ Quad9Mapping::Quad9Mapping(const Quad9Mapping::key_type quad_key, FEUpdateFlags 
 }
 
 void
-Quad9Mapping::fillContravariants(const libMesh::Elem* elem)
+Quad9Mapping::fillTransforms(const libMesh::Elem* elem)
 {
+    TBOX_ASSERT(this->d_update_flags & FEUpdateFlags::update_contravariants);
     TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
 
     constexpr std::size_t n_oned_shape_functions = 3;
@@ -495,6 +547,15 @@ Quad9Mapping::fillContravariants(const libMesh::Elem* elem)
         }
     }
 
+    if (this->d_update_flags & FEUpdateFlags::update_covariants)
+    {
+        for (unsigned int q = 0; q < this->d_JxW.size(); ++q)
+        {
+            const auto& contravariant = this->d_contravariants[q];
+            d_covariants[q] = getCovariant(contravariant);
+        }
+    }
+
     return;
 }
 
@@ -503,8 +564,9 @@ Quad9Mapping::fillContravariants(const libMesh::Elem* elem)
 //
 
 void
-Tet4Mapping::fillContravariants(const libMesh::Elem* elem)
+Tet4Mapping::fillTransforms(const libMesh::Elem* elem)
 {
+    TBOX_ASSERT(this->d_update_flags & FEUpdateFlags::update_contravariants);
     // also permit TET10
     const auto type = elem->type();
     TBOX_ASSERT(type == libMesh::TET4 || type == libMesh::TET10);
@@ -527,6 +589,12 @@ Tet4Mapping::fillContravariants(const libMesh::Elem* elem)
     contravariant(2, 2) = p3(2) - p0(2);
     std::fill(d_contravariants.begin(), d_contravariants.end(), contravariant);
 
+    if (this->d_update_flags & FEUpdateFlags::update_covariants)
+    {
+        const Eigen::Matrix<double, 3, 3> covariant = getCovariant(contravariant);
+        std::fill(this->d_covariants.begin(), this->d_covariants.end(), covariant);
+    }
+
     return;
 }
 
@@ -541,7 +609,7 @@ Tet4Mapping::isAffine() const
 //
 
 Tet10Mapping::Tet10Mapping(const key_type quad_key, const FEUpdateFlags update_flags)
-    : LagrangeMapping<3, 3>(quad_key, update_flags),
+    : LagrangeMapping<3, 3, 10>(quad_key, update_flags),
       tet4_mapping(std::make_tuple(libMesh::TET4, std::get<1>(quad_key), std::get<2>(quad_key)), update_flags)
 {
 }
@@ -555,26 +623,104 @@ Tet10Mapping::reinit(const libMesh::Elem* elem)
         // If we ever add more fields to the mapping classes we will need to
         // duplicate them here
         std::swap(d_contravariants, tet4_mapping.d_contravariants);
+        std::swap(d_covariants, tet4_mapping.d_covariants);
         std::swap(d_Jacobians, tet4_mapping.d_Jacobians);
         std::swap(d_JxW, tet4_mapping.d_JxW);
         std::swap(d_quadrature_points, tet4_mapping.d_quadrature_points);
     }
     else
-        LagrangeMapping<3, 3>::reinit(elem);
+        LagrangeMapping<3, 3, 10>::reinit(elem);
 }
 
 bool
 Tet10Mapping::elem_is_affine(const libMesh::Elem* elem)
 {
     std::array<libMesh::Point, 10> nodes;
-    for (unsigned int n = 0; n < 10; ++n) nodes[n] = elem->node_ref(n);
-    const double tol = 1e-16;
-    return nodes[4].relative_fuzzy_equals(0.5 * (nodes[0] + nodes[1]), tol) &&
-           nodes[5].relative_fuzzy_equals(0.5 * (nodes[1] + nodes[2]), tol) &&
-           nodes[6].relative_fuzzy_equals(0.5 * (nodes[0] + nodes[2]), tol) &&
-           nodes[7].relative_fuzzy_equals(0.5 * (nodes[0] + nodes[3]), tol) &&
-           nodes[8].relative_fuzzy_equals(0.5 * (nodes[1] + nodes[3]), tol) &&
-           nodes[9].relative_fuzzy_equals(0.5 * (nodes[2] + nodes[3]), tol);
+    for (unsigned int n = 0; n < nodes.size(); ++n) nodes[n] = elem->node_ref(n);
+
+    // try to determine the size of the coordinates to use as the tolerance.
+    double characteristic_point_size = 0.0;
+    for (int d = 0; d < LIBMESH_DIM; ++d)
+    {
+        characteristic_point_size += std::abs(nodes[0](d));
+        characteristic_point_size += std::abs(nodes[3](d));
+    }
+    const double tol = 1e-16 * characteristic_point_size;
+
+    return nodes[4].absolute_fuzzy_equals(0.5 * (nodes[0] + nodes[1]), tol) &&
+           nodes[5].absolute_fuzzy_equals(0.5 * (nodes[1] + nodes[2]), tol) &&
+           nodes[6].absolute_fuzzy_equals(0.5 * (nodes[0] + nodes[2]), tol) &&
+           nodes[7].absolute_fuzzy_equals(0.5 * (nodes[0] + nodes[3]), tol) &&
+           nodes[8].absolute_fuzzy_equals(0.5 * (nodes[1] + nodes[3]), tol) &&
+           nodes[9].absolute_fuzzy_equals(0.5 * (nodes[2] + nodes[3]), tol);
+}
+
+//
+// Hex27Mapping
+//
+
+Hex27Mapping::Hex27Mapping(const key_type quad_key, const FEUpdateFlags update_flags)
+    : LagrangeMapping<3, 3, 27>(quad_key, update_flags),
+      hex8_mapping(std::make_tuple(libMesh::HEX8, std::get<1>(quad_key), std::get<2>(quad_key)), update_flags)
+{
+}
+
+void
+Hex27Mapping::reinit(const libMesh::Elem* elem)
+{
+    if (elem_is_trilinear(elem))
+    {
+        hex8_mapping.reinit(elem);
+        // If we ever add more fields to the mapping classes we will need to
+        // duplicate them here
+        std::swap(d_contravariants, hex8_mapping.d_contravariants);
+        std::swap(d_covariants, hex8_mapping.d_covariants);
+        std::swap(d_Jacobians, hex8_mapping.d_Jacobians);
+        std::swap(d_JxW, hex8_mapping.d_JxW);
+        std::swap(d_quadrature_points, hex8_mapping.d_quadrature_points);
+    }
+    else
+        LagrangeMapping<3, 3, 27>::reinit(elem);
+}
+
+bool
+Hex27Mapping::elem_is_trilinear(const libMesh::Elem* elem)
+{
+    std::array<libMesh::Point, 27> nodes;
+    for (unsigned int n = 0; n < nodes.size(); ++n) nodes[n] = elem->node_ref(n);
+
+    // try to determine the size of the coordinates to use as the tolerance.
+    double characteristic_point_size = 0.0;
+    for (int d = 0; d < LIBMESH_DIM; ++d)
+    {
+        characteristic_point_size += std::abs(nodes[0](d));
+        characteristic_point_size += std::abs(nodes[6](d));
+    }
+    const double tol = 1e-16 * characteristic_point_size;
+
+    return
+        // line midpoints
+        nodes[8].absolute_fuzzy_equals(0.5 * (nodes[0] + nodes[1]), tol) &&
+        nodes[9].absolute_fuzzy_equals(0.5 * (nodes[1] + nodes[2]), tol) &&
+        nodes[10].absolute_fuzzy_equals(0.5 * (nodes[2] + nodes[3]), tol) &&
+        nodes[11].absolute_fuzzy_equals(0.5 * (nodes[0] + nodes[3]), tol) &&
+        nodes[12].absolute_fuzzy_equals(0.5 * (nodes[0] + nodes[4]), tol) &&
+        nodes[13].absolute_fuzzy_equals(0.5 * (nodes[1] + nodes[5]), tol) &&
+        nodes[14].absolute_fuzzy_equals(0.5 * (nodes[2] + nodes[6]), tol) &&
+        nodes[15].absolute_fuzzy_equals(0.5 * (nodes[3] + nodes[7]), tol) &&
+        nodes[16].absolute_fuzzy_equals(0.5 * (nodes[4] + nodes[5]), tol) &&
+        nodes[17].absolute_fuzzy_equals(0.5 * (nodes[5] + nodes[6]), tol) &&
+        nodes[18].absolute_fuzzy_equals(0.5 * (nodes[6] + nodes[7]), tol) &&
+        nodes[19].absolute_fuzzy_equals(0.5 * (nodes[4] + nodes[7]), tol) &&
+        // face midpoints
+        nodes[20].absolute_fuzzy_equals(0.5 * (nodes[8] + nodes[10]), tol) &&
+        nodes[21].absolute_fuzzy_equals(0.5 * (nodes[8] + nodes[16]), tol) &&
+        nodes[22].absolute_fuzzy_equals(0.5 * (nodes[9] + nodes[17]), tol) &&
+        nodes[23].absolute_fuzzy_equals(0.5 * (nodes[10] + nodes[18]), tol) &&
+        nodes[24].absolute_fuzzy_equals(0.5 * (nodes[11] + nodes[19]), tol) &&
+        nodes[25].absolute_fuzzy_equals(0.5 * (nodes[16] + nodes[18]), tol) &&
+        // cell center
+        nodes[26].absolute_fuzzy_equals(0.5 * (nodes[20] + nodes[25]), tol);
 }
 
 //
