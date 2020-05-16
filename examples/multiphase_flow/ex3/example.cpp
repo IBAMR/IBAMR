@@ -42,6 +42,7 @@
 #include "LSLocateCircularInterface.h"
 #include "SetFluidProperties.h"
 #include "SetLSProperties.h"
+#include "TagLSRefinementCells.h"
 #include "VelocityInitialCondition.h"
 
 // Function prototypes
@@ -237,6 +238,15 @@ main(int argc, char* argv[])
                                                       static_cast<void*>(ptr_SetFluidProperties));
         time_integrator->registerResetFluidViscosityFcn(&callSetFluidViscosityCallbackFunction,
                                                         static_cast<void*>(ptr_SetFluidProperties));
+
+        // Register callback function for tagging refined cells for level set data
+        const double tag_thresh = input_db->getDouble("LS_TAG_THRESH");
+        TagLSRefinementCells ls_tagger;
+        ls_tagger.d_ls_gas_var = phi_var;
+        ls_tagger.d_tag_thresh = tag_thresh;
+        ls_tagger.d_adv_diff_solver = adv_diff_integrator;
+        time_integrator->registerApplyGradientDetectorCallback(&callTagLSRefinementCellsCallbackFunction,
+                                                               static_cast<void*>(&ls_tagger));
 
         // Create Eulerian initial condition specification objects.
         Pointer<CartGridFunction> u_init =
