@@ -49,15 +49,6 @@ DELTA_FUNCTION = "IB_4"
 
 VORTICITY_REL_THRESH = 0.5
 
-// U = "0.0"
-// V = "0.0"
-
-
-// VelocityInitialConditions {
-//    function_0 = U
-//    function_1 = V
-// }
-
 VelocityBcCoefs_0 {
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
@@ -232,7 +223,6 @@ ERROR_ON_DT_CHANGE                  = FALSE
 
 // More solver parameters
 PRECOND_REINIT_INTERVAL = 1
-// OPERATOR_SCALE_FACTORS      = abs(1.0/(RHO_I/2.0 - MU_I/2.0*N*REF_RATIO^(MAX_LEVELS - 1)))
 OPERATOR_SCALE_FACTORS   = 1.0
 VC_INTERPOLATION_TYPE   = "VC_HARMONIC_INTERP"
 DENSITY_CONVECTIVE_LIMITER   = "CUI"

@@ -57,11 +57,16 @@ APPLY_SIGN_FIX             = TRUE
 APPLY_SUBCELL_FIX          = TRUE
 APPLY_VOLUME_SHIFT         = FALSE
 APPLY_MASS_CONSTRAINT      = FALSE
-// LS_REPLACEMENT_INTERVAL = 1
 
 LS_TAG_VALUE         = 0.0
 LS_TAG_ABS_THRESH    = 2.0*L/Nx
 VORTICITY_REL_THRESH = 0.5
+
+// Level set initial conditions
+LevelSetInitialConditions {
+  depth = DEPTH
+  function = "X_1 - depth" 
+}
 
 
 // surface tension parameters

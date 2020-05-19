@@ -263,6 +263,22 @@ main(int argc, char* argv[])
         adv_diff_integrator->registerResetFunction(
             phi_var_gas, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_setSetLSProperties));
 
+        // LS initial conditions
+        if (input_db->keyExists("LevelSetGasInitialConditions"))
+        {
+            Pointer<CartGridFunction> phi_init_gas = new muParserCartGridFunction(
+                "phi_init_gas", app_initializer->getComponentDatabase("LevelSetGasInitialConditions"), grid_geometry);
+            adv_diff_integrator->setInitialConditions(phi_var_gas, phi_init_gas);
+        }
+        if (input_db->keyExists("LevelSetSolidInitialConditions"))
+        {
+            Pointer<CartGridFunction> phi_init_solid =
+                new muParserCartGridFunction("phi_init_solid",
+                                             app_initializer->getComponentDatabase("LevelSetSolidInitialConditions"),
+                                             grid_geometry);
+            adv_diff_integrator->setInitialConditions(phi_var_solid, phi_init_solid);
+        }
+
         // Setup the advected and diffused quantities.
         Pointer<Variable<NDIM> > rho_var;
         if (conservative_form)
