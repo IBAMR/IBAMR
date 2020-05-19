@@ -40,8 +40,8 @@ namespace IBTK
 // Helper functions
 //
 template <int dim, int spacedim>
-inline Eigen::Matrix<double, dim, spacedim>
-getCovariant(const Eigen::Matrix<double, dim, spacedim>& contravariant)
+inline Eigen::Matrix<double, spacedim, dim>
+getCovariant(const Eigen::Matrix<double, spacedim, dim>& contravariant)
 {
     return contravariant * (contravariant.transpose() * contravariant).inverse();
 }
@@ -127,12 +127,14 @@ Mapping<2, 2>::build(const key_type key, const FEUpdateFlags update_flags)
 {
     switch (std::get<0>(key))
     {
+    case libMesh::ElemType::TRI3:
+        return std::unique_ptr<Mapping<2, 2> >(new Tri3Mapping(key, update_flags));
+    case libMesh::ElemType::TRI6:
+        return std::unique_ptr<Mapping<2, 2> >(new LagrangeMapping<2, 2, 6>(key, update_flags));
     case libMesh::ElemType::QUAD4:
         return std::unique_ptr<Mapping<2, 2> >(new Quad4Mapping(key, update_flags));
     case libMesh::ElemType::QUAD9:
         return std::unique_ptr<Mapping<2, 2> >(new Quad9Mapping(key, update_flags));
-    case libMesh::ElemType::TRI3:
-        return std::unique_ptr<Mapping<2, 2> >(new Tri3Mapping(key, update_flags));
     default:
         return std::unique_ptr<Mapping<2, 2> >(new LagrangeMapping<2, 2>(key, update_flags));
     }
@@ -151,11 +153,11 @@ Mapping<3, 3>::build(const key_type key, const FEUpdateFlags update_flags)
     case libMesh::ElemType::TET10:
         return std::unique_ptr<Mapping<3, 3> >(new Tet10Mapping(key, update_flags));
     case libMesh::ElemType::HEX8:
-        return std::unique_ptr<Mapping<3, 3> >(new LagrangeMapping<3, 3>(key, update_flags));
+        return std::unique_ptr<Mapping<3, 3> >(new LagrangeMapping<3, 3, 8>(key, update_flags));
     case libMesh::ElemType::HEX27:
         return std::unique_ptr<Mapping<3, 3> >(new Hex27Mapping(key, update_flags));
     default:
-        TBOX_ASSERT(false);
+        return std::unique_ptr<Mapping<3, 3> >(new LagrangeMapping<3, 3>(key, update_flags));
     }
 
     return {};

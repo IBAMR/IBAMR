@@ -34,7 +34,7 @@
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
 
-// Test that our own FEValues matches what libMesh calculates for volume meshes
+// Test that our own FEValues matches what libMesh calculates for surface meshes
 
 enum class MeshType
 {
@@ -46,7 +46,9 @@ template <int dim, libMesh::Order order, libMesh::FEFamily fe_family, libMesh::E
 void
 test(LibMeshInit& init, const MeshType mesh_type = MeshType::libmesh)
 {
-    ReplicatedMesh mesh(init.comm(), dim);
+    constexpr int spacedim = dim + 1;
+
+    ReplicatedMesh solid_mesh(init.comm(), spacedim);
     switch (mesh_type)
     {
     case MeshType::libmesh:
@@ -56,15 +58,15 @@ test(LibMeshInit& init, const MeshType mesh_type = MeshType::libmesh)
         case QUAD9:
         case HEX8:
         case HEX27:
-            MeshTools::Generation::build_sphere(mesh, 1.0, 2, elem_type);
+            MeshTools::Generation::build_sphere(solid_mesh, 1.0, 2, elem_type);
             break;
         case TRI3:
         case TRI6:
-            MeshTools::Generation::build_square(mesh, 3, 3, 0.0, 0.5, 0.0, 2.0, elem_type);
+            MeshTools::Generation::build_square(solid_mesh, 3, 3, 0.0, 0.5, 0.0, 2.0, elem_type);
             break;
         case TET4:
         case TET10:
-            MeshTools::Generation::build_cube(mesh, 3, 3, 3, 0.0, 0.5, 0.0, 0.25, 0.0, 8.0, elem_type);
+            MeshTools::Generation::build_cube(solid_mesh, 3, 3, 3, 0.0, 0.5, 0.0, 0.25, 0.0, 8.0, elem_type);
             break;
         default:
             TBOX_ASSERT(false);
@@ -76,9 +78,12 @@ test(LibMeshInit& init, const MeshType mesh_type = MeshType::libmesh)
         case TET4:
         case TET10:
         {
-            AbaqusIO abaqus_io(mesh);
+            AbaqusIO abaqus_io(solid_mesh);
             abaqus_io.read(SOURCE_DIR "/klein.inp");
-            if (elem_type == TET10) mesh.all_second_order();
+            if (elem_type == TET10) solid_mesh.all_second_order();
+            // this seems like a bug in libMesh, but nevertheless is
+            // required (at least for 1.5.1)
+            solid_mesh.prepare_for_use();
         }
         break;
         default:
@@ -89,9 +94,44 @@ test(LibMeshInit& init, const MeshType mesh_type = MeshType::libmesh)
         TBOX_ASSERT(false);
     }
 
+    // set up boundary mesh:
+    BoundaryMesh boundary_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension() - 1);
+    solid_mesh.boundary_info->sync(boundary_mesh);
+    boundary_mesh.prepare_for_use();
+    Mesh& mesh = boundary_mesh;
+    // the rest is the same as fe_values_01 (with the small exception of using
+    // the face element type)
+    // TODO - surely there is a better way to do this
+    ElemType face_elem_type{};
+    switch (elem_type)
+    {
+    case TRI3:
+    case QUAD4:
+        face_elem_type = EDGE2;
+        break;
+    case TRI6:
+    case QUAD9:
+        face_elem_type = EDGE3;
+        break;
+    case HEX8:
+        face_elem_type = QUAD4;
+        break;
+    case HEX27:
+        face_elem_type = QUAD9;
+        break;
+    case TET4:
+        face_elem_type = TRI3;
+        break;
+    case TET10:
+        face_elem_type = TRI6;
+        break;
+    default:
+        TBOX_ASSERT(false);
+    }
+
     // libMesh values:
     std::unique_ptr<QBase> quad = QBase::build(QGAUSS, dim, THIRD);
-    quad->init(elem_type);
+    quad->init(face_elem_type);
     FEType fe_type(order, fe_family);
     std::unique_ptr<FEBase> libmesh_fe = FEBase::build(dim, fe_type);
     libmesh_fe->attach_quadrature_rule(quad.get());
@@ -102,8 +142,8 @@ test(LibMeshInit& init, const MeshType mesh_type = MeshType::libmesh)
 
     // IBTK values:
     std::unique_ptr<QBase> quad_2 = QBase::build(QGAUSS, dim, THIRD);
-    quad_2->init(elem_type);
-    IBTK::FEValues<dim> ibtk_fe(
+    quad_2->init(face_elem_type);
+    IBTK::FEValues<dim, spacedim> ibtk_fe(
         quad_2.get(), IBTK::update_quadrature_points | IBTK::update_JxW | IBTK::update_phi | IBTK::update_dphi);
 
     for (auto elem_iter = mesh.active_local_elements_begin(); elem_iter != mesh.active_local_elements_end();
@@ -161,20 +201,20 @@ main(int argc, char** argv)
     SAMRAIManager::startup();
 
     // 2d, libMesh meshes:
-    test<2, FIRST, LAGRANGE, TRI3>(init);
-    test<2, SECOND, LAGRANGE, TRI6>(init);
-    test<2, FIRST, LAGRANGE, QUAD4>(init);
-    test<2, SECOND, LAGRANGE, QUAD9>(init);
+    test<1, FIRST, LAGRANGE, TRI3>(init);
+    test<1, SECOND, LAGRANGE, TRI6>(init);
+    test<1, FIRST, LAGRANGE, QUAD4>(init);
+    test<1, SECOND, LAGRANGE, QUAD9>(init);
 
     // 3d, libMesh meshes:
-    test<3, FIRST, LAGRANGE, TET4>(init);
-    test<3, SECOND, LAGRANGE, TET10>(init);
-    test<3, FIRST, LAGRANGE, HEX8>(init);
-    test<3, SECOND, LAGRANGE, HEX27>(init);
+    test<2, FIRST, LAGRANGE, TET4>(init);
+    test<2, SECOND, LAGRANGE, TET10>(init);
+    test<2, FIRST, LAGRANGE, HEX8>(init);
+    test<2, SECOND, LAGRANGE, HEX27>(init);
 
     // 3d but with read meshes:
-    test<3, FIRST, LAGRANGE, TET4>(init, MeshType::readin);
-    test<3, SECOND, LAGRANGE, TET10>(init, MeshType::readin);
+    test<2, FIRST, LAGRANGE, TET4>(init, MeshType::readin);
+    test<2, SECOND, LAGRANGE, TET10>(init, MeshType::readin);
 
     std::ofstream output("output");
 }
