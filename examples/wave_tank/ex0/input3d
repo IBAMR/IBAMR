@@ -57,6 +57,12 @@ LS_TAG_VALUE = 0.0
 LS_TAG_ABS_THRESH = 2*Lx/Nx
 VORTICITY_REL_THRESH = 0.5
 
+// Level set initial conditions
+LevelSetInitialConditions {
+  depth = DEPTH
+  function = "X_2 - depth" 
+}
+
 
 // surface tension parameters
 DELTA_FUNCTION = "IB_4"

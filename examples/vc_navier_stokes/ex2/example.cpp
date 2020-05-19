@@ -189,6 +189,14 @@ main(int argc, char* argv[])
         adv_diff_integrator->registerResetFunction(
             phi_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
 
+        // LS initial conditions
+        if (input_db->keyExists("LevelSetInitialConditions"))
+        {
+            Pointer<CartGridFunction> phi_init = new muParserCartGridFunction(
+                "phi_init", app_initializer->getComponentDatabase("LevelSetInitialConditions"), grid_geometry);
+            adv_diff_integrator->setInitialConditions(phi_var, phi_init);
+        }
+
         // Setup the INS maintained material properties.
         Pointer<Variable<NDIM> > rho_var;
         if (conservative_form)
