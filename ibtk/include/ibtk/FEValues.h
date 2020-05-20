@@ -42,6 +42,8 @@ namespace IBTK
 class FEValuesBase
 {
 public:
+    virtual ~FEValuesBase() = default;
+
     virtual void reinit(const libMesh::Elem* elem) = 0;
 
     inline const std::vector<double>& getJxW() const
