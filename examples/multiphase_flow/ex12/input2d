@@ -62,6 +62,11 @@ APPLY_SIGN_FIX        = TRUE
 APPLY_SUBCELL_FIX     = TRUE
 APPLY_MASS_CONSTRAINT = FALSE
 
+LevelSetGasInitialConditions {
+  gas_ls_init = GAS_LS_INIT
+  function = "gas_ls_init - X_1" 
+}
+
 VelocityInitialConditions {
    function_0 = "0.0"
    function_1 = "0.0"
