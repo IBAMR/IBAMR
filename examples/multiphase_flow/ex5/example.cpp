@@ -43,6 +43,7 @@
 // Application
 #include "GravityForcing.h"
 #include "LSLocateColumnInterface.h"
+#include "LevelSetInitialCondition.h"
 #include "SetFluidProperties.h"
 #include "SetLSProperties.h"
 #include "TagLSRefinementCells.h"
@@ -185,6 +186,10 @@ main(int argc, char* argv[])
         SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
             phi_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
+
+        // LS initial conditions
+        Pointer<CartGridFunction> phi_init = new LevelSetInitialCondition("ls_init", column);
+        adv_diff_integrator->setInitialConditions(phi_var, phi_init);
 
         // Setup the INS maintained material properties.
         Pointer<Variable<NDIM> > rho_var;

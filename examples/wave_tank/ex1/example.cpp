@@ -86,6 +86,7 @@
 #include "GravityForcing.h"
 #include "LSLocateGasInterface.h"
 #include "LSLocateTrapezoidalInterface.h"
+#include "LevelSetSolidInitialCondition.h"
 #include "RigidBodyKinematics.h"
 #include "SetFluidGasSolidDensity.h"
 #include "SetFluidGasSolidViscosity.h"
@@ -289,6 +290,18 @@ main(int argc, char* argv[])
             phi_var_solid, &callSetSolidLSCallbackFunction, static_cast<void*>(ptr_setSetLSProperties));
         adv_diff_integrator->registerResetFunction(
             phi_var_gas, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_setSetLSProperties));
+
+        // LS gas initial conditions
+        if (input_db->keyExists("LevelSetGasInitialConditions"))
+        {
+            Pointer<CartGridFunction> phi_init_gas = new muParserCartGridFunction(
+                "phi_init_gas", app_initializer->getComponentDatabase("LevelSetGasInitialConditions"), grid_geometry);
+            adv_diff_integrator->setInitialConditions(phi_var_gas, phi_init_gas);
+        }
+
+        // LS solid initial conditions uses CartGridFunction definition due to lack of analytical formula
+        Pointer<CartGridFunction> phi_init_solid = new LevelSetSolidInitialCondition("ls_solid_init", &trapezoid);
+        adv_diff_integrator->setInitialConditions(phi_var_solid, phi_init_solid);
 
         // Setup the advected and diffused quantities.
         Pointer<Variable<NDIM> > rho_var;

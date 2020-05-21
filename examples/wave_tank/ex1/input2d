@@ -188,7 +188,7 @@ ViscosityBcCoefs {
    gcoef_function_3 = "0.0"
 }
 
-PhiInitialConditions {
+LevelSetGasInitialConditions {
    D = DEPTH
    function_0 = PHI_INIT
 }

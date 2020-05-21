@@ -50,6 +50,7 @@
 #include "GravityForcing.h"
 #include "LSLocateGasInterface.h"
 #include "LSLocateStructureInterface.h"
+#include "LevelSetSolidInitialCondition.h"
 #include "RigidBodyKinematics.h"
 #include "SetFluidGasSolidDensity.h"
 #include "SetFluidGasSolidViscosity.h"
@@ -213,6 +214,7 @@ main(int argc, char* argv[])
         BargeInterface barge;
         barge.length = input_db->getDouble("BARGE_LENGTH");
         barge.width = input_db->getDouble("BARGE_WIDTH");
+        barge.theta = input_db->getDouble("BARGE_INIT_ANGLE");
 
         // Get the center of mass of the barge
         if (!is_from_restart)
@@ -244,7 +246,6 @@ main(int argc, char* argv[])
                                            adv_diff_integrator,
                                            phi_var_solid,
                                            ib_method_ops->getLDataManager(),
-                                           vol_elem,
                                            &barge);
         level_set_solid_ops->registerInterfaceNeighborhoodLocatingFcn(
             &callLSLocateStructureInterfaceCallbackFunction, static_cast<void*>(ptr_LSLocateStructureInterface));
@@ -275,6 +276,18 @@ main(int argc, char* argv[])
             phi_var_solid, &callSetSolidLSCallbackFunction, static_cast<void*>(ptr_setSetLSProperties));
         adv_diff_integrator->registerResetFunction(
             phi_var_gas, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_setSetLSProperties));
+
+        // LS gas initial conditions
+        if (input_db->keyExists("LevelSetGasInitialConditions"))
+        {
+            Pointer<CartGridFunction> phi_init_gas = new muParserCartGridFunction(
+                "phi_init_gas", app_initializer->getComponentDatabase("LevelSetGasInitialConditions"), grid_geometry);
+            adv_diff_integrator->setInitialConditions(phi_var_gas, phi_init_gas);
+        }
+
+        // LS solid initial conditions uses CartGridFunction definition due to lack of analytical formula
+        Pointer<CartGridFunction> phi_init_solid = new LevelSetSolidInitialCondition("ls_solid_init", &barge);
+        adv_diff_integrator->setInitialConditions(phi_var_solid, phi_init_solid);
 
         // Setup the advected and diffused quantities.
         Pointer<Variable<NDIM> > rho_var;

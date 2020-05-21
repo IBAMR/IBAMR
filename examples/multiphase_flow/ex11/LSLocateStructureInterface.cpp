@@ -39,13 +39,11 @@ LSLocateStructureInterface::LSLocateStructureInterface(const std::string& object
                                                        Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
                                                        Pointer<CellVariable<NDIM, double> > ls_var,
                                                        LDataManager* lag_data_manager,
-                                                       double vol_elem,
                                                        BargeInterface* barge)
     : d_object_name(object_name),
       d_adv_diff_solver(adv_diff_solver),
       d_ls_var(ls_var),
       d_lag_data_manager(lag_data_manager),
-      d_vol_elem(vol_elem),
       d_barge(barge)
 {
     // intentionally left blank

@@ -52,6 +52,8 @@
 #include "GravityForcing.h"
 #include "LSLocateGasInterface.h"
 #include "LSLocateStructureInterface.h"
+#include "LevelSetGasInitialCondition.h"
+#include "LevelSetSolidInitialCondition.h"
 #include "RigidBodyKinematics.h"
 #include "SetFluidGasSolidDensity.h"
 #include "SetFluidGasSolidViscosity.h"
@@ -279,6 +281,14 @@ main(int argc, char* argv[])
             phi_var_solid, &callSetSolidLSCallbackFunction, static_cast<void*>(ptr_setSetLSProperties));
         adv_diff_integrator->registerResetFunction(
             phi_var_gas, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_setSetLSProperties));
+
+        // LS initial conditions
+        Pointer<CartGridFunction> phi_init_gas =
+            new LevelSetGasInitialCondition("ls_init_gas", greater_x_column, less_z_column);
+        adv_diff_integrator->setInitialConditions(phi_var_gas, phi_init_gas);
+
+        Pointer<CartGridFunction> phi_init_solid = new LevelSetSolidInitialCondition("ls_init_solid", rectangle);
+        adv_diff_integrator->setInitialConditions(phi_var_solid, phi_init_solid);
 
         // Setup the advected and diffused quantities.
         Pointer<Variable<NDIM> > rho_var;
