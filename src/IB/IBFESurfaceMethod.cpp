@@ -226,6 +226,15 @@ IBFESurfaceMethod::getFEDataManager(const unsigned int part) const
     return d_fe_data_managers[part];
 } // getFEDataManager
 
+
+void
+IBFESurfaceMethod::registerDisconElemFamilyForJumps(const unsigned int part)
+{
+    TBOX_ASSERT(part < d_num_parts);
+    d_use_discon_elem_for_jumps[part] = true;
+    return;
+} // registerTangentialVelocityMotion
+
 void
 IBFESurfaceMethod::registerTangentialVelocityMotion(const unsigned int part)
 {
@@ -322,7 +331,8 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
     d_half_time = current_time + 0.5 * (new_time - current_time);
     
     d_use_tangential_velocity.resize(d_num_parts);
-    d_use_tangential_velocity.resize(d_num_parts);
+    d_normalize_pressure_jump.resize(d_num_parts);
+    d_use_discon_elem_for_jumps.resize(d_num_parts);
 
     // Extract the FE data.
     d_X_systems.resize(d_num_parts);
@@ -361,12 +371,11 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
     d_P_out_systems.resize(d_num_parts);
     d_P_out_half_vecs.resize(d_num_parts);
     d_P_out_IB_ghost_vecs.resize(d_num_parts);
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        d_DU_jump_systems[d].resize(d_num_parts);
-        d_DU_jump_half_vecs[d].resize(d_num_parts);
-        d_DU_jump_IB_ghost_vecs[d].resize(d_num_parts);
-    }
+
+	d_DU_jump_systems.resize(d_num_parts);
+	d_DU_jump_half_vecs.resize(d_num_parts);
+	d_DU_jump_IB_ghost_vecs.resize(d_num_parts);
+
     d_WSS_in_systems.resize(d_num_parts);
     d_WSS_in_half_vecs.resize(d_num_parts);
     d_WSS_in_IB_ghost_vecs.resize(d_num_parts);
@@ -546,11 +555,6 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
 	{
             vec_collection_update.push_back(d_WSS_in_half_vecs);
             vec_collection_update.push_back(d_WSS_out_half_vecs);
-            vec_collection_update.push_back(d_DU_jump_half_vecs[0]);
-            vec_collection_update.push_back(d_DU_jump_half_vecs[1]);
-#if (NDIM == 3)
-            vec_collection_update.push_back(d_DU_jump_half_vecs[2]);
-#endif
 	}
 	if (d_compute_fluid_traction)
 	{
@@ -658,12 +662,10 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
     d_P_jump_half_vecs.clear();
     d_P_jump_IB_ghost_vecs.clear();
 
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        d_DU_jump_systems[d].clear();
-        d_DU_jump_half_vecs[d].clear();
-        d_DU_jump_IB_ghost_vecs[d].clear();
-    }
+
+	d_DU_jump_systems.clear();
+	d_DU_jump_half_vecs.clear();
+	d_DU_jump_IB_ghost_vecs.clear();
 
     d_WSS_in_systems.clear();
     d_WSS_in_half_vecs.clear();
@@ -720,7 +722,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         const std::array<PetscVector<double>*, NDIM> DU_jump_ghost_vec = {
             d_use_velocity_jump_conditions ? d_DU_jump_IB_ghost_vecs[part][0] : nullptr,
             d_use_velocity_jump_conditions ? d_DU_jump_IB_ghost_vecs[part][1] : nullptr,
-#if (NDIM > 2)
+#if (NDIM == 3)
             d_use_velocity_jump_conditions ? d_DU_jump_IB_ghost_vecs[part][2] : nullptr,
 #endif
         };
@@ -1491,6 +1493,8 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     FEDataManager::SystemDofMapCache& P_out_dof_map_cache =
         *d_fe_data_managers[part]->getDofMapCache(PRESSURE_OUT_SYSTEM_NAME);
     FEType P_out_fe_type = P_out_dof_map.variable_type(0);
+    
+
 
     System& WSS_in_system = equation_systems->get_system(WSS_IN_SYSTEM_NAME);
     const DofMap& WSS_in_dof_map = WSS_in_system.get_dof_map();
@@ -1501,7 +1505,6 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     {
         TBOX_ASSERT(WSS_in_dof_map.variable_type(d) == WSS_in_fe_type);
     }
-    TBOX_ASSERT(WSS_in_fe_type == P_in_fe_type);
 
     System& WSS_out_system = equation_systems->get_system(WSS_OUT_SYSTEM_NAME);
     const DofMap& WSS_out_dof_map = WSS_out_system.get_dof_map();
@@ -1512,7 +1515,6 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     {
         TBOX_ASSERT(WSS_out_dof_map.variable_type(d) == WSS_out_fe_type);
     }
-    TBOX_ASSERT(WSS_out_fe_type == P_out_fe_type);
 
     System& TAU_in_system = equation_systems->get_system(TAU_IN_SYSTEM_NAME);
     const DofMap& TAU_in_dof_map = TAU_in_system.get_dof_map();
@@ -1523,7 +1525,6 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     {
         TBOX_ASSERT(TAU_in_dof_map.variable_type(d) == TAU_in_fe_type);
     }
-    TBOX_ASSERT(TAU_in_fe_type == P_in_fe_type);
 
     System& TAU_out_system = equation_systems->get_system(TAU_OUT_SYSTEM_NAME);
     const DofMap& TAU_out_dof_map = TAU_out_system.get_dof_map();
@@ -1534,7 +1535,9 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     {
         TBOX_ASSERT(TAU_out_dof_map.variable_type(d) == TAU_out_fe_type);
     }
-    TBOX_ASSERT(TAU_out_fe_type == P_out_fe_type);
+    
+    TBOX_ASSERT(P_in_fe_type == TAU_in_fe_type);
+    TBOX_ASSERT(P_out_fe_type == P_in_fe_type);
 
     std::unique_ptr<FEBase> fe_X = FEBase::build(dim, X_fe_type);
     const std::vector<double>& JxW = fe_X->get_JxW();
@@ -1839,7 +1842,9 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     d_P_in_IB_ghost_vecs[part]->close();
     d_P_out_IB_ghost_vecs[part]->close();
     d_X_IB_ghost_vecs[part]->close();
-}
+
+    return;
+} // computeFluidTraction
 
 void
 IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const double data_time, unsigned int part)
@@ -2215,7 +2220,11 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
     d_P_out_half_vecs[part]->close();
     d_X_IB_ghost_vecs[part]->close();
     d_P_jump_half_vecs[part]->close();
-}
+
+    return;
+
+} // extrapolatePressureForTraction
+
 
 void
 IBFESurfaceMethod::calculateInterfacialFluidForces(const int p_data_idx, double data_time)
@@ -2241,7 +2250,9 @@ IBFESurfaceMethod::calculateInterfacialFluidForces(const int p_data_idx, double 
         extrapolatePressureForTraction(p_scratch_data_idx, data_time, part);
         computeFluidTraction(data_time, part);
     }
-}
+
+} // calculateInterfacialFluidForces
+
 
 void
 IBFESurfaceMethod::forwardEulerStep(const double current_time, const double new_time)
@@ -2901,9 +2912,18 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                 System& P_jump_system = equation_systems->add_system<System>(PRESSURE_JUMP_SYSTEM_NAME);
                 System& P_in_system = equation_systems->add_system<System>(PRESSURE_IN_SYSTEM_NAME);
                 System& P_out_system = equation_systems->add_system<System>(PRESSURE_OUT_SYSTEM_NAME);
-                P_jump_system.add_variable("P_jump_", d_fe_order[part], d_pressure_jump_fe_family);
-                P_in_system.add_variable("P_in_", d_fe_order[part], d_pressure_jump_fe_family);
-                P_out_system.add_variable("P_out_", d_fe_order[part], d_pressure_jump_fe_family);
+                if (d_use_discon_elem_for_jumps[part])
+                {
+					P_jump_system.add_variable("P_jump_", d_fe_order[part], d_pressure_jump_fe_family);
+					P_in_system.add_variable("P_in_", d_fe_order[part], d_pressure_jump_fe_family);
+					P_out_system.add_variable("P_out_", d_fe_order[part], d_pressure_jump_fe_family);
+				}
+				else
+				{
+					P_jump_system.add_variable("P_jump_", d_fe_order[part], d_fe_family[part]);
+					P_in_system.add_variable("P_in_", d_fe_order[part], d_fe_family[part]);
+					P_out_system.add_variable("P_out_", d_fe_order[part], d_fe_family[part]);
+				}
             }
 
             if (d_use_velocity_jump_conditions)
@@ -2915,7 +2935,15 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
                         const std::string system_name = "DU_jump_" + std::to_string(d) + "_" + std::to_string(i);
-                        DU_jump_system[d]->add_variable(system_name, d_fe_order[part], d_velocity_jump_fe_family);
+                        if (d_use_discon_elem_for_jumps[part])
+                        {
+							DU_jump_system[d]->add_variable(system_name, d_fe_order[part], d_velocity_jump_fe_family);
+						}
+						else
+						{
+							DU_jump_system[d]->add_variable(system_name, d_fe_order[part], d_fe_family[part]);
+						}
+						
                     }
                 }
 
@@ -2923,14 +2951,28 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     const std::string system_name = "WSS_in_" + std::to_string(d);
-                    WSS_in_system.add_variable(system_name, d_fe_order[part], d_wss_fe_family);
+                    if (d_use_discon_elem_for_jumps[part])
+                    {
+						WSS_in_system.add_variable(system_name, d_fe_order[part], d_wss_fe_family);
+					}
+					else
+					{
+						WSS_in_system.add_variable(system_name, d_fe_order[part], d_fe_family[part]);
+					}
                 }
 
                 System& WSS_out_system = equation_systems->add_system<System>(WSS_OUT_SYSTEM_NAME);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     const std::string system_name = "WSS_out_" + std::to_string(d);
-                    WSS_out_system.add_variable(system_name, d_fe_order[part], d_wss_fe_family);
+                    if (d_use_discon_elem_for_jumps[part])
+                    {
+						WSS_out_system.add_variable(system_name, d_fe_order[part], d_wss_fe_family);
+					}
+					else
+					{
+						WSS_out_system.add_variable(system_name, d_fe_order[part], d_fe_family[part]);
+					}
                 }
             }
 
@@ -2940,14 +2982,28 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     std::string system_name = "TAU_IN_" + std::to_string(d);
-                    TAU_in_system.add_variable(system_name, d_fe_order[part], d_tau_fe_family);
+                    if (d_use_discon_elem_for_jumps[part])
+                    {
+						TAU_in_system.add_variable(system_name, d_fe_order[part], d_tau_fe_family);
+					}
+					else
+					{
+						TAU_in_system.add_variable(system_name, d_fe_order[part], d_fe_family[part]);
+					}
                 }
 
                 auto& TAU_out_system = equation_systems->add_system<System>(TAU_OUT_SYSTEM_NAME);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     std::string system_name = "TAU_OUT_" + std::to_string(d);
-                    TAU_out_system.add_variable(system_name, d_fe_order[part], d_tau_fe_family);
+                    if (d_use_discon_elem_for_jumps[part])
+                    {
+						TAU_out_system.add_variable(system_name, d_fe_order[part], d_tau_fe_family);
+					}
+					else
+					{
+						TAU_out_system.add_variable(system_name, d_fe_order[part], d_fe_family[part]);
+					}
                 }
             }
 

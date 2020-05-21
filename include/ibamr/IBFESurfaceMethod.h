@@ -166,6 +166,17 @@ public:
         CoordinateMappingFcnPtr fcn;
         void* ctx;
     };
+    
+    
+     /*!
+     * Register relevant part to use discontinuous element type family (L2_LAGRANGE or MONOMIAL)
+     * for the calculation of jump/traction quantities. This option should be used for geometries with
+     * sharp corners.
+     * 
+     *
+     * \note The relveant FE family is provided via input file. The default value is set to regular LAGRANGE).
+     */
+    void registerDisconElemFamilyForJumps(unsigned int part = 0);
 
     /*!
      * Register relevant part to only use the tangential component of the Lagrangian velocity 
@@ -595,6 +606,7 @@ protected:
     std::vector<libMesh::MeshBase*> d_meshes;
     int d_max_level_number;
     std::vector<libMesh::EquationSystems*> d_equation_systems;
+    std::vector<bool> d_use_discon_elem_for_jumps = {false};
 	std::vector<bool> d_use_tangential_velocity = {false};
 	std::vector<bool> d_normalize_pressure_jump = {false};
     const unsigned int d_num_parts = 1;
@@ -602,14 +614,14 @@ protected:
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
     std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_P_jump_systems,
         d_WSS_in_systems, d_WSS_out_systems, d_P_in_systems, d_P_out_systems, d_TAU_in_systems, d_TAU_out_systems;
-    std::array<std::vector<libMesh::System*>, NDIM> d_DU_jump_systems;
+    std::vector<std::array<libMesh::System*, NDIM> > d_DU_jump_systems;
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
         d_X_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
-    std::array<std::vector<libMesh::PetscVector<double>*>, NDIM> d_DU_jump_half_vecs, d_DU_jump_IB_ghost_vecs;
+    std::vector<std::array<libMesh::PetscVector<double>*, NDIM> > d_DU_jump_half_vecs, d_DU_jump_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_P_jump_half_vecs, d_P_jump_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_P_in_half_vecs, d_P_in_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_P_out_half_vecs, d_P_out_IB_ghost_vecs;
