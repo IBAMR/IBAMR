@@ -330,9 +330,9 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
     d_new_time = new_time;
     d_half_time = current_time + 0.5 * (new_time - current_time);
     
-    d_use_tangential_velocity.resize(d_num_parts);
-    d_normalize_pressure_jump.resize(d_num_parts);
-    d_use_discon_elem_for_jumps.resize(d_num_parts);
+    //~ d_use_tangential_velocity.resize(d_num_parts);
+    //~ d_normalize_pressure_jump.resize(d_num_parts);
+    //~ d_use_discon_elem_for_jumps.resize(d_num_parts);
 
     // Extract the FE data.
     d_X_systems.resize(d_num_parts);
@@ -2332,7 +2332,7 @@ IBFESurfaceMethod::trapezoidalStep(const double current_time, const double new_t
             IBTK_CHKERRQ(ierr);
         }
         else if (d_use_tangential_velocity[part])
-        {
+        {	
 		    ierr = VecWAXPY(
                 d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_t_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
@@ -4153,6 +4153,10 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     d_lag_surface_pressure_fcn_data.resize(d_num_parts);
     d_lag_surface_force_fcn_data.resize(d_num_parts);
     d_lag_surface_force_integral.resize(d_num_parts);
+    
+    d_use_tangential_velocity.resize(d_num_parts);
+    d_normalize_pressure_jump.resize(d_num_parts);
+    d_use_discon_elem_for_jumps.resize(d_num_parts);
 
     // Determine whether we should use first-order or second-order shape
     // functions for each part of the structure.
