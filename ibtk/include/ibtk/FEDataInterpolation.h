@@ -19,7 +19,6 @@
 #include <IBTK_config.h>
 
 #include "ibtk/FEDataManager.h"
-#include "ibtk/FEValues.h"
 #include "ibtk/ibtk_macros.h"
 #include "ibtk/libmesh_utilities.h"
 
@@ -74,6 +73,13 @@ public:
     inline void attachQuadratureRule(libMesh::QBase* qrule)
     {
         d_qrule = qrule;
+        for (auto& fe : d_fe)
+        {
+            if (fe)
+            {
+                fe->attach_quadrature_rule(d_qrule);
+            }
+        }
         return;
     }
 
@@ -356,8 +362,7 @@ private:
 
     // Data associated with FETypes.
     std::vector<libMesh::FEType> d_fe_types;
-    std::vector<std::unique_ptr<IBTK::FEValuesBase> > d_fe;
-    std::vector<std::unique_ptr<libMesh::FEBase> > d_fe_face;
+    std::vector<std::unique_ptr<libMesh::FEBase> > d_fe, d_fe_face;
     std::vector<bool> d_eval_phi, d_eval_dphi;
     std::vector<const std::vector<std::vector<double> >*> d_phi, d_phi_face;
     std::vector<const std::vector<std::vector<libMesh::VectorValue<double> > >*> d_dphi, d_dphi_face;
