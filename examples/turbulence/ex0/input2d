@@ -18,9 +18,10 @@ MAX_LEVELS = 1       // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 REF_RATIO_FINEST = 2  // refinement ratio for the finest level.
 
-N = 25                                 // coarsest grid spacing
-H_COARSEST = N                          // coarsest grid spacing
-NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // finest   grid spacing
+Ny = 25                                 // coarsest grid spacing
+Nx = Ny
+H_COARSEST = Ny                          // coarsest grid spacing
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Ny  // finest   grid spacing
 HFINEST = LENGTH/NFINEST
 
 // writing the velocity profile across x near the outlet
@@ -470,7 +471,7 @@ Main {
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0) , ( N - 1, N - 1) ]
+   domain_boxes = [ (0,0) , ( Nx - 1, Ny - 1) ]
    x_lo         =   0.0,   0.0           // lower end of computational domain.
    x_up         =   LENGTH,   HEIGHT         // upper end of computational domain.
    periodic_dimension = 1, 0
@@ -505,24 +506,24 @@ GriddingAlgorithm {
 }
 
 x_lower_index_0 = 0
-y_lower_index_0 = int((N/8) - 1)
-x_upper_index_0 = int(10*N - 1)
-y_upper_index_0 = int((N/4) - 1)
+y_lower_index_0 = int((Ny/8) - 1)
+x_upper_index_0 = int(10*Nx - 1)
+y_upper_index_0 = int((Ny/4) - 1)
 
 x_lower_index_1 = 0
-y_lower_index_1 = int((3*N/4) - 1)
-x_upper_index_1 = int(10*N - 1)
-y_upper_index_1 = int((7*N/8) - 1)
+y_lower_index_1 = int((3*Ny/4) - 1)
+x_upper_index_1 = int(10*Nx - 1)
+y_upper_index_1 = int((7*Ny/8) - 1)
 
 x_lower_index_2 = 0 // int(0.0/H_COARSEST)
 y_lower_index_2 = 0 // int(0.0/H_COARSEST)
-x_upper_index_2 = int (10*N - 1) // int(LENGTH/H_COARSEST)
-y_upper_index_2 = int((N/8) - 1) // int((HEIGHT/8)/H_COARSEST)
+x_upper_index_2 = int (10*Nx - 1) // int(LENGTH/H_COARSEST)
+y_upper_index_2 = int((Ny/8) - 1) // int((HEIGHT/8)/H_COARSEST)
 
 x_lower_index_3 = 0
-y_lower_index_3 = int((7*N/8) - 1)
-x_upper_index_3 = int(10*N - 1)
-y_upper_index_3 = int(N - 1)
+y_lower_index_3 = int((7*Ny/8) - 1)
+x_upper_index_3 = int(10*Nx - 1)
+y_upper_index_3 = int(Ny - 1)
 
 StandardTagAndInitialize {
    tagging_method = "REFINE_BOXES"

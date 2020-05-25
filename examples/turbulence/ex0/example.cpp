@@ -55,6 +55,19 @@ void compute_velocity_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                               const double data_time,
                               const string& data_dump_dirname);
 
+void compute_k_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                       const int k_idx,
+                       double lower_coordinates[NDIM],
+                       double upper_coordinates[NDIM],
+                       const double data_time,
+                       const string& data_dump_dirname);
+void compute_w_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                       const int w_idx,
+                       double lower_coordinates[NDIM],
+                       double upper_coordinates[NDIM],
+                       const double data_time,
+                       const string& data_dump_dirname);
+
 void compute_Utau_and_yplus(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                             const int U_tau_idx,
                             const int yplus_idx,
@@ -540,6 +553,224 @@ compute_velocity_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     MPI_File_close(&file);
     return;
 } // compute_velocity_profile
+
+void
+compute_k_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                  const int k_idx,
+                  double lower_coordinates[NDIM],
+                  double upper_coordinates[NDIM],
+                  const double data_time,
+                  const string& data_dump_dirname)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+    const double x_loc = lower_coordinates[0];
+    const double y_loc_min = lower_coordinates[1];
+    const double y_loc_max = upper_coordinates[1];
+    const double X_min[2] = { x_loc, y_loc_min };
+    const double X_max[2] = { x_loc, y_loc_max };
+    vector<double> pos_values;
+    for (int ln = finest_ln; ln >= coarsest_ln; --ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const CellIndex<NDIM>& patch_lower = patch_box.lower();
+            const CellIndex<NDIM>& patch_upper = patch_box.upper();
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_x_lower = patch_geom->getXLower();
+            const double* const patch_x_upper = patch_geom->getXUpper();
+            const double* const patch_dx = patch_geom->getDx();
+            const bool inside_patch = x_loc >= patch_x_lower[0] && x_loc <= patch_x_upper[0] &&
+                                      !(patch_x_upper[1] < y_loc_min || patch_x_lower[1] > y_loc_max);
+            if (!inside_patch) continue;
+            // Entire box containing the required data.
+            Box<NDIM> box(IndexUtilities::getCellIndex(
+                              &X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper),
+                          IndexUtilities::getCellIndex(
+                              &X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper));
+            // Part of the box on this patch
+            Box<NDIM> trim_box = patch_box * box;
+            BoxList<NDIM> iterate_box_list = trim_box;
+            // Trim the box covered by the finer region
+            BoxList<NDIM> covered_boxes;
+            if (ln < finest_ln)
+            {
+                BoxArray<NDIM> refined_region_boxes;
+                Pointer<PatchLevel<NDIM> > next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+                refined_region_boxes = next_finer_level->getBoxes();
+                refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
+                for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
+                {
+                    const Box<NDIM> refined_box = refined_region_boxes[i];
+                    const Box<NDIM> covered_box = trim_box * refined_box;
+                    covered_boxes.unionBoxes(covered_box);
+                }
+            }
+            iterate_box_list.removeIntersections(covered_boxes);
+            // Loop over the boxes and store the location and interpolated value.
+            Pointer<CellData<NDIM, double> > k_data = patch->getPatchData(k_idx);
+            for (BoxList<NDIM>::Iterator lit(iterate_box_list); lit; lit++)
+            {
+                const Box<NDIM>& iterate_box = *lit;
+                for (Box<NDIM>::Iterator bit(iterate_box); bit; bit++)
+                {
+                    const CellIndex<NDIM>& lower_idx = *bit;
+                    CellIndex<NDIM> upper_idx = lower_idx;
+                    upper_idx(0) += 1;
+                    const double y = patch_x_lower[1] + patch_dx[1] * (lower_idx(1) - patch_lower(1) + 0.5);
+                    const double x0 = patch_x_lower[0] + patch_dx[0] * (lower_idx(0) - patch_lower(0));
+                    const double x1 = x0 + patch_dx[0];
+                    const double k0 = (*k_data)(lower_idx);
+                    const double k1 = (*k_data)(upper_idx);
+                    pos_values.push_back(y);
+                    pos_values.push_back(k0 + (k1 - k0) * (x_loc - x0) / (x1 - x0));
+                }
+            }
+        }
+    }
+    const int nprocs = SAMRAI_MPI::getNodes();
+    const int rank = SAMRAI_MPI::getRank();
+    vector<int> data_size(nprocs, 0);
+    data_size[rank] = static_cast<int>(pos_values.size());
+    SAMRAI_MPI::sumReduction(&data_size[0], nprocs);
+    int offset = 0;
+    offset = std::accumulate(&data_size[0], &data_size[rank], offset);
+    int size_array = 0;
+    size_array = std::accumulate(&data_size[0], &data_size[0] + nprocs, size_array);
+    // Write out the result in a file.
+    string file_name = data_dump_dirname + "/" + "k_y_" + std::to_string(x_loc) + "_";
+    char temp_buf[128];
+    sprintf(temp_buf, "%.8f", data_time);
+    file_name += temp_buf;
+    MPI_Status status;
+    MPI_Offset mpi_offset;
+    MPI_File file;
+    MPI_File_open(MPI_COMM_WORLD, file_name.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
+    // First write the total size of the array.
+    if (rank == 0)
+    {
+        mpi_offset = 0;
+        MPI_File_seek(file, mpi_offset, MPI_SEEK_SET);
+        MPI_File_write(file, &size_array, 1, MPI_INT, &status);
+    }
+    mpi_offset = sizeof(double) * offset + sizeof(int);
+    MPI_File_seek(file, mpi_offset, MPI_SEEK_SET);
+    MPI_File_write(file, &pos_values[0], data_size[rank], MPI_DOUBLE, &status);
+    MPI_File_close(&file);
+    return;
+} // compute_k_profile
+
+void
+compute_w_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                  const int w_idx,
+                  double lower_coordinates[NDIM],
+                  double upper_coordinates[NDIM],
+                  const double data_time,
+                  const string& data_dump_dirname)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+    const double x_loc = lower_coordinates[0];
+    const double y_loc_min = lower_coordinates[1];
+    const double y_loc_max = upper_coordinates[1];
+    const double X_min[2] = { x_loc, y_loc_min };
+    const double X_max[2] = { x_loc, y_loc_max };
+    vector<double> pos_values;
+    for (int ln = finest_ln; ln >= coarsest_ln; --ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const CellIndex<NDIM>& patch_lower = patch_box.lower();
+            const CellIndex<NDIM>& patch_upper = patch_box.upper();
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_x_lower = patch_geom->getXLower();
+            const double* const patch_x_upper = patch_geom->getXUpper();
+            const double* const patch_dx = patch_geom->getDx();
+            const bool inside_patch = x_loc >= patch_x_lower[0] && x_loc <= patch_x_upper[0] &&
+                                      !(patch_x_upper[1] < y_loc_min || patch_x_lower[1] > y_loc_max);
+            if (!inside_patch) continue;
+            // Entire box containing the required data.
+            Box<NDIM> box(IndexUtilities::getCellIndex(
+                              &X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper),
+                          IndexUtilities::getCellIndex(
+                              &X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper));
+            // Part of the box on this patch
+            Box<NDIM> trim_box = patch_box * box;
+            BoxList<NDIM> iterate_box_list = trim_box;
+            // Trim the box covered by the finer region
+            BoxList<NDIM> covered_boxes;
+            if (ln < finest_ln)
+            {
+                BoxArray<NDIM> refined_region_boxes;
+                Pointer<PatchLevel<NDIM> > next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+                refined_region_boxes = next_finer_level->getBoxes();
+                refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
+                for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
+                {
+                    const Box<NDIM> refined_box = refined_region_boxes[i];
+                    const Box<NDIM> covered_box = trim_box * refined_box;
+                    covered_boxes.unionBoxes(covered_box);
+                }
+            }
+            iterate_box_list.removeIntersections(covered_boxes);
+            // Loop over the boxes and store the location and interpolated value.
+            Pointer<CellData<NDIM, double> > w_data = patch->getPatchData(w_idx);
+            for (BoxList<NDIM>::Iterator lit(iterate_box_list); lit; lit++)
+            {
+                const Box<NDIM>& iterate_box = *lit;
+                for (Box<NDIM>::Iterator bit(iterate_box); bit; bit++)
+                {
+                    const CellIndex<NDIM>& lower_idx = *bit;
+                    CellIndex<NDIM> upper_idx = lower_idx;
+                    upper_idx(0) += 1;
+                    const double y = patch_x_lower[1] + patch_dx[1] * (lower_idx(1) - patch_lower(1) + 0.5);
+                    const double x0 = patch_x_lower[0] + patch_dx[0] * (lower_idx(0) - patch_lower(0));
+                    const double x1 = x0 + patch_dx[0];
+                    const double w0 = (*w_data)(lower_idx);
+                    const double w1 = (*w_data)(upper_idx);
+                    pos_values.push_back(y);
+                    pos_values.push_back(w0 + (w1 - w0) * (x_loc - x0) / (x1 - x0));
+                }
+            }
+        }
+    }
+    const int nprocs = SAMRAI_MPI::getNodes();
+    const int rank = SAMRAI_MPI::getRank();
+    vector<int> data_size(nprocs, 0);
+    data_size[rank] = static_cast<int>(pos_values.size());
+    SAMRAI_MPI::sumReduction(&data_size[0], nprocs);
+    int offset = 0;
+    offset = std::accumulate(&data_size[0], &data_size[rank], offset);
+    int size_array = 0;
+    size_array = std::accumulate(&data_size[0], &data_size[0] + nprocs, size_array);
+    // Write out the result in a file.
+    string file_name = data_dump_dirname + "/" + "w_y_" + std::to_string(x_loc) + "_";
+    char temp_buf[128];
+    sprintf(temp_buf, "%.8f", data_time);
+    file_name += temp_buf;
+    MPI_Status status;
+    MPI_Offset mpi_offset;
+    MPI_File file;
+    MPI_File_open(MPI_COMM_WORLD, file_name.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
+    // First write the total size of the array.
+    if (rank == 0)
+    {
+        mpi_offset = 0;
+        MPI_File_seek(file, mpi_offset, MPI_SEEK_SET);
+        MPI_File_write(file, &size_array, 1, MPI_INT, &status);
+    }
+    mpi_offset = sizeof(double) * offset + sizeof(int);
+    MPI_File_seek(file, mpi_offset, MPI_SEEK_SET);
+    MPI_File_write(file, &pos_values[0], data_size[rank], MPI_DOUBLE, &status);
+    MPI_File_close(&file);
+    return;
+} // compute_w_profile
 
 void
 compute_Utau_and_yplus(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,

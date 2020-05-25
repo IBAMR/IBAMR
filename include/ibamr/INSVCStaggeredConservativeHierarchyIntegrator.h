@@ -266,7 +266,7 @@ private:
      * Post-process the velocity based on the non-dimensional wall distance \f$ y^+ \f$.
      */
 
-    void postProcessVelocityBasedonYplus();
+    void postprocessVelocityBasedonYplus();
     /*!
      * Side-centered density variable required for conservative discretization
      */

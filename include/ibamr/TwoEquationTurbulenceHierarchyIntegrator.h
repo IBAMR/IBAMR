@@ -362,17 +362,7 @@ private:
      * Postprocess the \f$ k \f$ and \f$ w \f$ values. If \f$ y^+ \f$ is less than 11, use viscous
      * sublayer boundary conditions. Otherwise, use inertial sublayer boundary conditions.
      */
-    void postProcessTurbulentVariablesBasedonYplus();
-
-    /**
-     * function to write u_tau and yplus
-     */
-    void compute_Utau_and_yplus(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
-                                const int U_tau_idx,
-                                const int yplus_idx,
-                                SAMRAI::tbox::Array<int> wall_location_index,
-                                const double data_time,
-                                const std::string& data_dump_dirname);
+    void postprocessTurbulentVariablesBasedonYplus();
 
     /*!
      * Read input values from a given database.

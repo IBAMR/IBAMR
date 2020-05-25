@@ -229,7 +229,7 @@ static const double A1 = 0.31;
 // Constants appear in wall function.
 static const double KAPPA = 0.4187;
 static const double E = 9.793;
-static const double DPLUS = 9.793;
+static const double DPLUS = 11.0;
 
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
@@ -267,10 +267,11 @@ FrictionVelocityFunctor::operator()(const double& U_tau)
     const double b = 0.5 * (d_plus * kappa / c + 1.0 / d_plus);
     const double kappa_star = kappa * delta / nu;
     const double b_star = b * delta / nu;
-    double fx = (U_s / U_tau) - (log(1.0 + kappa_star * U_tau) / kappa) -
-                c * (1.0 - exp(-delta * U_tau / (nu * d_plus)) - (exp(-b_star * U_tau) * delta * U_tau / nu * d_plus));
+    double fx =
+        (U_s / U_tau) - (log(1.0 + kappa_star * U_tau) / kappa) -
+        c * (1.0 - exp(-delta * U_tau / (nu * d_plus)) - (exp(-b_star * U_tau) * delta * U_tau / (nu * d_plus)));
     double dx =
-        -U_s / (U_tau * U_tau) - kappa_star / kappa * 1.0 / (1.0 + kappa_star * U_tau) -
+        -U_s / (U_tau * U_tau) - kappa_star / (kappa * (1.0 + kappa_star * U_tau)) -
         c * delta *
             (exp(-delta * U_tau / (nu * d_plus)) - exp(-b_star * U_tau) + b_star * U_tau * exp(-b_star * U_tau)) /
             (nu * d_plus);
@@ -533,7 +534,6 @@ TwoEquationTurbulenceHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<
     d_w_C_var = new CellVariable<NDIM, double>(d_w_var->getName() + "::C");
     d_w_C_idx = var_db->registerVariableAndContext(d_w_C_var, getCurrentContext(), no_ghosts);
 
-    // you dont need to register this
     d_rho_cc_var = new CellVariable<NDIM, double>("rho::cc", /*depth*/ 1);
     registerVariable(d_rho_cc_current_idx,
                      d_rho_cc_new_idx,
@@ -686,6 +686,7 @@ TwoEquationTurbulenceHierarchyIntegrator::preprocessIntegrateHierarchy(const dou
     interpolateSCMassDensityToCC(getCurrentContext());
     const int rho_cc_current_idx = var_db->mapVariableAndContextToIndex(d_rho_cc_var, getCurrentContext());
     const int rho_cc_new_idx = var_db->mapVariableAndContextToIndex(d_rho_cc_var, getNewContext());
+
     // set rho/dt
     d_hier_cc_data_ops->scale(d_k_temp_rhs_idx, 1.0 / dt, rho_cc_current_idx);
     k_rhs_op_spec.setCPatchDataId(d_k_temp_rhs_idx);
@@ -865,7 +866,7 @@ TwoEquationTurbulenceHierarchyIntegrator::preprocessIntegrateHierarchy(const dou
     d_hier_cc_data_ops->scale(d_w_temp_rhs_idx, 1.0 / dt, rho_cc_current_idx);
     w_rhs_op_spec.setCPatchDataId(d_w_temp_rhs_idx);
 
-    // set 2.0*rho*beta*omega
+    // set rho*beta*omega
     d_hier_cc_data_ops->multiply(d_w_dissipation_idx, rho_cc_current_idx, w_current_idx);
     d_hier_cc_data_ops->axpy(d_w_C_idx, d_beta, d_w_dissipation_idx, d_w_temp_rhs_idx);
     w_solver_spec.setCPatchDataId(d_w_C_idx);
@@ -969,7 +970,7 @@ TwoEquationTurbulenceHierarchyIntegrator::preprocessIntegrateHierarchy(const dou
         }
     }
 
-    // Set the initial guess for k and w.
+    // Set the initial guess for k, w and rho.
     d_hier_cc_data_ops->copyData(k_new_idx, k_current_idx);
     d_hier_cc_data_ops->copyData(w_new_idx, w_current_idx);
     d_hier_cc_data_ops->copyData(rho_cc_new_idx, rho_cc_current_idx);
@@ -1219,7 +1220,7 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
         // set rho/dt.
         d_hier_cc_data_ops->scale(d_w_temp_idx, 1.0 / dt, rho_cc_new_idx);
 
-        // set 2.0*rho*beta*omega.
+        // set rho*beta*omega.
         d_hier_cc_data_ops->multiply(d_w_dissipation_idx, rho_cc_new_idx, w_new_idx);
         d_hier_cc_data_ops->axpy(d_w_C_idx, d_beta, d_w_dissipation_idx, d_w_temp_idx);
 
@@ -1411,16 +1412,8 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
     d_hier_math_ops->interp(
         U_tau_cc_idx, d_U_tau_cc_var, U_tau_sc_idx, U_tau_sc_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
 
-    /* if (cycle_num > 0)
-        compute_Utau_and_yplus(d_hierarchy,
-                               U_tau_sc_idx,
-                               yplus_sc_idx,
-                               d_wall_location_index,
-                               new_time,
-                               "velocity_profile");*/
-
     // Based on the yplus, set the wall boundary conditions for k and w variables.
-    postProcessTurbulentVariablesBasedonYplus();
+    postprocessTurbulentVariablesBasedonYplus();
 
     // Update the turbulent viscosity.
     calculateF2();
@@ -2143,10 +2136,10 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateF2()
                        k_data->getGhostCellWidth().max(),
                        w_data->getPointer(),
                        w_data->getGhostCellWidth().max(),
-                       rho_data->getPointer(),
-                       rho_data->getGhostCellWidth().max(),
                        mu_data->getPointer(),
                        mu_data->getGhostCellWidth().max(),
+                       rho_data->getPointer(),
+                       rho_data->getGhostCellWidth().max(),
                        d_data->getPointer(),
                        d_data->getGhostCellWidth().max(),
                        patch_box.lower(0),
@@ -2188,7 +2181,7 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateBlendingFunction(const double
             Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
             const double* grid_lower = grid_geom->getXLower();
             const double* grid_upper = grid_geom->getXUpper();
-            const double* spatial_coord[2] = { grid_lower, grid_upper };
+            const double* geometry_coord[2] = { grid_lower, grid_upper };
 
             Pointer<CellData<NDIM, double> > d_data = patch->getPatchData(d_distance_to_closest_surface_scratch_idx);
             double distance = 0.0;
@@ -2202,14 +2195,13 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateBlendingFunction(const double
                     cell_coord[d] = patch_X_lower[d] + patch_dx[d] * (ci(d) - patch_lower_index(d) + 0.5);
                 }
 
-                // This is set for 3D also.
                 std::vector<double> distance_to_surface(2 * NDIM, std::numeric_limits<int>::max());
 
                 for (int i = 0; i < d_wall_location_index.size(); i++)
                 {
                     // since we need both modulo and division here, using div() function.
                     std::div_t coord = std::div(d_wall_location_index[i], 2);
-                    distance = std::abs(spatial_coord[coord.rem][coord.quot] - cell_coord[coord.quot]);
+                    distance = std::abs(geometry_coord[coord.rem][coord.quot] - cell_coord[coord.quot]);
                     distance_to_surface[i] = distance;
                 }
                 (*d_data)(ci) = *min_element(distance_to_surface.begin(), distance_to_surface.end());
@@ -2263,10 +2255,10 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateBlendingFunction(const double
                              k_data->getGhostCellWidth().max(),
                              w_data->getPointer(),
                              w_data->getGhostCellWidth().max(),
-                             rho_data->getPointer(),
-                             rho_data->getGhostCellWidth().max(),
                              mu_data->getPointer(),
                              mu_data->getGhostCellWidth().max(),
+                             rho_data->getPointer(),
+                             rho_data->getGhostCellWidth().max(),
                              d_data->getPointer(),
                              d_data->getGhostCellWidth().max(),
                              BETA_STAR,
@@ -2360,9 +2352,9 @@ TwoEquationTurbulenceHierarchyIntegrator::applyWallFunction(const double data_ti
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     FrictionVelocityFunctor friction_velocity;
-    friction_velocity.d_plus = 11.0;
-    friction_velocity.kappa = 0.4187;
-    friction_velocity.E = 9.793;
+    friction_velocity.d_plus = DPLUS;
+    friction_velocity.kappa = KAPPA;
+    friction_velocity.E = E;
 
     for (int ln = coarsest_ln; ln <= finest_ln; ln++)
     {
@@ -2509,7 +2501,7 @@ TwoEquationTurbulenceHierarchyIntegrator::applyWallFunction(const double data_ti
 } // applyWallFunction
 
 void
-TwoEquationTurbulenceHierarchyIntegrator::postProcessTurbulentVariablesBasedonYplus()
+TwoEquationTurbulenceHierarchyIntegrator::postprocessTurbulentVariablesBasedonYplus()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2620,179 +2612,6 @@ TwoEquationTurbulenceHierarchyIntegrator::postProcessTurbulentVariablesBasedonYp
     }
     return;
 } // postProcessTurbulentVariablesBasedonYplus
-
-void
-TwoEquationTurbulenceHierarchyIntegrator::compute_Utau_and_yplus(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                                                                 const int U_tau_idx,
-                                                                 const int yplus_idx,
-                                                                 SAMRAI::tbox::Array<int> wall_location_index,
-                                                                 const double data_time,
-                                                                 const std::string& data_dump_dirname)
-{
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    std::vector<double> utau_bottom_values;
-    std::vector<double> yplus_bottom_values;
-    std::vector<double> utau_top_values;
-    std::vector<double> yplus_top_values;
-    for (int ln = finest_ln; ln >= coarsest_ln; --ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const CellIndex<NDIM>& patch_lower = patch_box.lower();
-            const CellIndex<NDIM>& patch_upper = patch_box.upper();
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-
-            const double* const patch_x_lower = patch_geom->getXLower();
-            const double* const patch_x_upper = patch_geom->getXUpper();
-
-            Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_hierarchy->getGridGeometry();
-            const double* grid_lower = grid_geom->getXLower();
-            const double* grid_upper = grid_geom->getXUpper();
-            const double* const patch_dx = patch_geom->getDx();
-
-            const double distance_to_virtual_point = 2.0;
-            IBTK::VectorNd number_of_indices(NDIM);
-            for (int d = 0; d < NDIM; d++)
-            {
-                number_of_indices(d) = (grid_upper[d] - grid_lower[d]) / patch_dx[d];
-            }
-
-            Pointer<SideData<NDIM, double> > U_tau_data = patch->getPatchData(U_tau_idx);
-            Pointer<SideData<NDIM, double> > yplus_data = patch->getPatchData(yplus_idx);
-            if (!patch_geom->getTouchesRegularBoundary()) continue;
-
-            for (int i = 0; i < wall_location_index.size(); i++)
-            {
-                const unsigned int axis = wall_location_index[i] / 2;
-                const unsigned int side = wall_location_index[i] % 2;
-                const bool is_lower = side == 0;
-                if (patch_geom->getTouchesRegularBoundary(axis, side))
-                {
-                    Box<NDIM> bdry_box = patch_box;
-                    if (is_lower)
-                    {
-                        bdry_box.upper(axis) = patch_box.lower(axis) + distance_to_virtual_point;
-                    }
-                    else
-                    {
-                        bdry_box.lower(axis) = patch_box.upper(axis) - distance_to_virtual_point;
-                    }
-                    Box<NDIM> trim_box = patch_box * bdry_box;
-                    for (unsigned int d = 0; d < NDIM; d++)
-                    {
-                        for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(trim_box, d)); b; b++)
-                        {
-                            SideIndex<NDIM> si(b(), d, SideIndex<NDIM>::Lower);
-                            const double x = patch_x_lower[0] + patch_dx[0] * (si(0) - patch_lower(0));
-
-                            // bottom boundary.
-                            if (axis == 1 && side == 0 && si(1) == 0 && d == 0)
-                            {
-                                const double u_tau = (*U_tau_data)(si);
-                                const double yplus = (*yplus_data)(si);
-                                utau_bottom_values.push_back(x);
-                                utau_bottom_values.push_back(u_tau);
-                                yplus_bottom_values.push_back(x);
-                                yplus_bottom_values.push_back(yplus);
-                            }
-                            // top boundary
-                            else if (axis == 1 && side == 1 && si(1) == number_of_indices(axis) - 1 && d == 0)
-                            {
-                                const double u_tau = (*U_tau_data)(si);
-                                const double yplus = (*yplus_data)(si);
-                                utau_top_values.push_back(x);
-                                utau_top_values.push_back(u_tau);
-                                yplus_top_values.push_back(x);
-                                yplus_top_values.push_back(yplus);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    const int nprocs = SAMRAI_MPI::getNodes();
-    const int rank = SAMRAI_MPI::getRank();
-    std::vector<int> data_size(nprocs, 0), data_size1(nprocs, 0), data_size2(nprocs, 0), data_size3(nprocs, 0);
-    data_size[rank] = static_cast<int>(utau_bottom_values.size());
-    data_size1[rank] = static_cast<int>(yplus_bottom_values.size());
-    data_size2[rank] = static_cast<int>(utau_top_values.size());
-    data_size3[rank] = static_cast<int>(yplus_top_values.size());
-
-    SAMRAI_MPI::sumReduction(&data_size[0], nprocs);
-    SAMRAI_MPI::sumReduction(&data_size1[0], nprocs);
-    SAMRAI_MPI::sumReduction(&data_size2[0], nprocs);
-    SAMRAI_MPI::sumReduction(&data_size3[0], nprocs);
-
-    int offset = 0, offset1 = 0, offset2 = 0, offset3 = 0;
-    offset = std::accumulate(&data_size[0], &data_size[rank], offset);
-    offset1 = std::accumulate(&data_size1[0], &data_size1[rank], offset1);
-    offset2 = std::accumulate(&data_size2[0], &data_size2[rank], offset2);
-    offset3 = std::accumulate(&data_size3[0], &data_size3[rank], offset3);
-
-    int size_array = 0, size_array1 = 0, size_array2 = 0, size_array3 = 0;
-    size_array = std::accumulate(&data_size[0], &data_size[0] + nprocs, size_array);
-    size_array1 = std::accumulate(&data_size1[0], &data_size1[0] + nprocs, size_array1);
-    size_array2 = std::accumulate(&data_size2[0], &data_size2[0] + nprocs, size_array2);
-    size_array3 = std::accumulate(&data_size3[0], &data_size3[0] + nprocs, size_array3);
-
-    // Write out the result in a file.
-    std::string file_name = data_dump_dirname + "/" + "utau_bottom_";
-    std::string file_name1 = data_dump_dirname + "/" + "yplus_bottom_";
-    std::string file_name2 = data_dump_dirname + "/" + "utau_top_";
-    std::string file_name3 = data_dump_dirname + "/" + "yplus_top_";
-    char temp_buf[128];
-    sprintf(temp_buf, "%.8f", data_time);
-    file_name += temp_buf;
-    file_name1 += temp_buf;
-    file_name2 += temp_buf;
-    file_name3 += temp_buf;
-    MPI_Status status;
-    MPI_Offset mpi_offset, mpi_offset1, mpi_offset2, mpi_offset3;
-    MPI_File file;
-    MPI_File_open(MPI_COMM_WORLD, file_name.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
-    MPI_File file1;
-    MPI_File_open(MPI_COMM_WORLD, file_name1.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file1);
-    MPI_File file2;
-    MPI_File_open(MPI_COMM_WORLD, file_name2.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file2);
-    MPI_File file3;
-    MPI_File_open(MPI_COMM_WORLD, file_name3.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file3);
-    // First write the total size of the array.
-    if (rank == 0)
-    {
-        mpi_offset = 0, mpi_offset1 = 0, mpi_offset2 = 0, mpi_offset3 = 0;
-        MPI_File_seek(file, mpi_offset, MPI_SEEK_SET);
-        MPI_File_write(file, &size_array, 1, MPI_INT, &status);
-        MPI_File_seek(file1, mpi_offset1, MPI_SEEK_SET);
-        MPI_File_write(file1, &size_array1, 1, MPI_INT, &status);
-        MPI_File_seek(file2, mpi_offset2, MPI_SEEK_SET);
-        MPI_File_write(file2, &size_array2, 1, MPI_INT, &status);
-        MPI_File_seek(file3, mpi_offset3, MPI_SEEK_SET);
-        MPI_File_write(file3, &size_array3, 1, MPI_INT, &status);
-    }
-    mpi_offset = sizeof(double) * offset + sizeof(int);
-    mpi_offset1 = sizeof(double) * offset1 + sizeof(int);
-    mpi_offset2 = sizeof(double) * offset2 + sizeof(int);
-    mpi_offset3 = sizeof(double) * offset3 + sizeof(int);
-    MPI_File_seek(file, mpi_offset, MPI_SEEK_SET);
-    MPI_File_write(file, &utau_bottom_values[0], data_size[rank], MPI_DOUBLE, &status);
-    MPI_File_close(&file);
-    MPI_File_seek(file1, mpi_offset1, MPI_SEEK_SET);
-    MPI_File_write(file1, &yplus_bottom_values[0], data_size1[rank], MPI_DOUBLE, &status);
-    MPI_File_close(&file1);
-    MPI_File_seek(file2, mpi_offset2, MPI_SEEK_SET);
-    MPI_File_write(file2, &utau_top_values[0], data_size2[rank], MPI_DOUBLE, &status);
-    MPI_File_close(&file2);
-    MPI_File_seek(file3, mpi_offset3, MPI_SEEK_SET);
-    MPI_File_write(file3, &yplus_top_values[0], data_size3[rank], MPI_DOUBLE, &status);
-    MPI_File_close(&file3);
-    return;
-} // compute_Utau_and_yplus
 
 void
 TwoEquationTurbulenceHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_from_restart)

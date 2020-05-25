@@ -488,8 +488,8 @@ c
          grad_k_grad_w = (fac0*((k(i0+1,i1)-k(i0-1,i1))*(w(i0+1,i1)
      &                     -w(i0-1,i1))))+(fac1*((k(i0,i1+1)-k(i0,i1-1))
      &                     *(w(i0,i1+1)-w(i0,i1-1))))
-         w_f(i0,i1) = w_f(i0,i1) + ((2.d0*(1.d0-F1(i0,i1))*rho(i0,i1)
-     &                *sigma_w2*grad_k_grad_w)/w(i0,i1))
+         w_f(i0,i1) = w_f(i0,i1) + 2.d0*(1.d0-F1(i0,i1))*rho(i0,i1)
+     &                *sigma_w2*grad_k_grad_w/w(i0,i1)
          enddo
       enddo
 c

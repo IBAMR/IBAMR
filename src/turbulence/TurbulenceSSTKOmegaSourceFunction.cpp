@@ -175,15 +175,15 @@ namespace IBAMR
 namespace
 {
 // turbulent Prandtl number
-static const double sigma_t = 0.85;
-static const double beta_star = 0.09;
+static const double SIGMA_T = 0.85;
+static const double BETA_STAR = 0.09;
 
 // alpha
-static const double alpha_1 = 0.5532;
-static const double alpha_2 = 0.4403;
+static const double ALPHA_1 = 0.5532;
+static const double ALPHA_2 = 0.4403;
 
 // sigma_w2
-static const double sigma_w2 = 0.856;
+static const double SIGMA_W2 = 0.856;
 } // namespace
 
 TurbulenceSSTKOmegaSourceFunction::TurbulenceSSTKOmegaSourceFunction(
@@ -347,7 +347,7 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForK(Pointer<CellData<NDIM,
 
     Pointer<CellData<NDIM, double> > mu_t_data = patch->getPatchData(d_mu_t_new_idx);
 
-    // find P = min (G, 10*Beta*k*w)
+    // find P = min (G, 10*Beta_star*k*w)
     Pointer<CellData<NDIM, double> > k_data = patch->getPatchData(d_k_new_idx);
     Pointer<CellData<NDIM, double> > w_data = patch->getPatchData(d_w_new_idx);
     Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(d_p_scratch_idx);
@@ -367,7 +367,7 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForK(Pointer<CellData<NDIM,
                          patch_box.lower(2),
                          patch_box.upper(2),
 #endif
-                         beta_star);
+                         BETA_STAR);
 
     // routine to calculate buoyancy term
     Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(d_rho_scratch_idx);
@@ -383,7 +383,7 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForK(Pointer<CellData<NDIM,
 #if (NDIM == 3)
                        d_gravity[2],
 #endif
-                       sigma_t,
+                       SIGMA_T,
                        patch_box.lower(0),
                        patch_box.upper(0),
                        patch_box.lower(1),
@@ -434,8 +434,8 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForOmega(Pointer<CellData<N
                          patch_box.lower(2),
                          patch_box.upper(2),
 #endif
-                         alpha_1,
-                         alpha_2);
+                         ALPHA_1,
+                         ALPHA_2);
 
     SST_W_EQN_CROSSDIFFUSION(w_f_data->getPointer(),
                              w_f_data->getGhostCellWidth().max(),
@@ -447,7 +447,7 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchCellForOmega(Pointer<CellData<N
                              k_data->getGhostCellWidth().max(),
                              w_data->getPointer(),
                              w_data->getGhostCellWidth().max(),
-                             sigma_w2,
+                             SIGMA_W2,
                              patch_box.lower(0),
                              patch_box.upper(0),
                              patch_box.lower(1),

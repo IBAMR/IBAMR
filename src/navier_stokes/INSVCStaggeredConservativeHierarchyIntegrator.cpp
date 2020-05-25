@@ -113,7 +113,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 // Constants appear in wall function.
 static const double KAPPA = 0.4187;
 static const double E = 9.793;
-static const double DPLUS = 9.793;
+static const double DPLUS = 11.0;
 
 } // namespace
 
@@ -1602,7 +1602,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
     d_hier_cc_data_ops->copyData(d_P_new_idx, sol_vec->getComponentDescriptorIndex(1));
 
     // compute the velocity based on wall law for the wall boundary cells.
-    if (d_use_turb_model) postProcessVelocityBasedonYplus();
+    if (d_use_turb_model) postprocessVelocityBasedonYplus();
 
     // Scale pressure solution if necessary
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1643,13 +1643,13 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
 } // resetSolverVectors
 
 void
-INSVCStaggeredConservativeHierarchyIntegrator::postProcessVelocityBasedonYplus()
+INSVCStaggeredConservativeHierarchyIntegrator::postprocessVelocityBasedonYplus() // write postprocess
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     const double c = log(E / KAPPA) / KAPPA;
-    const double b_const = 0.5 * (DPLUS * KAPPA / c + 1.0 / DPLUS);
+    const double b_const = 0.5 * (DPLUS * KAPPA / c + 1.0 / DPLUS); // make proper name
     for (int ln = coarsest_ln; ln <= finest_ln; ln++)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
