@@ -1,0 +1,3 @@
+Bug Fix: Fixed a small bug in the variable-coefficient Gauss-Seidel smoothers used in the VC FAC preconditioner.
+<br>
+(Nishant Nangia, 2020/05/23)
