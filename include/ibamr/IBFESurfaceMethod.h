@@ -645,6 +645,7 @@ protected:
     bool d_use_velocity_jump_conditions = false;
     libMesh::FEFamily d_velocity_jump_fe_family = libMesh::LAGRANGE;
     bool d_compute_fluid_traction = false;
+    bool d_use_indirect_exterior_traction = false;
     libMesh::FEFamily d_wss_fe_family = libMesh::LAGRANGE;
     libMesh::FEFamily d_tau_fe_family = libMesh::LAGRANGE;
     bool d_perturb_fe_mesh_nodes = true;
