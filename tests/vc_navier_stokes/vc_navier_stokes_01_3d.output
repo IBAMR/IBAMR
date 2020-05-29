@@ -3,11 +3,11 @@
 Computing error norms.
 
 Error in u_sc at time 0.01:
-  L1-norm:  0.02156099041
-  L2-norm:  0.0259667868
-  max-norm: 0.2549433518
+  L1-norm:  0.02155960838
+  L2-norm:  0.02596636562
+  max-norm: 0.2550021169
 Error in p at time 0.00975:
-  L1-norm:  0.859512265
-  L2-norm:  4.653779979
-  max-norm: 147.3544914
+  L1-norm:  0.8595617532
+  L2-norm:  4.655556503
+  max-norm: 147.3943065
 +++++++++++++++++++++++++++++++++++++++++++++++++++
