@@ -1,0 +1,3 @@
+Bug Fix: Fixed a small bug in an edge case for the HR limiters used in the CUI, MGAMMA, and FBICS convective operators. Updated vc_navier_stokes tests."
+<br>
+(Nishant Nangia, 2020/05/28)

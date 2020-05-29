@@ -886,18 +886,20 @@ c     High-resolution scheme (HR)
       ac = (qC - qU)/(qD - qU)
 
       if (qD - qU .eq. zero) then
-c       ac will be NaN, but qf = qU, so af can be any number
-        af = zero
-      else if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
-        af = three*ac
-      else if (2.d0/13.d0 .lt. ac .and. ac .le. 4.d0/5.d0) then
-        af = ac*5.d0/6.d0 + third
-      else if (4.d0/5.d0 .lt. ac .and. ac .le. one) then
-        af = one
+c       default to upwinding
+        qf = qC
       else
-        af = ac
+        if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
+          af = three*ac
+        else if (2.d0/13.d0 .lt. ac .and. ac .le. 4.d0/5.d0) then
+          af = ac*5.d0/6.d0 + third
+        else if (4.d0/5.d0 .lt. ac .and. ac .le. one) then
+          af = one
+        else
+          af = ac
+        endif
+        qf = af*(qD - qU) + qU
       endif
-      qf = af*(qD - qU) + qU
 
       return
       end
@@ -930,16 +932,18 @@ c     High-resolution scheme (HR)
       ac = (qC - qU)/(qD - qU)
 
       if (qD - qU .eq. zero) then
-c       ac will be NaN, but qf = qU, so af can be any number
-        af = zero
-      else if (zero .lt. ac .and. ac .le. third) then
-        af = three*ac
-      else if (third .lt. ac .and. ac .le. one) then
-        af = one
+c       default to upwinding
+        qf = qC
       else
-        af = ac
+        if (zero .lt. ac .and. ac .le. third) then
+          af = three*ac
+        else if (third .lt. ac .and. ac .le. one) then
+          af = one
+        else
+          af = ac
+        endif
+        qf = af*(qD - qU) + qU
       endif
-      qf = af*(qD - qU) + qU
 
       return
       end
@@ -972,18 +976,20 @@ c     High-resolution scheme (HR)
       ac = (qC - qU)/(qD - qU)
 
       if (qD - qU .eq. zero) then
-c       ac will be NaN, but qf = qU, so af can be any number
-        af = zero
-      else if (zero .lt. ac .and. ac .le. eighth) then
-        af = three*ac
-      else if (eighth .lt. ac .and. ac .le. threefourth) then
-        af = ac + fourth
-      else if (threefourth .lt. ac .and. ac .le. one) then
-        af = one
+c       default to upwinding
+        qf = qC
       else
-        af = ac
+        if (zero .lt. ac .and. ac .le. eighth) then
+          af = three*ac
+        else if (eighth .lt. ac .and. ac .le. threefourth) then
+          af = ac + fourth
+        else if (threefourth .lt. ac .and. ac .le. one) then
+          af = one
+        else
+          af = ac
+        endif
+        qf = af*(qD - qU) + qU
       endif
-      qf = af*(qD - qU) + qU
 
       return
       end
@@ -1016,16 +1022,18 @@ c     High-resolution scheme (HR)
       ac = (qC - qU)/(qD - qU)
 
       if (qD - qU .eq. zero) then
-c       ac will be NaN, but qf = qU, so af can be any number
-        af = zero
-      else if (zero .lt. ac .and. ac .le. fourth) then
-        af = 5.d0/2.d0*ac
-      else if (fourth .lt. ac .and. ac .le. one) then
-        af = half*ac + half
+c       default to upwinding
+        qf = qC
       else
-        af = ac
+        if (zero .lt. ac .and. ac .le. fourth) then
+          af = 5.d0/2.d0*ac
+        else if (fourth .lt. ac .and. ac .le. one) then
+          af = half*ac + half
+        else
+          af = ac
+        endif
+        qf = af*(qD - qU) + qU
       endif
-      qf = af*(qD - qU) + qU
 
       return
       end
