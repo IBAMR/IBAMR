@@ -1362,8 +1362,15 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             // TODO: d_current_time is actually nan here. Since we don't do
             // any sort of tagging based on the current time I think we can
             // just put in a bogus (nonnegative) value.
+            int max_level = d_scratch_hierarchy->getFinestLevelNumber();
+            if (max_level == 0)
+            {
+                TBOX_ERROR("IBFEMethod::endDataRedistribution()\n"
+                           << "At the current time the scratch hierarchy is only available\n"
+                           << "with AMR (i.e., there must be at least two levels.)\n");
+            }
             d_scratch_gridding_algorithm->regridAllFinerLevels(
-                d_scratch_hierarchy, 0, 0.0 /*d_current_time*/, tag_buffer);
+                d_scratch_hierarchy, max_level - 1, 0.0 /*d_current_time*/, tag_buffer);
             if (d_do_log) plog << "IBFEMethod: finished scratch hierarchy regrid" << std::endl;
         }
 
