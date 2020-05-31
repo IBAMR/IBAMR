@@ -27,9 +27,9 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for basic libMesh objects
+#include <libmesh/centroid_partitioner.h>
 #include <libmesh/equation_systems.h>
 #include <libmesh/exodusII_io.h>
-#include <libmesh/linear_partitioner.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
 #include <libmesh/periodic_boundary.h>
@@ -208,7 +208,7 @@ main(int argc, char* argv[])
         // 98cede90ca8837688ee13aac5e299a3765f083da (between 1.3.1 and
         // 1.4.0). Hence, to achieve consistent partitioning, use a simpler
         // partitioning scheme:
-        LinearPartitioner partitioner;
+        CentroidPartitioner partitioner;
         partitioner.partition(mesh);
 
         VectorValue<double> boundary_translation(2.0 * M_PI * R, 0.0, 0.0);

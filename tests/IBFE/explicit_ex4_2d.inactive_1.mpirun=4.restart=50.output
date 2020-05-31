@@ -58,10 +58,10 @@ workload estimate on processor 0 = 1024
 workload estimate on processor 1 = 1024
 workload estimate on processor 2 = 1024
 workload estimate on processor 3 = 1024
-local active DoFs on processor 0 = 3222
-local active DoFs on processor 1 = 2187
-local active DoFs on processor 2 = 2187
-local active DoFs on processor 3 = 1962
+local active DoFs on processor 0 = 2655
+local active DoFs on processor 1 = 2299
+local active DoFs on processor 2 = 2361
+local active DoFs on processor 3 = 2243
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
@@ -79,10 +79,10 @@ workload estimate on processor 0 = 1024
 workload estimate on processor 1 = 1024
 workload estimate on processor 2 = 1024
 workload estimate on processor 3 = 1024
-local active DoFs on processor 0 = 3222
-local active DoFs on processor 1 = 2187
-local active DoFs on processor 2 = 2187
-local active DoFs on processor 3 = 1962
+local active DoFs on processor 0 = 2655
+local active DoFs on processor 1 = 2299
+local active DoFs on processor 2 = 2361
+local active DoFs on processor 3 = 2243
 IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
 IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
@@ -630,10 +630,10 @@ workload estimate on processor 0 = 1024
 workload estimate on processor 1 = 1024
 workload estimate on processor 2 = 1024
 workload estimate on processor 3 = 1024
-local active DoFs on processor 0 = 3222
-local active DoFs on processor 1 = 2187
-local active DoFs on processor 2 = 2187
-local active DoFs on processor 3 = 1962
+local active DoFs on processor 0 = 2655
+local active DoFs on processor 1 = 2299
+local active DoFs on processor 2 = 2361
+local active DoFs on processor 3 = 2243
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
@@ -651,10 +651,10 @@ workload estimate on processor 0 = 1024
 workload estimate on processor 1 = 1024
 workload estimate on processor 2 = 1024
 workload estimate on processor 3 = 1024
-local active DoFs on processor 0 = 3222
-local active DoFs on processor 1 = 2187
-local active DoFs on processor 2 = 2187
-local active DoFs on processor 3 = 1962
+local active DoFs on processor 0 = 2655
+local active DoFs on processor 1 = 2299
+local active DoFs on processor 2 = 2361
+local active DoFs on processor 3 = 2243
 IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
 IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
@@ -1202,10 +1202,10 @@ workload estimate on processor 0 = 1024
 workload estimate on processor 1 = 1024
 workload estimate on processor 2 = 1024
 workload estimate on processor 3 = 1024
-local active DoFs on processor 0 = 3222
-local active DoFs on processor 1 = 2187
-local active DoFs on processor 2 = 2187
-local active DoFs on processor 3 = 1962
+local active DoFs on processor 0 = 2655
+local active DoFs on processor 1 = 2299
+local active DoFs on processor 2 = 2361
+local active DoFs on processor 3 = 2243
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
@@ -1223,10 +1223,10 @@ workload estimate on processor 0 = 1024
 workload estimate on processor 1 = 1024
 workload estimate on processor 2 = 1024
 workload estimate on processor 3 = 1024
-local active DoFs on processor 0 = 3222
-local active DoFs on processor 1 = 2187
-local active DoFs on processor 2 = 2187
-local active DoFs on processor 3 = 1962
+local active DoFs on processor 0 = 2655
+local active DoFs on processor 1 = 2299
+local active DoFs on processor 2 = 2361
+local active DoFs on processor 3 = 2243
 IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
 IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
