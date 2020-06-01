@@ -224,50 +224,64 @@ class IBFEDirectForcingKinematics;
  * by adding the following parameters to the input database:
  *
  * @code
- * use_scratch_hierarchy = TRUE
- * workload_quad_point_weight = 1.0
+ * IBFEMethod {
  *
- * // The values supplied here should usually be the same as those provided to
- * // the top-level GriddingAlgorithm.
- * GriddingAlgorithm
- * {
- *     max_levels = MAX_LEVELS
- *     ratio_to_coarser
- *     {
- *         level_1 = REF_RATIO,REF_RATIO
- *         level_2 = REF_RATIO,REF_RATIO
- *     }
+ *    // Place whatever database entries you typically use with IBFEMethod here,
+ *    // e.g., define IB_delta_fcn, split_forces, use_consistent_mass_matrix etc.
+ *    // as usual. The parameters listed below solely pertain to the scratch
+ *    // hierarchy.
  *
- *     largest_patch_size
- *     {
- *         // We recommend using very large values here: large patches
- *         // are more efficient, especially with the merging load balancer.
- *         level_0 = 512,512
- *     }
+ *    use_scratch_hierarchy = TRUE
+ *    workload_quad_point_weight = 1.0
  *
- *     smallest_patch_size
- *     {
- *         // on the other hand, smaller patch sizes here typically enable
- *         // better load balancing at the cost of creating more total work
- *         // due to an increased number of ghost cells (and, therefore,
- *         // an increased number of elements in more than one patch).
- *         level_0 = 16,16
- *     }
+ *    // The values supplied here should usually be the same as those provided to
+ *    // the top-level GriddingAlgorithm.
+ *    GriddingAlgorithm
+ *    {
+ *        max_levels = MAX_LEVELS
+ *        ratio_to_coarser
+ *        {
+ *            level_1 = REF_RATIO,REF_RATIO
+ *        }
  *
- *     efficiency_tolerance = 0.80e0
- *     combine_efficiency   = 0.80e0
- *     coalesce_boxes = TRUE
- *     allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
- * }
+ *        largest_patch_size
+ *        {
+ *            // We recommend using very large values here: large patches
+ *            // are more efficient, especially with the merging load balancer.
+ *            level_0 = 512,512
+ *        }
  *
- * // Smaller workload factors improve load balancing but increase the total
- * // amount of work since more elements will end up on multiple patches.
- * // This value is a good compromise.
- * LoadBalancer
- * {
- *    type                = "MERGING"
- *    bin_pack_method     = "SPATIAL"
- *    max_workload_factor = 0.5
+ *        smallest_patch_size
+ *        {
+ *            // on the other hand, smaller patch sizes here typically enable
+ *            // better load balancing at the cost of creating more total work
+ *            // due to an increased number of ghost cells (and, therefore,
+ *            // an increased number of elements in more than one patch).
+ *            // We recommend adjusting this number to be as large as possible
+ *            // by examining log output - if higher-rank processors do not have
+ *            // enough work then it should be slightly decreased. 8 x 8 is usually
+ *            // too small, but 16 x 16 is reasonable for many setups.
+ *            level_0 = 16, 16
+ *        }
+ *
+ *        efficiency_tolerance = 0.80e0
+ *        combine_efficiency   = 0.80e0
+ *        coalesce_boxes = TRUE
+ *        allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
+ *    }
+ *
+ *    // Smaller workload factors improve load balancing but increase the total
+ *    // amount of work since more elements will end up on multiple patches.
+ *    // This value is a good compromise.
+ *    // Similarly, since intraprocessor patch communication is less of a concern
+ *    // here than in the fluid solver, we recommend using the greedy load
+ *    // balancer bin packing method.
+ *    LoadBalancer
+ *    {
+ *       type                = "MERGING"
+ *       bin_pack_method     = "GREEDY"
+ *       max_workload_factor = 0.5
+ *    }
  * }
  * @endcode
  *
