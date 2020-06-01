@@ -136,7 +136,8 @@ am__objects_1 = main2d-example.$(OBJEXT) \
 	main2d-RigidBodyKinematics.$(OBJEXT) \
 	main2d-TagLSRefinementCells.$(OBJEXT) \
 	main2d-SetLSProperties.$(OBJEXT) \
-	main2d-GravityForcing.$(OBJEXT)
+	main2d-GravityForcing.$(OBJEXT) \
+	main2d-LevelSetSolidInitialCondition.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -155,7 +156,8 @@ am__objects_2 = main3d-example.$(OBJEXT) \
 	main3d-RigidBodyKinematics.$(OBJEXT) \
 	main3d-TagLSRefinementCells.$(OBJEXT) \
 	main3d-SetLSProperties.$(OBJEXT) \
-	main3d-GravityForcing.$(OBJEXT)
+	main3d-GravityForcing.$(OBJEXT) \
+	main3d-LevelSetSolidInitialCondition.$(OBJEXT)
 am_main3d_OBJECTS = $(am__objects_2)
 main3d_OBJECTS = $(am_main3d_OBJECTS)
 main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
@@ -186,6 +188,7 @@ am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/main2d-GravityForcing.Po \
 	./$(DEPDIR)/main2d-LSLocateGasInterface.Po \
 	./$(DEPDIR)/main2d-LSLocateStructureInterface.Po \
+	./$(DEPDIR)/main2d-LevelSetSolidInitialCondition.Po \
 	./$(DEPDIR)/main2d-RigidBodyKinematics.Po \
 	./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po \
 	./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po \
@@ -195,6 +198,7 @@ am__depfiles_remade = ./$(DEPDIR)/main2d-GravityForcing.Po \
 	./$(DEPDIR)/main3d-GravityForcing.Po \
 	./$(DEPDIR)/main3d-LSLocateGasInterface.Po \
 	./$(DEPDIR)/main3d-LSLocateStructureInterface.Po \
+	./$(DEPDIR)/main3d-LevelSetSolidInitialCondition.Po \
 	./$(DEPDIR)/main3d-RigidBodyKinematics.Po \
 	./$(DEPDIR)/main3d-SetFluidGasSolidDensity.Po \
 	./$(DEPDIR)/main3d-SetFluidGasSolidViscosity.Po \
@@ -514,7 +518,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXAMPLE_DRIVER = example.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp LSLocateStructureInterface.cpp LSLocateGasInterface.cpp RigidBodyKinematics.cpp TagLSRefinementCells.cpp SetLSProperties.cpp GravityForcing.cpp
+EXAMPLE_DRIVER = example.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp LSLocateStructureInterface.cpp LSLocateGasInterface.cpp RigidBodyKinematics.cpp TagLSRefinementCells.cpp SetLSProperties.cpp GravityForcing.cpp LevelSetSolidInitialCondition.cpp
 EXTRA_DIST = input2d input3d
 EXAMPLES = $(am__append_1) $(am__append_3)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -582,6 +586,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-GravityForcing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LSLocateGasInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LSLocateStructureInterface.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LevelSetSolidInitialCondition.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-RigidBodyKinematics.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po@am__quote@ # am--include-marker
@@ -591,6 +596,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-GravityForcing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-LSLocateGasInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-LSLocateStructureInterface.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-LevelSetSolidInitialCondition.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-RigidBodyKinematics.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-SetFluidGasSolidDensity.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-SetFluidGasSolidViscosity.Po@am__quote@ # am--include-marker
@@ -755,6 +761,20 @@ main2d-GravityForcing.obj: GravityForcing.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-GravityForcing.obj `if test -f 'GravityForcing.cpp'; then $(CYGPATH_W) 'GravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/GravityForcing.cpp'; fi`
 
+main2d-LevelSetSolidInitialCondition.o: LevelSetSolidInitialCondition.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-LevelSetSolidInitialCondition.o -MD -MP -MF $(DEPDIR)/main2d-LevelSetSolidInitialCondition.Tpo -c -o main2d-LevelSetSolidInitialCondition.o `test -f 'LevelSetSolidInitialCondition.cpp' || echo '$(srcdir)/'`LevelSetSolidInitialCondition.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-LevelSetSolidInitialCondition.Tpo $(DEPDIR)/main2d-LevelSetSolidInitialCondition.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LevelSetSolidInitialCondition.cpp' object='main2d-LevelSetSolidInitialCondition.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-LevelSetSolidInitialCondition.o `test -f 'LevelSetSolidInitialCondition.cpp' || echo '$(srcdir)/'`LevelSetSolidInitialCondition.cpp
+
+main2d-LevelSetSolidInitialCondition.obj: LevelSetSolidInitialCondition.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-LevelSetSolidInitialCondition.obj -MD -MP -MF $(DEPDIR)/main2d-LevelSetSolidInitialCondition.Tpo -c -o main2d-LevelSetSolidInitialCondition.obj `if test -f 'LevelSetSolidInitialCondition.cpp'; then $(CYGPATH_W) 'LevelSetSolidInitialCondition.cpp'; else $(CYGPATH_W) '$(srcdir)/LevelSetSolidInitialCondition.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-LevelSetSolidInitialCondition.Tpo $(DEPDIR)/main2d-LevelSetSolidInitialCondition.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LevelSetSolidInitialCondition.cpp' object='main2d-LevelSetSolidInitialCondition.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-LevelSetSolidInitialCondition.obj `if test -f 'LevelSetSolidInitialCondition.cpp'; then $(CYGPATH_W) 'LevelSetSolidInitialCondition.cpp'; else $(CYGPATH_W) '$(srcdir)/LevelSetSolidInitialCondition.cpp'; fi`
+
 main3d-example.o: example.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-example.o -MD -MP -MF $(DEPDIR)/main3d-example.Tpo -c -o main3d-example.o `test -f 'example.cpp' || echo '$(srcdir)/'`example.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-example.Tpo $(DEPDIR)/main3d-example.Po
@@ -880,6 +900,20 @@ main3d-GravityForcing.obj: GravityForcing.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='GravityForcing.cpp' object='main3d-GravityForcing.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-GravityForcing.obj `if test -f 'GravityForcing.cpp'; then $(CYGPATH_W) 'GravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/GravityForcing.cpp'; fi`
+
+main3d-LevelSetSolidInitialCondition.o: LevelSetSolidInitialCondition.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-LevelSetSolidInitialCondition.o -MD -MP -MF $(DEPDIR)/main3d-LevelSetSolidInitialCondition.Tpo -c -o main3d-LevelSetSolidInitialCondition.o `test -f 'LevelSetSolidInitialCondition.cpp' || echo '$(srcdir)/'`LevelSetSolidInitialCondition.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-LevelSetSolidInitialCondition.Tpo $(DEPDIR)/main3d-LevelSetSolidInitialCondition.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LevelSetSolidInitialCondition.cpp' object='main3d-LevelSetSolidInitialCondition.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-LevelSetSolidInitialCondition.o `test -f 'LevelSetSolidInitialCondition.cpp' || echo '$(srcdir)/'`LevelSetSolidInitialCondition.cpp
+
+main3d-LevelSetSolidInitialCondition.obj: LevelSetSolidInitialCondition.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-LevelSetSolidInitialCondition.obj -MD -MP -MF $(DEPDIR)/main3d-LevelSetSolidInitialCondition.Tpo -c -o main3d-LevelSetSolidInitialCondition.obj `if test -f 'LevelSetSolidInitialCondition.cpp'; then $(CYGPATH_W) 'LevelSetSolidInitialCondition.cpp'; else $(CYGPATH_W) '$(srcdir)/LevelSetSolidInitialCondition.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-LevelSetSolidInitialCondition.Tpo $(DEPDIR)/main3d-LevelSetSolidInitialCondition.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LevelSetSolidInitialCondition.cpp' object='main3d-LevelSetSolidInitialCondition.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-LevelSetSolidInitialCondition.obj `if test -f 'LevelSetSolidInitialCondition.cpp'; then $(CYGPATH_W) 'LevelSetSolidInitialCondition.cpp'; else $(CYGPATH_W) '$(srcdir)/LevelSetSolidInitialCondition.cpp'; fi`
 
 wedgeGen-wedgeGen.o: wedgeGen.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(wedgeGen_CXXFLAGS) $(CXXFLAGS) -MT wedgeGen-wedgeGen.o -MD -MP -MF $(DEPDIR)/wedgeGen-wedgeGen.Tpo -c -o wedgeGen-wedgeGen.o `test -f 'wedgeGen.cpp' || echo '$(srcdir)/'`wedgeGen.cpp
@@ -1029,6 +1063,7 @@ distclean: distclean-am
 		-rm -f ./$(DEPDIR)/main2d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/main2d-LSLocateGasInterface.Po
 	-rm -f ./$(DEPDIR)/main2d-LSLocateStructureInterface.Po
+	-rm -f ./$(DEPDIR)/main2d-LevelSetSolidInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-RigidBodyKinematics.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po
@@ -1038,6 +1073,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/main3d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/main3d-LSLocateGasInterface.Po
 	-rm -f ./$(DEPDIR)/main3d-LSLocateStructureInterface.Po
+	-rm -f ./$(DEPDIR)/main3d-LevelSetSolidInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main3d-RigidBodyKinematics.Po
 	-rm -f ./$(DEPDIR)/main3d-SetFluidGasSolidDensity.Po
 	-rm -f ./$(DEPDIR)/main3d-SetFluidGasSolidViscosity.Po
@@ -1093,6 +1129,7 @@ maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/main2d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/main2d-LSLocateGasInterface.Po
 	-rm -f ./$(DEPDIR)/main2d-LSLocateStructureInterface.Po
+	-rm -f ./$(DEPDIR)/main2d-LevelSetSolidInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-RigidBodyKinematics.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po
@@ -1102,6 +1139,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/main3d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/main3d-LSLocateGasInterface.Po
 	-rm -f ./$(DEPDIR)/main3d-LSLocateStructureInterface.Po
+	-rm -f ./$(DEPDIR)/main3d-LevelSetSolidInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main3d-RigidBodyKinematics.Po
 	-rm -f ./$(DEPDIR)/main3d-SetFluidGasSolidDensity.Po
 	-rm -f ./$(DEPDIR)/main3d-SetFluidGasSolidViscosity.Po

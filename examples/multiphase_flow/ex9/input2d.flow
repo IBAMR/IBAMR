@@ -26,6 +26,19 @@ GAS_LS_INIT = HEIGHT/2.0
 XCOM        = LENGTH/2.0
 YCOM        = HEIGHT/2.0
 
+// Level set initial conditions
+LevelSetSolidInitialConditions {
+  radius = R
+  xcom = XCOM
+  ycom = YCOM
+  function = "sqrt((X_0 - xcom)^2 + (X_1 - ycom)^2) - radius" 
+}
+
+LevelSetGasInitialConditions {
+  gas_ls_init = GAS_LS_INIT
+  function = "gas_ls_init - X_1" 
+}
+
 // Parameters for setting rho and mu
 NUM_SOLID_INTERFACE_CELLS = 2.0
 NUM_GAS_INTERFACE_CELLS   = 2.0

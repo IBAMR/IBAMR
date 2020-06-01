@@ -143,7 +143,7 @@ LSLocateStructureInterface::setLevelSetPatchDataByGeometry(int D_idx,
                                                            bool /*initial_time*/)
 {
     // In this version of this class, the initial level set location is set to be
-    // exact since we always know the radius of the ball
+    // exact since we always know the wedge geometry
 
     static const double m = tan(d_wedge->wedge_angle);
     static const double wedge_height = 0.5 * (d_wedge->wedge_length) * m;

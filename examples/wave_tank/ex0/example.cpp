@@ -414,6 +414,14 @@ main(int argc, char* argv[])
         }
         level_set_ops->registerPhysicalBoundaryCondition(phi_bc_coef);
 
+        // LS initial conditions
+        if (input_db->keyExists("LevelSetInitialConditions"))
+        {
+            Pointer<CartGridFunction> phi_init = new muParserCartGridFunction(
+                "phi_init", app_initializer->getComponentDatabase("LevelSetInitialConditions"), grid_geometry);
+            adv_diff_integrator->setInitialConditions(phi_var, phi_init);
+        }
+
         RobinBcCoefStrategy<NDIM>* rho_bc_coef = NULL;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("RhoBcCoefs"))
         {

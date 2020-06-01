@@ -34,6 +34,12 @@ APPLY_SIGN_FIX     = TRUE
 APPLY_SUBCELL_FIX  = TRUE
 APPLY_MASS_CONSTRAINT = FALSE
 
+// Level set initial conditions
+LevelSetInitialConditions {
+  fluid_height = FLUID_HEIGHT
+  function = "X_1 - fluid_height" 
+}
+
 U = "0.0"
 V = "0.0"
 
@@ -164,7 +170,6 @@ ERROR_ON_DT_CHANGE                  = FALSE
 
 // More solver parameters
 PRECOND_REINIT_INTERVAL = 1
-// OPERATOR_SCALE_FACTORS      = abs(1.0/(RHO_I/2.0 - MU_I/2.0*N*REF_RATIO^(MAX_LEVELS - 1)))
 OPERATOR_SCALE_FACTORS   = 1.0
 VC_INTERPOLATION_TYPE   = "VC_AVERAGE_INTERP"
 DENSITY_CONVECTIVE_LIMITER   = "CUI"

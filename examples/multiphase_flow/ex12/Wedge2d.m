@@ -22,7 +22,7 @@ WallPath = strcat(PATH,'wedge2d.vertex');
 %%
 % Domain parameters (note that z dir is actually y dir in IBAMR)
 Lx = 12.0; Lz = 3.0;
-N = 50*2;
+N = 100*2;
 Nx = 6*N;  Nz = 3*N/2;
   
 % Dimensional parameters

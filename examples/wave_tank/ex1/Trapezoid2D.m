@@ -19,7 +19,7 @@ clc;
 %% Mesh parameters.
 depth = 0.4; 
 Lx = 68.0 * depth; Ly = 1.3 * depth;
-Nx = 884; Ny = 132;
+Nx = 1768; Ny = 264;
 dx = Lx/Nx; dy = Ly/Ny;
 
 %% Trapzoid parameters.

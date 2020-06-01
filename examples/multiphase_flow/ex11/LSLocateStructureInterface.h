@@ -63,7 +63,6 @@ public:
                                SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
                                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
                                IBTK::LDataManager* lag_data_manager,
-                               double vol_elem,
                                BargeInterface* barge);
 
     /*!
@@ -128,11 +127,6 @@ private:
      * IB information
      */
     IBTK::LDataManager* d_lag_data_manager;
-
-    /*!
-     * Volume element
-     */
-    double d_vol_elem;
 
     /*!
      * Barge structure location.

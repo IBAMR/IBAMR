@@ -216,6 +216,7 @@ main(int argc, char* argv[])
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("LevelSet"));
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&circular_interface_neighborhood, (void*)&circle);
+        level_set_ops->registerPhysicalBoundaryCondition(&physical_bc_coef);
         level_set_ops->initializeLSData(Q_scratch_idx,
                                         hier_math_ops,
                                         time_integrator->getIntegratorStep(),

@@ -15,7 +15,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-EXAMPLE_DRIVER = example.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp SetLSProperties.cpp LSLocateGasInterface.cpp GravityForcing.cpp FlowGravityForcing.cpp TagLSRefinementCells.cpp RigidBodyKinematics.cpp LSLocateTrapezoidalInterface.cpp
+EXAMPLE_DRIVER = example.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp SetLSProperties.cpp LSLocateGasInterface.cpp GravityForcing.cpp FlowGravityForcing.cpp TagLSRefinementCells.cpp RigidBodyKinematics.cpp LSLocateTrapezoidalInterface.cpp LevelSetSolidInitialCondition.cpp
 EXTRA_DIST     = input2d
 
 EXAMPLES =

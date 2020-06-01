@@ -35,6 +35,14 @@ USE_SUBCELL_FIX    = TRUE
 USE_SIGN_FIX       = TRUE
 LS_ATOL            = 1e-10
 
+// Level set initial conditions
+LevelSetInitialConditions {
+  radius = R
+  xcom = XCOM
+  ycom = YCOM
+  function = "sqrt((X_0 - xcom)^2 + (X_1 - ycom)^2) - radius" 
+}
+
 PressureInitialConditions {
    function = "0.0"
 }
