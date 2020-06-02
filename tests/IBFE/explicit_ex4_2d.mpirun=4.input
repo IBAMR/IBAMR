@@ -3,7 +3,8 @@
 //
 // should produce the same results as the test with a scratch hierarchy.
 
-// test parameters
+// additional test parameters
+mesh_file = "explicit_ex4_2d.grid-1.xdr"
 
 // physical parameters
 MU  = 0.01

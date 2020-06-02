@@ -6,6 +6,9 @@
 // test parameters
 log_scratch_partitioning = TRUE
 
+// additional test parameters
+mesh_file = "explicit_ex4_2d.grid-1.xdr"
+
 // physical parameters
 MU  = 0.01
 RHO = 1.0

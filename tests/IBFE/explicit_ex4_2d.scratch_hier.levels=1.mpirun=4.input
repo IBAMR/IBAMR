@@ -2,6 +2,9 @@
 //
 // should produce the same results as the test without a scratch hierarchy.
 
+// additional test parameters
+mesh_file = "explicit_ex4_2d.grid-2.xdr"
+
 // test parameters
 log_scratch_partitioning = TRUE
 

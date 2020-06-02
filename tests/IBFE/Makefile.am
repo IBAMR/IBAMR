@@ -47,11 +47,13 @@ explicit_ex2_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 explicit_ex2_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 explicit_ex2_3d_SOURCES = explicit_ex2.cpp
 
-explicit_ex4_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+# this test needs some extra input files, so make SOURCE_DIR available:
+explicit_ex4_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
 explicit_ex4_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 explicit_ex4_2d_SOURCES = explicit_ex4.cpp
 
-explicit_ex4_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+# add it here too, even though we don't use it directly in 3D:
+explicit_ex4_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3 -DSOURCE_DIR=\"$(abs_srcdir)\"
 explicit_ex4_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 explicit_ex4_3d_SOURCES = explicit_ex4.cpp
 

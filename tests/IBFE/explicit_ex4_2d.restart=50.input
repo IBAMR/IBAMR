@@ -3,6 +3,9 @@ MU  = 0.01
 RHO = 1.0
 L   = 1.0
 
+// additional test parameters
+mesh_file = "explicit_ex4_2d.grid-1.xdr"
+
 // grid spacing parameters
 MAX_LEVELS = 2                                      // maximum number of levels in locally refined grid
 REF_RATIO  = 4                                      // refinement ratio between levels
