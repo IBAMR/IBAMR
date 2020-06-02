@@ -60,10 +60,10 @@ workload estimate on processor 0 = 9216
 workload estimate on processor 1 = 1896
 workload estimate on processor 2 = 1896
 workload estimate on processor 3 = 9216
-local active DoFs on processor 0 = 18952
-local active DoFs on processor 1 = 17488
-local active DoFs on processor 2 = 17488
-local active DoFs on processor 3 = 17488
+local active DoFs on processor 0 = 18696
+local active DoFs on processor 1 = 17568
+local active DoFs on processor 2 = 17584
+local active DoFs on processor 3 = 17568
 quadrature points on processor 0 = 9216
 quadrature points on processor 1 = 0
 quadrature points on processor 2 = 0
@@ -97,10 +97,10 @@ workload estimate on processor 0 = 5472
 workload estimate on processor 1 = 5640
 workload estimate on processor 2 = 5928
 workload estimate on processor 3 = 5184
-local active DoFs on processor 0 = 18952
-local active DoFs on processor 1 = 17488
-local active DoFs on processor 2 = 17488
-local active DoFs on processor 3 = 17488
+local active DoFs on processor 0 = 18696
+local active DoFs on processor 1 = 17568
+local active DoFs on processor 2 = 17584
+local active DoFs on processor 3 = 17568
 IBFEMethod:: end scratch hierarchy workload
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
