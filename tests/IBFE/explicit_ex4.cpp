@@ -28,7 +28,6 @@
 
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
-#include <libmesh/centroid_partitioner.h>
 #include <libmesh/equation_systems.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
@@ -43,6 +42,7 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/StableCentroidPartitioner.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -258,7 +258,7 @@ main(int argc, char** argv)
         // random numbers: the seed changed in libMesh commit
         // 98cede90ca8837688ee13aac5e299a3765f083da (between 1.3.1 and
         // 1.4.0). Hence, to achieve consistent partitioning, use a simpler partitioning scheme:
-        CentroidPartitioner partitioner;
+        IBTK::StableCentroidPartitioner partitioner;
         partitioner.partition(mesh);
         if (use_inactive_mesh) partitioner.partition(mesh_2);
 
