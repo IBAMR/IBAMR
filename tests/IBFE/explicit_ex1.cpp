@@ -27,7 +27,6 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for basic libMesh objects
-#include <libmesh/centroid_partitioner.h>
 #include <libmesh/equation_systems.h>
 #include <libmesh/exodusII_io.h>
 #include <libmesh/mesh.h>
@@ -42,6 +41,7 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/StableCentroidPartitioner.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -208,7 +208,7 @@ main(int argc, char* argv[])
         // 98cede90ca8837688ee13aac5e299a3765f083da (between 1.3.1 and
         // 1.4.0). Hence, to achieve consistent partitioning, use a simpler
         // partitioning scheme:
-        CentroidPartitioner partitioner;
+        IBTK::StableCentroidPartitioner partitioner;
         partitioner.partition(mesh);
 
         VectorValue<double> boundary_translation(2.0 * M_PI * R, 0.0, 0.0);

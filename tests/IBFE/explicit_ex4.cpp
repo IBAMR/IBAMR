@@ -28,11 +28,11 @@
 
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
-#include <libmesh/centroid_partitioner.h>
 #include <libmesh/equation_systems.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
 #include <libmesh/mesh_triangle_interface.h>
+#include <libmesh/xdr_io.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
@@ -42,6 +42,7 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/StableCentroidPartitioner.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -203,35 +204,19 @@ main(int argc, char** argv)
 
         // Create a simple FE mesh.
         ReplicatedMesh mesh(init.comm(), NDIM);
-        const double dx = input_db->getDouble("DX");
-        const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
         const double R = 0.2;
         if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
         {
-#ifdef LIBMESH_HAVE_TRIANGLE
-            const int num_circum_nodes = ceil(2.0 * M_PI * R / ds);
-            for (int k = 0; k < num_circum_nodes; ++k)
-            {
-                const double theta = 2.0 * M_PI * static_cast<double>(k) / static_cast<double>(num_circum_nodes);
-                mesh.add_point(libMesh::Point(R * cos(theta), R * sin(theta)));
-            }
-            TriangleInterface triangle(mesh);
-            triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
-            triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
-            triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
-            triangle.insert_extra_points() = true;
-            triangle.smooth_after_generating() = true;
-            triangle.triangulate();
-#else
-            TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
-                       << "       but Triangle is required for TRI3 or TRI6 elements.\n");
-#endif
+            XdrIO io_in(mesh);
+            io_in.read(std::string(SOURCE_DIR) + "/" + input_db->getString("mesh_file"));
+            if (elem_type == "TRI6") mesh.all_second_order();
         }
         else
         {
             MeshTools::Generation::build_sphere(mesh, 0.01, 1, Utility::string_to_enum<ElemType>(elem_type));
         }
+        mesh.prepare_for_use();
 
         // Ensure nodes on the surface are on the analytic boundary.
 #if NDIM == 2
@@ -251,8 +236,9 @@ main(int argc, char** argv)
                 }
             }
         }
+#else
+        NULL_USE(R);
 #endif
-        mesh.prepare_for_use();
 
         ReplicatedMesh mesh_2(init.comm(), NDIM);
         // extra parameter controlling whether or not to add an inactive mesh
@@ -272,7 +258,7 @@ main(int argc, char** argv)
         // random numbers: the seed changed in libMesh commit
         // 98cede90ca8837688ee13aac5e299a3765f083da (between 1.3.1 and
         // 1.4.0). Hence, to achieve consistent partitioning, use a simpler partitioning scheme:
-        CentroidPartitioner partitioner;
+        IBTK::StableCentroidPartitioner partitioner;
         partitioner.partition(mesh);
         if (use_inactive_mesh) partitioner.partition(mesh_2);
 

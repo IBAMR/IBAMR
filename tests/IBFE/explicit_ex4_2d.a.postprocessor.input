@@ -3,6 +3,9 @@ log_postprocessor = TRUE
 postprocessor_sampling_rate = 25
 use_separate_fe_data_manager = TRUE
 
+// additional test parameters
+mesh_file = "explicit_ex4_2d.grid-1.xdr"
+
 // physical parameters
 MU  = 0.01
 RHO = 1.0

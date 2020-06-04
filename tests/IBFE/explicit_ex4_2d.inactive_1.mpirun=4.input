@@ -1,4 +1,5 @@
 // additional test parameters
+mesh_file = "explicit_ex4_2d.grid-2.xdr"
 
 // The output file was generated with this option set to FALSE - i.e., adding a
 // structure and inactivating it works correctly - the only differences are in

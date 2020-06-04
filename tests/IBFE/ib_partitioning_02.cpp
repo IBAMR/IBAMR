@@ -21,7 +21,7 @@
 #include <ibamr/app_namespaces.h>
 
 #include <ibtk/AppInitializer.h>
-#include <ibtk/BoxPartitioner.h>
+#include <ibtk/StableCentroidPartitioner.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -119,7 +119,7 @@ main(int argc, char** argv)
         // random numbers: the seed changed in libMesh commit
         // 98cede90ca8837688ee13aac5e299a3765f083da (between 1.3.1 and
         // 1.4.0). Hence, to achieve consistent partitioning, use a simpler partitioning scheme:
-        CentroidPartitioner partitioner;
+        IBTK::StableCentroidPartitioner partitioner;
         partitioner.partition(solid_mesh);
 
         for (auto node = solid_mesh.nodes_begin(); node != solid_mesh.nodes_end(); ++node)
