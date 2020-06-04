@@ -11,8 +11,13 @@ c COPYRIGHT at the top level directory of IBAMR.
 c
 c ---------------------------------------------------------------------
 
-define(REAL,`double precision')dnl
-define(INTEGER,`integer')dnl
+dnl This file only exists to be included into
+dnl cart_side_refine2d.f and cart_side_refine3d.f: i.e., it is
+dnl never explicitly compiled on its own so that the delta function kernels
+dnl can be inlined. This is necessary since Fortran compilers will (unless
+dnl we use something fancy like LTO) only do inlining of functions and
+dnl subroutines defined in the same translation unit.
+
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
