@@ -1,0 +1,6 @@
+Improved: The configure script now does a better job detecting
+if libMesh was installed with its bundled copy of boost or if
+libMesh was installed into a directory containing an insufficient
+copy of boost (e.g., one left by a previous libMesh installation).
+<br>
+(David Wells, 2020/06/05)
