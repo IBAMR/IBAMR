@@ -397,10 +397,15 @@ main(int argc, char* argv[])
             {
                 Pointer<SideVariable<NDIM, double> > u_var = time_integrator->getVelocityVariable();
                 Pointer<CellVariable<NDIM, double> > u_tau_var = turb_hier_integrator->getCellCenteredUtauVariable();
+                Pointer<CellVariable<NDIM, double> > k_var = turb_hier_integrator->getKVariable();
+                Pointer<CellVariable<NDIM, double> > w_var = turb_hier_integrator->getWVariable();
                 Pointer<CellVariable<NDIM, double> > yplus_var = turb_hier_integrator->getCellCenteredYplusVariable();
                 VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
                 const int u_idx = var_db->mapVariableAndContextToIndex(u_var, time_integrator->getCurrentContext());
-
+                const int k_idx =
+                    var_db->mapVariableAndContextToIndex(k_var, turb_hier_integrator->getCurrentContext());
+                const int w_idx =
+                    var_db->mapVariableAndContextToIndex(k_var, turb_hier_integrator->getCurrentContext());
                 if (input_db->keyExists("output_velocity_profile"))
                 {
                     double lower_coordinates[NDIM], upper_coordinates[NDIM];
@@ -417,6 +422,19 @@ main(int argc, char* argv[])
                                                  upper_coordinates,
                                                  loop_time,
                                                  postproc_data_dump_dirname);
+
+                        compute_k_profile(patch_hierarchy,
+                                          k_idx,
+                                          lower_coordinates,
+                                          upper_coordinates,
+                                          loop_time,
+                                          postproc_data_dump_dirname);
+                        compute_w_profile(patch_hierarchy,
+                                          w_idx,
+                                          lower_coordinates,
+                                          upper_coordinates,
+                                          loop_time,
+                                          postproc_data_dump_dirname);
                     }
                 }
 
