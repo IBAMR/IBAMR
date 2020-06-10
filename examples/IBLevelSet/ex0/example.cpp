@@ -518,14 +518,17 @@ main(int argc, char* argv[])
         }
         navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
 
-        Pointer<IBFEMethod> ibfe_method_ops =
-            new IBFEMethod("IBFEMethod",
-                           app_initializer->getComponentDatabase("IBFEMethod"),
-                           &mesh,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
-                           /*register_for_restart*/ true,
-                           restart_dump_dirname,
-                           /*restore_number*/ 0);
+        Pointer<IBFEMethod> ibfe_method_ops = nullptr;
+        bool from_restart = RestartManager::getManager()->isFromRestart();
+        if (!from_restart)
+        {
+            ibfe_method_ops =
+                new IBFEMethod("IBFEMethod",
+                               app_initializer->getComponentDatabase("IBFEMethod"),
+                               &mesh,
+                               app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+                               /*register_for_restart*/ false);
+        }
         Pointer<IBInterpolantMethod> ib_interpolant_method_ops = new IBInterpolantMethod(
             "IBInterpolantMethod", app_initializer->getComponentDatabase("IBInterpolantMethod"));
         Pointer<IBLevelSetMethod> ib_level_set_method_ops =
@@ -761,8 +764,12 @@ main(int argc, char* argv[])
         time_integrator->registerBodyForceFunction(eul_forces);
 
         // Configure the IBFE solver.
-        ibfe_method_ops->initializeFEEquationSystems();
-        EquationSystems* equation_systems = ibfe_method_ops->getFEDataManager(/*part*/ 0)->getEquationSystems();
+        EquationSystems* equation_systems = nullptr;
+        if (ibfe_method_ops)
+        {
+            ibfe_method_ops->initializeFEEquationSystems();
+            equation_systems = ibfe_method_ops->getFEDataManager(/*part*/ 0)->getEquationSystems();
+        }
 
         // Configure the IBInterpolant solver.
         Pointer<IBRedundantInitializer> ib_initializer = new IBRedundantInitializer(
@@ -807,7 +814,10 @@ main(int argc, char* argv[])
         libMesh::UniquePtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
-        ibfe_method_ops->initializeFEData();
+        if (ibfe_method_ops)
+        {
+            ibfe_method_ops->initializeFEData();
+        }
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Compute distance function from FE mesh.
@@ -832,24 +842,23 @@ main(int argc, char* argv[])
         visit_data_writer->registerPlotQuantity("distance", "SCALAR", d_idx);
 
         const int gcw = input_db->getIntegerWithDefault("GCW", 1);
-        Pointer<FESurfaceDistanceEvaluator> surface_distance_eval =
-            new FESurfaceDistanceEvaluator("FESurfaceDistanceEvaluator",
-                                           patch_hierarchy,
-                                           mesh,
-                                           boundary_mesh,
-                                           /*gcw*/ gcw,
-                                           use_vol_extracted_bdry_mesh);
+        FESurfaceDistanceEvaluator surface_distance_eval("FESurfaceDistanceEvaluator",
+                                                         patch_hierarchy,
+                                                         mesh,
+                                                         boundary_mesh,
+                                                         /*gcw*/ gcw,
+                                                         use_vol_extracted_bdry_mesh);
         pout << "Started mapping intersections" << std::endl;
-        surface_distance_eval->mapIntersections();
+        surface_distance_eval.mapIntersections();
         pout << "Finished mapping intersections" << std::endl;
         pout << "Computing face normal" << std::endl;
-        surface_distance_eval->calculateSurfaceNormals();
+        surface_distance_eval.calculateSurfaceNormals();
         pout << "Finished calculation of face normal" << std::endl;
         pout << "Computing distances" << std::endl;
-        surface_distance_eval->computeSignedDistance(n_idx, d_idx);
+        surface_distance_eval.computeSignedDistance(n_idx, d_idx);
         pout << "Finished computing distances" << std::endl;
         pout << "Updating sign" << std::endl;
-        surface_distance_eval->updateSignAwayFromInterface(d_idx, patch_hierarchy, 5 * dx);
+        surface_distance_eval.updateSignAwayFromInterface(d_idx, patch_hierarchy, 5 * dx);
         pout << "Finished updating sign" << std::endl;
 
         // Compute the error.
@@ -910,27 +919,25 @@ main(int argc, char* argv[])
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
                 silo_data_writer->writePlotData(iteration_num, loop_time);
             }
-            if (uses_exodus)
+            if (!from_restart && uses_exodus)
             {
                 exodus_io->write_timestep(
                     exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
             }
         }
 
-        // Deactivate IBFEMethod as we don't need it anymore, but get it to
-        // write a restart file first.
-        if (dump_restart_data)
+        // Deactivate IBFEMethod as we don't need it anymore.
+        if (ibfe_method_ops)
         {
-            ibfe_method_ops->writeFEDataToRestartFile(restart_dump_dirname, 0);
+            ib_level_set_method_ops->deactivateIBFEMethod();
+            ibfe_method_ops.setNull();
         }
-        ib_level_set_method_ops->deactivateIBFEMethod();
-        ibfe_method_ops.setNull();
 
         // Open streams to save position and velocity of the structure.
         ofstream rbd_stream;
         if (SAMRAI_MPI::getRank() == 0)
         {
-            rbd_stream.open("rbd.curve", ios_base::out | ios_base::trunc);
+            rbd_stream.open("rbd.curve", ios_base::out | ios_base::app);
         }
 
         // Main time step loop.
