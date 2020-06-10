@@ -178,9 +178,28 @@ dnl
     with_eigen="$LIBMESH_DIR"
   fi
 
-  if test -e "$LIBMESH_DIR/include/boost" ; then
-    AC_MSG_ERROR([libMesh appears to be configured to use a bundled Boost library, but when IBAMR is also configured to use libMesh, IBAMR and libMesh both must use the same (external) Boost library])
-    AC_DEFINE([LIBMESH_HAS_BOOST],1,[Define if libmesh was built with boost])
+dnl try to see if libMesh has boost:
+  AC_MSG_CHECKING([for libMesh with boost])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <libmesh/libmesh_config.h>
+
+#ifdef LIBMESH_HAVE_BOOST
+// ok
+#else
+#error
+#endif ]])], [LIBMESH_HAVE_BOOST=yes], [LIBMESH_HAVE_BOOST=no])
+  AC_MSG_RESULT([${LIBMESH_HAVE_BOOST}])
+
+dnl: "''
+dnl Older versions of libMesh do not define LIBMESH_HAVE_EXTERNAL_BOOST so we check manually
+dnl to see if a sufficient version of boost is bundled or not
+  if test -e "$LIBMESH_DIR/include/boost/"; then
+      if test -e "$LIBMESH_DIR/include/boost/multi_array.hpp"; then
+          # ok: perhaps libMesh is installed in /usr/
+          :
+      else
+        AC_MSG_ERROR([The directory $LIBMESH_DIR/include/boost exists and contains a boost installation that does not provide all the headers that IBAMR needs. This can happen when either libMesh is installed with its own bundled version of boost (which is not compatible with IBAMR) or when libMesh is installed into a directory which happens to contain a copy of boost (e.g., when libMesh is recompiled without boost and installed into the same location as a previous copy of libMesh). If you want to use libMesh with boost then both libMesh and IBAMR must use the same external copy of boost. The best way to fix this problem is to delete $LIBMESH_DIR and reinstall libMesh with either no boost support or an external boost library.])
+      fi
   fi
 
   CPPFLAGS_PREPEND($LIBMESH_CPPFLAGS)
