@@ -230,6 +230,7 @@ IBFESurfaceMethod::getFEDataManager(const unsigned int part) const
 void
 IBFESurfaceMethod::registerDisconElemFamilyForJumps(const unsigned int part)
 {
+    TBOX_ASSERT(!d_fe_equation_systems_initialized);                                                    
     TBOX_ASSERT(part < d_num_parts);
     d_use_discon_elem_for_jumps[part] = true;
     return;
@@ -251,7 +252,7 @@ IBFESurfaceMethod::registerPressureJumpNormalization(const unsigned int part)
     TBOX_ASSERT(d_use_pressure_jump_conditions);
     d_normalize_pressure_jump[part] = true;
     return;
-} // registerTangentialVelocityMotion
+} // registerPressureJumpNormalization
 
 void
 IBFESurfaceMethod::registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data,
@@ -1542,7 +1543,7 @@ IBFESurfaceMethod::computeFluidTraction(const double data_time, unsigned int par
     {
         TBOX_ASSERT(TAU_out_dof_map.variable_type(d) == TAU_out_fe_type);
     }
-    
+
     TBOX_ASSERT(P_in_fe_type == TAU_in_fe_type);
     TBOX_ASSERT(P_out_fe_type == P_in_fe_type);
 
@@ -4390,6 +4391,8 @@ IBFESurfaceMethod::getFromRestart()
     d_use_indirect_exterior_traction = db->getBool("d_use_indirect_exterior_traction");
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
     d_use_direct_forcing = db->getBool("d_use_direct_forcing");
+    d_p_calc_width = db->getDouble("p_calc_width");
+    d_wss_calc_width = db->getDouble("wss_calc_width");
     return;
 } // getFromRestart
 
