@@ -43,7 +43,7 @@ else
   AC_CHECK_HEADER([HYPRE.h],,AC_MSG_ERROR([could not find header file HYPRE.h]))
 
   LDFLAGS_PREPEND($HYPRE_LDFLAGS)
-  AC_CHECK_LIB([HYPRE], BoomerAMGCreate, [],
+  AC_CHECK_LIB([HYPRE], HYPRE_BoomerAMGCreate, [],
                [AC_MSG_ERROR([could not find working libHYPRE])])
   ADD_RPATH_LDFLAG(${HYPRE_DIR}/lib)
 fi
