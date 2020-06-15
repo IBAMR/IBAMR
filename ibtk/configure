@@ -27767,9 +27767,9 @@ fi
 
   LDFLAGS="$HYPRE_LDFLAGS $LDFLAGS"
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for BoomerAMGCreate in -lHYPRE" >&5
-$as_echo_n "checking for BoomerAMGCreate in -lHYPRE... " >&6; }
-if ${ac_cv_lib_HYPRE_BoomerAMGCreate+:} false; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for HYPRE_BoomerAMGCreate in -lHYPRE" >&5
+$as_echo_n "checking for HYPRE_BoomerAMGCreate in -lHYPRE... " >&6; }
+if ${ac_cv_lib_HYPRE_HYPRE_BoomerAMGCreate+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -27783,7 +27783,7 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char BoomerAMGCreate ();
+char HYPRE_BoomerAMGCreate ();
 #ifdef FC_DUMMY_MAIN
 #ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
@@ -27795,23 +27795,23 @@ char BoomerAMGCreate ();
 int
 main ()
 {
-return BoomerAMGCreate ();
+return HYPRE_BoomerAMGCreate ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_HYPRE_BoomerAMGCreate=yes
+  ac_cv_lib_HYPRE_HYPRE_BoomerAMGCreate=yes
 else
-  ac_cv_lib_HYPRE_BoomerAMGCreate=no
+  ac_cv_lib_HYPRE_HYPRE_BoomerAMGCreate=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_HYPRE_BoomerAMGCreate" >&5
-$as_echo "$ac_cv_lib_HYPRE_BoomerAMGCreate" >&6; }
-if test "x$ac_cv_lib_HYPRE_BoomerAMGCreate" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_HYPRE_HYPRE_BoomerAMGCreate" >&5
+$as_echo "$ac_cv_lib_HYPRE_HYPRE_BoomerAMGCreate" >&6; }
+if test "x$ac_cv_lib_HYPRE_HYPRE_BoomerAMGCreate" = xyes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_LIBHYPRE 1
 _ACEOF
