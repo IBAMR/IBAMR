@@ -454,8 +454,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
     d_regrid_cfl_estimate += cfl_max;
     if (d_enable_logging)
     {
-        plog << d_object_name
-             << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n"
+        plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n"
              << d_object_name
              << "::postprocessIntegrateHierarchy(): estimated upper bound on IB "
                 "point displacement since last regrid = "

@@ -109,7 +109,8 @@ LSetDataIterator<T>::operator++(int)
 } // operator++
 
 template <class T>
-inline typename LSet<T>::value_type& LSetDataIterator<T>::operator*() const
+inline typename LSet<T>::value_type&
+LSetDataIterator<T>::operator*() const
 {
     return getDataItem();
 } // operator*

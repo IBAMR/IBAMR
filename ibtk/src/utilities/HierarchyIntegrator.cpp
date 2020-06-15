@@ -1439,9 +1439,10 @@ HierarchyIntegrator::executeRegridHierarchyCallbackFcns(const Pointer<BasePatchH
 }
 
 void
-HierarchyIntegrator::registerGhostfillRefineAlgorithm(const std::string& name,
-                                                      Pointer<RefineAlgorithm<NDIM> > ghostfill_alg,
-                                                      std::unique_ptr<RefinePatchStrategy<NDIM> > ghostfill_patch_strategy)
+HierarchyIntegrator::registerGhostfillRefineAlgorithm(
+    const std::string& name,
+    Pointer<RefineAlgorithm<NDIM> > ghostfill_alg,
+    std::unique_ptr<RefinePatchStrategy<NDIM> > ghostfill_patch_strategy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_ghostfill_algs.find(name) == d_ghostfill_algs.end());

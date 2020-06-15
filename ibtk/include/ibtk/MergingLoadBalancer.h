@@ -63,19 +63,17 @@ public:
     // use parent constructor
     using SAMRAI::mesh::LoadBalancer<NDIM>::LoadBalancer;
 
-    virtual void
-   loadBalanceBoxes(
-      SAMRAI::hier::BoxArray<NDIM>& out_boxes,
-      SAMRAI::hier::ProcessorMapping& mapping,
-      const SAMRAI::hier::BoxList<NDIM>& in_boxes,
-      const SAMRAI::tbox::Pointer< SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-      int level_number,
-      const SAMRAI::hier::BoxArray<NDIM>& physical_domain,
-      const SAMRAI::hier::IntVector<NDIM>& ratio_to_hierarchy_level_zero,
-      const SAMRAI::hier::IntVector<NDIM>& min_size,
-      const SAMRAI::hier::IntVector<NDIM>& max_size,
-      const SAMRAI::hier::IntVector<NDIM>& cut_factor,
-      const SAMRAI::hier::IntVector<NDIM>& bad_interval) const override;
+    virtual void loadBalanceBoxes(SAMRAI::hier::BoxArray<NDIM>& out_boxes,
+                                  SAMRAI::hier::ProcessorMapping& mapping,
+                                  const SAMRAI::hier::BoxList<NDIM>& in_boxes,
+                                  const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                  int level_number,
+                                  const SAMRAI::hier::BoxArray<NDIM>& physical_domain,
+                                  const SAMRAI::hier::IntVector<NDIM>& ratio_to_hierarchy_level_zero,
+                                  const SAMRAI::hier::IntVector<NDIM>& min_size,
+                                  const SAMRAI::hier::IntVector<NDIM>& max_size,
+                                  const SAMRAI::hier::IntVector<NDIM>& cut_factor,
+                                  const SAMRAI::hier::IntVector<NDIM>& bad_interval) const override;
 };
 } // namespace IBTK
 

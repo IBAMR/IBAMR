@@ -110,7 +110,7 @@ inline JacobianCalculatorCache::JacobianCalculatorCache(const int spatial_dimens
 }
 
 inline JacobianCalculatorCache::value_type&
-    JacobianCalculatorCache::operator[](const JacobianCalculatorCache::key_type& quad_key)
+JacobianCalculatorCache::operator[](const JacobianCalculatorCache::key_type& quad_key)
 {
     auto it = d_jacobian_calculators.find(quad_key);
     if (it == d_jacobian_calculators.end())

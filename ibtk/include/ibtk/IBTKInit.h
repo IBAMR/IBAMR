@@ -96,7 +96,6 @@ public:
     }
 
 private:
-
 #ifdef IBTK_HAVE_LIBMESH
     libMesh::LibMeshInit d_libmesh_init;
 #endif

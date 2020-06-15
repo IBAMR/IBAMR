@@ -709,8 +709,7 @@ CFINSForcing::checkPositiveDefinite(const int data_idx,
                 }
                 Eigen::LLT<MatrixNd> llt;
                 llt.compute(tens);
-                if (llt.info() == Eigen::NumericalIssue)
-                    d_positive_def = false;
+                if (llt.info() == Eigen::NumericalIssue) d_positive_def = false;
             }
         }
     }

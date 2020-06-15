@@ -16,11 +16,11 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CCLaplaceOperator.h>
+#include <ibtk/LEInteractor.h>
 #include <ibtk/PETScVecUtilities.h>
 #include <ibtk/SAMRAIGhostDataAccumulator.h>
 #include <ibtk/app_namespaces.h>
 #include <ibtk/muParserCartGridFunction.h>
-#include <ibtk/LEInteractor.h>
 
 #include <petscsys.h>
 
@@ -145,15 +145,13 @@ main(int argc, char* argv[])
                 {
                     Pointer<CellData<NDIM, double> > q_data = patch->getPatchData(u_idx);
                     q_data->fillAll(0.0);
-                    LEInteractor::spread(q_data, Q_data, Q_depth, X_data, X_depth, patch,
-                                         box, spread_fcn);
+                    LEInteractor::spread(q_data, Q_data, Q_depth, X_data, X_depth, patch, box, spread_fcn);
                 }
                 else
                 {
                     Pointer<SideData<NDIM, double> > q_data = patch->getPatchData(u_idx);
                     q_data->fillAll(0.0);
-                    LEInteractor::spread(q_data, Q_data, Q_depth, X_data, X_depth, patch,
-                                         box, spread_fcn);
+                    LEInteractor::spread(q_data, Q_data, Q_depth, X_data, X_depth, patch, box, spread_fcn);
                 }
             }
         }

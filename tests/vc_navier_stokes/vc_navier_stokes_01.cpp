@@ -290,7 +290,7 @@ main(int argc, char* argv[])
         }
 
         // Determine the accuracy of the computed solution.
-	std::ofstream out("output");
+        std::ofstream out("output");
         out << "\n"
             << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
             << "Computing error norms.\n\n";
@@ -325,7 +325,7 @@ main(int argc, char* argv[])
         hier_math_ops.resetLevels(coarsest_ln, finest_ln);
         const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
         const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
-        
+
         Pointer<CellVariable<NDIM, double> > u_cc_var = u_var;
         if (u_cc_var)
         {
