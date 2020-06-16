@@ -1,5 +1,0 @@
-Changed: IBAMR no longer prepends libMesh's C++ and Fortran compiler flags to
-CXXFLAGS and FCFLAGS. This was done so that the flags provided to IBAMR's
-configure script are exactly the flags used in compilation.
-<br>
-(David Wells, 2020/02/27)

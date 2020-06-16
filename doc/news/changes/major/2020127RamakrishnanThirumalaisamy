@@ -1,6 +1,0 @@
-Algorithmic improvement: In signed distance computation, mesh normal information is used to determine whether a given point on an Eulerian grid cells is inside or outside the meshed surface. For triangular meshes, when the closest point lies on either an edge or a vertex, the normal is ambiguous at these locations. An angle-weighted pseudo-normal for such scenarios has been proven to resolve this ambiguity correctly. The algorithm is shown to work even on complicated geometries having sharp corners. The FESurfaceDistanceEvalautor class now uses this angle-weighted psuedo-normal approach.
-
-Improved: The sweeping algorithm is improved in levelset3d.f.m4 to reduce the number of sweeping iterations. Current algorithm approximately decreased the number of iterations by 36% on a tested 3D problem.   
-
-<br>
-(Ramakrishnan Thirumalaisamy, 2020/01/27)

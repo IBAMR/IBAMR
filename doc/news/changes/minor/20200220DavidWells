@@ -1,5 +1,0 @@
-New: Added new functions IBAMR::IBStrategy::inactivateLagrangianStructure() and
-IBAMR::IBStrategy::activateLagrangianStructure() that allow users to temporarily
-disable structures in IBAMR::IBMethod and IBAMR::IBFEMethod.
-<br>
-(David Wells, 2020/02/20)

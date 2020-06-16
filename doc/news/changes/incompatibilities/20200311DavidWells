@@ -1,7 +1,0 @@
-Changed: Repartitioning of Lagrangian data now must be explicitly requested
-inside IBFEMethod. The new default value is to never repartition the meshes
-(instead of the old logic which used SAMRAI's partitioning whenever a load
-balancer was attached). As a result the enum value
-<tt>LibmeshPartitionerType::AUTOMATIC</tt> has been removed.
-<br>
-(David Wells, 2020/03/11)

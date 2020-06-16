@@ -1,4 +1,0 @@
-Changed: IBFEMethod now saves additional restart data (it now stores inactive
-part numbers) - old restart files will no longer work as a result.
-<br>
-(Boyce Griffith, 2020/03/03)

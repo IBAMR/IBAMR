@@ -1,0 +1,295 @@
+<h2>Incompatibilities</h2>
+<ol>
+  <li>
+    Incompatibility: The functions registerGhostfillRefineAlgorithm,
+    registerProlongRefineAlgorithm, and registerCoarsenAlgorithm of the
+    HierarchyIntegrator class have been edited to accept
+    std::unique_ptr&lt;RefinePatchStrategy&lt;NDIM&gt; &gt;,
+    std::unique_ptr&lt;RefinePatchStrategy&lt;NDIM&gt; &gt;, and
+    std::unique_ptr&lt;CoarsenPatchStrategy&lt;NDIM&gt; &gt; respectively. This
+    is an update from the functions previously accepting
+    RefinePatchStrategy&lt;NDIM&gt;*, RefinePatchStrategy&lt;NDIM&gt;*, and
+    CoarsenPatchStrategy&lt;NDIM&gt;* respectively. This change was made to
+    clarify that the HierarchyIntegrator class is ultimately responsible for
+    destruction of ghostfill_patch_strategy, prolong_patch_strategy, and
+    coarsen_patch_strategy respectively. The function calls have been updated
+    for the IBStrategy and IBHierarchyIntegrator classes as well to reflect
+    these changes.
+    <br>
+    (Marshall Davey, 2020/01/31)
+  </li>
+  <li>
+    Changed: IBAMR no longer prepends libMesh's C++ and Fortran compiler flags to
+    CXXFLAGS and FCFLAGS. This was done so that the flags provided to IBAMR's
+    configure script are exactly the flags used in compilation.
+    <br>
+    (David Wells, 2020/02/27)
+  </li>
+  <li>
+    Changed: IBFEMethod now saves additional restart data (it now stores inactive
+    part numbers) - old restart files will no longer work as a result.
+    <br>
+    (Boyce Griffith, 2020/03/03)
+  </li>
+  <li>
+    Changed: Repartitioning of Lagrangian data now must be explicitly requested
+    inside IBFEMethod. The new default value is to never repartition the meshes
+    (instead of the old logic which used SAMRAI's partitioning whenever a load
+    balancer was attached). As a result the enum value
+    <tt>LibmeshPartitionerType::AUTOMATIC</tt> has been removed.
+    <br>
+    (David Wells, 2020/03/11)
+  </li>
+  <li>
+    Changed: IBAMR::IBFEMethod now stores the structure force computed at the half
+    step in the vector named <tt>"half"</tt> instead of in the current local
+    solution vector.
+    <br>
+    (David Wells, 2020/03/24)
+  </li>
+</ol>
+
+<h2>Major Changes</h2>
+<ol>
+  <li>
+    New: Added a new class IBTK::MergingLoadBalancer, which is a SAMRAI load
+    balancer that combines common boxes on each processor. This improves performance
+    with IBFEMethod by lowering the total number of boxes, which lowers the total
+    number of ghost cells, which lowers the total number of elements over which we
+    must iterate for force spreading and velocity interpolation.
+    <br>
+    (David Wells, 2020/01/27)
+  </li>
+  <li>
+    New: Added a new class IBTK::SAMRAIGhostDataAccumulator that can do sum
+    reductions from data accumulated into ghost regions of SAMRAI patches.
+    <br>
+    (David Wells, 2020/02/28)
+  </li>
+  <li>
+    Improved: IBTK::FEDataManager, IBAMR::IBFEMethod, and IBAMR::IBFEMethod now only
+    associate elements with patches when an element intersects the patch plus a
+    ghost region of width 1 (previously we used a width large enough to accomodate
+    the IB stencil). This lowers the total number of elements used in velocity
+    interpolation and force spreading by about 25%.
+    <br>
+    (David Wells, 2020/03/31)
+  </li>
+  <li>
+    Improved: Support for nodal quadrature for IBTK::FEDataManager and IBAMR::IBFEMethod.
+    <br>
+    (Boyce Griffith, 2020/04/03)
+  </li>
+  <li>
+    Improved: Support for FORWARD_EULER and TRAPEZOIDAL_RULE time stepping in IBAMR::IBFEMethod.
+    <br>
+    (Boyce Griffith, 2020/04/05)
+  </li>
+  <li>
+    Fixed: The remaining calls to <tt>libMesh::PetscVector::localize()</tt> outside
+    IBAMR::IBFESurfaceMethod have all been removed. The way we used this function
+    was known to leak memory.
+    <br>
+    (David Wells, 2020/04/08)
+  </li>
+  <li>
+    Improved: Factored basic FE mechanics code from IBAMR::IBFEMethod into
+    IBAMR::FEMechanicsBase.
+    <br>
+    (Boyce Griffith, 2020/05/04)
+  </li>
+  <li>
+    New: Added a new file <code>doc/input-and-restart-databases.md</code> that
+    describes how IBAMR sets up information from the input and restart
+    databases.
+    <br>
+    (David Wells, 2020/06/12)
+  </li>
+  <li>
+    Algorithmic improvement: In signed distance computation, mesh normal
+    information is used to determine whether a given point on an Eulerian grid
+    cells is inside or outside the meshed surface. For triangular meshes, when
+    the closest point lies on either an edge or a vertex, the normal is
+    ambiguous at these locations. An angle-weighted pseudo-normal for such
+    scenarios has been proven to resolve this ambiguity correctly. The algorithm
+    is shown to work even on complicated geometries having sharp corners. The
+    FESurfaceDistanceEvaluator class now uses this angle-weighted psuedo-normal
+    approach.
+    <br>
+    Improved: The sweeping algorithm is improved in levelset3d.f.m4 to reduce
+    the number of sweeping iterations. Current algorithm approximately decreased
+    the number of iterations by 36% on a tested 3D problem.
+    <br>
+    (Ramakrishnan Thirumalaisamy, 2020/01/27)
+  </li>
+</ol>
+
+<h2>Minor Changes</h2>
+<ol>
+  <li>
+    Improved: The build system has been modified slightly to permit inlining of the
+    IB kernels in <code>lagrangian_interaction_2d.f</code> and
+    <code>lagrangian_interaction_3d.f</code>. Inlining these kernels makes the
+    force spreading and velocity interpolation about 15% faster in 3D.
+    <br>
+    (David Wells, 2020/01/21)
+  </li>
+  <li>
+    Fixed: Fixed a bug with the computation of IB-5 stencils where an incorrect
+    stencil could be used at points near the boundaries of patches.
+    <br>
+    (David Wells, 2020/01/21)
+  </li>
+  <li>
+    Improved: The test suite now works correctly without libMesh.
+    <br>
+    (David Wells, 2020/02/07)
+  </li>
+  <li>
+    Bug Fix: Fixed specification of the density coarsen type in
+    INSVCStaggeredNonConservativeHierarchyIntegrator and added associated tests.
+    <br>
+    (Nishant Nangia, 2020/02/14)
+  </li>
+  <li>
+    Fixed: The 3D discontinuous linear spread kernel now works correctly.
+    <br>
+    (David Wells, 2020/02/15)
+  </li>
+  <li>
+    New: Added new functions IBAMR::IBStrategy::inactivateLagrangianStructure() and
+    IBAMR::IBStrategy::activateLagrangianStructure() that allow users to temporarily
+    disable structures in IBAMR::IBMethod and IBAMR::IBFEMethod.
+    <br>
+    (David Wells, 2020/02/20)
+  </li>
+  <li>
+    Bug fix: The option to evolve the square root or logarithm of the
+    conformation tensor now works as expected. Boundary conditions should be
+    specified to whatever quantity is being evolved.
+    <br>
+    (Aaron Barrett, 2020/02/21)
+  </li>
+  <li>
+    Improved: Consolidated and annotated various helpful scripts.
+    <br>
+    (Aaron Barrett, 2020/02/21)
+  </li>
+  <li>
+    New example: Added a new example to demonstrate how to fill in ghost cells.
+    <br>
+    (Aaron Barrett, 2020/03/03)
+  </li>
+  <li>
+    New: Added an initialization class to aid in the transition to SAMRAI 3.
+    <br>
+    (Aaron Barrett, 2020/03/06)
+  </li>
+  <li>
+    Fixed: IBFEMethod::reinitializeFEData() is no longer called after every time
+    regrid since it does the same thing every time.
+    <br>
+    (David Wells, 2020/03/11)
+  </li>
+  <li>
+    Bug Fix: Fixed a bug in the high density ratio bubble example
+    (multiphase_flow/ex3) relating to the regridProjection step. Also added a
+    test for it.
+    <br>
+    (Nishant Nangia, 2020/03/12)
+  </li>
+  <li>
+    Improved: Systems created inside IBFEMethod no longer couple all variables to
+    each-other since these systems are only used to solve projection problems. This
+    lowers memory usage in IBFE applications by about 10-15%.
+    <br>
+    (David Wells, 2020/03/16)
+  </li>
+  <li>
+    Improved: IBTK::CCPoissonHypreLevelSolver::solveSystem() and
+    IBTK::SCPoissonHypreLevelSolver::solveSystem() now both return <code>true</code> in
+    the case where the right-hand side vector is zero (which causes the relative
+    error to be <code>NaN</code> and the number of iterations to be zero).
+    <br>
+    (David Wells, 2020/03/18)
+  </li>
+  <li>
+    New: Can now register a callback function with IBTK::HierarchyIntegrator to
+    allow specialization to the IBTK::HierarchyIntegrator::regridHierarchy()
+    function.
+    <br>
+    (Aaron Barrett, 2020/03/19)
+  </li>
+  <li>
+    Fixed: IBAMR::CIBMethod now correctly switches algorithms based on whether or
+    not the fluid is in Stokes flow.
+    <br>
+    (Amneet Bhalla, 2020/03/26)
+  </li>
+  <li>
+    Fixed: IBAMR::IBFEMethod::spreadTransmissionForceDensity() now works correctly
+    with AMR.
+    <br>
+    (David Wells, 2020/03/30)
+  </li>
+  <li>
+    Fixed: Recognize outflow_bdry_extrap_type input setting in the WAVE_PROP convective operator.
+    <br>
+    (Boyce Griffith and Aaron Barrett, 2020/04/08)
+  </li>
+  <li>
+    Improved: Factor out FE projection functionality from FEDataManager.
+    <br>
+    (Boyce Griffith, 2020/04/13)
+  </li>
+  <li>
+    Improved: Remove use of FEDataManager in FEDataInterpolation.
+    <br>
+    (Boyce Griffith, 2020/04/16)
+  </li>
+  <li>
+    Bug Fix: Fixed a small bug in the variable-coefficient Gauss-Seidel
+    smoothers used in the VC FAC preconditioner.
+    <br>
+    (Nishant Nangia, 2020/05/23)
+  </li>
+  <li>
+    Examples Update: Updating multiphase and wave_tank examples to match spatial
+    and temporal resolutions from published work. Ensure that level set initial
+    conditions are set for each example.
+    <br>
+    (Nishant Nangia, 2020/05/27)
+  </li>
+  <li>
+    Bug Fix: Fixed a small bug in an edge case for the HR limiters used in the
+    CUI, MGAMMA, and FBICS convective operators. Updated vc_navier_stokes
+    tests.
+    <br>
+    (Nishant Nangia, 2020/05/28)
+  </li>
+  <li>
+    Fixed: The scratch hierarchy inside IBFEMethod can now be used
+    with a hierarchy that has any number of levels.
+    <br>
+    (David Wells, 2020/05/29)
+  </li>
+  <li>
+    Fixed: The scratch hierarchy inside IBFEMethod can now be used
+    with a hierarchy that has more than two levels.
+    <br>
+    (David Wells, 2020/05/29)
+  </li>
+  <li>
+    Improved: The configure script now does a better job detecting
+    if libMesh was installed with its bundled copy of boost or if
+    libMesh was installed into a directory containing an insufficient
+    copy of boost (e.g., one left by a previous libMesh installation).
+    <br>
+    (David Wells, 2020/06/05)
+  </li>
+  <li>
+    Bug Fix: Fixed restart small bug in examples/IBLevelSet/ex0.
+    <br>
+    (Amneet Bhalla, 2020/06/12)
+  </li>
+</ol>

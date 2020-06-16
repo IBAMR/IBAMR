@@ -1,7 +1,0 @@
-New: Added a new class IBTK::MergingLoadBalancer, which is a SAMRAI load
-balancer that combines common boxes on each processor. This improves performance
-with IBFEMethod by lowering the total number of boxes, which lowers the total
-number of ghost cells, which lowers the total number of elements over which we
-must iterate for force spreading and velocity interpolation.
-<br>
-(David Wells, 2020/01/27)
