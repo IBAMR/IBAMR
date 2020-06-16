@@ -1,3 +1,0 @@
-Improved: Factored basic FE mechanics code from IBAMR::IBFEMethod into IBAMR::FEMechanicsBase.
-<br>
-(Boyce Griffith, 2020/05/04)

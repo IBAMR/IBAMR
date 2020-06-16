@@ -1,3 +1,0 @@
-Bug Fix: Fixed specification of the density coarsen type in INSVCStaggeredNonConservativeHierarchyIntegrator and added associated tests.
-<br>
-(Nishant Nangia, 2020/02/14)

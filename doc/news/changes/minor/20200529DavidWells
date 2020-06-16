@@ -1,4 +1,0 @@
-Fixed: The scratch hierarchy inside IBFEMethod can now be used
-with a hierarchy that has any number of levels.
-<br>
-(David Wells, 2020/05/29)

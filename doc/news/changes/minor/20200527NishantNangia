@@ -1,3 +1,0 @@
-Examples Update: Updating multiphase and wave_tank examples to match spatial and temporal resolutions from published work. Ensure that level set initial conditions are set for each example.
-<br>
-(Nishant Nangia, 2020/05/27)

@@ -1,3 +1,0 @@
-Fixed: Recognize outflow_bdry_extrap_type input setting in the WAVE_PROP convective operator.
-<br>
-(Boyce Griffith and Aaron Barrett, 2020/04/08)

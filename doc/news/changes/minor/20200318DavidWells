@@ -1,6 +1,0 @@
-Improved: IBTK::CCPoissonHypreLevelSolver::solveSystem() and
-IBTK::SCPoissonHypreLevelSolver::solveSystem() now both return <code>true</code> in
-the case where the right-hand side vector is zero (which causes the relative
-error to be <code>NaN</code> and the number of iterations to be zero).
-<br>
-(David Wells, 2020/03/18)

@@ -1,3 +1,0 @@
-Bug fix: The option to evolve the square root or logarithm of the conformation tensor now works as expected. Boundary conditions should be specified to whatever quantity is being evolved.
-<br>
-(Aaron Barrett, 2020/02/21)

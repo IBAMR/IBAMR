@@ -1,5 +1,0 @@
-Improved: Systems created inside IBFEMethod no longer couple all variables to
-each-other since these systems are only used to solve projection problems. This
-lowers memory usage in IBFE applications by about 10-15%.
-<br>
-(David Wells, 2020/03/16)

@@ -1,3 +1,0 @@
-New: Can now register a callback function with IBTK::HierarchyIntegrator to allow specialization to the IBTK::HierarchyIntegrator::regridHierarchy() function.
-<br>
-(Aaron Barrett, 2020/03/19)

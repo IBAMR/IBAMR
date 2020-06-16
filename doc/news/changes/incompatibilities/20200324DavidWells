@@ -1,5 +1,0 @@
-Changed: IBAMR::IBFEMethod now stores the structure force computed at the half
-step in the vector named <tt>"half"</tt> instead of in the current local
-solution vector.
-<br>
-(David Wells, 2020/03/24)
