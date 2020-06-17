@@ -110,7 +110,8 @@ inline FEMapCache::FEMapCache(const unsigned int dim) : d_dim(dim), d_quadrature
 {
 }
 
-inline libMesh::FEMap& FEMapCache::operator[](const FEMapCache::key_type& quad_key)
+inline libMesh::FEMap&
+FEMapCache::operator[](const FEMapCache::key_type& quad_key)
 {
     TBOX_ASSERT(static_cast<unsigned int>(get_dim(std::get<0>(quad_key))) == d_dim);
     auto it = d_fe_maps.find(quad_key);

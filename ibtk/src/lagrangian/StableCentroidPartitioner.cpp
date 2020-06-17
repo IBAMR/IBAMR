@@ -55,7 +55,8 @@ StableCentroidPartitioner::_do_partition(MeshBase& mesh, const unsigned int n)
     TBOX_ASSERT(n == static_cast<unsigned int>(SAMRAI_MPI::getNodes()));
 
     std::vector<std::pair<std::array<float, LIBMESH_DIM>, libMesh::Elem*> > centroids;
-    for (auto it = mesh.elements_begin(); it != mesh.elements_end(); ++it)
+    auto el_end = mesh.elements_end();
+    for (auto it = mesh.elements_begin(); it != el_end; ++it)
     {
         const libMesh::Point centroid = (*it)->centroid();
 

@@ -60,13 +60,15 @@ LSet<T>::operator=(const LSet<T>& that)
 } // operator=
 
 template <class T>
-inline typename LSet<T>::reference LSet<T>::operator[](typename LSet<T>::size_type n)
+inline typename LSet<T>::reference
+LSet<T>::operator[](typename LSet<T>::size_type n)
 {
     return d_set[n];
 } // operator[]
 
 template <class T>
-inline typename LSet<T>::const_reference LSet<T>::operator[](typename LSet<T>::size_type n) const
+inline typename LSet<T>::const_reference
+LSet<T>::operator[](typename LSet<T>::size_type n) const
 {
     return d_set[n];
 } // operator[]

@@ -97,7 +97,8 @@ inline QuadratureCache::QuadratureCache(const unsigned int dim) : d_dim(dim)
 {
 }
 
-inline QuadratureCache::value_type& QuadratureCache::operator[](const QuadratureCache::key_type& quad_key)
+inline QuadratureCache::value_type&
+QuadratureCache::operator[](const QuadratureCache::key_type& quad_key)
 {
     TBOX_ASSERT(static_cast<unsigned int>(get_dim(std::get<0>(quad_key))) == d_dim);
     auto it = d_quadratures.find(quad_key);
