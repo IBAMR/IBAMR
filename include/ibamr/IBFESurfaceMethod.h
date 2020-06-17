@@ -645,7 +645,6 @@ protected:
     bool d_use_velocity_jump_conditions = false;
     libMesh::FEFamily d_velocity_jump_fe_family = libMesh::LAGRANGE;
     bool d_compute_fluid_traction = false;
-    bool d_use_indirect_exterior_traction = false;
     libMesh::FEFamily d_wss_fe_family = libMesh::LAGRANGE;
     libMesh::FEFamily d_tau_fe_family = libMesh::LAGRANGE;
     bool d_perturb_fe_mesh_nodes = true;
@@ -655,6 +654,7 @@ protected:
     std::vector<libMesh::Order> d_default_quad_order;
     bool d_use_consistent_mass_matrix = true;
     bool d_use_direct_forcing = false;
+    double d_exterior_calc_coef = 1.0;
     double d_wss_calc_width = 1.05;
     double d_p_calc_width = 1.3;
 

@@ -1253,20 +1253,12 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 								WSS_in_qp[NDIM * local_indices[k] + axis] =
                                     mu * (1.0 / dh) *
                                     (U_in_qp[NDIM * local_indices[k] + axis] - U_qp[NDIM * local_indices[k] + axis]);
-								if (d_use_indirect_exterior_traction)
-								{
-									double du_dn_jump = 0.0;
-									for (int dd = 0; dd < NDIM; ++dd)
-										du_dn_jump += DU_jump_qp[axis][NDIM * local_indices[k]  + dd] * n_qp[NDIM * local_indices[k] + dd];
-									WSS_out_qp[NDIM * local_indices[k] + axis] = du_dn_jump - WSS_in_qp[NDIM * local_indices[k] + axis];
-								}
-								else
-								{
-									WSS_out_qp[NDIM * local_indices[k] + axis] =
-                                    mu * (1.0 / dh) *
-                                    (U_out_qp[NDIM * local_indices[k] + axis] - U_qp[NDIM * local_indices[k] + axis]);
-									
-								}
+
+								double du_dn_jump = 0.0;
+								for (int dd = 0; dd < NDIM; ++dd)
+									du_dn_jump += DU_jump_qp[axis][NDIM * local_indices[k]  + dd] * n_qp[NDIM * local_indices[k] + dd];
+								WSS_out_qp[NDIM * local_indices[k] + axis] = (1.0 - d_exterior_calc_coef) * (du_dn_jump - WSS_in_qp[NDIM * local_indices[k] + axis])
+												  + d_exterior_calc_coef * mu * (1.0 / dh) * (U_out_qp[NDIM * local_indices[k] + axis] - U_qp[NDIM * local_indices[k] + axis]);
                             }
                             else
                             {
@@ -2155,11 +2147,7 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
         {
             for (unsigned int k = 0; k < nindices; ++k)
             {
-				if (d_use_indirect_exterior_traction)
-					P_out_qp[local_indices[k]] = P_jump_qp[local_indices[k]] + P_i_qp[local_indices[k]];
-                else
-					P_out_qp[local_indices[k]] = P_o_qp[local_indices[k]];
-                
+				P_out_qp[local_indices[k]] = (1.0 - d_exterior_calc_coef) * (P_jump_qp[local_indices[k]] + P_i_qp[local_indices[k]]) + d_exterior_calc_coef * P_o_qp[local_indices[k]];
                 P_in_qp[local_indices[k]] = P_i_qp[local_indices[k]];
             }
         }
@@ -3294,7 +3282,6 @@ IBFESurfaceMethod::putToDatabase(Pointer<Database> db)
     db->putBool("d_use_velocity_jump_conditions", d_use_velocity_jump_conditions);
     db->putBool("d_use_pressure_jump_conditions", d_use_pressure_jump_conditions);
     db->putBool("d_compute_fluid_traction", d_compute_fluid_traction);
-    db->putBool("d_use_indirect_exterior_traction", d_use_indirect_exterior_traction);
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
     db->putBool("d_use_direct_forcing", d_use_direct_forcing);
     return;
@@ -4339,7 +4326,7 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     if (d_compute_fluid_traction)
     {
         if (db->isDouble("p_calc_width")) d_p_calc_width = db->getDouble("p_calc_width");
-        if (db->isBool("use_indirect_exterior_traction")) d_use_indirect_exterior_traction = db->getBool("use_indirect_exterior_traction");
+        if (db->isBool("exterior_calc_coef")) d_exterior_calc_coef = db->getBool("exterior_calc_coef");
     }
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
@@ -4388,9 +4375,9 @@ IBFESurfaceMethod::getFromRestart()
     d_use_pressure_jump_conditions = db->getBool("d_use_pressure_jump_conditions");
     d_use_velocity_jump_conditions = db->getBool("d_use_velocity_jump_conditions");
     d_compute_fluid_traction = db->getBool("d_compute_fluid_traction");
-    d_use_indirect_exterior_traction = db->getBool("d_use_indirect_exterior_traction");
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
     d_use_direct_forcing = db->getBool("d_use_direct_forcing");
+    d_exterior_calc_coef = db->getDouble("exterior_calc_coef");
     d_p_calc_width = db->getDouble("p_calc_width");
     d_wss_calc_width = db->getDouble("wss_calc_width");
     return;
