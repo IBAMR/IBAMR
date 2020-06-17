@@ -1382,20 +1382,24 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             WSS_in_rhs_vec->close();
             d_fe_data_managers[part]->computeL2Projection(
                 *WSS_in_vec, *WSS_in_rhs_vec, WSS_IN_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
-
+            WSS_in_vec->close();
+            
             WSS_out_rhs_vec->close();
             d_fe_data_managers[part]->computeL2Projection(
                 *WSS_out_vec, *WSS_out_rhs_vec, WSS_OUT_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
+            WSS_out_vec->close();
         }
 
         // Solve for the nodal values.
         d_fe_data_managers[part]->computeL2Projection(
             *U_vec, *U_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
+         U_vec->close();
         d_fe_data_managers[part]->computeL2Projection(
             *U_n_vec, *U_n_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
+        U_n_vec->close();
         d_fe_data_managers[part]->computeL2Projection(
             *U_t_vec, *U_t_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
-
+        U_t_vec->close();
         if (d_use_velocity_jump_conditions)
         {
             for (unsigned int d = 0; d < NDIM; ++d) d_DU_jump_IB_ghost_vecs[part][d]->close();
@@ -2219,7 +2223,7 @@ IBFESurfaceMethod::extrapolatePressureForTraction(const int p_data_idx, const do
     d_P_in_half_vecs[part]->close();
     d_P_out_half_vecs[part]->close();
     d_X_IB_ghost_vecs[part]->close();
-    d_P_jump_half_vecs[part]->close();
+    d_P_jump_IB_ghost_vecs[part]->close();
 
     return;
 
@@ -2715,6 +2719,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         F_rhs_vec->close();
         d_fe_data_managers[part]->computeL2Projection(
             *F_vec, *F_rhs_vec, FORCE_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
+        F_vec->close();
         if (d_use_pressure_jump_conditions)
         {
             P_jump_rhs_vec->close();
