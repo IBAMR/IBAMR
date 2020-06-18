@@ -1257,7 +1257,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
 								double du_dn_jump = 0.0;
 								for (int dd = 0; dd < NDIM; ++dd)
 									du_dn_jump += DU_jump_qp[axis][NDIM * local_indices[k]  + dd] * n_qp[NDIM * local_indices[k] + dd];
-								WSS_out_qp[NDIM * local_indices[k] + axis] = (1.0 - d_exterior_calc_coef) * (du_dn_jump - WSS_in_qp[NDIM * local_indices[k] + axis])
+									WSS_out_qp[NDIM * local_indices[k] + axis] = (1.0 - d_exterior_calc_coef) * (du_dn_jump - WSS_in_qp[NDIM * local_indices[k] + axis])
 												  + d_exterior_calc_coef * mu * (1.0 / dh) * (U_out_qp[NDIM * local_indices[k] + axis] - U_qp[NDIM * local_indices[k] + axis]);
                             }
                             else
@@ -4312,7 +4312,6 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_use_velocity_jump_conditions = db->getBool("use_velocity_jump_conditions");
     if (d_use_velocity_jump_conditions)
     {
-        if (db->isDouble("wss_calc_width")) d_wss_calc_width = db->getDouble("wss_calc_width");
         if (db->isString("velocity_jump_fe_family"))
             d_velocity_jump_fe_family = Utility::string_to_enum<FEFamily>(db->getString("velocity_jump_fe_family"));
         if (db->isString("wss_fe_family"))
@@ -4320,6 +4319,7 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     }
     if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions)
     {
+		if (db->isDouble("wss_calc_width")) d_wss_calc_width = db->getDouble("wss_calc_width");
         if (db->isString("tau_fe_family"))
             d_tau_fe_family = Utility::string_to_enum<FEFamily>(db->getString("tau_fe_family"));
     }
@@ -4331,7 +4331,7 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     if (d_compute_fluid_traction)
     {
         if (db->isDouble("p_calc_width")) d_p_calc_width = db->getDouble("p_calc_width");
-        if (db->isBool("exterior_calc_coef")) d_exterior_calc_coef = db->getBool("exterior_calc_coef");
+        if (db->isDouble("exterior_calc_coef")) d_exterior_calc_coef = db->getDouble("exterior_calc_coef");
     }
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
