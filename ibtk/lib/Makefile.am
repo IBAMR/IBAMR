@@ -362,7 +362,7 @@ if LIBMESH_ENABLED
 DIM_DEPENDENT_SOURCES += \
 ../include/lagrangian/BoxPartitioner.h \
 ../include/lagrangian/StableCentroidPartitioner.h \
-../src/lagrangian/JacobianCalculator.h \
+../include/lagrangian/JacobianCalculator.h \
 ../include/ibtk/FEDataInterpolation.h \
 ../include/ibtk/FEDataManager.h \
 ../include/ibtk/FEProjector.h \
