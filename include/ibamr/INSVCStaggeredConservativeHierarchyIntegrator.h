@@ -265,8 +265,13 @@ private:
     /*!
      * Post-process the velocity based on the non-dimensional wall distance \f$ y^+ \f$.
      */
-
     void postprocessVelocityBasedonYplus();
+
+    /*!
+     * Compute wall viscosity from wall law.
+     */
+    void computeWallViscosity(const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
+
     /*!
      * Side-centered density variable required for conservative discretization
      */

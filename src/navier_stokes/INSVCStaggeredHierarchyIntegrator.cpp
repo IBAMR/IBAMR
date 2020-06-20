@@ -949,6 +949,10 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         // non-dimensional wall distance for wall function.
         d_yplus_var = new SideVariable<NDIM, double>("yplus", /*depth*/ 1);
         registerVariable(d_yplus_scratch_idx, d_yplus_var, side_ghosts, getScratchContext());
+
+        // wall shear stress computed from wall law
+        d_tau_w_var = new NodeVariable<NDIM, double>("tau_w", /*depth*/ 1);
+        registerVariable(d_tau_w_scratch_idx, d_tau_w_var, no_ghosts, getScratchContext());
     }
 
     // Register plot variables that are maintained by the
@@ -1458,6 +1462,12 @@ INSVCStaggeredHierarchyIntegrator::getUtauVariable() const
 {
     return d_U_tau_var;
 } // getUtauVariable
+
+Pointer<NodeVariable<NDIM, double> >
+INSVCStaggeredHierarchyIntegrator::getTauwVariable() const
+{
+    return d_tau_w_var;
+} // getTauwVariable
 
 void
 INSVCStaggeredHierarchyIntegrator::setDensityVCInterpolationType(const IBTK::VCInterpType vc_interp_type)

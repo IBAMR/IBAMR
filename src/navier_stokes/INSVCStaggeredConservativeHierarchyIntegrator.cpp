@@ -12,6 +12,7 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include <IBAMR_config.h>
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/BrinkmanPenalizationStrategy.h"
@@ -88,6 +89,39 @@ class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
 
+// FORTRAN ROUTINES
+#if (NDIM == 2)
+#define WALL_VISCOSITY IBAMR_FC_FUNC(wall_viscosity_2d, WALL_VISCOSITY_2D)
+#endif
+#if (NDIM == 3)
+#define WALL_VISCOSITY IBAMR_FC_FUNC(wall_viscosity_3d, WALL_VISCOSITY_3D)
+#endif
+
+extern "C"
+{
+    void WALL_VISCOSITY(const double*,
+                        const int&,
+                        const double*,
+                        const int&,
+                        const double*,
+                        const int&,
+                        const double*,
+                        const int&,
+#if (NDIM == 3)
+                        const double*,
+                        const int&,
+#endif
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+#if (NDIM == 3)
+                        const int&,
+                        const int&,
+#endif
+                        const double*);
+}
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -278,6 +312,45 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
         }
     }
 
+    // Initialize any registered advection-diffusion solver.
+    if (d_adv_diff_hier_integrator)
+    {
+        const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
+        if (adv_diff_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
+        {
+            TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
+                                     << "  attempting to perform " << d_current_num_cycles
+                                     << " cycles of fixed point iteration.\n"
+                                     << "  number of cycles required by coupled advection-diffusion "
+                                        "solver = "
+                                     << adv_diff_num_cycles << ".\n"
+                                     << "  current implementation requires either that both solvers use "
+                                        "the same "
+                                        "number of cycles,\n"
+                                     << "  or that the Navier-Stokes solver use only a single cycle.\n");
+        }
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int U_adv_diff_current_idx =
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
+        if (isAllocatedPatchData(U_adv_diff_current_idx))
+        {
+            INSVCStaggeredHierarchyIntegrator::copySideToFace(U_adv_diff_current_idx, d_U_current_idx, d_hierarchy);
+        }
+        d_adv_diff_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, adv_diff_num_cycles);
+        const int U_adv_diff_scratch_idx =
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getScratchContext());
+        if (isAllocatedPatchData(U_adv_diff_scratch_idx))
+        {
+            d_hier_fc_data_ops->copyData(U_adv_diff_scratch_idx, U_adv_diff_current_idx);
+        }
+        const int U_adv_diff_new_idx =
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext());
+        if (isAllocatedPatchData(U_adv_diff_new_idx))
+        {
+            d_hier_fc_data_ops->copyData(U_adv_diff_new_idx, U_adv_diff_current_idx);
+        }
+    }
+
     // Get the current value of viscosity
     if (!d_mu_is_const)
     {
@@ -359,6 +432,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
             {
                 TBOX_ERROR("this statement should not be reached");
             }
+            // This function computes the wall viscosity from wall law.
+            computeWallViscosity(getCurrentContext());
         }
 
         // Store the viscosities for later use
@@ -497,45 +572,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
 
     // Set up inhomogeneous BCs.
     d_stokes_solver->setHomogeneousBc(false);
-
-    // Initialize any registered advection-diffusion solver.
-    if (d_adv_diff_hier_integrator)
-    {
-        const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
-        if (adv_diff_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
-        {
-            TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                     << "  attempting to perform " << d_current_num_cycles
-                                     << " cycles of fixed point iteration.\n"
-                                     << "  number of cycles required by coupled advection-diffusion "
-                                        "solver = "
-                                     << adv_diff_num_cycles << ".\n"
-                                     << "  current implementation requires either that both solvers use "
-                                        "the same "
-                                        "number of cycles,\n"
-                                     << "  or that the Navier-Stokes solver use only a single cycle.\n");
-        }
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int U_adv_diff_current_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
-        if (isAllocatedPatchData(U_adv_diff_current_idx))
-        {
-            INSVCStaggeredHierarchyIntegrator::copySideToFace(U_adv_diff_current_idx, d_U_current_idx, d_hierarchy);
-        }
-        d_adv_diff_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, adv_diff_num_cycles);
-        const int U_adv_diff_scratch_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getScratchContext());
-        if (isAllocatedPatchData(U_adv_diff_scratch_idx))
-        {
-            d_hier_fc_data_ops->copyData(U_adv_diff_scratch_idx, U_adv_diff_current_idx);
-        }
-        const int U_adv_diff_new_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext());
-        if (isAllocatedPatchData(U_adv_diff_new_idx))
-        {
-            d_hier_fc_data_ops->copyData(U_adv_diff_new_idx, U_adv_diff_current_idx);
-        }
-    }
 
     // Account for the convective acceleration term.
     if (!d_creeping_flow)
@@ -696,6 +732,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
             {
                 TBOX_ERROR("this statement should not be reached");
             }
+            // This function computes the wall viscosity from wall law.
+            computeWallViscosity(getNewContext());
         }
 
         // Store the viscosities for later use
@@ -1602,7 +1640,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
     d_hier_cc_data_ops->copyData(d_P_new_idx, sol_vec->getComponentDescriptorIndex(1));
 
     // compute the velocity based on wall law for the wall boundary cells.
-    if (d_use_turb_model) postprocessVelocityBasedonYplus();
+    // if (d_use_turb_model) postprocessVelocityBasedonYplus();
 
     // Scale pressure solution if necessary
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -1727,7 +1765,82 @@ INSVCStaggeredConservativeHierarchyIntegrator::postprocessVelocityBasedonYplus()
         }
     }
     return;
-} // postProcessVelocityBasedonYplus
+} // postprocessVelocityBasedonYplus
+
+void
+INSVCStaggeredConservativeHierarchyIntegrator::computeWallViscosity(Pointer<VariableContext> ctx)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ln++)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int tau_w_idx = var_db->mapVariableAndContextToIndex(d_tau_w_var, getScratchContext());
+        const int U_new_idx = var_db->mapVariableAndContextToIndex(d_U_var, ctx);
+        const int mu_interp_idx = var_db->mapVariableAndContextToIndex(d_mu_interp_var, getCurrentContext());
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_dx = patch_geom->getDx();
+            Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+
+            Pointer<NodeData<NDIM, double> > mu_data = patch->getPatchData(mu_interp_idx);
+            Pointer<NodeData<NDIM, double> > tau_w_data = patch->getPatchData(tau_w_idx);
+            Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(U_new_idx);
+            const IntVector<NDIM>& U_ghost_cells = U_data->getGhostCellWidth();
+
+            for (unsigned int i = 0; i < d_wall_location_index.size(); i++)
+            {
+                const unsigned int axis = d_wall_location_index[i] / 2;
+                const unsigned int side = d_wall_location_index[i] % 2;
+                const bool is_lower = side == 0;
+                if (patch_geom->getTouchesRegularBoundary(axis, side))
+                {
+                    Box<NDIM> bdry_box = patch_box;
+                    if (is_lower)
+                    {
+                        bdry_box.upper(axis) = patch_box.lower(axis);
+                    }
+                    else
+                    {
+                        bdry_box.lower(axis) = patch_box.upper(axis);
+                    }
+
+                    Box<NDIM> trim_box = patch_box * bdry_box;
+                    WALL_VISCOSITY(mu_data->getPointer(),
+                                   mu_data->getGhostCellWidth().max(),
+                                   tau_w_data->getPointer(),
+                                   tau_w_data->getGhostCellWidth().max(),
+                                   U_data->getPointer(0),
+                                   U_ghost_cells(0),
+                                   U_data->getPointer(1),
+                                   U_ghost_cells(1),
+#if (NDIM == 3)
+                                   U_data->getPointer(2),
+                                   U_ghost_cells(2),
+#endif
+                                   d_wall_location_index[i],
+                                   trim_box.lower(0),
+                                   trim_box.upper(0),
+                                   trim_box.lower(1),
+                                   trim_box.upper(1),
+#if (NDIM == 3)
+                                   trim_box.lower(2),
+                                   trim_box.upper(2),
+#endif
+                                   patch_dx);
+                }
+            }
+        }
+    }
+
+    return;
+} // computeWallViscosity
 
 //////////////////////////////////////////////////////////////////////////////
 

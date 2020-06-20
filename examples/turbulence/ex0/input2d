@@ -149,13 +149,13 @@ MutBcCoefs {
 KBcCoefs {
    acoef_function_0 = "1.0"
    acoef_function_1 = "0.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "1.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
 
    gcoef_function_0 = "1.0769"
    gcoef_function_1 = "0.0"
@@ -176,15 +176,15 @@ WBcCoefs {
 
    gcoef_function_0 = "13.533"
    gcoef_function_1 = "0.0"
-   gcoef_function_2 = "850.0"
-   gcoef_function_3 = "850.0"
+   gcoef_function_2 = "850.0" //
+   gcoef_function_3 = "850.0" // 850.0
 }
 
 // Simulation Parameters
 SOLVER_TYPE          = "STAGGERED"
 DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0     // initial simulation time
-END_TIME             =   0.1    // final simulation time
+END_TIME             =   10.0e0    // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
 REGRID_INTERVAL      =   50000000
@@ -449,13 +449,13 @@ Main {
    discretization_form  = DISCRETIZATION_FORM
 
 // log file parameters
-   log_file_name               = "turbulent_channel_flow.log"
+   log_file_name               = "turbulent_channel_flow_case19.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 1000
-   viz_dump_dirname            = "turbulent_channel_flow"
+   viz_dump_interval           = 100
+   viz_dump_dirname            = "turbulent_channel_flow_case19"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
@@ -463,8 +463,8 @@ Main {
    restart_dump_dirname        = "restart_INS2d"
    
 // post-processing data output parameters
-    data_dump_interval         = 10
-    data_dump_dirname          = "velocity_profile"
+    data_dump_interval         = 100
+    data_dump_dirname          = "velocity_profile_case19"
 
 // timer dump parameters
    timer_dump_interval         = 0

@@ -95,12 +95,14 @@ class RobinBcCoefStrategy;
 #define SST_BLENDING_FCN IBAMR_FC_FUNC(sst_blending_fcn_2d, SST_BLENDING_FCN_2D)
 #define SST_F2_FCN IBAMR_FC_FUNC(sst_f2_fcn_2d, SST_F2_FCN_2D)
 #define SST_MU_T_FCN IBAMR_FC_FUNC(sst_mu_t_fcn_2d, SST_MU_T_FCN_2D)
+#define WALL_SHEAR_STRESS IBAMR_FC_FUNC(wall_shear_stress_2d, WALL_SHEAR_STRESS_2D)
 #endif
 #if (NDIM == 3)
 #define PRODUCTION IBAMR_FC_FUNC(production_3d, PRODUCTION_3D)
 #define SST_BLENDING_FCN IBAMR_FC_FUNC(sst_blending_fcn_3d, SST_BLENDING_FCN_3D)
 #define SST_F2_FCN IBAMR_FC_FUNC(sst_f2_fcn_3d, SST_F2_FCN_3D)
 #define SST_MU_T_FCN IBAMR_FC_FUNC(sst_mu_t_fcn_3d, SST_MU_T_FCN_3D)
+#define WALL_SHEAR_STRESS IBAMR_FC_FUNC(wall_shear_stress_3d, WALL_SHEAR_STRESS_3D)
 #endif
 
 extern "C"
@@ -197,6 +199,54 @@ extern "C"
                       const int&,
 #endif
                       const double&);
+
+    void WALL_SHEAR_STRESS(const double*,
+                           const int&,
+                           const double*,
+                           const int&,
+                           const double*,
+                           const int&,
+#if (NDIM == 3)
+                           const double*,
+                           const int&,
+#endif
+                           const double*,
+                           const int&,
+                           const double*,
+                           const int&,
+                           const double*,
+                           const int&,
+                           const double*,
+                           const int&,
+                           const double*,
+                           const int&,
+                           const double*,
+                           const int&,
+#if (NDIM == 3)
+                           const double*,
+                           const int&,
+#endif
+                           const double*,
+                           const int&,
+                           const double*,
+                           const int&,
+#if (NDIM == 3)
+                           const double*,
+                           const int&,
+#endif
+                           const double&,
+                           const double&,
+                           const double&,
+                           const int&,
+                           const int&,
+                           const int&,
+                           const int&,
+                           const int&,
+#if (NDIM == 3)
+                           const int&,
+                           const int&,
+#endif
+                           const double*);
 }
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -222,6 +272,8 @@ static const double BETA_2 = 0.0828;
 
 // beta_star.
 static const double BETA_STAR = 0.09;
+
+static const double B = 5.25;
 
 // a1.
 static const double A1 = 0.31;
@@ -318,6 +370,11 @@ TwoEquationTurbulenceHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<
     // Perform hierarchy initialization operations common to all implementations
     // of AdvDiffSemiImplicitHierarchyIntegrator.
     AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
+
+    // Setup hierarchy data operations objects.
+    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    Pointer<NodeVariable<NDIM, double> > nc_var = new NodeVariable<NDIM, double>("nc_var");
+    d_hier_nc_data_ops = hier_ops_manager->getOperationsDouble(nc_var, d_hierarchy, true);
 
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
 
@@ -970,10 +1027,14 @@ TwoEquationTurbulenceHierarchyIntegrator::preprocessIntegrateHierarchy(const dou
         }
     }
 
+    computeWallShearStressFromWallLaw(current_time, getCurrentContext());
+
     // Set the initial guess for k, w and rho.
     d_hier_cc_data_ops->copyData(k_new_idx, k_current_idx);
     d_hier_cc_data_ops->copyData(w_new_idx, w_current_idx);
     d_hier_cc_data_ops->copyData(rho_cc_new_idx, rho_cc_current_idx);
+
+    // compute wall shear stress from wall law.
 
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
@@ -1163,7 +1224,7 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
     }
     // Compute the production term.
     calculateTurbulentKEProduction(new_time);
-
+    computeWallShearStressFromWallLaw(new_time, getNewContext());
     // Account for forcing terms.
     const int k_F_scratch_idx = var_db->mapVariableAndContextToIndex(d_k_F_var, getScratchContext());
     const int k_F_new_idx = var_db->mapVariableAndContextToIndex(d_k_F_var, getNewContext());
@@ -1391,7 +1452,7 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
     }
 
     // Find the U_tau and yplus from the wall law.
-    applyWallFunction(new_time);
+    // applyWallFunction(new_time);
 
     Pointer<SideVariable<NDIM, double> > yplus_sc_var = d_ins_hierarchy_integrator->getYplusVariable();
     Pointer<SideVariable<NDIM, double> > U_tau_sc_var = d_ins_hierarchy_integrator->getUtauVariable();
@@ -1413,7 +1474,10 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
         U_tau_cc_idx, d_U_tau_cc_var, U_tau_sc_idx, U_tau_sc_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
 
     // Based on the yplus, set the wall boundary conditions for k and w variables.
-    postprocessTurbulentVariablesBasedonYplus();
+    // postprocessTurbulentVariablesBasedonYplus();
+
+    // Postprocess w values in the near wall cells.
+    postprocessTurbulentDissipationRate();
 
     // Update the turbulent viscosity.
     calculateF2();
@@ -1843,6 +1907,7 @@ TwoEquationTurbulenceHierarchyIntegrator::resetHierarchyConfigurationSpecialized
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_k_scratch_idx = var_db->mapVariableAndContextToIndex(d_k_var, getScratchContext());
     d_w_scratch_idx = var_db->mapVariableAndContextToIndex(d_w_var, getScratchContext());
+    d_rho_cc_scratch_idx = var_db->mapVariableAndContextToIndex(d_rho_cc_var, getScratchContext());
 
     // Setup the patch boundary filling objects.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -2211,28 +2276,19 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateBlendingFunction(const double
             VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
             // filling ghost cells for turbulent kinetic energy
-            int k_idx = var_db->mapVariableAndContextToIndex(d_k_var, ctx);
+            const int k_idx = var_db->mapVariableAndContextToIndex(d_k_var, ctx);
             d_hier_cc_data_ops->copyData(d_k_scratch_idx, k_idx);
             d_k_bdry_bc_fill_op->fillData(data_time);
             Pointer<CellData<NDIM, double> > k_data = patch->getPatchData(d_k_scratch_idx);
 
-            int w_idx = var_db->mapVariableAndContextToIndex(d_w_var, ctx);
+            const int w_idx = var_db->mapVariableAndContextToIndex(d_w_var, ctx);
             d_hier_cc_data_ops->copyData(d_w_scratch_idx, w_idx);
             d_w_bdry_bc_fill_op->fillData(data_time);
 
             Pointer<CellData<NDIM, double> > w_data = patch->getPatchData(d_w_scratch_idx);
             Pointer<CellData<NDIM, double> > F1_data = patch->getPatchData(d_F1_scratch_idx);
 
-            int rho_idx = 0;
-            if (ctx == getNewContext())
-            {
-                rho_idx = var_db->mapVariableAndContextToIndex(d_rho_cc_var, getNewContext());
-            }
-            else if (ctx == getCurrentContext())
-            {
-                rho_idx = var_db->mapVariableAndContextToIndex(d_rho_cc_var, getCurrentContext());
-            }
-
+            const int rho_idx = var_db->mapVariableAndContextToIndex(d_rho_cc_var, ctx);
             Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
 
             d_mu_var = d_ins_hierarchy_integrator->getViscosityVariable();
@@ -2434,7 +2490,7 @@ TwoEquationTurbulenceHierarchyIntegrator::applyWallFunction(const double data_ti
 
             if (!patch_geom->getTouchesRegularBoundary()) continue;
 
-            for (int i = 0; i < d_wall_location_index.size(); i++)
+            for (unsigned int i = 0; i < d_wall_location_index.size(); i++)
             {
                 const unsigned int axis = d_wall_location_index[i] / 2;
                 const unsigned int side = d_wall_location_index[i] % 2;
@@ -2612,6 +2668,255 @@ TwoEquationTurbulenceHierarchyIntegrator::postprocessTurbulentVariablesBasedonYp
     }
     return;
 } // postProcessTurbulentVariablesBasedonYplus
+
+void
+TwoEquationTurbulenceHierarchyIntegrator::postprocessTurbulentDissipationRate()
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ln++)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int k_new_idx = var_db->mapVariableAndContextToIndex(d_k_var, getNewContext());
+        const int w_new_idx = var_db->mapVariableAndContextToIndex(d_w_var, getNewContext());
+        Pointer<CellVariable<NDIM, double> > mu_var = d_ins_hierarchy_integrator->getViscosityVariable();
+        const int mu_new_idx =
+            var_db->mapVariableAndContextToIndex(mu_var, d_ins_hierarchy_integrator->getNewContext());
+        const int rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_cc_var, getNewContext());
+
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_dx = patch_geom->getDx();
+            Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+            const double* grid_lower = grid_geom->getXLower();
+            const double* grid_upper = grid_geom->getXUpper();
+
+            Pointer<CellData<NDIM, double> > k_data = patch->getPatchData(k_new_idx);
+            Pointer<CellData<NDIM, double> > w_data = patch->getPatchData(w_new_idx);
+            Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_new_idx);
+            Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(rho_new_idx);
+
+            IBTK::VectorNd number_of_indices(NDIM);
+            for (int d = 0; d < NDIM; d++)
+            {
+                number_of_indices(d) = (grid_upper[d] - grid_lower[d]) / patch_dx[d];
+            }
+            if (!patch_geom->getTouchesRegularBoundary()) continue;
+            for (int i = 0; i < d_wall_location_index.size(); i++)
+            {
+                const unsigned int axis = d_wall_location_index[i] / 2;
+                const unsigned int side = d_wall_location_index[i] % 2;
+                const bool is_lower = side == 0;
+                if (patch_geom->getTouchesRegularBoundary(axis, side))
+                {
+                    Box<NDIM> bdry_box = patch_box;
+                    if (is_lower)
+                    {
+                        bdry_box.upper(axis) = patch_box.lower(axis);
+                    }
+                    else
+                    {
+                        bdry_box.lower(axis) = patch_box.upper(axis);
+                    }
+
+                    Box<NDIM> trim_box = patch_box * bdry_box;
+                    for (Box<NDIM>::Iterator b(trim_box); b; b++)
+                    {
+                        CellIndex<NDIM> ci(b());
+                        // This is only for horizontal boundaries.
+                        if (ci(1) == 0 || ci(1) == number_of_indices(1) - 1)
+                        {
+                            const double w_vis =
+                                6.0 * 4.0 * (*mu_data)(ci) / (BETA_1 * patch_dx[1] * patch_dx[1] * (*rho_data)(ci));
+                            const double U_star = std::pow(BETA_STAR, 0.25) * std::pow(((*k_data)(ci)), 0.5);
+                            const double w_log = 2.0 * U_star / (KAPPA * patch_dx[1] * std::sqrt(BETA_STAR));
+                            (*w_data)(ci) = std::sqrt((w_vis * w_vis) + (w_log * w_log));
+                            std::cout << "w data in top and bottom near wall cell is\t" << ci << "\t" << (*w_data)(ci)
+                                      << std::endl;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return;
+} // postprocessTurbulentDissipationRate
+
+void
+TwoEquationTurbulenceHierarchyIntegrator::computeWallShearStressFromWallLaw(const double data_time,
+                                                                            const Pointer<VariableContext> ctx)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ln++)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+        // filling ghost cells for k, rho, mu and mu_t. Because these cell-centered quantities will be interpolated to
+        // node or side.
+        int k_idx = var_db->mapVariableAndContextToIndex(d_k_var, ctx);
+        d_hier_cc_data_ops->copyData(d_k_scratch_idx, k_idx);
+        d_k_bdry_bc_fill_op->fillData(data_time);
+
+        const int rho_idx = var_db->mapVariableAndContextToIndex(d_rho_cc_var, ctx);
+        const int rho_scratch_idx = var_db->mapVariableAndContextToIndex(d_rho_cc_var, getScratchContext());
+        d_hier_cc_data_ops->copyData(rho_scratch_idx, rho_idx);
+        d_rho_bdry_bc_fill_op->fillData(data_time);
+
+        d_mu_var = d_ins_hierarchy_integrator->getViscosityVariable();
+        int mu_idx = 0;
+        if (ctx == getNewContext())
+        {
+            mu_idx = var_db->mapVariableAndContextToIndex(d_mu_var, d_ins_hierarchy_integrator->getNewContext());
+        }
+        else if (ctx == getCurrentContext())
+        {
+            mu_idx = var_db->mapVariableAndContextToIndex(d_mu_var, d_ins_hierarchy_integrator->getCurrentContext());
+        }
+        const int mu_scratch_idx =
+            var_db->mapVariableAndContextToIndex(d_mu_var, d_ins_hierarchy_integrator->getScratchContext());
+        d_hier_cc_data_ops->copyData(mu_scratch_idx, mu_idx);
+        d_mu_bdry_bc_fill_op->fillData(data_time);
+
+        d_mu_t_var = d_ins_hierarchy_integrator->getTurbulentViscosityVariable();
+        int mu_t_idx = 0;
+        if (ctx == getNewContext())
+        {
+            mu_t_idx = var_db->mapVariableAndContextToIndex(d_mu_t_var, d_ins_hierarchy_integrator->getNewContext());
+        }
+        else if (ctx == getCurrentContext())
+        {
+            mu_t_idx =
+                var_db->mapVariableAndContextToIndex(d_mu_t_var, d_ins_hierarchy_integrator->getCurrentContext());
+        }
+        const int mu_t_scratch_idx =
+            var_db->mapVariableAndContextToIndex(d_mu_t_var, d_ins_hierarchy_integrator->getScratchContext());
+        d_hier_cc_data_ops->copyData(mu_t_scratch_idx, mu_t_idx);
+        d_mu_t_bdry_bc_fill_op->fillData(data_time);
+
+        Pointer<SideVariable<NDIM, double> > U_var = d_ins_hierarchy_integrator->getVelocityVariable();
+        Pointer<NodeVariable<NDIM, double> > tau_w_var = d_ins_hierarchy_integrator->getTauwVariable();
+
+        int U_idx = 0;
+        if (ctx == getNewContext())
+        {
+            U_idx = var_db->mapVariableAndContextToIndex(U_var, d_ins_hierarchy_integrator->getNewContext());
+        }
+        else if (ctx == getCurrentContext())
+        {
+            U_idx = var_db->mapVariableAndContextToIndex(U_var, d_ins_hierarchy_integrator->getCurrentContext());
+        }
+
+        const int tau_w_idx =
+            var_db->mapVariableAndContextToIndex(tau_w_var, d_ins_hierarchy_integrator->getScratchContext());
+        // d_hier_nc_data_ops->setToScalar(tau_w_idx, 0.0);
+
+        Pointer<SideVariable<NDIM, double> > yplus_var = d_ins_hierarchy_integrator->getYplusVariable();
+        Pointer<SideVariable<NDIM, double> > U_tau_var = d_ins_hierarchy_integrator->getUtauVariable();
+        const int yplus_idx =
+            var_db->mapVariableAndContextToIndex(yplus_var, d_ins_hierarchy_integrator->getScratchContext());
+        // d_hier_sc_data_ops->setToScalar(yplus_idx, 0.0);
+        const int U_tau_idx =
+            var_db->mapVariableAndContextToIndex(U_tau_var, d_ins_hierarchy_integrator->getScratchContext());
+        // d_hier_sc_data_ops->setToScalar(U_tau_idx, 0.0);
+
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_dx = patch_geom->getDx();
+            Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+            Pointer<CellData<NDIM, double> > k_data = patch->getPatchData(d_k_scratch_idx);
+            Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(rho_scratch_idx);
+            Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_scratch_idx);
+            Pointer<CellData<NDIM, double> > mu_t_data = patch->getPatchData(mu_t_scratch_idx);
+
+            Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(U_idx);
+            const IntVector<NDIM>& U_ghost_cells = U_data->getGhostCellWidth();
+            Pointer<NodeData<NDIM, double> > tau_w_data = patch->getPatchData(tau_w_idx);
+            Pointer<SideData<NDIM, double> > yplus_data = patch->getPatchData(yplus_idx);
+            const IntVector<NDIM>& yplus_ghost_cells = yplus_data->getGhostCellWidth();
+            Pointer<SideData<NDIM, double> > U_tau_data = patch->getPatchData(U_tau_idx);
+            const IntVector<NDIM>& U_tau_ghost_cells = U_tau_data->getGhostCellWidth();
+
+            for (unsigned int i = 0; i < d_wall_location_index.size(); i++)
+            {
+                const unsigned int axis = d_wall_location_index[i] / 2;
+                const unsigned int side = d_wall_location_index[i] % 2;
+                const bool is_lower = side == 0;
+                if (patch_geom->getTouchesRegularBoundary(axis, side))
+                {
+                    Box<NDIM> bdry_box = patch_box;
+                    if (is_lower)
+                    {
+                        bdry_box.upper(axis) = patch_box.lower(axis);
+                    }
+                    else
+                    {
+                        bdry_box.lower(axis) = patch_box.upper(axis);
+                    }
+
+                    Box<NDIM> trim_box = patch_box * bdry_box;
+                    WALL_SHEAR_STRESS(tau_w_data->getPointer(),
+                                      tau_w_data->getGhostCellWidth().max(),
+                                      U_data->getPointer(0),
+                                      U_ghost_cells(0),
+                                      U_data->getPointer(1),
+                                      U_ghost_cells(1),
+#if (NDIM == 3)
+                                      U_data->getPointer(2),
+                                      U_ghost_cells(2),
+#endif
+                                      k_data->getPointer(),
+                                      k_data->getGhostCellWidth().max(),
+                                      mu_t_data->getPointer(),
+                                      mu_t_data->getGhostCellWidth().max(),
+                                      rho_data->getPointer(),
+                                      rho_data->getGhostCellWidth().max(),
+                                      mu_data->getPointer(),
+                                      mu_data->getGhostCellWidth().max(),
+                                      U_tau_data->getPointer(0),
+                                      U_tau_ghost_cells(0),
+                                      U_tau_data->getPointer(1),
+                                      U_tau_ghost_cells(1),
+#if (NDIM == 3)
+                                      U_tau_data->getPointer(2),
+                                      U_tau_ghost_cells(2),
+#endif
+                                      yplus_data->getPointer(0),
+                                      yplus_ghost_cells(0),
+                                      yplus_data->getPointer(1),
+                                      yplus_ghost_cells(1),
+#if (NDIM == 3)
+                                      yplus_data->getPointer(2),
+                                      yplus_ghost_cells(2),
+#endif
+                                      KAPPA,
+                                      BETA_STAR,
+                                      B,
+                                      d_wall_location_index[i],
+                                      trim_box.lower(0),
+                                      trim_box.upper(0),
+                                      trim_box.lower(1),
+                                      trim_box.upper(1),
+#if (NDIM == 3)
+                                      trim_box.lower(2),
+                                      trim_box.upper(2),
+#endif
+
+                                      patch_dx);
+                }
+            }
+        }
+    }
+    return;
+} // computeWallShearStressFromWallLaw
 
 void
 TwoEquationTurbulenceHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_from_restart)

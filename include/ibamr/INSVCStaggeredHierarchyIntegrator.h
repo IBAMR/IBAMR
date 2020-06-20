@@ -427,6 +427,11 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > getYplusVariable() const;
 
     /*!
+     * \brief Get the wall shear stress variable.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > getTauwVariable() const;
+
+    /*!
      * \brief Get the Brinkman penalization objects registered with this class.
      */
     const std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> >&
@@ -631,6 +636,7 @@ protected:
     // For turbulence wall-functions.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_tau_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_yplus_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_tau_w_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_pressure_D_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_pressure_rhs_D_var;
@@ -721,7 +727,7 @@ protected:
     int d_velocity_rhs_C_idx, d_velocity_rhs_D_idx, d_pressure_rhs_D_idx;
     int d_mu_interp_idx, d_mu_eff_scratch_idx;
     int d_N_full_idx;
-    int d_yplus_scratch_idx, d_U_tau_scratch_idx;
+    int d_yplus_scratch_idx, d_U_tau_scratch_idx, d_tau_w_scratch_idx;
 
     /*
      * Persistent patch data indices for the density and viscosity used in the linear operators

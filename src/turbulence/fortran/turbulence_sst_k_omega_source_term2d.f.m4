@@ -377,9 +377,12 @@ c
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
           k_f(i0,i1) = min(P(i0,i1),(10.d0*beta_star*k(i0,i1)*w(i0,i1)))
+c          print*, 'production term is'
+c          print*, i0, i1, P(i0, i1), k_f(i0,i1)
         enddo
       enddo
 c
+
       return
       end
 c
@@ -495,3 +498,300 @@ c
 c
       return
       end
+c
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute tau_w = rho*u_tau*u_star
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c
+c
+      subroutine wall_shear_stress_2d(
+     & tau_w,tau_w_gc,
+     & U0,U_gc0,
+     & U1,U_gc1,
+     & k,k_gc,
+     & mu_t, mu_t_gc,
+     & rho,rho_gc,
+     & mu,mu_gc,
+     & U_tau0,U_tau_gc0,
+     & U_tau1,U_tau_gc1,
+     & yplus0,yplus_gc0,
+     & yplus1,yplus_gc1,
+     & kappa,
+     & beta_star,
+     & B,
+     & wall_location_index,
+     & ilower0,iupper0,
+     & ilower1,iupper1,
+     & dx)
+c
+      implicit none
+c
+c     input variables
+      REAL kappa, beta_star, B
+      INTEGER U_gc0, U_gc1
+      INTEGER k_gc, rho_gc, mu_gc, mu_t_gc, wall_location_index
+      INTEGER yplus_gc0, yplus_gc1, U_tau_gc0, U_tau_gc1
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+c
+      REAL U0(SIDE2d0VECG(ilower,iupper,U_gc))
+      REAL U1(SIDE2d1VECG(ilower,iupper,U_gc))
+
+      REAL k(CELL2d(ilower,iupper,k_gc))
+      REAL rho(CELL2d(ilower,iupper,rho_gc))
+      REAL mu(CELL2d(ilower,iupper,mu_gc))
+      REAL mu_t(CELL2d(ilower,iupper,mu_t_gc))
+      REAL U_tau0(SIDE2d0VECG(ilower,iupper,U_tau_gc))
+      REAL U_tau1(SIDE2d1VECG(ilower,iupper,U_tau_gc))
+      REAL yplus0(SIDE2d0VECG(ilower,iupper,yplus_gc))
+      REAL yplus1(SIDE2d1VECG(ilower,iupper,yplus_gc))
+      REAL dx(0:NDIM-1)
+
+c     output variables
+c
+      INTEGER tau_w_gc
+      REAL tau_w(NODE2d(ilower,iupper,tau_w_gc))
+
+c
+c     Local variables.
+      INTEGER i0,i1, n
+      REAL U_tau_vis, U_tau_log, U_tau_old, U_tau_new, U_tau_cc, U_tau
+      REAL U_star_vis, U_star_log, U_star
+      REAL mu_nc, mu_t_nc, rho_nc, k_nc, mu_sc, rho_sc
+      REAL U_mag, yplus, distance, tau_w_cc
+      REAL error
+c
+c
+      do i1 = ilower1,iupper1+1
+        do i0 = ilower0,iupper0+1
+          if (((wall_location_index .eq. 0) .and. (i0 .eq. ilower0)).or.
+     &  ((wall_location_index .eq. 1) .and.
+     & (i0 .eq. (iupper0 + 1))) .or.
+     & ((wall_location_index .eq. 2) .and.  (i1 .eq. ilower1)) .or.
+     & ((wall_location_index .eq. 3)
+     & .and.  (i1 .eq. (iupper1 + 1)))) then
+          if ((wall_location_index .eq. 0) .or.
+     &            (wall_location_index .eq. 1)) then
+             U_mag = sqrt(U1(i0,i1)*U1(i0,i1))
+             distance = dx(0) / 2.d0
+           else if ((wall_location_index .eq. 2) .or.
+     &            (wall_location_index .eq. 3)) then
+             U_mag = sqrt(U0(i0,i1)*U0(i0,i1))
+             distance = dx(1) / 2.d0
+           endif
+           mu_nc = 0.25d0 * (mu(i0, i1) + mu(i0-1,i1) + mu(i0,i1-1)
+     &                   + mu(i0-1, i1-1))
+           rho_nc = 0.25d0 * (rho(i0, i1) + rho(i0-1,i1) + rho(i0,i1-1)
+     &                   + rho(i0-1, i1-1))
+           mu_t_nc = 0.25d0 * (mu_t(i0, i1) + mu_t(i0-1,i1) +
+     &                   mu_t(i0,i1-1) + mu_t(i0-1, i1-1))
+
+           U_tau_old = sqrt((mu_nc + mu_t_nc)*U_mag/(distance*rho_nc))
+
+           if (U_tau_old .ge. 1E-100) then
+           error = huge(0_8)
+           n = 0
+           do while ((error .gt. 0.001d0) .and. (n .le. 10))
+            yplus = rho_nc*U_tau_old*distance/mu_nc
+           U_tau_vis =  U_mag / yplus
+           U_tau_log = U_mag / (log(yplus)/kappa + B)
+           U_tau_new = (U_tau_vis**4.d0 + U_tau_log**4.d0)**0.25d0
+           error = abs(U_tau_new - U_tau_old) / U_tau_old
+           U_tau_old = 0.5*(U_tau_new+U_tau_old)
+           print*, 'node values and u_tau at each iteration is '
+           print*, n, U_tau_new, error
+           n = n+1
+          enddo
+        endif
+           U_tau = U_tau_new
+           U_star_vis = sqrt(mu_nc * U_mag / (rho_nc*distance))
+           U_star_log = beta_star**0.25d0 * k(i0, i1)**0.5d0
+           U_star = (U_star_vis**4.d0 + U_star_log**4.d0)**0.25d0
+           tau_w(i0,i1) = rho_nc * U_tau * U_tau
+c           print*, 'wall shear stress is'
+c           print*,i0, i1, tau_w(i0,i1), U_tau, U_star
+c
+           if ((wall_location_index .eq. 0) .or.
+     &            (wall_location_index .eq. 1)) then
+                  U_tau0(i0, i1) = U_tau
+                  yplus1(i0,i1) = yplus
+            else if ((wall_location_index .eq. 2) .or.
+     &            (wall_location_index .eq. 3)) then
+                  U_tau1(i0, i1) = U_tau
+                  yplus0(i0,i1) = yplus
+            endif
+         endif
+        enddo
+      enddo
+c
+c
+c
+      return
+      end
+
+c
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute P_k = tau_w*U_tau/(kappa*U_mag)
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c
+      subroutine near_wall_production_2d(
+     & P_k, P_k_gc,
+     & tau_w,tau_w_gc,
+     & U_tau0,U_tau_gc0,
+     & U_tau1,U_tau_gc1,
+     & kappa,
+     & wall_location_index,
+     & ilower0,iupper0,
+     & ilower1,iupper1,
+     & dx)
+
+c
+      implicit none
+c
+c     input variables
+      INTEGER U_tau_gc0, U_tau_gc1, tau_w_gc
+      INTEGER ilower0, iupper0, ilower1, iupper1
+      INTEGER wall_location_index
+      REAL kappa
+      REAL dx(0:NDIM-1)
+c
+      REAL tau_w(NODE2d(ilower, iupper, tau_w_gc))
+      REAL U_tau0(SIDE2d0VECG(ilower,iupper,U_tau_gc))
+      REAL U_tau1(SIDE2d1VECG(ilower,iupper,U_tau_gc))
+
+c
+c     output variables
+      INTEGER P_k_gc
+      REAL P_k(CELL2d(ilower,iupper,P_k_gc))
+
+
+c     local variables
+      INTEGER i0, i1
+      REAL distance, tau_w_cc, U_tau_cc
+
+      do i1 = ilower1,iupper1
+        do i0 = ilower0,iupper0
+           if ((wall_location_index .eq. 0) .or.
+     &            (wall_location_index .eq. 1)) then
+            tau_w_cc = 0.5 * (tau_w(i0, i1) + tau_w(i0, i1+1))
+            U_tau_cc = 0.5 * (U_tau1(i0, i1) + U_tau1(i0, i1+1))
+            distance = dx(0) / 2.d0
+           else
+            tau_w_cc = 0.5 * (tau_w(i0, i1) + tau_w(i0+1, i1))
+            U_tau_cc = 0.5 * (U_tau0(i0, i1) + U_tau0(i0+1, i1))
+            distance = dx(1) / 2.d0
+           endif
+           P_k(i0, i1) = tau_w_cc * U_tau_cc / (kappa * distance)
+c          print*, 'production from wall law'
+c         print*, i0, i1, tau_w_cc, U_tau_cc, P_k(i0, i1)
+        enddo
+      enddo
+c
+      return
+      end
+
+c
+c
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute mu_w = tau_w*d/U_mag
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c
+c
+      subroutine wall_viscosity_2d(
+     & mu, mu_gc,
+     & tau_w,tau_w_gc,
+     & U0,U_gc0,
+     & U1,U_gc1,
+     & wall_location_index,
+     & ilower0,iupper0,
+     & ilower1,iupper1,
+     & dx)
+c
+      implicit none
+c
+c     input variables
+      INTEGER U_gc0, U_gc1, tau_w_gc
+      INTEGER ilower0, iupper0, ilower1, iupper1
+      INTEGER wall_location_index
+      REAL dx(0:NDIM-1)
+c
+      REAL tau_w(NODE2d(ilower, iupper, tau_w_gc))
+      REAL U0(SIDE2d0VECG(ilower, iupper, U_gc))
+      REAL U1(SIDE2d1VECG(ilower, iupper, U_gc))
+c
+c     output variables
+      INTEGER mu_gc
+      REAL mu(NODE2d(ilower, iupper, mu_gc))
+
+c
+c     Local variables.
+      INTEGER i0,i1
+      REAL distance, U_mag
+      do i1 = ilower1,iupper1+1
+       do i0 = ilower0,iupper0+1
+         if (((wall_location_index .eq. 0) .and. (i0 .eq. ilower0)).or.
+     &  ((wall_location_index .eq. 1) .and.
+     & (i0 .eq. (iupper0 + 1))) .or.
+     & ((wall_location_index .eq. 2) .and.  (i1 .eq. ilower1)) .or.
+     & ((wall_location_index .eq. 3)
+     & .and.  (i1 .eq. (iupper1 + 1)))) then
+          if ((wall_location_index .eq. 0) .or.
+     &            (wall_location_index .eq. 1)) then
+            U_mag = sqrt(U1(i0,i1)*U1(i0,i1))
+            distance = dx(0)/2.0d0
+          else
+            U_mag = sqrt(U0(i0,i1)*U0(i0,i1))
+            distance = dx(1)/2.0d0
+          endif
+c         mu(i0,i1) = tau_w(i0,i1) * distance / U_mag
+c         print*, i0, i1, tau_w(i0,i1), mu(i0, i1)
+        endif
+       enddo
+      enddo
+c
+
+      return
+      end
+
+c
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Fortran routine check
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c
+c
+c      subroutine fortran_routine_check(wall_location_index,
+c    & number_of_indices,
+c    & ilower0,iupper0,
+c    & ilower1,iupper1,
+c    & dx)
+c
+c     implicit none
+c
+c     INTEGER ilower0, iupper0, ilower1, iupper1, wall_location_index
+c
+c     REAL dx(0:NDIM-1)
+c     REAL number_of_indices(0:NDIM-1)
+c
+c     integer i0, i1
+c
+c     do i1 = ilower1:iupper1+1
+c       do i0 = ilower0,iupper0+1
+c
+c       enddo
+c     enddo

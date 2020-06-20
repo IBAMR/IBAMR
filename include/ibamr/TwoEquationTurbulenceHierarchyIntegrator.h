@@ -364,6 +364,18 @@ private:
      */
     void postprocessTurbulentVariablesBasedonYplus();
 
+    /**
+     * Postprocess the near wall \f$ w \f$ values.
+     */
+    void postprocessTurbulentDissipationRate();
+
+    /**
+     * Compute wall shear stress from wall law. This will be used to calculate wall viscosity
+     * and production term in k equation.
+     */
+    void computeWallShearStressFromWallLaw(const double data_time,
+                                           const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
+
     /*!
      * Read input values from a given database.
      */
@@ -462,6 +474,11 @@ private:
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_w_bc_coef = nullptr;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_k_bdry_bc_fill_op, d_w_bdry_bc_fill_op,
         d_mu_bdry_bc_fill_op, d_mu_t_bdry_bc_fill_op, d_rho_bdry_bc_fill_op;
+
+    /*
+     * Hierarchy operations objects.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyNodeDataOpsReal<NDIM, double> > d_hier_nc_data_ops;
 
     /*!
      * Diffusion coefficient data

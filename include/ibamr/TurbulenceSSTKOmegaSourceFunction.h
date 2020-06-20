@@ -154,6 +154,12 @@ private:
     int
     getProductionVariableIndex(SAMRAI::tbox::Pointer<TwoEquationTurbulenceHierarchyIntegrator> turb_hier_integrator);
 
+    /*!
+     * Get the wall location indices
+     */
+    SAMRAI::tbox::Array<int>
+    getWallLocationIndices(SAMRAI::tbox::Pointer<TwoEquationTurbulenceHierarchyIntegrator> turb_hier_integrator);
+
     /* set the data on patch cells for k*/
     void setDataOnPatchCellForK(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > k_f_data,
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
@@ -167,15 +173,27 @@ private:
                                     const double data_time,
                                     const bool initial_time,
                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level);
+    /*!
+     * Hierarchy data operations object.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
 
     std::string d_object_name;
     SAMRAI::tbox::Pointer<TwoEquationTurbulenceHierarchyIntegrator> d_turb_hier_integrator;
     SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator> d_ins_hier_integrator;
 
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+
     IBTK::Vector2d d_gravity;
 
-    int d_mu_t_new_idx, d_rho_new_idx;
-    int d_rho_scratch_idx;
+    SAMRAI::tbox::Array<int> d_wall_location_index;
+
+    int d_mu_t_new_idx, d_mu_new_idx, d_rho_new_idx;
+    int d_rho_scratch_idx, d_mu_scratch_idx;
+    int d_U_new_idx;
+    int d_tau_w_idx, d_yplus_idx, d_U_tau_idx;
+    int d_D_scratch_idx;
     int d_k_new_idx, d_k_scratch_idx, d_w_new_idx, d_w_scratch_idx, d_f1_scratch_idx, d_p_scratch_idx;
 };
 } // namespace IBAMR
