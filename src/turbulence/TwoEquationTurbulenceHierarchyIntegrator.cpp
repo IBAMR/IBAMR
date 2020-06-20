@@ -2735,8 +2735,9 @@ TwoEquationTurbulenceHierarchyIntegrator::postprocessTurbulentDissipationRate()
                             const double U_star = std::pow(BETA_STAR, 0.25) * std::pow(((*k_data)(ci)), 0.5);
                             const double w_log = 2.0 * U_star / (KAPPA * patch_dx[1] * std::sqrt(BETA_STAR));
                             (*w_data)(ci) = std::sqrt((w_vis * w_vis) + (w_log * w_log));
-                            std::cout << "w data in top and bottom near wall cell is\t" << ci << "\t" << (*w_data)(ci)
-                                      << std::endl;
+                            // std::cout << "w data in top and bottom near wall cell is\t" << ci << "\t" <<
+                            // (*w_data)(ci)
+                            //<< std::endl;
                         }
                     }
                 }

@@ -602,8 +602,8 @@ c
            U_tau_new = (U_tau_vis**4.d0 + U_tau_log**4.d0)**0.25d0
            error = abs(U_tau_new - U_tau_old) / U_tau_old
            U_tau_old = 0.5*(U_tau_new+U_tau_old)
-           print*, 'node values and u_tau at each iteration is '
-           print*, n, U_tau_new, error
+c           print*, 'node values and u_tau at each iteration is '
+c          print*, n, U_tau_new, error
            n = n+1
           enddo
         endif
