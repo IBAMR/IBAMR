@@ -76,7 +76,8 @@ SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # With modern CMake, each find module uses the environment variable ending in
 # _ROOT to look for an installation.
 SET(_roots "Boost_ROOT" "Eigen3_ROOT" "HDF5_ROOT" "HYPRE_ROOT" "LIBMESH_ROOT"
-  "MUPARSER_ROOT" "MPI_ROOT" "PETSC_ROOT" "SAMRAI_ROOT" "SILO_ROOT" "ZLIB_ROOT")
+  "MUPARSER_ROOT" "MPI_ROOT" "NUMDIFF_ROOT" "PETSC_ROOT" "SAMRAI_ROOT"
+  "SILO_ROOT" "ZLIB_ROOT")
 FOREACH(_root ${_roots})
   IF("${${_root}}" STREQUAL "")
     MESSAGE(STATUS "${_root} was not provided to CMake: default search paths will be used.")
