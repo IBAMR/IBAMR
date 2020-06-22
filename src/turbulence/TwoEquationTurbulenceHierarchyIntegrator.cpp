@@ -246,6 +246,14 @@ extern "C"
                            const int&,
                            const int&,
 #endif
+                           const int&,
+                           const int&,
+                           const int&,
+                           const int&,
+#if (NDIM == 3)
+                           const int&,
+                           const int&,
+#endif
                            const double*);
 }
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -1119,8 +1127,16 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
 
         // Update the diffusion coefficient.
         d_hier_cc_data_ops->copyData(mu_t_scratch_idx, mu_t_new_idx);
+        /*std::ofstream mu_t_value_before_ghost_cell;
+        mu_t_value_before_ghost_cell.open("mu_t_value_before_ghost_cell_filling.dat");
+        d_hier_cc_data_ops->printData(mu_t_scratch_idx, mu_t_value_before_ghost_cell, false);
+        mu_t_value_before_ghost_cell.close();*/
         d_hier_cc_data_ops->copyData(mu_scratch_idx, mu_new_idx);
         d_mu_t_bdry_bc_fill_op->fillData(new_time);
+        /*std::ofstream mu_t_value;
+        mu_t_value.open("mu_t_value_after_ghost_cell_filling.dat");
+        d_hier_cc_data_ops->printData(mu_t_scratch_idx, mu_t_value, false);
+        mu_t_value.close();*/
         d_mu_bdry_bc_fill_op->fillData(new_time);
         d_hier_cc_data_ops->axpy(
             d_mu_eff_scratch_idx, d_sigma_k, mu_t_scratch_idx, mu_scratch_idx, /*interior_only*/ false);
@@ -1224,7 +1240,7 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
     }
     // Compute the production term.
     calculateTurbulentKEProduction(new_time);
-    computeWallShearStressFromWallLaw(new_time, getNewContext());
+    if (cycle_num > 0) computeWallShearStressFromWallLaw(new_time, getNewContext());
     // Account for forcing terms.
     const int k_F_scratch_idx = var_db->mapVariableAndContextToIndex(d_k_F_var, getScratchContext());
     const int k_F_new_idx = var_db->mapVariableAndContextToIndex(d_k_F_var, getNewContext());
@@ -2736,7 +2752,7 @@ TwoEquationTurbulenceHierarchyIntegrator::postprocessTurbulentDissipationRate()
                             const double w_log = 2.0 * U_star / (KAPPA * patch_dx[1] * std::sqrt(BETA_STAR));
                             (*w_data)(ci) = std::sqrt((w_vis * w_vis) + (w_log * w_log));
                             // std::cout << "w data in top and bottom near wall cell is\t" << ci << "\t" <<
-                            // (*w_data)(ci)
+                            //(*w_data)(ci)
                             //<< std::endl;
                         }
                     }
@@ -2799,6 +2815,10 @@ TwoEquationTurbulenceHierarchyIntegrator::computeWallShearStressFromWallLaw(cons
             var_db->mapVariableAndContextToIndex(d_mu_t_var, d_ins_hierarchy_integrator->getScratchContext());
         d_hier_cc_data_ops->copyData(mu_t_scratch_idx, mu_t_idx);
         d_mu_t_bdry_bc_fill_op->fillData(data_time);
+        /*std::ofstream mu_t_value;
+        mu_t_value.open("mu_t_value_after_ghost_cell_filling_in_shear_stress_func.dat");
+        d_hier_cc_data_ops->printData(mu_t_scratch_idx, mu_t_value, false);
+        mu_t_value.close();*/
 
         Pointer<SideVariable<NDIM, double> > U_var = d_ins_hierarchy_integrator->getVelocityVariable();
         Pointer<NodeVariable<NDIM, double> > tau_w_var = d_ins_hierarchy_integrator->getTauwVariable();
@@ -2845,7 +2865,7 @@ TwoEquationTurbulenceHierarchyIntegrator::computeWallShearStressFromWallLaw(cons
             const IntVector<NDIM>& yplus_ghost_cells = yplus_data->getGhostCellWidth();
             Pointer<SideData<NDIM, double> > U_tau_data = patch->getPatchData(U_tau_idx);
             const IntVector<NDIM>& U_tau_ghost_cells = U_tau_data->getGhostCellWidth();
-
+            if (!patch_geom->getTouchesRegularBoundary()) continue;
             for (unsigned int i = 0; i < d_wall_location_index.size(); i++)
             {
                 const unsigned int axis = d_wall_location_index[i] / 2;
@@ -2864,6 +2884,16 @@ TwoEquationTurbulenceHierarchyIntegrator::computeWallShearStressFromWallLaw(cons
                     }
 
                     Box<NDIM> trim_box = patch_box * bdry_box;
+                    /*std::cout << "bdry_box lower is\t" << bdry_box.lower() << " and upper is\t" << bdry_box.upper() <<
+                    std::endl; std::cout << "trim box lower is\t" << trim_box.lower() << " and upper is\t" <<
+                    trim_box.upper() << std::endl; std::ofstream mu_t_data_file;
+                    mu_t_data_file.open("mu_t_data_before_fortran_routine");
+                    mu_t_data->print(trim_box, mu_t_data_file);
+                    mu_t_data_file.close();
+                    std::ofstream k_file;
+                    k_file.open("k_data_before_fortran_routine");
+                    k_data->print(trim_box, k_file);
+                    k_file.close();*/
                     WALL_SHEAR_STRESS(tau_w_data->getPointer(),
                                       tau_w_data->getGhostCellWidth().max(),
                                       U_data->getPointer(0),
@@ -2909,6 +2939,14 @@ TwoEquationTurbulenceHierarchyIntegrator::computeWallShearStressFromWallLaw(cons
 #if (NDIM == 3)
                                       trim_box.lower(2),
                                       trim_box.upper(2),
+#endif
+                                      patch_box.lower(0),
+                                      patch_box.upper(0),
+                                      patch_box.lower(1),
+                                      patch_box.upper(1),
+#if (NDIM == 3)
+                                      patch_box.lower(2),
+                                      patch_box.upper(2),
 #endif
 
                                       patch_dx);

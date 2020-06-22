@@ -120,6 +120,14 @@ extern "C"
                         const int&,
                         const int&,
 #endif
+                        const int&,
+                        const int&,
+                        const int&,
+                        const int&,
+#if (NDIM == 3)
+                        const int&,
+                        const int&,
+#endif
                         const double*);
 }
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -1832,6 +1840,14 @@ INSVCStaggeredConservativeHierarchyIntegrator::computeWallViscosity(Pointer<Vari
 #if (NDIM == 3)
                                    trim_box.lower(2),
                                    trim_box.upper(2),
+#endif
+                                   patch_box.lower(0),
+                                   patch_box.upper(0),
+                                   patch_box.lower(1),
+                                   patch_box.upper(1),
+#if (NDIM == 3)
+                                   patch_box.lower(2),
+                                   patch_box.upper(2),
 #endif
                                    patch_dx);
                 }

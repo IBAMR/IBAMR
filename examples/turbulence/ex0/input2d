@@ -1,6 +1,6 @@
 // computational domain
 HEIGHT = 2.0
-LENGTH = 40.0
+LENGTH = 2.0
 
 RHO = 1.0
 MU  = 0.0017
@@ -19,7 +19,7 @@ REF_RATIO  = 2        // refinement ratio between levels
 REF_RATIO_FINEST = 2  // refinement ratio for the finest level.
 
 Ny = 25                                 // coarsest grid spacing
-Nx = 20*Ny
+Nx = Ny
 H_COARSEST = Ny                          // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Ny  // finest   grid spacing
 HFINEST = LENGTH/NFINEST
@@ -27,14 +27,14 @@ HFINEST = LENGTH/NFINEST
 // writing the velocity profile across x near the outlet
 output_velocity_profile{
 number_of_locations = 4
-lower_coordinates_0 = 30.0, 0.0
-upper_coordinates_0 = 30.0, 2.0
-lower_coordinates_1 = 32.0, 0.0
-upper_coordinates_1 = 32.0, 2.0
-lower_coordinates_2 = 35.0, 0.0
-upper_coordinates_2 = 35.0, 2.0
-lower_coordinates_3 = 38.0, 0.0
-upper_coordinates_3 = 38.0, 2.0
+lower_coordinates_0 = 0.5, 0.0
+upper_coordinates_0 = 0.5, 2.0
+lower_coordinates_1 = 1.0, 0.0
+upper_coordinates_1 = 1.0, 2.0
+lower_coordinates_2 = 1.5, 0.0
+upper_coordinates_2 = 1.5, 2.0
+lower_coordinates_3 = 1.8, 0.0
+upper_coordinates_3 = 1.8, 2.0
 }
 
 PressureInitialConditions {
@@ -131,13 +131,13 @@ MuBcCoefs {
 MutBcCoefs {
    acoef_function_0 = "1.0"
    acoef_function_1 = "0.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "1.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
 
    gcoef_function_0 = "0.0795"
    gcoef_function_1 = "0.0"
@@ -166,18 +166,18 @@ KBcCoefs {
 WBcCoefs {
    acoef_function_0 = "1.0"
    acoef_function_1 = "0.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "1.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
 
    gcoef_function_0 = "13.533"
    gcoef_function_1 = "0.0"
-   gcoef_function_2 = "850.0" //
-   gcoef_function_3 = "850.0" // 850.0
+   gcoef_function_2 = "0.0" //
+   gcoef_function_3 = "0.0" // 850.0
 }
 
 // Simulation Parameters
@@ -449,13 +449,13 @@ Main {
    discretization_form  = DISCRETIZATION_FORM
 
 // log file parameters
-   log_file_name               = "turbulent_channel_flow_case20.log"
+   log_file_name               = "turbulent_channel_flow_case21.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = 10
-   viz_dump_dirname            = "turbulent_channel_flow_case20"
+   viz_dump_dirname            = "turbulent_channel_flow_case21"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
@@ -464,7 +464,7 @@ Main {
    
 // post-processing data output parameters
     data_dump_interval         = 10
-    data_dump_dirname          = "velocity_profile_case20"
+    data_dump_dirname          = "velocity_profile_case21"
 
 // timer dump parameters
    timer_dump_interval         = 0
@@ -474,7 +474,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0) , ( Nx - 1, Ny - 1) ]
    x_lo         =   0.0,   0.0           // lower end of computational domain.
    x_up         =   LENGTH,   HEIGHT         // upper end of computational domain.
-   periodic_dimension = 0, 0
+   periodic_dimension = 1, 0
 }
 
 GriddingAlgorithm {

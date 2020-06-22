@@ -321,7 +321,7 @@ main(int argc, char* argv[])
         // Create object for source term classes and register it with the hierarchy integrator
         Pointer<CartGridFunction> u_source_fcn = new USourceFunction(
             "USourceFunction", grid_geometry, app_initializer->getComponentDatabase("USourceFunction"));
-        // time_integrator->registerBodyForceFunction(u_source_fcn);
+        time_integrator->registerBodyForceFunction(u_source_fcn);
 
         Pointer<TurbulenceSSTKOmegaSourceFunction> F_fcn = new TurbulenceSSTKOmegaSourceFunction(
             "TurbulenceSSTKOmegaSourceFunction",

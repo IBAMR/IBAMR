@@ -264,6 +264,10 @@ c    Local variables.
             mu_t(i0,i1) = a1*rho(i0,i1)*k(i0,i1)
      &                  / max(a1*w(i0,i1), sqrt(2.d0)
      &                  * strain_rate_mag*F2(i0,i1))
+           if ((i1 .eq. 0) .or. (i1 .eq. 24)) then
+c            print*, 'mu_t value from mu_t func is'
+c            print*, i0, i1, mu_t(i0,i1)
+          endif
         enddo
       enddo
 c
@@ -524,6 +528,8 @@ c
      & beta_star,
      & B,
      & wall_location_index,
+     & trim_box_ilower0,trim_box_iupper0,
+     & trim_box_ilower1,trim_box_iupper1,
      & ilower0,iupper0,
      & ilower1,iupper1,
      & dx)
@@ -535,6 +541,8 @@ c     input variables
       INTEGER U_gc0, U_gc1
       INTEGER k_gc, rho_gc, mu_gc, mu_t_gc, wall_location_index
       INTEGER yplus_gc0, yplus_gc1, U_tau_gc0, U_tau_gc1
+      INTEGER trim_box_ilower0,trim_box_iupper0
+      INTEGER trim_box_ilower1,trim_box_iupper1
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
 c
@@ -566,22 +574,26 @@ c     Local variables.
       REAL error
 c
 c
-      do i1 = ilower1,iupper1+1
-        do i0 = ilower0,iupper0+1
-          if (((wall_location_index .eq. 0) .and. (i0 .eq. ilower0)).or.
-     &  ((wall_location_index .eq. 1) .and.
-     & (i0 .eq. (iupper0 + 1))) .or.
-     & ((wall_location_index .eq. 2) .and.  (i1 .eq. ilower1)) .or.
-     & ((wall_location_index .eq. 3)
-     & .and.  (i1 .eq. (iupper1 + 1)))) then
-          if ((wall_location_index .eq. 0) .or.
-     &            (wall_location_index .eq. 1)) then
-             U_mag = sqrt(U1(i0,i1)*U1(i0,i1))
+      do i1 = trim_box_ilower1,trim_box_iupper1+1
+        do i0 = trim_box_ilower0,trim_box_iupper0+1
+          if (((wall_location_index .eq. 0) .and.
+     &  (i0 .eq. trim_box_ilower0)).or.((wall_location_index .eq. 1)
+     & .and. (i0 .eq. (trim_box_iupper0 + 1))) .or.
+     & ((wall_location_index .eq. 2) .and.  (i1 .eq. trim_box_ilower1))
+     & .or. ((wall_location_index .eq. 3)
+     & .and.  (i1 .eq. (trim_box_iupper1 + 1)))) then
+          if (wall_location_index .eq. 0) then
+             U_mag = abs(U1(i0,i1))
              distance = dx(0) / 2.d0
-           else if ((wall_location_index .eq. 2) .or.
-     &            (wall_location_index .eq. 3)) then
-             U_mag = sqrt(U0(i0,i1)*U0(i0,i1))
+           else if (wall_location_index .eq. 1) then
+             U_mag = abs(U1(i0-1,i1))
+             distance = dx(0) / 2.d0
+           else if (wall_location_index .eq. 2)  then
+             U_mag = abs(U0(i0,i1))
              distance = dx(1) / 2.d0
+          else if (wall_location_index .eq. 3) then
+            U_mag = abs(U0(i0,i1-1))
+            distance = dx(1) / 2.d0
            endif
            mu_nc = 0.25d0 * (mu(i0, i1) + mu(i0-1,i1) + mu(i0,i1-1)
      &                   + mu(i0-1, i1-1))
@@ -592,37 +604,42 @@ c
 
            U_tau_old = sqrt((mu_nc + mu_t_nc)*U_mag/(distance*rho_nc))
 
+c           print*, mu_nc, rho_nc, mu_t_nc, U_tau_old,U_mag
            if (U_tau_old .ge. 1E-100) then
            error = huge(0_8)
            n = 0
-           do while ((error .gt. 0.001d0) .and. (n .le. 10))
+           do while ((error .gt. 0.0001d0) .and. (n .le. 15))
             yplus = rho_nc*U_tau_old*distance/mu_nc
            U_tau_vis =  U_mag / yplus
-           U_tau_log = U_mag / (log(yplus)/kappa + B)
+           U_tau_log = U_mag / ((log(yplus)/kappa) + B)
            U_tau_new = (U_tau_vis**4.d0 + U_tau_log**4.d0)**0.25d0
            error = abs(U_tau_new - U_tau_old) / U_tau_old
            U_tau_old = 0.5*(U_tau_new+U_tau_old)
 c           print*, 'node values and u_tau at each iteration is '
-c          print*, n, U_tau_new, error
-           n = n+1
+c           print*, n, U_tau_new, error
+c           n = n+1
           enddo
         endif
            U_tau = U_tau_new
            U_star_vis = sqrt(mu_nc * U_mag / (rho_nc*distance))
            U_star_log = beta_star**0.25d0 * k(i0, i1)**0.5d0
            U_star = (U_star_vis**4.d0 + U_star_log**4.d0)**0.25d0
-           tau_w(i0,i1) = rho_nc * U_tau * U_tau
-c           print*, 'wall shear stress is'
-c           print*,i0, i1, tau_w(i0,i1), U_tau, U_star
+           tau_w(i0,i1) = rho_nc * U_tau * U_star
+           print*, 'wall shear stress is'
+           print*,i0, i1, tau_w(i0,i1), U_tau, U_star
 c
-           if ((wall_location_index .eq. 0) .or.
-     &            (wall_location_index .eq. 1)) then
-                  U_tau0(i0, i1) = U_tau
-                  yplus1(i0,i1) = yplus
-            else if ((wall_location_index .eq. 2) .or.
-     &            (wall_location_index .eq. 3)) then
-                  U_tau1(i0, i1) = U_tau
-                  yplus0(i0,i1) = yplus
+             if (wall_location_index .eq. 0) then
+                U_tau1(i0, i1) = U_tau
+                yplus1(i0,i1) = yplus
+            else if (wall_location_index .eq. 1) then
+              U_tau1(i0-1, i1) = U_tau
+              yplus1(i0-1,i1) = yplus
+            else if (wall_location_index .eq. 2)  then
+              U_tau0(i0, i1) = U_tau
+              yplus0(i0,i1) = yplus
+            else if (wall_location_index .eq. 3) then
+             U_tau0(i0, i1-1) = U_tau
+             yplus0(i0,i1-1) = yplus
             endif
          endif
         enddo
@@ -649,6 +666,8 @@ c
      & U_tau1,U_tau_gc1,
      & kappa,
      & wall_location_index,
+     & trim_box_ilower0,trim_box_iupper0,
+     & trim_box_ilower1,trim_box_iupper1,
      & ilower0,iupper0,
      & ilower1,iupper1,
      & dx)
@@ -658,6 +677,8 @@ c
 c
 c     input variables
       INTEGER U_tau_gc0, U_tau_gc1, tau_w_gc
+      INTEGER trim_box_ilower0,trim_box_iupper0
+      INTEGER trim_box_ilower1,trim_box_iupper1
       INTEGER ilower0, iupper0, ilower1, iupper1
       INTEGER wall_location_index
       REAL kappa
@@ -677,21 +698,29 @@ c     local variables
       INTEGER i0, i1
       REAL distance, tau_w_cc, U_tau_cc
 
-      do i1 = ilower1,iupper1
-        do i0 = ilower0,iupper0
-           if ((wall_location_index .eq. 0) .or.
-     &            (wall_location_index .eq. 1)) then
-            tau_w_cc = 0.5 * (tau_w(i0, i1) + tau_w(i0, i1+1))
-            U_tau_cc = 0.5 * (U_tau1(i0, i1) + U_tau1(i0, i1+1))
+      do i1 = trim_box_ilower1,trim_box_iupper1
+        do i0 = trim_box_ilower0,trim_box_iupper0
+
+           if (wall_location_index .eq. 0) then
+              tau_w_cc = 0.5d0 * (tau_w(i0, i1) + tau_w(i0, i1+1))
+              U_tau_cc = 0.5d0 * (U_tau1(i0, i1) + U_tau1(i0, i1+1))
+              distance = dx(0) / 2.d0
+          else if (wall_location_index .eq. 1) then
+            tau_w_cc = 0.5d0 * (tau_w(i0+1, i1) + tau_w(i0+1, i1+1))
+            U_tau_cc = 0.5d0 * (U_tau1(i0, i1) + U_tau1(i0, i1+1))
             distance = dx(0) / 2.d0
-           else
-            tau_w_cc = 0.5 * (tau_w(i0, i1) + tau_w(i0+1, i1))
-            U_tau_cc = 0.5 * (U_tau0(i0, i1) + U_tau0(i0+1, i1))
+          else if (wall_location_index .eq. 2)  then
+            tau_w_cc = 0.5d0 * (tau_w(i0, i1) + tau_w(i0+1, i1))
+            U_tau_cc = 0.5d0 * (U_tau0(i0, i1) + U_tau0(i0+1, i1))
             distance = dx(1) / 2.d0
-           endif
+          else if (wall_location_index .eq. 3) then
+           tau_w_cc = 0.5d0 * (tau_w(i0, i1+1) + tau_w(i0+1, i1+1))
+            U_tau_cc = 0.5d0 * (U_tau0(i0, i1) + U_tau0(i0+1, i1))
+            distance = dx(1) / 2.d0
+          endif
            P_k(i0, i1) = tau_w_cc * U_tau_cc / (kappa * distance)
-c          print*, 'production from wall law'
-c         print*, i0, i1, tau_w_cc, U_tau_cc, P_k(i0, i1)
+          print*, 'production from wall law'
+          print*, i0, i1, tau_w_cc, U_tau_cc, P_k(i0, i1)
         enddo
       enddo
 c
@@ -715,6 +744,8 @@ c
      & U0,U_gc0,
      & U1,U_gc1,
      & wall_location_index,
+     & trim_box_ilower0,trim_box_iupper0,
+     & trim_box_ilower1,trim_box_iupper1,
      & ilower0,iupper0,
      & ilower1,iupper1,
      & dx)
@@ -723,6 +754,8 @@ c
 c
 c     input variables
       INTEGER U_gc0, U_gc1, tau_w_gc
+      INTEGER trim_box_ilower0,trim_box_iupper0
+      INTEGER trim_box_ilower1,trim_box_iupper1
       INTEGER ilower0, iupper0, ilower1, iupper1
       INTEGER wall_location_index
       REAL dx(0:NDIM-1)
@@ -739,23 +772,28 @@ c
 c     Local variables.
       INTEGER i0,i1
       REAL distance, U_mag
-      do i1 = ilower1,iupper1+1
-       do i0 = ilower0,iupper0+1
-         if (((wall_location_index .eq. 0) .and. (i0 .eq. ilower0)).or.
-     &  ((wall_location_index .eq. 1) .and.
-     & (i0 .eq. (iupper0 + 1))) .or.
-     & ((wall_location_index .eq. 2) .and.  (i1 .eq. ilower1)) .or.
-     & ((wall_location_index .eq. 3)
-     & .and.  (i1 .eq. (iupper1 + 1)))) then
-          if ((wall_location_index .eq. 0) .or.
-     &            (wall_location_index .eq. 1)) then
-            U_mag = sqrt(U1(i0,i1)*U1(i0,i1))
-            distance = dx(0)/2.0d0
-          else
-            U_mag = sqrt(U0(i0,i1)*U0(i0,i1))
-            distance = dx(1)/2.0d0
-          endif
-c         mu(i0,i1) = tau_w(i0,i1) * distance / U_mag
+      do i1 = trim_box_ilower1,trim_box_iupper1+1
+       do i0 = trim_box_ilower0,trim_box_iupper0+1
+         if (((wall_location_index .eq. 0) .and.
+     &  (i0 .eq. trim_box_ilower0)).or.((wall_location_index .eq. 1)
+     & .and. (i0 .eq. (trim_box_iupper0 + 1))) .or.
+     & ((wall_location_index .eq. 2) .and.  (i1 .eq. trim_box_ilower1))
+     & .or. ((wall_location_index .eq. 3) .and.
+     & (i1 .eq. (trim_box_iupper1 + 1)))) then
+        if (wall_location_index .eq. 0) then
+         U_mag = abs(U1(i0,i1))
+         distance = dx(0) / 2.d0
+       else if (wall_location_index .eq. 1) then
+         U_mag = abs(U1(i0-1,i1))
+         distance = dx(0) / 2.d0
+       else if (wall_location_index .eq. 2)  then
+         U_mag = abs(U0(i0,i1))
+         distance = dx(1) / 2.d0
+       else if (wall_location_index .eq. 3) then
+        U_mag = abs(U0(i0,i1-1))
+        distance = dx(1) / 2.d0
+       endif
+         mu(i0,i1) = tau_w(i0,i1) * distance / U_mag
 c         print*, i0, i1, tau_w(i0,i1), mu(i0, i1)
         endif
        enddo
