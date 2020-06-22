@@ -602,27 +602,30 @@ c
            mu_t_nc = 0.25d0 * (mu_t(i0, i1) + mu_t(i0-1,i1) +
      &                   mu_t(i0,i1-1) + mu_t(i0-1, i1-1))
 
-           U_tau_old = sqrt((mu_nc + mu_t_nc)*U_mag/(distance*rho_nc))
-
+c           U_tau_old = sqrt((mu_nc + mu_t_nc)*U_mag/(distance*rho_nc))
 c           print*, mu_nc, rho_nc, mu_t_nc, U_tau_old,U_mag
-           if (U_tau_old .ge. 1E-100) then
-           error = huge(0_8)
-           n = 0
-           do while ((error .gt. 0.0001d0) .and. (n .le. 15))
-            yplus = rho_nc*U_tau_old*distance/mu_nc
-           U_tau_vis =  U_mag / yplus
-           U_tau_log = U_mag / ((log(yplus)/kappa) + B)
-           U_tau_new = (U_tau_vis**4.d0 + U_tau_log**4.d0)**0.25d0
-           error = abs(U_tau_new - U_tau_old) / U_tau_old
-           U_tau_old = 0.5*(U_tau_new+U_tau_old)
+c           if (U_tau_old .ge. 1E-100) then
+c           error = huge(0_8)
+c           n = 0
+c           do while ((error .gt. 0.0001d0) .and. (n .le. 15))
+c            yplus = rho_nc*U_tau_old*distance/mu_nc
+c           U_tau_vis =  U_mag / yplus
+c           U_tau_log = U_mag / ((log(yplus)/kappa) + B)
+c           U_tau_new = (U_tau_vis**4.d0 + U_tau_log**4.d0)**0.25d0
+c           error = abs(U_tau_new - U_tau_old) / U_tau_old
+c           U_tau_old = 0.5*(U_tau_new+U_tau_old)
 c           print*, 'node values and u_tau at each iteration is '
 c           print*, n, U_tau_new, error
 c           n = n+1
-          enddo
-        endif
-           U_tau = U_tau_new
-           U_star_vis = sqrt(mu_nc * U_mag / (rho_nc*distance))
+c          enddo
+c        endif
            U_star_log = beta_star**0.25d0 * k(i0, i1)**0.5d0
+           yplus = rho_nc*U_star_log*distance/mu_nc
+           U_tau_vis = sqrt(mu_nc * U_mag / (rho_nc*distance))
+           U_tau_log = U_mag/(log(yplus)/kappa + B)
+c           U_tau = U_tau_new
+           U_tau = (U_tau_vis**4.d0 + U_tau_log**4.d0)**0.25d0
+           U_star_vis = sqrt(mu_nc * U_mag / (rho_nc*distance))
            U_star = (U_star_vis**4.d0 + U_star_log**4.d0)**0.25d0
            tau_w(i0,i1) = rho_nc * U_tau * U_star
            print*, 'wall shear stress is'
