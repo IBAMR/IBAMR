@@ -265,8 +265,6 @@ c    Local variables.
      &                  / max(a1*w(i0,i1), sqrt(2.d0)
      &                  * strain_rate_mag*F2(i0,i1))
            if ((i1 .eq. 0) .or. (i1 .eq. 24)) then
-c            print*, 'mu_t value from mu_t func is'
-c            print*, i0, i1, mu_t(i0,i1)
           endif
         enddo
       enddo
@@ -381,8 +379,6 @@ c
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
           k_f(i0,i1) = min(P(i0,i1),(10.d0*beta_star*k(i0,i1)*w(i0,i1)))
-c          print*, 'production term is'
-c          print*, i0, i1, P(i0, i1), k_f(i0,i1)
         enddo
       enddo
 c
@@ -603,7 +599,6 @@ c
      &                   mu_t(i0,i1-1) + mu_t(i0-1, i1-1))
 
 c           U_tau_old = sqrt((mu_nc + mu_t_nc)*U_mag/(distance*rho_nc))
-c           print*, mu_nc, rho_nc, mu_t_nc, U_tau_old,U_mag
 c           if (U_tau_old .ge. 1E-100) then
 c           error = huge(0_8)
 c           n = 0
@@ -614,8 +609,6 @@ c           U_tau_log = U_mag / ((log(yplus)/kappa) + B)
 c           U_tau_new = (U_tau_vis**4.d0 + U_tau_log**4.d0)**0.25d0
 c           error = abs(U_tau_new - U_tau_old) / U_tau_old
 c           U_tau_old = 0.5*(U_tau_new+U_tau_old)
-c           print*, 'node values and u_tau at each iteration is '
-c           print*, n, U_tau_new, error
 c           n = n+1
 c          enddo
 c        endif
@@ -628,8 +621,6 @@ c           U_tau = U_tau_new
            U_star_vis = sqrt(mu_nc * U_mag / (rho_nc*distance))
            U_star = (U_star_vis**4.d0 + U_star_log**4.d0)**0.25d0
            tau_w(i0,i1) = rho_nc * U_tau * U_star
-           print*, 'wall shear stress is'
-           print*,i0, i1, tau_w(i0,i1), U_tau, U_star
 c
              if (wall_location_index .eq. 0) then
                 U_tau1(i0, i1) = U_tau
@@ -722,8 +713,6 @@ c     local variables
             distance = dx(1) / 2.d0
           endif
            P_k(i0, i1) = tau_w_cc * U_tau_cc / (kappa * distance)
-          print*, 'production from wall law'
-          print*, i0, i1, tau_w_cc, U_tau_cc, P_k(i0, i1)
         enddo
       enddo
 c
@@ -797,7 +786,6 @@ c     Local variables.
         distance = dx(1) / 2.d0
        endif
          mu(i0,i1) = tau_w(i0,i1) * distance / U_mag
-c         print*, i0, i1, tau_w(i0,i1), mu(i0, i1)
         endif
        enddo
       enddo

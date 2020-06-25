@@ -1,9 +1,9 @@
 // computational domain
 HEIGHT = 2.0
-LENGTH = 2.0
+LENGTH = 40.0
 
-RHO = 1.0
-MU  = 0.0017
+RHO = 590.0
+MU  = 1.0
 WALL_LOCATION_INDEX = 2, 3
 DISTANCE_TO_VIRTUAL_POINT = 2.0
 
@@ -27,14 +27,14 @@ HFINEST = LENGTH/NFINEST
 // writing the velocity profile across x near the outlet
 output_velocity_profile{
 number_of_locations = 4
-lower_coordinates_0 = 0.5, 0.0
-upper_coordinates_0 = 0.5, 2.0
-lower_coordinates_1 = 1.0, 0.0
-upper_coordinates_1 = 1.0, 2.0
-lower_coordinates_2 = 1.5, 0.0
-upper_coordinates_2 = 1.5, 2.0
-lower_coordinates_3 = 1.8, 0.0
-upper_coordinates_3 = 1.8, 2.0
+lower_coordinates_0 = 30.0, 0.0
+upper_coordinates_0 = 30.0, 2.0
+lower_coordinates_1 = 32.0, 0.0
+upper_coordinates_1 = 32.0, 2.0
+lower_coordinates_2 = 35.0, 0.0
+upper_coordinates_2 = 35.0, 2.0
+lower_coordinates_3 = 38.0, 0.0
+upper_coordinates_3 = 38.0, 2.0
 }
 
 PressureInitialConditions {
@@ -230,7 +230,7 @@ ENABLE_LOGGING       = TRUE
 ADV_DIFF_SOLVER_TYPE        = "SEMI_IMPLICIT"
 TURB_NUM_CYCLES         = 2                 // number of cycles of fixed-point iteration
 TURB_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE" // convective time stepping type
-TURB_CONVECTIVE_OP_TYPE = "CUI"             // convective differencing discretization type
+TURB_CONVECTIVE_OP_TYPE = "CUI_CONSERVATIVE"             // convective differencing discretization type
 TURB_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
 
 INSVCStaggeredConservativeHierarchyIntegrator {
@@ -449,13 +449,13 @@ Main {
    discretization_form  = DISCRETIZATION_FORM
 
 // log file parameters
-   log_file_name               = "turbulent_channel_flow_case21.log"
+   log_file_name               = "turbulent_channel_flow_case24.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = 10
-   viz_dump_dirname            = "turbulent_channel_flow_case21"
+   viz_dump_dirname            = "turbulent_channel_flow_case24"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
@@ -464,7 +464,7 @@ Main {
    
 // post-processing data output parameters
     data_dump_interval         = 10
-    data_dump_dirname          = "velocity_profile_case21"
+    data_dump_dirname          = "velocity_profile_case24"
 
 // timer dump parameters
    timer_dump_interval         = 0
@@ -474,7 +474,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0) , ( Nx - 1, Ny - 1) ]
    x_lo         =   0.0,   0.0           // lower end of computational domain.
    x_up         =   LENGTH,   HEIGHT         // upper end of computational domain.
-   periodic_dimension = 1, 0
+   periodic_dimension = 0, 0
 }
 
 GriddingAlgorithm {

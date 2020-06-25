@@ -446,6 +446,11 @@ private:
      * Cell-centered density.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_cc_var, d_rho_vec_cc_var;
+
+    /*!
+     * Cell-centered density.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_rho_fc_var;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_bc_coef = nullptr;
 
     std::string d_rho_coarsen_type = "CONSERVATIVE_COARSEN";

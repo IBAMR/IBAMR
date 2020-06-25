@@ -608,6 +608,16 @@ TwoEquationTurbulenceHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<
                      d_rho_coarsen_type,
                      d_rho_refine_type);
 
+    d_rho_fc_var = new FaceVariable<NDIM, double>("rho::fc", /*depth*/ 1);
+    int rho_fc_current_idx, rho_fc_new_idx, rho_fc_scratch_idx;
+    registerVariable(rho_fc_current_idx,
+                     rho_fc_new_idx,
+                     rho_fc_scratch_idx,
+                     d_rho_fc_var,
+                     face_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE");
+
     // Registering a temporary cell-centered vector variable to be used in the interpolation
     // function.
     d_rho_vec_cc_var = new CellVariable<NDIM, double>("rho_vec_cc", NDIM);
@@ -859,7 +869,21 @@ TwoEquationTurbulenceHierarchyIntegrator::preprocessIntegrateHierarchy(const dou
             d_k_convective_op->initializeOperatorState(*d_k_sol, *d_k_rhs);
             d_k_convective_op_needs_init = false;
         }
+        if (d_k_convective_op_type == "CUI_CONSERVATIVE")
+        {
+            int rho_fc_current_idx = var_db->mapVariableAndContextToIndex(d_rho_fc_var, getCurrentContext());
+            d_hier_cc_data_ops->copyData(d_rho_cc_scratch_idx, d_rho_cc_current_idx);
+            d_rho_bdry_bc_fill_op->fillData(current_time);
 
+            d_hier_math_ops->interp(rho_fc_current_idx,
+                                    d_rho_fc_var,
+                                    true,
+                                    d_rho_cc_scratch_idx,
+                                    d_rho_cc_var,
+                                    d_no_fill_op,
+                                    d_integrator_time);
+            d_hier_fc_data_ops->multiply(k_u_current_idx, k_u_current_idx, rho_fc_current_idx);
+        }
         d_k_convective_op->setAdvectionVelocity(k_u_current_idx);
         const int k_current_idx = var_db->mapVariableAndContextToIndex(d_k_var, getCurrentContext());
         const int k_scratch_idx = var_db->mapVariableAndContextToIndex(d_k_var, getScratchContext());
@@ -1016,6 +1040,11 @@ TwoEquationTurbulenceHierarchyIntegrator::preprocessIntegrateHierarchy(const dou
             d_w_convective_op_needs_init = false;
         }
 
+        if (d_w_convective_op_type == "CUI_CONSERVATIVE")
+        {
+            int rho_fc_current_idx = var_db->mapVariableAndContextToIndex(d_rho_fc_var, getCurrentContext());
+            d_hier_fc_data_ops->multiply(w_u_current_idx, rho_fc_current_idx, w_u_current_idx);
+        }
         d_w_convective_op->setAdvectionVelocity(w_u_current_idx);
         const int w_current_idx = var_db->mapVariableAndContextToIndex(d_w_var, getCurrentContext());
         const int w_scratch_idx = var_db->mapVariableAndContextToIndex(d_w_var, getScratchContext());
@@ -1127,16 +1156,8 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
 
         // Update the diffusion coefficient.
         d_hier_cc_data_ops->copyData(mu_t_scratch_idx, mu_t_new_idx);
-        /*std::ofstream mu_t_value_before_ghost_cell;
-        mu_t_value_before_ghost_cell.open("mu_t_value_before_ghost_cell_filling.dat");
-        d_hier_cc_data_ops->printData(mu_t_scratch_idx, mu_t_value_before_ghost_cell, false);
-        mu_t_value_before_ghost_cell.close();*/
         d_hier_cc_data_ops->copyData(mu_scratch_idx, mu_new_idx);
         d_mu_t_bdry_bc_fill_op->fillData(new_time);
-        /*std::ofstream mu_t_value;
-        mu_t_value.open("mu_t_value_after_ghost_cell_filling.dat");
-        d_hier_cc_data_ops->printData(mu_t_scratch_idx, mu_t_value, false);
-        mu_t_value.close();*/
         d_mu_bdry_bc_fill_op->fillData(new_time);
         d_hier_cc_data_ops->axpy(
             d_mu_eff_scratch_idx, d_sigma_k, mu_t_scratch_idx, mu_scratch_idx, /*interior_only*/ false);
@@ -1165,6 +1186,16 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
 
     // account for the convective term
     TimeSteppingType convective_time_stepping_type = UNKNOWN_TIME_STEPPING_TYPE;
+    int rho_fc_new_idx = var_db->mapVariableAndContextToIndex(d_rho_fc_var, getNewContext());
+    int rho_fc_current_idx = var_db->mapVariableAndContextToIndex(d_rho_fc_var, getCurrentContext());
+    int rho_fc_scratch_idx = var_db->mapVariableAndContextToIndex(d_rho_fc_var, getScratchContext());
+    if (d_k_convective_op_type == "CUI_CONSERVATIVE")
+    {
+        d_hier_cc_data_ops->copyData(d_rho_cc_scratch_idx, d_rho_cc_new_idx);
+        d_rho_bdry_bc_fill_op->fillData(new_time);
+        d_hier_math_ops->interp(
+            rho_fc_new_idx, d_rho_fc_var, true, d_rho_cc_scratch_idx, d_rho_cc_var, d_no_fill_op, d_integrator_time);
+    }
     if (d_k_u_var)
     {
         convective_time_stepping_type = d_k_convective_time_stepping_type;
@@ -1195,11 +1226,17 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
             }
         }
         const int k_N_scratch_idx = var_db->mapVariableAndContextToIndex(d_k_N_var, getScratchContext());
+
         if (cycle_num > 0)
         {
             if (convective_time_stepping_type == MIDPOINT_RULE)
             {
                 const int k_u_scratch_idx = var_db->mapVariableAndContextToIndex(d_k_u_var, getScratchContext());
+                if (d_k_convective_op_type == "CUI_CONSERVATIVE")
+                {
+                    d_hier_fc_data_ops->linearSum(rho_fc_scratch_idx, 0.5, rho_fc_current_idx, 0.5, rho_fc_new_idx);
+                    d_hier_fc_data_ops->multiply(k_u_scratch_idx, k_u_scratch_idx, rho_fc_scratch_idx);
+                }
                 d_k_convective_op->setAdvectionVelocity(k_u_scratch_idx);
                 const int k_current_idx = var_db->mapVariableAndContextToIndex(d_k_var, getCurrentContext());
                 const int k_scratch_idx = var_db->mapVariableAndContextToIndex(d_k_var, getScratchContext());
@@ -1211,6 +1248,10 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
             else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
             {
                 const int k_u_new_idx = var_db->mapVariableAndContextToIndex(d_k_u_var, getNewContext());
+                if (d_k_convective_op_type == "CUI_CONSERVATIVE")
+                {
+                    d_hier_fc_data_ops->multiply(k_u_new_idx, k_u_new_idx, rho_fc_new_idx);
+                }
                 d_k_convective_op->setAdvectionVelocity(k_u_new_idx);
                 const int k_scratch_idx = var_db->mapVariableAndContextToIndex(d_k_var, getScratchContext());
                 const int k_new_idx = var_db->mapVariableAndContextToIndex(d_k_var, getNewContext());
@@ -1382,6 +1423,10 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
             if (convective_time_stepping_type == MIDPOINT_RULE)
             {
                 const int w_u_scratch_idx = var_db->mapVariableAndContextToIndex(d_w_u_var, getScratchContext());
+                if (d_w_convective_op_type == "CUI_CONSERVATIVE")
+                {
+                    d_hier_fc_data_ops->multiply(w_u_scratch_idx, w_u_scratch_idx, rho_fc_scratch_idx);
+                }
                 d_w_convective_op->setAdvectionVelocity(w_u_scratch_idx);
                 const int w_current_idx = var_db->mapVariableAndContextToIndex(d_w_var, getCurrentContext());
                 const int w_scratch_idx = var_db->mapVariableAndContextToIndex(d_w_var, getScratchContext());
@@ -1393,6 +1438,10 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
             else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
             {
                 const int w_u_new_idx = var_db->mapVariableAndContextToIndex(d_w_u_var, getNewContext());
+                if (d_w_convective_op_type == "CUI_CONSERVATIVE")
+                {
+                    d_hier_fc_data_ops->multiply(w_u_new_idx, w_u_new_idx, rho_fc_new_idx);
+                }
                 d_w_convective_op->setAdvectionVelocity(w_u_new_idx);
                 const int w_scratch_idx = var_db->mapVariableAndContextToIndex(d_w_var, getScratchContext());
                 const int w_new_idx = var_db->mapVariableAndContextToIndex(d_w_var, getNewContext());
@@ -2751,9 +2800,6 @@ TwoEquationTurbulenceHierarchyIntegrator::postprocessTurbulentDissipationRate()
                             const double U_star = std::pow(BETA_STAR, 0.25) * std::pow(((*k_data)(ci)), 0.5);
                             const double w_log = 2.0 * U_star / (KAPPA * patch_dx[1] * std::sqrt(BETA_STAR));
                             (*w_data)(ci) = std::sqrt((w_vis * w_vis) + (w_log * w_log));
-                            // std::cout << "w data in top and bottom near wall cell is\t" << ci << "\t" <<
-                            //(*w_data)(ci)
-                            //<< std::endl;
                         }
                     }
                 }
@@ -2815,10 +2861,6 @@ TwoEquationTurbulenceHierarchyIntegrator::computeWallShearStressFromWallLaw(cons
             var_db->mapVariableAndContextToIndex(d_mu_t_var, d_ins_hierarchy_integrator->getScratchContext());
         d_hier_cc_data_ops->copyData(mu_t_scratch_idx, mu_t_idx);
         d_mu_t_bdry_bc_fill_op->fillData(data_time);
-        /*std::ofstream mu_t_value;
-        mu_t_value.open("mu_t_value_after_ghost_cell_filling_in_shear_stress_func.dat");
-        d_hier_cc_data_ops->printData(mu_t_scratch_idx, mu_t_value, false);
-        mu_t_value.close();*/
 
         Pointer<SideVariable<NDIM, double> > U_var = d_ins_hierarchy_integrator->getVelocityVariable();
         Pointer<NodeVariable<NDIM, double> > tau_w_var = d_ins_hierarchy_integrator->getTauwVariable();
@@ -2884,16 +2926,7 @@ TwoEquationTurbulenceHierarchyIntegrator::computeWallShearStressFromWallLaw(cons
                     }
 
                     Box<NDIM> trim_box = patch_box * bdry_box;
-                    /*std::cout << "bdry_box lower is\t" << bdry_box.lower() << " and upper is\t" << bdry_box.upper() <<
-                    std::endl; std::cout << "trim box lower is\t" << trim_box.lower() << " and upper is\t" <<
-                    trim_box.upper() << std::endl; std::ofstream mu_t_data_file;
-                    mu_t_data_file.open("mu_t_data_before_fortran_routine");
-                    mu_t_data->print(trim_box, mu_t_data_file);
-                    mu_t_data_file.close();
-                    std::ofstream k_file;
-                    k_file.open("k_data_before_fortran_routine");
-                    k_data->print(trim_box, k_file);
-                    k_file.close();*/
+
                     WALL_SHEAR_STRESS(tau_w_data->getPointer(),
                                       tau_w_data->getGhostCellWidth().max(),
                                       U_data->getPointer(0),

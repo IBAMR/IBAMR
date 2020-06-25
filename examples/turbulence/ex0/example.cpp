@@ -321,7 +321,7 @@ main(int argc, char* argv[])
         // Create object for source term classes and register it with the hierarchy integrator
         Pointer<CartGridFunction> u_source_fcn = new USourceFunction(
             "USourceFunction", grid_geometry, app_initializer->getComponentDatabase("USourceFunction"));
-        time_integrator->registerBodyForceFunction(u_source_fcn);
+        // time_integrator->registerBodyForceFunction(u_source_fcn);
 
         Pointer<TurbulenceSSTKOmegaSourceFunction> F_fcn = new TurbulenceSSTKOmegaSourceFunction(
             "TurbulenceSSTKOmegaSourceFunction",
@@ -405,7 +405,7 @@ main(int argc, char* argv[])
                 const int k_idx =
                     var_db->mapVariableAndContextToIndex(k_var, turb_hier_integrator->getCurrentContext());
                 const int w_idx =
-                    var_db->mapVariableAndContextToIndex(k_var, turb_hier_integrator->getCurrentContext());
+                    var_db->mapVariableAndContextToIndex(w_var, turb_hier_integrator->getCurrentContext());
                 if (input_db->keyExists("output_velocity_profile"))
                 {
                     double lower_coordinates[NDIM], upper_coordinates[NDIM];
