@@ -978,7 +978,7 @@ AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
             }
         }
     }
-    return dt;
+    return SAMRAI_MPI::minReduction(dt);
 } // getMaximumTimeStepSizeSpecialized
 
 void
