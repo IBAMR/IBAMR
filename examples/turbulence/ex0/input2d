@@ -184,7 +184,7 @@ WBcCoefs {
 SOLVER_TYPE          = "STAGGERED"
 DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0     // initial simulation time
-END_TIME             =   10.0e0    // final simulation time
+END_TIME             =   1.0e0    // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
 REGRID_INTERVAL      =   50000000
@@ -230,7 +230,7 @@ ENABLE_LOGGING       = TRUE
 ADV_DIFF_SOLVER_TYPE        = "SEMI_IMPLICIT"
 TURB_NUM_CYCLES         = 2                 // number of cycles of fixed-point iteration
 TURB_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE" // convective time stepping type
-TURB_CONVECTIVE_OP_TYPE = "CUI_CONSERVATIVE"             // convective differencing discretization type
+TURB_CONVECTIVE_OP_TYPE = "CUI"             // convective differencing discretization type
 TURB_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
 
 INSVCStaggeredConservativeHierarchyIntegrator {

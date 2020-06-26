@@ -521,7 +521,7 @@ private:
     int d_k_current_idx, d_k_new_idx, d_k_scratch_idx;
     int d_w_current_idx, d_w_new_idx, d_w_scratch_idx;
     int d_rho_cc_new_idx, d_rho_cc_scratch_idx, d_rho_cc_current_idx;
-    int d_rho_vec_cc_idx;
+    int d_rho_vec_cc_current_idx, d_rho_vec_cc_scratch_idx, d_rho_vec_cc_new_idx;
 
     /*!
      * Patch data descriptor indices for all "scratch" variables managed by the
