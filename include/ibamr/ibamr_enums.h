@@ -214,6 +214,37 @@ enum_to_string<LevelSetOrder>(LevelSetOrder val)
 } // enum_to_string
 
 /*!
+ * \brief Enumerated type for pressure formulations.
+ */
+enum PressureProjectionType
+{
+    CONSISTENT_PROJECTION,
+    LUMPED_PROJECTION,
+    STABILIZED_PROJECTION,
+    UNKNOWN_PRESSURE_TYPE = -1
+};
+
+template <>
+inline PressureProjectionType
+string_to_enum<PressureProjectionType>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "CONSISTENT_PROJECTION") == 0) return CONSISTENT_PROJECTION;
+    if (strcasecmp(val.c_str(), "LUMPED_PROJECTION") == 0) return LUMPED_PROJECTION;
+    if (strcasecmp(val.c_str(), "STABILIZED_PROJECTION") == 0) return STABILIZED_PROJECTION;
+    return UNKNOWN_PRESSURE_TYPE;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<PressureProjectionType>(PressureProjectionType val)
+{
+    if (val == CONSISTENT_PROJECTION) return "CONSISTENT_PROJECTION";
+    if (val == LUMPED_PROJECTION) return "LUMPED_PROJECTION";
+    if (val == STABILIZED_PROJECTION) return "STABILIZED_PROJECTION";
+    return "UNKNOWN_PRESSURE_TYPE";
+} // enum_to_string
+
+/*!
  * \brief Enumerated type for different basic time stepping schemes.
  */
 enum TimeSteppingType

@@ -323,6 +323,33 @@ public:
     LagSurfaceForceFcnData getLagSurfaceForceFunction(unsigned int part = 0) const;
 
     /*!
+     * Function signature for specifying the energy functional that determines
+     * the pressure.
+     */
+    using VolumetricEnergyDerivativeFcn = std::function<double(double)>;
+
+    /*!
+     * Indicate that a part should include a static pressure.
+     *
+     * The pressure is determined via (P, Q) = (U'(J), Q), using either a
+     * consistent or lumped mass matrix, or via a locally stabilized projection
+     * of the form (P, Q) + epsilon (P - Pi P, Q - Pi Q) = (U'(J), Q), in which
+     * P is the pressure and Q is an arbitrary test function.
+     *
+     * Users can provide a function to evaluate U'(J).  If no function is
+     * provided, we default to using U(J) = -kappa (J ln(J) − J + 1), so that
+     * U'(J) = -kappa ln J. (Ref: C.H. Liu, G. Hofstetter, H.A. Mang, 3D finite
+     * element analysis of rubber-like materials at finite strains, Eng. Comput.
+     * 11 (2) (1994) 111–128.)
+     *
+     * The sign convention used in the implementation generates a PK1 stress of
+     * the form PP = -J P FF^{-T}.
+     */
+    void registerStaticPressurePart(PressureProjectionType projection_type = CONSISTENT_PROJECTION,
+                                    VolumetricEnergyDerivativeFcn U_prime = nullptr,
+                                    unsigned int part = 0);
+
+    /*!
      * Method to prepare to advance data from current_time to new_time.
      */
     virtual void preprocessIntegrateData(double current_time, double new_time, int num_cycles);
@@ -388,6 +415,14 @@ protected:
      * up to date.
      */
     virtual void doInitializeFEData(bool use_present_data) = 0;
+
+    /*!
+     * \brief Compute the static pressure  field.
+     */
+    void computeStaticPressure(libMesh::PetscVector<double>& P_vec,
+                               libMesh::PetscVector<double>& X_vec,
+                               double data_time,
+                               unsigned int part);
 
     /*!
      * Assemble the RHS for the interior elastic density, possibly splitting off
@@ -571,6 +606,15 @@ protected:
     std::vector<LagBodyForceFcnData> d_lag_body_force_fcn_data;
     std::vector<LagSurfacePressureFcnData> d_lag_surface_pressure_fcn_data;
     std::vector<LagSurfaceForceFcnData> d_lag_surface_force_fcn_data;
+
+    /*!
+     * Data related to handling static pressures.
+     */
+    double d_static_pressure_kappa = 0.0, d_static_pressure_stab_param = 0.0;
+    bool d_has_static_pressure_parts = false;
+    std::vector<bool> d_static_pressure_part;
+    std::vector<PressureProjectionType> d_static_pressure_proj_type;
+    std::vector<VolumetricEnergyDerivativeFcn> d_static_pressure_vol_energy_deriv_fcn;
 
     /*!
      * The object name is used as a handle to databases stored in restart files
