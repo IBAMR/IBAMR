@@ -2707,7 +2707,7 @@ FEDataManager::computeActiveElementBoundingBoxes()
     const MeshBase& mesh = d_fe_data->d_es->get_mesh();
     const System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
 
-    const auto bboxes = get_global_active_element_bounding_boxes(mesh, X_system);
+    const auto bboxes = get_global_element_bounding_boxes(mesh, X_system);
     d_active_elem_bboxes.resize(bboxes.size());
     for (std::size_t i = 0; i < bboxes.size(); ++i)
     {
@@ -2752,15 +2752,15 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     // of the bounding box of the nodes and the bounding box of the quadrature
     // points:
     const std::vector<libMeshWrappers::BoundingBox> local_nodal_bboxes =
-        get_local_active_element_bounding_boxes(mesh, X_system);
+        get_local_element_bounding_boxes(mesh, X_system);
     const std::vector<libMeshWrappers::BoundingBox> local_qp_bboxes =
-        get_local_active_element_bounding_boxes(mesh,
-                                                X_system,
-                                                d_default_interp_spec.quad_type,
-                                                d_default_interp_spec.quad_order,
-                                                d_default_interp_spec.use_adaptive_quadrature,
-                                                d_default_interp_spec.point_density,
-                                                dx_0);
+        get_local_element_bounding_boxes(mesh,
+                                         X_system,
+                                         d_default_interp_spec.quad_type,
+                                         d_default_interp_spec.quad_order,
+                                         d_default_interp_spec.use_adaptive_quadrature,
+                                         d_default_interp_spec.point_density,
+                                         dx_0);
     TBOX_ASSERT(local_nodal_bboxes.size() == local_qp_bboxes.size());
     std::vector<libMeshWrappers::BoundingBox> local_bboxes;
     for (std::size_t box_n = 0; box_n < local_nodal_bboxes.size(); ++box_n)
@@ -2780,7 +2780,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
 #endif
     }
     const std::vector<libMeshWrappers::BoundingBox> global_bboxes =
-        get_global_active_element_bounding_boxes(mesh, local_bboxes);
+        get_global_element_bounding_boxes(mesh, local_bboxes);
 
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -2802,14 +2802,17 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
             patch_bbox.second(d) = 0.0;
         }
 
-        auto el_it = mesh.active_elements_begin();
+        auto el_it = mesh.elements_begin();
         for (const libMeshWrappers::BoundingBox& bbox : global_bboxes)
         {
+            if ((*el_it)->active())
+            {
 #if LIBMESH_VERSION_LESS_THAN(1, 2, 0)
-            if (bbox.intersect(patch_bbox)) elems.insert(*el_it);
+                if (bbox.intersect(patch_bbox)) elems.insert(*el_it);
 #else
-            if (bbox.intersects(patch_bbox)) elems.insert(*el_it);
+                if (bbox.intersects(patch_bbox)) elems.insert(*el_it);
 #endif
+            }
             ++el_it;
         }
     }

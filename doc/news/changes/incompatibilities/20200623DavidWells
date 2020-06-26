@@ -1,0 +1,7 @@
+Changed: IBTK::get_local_active_element_bounding_boxes() and related functions
+have been renamed to IBTK::get_local_element_bounding_boxes() (i.e., without the
+active part). This change is necessary since the current version of the function
+does not work correctly when AMR is used inside libMesh - switching to computing
+all bounding boxes resolves the issue.
+<br>
+(David Wells, 2020/06/25)

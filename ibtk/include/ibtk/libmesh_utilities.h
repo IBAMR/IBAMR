@@ -1478,36 +1478,55 @@ void write_node_partitioning(const std::string& file_name, const libMesh::System
 /**
  * Compute bounding boxes based on where an elements quadrature points
  * are. See getQuadratureKey for descriptions of the last five arguments.
+ *
+ * @warning Since non-active elements do not have degrees of freedom assigned
+ * to them, this function assigns them bounding boxes that cover the complete
+ * range of finite double precision values. They are still included in the
+ * output vector so that that vector can be indexed by element ids.
  */
-std::vector<libMeshWrappers::BoundingBox>
-get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
-                                        const libMesh::System& X_system,
-                                        const libMesh::QuadratureType quad_type,
-                                        const libMesh::Order quad_order,
-                                        const bool use_adaptive_quadrature,
-                                        const double point_density,
-                                        const double patch_dx_min);
+std::vector<libMeshWrappers::BoundingBox> get_local_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                                                           const libMesh::System& X_system,
+                                                                           const libMesh::QuadratureType quad_type,
+                                                                           const libMesh::Order quad_order,
+                                                                           const bool use_adaptive_quadrature,
+                                                                           const double point_density,
+                                                                           const double patch_dx_min);
 
 /*
- * Compute bounding boxes for each local active (i.e., active on the current
+ * Compute bounding boxes for each local (i.e., owned by the current
  * processor) element in @p mesh with coordinates given by @p X_system.
+ *
+ * @warning Since non-active elements do not have degrees of freedom assigned
+ * to them, this function assigns them bounding boxes that cover the complete
+ * range of finite double precision values. They are still included in the
+ * output vector so that that vector can be indexed by element ids.
  */
-std::vector<libMeshWrappers::BoundingBox> get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
-                                                                                  const libMesh::System& X_system);
+std::vector<libMeshWrappers::BoundingBox> get_local_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                                                           const libMesh::System& X_system);
 
 /**
  * Get the global list of bounding boxes from the local list.
+ *
+ * @warning Since non-active elements do not have degrees of freedom assigned
+ * to them, this function assigns them bounding boxes that cover the complete
+ * range of finite double precision values. They are still included in the
+ * output vector so that that vector can be indexed by element ids.
  */
 std::vector<libMeshWrappers::BoundingBox>
-get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
-                                         const std::vector<libMeshWrappers::BoundingBox>& local_bboxes);
+get_global_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                  const std::vector<libMeshWrappers::BoundingBox>& local_bboxes);
 
 /*
- * Compute bounding boxes for each active (i.e., active on any processor)
- * element in @p mesh with coordinates given by @p X_system.
+ * Compute bounding boxes for all elements in @p mesh with coordinates given
+ * by @p X_system.
+ *
+ * @warning Since non-active elements do not have degrees of freedom assigned
+ * to them, this function assigns them bounding boxes that cover the complete
+ * range of finite double precision values. They are still included in the
+ * output vector so that that vector can be indexed by element ids.
  */
-std::vector<libMeshWrappers::BoundingBox> get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
-                                                                                   const libMesh::System& X_system);
+std::vector<libMeshWrappers::BoundingBox> get_global_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                                                            const libMesh::System& X_system);
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
