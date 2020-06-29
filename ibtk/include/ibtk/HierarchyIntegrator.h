@@ -699,7 +699,8 @@ protected:
 
     /*!
      * Virtual method to compute an implementation-specific minimum stable time
-     * step size.
+     * step size. Implementations should ensure that the returned time step is
+     * consistent across all processors.
      *
      * A default implementation is provided that returns
      * min(dt_max,dt_growth_factor*dt_current).  The growth condition prevents
@@ -709,7 +710,8 @@ protected:
 
     /*!
      * Virtual method to compute an implementation-specific maximum stable time
-     * step size.
+     * step size. Implementations should ensure that the returned time step is
+     * consistent across all processors.
      *
      * A default implementation is provided that returns
      * min(dt_max,dt_growth_factor*dt_current).  The growth condition prevents
