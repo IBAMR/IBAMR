@@ -534,9 +534,10 @@ IBMethod::setUpdatedPosition(Vec& X_new_vec)
     d_X_new_needs_ghost_fill = true;
 
     std::vector<Pointer<LData> >* X_half_data;
-    bool* X_half_needs_ghost_fill;
+    bool* X_half_needs_ghost_fill = nullptr;
     getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
     reinitMidpointData(d_X_current_data, d_X_new_data, *X_half_data);
+    TBOX_ASSERT(X_half_needs_ghost_fill);
     *X_half_needs_ghost_fill = true;
 
     return;
@@ -732,10 +733,12 @@ IBMethod::forwardEulerStep(const double current_time, const double new_time)
     }
     d_X_new_needs_ghost_fill = true;
 
-    std::vector<Pointer<LData> >* X_half_data;
-    bool* X_half_needs_ghost_fill;
+    std::vector<Pointer<LData> >* X_half_data = nullptr;
+    bool* X_half_needs_ghost_fill = nullptr;
     getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
+    TBOX_ASSERT(X_half_data);
     reinitMidpointData(d_X_current_data, d_X_new_data, *X_half_data);
+    TBOX_ASSERT(X_half_needs_ghost_fill);
     *X_half_needs_ghost_fill = true;
 
     return;
@@ -758,10 +761,12 @@ IBMethod::backwardEulerStep(const double current_time, const double new_time)
     }
     d_X_new_needs_ghost_fill = true;
 
-    std::vector<Pointer<LData> >* X_half_data;
-    bool* X_half_needs_ghost_fill;
+    std::vector<Pointer<LData> >* X_half_data = nullptr;
+    bool* X_half_needs_ghost_fill = nullptr;
     getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
+    TBOX_ASSERT(X_half_data);
     reinitMidpointData(d_X_current_data, d_X_new_data, *X_half_data);
+    TBOX_ASSERT(X_half_needs_ghost_fill);
     *X_half_needs_ghost_fill = true;
 
     return;
@@ -784,10 +789,12 @@ IBMethod::midpointStep(const double current_time, const double new_time)
     }
     d_X_new_needs_ghost_fill = true;
 
-    std::vector<Pointer<LData> >* X_half_data;
-    bool* X_half_needs_ghost_fill;
+    std::vector<Pointer<LData> >* X_half_data = nullptr;
+    bool* X_half_needs_ghost_fill = nullptr;
     getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
+    TBOX_ASSERT(X_half_data);
     reinitMidpointData(d_X_current_data, d_X_new_data, *X_half_data);
+    TBOX_ASSERT(X_half_needs_ghost_fill);
     *X_half_needs_ghost_fill = true;
 
     return;

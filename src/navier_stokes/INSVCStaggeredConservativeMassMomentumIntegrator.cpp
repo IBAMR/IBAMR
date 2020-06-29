@@ -1464,11 +1464,16 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
                         a2 = 0.5;
                         break;
                     }
-                    if (d_density_time_stepping_type == SSPRK3)
+                    else if (d_density_time_stepping_type == SSPRK3)
                     {
                         a0 = 0.75;
                         a1 = 0.25;
                         a2 = 0.25;
+                        break;
+                    }
+                    else
+                    {
+                        TBOX_ERROR("This statement should not be reached");
                         break;
                     }
                 case 2:
