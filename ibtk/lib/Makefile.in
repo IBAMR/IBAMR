@@ -115,7 +115,7 @@ host_triplet = @host@
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libmesh_utilities.cpp \
 @LIBMESH_ENABLED_TRUE@	../include/lagrangian/BoxPartitioner.h \
 @LIBMESH_ENABLED_TRUE@	../include/lagrangian/StableCentroidPartitioner.h \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/JacobianCalculator.h \
+@LIBMESH_ENABLED_TRUE@	../include/lagrangian/JacobianCalculator.h \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/FEDataInterpolation.h \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/FEDataManager.h \
 @LIBMESH_ENABLED_TRUE@	../include/ibtk/FEProjector.h \
@@ -350,7 +350,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/utilities/libmesh_utilities.cpp \
 	../include/lagrangian/BoxPartitioner.h \
 	../include/lagrangian/StableCentroidPartitioner.h \
-	../src/lagrangian/JacobianCalculator.h \
+	../include/lagrangian/JacobianCalculator.h \
 	../include/ibtk/FEDataInterpolation.h \
 	../include/ibtk/FEDataManager.h ../include/ibtk/FEProjector.h \
 	../include/ibtk/FEValues.h \
@@ -661,7 +661,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/utilities/libmesh_utilities.cpp \
 	../include/lagrangian/BoxPartitioner.h \
 	../include/lagrangian/StableCentroidPartitioner.h \
-	../src/lagrangian/JacobianCalculator.h \
+	../include/lagrangian/JacobianCalculator.h \
 	../include/ibtk/FEDataInterpolation.h \
 	../include/ibtk/FEDataManager.h ../include/ibtk/FEProjector.h \
 	../include/ibtk/FEValues.h \
