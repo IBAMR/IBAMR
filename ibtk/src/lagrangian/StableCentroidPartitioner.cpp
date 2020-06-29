@@ -26,6 +26,7 @@
 #include <libmesh/point.h>
 
 #include <algorithm>
+#include <array>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
