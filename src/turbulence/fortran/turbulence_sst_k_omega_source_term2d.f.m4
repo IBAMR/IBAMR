@@ -264,7 +264,6 @@ c    Local variables.
             mu_t(i0,i1) = a1*rho(i0,i1)*k(i0,i1)
      &                  / max(a1*w(i0,i1), sqrt(2.d0)
      &                  * strain_rate_mag*F2(i0,i1))
-           if ((i1 .eq. 0) .or. (i1 .eq. 24)) then
           endif
         enddo
       enddo
@@ -694,7 +693,6 @@ c     local variables
 
       do i1 = trim_box_ilower1,trim_box_iupper1
         do i0 = trim_box_ilower0,trim_box_iupper0
-
            if (wall_location_index .eq. 0) then
               tau_w_cc = 0.5d0 * (tau_w(i0, i1) + tau_w(i0, i1+1))
               U_tau_cc = 0.5d0 * (U_tau1(i0, i1) + U_tau1(i0, i1+1))
@@ -764,6 +762,7 @@ c
 c     Local variables.
       INTEGER i0,i1
       REAL distance, U_mag
+c
       do i1 = trim_box_ilower1,trim_box_iupper1+1
        do i0 = trim_box_ilower0,trim_box_iupper0+1
          if (((wall_location_index .eq. 0) .and.
@@ -793,34 +792,3 @@ c
 
       return
       end
-
-c
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c     Fortran routine check
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c
-c
-c      subroutine fortran_routine_check(wall_location_index,
-c    & number_of_indices,
-c    & ilower0,iupper0,
-c    & ilower1,iupper1,
-c    & dx)
-c
-c     implicit none
-c
-c     INTEGER ilower0, iupper0, ilower1, iupper1, wall_location_index
-c
-c     REAL dx(0:NDIM-1)
-c     REAL number_of_indices(0:NDIM-1)
-c
-c     integer i0, i1
-c
-c     do i1 = ilower1:iupper1+1
-c       do i0 = ilower0,iupper0+1
-c
-c       enddo
-c     enddo

@@ -2,8 +2,8 @@
 HEIGHT = 2.0
 LENGTH = 40.0
 
-RHO = 590.0
-MU  = 1.0
+RHO = 2.0
+MU  = 0.0034
 WALL_LOCATION_INDEX = 2, 3
 DISTANCE_TO_VIRTUAL_POINT = 2.0
 
@@ -184,7 +184,7 @@ WBcCoefs {
 SOLVER_TYPE          = "STAGGERED"
 DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0     // initial simulation time
-END_TIME             =   1.0e0    // final simulation time
+END_TIME             =   13.0e0    // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
 REGRID_INTERVAL      =   50000000
@@ -454,7 +454,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 10
+   viz_dump_interval           = 100
    viz_dump_dirname            = "turbulent_channel_flow_case24"
    visit_number_procs_per_file = 1
 
@@ -463,7 +463,7 @@ Main {
    restart_dump_dirname        = "restart_INS2d"
    
 // post-processing data output parameters
-    data_dump_interval         = 10
+    data_dump_interval         = 100
     data_dump_dirname          = "velocity_profile_case24"
 
 // timer dump parameters

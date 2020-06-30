@@ -462,6 +462,7 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_k_u_var, d_w_u_var;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_k_u_fcn, d_w_u_fcn;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_mass_flux_var;
 
     ConvectiveDifferencingType d_k_convective_difference_form, d_w_convective_difference_form;
     std::string d_k_convective_op_type, d_w_convective_op_type;
@@ -522,6 +523,7 @@ private:
     int d_w_current_idx, d_w_new_idx, d_w_scratch_idx;
     int d_rho_cc_new_idx, d_rho_cc_scratch_idx, d_rho_cc_current_idx;
     int d_rho_vec_cc_current_idx, d_rho_vec_cc_scratch_idx, d_rho_vec_cc_new_idx;
+    int d_mass_flux_current_idx, d_mass_flux_scratch_idx, d_mass_flux_new_idx;
 
     /*!
      * Patch data descriptor indices for all "scratch" variables managed by the
