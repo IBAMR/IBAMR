@@ -197,7 +197,7 @@ NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "CUI"
 NORMALIZE_PRESSURE   = FALSE
 VORTICITY_TAGGING    = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
-DT_MAX               = 0.001                      // /(REF_RATIO^(MAX_LEVELS - 1))
+DT_MAX               = 0.0001                      // /(REF_RATIO^(MAX_LEVELS - 1))
 OUTPUT_U             = TRUE
 OUTPUT_P             = TRUE
 OUTPUT_F             = TRUE
@@ -449,13 +449,13 @@ Main {
    discretization_form  = DISCRETIZATION_FORM
 
 // log file parameters
-   log_file_name               = "turbulent_channel_flow_case24.log"
+   log_file_name               = "turbulent_channel_flow_case25.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = 100
-   viz_dump_dirname            = "turbulent_channel_flow_case24"
+   viz_dump_dirname            = "turbulent_channel_flow_case25"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
@@ -464,7 +464,7 @@ Main {
    
 // post-processing data output parameters
     data_dump_interval         = 100
-    data_dump_dirname          = "velocity_profile_case24"
+    data_dump_dirname          = "velocity_profile_case25"
 
 // timer dump parameters
    timer_dump_interval         = 0

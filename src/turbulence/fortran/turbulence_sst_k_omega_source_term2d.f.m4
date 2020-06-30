@@ -264,7 +264,6 @@ c    Local variables.
             mu_t(i0,i1) = a1*rho(i0,i1)*k(i0,i1)
      &                  / max(a1*w(i0,i1), sqrt(2.d0)
      &                  * strain_rate_mag*F2(i0,i1))
-          endif
         enddo
       enddo
 c
