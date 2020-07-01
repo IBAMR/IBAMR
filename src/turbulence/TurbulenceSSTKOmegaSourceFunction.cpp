@@ -369,7 +369,7 @@ TurbulenceSSTKOmegaSourceFunction::setDataOnPatchHierarchy(const int data_idx,
     w_ghost_cell_fill_op.fillData(data_time);
 
     Pointer<NodeVariable<NDIM, double> > tau_w_var = d_ins_hier_integrator->getTauwVariable();
-    d_tau_w_idx = var_db->mapVariableAndContextToIndex(tau_w_var, d_ins_hier_integrator->getScratchContext());
+    d_tau_w_idx = var_db->mapVariableAndContextToIndex(tau_w_var, d_ins_hier_integrator->getCurrentContext());
 
     Pointer<SideVariable<NDIM, double> > U_tau_var = d_ins_hier_integrator->getUtauVariable();
     d_U_tau_idx = var_db->mapVariableAndContextToIndex(U_tau_var, d_ins_hier_integrator->getScratchContext());

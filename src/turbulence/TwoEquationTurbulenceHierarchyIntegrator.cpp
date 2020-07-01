@@ -1292,14 +1292,14 @@ TwoEquationTurbulenceHierarchyIntegrator::integrateHierarchy(const double curren
                     int rho_fc_current_idx = var_db->mapVariableAndContextToIndex(d_rho_fc_var, getCurrentContext());
                     int rho_fc_scratch_idx = var_db->mapVariableAndContextToIndex(d_rho_fc_var, getScratchContext());
                     int rho_fc_new_idx = var_db->mapVariableAndContextToIndex(d_rho_fc_var, getNewContext());
-                    /*std::ofstream rho_fc_current;
+                    std::ofstream rho_fc_current;
                     rho_fc_current.open("rho_fc_current.dat");
                     d_hier_fc_data_ops->printData(rho_fc_current_idx, rho_fc_current);
                     rho_fc_current.close();
                     std::ofstream rho_fc_new;
                     rho_fc_new.open("rho_fc_new.dat");
                     d_hier_fc_data_ops->printData(rho_fc_new_idx, rho_fc_new);
-                    rho_fc_new.close();*/
+                    rho_fc_new.close();
                     d_hier_fc_data_ops->linearSum(rho_fc_scratch_idx, 0.5, rho_fc_current_idx, 0.5, rho_fc_new_idx);
                     d_hier_fc_data_ops->multiply(d_mass_flux_scratch_idx, k_u_scratch_idx, rho_fc_scratch_idx);
                     d_k_convective_op->setAdvectionVelocity(d_mass_flux_scratch_idx);
@@ -2968,7 +2968,7 @@ TwoEquationTurbulenceHierarchyIntegrator::computeWallShearStressFromWallLaw(cons
         }
 
         const int tau_w_idx =
-            var_db->mapVariableAndContextToIndex(tau_w_var, d_ins_hierarchy_integrator->getScratchContext());
+            var_db->mapVariableAndContextToIndex(tau_w_var, d_ins_hierarchy_integrator->getCurrentContext());
 
         Pointer<SideVariable<NDIM, double> > yplus_var = d_ins_hierarchy_integrator->getYplusVariable();
         Pointer<SideVariable<NDIM, double> > U_tau_var = d_ins_hierarchy_integrator->getUtauVariable();

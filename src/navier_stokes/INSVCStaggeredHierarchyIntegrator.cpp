@@ -952,7 +952,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
         // wall shear stress computed from wall law
         d_tau_w_var = new NodeVariable<NDIM, double>("tau_w", /*depth*/ 1);
-        registerVariable(d_tau_w_scratch_idx, d_tau_w_var, no_ghosts, getScratchContext());
+        registerVariable(d_tau_w_idx, d_tau_w_var, no_ghosts, getCurrentContext());
     }
 
     // Register plot variables that are maintained by the
@@ -1251,10 +1251,7 @@ INSVCStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double cur
         if (!level->checkAllocated(d_rho_linear_op_idx)) level->allocatePatchData(d_rho_linear_op_idx, current_time);
         if (d_use_turb_model)
         {
-            if (!level->checkAllocated(d_U_tau_scratch_idx))
-                level->allocatePatchData(d_U_tau_scratch_idx, current_time);
-            if (!level->checkAllocated(d_yplus_scratch_idx))
-                level->allocatePatchData(d_yplus_scratch_idx, current_time);
+            if (!level->checkAllocated(d_tau_w_idx)) level->allocatePatchData(d_tau_w_idx, current_time);
         }
     }
 

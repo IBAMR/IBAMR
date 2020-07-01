@@ -714,7 +714,7 @@ protected:
      *
      * Plot variables have one context: current.
      */
-    int d_U_cc_idx, d_F_cc_idx, d_Omega_idx, d_Div_U_idx, d_EE_idx;
+    int d_U_cc_idx, d_F_cc_idx, d_Omega_idx, d_Div_U_idx, d_EE_idx, d_tau_w_idx;
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the
@@ -727,7 +727,7 @@ protected:
     int d_velocity_rhs_C_idx, d_velocity_rhs_D_idx, d_pressure_rhs_D_idx;
     int d_mu_interp_idx, d_mu_eff_scratch_idx;
     int d_N_full_idx;
-    int d_yplus_scratch_idx, d_U_tau_scratch_idx, d_tau_w_scratch_idx;
+    int d_yplus_scratch_idx, d_U_tau_scratch_idx;
 
     /*
      * Persistent patch data indices for the density and viscosity used in the linear operators

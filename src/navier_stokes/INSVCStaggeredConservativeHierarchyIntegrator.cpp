@@ -1786,7 +1786,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::computeWallViscosity(Pointer<Vari
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
 
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int tau_w_idx = var_db->mapVariableAndContextToIndex(d_tau_w_var, getScratchContext());
+        const int tau_w_idx = var_db->mapVariableAndContextToIndex(d_tau_w_var, getCurrentContext());
         const int U_new_idx = var_db->mapVariableAndContextToIndex(d_U_var, ctx);
         const int mu_interp_idx = var_db->mapVariableAndContextToIndex(d_mu_interp_var, getCurrentContext());
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)

@@ -1,16 +1,11 @@
 // computational domain
-HEIGHT = 2.0
-LENGTH = 40.0
+HEIGHT = 1.0
+LENGTH = 2.0
 
-RHO = 590.0
-MU  = 1.0
-WALL_LOCATION_INDEX = 2, 3
-DISTANCE_TO_VIRTUAL_POINT = 2.0
-
-// specifying the exact pressure gradient
-USourceFunction{
-    AnalyticalPressureGradient = 1.0
-}
+RHO = 1.0
+MU  = 1.388e-5
+WALL_LOCATION_INDEX = 2
+DISTANCE_TO_VIRTUAL_POINT = 0.0
 
 // grid spacing parameters
 L          = 1.0
@@ -18,8 +13,8 @@ MAX_LEVELS = 1       // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 REF_RATIO_FINEST = 2  // refinement ratio for the finest level.
 
-Ny = 25                                 // coarsest grid spacing
-Nx = 20*Ny
+Ny = 50                                // coarsest grid spacing
+Nx = 2*Ny
 H_COARSEST = Ny                          // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Ny  // finest   grid spacing
 HFINEST = LENGTH/NFINEST
@@ -27,14 +22,14 @@ HFINEST = LENGTH/NFINEST
 // writing the velocity profile across x near the outlet
 output_velocity_profile{
 number_of_locations = 4
-lower_coordinates_0 = 30.0, 0.0
-upper_coordinates_0 = 30.0, 2.0
-lower_coordinates_1 = 32.0, 0.0
-upper_coordinates_1 = 32.0, 2.0
-lower_coordinates_2 = 35.0, 0.0
-upper_coordinates_2 = 35.0, 2.0
-lower_coordinates_3 = 38.0, 0.0
-upper_coordinates_3 = 38.0, 2.0
+lower_coordinates_0 = 0.5, 0.0
+upper_coordinates_0 = 0.5, 2.0
+lower_coordinates_1 = 1.0, 0.0
+upper_coordinates_1 = 1.0, 2.0
+lower_coordinates_2 = 1.5, 0.0
+upper_coordinates_2 = 1.5, 2.0
+lower_coordinates_3 = 1.8, 0.0
+upper_coordinates_3 = 1.8, 2.0
 }
 
 PressureInitialConditions {
@@ -42,20 +37,20 @@ PressureInitialConditions {
 }
 
 VelocityInitialConditions {
-   function_0 = "18.45"
+   function_0 = "69.4"
    function_1 = "0.0"
 }
 
 TurbulentViscosityInitialConditions{
-    function = "0.075"
+    function = "1.244e-7"
 }
 
 TurbulentKineticEnergyInitialConditions {
-   function = "1.0769"
+   function = "0.00108"
 }
 
 TurbulentSpecificDissipationRateInitialConditions {
-   function = "13.533"
+   function = "8675.0"
 }
 
 
@@ -64,14 +59,14 @@ VelocityBcCoefs_0 {
    acoef_function_0 = "1.0"
    acoef_function_1 = "0.0"
    acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
+   acoef_function_3 = "0.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "1.0"
    bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
+   bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = "18.45"
+   gcoef_function_0 = "69.4"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
@@ -139,7 +134,7 @@ MutBcCoefs {
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = "0.0795"
+   gcoef_function_0 = "1.244e-7"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
@@ -157,7 +152,7 @@ KBcCoefs {
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = "1.0769"
+   gcoef_function_0 = "0.00108"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
@@ -174,7 +169,7 @@ WBcCoefs {
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = "13.533"
+   gcoef_function_0 = "8675.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0" //
    gcoef_function_3 = "0.0" // 850.0
@@ -184,7 +179,7 @@ WBcCoefs {
 SOLVER_TYPE          = "STAGGERED"
 DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0     // initial simulation time
-END_TIME             =   13.0e0    // final simulation time
+END_TIME             =   10.0e0    // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
 REGRID_INTERVAL      =   50000000
@@ -197,7 +192,7 @@ NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "CUI"
 NORMALIZE_PRESSURE   = FALSE
 VORTICITY_TAGGING    = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
-DT_MAX               = 0.001                      // /(REF_RATIO^(MAX_LEVELS - 1))
+DT_MAX               = 0.0001                      // /(REF_RATIO^(MAX_LEVELS - 1))
 OUTPUT_U             = TRUE
 OUTPUT_P             = TRUE
 OUTPUT_F             = TRUE
@@ -449,13 +444,13 @@ Main {
    discretization_form  = DISCRETIZATION_FORM
 
 // log file parameters
-   log_file_name               = "turbulent_channel_flow.log"
+   log_file_name               = "turbulent_flat_plate.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = 10
-   viz_dump_dirname            = "turbulent_channel_flow"
+   viz_dump_dirname            = "turbulent_flate_plate"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
@@ -464,7 +459,7 @@ Main {
    
 // post-processing data output parameters
     data_dump_interval         = 10
-    data_dump_dirname          = "velocity_profile"
+    data_dump_dirname          = "velocity_profile_flat_plate"
 
 // timer dump parameters
    timer_dump_interval         = 0
