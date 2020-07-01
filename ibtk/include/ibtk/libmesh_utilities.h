@@ -506,11 +506,27 @@ get_values_for_interpolation(MultiArray& U_node,
         typename MultiArray::extent_gen extents;
         U_node.resize(extents[n_nodes][n_vars]);
     }
+
     for (std::size_t k = 0; k < n_nodes; ++k)
     {
+        // Unfortunately, GCC 10.1.0 generates, on some processors with -O3 and
+        // -march=native, incorrect vectorization for the loop with the
+        // assignment to U_node which cause either segmentation faults, bus
+        // errors, or uninitialized reads (which can be found by valgrind). The
+        // problem is with the indices: e.g., if we print the indices to a file
+        // inside the loop the problem goes away. Defeat the optimizer by
+        // assigning first to a temporary array: this is a fragile workaround
+        // but it suffices for now.
+        std::array<unsigned int, 100> indices;
+        TBOX_ASSERT(n_vars < indices.size());
+        for (std::size_t i = 0; i < dof_indices.size(); ++i)
+        {
+            indices[i] = U_petsc_vec.map_global_to_local_index(dof_indices[i][k]);
+        }
+
         for (std::size_t i = 0; i < n_vars; ++i)
         {
-            U_node[k][i] = U_local_soln[U_petsc_vec.map_global_to_local_index(dof_indices[i][k])];
+            U_node[k][i] = U_local_soln[indices[i]];
         }
     }
     return;
