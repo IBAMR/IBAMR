@@ -368,6 +368,13 @@ main(int argc, char* argv[])
         }
 
         // Initialize hierarchy configuration and data on all patches.
+        //
+        // libMesh enforces periodic boundary conditions by adding constraints
+        // to each DofMap. Therefore, in order for this to work, we have to
+        // have set up all libMesh systems by this point (i.e., we have to
+        // have added everything we want to the postprocessor and also
+        // registered everything finite element based, like stress
+        // normalization parts, with IBFEMethod).
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
         for (unsigned int k = 0; k < equation_systems->n_systems(); ++k)
         {

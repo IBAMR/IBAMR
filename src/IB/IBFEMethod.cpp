@@ -636,6 +636,37 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         batch_vec_assembly(U_rhs_vecs);
     }
 
+    // If the velocity system has constraints then those need to be dealt with
+    // here and not during assembly because we do not distribute the
+    // constraints corresponding to the IB partitioning.
+    std::vector<PetscVector<double>*> vecs_for_second_summation;
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        // If we use nodal quadrature then we do not need to use constraints
+        // when setting up the linear system since no dof depends on any other
+        // dof. Hence constraints do not effect the RHS and we can skip this
+        // step. Note that we unconditionally impose constraints after we
+        // solve the linear system, regardless of the type of quadrature we
+        // used - see FEProjector::computeL2Projection().
+        if (d_part_is_active[part] && !d_interp_spec[part].use_nodal_quadrature)
+        {
+            EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
+            vecs_for_second_summation.push_back(U_rhs_vecs[part]);
+            apply_transposed_constraint_matrix(equation_systems.get_system(VELOCITY_SYSTEM_NAME).get_dof_map(),
+                                               *U_rhs_vecs[part]);
+        }
+    }
+
+    if (d_use_ghosted_velocity_rhs)
+    {
+        batch_vec_ghost_update(vecs_for_second_summation, ADD_VALUES, SCATTER_REVERSE);
+        batch_vec_ghost_update(vecs_for_second_summation, INSERT_VALUES, SCATTER_FORWARD);
+    }
+    else
+    {
+        batch_vec_assembly(vecs_for_second_summation);
+    }
+
     // Solve for the interpolated data.
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {

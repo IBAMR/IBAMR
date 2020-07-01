@@ -70,6 +70,66 @@ namespace IBTK
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
+void
+apply_transposed_constraint_matrix(const libMesh::DofMap& dof_map, libMesh::PetscVector<double>& rhs)
+{
+    std::vector<libMesh::dof_id_type> dofs;
+    std::vector<double> values_to_add;
+    // loop over constraints and do the action of C^T b
+    for (auto it = dof_map.constraint_rows_begin(); it != dof_map.constraint_rows_end(); ++it)
+    {
+        const std::pair<libMesh::dof_id_type, libMesh::DofConstraintRow>& constraint = *it;
+        const libMesh::dof_id_type constrained_dof = constraint.first;
+        // only resolve constraints if the DoF is locally owned
+        if (dof_map.first_dof() <= constrained_dof && constrained_dof < dof_map.end_dof())
+        {
+            for (const std::pair<libMesh::dof_id_type, double>& pair : constraint.second)
+            {
+                dofs.push_back(pair.first);
+                values_to_add.push_back(pair.second * rhs(constrained_dof));
+            }
+        }
+    }
+
+    // If we use ghosted RHSs then we cannot use VecSetValues because we are
+    // using a replacement for VecStash. Hence do some somewhat ugly
+    // transformations in that case to sum into ghost regions:
+    if (rhs.type() == libMesh::GHOSTED)
+    {
+        // Calling operator() above puts the vector in read-only mode, which
+        // has to be restored before we can write to it
+        rhs.restore_array();
+        // At this point rhs contains the full set of ghost data (which we
+        // needed for constraint resolution). However, we now want to reuse
+        // the ghost region to sum the values from constraint resolution onto
+        // their owning processes. Hence we must clear the ghost data and then
+        // do another parallel reduction.
+        const PetscInt local_size_without_ghosts = rhs.local_size();
+        Vec loc_vec = nullptr;
+        // we also need the size of the ghost region, which is surprisingly
+        // difficult to get
+        int ierr = VecGhostGetLocalForm(rhs.vec(), &loc_vec);
+        IBTK_CHKERRQ(ierr);
+        PetscInt local_size_with_ghosts = -1;
+        ierr = VecGetSize(loc_vec, &local_size_with_ghosts);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(rhs.vec(), &loc_vec);
+        IBTK_CHKERRQ(ierr);
+
+        double* const vec_array = rhs.get_array();
+        std::fill(vec_array + local_size_without_ghosts, vec_array + local_size_with_ghosts, 0.0);
+        for (std::size_t i = 0; i < dofs.size(); ++i)
+        {
+            const PetscInt index = rhs.map_global_to_local_index(dofs[i]);
+            vec_array[index] += values_to_add[i];
+        }
+        rhs.restore_array();
+    }
+    else
+    {
+        rhs.add_vector(values_to_add.data(), dofs);
+    }
+}
 
 std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>
 getQuadratureKey(const libMesh::QuadratureType quad_type,

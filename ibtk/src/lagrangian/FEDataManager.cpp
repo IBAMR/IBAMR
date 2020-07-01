@@ -1552,6 +1552,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
     auto F_petsc_vec = dynamic_cast<PetscVector<double>*>(&F_vec);
     Vec F_local_form = nullptr;
     double* F_local_soln = nullptr;
+    PetscInt F_local_size = -1;
     const bool is_ghosted = F_vec.type() == GHOSTED;
     if (is_ghosted)
     {
@@ -1559,6 +1560,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
         int ierr = VecGhostGetLocalForm(F_petsc_vec->vec(), &F_local_form);
         IBTK_CHKERRQ(ierr);
         ierr = VecGetArray(F_local_form, &F_local_soln);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGetSize(F_local_form, &F_local_size);
         IBTK_CHKERRQ(ierr);
     }
 
@@ -1731,6 +1734,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
+                TBOX_ASSERT(elem->active());
                 const quad_key_type& key = quad_keys[e_idx];
                 const QBase& qrule = d_fe_data->d_quadrature_cache[key];
                 const FEBase& X_fe = X_fe_cache(key, elem);
@@ -1795,27 +1799,31 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 const size_t n_basis = F_dof_indices[0].size();
                 integrate_elem_rhs(n_vars, n_basis, qp_offset, phi_F, JxW_F, F_qp, F_rhs_concatenated);
 
-                for (unsigned int i = 0; i < n_vars; ++i)
+                for (unsigned int var_n = 0; var_n < n_vars; ++var_n)
                 {
-                    // libMesh sometimes resizes F_rhs inside
-                    // constrain_element_vector, so ensure it has the right size:
-                    F_rhs.resize(F_dof_indices[i].size());
-                    std::copy(F_rhs_concatenated.begin() + i * n_basis,
-                              F_rhs_concatenated.begin() + (i + 1) * n_basis,
+                    F_rhs.resize(F_dof_indices[var_n].size());
+                    std::copy(F_rhs_concatenated.begin() + var_n * n_basis,
+                              F_rhs_concatenated.begin() + (var_n + 1) * n_basis,
                               F_rhs.get_values().begin());
 
-                    dof_id_scratch = F_dof_indices[i];
-                    F_dof_map.constrain_element_vector(F_rhs, dof_id_scratch);
+                    dof_id_scratch = F_dof_indices[var_n];
+                    // We do *not* apply constraints here. See the note in the
+                    // documentation of this function for an explanation.
                     if (is_ghosted)
                     {
-                        for (unsigned int i = 0; i < dof_id_scratch.size(); ++i)
+                        for (unsigned int i = 0; i < F_dof_indices[var_n].size(); ++i)
                         {
-                            F_local_soln[F_petsc_vec->map_global_to_local_index(dof_id_scratch[i])] += F_rhs(i);
+                            const PetscInt index = F_petsc_vec->map_global_to_local_index(F_dof_indices[var_n][i]);
+#ifndef NDEBUG
+                            TBOX_ASSERT(0 <= index);
+                            TBOX_ASSERT(index < F_local_size);
+#endif
+                            F_local_soln[index] += F_rhs(i);
                         }
                     }
                     else
                     {
-                        F_vec.add_vector(F_rhs, dof_id_scratch);
+                        F_vec.add_vector(F_rhs, F_dof_indices[var_n]);
                     }
                 }
                 qp_offset += n_qp;

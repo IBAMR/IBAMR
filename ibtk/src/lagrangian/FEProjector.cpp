@@ -153,7 +153,9 @@ FEProjector::buildL2ProjectionSolver(const std::string& system_name)
                     }
                 }
                 dof_id_scratch = dof_indices_var;
-                dof_map.constrain_element_matrix(M_e, dof_id_scratch);
+                dof_map.constrain_element_matrix(M_e,
+                                                 dof_id_scratch,
+                                                 /*assymetric_constraint_rows*/ false);
                 M_mat->add_matrix(M_e, dof_id_scratch);
             }
         }
