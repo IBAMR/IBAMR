@@ -35,6 +35,7 @@
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
 #include <libmesh/mesh_triangle_interface.h>
+#include <libmesh/periodic_boundary.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
@@ -82,6 +83,20 @@ coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*
     return;
 } // coordinate_mapping_function
 
+static constexpr double R = 0.2;
+static constexpr double w = 0.0625;
+static constexpr double dx0 = 1.0 / 64.0;
+
+// alternative mapping function for periodic domains.
+void
+periodic_coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
+{
+    static constexpr double gamma = 0.15;
+    X(0) = (R + s(1)) * cos(s(0) / R) + 0.505;
+    X(1) = (R + gamma + s(1)) * sin(s(0) / R) + 0.505;
+    return;
+} // periodic_coordinate_mapping_function
+
 int
 main(int argc, char** argv)
 {
@@ -117,7 +132,6 @@ main(int argc, char** argv)
         if (geometry == "sphere")
         {
             ReplicatedMesh& mesh = *meshes[0];
-            const double R = 0.2;
             // libMesh circa version 1.5 fixed a bug with the way they read
             // Triangle input which results in vertices being numbered in a
             // different way after the patch. This actually makes a
@@ -139,6 +153,12 @@ main(int argc, char** argv)
                 MeshTools::Generation::build_square(mesh, 10, 12, 0.0, L, 0.0, L, elem_type);
             else
                 MeshTools::Generation::build_cube(mesh, 10, 12, 14, 0.0, L, 0.0, L, 0.0, L, elem_type);
+        }
+        else if (geometry == "periodic")
+        {
+            const int n_x = ceil(2.0 * M_PI * R / ds);
+            const int n_y = ceil(w / ds);
+            MeshTools::Generation::build_square(*meshes[0], n_x, n_y, 0.0, 2.0 * M_PI * R, 0.0, w, elem_type);
         }
         else
         {
@@ -197,6 +217,11 @@ main(int argc, char** argv)
             LinearPartitioner partitioner;
             partitioner.partition(*mesh);
         }
+
+        VectorValue<double> boundary_translation(2.0 * M_PI * R, 0.0, 0.0);
+        PeriodicBoundary pbc(boundary_translation);
+        pbc.myboundary = 3;
+        pbc.pairedboundary = 1;
 
         std::size_t n_elem = 0;
         for (const auto& mesh : meshes) n_elem += mesh->n_active_elem();
@@ -267,9 +292,27 @@ main(int argc, char** argv)
 
         // Configure the IBFE solver.
         if (geometry == "sphere")
-            // other meshes are already centered correctly
+        {
             ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
+        }
+        else if (geometry == "periodic")
+        {
+            ib_method_ops->registerInitialCoordinateMappingFunction(periodic_coordinate_mapping_function);
+        }
+        else
+        {
+            // other meshes are already centered correctly
+        }
         ib_method_ops->initializeFEEquationSystems();
+        if (geometry == "periodic")
+        {
+            EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
+            for (unsigned int k = 0; k < equation_systems->n_systems(); ++k)
+            {
+                System& system = equation_systems->get_system(k);
+                system.get_dof_map().add_periodic_boundary(pbc);
+            }
+        }
         ib_method_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
