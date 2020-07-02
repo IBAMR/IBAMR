@@ -116,13 +116,14 @@ StokesFifthOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
         TBOX_ASSERT(!gcoef_data || bc_coef_box == gcoef_data->getBox());
 #endif
 
-        double dof_posn[NDIM];
         for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
         {
             const SAMRAI::hier::Index<NDIM>& i = b();
             if (acoef_data) (*acoef_data)(i, 0) = 1.0;
             if (bcoef_data) (*bcoef_data)(i, 0) = 0.0;
 
+            IBTK::Point dof_posn;
+            dof_posn.fill(std::numeric_limits<double>::signaling_NaN());
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if (d != bdry_normal_axis)
