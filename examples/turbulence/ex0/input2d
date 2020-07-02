@@ -2,8 +2,8 @@
 HEIGHT = 2.0
 LENGTH = 40.0
 
-RHO = 590.0
-MU  = 1.0
+RHO = 1.0
+MU  = 0.0017
 WALL_LOCATION_INDEX = 2, 3
 DISTANCE_TO_VIRTUAL_POINT = 2.0
 
@@ -47,7 +47,7 @@ VelocityInitialConditions {
 }
 
 TurbulentViscosityInitialConditions{
-    function = "0.075"
+    function = "46.949"
 }
 
 TurbulentKineticEnergyInitialConditions {
@@ -139,7 +139,7 @@ MutBcCoefs {
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = "0.0795"
+   gcoef_function_0 = "46.949"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
@@ -184,7 +184,7 @@ WBcCoefs {
 SOLVER_TYPE          = "STAGGERED"
 DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0     // initial simulation time
-END_TIME             =   13.0e0    // final simulation time
+END_TIME             =   0.001e0    // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
 REGRID_INTERVAL      =   50000000

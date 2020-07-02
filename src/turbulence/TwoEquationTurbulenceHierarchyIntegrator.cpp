@@ -2239,6 +2239,10 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateTurbulentViscosity()
 #endif
                          A1);
         }
+        std::ofstream mu_t;
+        mu_t.open("Turbulent_viscosity.dat");
+        d_hier_cc_data_ops->printData(mu_t_new_idx, mu_t);
+        mu_t.close();
     }
 
     return;
@@ -2897,6 +2901,14 @@ TwoEquationTurbulenceHierarchyIntegrator::postprocessTurbulentDissipationRate()
                 }
             }
         }
+        std::ofstream k_value;
+        k_value.open("Turb_KE.dat");
+        d_hier_cc_data_ops->printData(k_new_idx, k_value);
+        k_value.close();
+        std::ofstream w_value;
+        w_value.open("Dissipation_rate.dat");
+        d_hier_cc_data_ops->printData(w_new_idx, w_value);
+        w_value.close();
     }
     return;
 } // postprocessTurbulentDissipationRate
@@ -2969,6 +2981,10 @@ TwoEquationTurbulenceHierarchyIntegrator::computeWallShearStressFromWallLaw(cons
 
         const int tau_w_idx =
             var_db->mapVariableAndContextToIndex(tau_w_var, d_ins_hierarchy_integrator->getCurrentContext());
+        /*std::ofstream tau_w_value;
+        tau_w_value.open("wall_shear_stress_rho590.dat");
+        d_hier_nc_data_ops->printData(tau_w_idx, tau_w_value);
+        tau_w_value.close();*/
 
         Pointer<SideVariable<NDIM, double> > yplus_var = d_ins_hierarchy_integrator->getYplusVariable();
         Pointer<SideVariable<NDIM, double> > U_tau_var = d_ins_hierarchy_integrator->getUtauVariable();
@@ -3076,6 +3092,7 @@ TwoEquationTurbulenceHierarchyIntegrator::computeWallShearStressFromWallLaw(cons
             }
         }
     }
+
     return;
 } // computeWallShearStressFromWallLaw
 

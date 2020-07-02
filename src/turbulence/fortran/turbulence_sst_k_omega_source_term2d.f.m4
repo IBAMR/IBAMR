@@ -489,8 +489,8 @@ c
          grad_k_grad_w = (fac0*((k(i0+1,i1)-k(i0-1,i1))*(w(i0+1,i1)
      &                     -w(i0-1,i1))))+(fac1*((k(i0,i1+1)-k(i0,i1-1))
      &                     *(w(i0,i1+1)-w(i0,i1-1))))
-         w_f(i0,i1) = w_f(i0,i1) + 2.d0*(1.d0-F1(i0,i1))*rho(i0,i1)
-     &                *sigma_w2*grad_k_grad_w/w(i0,i1)
+         w_f(i0,i1) = w_f(i0,i1) + (2.d0*(1.d0-F1(i0,i1))*rho(i0,i1)
+     &                *sigma_w2*grad_k_grad_w/w(i0,i1))
          enddo
       enddo
 c
@@ -568,6 +568,7 @@ c     Local variables.
       REAL error
 c
 c
+      open(1,file='wall_shear_stress.dat')
       do i1 = trim_box_ilower1,trim_box_iupper1+1
         do i0 = trim_box_ilower0,trim_box_iupper0+1
           if (((wall_location_index .eq. 0) .and.
@@ -610,6 +611,7 @@ c           U_tau_old = 0.5*(U_tau_new+U_tau_old)
 c           n = n+1
 c          enddo
 c        endif
+c           print *, i0, i1, rho_nc
            U_star_log = beta_star**0.25d0 * k(i0, i1)**0.5d0
            yplus = rho_nc*U_star_log*distance/mu_nc
            U_tau_vis = sqrt(mu_nc * U_mag / (rho_nc*distance))
@@ -620,6 +622,7 @@ c           U_tau = U_tau_new
            U_star = (U_star_vis**4.d0 + U_star_log**4.d0)**0.25d0
            tau_w(i0,i1) = rho_nc * U_tau * U_star
 c
+           write(1,*),i0, i1, tau_w(i0,i1)
              if (wall_location_index .eq. 0) then
                 U_tau1(i0, i1) = U_tau
                 yplus1(i0,i1) = yplus
@@ -636,6 +639,7 @@ c
          endif
         enddo
       enddo
+      close(1)
 c
 c
 c
@@ -689,7 +693,7 @@ c     output variables
 c     local variables
       INTEGER i0, i1
       REAL distance, tau_w_cc, U_tau_cc
-
+      open(1,file='production.dat')
       do i1 = trim_box_ilower1,trim_box_iupper1
         do i0 = trim_box_ilower0,trim_box_iupper0
            if (wall_location_index .eq. 0) then
@@ -710,9 +714,11 @@ c     local variables
             distance = dx(1) / 2.d0
           endif
            P_k(i0, i1) = tau_w_cc * U_tau_cc / (kappa * distance)
+           write(1,*),i0,i1, P_k(i0, i1)
         enddo
       enddo
 c
+      close(1)
       return
       end
 
