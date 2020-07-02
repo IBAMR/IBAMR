@@ -2401,7 +2401,7 @@ FEDataManager::zeroExteriorValues(const CartesianPatchGeometry<NDIM>& patch_geom
     std::size_t n_qp = X_qp.size() / NDIM;
     TBOX_ASSERT(n_qp * NDIM == X_qp.size());
     TBOX_ASSERT(F_qp.size() == n_vars * n_qp);
-    libMesh::BoundingBox patch_box;
+    libMeshWrappers::BoundingBox patch_box;
 
     for (unsigned int d = 0; d < NDIM; ++d)
     {
