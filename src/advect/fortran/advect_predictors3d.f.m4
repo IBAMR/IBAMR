@@ -186,7 +186,9 @@ c
 
       INTEGER limiter
 
-      LOGICAL usefullctu
+c     It would make more sense to pass a LOGICAL but its not clear which
+c     C type that corresponds to, so use an integer
+      INTEGER usefullctu
 
       REAL dx(0:NDIM-1), dt
 
@@ -274,7 +276,8 @@ c     differences of the "temporary" predicted values.  Full corner
 c     transport upwinding (increasing the largest stable timestep but
 c     not order of accuracy) is somewhat expensive and optional.
 c
-      if ( usefullctu ) then
+
+      if ( usefullctu .eq. 1 ) then
 c
 c     Include full corner transport upwinding.
 c
@@ -384,7 +387,9 @@ c
       INTEGER nugc0,nugc1,nugc2
       INTEGER nqhalfgc0,nqhalfgc1,nqhalfgc2
 
-      LOGICAL usefullctu
+c     It would make more sense to pass a LOGICAL but its not clear which
+c     C type that corresponds to, so use an integer
+      INTEGER usefullctu
 
       INTEGER limiter
 
@@ -497,7 +502,7 @@ c     differences of the "temporary" predicted values.  Full corner
 c     transport upwinding (increasing the largest stable timestep but
 c     not order of accuracy) is somewhat expensive and optional.
 c
-      if ( usefullctu ) then
+      if ( usefullctu .eq. 1 ) then
 c
 c     Include full corner transport upwinding.
 c
@@ -603,7 +608,9 @@ c
       INTEGER nugc0,nugc1,nugc2
       INTEGER nqhalfgc0,nqhalfgc1,nqhalfgc2
 
-      LOGICAL usefullctu
+c     It would make more sense to pass a LOGICAL but its not clear which
+c     C type that corresponds to, so use an integer
+      INTEGER usefullctu
 
       INTEGER limiter
 
@@ -727,7 +734,7 @@ c     differences of the "temporary" predicted values.  Full corner
 c     transport upwinding (increasing the largest stable timestep but
 c     not order of accuracy) is somewhat expensive and optional.
 c
-      if ( usefullctu ) then
+      if ( usefullctu .eq. 1 ) then
 c
 c     Include full corner transport upwinding.
 c
@@ -837,7 +844,9 @@ c
       INTEGER nugc0,nugc1,nugc2
       INTEGER nqhalfgc0,nqhalfgc1,nqhalfgc2
 
-      LOGICAL usefullctu
+c     It would make more sense to pass a LOGICAL but its not clear which
+c     C type that corresponds to, so use an integer
+      INTEGER usefullctu
 
       INTEGER limiter
 
@@ -989,7 +998,7 @@ c     differences of the "temporary" predicted values.  Full corner
 c     transport upwinding (increasing the largest stable timestep but
 c     not order of accuracy) is somewhat expensive and optional.
 c
-      if ( usefullctu ) then
+      if ( usefullctu .eq. 1 ) then
 c
 c     Include full corner transport upwinding.
 c

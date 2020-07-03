@@ -374,11 +374,12 @@ private:
      *    d_limiter_type ........ specifies the type of slope limiting type used in
      *                            computing numerical fluxes
      *    d_using_full_ctu ...... specifies whether full corner transport
-     *                            upwinding is used for 3D computations
+     *                            upwinding is used for 3D computations. Set to 1 to
+     *                            enable it.
      */
     LimiterType d_limiter_type = MC_LIMITED;
 #if (NDIM == 3)
-    bool d_using_full_ctu = true;
+    int d_using_full_ctu = 1;
 #endif
 };
 } // namespace IBAMR
