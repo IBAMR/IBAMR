@@ -1552,6 +1552,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
     auto F_petsc_vec = dynamic_cast<PetscVector<double>*>(&F_vec);
     Vec F_local_form = nullptr;
     double* F_local_soln = nullptr;
+    PetscInt F_local_size = -1;
     const bool is_ghosted = F_vec.type() == GHOSTED;
     if (is_ghosted)
     {
@@ -1559,6 +1560,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
         int ierr = VecGhostGetLocalForm(F_petsc_vec->vec(), &F_local_form);
         IBTK_CHKERRQ(ierr);
         ierr = VecGetArray(F_local_form, &F_local_soln);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGetSize(F_local_form, &F_local_size);
         IBTK_CHKERRQ(ierr);
     }
 
@@ -1731,6 +1734,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
+                TBOX_ASSERT(elem->active());
                 const quad_key_type& key = quad_keys[e_idx];
                 const QBase& qrule = d_fe_data->d_quadrature_cache[key];
                 const FEBase& X_fe = X_fe_cache(key, elem);
@@ -1795,27 +1799,31 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 const size_t n_basis = F_dof_indices[0].size();
                 integrate_elem_rhs(n_vars, n_basis, qp_offset, phi_F, JxW_F, F_qp, F_rhs_concatenated);
 
-                for (unsigned int i = 0; i < n_vars; ++i)
+                for (unsigned int var_n = 0; var_n < n_vars; ++var_n)
                 {
-                    // libMesh sometimes resizes F_rhs inside
-                    // constrain_element_vector, so ensure it has the right size:
-                    F_rhs.resize(F_dof_indices[i].size());
-                    std::copy(F_rhs_concatenated.begin() + i * n_basis,
-                              F_rhs_concatenated.begin() + (i + 1) * n_basis,
+                    F_rhs.resize(F_dof_indices[var_n].size());
+                    std::copy(F_rhs_concatenated.begin() + var_n * n_basis,
+                              F_rhs_concatenated.begin() + (var_n + 1) * n_basis,
                               F_rhs.get_values().begin());
 
-                    dof_id_scratch = F_dof_indices[i];
-                    F_dof_map.constrain_element_vector(F_rhs, dof_id_scratch);
+                    dof_id_scratch = F_dof_indices[var_n];
+                    // We do *not* apply constraints here. See the note in the
+                    // documentation of this function for an explanation.
                     if (is_ghosted)
                     {
-                        for (unsigned int i = 0; i < dof_id_scratch.size(); ++i)
+                        for (unsigned int i = 0; i < F_dof_indices[var_n].size(); ++i)
                         {
-                            F_local_soln[F_petsc_vec->map_global_to_local_index(dof_id_scratch[i])] += F_rhs(i);
+                            const PetscInt index = F_petsc_vec->map_global_to_local_index(F_dof_indices[var_n][i]);
+#ifndef NDEBUG
+                            TBOX_ASSERT(0 <= index);
+                            TBOX_ASSERT(index < F_local_size);
+#endif
+                            F_local_soln[index] += F_rhs(i);
                         }
                     }
                     else
                     {
-                        F_vec.add_vector(F_rhs, dof_id_scratch);
+                        F_vec.add_vector(F_rhs, F_dof_indices[var_n]);
                     }
                 }
                 qp_offset += n_qp;
@@ -2707,7 +2715,7 @@ FEDataManager::computeActiveElementBoundingBoxes()
     const MeshBase& mesh = d_fe_data->d_es->get_mesh();
     const System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
 
-    const auto bboxes = get_global_active_element_bounding_boxes(mesh, X_system);
+    const auto bboxes = get_global_element_bounding_boxes(mesh, X_system);
     d_active_elem_bboxes.resize(bboxes.size());
     for (std::size_t i = 0; i < bboxes.size(); ++i)
     {
@@ -2752,15 +2760,15 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     // of the bounding box of the nodes and the bounding box of the quadrature
     // points:
     const std::vector<libMeshWrappers::BoundingBox> local_nodal_bboxes =
-        get_local_active_element_bounding_boxes(mesh, X_system);
+        get_local_element_bounding_boxes(mesh, X_system);
     const std::vector<libMeshWrappers::BoundingBox> local_qp_bboxes =
-        get_local_active_element_bounding_boxes(mesh,
-                                                X_system,
-                                                d_default_interp_spec.quad_type,
-                                                d_default_interp_spec.quad_order,
-                                                d_default_interp_spec.use_adaptive_quadrature,
-                                                d_default_interp_spec.point_density,
-                                                dx_0);
+        get_local_element_bounding_boxes(mesh,
+                                         X_system,
+                                         d_default_interp_spec.quad_type,
+                                         d_default_interp_spec.quad_order,
+                                         d_default_interp_spec.use_adaptive_quadrature,
+                                         d_default_interp_spec.point_density,
+                                         dx_0);
     TBOX_ASSERT(local_nodal_bboxes.size() == local_qp_bboxes.size());
     std::vector<libMeshWrappers::BoundingBox> local_bboxes;
     for (std::size_t box_n = 0; box_n < local_nodal_bboxes.size(); ++box_n)
@@ -2780,7 +2788,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
 #endif
     }
     const std::vector<libMeshWrappers::BoundingBox> global_bboxes =
-        get_global_active_element_bounding_boxes(mesh, local_bboxes);
+        get_global_element_bounding_boxes(mesh, local_bboxes);
 
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -2802,14 +2810,17 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
             patch_bbox.second(d) = 0.0;
         }
 
-        auto el_it = mesh.active_elements_begin();
+        auto el_it = mesh.elements_begin();
         for (const libMeshWrappers::BoundingBox& bbox : global_bboxes)
         {
+            if ((*el_it)->active())
+            {
 #if LIBMESH_VERSION_LESS_THAN(1, 2, 0)
-            if (bbox.intersect(patch_bbox)) elems.insert(*el_it);
+                if (bbox.intersect(patch_bbox)) elems.insert(*el_it);
 #else
-            if (bbox.intersects(patch_bbox)) elems.insert(*el_it);
+                if (bbox.intersects(patch_bbox)) elems.insert(*el_it);
 #endif
+            }
             ++el_it;
         }
     }

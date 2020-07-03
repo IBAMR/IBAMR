@@ -1,5 +1,5 @@
 
-use_amr = FALSE
+use_amr = TRUE
 
 Main {
    log_file_name               = "dont_use_me"

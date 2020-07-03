@@ -70,6 +70,66 @@ namespace IBTK
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
+void
+apply_transposed_constraint_matrix(const libMesh::DofMap& dof_map, libMesh::PetscVector<double>& rhs)
+{
+    std::vector<libMesh::dof_id_type> dofs;
+    std::vector<double> values_to_add;
+    // loop over constraints and do the action of C^T b
+    for (auto it = dof_map.constraint_rows_begin(); it != dof_map.constraint_rows_end(); ++it)
+    {
+        const std::pair<libMesh::dof_id_type, libMesh::DofConstraintRow>& constraint = *it;
+        const libMesh::dof_id_type constrained_dof = constraint.first;
+        // only resolve constraints if the DoF is locally owned
+        if (dof_map.first_dof() <= constrained_dof && constrained_dof < dof_map.end_dof())
+        {
+            for (const std::pair<libMesh::dof_id_type, double>& pair : constraint.second)
+            {
+                dofs.push_back(pair.first);
+                values_to_add.push_back(pair.second * rhs(constrained_dof));
+            }
+        }
+    }
+
+    // If we use ghosted RHSs then we cannot use VecSetValues because we are
+    // using a replacement for VecStash. Hence do some somewhat ugly
+    // transformations in that case to sum into ghost regions:
+    if (rhs.type() == libMesh::GHOSTED)
+    {
+        // Calling operator() above puts the vector in read-only mode, which
+        // has to be restored before we can write to it
+        rhs.restore_array();
+        // At this point rhs contains the full set of ghost data (which we
+        // needed for constraint resolution). However, we now want to reuse
+        // the ghost region to sum the values from constraint resolution onto
+        // their owning processes. Hence we must clear the ghost data and then
+        // do another parallel reduction.
+        const PetscInt local_size_without_ghosts = rhs.local_size();
+        Vec loc_vec = nullptr;
+        // we also need the size of the ghost region, which is surprisingly
+        // difficult to get
+        int ierr = VecGhostGetLocalForm(rhs.vec(), &loc_vec);
+        IBTK_CHKERRQ(ierr);
+        PetscInt local_size_with_ghosts = -1;
+        ierr = VecGetSize(loc_vec, &local_size_with_ghosts);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecGhostRestoreLocalForm(rhs.vec(), &loc_vec);
+        IBTK_CHKERRQ(ierr);
+
+        double* const vec_array = rhs.get_array();
+        std::fill(vec_array + local_size_without_ghosts, vec_array + local_size_with_ghosts, 0.0);
+        for (std::size_t i = 0; i < dofs.size(); ++i)
+        {
+            const PetscInt index = rhs.map_global_to_local_index(dofs[i]);
+            vec_array[index] += values_to_add[i];
+        }
+        rhs.restore_array();
+    }
+    else
+    {
+        rhs.add_vector(values_to_add.data(), dofs);
+    }
+}
 
 std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>
 getQuadratureKey(const libMesh::QuadratureType quad_type,
@@ -240,13 +300,13 @@ write_node_partitioning(const std::string& file_name, const libMesh::System& pos
 }
 
 std::vector<libMeshWrappers::BoundingBox>
-get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
-                                        const libMesh::System& X_system,
-                                        const libMesh::QuadratureType quad_type,
-                                        const libMesh::Order quad_order,
-                                        const bool use_adaptive_quadrature,
-                                        const double point_density,
-                                        const double patch_dx_min)
+get_local_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                 const libMesh::System& X_system,
+                                 const libMesh::QuadratureType quad_type,
+                                 const libMesh::Order quad_order,
+                                 const bool use_adaptive_quadrature,
+                                 const double point_density,
+                                 const double patch_dx_min)
 {
     const unsigned int dim = mesh.mesh_dimension();
     const unsigned int spacedim = mesh.spatial_dimension();
@@ -263,8 +323,8 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
     QuadratureCache quad_cache(dim);
     FECache fe_cache(dim, X_system.get_dof_map().variable_type(0), update_phi);
     using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
-    const auto el_begin = mesh.active_local_elements_begin();
-    const auto el_end = mesh.active_local_elements_end();
+    const auto el_begin = mesh.local_elements_begin();
+    const auto el_end = mesh.local_elements_end();
     for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
         // 0. Set up bounding box
@@ -277,6 +337,10 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
             lower_bound(d) = std::numeric_limits<double>::max();
             upper_bound(d) = -std::numeric_limits<double>::max();
         }
+
+        // As mentioned in the documentation of this function we do not set up
+        // bounding boxes for inactive elements
+        if (!(*el_it)->active()) continue;
 
         // 1. extract node locations
         const libMesh::Elem* const elem = *el_it;
@@ -327,10 +391,10 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
     }
 
     return bboxes;
-} // get_local_active_element_bounding_boxes
+} // get_local_element_bounding_boxes
 
 std::vector<libMeshWrappers::BoundingBox>
-get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system)
+get_local_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system)
 {
     const unsigned int spacedim = mesh.spatial_dimension();
     TBOX_ASSERT(spacedim == NDIM);
@@ -344,8 +408,8 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const lib
 
     std::vector<libMesh::dof_id_type> dof_indices;
     std::vector<double> X_node;
-    const auto el_begin = mesh.active_local_elements_begin();
-    const auto el_end = mesh.active_local_elements_end();
+    const auto el_begin = mesh.local_elements_begin();
+    const auto el_end = mesh.local_elements_end();
     for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
         const libMesh::Elem* const elem = *el_it;
@@ -359,6 +423,10 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const lib
             lower_bound(d) = std::numeric_limits<double>::max();
             upper_bound(d) = -std::numeric_limits<double>::max();
         }
+
+        // As mentioned in the documentation of this function we do not set up
+        // bounding boxes for inactive elements
+        if (!(*el_it)->active()) continue;
 
         dof_indices.clear();
         for (unsigned int k = 0; k < n_nodes; ++k)
@@ -392,20 +460,21 @@ get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const lib
     }
 
     return bboxes;
-} // get_local_active_element_bounding_boxes
+} // get_local_element_bounding_boxes
 
 std::vector<libMeshWrappers::BoundingBox>
-get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
-                                         const std::vector<libMeshWrappers::BoundingBox>& local_bboxes)
+get_global_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                  const std::vector<libMeshWrappers::BoundingBox>& local_bboxes)
 {
-    const std::size_t n_elem = mesh.n_active_elem();
+    const std::size_t n_elem = mesh.n_elem();
     std::vector<double> flattened_bboxes(2 * LIBMESH_DIM * n_elem);
     std::size_t elem_n = 0;
-    const auto el_begin = mesh.active_local_elements_begin();
-    const auto el_end = mesh.active_local_elements_end();
+    const auto el_begin = mesh.local_elements_begin();
+    const auto el_end = mesh.local_elements_end();
     for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
         const auto id = (*el_it)->id();
+        TBOX_ASSERT((2 * id + 2) * LIBMESH_DIM - 1 < flattened_bboxes.size());
         for (unsigned int d = 0; d < LIBMESH_DIM; ++d)
         {
             flattened_bboxes[2 * id * LIBMESH_DIM + d] = local_bboxes[elem_n].first(d);
@@ -427,16 +496,16 @@ get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
         }
     }
     return global_bboxes;
-} // get_local_active_element_bounding_boxes
+} // get_local_element_bounding_boxes
 
 std::vector<libMeshWrappers::BoundingBox>
-get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system)
+get_global_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system)
 {
     static_assert(NDIM <= LIBMESH_DIM,
                   "NDIM should be no more than LIBMESH_DIM for this function to "
                   "work correctly.");
-    return get_global_active_element_bounding_boxes(mesh, get_local_active_element_bounding_boxes(mesh, X_system));
-} // get_global_active_element_bounding_boxes
+    return get_global_element_bounding_boxes(mesh, get_local_element_bounding_boxes(mesh, X_system));
+} // get_global_element_bounding_boxes
 //////////////////////////////////////////////////////////////////////////////
 
 } // namespace IBTK

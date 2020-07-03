@@ -759,6 +759,13 @@ public:
      * vector @p F which is the right-hand side of an L2 projection
      * problem. Callers will still need to solve the resulting linear
      * system. The result, therefore, is projected, not interpolated.
+     *
+     * @note The vector set up by this function is set up without applying any
+     * constraints (e.g., hanging node or periodicity constraints) during
+     * assembly. This is because we do not store the constraints on the IB
+     * data partitioning, only on libMesh's own data partitioning. For more
+     * information on how to assemble RHS vectors in this case, see the
+     * documentation of the function apply_transposed_constraint_matrix().
      */
     void
     interpWeighted(int f_data_idx,

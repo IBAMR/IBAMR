@@ -11,6 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
+#include <ibtk/AppInitializer.h>
 #include <ibtk/libmesh_utilities.h>
 
 #include <tbox/SAMRAIManager.h>
@@ -23,6 +24,7 @@
 #include <libmesh/libmesh_version.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
+#include <libmesh/mesh_refinement.h>
 
 #include <SAMRAI_config.h>
 
@@ -76,7 +78,8 @@ test(LibMeshInit& init,
      const ElemType elem_type,
      const Order order,
      std::ofstream& out,
-     const bool use_nodal_quadrature = true)
+     const bool use_nodal_quadrature = true,
+     const bool use_amr = false)
 {
     ReplicatedMesh mesh(init.comm(), dim);
     if (geometry == "sphere")
@@ -91,6 +94,18 @@ test(LibMeshInit& init,
         else
             MeshTools::Generation::build_cube(mesh, 2, 3, 2, 0.0, 0.5, 0.0, 0.25, 0.0, 8.0, elem_type);
     }
+    MeshRefinement mesh_refinement(mesh);
+    if (use_amr)
+    {
+        const auto el_begin = mesh.local_elements_begin();
+        const auto el_end = mesh.local_elements_end();
+        std::size_t i = 0;
+        for (auto el_it = el_begin; el_it != el_end; ++el_it, ++i)
+        {
+            if (i % 8 == 0) (*el_it)->set_refinement_flag(Elem::REFINE);
+        }
+        mesh_refinement.refine_and_coarsen_elements();
+    }
     EquationSystems equation_systems(mesh);
     auto& X_system = setup_deformation_system(mesh, equation_systems, order == FIRST ? FIRST : SECOND);
 
@@ -98,16 +113,17 @@ test(LibMeshInit& init,
     // nodal quadratures and what libMesh computes
     const auto quad_type = use_nodal_quadrature ? (order == FIRST ? QTRAP : QSIMPSON) : QGAUSS;
     std::vector<libMeshWrappers::BoundingBox> nodal_bboxes_1 =
-        get_local_active_element_bounding_boxes(mesh, X_system, quad_type, order, false, 1.0, 1.0);
-    std::vector<libMeshWrappers::BoundingBox> nodal_bboxes_2 = get_local_active_element_bounding_boxes(mesh, X_system);
+        get_local_element_bounding_boxes(mesh, X_system, quad_type, order, false, 1.0, 1.0);
+    std::vector<libMeshWrappers::BoundingBox> nodal_bboxes_2 = get_local_element_bounding_boxes(mesh, X_system);
     TBOX_ASSERT(nodal_bboxes_1.size() == nodal_bboxes_2.size());
 
-    const auto el_begin = mesh.active_local_elements_begin();
-    const auto el_end = mesh.active_local_elements_end();
+    const auto el_begin = mesh.local_elements_begin();
+    const auto el_end = mesh.local_elements_end();
     std::size_t i = 0;
     for (auto el_it = el_begin; el_it != el_end; ++el_it, ++i)
     {
         const Elem* elem = *el_it;
+        if (!elem->active()) continue;
         const libMeshWrappers::BoundingBox& box_1 = nodal_bboxes_1[i];
         const libMeshWrappers::BoundingBox& box_2 = nodal_bboxes_2[i];
 
@@ -181,21 +197,26 @@ main(int argc, char** argv)
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
+    Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
+    Pointer<Database> input_db = app_initializer->getInputDatabase();
+
+    const bool use_amr = input_db->getBoolWithDefault("use_amr", false);
+
     if (NDIM == 2)
     {
         // test 2D
         out << "2D:" << std::endl;
-        test(init, 2, "sphere", TRI3, FIRST, out, true);
-        test(init, 2, "sphere", TRI3, FIRST, out, false);
+        test(init, 2, "sphere", TRI3, FIRST, out, true, use_amr);
+        test(init, 2, "sphere", TRI3, FIRST, out, false, use_amr);
         out << "TRI3 OK" << std::endl;
-        test(init, 2, "sphere", TRI6, THIRD, out, true);
-        test(init, 2, "sphere", TRI6, THIRD, out, false);
+        test(init, 2, "sphere", TRI6, THIRD, out, true, use_amr);
+        test(init, 2, "sphere", TRI6, THIRD, out, false, use_amr);
         out << "TRI6 OK" << std::endl;
-        test(init, 2, "sphere", QUAD4, FIRST, out, true);
-        test(init, 2, "sphere", QUAD4, FIRST, out, false);
+        test(init, 2, "sphere", QUAD4, FIRST, out, true, use_amr);
+        test(init, 2, "sphere", QUAD4, FIRST, out, false, use_amr);
         out << "QUAD4 OK" << std::endl;
-        test(init, 2, "sphere", QUAD9, THIRD, out, true);
-        test(init, 2, "sphere", QUAD9, THIRD, out, false);
+        test(init, 2, "sphere", QUAD9, THIRD, out, true, use_amr);
+        test(init, 2, "sphere", QUAD9, THIRD, out, false, use_amr);
         out << "QUAD9 OK" << std::endl;
     }
 
@@ -203,17 +224,17 @@ main(int argc, char** argv)
     {
         // test 3D
         out << "3D:" << std::endl;
-        test(init, 3, "cube", TET4, FIRST, out, true);
-        test(init, 3, "cube", TET4, FIRST, out, false);
+        test(init, 3, "cube", TET4, FIRST, out, true, use_amr);
+        test(init, 3, "cube", TET4, FIRST, out, false, use_amr);
         out << "TET4 OK" << std::endl;
-        test(init, 3, "cube", TET10, THIRD, out, true);
-        test(init, 3, "cube", TET10, THIRD, out, false);
+        test(init, 3, "cube", TET10, THIRD, out, true, use_amr);
+        test(init, 3, "cube", TET10, THIRD, out, false, use_amr);
         out << "TET10 OK" << std::endl;
-        test(init, 3, "sphere", HEX8, FIRST, out, true);
-        test(init, 3, "sphere", HEX8, FIRST, out, false);
+        test(init, 3, "sphere", HEX8, FIRST, out, true, use_amr);
+        test(init, 3, "sphere", HEX8, FIRST, out, false, use_amr);
         out << "HEX8 OK" << std::endl;
-        test(init, 3, "sphere", HEX27, THIRD, out, true);
-        test(init, 3, "sphere", HEX27, THIRD, out, false);
+        test(init, 3, "sphere", HEX27, THIRD, out, true, use_amr);
+        test(init, 3, "sphere", HEX27, THIRD, out, false, use_amr);
         out << "HEX27 OK" << std::endl;
     }
 }

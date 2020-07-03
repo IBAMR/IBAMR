@@ -33,6 +33,7 @@
 #include <libmesh/equation_systems.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
+#include <libmesh/mesh_refinement.h>
 #include <libmesh/mesh_triangle_interface.h>
 
 // Headers for application-specific algorithm/data structure objects
@@ -167,6 +168,19 @@ main(int argc, char** argv)
         const int n_refinements = int(std::log2(R / dx));
         MeshTools::Generation::build_sphere(mesh, R, n_refinements, Utility::string_to_enum<ElemType>(elem_type), 10);
         mesh.prepare_for_use();
+
+        MeshRefinement mesh_refinement(mesh);
+        if (input_db->getBoolWithDefault("use_amr", false))
+        {
+            std::size_t i = 0;
+            for (auto elem_iter = mesh.active_elements_begin(); elem_iter != mesh.active_elements_end();
+                 ++elem_iter, ++i)
+            {
+                if (i % 8 == 0) (*elem_iter)->set_refinement_flag(Elem::REFINE);
+            }
+            mesh_refinement.refine_and_coarsen_elements();
+        }
+
         // metis does a good job partitioning, but the partitioning relies on
         // random numbers: the seed changed in libMesh commit
         // 98cede90ca8837688ee13aac5e299a3765f083da (between 1.3.1 and
