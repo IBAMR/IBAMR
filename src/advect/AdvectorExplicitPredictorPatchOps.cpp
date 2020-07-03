@@ -226,7 +226,7 @@ extern "C"
                            const double&,
                            const int&,
 #if (NDIM == 3)
-                           const unsigned int&,
+                           const int&,
 #endif
 #if (NDIM == 2)
                            const int&,
@@ -283,7 +283,7 @@ extern "C"
                                        const double&,
                                        const int&,
 #if (NDIM == 3)
-                                       const unsigned int&,
+                                       const int&,
 #endif
 #if (NDIM == 2)
                                        const int&,
@@ -349,7 +349,7 @@ extern "C"
                                const double&,
                                const int&,
 #if (NDIM == 3)
-                               const unsigned int&,
+                               const int&,
 #endif
 #if (NDIM == 2)
                                const int&,
@@ -412,7 +412,7 @@ extern "C"
                                            const double&,
                                            const int&,
 #if (NDIM == 3)
-                                           const unsigned int&,
+                                           const int&,
 #endif
 #if (NDIM == 2)
                                            const int&,
@@ -997,7 +997,7 @@ AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
             ADVECT_PREDICT_FC(dx,
                               dt,
                               d_limiter_type,
-                              static_cast<unsigned int>(d_using_full_ctu),
+                              d_using_full_ctu,
                               ilower(0),
                               iupper(0),
                               ilower(1),
@@ -1059,7 +1059,7 @@ AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
             ADVECT_PREDICT_PPM_FC(dx,
                                   dt,
                                   d_limiter_type,
-                                  static_cast<unsigned int>(d_using_full_ctu),
+                                  d_using_full_ctu,
                                   ilower(0),
                                   iupper(0),
                                   ilower(1),
@@ -1186,7 +1186,7 @@ AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, double>&
             ADVECT_PREDICT_WITH_SOURCE_FC(dx,
                                           dt,
                                           d_limiter_type,
-                                          static_cast<unsigned int>(d_using_full_ctu),
+                                          d_using_full_ctu,
                                           ilower(0),
                                           iupper(0),
                                           ilower(1),
@@ -1258,7 +1258,7 @@ AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, double>&
             ADVECT_PREDICT_PPM_WITH_SOURCE_FC(dx,
                                               dt,
                                               d_limiter_type,
-                                              static_cast<unsigned int>(d_using_full_ctu),
+                                              d_using_full_ctu,
                                               ilower(0),
                                               iupper(0),
                                               ilower(1),
@@ -1319,7 +1319,7 @@ AdvectorExplicitPredictorPatchOps::getFromInput(Pointer<Database> db, bool /*is_
         TBOX_ASSERT(d_limiter_type != UNKNOWN_LIMITER_TYPE);
     }
 #if (NDIM == 3)
-    if (db->keyExists("using_full_ctu")) d_using_full_ctu = db->getBool("using_full_ctu");
+    if (db->keyExists("using_full_ctu")) d_using_full_ctu = db->getBool("using_full_ctu") ? 1 : 0;
 #endif
     return;
 } // getFromInput
@@ -1351,7 +1351,7 @@ AdvectorExplicitPredictorPatchOps::getFromRestart()
                                  << "  Restart file version different than class version.");
     }
 #if (NDIM == 3)
-    d_using_full_ctu = db->getBool("d_using_full_ctu");
+    d_using_full_ctu = db->getBool("d_using_full_ctu") ? 1 : 0;
 #endif
     return;
 } // getFromRestart
