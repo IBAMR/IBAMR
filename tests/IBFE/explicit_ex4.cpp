@@ -218,6 +218,21 @@ main(int argc, char** argv)
         }
         mesh.prepare_for_use();
 
+        const bool use_amr = input_db->getBoolWithDefault("use_amr", false);
+        if (use_amr)
+        {
+            MeshBase::element_iterator el_end = mesh.elements_end();
+            for (MeshBase::element_iterator el = mesh.elements_begin(); el != el_end; ++el)
+            {
+                Elem* elem = *el;
+                const auto centroid = elem->centroid();
+
+                if (centroid(1) > 0.0) elem->set_refinement_flag(Elem::REFINE);
+            }
+            MeshRefinement mesh_refinement(mesh);
+            mesh_refinement.refine_and_coarsen_elements();
+        }
+
         // Ensure nodes on the surface are on the analytic boundary.
 #if NDIM == 2
         MeshBase::element_iterator el_end = mesh.elements_end();
@@ -239,21 +254,6 @@ main(int argc, char** argv)
 #else
         NULL_USE(R);
 #endif
-
-        const bool use_amr = input_db->getBoolWithDefault("use_amr", false);
-        if (use_amr)
-        {
-            MeshBase::element_iterator el_end = mesh.elements_end();
-            for (MeshBase::element_iterator el = mesh.elements_begin(); el != el_end; ++el)
-            {
-                Elem* elem = *el;
-                const auto centroid = elem->centroid();
-
-                if (centroid(1) > 0.0) elem->set_refinement_flag(Elem::REFINE);
-            }
-            MeshRefinement mesh_refinement(mesh);
-            mesh_refinement.refine_and_coarsen_elements();
-        }
 
         ReplicatedMesh mesh_2(init.comm(), NDIM);
         // extra parameter controlling whether or not to add an inactive mesh
