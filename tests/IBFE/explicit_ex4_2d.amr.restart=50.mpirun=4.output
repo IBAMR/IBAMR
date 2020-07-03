@@ -3,7 +3,6 @@ IBFEMethod: mesh part 0 is using FIRST order LAGRANGE finite elements.
 
 IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
 Total number of elems: 378
-Total number of active elems: 314
 Total number of DoFs: 5424
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
