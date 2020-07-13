@@ -47,6 +47,10 @@ minmod3(
      & d_dx2_C($1,$2,$3,$4),
      & 2.d0*d_dx2_L($1,$2,$3,$4),
      & 2.d0*d_dx2_R($1,$2,$3,$4))')dnl'
+
+c     this is a Fortran include, not an m4 include
+      include 'cart_side_helpers.f'
+
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
