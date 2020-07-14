@@ -449,10 +449,10 @@ public:
                                ResetPropertiesFcnPtr callback,
                                void* ctx);
 
-    /*
+    /*!
      * \brief Set a reset priority for a particular variable.
      *
-     * \note Variables will be reset sequentially accordint to their priority, from lowest to highest.
+     * \note Variables will be reset sequentially according to their priority, from lowest to highest.
      * The reset functions registered to each variable will be called according to the order in which they were
      * registered. If no priority is set for a variable, its reset functions will be called after those with priority,
      * in no particular order.
