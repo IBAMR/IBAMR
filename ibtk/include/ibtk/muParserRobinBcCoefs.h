@@ -55,10 +55,22 @@ class Database;
 
 namespace IBTK
 {
-/*!
- * \brief Class muParserRobinBcCoefs is an implementation of the strategy class
- * SAMRAI::solv::RobinBcCoefStrategy that allows for the run-time specification
- * of (possibly spatially- and temporally-varying) Robin boundary conditions.
+/*!  \brief Class muParserRobinBcCoefs is an implementation of the strategy
+ * class SAMRAI::solv::RobinBcCoefStrategy that allows for the run-time
+ * specification of (possibly spatially- and temporally-varying) Robin boundary
+ * conditions.
+ *
+ * This class uses the muParser library to parse strings into mathematical
+ * functions. This class is the most common method to specify boundary
+ * conditions uses in the examples. The database in the input file contains
+ * strings for each coefficient (\f$a\f$, \f$b\f$, and \f$g\f$) at each face
+ * of the physical boundary. Strings ending in 0 and 1 are for the \f$x\f$-faces,
+ * 2 and 3 are for the \f$y\f$-faces, and 4 and 5 are for the \f$z\f$-faces.
+ * These strings can contain spatial and temporal variables using the variable
+ * names `X_0`, `X_1`, `X_2`, and `t`. These strings can also contain `if`
+ * statements  using the conditional operator
+ * `condition ? result_if_true : result_if_false`. For more exotic boundary
+ * conditions, one would need to create an extension of the class `RobinBcCoefStrategy`.
  *
  * \warning Not all linear solvers in IBTK properly handle time-varying \em
  * homogeneous Robin boundary condition coefficients.  Note, however, that all

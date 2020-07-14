@@ -341,6 +341,8 @@ public:
     /*!
      * Set an object to provide boundary conditions for a scalar-valued quantity
      * that has been registered with the hierarchy integrator.
+     *
+     * \see IBTK::muParserRobinBcCoefs
      */
     void setPhysicalBcCoef(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* Q_bc_coef);
@@ -348,6 +350,8 @@ public:
     /*!
      * Set objects to provide boundary conditions for a vector-valued quantity
      * that has been registered with the hierarchy integrator.
+     *
+     * \see IBTK::muParserRobinBcCoefs
      */
     void setPhysicalBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
                             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coef);
