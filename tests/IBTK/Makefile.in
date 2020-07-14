@@ -100,7 +100,7 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	ghost_accumulation_01_2d$(EXEEXT) \
 	ghost_accumulation_01_3d$(EXEEXT) ghost_indices_01_2d$(EXEEXT) \
 	ghost_indices_01_3d$(EXEEXT) ibtk_init$(EXEEXT) \
-	$(am__EXEEXT_1)
+	hierarchy_callbacks$(EXEEXT) $(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@am__append_1 = elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
 @LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d mapping_01 fe_values_01 fe_values_02
 
@@ -250,6 +250,14 @@ ghost_indices_01_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 ghost_indices_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(ghost_indices_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_hierarchy_callbacks_OBJECTS =  \
+	hierarchy_callbacks-hierarchy_callbacks.$(OBJEXT)
+hierarchy_callbacks_OBJECTS = $(am_hierarchy_callbacks_OBJECTS)
+hierarchy_callbacks_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+hierarchy_callbacks_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(hierarchy_callbacks_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 am_ibtk_init_OBJECTS = ibtk_init-ibtk_init.$(OBJEXT)
 ibtk_init_OBJECTS = $(am_ibtk_init_OBJECTS)
@@ -437,6 +445,7 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po \
 	./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po \
 	./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po \
+	./$(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Po \
 	./$(DEPDIR)/ibtk_init-ibtk_init.Po \
 	./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po \
 	./$(DEPDIR)/laplace_01_2d-laplace_01.Po \
@@ -484,12 +493,13 @@ SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(fe_values_02_SOURCES) $(ghost_accumulation_01_2d_SOURCES) \
 	$(ghost_accumulation_01_3d_SOURCES) \
 	$(ghost_indices_01_2d_SOURCES) $(ghost_indices_01_3d_SOURCES) \
-	$(ibtk_init_SOURCES) $(jacobian_calc_01_SOURCES) \
-	$(laplace_01_2d_SOURCES) $(laplace_01_3d_SOURCES) \
-	$(laplace_02_2d_SOURCES) $(laplace_02_3d_SOURCES) \
-	$(laplace_03_2d_SOURCES) $(laplace_03_3d_SOURCES) \
-	$(ldata_01_SOURCES) $(mapping_01_SOURCES) \
-	$(mpi_type_wrappers_SOURCES) $(phys_boundary_ops_2d_SOURCES) \
+	$(hierarchy_callbacks_SOURCES) $(ibtk_init_SOURCES) \
+	$(jacobian_calc_01_SOURCES) $(laplace_01_2d_SOURCES) \
+	$(laplace_01_3d_SOURCES) $(laplace_02_2d_SOURCES) \
+	$(laplace_02_3d_SOURCES) $(laplace_03_2d_SOURCES) \
+	$(laplace_03_3d_SOURCES) $(ldata_01_SOURCES) \
+	$(mapping_01_SOURCES) $(mpi_type_wrappers_SOURCES) \
+	$(phys_boundary_ops_2d_SOURCES) \
 	$(phys_boundary_ops_3d_SOURCES) $(poisson_01_2d_SOURCES) \
 	$(poisson_01_3d_SOURCES) $(prolongation_mat_2d_SOURCES) \
 	$(prolongation_mat_3d_SOURCES) \
@@ -507,12 +517,13 @@ DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(ghost_accumulation_01_2d_SOURCES) \
 	$(ghost_accumulation_01_3d_SOURCES) \
 	$(ghost_indices_01_2d_SOURCES) $(ghost_indices_01_3d_SOURCES) \
-	$(ibtk_init_SOURCES) $(am__jacobian_calc_01_SOURCES_DIST) \
-	$(laplace_01_2d_SOURCES) $(laplace_01_3d_SOURCES) \
-	$(laplace_02_2d_SOURCES) $(laplace_02_3d_SOURCES) \
-	$(laplace_03_2d_SOURCES) $(laplace_03_3d_SOURCES) \
-	$(ldata_01_SOURCES) $(am__mapping_01_SOURCES_DIST) \
-	$(mpi_type_wrappers_SOURCES) $(phys_boundary_ops_2d_SOURCES) \
+	$(hierarchy_callbacks_SOURCES) $(ibtk_init_SOURCES) \
+	$(am__jacobian_calc_01_SOURCES_DIST) $(laplace_01_2d_SOURCES) \
+	$(laplace_01_3d_SOURCES) $(laplace_02_2d_SOURCES) \
+	$(laplace_02_3d_SOURCES) $(laplace_03_2d_SOURCES) \
+	$(laplace_03_3d_SOURCES) $(ldata_01_SOURCES) \
+	$(am__mapping_01_SOURCES_DIST) $(mpi_type_wrappers_SOURCES) \
+	$(phys_boundary_ops_2d_SOURCES) \
 	$(phys_boundary_ops_3d_SOURCES) $(poisson_01_2d_SOURCES) \
 	$(poisson_01_3d_SOURCES) $(prolongation_mat_2d_SOURCES) \
 	$(prolongation_mat_3d_SOURCES) \
@@ -914,6 +925,9 @@ ghost_accumulation_01_2d_SOURCES = ghost_accumulation_01.cpp
 ghost_accumulation_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 ghost_accumulation_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 ghost_accumulation_01_3d_SOURCES = ghost_accumulation_01.cpp
+hierarchy_callbacks_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+hierarchy_callbacks_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+hierarchy_callbacks_SOURCES = hierarchy_callbacks.cpp
 all: all-am
 
 .SUFFIXES:
@@ -996,6 +1010,10 @@ ghost_indices_01_2d$(EXEEXT): $(ghost_indices_01_2d_OBJECTS) $(ghost_indices_01_
 ghost_indices_01_3d$(EXEEXT): $(ghost_indices_01_3d_OBJECTS) $(ghost_indices_01_3d_DEPENDENCIES) $(EXTRA_ghost_indices_01_3d_DEPENDENCIES) 
 	@rm -f ghost_indices_01_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(ghost_indices_01_3d_LINK) $(ghost_indices_01_3d_OBJECTS) $(ghost_indices_01_3d_LDADD) $(LIBS)
+
+hierarchy_callbacks$(EXEEXT): $(hierarchy_callbacks_OBJECTS) $(hierarchy_callbacks_DEPENDENCIES) $(EXTRA_hierarchy_callbacks_DEPENDENCIES) 
+	@rm -f hierarchy_callbacks$(EXEEXT)
+	$(AM_V_CXXLD)$(hierarchy_callbacks_LINK) $(hierarchy_callbacks_OBJECTS) $(hierarchy_callbacks_LDADD) $(LIBS)
 
 ibtk_init$(EXEEXT): $(ibtk_init_OBJECTS) $(ibtk_init_DEPENDENCIES) $(EXTRA_ibtk_init_DEPENDENCIES) 
 	@rm -f ibtk_init$(EXEEXT)
@@ -1099,6 +1117,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ibtk_init-ibtk_init.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/laplace_01_2d-laplace_01.Po@am__quote@ # am--include-marker
@@ -1318,6 +1337,20 @@ ghost_indices_01_3d-ghost_indices_01.obj: ghost_indices_01.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ghost_indices_01.cpp' object='ghost_indices_01_3d-ghost_indices_01.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ghost_indices_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o ghost_indices_01_3d-ghost_indices_01.obj `if test -f 'ghost_indices_01.cpp'; then $(CYGPATH_W) 'ghost_indices_01.cpp'; else $(CYGPATH_W) '$(srcdir)/ghost_indices_01.cpp'; fi`
+
+hierarchy_callbacks-hierarchy_callbacks.o: hierarchy_callbacks.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hierarchy_callbacks_CXXFLAGS) $(CXXFLAGS) -MT hierarchy_callbacks-hierarchy_callbacks.o -MD -MP -MF $(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Tpo -c -o hierarchy_callbacks-hierarchy_callbacks.o `test -f 'hierarchy_callbacks.cpp' || echo '$(srcdir)/'`hierarchy_callbacks.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Tpo $(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hierarchy_callbacks.cpp' object='hierarchy_callbacks-hierarchy_callbacks.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hierarchy_callbacks_CXXFLAGS) $(CXXFLAGS) -c -o hierarchy_callbacks-hierarchy_callbacks.o `test -f 'hierarchy_callbacks.cpp' || echo '$(srcdir)/'`hierarchy_callbacks.cpp
+
+hierarchy_callbacks-hierarchy_callbacks.obj: hierarchy_callbacks.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hierarchy_callbacks_CXXFLAGS) $(CXXFLAGS) -MT hierarchy_callbacks-hierarchy_callbacks.obj -MD -MP -MF $(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Tpo -c -o hierarchy_callbacks-hierarchy_callbacks.obj `if test -f 'hierarchy_callbacks.cpp'; then $(CYGPATH_W) 'hierarchy_callbacks.cpp'; else $(CYGPATH_W) '$(srcdir)/hierarchy_callbacks.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Tpo $(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hierarchy_callbacks.cpp' object='hierarchy_callbacks-hierarchy_callbacks.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hierarchy_callbacks_CXXFLAGS) $(CXXFLAGS) -c -o hierarchy_callbacks-hierarchy_callbacks.obj `if test -f 'hierarchy_callbacks.cpp'; then $(CYGPATH_W) 'hierarchy_callbacks.cpp'; else $(CYGPATH_W) '$(srcdir)/hierarchy_callbacks.cpp'; fi`
 
 ibtk_init-ibtk_init.o: ibtk_init.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ibtk_init_CXXFLAGS) $(CXXFLAGS) -MT ibtk_init-ibtk_init.o -MD -MP -MF $(DEPDIR)/ibtk_init-ibtk_init.Tpo -c -o ibtk_init-ibtk_init.o `test -f 'ibtk_init.cpp' || echo '$(srcdir)/'`ibtk_init.cpp
@@ -1756,6 +1789,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po
+	-rm -f ./$(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Po
 	-rm -f ./$(DEPDIR)/ibtk_init-ibtk_init.Po
 	-rm -f ./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po
 	-rm -f ./$(DEPDIR)/laplace_01_2d-laplace_01.Po
@@ -1834,6 +1868,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po
+	-rm -f ./$(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Po
 	-rm -f ./$(DEPDIR)/ibtk_init-ibtk_init.Po
 	-rm -f ./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po
 	-rm -f ./$(DEPDIR)/laplace_01_2d-laplace_01.Po
