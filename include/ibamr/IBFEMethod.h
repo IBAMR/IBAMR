@@ -115,17 +115,6 @@ class IBFEDirectForcingKinematics;
  * By default, the libMesh data is partitioned once at the beginning of the
  * computation by libMesh's default partitioner.
  *
- * <h2>Options Controlling Finite Element Vector Data Layout</h2>
- * IBFEMethod performs an L2 projection to transfer the velocity of the fluid
- * from the Eulerian grid to the finite element representation. The parallel
- * performance of this operation can be substantially improved by doing
- * assembly into the ghost region of each vector (instead of accumulating into
- * an internal PETSc object). By default this class will use the 'accumulate
- * into the ghost region' assembly strategy. The assembly strategy can be
- * selected by changing the database variable vector_assembly_accumulation
- * from <code>GHOSTED</code>, the default, to <code>CACHE</code>, which will
- * use PETSc's VecCache object to distribute data.
- *
  * <h2>Options Controlling Interpolation and Spreading</h2>
  * Like other classes inheriting from IBStrategy, most options regarding the
  * actual IB method implementation can be specified with the provided input
@@ -910,12 +899,6 @@ protected:
      * strength that include IB ghosting information.
      */
     std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_Q_IB_vecs;
-
-    /*!
-     * Whether or not to use the ghost region for velocity assembly. See the
-     * main documentation of this class for more information.
-     */
-    bool d_use_ghosted_velocity_rhs = true;
 
     /*!
      * IBFE method parameters.
