@@ -599,8 +599,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 
     std::vector<PetscVector<double>*> U_vecs = d_U_vecs->get(data_time_str);
     std::vector<PetscVector<double>*> X_vecs = d_X_vecs->get(data_time_str);
-    std::vector<PetscVector<double>*> U_rhs_vecs =
-        d_use_ghosted_velocity_rhs ? d_U_IB_vecs->getIBGhosted("tmp") : d_U_vecs->get("RHS Vector");
+    std::vector<PetscVector<double>*> U_rhs_vecs = d_U_IB_vecs->getIBGhosted("tmp");
     std::vector<PetscVector<double>*> X_IB_ghost_vecs = d_X_IB_vecs->getIBGhosted("tmp");
     batch_vec_copy(X_vecs, X_IB_ghost_vecs);
     batch_vec_ghost_update(X_IB_ghost_vecs, INSERT_VALUES, SCATTER_FORWARD);
@@ -625,16 +624,8 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     // Note that FEDataManager only reads (and does not modify) Eulerian data
     // during interpolation so nothing needs to be transferred back to
     // d_hierarchy from d_scratch_hierarchy.
-
-    if (d_use_ghosted_velocity_rhs)
-    {
-        batch_vec_ghost_update(U_rhs_vecs, ADD_VALUES, SCATTER_REVERSE);
-        batch_vec_ghost_update(U_rhs_vecs, INSERT_VALUES, SCATTER_FORWARD);
-    }
-    else
-    {
-        batch_vec_assembly(U_rhs_vecs);
-    }
+    batch_vec_ghost_update(U_rhs_vecs, ADD_VALUES, SCATTER_REVERSE);
+    batch_vec_ghost_update(U_rhs_vecs, INSERT_VALUES, SCATTER_FORWARD);
 
     // If the velocity system has constraints then those need to be dealt with
     // here and not during assembly because we do not distribute the
@@ -657,15 +648,8 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         }
     }
 
-    if (d_use_ghosted_velocity_rhs)
-    {
-        batch_vec_ghost_update(vecs_for_second_summation, ADD_VALUES, SCATTER_REVERSE);
-        batch_vec_ghost_update(vecs_for_second_summation, INSERT_VALUES, SCATTER_FORWARD);
-    }
-    else
-    {
-        batch_vec_assembly(vecs_for_second_summation);
-    }
+    batch_vec_ghost_update(vecs_for_second_summation, ADD_VALUES, SCATTER_REVERSE);
+    batch_vec_ghost_update(vecs_for_second_summation, INSERT_VALUES, SCATTER_FORWARD);
 
     // Solve for the interpolated data.
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
@@ -2960,20 +2944,6 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
         d_default_interp_spec.use_consistent_mass_matrix = db->getBool("interp_use_consistent_mass_matrix");
     else if (db->isBool("IB_use_consistent_mass_matrix"))
         d_default_interp_spec.use_consistent_mass_matrix = db->getBool("IB_use_consistent_mass_matrix");
-
-    if (db->isString("vector_assembly_accumulation"))
-    {
-        const std::string vector_assembly = db->getString("vector_assembly_accumulation");
-        if (vector_assembly == "GHOSTED")
-            d_use_ghosted_velocity_rhs = true;
-        else if (vector_assembly == "CACHED")
-            d_use_ghosted_velocity_rhs = false;
-        else
-        {
-            TBOX_ERROR(d_object_name << ": value " << vector_assembly << " for vector_assembly_accumulation should be "
-                                     << "either GHOSTED or CACHED." << std::endl);
-        }
-    }
 
     // Spreading settings.
     if (db->isString("spread_delta_fcn"))
