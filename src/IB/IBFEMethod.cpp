@@ -912,10 +912,19 @@ IBFEMethod::spreadForce(const int f_data_idx,
     }
 
     {
-        auto hierarchy = d_use_scratch_hierarchy ? d_scratch_hierarchy : d_hierarchy;
         if (!d_ghost_data_accumulator)
+        {
+            // If we have multiple IBMethod objects we may end up with a wider
+            // ghost region than the one required by this class. Hence, set the
+            // ghost width by just picking whatever the data actually has at the
+            // moment.
+            const Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+            const IntVector<NDIM> gcw =
+                level->getPatchDescriptor()->getPatchDataFactory(f_scratch_data_idx)->getGhostCellWidth();
+
             d_ghost_data_accumulator.reset(new SAMRAIGhostDataAccumulator(
-                hierarchy, f_var, d_ghosts, d_hierarchy->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
+                hierarchy, f_var, gcw, d_hierarchy->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
+        }
         d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx);
     }
 
