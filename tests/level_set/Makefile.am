@@ -17,15 +17,15 @@ include $(top_srcdir)/config/Make-rules
 EXTRA_PROGRAMS =
 
 if LIBMESH_ENABLED
-EXTRA_PROGRAMS += fe_surface_distance_circle fe_surface_distance_sphere
+EXTRA_PROGRAMS += fe_surface_distance_2d fe_surface_distance_3d
 
-fe_surface_distance_circle_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-fe_surface_distance_circle_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-fe_surface_distance_circle_SOURCES = fe_surface_distance.cpp
+fe_surface_distance_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+fe_surface_distance_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+fe_surface_distance_2d_SOURCES = fe_surface_distance.cpp
 
-fe_surface_distance_sphere_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-fe_surface_distance_sphere_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-fe_surface_distance_sphere_SOURCES = fe_surface_distance.cpp
+fe_surface_distance_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+fe_surface_distance_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+fe_surface_distance_3d_SOURCES = fe_surface_distance.cpp
 endif
 
 tests: $(EXTRA_PROGRAMS)

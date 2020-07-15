@@ -88,7 +88,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 EXTRA_PROGRAMS = $(am__EXEEXT_1)
-@LIBMESH_ENABLED_TRUE@am__append_1 = fe_surface_distance_circle fe_surface_distance_sphere
+@LIBMESH_ENABLED_TRUE@am__append_1 = fe_surface_distance_2d fe_surface_distance_3d
 subdir = tests/level_set
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -120,33 +120,30 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-@LIBMESH_ENABLED_TRUE@am__EXEEXT_1 =  \
-@LIBMESH_ENABLED_TRUE@	fe_surface_distance_circle$(EXEEXT) \
-@LIBMESH_ENABLED_TRUE@	fe_surface_distance_sphere$(EXEEXT)
-am__fe_surface_distance_circle_SOURCES_DIST = fe_surface_distance.cpp
-@LIBMESH_ENABLED_TRUE@am_fe_surface_distance_circle_OBJECTS = fe_surface_distance_circle-fe_surface_distance.$(OBJEXT)
-fe_surface_distance_circle_OBJECTS =  \
-	$(am_fe_surface_distance_circle_OBJECTS)
-@LIBMESH_ENABLED_TRUE@fe_surface_distance_circle_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@am__EXEEXT_1 = fe_surface_distance_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	fe_surface_distance_3d$(EXEEXT)
+am__fe_surface_distance_2d_SOURCES_DIST = fe_surface_distance.cpp
+@LIBMESH_ENABLED_TRUE@am_fe_surface_distance_2d_OBJECTS = fe_surface_distance_2d-fe_surface_distance.$(OBJEXT)
+fe_surface_distance_2d_OBJECTS = $(am_fe_surface_distance_2d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@fe_surface_distance_2d_DEPENDENCIES =  \
 @LIBMESH_ENABLED_TRUE@	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-fe_surface_distance_circle_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+fe_surface_distance_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
-	$(fe_surface_distance_circle_CXXFLAGS) $(CXXFLAGS) \
-	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__fe_surface_distance_sphere_SOURCES_DIST = fe_surface_distance.cpp
-@LIBMESH_ENABLED_TRUE@am_fe_surface_distance_sphere_OBJECTS = fe_surface_distance_sphere-fe_surface_distance.$(OBJEXT)
-fe_surface_distance_sphere_OBJECTS =  \
-	$(am_fe_surface_distance_sphere_OBJECTS)
-@LIBMESH_ENABLED_TRUE@fe_surface_distance_sphere_DEPENDENCIES =  \
+	$(fe_surface_distance_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__fe_surface_distance_3d_SOURCES_DIST = fe_surface_distance.cpp
+@LIBMESH_ENABLED_TRUE@am_fe_surface_distance_3d_OBJECTS = fe_surface_distance_3d-fe_surface_distance.$(OBJEXT)
+fe_surface_distance_3d_OBJECTS = $(am_fe_surface_distance_3d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@fe_surface_distance_3d_DEPENDENCIES =  \
 @LIBMESH_ENABLED_TRUE@	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
-fe_surface_distance_sphere_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+fe_surface_distance_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
-	$(fe_surface_distance_sphere_CXXFLAGS) $(CXXFLAGS) \
-	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+	$(fe_surface_distance_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -163,8 +160,8 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade =  \
-	./$(DEPDIR)/fe_surface_distance_circle-fe_surface_distance.Po \
-	./$(DEPDIR)/fe_surface_distance_sphere-fe_surface_distance.Po
+	./$(DEPDIR)/fe_surface_distance_2d-fe_surface_distance.Po \
+	./$(DEPDIR)/fe_surface_distance_3d-fe_surface_distance.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -184,10 +181,10 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(fe_surface_distance_circle_SOURCES) \
-	$(fe_surface_distance_sphere_SOURCES)
-DIST_SOURCES = $(am__fe_surface_distance_circle_SOURCES_DIST) \
-	$(am__fe_surface_distance_sphere_SOURCES_DIST)
+SOURCES = $(fe_surface_distance_2d_SOURCES) \
+	$(fe_surface_distance_3d_SOURCES)
+DIST_SOURCES = $(am__fe_surface_distance_2d_SOURCES_DIST) \
+	$(am__fe_surface_distance_3d_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -479,12 +476,12 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-@LIBMESH_ENABLED_TRUE@fe_surface_distance_circle_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-@LIBMESH_ENABLED_TRUE@fe_surface_distance_circle_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-@LIBMESH_ENABLED_TRUE@fe_surface_distance_circle_SOURCES = fe_surface_distance.cpp
-@LIBMESH_ENABLED_TRUE@fe_surface_distance_sphere_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-@LIBMESH_ENABLED_TRUE@fe_surface_distance_sphere_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-@LIBMESH_ENABLED_TRUE@fe_surface_distance_sphere_SOURCES = fe_surface_distance.cpp
+@LIBMESH_ENABLED_TRUE@fe_surface_distance_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@fe_surface_distance_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@fe_surface_distance_2d_SOURCES = fe_surface_distance.cpp
+@LIBMESH_ENABLED_TRUE@fe_surface_distance_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@fe_surface_distance_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@fe_surface_distance_3d_SOURCES = fe_surface_distance.cpp
 all: all-am
 
 .SUFFIXES:
@@ -520,13 +517,13 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
-fe_surface_distance_circle$(EXEEXT): $(fe_surface_distance_circle_OBJECTS) $(fe_surface_distance_circle_DEPENDENCIES) $(EXTRA_fe_surface_distance_circle_DEPENDENCIES) 
-	@rm -f fe_surface_distance_circle$(EXEEXT)
-	$(AM_V_CXXLD)$(fe_surface_distance_circle_LINK) $(fe_surface_distance_circle_OBJECTS) $(fe_surface_distance_circle_LDADD) $(LIBS)
+fe_surface_distance_2d$(EXEEXT): $(fe_surface_distance_2d_OBJECTS) $(fe_surface_distance_2d_DEPENDENCIES) $(EXTRA_fe_surface_distance_2d_DEPENDENCIES) 
+	@rm -f fe_surface_distance_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(fe_surface_distance_2d_LINK) $(fe_surface_distance_2d_OBJECTS) $(fe_surface_distance_2d_LDADD) $(LIBS)
 
-fe_surface_distance_sphere$(EXEEXT): $(fe_surface_distance_sphere_OBJECTS) $(fe_surface_distance_sphere_DEPENDENCIES) $(EXTRA_fe_surface_distance_sphere_DEPENDENCIES) 
-	@rm -f fe_surface_distance_sphere$(EXEEXT)
-	$(AM_V_CXXLD)$(fe_surface_distance_sphere_LINK) $(fe_surface_distance_sphere_OBJECTS) $(fe_surface_distance_sphere_LDADD) $(LIBS)
+fe_surface_distance_3d$(EXEEXT): $(fe_surface_distance_3d_OBJECTS) $(fe_surface_distance_3d_DEPENDENCIES) $(EXTRA_fe_surface_distance_3d_DEPENDENCIES) 
+	@rm -f fe_surface_distance_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(fe_surface_distance_3d_LINK) $(fe_surface_distance_3d_OBJECTS) $(fe_surface_distance_3d_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -534,8 +531,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fe_surface_distance_circle-fe_surface_distance.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fe_surface_distance_sphere-fe_surface_distance.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fe_surface_distance_2d-fe_surface_distance.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fe_surface_distance_3d-fe_surface_distance.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -567,33 +564,33 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
 
-fe_surface_distance_circle-fe_surface_distance.o: fe_surface_distance.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_surface_distance_circle_CXXFLAGS) $(CXXFLAGS) -MT fe_surface_distance_circle-fe_surface_distance.o -MD -MP -MF $(DEPDIR)/fe_surface_distance_circle-fe_surface_distance.Tpo -c -o fe_surface_distance_circle-fe_surface_distance.o `test -f 'fe_surface_distance.cpp' || echo '$(srcdir)/'`fe_surface_distance.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fe_surface_distance_circle-fe_surface_distance.Tpo $(DEPDIR)/fe_surface_distance_circle-fe_surface_distance.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fe_surface_distance.cpp' object='fe_surface_distance_circle-fe_surface_distance.o' libtool=no @AMDEPBACKSLASH@
+fe_surface_distance_2d-fe_surface_distance.o: fe_surface_distance.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_surface_distance_2d_CXXFLAGS) $(CXXFLAGS) -MT fe_surface_distance_2d-fe_surface_distance.o -MD -MP -MF $(DEPDIR)/fe_surface_distance_2d-fe_surface_distance.Tpo -c -o fe_surface_distance_2d-fe_surface_distance.o `test -f 'fe_surface_distance.cpp' || echo '$(srcdir)/'`fe_surface_distance.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fe_surface_distance_2d-fe_surface_distance.Tpo $(DEPDIR)/fe_surface_distance_2d-fe_surface_distance.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fe_surface_distance.cpp' object='fe_surface_distance_2d-fe_surface_distance.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_surface_distance_circle_CXXFLAGS) $(CXXFLAGS) -c -o fe_surface_distance_circle-fe_surface_distance.o `test -f 'fe_surface_distance.cpp' || echo '$(srcdir)/'`fe_surface_distance.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_surface_distance_2d_CXXFLAGS) $(CXXFLAGS) -c -o fe_surface_distance_2d-fe_surface_distance.o `test -f 'fe_surface_distance.cpp' || echo '$(srcdir)/'`fe_surface_distance.cpp
 
-fe_surface_distance_circle-fe_surface_distance.obj: fe_surface_distance.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_surface_distance_circle_CXXFLAGS) $(CXXFLAGS) -MT fe_surface_distance_circle-fe_surface_distance.obj -MD -MP -MF $(DEPDIR)/fe_surface_distance_circle-fe_surface_distance.Tpo -c -o fe_surface_distance_circle-fe_surface_distance.obj `if test -f 'fe_surface_distance.cpp'; then $(CYGPATH_W) 'fe_surface_distance.cpp'; else $(CYGPATH_W) '$(srcdir)/fe_surface_distance.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fe_surface_distance_circle-fe_surface_distance.Tpo $(DEPDIR)/fe_surface_distance_circle-fe_surface_distance.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fe_surface_distance.cpp' object='fe_surface_distance_circle-fe_surface_distance.obj' libtool=no @AMDEPBACKSLASH@
+fe_surface_distance_2d-fe_surface_distance.obj: fe_surface_distance.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_surface_distance_2d_CXXFLAGS) $(CXXFLAGS) -MT fe_surface_distance_2d-fe_surface_distance.obj -MD -MP -MF $(DEPDIR)/fe_surface_distance_2d-fe_surface_distance.Tpo -c -o fe_surface_distance_2d-fe_surface_distance.obj `if test -f 'fe_surface_distance.cpp'; then $(CYGPATH_W) 'fe_surface_distance.cpp'; else $(CYGPATH_W) '$(srcdir)/fe_surface_distance.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fe_surface_distance_2d-fe_surface_distance.Tpo $(DEPDIR)/fe_surface_distance_2d-fe_surface_distance.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fe_surface_distance.cpp' object='fe_surface_distance_2d-fe_surface_distance.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_surface_distance_circle_CXXFLAGS) $(CXXFLAGS) -c -o fe_surface_distance_circle-fe_surface_distance.obj `if test -f 'fe_surface_distance.cpp'; then $(CYGPATH_W) 'fe_surface_distance.cpp'; else $(CYGPATH_W) '$(srcdir)/fe_surface_distance.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_surface_distance_2d_CXXFLAGS) $(CXXFLAGS) -c -o fe_surface_distance_2d-fe_surface_distance.obj `if test -f 'fe_surface_distance.cpp'; then $(CYGPATH_W) 'fe_surface_distance.cpp'; else $(CYGPATH_W) '$(srcdir)/fe_surface_distance.cpp'; fi`
 
-fe_surface_distance_sphere-fe_surface_distance.o: fe_surface_distance.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_surface_distance_sphere_CXXFLAGS) $(CXXFLAGS) -MT fe_surface_distance_sphere-fe_surface_distance.o -MD -MP -MF $(DEPDIR)/fe_surface_distance_sphere-fe_surface_distance.Tpo -c -o fe_surface_distance_sphere-fe_surface_distance.o `test -f 'fe_surface_distance.cpp' || echo '$(srcdir)/'`fe_surface_distance.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fe_surface_distance_sphere-fe_surface_distance.Tpo $(DEPDIR)/fe_surface_distance_sphere-fe_surface_distance.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fe_surface_distance.cpp' object='fe_surface_distance_sphere-fe_surface_distance.o' libtool=no @AMDEPBACKSLASH@
+fe_surface_distance_3d-fe_surface_distance.o: fe_surface_distance.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_surface_distance_3d_CXXFLAGS) $(CXXFLAGS) -MT fe_surface_distance_3d-fe_surface_distance.o -MD -MP -MF $(DEPDIR)/fe_surface_distance_3d-fe_surface_distance.Tpo -c -o fe_surface_distance_3d-fe_surface_distance.o `test -f 'fe_surface_distance.cpp' || echo '$(srcdir)/'`fe_surface_distance.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fe_surface_distance_3d-fe_surface_distance.Tpo $(DEPDIR)/fe_surface_distance_3d-fe_surface_distance.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fe_surface_distance.cpp' object='fe_surface_distance_3d-fe_surface_distance.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_surface_distance_sphere_CXXFLAGS) $(CXXFLAGS) -c -o fe_surface_distance_sphere-fe_surface_distance.o `test -f 'fe_surface_distance.cpp' || echo '$(srcdir)/'`fe_surface_distance.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_surface_distance_3d_CXXFLAGS) $(CXXFLAGS) -c -o fe_surface_distance_3d-fe_surface_distance.o `test -f 'fe_surface_distance.cpp' || echo '$(srcdir)/'`fe_surface_distance.cpp
 
-fe_surface_distance_sphere-fe_surface_distance.obj: fe_surface_distance.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_surface_distance_sphere_CXXFLAGS) $(CXXFLAGS) -MT fe_surface_distance_sphere-fe_surface_distance.obj -MD -MP -MF $(DEPDIR)/fe_surface_distance_sphere-fe_surface_distance.Tpo -c -o fe_surface_distance_sphere-fe_surface_distance.obj `if test -f 'fe_surface_distance.cpp'; then $(CYGPATH_W) 'fe_surface_distance.cpp'; else $(CYGPATH_W) '$(srcdir)/fe_surface_distance.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fe_surface_distance_sphere-fe_surface_distance.Tpo $(DEPDIR)/fe_surface_distance_sphere-fe_surface_distance.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fe_surface_distance.cpp' object='fe_surface_distance_sphere-fe_surface_distance.obj' libtool=no @AMDEPBACKSLASH@
+fe_surface_distance_3d-fe_surface_distance.obj: fe_surface_distance.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_surface_distance_3d_CXXFLAGS) $(CXXFLAGS) -MT fe_surface_distance_3d-fe_surface_distance.obj -MD -MP -MF $(DEPDIR)/fe_surface_distance_3d-fe_surface_distance.Tpo -c -o fe_surface_distance_3d-fe_surface_distance.obj `if test -f 'fe_surface_distance.cpp'; then $(CYGPATH_W) 'fe_surface_distance.cpp'; else $(CYGPATH_W) '$(srcdir)/fe_surface_distance.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fe_surface_distance_3d-fe_surface_distance.Tpo $(DEPDIR)/fe_surface_distance_3d-fe_surface_distance.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fe_surface_distance.cpp' object='fe_surface_distance_3d-fe_surface_distance.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_surface_distance_sphere_CXXFLAGS) $(CXXFLAGS) -c -o fe_surface_distance_sphere-fe_surface_distance.obj `if test -f 'fe_surface_distance.cpp'; then $(CYGPATH_W) 'fe_surface_distance.cpp'; else $(CYGPATH_W) '$(srcdir)/fe_surface_distance.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_surface_distance_3d_CXXFLAGS) $(CXXFLAGS) -c -o fe_surface_distance_3d-fe_surface_distance.obj `if test -f 'fe_surface_distance.cpp'; then $(CYGPATH_W) 'fe_surface_distance.cpp'; else $(CYGPATH_W) '$(srcdir)/fe_surface_distance.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -726,8 +723,8 @@ clean: clean-am
 clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/fe_surface_distance_circle-fe_surface_distance.Po
-	-rm -f ./$(DEPDIR)/fe_surface_distance_sphere-fe_surface_distance.Po
+		-rm -f ./$(DEPDIR)/fe_surface_distance_2d-fe_surface_distance.Po
+	-rm -f ./$(DEPDIR)/fe_surface_distance_3d-fe_surface_distance.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -773,8 +770,8 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/fe_surface_distance_circle-fe_surface_distance.Po
-	-rm -f ./$(DEPDIR)/fe_surface_distance_sphere-fe_surface_distance.Po
+		-rm -f ./$(DEPDIR)/fe_surface_distance_2d-fe_surface_distance.Po
+	-rm -f ./$(DEPDIR)/fe_surface_distance_3d-fe_surface_distance.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
