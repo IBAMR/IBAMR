@@ -72,6 +72,13 @@
 #include "SetLSProperties.h"
 #include "TagLSRefinementCells.h"
 
+#include "FlowGravityForcing.cpp"
+#include "LSLocateGasInterface.cpp"
+#include "SetFluidGasSolidDensity.cpp"
+#include "SetFluidGasSolidViscosity.cpp"
+#include "SetLSProperties.cpp"
+#include "TagLSRefinementCells.cpp"
+
 int coarsest_ln, max_finest_ln;
 double dx, ds;
 

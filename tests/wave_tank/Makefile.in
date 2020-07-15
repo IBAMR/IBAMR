@@ -121,17 +121,9 @@ CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 @LIBMESH_ENABLED_TRUE@am__EXEEXT_1 = nwt_cylinder$(EXEEXT)
-am__nwt_cylinder_SOURCES_DIST = FlowGravityForcing.cpp \
-	SetFluidGasSolidDensity.cpp SetLSProperties.cpp \
-	nwt_cylinder.cpp LSLocateGasInterface.cpp \
-	SetFluidGasSolidViscosity.cpp TagLSRefinementCells.cpp
-@LIBMESH_ENABLED_TRUE@am_nwt_cylinder_OBJECTS = nwt_cylinder-FlowGravityForcing.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	nwt_cylinder-SetFluidGasSolidDensity.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	nwt_cylinder-SetLSProperties.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	nwt_cylinder-nwt_cylinder.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	nwt_cylinder-LSLocateGasInterface.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	nwt_cylinder-SetFluidGasSolidViscosity.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	nwt_cylinder-TagLSRefinementCells.$(OBJEXT)
+am__nwt_cylinder_SOURCES_DIST = nwt_cylinder.cpp
+@LIBMESH_ENABLED_TRUE@am_nwt_cylinder_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	nwt_cylinder-nwt_cylinder.$(OBJEXT)
 nwt_cylinder_OBJECTS = $(am_nwt_cylinder_OBJECTS)
 @LIBMESH_ENABLED_TRUE@nwt_cylinder_DEPENDENCIES = $(IBAMR2d_LIBS) \
 @LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
@@ -157,13 +149,7 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/nwt_cylinder-FlowGravityForcing.Po \
-	./$(DEPDIR)/nwt_cylinder-LSLocateGasInterface.Po \
-	./$(DEPDIR)/nwt_cylinder-SetFluidGasSolidDensity.Po \
-	./$(DEPDIR)/nwt_cylinder-SetFluidGasSolidViscosity.Po \
-	./$(DEPDIR)/nwt_cylinder-SetLSProperties.Po \
-	./$(DEPDIR)/nwt_cylinder-TagLSRefinementCells.Po \
-	./$(DEPDIR)/nwt_cylinder-nwt_cylinder.Po
+am__depfiles_remade = ./$(DEPDIR)/nwt_cylinder-nwt_cylinder.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -480,9 +466,7 @@ SUFFIXES = .f.m4
 # this test needs some extra input files, so make SOURCE_DIR available:
 @LIBMESH_ENABLED_TRUE@nwt_cylinder_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
 @LIBMESH_ENABLED_TRUE@nwt_cylinder_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-@LIBMESH_ENABLED_TRUE@nwt_cylinder_SOURCES = FlowGravityForcing.cpp  SetFluidGasSolidDensity.cpp \
-@LIBMESH_ENABLED_TRUE@SetLSProperties.cpp nwt_cylinder.cpp LSLocateGasInterface.cpp SetFluidGasSolidViscosity.cpp TagLSRefinementCells.cpp
-
+@LIBMESH_ENABLED_TRUE@nwt_cylinder_SOURCES = nwt_cylinder.cpp
 all: all-am
 
 .SUFFIXES:
@@ -528,12 +512,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nwt_cylinder-FlowGravityForcing.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nwt_cylinder-LSLocateGasInterface.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nwt_cylinder-SetFluidGasSolidDensity.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nwt_cylinder-SetFluidGasSolidViscosity.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nwt_cylinder-SetLSProperties.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nwt_cylinder-TagLSRefinementCells.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nwt_cylinder-nwt_cylinder.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -566,48 +544,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
 
-nwt_cylinder-FlowGravityForcing.o: FlowGravityForcing.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -MT nwt_cylinder-FlowGravityForcing.o -MD -MP -MF $(DEPDIR)/nwt_cylinder-FlowGravityForcing.Tpo -c -o nwt_cylinder-FlowGravityForcing.o `test -f 'FlowGravityForcing.cpp' || echo '$(srcdir)/'`FlowGravityForcing.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nwt_cylinder-FlowGravityForcing.Tpo $(DEPDIR)/nwt_cylinder-FlowGravityForcing.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='FlowGravityForcing.cpp' object='nwt_cylinder-FlowGravityForcing.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -c -o nwt_cylinder-FlowGravityForcing.o `test -f 'FlowGravityForcing.cpp' || echo '$(srcdir)/'`FlowGravityForcing.cpp
-
-nwt_cylinder-FlowGravityForcing.obj: FlowGravityForcing.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -MT nwt_cylinder-FlowGravityForcing.obj -MD -MP -MF $(DEPDIR)/nwt_cylinder-FlowGravityForcing.Tpo -c -o nwt_cylinder-FlowGravityForcing.obj `if test -f 'FlowGravityForcing.cpp'; then $(CYGPATH_W) 'FlowGravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/FlowGravityForcing.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nwt_cylinder-FlowGravityForcing.Tpo $(DEPDIR)/nwt_cylinder-FlowGravityForcing.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='FlowGravityForcing.cpp' object='nwt_cylinder-FlowGravityForcing.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -c -o nwt_cylinder-FlowGravityForcing.obj `if test -f 'FlowGravityForcing.cpp'; then $(CYGPATH_W) 'FlowGravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/FlowGravityForcing.cpp'; fi`
-
-nwt_cylinder-SetFluidGasSolidDensity.o: SetFluidGasSolidDensity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -MT nwt_cylinder-SetFluidGasSolidDensity.o -MD -MP -MF $(DEPDIR)/nwt_cylinder-SetFluidGasSolidDensity.Tpo -c -o nwt_cylinder-SetFluidGasSolidDensity.o `test -f 'SetFluidGasSolidDensity.cpp' || echo '$(srcdir)/'`SetFluidGasSolidDensity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nwt_cylinder-SetFluidGasSolidDensity.Tpo $(DEPDIR)/nwt_cylinder-SetFluidGasSolidDensity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidGasSolidDensity.cpp' object='nwt_cylinder-SetFluidGasSolidDensity.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -c -o nwt_cylinder-SetFluidGasSolidDensity.o `test -f 'SetFluidGasSolidDensity.cpp' || echo '$(srcdir)/'`SetFluidGasSolidDensity.cpp
-
-nwt_cylinder-SetFluidGasSolidDensity.obj: SetFluidGasSolidDensity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -MT nwt_cylinder-SetFluidGasSolidDensity.obj -MD -MP -MF $(DEPDIR)/nwt_cylinder-SetFluidGasSolidDensity.Tpo -c -o nwt_cylinder-SetFluidGasSolidDensity.obj `if test -f 'SetFluidGasSolidDensity.cpp'; then $(CYGPATH_W) 'SetFluidGasSolidDensity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidGasSolidDensity.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nwt_cylinder-SetFluidGasSolidDensity.Tpo $(DEPDIR)/nwt_cylinder-SetFluidGasSolidDensity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidGasSolidDensity.cpp' object='nwt_cylinder-SetFluidGasSolidDensity.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -c -o nwt_cylinder-SetFluidGasSolidDensity.obj `if test -f 'SetFluidGasSolidDensity.cpp'; then $(CYGPATH_W) 'SetFluidGasSolidDensity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidGasSolidDensity.cpp'; fi`
-
-nwt_cylinder-SetLSProperties.o: SetLSProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -MT nwt_cylinder-SetLSProperties.o -MD -MP -MF $(DEPDIR)/nwt_cylinder-SetLSProperties.Tpo -c -o nwt_cylinder-SetLSProperties.o `test -f 'SetLSProperties.cpp' || echo '$(srcdir)/'`SetLSProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nwt_cylinder-SetLSProperties.Tpo $(DEPDIR)/nwt_cylinder-SetLSProperties.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetLSProperties.cpp' object='nwt_cylinder-SetLSProperties.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -c -o nwt_cylinder-SetLSProperties.o `test -f 'SetLSProperties.cpp' || echo '$(srcdir)/'`SetLSProperties.cpp
-
-nwt_cylinder-SetLSProperties.obj: SetLSProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -MT nwt_cylinder-SetLSProperties.obj -MD -MP -MF $(DEPDIR)/nwt_cylinder-SetLSProperties.Tpo -c -o nwt_cylinder-SetLSProperties.obj `if test -f 'SetLSProperties.cpp'; then $(CYGPATH_W) 'SetLSProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetLSProperties.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nwt_cylinder-SetLSProperties.Tpo $(DEPDIR)/nwt_cylinder-SetLSProperties.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetLSProperties.cpp' object='nwt_cylinder-SetLSProperties.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -c -o nwt_cylinder-SetLSProperties.obj `if test -f 'SetLSProperties.cpp'; then $(CYGPATH_W) 'SetLSProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetLSProperties.cpp'; fi`
-
 nwt_cylinder-nwt_cylinder.o: nwt_cylinder.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -MT nwt_cylinder-nwt_cylinder.o -MD -MP -MF $(DEPDIR)/nwt_cylinder-nwt_cylinder.Tpo -c -o nwt_cylinder-nwt_cylinder.o `test -f 'nwt_cylinder.cpp' || echo '$(srcdir)/'`nwt_cylinder.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nwt_cylinder-nwt_cylinder.Tpo $(DEPDIR)/nwt_cylinder-nwt_cylinder.Po
@@ -621,48 +557,6 @@ nwt_cylinder-nwt_cylinder.obj: nwt_cylinder.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='nwt_cylinder.cpp' object='nwt_cylinder-nwt_cylinder.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -c -o nwt_cylinder-nwt_cylinder.obj `if test -f 'nwt_cylinder.cpp'; then $(CYGPATH_W) 'nwt_cylinder.cpp'; else $(CYGPATH_W) '$(srcdir)/nwt_cylinder.cpp'; fi`
-
-nwt_cylinder-LSLocateGasInterface.o: LSLocateGasInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -MT nwt_cylinder-LSLocateGasInterface.o -MD -MP -MF $(DEPDIR)/nwt_cylinder-LSLocateGasInterface.Tpo -c -o nwt_cylinder-LSLocateGasInterface.o `test -f 'LSLocateGasInterface.cpp' || echo '$(srcdir)/'`LSLocateGasInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nwt_cylinder-LSLocateGasInterface.Tpo $(DEPDIR)/nwt_cylinder-LSLocateGasInterface.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LSLocateGasInterface.cpp' object='nwt_cylinder-LSLocateGasInterface.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -c -o nwt_cylinder-LSLocateGasInterface.o `test -f 'LSLocateGasInterface.cpp' || echo '$(srcdir)/'`LSLocateGasInterface.cpp
-
-nwt_cylinder-LSLocateGasInterface.obj: LSLocateGasInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -MT nwt_cylinder-LSLocateGasInterface.obj -MD -MP -MF $(DEPDIR)/nwt_cylinder-LSLocateGasInterface.Tpo -c -o nwt_cylinder-LSLocateGasInterface.obj `if test -f 'LSLocateGasInterface.cpp'; then $(CYGPATH_W) 'LSLocateGasInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateGasInterface.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nwt_cylinder-LSLocateGasInterface.Tpo $(DEPDIR)/nwt_cylinder-LSLocateGasInterface.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LSLocateGasInterface.cpp' object='nwt_cylinder-LSLocateGasInterface.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -c -o nwt_cylinder-LSLocateGasInterface.obj `if test -f 'LSLocateGasInterface.cpp'; then $(CYGPATH_W) 'LSLocateGasInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateGasInterface.cpp'; fi`
-
-nwt_cylinder-SetFluidGasSolidViscosity.o: SetFluidGasSolidViscosity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -MT nwt_cylinder-SetFluidGasSolidViscosity.o -MD -MP -MF $(DEPDIR)/nwt_cylinder-SetFluidGasSolidViscosity.Tpo -c -o nwt_cylinder-SetFluidGasSolidViscosity.o `test -f 'SetFluidGasSolidViscosity.cpp' || echo '$(srcdir)/'`SetFluidGasSolidViscosity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nwt_cylinder-SetFluidGasSolidViscosity.Tpo $(DEPDIR)/nwt_cylinder-SetFluidGasSolidViscosity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidGasSolidViscosity.cpp' object='nwt_cylinder-SetFluidGasSolidViscosity.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -c -o nwt_cylinder-SetFluidGasSolidViscosity.o `test -f 'SetFluidGasSolidViscosity.cpp' || echo '$(srcdir)/'`SetFluidGasSolidViscosity.cpp
-
-nwt_cylinder-SetFluidGasSolidViscosity.obj: SetFluidGasSolidViscosity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -MT nwt_cylinder-SetFluidGasSolidViscosity.obj -MD -MP -MF $(DEPDIR)/nwt_cylinder-SetFluidGasSolidViscosity.Tpo -c -o nwt_cylinder-SetFluidGasSolidViscosity.obj `if test -f 'SetFluidGasSolidViscosity.cpp'; then $(CYGPATH_W) 'SetFluidGasSolidViscosity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidGasSolidViscosity.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nwt_cylinder-SetFluidGasSolidViscosity.Tpo $(DEPDIR)/nwt_cylinder-SetFluidGasSolidViscosity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidGasSolidViscosity.cpp' object='nwt_cylinder-SetFluidGasSolidViscosity.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -c -o nwt_cylinder-SetFluidGasSolidViscosity.obj `if test -f 'SetFluidGasSolidViscosity.cpp'; then $(CYGPATH_W) 'SetFluidGasSolidViscosity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidGasSolidViscosity.cpp'; fi`
-
-nwt_cylinder-TagLSRefinementCells.o: TagLSRefinementCells.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -MT nwt_cylinder-TagLSRefinementCells.o -MD -MP -MF $(DEPDIR)/nwt_cylinder-TagLSRefinementCells.Tpo -c -o nwt_cylinder-TagLSRefinementCells.o `test -f 'TagLSRefinementCells.cpp' || echo '$(srcdir)/'`TagLSRefinementCells.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nwt_cylinder-TagLSRefinementCells.Tpo $(DEPDIR)/nwt_cylinder-TagLSRefinementCells.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagLSRefinementCells.cpp' object='nwt_cylinder-TagLSRefinementCells.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -c -o nwt_cylinder-TagLSRefinementCells.o `test -f 'TagLSRefinementCells.cpp' || echo '$(srcdir)/'`TagLSRefinementCells.cpp
-
-nwt_cylinder-TagLSRefinementCells.obj: TagLSRefinementCells.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -MT nwt_cylinder-TagLSRefinementCells.obj -MD -MP -MF $(DEPDIR)/nwt_cylinder-TagLSRefinementCells.Tpo -c -o nwt_cylinder-TagLSRefinementCells.obj `if test -f 'TagLSRefinementCells.cpp'; then $(CYGPATH_W) 'TagLSRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagLSRefinementCells.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nwt_cylinder-TagLSRefinementCells.Tpo $(DEPDIR)/nwt_cylinder-TagLSRefinementCells.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagLSRefinementCells.cpp' object='nwt_cylinder-TagLSRefinementCells.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -c -o nwt_cylinder-TagLSRefinementCells.obj `if test -f 'TagLSRefinementCells.cpp'; then $(CYGPATH_W) 'TagLSRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagLSRefinementCells.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -795,13 +689,7 @@ clean: clean-am
 clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/nwt_cylinder-FlowGravityForcing.Po
-	-rm -f ./$(DEPDIR)/nwt_cylinder-LSLocateGasInterface.Po
-	-rm -f ./$(DEPDIR)/nwt_cylinder-SetFluidGasSolidDensity.Po
-	-rm -f ./$(DEPDIR)/nwt_cylinder-SetFluidGasSolidViscosity.Po
-	-rm -f ./$(DEPDIR)/nwt_cylinder-SetLSProperties.Po
-	-rm -f ./$(DEPDIR)/nwt_cylinder-TagLSRefinementCells.Po
-	-rm -f ./$(DEPDIR)/nwt_cylinder-nwt_cylinder.Po
+		-rm -f ./$(DEPDIR)/nwt_cylinder-nwt_cylinder.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -847,13 +735,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/nwt_cylinder-FlowGravityForcing.Po
-	-rm -f ./$(DEPDIR)/nwt_cylinder-LSLocateGasInterface.Po
-	-rm -f ./$(DEPDIR)/nwt_cylinder-SetFluidGasSolidDensity.Po
-	-rm -f ./$(DEPDIR)/nwt_cylinder-SetFluidGasSolidViscosity.Po
-	-rm -f ./$(DEPDIR)/nwt_cylinder-SetLSProperties.Po
-	-rm -f ./$(DEPDIR)/nwt_cylinder-TagLSRefinementCells.Po
-	-rm -f ./$(DEPDIR)/nwt_cylinder-nwt_cylinder.Po
+		-rm -f ./$(DEPDIR)/nwt_cylinder-nwt_cylinder.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

@@ -40,6 +40,8 @@
 // Applications
 #include "SetFluidProperties.h"
 
+#include "SetFluidProperties.cpp"
+
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> ins_integrator,

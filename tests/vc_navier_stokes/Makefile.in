@@ -121,8 +121,7 @@ CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am_vc_navier_stokes_01_2d_OBJECTS =  \
-	vc_navier_stokes_01_2d-vc_navier_stokes_01.$(OBJEXT) \
-	vc_navier_stokes_01_2d-SetFluidProperties.$(OBJEXT)
+	vc_navier_stokes_01_2d-vc_navier_stokes_01.$(OBJEXT)
 vc_navier_stokes_01_2d_OBJECTS = $(am_vc_navier_stokes_01_2d_OBJECTS)
 vc_navier_stokes_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -134,8 +133,7 @@ vc_navier_stokes_01_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(vc_navier_stokes_01_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 am_vc_navier_stokes_01_3d_OBJECTS =  \
-	vc_navier_stokes_01_3d-vc_navier_stokes_01.$(OBJEXT) \
-	vc_navier_stokes_01_3d-SetFluidProperties.$(OBJEXT)
+	vc_navier_stokes_01_3d-vc_navier_stokes_01.$(OBJEXT)
 vc_navier_stokes_01_3d_OBJECTS = $(am_vc_navier_stokes_01_3d_OBJECTS)
 vc_navier_stokes_01_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 vc_navier_stokes_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
@@ -158,9 +156,7 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade =  \
-	./$(DEPDIR)/vc_navier_stokes_01_2d-SetFluidProperties.Po \
 	./$(DEPDIR)/vc_navier_stokes_01_2d-vc_navier_stokes_01.Po \
-	./$(DEPDIR)/vc_navier_stokes_01_3d-SetFluidProperties.Po \
 	./$(DEPDIR)/vc_navier_stokes_01_3d-vc_navier_stokes_01.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -478,10 +474,10 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 vc_navier_stokes_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
 vc_navier_stokes_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-vc_navier_stokes_01_2d_SOURCES = vc_navier_stokes_01.cpp SetFluidProperties.cpp
+vc_navier_stokes_01_2d_SOURCES = vc_navier_stokes_01.cpp
 vc_navier_stokes_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3 -DSOURCE_DIR=\"$(abs_srcdir)\"
 vc_navier_stokes_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-vc_navier_stokes_01_3d_SOURCES = vc_navier_stokes_01.cpp SetFluidProperties.cpp
+vc_navier_stokes_01_3d_SOURCES = vc_navier_stokes_01.cpp
 all: all-am
 
 .SUFFIXES:
@@ -531,9 +527,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vc_navier_stokes_01_2d-SetFluidProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vc_navier_stokes_01_2d-vc_navier_stokes_01.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vc_navier_stokes_01_3d-SetFluidProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vc_navier_stokes_01_3d-vc_navier_stokes_01.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -580,20 +574,6 @@ vc_navier_stokes_01_2d-vc_navier_stokes_01.obj: vc_navier_stokes_01.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_navier_stokes_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o vc_navier_stokes_01_2d-vc_navier_stokes_01.obj `if test -f 'vc_navier_stokes_01.cpp'; then $(CYGPATH_W) 'vc_navier_stokes_01.cpp'; else $(CYGPATH_W) '$(srcdir)/vc_navier_stokes_01.cpp'; fi`
 
-vc_navier_stokes_01_2d-SetFluidProperties.o: SetFluidProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_navier_stokes_01_2d_CXXFLAGS) $(CXXFLAGS) -MT vc_navier_stokes_01_2d-SetFluidProperties.o -MD -MP -MF $(DEPDIR)/vc_navier_stokes_01_2d-SetFluidProperties.Tpo -c -o vc_navier_stokes_01_2d-SetFluidProperties.o `test -f 'SetFluidProperties.cpp' || echo '$(srcdir)/'`SetFluidProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/vc_navier_stokes_01_2d-SetFluidProperties.Tpo $(DEPDIR)/vc_navier_stokes_01_2d-SetFluidProperties.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidProperties.cpp' object='vc_navier_stokes_01_2d-SetFluidProperties.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_navier_stokes_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o vc_navier_stokes_01_2d-SetFluidProperties.o `test -f 'SetFluidProperties.cpp' || echo '$(srcdir)/'`SetFluidProperties.cpp
-
-vc_navier_stokes_01_2d-SetFluidProperties.obj: SetFluidProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_navier_stokes_01_2d_CXXFLAGS) $(CXXFLAGS) -MT vc_navier_stokes_01_2d-SetFluidProperties.obj -MD -MP -MF $(DEPDIR)/vc_navier_stokes_01_2d-SetFluidProperties.Tpo -c -o vc_navier_stokes_01_2d-SetFluidProperties.obj `if test -f 'SetFluidProperties.cpp'; then $(CYGPATH_W) 'SetFluidProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidProperties.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/vc_navier_stokes_01_2d-SetFluidProperties.Tpo $(DEPDIR)/vc_navier_stokes_01_2d-SetFluidProperties.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidProperties.cpp' object='vc_navier_stokes_01_2d-SetFluidProperties.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_navier_stokes_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o vc_navier_stokes_01_2d-SetFluidProperties.obj `if test -f 'SetFluidProperties.cpp'; then $(CYGPATH_W) 'SetFluidProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidProperties.cpp'; fi`
-
 vc_navier_stokes_01_3d-vc_navier_stokes_01.o: vc_navier_stokes_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_navier_stokes_01_3d_CXXFLAGS) $(CXXFLAGS) -MT vc_navier_stokes_01_3d-vc_navier_stokes_01.o -MD -MP -MF $(DEPDIR)/vc_navier_stokes_01_3d-vc_navier_stokes_01.Tpo -c -o vc_navier_stokes_01_3d-vc_navier_stokes_01.o `test -f 'vc_navier_stokes_01.cpp' || echo '$(srcdir)/'`vc_navier_stokes_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/vc_navier_stokes_01_3d-vc_navier_stokes_01.Tpo $(DEPDIR)/vc_navier_stokes_01_3d-vc_navier_stokes_01.Po
@@ -607,20 +587,6 @@ vc_navier_stokes_01_3d-vc_navier_stokes_01.obj: vc_navier_stokes_01.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='vc_navier_stokes_01.cpp' object='vc_navier_stokes_01_3d-vc_navier_stokes_01.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_navier_stokes_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o vc_navier_stokes_01_3d-vc_navier_stokes_01.obj `if test -f 'vc_navier_stokes_01.cpp'; then $(CYGPATH_W) 'vc_navier_stokes_01.cpp'; else $(CYGPATH_W) '$(srcdir)/vc_navier_stokes_01.cpp'; fi`
-
-vc_navier_stokes_01_3d-SetFluidProperties.o: SetFluidProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_navier_stokes_01_3d_CXXFLAGS) $(CXXFLAGS) -MT vc_navier_stokes_01_3d-SetFluidProperties.o -MD -MP -MF $(DEPDIR)/vc_navier_stokes_01_3d-SetFluidProperties.Tpo -c -o vc_navier_stokes_01_3d-SetFluidProperties.o `test -f 'SetFluidProperties.cpp' || echo '$(srcdir)/'`SetFluidProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/vc_navier_stokes_01_3d-SetFluidProperties.Tpo $(DEPDIR)/vc_navier_stokes_01_3d-SetFluidProperties.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidProperties.cpp' object='vc_navier_stokes_01_3d-SetFluidProperties.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_navier_stokes_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o vc_navier_stokes_01_3d-SetFluidProperties.o `test -f 'SetFluidProperties.cpp' || echo '$(srcdir)/'`SetFluidProperties.cpp
-
-vc_navier_stokes_01_3d-SetFluidProperties.obj: SetFluidProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_navier_stokes_01_3d_CXXFLAGS) $(CXXFLAGS) -MT vc_navier_stokes_01_3d-SetFluidProperties.obj -MD -MP -MF $(DEPDIR)/vc_navier_stokes_01_3d-SetFluidProperties.Tpo -c -o vc_navier_stokes_01_3d-SetFluidProperties.obj `if test -f 'SetFluidProperties.cpp'; then $(CYGPATH_W) 'SetFluidProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidProperties.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/vc_navier_stokes_01_3d-SetFluidProperties.Tpo $(DEPDIR)/vc_navier_stokes_01_3d-SetFluidProperties.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidProperties.cpp' object='vc_navier_stokes_01_3d-SetFluidProperties.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_navier_stokes_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o vc_navier_stokes_01_3d-SetFluidProperties.obj `if test -f 'SetFluidProperties.cpp'; then $(CYGPATH_W) 'SetFluidProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidProperties.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -753,9 +719,7 @@ clean: clean-am
 clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/vc_navier_stokes_01_2d-SetFluidProperties.Po
-	-rm -f ./$(DEPDIR)/vc_navier_stokes_01_2d-vc_navier_stokes_01.Po
-	-rm -f ./$(DEPDIR)/vc_navier_stokes_01_3d-SetFluidProperties.Po
+		-rm -f ./$(DEPDIR)/vc_navier_stokes_01_2d-vc_navier_stokes_01.Po
 	-rm -f ./$(DEPDIR)/vc_navier_stokes_01_3d-vc_navier_stokes_01.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -802,9 +766,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/vc_navier_stokes_01_2d-SetFluidProperties.Po
-	-rm -f ./$(DEPDIR)/vc_navier_stokes_01_2d-vc_navier_stokes_01.Po
-	-rm -f ./$(DEPDIR)/vc_navier_stokes_01_3d-SetFluidProperties.Po
+		-rm -f ./$(DEPDIR)/vc_navier_stokes_01_2d-vc_navier_stokes_01.Po
 	-rm -f ./$(DEPDIR)/vc_navier_stokes_01_3d-vc_navier_stokes_01.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
