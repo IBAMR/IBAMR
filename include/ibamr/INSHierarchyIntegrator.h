@@ -146,7 +146,20 @@ public:
 
     /*!
      * Supply a physical boundary conditions specificaion for the velocity
-     * field.
+     * field. Boundary conditions take the form of \f$ a\mathbf{u} + b\tau\cdot\mathbf{n} = \mathbf{g}\f$ where \f$\tau
+     * = -p\mathbf{I} + \frac{\mu}{2}\left(\nabla\mathbf{u} + \nabla\mathbf{u}^T\right)\f$ is the Newtonian fluid
+     * stress and \f$\mu\f$ is the fluid viscosity.
+     *
+     * \note Periodic boundaries take presidence over physical boundaries.
+     * The type of boundary can be adjusted through the `CartesianGeometry` database in the
+     * input file, specifically with the flag `periodic_dimension`.
+     *
+     * \note Current implementations of physical boundary conditions require
+     * that at any physical location the values of \f$ a\f$ and \f$ b \f$
+     * stasify that either \f$ a = 1 \f$ or \f$b = 1\f$ as well as
+     * \f$a + b = 1\f$. An error will occur if this does not happen.
+     *
+     * \see IBTK::muParserRobinBcCoefs
      */
     void registerPhysicalBoundaryConditions(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
 
