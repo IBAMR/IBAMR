@@ -19,7 +19,7 @@ PressureInitialConditions {function = "42.0"}
 IBHierarchyIntegrator {}
 IBFEMethod {
 enable_logging = FALSE
-IB_use_nodal_quadrature = TRUE
+interp_use_nodal_quadrature = TRUE
 }
 
 INSStaggeredHierarchyIntegrator {

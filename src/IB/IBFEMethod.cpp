@@ -2975,6 +2975,30 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
         d_default_spread_spec.use_adaptive_quadrature = false;
     }
 
+    // TODO: its known that spreading with hanging nodes and nodal quadrature
+    // doesn't currently work. Error out if there are active elements on
+    // different levels.
+    if (d_default_spread_spec.use_nodal_quadrature)
+    {
+        std::set<int> active_elem_levels;
+        for (const MeshBase* mesh : d_meshes)
+        {
+            MeshBase::const_element_iterator el_it = mesh->active_elements_begin();
+            const MeshBase::const_element_iterator el_end = mesh->elements_end();
+            for (; el_it != el_end; ++el_it)
+            {
+                active_elem_levels.insert((*el_it)->level());
+            }
+            if (active_elem_levels.size() != 1)
+            {
+                TBOX_ERROR(d_object_name << ": At the current time hanging nodes cannot be used "
+                                            "with nodal quadrature and spreading since the "
+                                            "implementation has unresolved bugs."
+                                         << std::endl);
+            }
+        }
+    }
+
     if (db->isString("spread_quad_type"))
         d_default_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("spread_quad_type"));
     else if (db->isString("IB_quad_type"))
