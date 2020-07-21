@@ -66,7 +66,28 @@ public:
     buildL2ProjectionSolver(const std::string& system_name);
 
     /*!
+     * \return Pointers to a linear solver and sparse matrix corresponding to a
+     * L2 projection operator generated with mass lumping. This system will be
+     * diagonal if the finite element field does not have any hanging nodes:
+     * i.e., the difference between this function and buildDiagonalL2MassMatrix
+     * is that this function assembles the mass matrix while imposing
+     * constraints.
+     *
+     * For more information on the algorithm used to generate the (nearly)
+     * diagonal matrix see 'A note on mass lumping and related processes in the
+     * finite element method', Hinton, 1976.
+     */
+    std::pair<libMesh::PetscLinearSolver<double>*, libMesh::PetscMatrix<double>*>
+    buildLumpedL2ProjectionSolver(const std::string& system_name);
+
+    /*!
      * \return Pointer to vector representation of diagonal L2 mass matrix.
+     * Unlike buildLumpedL2ProjectionSolver this matrix is always diagonal and
+     * is always assembled without applying constraints.
+     *
+     * For more information on the algorithm used to generate the diagonal
+     * matrix see 'A note on mass lumping and related processes in the finite
+     * element method', Hinton, 1976.
      */
     libMesh::PetscVector<double>* buildDiagonalL2MassMatrix(const std::string& system_name);
 
@@ -105,7 +126,16 @@ protected:
     std::map<std::string, std::unique_ptr<libMesh::PetscMatrix<double> > > d_L2_proj_matrix;
     std::map<std::string, std::unique_ptr<libMesh::PetscLinearSolver<double> > > d_L2_proj_solver;
 
-    /// Data structures for lumped (diagonal) mass matrices and related solvers.
+    /// Data structures for lumped mass matrices. These are computed in the same
+    /// way as the normal mass matrix, except the quadrature rule used to
+    /// compute matrix entries has it's points at the finite element nodes: i.e.,
+    /// in the absence of constraints, the matrix is diagonal.
+    ///
+    /// Here we refer to the unconstrained matrix (which is always diagonal) as
+    /// proj_matrix_diag and the constrained (should there be contraints) matrix
+    /// as lumped_L2_proj_matrix.
+    std::map<std::string, std::unique_ptr<libMesh::PetscMatrix<double> > > d_lumped_L2_proj_matrix;
+    std::map<std::string, std::unique_ptr<libMesh::PetscLinearSolver<double> > > d_lumped_L2_proj_solver;
     std::map<std::string, std::unique_ptr<libMesh::PetscVector<double> > > d_L2_proj_matrix_diag;
 
 private:
