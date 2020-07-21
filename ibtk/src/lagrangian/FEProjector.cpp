@@ -39,6 +39,28 @@ static Timer* t_build_l2_projection_solver;
 static Timer* t_build_diagonal_l2_mass_matrix;
 static Timer* t_compute_l2_projection;
 
+// Remove entries that are due to roundoff in an element mass matrix.
+inline void
+prune_roundoff_entries(DenseMatrix<double>& M_e)
+{
+    // find the smallest diagonal entry:
+    double min_diagonal_entry = std::numeric_limits<double>::max();
+    for (unsigned int i = 0; i < std::min(M_e.m(), M_e.n()); ++i)
+    {
+        min_diagonal_entry = std::min(M_e(i, i), min_diagonal_entry);
+    }
+    // filter everything less than 1e-12 * that entry:
+    for (unsigned int i = 0; i < M_e.m(); ++i)
+    {
+        for (unsigned int j = 0; j < M_e.n(); ++j)
+        {
+            // keep the main diagonal
+            if (i == j) continue;
+            if (std::abs(M_e(i, j)) < 1e-12 * min_diagonal_entry) M_e(i, j) = 0.0;
+        }
+    }
+}
+
 inline boundary_id_type
 get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
 {
@@ -124,6 +146,9 @@ FEProjector::buildL2ProjectionSolver(const std::string& system_name)
         std::unique_ptr<PetscMatrix<double> > M_mat(new PetscMatrix<double>(comm));
         M_mat->attach_dof_map(dof_map);
         M_mat->init();
+        MatSetOption(M_mat->mat(), MAT_IGNORE_ZERO_ENTRIES, PETSC_TRUE);
+        MatSetOption(M_mat->mat(), MAT_SPD, PETSC_TRUE);
+        MatSetOption(M_mat->mat(), MAT_SYMMETRY_ETERNAL, PETSC_TRUE);
 
         // Loop over the mesh to construct the system matrix.
         DenseMatrix<double> M_e;
@@ -156,6 +181,7 @@ FEProjector::buildL2ProjectionSolver(const std::string& system_name)
                 dof_map.constrain_element_matrix(M_e,
                                                  dof_id_scratch,
                                                  /*assymetric_constraint_rows*/ false);
+                prune_roundoff_entries(M_e);
                 M_mat->add_matrix(M_e, dof_id_scratch);
             }
         }
@@ -351,6 +377,9 @@ FEProjector::buildLumpedL2ProjectionSolver(const std::string& system_name)
         std::unique_ptr<PetscMatrix<double> > M_mat(new PetscMatrix<double>(comm));
         M_mat->attach_dof_map(dof_map);
         M_mat->init();
+        MatSetOption(M_mat->mat(), MAT_IGNORE_ZERO_ENTRIES, PETSC_TRUE);
+        MatSetOption(M_mat->mat(), MAT_SPD, PETSC_TRUE);
+        MatSetOption(M_mat->mat(), MAT_SYMMETRY_ETERNAL, PETSC_TRUE);
 
         DenseMatrix<double> M_e;
         DenseMatrix<double> M_e_diagonal;
@@ -394,6 +423,7 @@ FEProjector::buildLumpedL2ProjectionSolver(const std::string& system_name)
                 dof_map.constrain_element_matrix(M_e_diagonal,
                                                  dof_id_scratch,
                                                  /*assymetric_constraint_rows*/ false);
+                prune_roundoff_entries(M_e_diagonal);
                 M_mat->add_matrix(M_e_diagonal, dof_id_scratch);
             }
         }
