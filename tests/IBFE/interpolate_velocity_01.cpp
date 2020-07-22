@@ -43,6 +43,7 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/FEProjector.h>
 #include <ibtk/StableCentroidPartitioner.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -166,7 +167,17 @@ main(int argc, char** argv)
 
         // we want R/2^n_refinements = dx so that we have roughly equal spacing for both elements and cells
         const int n_refinements = int(std::log2(R / dx));
-        MeshTools::Generation::build_sphere(mesh, R, n_refinements, Utility::string_to_enum<ElemType>(elem_type), 10);
+        if (elem_type == "TET4" || elem_type == "TET10")
+        {
+            const int n_cells = std::ceil(R / dx);
+            MeshTools::Generation::build_cube(
+                mesh, n_cells, n_cells, n_cells, -R, R, -R, R, -R, R, Utility::string_to_enum<ElemType>(elem_type));
+        }
+        else
+        {
+            MeshTools::Generation::build_sphere(
+                mesh, R, n_refinements, Utility::string_to_enum<ElemType>(elem_type), 10);
+        }
         mesh.prepare_for_use();
 
         MeshRefinement mesh_refinement(mesh);
@@ -398,6 +409,15 @@ main(int argc, char** argv)
                 plog << max_norm_errors[i] << "   ";
             }
             plog << max_norm_errors[n_vars - 1] << std::endl;
+
+            // For testing purposes its sometimes useful to look at the diagonal
+            // mass matrix
+            if (input_db->getBoolWithDefault("print_diagonal_mass_matrix", false))
+            {
+                FEProjector fe_projector(equation_systems);
+                PetscVector<double>& diagonal_mass = *fe_projector.buildDiagonalL2MassMatrix(velocity_system.name());
+                diagonal_mass.print_global(plog);
+            }
         }
     } // cleanup dynamically allocated objects prior to shutdown
 
