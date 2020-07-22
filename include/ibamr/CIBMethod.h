@@ -86,6 +86,16 @@ class CIBMethod : public IBAMR::IBMethod, public IBAMR::CIBStrategy
 {
 public:
     /*!
+     * Explicitly use the other overload of this function from the base class.
+     */
+    using CIBStrategy::setRigidBodyVelocity;
+
+    /*!
+     * Explicitly use the other overloads of this function from the base class.
+     */
+    using CIBStrategy::computeNetRigidGeneralizedForce;
+
+    /*!
      * \brief Constructor of the class.
      */
     CIBMethod(std::string object_name,
