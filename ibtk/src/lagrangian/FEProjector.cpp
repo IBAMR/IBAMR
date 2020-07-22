@@ -291,32 +291,15 @@ FEProjector::buildDiagonalL2MassMatrix(const std::string& system_name)
                     M_e_vec(i) = vol * M_e(i, i) / tr_M;
                 }
 
-                // We explicitly do *not* apply constraints in this function
-                // for two reasons:
-                //
-                // 1. Since we have a diagonal matrix no DoF is coupled to any
-                //    other DoF: therefore constraints aren't necessary.
-                // 2. We want to explicitly ignore constraints in the case
-                //    of periodic boundary conditions. This is because we want
-                //    to calculate volume of the elements containing a
-                //    node. For example: if we had a periodic dof X which
-                //    should be equal to a periodic dof Y with the following
-                //    geometry:
-                //
-                //    +---+                 +----------+
-                //    |   |                 |          |
-                //    X---+   (etc)         +----------Y
-                //    |   |                 |          |
-                //    +---+                 +----------+
-                //
-                //    then we would still want to have the entry in the mass
-                //    matrix corresponding to X be the volume of the two cells
-                //    on which its shape function has support, and we would
-                //    want the entry in the mass matrix corresponding to Y to
-                //    have the same property. Clearly, these values should not
-                //    be equal - in fact, the periodic constraints are totally
-                //    irrelevant to what we are trying to compute in the first
-                //    place.
+                // We explicitly do *not* apply constraints because applying
+                // constraints would make this operator nondiagonal. In
+                // particular, we still want to compute the right quadrature
+                // value of shape functions regardless of whether or not they
+                // are constrained (e.g., periodic or hanging node dofs). This
+                // is because we use the values in this vector to compute values
+                // for spread forces and other places where we already have a
+                // finite element solution vector and are not solving a linear
+                // system.
                 M_vec->add_vector(M_e_vec, dof_indices[var_num]);
             }
         }
