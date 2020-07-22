@@ -29,7 +29,7 @@
 
 void
 callSetFluidGasSolidDensityCallbackFunction(int rho_idx,
-                                            Pointer<Variable<NDIM> > rho_var,
+                                            Pointer<hier::Variable<NDIM> > rho_var,
                                             Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                             const int cycle_num,
                                             const double time,
@@ -87,7 +87,7 @@ SetFluidGasSolidDensity::~SetFluidGasSolidDensity()
 
 void
 SetFluidGasSolidDensity::setDensityPatchData(int rho_idx,
-                                             Pointer<Variable<NDIM> > rho_var,
+                                             Pointer<hier::Variable<NDIM> > rho_var,
                                              Pointer<HierarchyMathOps> hier_math_ops,
                                              const int /*cycle_num*/,
                                              const double time,

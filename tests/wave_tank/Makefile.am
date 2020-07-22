@@ -22,8 +22,7 @@ if LIBMESH_ENABLED
 # this test needs some extra input files, so make SOURCE_DIR available:
 nwt_cylinder_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
 nwt_cylinder_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-nwt_cylinder_SOURCES = FlowGravityForcing.cpp  SetFluidGasSolidDensity.cpp \
-SetLSProperties.cpp nwt_cylinder.cpp LSLocateGasInterface.cpp SetFluidGasSolidViscosity.cpp TagLSRefinementCells.cpp
+nwt_cylinder_SOURCES = nwt_cylinder.cpp
 endif
 
 tests: $(EXTRA_PROGRAMS)

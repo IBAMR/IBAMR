@@ -29,7 +29,7 @@
 
 void
 callSetFluidGasSolidViscosityCallbackFunction(int mu_idx,
-                                              Pointer<Variable<NDIM> > mu_var,
+                                              Pointer<hier::Variable<NDIM> > mu_var,
                                               Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                               const int cycle_num,
                                               const double time,
@@ -84,7 +84,7 @@ SetFluidGasSolidViscosity::~SetFluidGasSolidViscosity()
 
 void
 SetFluidGasSolidViscosity::setViscosityPatchData(int mu_idx,
-                                                 Pointer<Variable<NDIM> > mu_var,
+                                                 Pointer<hier::Variable<NDIM> > mu_var,
                                                  Pointer<HierarchyMathOps> hier_math_ops,
                                                  const int /*cycle_num*/,
                                                  const double time,
