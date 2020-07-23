@@ -25,6 +25,8 @@
 #include <libmesh/boundary_info.h>
 #include <libmesh/dof_map.h>
 #include <libmesh/elem.h>
+#include <libmesh/enum_preconditioner_type.h>
+#include <libmesh/enum_solver_type.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -141,7 +143,6 @@ FEProjector::buildL2ProjectionSolver(const std::string& system_name)
 
         // Build solver components.
         std::unique_ptr<PetscLinearSolver<double> > solver(new PetscLinearSolver<double>(comm));
-        solver->init();
 
         std::unique_ptr<PetscMatrix<double> > M_mat(new PetscMatrix<double>(comm));
         M_mat->attach_dof_map(dof_map);
@@ -237,6 +238,9 @@ FEProjector::buildL2ProjectionSolver(const std::string& system_name)
 
         // Setup the solver.
         solver->reuse_preconditioner(true);
+        solver->set_preconditioner_type(JACOBI_PRECOND);
+        solver->set_solver_type(MINRES);
+        solver->init();
 
         // Store the solver, mass matrix, and configuration options.
         d_L2_proj_solver[system_name] = std::move(solver);
@@ -477,6 +481,8 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
     {
         std::pair<PetscLinearSolver<double>*, PetscMatrix<double>*> proj_solver_components =
             consistent_mass_matrix ? buildL2ProjectionSolver(system_name) : buildLumpedL2ProjectionSolver(system_name);
+        // always use the lumped matrix as the preconditioner:
+        PetscMatrix<double>& lumped_mass = *buildLumpedL2ProjectionSolver(system_name).second;
         PetscLinearSolver<double>* solver = proj_solver_components.first;
         PetscMatrix<double>* M_mat = proj_solver_components.second;
         PetscBool rtol_set;
@@ -490,7 +496,7 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
         ierr = KSPSetFromOptions(solver->ksp());
         IBTK_CHKERRQ(ierr);
         solver->solve(
-            *M_mat, *M_mat, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
+            *M_mat, lumped_mass, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
         KSPConvergedReason reason;
         ierr = KSPGetConvergedReason(solver->ksp(), &reason);
         IBTK_CHKERRQ(ierr);
