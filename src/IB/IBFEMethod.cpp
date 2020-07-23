@@ -633,13 +633,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     std::vector<PetscVector<double>*> vecs_for_second_summation;
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
-        // If we use nodal quadrature then we do not need to use constraints
-        // when setting up the linear system since no dof depends on any other
-        // dof. Hence constraints do not effect the RHS and we can skip this
-        // step. Note that we unconditionally impose constraints after we
-        // solve the linear system, regardless of the type of quadrature we
-        // used - see FEProjector::computeL2Projection().
-        if (d_part_is_active[part] && !d_interp_spec[part].use_nodal_quadrature)
+        if (d_part_is_active[part])
         {
             EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
             vecs_for_second_summation.push_back(U_rhs_vecs[part]);
