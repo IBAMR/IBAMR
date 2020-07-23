@@ -29,6 +29,7 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian for
 IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 FEProjector::buildL2ProjectionSolver(): building L2 projection solver for system: IB force system
+FEProjector::buildLumpedL2ProjectionSolver(): building lumped L2 projection solver for system: IB force system
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 7
@@ -37,6 +38,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of it
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.59731590806291915e-12
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 FEProjector::buildL2ProjectionSolver(): building L2 projection solver for system: IB velocity system
+FEProjector::buildLumpedL2ProjectionSolver(): building lumped L2 projection solver for system: IB velocity system
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 3.8954498806721960289e-07
