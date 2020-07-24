@@ -3037,6 +3037,10 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
     {
         d_default_workload_spec.q_point_weight = db->getDouble("workload_quad_point_weight");
     }
+    if (db->keyExists("workload_duplicated_node_weight"))
+    {
+        d_default_workload_spec.duplicated_node_weight = db->getDouble("workload_duplicated_node_weight");
+    }
 
     d_use_scratch_hierarchy = db->getBoolWithDefault("use_scratch_hierarchy", false);
     if (d_use_scratch_hierarchy)

@@ -348,8 +348,31 @@ public:
      */
     struct WorkloadSpec
     {
-        /// The multiplier applied to each quadrature point.
+        /// The multiplier applied to each quadrature point. This value accounts
+        /// for work done at each IB point (e.g., the work done inside the
+        /// Fortran spreading and interpolation kernels).
+        ///
+        /// If nodal quadrature is used then this value simply corresponds to
+        /// counting the nodes since those are the quadrature points.
         double q_point_weight = 1.0;
+
+        /// The multiplier applied to the nodes of elements. This value accounts
+        /// for the work done for each element regardless of the number of
+        /// quadrature points (e.g. calculating the size of the element
+        /// in the deformed configuration).
+        ///
+        /// These work values are calculated in an unusual way in the sense that
+        /// if a node is attached to N elements, then we count that node N
+        /// times. This accounts for the fact that work is done on an element
+        /// level but elements may exist on multiple patches at once: i.e., it
+        /// makes more sense to compute the work associated with an element by
+        /// assigning work to its nodes rather than the element centroid.
+        ///
+        /// This value should not be set to anything but zero when doing nodal
+        /// quadrature.
+        ///
+        /// A good value for this is 0.8.
+        double duplicated_node_weight = 0.0;
     };
 
 protected:

@@ -222,6 +222,7 @@ class IBFEDirectForcingKinematics;
  *
  *    use_scratch_hierarchy = TRUE
  *    workload_quad_point_weight = 1.0
+ *    workload_duplicated_node_weight = 0.8
  *
  *    // The values supplied here should usually be the same as those provided to
  *    // the top-level GriddingAlgorithm.
@@ -286,9 +287,10 @@ class IBFEDirectForcingKinematics;
  * regions since some patches will be merged together.
  *
  * The parameter <code>workload_quad_point_weight</code> is the multiplier
- * assigned to an IB point when calculating the work per processor: in the
- * future additional weights, such as <code>workload_node_point_weight</code>
- * will also be added.
+ * assigned to an IB point when calculating the work per processor. Similarly,
+ * the parameter <code>workload_duplicated_node_weight</code> is the multiplier
+ * assigned to each node of every element (i.e., each node is counted more than
+ * once): see IBTK::FEDataManager::WorkloadSpec for more information.
  *
  * <h2>Options Controlling Logging</h2>
  * The logging options set by this class are propagated to the owned

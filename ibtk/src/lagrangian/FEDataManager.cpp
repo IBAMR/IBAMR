@@ -2239,6 +2239,57 @@ FEDataManager::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy,
             workload_data_idx, d_default_workload_spec.q_point_weight, d_qp_count_idx, workload_data_idx);
     }
 
+    // Add work estimates from duplicated nodes.
+    if (d_default_workload_spec.duplicated_node_weight != 0.0 && finest_ln == d_finest_ln)
+    {
+        const int ln = d_finest_ln;
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const IntVector<NDIM>& ratio = level->getRatio();
+        const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+
+        FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
+
+        // Extract the underlying solution data.
+        NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
+        auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec);
+        const double* const X_local_soln = X_petsc_vec->get_array_read();
+
+        // Determine the position of the nodes of each element.
+        boost::multi_array<double, 2> X_node;
+        int local_patch_num = 0;
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+        {
+            const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
+            const size_t num_active_patch_elems = patch_elems.size();
+            if (!num_active_patch_elems) continue;
+
+            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double> > workload_data = patch->getPatchData(workload_data_idx);
+
+            for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
+            {
+                Elem* const elem = patch_elems[e_idx];
+                const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
+                get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+
+                const auto n_nodes = elem->n_nodes();
+                for (unsigned int node_n = 0; node_n < n_nodes; ++node_n)
+                {
+                    Point node;
+                    for (unsigned int d = 0; d < NDIM; ++d) node(d) = X_node[node_n][d];
+                    const hier::Index<NDIM> i = IndexUtilities::getCellIndex(node, grid_geom, ratio);
+                    if (patch_box.contains(i))
+                    {
+                        (*workload_data)(i) += d_default_workload_spec.duplicated_node_weight;
+                    }
+                }
+            }
+        }
+
+        X_petsc_vec->restore_array();
+    }
+
     IBTK_TIMER_STOP(t_update_workload_estimates);
     return;
 } // addWorkloadEstimate
