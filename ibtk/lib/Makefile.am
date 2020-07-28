@@ -363,6 +363,7 @@ DIM_DEPENDENT_SOURCES += \
 ../include/lagrangian/BoxPartitioner.h \
 ../include/lagrangian/StableCentroidPartitioner.h \
 ../include/lagrangian/JacobianCalculator.h \
+../include/lagrangian/MappingCache.h \
 ../include/ibtk/FEDataInterpolation.h \
 ../include/ibtk/FEDataManager.h \
 ../include/ibtk/FEProjector.h \

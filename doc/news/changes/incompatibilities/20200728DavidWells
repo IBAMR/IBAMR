@@ -1,0 +1,4 @@
+Removed: The class IBTK::JacobianCalculatorCache has been removed. Its
+replacement is IBTK::MappingCache.
+<br>
+(David Wells, 2020/07/28)

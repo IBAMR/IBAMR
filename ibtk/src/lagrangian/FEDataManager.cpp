@@ -21,9 +21,8 @@
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/JacobianCalculator.h"
-#include "ibtk/JacobianCalculatorCache.h"
 #include "ibtk/LEInteractor.h"
+#include "ibtk/MappingCache.h"
 #include "ibtk/QuadratureCache.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/SAMRAIDataCache.h"
@@ -182,6 +181,36 @@ collect_unique_elems(std::vector<Elem*>& elems, const ContainerOfContainers& ele
     elems.assign(elem_set.begin(), elem_set.end());
     return;
 } // collect_unique_elems
+
+/**
+ * A difficulty with FEDataManager is that it needs to work with both volumetric
+ * and surface meshes, even though for performance reasons we template Mapping
+ * on the current topological dimension of the mesh. Fortunately we do not need
+ * the contravariants or other topological dimension-dependent values: we just
+ * need the JxW values. Hence this little helper function lets one get the
+ * correct JxW values from the correct mapping object based on the runtime
+ * dimensionality of the mesh.
+ */
+const std::vector<double>&
+get_JxW(const std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order> key,
+        const Elem* elem,
+        const bool is_volume_mesh,
+        MappingCache<NDIM, NDIM>& volume_mapping_cache,
+        MappingCache<NDIM - 1, NDIM>& surface_mapping_cache)
+{
+    if (is_volume_mesh)
+    {
+        auto& mapping = volume_mapping_cache[key];
+        mapping.reinit(elem);
+        return mapping.getJxW();
+    }
+    else
+    {
+        auto& mapping = surface_mapping_cache[key];
+        mapping.reinit(elem);
+        return mapping.getJxW();
+    }
+}
 } // namespace
 
 FEData::FEData(std::string object_name, const bool register_for_restart)
@@ -789,11 +818,15 @@ FEDataManager::spread(const int f_data_idx,
         TBOX_ASSERT(X_dof_map.variable_order(d) == X_order);
     }
 
-    // convenience alias for the quadrature key type used by FECache and JacobianCalculatorCache
+    // convenience alias for the quadrature key type used by FECache and MappingCache
     using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
     FECache F_fe_cache(dim, F_fe_type, FEUpdateFlags::update_phi);
     FECache X_fe_cache(dim, X_fe_type, FEUpdateFlags::update_phi);
-    JacobianCalculatorCache jacobian_calculator_cache(mesh.spatial_dimension());
+
+    // We have to support both volumetric and surface meshes based on runtime data
+    MappingCache<NDIM, NDIM> volume_mapping_cache(FEUpdateFlags::update_JxW);
+    MappingCache<NDIM - 1, NDIM> surface_mapping_cache(FEUpdateFlags::update_JxW);
+    const bool is_volume_mesh = dim == NDIM;
 
     // Check to see if we are using nodal quadrature.
     const bool use_nodal_quadrature = spread_spec.use_nodal_quadrature;
@@ -968,11 +1001,11 @@ FEDataManager::spread(const int f_data_idx,
                 const quad_key_type& key = quad_keys[e_idx];
                 const FEBase& X_fe = X_fe_cache(key, elem);
                 const FEBase& F_fe = F_fe_cache(key, elem);
-                JacobianCalculator& jacobian_calculator = jacobian_calculator_cache[key];
                 const QBase& qrule = d_fe_data->d_quadrature_cache[key];
 
                 // JxW depends on the element
-                const std::vector<double>& JxW_F = jacobian_calculator.get_JxW(elem);
+                const std::vector<double>& JxW_F =
+                    get_JxW(key, elem, is_volume_mesh, volume_mapping_cache, surface_mapping_cache);
                 const std::vector<std::vector<double> >& phi_F = F_fe.get_phi();
                 const std::vector<std::vector<double> >& phi_X = X_fe.get_phi();
 
@@ -1514,11 +1547,13 @@ FEDataManager::interpWeighted(const int f_data_idx,
         TBOX_ASSERT(X_dof_map.variable_order(d) == X_order);
     }
 
-    // convenience alias for the quadrature key type used by FECache and JacobianCalculatorCache
+    // convenience alias for the quadrature key type used by FECache and MappingCache
     using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
     FECache F_fe_cache(dim, F_fe_type, FEUpdateFlags::update_phi);
     FECache X_fe_cache(dim, X_fe_type, FEUpdateFlags::update_phi);
-    JacobianCalculatorCache jacobian_calculator_cache(mesh.spatial_dimension());
+    MappingCache<NDIM, NDIM> volume_mapping_cache(FEUpdateFlags::update_JxW);
+    MappingCache<NDIM - 1, NDIM> surface_mapping_cache(FEUpdateFlags::update_JxW);
+    const bool is_volume_mesh = dim == NDIM;
 
     // Communicate any unsynchronized ghost data.
     for (const auto& f_refine_sched : f_refine_scheds)
@@ -1787,10 +1822,10 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 const quad_key_type& key = quad_keys[e_idx];
                 const FEBase& F_fe = F_fe_cache(key, elem);
                 const QBase& qrule = d_fe_data->d_quadrature_cache[key];
-                JacobianCalculator& jacobian_calculator = jacobian_calculator_cache[key];
 
                 // JxW depends on the element
-                const std::vector<double>& JxW_F = jacobian_calculator.get_JxW(elem);
+                const std::vector<double>& JxW_F =
+                    get_JxW(key, elem, is_volume_mesh, volume_mapping_cache, surface_mapping_cache);
                 const std::vector<std::vector<double> >& phi_F = F_fe.get_phi();
 
                 const unsigned int n_qp = qrule.n_points();
@@ -2642,7 +2677,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
             TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
         }
 
-        // convenience alias for the quadrature key type used by FECache and JacobianCalculatorCache
+        // convenience alias for the quadrature key type used by FECache and MappingCache
         using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
         FECache X_fe_cache(dim, fe_type, FEUpdateFlags::update_phi);
 
