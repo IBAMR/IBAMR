@@ -113,6 +113,41 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         }
     }
 
+    // Configure timer options.
+    std::string timer_dump_interval_key_name;
+    if (main_db->keyExists("timer_interval"))
+    {
+        timer_dump_interval_key_name = "timer_interval";
+    }
+    else if (main_db->keyExists("timer_dump_interval"))
+    {
+        timer_dump_interval_key_name = "timer_dump_interval";
+    }
+    else if (main_db->keyExists("timer_write_interval"))
+    {
+        timer_dump_interval_key_name = "timer_write_interval";
+    }
+
+    if (!timer_dump_interval_key_name.empty())
+    {
+        d_timer_dump_interval = main_db->getInteger(timer_dump_interval_key_name);
+    }
+
+    if (d_timer_dump_interval > 0)
+    {
+        Pointer<Database> timer_manager_db = new NullDatabase();
+        if (d_input_db->isDatabase("TimerManager"))
+        {
+            timer_manager_db = d_input_db->getDatabase("TimerManager");
+        }
+        else
+        {
+            pout << "WARNING: AppInitializer::AppInitializer(): " << timer_dump_interval_key_name
+                 << " > 0, but `TimerManager' input entries not specifed in input file\n";
+        }
+        TimerManager::createManager(timer_manager_db);
+    }
+
     // Configure visualization options.
     std::string viz_dump_interval_key_name;
     if (main_db->keyExists("viz_interval"))
@@ -321,41 +356,6 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
             pout << "WARNING: AppInitializer::AppInitializer(): " << data_dump_interval_key_name
                  << " > 0, but `data_dump_dirname' is not specified in input file\n";
         }
-    }
-
-    // Configure timer options.
-    std::string timer_dump_interval_key_name;
-    if (main_db->keyExists("timer_interval"))
-    {
-        timer_dump_interval_key_name = "timer_interval";
-    }
-    else if (main_db->keyExists("timer_dump_interval"))
-    {
-        timer_dump_interval_key_name = "timer_dump_interval";
-    }
-    else if (main_db->keyExists("timer_write_interval"))
-    {
-        timer_dump_interval_key_name = "timer_write_interval";
-    }
-
-    if (!timer_dump_interval_key_name.empty())
-    {
-        d_timer_dump_interval = main_db->getInteger(timer_dump_interval_key_name);
-    }
-
-    if (d_timer_dump_interval > 0)
-    {
-        Pointer<Database> timer_manager_db = new NullDatabase();
-        if (d_input_db->isDatabase("TimerManager"))
-        {
-            timer_manager_db = d_input_db->getDatabase("TimerManager");
-        }
-        else
-        {
-            pout << "WARNING: AppInitializer::AppInitializer(): " << timer_dump_interval_key_name
-                 << " > 0, but `TimerManager' input entries not specifed in input file\n";
-        }
-        TimerManager::createManager(timer_manager_db);
     }
     return;
 } // AppInitializer
