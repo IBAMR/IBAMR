@@ -17,7 +17,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/FECache.h>
-#include <ibtk/JacobianCalculator.h>
+#include <ibtk/Mapping.h>
 #include <ibtk/libmesh_utilities.h>
 
 #include <libmesh/enum_elem_type.h>

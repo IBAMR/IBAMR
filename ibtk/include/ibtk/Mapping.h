@@ -11,8 +11,8 @@
 //
 // ---------------------------------------------------------------------
 
-#ifndef included_IBTK_JacobianCalculator
-#define included_IBTK_JacobianCalculator
+#ifndef included_IBTK_Mapping
+#define included_IBTK_Mapping
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -535,4 +535,4 @@ std::unique_ptr<Mapping<3, 3> > Mapping<3, 3>::build(const key_type key, const F
 
 } // namespace IBTK
 
-#endif //#ifndef included_IBTK_JacobianCalculator
+#endif //#ifndef included_IBTK_Mapping

@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibtk/JacobianCalculator.h"
+#include "ibtk/Mapping.h"
 #include "ibtk/libmesh_utilities.h"
 #include "ibtk/namespaces.h"
 
