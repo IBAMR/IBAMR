@@ -89,35 +89,6 @@ protected:
     libMesh::DenseMatrix<double> d_phi;
 };
 
-class JacobianCalculator
-{
-public:
-    /**
-     * Key type. Completely describes (excepting p-refinement) a libMesh
-     * quadrature rule.
-     */
-    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
-
-    /**
-     * Constructor.
-     */
-    JacobianCalculator(const key_type quad_key);
-
-    /**
-     * Calculate the JxW values on the given element and return a reference to
-     * the result.
-     */
-    virtual const std::vector<double>& get_JxW(const libMesh::Elem* elem) = 0;
-
-    virtual ~JacobianCalculator() = default;
-
-protected:
-    const key_type d_quad_key;
-
-    std::vector<libMesh::Point> d_quad_points;
-    std::vector<double> d_quad_weights;
-};
-
 /*!
  * Abstract class defining the interface to a mapping.
  */
@@ -188,6 +159,47 @@ protected:
 };
 
 /*!
+ * Helper class that simply stores the relevant quadrature information extracted
+ * from a quadrature key.
+ */
+struct QuadratureData
+{
+    /*!
+     * Key type. Completely describes (excepting p-refinement) a libMesh
+     * quadrature rule.
+     */
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+
+    /*!
+     * Constructor.
+     */
+    QuadratureData(const key_type quad_key);
+
+    /*!
+     *  Quadrature key.
+     */
+    const key_type d_key;
+
+    /*!
+     * Quadrature points on the reference element.
+     */
+    std::vector<libMesh::Point> d_points;
+
+    /*!
+     * Quadrature weights.
+     */
+    std::vector<double> d_weights;
+
+    /*!
+     * Get the size (the number of points) of the quadrature rule.
+     */
+    std::size_t size() const
+    {
+        return d_points.size();
+    }
+};
+
+/*!
  * Base class for all nodal mappings (i.e., mappings corresponding to
  * Lagrange-type finite element spaces).
  *
@@ -195,7 +207,7 @@ protected:
  * calculation (-1).
  */
 template <int dim, int spacedim = dim, int n_nodes = -1>
-class NodalMapping : public Mapping<dim, spacedim>, public JacobianCalculator
+class NodalMapping : public Mapping<dim, spacedim>
 {
 public:
     /*!
@@ -213,19 +225,6 @@ public:
      * Recalculate relevant quantities for the provided element.
      */
     virtual void reinit(const libMesh::Elem* elem) override;
-
-    /*!
-     * Calculate the JxW values on the given element and return a reference to
-     * the result.
-     *
-     * @deprecated This function only exists for compatibility with the older
-     * JacobianCalculator class.
-     */
-    const std::vector<double>& get_JxW(const libMesh::Elem* elem) override
-    {
-        reinit(elem);
-        return d_JxW;
-    }
 
     virtual const std::vector<double>& getJxW() const override
     {
@@ -260,6 +259,11 @@ public:
     }
 
 protected:
+    /*!
+     * Information on the relevant quadrature rule.
+     */
+    const QuadratureData d_quadrature_data;
+
     /*!
      * Computed update flags for the mapping.
      */

@@ -37,15 +37,15 @@
 
 #include <boost/multi_array.hpp>
 
-// Verify that JacobianCalc and descendants output the same values as libMesh::FEMap.
+// Verify that Mapping and descendants output the same values as libMesh::FEMap.
 using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
 
+template <int dim, int spacedim>
 void
 test_cube(LibMeshInit& init,
-          JacobianCalculator& jc_1,
-          JacobianCalculator& jc_2,
-          JacobianCalculator& jc_boundary,
-          const int dim,
+          Mapping<dim, spacedim>& jc_1,
+          Mapping<dim, spacedim>& jc_2,
+          Mapping<dim - 1, spacedim>& jc_boundary,
           const key_type key)
 {
     const auto elem_type = std::get<0>(key);
@@ -62,7 +62,8 @@ test_cube(LibMeshInit& init,
         TBOX_ASSERT(false);
 
     // check that we get the same thing with both calculators and libMesh's general code:
-    const std::vector<double>& JxW = jc_1.get_JxW(*mesh.active_local_elements_begin());
+    jc_1.reinit(*mesh.active_local_elements_begin());
+    const std::vector<double>& JxW = jc_1.getJxW();
     for (const double jxw : JxW) plog << std::setprecision(12) << jxw << '\n';
 
     double volume = 0;
@@ -74,8 +75,10 @@ test_cube(LibMeshInit& init,
         QBase& quad = quad_cache[key];
         fe_map.compute_map(dim, quad.get_weights(), *elem_iter, false);
         // all computed JxW values should agree
-        const std::vector<double>& JxW = jc_1.get_JxW(*elem_iter);
-        const std::vector<double>& JxW_2 = jc_2.get_JxW(*elem_iter);
+        jc_1.reinit(*elem_iter);
+        jc_2.reinit(*elem_iter);
+        const std::vector<double>& JxW = jc_1.getJxW();
+        const std::vector<double>& JxW_2 = jc_2.getJxW();
         const std::vector<double>& JxW_3 = fe_map.get_JxW();
         for (unsigned int i = 0; i < JxW.size(); ++i)
         {
@@ -110,7 +113,8 @@ test_cube(LibMeshInit& init,
             QBase& quad = boundary_quad_cache[boundary_key];
             fe_map.compute_map(dim - 1, quad.get_weights(), *elem_iter, false);
             // all computed JxW values should agree
-            const std::vector<double>& JxW = jc_boundary.get_JxW(*elem_iter);
+            jc_boundary.reinit(*elem_iter);
+            const std::vector<double>& JxW = jc_boundary.getJxW();
             const std::vector<double>& JxW_2 = fe_map.get_JxW();
             for (unsigned int i = 0; i < JxW.size(); ++i)
             {
@@ -120,13 +124,13 @@ test_cube(LibMeshInit& init,
     }
 }
 
+template <int dim, int spacedim>
 void
 test_circle(LibMeshInit& init,
-            JacobianCalculator& jc_1,
-            JacobianCalculator& jc_2,
-            JacobianCalculator& jc_boundary,
+            Mapping<dim, spacedim>& jc_1,
+            Mapping<dim, spacedim>& jc_2,
+            Mapping<dim - 1, spacedim>& jc_boundary,
             const int n_refines,
-            const int dim,
             const key_type key)
 {
     const auto elem_type = std::get<0>(key);
@@ -158,7 +162,8 @@ test_circle(LibMeshInit& init,
     mesh.prepare_for_use();
 
     // check that we get the same thing with both calculators and libMesh's general code:
-    const std::vector<double>& JxW = jc_1.get_JxW(*mesh.active_local_elements_begin());
+    jc_1.reinit(*mesh.active_local_elements_begin());
+    const std::vector<double>& JxW = jc_1.getJxW();
     for (const double jxw : JxW) plog << std::setprecision(12) << jxw << '\n';
 
     double volume = 0;
@@ -170,8 +175,10 @@ test_circle(LibMeshInit& init,
         QBase& quad = quad_cache[key];
         fe_map.compute_map(dim, quad.get_weights(), *elem_iter, false);
         // all computed JxW values should agree
-        const std::vector<double>& JxW = jc_1.get_JxW(*elem_iter);
-        const std::vector<double>& JxW_2 = jc_2.get_JxW(*elem_iter);
+        jc_1.reinit(*elem_iter);
+        jc_2.reinit(*elem_iter);
+        const std::vector<double>& JxW = jc_1.getJxW();
+        const std::vector<double>& JxW_2 = jc_2.getJxW();
         const std::vector<double>& JxW_3 = fe_map.get_JxW();
         for (unsigned int i = 0; i < JxW.size(); ++i)
         {
@@ -206,7 +213,8 @@ test_circle(LibMeshInit& init,
             QBase& quad = boundary_quad_cache[boundary_key];
             fe_map.compute_map(dim - 1, quad.get_weights(), *elem_iter, false);
             // all computed JxW values should agree
-            const std::vector<double>& JxW = jc_boundary.get_JxW(*elem_iter);
+            jc_boundary.reinit(*elem_iter);
+            const std::vector<double>& JxW = jc_boundary.getJxW();
             const std::vector<double>& JxW_2 = fe_map.get_JxW();
             for (unsigned int i = 0; i < JxW.size(); ++i)
             {
@@ -236,7 +244,7 @@ main(int argc, char** argv)
             LagrangeMapping<2> jac_calc_2(key, FEUpdateFlags::update_JxW);
             const key_type boundary_key(EDGE2, QGAUSS, THIRD);
             LagrangeMapping<1, 2> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
-            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, 2, key);
+            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, key);
             ++test_n;
         }
 
@@ -247,7 +255,7 @@ main(int argc, char** argv)
             LagrangeMapping<2> jac_calc_2(key, FEUpdateFlags::update_JxW);
             const key_type boundary_key(EDGE2, QGAUSS, THIRD);
             LagrangeMapping<1, 2> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
-            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, 2, key);
+            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, key);
             ++test_n;
         }
 
@@ -258,7 +266,7 @@ main(int argc, char** argv)
             LagrangeMapping<2> jac_calc_2(key, FEUpdateFlags::update_JxW);
             const key_type boundary_key(EDGE2, QGAUSS, THIRD);
             LagrangeMapping<1, 2> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
-            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, 2, key);
+            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, key);
             ++test_n;
         }
 
@@ -269,7 +277,7 @@ main(int argc, char** argv)
             LagrangeMapping<2> jac_calc_2(key, FEUpdateFlags::update_JxW);
             const key_type boundary_key(EDGE2, QGAUSS, THIRD);
             LagrangeMapping<1, 2> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
-            test_circle(init, jac_calc_1, jac_calc_2, jac_calc_b, 5, 2, key);
+            test_circle(init, jac_calc_1, jac_calc_2, jac_calc_b, 5, key);
             ++test_n;
         }
 
@@ -280,7 +288,7 @@ main(int argc, char** argv)
             LagrangeMapping<2> jac_calc_2(key, FEUpdateFlags::update_JxW);
             const key_type boundary_key(EDGE3, QGAUSS, FOURTH);
             LagrangeMapping<1, 2> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
-            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, 2, key);
+            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, key);
             ++test_n;
         }
 
@@ -291,7 +299,7 @@ main(int argc, char** argv)
             LagrangeMapping<2> jac_calc_2(key, FEUpdateFlags::update_JxW);
             const key_type boundary_key(EDGE3, QGAUSS, FOURTH);
             LagrangeMapping<1, 2> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
-            test_circle(init, jac_calc_1, jac_calc_2, jac_calc_b, 4, 2, key);
+            test_circle(init, jac_calc_1, jac_calc_2, jac_calc_b, 4, key);
             ++test_n;
         }
 
@@ -302,7 +310,7 @@ main(int argc, char** argv)
             LagrangeMapping<3> jac_calc_2(key, FEUpdateFlags::update_JxW);
             const key_type boundary_key(TRI3, QGAUSS, THIRD);
             LagrangeMapping<2, 3> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
-            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, 3, key);
+            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, key);
             ++test_n;
         }
 
@@ -314,7 +322,7 @@ main(int argc, char** argv)
             LagrangeMapping<3> jac_calc_2(key, FEUpdateFlags::update_JxW);
             const key_type boundary_key(QUAD4, QGAUSS, THIRD);
             LagrangeMapping<2, 3> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
-            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, 3, key);
+            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, key);
             ++test_n;
         }
 
@@ -326,7 +334,7 @@ main(int argc, char** argv)
             LagrangeMapping<3> jac_calc_2(key, FEUpdateFlags::update_JxW);
             const key_type boundary_key(QUAD4, QGAUSS, THIRD);
             LagrangeMapping<2, 3> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
-            test_circle(init, jac_calc_1, jac_calc_2, jac_calc_b, 4, 3, key);
+            test_circle(init, jac_calc_1, jac_calc_2, jac_calc_b, 4, key);
             ++test_n;
         }
 
@@ -338,7 +346,7 @@ main(int argc, char** argv)
             LagrangeMapping<3> jac_calc_2(key, FEUpdateFlags::update_JxW);
             const key_type boundary_key(QUAD9, QGAUSS, FOURTH);
             LagrangeMapping<2, 3> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
-            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, 3, key);
+            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, key);
             ++test_n;
         }
 
@@ -350,7 +358,7 @@ main(int argc, char** argv)
             LagrangeMapping<3> jac_calc_2(key, FEUpdateFlags::update_JxW);
             const key_type boundary_key(QUAD9, QGAUSS, FOURTH);
             LagrangeMapping<2, 3> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
-            test_circle(init, jac_calc_1, jac_calc_2, jac_calc_b, 2, 3, key);
+            test_circle(init, jac_calc_1, jac_calc_2, jac_calc_b, 2, key);
             ++test_n;
         }
     }
