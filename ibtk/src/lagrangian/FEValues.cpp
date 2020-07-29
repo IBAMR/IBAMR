@@ -39,6 +39,51 @@
 namespace IBTK
 {
 /////////////////////////////// STATIC ///////////////////////////////////////
+namespace
+{
+    // Unfortunately libMesh::FE is templated on the finite element type, so we
+    // do not have a generic way to populate shape function values based on an
+    // FEType argument. Get around this by implementing our own template functon
+    // to do exactly that.
+    template <int dim, FEFamily fe_family>
+    void
+    fill_reference_values(const libMesh::Qbase &quadrature,
+                          const Order order,
+                          boost::multi_array<double, 2> &ref_shape_values,
+                          boost::multi_array<libMesh::VectorValue<double>, 2> & ref_shape_gradients)
+    {
+        const ElemType elem_type   = quad.get_elem_type();
+        const unsigned int n_nodes = get_n_nodes(elem_type);
+
+        using FE = libMesh::FE<dim, fe_family>;
+        typename decltype(reference_shape_values)::extent_gen extents;
+        reference_shape_values.resize(extents[n_nodes][quadrature.n_points()]);
+        reference_shape_gradients.resize(extents[n_nodes][quadrature.n_points()]);
+
+        // values:
+        for (unsigned int node_n = 0; node_n < n_nodes; ++node_n)
+        {
+            for (unsigned int q = 0; q < quadrature.n_points(); ++q)
+            {
+                d_reference_shape_values[node_n][q] = FE::shape(d_elem_type, order, node_n, quadrature.qp(q));
+            }
+        }
+
+        // gradients:
+        for (unsigned int node_n = 0; node_n < n_nodes; ++node_n)
+        {
+            for (unsigned int q = 0; q < quadrature.n_points(); ++q)
+            {
+                for (unsigned int d = 0; d < dim; ++d)
+                {
+                    d_reference_shape_gradients[node_n][q](d) =
+                        FE::shape_deriv(d_elem_type, order, node_n, d, quadrature.qp(q));
+                }
+            }
+        }
+    }
+}
+
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -87,8 +132,10 @@ FEValuesBase::build(const int dim, const int spacedim, libMesh::QBase* qrule, co
 }
 
 template <int dim, int spacedim>
-FEValues<dim, spacedim>::FEValues(libMesh::QBase* qrule, const FEUpdateFlags update_flags)
-    : d_qrule(qrule), d_update_flags(update_flags)
+FEValues<dim, spacedim>::FEValues(libMesh::QBase* qrule,
+                                  const FEType fe_type,
+                                  const FEUpdateFlags update_flags)
+    : d_qrule(qrule), d_fe_type(fe_type), d_update_flags(update_flags)
 {
     // set up update flag dependencies:
     if (d_update_flags & update_dphi) d_update_flags |= update_covariants;
@@ -142,7 +189,7 @@ FEValues<dim, spacedim>::reinit(const libMesh::Elem* elem)
     auto ref_iter = d_reference_values.find(elem_type);
     if (ref_iter == d_reference_values.end())
     {
-        ref_iter = d_reference_values.insert(ref_iter, { elem_type, *d_qrule });
+        ref_iter = d_reference_values.insert(ref_iter, { *d_qrule, d_fe_type });
     }
     const ReferenceValues& ref_values = ref_iter->second;
 
@@ -193,37 +240,62 @@ FEValues<dim, spacedim>::reinit(const libMesh::Elem* elem)
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 template <int dim, int spacedim>
-FEValues<dim, spacedim>::ReferenceValues::ReferenceValues(const libMesh::QBase& quadrature)
+FEValues<dim, spacedim>::ReferenceValues::ReferenceValues(const libMesh::QBase& quadrature,
+                                                          const libMesh::FEType& fe_type)
     : d_elem_type(quadrature.get_elem_type())
+    , d_fe_type(fe_type)
 {
-    const unsigned int n_nodes = get_n_nodes(d_elem_type);
-    const auto order = get_default_order(d_elem_type);
+    const auto order = d_fe_type.order;
 
-    typename decltype(d_reference_shape_values)::extent_gen extents;
-    d_reference_shape_values.resize(extents[n_nodes][quadrature.n_points()]);
-    d_reference_shape_gradients.resize(extents[n_nodes][quadrature.n_points()]);
-
-    using FE = libMesh::FE<dim, libMesh::LAGRANGE>;
-    // values:
-    for (unsigned int node_n = 0; node_n < n_nodes; ++node_n)
+    // See the note in fill_reference_values explaining why this is necessary
+    switch (fe_type.fe_family)
     {
-        for (unsigned int q = 0; q < quadrature.n_points(); ++q)
-        {
-            d_reference_shape_values[node_n][q] = FE::shape(d_elem_type, order, node_n, quadrature.qp(q));
-        }
-    }
-
-    // gradients:
-    for (unsigned int node_n = 0; node_n < n_nodes; ++node_n)
-    {
-        for (unsigned int q = 0; q < quadrature.n_points(); ++q)
-        {
-            for (unsigned int d = 0; d < dim; ++d)
-            {
-                d_reference_shape_gradients[node_n][q](d) =
-                    FE::shape_deriv(d_elem_type, order, node_n, d, quadrature.qp(q));
-            }
-        }
+        case LAGRANGE:
+            fill_reference_values<dim, LAGRANGE>(quadrature,
+                                                 order,
+                                                 d_reference_shape_values,
+                                                 d_reference_shape_gradients);
+            break;
+        case MONOMIAL:
+            fill_reference_values<dim, MONOMIAL>(quadrature,
+                                                 order,
+                                                 d_reference_shape_values,
+                                                 d_reference_shape_gradients);
+            break;
+        case L2_HIERARCHIC:
+            fill_reference_values<dim, L2_HIERARCHIC>(quadrature,
+                                                      order,
+                                                      d_reference_shape_values,
+                                                      d_reference_shape_gradients);
+            break;
+        case L2_LAGRANGE:
+            fill_reference_values<dim, L2_LAGRANGE>(quadrature,
+                                                    order,
+                                                    d_reference_shape_values,
+                                                    d_reference_shape_gradients);
+            break;
+        case XYZ:
+            fill_reference_values<dim, XYZ>(quadrature,
+                                            order,
+                                            d_reference_shape_values,
+                                            d_reference_shape_gradients);
+            break;
+        // subdivison elements don't really have reference values but lets do it
+        // anyway
+        case SUBDIVISION:
+            fill_reference_values<dim, SUBDIVISION>(quadrature,
+                                                    order,
+                                                    d_reference_shape_values,
+                                                    d_reference_shape_gradients);
+            break;
+        case SCALAR:
+            fill_reference_values<dim, SCALAR>(quadrature,
+                                               order,
+                                               d_reference_shape_values,
+                                               d_reference_shape_gradients);
+            break;
+        default:
+            TBOX_ERROR("unsupported element type");
     }
 }
 

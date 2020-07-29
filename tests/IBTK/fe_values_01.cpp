@@ -104,7 +104,7 @@ test(LibMeshInit& init, const MeshType mesh_type = MeshType::libmesh)
     std::unique_ptr<QBase> quad_2 = QBase::build(QGAUSS, dim, THIRD);
     quad_2->init(elem_type);
     IBTK::FEValues<dim> ibtk_fe(
-        quad_2.get(), IBTK::update_quadrature_points | IBTK::update_JxW | IBTK::update_phi | IBTK::update_dphi);
+        quad_2.get(), fe_type, IBTK::update_quadrature_points | IBTK::update_JxW | IBTK::update_phi | IBTK::update_dphi);
 
     for (auto elem_iter = mesh.active_local_elements_begin(); elem_iter != mesh.active_local_elements_end();
          ++elem_iter)

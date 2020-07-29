@@ -87,21 +87,28 @@ template <int dim, int spacedim = dim>
 class FEValues : public FEValuesBase
 {
 public:
-    FEValues(libMesh::QBase* qrule, const FEUpdateFlags update_flags);
+    FEValues(libMesh::QBase* qrule,
+             const FEType fe_type,
+             const FEUpdateFlags update_flags);
 
     virtual void reinit(const libMesh::Elem* elem) override;
 
 protected:
     libMesh::QBase* d_qrule;
 
+    const FEType d_fe_type;
+
     /**
      * Reference values, extracted from libMesh.
      */
     struct ReferenceValues
     {
-        ReferenceValues(const libMesh::QBase& quadrature);
+        ReferenceValues(const libMesh::QBase& quadrature,
+                        const libMesh::FEType& fe_type);
 
         const libMesh::ElemType d_elem_type;
+
+        const libMesh::FEType d_fe_type;
 
         /**
          * shape values, indexed by quadrature point and then by shape function
