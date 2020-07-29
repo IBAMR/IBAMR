@@ -41,54 +41,57 @@ namespace IBTK
 /////////////////////////////// STATIC ///////////////////////////////////////
 namespace
 {
-    // Unfortunately libMesh::FE is templated on the finite element type, so we
-    // do not have a generic way to populate shape function values based on an
-    // FEType argument. Get around this by implementing our own template functon
-    // to do exactly that.
-    template <int dim, FEFamily fe_family>
-    void
-    fill_reference_values(const libMesh::Qbase &quadrature,
-                          const Order order,
-                          boost::multi_array<double, 2> &ref_shape_values,
-                          boost::multi_array<libMesh::VectorValue<double>, 2> & ref_shape_gradients)
+// Unfortunately libMesh::FE is templated on the finite element type, so we
+// do not have a generic way to populate shape function values based on an
+// FEType argument. Get around this by implementing our own template functon
+// to do exactly that.
+template <int dim, FEFamily fe_family>
+void
+fill_reference_values(const libMesh::QBase& quadrature,
+                      const Order order,
+                      boost::multi_array<double, 2>& reference_shape_values,
+                      boost::multi_array<libMesh::VectorValue<double>, 2>& reference_shape_gradients)
+{
+    using FE = libMesh::FE<dim, fe_family>;
+    const ElemType elem_type = quadrature.get_elem_type();
+    const unsigned int n_shape_functions = FE::n_dofs(elem_type, order);
+
+    boost::multi_array<double, 2>::extent_gen extents;
+    reference_shape_values.resize(extents[n_shape_functions][quadrature.n_points()]);
+    reference_shape_gradients.resize(extents[n_shape_functions][quadrature.n_points()]);
+
+    // values:
+    for (unsigned int node_n = 0; node_n < n_shape_functions; ++node_n)
     {
-        const ElemType elem_type   = quad.get_elem_type();
-        const unsigned int n_nodes = get_n_nodes(elem_type);
-
-        using FE = libMesh::FE<dim, fe_family>;
-        typename decltype(reference_shape_values)::extent_gen extents;
-        reference_shape_values.resize(extents[n_nodes][quadrature.n_points()]);
-        reference_shape_gradients.resize(extents[n_nodes][quadrature.n_points()]);
-
-        // values:
-        for (unsigned int node_n = 0; node_n < n_nodes; ++node_n)
+        for (unsigned int q = 0; q < quadrature.n_points(); ++q)
         {
-            for (unsigned int q = 0; q < quadrature.n_points(); ++q)
-            {
-                d_reference_shape_values[node_n][q] = FE::shape(d_elem_type, order, node_n, quadrature.qp(q));
-            }
+            reference_shape_values[node_n][q] = FE::shape(elem_type, order, node_n, quadrature.qp(q));
         }
+    }
 
-        // gradients:
-        for (unsigned int node_n = 0; node_n < n_nodes; ++node_n)
+    // gradients:
+    for (unsigned int node_n = 0; node_n < n_shape_functions; ++node_n)
+    {
+        for (unsigned int q = 0; q < quadrature.n_points(); ++q)
         {
-            for (unsigned int q = 0; q < quadrature.n_points(); ++q)
+            for (unsigned int d = 0; d < dim; ++d)
             {
-                for (unsigned int d = 0; d < dim; ++d)
-                {
-                    d_reference_shape_gradients[node_n][q](d) =
-                        FE::shape_deriv(d_elem_type, order, node_n, d, quadrature.qp(q));
-                }
+                reference_shape_gradients[node_n][q](d) =
+                    FE::shape_deriv(elem_type, order, node_n, d, quadrature.qp(q));
             }
         }
     }
 }
-
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 std::unique_ptr<FEValuesBase>
-FEValuesBase::build(const int dim, const int spacedim, libMesh::QBase* qrule, const FEUpdateFlags update_flags)
+FEValuesBase::build(const int dim,
+                    const int spacedim,
+                    libMesh::QBase* qrule,
+                    const libMesh::FEType fe_type,
+                    const FEUpdateFlags update_flags)
 {
     TBOX_ASSERT(dim <= spacedim);
     switch (dim)
@@ -97,11 +100,11 @@ FEValuesBase::build(const int dim, const int spacedim, libMesh::QBase* qrule, co
         switch (spacedim)
         {
         case 1:
-            return std::unique_ptr<FEValuesBase>(new FEValues<1, 1>(qrule, update_flags));
+            return std::unique_ptr<FEValuesBase>(new FEValues<1, 1>(qrule, fe_type, update_flags));
         case 2:
-            return std::unique_ptr<FEValuesBase>(new FEValues<1, 2>(qrule, update_flags));
+            return std::unique_ptr<FEValuesBase>(new FEValues<1, 2>(qrule, fe_type, update_flags));
         case 3:
-            return std::unique_ptr<FEValuesBase>(new FEValues<1, 3>(qrule, update_flags));
+            return std::unique_ptr<FEValuesBase>(new FEValues<1, 3>(qrule, fe_type, update_flags));
         default:
             break;
         }
@@ -110,16 +113,16 @@ FEValuesBase::build(const int dim, const int spacedim, libMesh::QBase* qrule, co
         switch (spacedim)
         {
         case 2:
-            return std::unique_ptr<FEValuesBase>(new FEValues<2, 2>(qrule, update_flags));
+            return std::unique_ptr<FEValuesBase>(new FEValues<2, 2>(qrule, fe_type, update_flags));
         case 3:
-            return std::unique_ptr<FEValuesBase>(new FEValues<2, 3>(qrule, update_flags));
+            return std::unique_ptr<FEValuesBase>(new FEValues<2, 3>(qrule, fe_type, update_flags));
         default:
             break;
         }
         break;
     case 3:
         TBOX_ASSERT(spacedim == dim);
-        return std::unique_ptr<FEValuesBase>(new FEValues<3, 3>(qrule, update_flags));
+        return std::unique_ptr<FEValuesBase>(new FEValues<3, 3>(qrule, fe_type, update_flags));
     default:
         break;
     }
@@ -132,9 +135,7 @@ FEValuesBase::build(const int dim, const int spacedim, libMesh::QBase* qrule, co
 }
 
 template <int dim, int spacedim>
-FEValues<dim, spacedim>::FEValues(libMesh::QBase* qrule,
-                                  const FEType fe_type,
-                                  const FEUpdateFlags update_flags)
+FEValues<dim, spacedim>::FEValues(libMesh::QBase* qrule, const FEType fe_type, const FEUpdateFlags update_flags)
     : d_qrule(qrule), d_fe_type(fe_type), d_update_flags(update_flags)
 {
     // set up update flag dependencies:
@@ -189,7 +190,8 @@ FEValues<dim, spacedim>::reinit(const libMesh::Elem* elem)
     auto ref_iter = d_reference_values.find(elem_type);
     if (ref_iter == d_reference_values.end())
     {
-        ref_iter = d_reference_values.insert(ref_iter, { *d_qrule, d_fe_type });
+        ReferenceValues ref_values(*d_qrule, d_fe_type);
+        ref_iter = d_reference_values.emplace(elem_type, std::move(ref_values)).first;
     }
     const ReferenceValues& ref_values = ref_iter->second;
 
@@ -242,60 +244,28 @@ FEValues<dim, spacedim>::reinit(const libMesh::Elem* elem)
 template <int dim, int spacedim>
 FEValues<dim, spacedim>::ReferenceValues::ReferenceValues(const libMesh::QBase& quadrature,
                                                           const libMesh::FEType& fe_type)
-    : d_elem_type(quadrature.get_elem_type())
-    , d_fe_type(fe_type)
+    : d_elem_type(quadrature.get_elem_type()), d_fe_type(fe_type)
 {
     const auto order = d_fe_type.order;
 
     // See the note in fill_reference_values explaining why this is necessary
-    switch (fe_type.fe_family)
+    switch (fe_type.family)
     {
-        case LAGRANGE:
-            fill_reference_values<dim, LAGRANGE>(quadrature,
-                                                 order,
-                                                 d_reference_shape_values,
-                                                 d_reference_shape_gradients);
-            break;
-        case MONOMIAL:
-            fill_reference_values<dim, MONOMIAL>(quadrature,
-                                                 order,
-                                                 d_reference_shape_values,
-                                                 d_reference_shape_gradients);
-            break;
-        case L2_HIERARCHIC:
-            fill_reference_values<dim, L2_HIERARCHIC>(quadrature,
-                                                      order,
-                                                      d_reference_shape_values,
-                                                      d_reference_shape_gradients);
-            break;
-        case L2_LAGRANGE:
-            fill_reference_values<dim, L2_LAGRANGE>(quadrature,
-                                                    order,
-                                                    d_reference_shape_values,
-                                                    d_reference_shape_gradients);
-            break;
-        case XYZ:
-            fill_reference_values<dim, XYZ>(quadrature,
-                                            order,
-                                            d_reference_shape_values,
-                                            d_reference_shape_gradients);
-            break;
-        // subdivison elements don't really have reference values but lets do it
-        // anyway
-        case SUBDIVISION:
-            fill_reference_values<dim, SUBDIVISION>(quadrature,
-                                                    order,
-                                                    d_reference_shape_values,
-                                                    d_reference_shape_gradients);
-            break;
-        case SCALAR:
-            fill_reference_values<dim, SCALAR>(quadrature,
-                                               order,
-                                               d_reference_shape_values,
-                                               d_reference_shape_gradients);
-            break;
-        default:
-            TBOX_ERROR("unsupported element type");
+    case LAGRANGE:
+        fill_reference_values<dim, LAGRANGE>(quadrature, order, d_reference_shape_values, d_reference_shape_gradients);
+        break;
+    case MONOMIAL:
+        fill_reference_values<dim, MONOMIAL>(quadrature, order, d_reference_shape_values, d_reference_shape_gradients);
+        break;
+    case L2_LAGRANGE:
+        fill_reference_values<dim, L2_LAGRANGE>(
+            quadrature, order, d_reference_shape_values, d_reference_shape_gradients);
+        break;
+    case SCALAR:
+        fill_reference_values<dim, SCALAR>(quadrature, order, d_reference_shape_values, d_reference_shape_gradients);
+        break;
+    default:
+        TBOX_ERROR("unsupported element type");
     }
 }
 

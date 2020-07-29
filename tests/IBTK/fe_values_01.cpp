@@ -103,8 +103,10 @@ test(LibMeshInit& init, const MeshType mesh_type = MeshType::libmesh)
     // IBTK values:
     std::unique_ptr<QBase> quad_2 = QBase::build(QGAUSS, dim, THIRD);
     quad_2->init(elem_type);
-    IBTK::FEValues<dim> ibtk_fe(
-        quad_2.get(), fe_type, IBTK::update_quadrature_points | IBTK::update_JxW | IBTK::update_phi | IBTK::update_dphi);
+    IBTK::FEValues<dim> ibtk_fe(quad_2.get(),
+                                fe_type,
+                                IBTK::update_quadrature_points | IBTK::update_JxW | IBTK::update_phi |
+                                    IBTK::update_dphi);
 
     for (auto elem_iter = mesh.active_local_elements_begin(); elem_iter != mesh.active_local_elements_end();
          ++elem_iter)
@@ -166,15 +168,53 @@ main(int argc, char** argv)
     test<2, FIRST, LAGRANGE, QUAD4>(init);
     test<2, SECOND, LAGRANGE, QUAD9>(init);
 
+    test<2, FIRST, MONOMIAL, TRI3>(init);
+    test<2, SECOND, MONOMIAL, TRI6>(init);
+    test<2, FIRST, MONOMIAL, QUAD4>(init);
+    test<2, SECOND, MONOMIAL, QUAD9>(init);
+
+    test<2, FIRST, L2_LAGRANGE, TRI3>(init);
+    test<2, SECOND, L2_LAGRANGE, TRI6>(init);
+    test<2, FIRST, L2_LAGRANGE, QUAD4>(init);
+    test<2, SECOND, L2_LAGRANGE, QUAD9>(init);
+
+    test<2, FIRST, SCALAR, TRI3>(init);
+    test<2, SECOND, SCALAR, TRI6>(init);
+    test<2, FIRST, SCALAR, QUAD4>(init);
+    test<2, SECOND, SCALAR, QUAD9>(init);
+
     // 3d, libMesh meshes:
     test<3, FIRST, LAGRANGE, TET4>(init);
     test<3, SECOND, LAGRANGE, TET10>(init);
     test<3, FIRST, LAGRANGE, HEX8>(init);
     test<3, SECOND, LAGRANGE, HEX27>(init);
 
+    test<3, FIRST, MONOMIAL, TET4>(init);
+    test<3, SECOND, MONOMIAL, TET10>(init);
+    test<3, FIRST, MONOMIAL, HEX8>(init);
+    test<3, SECOND, MONOMIAL, HEX27>(init);
+
+    test<3, FIRST, L2_LAGRANGE, TET4>(init);
+    test<3, SECOND, L2_LAGRANGE, TET10>(init);
+    test<3, FIRST, L2_LAGRANGE, HEX8>(init);
+    test<3, SECOND, L2_LAGRANGE, HEX27>(init);
+
+    test<3, FIRST, SCALAR, TET4>(init);
+    test<3, SECOND, SCALAR, TET10>(init);
+    test<3, FIRST, SCALAR, HEX8>(init);
+    test<3, SECOND, SCALAR, HEX27>(init);
+
     // 3d but with read meshes:
     test<3, FIRST, LAGRANGE, TET4>(init, MeshType::readin);
     test<3, SECOND, LAGRANGE, TET10>(init, MeshType::readin);
 
+    test<3, FIRST, MONOMIAL, TET4>(init, MeshType::readin);
+    test<3, SECOND, MONOMIAL, TET10>(init, MeshType::readin);
+
+    test<3, FIRST, L2_LAGRANGE, TET4>(init, MeshType::readin);
+    test<3, SECOND, L2_LAGRANGE, TET10>(init, MeshType::readin);
+
+    test<3, FIRST, SCALAR, TET4>(init, MeshType::readin);
+    test<3, SECOND, SCALAR, TET10>(init, MeshType::readin);
     std::ofstream output("output");
 }

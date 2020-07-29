@@ -21,14 +21,15 @@
 
 #include <tbox/Utilities.h>
 
-#include "libmesh/enum_fe_family.h"
-#include "libmesh/enum_order.h"
-#include "libmesh/enum_quadrature_type.h"
-#include "libmesh/type_vector.h"
 #include <libmesh/enum_elem_type.h>
+#include <libmesh/enum_fe_family.h>
+#include <libmesh/enum_order.h>
+#include <libmesh/enum_quadrature_type.h>
 #include <libmesh/fe.h>
+#include <libmesh/fe_type.h>
 #include <libmesh/point.h>
 #include <libmesh/quadrature.h>
+#include <libmesh/type_vector.h>
 
 #include <map>
 #include <vector>
@@ -66,8 +67,11 @@ public:
         return d_shape_gradients;
     }
 
-    static std::unique_ptr<FEValuesBase>
-    build(const int dim, const int spacedim, libMesh::QBase* qrule, const FEUpdateFlags update_flags);
+    static std::unique_ptr<FEValuesBase> build(const int dim,
+                                               const int spacedim,
+                                               libMesh::QBase* qrule,
+                                               const libMesh::FEType fe_type,
+                                               const FEUpdateFlags update_flags);
 
 protected:
     std::vector<double> d_JxW;
@@ -87,24 +91,21 @@ template <int dim, int spacedim = dim>
 class FEValues : public FEValuesBase
 {
 public:
-    FEValues(libMesh::QBase* qrule,
-             const FEType fe_type,
-             const FEUpdateFlags update_flags);
+    FEValues(libMesh::QBase* qrule, const libMesh::FEType fe_type, const FEUpdateFlags update_flags);
 
     virtual void reinit(const libMesh::Elem* elem) override;
 
 protected:
     libMesh::QBase* d_qrule;
 
-    const FEType d_fe_type;
+    const libMesh::FEType d_fe_type;
 
     /**
      * Reference values, extracted from libMesh.
      */
     struct ReferenceValues
     {
-        ReferenceValues(const libMesh::QBase& quadrature,
-                        const libMesh::FEType& fe_type);
+        ReferenceValues(const libMesh::QBase& quadrature, const libMesh::FEType& fe_type);
 
         const libMesh::ElemType d_elem_type;
 
