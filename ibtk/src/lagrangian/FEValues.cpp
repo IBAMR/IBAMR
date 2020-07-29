@@ -251,15 +251,15 @@ FEValues<dim, spacedim>::ReferenceValues::ReferenceValues(const libMesh::QBase& 
     // See the note in fill_reference_values explaining why this is necessary
     switch (fe_type.family)
     {
+    case L2_LAGRANGE:
+        fill_reference_values<dim, L2_LAGRANGE>(
+            quadrature, order, d_reference_shape_values, d_reference_shape_gradients);
+        break;
     case LAGRANGE:
         fill_reference_values<dim, LAGRANGE>(quadrature, order, d_reference_shape_values, d_reference_shape_gradients);
         break;
     case MONOMIAL:
         fill_reference_values<dim, MONOMIAL>(quadrature, order, d_reference_shape_values, d_reference_shape_gradients);
-        break;
-    case L2_LAGRANGE:
-        fill_reference_values<dim, L2_LAGRANGE>(
-            quadrature, order, d_reference_shape_values, d_reference_shape_gradients);
         break;
     case SCALAR:
         fill_reference_values<dim, SCALAR>(quadrature, order, d_reference_shape_values, d_reference_shape_gradients);
