@@ -26,7 +26,7 @@
 
 namespace IBTK
 {
-IBTK_MPI::comm IBTK_MPI::s_communicator = MPI_COMM_NULL;
+IBTK_MPI::comm IBTK_MPI::s_communicator = MPI_COMM_WORLD;
 
 void
 IBTK_MPI::setCommunicator(IBTK_MPI::comm communicator)
