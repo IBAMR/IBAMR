@@ -18,6 +18,7 @@
 
 #include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LEInteractor.h"
@@ -51,7 +52,6 @@
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include "petscvec.h"
@@ -966,7 +966,7 @@ IBInterpolantMethod::computeCenterOfMass(EigenAlignedVector<Eigen::Vector3d>& ce
 
         for (unsigned struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
-            SAMRAI_MPI::sumReduction(&center_of_mass[struct_no][0], NDIM);
+            IBTK_MPI::sumReduction(&center_of_mass[struct_no][0], NDIM);
             const int total_nodes = getNumberOfNodes(struct_no);
             center_of_mass[struct_no] /= total_nodes;
         }

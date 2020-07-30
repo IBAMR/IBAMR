@@ -27,10 +27,16 @@
 #include <ibamr/ConstraintIBMethod.h>
 
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/ibtk_utilities.h>
 
 #ifndef included_IBAMR_multiphase_flow_LSLocateBargeInterface
 #define included_IBAMR_multiphase_flow_LSLocateBargeInterface
+
+namespace IBTK
+{
+class IBTK_MPI;
+};
 
 // Struct to maintain the properties of the barge interface
 struct BargeInterface
@@ -283,10 +289,10 @@ private:
 
         // For each of the coordinates, carry out reduction but keep track of which processor has the extreme value
         int rank_xmin, rank_xmax, rank_ymin, rank_ymax;
-        xmin = SAMRAI::tbox::SAMRAI_MPI::minReduction(xmin, &rank_xmin);
-        xmax = SAMRAI::tbox::SAMRAI_MPI::maxReduction(xmax, &rank_xmax);
-        ymin = SAMRAI::tbox::SAMRAI_MPI::minReduction(ymin, &rank_ymin);
-        ymax = SAMRAI::tbox::SAMRAI_MPI::maxReduction(ymax, &rank_ymax);
+        xmin = IBTK_MPI::minReduction(xmin, &rank_xmin);
+        xmax = IBTK_MPI::maxReduction(xmax, &rank_xmax);
+        ymin = IBTK_MPI::minReduction(ymin, &rank_ymin);
+        ymax = IBTK_MPI::maxReduction(ymax, &rank_ymax);
 
         // Broadcast via minReduction the missing coordinate from the appropriate rank.
         const int num_corners = 4;
@@ -295,11 +301,11 @@ private:
         other_coords[1] = y_xmax;
         other_coords[2] = x_ymin;
         other_coords[3] = x_ymax;
-        if (SAMRAI::tbox::SAMRAI_MPI::getRank() != rank_xmin) other_coords[0] = std::numeric_limits<double>::max();
-        if (SAMRAI::tbox::SAMRAI_MPI::getRank() != rank_xmax) other_coords[1] = std::numeric_limits<double>::max();
-        if (SAMRAI::tbox::SAMRAI_MPI::getRank() != rank_ymin) other_coords[2] = std::numeric_limits<double>::max();
-        if (SAMRAI::tbox::SAMRAI_MPI::getRank() != rank_ymax) other_coords[3] = std::numeric_limits<double>::max();
-        SAMRAI::tbox::SAMRAI_MPI::minReduction(&other_coords[0], num_corners);
+        if (IBTK_MPI::getRank() != rank_xmin) other_coords[0] = std::numeric_limits<double>::max();
+        if (IBTK_MPI::getRank() != rank_xmax) other_coords[1] = std::numeric_limits<double>::max();
+        if (IBTK_MPI::getRank() != rank_ymin) other_coords[2] = std::numeric_limits<double>::max();
+        if (IBTK_MPI::getRank() != rank_ymax) other_coords[3] = std::numeric_limits<double>::max();
+        IBTK_MPI::minReduction(&other_coords[0], num_corners);
         y_xmin = other_coords[0];
         y_xmax = other_coords[1];
         x_ymin = other_coords[2];

@@ -15,6 +15,7 @@
 
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/PETScMatUtilities.h"
 #include "ibtk/PETScVecUtilities.h"
 #include "ibtk/PoissonUtilities.h"
@@ -39,7 +40,6 @@
 #include "VariableContext.h"
 #include "VariableDatabase.h"
 #include "tbox/Array.h"
-#include "tbox/SAMRAI_MPI.h"
 
 #include "petscvec.h"
 #include <petsclog.h>
@@ -128,7 +128,7 @@ SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorRe
 
     // Setup PETSc objects.
     int ierr;
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_x);
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);

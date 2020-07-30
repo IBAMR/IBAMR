@@ -1,0 +1,7 @@
+Min test passed.
+Max test passed.
+sumReduction test passed.
+allToOneSum test passed.
+bcast test passed.
+send and recv test passed.
+all gather test passed.

@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/PETScLevelSolver.h"
 #include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_utilities.h"
@@ -27,7 +28,6 @@
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
@@ -438,7 +438,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
         std::vector<std::set<int> > overlap_is, nonoverlap_is;
         generateASMSubdomains(overlap_is, nonoverlap_is);
         d_n_local_subdomains = static_cast<int>(d_overlap_is.size());
-        d_n_subdomains_max = SAMRAI_MPI::maxReduction(d_n_local_subdomains);
+        d_n_subdomains_max = IBTK_MPI::maxReduction(d_n_local_subdomains);
 
         // Generate PETSc IS in cases where they have not been generated directly.
         if (!d_overlap_is.size())

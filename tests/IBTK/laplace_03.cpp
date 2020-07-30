@@ -31,6 +31,8 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/ibtk_enums.h>
 #include <ibtk/muParserCartGridFunction.h>
 
@@ -51,11 +53,8 @@
 int
 main(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -250,7 +249,7 @@ main(int argc, char* argv[])
         const double l2_norm = hier_side_data_ops->L2Norm(e_side_idx, dx_side_idx);
         const double l1_norm = hier_side_data_ops->L1Norm(e_side_idx, dx_side_idx);
 
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             std::ofstream out("output");
             out << "|e|_oo = " << max_norm << "\n";
@@ -298,7 +297,4 @@ main(int argc, char* argv[])
         visit_data_writer->writePlotData(patch_hierarchy, 0, data_time);
 
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
-    PetscFinalize();
 } // run_example`

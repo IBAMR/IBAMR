@@ -15,6 +15,8 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CCLaplaceOperator.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/PETScVecUtilities.h>
 #include <ibtk/app_namespaces.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -36,11 +38,8 @@
 int
 main(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     // prevent a warning about timer initializations
     TimerManager::createManager(nullptr);
@@ -104,7 +103,7 @@ main(int argc, char* argv[])
         for (const int n_dofs : n_dofs_per_proc) plog << n_dofs << '\n';
 
         std::ostringstream out;
-        if (SAMRAI_MPI::getNodes() != 1)
+        if (IBTK_MPI::getNodes() != 1)
         {
             // partitioning is only relevant when there are multiple processors
             Pointer<PatchLevel<NDIM> > patch_level =
@@ -113,7 +112,7 @@ main(int argc, char* argv[])
             plog << "hierarchy boxes:\n";
             for (int i = 0; i < boxes.size(); ++i) plog << boxes[i] << '\n';
             // rank is only relevant when there are multiple processors
-            out << "\nrank: " << SAMRAI_MPI::getRank() << '\n';
+            out << "\nrank: " << IBTK_MPI::getRank() << '\n';
         }
 
         Pointer<PatchLevel<NDIM> > patch_level = patch_hierarchy->getPatchLevel(level);
@@ -142,13 +141,8 @@ main(int argc, char* argv[])
                 dof_data->print(patch_box, out);
             }
         }
-        SAMRAI_MPI::barrier();
+        IBTK_MPI::barrier();
 
         print_strings_on_plog_0(out.str());
     }
-
-    // At this point all SAMRAI, PETSc, and IBAMR objects have been cleaned
-    // up, so we shut things down in the opposite order of initialization:
-    SAMRAIManager::shutdown();
-    PetscFinalize();
 } // run_example

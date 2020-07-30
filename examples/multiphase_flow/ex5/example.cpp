@@ -37,6 +37,8 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
@@ -69,11 +71,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 int
 main(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     // Increase maximum patch data component indices
     SAMRAIManager::setMaxNumberPatchDataEntries(2500);
@@ -349,7 +348,7 @@ main(int argc, char* argv[])
         // File to write to for fluid mass data
         ofstream mass_file, front_file, height_file;
 
-        if (!SAMRAI_MPI::getRank())
+        if (!IBTK_MPI::getRank())
         {
             mass_file.open("mass_fluid.txt");
             front_file.open("front_position.txt");
@@ -434,11 +433,11 @@ main(int argc, char* argv[])
             }
 
             // Max reduction
-            fluid_front = SAMRAI_MPI::maxReduction(fluid_front);
-            fluid_height = SAMRAI_MPI::maxReduction(fluid_height);
+            fluid_front = IBTK_MPI::maxReduction(fluid_front);
+            fluid_height = IBTK_MPI::maxReduction(fluid_height);
 
             // Write to file
-            if (!SAMRAI_MPI::getRank())
+            if (!IBTK_MPI::getRank())
             {
                 mass_file << std::setprecision(13) << loop_time << "\t" << mass_fluid << std::endl;
                 front_file << std::setprecision(13) << loop_time << "\t" << fluid_front << std::endl;
@@ -473,7 +472,7 @@ main(int argc, char* argv[])
         }
 
         // Close file
-        if (!SAMRAI_MPI::getRank())
+        if (!IBTK_MPI::getRank())
         {
             mass_file.close();
             front_file.close();
@@ -490,9 +489,6 @@ main(int argc, char* argv[])
         delete ptr_LSLocateColumnInterface;
 
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
-    PetscFinalize();
 } // main
 
 void
@@ -508,7 +504,7 @@ output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     // Write Cartesian data.
     string file_name = data_dump_dirname + "/" + "hier_data.";
     char temp_buf[128];
-    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
+    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, IBTK_MPI::getRank());
     file_name += temp_buf;
     Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
     hier_db->create(file_name);

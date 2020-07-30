@@ -15,6 +15,7 @@
 
 #include <IBTK_config.h>
 
+#include "ibtk/IBTK_MPI.h"
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/PETScVecUtilities.h>
 #include <ibtk/SAMRAIGhostDataAccumulator.h>
@@ -22,7 +23,6 @@
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
 #include <tbox/Pointer.h>
-#include <tbox/SAMRAI_MPI.h>
 #include <tbox/Utilities.h>
 
 #include <petscis.h>
@@ -181,7 +181,7 @@ SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(Pointer<BasePatchHierarch
 
         std::vector<int> num_dofs_per_proc;
         PETScVecUtilities::constructPatchLevelDOFIndices(num_dofs_per_proc, d_global_dof_idx, level);
-        const int mpi_rank = SAMRAI_MPI::getRank();
+        const int mpi_rank = IBTK_MPI::getRank();
 
         // half-open range of DoFs on the current processor
         const int local_dofs_begin =

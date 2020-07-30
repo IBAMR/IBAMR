@@ -36,6 +36,8 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/LData.h>
 #include <ibtk/LDataManager.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -220,11 +222,8 @@ generate_springs(
 int
 main(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     std::array<double, 3> u_err;
     std::array<double, 3> p_err;
@@ -481,7 +480,4 @@ main(int argc, char* argv[])
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
-    PetscFinalize();
 } // main

@@ -29,6 +29,8 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CCLaplaceOperator.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 
 // Set up application namespace declarations
@@ -46,11 +48,8 @@
 int
 main(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     // prevent a warning about timer initializations
     TimerManager::createManager(nullptr);
@@ -187,7 +186,7 @@ main(int argc, char* argv[])
         const double l2_norm = e_vec.L2Norm();
         const double l1_norm = e_vec.L1Norm();
 
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             std::ofstream out("output");
             out << "|e|_oo = " << max_norm << "\n";
@@ -221,9 +220,4 @@ main(int argc, char* argv[])
             }
         }
     }
-
-    // At this point all SAMRAI, PETSc, and IBAMR objects have been cleaned
-    // up, so we shut things down in the opposite order of initialization:
-    SAMRAIManager::shutdown();
-    PetscFinalize();
 } // run_example

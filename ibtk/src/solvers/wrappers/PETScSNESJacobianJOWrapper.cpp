@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/JacobianOperator.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/PETScSNESJacobianJOWrapper.h"
@@ -23,7 +24,6 @@
 #include "MultiblockDataTranslator.h"
 #include "SAMRAIVectorReal.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 
 #include "petscsnes.h"
 #include "petscvec.h"

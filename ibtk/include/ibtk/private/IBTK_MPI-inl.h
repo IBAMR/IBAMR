@@ -87,7 +87,7 @@ IBTK_MPI::bcast(const T x, const int root, IBTK_MPI::comm communicator)
     int size = 1;
     T temp_copy = x;
     bcast(&temp_copy, size, root, communicator);
-    return x;
+    return temp_copy;
 }
 
 template <typename T>
@@ -170,7 +170,7 @@ IBTK_MPI::minMaxReduction(T* x, const int n, int* rank, MPI_Op op, IBTK_MPI::com
     for (int i = 0; i < n; ++i)
     {
         x[i] = recv[i].first;
-        rank[i] = send[i].second;
+        rank[i] = recv[i].second;
     }
 } // minMaxReduction
 } // namespace IBTK

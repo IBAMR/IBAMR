@@ -16,11 +16,12 @@
 /////////////////////////////////// INCLUDES /////////////////////////////////////
 
 // SAMRAI INCLUDES
+#include "ibtk/IBTK_MPI.h"
+
 #include "CartesianPatchGeometry.h"
 #include "PatchLevel.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 // IBAMR INCLUDES

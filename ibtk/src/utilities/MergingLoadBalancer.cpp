@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/MergingLoadBalancer.h"
 #include "ibtk/box_utilities.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
@@ -20,7 +21,6 @@
 #include "Box.h"
 #include "PatchHierarchy.h"
 #include "ProcessorMapping.h"
-#include "tbox/SAMRAI_MPI.h"
 
 #include <memory>
 #include <string>
@@ -62,7 +62,7 @@ MergingLoadBalancer::loadBalanceBoxes(hier::BoxArray<NDIM>& out_boxes,
     // pairs of processors and boxes
     std::vector<std::pair<int, hier::Box<NDIM> > > new_boxes;
 
-    const int n_nodes = tbox::SAMRAI_MPI::getNodes();
+    const int n_nodes = IBTK_MPI::getNodes();
     for (int r = 0; r < n_nodes; ++r)
     {
         // get all boxes on processor r.

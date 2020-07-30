@@ -15,11 +15,12 @@
 #include <IBAMR_config.h>
 #include <IBTK_config.h>
 
+#include "ibtk/IBTK_MPI.h"
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 
 #include <tbox/SAMRAIManager.h>
-#include <tbox/SAMRAI_MPI.h>
 
 #include <SAMRAI_config.h>
 
@@ -72,10 +73,8 @@ size_check_pair()
 int
 main(int argc, char** argv)
 {
-    MPI_Init(&argc, &argv);
-    SAMRAI_MPI::setCommunicator(MPI_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
 
@@ -90,5 +89,4 @@ main(int argc, char** argv)
     size_check_pair<int, int>();
     // size_check_pair<long double, int>();
     plog << "OK\n";
-    MPI_Finalize();
 } // main

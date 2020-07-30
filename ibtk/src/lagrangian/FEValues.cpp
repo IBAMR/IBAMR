@@ -13,13 +13,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/IBTK_MPI.h"
 #include <ibtk/FECache.h>
 #include <ibtk/FEValues.h>
 #include <ibtk/JacobianCalculator.h>
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
 #include <tbox/PIO.h>
-#include <tbox/SAMRAI_MPI.h>
 #include <tbox/Utilities.h>
 
 #include "libmesh/enum_fe_family.h"

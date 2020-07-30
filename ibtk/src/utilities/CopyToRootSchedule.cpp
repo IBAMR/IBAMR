@@ -15,6 +15,7 @@
 
 #include "ibtk/CopyToRootSchedule.h"
 #include "ibtk/CopyToRootTransaction.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BoxArray.h"
@@ -94,7 +95,7 @@ CopyToRootSchedule::commonClassCtor()
     const size_t num_vars = d_src_patch_data_idxs.size();
 
     d_root_patch_data.resize(num_vars, Pointer<PatchData<NDIM> >(nullptr));
-    if (SAMRAI_MPI::getRank() == d_root_proc)
+    if (IBTK_MPI::getRank() == d_root_proc)
     {
         for (unsigned int k = 0; k < num_vars; ++k)
         {
@@ -104,7 +105,7 @@ CopyToRootSchedule::commonClassCtor()
         }
     }
 
-    const int mpi_nodes = SAMRAI_MPI::getNodes();
+    const int mpi_nodes = IBTK_MPI::getNodes();
     for (int src_proc = 0; src_proc < mpi_nodes; ++src_proc)
     {
         for (unsigned int k = 0; k < num_vars; ++k)

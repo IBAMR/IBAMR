@@ -12,10 +12,11 @@
 // ---------------------------------------------------------------------
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/libmesh_utilities.h>
 
 #include <tbox/SAMRAIManager.h>
-#include <tbox/SAMRAI_MPI.h>
 
 #include <libmesh/enum_order.h>
 #include <libmesh/enum_quadrature_type.h>
@@ -190,12 +191,11 @@ test(LibMeshInit& init,
 int
 main(int argc, char** argv)
 {
-    LibMeshInit init(argc, argv);
     std::ofstream out("output");
 
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
     Pointer<Database> input_db = app_initializer->getInputDatabase();

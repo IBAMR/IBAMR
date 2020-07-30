@@ -34,6 +34,8 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 
 #include <LocationIndexRobinBcCoefs.h>
@@ -59,10 +61,8 @@
 int
 main(int argc, char* argv[])
 {
-    // Initialize MPI and SAMRAI.
-    SAMRAI_MPI::init(&argc, &argv);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -298,9 +298,9 @@ main(int argc, char* argv[])
             }
         }
         // Perform sum reduction
-        num_interface_pts = SAMRAI_MPI::sumReduction(num_interface_pts);
-        E_interface = SAMRAI_MPI::sumReduction(E_interface);
-        E_domain = SAMRAI_MPI::sumReduction(E_domain);
+        num_interface_pts = IBTK_MPI::sumReduction(num_interface_pts);
+        E_interface = IBTK_MPI::sumReduction(E_interface);
+        E_domain = IBTK_MPI::sumReduction(E_domain);
 
         pout << "Error in Q near interface after level set initialization:" << std::endl
              << "L1-norm:  " << std::setprecision(10) << E_interface << std::endl;
@@ -384,7 +384,4 @@ main(int argc, char* argv[])
         }
 
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
-    SAMRAI_MPI::finalize();
 } // main

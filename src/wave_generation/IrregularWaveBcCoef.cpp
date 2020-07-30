@@ -17,6 +17,8 @@
 #include "ibamr/RNG.h"
 #include "ibamr/namespaces.h"
 
+#include "ibtk/IBTK_MPI.h"
+
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"
@@ -26,7 +28,6 @@
 #include "IntVector.h"
 #include "Patch.h"
 #include "tbox/Database.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include <algorithm>
@@ -131,7 +132,7 @@ IrregularWaveBcCoef::IrregularWaveBcCoef(std::string object_name,
         }
     }
 
-    if (!SAMRAI_MPI::getRank())
+    if (!IBTK_MPI::getRank())
     {
         std::ofstream wave_stream;
         wave_stream.open("irregular_wave.txt", std::fstream::out);

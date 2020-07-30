@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/AppInitializer.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
@@ -26,7 +27,6 @@
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
@@ -58,8 +58,8 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     if (argc >= 4)
     {
         // Check whether this appears to be a restarted run.
-        FILE* fstream = (SAMRAI_MPI::getRank() == 0 ? fopen(argv[2], "r") : nullptr);
-        if (SAMRAI_MPI::bcast(fstream ? 1 : 0, 0) == 1)
+        FILE* fstream = (IBTK_MPI::getRank() == 0 ? fopen(argv[2], "r") : nullptr);
+        if (IBTK_MPI::bcast(fstream ? 1 : 0, 0) == 1)
         {
             d_restart_read_dirname = argv[2];
             d_restart_restore_num = atoi(argv[3]);
@@ -75,7 +75,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     if (d_is_from_restart)
     {
         RestartManager::getManager()->openRestartFile(
-            d_restart_read_dirname, d_restart_restore_num, SAMRAI_MPI::getNodes());
+            d_restart_read_dirname, d_restart_restore_num, IBTK_MPI::getNodes());
     }
 
     // Create input database and parse all data in input file.

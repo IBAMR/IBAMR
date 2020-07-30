@@ -14,11 +14,12 @@
 //////////////////////////// INCLUDES /////////////////////////////////////////
 #include "ibamr/namespaces.h"
 
+#include "ibtk/IBTK_MPI.h"
+
 #include "CartesianPatchGeometry.h"
 #include "IBEELKinematics.h"
 #include "PatchLevel.h"
 #include "tbox/MathUtilities.h"
-#include "tbox/SAMRAI_MPI.h"
 
 #include "muParser.h"
 

@@ -21,6 +21,7 @@
 #include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/muParserRobinBcCoefs.h"
 
@@ -45,7 +46,6 @@
 #include "VisItDataWriter.h"
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
@@ -395,7 +395,7 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
     d_positive_def = true;
     checkPositiveDefinite(d_W_scratch_idx, d_W_cc_var, data_time, initial_time);
     int temp = d_positive_def ? 1 : 0;
-    d_positive_def = SAMRAI_MPI::maxReduction(temp) == 1 ? true : false;
+    d_positive_def = IBTK_MPI::maxReduction(temp) == 1 ? true : false;
     plog << "Conformation tensor is " << (d_positive_def ? "SPD" : "NOT SPD") << "\n";
     if (d_error_on_spd && !d_positive_def)
     {
@@ -409,8 +409,8 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
         d_max_det = 0.0;
         d_min_det = std::numeric_limits<double>::max();
         findDeterminant(d_W_scratch_idx, d_W_cc_var, data_time, initial_time);
-        d_max_det = SAMRAI_MPI::maxReduction(d_max_det);
-        d_min_det = SAMRAI_MPI::minReduction(d_min_det);
+        d_max_det = IBTK_MPI::maxReduction(d_max_det);
+        d_min_det = IBTK_MPI::minReduction(d_min_det);
         plog << "Largest det:  " << d_max_det << "\n";
         plog << "Smallest det: " << d_min_det << "\n";
     }
@@ -425,8 +425,8 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
     // Output largest and smallest max norm of Div W
     if (d_log_divW || d_divW_rel_tag)
     {
-        SAMRAI_MPI::maxReduction(d_max_norm);
-        SAMRAI_MPI::minReduction(d_min_norm);
+        IBTK_MPI::maxReduction(d_max_norm);
+        IBTK_MPI::minReduction(d_min_norm);
         plog << "Largest max norm of Div W:  " << d_max_norm << "\n";
         plog << "Smallest max norm of Div W: " << d_min_norm << "\n";
     }

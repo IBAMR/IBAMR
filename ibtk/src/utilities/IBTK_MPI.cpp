@@ -77,7 +77,10 @@ IBTK_MPI::allToOneSumReduction(int* x, const int n, const int root, IBTK_MPI::co
 {
     if (getNodes(communicator) > 1)
     {
-        MPI_Reduce(MPI_IN_PLACE, x, n, MPI_INT, MPI_SUM, root, communicator);
+        if (IBTK_MPI::getRank() == root)
+            MPI_Reduce(MPI_IN_PLACE, x, n, MPI_INT, MPI_SUM, root, communicator);
+        else
+            MPI_Reduce(x, x, n, MPI_INT, MPI_SUM, root, communicator);
     }
 } // allToOneSumReduction
 

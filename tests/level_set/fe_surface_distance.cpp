@@ -39,6 +39,8 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -151,9 +153,9 @@ calculate_error_near_band(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
             }
         }
     }
-    num_interface_pts = SAMRAI_MPI::sumReduction(num_interface_pts);
-    E_interface = SAMRAI_MPI::sumReduction(E_interface);
-    volume_near_interface = SAMRAI_MPI::sumReduction(volume_near_interface);
+    num_interface_pts = IBTK_MPI::sumReduction(num_interface_pts);
+    E_interface = IBTK_MPI::sumReduction(E_interface);
+    volume_near_interface = IBTK_MPI::sumReduction(volume_near_interface);
 
     return;
 } // calculate_error_near_band
@@ -172,11 +174,9 @@ calculate_error_near_band(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 int
 main(int argc, char* argv[])
 {
-    // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    const LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -396,7 +396,7 @@ main(int argc, char* argv[])
         pout << "Number of points within the interface (used to compute interface error):" << std::endl
              << num_interface_pts << std::endl;
 
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             std::ofstream out("output");
             out << "Number of boundary elements = " << boundary_mesh.n_elem() << std::endl;
@@ -418,5 +418,4 @@ main(int argc, char* argv[])
             }
         }
     }
-    SAMRAIManager::shutdown();
 }

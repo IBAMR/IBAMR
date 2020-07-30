@@ -15,6 +15,7 @@
 
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/PETScPCLSWrapper.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/ibtk_utilities.h"
@@ -24,7 +25,6 @@
 #include "MultiblockDataTranslator.h"
 #include "SAMRAIVectorReal.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 
 #include "petscpc.h"
 #include "petscpctypes.h"

@@ -19,6 +19,8 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/LData.h>
 
 // Set up application namespace declarations
@@ -32,15 +34,15 @@
 void
 write_ldata_info(LData& l_data)
 {
-    if (SAMRAI_MPI::getRank() == 0)
+    if (IBTK_MPI::getRank() == 0)
     {
         std::ofstream output("output", std::ios_base::app);
         output << "object name: " << l_data.getName() << '\n';
     }
 
-    for (int rank = 0; rank < SAMRAI_MPI::getNodes(); ++rank)
+    for (int rank = 0; rank < IBTK_MPI::getNodes(); ++rank)
     {
-        if (SAMRAI_MPI::getRank() == rank)
+        if (IBTK_MPI::getRank() == rank)
         {
             std::ofstream output("output", std::ios_base::app);
             output << "\nrank: " << rank << '\n'
@@ -104,8 +106,8 @@ write_ldata_info(LData& l_data)
             if (l_data.getDepth() == 1)
             {
                 boost::multi_array_ref<double, 1> local_entries = *l_data.getArray();
-                const int begin = SAMRAI_MPI::getRank() * 10;
-                const int end = begin + (SAMRAI_MPI::getRank() == 3 ? 6 : 10);
+                const int begin = IBTK_MPI::getRank() * 10;
+                const int end = begin + (IBTK_MPI::getRank() == 3 ? 6 : 10);
                 output << "local range: " << '[' << begin << ", " << end << ")\n";
                 output << "local entries: ";
                 for (int i = begin; i < end - 1; ++i) output << local_entries[i] << ", ";
@@ -116,8 +118,8 @@ write_ldata_info(LData& l_data)
             {
                 output << "with 2D vector:\n" << std::flush;
                 boost::multi_array_ref<double, 2> local_entries = *l_data.getVecArray();
-                const int begin = SAMRAI_MPI::getRank() * 10;
-                const int end = begin + (SAMRAI_MPI::getRank() == 3 ? 3 : 5);
+                const int begin = IBTK_MPI::getRank() * 10;
+                const int end = begin + (IBTK_MPI::getRank() == 3 ? 3 : 5);
                 output << "local range: " << '[' << begin << ", " << end << ")\n";
                 output << "index bases: " << local_entries.index_bases()[0] << ", " << local_entries.index_bases()[1]
                        << '\n';
@@ -130,19 +132,17 @@ write_ldata_info(LData& l_data)
             }
             output << "finished rank " << rank << '\n';
         }
-        SAMRAI_MPI::barrier();
+        IBTK_MPI::barrier();
     }
 }
 
 int
 main(int argc, char** argv)
 {
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
-    const int rank = SAMRAI_MPI::getRank();
+    const int rank = IBTK_MPI::getRank();
 
     // clear the output file, since we will append to it from multiple processes below:
     if (rank == 0)
@@ -154,7 +154,7 @@ main(int argc, char** argv)
     // test 1: set up an owning PETSc vector with depth 1.
     {
         std::vector<int> nonlocal_nodes;
-        if (SAMRAI_MPI::getNodes() == 4)
+        if (IBTK_MPI::getNodes() == 4)
         {
             switch (rank)
             {
@@ -177,7 +177,7 @@ main(int argc, char** argv)
         // use fewer entries on the last process
         LData l_data_1("l_data_1", rank == 3 ? 6 : 10, 1, nonlocal_nodes);
 
-        for (int i = 0; i < SAMRAI_MPI::getNodes(); ++i)
+        for (int i = 0; i < IBTK_MPI::getNodes(); ++i)
         {
             boost::multi_array_ref<double, 1> entries = *l_data_1.getLocalFormArray();
             double offset = 0.0;
@@ -195,7 +195,7 @@ main(int argc, char** argv)
     // test 2: set up an owning PETSc vector with depth 2.
     {
         std::vector<int> nonlocal_nodes;
-        if (SAMRAI_MPI::getNodes() == 4)
+        if (IBTK_MPI::getNodes() == 4)
         {
             switch (rank)
             {
@@ -218,7 +218,7 @@ main(int argc, char** argv)
         // use fewer entries on the last process
         LData l_data_2("l_data_2", rank == 3 ? 6 : 10, 2, nonlocal_nodes);
 
-        for (int i = 0; i < SAMRAI_MPI::getNodes(); ++i)
+        for (int i = 0; i < IBTK_MPI::getNodes(); ++i)
         {
             boost::multi_array_ref<double, 2> entries = *l_data_2.getLocalFormVecArray();
             for (unsigned int row_n = 0; row_n < entries.shape()[0]; ++row_n)
@@ -231,7 +231,4 @@ main(int argc, char** argv)
         l_data_2.endGhostUpdate();
         write_ldata_info(l_data_2);
     }
-
-    SAMRAIManager::shutdown();
-    PetscFinalize();
 } // main

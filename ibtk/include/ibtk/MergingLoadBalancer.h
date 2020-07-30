@@ -16,11 +16,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/IBTK_MPI.h"
 #include <ibtk/box_utilities.h>
 
 #include <tbox/PIO.h>
 #include <tbox/Pointer.h>
-#include <tbox/SAMRAI_MPI.h>
 
 #include <Box.h>
 #include <BoxArray.h>

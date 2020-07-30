@@ -35,6 +35,8 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/PETScMatUtilities.h>
 #include <ibtk/PETScVecUtilities.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -54,11 +56,8 @@
 int
 main(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -178,7 +177,7 @@ main(int argc, char* argv[])
         }
 
         // Construct the coarse and fine level PETSc Vecs
-        const int mpi_rank = SAMRAI_MPI::getRank();
+        const int mpi_rank = IBTK_MPI::getRank();
         const int n_local_coarsest = num_dofs_per_proc[coarsest_ln][mpi_rank];
         const int n_total_coarsest =
             std::accumulate(num_dofs_per_proc[coarsest_ln].begin(), num_dofs_per_proc[coarsest_ln].end(), 0);
@@ -261,7 +260,7 @@ main(int argc, char* argv[])
         const double max_norm = e_vec.maxNorm();
         const double l2_norm = e_vec.L2Norm();
         const double l1_norm = e_vec.L1Norm();
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             std::ofstream out("output");
             out << "|e|_oo = " << max_norm << "\n";
@@ -323,7 +322,4 @@ main(int argc, char* argv[])
         visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);
 
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
-    PetscFinalize();
 } // main

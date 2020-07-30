@@ -24,6 +24,7 @@
 #include "ibtk/FEDataManager.h"
 #include "ibtk/FEProjector.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LibMeshSystemVectors.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
@@ -1074,8 +1075,8 @@ FEMechanicsBase::commonConstructor(const std::string& object_name,
             mesh_has_first_order_elems = mesh_has_first_order_elems || elem->default_order() == FIRST;
             mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
         }
-        mesh_has_first_order_elems = SAMRAI_MPI::maxReduction(mesh_has_first_order_elems);
-        mesh_has_second_order_elems = SAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
+        mesh_has_first_order_elems = IBTK_MPI::maxReduction(mesh_has_first_order_elems ? 1 : 0);
+        mesh_has_second_order_elems = IBTK_MPI::maxReduction(mesh_has_second_order_elems ? 1 : 0);
         if ((mesh_has_first_order_elems && mesh_has_second_order_elems) ||
             (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
         {

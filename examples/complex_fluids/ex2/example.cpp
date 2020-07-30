@@ -49,6 +49,8 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -130,12 +132,9 @@ setInsideOfCylinder(const int d_idx, Pointer<PatchHierarchy<NDIM> > patch_hierar
 int
 main(int argc, char* argv[])
 {
-    // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::setMaxNumberPatchDataEntries(512);
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    const LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -411,7 +410,7 @@ main(int argc, char* argv[])
 
         // Open streams to save lift and drag coefficients and the norms of the
         // velocity.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             drag_force_stream.open("CD_Force_integral.curve", ios_base::out | ios_base::trunc);
             drag_force_stream.precision(10);
@@ -486,7 +485,7 @@ main(int argc, char* argv[])
         }
 
         // Close the logging streams.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             drag_force_stream.close();
             sxx_component_stream.close();
@@ -497,8 +496,6 @@ main(int argc, char* argv[])
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
 } // main
 
 void
@@ -517,7 +514,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
         // Output files
         string file_name = data_dump_dirname + "/hier_data.";
         char temp_buf[128];
-        sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
+        sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, IBTK_MPI::getRank());
         file_name += temp_buf;
         Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
         hier_db->create(file_name);
@@ -640,9 +637,9 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
             }
         }
     }
-    SAMRAI_MPI::sumReduction(F_integral, NDIM);
+    IBTK_MPI::sumReduction(F_integral, NDIM);
 
-    if (SAMRAI_MPI::getRank() == 0)
+    if (IBTK_MPI::getRank() == 0)
     {
         drag_force_stream << loop_time << " " << -F_integral[0] << endl;
     }
@@ -650,7 +647,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     // Interpolate sxx value along cylinder surface
     if (polymericStressForcing)
     {
-        if (SAMRAI_MPI::getRank() == 0) sxx_component_stream << loop_time << " ";
+        if (IBTK_MPI::getRank() == 0) sxx_component_stream << loop_time << " ";
         Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
         Pointer<Patch<NDIM> > patch = level->getPatch(PatchLevel<NDIM>::Iterator(level)());
         const Pointer<CartesianPatchGeometry<NDIM> > p_geom = patch->getPatchGeometry();
@@ -673,7 +670,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                        adv_diff_integrator->getPhysicalBcCoefs(polymericStressForcing->getVariable()),
                        1) -
                    1.0);
-            if (SAMRAI_MPI::getRank() == 0) sxx_component_stream << xp << " " << yp << " " << sxx << " ";
+            if (IBTK_MPI::getRank() == 0) sxx_component_stream << xp << " " << yp << " " << sxx << " ";
         }
         double dr = std::sqrt(dx[0] * dx[0] + dx[1] * dx[1]);
         num_pts = static_cast<int>(M_PI / dr);
@@ -692,7 +689,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                        adv_diff_integrator->getPhysicalBcCoefs(polymericStressForcing->getVariable()),
                        1) -
                    1.0);
-            if (SAMRAI_MPI::getRank() == 0) sxx_component_stream << xp << " " << yp << " " << sxx << " ";
+            if (IBTK_MPI::getRank() == 0) sxx_component_stream << xp << " " << yp << " " << sxx << " ";
         }
         num_pts = static_cast<int>(3.0 / dx[0]);
         for (int i = 0; i < num_pts; ++i)
@@ -710,9 +707,9 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                        adv_diff_integrator->getPhysicalBcCoefs(polymericStressForcing->getVariable()),
                        1) -
                    1.0);
-            if (SAMRAI_MPI::getRank() == 0) sxx_component_stream << xp << " " << yp << " " << sxx << " ";
+            if (IBTK_MPI::getRank() == 0) sxx_component_stream << xp << " " << yp << " " << sxx << " ";
         }
-        if (SAMRAI_MPI::getRank() == 0) sxx_component_stream << endl;
+        if (IBTK_MPI::getRank() == 0) sxx_component_stream << endl;
     }
     return;
 } // postprocess_data

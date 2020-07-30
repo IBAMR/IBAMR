@@ -34,6 +34,7 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/ibtk_enums.h"
@@ -80,7 +81,6 @@
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include <algorithm>
@@ -1484,7 +1484,7 @@ INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
                 cfl_max = std::max(cfl_max, u_max * dt / dx_min);
             }
         }
-        cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
+        cfl_max = IBTK_MPI::maxReduction(cfl_max);
         if (d_enable_logging)
             plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
     }

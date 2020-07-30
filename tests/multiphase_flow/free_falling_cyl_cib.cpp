@@ -43,6 +43,8 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
@@ -59,17 +61,14 @@
 int
 main(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     // Several parts of the code (such as LDataManager) expect mesh files,
     // specified in the input file, to exist in the current working
     // directory. Since tests are run in temporary directories we need to regenerate these input
     // to work.
-    if (SAMRAI_MPI::getRank() == 0)
+    if (IBTK_MPI::getRank() == 0)
     {
         std::ifstream structure_vertex_stream(SOURCE_DIR "/cylinder2d_free_fall.vertex");
         std::ofstream structure_cwd("cylinder2d_free_fall.vertex");
@@ -454,7 +453,7 @@ main(int argc, char* argv[])
 
         // File to write to for fluid mass data
         ofstream output_file;
-        if (!SAMRAI_MPI::getRank()) output_file.open("output");
+        if (!IBTK_MPI::getRank()) output_file.open("output");
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -492,7 +491,7 @@ main(int argc, char* argv[])
             IBTK::Vector3d pressure_force, viscous_force, pressure_torque, viscous_torque;
             hydro_force_evaluator->computeHydrodynamicForceTorque(
                 pressure_force, viscous_force, pressure_torque, viscous_torque, circle.X0);
-            if (SAMRAI_MPI::getRank() == 0)
+            if (IBTK_MPI::getRank() == 0)
             {
                 plog << "hyro forces: " << loop_time << '\t' << pressure_force[0] << '\t' << pressure_force[1] << '\t'
                      << pressure_force[2] << '\t' << viscous_force[0] << '\t' << viscous_force[1] << '\t'
@@ -503,7 +502,7 @@ main(int argc, char* argv[])
             }
 
             // Write the center of mass vertical position and velocity to a file
-            if (!SAMRAI_MPI::getRank())
+            if (!IBTK_MPI::getRank())
             {
                 output_file << std::setprecision(13) << loop_time << "\t" << structure_COM[0][1] << "\t"
                             << structure_Trans_Vel[0][1] << std::endl;
@@ -534,7 +533,7 @@ main(int argc, char* argv[])
         }
 
         // Close file
-        if (!SAMRAI_MPI::getRank()) output_file.close();
+        if (!IBTK_MPI::getRank()) output_file.close();
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
@@ -549,7 +548,5 @@ main(int argc, char* argv[])
 
     } // cleanup dynamically allocated objects prior to shutdown
 
-    SAMRAIManager::shutdown();
-    PetscFinalize();
     return 0;
 } // main

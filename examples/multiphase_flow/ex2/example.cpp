@@ -52,6 +52,8 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/LData.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -108,11 +110,9 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 int
 main(int argc, char* argv[])
 {
-    // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    const LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     // Increase maximum patch data component indices
     SAMRAIManager::setMaxNumberPatchDataEntries(2500);
@@ -573,7 +573,7 @@ main(int argc, char* argv[])
 
         // File to write to for fluid mass data
         ofstream mass_file;
-        if (!SAMRAI_MPI::getRank()) mass_file.open("mass_fluid.txt");
+        if (!IBTK_MPI::getRank()) mass_file.open("mass_fluid.txt");
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -625,7 +625,7 @@ main(int argc, char* argv[])
             const double mass_fluid = hier_rho_data_ops.integral(rho_ins_idx, wgt_sc_idx);
 
             // Write to file
-            if (!SAMRAI_MPI::getRank())
+            if (!IBTK_MPI::getRank())
             {
                 mass_file << std::setprecision(13) << loop_time << "\t" << mass_fluid << std::endl;
             }
@@ -662,7 +662,7 @@ main(int argc, char* argv[])
         }
 
         // Close file
-        if (!SAMRAI_MPI::getRank()) mass_file.close();
+        if (!IBTK_MPI::getRank()) mass_file.close();
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
@@ -676,7 +676,4 @@ main(int argc, char* argv[])
         delete phi_bc_coef;
 
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
-    PetscFinalize();
 } // main

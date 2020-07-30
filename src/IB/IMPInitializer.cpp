@@ -19,6 +19,7 @@
 #include "ibamr/MaterialPointSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LData.h"
 #include "ibtk/LIndexSetData.h"
@@ -47,7 +48,6 @@
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include "libmesh/elem.h"
@@ -458,7 +458,7 @@ IMPInitializer::writeVertexFile(std::string filename, int mesh_no, int level_num
     if (level_number < 0) level_number = max_levels - 1;
     level_number = std::min(level_number, max_levels - 1);
 
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     if (mpi_rank == 0)
     {
         if (filename.find(".vertex") == std::string::npos)
@@ -500,7 +500,7 @@ IMPInitializer::initializeLSiloDataWriter(const int level_number)
     // WARNING: For now, we just register the visualization data on MPI process
     // 0.  This will fail if the structure is too large to be stored in the
     // memory available to a single MPI process.
-    if (SAMRAI_MPI::getRank() == 0)
+    if (IBTK_MPI::getRank() == 0)
     {
         for (unsigned int j = 0; j < d_num_vertex[level_number].size(); ++j)
         {

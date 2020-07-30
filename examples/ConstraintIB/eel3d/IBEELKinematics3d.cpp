@@ -15,13 +15,14 @@
 
 #include "ibamr/namespaces.h"
 
+#include "ibtk/IBTK_MPI.h"
+
 #include "CartesianPatchGeometry.h"
 #include "IBEELKinematics3d.h"
 #include "PatchLevel.h"
 #include "gsl/gsl_integration.h"
 #include "gsl/gsl_linalg.h"
 #include "tbox/MathUtilities.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include "muParser.h"

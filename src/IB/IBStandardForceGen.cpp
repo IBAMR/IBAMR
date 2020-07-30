@@ -23,6 +23,7 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LMesh.h"
@@ -40,7 +41,6 @@
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include "petscmat.h"
@@ -1287,7 +1287,7 @@ IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
 
     if (d_log_target_point_displacements)
     {
-        max_displacement = SAMRAI_MPI::maxReduction(max_displacement);
+        max_displacement = IBTK_MPI::maxReduction(max_displacement);
         plog << "IBStandardForceGen: maximum target point displacement: " << max_displacement << "\n";
     }
 

@@ -12,12 +12,12 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/ibtk_utilities.h"
 #include <ibtk/StableCentroidPartitioner.h>
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
 #include <tbox/PIO.h>
-#include <tbox/SAMRAI_MPI.h>
 
 #include <libmesh/elem.h>
 #include <libmesh/id_types.h>
@@ -53,7 +53,7 @@ StableCentroidPartitioner::_do_partition(MeshBase& mesh, const unsigned int n)
     TBOX_ASSERT(mesh.is_replicated());
 #endif
     // only implemented when we use SAMRAI's partitioning
-    TBOX_ASSERT(n == static_cast<unsigned int>(SAMRAI_MPI::getNodes()));
+    TBOX_ASSERT(n == static_cast<unsigned int>(IBTK_MPI::getNodes()));
 
     std::vector<std::pair<std::array<float, LIBMESH_DIM>, libMesh::Elem*> > centroids;
     auto el_end = mesh.elements_end();
