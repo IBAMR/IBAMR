@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/FECache.h"
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/libmesh_utilities.h"
 #include "ibtk/namespaces.h"
@@ -297,16 +298,21 @@ FEDataInterpolation::init()
     d_dphi_face.resize(num_fe_types, nullptr);
     for (unsigned int fe_type_idx = 0; fe_type_idx < num_fe_types; ++fe_type_idx)
     {
-        std::unique_ptr<FEBase>& fe = d_fe[fe_type_idx];
+        std::unique_ptr<IBTK::FEValuesBase>& fe = d_fe[fe_type_idx];
         if (!fe)
         {
-            const FEType& fe_type = d_fe_types[fe_type_idx];
-            fe = FEBase::build(d_dim, fe_type);
-            if (d_qrule) fe->attach_quadrature_rule(d_qrule);
-            if (d_eval_q_point && !d_q_point) d_q_point = &fe->get_xyz();
-            if (d_eval_JxW && !d_JxW) d_JxW = &fe->get_JxW();
-            if (d_eval_phi[fe_type_idx]) d_phi[fe_type_idx] = &fe->get_phi();
-            if (d_eval_dphi[fe_type_idx]) d_dphi[fe_type_idx] = &fe->get_dphi();
+            FEUpdateFlags update_flags = FEUpdateFlags::update_default;
+            if (d_eval_q_point) update_flags |= update_quadrature_points;
+            if (d_eval_JxW) update_flags |= update_JxW;
+            if (d_eval_phi[fe_type_idx]) update_flags |= update_phi;
+            if (d_eval_dphi[fe_type_idx]) update_flags |= update_dphi;
+
+            fe = FEValuesBase::build(d_dim, NDIM, d_qrule, d_fe_types[fe_type_idx], update_flags);
+
+            if (d_eval_q_point && !d_q_point) d_q_point = &fe->getQuadraturePoints();
+            if (d_eval_JxW && !d_JxW) d_JxW = &fe->getJxW();
+            if (d_eval_phi[fe_type_idx]) d_phi[fe_type_idx] = &fe->getShapeValues();
+            if (d_eval_dphi[fe_type_idx]) d_dphi[fe_type_idx] = &fe->getShapeGradients();
         }
 
         std::unique_ptr<FEBase>& fe_face = d_fe_face[fe_type_idx];
@@ -339,7 +345,9 @@ FEDataInterpolation::reinit(const Elem* elem,
     {
         for (const auto& fe : d_fe)
         {
-            fe->reinit(elem, points, weights);
+            TBOX_ASSERT(points == nullptr);
+            TBOX_ASSERT(weights == nullptr);
+            fe->reinit(elem);
         }
     }
     d_n_qp = static_cast<unsigned int>(points ? points->size() : d_qrule ? d_qrule->n_points() : 0);
