@@ -15,8 +15,8 @@
 
 #include "ibtk/IBTK_MPI.h"
 #include <ibtk/FECache.h>
+#include <ibtk/FEMapping.h>
 #include <ibtk/FEValues.h>
-#include <ibtk/Mapping.h>
 #include <ibtk/namespaces.h> // IWYU pragma: keep
 
 #include <tbox/PIO.h>
@@ -170,9 +170,9 @@ FEValues<dim, spacedim>::reinit(const libMesh::Elem* elem)
         const std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order> key{ elem_type,
                                                                                           d_qrule->type(),
                                                                                           d_qrule->get_order() };
-        map_iter->second = Mapping<dim, spacedim>::build(key, d_update_flags);
+        map_iter->second = FEMapping<dim, spacedim>::build(key, d_update_flags);
     }
-    Mapping<dim, spacedim>& mapping = *map_iter->second;
+    FEMapping<dim, spacedim>& mapping = *map_iter->second;
     mapping.reinit(elem);
 
     if (d_update_flags & update_JxW)

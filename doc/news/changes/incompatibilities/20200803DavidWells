@@ -1,0 +1,5 @@
+Changed: IBTK::Mapping, IBTK::NodalMapping, and IBTK::MappingCache have been
+renamed to IBTK::FEMapping, IBTK::FENodalMapping, and IBTK::FEMappingCache
+respectively.
+<br>
+(David Wells, 2020/08/03)

@@ -11,13 +11,13 @@
 //
 // ---------------------------------------------------------------------
 
-#ifndef included_IBTK_MappingCache
-#define included_IBTK_MappingCache
+#ifndef included_IBTK_FEMappingCache
+#define included_IBTK_FEMappingCache
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/FECache.h>
-#include <ibtk/Mapping.h>
+#include <ibtk/FEMapping.h>
 #include <ibtk/libmesh_utilities.h>
 
 #include <libmesh/enum_elem_type.h>
@@ -38,23 +38,24 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 /**
- * \brief Class storing multiple Mapping objects. We assume that quadrature
- * rules are uniquely determined by the element type, quadrature type, and
- * approximation order. There are several places in IBTK where we make this
- * assumption, e.g., we will use data from two quadrature rules assumed to be
- * equal (by this metric) to initialize different libMesh objects.
+ * \brief Class storing multiple IBTK::FEMapping objects. We assume that
+ * quadrature rules are uniquely determined by the element type, quadrature
+ * type, and approximation order. There are several places in IBTK where we
+ * make this assumption, e.g., we will use data from two quadrature rules
+ * assumed to be equal (by this metric) to initialize different libMesh
+ * objects.
  *
  * This class essentially provides a wrapper around std::map to manage
- * IBTK::Mapping (and classes inheriting from it) objects.
+ * IBTK::FEMapping (and classes inheriting from it) objects.
  */
 template <int dim, int spacedim = dim>
-class MappingCache
+class FEMappingCache
 {
 public:
     /**
      * Constructor.
      */
-    MappingCache(const FEUpdateFlags update_flags);
+    FEMappingCache(const FEUpdateFlags update_flags);
 
     /**
      * Key type. Completely describes (excepting p-refinement) a libMesh
@@ -66,7 +67,7 @@ public:
      * Type of values stored by this class that are accessible through
      * <code>operator[]</code>.
      */
-    using value_type = Mapping<dim, spacedim>;
+    using value_type = FEMapping<dim, spacedim>;
 
     /**
      * Return a reference to a jacobian calculator object that matches the specified
@@ -92,19 +93,19 @@ protected:
     const FEUpdateFlags d_update_flags;
 
     /**
-     * Managed IBTK::Mapping objects.
+     * Managed IBTK::FEMapping objects.
      */
-    std::map<key_type, std::unique_ptr<Mapping<dim, spacedim> > > d_mappings;
+    std::map<key_type, std::unique_ptr<FEMapping<dim, spacedim> > > d_mappings;
 };
 
 template <int dim, int spacedim>
-MappingCache<dim, spacedim>::MappingCache(const FEUpdateFlags update_flags) : d_update_flags(update_flags)
+FEMappingCache<dim, spacedim>::FEMappingCache(const FEUpdateFlags update_flags) : d_update_flags(update_flags)
 {
 }
 
 template <int dim, int spacedim>
-inline typename MappingCache<dim, spacedim>::value_type&
-MappingCache<dim, spacedim>::operator[](const MappingCache<dim, spacedim>::key_type& quad_key)
+inline typename FEMappingCache<dim, spacedim>::value_type& FEMappingCache<dim, spacedim>::
+operator[](const FEMappingCache<dim, spacedim>::key_type& quad_key)
 {
     auto it = d_mappings.find(quad_key);
     if (it == d_mappings.end())
@@ -113,7 +114,7 @@ MappingCache<dim, spacedim>::operator[](const MappingCache<dim, spacedim>::key_t
         const int elem_dim = get_dim(elem_type);
         TBOX_ASSERT(elem_dim == dim);
 
-        auto mapping = Mapping<dim, spacedim>::build(quad_key, d_update_flags);
+        auto mapping = FEMapping<dim, spacedim>::build(quad_key, d_update_flags);
         value_type& new_mapping = *(*d_mappings.emplace(quad_key, std::move(mapping)).first).second;
         return new_mapping;
     }
@@ -131,4 +132,4 @@ MappingCache<dim, spacedim>::operator[](const MappingCache<dim, spacedim>::key_t
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_MappingCache
+#endif //#ifndef included_IBTK_FEMappingCache
