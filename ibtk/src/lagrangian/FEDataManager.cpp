@@ -211,6 +211,46 @@ get_JxW(const std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Or
         return mapping.getJxW();
     }
 }
+
+// libMesh's box intersection code is slow and not in a header (i.e., cannot be
+// inlined). This is problematic for us since we presently call this function
+// for every element on every patch: i.e., for N patches on the current
+// processor and K *total* (i.e., on all processors) elements we call this
+// function K*N times, which takes up a lot of time in regrids. For example:
+// switching to this function lowers the time required to get to the end of the
+// first time step in the TAVR model by 20%.
+inline bool
+bbox_intersects(const libMeshWrappers::BoundingBox& a, const libMeshWrappers::BoundingBox& b)
+{
+    const libMesh::Point& a_lower = a.first;
+    const libMesh::Point& a_upper = a.second;
+
+    const libMesh::Point& b_lower = b.first;
+    const libMesh::Point& b_upper = b.second;
+
+    // Since boxes are tensor products of line intervals it suffices to check
+    // that the line segments for each coordinate axis overlap.
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        // Line segments can intersect in two ways:
+        // 1. They can overlap.
+        // 2. One can be inside the other.
+        //
+        // In the first case we want to see if either end point of the second
+        // line segment lies within the first. In the second case we can simply
+        // check that one end point of the first line segment lies in the second
+        // line segment. Note that we don't need, in the second case, to do two
+        // checks since that case is already covered by the first.
+        if (!((a_lower(d) <= b_lower(d) && b_lower(d) <= a_upper(d)) ||
+              (a_lower(d) <= b_upper(d) && b_upper(d) <= a_upper(d))) &&
+            !((b_lower(d) <= a_lower(d) && a_lower(d) <= b_upper(d))))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
 } // namespace
 
 FEData::FEData(std::string object_name, const bool register_for_restart)
@@ -2901,10 +2941,12 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         {
             if ((*el_it)->active())
             {
-#if LIBMESH_VERSION_LESS_THAN(1, 2, 0)
-                if (bbox.intersect(patch_bbox)) elems.insert(*el_it);
+#if LIBMESH_VERSION_LESS_THAN(1, 6, 0)
+                if (bbox_intersects(bbox, patch_bbox)) elems.insert(*el_it);
 #else
-                if (bbox.intersects(patch_bbox)) elems.insert(*el_it);
+                // New versions of libMesh have this function's performance
+                // problems fixed
+                if (bbox.intersect(patch_bbox)) elems.insert(*el_it);
 #endif
             }
             ++el_it;
