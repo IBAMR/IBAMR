@@ -17,7 +17,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/FECache.h>
-#include <ibtk/Mapping.h>
+#include <ibtk/FEMapping.h>
 
 #include <tbox/Utilities.h>
 
@@ -127,7 +127,7 @@ protected:
     /*
      * Mappings, indexed by element type.
      */
-    std::map<libMesh::ElemType, std::unique_ptr<Mapping<dim, spacedim> > > d_mappings;
+    std::map<libMesh::ElemType, std::unique_ptr<FEMapping<dim, spacedim> > > d_mappings;
 
     /*
      * Reference values, indexed by element type.

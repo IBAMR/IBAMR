@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibtk/Mapping.h"
+#include "ibtk/FEMapping.h"
 #include "ibtk/libmesh_utilities.h"
 #include "ibtk/namespaces.h"
 
@@ -118,65 +118,65 @@ QuadratureData::QuadratureData(const QuadratureData::key_type quad_key) : d_key(
 }
 
 //
-// Mapping
+// FEMapping
 //
 
 template <>
-std::unique_ptr<Mapping<2, 2> >
-Mapping<2, 2>::build(const key_type key, const FEUpdateFlags update_flags)
+std::unique_ptr<FEMapping<2, 2> >
+FEMapping<2, 2>::build(const key_type key, const FEUpdateFlags update_flags)
 {
     switch (std::get<0>(key))
     {
     case libMesh::ElemType::TRI3:
-        return std::unique_ptr<Mapping<2, 2> >(new Tri3Mapping(key, update_flags));
+        return std::unique_ptr<FEMapping<2, 2> >(new Tri3Mapping(key, update_flags));
     case libMesh::ElemType::TRI6:
-        return std::unique_ptr<Mapping<2, 2> >(new LagrangeMapping<2, 2, 6>(key, update_flags));
+        return std::unique_ptr<FEMapping<2, 2> >(new FELagrangeMapping<2, 2, 6>(key, update_flags));
     case libMesh::ElemType::QUAD4:
-        return std::unique_ptr<Mapping<2, 2> >(new Quad4Mapping(key, update_flags));
+        return std::unique_ptr<FEMapping<2, 2> >(new Quad4Mapping(key, update_flags));
     case libMesh::ElemType::QUAD9:
-        return std::unique_ptr<Mapping<2, 2> >(new Quad9Mapping(key, update_flags));
+        return std::unique_ptr<FEMapping<2, 2> >(new Quad9Mapping(key, update_flags));
     default:
-        return std::unique_ptr<Mapping<2, 2> >(new LagrangeMapping<2, 2>(key, update_flags));
+        return std::unique_ptr<FEMapping<2, 2> >(new FELagrangeMapping<2, 2>(key, update_flags));
     }
 
     return {};
 }
 
 template <>
-std::unique_ptr<Mapping<3, 3> >
-Mapping<3, 3>::build(const key_type key, const FEUpdateFlags update_flags)
+std::unique_ptr<FEMapping<3, 3> >
+FEMapping<3, 3>::build(const key_type key, const FEUpdateFlags update_flags)
 {
     switch (std::get<0>(key))
     {
     case libMesh::ElemType::TET4:
-        return std::unique_ptr<Mapping<3, 3> >(new Tet4Mapping(key, update_flags));
+        return std::unique_ptr<FEMapping<3, 3> >(new Tet4Mapping(key, update_flags));
     case libMesh::ElemType::TET10:
-        return std::unique_ptr<Mapping<3, 3> >(new Tet10Mapping(key, update_flags));
+        return std::unique_ptr<FEMapping<3, 3> >(new Tet10Mapping(key, update_flags));
     case libMesh::ElemType::HEX8:
-        return std::unique_ptr<Mapping<3, 3> >(new LagrangeMapping<3, 3, 8>(key, update_flags));
+        return std::unique_ptr<FEMapping<3, 3> >(new FELagrangeMapping<3, 3, 8>(key, update_flags));
     case libMesh::ElemType::HEX27:
-        return std::unique_ptr<Mapping<3, 3> >(new Hex27Mapping(key, update_flags));
+        return std::unique_ptr<FEMapping<3, 3> >(new Hex27Mapping(key, update_flags));
     default:
-        return std::unique_ptr<Mapping<3, 3> >(new LagrangeMapping<3, 3>(key, update_flags));
+        return std::unique_ptr<FEMapping<3, 3> >(new FELagrangeMapping<3, 3>(key, update_flags));
     }
 
     return {};
 }
 
 template <int dim, int spacedim>
-std::unique_ptr<Mapping<dim, spacedim> >
-Mapping<dim, spacedim>::build(const key_type key, const FEUpdateFlags update_flags)
+std::unique_ptr<FEMapping<dim, spacedim> >
+FEMapping<dim, spacedim>::build(const key_type key, const FEUpdateFlags update_flags)
 {
-    return std::unique_ptr<Mapping<dim, spacedim> >(new LagrangeMapping<dim, spacedim>(key, update_flags));
+    return std::unique_ptr<FEMapping<dim, spacedim> >(new FELagrangeMapping<dim, spacedim>(key, update_flags));
 }
 
 //
-// NodalMapping
+// FENodalMapping
 //
 
 template <int dim, int spacedim, int n_nodes>
-NodalMapping<dim, spacedim, n_nodes>::NodalMapping(
-    const typename NodalMapping<dim, spacedim, n_nodes>::key_type quad_key,
+FENodalMapping<dim, spacedim, n_nodes>::FENodalMapping(
+    const typename FENodalMapping<dim, spacedim, n_nodes>::key_type quad_key,
     const FEUpdateFlags update_flags)
     : d_quadrature_data(quad_key), d_point_map(std::get<0>(quad_key), d_quadrature_data.d_points)
 {
@@ -205,7 +205,7 @@ NodalMapping<dim, spacedim, n_nodes>::NodalMapping(
 
 template <int dim, int spacedim, int n_nodes>
 void
-NodalMapping<dim, spacedim, n_nodes>::reinit(const libMesh::Elem* elem)
+FENodalMapping<dim, spacedim, n_nodes>::reinit(const libMesh::Elem* elem)
 {
     if (d_update_flags & FEUpdateFlags::update_contravariants || d_update_flags & FEUpdateFlags::update_covariants)
         this->fillTransforms(elem);
@@ -216,14 +216,14 @@ NodalMapping<dim, spacedim, n_nodes>::reinit(const libMesh::Elem* elem)
 
 template <int dim, int spacedim, int n_nodes>
 bool
-NodalMapping<dim, spacedim, n_nodes>::isAffine() const
+FENodalMapping<dim, spacedim, n_nodes>::isAffine() const
 {
     return false;
 }
 
 template <int dim, int spacedim, int n_nodes>
 void
-NodalMapping<dim, spacedim, n_nodes>::fillJacobians()
+FENodalMapping<dim, spacedim, n_nodes>::fillJacobians()
 {
     for (unsigned int q = 0; q < d_contravariants.size(); ++q)
     {
@@ -248,14 +248,14 @@ NodalMapping<dim, spacedim, n_nodes>::fillJacobians()
 
 template <int dim, int spacedim, int n_nodes>
 void
-NodalMapping<dim, spacedim, n_nodes>::fillJxW()
+FENodalMapping<dim, spacedim, n_nodes>::fillJxW()
 {
     for (unsigned int q = 0; q < d_Jacobians.size(); ++q) d_JxW[q] = d_quadrature_data.d_weights[q] * d_Jacobians[q];
 }
 
 template <int dim, int spacedim, int n_nodes>
 void
-NodalMapping<dim, spacedim, n_nodes>::fillQuadraturePoints(const libMesh::Elem* elem)
+FENodalMapping<dim, spacedim, n_nodes>::fillQuadraturePoints(const libMesh::Elem* elem)
 {
     libMesh::Point nodes[27];
 
@@ -274,14 +274,14 @@ NodalMapping<dim, spacedim, n_nodes>::fillQuadraturePoints(const libMesh::Elem* 
 }
 
 //
-// LagrangeMapping
+// FELagrangeMapping
 //
 
 template <int dim, int spacedim, int n_nodes>
-LagrangeMapping<dim, spacedim, n_nodes>::LagrangeMapping(
-    const typename LagrangeMapping<dim, spacedim, n_nodes>::key_type quad_key,
+FELagrangeMapping<dim, spacedim, n_nodes>::FELagrangeMapping(
+    const typename FELagrangeMapping<dim, spacedim, n_nodes>::key_type quad_key,
     const FEUpdateFlags update_flags)
-    : NodalMapping<dim, spacedim, n_nodes>(quad_key, update_flags),
+    : FENodalMapping<dim, spacedim, n_nodes>(quad_key, update_flags),
       d_n_nodes(n_nodes == -1 ? get_n_nodes(std::get<0>(quad_key)) : n_nodes)
 {
     if (n_nodes != -1) TBOX_ASSERT(d_n_nodes == n_nodes);
@@ -308,7 +308,7 @@ LagrangeMapping<dim, spacedim, n_nodes>::LagrangeMapping(
 
 template <int dim, int spacedim, int n_nodes>
 void
-LagrangeMapping<dim, spacedim, n_nodes>::fillTransforms(const libMesh::Elem* elem)
+FELagrangeMapping<dim, spacedim, n_nodes>::fillTransforms(const libMesh::Elem* elem)
 {
     TBOX_ASSERT(this->d_update_flags & FEUpdateFlags::update_contravariants);
     TBOX_ASSERT(d_n_nodes <= static_cast<int>(elem->n_nodes()));
@@ -443,7 +443,7 @@ Quad4Mapping::fillTransforms(const libMesh::Elem* elem)
 //
 
 Quad9Mapping::Quad9Mapping(const Quad9Mapping::key_type quad_key, FEUpdateFlags update_flags)
-    : NodalMapping<2, 2, 9>(quad_key, update_flags)
+    : FENodalMapping<2, 2, 9>(quad_key, update_flags)
 {
     // This code utilizes an implementation detail of
     // QBase::tensor_product_quad where the x coordinate increases fastest to
@@ -611,7 +611,7 @@ Tet4Mapping::isAffine() const
 //
 
 Tet10Mapping::Tet10Mapping(const key_type quad_key, const FEUpdateFlags update_flags)
-    : LagrangeMapping<3, 3, 10>(quad_key, update_flags),
+    : FELagrangeMapping<3, 3, 10>(quad_key, update_flags),
       tet4_mapping(std::make_tuple(libMesh::TET4, std::get<1>(quad_key), std::get<2>(quad_key)), update_flags)
 {
 }
@@ -631,7 +631,7 @@ Tet10Mapping::reinit(const libMesh::Elem* elem)
         std::swap(d_quadrature_points, tet4_mapping.d_quadrature_points);
     }
     else
-        LagrangeMapping<3, 3, 10>::reinit(elem);
+        FELagrangeMapping<3, 3, 10>::reinit(elem);
 }
 
 bool
@@ -662,7 +662,7 @@ Tet10Mapping::elem_is_affine(const libMesh::Elem* elem)
 //
 
 Hex27Mapping::Hex27Mapping(const key_type quad_key, const FEUpdateFlags update_flags)
-    : LagrangeMapping<3, 3, 27>(quad_key, update_flags),
+    : FELagrangeMapping<3, 3, 27>(quad_key, update_flags),
       hex8_mapping(std::make_tuple(libMesh::HEX8, std::get<1>(quad_key), std::get<2>(quad_key)), update_flags)
 {
 }
@@ -682,7 +682,7 @@ Hex27Mapping::reinit(const libMesh::Elem* elem)
         std::swap(d_quadrature_points, hex8_mapping.d_quadrature_points);
     }
     else
-        LagrangeMapping<3, 3, 27>::reinit(elem);
+        FELagrangeMapping<3, 3, 27>::reinit(elem);
 }
 
 bool
@@ -729,30 +729,30 @@ Hex27Mapping::elem_is_trilinear(const libMesh::Elem* elem)
 // Instantiations
 //
 
-template class Mapping<1, 1>;
-template class Mapping<1, 2>;
-template class Mapping<1, 3>;
-template class Mapping<2, 2>;
-template class Mapping<2, 3>;
-template class Mapping<3, 3>;
+template class FEMapping<1, 1>;
+template class FEMapping<1, 2>;
+template class FEMapping<1, 3>;
+template class FEMapping<2, 2>;
+template class FEMapping<2, 3>;
+template class FEMapping<3, 3>;
 
-template class NodalMapping<1, 1>;
-template class NodalMapping<1, 2>;
-template class NodalMapping<1, 3>;
-template class NodalMapping<2, 2>;
-template class NodalMapping<2, 3>;
-template class NodalMapping<3, 3>;
+template class FENodalMapping<1, 1>;
+template class FENodalMapping<1, 2>;
+template class FENodalMapping<1, 3>;
+template class FENodalMapping<2, 2>;
+template class FENodalMapping<2, 3>;
+template class FENodalMapping<3, 3>;
 
-template class LagrangeMapping<1, 1>;
-template class LagrangeMapping<1, 2>;
-template class LagrangeMapping<1, 3>;
-template class LagrangeMapping<2, 2>;
-template class LagrangeMapping<2, 3>;
-template class LagrangeMapping<3, 3>;
+template class FELagrangeMapping<1, 1>;
+template class FELagrangeMapping<1, 2>;
+template class FELagrangeMapping<1, 3>;
+template class FELagrangeMapping<2, 2>;
+template class FELagrangeMapping<2, 3>;
+template class FELagrangeMapping<3, 3>;
 
-template class NodalMapping<2, 2, 3>;
-template class NodalMapping<2, 2, 4>;
-template class NodalMapping<2, 2, 9>;
-template class NodalMapping<3, 3, 4>;
+template class FENodalMapping<2, 2, 3>;
+template class FENodalMapping<2, 2, 4>;
+template class FENodalMapping<2, 2, 9>;
+template class FENodalMapping<3, 3, 4>;
 
 } // namespace IBTK

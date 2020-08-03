@@ -17,12 +17,12 @@
 
 #include "ibtk/FECache.h"
 #include "ibtk/FEDataManager.h"
+#include "ibtk/FEMappingCache.h"
 #include "ibtk/FEProjector.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
-#include "ibtk/MappingCache.h"
 #include "ibtk/QuadratureCache.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/SAMRAIDataCache.h"
@@ -184,7 +184,7 @@ collect_unique_elems(std::vector<Elem*>& elems, const ContainerOfContainers& ele
 
 /**
  * A difficulty with FEDataManager is that it needs to work with both volumetric
- * and surface meshes, even though for performance reasons we template Mapping
+ * and surface meshes, even though for performance reasons we template FEMapping
  * on the current topological dimension of the mesh. Fortunately we do not need
  * the contravariants or other topological dimension-dependent values: we just
  * need the JxW values. Hence this little helper function lets one get the
@@ -195,8 +195,8 @@ const std::vector<double>&
 get_JxW(const std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order> key,
         const Elem* elem,
         const bool is_volume_mesh,
-        MappingCache<NDIM, NDIM>& volume_mapping_cache,
-        MappingCache<NDIM - 1, NDIM>& surface_mapping_cache)
+        FEMappingCache<NDIM, NDIM>& volume_mapping_cache,
+        FEMappingCache<NDIM - 1, NDIM>& surface_mapping_cache)
 {
     if (is_volume_mesh)
     {
@@ -858,14 +858,14 @@ FEDataManager::spread(const int f_data_idx,
         TBOX_ASSERT(X_dof_map.variable_order(d) == X_order);
     }
 
-    // convenience alias for the quadrature key type used by FECache and MappingCache
+    // convenience alias for the quadrature key type used by FECache and FEMappingCache
     using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
     FECache F_fe_cache(dim, F_fe_type, FEUpdateFlags::update_phi);
     FECache X_fe_cache(dim, X_fe_type, FEUpdateFlags::update_phi);
 
     // We have to support both volumetric and surface meshes based on runtime data
-    MappingCache<NDIM, NDIM> volume_mapping_cache(FEUpdateFlags::update_JxW);
-    MappingCache<NDIM - 1, NDIM> surface_mapping_cache(FEUpdateFlags::update_JxW);
+    FEMappingCache<NDIM, NDIM> volume_mapping_cache(FEUpdateFlags::update_JxW);
+    FEMappingCache<NDIM - 1, NDIM> surface_mapping_cache(FEUpdateFlags::update_JxW);
     const bool is_volume_mesh = dim == NDIM;
 
     // Check to see if we are using nodal quadrature.
@@ -1587,12 +1587,12 @@ FEDataManager::interpWeighted(const int f_data_idx,
         TBOX_ASSERT(X_dof_map.variable_order(d) == X_order);
     }
 
-    // convenience alias for the quadrature key type used by FECache and MappingCache
+    // convenience alias for the quadrature key type used by FECache and FEMappingCache
     using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
     FECache F_fe_cache(dim, F_fe_type, FEUpdateFlags::update_phi);
     FECache X_fe_cache(dim, X_fe_type, FEUpdateFlags::update_phi);
-    MappingCache<NDIM, NDIM> volume_mapping_cache(FEUpdateFlags::update_JxW);
-    MappingCache<NDIM - 1, NDIM> surface_mapping_cache(FEUpdateFlags::update_JxW);
+    FEMappingCache<NDIM, NDIM> volume_mapping_cache(FEUpdateFlags::update_JxW);
+    FEMappingCache<NDIM - 1, NDIM> surface_mapping_cache(FEUpdateFlags::update_JxW);
     const bool is_volume_mesh = dim == NDIM;
 
     // Communicate any unsynchronized ghost data.

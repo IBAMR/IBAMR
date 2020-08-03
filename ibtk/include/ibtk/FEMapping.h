@@ -11,8 +11,8 @@
 //
 // ---------------------------------------------------------------------
 
-#ifndef included_IBTK_Mapping
-#define included_IBTK_Mapping
+#ifndef included_IBTK_FEMapping
+#define included_IBTK_FEMapping
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -90,10 +90,10 @@ protected:
 };
 
 /*!
- * Abstract class defining the interface to a mapping.
+ * Abstract class defining the interface to a finite element mapping.
  */
 template <int dim, int spacedim = dim>
-class Mapping
+class FEMapping
 {
 public:
     /*!
@@ -131,9 +131,9 @@ public:
      * Return a pointer to the correct mapping for a given quadrature key and
      * update flags object.
      */
-    static std::unique_ptr<Mapping<dim, spacedim> > build(const key_type key, const FEUpdateFlags update_flags);
+    static std::unique_ptr<FEMapping<dim, spacedim> > build(const key_type key, const FEUpdateFlags update_flags);
 
-    virtual ~Mapping<dim, spacedim>() = default;
+    virtual ~FEMapping<dim, spacedim>() = default;
 
 protected:
     /*!
@@ -200,14 +200,14 @@ struct QuadratureData
 };
 
 /*!
- * Base class for all nodal mappings (i.e., mappings corresponding to
- * Lagrange-type finite element spaces).
+ * Base class for all nodal finite element mappings (i.e., mappings
+ * corresponding to Lagrange-type finite element spaces).
  *
  * @tparam n_nodes Number of nodes of the element: defaults to runtime
  * calculation (-1).
  */
 template <int dim, int spacedim = dim, int n_nodes = -1>
-class NodalMapping : public Mapping<dim, spacedim>
+class FENodalMapping : public FEMapping<dim, spacedim>
 {
 public:
     /*!
@@ -219,7 +219,7 @@ public:
     /*!
      * Constructor.
      */
-    NodalMapping(const key_type quad_key, const FEUpdateFlags update_flags);
+    FENodalMapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
     /*!
      * Recalculate relevant quantities for the provided element.
@@ -333,7 +333,7 @@ protected:
  * lower-order or tensor-product elements. Supports nonzero codimension.
  */
 template <int dim, int spacedim = dim, int n_nodes = -1>
-class LagrangeMapping : public NodalMapping<dim, spacedim, n_nodes>
+class FELagrangeMapping : public FENodalMapping<dim, spacedim, n_nodes>
 {
 public:
     /**
@@ -345,7 +345,7 @@ public:
     /**
      * Constructor.
      */
-    LagrangeMapping(const key_type quad_key, const FEUpdateFlags update_flags);
+    FELagrangeMapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
 protected:
     virtual void fillTransforms(const libMesh::Elem* elem) override;
@@ -367,14 +367,14 @@ protected:
 /*!
  * Specialization for TRI3 elements with codimension zero.
  */
-class Tri3Mapping : public NodalMapping<2, 2, 3>
+class Tri3Mapping : public FENodalMapping<2, 2, 3>
 {
 public:
     /**
      * Explicitly use the base class' constructor (this class does not require
      * any additional setup).
      */
-    using NodalMapping<2, 2, 3>::NodalMapping;
+    using FENodalMapping<2, 2, 3>::FENodalMapping;
 
 protected:
     virtual void fillTransforms(const libMesh::Elem* elem) override;
@@ -385,14 +385,14 @@ protected:
 /*!
  * Specialization for QUAD4 elements with codimension zero.
  */
-class Quad4Mapping : public NodalMapping<2, 2, 4>
+class Quad4Mapping : public FENodalMapping<2, 2, 4>
 {
 public:
     /**
      * Explicitly use the base class' constructor (this class does not require
      * any additional setup).
      */
-    using NodalMapping<2, 2, 4>::NodalMapping;
+    using FENodalMapping<2, 2, 4>::FENodalMapping;
 
 protected:
     virtual void fillTransforms(const libMesh::Elem* elem) override;
@@ -401,7 +401,7 @@ protected:
 /*!
  * Specialization for QUAD9 elements with codimension zero.
  */
-class Quad9Mapping : public NodalMapping<2, 2, 9>
+class Quad9Mapping : public FENodalMapping<2, 2, 9>
 {
 public:
     /**
@@ -440,14 +440,14 @@ protected:
 /*!
  * Specialization for TET4 elements.
  */
-class Tet4Mapping : public NodalMapping<3, 3, 4>
+class Tet4Mapping : public FENodalMapping<3, 3, 4>
 {
 public:
     /**
      * Explicitly use the base class' constructor (this class does not require
      * any additional setup).
      */
-    using NodalMapping<3, 3, 4>::NodalMapping;
+    using FENodalMapping<3, 3, 4>::FENodalMapping;
 
 protected:
     virtual void fillTransforms(const libMesh::Elem* elem) override;
@@ -462,7 +462,7 @@ protected:
  * reference configuration, most TET10 elements are actually affine this class
  * tries use the TET4 mapping whenever possible.
  */
-class Tet10Mapping : public LagrangeMapping<3, 3, 10>
+class Tet10Mapping : public FELagrangeMapping<3, 3, 10>
 {
 public:
     /*!
@@ -496,7 +496,7 @@ protected:
  * reference configuration, most HEX27 elements are actually trilinear, this
  * class tries use the lower degree mapping whenever possible.
  */
-class Hex27Mapping : public LagrangeMapping<3, 3, 27>
+class Hex27Mapping : public FELagrangeMapping<3, 3, 27>
 {
 public:
     /*!
@@ -516,7 +516,7 @@ protected:
     /*!
      * HEX8 mapping that is used whenever the given elem is trilinear.
      */
-    LagrangeMapping<3, 3, 8> hex8_mapping;
+    FELagrangeMapping<3, 3, 8> hex8_mapping;
 
     /*!
      * Utility function that determines if the element is trilinear (i.e., all
@@ -527,12 +527,12 @@ protected:
 
 // Specialization of build for 2D
 template <>
-std::unique_ptr<Mapping<2, 2> > Mapping<2, 2>::build(const key_type key, const FEUpdateFlags update_flags);
+std::unique_ptr<FEMapping<2, 2> > FEMapping<2, 2>::build(const key_type key, const FEUpdateFlags update_flags);
 
 // Specialization of build for 3D
 template <>
-std::unique_ptr<Mapping<3, 3> > Mapping<3, 3>::build(const key_type key, const FEUpdateFlags update_flags);
+std::unique_ptr<FEMapping<3, 3> > FEMapping<3, 3>::build(const key_type key, const FEUpdateFlags update_flags);
 
 } // namespace IBTK
 
-#endif //#ifndef included_IBTK_Mapping
+#endif //#ifndef included_IBTK_FEMapping
