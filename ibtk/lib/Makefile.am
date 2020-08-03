@@ -188,7 +188,7 @@ if LIBMESH_ENABLED
 DIM_DEPENDENT_SOURCES += \
 ../src/lagrangian/BoxPartitioner.cpp \
 ../src/lagrangian/StableCentroidPartitioner.cpp \
-../src/lagrangian/JacobianCalculator.cpp \
+../src/lagrangian/Mapping.cpp \
 ../src/lagrangian/FEDataInterpolation.cpp \
 ../src/lagrangian/FEDataManager.cpp \
 ../src/lagrangian/FEProjector.cpp \
@@ -362,7 +362,8 @@ if LIBMESH_ENABLED
 DIM_DEPENDENT_SOURCES += \
 ../include/lagrangian/BoxPartitioner.h \
 ../include/lagrangian/StableCentroidPartitioner.h \
-../include/lagrangian/JacobianCalculator.h \
+../include/lagrangian/Mapping.h \
+../include/lagrangian/MappingCache.h \
 ../include/ibtk/FEDataInterpolation.h \
 ../include/ibtk/FEDataManager.h \
 ../include/ibtk/FEProjector.h \

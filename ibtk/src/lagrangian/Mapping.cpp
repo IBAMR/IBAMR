@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibtk/JacobianCalculator.h"
+#include "ibtk/Mapping.h"
 #include "ibtk/libmesh_utilities.h"
 #include "ibtk/namespaces.h"
 
@@ -100,21 +100,21 @@ PointMap<dim, spacedim, n_nodes>::getMappedQuadraturePoints(const libMesh::Point
 }
 
 //
-// JacobianCalculator
+// QuadratureData
 //
 
-JacobianCalculator::JacobianCalculator(const JacobianCalculator::key_type quad_key) : d_quad_key(quad_key)
+QuadratureData::QuadratureData(const QuadratureData::key_type quad_key) : d_key(quad_key)
 {
-    const ElemType elem_type = std::get<0>(d_quad_key);
-    const QuadratureType quad_type = std::get<1>(d_quad_key);
-    const Order order = std::get<2>(d_quad_key);
+    const ElemType elem_type = std::get<0>(d_key);
+    const QuadratureType quad_type = std::get<1>(d_key);
+    const Order order = std::get<2>(d_key);
 
     const int dim = get_dim(elem_type);
 
     std::unique_ptr<QBase> quad_rule = QBase::build(quad_type, dim, order);
     quad_rule->init(elem_type);
-    d_quad_points = quad_rule->get_points();
-    d_quad_weights = quad_rule->get_weights();
+    d_points = quad_rule->get_points();
+    d_weights = quad_rule->get_weights();
 }
 
 //
@@ -178,7 +178,7 @@ template <int dim, int spacedim, int n_nodes>
 NodalMapping<dim, spacedim, n_nodes>::NodalMapping(
     const typename NodalMapping<dim, spacedim, n_nodes>::key_type quad_key,
     const FEUpdateFlags update_flags)
-    : JacobianCalculator(quad_key), d_point_map(std::get<0>(d_quad_key), d_quad_points)
+    : d_quadrature_data(quad_key), d_point_map(std::get<0>(quad_key), d_quadrature_data.d_points)
 {
     d_update_flags = update_flags;
 
@@ -192,15 +192,15 @@ NodalMapping<dim, spacedim, n_nodes>::NodalMapping(
         if (d_update_flags | FEUpdateFlags::update_covariants) d_update_flags |= update_contravariants;
     }
 
-    if (d_update_flags | FEUpdateFlags::update_contravariants) d_contravariants.resize(this->d_quad_weights.size());
-    if (d_update_flags | FEUpdateFlags::update_covariants) d_covariants.resize(this->d_quad_weights.size());
+    if (d_update_flags | FEUpdateFlags::update_contravariants) d_contravariants.resize(this->d_quadrature_data.size());
+    if (d_update_flags | FEUpdateFlags::update_covariants) d_covariants.resize(this->d_quadrature_data.size());
 
-    if (d_update_flags | FEUpdateFlags::update_jacobians) d_Jacobians.resize(this->d_quad_weights.size());
+    if (d_update_flags | FEUpdateFlags::update_jacobians) d_Jacobians.resize(this->d_quadrature_data.size());
 
-    if (d_update_flags | FEUpdateFlags::update_JxW) d_JxW.resize(this->d_quad_weights.size());
+    if (d_update_flags | FEUpdateFlags::update_JxW) d_JxW.resize(this->d_quadrature_data.size());
 
     if (d_update_flags | FEUpdateFlags::update_quadrature_points)
-        d_quadrature_points.resize(this->d_quad_weights.size());
+        d_quadrature_points.resize(this->d_quadrature_data.size());
 }
 
 template <int dim, int spacedim, int n_nodes>
@@ -250,7 +250,7 @@ template <int dim, int spacedim, int n_nodes>
 void
 NodalMapping<dim, spacedim, n_nodes>::fillJxW()
 {
-    for (unsigned int q = 0; q < d_Jacobians.size(); ++q) d_JxW[q] = d_quad_weights[q] * d_Jacobians[q];
+    for (unsigned int q = 0; q < d_Jacobians.size(); ++q) d_JxW[q] = d_quadrature_data.d_weights[q] * d_Jacobians[q];
 }
 
 template <int dim, int spacedim, int n_nodes>
@@ -282,7 +282,7 @@ LagrangeMapping<dim, spacedim, n_nodes>::LagrangeMapping(
     const typename LagrangeMapping<dim, spacedim, n_nodes>::key_type quad_key,
     const FEUpdateFlags update_flags)
     : NodalMapping<dim, spacedim, n_nodes>(quad_key, update_flags),
-      d_n_nodes(n_nodes == -1 ? get_n_nodes(std::get<0>(this->d_quad_key)) : n_nodes)
+      d_n_nodes(n_nodes == -1 ? get_n_nodes(std::get<0>(quad_key)) : n_nodes)
 {
     if (n_nodes != -1) TBOX_ASSERT(d_n_nodes == n_nodes);
 #if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
@@ -290,18 +290,18 @@ LagrangeMapping<dim, spacedim, n_nodes>::LagrangeMapping(
 #else
     TBOX_ASSERT(d_n_nodes <= static_cast<int>(libMesh::Elem::max_n_nodes));
 #endif
-    const libMesh::ElemType elem_type = std::get<0>(this->d_quad_key);
+    const libMesh::ElemType elem_type = std::get<0>(this->d_quadrature_data.d_key);
 
     typename decltype(d_dphi)::extent_gen extents;
-    d_dphi.resize(extents[d_n_nodes][this->d_quad_points.size()]);
+    d_dphi.resize(extents[d_n_nodes][this->d_quadrature_data.size()]);
 
     for (int node_n = 0; node_n < d_n_nodes; ++node_n)
     {
-        for (unsigned int q = 0; q < this->d_quad_points.size(); ++q)
+        for (unsigned int q = 0; q < this->d_quadrature_data.size(); ++q)
         {
             for (unsigned int d = 0; d < dim; ++d)
                 d_dphi[node_n][q][d] = libMesh::FE<dim, libMesh::LAGRANGE>::shape_deriv(
-                    elem_type, get_default_order(elem_type), node_n, d, this->d_quad_points[q]);
+                    elem_type, get_default_order(elem_type), node_n, d, this->d_quadrature_data.d_points[q]);
         }
     }
 }
@@ -362,7 +362,7 @@ void
 Tri3Mapping::fillTransforms(const libMesh::Elem* elem)
 {
     TBOX_ASSERT(this->d_update_flags & FEUpdateFlags::update_contravariants);
-    TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
+    TBOX_ASSERT(elem->type() == std::get<0>(this->d_quadrature_data.d_key));
 
     const libMesh::Point p0 = elem->point(0);
     const libMesh::Point p1 = elem->point(1);
@@ -398,7 +398,7 @@ void
 Quad4Mapping::fillTransforms(const libMesh::Elem* elem)
 {
     TBOX_ASSERT(this->d_update_flags & FEUpdateFlags::update_contravariants);
-    TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
+    TBOX_ASSERT(elem->type() == std::get<0>(this->d_quadrature_data.d_key));
 
     // calculate constants in Jacobians here
     const libMesh::Point p0 = elem->point(0);
@@ -416,8 +416,8 @@ Quad4Mapping::fillTransforms(const libMesh::Elem* elem)
     for (unsigned int i = 0; i < this->d_JxW.size(); i++)
     {
         // calculate Jacobians here
-        const double x = d_quad_points[i](0);
-        const double y = d_quad_points[i](1);
+        const double x = d_quadrature_data.d_points[i](0);
+        const double y = d_quadrature_data.d_points[i](1);
 
         Eigen::Matrix<double, 2, 2>& contravariant = d_contravariants[i];
         contravariant(0, 0) = a_1 + c_1 * y;
@@ -448,12 +448,12 @@ Quad9Mapping::Quad9Mapping(const Quad9Mapping::key_type quad_key, FEUpdateFlags 
     // This code utilizes an implementation detail of
     // QBase::tensor_product_quad where the x coordinate increases fastest to
     // reconstruct the 1D quadrature rule
-    d_n_oned_q_points = static_cast<std::size_t>(std::round(std::sqrt(d_quad_points.size())));
-    TBOX_ASSERT(d_n_oned_q_points * d_n_oned_q_points == d_quad_points.size());
+    d_n_oned_q_points = static_cast<std::size_t>(std::round(std::sqrt(d_quadrature_data.d_points.size())));
+    TBOX_ASSERT(d_n_oned_q_points * d_n_oned_q_points == d_quadrature_data.d_points.size());
     std::vector<libMesh::Point> oned_points(d_n_oned_q_points);
     for (unsigned int q = 0; q < d_n_oned_q_points; ++q)
     {
-        oned_points[q] = d_quad_points[q](0);
+        oned_points[q] = d_quadrature_data.d_points[q](0);
     }
 
     // verify that we really do have a tensor product rule
@@ -462,7 +462,7 @@ Quad9Mapping::Quad9Mapping(const Quad9Mapping::key_type quad_key, FEUpdateFlags 
     {
         for (unsigned int i = 0; i < d_n_oned_q_points; ++i)
         {
-            TBOX_ASSERT(d_quad_points[q] == libMesh::Point(oned_points[i](0), oned_points[j](0)));
+            TBOX_ASSERT(d_quadrature_data.d_points[q] == libMesh::Point(oned_points[i](0), oned_points[j](0)));
             ++q;
         }
     }
@@ -489,7 +489,7 @@ void
 Quad9Mapping::fillTransforms(const libMesh::Elem* elem)
 {
     TBOX_ASSERT(this->d_update_flags & FEUpdateFlags::update_contravariants);
-    TBOX_ASSERT(elem->type() == std::get<0>(this->d_quad_key));
+    TBOX_ASSERT(elem->type() == std::get<0>(this->d_quadrature_data.d_key));
 
     constexpr std::size_t n_oned_shape_functions = 3;
 

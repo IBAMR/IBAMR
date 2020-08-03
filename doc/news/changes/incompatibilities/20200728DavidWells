@@ -1,0 +1,6 @@
+Removed: The classes IBTK::JacobianCalculator and IBTK::JacobianCalculatorCache
+have been removed. Their replacements are IBTK::Mapping and IBTK::MappingCache,
+respectively, which can compute many more finite element mapping quantities than
+JacobianCalculator could.
+<br>
+(David Wells, 2020/07/28)
