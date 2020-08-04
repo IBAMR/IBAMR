@@ -11,7 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions

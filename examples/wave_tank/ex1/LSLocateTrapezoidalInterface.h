@@ -11,9 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-// Filename LSLocateTrapezoidalInterface.h
-// Written by Nishant Nangia
-
 /////////////////////// INCLUDE GUARD ////////////////////////////////////
 
 #ifndef included_LSLocateTrapezoidalInterface

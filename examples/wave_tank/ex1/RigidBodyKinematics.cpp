@@ -11,8 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-
-
 /////////////////////////////////// INCLUDES /////////////////////////////////////
 
 // SAMRAI INCLUDES
@@ -29,6 +27,7 @@
 // IBTK THIRD-PARTY INCLUDES
 #include "muParser.h"
 
+// APPLICATION INCLUDES
 #include "RigidBodyKinematics.h"
 
 // C++ INCLUDES

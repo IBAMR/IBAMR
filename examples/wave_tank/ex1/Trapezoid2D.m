@@ -11,9 +11,6 @@
 %%
 %% ---------------------------------------------------------------------
 
-%% Filename : Trapezoid2D.m
-%% Written by Nishant Nangia
-
 clear all;
 clc;
 %% Mesh parameters.

@@ -11,9 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-// Filename LSLocateColumnInterface.h
-// Created on Sep 4, 2018 by Nishant Nangia and Amneet Bhalla
-
 /////////////////////// INCLUDE GUARD ////////////////////////////////////
 
 #ifndef included_LSLocateColumnInterface
