@@ -20,6 +20,8 @@ AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADER([config/IBTK_config.h.tmp])
 AX_PREFIX_CONFIG_H([config/IBTK_config.h],[IBTK],[config/IBTK_config.h.tmp])
+# Also copy our own CMake compatibility shim header:
+AC_CONFIG_LINKS([config/ibtk/config.h:$srcdir/config/config.h.tmp])
 AM_INIT_AUTOMAKE([1.12 -Wall -Werror dist-bzip2 foreign -Wno-extra-portability subdir-objects])
 AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([disable])
