@@ -16,6 +16,7 @@
 #include <IBAMR_config.h>
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/BrinkmanPenalizationAdvDiff.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -861,8 +862,29 @@ AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(double current_time, do
                                      d_Q_reset_fcns_ctx[Q_var][k]);
         }
     }
+    if (d_brinkman_penalization)
+    {
+        d_brinkman_penalization->setTimeInterval(current_time, new_time);
+        d_brinkman_penalization->preprocessBrinkmanPenalizationAdvDiff(current_time, new_time, num_cycles);
+    }
     return;
 } // preprocessIntegrateHierarchy
+
+void
+AdvDiffHierarchyIntegrator::postprocessIntegrateHierarchy(double current_time,
+                                                          double new_time,
+                                                          bool skip_synchronize_new_state_data,
+                                                          int num_cycles)
+{
+    HierarchyIntegrator::postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+
+    if (d_brinkman_penalization)
+    {
+        d_brinkman_penalization->postprocessBrinkmanPenalizationAdvDiff(current_time, new_time, num_cycles);
+    }
+    return;
+} // postprocessIntegrateHierarchy
 
 void
 AdvDiffHierarchyIntegrator::registerResetFunction(Pointer<CellVariable<NDIM, double> > Q_var,
@@ -906,6 +928,13 @@ AdvDiffHierarchyIntegrator::getResetPriority(Pointer<CellVariable<NDIM, double> 
     const size_t l = distance(d_Q_var.begin(), std::find(d_Q_var.begin(), d_Q_var.end(), Q_var));
     return d_Q_reset_priority[l];
 } // getResetPriority
+
+void
+AdvDiffHierarchyIntegrator::registerBrinkmanPenalization(Pointer<BrinkmanPenalizationAdvDiff> brinkman_penalization)
+{
+    d_brinkman_penalization = brinkman_penalization;
+    return;
+} // registerBrinkmanPenalization
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
