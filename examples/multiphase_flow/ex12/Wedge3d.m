@@ -11,9 +11,6 @@
 %%
 %% ---------------------------------------------------------------------
 
-%% Filename: Wedge3d.m
-%% Written by Nishant Nangia   
-
 clear all;
 
 PATH = './';

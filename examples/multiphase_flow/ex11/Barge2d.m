@@ -11,8 +11,6 @@
 %%
 %% ---------------------------------------------------------------------
 
-   %% filename: Barge2d.m written by Nishant Nangia
-
   clear all;
   
   PATH = './';

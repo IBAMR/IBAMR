@@ -11,9 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-// Filename: SetFluidProperties.cpp
-// Created on Dec 17, 2017 by Nishant Nangia
-
 // APPLICATION INCLUDES
 #include <ibamr/app_namespaces.h>
 

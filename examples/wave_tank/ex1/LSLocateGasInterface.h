@@ -11,9 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-// Filename LSLocateGasInterface.h
-// Created on Nov 15, 2017 by Nishant Nangia
-
 /////////////////////// INCLUDE GUARD ////////////////////////////////////
 
 #ifndef included_LSLocateGasInterface

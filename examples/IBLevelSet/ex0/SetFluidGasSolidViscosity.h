@@ -11,9 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-// Filename: SetFluidGasSolidViscosity.h
-// Created on Dec 14, 2017 by Nishant Nangia
-
 /////////////////////// INCLUDE GUARD ////////////////////////////////////
 
 #ifndef included_SetFluidGasSolidViscosity

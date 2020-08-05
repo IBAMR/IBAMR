@@ -11,9 +11,6 @@
 %%
 %% ---------------------------------------------------------------------
 
-%% Filename: Wedge2d.m
-%% Written by Nishant Nangia
- 
 clear all;
   
 PATH = './';

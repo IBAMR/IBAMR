@@ -11,10 +11,6 @@
 %%
 %% ---------------------------------------------------------------------
 
-%% Filename : Rectangle3d.m
-%% Written by Nishant Nangia
-
-   
   clear all;
   
   PATH = './';

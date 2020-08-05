@@ -11,9 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-// Filename: SetLSProperties.h
-// Created on May 24, 2018 by Nishant Nangia
-
 /////////////////////// INCLUDE GUARD ////////////////////////////////////
 
 #ifndef included_SetLSProperties

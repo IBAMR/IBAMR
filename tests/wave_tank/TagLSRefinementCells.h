@@ -11,9 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-// Filename: TagLSRefinementCells.h
-// Created on Dec 28, 2017 by Nishant Nangia
-
 /////////////////////// INCLUDE GUARD ////////////////////////////////////
 
 #ifndef included_TagLSRefinementCells

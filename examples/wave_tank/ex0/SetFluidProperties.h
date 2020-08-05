@@ -11,9 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-// Filename: SetFluidProperties.h
-// Created on Dec 18, 2017 by Nishant Nangia
-
 /////////////////////// INCLUDE GUARD ////////////////////////////////////
 
 #ifndef included_SetFluidProperties
