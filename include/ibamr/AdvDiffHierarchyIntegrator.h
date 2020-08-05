@@ -34,6 +34,11 @@
 #include <string>
 #include <vector>
 
+namespace IBAMR
+{
+class BrinkmanPenalizationAdvDiff;
+} // namespace IBAMR
+
 namespace IBTK
 {
 class CartGridFunction;
@@ -436,6 +441,14 @@ public:
     void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
 
     /*!
+     * Clean up data following call(s) to integrateHierarchy().
+     */
+    void postprocessIntegrateHierarchy(double current_time,
+                                       double new_time,
+                                       bool skip_synchronize_new_state_data,
+                                       int num_cycles = 1) override;
+
+    /*!
      * \brief Function to reset variables registered by this integrator
      */
     using ResetPropertiesFcnPtr = void (*)(int property_idx,
@@ -473,6 +486,21 @@ public:
      * \brief Get the reset priority for a particular variable.
      */
     int getResetPriority(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+
+    /*!
+     * \brief Register BrinkmanPenalizationAdvDiff object to add Brinkman penalization terms to the advection-diffusion
+     * solver.
+     */
+    virtual void
+    registerBrinkmanPenalization(SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationAdvDiff> brinkman_penalization);
+
+    /*!
+     * \brief Get the BrinkmanPenalizationAdvDiff object registered with this class.
+     */
+    const SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationAdvDiff>& getBrinkmanPenalization() const
+    {
+        return d_brinkman_penalization;
+    } // getBrinkmanPenalization
 
 protected:
     /*!
@@ -602,6 +630,11 @@ protected:
         d_Q_reset_fcns;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<void*> > d_Q_reset_fcns_ctx;
     std::vector<int> d_Q_reset_priority;
+
+    /*!
+     * Brinkman penalization object registred with this integrator.
+     */
+    SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationAdvDiff> d_brinkman_penalization;
 
     /*
      * Hierarchy operations objects.

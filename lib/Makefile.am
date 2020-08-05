@@ -56,6 +56,7 @@ endif
 
 ## Dimension-dependent libraries
 DIM_INDEPENDENT_SOURCES = \
+../src/IB/BrinkmanPenalizationAdvDiff.cpp \
 ../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 ../src/IB/BrinkmanPenalizationStrategy.cpp \
 ../src/IB/CIBMethod.cpp \
@@ -222,6 +223,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/AdvDiffStochasticForcing.h \
 ../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 ../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+../include/ibamr/BrinkmanPenalizationAdvDiff.h \
 ../include/ibamr/BrinkmanPenalizationStrategy.h \
 ../include/ibamr/BrinkmanPenalizationRigidBodyDynamics.h \
 ../include/ibamr/CIBMethod.h \
