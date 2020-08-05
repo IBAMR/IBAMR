@@ -305,6 +305,87 @@ class IBFEDirectForcingKinematics;
  *   <code>false</code>.</li>
  * </ol>
  *
+ * <h2>Using IBFEMethod with your own libMesh System objects</h2>
+ *
+ * It is often useful to add your own libMesh data to the same EquationSystems
+ * object used by IBAMR objects. One such example would be defining fields of
+ * fibers to give direction to add anisotropy to solid models. The primary
+ * advantage of adding your own Systems to the EquationSystems objects stored
+ * by IBFEMethod is that your Systems will be automatically saved to restart
+ * files and then set up again by IBFEMethod when resuming from such a file.
+ *
+ * Since initialization of this class occurs in multiple stages and IBFEMethod
+ * assumes that it is ultimately responsible for setting up the EquationSystems
+ * object (by calling <code>EquationSystems::init()</code>) other libMesh Systems
+ * must be added in a specific order. Additionally, some parts must only be set
+ * up if restart information is not available.
+ *
+ * This code is based on an IBFE example and assumes that the IBAMR objects
+ * objects are already set up in the usual way.
+ *
+ * @code
+ * // Actually create the EquationSystems objects.
+ * ib_method_ops->initializeFEEquationSystems();
+ *
+ * // This code assumes we only have one part, so there is only one
+ * // EquationSystems object.
+ * libMesh::EquationSystems *equation_systems =
+ *     ib_method_ops->getFEDataManager()->getEquationSystems();
+ *
+ * const bool from_restart = RestartManager::getManager()->isFromRestart();
+ * // Set up the external System. It is not necessary to create the System
+ * // if restart data is available, since in that case libMesh will create
+ * // the system itself from loaded data.
+ * if (!from_restart)
+ * {
+ *     auto& fiber =
+ *         equation_systems->add_system<ExplicitSystem>("fiber");
+ *     fiber.add_variable("f_0");
+ *     fiber.add_variable("f_1");
+ *
+ *     // do not call init here - the IBFEMethod object will do that itself
+ *     // later in the call to initializeFEData().
+ * }
+ *
+ * // do more initialization of IBAMR objects here...
+ *
+ * // IBFEMethod::initializeFEData() will initialize all System objects in each
+ * // EquationSystems object: i.e., libMesh will fail with an assertion check if
+ * // you added your own System to that EquationSystems object and initialized it
+ * // it before this point. Since this includes all Systems, i.e., also
+ * // external systems, any data vectors you added to the System will be
+ * // loaded in from the same restart file as the rest of IBAMR's data.
+ * ib_method_ops->initializeFEData();
+ *
+ * // initialize the patch hierarchy, postprocessor, etc. here too, as usual.
+ *
+ * // Continue configuring the external system. Like before, its not necessary
+ * // to add vectors if restart data is available, since in that case libMesh
+ * // will already know the vectors exist.
+ * if (!from_restart)
+ * {
+ *     auto& fiber =
+ *         equation_systems->get_system<ExplicitSystem>("fiber");
+ *     fiber.add_vector("NF");
+ *     NumericVector<double> &vec = fiber.get_vector("NF");
+ *
+ *     vec = 42.0;
+ *     vec.close();
+ * }
+ * // For testing purposes, lets make sure that on a restarted run we have the
+ * // correct system and vector available:
+ * else
+ * {
+ *     auto& fiber =
+ *         equation_systems->get_system<ExplicitSystem>("fiber");
+ *     plog << "number of variables: " << fiber.n_vars() << '\n';
+ *     NumericVector<double> &vec = fiber.get_vector("NF");
+ *     // This will print the vector to plog: since each entry is 42 we know
+ *     // that the vector was loaded correctly.
+ *     vec.print(plog);
+ * }
+ * @endcode
+ *
  * <h2>Handling Restart Data</h2>
  * The caching of the IBFE restart data is not managed by SAMRAI's
  * SAMRAI::tbox::RestartManager. It is instead handled by
