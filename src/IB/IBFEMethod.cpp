@@ -161,6 +161,17 @@ namespace IBAMR
 
 namespace
 {
+static Timer* t_preprocess_integrate_data;
+static Timer* t_postprocess_integrate_data;
+static Timer* t_interpolate_velocity;
+static Timer* t_compute_lagrangian_force;
+static Timer* t_spread_force;
+static Timer* t_compute_lagrangian_fluid_source;
+static Timer* t_spread_fluid_source;
+static Timer* t_add_workload_estimate;
+static Timer* t_begin_data_redistribution;
+static Timer* t_end_data_redistribution;
+static Timer* t_apply_gradient_detector;
 // Version of IBFEMethod restart file data.
 const int IBFE_METHOD_VERSION = 4;
 
@@ -507,6 +518,7 @@ IBFEMethod::getLagrangianStructureIsActivated(int structure_number, int /*level_
 void
 IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
+    IBAMR_TIMER_START(t_preprocess_integrate_data);
     FEMechanicsBase::preprocessIntegrateData(current_time, new_time, num_cycles);
 
     d_started_time_integration = true;
@@ -537,12 +549,14 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
 
     // Update the mask data.
     getVelocityHierarchyDataOps()->copyData(mask_new_idx, mask_current_idx);
+    IBAMR_TIMER_STOP(t_preprocess_integrate_data);
     return;
 } // preprocessIntegrateData
 
 void
 IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
+    IBAMR_TIMER_START(t_postprocess_integrate_data);
     const std::string forcing_data_time_str = get_data_time_str(
         d_ib_solver->getTimeSteppingType() == MIDPOINT_RULE ? d_half_time : d_new_time, d_current_time, d_new_time);
     std::vector<std::vector<PetscVector<double>*> > vecs{ d_X_vecs->get("new"),
@@ -568,6 +582,7 @@ IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int n
     }
 
     FEMechanicsBase::postprocessIntegrateData(current_time, new_time, num_cycles);
+    IBAMR_TIMER_STOP(t_postprocess_integrate_data);
     return;
 } // postprocessIntegrateData
 
@@ -577,6 +592,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                 const double data_time)
 {
+    IBAMR_TIMER_START(t_interpolate_velocity);
     const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
 
     if (d_use_scratch_hierarchy)
@@ -665,6 +681,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
             U_vecs[part]->zero();
         }
     }
+    IBAMR_TIMER_STOP(t_interpolate_velocity);
     return;
 } // interpolateVelocity
 
@@ -789,6 +806,7 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
 void
 IBFEMethod::computeLagrangianForce(const double data_time)
 {
+    IBAMR_TIMER_START(t_compute_lagrangian_force);
     const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
     batch_vec_ghost_update(d_X_vecs->get(data_time_str), INSERT_VALUES, SCATTER_FORWARD);
     d_F_vecs->zero("RHS Vector");
@@ -830,6 +848,7 @@ IBFEMethod::computeLagrangianForce(const double data_time)
             IBTK_CHKERRQ(ierr);
         }
     }
+    IBAMR_TIMER_STOP(t_compute_lagrangian_force);
     return;
 } // computeLagrangianForce
 
@@ -839,6 +858,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
                         const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
                         const double data_time)
 {
+    IBAMR_TIMER_START(t_spread_force);
     const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
 
     // Communicate ghost data.
@@ -947,6 +967,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
         // just need to add its values to those in f_data_idx
         f_active_data_ops->add(f_data_idx, f_data_idx, f_scratch_data_idx);
     }
+    IBAMR_TIMER_STOP(t_spread_force);
     return;
 } // spreadForce
 
@@ -959,6 +980,7 @@ IBFEMethod::hasFluidSources() const
 void
 IBFEMethod::computeLagrangianFluidSource(double data_time)
 {
+    IBAMR_TIMER_START(t_compute_lagrangian_fluid_source);
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
@@ -1051,7 +1073,9 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         d_primary_fe_data_managers[part]->computeL2Projection(
             Q_vec, *Q_rhs_vec, SOURCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
     }
-}
+    IBAMR_TIMER_STOP(t_compute_lagrangian_fluid_source);
+    return;
+} // computeLagrangianFluidSource
 
 void
 IBFEMethod::spreadFluidSource(const int q_data_idx,
@@ -1059,6 +1083,7 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
                               const std::vector<Pointer<RefineSchedule<NDIM> > >& /*q_prolongation_scheds*/,
                               const double data_time)
 {
+    IBAMR_TIMER_START(t_spread_fluid_source);
     std::vector<PetscVector<double>*> X_IB_ghost_vecs = d_X_IB_vecs->getIBGhosted("tmp");
     std::vector<PetscVector<double>*> Q_IB_ghost_vecs = d_Q_IB_vecs->getIBGhosted("tmp");
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
@@ -1091,8 +1116,9 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
         getScratchToPrimarySchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx).fillData(data_time);
     }
 
+    IBAMR_TIMER_STOP(t_spread_fluid_source);
     return;
-}
+} // spreadFluidSource
 
 FEDataManager::InterpSpec
 IBFEMethod::getDefaultInterpSpec() const
@@ -1211,6 +1237,7 @@ IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int
 void
 IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
 {
+    IBAMR_TIMER_START(t_add_workload_estimate);
     const bool old_d_do_log = d_do_log;
     if (d_skip_initial_workload_log && !d_started_time_integration)
     {
@@ -1308,20 +1335,24 @@ IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const 
         if (d_use_scratch_hierarchy) d_scratch_fe_data_managers[part]->setLoggingEnabled(d_do_log);
         d_primary_fe_data_managers[part]->setLoggingEnabled(d_do_log);
     }
+    IBAMR_TIMER_STOP(t_add_workload_estimate);
     return;
 } // addWorkloadEstimate
 
 void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                          Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
+    IBAMR_TIMER_START(t_begin_data_redistribution);
     // clear some things that contain data specific to the current patch hierarchy
     d_ghost_data_accumulator.reset();
+    IBAMR_TIMER_STOP(t_begin_data_redistribution);
     return;
 } // beginDataRedistribution
 
 void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                        Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
+    IBAMR_TIMER_START(t_end_data_redistribution);
     // if we are not initialized then there is nothing to do
     if (d_is_initialized)
     {
@@ -1460,6 +1491,7 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             if (d_do_log) plog << "IBFEMethod:: end scratch hierarchy workload" << std::endl;
         }
     }
+    IBAMR_TIMER_STOP(t_end_data_redistribution);
     return;
 } // endDataRedistribution
 
@@ -1497,6 +1529,7 @@ IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierar
                                   bool initial_time,
                                   bool uses_richardson_extrapolation_too)
 {
+    IBAMR_TIMER_START(t_apply_gradient_detector);
     const bool old_d_do_log = d_do_log;
     if (d_skip_initial_workload_log && !d_started_time_integration)
     {
@@ -1541,6 +1574,7 @@ IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierar
         if (d_use_scratch_hierarchy) d_scratch_fe_data_managers[part]->setLoggingEnabled(d_do_log);
         d_primary_fe_data_managers[part]->setLoggingEnabled(d_do_log);
     }
+    IBAMR_TIMER_STOP(t_apply_gradient_detector);
     return;
 } // applyGradientDetector
 
@@ -2892,6 +2926,20 @@ IBFEMethod::commonConstructor(const std::string& object_name,
                                         d_scratch_load_balancer,
                                         /*due to a bug in SAMRAI this *has* to be true*/ true);
     }
+
+    // Setup timers.
+    auto set_timer = [&](const char* name) { return TimerManager::getManager()->getTimer(name); };
+    IBAMR_DO_ONCE(t_preprocess_integrate_data = set_timer("IBAMR::IBFEMethod::preprocessIntegrateData()");
+                  t_postprocess_integrate_data = set_timer("IBAMR::IBFEMethod::postprocessIntegrateData()");
+                  t_interpolate_velocity = set_timer("IBAMR::IBFEMethod::interpolateVelocity()");
+                  t_compute_lagrangian_force = set_timer("IBAMR::IBFEMethod::computeLagrangianForce()");
+                  t_spread_force = set_timer("IBAMR::IBFEMethod::spreadForce()");
+                  t_compute_lagrangian_fluid_source = set_timer("IBAMR::IBFEMethod::computeLagrangianFluidSource()");
+                  t_spread_fluid_source = set_timer("IBAMR::IBFEMethod::spreadFluidSource()");
+                  t_add_workload_estimate = set_timer("IBAMR::IBFEMethod::addWorkloadEstimate()");
+                  t_begin_data_redistribution = set_timer("IBAMR::IBFEMethod::beginDataRedistribution()");
+                  t_end_data_redistribution = set_timer("IBAMR::IBFEMethod::endDataRedistribution()");
+                  t_apply_gradient_detector = set_timer("IBAMR::IBFEMethod::applyGradientDetector()"););
 
     return;
 } // commonConstructor
