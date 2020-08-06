@@ -2946,7 +2946,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
 #else
                 // New versions of libMesh have this function's performance
                 // problems fixed
-                if (bbox.intersect(patch_bbox)) elems.insert(*el_it);
+                if (bbox.intersects(patch_bbox)) elems.insert(*el_it);
 #endif
             }
             ++el_it;
