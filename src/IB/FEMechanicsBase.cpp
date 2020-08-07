@@ -892,30 +892,36 @@ FEMechanicsBase::updateCoordinateMapping(const unsigned int part)
     EquationSystems& equation_systems = *d_fe_data[part]->getEquationSystems();
     MeshBase& mesh = equation_systems.get_mesh();
     auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
-    const unsigned int X_sys_num = X_system.number();
-    NumericVector<double>& X_coords = *X_system.solution;
-    auto& dX_system = equation_systems.get_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
-    const unsigned int dX_sys_num = dX_system.number();
-    NumericVector<double>& dX_coords = *dX_system.solution;
-    auto it = mesh.local_nodes_begin();
-    const auto end_it = mesh.local_nodes_end();
-    for (; it != end_it; ++it)
+    if (!X_system.have_vector("initial"))
     {
-        Node* n = *it;
-        if (n->n_vars(X_sys_num))
+        NumericVector<double>& X_init = X_system.add_vector("initial");
+        X_system.add_vector("displacement");
+        const unsigned int X_sys_num = X_system.number();
+        auto it = mesh.local_nodes_begin();
+        const auto end_it = mesh.local_nodes_end();
+        for (; it != end_it; ++it)
         {
-            TBOX_ASSERT(n->n_vars(X_sys_num) == NDIM);
-            TBOX_ASSERT(n->n_vars(dX_sys_num) == NDIM);
-            const libMesh::Point& X = *n;
-            for (unsigned int d = 0; d < NDIM; ++d)
+            Node* n = *it;
+            if (n->n_vars(X_sys_num))
             {
-                const int X_dof_index = n->dof_number(X_sys_num, d, 0);
-                const int dX_dof_index = n->dof_number(dX_sys_num, d, 0);
-                dX_coords.set(dX_dof_index, X_coords(X_dof_index) - X(d));
+                TBOX_ASSERT(n->n_vars(X_sys_num) == NDIM);
+                const libMesh::Point& X = *n;
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    X_init.set(n->dof_number(X_sys_num, d, 0), X(d));
+                }
             }
         }
+        X_init.close();
     }
-    copy_and_synch(dX_coords, *dX_system.current_local_solution);
+    const NumericVector<double>& X_init = X_system.get_vector("initial");
+    NumericVector<double>& dX = X_system.get_vector("displacement");
+
+    // TODO - also subtract ghost values so that we don't have to communicate
+    // (close suffices in a pinch)
+    dX = *X_system.current_local_solution;
+    dX -= X_init;
+    dX.close();
 }
 
 void

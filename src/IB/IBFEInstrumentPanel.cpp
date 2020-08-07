@@ -319,7 +319,12 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     const libMesh::Parallel::Communicator& comm_in = mesh->comm();
 
     // get equation systems from the mesh we will need.
-    const System& dX_system = equation_systems->get_system(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
+    //
+    // While this is actually the X system, the only vector we read in
+    // corresponds to the current displacement of the mesh (the "displacement"
+    // vector) so use that name to make the relationship to the meter dX
+    // system clearer
+    const System& dX_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
     const unsigned int dX_sys_num = dX_system.number();
     const System& U_system = equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
     const unsigned int U_sys_num = U_system.number();
@@ -965,10 +970,12 @@ IBFEInstrumentPanel::initializeSystemDependentData(IBFEMethod* ib_method_ops, co
     // get the coordinate mapping system and velocity systems for the parent mesh
     const FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager(d_part);
     const EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
-    const System& dX_system = equation_systems->get_system(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
+    // Same as before: its X, but we only get displacement, so call it dX
+    const System& dX_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
     // \todo: find a better way to do this
+    const NumericVector<double>& displacement = dX_system.get_vector("displacement");
     std::vector<double> dX_coords_parent;
-    dX_system.update_global_solution(dX_coords_parent);
+    displacement.localize(dX_coords_parent);
     const System& U_system = equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
     std::vector<double> U_coords_parent;
     U_system.update_global_solution(U_coords_parent);

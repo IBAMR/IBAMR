@@ -1680,14 +1680,6 @@ IBFEMethod::doInitializeFEEquationSystems()
             }
             X_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
 
-            auto& dX_system = equation_systems.add_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                dX_system.add_variable(
-                    "dX_" + std::to_string(d), d_fe_order_position[part], d_fe_family_position[part]);
-            }
-            dX_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
-
             auto& U_system = equation_systems.add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -1760,15 +1752,11 @@ IBFEMethod::doInitializeFEData(const bool use_present_data)
 
         // Assemble systems.
         auto& X_system = equation_systems.get_system<System>(COORDS_SYSTEM_NAME);
-        auto& dX_system = equation_systems.get_system<System>(COORD_MAPPING_SYSTEM_NAME);
         auto& U_system = equation_systems.get_system<System>(VELOCITY_SYSTEM_NAME);
         auto& F_system = equation_systems.get_system<System>(FORCE_SYSTEM_NAME);
 
         X_system.assemble_before_solve = false;
         X_system.assemble();
-
-        dX_system.assemble_before_solve = false;
-        dX_system.assemble();
 
         U_system.assemble_before_solve = false;
         U_system.assemble();
