@@ -57,21 +57,29 @@ namespace IBAMR
  * immersed bodies. A single instance of this class is meant to handle all of the Brinkman
  * penalization zones for multiple transported quantities with various boundary conditions.
 
- * TODO: A description of the penalization terms for both Dirichlet and Neumann BCs
- * For Dirichlet BCs, inhomogeneous and homogeneous BCs are treated in the same way.
- * For Neumann BCs, homogeneous BCs are fairly straightforward, while inhomogeneous BCs require
- * some additional input by the user. Add a reference to Sakurai's paper
+ * BrinkmanPenalizationAdvDiff provides an implementation of a volume penalized
+ * body force and linear operator modifications required to impose Dirichlet or Neumann
+ * boundary conditions to scalar quantities maintained by AdvDiffHierarchyIntegrator.
+ *
+ * Boundary conditions can be applied to multiple interfaces, which are demarcated
+ * using level set variables. This class assumes that the penalized region coincides with negative
+ * values of the level set. The sign convention of the level set variable is specified by the user.
+ *
+ * Reference
+ * Sakurai, T., Yoshimatsu, K., Okamoto N. and Schneider K.,<A
+ HREF="https://www.sciencedirect.com/science/article/pii/S0021999119302414">
+ * Volume penalization for inhomogeneous Neumann boundary conditions modeling scalar flux in complicated geometry</A>
  */
 class BrinkmanPenalizationAdvDiff : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
-    /*
+    /*!
      * \brief Constructor of the class.
      */
     BrinkmanPenalizationAdvDiff(std::string object_name,
                                 SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver);
 
-    /*
+    /*!
      * \brief Destructor of the class.
      */
     ~BrinkmanPenalizationAdvDiff() = default;
@@ -103,7 +111,7 @@ public:
      */
     void setNumInterfaceCells(double num_interface_cells);
 
-    /*
+    /*!
      * \brief Get the name of the object.
      */
     const std::string& getName() const
@@ -111,7 +119,7 @@ public:
         return d_object_name;
     } // getName
 
-    /*
+    /*!
      * \brief Get the current time interval \f$ [t^{n+1}, t^n] \f$ in which Brinkman
      * velocity is computed.
      */
@@ -120,9 +128,9 @@ public:
         return std::make_pair(d_new_time, d_current_time);
     } // getCurrentTimeInterval
 
-    /*
-     * \brief Function to determine if a transported quantity has Brinkman boundary conditions
-     * associated with is.
+    /*!
+     * \brief Function to determine if a transported quantity has Brinkman
+     * boundary conditions associated with it.
      */
     bool hasBrinkmanBoundaryCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const
     {
@@ -142,7 +150,7 @@ public:
                                                            double time,
                                                            void* ctx);
 
-    /*
+    /*!
      * \brief Register a transported quantity with this object, along with the solid level set
      * variable for which to apply a specified boundary condition.
      *
@@ -158,12 +166,13 @@ public:
                                           double num_interface_cells = 2.0,
                                           double eta_penalty_coef = 1.0e-4);
 
-    /*
-     * \brief Register a transported quantity with this object, along with the solid level set variable
-     * on which to apply inhomogeneous Neumann boundary conditions.
+    /*!
+     * \brief Register a transported quantity with this object, along with the solid level set
+     * variable on which to apply inhomogeneous Neumann boundary
+     * conditions.
      *
-     * \note Inhomogeneous Neumann BCs are treated uniquely within this class and require additional user callback
-     * inputs.
+     * \note Inhomogeneous Neumann BCs are treated uniquely within this class and require
+     * additional user callback inputs.
      */
     void registerInhomogeneousNeumannBC(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
                                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_solid_var,
@@ -172,11 +181,11 @@ public:
                                         double num_interface_cells = 2.0,
                                         double eta_penalty_coef = 1.0e-4);
 
-    /*
+    /*!
      * \brief Function to compute the cell-centered coefficient to the damping linear operator
      * and RHS of the advection-diffusion equation for a specified transported quantity Q_var
      *
-     * \note It it assumed that the physical damping coefficient \f$\lambda\f$ is zero.
+     * \note It is assumed that the physical damping coefficient \f$\lambda\f$ is zero.
      *
      * The functional form of the Brinkman damping coefficient is
      * \f$ C = \sum_{Dirichlet} \chi_i/\eta \f$ where \f$\chi_i = 1-H_i\f$ and the sum is taken over all level sets with
@@ -185,7 +194,7 @@ public:
      */
     void computeDampingCoefficient(int C_idx, SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
 
-    /*
+    /*!
      * \brief Function to compute the side-centered coefficient to the diffusion linear operator
      * and RHS of the advection-diffusion equation for a specified transported quantity Q_var with diffusion
      * coefficient kappa.
@@ -201,7 +210,7 @@ public:
                                      int kappa_idx,
                                      double kappa);
 
-    /*
+    /*!
      * \brief Function to compute the Brinkman forcing contribution to the RHS of the advection-diffusion solver
      * for a specified transported quantity Q_var.
      *
@@ -213,7 +222,7 @@ public:
      */
     void computeForcing(int F_idx, SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
 
-    /*
+    /*!
      * \brief Function to mask the additional forcing terms on the RHS of the advection-diffusion solver
      * e.g. \f$ u \dot \grad Q\f$ and body forces.
      *
@@ -244,7 +253,7 @@ private:
      */
     BrinkmanPenalizationAdvDiff& operator=(const BrinkmanPenalizationAdvDiff& that) = delete;
 
-    /*
+    /*!
      * Struct to maintain the properties a particular boundary condition
      */
     struct BCProperties
@@ -258,28 +267,28 @@ private:
         void* ctx;
     };
 
-    /*
+    /*!
      * Object name.
      */
     std::string d_object_name;
 
-    /*
+    /*!
      * Pointer to the adv-diff solver.
      */
     SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
 
-    /*
+    /*!
      * Time interval
      */
     double d_current_time = std::numeric_limits<double>::quiet_NaN(),
            d_new_time = std::numeric_limits<double>::quiet_NaN();
 
-    /*
+    /*!
      * Map for storing transported variables and various registered BCs
      */
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<BCProperties> > d_Q_bc;
 
-    /*
+    /*!
      * Patch data required for computing additional forcing for inhomogeneous Neumann BCs
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_B_var;

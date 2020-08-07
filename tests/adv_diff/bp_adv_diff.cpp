@@ -33,6 +33,7 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/IndexUtilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -42,6 +43,8 @@
 
 // Application specific includes
 #include "LevelSetInitialCondition.h"
+
+#include "LevelSetInitialCondition.cpp"
 
 // Struct to specify the function required for inhomogeneous Neumann conditions for Brinkman penalization
 struct BrinkmanPenalizationCtx
@@ -376,6 +379,7 @@ main(int argc, char* argv[])
 
             // Get volume weights in the region
             hier_cc_data_ops.multiply(phi_cloned_idx, phi_cloned_idx, wgt_cc_idx);
+
             if (fluid_is_interior_to_cylinder)
             {
                 double q_integral = hier_cc_data_ops.integral(q_idx, phi_cloned_idx);
@@ -391,6 +395,17 @@ main(int argc, char* argv[])
                  << hier_cc_data_ops.L1Norm(q_error_cloned_idx, phi_cloned_idx) << "\n"
                  << "  L2-norm:  " << hier_cc_data_ops.L2Norm(q_error_cloned_idx, phi_cloned_idx) << "\n"
                  << "  max-norm: " << hier_cc_data_ops.maxNorm(q_error_cloned_idx, phi_cloned_idx) << "\n";
+
+            if (IBTK_MPI::getRank() == 0)
+            {
+                std::ofstream out("output");
+                out << "Error in q (only in the fluid region):L1-norm = " << std::setprecision(10)
+                    << hier_cc_data_ops.L1Norm(q_error_cloned_idx, phi_cloned_idx) << std::endl;
+                out << "Error in q (only in the fluid region):L2-norm = " << std::setprecision(10)
+                    << hier_cc_data_ops.L2Norm(q_error_cloned_idx, phi_cloned_idx) << std::endl;
+                out << "Error in q (only in the fluid region):max-norm = " << std::setprecision(10)
+                    << hier_cc_data_ops.maxNorm(q_error_cloned_idx, phi_cloned_idx) << std::endl;
+            }
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
