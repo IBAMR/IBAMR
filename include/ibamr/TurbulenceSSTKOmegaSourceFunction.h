@@ -185,7 +185,7 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
 
-    IBTK::Vector2d d_gravity;
+    IBTK::VectorNd d_gravity;
 
     SAMRAI::tbox::Array<int> d_wall_location_index;
 

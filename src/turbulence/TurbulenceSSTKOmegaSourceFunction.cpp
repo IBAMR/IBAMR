@@ -246,7 +246,9 @@ TurbulenceSSTKOmegaSourceFunction::TurbulenceSSTKOmegaSourceFunction(
         input_db->getDoubleArray("gravity", gravity, NDIM);
         d_gravity.x() = gravity[0];
         d_gravity.y() = gravity[1];
-        if (NDIM == 3) d_gravity.z() = gravity[2];
+#if (NDIM == 3)
+        d_gravity.z() = gravity[2];
+#endif
     }
 }
 
