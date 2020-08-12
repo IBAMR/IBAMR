@@ -136,15 +136,10 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     // Avoid some warnings by unconditionally creating the timer database, even if
     // we never use it:
     {
-        Pointer<Database> timer_manager_db = new NullDatabase();
+        Pointer<Database> timer_manager_db;
         if (d_input_db->isDatabase("TimerManager"))
         {
             timer_manager_db = d_input_db->getDatabase("TimerManager");
-        }
-        else
-        {
-            pout << "WARNING: AppInitializer::AppInitializer(): " << timer_dump_interval_key_name
-                 << " > 0, but `TimerManager' input entries not specifed in input file\n";
         }
         TimerManager::createManager(timer_manager_db);
     }
