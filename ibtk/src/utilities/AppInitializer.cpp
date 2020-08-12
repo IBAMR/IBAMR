@@ -133,7 +133,8 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         d_timer_dump_interval = main_db->getInteger(timer_dump_interval_key_name);
     }
 
-    if (d_timer_dump_interval > 0)
+    // Avoid some warnings by unconditionally creating the timer database, even if
+    // we never use it:
     {
         Pointer<Database> timer_manager_db = new NullDatabase();
         if (d_input_db->isDatabase("TimerManager"))
