@@ -520,18 +520,19 @@ get_values_for_interpolation(MultiArray& U_node,
  *
  * @param[in] dof_indices DoF indices of the current element.
  */
-template <class MultiArray, class Array>
+template <class MultiArray_1, class MultiArray_2, class Array>
 inline void
-get_values_for_interpolation(MultiArray& U_node,
+get_values_for_interpolation(MultiArray_1& U_node,
                              const libMesh::PetscVector<double>& U_petsc_vec,
                              const Array& U_local_soln,
-                             const std::vector<std::vector<unsigned int> >& dof_indices)
+                             const MultiArray_2& dof_indices)
 {
     const std::size_t n_vars = dof_indices.size();
+    TBOX_ASSERT(n_vars > 0);
     const std::size_t n_nodes = dof_indices[0].size();
     if (U_node.shape()[0] != n_nodes || U_node.shape()[1] != n_vars)
     {
-        typename MultiArray::extent_gen extents;
+        typename MultiArray_1::extent_gen extents;
         U_node.resize(extents[n_nodes][n_vars]);
     }
 
@@ -598,11 +599,11 @@ get_values_for_interpolation(MultiArray& U_node,
  *
  * @param[in] dof_indices DoF indices of the current element.
  */
-template <class MultiArray>
+template <class MultiArray_1, class MultiArray_2>
 inline void
-get_values_for_interpolation(MultiArray& U_node,
+get_values_for_interpolation(MultiArray_1& U_node,
                              libMesh::NumericVector<double>& U_vec,
-                             const std::vector<std::vector<unsigned int> >& dof_indices)
+                             const MultiArray_2& dof_indices)
 {
     libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
     TBOX_ASSERT(U_petsc_vec);
