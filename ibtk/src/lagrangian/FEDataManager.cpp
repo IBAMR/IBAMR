@@ -1881,7 +1881,6 @@ FEDataManager::interpWeighted(const int f_data_idx,
                               F_rhs_concatenated.begin() + (var_n + 1) * n_basis,
                               F_rhs.get_values().begin());
 
-                    dof_id_scratch = F_dof_indices[var_n];
                     // We do *not* apply constraints here. See the note in the
                     // documentation of this function for an explanation.
                     if (is_ghosted)
@@ -1898,7 +1897,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
                     }
                     else
                     {
-                        F_vec.add_vector(F_rhs, F_dof_indices[var_n]);
+                        copy_dof_ids_to_vector(var_n, F_dof_indices, dof_id_scratch);
+                        F_vec.add_vector(F_rhs, dof_id_scratch);
                     }
                 }
                 qp_offset += n_qp;
@@ -2174,11 +2174,11 @@ FEDataManager::restrictData(const int f_data_idx,
                     F_rhs_e[axis](k) += F_qp * phi_F[k][qp];
                 }
             }
-            for (unsigned int i = 0; i < n_vars; ++i)
+            for (unsigned int var_n = 0; var_n < n_vars; ++var_n)
             {
-                dof_id_scratch = F_dof_indices[i];
-                F_dof_map.constrain_element_vector(F_rhs_e[i], dof_id_scratch);
-                F_rhs_vec->add_vector(F_rhs_e[i], dof_id_scratch);
+                copy_dof_ids_to_vector(var_n, F_dof_indices, dof_id_scratch);
+                F_dof_map.constrain_element_vector(F_rhs_e[var_n], dof_id_scratch);
+                F_rhs_vec->add_vector(F_rhs_e[var_n], dof_id_scratch);
             }
         }
     }

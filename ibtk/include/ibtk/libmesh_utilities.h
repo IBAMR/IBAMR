@@ -401,6 +401,28 @@ batch_vec_ghost_update(const std::vector<std::vector<libMesh::PetscVector<double
 }
 
 /**
+ * Utility function for copying dofs from the format used by IBAMR for caching
+ * to the format libMesh expects.
+ *
+ * @param[in] var_n The variable number.
+ *
+ * @param[in] elem_dofs Dofs on the current element, indexed first by variable.
+ *
+ * @param[out] dofs vector containing the dofs for the given vector.
+ */
+inline void
+copy_dof_ids_to_vector(const int var_n,
+                       const boost::multi_array<libMesh::dof_id_type, 2>& elem_dofs,
+                       std::vector<libMesh::dof_id_type>& dofs)
+{
+#ifndef NDEBUG
+    TBOX_ASSERT(var_n < elem_dofs.size());
+#endif // ifindef NDEBUG
+    dofs.clear();
+    dofs.insert(dofs.begin(), elem_dofs[var_n].begin(), elem_dofs[var_n].end());
+}
+
+/**
  * Apply in-place the action of the transpose of the constraint matrix stored
  * by @p dof_map to @p rhs.
  *

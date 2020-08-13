@@ -734,15 +734,23 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                         }
                     }
                 }
-                for (unsigned int d = 0; d < NDIM; ++d)
+                for (unsigned int var_n = 0; var_n < NDIM; ++var_n)
                 {
-                    dof_id_scratch = U_dof_indices[d];
-                    U_dof_map.constrain_element_vector(U_rhs_e[d], dof_id_scratch);
-                    U_dof_map.constrain_element_vector(U_n_rhs_e[d], dof_id_scratch);
-                    U_dof_map.constrain_element_vector(U_t_rhs_e[d], dof_id_scratch);
-                    U_rhs_vec->add_vector(U_rhs_e[d], dof_id_scratch);
-                    U_n_rhs_vec->add_vector(U_n_rhs_e[d], dof_id_scratch);
-                    U_t_rhs_vec->add_vector(U_t_rhs_e[d], dof_id_scratch);
+                    // We want to do several insertions with the same set of
+                    // dofs - however, constrain_element_vector actually
+                    // modifies the input dof vector. Hence we need to reset it
+                    // each time:
+                    copy_dof_ids_to_vector(var_n, U_dof_indices, dof_id_scratch);
+                    U_dof_map.constrain_element_vector(U_rhs_e[var_n], dof_id_scratch);
+                    U_rhs_vec->add_vector(U_rhs_e[var_n], dof_id_scratch);
+
+                    copy_dof_ids_to_vector(var_n, U_dof_indices, dof_id_scratch);
+                    U_dof_map.constrain_element_vector(U_n_rhs_e[var_n], dof_id_scratch);
+                    U_n_rhs_vec->add_vector(U_n_rhs_e[var_n], dof_id_scratch);
+
+                    copy_dof_ids_to_vector(var_n, U_dof_indices, dof_id_scratch);
+                    U_dof_map.constrain_element_vector(U_t_rhs_e[var_n], dof_id_scratch);
+                    U_t_rhs_vec->add_vector(U_t_rhs_e[var_n], dof_id_scratch);
                 }
                 qp_offset += n_qp;
             }
@@ -1065,15 +1073,16 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 
             // Apply constraints (e.g., enforce periodic boundary conditions)
             // and add the elemental contributions to the global vector.
-            for (unsigned int i = 0; i < NDIM; ++i)
+            for (unsigned int var_n = 0; var_n < NDIM; ++var_n)
             {
-                dof_id_scratch = F_dof_indices[i];
-                F_dof_map.constrain_element_vector(F_rhs_e[i], dof_id_scratch);
-                F_rhs_vec->add_vector(F_rhs_e[i], dof_id_scratch);
+                copy_dof_ids_to_vector(var_n, F_dof_indices, dof_id_scratch);
+                F_dof_map.constrain_element_vector(F_rhs_e[var_n], dof_id_scratch);
+                F_rhs_vec->add_vector(F_rhs_e[var_n], dof_id_scratch);
             }
             if (d_use_pressure_jump_conditions)
             {
-                dof_id_scratch = DP_dof_map_cache->dof_indices(elem)[0];
+                const auto& DP_dof_indices = DP_dof_map_cache->dof_indices(elem);
+                copy_dof_ids_to_vector(0, DP_dof_indices, dof_id_scratch);
                 DP_dof_map->constrain_element_vector(DP_rhs_e, dof_id_scratch);
                 DP_rhs_vec->add_vector(DP_rhs_e, dof_id_scratch);
             }

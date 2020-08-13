@@ -586,13 +586,13 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
 
             // Apply constraints (e.g., enforce periodic boundary conditions)
             // and add the elemental contributions to the global vector.
-            for (unsigned int i = 0; i < NDIM; ++i)
+            for (unsigned int var_n = 0; var_n < NDIM; ++var_n)
             {
-                dof_id_scratch = F_dof_indices[i];
-                F_dof_map.constrain_element_vector(F_rhs_e[i], dof_id_scratch);
+                copy_dof_ids_to_vector(var_n, F_dof_indices, dof_id_scratch);
+                F_dof_map.constrain_element_vector(F_rhs_e[var_n], dof_id_scratch);
                 for (unsigned int j = 0; j < dof_id_scratch.size(); ++j)
                 {
-                    F_rhs_local_soln[F_rhs_vec.map_global_to_local_index(dof_id_scratch[j])] += F_rhs_e[i](j);
+                    F_rhs_local_soln[F_rhs_vec.map_global_to_local_index(dof_id_scratch[j])] += F_rhs_e[var_n](j);
                 }
             }
         }
@@ -832,13 +832,13 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
 
         // Apply constraints (e.g., enforce periodic boundary conditions)
         // and add the elemental contributions to the global vector.
-        for (unsigned int i = 0; i < NDIM; ++i)
+        for (unsigned int var_n = 0; var_n < NDIM; ++var_n)
         {
-            dof_id_scratch = F_dof_indices[i];
-            F_dof_map.constrain_element_vector(F_rhs_e[i], dof_id_scratch);
+            copy_dof_ids_to_vector(var_n, F_dof_indices, dof_id_scratch);
+            F_dof_map.constrain_element_vector(F_rhs_e[var_n], dof_id_scratch);
             for (unsigned int j = 0; j < dof_id_scratch.size(); ++j)
             {
-                F_rhs_local_soln[F_rhs_vec.map_global_to_local_index(dof_id_scratch[j])] += F_rhs_e[i](j);
+                F_rhs_local_soln[F_rhs_vec.map_global_to_local_index(dof_id_scratch[j])] += F_rhs_e[var_n](j);
             }
         }
     }
