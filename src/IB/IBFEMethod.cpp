@@ -1038,8 +1038,8 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             Elem* const elem = *el_it;
-            const auto& Q_dof_indices = Q_dof_map_cache.dof_indices(elem)[0];
-            Q_rhs_e.resize(static_cast<int>(Q_dof_indices.size()));
+            const auto& Q_dof_indices = Q_dof_map_cache.dof_indices(elem);
+            Q_rhs_e.resize(static_cast<int>(Q_dof_indices[0].size()));
             fe.reinit(elem);
             fe.collectDataForInterpolation(elem);
             fe.interpolate(elem);
@@ -1063,7 +1063,7 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
 
             // Apply constraints (e.g., enforce periodic boundary conditions)
             // and add the elemental contributions to the global vector.
-            dof_id_scratch = Q_dof_indices;
+            copy_dof_ids_to_vector(0, Q_dof_indices, dof_id_scratch);
             Q_dof_map.constrain_element_vector(Q_rhs_e, dof_id_scratch);
             Q_rhs_vec->add_vector(Q_rhs_e, dof_id_scratch);
         }
@@ -1938,10 +1938,10 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
             if (at_dirichlet_bdry) continue;
 
             fe.reinit(elem, side);
-            const auto& Phi_dof_indices = Phi_dof_map_cache.dof_indices(elem)[0];
+            const auto& Phi_dof_indices = Phi_dof_map_cache.dof_indices(elem);
             if (reinit_all_data)
             {
-                Phi_rhs_e.resize(static_cast<int>(Phi_dof_indices.size()));
+                Phi_rhs_e.resize(static_cast<int>(Phi_dof_indices[0].size()));
                 fe.collectDataForInterpolation(elem);
                 reinit_all_data = false;
             }
@@ -2051,7 +2051,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
 
             // Apply constraints (e.g., enforce periodic boundary conditions)
             // and add the elemental contributions to the global vector.
-            dof_id_scratch = Phi_dof_indices;
+            copy_dof_ids_to_vector(0, Phi_dof_indices, dof_id_scratch);
             Phi_dof_map.constrain_element_vector(Phi_rhs_e, dof_id_scratch);
             Phi_rhs_vec->add_vector(Phi_rhs_e, dof_id_scratch);
         }

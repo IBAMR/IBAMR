@@ -161,9 +161,9 @@ FEProjector::buildL2ProjectionSolver(const std::string& system_name)
             const Elem* const elem = *el_it;
             fe->reinit(elem);
             const auto& dof_indices = dof_map_cache.dof_indices(elem);
-            for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
+            for (unsigned int var_n = 0; var_n < dof_map.n_variables(); ++var_n)
             {
-                const auto& dof_indices_var = dof_indices[var_num];
+                const auto& dof_indices_var = dof_indices[var_n];
                 const auto dof_indices_sz = static_cast<unsigned int>(dof_indices_var.size());
                 M_e.resize(dof_indices_sz, dof_indices_sz);
                 const size_t n_basis = dof_indices_var.size();
@@ -178,7 +178,7 @@ FEProjector::buildL2ProjectionSolver(const std::string& system_name)
                         }
                     }
                 }
-                dof_id_scratch = dof_indices_var;
+                copy_dof_ids_to_vector(var_n, dof_indices, dof_id_scratch);
                 dof_map.constrain_element_matrix(M_e,
                                                  dof_id_scratch,
                                                  /*assymetric_constraint_rows*/ false);
@@ -286,6 +286,7 @@ FEProjector::buildDiagonalL2MassMatrix(const std::string& system_name)
 
         // Loop over the mesh to construct the system matrix.
         DenseMatrix<double> M_e;
+        std::vector<dof_id_type> dof_id_scratch;
         DenseVector<double> M_e_vec;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
@@ -294,12 +295,12 @@ FEProjector::buildDiagonalL2MassMatrix(const std::string& system_name)
             const Elem* const elem = *el_it;
             fe->reinit(elem);
             const auto& dof_indices = dof_map_cache.dof_indices(elem);
-            for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
+            for (unsigned int var_n = 0; var_n < dof_map.n_variables(); ++var_n)
             {
-                const auto dof_indices_sz = static_cast<unsigned int>(dof_indices[var_num].size());
+                const auto dof_indices_sz = static_cast<unsigned int>(dof_indices[var_n].size());
                 M_e.resize(dof_indices_sz, dof_indices_sz);
                 M_e_vec.resize(dof_indices_sz);
-                const size_t n_basis = dof_indices[var_num].size();
+                const size_t n_basis = dof_indices[var_n].size();
                 const unsigned int n_qp = qrule->n_points();
                 for (unsigned int i = 0; i < n_basis; ++i)
                 {
@@ -329,7 +330,8 @@ FEProjector::buildDiagonalL2MassMatrix(const std::string& system_name)
                 // for spread forces and other places where we already have a
                 // finite element solution vector and are not solving a linear
                 // system.
-                M_vec->add_vector(M_e_vec, dof_indices[var_num]);
+                copy_dof_ids_to_vector(var_n, dof_indices, dof_id_scratch);
+                M_vec->add_vector(M_e_vec, dof_id_scratch);
             }
         }
 
@@ -396,9 +398,9 @@ FEProjector::buildLumpedL2ProjectionSolver(const std::string& system_name)
             const Elem* const elem = *el_it;
             fe->reinit(elem);
             const auto& dof_indices = dof_map_cache.dof_indices(elem);
-            for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
+            for (unsigned int var_n = 0; var_n < dof_map.n_variables(); ++var_n)
             {
-                const auto& dof_indices_var = dof_indices[var_num];
+                const auto& dof_indices_var = dof_indices[var_n];
                 const auto dof_indices_sz = static_cast<unsigned int>(dof_indices_var.size());
                 M_e.resize(dof_indices_sz, dof_indices_sz);
                 M_e_diagonal.resize(dof_indices_sz, dof_indices_sz);
@@ -423,7 +425,7 @@ FEProjector::buildLumpedL2ProjectionSolver(const std::string& system_name)
                     M_e_diagonal(i, i) = vol * M_e(i, i) / tr_M;
                 }
 
-                dof_id_scratch = dof_indices_var;
+                copy_dof_ids_to_vector(var_n, dof_indices, dof_id_scratch);
                 dof_map.constrain_element_matrix(M_e_diagonal,
                                                  dof_id_scratch,
                                                  /*assymetric_constraint_rows*/ false);

@@ -119,7 +119,8 @@ public:
         inline void
         dof_indices(const libMesh::Elem* const elem, std::vector<unsigned int>& dof_indices, const unsigned int var = 0)
         {
-            dof_indices = this->dof_indices(elem)[var];
+            const boost::multi_array<libMesh::dof_id_type, 2>& elem_dof_indices = d_dof_cache[elem->id()];
+            copy_dof_ids_to_vector(var, elem_dof_indices, dof_indices);
             return;
         }
 
@@ -127,15 +128,32 @@ public:
          * Alternative indexing operation: retrieve all dof indices of all
          * variables in the given system at once by reference.
          */
-        inline const std::vector<std::vector<libMesh::dof_id_type> >& dof_indices(const libMesh::Elem* const elem)
+        inline const boost::multi_array<libMesh::dof_id_type, 2>& dof_indices(const libMesh::Elem* const elem)
         {
-            std::vector<std::vector<libMesh::dof_id_type> >& elem_dof_indices = d_dof_cache[elem->id()];
-            if (elem_dof_indices.empty())
+            boost::multi_array<libMesh::dof_id_type, 2>& elem_dof_indices = d_dof_cache[elem->id()];
+            if (elem_dof_indices.shape()[0] == 0)
             {
-                elem_dof_indices.resize(d_dof_map.n_variables());
+                d_scratch_dofs.resize(d_dof_map.n_variables());
+                // we have to be careful - different elements may have different
+                // numbers of dofs, so grab all of them first:
                 for (unsigned int var_n = 0; var_n < d_dof_map.n_variables(); ++var_n)
                 {
-                    d_dof_map.dof_indices(elem, elem_dof_indices[var_n], var_n);
+                    d_scratch_dofs[var_n].clear();
+                    d_dof_map.dof_indices(elem, d_scratch_dofs[var_n], var_n);
+                }
+                // We assume in a lot of other places that all variables in a
+                // system have the same finite element (i.e., dofs per element)
+                // so assert that here too
+                for (unsigned int var_n = 0; var_n < d_dof_map.n_variables(); ++var_n)
+                {
+                    TBOX_ASSERT(d_scratch_dofs[var_n].size() == d_scratch_dofs[0].size());
+                }
+
+                boost::multi_array<libMesh::dof_id_type, 2>::extent_gen extents;
+                elem_dof_indices.resize(extents[d_scratch_dofs.size()][d_scratch_dofs[0].size()]);
+                for (unsigned int var_n = 0; var_n < d_dof_map.n_variables(); ++var_n)
+                {
+                    std::copy(d_scratch_dofs[var_n].begin(), d_scratch_dofs[var_n].end(), &elem_dof_indices[var_n][0]);
                 }
             }
             return elem_dof_indices;
@@ -143,7 +161,8 @@ public:
 
     private:
         libMesh::DofMap& d_dof_map;
-        std::unordered_map<libMesh::dof_id_type, std::vector<std::vector<unsigned int> > > d_dof_cache;
+        std::unordered_map<libMesh::dof_id_type, boost::multi_array<libMesh::dof_id_type, 2> > d_dof_cache;
+        std::vector<std::vector<libMesh::dof_id_type> > d_scratch_dofs;
     };
 
     /*!
