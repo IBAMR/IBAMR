@@ -380,15 +380,15 @@ BrinkmanPenalizationAdvDiff::computeDiffusionCoefficient(int D_idx,
 #endif
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     auto brinkman_zones = d_Q_bc[Q_var];
-    const bool variable_kappa = (kappa_idx != -1);
+    const bool variable_kappa = (kappa_idx != IBTK::invalid_index);
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
 
     // Fill the ghost cells for each solid level set, which is required to obtain appropriate side-centered data
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> phi_transaction_comps(brinkman_zones.size());
     for (int i = 0; i < brinkman_zones.size(); ++i)
     {
-        auto bc_prop = brinkman_zones[i];
+        const auto& bc_prop = brinkman_zones[i];
         Pointer<CellVariable<NDIM, double> > ls_solid_var = bc_prop.ls_solid_var;
         const int phi_idx = var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
         const int phi_scratch_idx =
@@ -590,7 +590,7 @@ BrinkmanPenalizationAdvDiff::computeForcing(int F_idx, Pointer<CellVariable<NDIM
             var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getScratchContext());
 
         // Fill the ghost cells of phi_scratch
-        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> phi_transaction_comps(1);
         phi_transaction_comps[0] =
             InterpolationTransactionComponent(phi_scratch_idx,

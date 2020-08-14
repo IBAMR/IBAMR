@@ -352,9 +352,10 @@ protected:
         d_Q_Db_map, d_Q_Db_rhs_map;
 
     /*!
-     * Flag to zero out the temporal term contribution.
+     * Flag to zero out the temporal term contribution when the Brinkman approach
+     * is used.
      */
-    bool d_time_independent = false;
+    bool d_brinkman_time_independent = false;
 
 private:
     /*!

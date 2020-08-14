@@ -82,7 +82,8 @@ evaluate_brinkman_bc_callback_fcn(int B_idx, Pointer<HierarchyMathOps> hier_math
                     const double* const patch_dx = patch_geom->getDx();
                     for (int d = 0; d < NDIM; ++d)
                     {
-                        coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(si(d) - patch_lower_idx(d)));
+                        coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(si(d) - patch_lower_idx(d)) +
+                                                                     (d == axis ? 0.0 : 0.5));
                     }
                     if (axis == 0)
                     {
@@ -149,18 +150,8 @@ main(int argc, char* argv[])
         //
         Pointer<AdvDiffHierarchyIntegrator> time_integrator;
         const string solver_type =
-            app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "PREDICTOR_CORRECTOR");
-        if (solver_type == "PREDICTOR_CORRECTOR")
-        {
-            Pointer<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps(
-                "AdvectorExplicitPredictorPatchOps",
-                app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
-            time_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator(
-                "AdvDiffPredictorCorrectorHierarchyIntegrator",
-                app_initializer->getComponentDatabase("AdvDiffPredictorCorrectorHierarchyIntegrator"),
-                predictor);
-        }
-        else if (solver_type == "SEMI_IMPLICIT")
+            app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "SEMI_IMPLICIT");
+        if (solver_type == "SEMI_IMPLICIT")
         {
             time_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
                 "AdvDiffSemiImplicitHierarchyIntegrator",
@@ -169,7 +160,7 @@ main(int argc, char* argv[])
         else
         {
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
-                                                   << "Valid options are: PREDICTOR_CORRECTOR, SEMI_IMPLICIT");
+                                                   << "Valid option is: SEMI_IMPLICIT");
         }
 
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(

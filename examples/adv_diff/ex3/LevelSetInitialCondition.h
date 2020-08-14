@@ -47,7 +47,7 @@ public:
      * \brief Indicates whether the concrete LevelSetInitialCondition object is
      * time-dependent.
      */
-    bool isTimeDependent() const;
+    bool isTimeDependent() const override;
 
     /*!
      * \brief Evaluate the function on the patch interior.
@@ -57,7 +57,7 @@ public:
                         Pointer<Patch<NDIM> > patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > patch_level = Pointer<PatchLevel<NDIM> >(NULL));
+                        Pointer<PatchLevel<NDIM> > patch_level = Pointer<PatchLevel<NDIM> >(NULL)) override;
 
     //\}
 

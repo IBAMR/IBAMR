@@ -157,7 +157,6 @@ public:
      * \note This function can only be used to register homogeneous/inhomogeneous Dirichlet BCs, and homogeneous Neumann
      * BCs.
      */
-
     void
     registerDirichletHomogeneousNeumannBC(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
                                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_solid_var,
@@ -292,9 +291,10 @@ private:
      * Patch data required for computing additional forcing for inhomogeneous Neumann BCs
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_B_var;
-    int d_B_scratch_idx, d_B_chi_scratch_idx;
+    int d_B_scratch_idx = IBTK::invalid_index, d_B_chi_scratch_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_div_var;
-    int d_div_B_scratch_idx, d_div_B_chi_scratch_idx, d_chi_scratch_idx;
+    int d_div_B_scratch_idx = IBTK::invalid_index, d_div_B_chi_scratch_idx = IBTK::invalid_index,
+        d_chi_scratch_idx = IBTK::invalid_index;
 };
 
 } // namespace IBAMR
