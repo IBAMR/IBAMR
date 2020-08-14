@@ -74,17 +74,8 @@ evaluate_brinkman_bc_callback_fcn(int B_idx, Pointer<HierarchyMathOps> hier_math
                 for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
                 {
                     SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
+                    IBTK::Vector coord = IndexUtilities::getSideCenter(*patch, si);
 
-                    IBTK::Vector coord = IBTK::Vector::Zero();
-                    Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-                    const double* patch_X_lower = patch_geom->getXLower();
-                    const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
-                    const double* const patch_dx = patch_geom->getDx();
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(si(d) - patch_lower_idx(d)) +
-                                                                     (d == axis ? 0.0 : 0.5));
-                    }
                     if (axis == 0)
                     {
                         (*B_data)(si) = cos(coord[0]) * sin(coord[1]);

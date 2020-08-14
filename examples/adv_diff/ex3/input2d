@@ -11,7 +11,7 @@ REF_RATIO  = 2                            // refinement ratio between levels
 N = 240                                   // actual number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
 
-ETA = 1e-4
+ETA = 1e-8
 NUMBER_OF_INTERFACE_CELLS = 2.0
 FLUID_IS_INTERIOR_TO_CYLINDER = FALSE     // flag to identify whether the fluid is inside the                                            cylinder or outside
 BrinkmanPenalization {
