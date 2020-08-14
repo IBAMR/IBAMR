@@ -256,7 +256,7 @@ protected:
     /*!
      * Mapping between system numbers and SystemDofMapCache objects.
      */
-    std::map<unsigned int, std::unique_ptr<SystemDofMapCache> > d_system_dof_map_cache;
+    std::map<std::pair<unsigned int, libMesh::FEType>, std::unique_ptr<SystemDofMapCache> > d_system_dof_map_cache;
 
     /**
      * Permit FEDataManager to directly examine the internals of this class.

@@ -331,10 +331,25 @@ FEData::getDofMapCache(const std::string& system_name)
 FEData::SystemDofMapCache*
 FEData::getDofMapCache(unsigned int system_num)
 {
-    std::unique_ptr<FEData::SystemDofMapCache>& dof_map_cache = d_system_dof_map_cache[system_num];
+    System& system = d_es->get_system(system_num);
+    const unsigned int n_vars = system.n_vars();
+    TBOX_ASSERT(n_vars > 0);
+    const FEType& fe_type = system.variable_type(0);
+
+    // we assume that all variables have the same FEType inside IBAMR
+    for (unsigned int var_n = 1; var_n < n_vars; ++var_n)
+    {
+        TBOX_ASSERT(fe_type == system.variable_type(var_n));
+    }
+
+    // We assume that the dofs have the same layout as long as they have the
+    // same fe type and number of variables
+    std::pair<unsigned int, FEType> key(n_vars, fe_type);
+
+    std::unique_ptr<FEData::SystemDofMapCache>& dof_map_cache = d_system_dof_map_cache[key];
     if (dof_map_cache == nullptr)
     {
-        dof_map_cache.reset(new FEData::SystemDofMapCache(d_es->get_system(system_num)));
+        dof_map_cache.reset(new FEData::SystemDofMapCache(system));
     }
     return dof_map_cache.get();
 } // getDofMapCache
