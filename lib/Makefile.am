@@ -34,17 +34,13 @@ clean-local:
 
 ## Dimension-independent library
 libIBAMR_a_SOURCES = \
-$(top_builddir)/src/advect/fortran/advect_helpers.f \
-../src/navier_stokes/StokesSpecifications.cpp \
-../src/utilities/RNG.cpp
+$(top_builddir)/src/advect/fortran/advect_helpers.f
 
 if LIBMESH_ENABLED
   libIBAMR_a_SOURCES +=
 endif
 
 pkg_include_HEADERS = \
-../include/ibamr/RNG.h \
-../include/ibamr/StokesSpecifications.h \
 ../include/ibamr/app_namespaces.h \
 ../include/ibamr/ibamr_enums.h \
 ../include/ibamr/ibamr_utilities.h \
@@ -179,6 +175,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/StaggeredStokesSolver.cpp \
 ../src/navier_stokes/StaggeredStokesSolverManager.cpp \
 ../src/navier_stokes/StokesBcCoefStrategy.cpp \
+../src/navier_stokes/StokesSpecifications.cpp \
 ../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 ../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 ../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
@@ -191,7 +188,8 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/wave_generation/StokesSecondOrderWaveBcCoef.cpp \
 ../src/wave_generation/StokesWaveGeneratorStrategy.cpp \
 ../src/wave_generation/WaveDampingFunctions.cpp \
-../src/wave_generation/WaveGenerationFunctions.cpp
+../src/wave_generation/WaveGenerationFunctions.cpp \
+../src/utilities/RNG.cpp
 
 if LIBMESH_ENABLED
   DIM_INDEPENDENT_SOURCES += \
@@ -324,6 +322,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/StokesFirstOrderWaveBcCoef.h \
 ../include/ibamr/StokesSecondOrderWaveBcCoef.h \
 ../include/ibamr/StokesSpecifications.h \
+../include/ibamr/StokesSpecifications.h \
 ../include/ibamr/StokesWaveGeneratorStrategy.h \
 ../include/ibamr/SurfaceTensionForceFunction.h \
 ../include/ibamr/VCStaggeredStokesOperator.h \
@@ -331,7 +330,8 @@ pkg_include_HEADERS += \
 ../include/ibamr/Wall.h \
 ../include/ibamr/WallForceEvaluator.h \
 ../include/ibamr/WaveDampingFunctions.h \
-../include/ibamr/WaveGenerationFunctions.h
+../include/ibamr/WaveGenerationFunctions.h \
+../include/ibamr/RNG.h
 
 if LIBMESH_ENABLED
   pkg_include_HEADERS += \
