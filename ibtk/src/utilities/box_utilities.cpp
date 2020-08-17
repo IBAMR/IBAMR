@@ -95,6 +95,9 @@ struct BoxLexical
 std::vector<SAMRAI::hier::Box<NDIM> >
 merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::Box<NDIM> >& input_boxes)
 {
+    // Naught to do with no boxes
+    if (input_boxes.size() == 0) return input_boxes;
+
     std::set<hier::Box<NDIM>, BoxLexical> boxes;
     // In this function we interpret the boxes as partitioning boxes
     // rather than bounding boxes: i.e., the upper bounds in each
@@ -225,7 +228,6 @@ merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::Box<NDIM> >& input_b
         }
         ++round_n;
     }
-    boxes.insert(*boxes.begin());
 
     // convert back to the usual box format by undoing the box expansion
     // above.
