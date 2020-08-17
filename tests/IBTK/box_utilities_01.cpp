@@ -101,6 +101,12 @@ main(int argc, char** argv)
             for (const auto& box : result) out << box << '\n';
             for (const auto& box : boxes) check_box_contained(result, box);
         }
+
+        {
+            // We should successfully do nothing with an empty vector of boxes
+            const auto result_2 = IBTK::merge_boxes_by_longest_edge({});
+            TBOX_ASSERT(result_2.size() == 0);
+        }
     }
     if (NDIM == 3)
     {
@@ -145,6 +151,12 @@ main(int argc, char** argv)
             {
                 TBOX_ASSERT(check_box_contained(result, box));
             }
+        }
+
+        {
+            // We should successfully do nothing with an empty vector of boxes
+            const auto result_2 = IBTK::merge_boxes_by_longest_edge({});
+            TBOX_ASSERT(result_2.size() == 0);
         }
     }
 }
