@@ -411,7 +411,7 @@ batch_vec_ghost_update(const std::vector<std::vector<libMesh::PetscVector<double
  * @param[out] dofs vector containing the dofs for the given vector.
  */
 inline void
-copy_dof_ids_to_vector(const int var_n,
+copy_dof_ids_to_vector(const unsigned int var_n,
                        const boost::multi_array<libMesh::dof_id_type, 2>& elem_dofs,
                        std::vector<libMesh::dof_id_type>& dofs)
 {
