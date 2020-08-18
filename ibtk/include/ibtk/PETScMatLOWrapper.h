@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_PETScMatLOWrapper
 #define included_IBTK_PETScMatLOWrapper
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/LinearOperator.h"
 

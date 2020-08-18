@@ -11,12 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_AdvDiffWavePropConvectiveOperator
 #define included_AdvDiffWavePropConvectiveOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBAMR_config.h>
+#include <ibamr/config.h>
 
 #include "ibamr/AdvDiffPhysicalBoundaryUtilities.h"
 #include "ibamr/ConvectiveOperator.h"

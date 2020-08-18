@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_IBFEPostProcessor
 #define included_IBAMR_IBFEPostProcessor
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/IBFEMethod.h"
 

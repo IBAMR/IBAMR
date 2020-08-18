@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_LSiloDataWriter
 #define included_IBTK_LSiloDataWriter
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "IntVector.h"
 #include "PatchHierarchy.h"

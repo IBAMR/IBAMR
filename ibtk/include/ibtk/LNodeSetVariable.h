@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_LNodeSetVariable
 #define included_IBTK_LNodeSetVariable
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/LIndexSetVariable.h"
 #include "ibtk/LNode.h"

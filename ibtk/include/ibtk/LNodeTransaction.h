@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_LNodeTransaction
 #define included_IBTK_LNodeTransaction
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/LNode.h"
 #include "ibtk/LTransaction.h"

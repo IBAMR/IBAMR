@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_AdvDiffHierarchyIntegrator
 #define included_IBAMR_AdvDiffHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"

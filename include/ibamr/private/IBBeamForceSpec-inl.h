@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_IBBeamForceSpec_inl
 #define included_IBAMR_IBBeamForceSpec_inl
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/IBBeamForceSpec.h"
 

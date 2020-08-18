@@ -11,12 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_SAMRAIGhostDataAccumulator
 #define included_IBTK_SAMRAIGhostDataAccumulator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
+#include <ibtk/config.h>
 
 #include <ibtk/ibtk_utilities.h>
 

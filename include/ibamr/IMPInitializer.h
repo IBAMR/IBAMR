@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_IMPInitializer
 #define included_IBAMR_IMPInitializer
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"

@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_AdvDiffPredictorCorrectorHierarchyIntegrator
 #define included_IBAMR_AdvDiffPredictorCorrectorHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"

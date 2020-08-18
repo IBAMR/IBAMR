@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_CCPoissonLevelRelaxationFACOperator
 #define included_IBTK_CCPoissonLevelRelaxationFACOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/PoissonFACPreconditioner.h"

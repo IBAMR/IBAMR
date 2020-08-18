@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_StaggeredStokesPETScLevelSolver
 #define included_IBAMR_StaggeredStokesPETScLevelSolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/StaggeredStokesSolver.h"
 

@@ -11,12 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_FEDataInterpolation
 #define included_FEDataInterpolation
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
+#include <ibtk/config.h>
 
 #include "ibtk/FEDataManager.h"
 #include "ibtk/FEValues.h"

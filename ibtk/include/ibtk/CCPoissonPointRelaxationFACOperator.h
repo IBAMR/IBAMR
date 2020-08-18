@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_CCPoissonPointRelaxationFACOperator
 #define included_IBTK_CCPoissonPointRelaxationFACOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/PoissonFACPreconditioner.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"

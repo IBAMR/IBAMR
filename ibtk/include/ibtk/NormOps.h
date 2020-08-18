@@ -11,8 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_NormOps
 #define included_IBTK_NormOps
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 namespace SAMRAI
 {

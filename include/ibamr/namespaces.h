@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_namespaces
 #define included_IBAMR_namespaces
 
-//////////////////////////////////////////////////////////////////////////////
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 /*!
  * Defines "using" declarations for all IBAMR namespaces.  This header file may

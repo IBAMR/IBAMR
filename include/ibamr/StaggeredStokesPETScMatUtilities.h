@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_StaggeredStokesPETScMatUtilities
 #define included_IBAMR_StaggeredStokesPETScMatUtilities
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "IntVector.h"
 #include "PoissonSpecifications.h"

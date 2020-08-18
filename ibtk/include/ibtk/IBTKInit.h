@@ -11,12 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTKInit
 #define included_IBTKInit
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
+#include <ibtk/config.h>
 
 #include "SAMRAI_config.h"
 #include "tbox/SAMRAIManager.h"

@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_IBTargetPointForceSpec
 #define included_IBAMR_IBTargetPointForceSpec
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableFactory.h"

@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_FESurfaceDistanceEvaluator
 #define included_FESurfaceDistanceEvaluator
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/IBFEMethod.h"
 

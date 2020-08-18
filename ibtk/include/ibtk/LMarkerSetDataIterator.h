@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_LMarkerSetDataIterator
 #define included_IBTK_LMarkerSetDataIterator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/LMarker.h"
 #include "ibtk/LSetDataIterator.h"

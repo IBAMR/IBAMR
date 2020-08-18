@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_StaggeredStokesLevelRelaxationFACOperator
 #define included_IBAMR_StaggeredStokesLevelRelaxationFACOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
 #include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"

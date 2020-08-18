@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_HierarchyGhostCellInterpolation
 #define included_IBTK_HierarchyGhostCellInterpolation
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"

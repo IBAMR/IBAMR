@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_CartCellDoubleQuadraticCFInterpolation
 #define included_IBTK_CartCellDoubleQuadraticCFInterpolation
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 

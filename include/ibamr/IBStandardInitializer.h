@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_IBStandardInitializer
 #define included_IBAMR_IBStandardInitializer
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/IBRedundantInitializer.h"
 #include "ibamr/IBRodForceSpec.h"

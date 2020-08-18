@@ -18,6 +18,8 @@
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
 
+#include <ibamr/config.h>
+
 #include "ibamr/WaveUtilities.h"
 
 #include "tbox/Pointer.h"

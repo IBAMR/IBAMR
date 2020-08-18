@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_IBLagrangianForceStrategy
 #define included_IBAMR_IBLagrangianForceStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"

@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_app_namespaces
 #define included_IBAMR_app_namespaces
 
-//////////////////////////////////////////////////////////////////////////////
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 /*!
  * Defines "using" declarations for all namespaces used in IBAMR and IBTK.  This

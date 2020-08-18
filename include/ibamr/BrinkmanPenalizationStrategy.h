@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_BrinkmanPenalizationStrategy
 #define included_BrinkmanPenalizationStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"

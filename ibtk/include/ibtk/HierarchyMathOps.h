@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_HierarchyMathOps
 #define included_IBTK_HierarchyMathOps
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/PatchMathOps.h"
 #include "ibtk/SAMRAIDataCache.h"

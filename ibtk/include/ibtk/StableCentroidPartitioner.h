@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_ibtk_stablecentroidpartitioner
 #define included_IBTK_ibtk_stablecentroidpartitioner
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include <ibtk/PartitioningBox.h>
 

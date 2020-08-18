@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_IBFEMethod
 #define included_IBAMR_IBFEMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/FEMechanicsBase.h"
 #include "ibamr/IBFEDirectForcingKinematics.h"

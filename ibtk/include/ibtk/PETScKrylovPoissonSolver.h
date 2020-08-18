@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_PETScKrylovPoissonSolver
 #define included_IBTK_PETScKrylovPoissonSolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/KrylovLinearSolverPoissonSolverInterface.h"
 #include "ibtk/PETScKrylovLinearSolver.h"

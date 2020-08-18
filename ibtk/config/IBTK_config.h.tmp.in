@@ -205,5 +205,5 @@
 /* Version number of package */
 #undef VERSION
 
-/* Define IBTK-specific macros. */
-#include <ibtk/ibtk_macros.h>
+/* Include the new configuration file. */
+#include <ibtk/config.h>

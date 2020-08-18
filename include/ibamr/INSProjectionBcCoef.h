@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_INSProjectionBcCoef
 #define included_IBAMR_INSProjectionBcCoef
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 

@@ -11,12 +11,13 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_CFRelaxationOperator
 #define included_CFRelaxationOperator
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
+#include <ibamr/config.h>
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"

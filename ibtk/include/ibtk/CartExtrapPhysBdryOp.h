@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_CartExtrapPhysBdryOp
 #define included_IBTK_CartExtrapPhysBdryOp
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "Box.h"
 #include "ComponentSelector.h"

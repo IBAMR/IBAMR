@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_INSStaggeredPressureBcCoef
 #define included_IBAMR_INSStaggeredPressureBcCoef
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/StokesBcCoefStrategy.h"
 #include "ibamr/ibamr_enums.h"

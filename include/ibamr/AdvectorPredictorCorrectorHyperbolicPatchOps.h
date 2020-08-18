@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_AdvectorPredictorCorrectorHyperbolicPatchOps
 #define included_IBAMR_AdvectorPredictorCorrectorHyperbolicPatchOps
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 #include "ibamr/ibamr_enums.h"

@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_SCPoissonPETScLevelSolver
 #define included_IBTK_SCPoissonPETScLevelSolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/PETScLevelSolver.h"
 #include "ibtk/PoissonSolver.h"

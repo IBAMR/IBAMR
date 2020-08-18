@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_SCPoissonHypreLevelSolver
 #define included_IBTK_SCPoissonHypreLevelSolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"

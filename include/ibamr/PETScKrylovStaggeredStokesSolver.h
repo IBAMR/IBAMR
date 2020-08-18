@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_PETScKrylovStaggeredStokesSolver
 #define included_IBAMR_PETScKrylovStaggeredStokesSolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h"
 

@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_INSCollocatedConvectiveOperatorManager
 #define included_IBAMR_INSCollocatedConvectiveOperatorManager
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"

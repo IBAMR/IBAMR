@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_BrinkmanPenalizationRigidBodyDynamics
 #define included_BrinkmanPenalizationRigidBodyDynamics
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/BrinkmanPenalizationStrategy.h"
 #include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"

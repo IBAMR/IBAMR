@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_libmesh_utilities
 #define included_IBTK_libmesh_utilities
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/ibtk_macros.h"

@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_StreamableManager_inl_h
 #define included_IBTK_StreamableManager_inl_h
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"

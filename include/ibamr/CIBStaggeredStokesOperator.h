@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_CIBStaggeredStokesOperator
 #define included_IBAMR_CIBStaggeredStokesOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/StaggeredStokesOperator.h"

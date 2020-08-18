@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_CIBMobilitySolver
 #define included_IBAMR_CIBMobilitySolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/DirectMobilitySolver.h"

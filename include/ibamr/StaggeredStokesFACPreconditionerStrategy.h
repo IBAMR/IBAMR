@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_StaggeredStokesFACPreconditionerStrategy
 #define included_IBAMR_StaggeredStokesFACPreconditionerStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"

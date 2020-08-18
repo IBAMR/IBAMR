@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_FEMapCache
 #define included_IBTK_FEMapCache
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include <ibtk/QuadratureCache.h>
 #include <ibtk/libmesh_utilities.h>

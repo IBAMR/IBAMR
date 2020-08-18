@@ -11,12 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_ibtk_utilities
 #define included_IBTK_ibtk_utilities
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/ibtk_macros.h"
+#include <ibtk/config.h>
 
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"

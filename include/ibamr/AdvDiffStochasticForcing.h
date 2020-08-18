@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_AdvDiffStochasticForcing
 #define included_IBAMR_AdvDiffStochasticForcing
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/ibtk_utilities.h"

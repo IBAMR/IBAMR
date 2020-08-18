@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_INSStaggeredStabilizedPPMConvectiveOperator
 #define included_IBAMR_INSStaggeredStabilizedPPMConvectiveOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"

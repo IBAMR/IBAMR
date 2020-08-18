@@ -18,6 +18,8 @@
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
 
+#include <ibamr/config.h>
+
 #include "ibamr/StokesWaveGeneratorStrategy.h"
 
 #include "tbox/Pointer.h"

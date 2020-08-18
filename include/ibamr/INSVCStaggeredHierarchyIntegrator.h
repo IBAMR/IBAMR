@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBAMR_INSVCStaggeredHierarchyIntegrator
 #define included_IBAMR_INSVCStaggeredHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"

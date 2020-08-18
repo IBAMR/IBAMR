@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_PoissonFACPreconditioner
 #define included_IBTK_PoissonFACPreconditioner
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/FACPreconditioner.h"
 #include "ibtk/PoissonSolver.h"

@@ -11,13 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_CFINSForcing
 #define included_CFINSForcing
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
+#include <ibamr/config.h>
 
 #include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
 #include "ibamr/CFRelaxationOperator.h"

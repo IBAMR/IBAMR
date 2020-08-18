@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////// INCLUDE GUARD ////////////////////////////////////
+
 #ifndef included_IBTK_PatchMathOps
 #define included_IBTK_PatchMathOps
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/CartCellRobinPhysBdryOp.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"
