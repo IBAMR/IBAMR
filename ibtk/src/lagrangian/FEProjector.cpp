@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
 #include <ibtk/FEDataManager.h>
 #include <ibtk/FEProjector.h>
 #include <ibtk/namespaces.h> // IWYU pragma: keep

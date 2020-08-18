@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBAMR_config.h>
-
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSStaggeredStabilizedPPMConvectiveOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"

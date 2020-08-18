@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
 #include "ibamr/IBMethod.h"
 #include "ibamr/PenaltyIBMethod.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

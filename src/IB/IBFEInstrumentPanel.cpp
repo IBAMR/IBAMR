@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
 #include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBFEInstrumentPanel.h"
 #include "ibamr/IBFEMethod.h"

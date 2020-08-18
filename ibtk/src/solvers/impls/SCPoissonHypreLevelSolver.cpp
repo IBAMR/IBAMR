@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/PoissonUtilities.h"

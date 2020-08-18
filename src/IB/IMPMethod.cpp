@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
 #include "ibamr/IMPMethod.h"
 #include "ibamr/MaterialPointSpec.h"
 #include "ibamr/ibamr_utilities.h"

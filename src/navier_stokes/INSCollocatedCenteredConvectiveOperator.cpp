@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBAMR_config.h>
-
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSCollocatedCenteredConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"

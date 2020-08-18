@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
 #include "ibamr/IBFECentroidPostProcessor.h"
 #include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBFEMethod.h"

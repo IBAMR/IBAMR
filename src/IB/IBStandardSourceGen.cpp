@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
 #include "ibamr/IBSourceSpec.h"
 #include "ibamr/IBStandardSourceGen.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

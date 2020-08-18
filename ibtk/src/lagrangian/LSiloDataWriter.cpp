@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/LData.h"

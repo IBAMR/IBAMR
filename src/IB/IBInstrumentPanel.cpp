@@ -13,9 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
-
 #include "ibamr/IBInstrumentPanel.h"
 #include "ibamr/IBInstrumentationSpec.h"
 #include "ibamr/ibamr_utilities.h"

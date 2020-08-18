@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBAMR_config.h>
-
 #include "ibamr/AdvDiffPredictorCorrectorHyperbolicPatchOps.h"
 #include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 #include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"

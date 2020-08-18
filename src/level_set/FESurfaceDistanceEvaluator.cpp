@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBAMR_config.h>
-
 #include "ibamr/FESurfaceDistanceEvaluator.h"
 #include "ibamr/app_namespaces.h"
 

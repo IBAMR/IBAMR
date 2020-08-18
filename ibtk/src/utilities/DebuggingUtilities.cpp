@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
 #include "ibtk/DebuggingUtilities.h"
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/LData.h"

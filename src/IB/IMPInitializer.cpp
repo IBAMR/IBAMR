@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
 #include "ibamr/IMPInitializer.h"
 #include "ibamr/MaterialPointSpec.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep

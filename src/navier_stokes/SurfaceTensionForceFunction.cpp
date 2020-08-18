@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBAMR_config.h>
-
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/SurfaceTensionForceFunction.h"
 #include "ibamr/ibamr_enums.h"
