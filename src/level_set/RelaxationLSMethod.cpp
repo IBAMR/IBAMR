@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBAMR_config.h>
-
 #include "ibamr/LSInitStrategy.h"
 #include "ibamr/RelaxationLSMethod.h"
 #include "ibamr/app_namespaces.h" // IWYU pragma: keep

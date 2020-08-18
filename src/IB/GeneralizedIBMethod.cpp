@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
 #include "ibamr/GeneralizedIBMethod.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBKirchhoffRodForceGen.h"

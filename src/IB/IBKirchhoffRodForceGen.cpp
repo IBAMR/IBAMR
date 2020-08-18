@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
 #include "ibamr/IBKirchhoffRodForceGen.h"
 #include "ibamr/IBRodForceSpec.h"
 #include "ibamr/ibamr_utilities.h"

@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
 #include "ibtk/FECache.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/FEMappingCache.h"

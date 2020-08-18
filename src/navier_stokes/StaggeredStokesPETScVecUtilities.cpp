@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBAMR_config.h>
-
 #include "ibamr/StaggeredStokesPETScVecUtilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 

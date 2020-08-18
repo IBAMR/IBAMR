@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
 #include "ibamr/IBAnchorPointSpec.h"
 #include "ibamr/IBBeamForceSpec.h"
 #include "ibamr/IBInstrumentationSpec.h"

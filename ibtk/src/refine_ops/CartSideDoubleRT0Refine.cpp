@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
 #include "ibtk/CartSideDoubleRT0Refine.h"
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 

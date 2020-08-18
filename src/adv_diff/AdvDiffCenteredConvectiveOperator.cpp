@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBAMR_config.h>
-
 #include "ibamr/AdvDiffCenteredConvectiveOperator.h"
 #include "ibamr/AdvDiffPhysicalBoundaryUtilities.h"
 #include "ibamr/ConvectiveOperator.h"

@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBAMR_config.h>
-
 #include "ibamr/FastSweepingLSMethod.h"
 #include "ibamr/LSInitStrategy.h"
 #include "ibamr/ibamr_enums.h"

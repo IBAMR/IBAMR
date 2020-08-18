@@ -13,8 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
 #include "ibtk/FECache.h"
 #include "ibtk/QuadratureCache.h"
 #include "ibtk/libmesh_utilities.h"
