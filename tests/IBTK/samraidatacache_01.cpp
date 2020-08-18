@@ -12,7 +12,6 @@
 // ---------------------------------------------------------------------
 
 // Config files
-#include <IBTK_config.h>
 
 // Headers for major SAMRAI objects
 #include <BergerRigoutsos.h>

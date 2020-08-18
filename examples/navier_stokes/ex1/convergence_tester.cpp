@@ -12,8 +12,6 @@
 // ---------------------------------------------------------------------
 
 // GENERAL CONFIGURATION
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
 
 #include <petscsys.h>
 

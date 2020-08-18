@@ -12,7 +12,6 @@
 // ---------------------------------------------------------------------
 
 // Config files
-#include <IBTK_config.h>
 
 // Set up application namespace declarations
 #include <ibtk/IBTKInit.h>
