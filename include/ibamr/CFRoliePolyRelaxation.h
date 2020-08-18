@@ -11,11 +11,13 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_CFRoliePolyRelaxation
 #define included_CFRoliePolyRelaxation
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBAMR_config.h>
+#include <ibamr/config.h>
 
 #include "ibamr/CFRelaxationOperator.h"
 #include "ibamr/ibamr_enums.h"

@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBAMR_GeneralizedIBMethod
 #define included_IBAMR_GeneralizedIBMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/IBKirchhoffRodForceGen.h"
 #include "ibamr/IBMethod.h"

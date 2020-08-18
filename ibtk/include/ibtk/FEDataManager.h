@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_FEDataManager
 #define included_IBTK_FEDataManager
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/QuadratureCache.h"
 #include "ibtk/SAMRAIDataCache.h"

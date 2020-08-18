@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_FEProjector
 #define included_IBTK_FEProjector
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include <libmesh/equation_systems.h>
 #include <libmesh/petsc_linear_solver.h>

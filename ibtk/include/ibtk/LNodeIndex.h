@@ -11,12 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_LNodeIndex
 #define included_IBTK_LNodeIndex
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
+#include <ibtk/config.h>
 
 #include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"

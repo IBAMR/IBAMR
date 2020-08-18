@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_LNodeIndexSetDataFactory
 #define included_IBTK_LNodeIndexSetDataFactory
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/LIndexSetDataFactory.h"
 #include "ibtk/LNodeIndex.h"

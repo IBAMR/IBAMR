@@ -11,12 +11,15 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBAMR_IBInstrumentPanel
 #define included_IBAMR_IBInstrumentPanel
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/ibtk_macros.h"
+#include <ibamr/config.h>
+
 #include "ibtk/ibtk_utilities.h"
 
 #include "Index.h"

@@ -194,10 +194,7 @@ am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
 libIBTK_a_AR = $(AR) $(ARFLAGS)
 libIBTK_a_LIBADD =
-am__libIBTK_a_SOURCES_DIST = ../src/utilities/ParallelEdgeMap.cpp \
-	../src/utilities/FixedSizedStream.cpp \
-	../src/utilities/IBTK_MPI.cpp ../src/utilities/IBTKInit.cpp \
-	../contrib/muparser/src/muParserDLL.cpp \
+am__libIBTK_a_SOURCES_DIST = ../contrib/muparser/src/muParserDLL.cpp \
 	../contrib/muparser/src/muParserTokenReader.cpp \
 	../contrib/muparser/src/muParserError.cpp \
 	../contrib/muparser/src/muParserCallback.cpp \
@@ -216,10 +213,7 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/muParserInt.$(OBJEXT) \
 @USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/muParserTest.$(OBJEXT) \
 @USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/muParser.$(OBJEXT)
-am_libIBTK_a_OBJECTS = ../src/utilities/ParallelEdgeMap.$(OBJEXT) \
-	../src/utilities/FixedSizedStream.$(OBJEXT) \
-	../src/utilities/IBTK_MPI.$(OBJEXT) \
-	../src/utilities/IBTKInit.$(OBJEXT) $(am__objects_1)
+am_libIBTK_a_OBJECTS = $(am__objects_1)
 libIBTK_a_OBJECTS = $(am_libIBTK_a_OBJECTS)
 libIBTK2d_a_AR = $(AR) $(ARFLAGS)
 libIBTK2d_a_LIBADD =
@@ -320,13 +314,17 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/utilities/EdgeSynchCopyFillPattern.cpp \
 	../src/utilities/FaceDataSynchronization.cpp \
 	../src/utilities/FaceSynchCopyFillPattern.cpp \
+	../src/utilities/FixedSizedStream.cpp \
 	../src/utilities/HierarchyIntegrator.cpp \
+	../src/utilities/IBTK_MPI.cpp ../src/utilities/IBTKInit.cpp \
 	../src/utilities/IndexUtilities.cpp \
 	../src/utilities/LMarkerUtilities.cpp \
 	../src/utilities/MergingLoadBalancer.cpp \
 	../src/utilities/NodeDataSynchronization.cpp \
 	../src/utilities/NodeSynchCopyFillPattern.cpp \
-	../src/utilities/NormOps.cpp ../src/utilities/ParallelMap.cpp \
+	../src/utilities/NormOps.cpp \
+	../src/utilities/ParallelEdgeMap.cpp \
+	../src/utilities/ParallelMap.cpp \
 	../src/utilities/ParallelSet.cpp \
 	../src/utilities/PartitioningBox.cpp \
 	../src/utilities/RefinePatchStrategySet.cpp \
@@ -490,13 +488,17 @@ am__objects_3 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK2d_a-EdgeSynchCopyFillPattern.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-FaceDataSynchronization.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-FaceSynchCopyFillPattern.$(OBJEXT) \
+	../src/utilities/libIBTK2d_a-FixedSizedStream.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-HierarchyIntegrator.$(OBJEXT) \
+	../src/utilities/libIBTK2d_a-IBTK_MPI.$(OBJEXT) \
+	../src/utilities/libIBTK2d_a-IBTKInit.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-IndexUtilities.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-LMarkerUtilities.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-MergingLoadBalancer.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-NodeDataSynchronization.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-NodeSynchCopyFillPattern.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-NormOps.$(OBJEXT) \
+	../src/utilities/libIBTK2d_a-ParallelEdgeMap.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-ParallelMap.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-ParallelSet.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-PartitioningBox.$(OBJEXT) \
@@ -632,13 +634,17 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/utilities/EdgeSynchCopyFillPattern.cpp \
 	../src/utilities/FaceDataSynchronization.cpp \
 	../src/utilities/FaceSynchCopyFillPattern.cpp \
+	../src/utilities/FixedSizedStream.cpp \
 	../src/utilities/HierarchyIntegrator.cpp \
+	../src/utilities/IBTK_MPI.cpp ../src/utilities/IBTKInit.cpp \
 	../src/utilities/IndexUtilities.cpp \
 	../src/utilities/LMarkerUtilities.cpp \
 	../src/utilities/MergingLoadBalancer.cpp \
 	../src/utilities/NodeDataSynchronization.cpp \
 	../src/utilities/NodeSynchCopyFillPattern.cpp \
-	../src/utilities/NormOps.cpp ../src/utilities/ParallelMap.cpp \
+	../src/utilities/NormOps.cpp \
+	../src/utilities/ParallelEdgeMap.cpp \
+	../src/utilities/ParallelMap.cpp \
 	../src/utilities/ParallelSet.cpp \
 	../src/utilities/PartitioningBox.cpp \
 	../src/utilities/RefinePatchStrategySet.cpp \
@@ -802,13 +808,17 @@ am__objects_5 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK3d_a-EdgeSynchCopyFillPattern.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-FaceDataSynchronization.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-FaceSynchCopyFillPattern.$(OBJEXT) \
+	../src/utilities/libIBTK3d_a-FixedSizedStream.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-HierarchyIntegrator.$(OBJEXT) \
+	../src/utilities/libIBTK3d_a-IBTK_MPI.$(OBJEXT) \
+	../src/utilities/libIBTK3d_a-IBTKInit.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-IndexUtilities.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-LMarkerUtilities.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-MergingLoadBalancer.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-NodeDataSynchronization.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-NodeSynchCopyFillPattern.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-NormOps.$(OBJEXT) \
+	../src/utilities/libIBTK3d_a-ParallelEdgeMap.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-ParallelMap.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-ParallelSet.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-PartitioningBox.$(OBJEXT) \
@@ -1061,10 +1071,6 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSAMRAIVectorReal.Po \
 	../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSNESFunctionGOWrapper.Po \
 	../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSNESJacobianJOWrapper.Po \
-	../src/utilities/$(DEPDIR)/FixedSizedStream.Po \
-	../src/utilities/$(DEPDIR)/IBTKInit.Po \
-	../src/utilities/$(DEPDIR)/IBTK_MPI.Po \
-	../src/utilities/$(DEPDIR)/ParallelEdgeMap.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-AppInitializer.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunction.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunctionSet.Po \
@@ -1077,7 +1083,10 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-EdgeSynchCopyFillPattern.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Po \
+	../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po \
+	../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTKInit.Po \
+	../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Po \
@@ -1086,6 +1095,7 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-NormOps.Po \
+	../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelMap.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po \
@@ -1112,7 +1122,10 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-EdgeSynchCopyFillPattern.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Po \
+	../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po \
+	../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTKInit.Po \
+	../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Po \
@@ -1121,6 +1134,7 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-NormOps.Po \
+	../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelMap.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po \
@@ -1492,10 +1506,7 @@ IBTK3d_LIBS = ${top_builddir}/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 lib_LIBRARIES = libIBTK.a $(am__append_1) $(am__append_2)
-libIBTK_a_SOURCES = ../src/utilities/ParallelEdgeMap.cpp \
-	../src/utilities/FixedSizedStream.cpp \
-	../src/utilities/IBTK_MPI.cpp ../src/utilities/IBTKInit.cpp \
-	$(am__append_3)
+libIBTK_a_SOURCES = $(am__append_3)
 pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
 	../include/ibtk/app_namespaces.h \
 	../include/ibtk/compiler_hints.h ../include/ibtk/ibtk_enums.h \
@@ -1743,13 +1754,17 @@ DIM_DEPENDENT_SOURCES =  \
 	../src/utilities/EdgeSynchCopyFillPattern.cpp \
 	../src/utilities/FaceDataSynchronization.cpp \
 	../src/utilities/FaceSynchCopyFillPattern.cpp \
+	../src/utilities/FixedSizedStream.cpp \
 	../src/utilities/HierarchyIntegrator.cpp \
+	../src/utilities/IBTK_MPI.cpp ../src/utilities/IBTKInit.cpp \
 	../src/utilities/IndexUtilities.cpp \
 	../src/utilities/LMarkerUtilities.cpp \
 	../src/utilities/MergingLoadBalancer.cpp \
 	../src/utilities/NodeDataSynchronization.cpp \
 	../src/utilities/NodeSynchCopyFillPattern.cpp \
-	../src/utilities/NormOps.cpp ../src/utilities/ParallelMap.cpp \
+	../src/utilities/NormOps.cpp \
+	../src/utilities/ParallelEdgeMap.cpp \
+	../src/utilities/ParallelMap.cpp \
 	../src/utilities/ParallelSet.cpp \
 	../src/utilities/PartitioningBox.cpp \
 	../src/utilities/RefinePatchStrategySet.cpp \
@@ -1873,22 +1888,6 @@ uninstall-libLIBRARIES:
 
 clean-libLIBRARIES:
 	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
-../src/utilities/$(am__dirstamp):
-	@$(MKDIR_P) ../src/utilities
-	@: > ../src/utilities/$(am__dirstamp)
-../src/utilities/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) ../src/utilities/$(DEPDIR)
-	@: > ../src/utilities/$(DEPDIR)/$(am__dirstamp)
-../src/utilities/ParallelEdgeMap.$(OBJEXT):  \
-	../src/utilities/$(am__dirstamp) \
-	../src/utilities/$(DEPDIR)/$(am__dirstamp)
-../src/utilities/FixedSizedStream.$(OBJEXT):  \
-	../src/utilities/$(am__dirstamp) \
-	../src/utilities/$(DEPDIR)/$(am__dirstamp)
-../src/utilities/IBTK_MPI.$(OBJEXT): ../src/utilities/$(am__dirstamp) \
-	../src/utilities/$(DEPDIR)/$(am__dirstamp)
-../src/utilities/IBTKInit.$(OBJEXT): ../src/utilities/$(am__dirstamp) \
-	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../contrib/muparser/src/$(am__dirstamp):
 	@$(MKDIR_P) ../contrib/muparser/src
 	@: > ../contrib/muparser/src/$(am__dirstamp)
@@ -2254,6 +2253,12 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/solvers/wrappers/libIBTK2d_a-PETScSNESJacobianJOWrapper.$(OBJEXT):  \
 	../src/solvers/wrappers/$(am__dirstamp) \
 	../src/solvers/wrappers/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/$(am__dirstamp):
+	@$(MKDIR_P) ../src/utilities
+	@: > ../src/utilities/$(am__dirstamp)
+../src/utilities/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ../src/utilities/$(DEPDIR)
+	@: > ../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-AppInitializer.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -2290,7 +2295,16 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/utilities/libIBTK2d_a-FaceSynchCopyFillPattern.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK2d_a-FixedSizedStream.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-HierarchyIntegrator.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK2d_a-IBTK_MPI.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK2d_a-IBTKInit.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-IndexUtilities.$(OBJEXT):  \
@@ -2309,6 +2323,9 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-NormOps.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK2d_a-ParallelEdgeMap.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-ParallelMap.$(OBJEXT):  \
@@ -2787,7 +2804,16 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/utilities/libIBTK3d_a-FaceSynchCopyFillPattern.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK3d_a-FixedSizedStream.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-HierarchyIntegrator.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK3d_a-IBTK_MPI.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK3d_a-IBTKInit.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-IndexUtilities.$(OBJEXT):  \
@@ -2806,6 +2832,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-NormOps.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK3d_a-ParallelEdgeMap.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-ParallelMap.$(OBJEXT):  \
@@ -3166,10 +3195,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSAMRAIVectorReal.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSNESFunctionGOWrapper.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSNESJacobianJOWrapper.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/FixedSizedStream.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/IBTKInit.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/IBTK_MPI.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/ParallelEdgeMap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-AppInitializer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunctionSet.Po@am__quote@ # am--include-marker
@@ -3182,7 +3207,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-EdgeSynchCopyFillPattern.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTKInit.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Po@am__quote@ # am--include-marker
@@ -3191,6 +3219,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-NormOps.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelMap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po@am__quote@ # am--include-marker
@@ -3217,7 +3246,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-EdgeSynchCopyFillPattern.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTKInit.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Po@am__quote@ # am--include-marker
@@ -3226,6 +3258,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-NormOps.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelMap.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po@am__quote@ # am--include-marker
@@ -4685,6 +4718,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-FaceSynchCopyFillPattern.obj `if test -f '../src/utilities/FaceSynchCopyFillPattern.cpp'; then $(CYGPATH_W) '../src/utilities/FaceSynchCopyFillPattern.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/FaceSynchCopyFillPattern.cpp'; fi`
 
+../src/utilities/libIBTK2d_a-FixedSizedStream.o: ../src/utilities/FixedSizedStream.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-FixedSizedStream.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Tpo -c -o ../src/utilities/libIBTK2d_a-FixedSizedStream.o `test -f '../src/utilities/FixedSizedStream.cpp' || echo '$(srcdir)/'`../src/utilities/FixedSizedStream.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/FixedSizedStream.cpp' object='../src/utilities/libIBTK2d_a-FixedSizedStream.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-FixedSizedStream.o `test -f '../src/utilities/FixedSizedStream.cpp' || echo '$(srcdir)/'`../src/utilities/FixedSizedStream.cpp
+
+../src/utilities/libIBTK2d_a-FixedSizedStream.obj: ../src/utilities/FixedSizedStream.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-FixedSizedStream.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Tpo -c -o ../src/utilities/libIBTK2d_a-FixedSizedStream.obj `if test -f '../src/utilities/FixedSizedStream.cpp'; then $(CYGPATH_W) '../src/utilities/FixedSizedStream.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/FixedSizedStream.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/FixedSizedStream.cpp' object='../src/utilities/libIBTK2d_a-FixedSizedStream.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-FixedSizedStream.obj `if test -f '../src/utilities/FixedSizedStream.cpp'; then $(CYGPATH_W) '../src/utilities/FixedSizedStream.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/FixedSizedStream.cpp'; fi`
+
 ../src/utilities/libIBTK2d_a-HierarchyIntegrator.o: ../src/utilities/HierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-HierarchyIntegrator.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Tpo -c -o ../src/utilities/libIBTK2d_a-HierarchyIntegrator.o `test -f '../src/utilities/HierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/utilities/HierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po
@@ -4698,6 +4745,34 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/HierarchyIntegrator.cpp' object='../src/utilities/libIBTK2d_a-HierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-HierarchyIntegrator.obj `if test -f '../src/utilities/HierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/utilities/HierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/HierarchyIntegrator.cpp'; fi`
+
+../src/utilities/libIBTK2d_a-IBTK_MPI.o: ../src/utilities/IBTK_MPI.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-IBTK_MPI.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Tpo -c -o ../src/utilities/libIBTK2d_a-IBTK_MPI.o `test -f '../src/utilities/IBTK_MPI.cpp' || echo '$(srcdir)/'`../src/utilities/IBTK_MPI.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/IBTK_MPI.cpp' object='../src/utilities/libIBTK2d_a-IBTK_MPI.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-IBTK_MPI.o `test -f '../src/utilities/IBTK_MPI.cpp' || echo '$(srcdir)/'`../src/utilities/IBTK_MPI.cpp
+
+../src/utilities/libIBTK2d_a-IBTK_MPI.obj: ../src/utilities/IBTK_MPI.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-IBTK_MPI.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Tpo -c -o ../src/utilities/libIBTK2d_a-IBTK_MPI.obj `if test -f '../src/utilities/IBTK_MPI.cpp'; then $(CYGPATH_W) '../src/utilities/IBTK_MPI.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/IBTK_MPI.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/IBTK_MPI.cpp' object='../src/utilities/libIBTK2d_a-IBTK_MPI.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-IBTK_MPI.obj `if test -f '../src/utilities/IBTK_MPI.cpp'; then $(CYGPATH_W) '../src/utilities/IBTK_MPI.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/IBTK_MPI.cpp'; fi`
+
+../src/utilities/libIBTK2d_a-IBTKInit.o: ../src/utilities/IBTKInit.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-IBTKInit.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTKInit.Tpo -c -o ../src/utilities/libIBTK2d_a-IBTKInit.o `test -f '../src/utilities/IBTKInit.cpp' || echo '$(srcdir)/'`../src/utilities/IBTKInit.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTKInit.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTKInit.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/IBTKInit.cpp' object='../src/utilities/libIBTK2d_a-IBTKInit.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-IBTKInit.o `test -f '../src/utilities/IBTKInit.cpp' || echo '$(srcdir)/'`../src/utilities/IBTKInit.cpp
+
+../src/utilities/libIBTK2d_a-IBTKInit.obj: ../src/utilities/IBTKInit.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-IBTKInit.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTKInit.Tpo -c -o ../src/utilities/libIBTK2d_a-IBTKInit.obj `if test -f '../src/utilities/IBTKInit.cpp'; then $(CYGPATH_W) '../src/utilities/IBTKInit.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/IBTKInit.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTKInit.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTKInit.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/IBTKInit.cpp' object='../src/utilities/libIBTK2d_a-IBTKInit.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-IBTKInit.obj `if test -f '../src/utilities/IBTKInit.cpp'; then $(CYGPATH_W) '../src/utilities/IBTKInit.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/IBTKInit.cpp'; fi`
 
 ../src/utilities/libIBTK2d_a-IndexUtilities.o: ../src/utilities/IndexUtilities.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-IndexUtilities.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Tpo -c -o ../src/utilities/libIBTK2d_a-IndexUtilities.o `test -f '../src/utilities/IndexUtilities.cpp' || echo '$(srcdir)/'`../src/utilities/IndexUtilities.cpp
@@ -4782,6 +4857,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/NormOps.cpp' object='../src/utilities/libIBTK2d_a-NormOps.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-NormOps.obj `if test -f '../src/utilities/NormOps.cpp'; then $(CYGPATH_W) '../src/utilities/NormOps.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/NormOps.cpp'; fi`
+
+../src/utilities/libIBTK2d_a-ParallelEdgeMap.o: ../src/utilities/ParallelEdgeMap.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-ParallelEdgeMap.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Tpo -c -o ../src/utilities/libIBTK2d_a-ParallelEdgeMap.o `test -f '../src/utilities/ParallelEdgeMap.cpp' || echo '$(srcdir)/'`../src/utilities/ParallelEdgeMap.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/ParallelEdgeMap.cpp' object='../src/utilities/libIBTK2d_a-ParallelEdgeMap.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-ParallelEdgeMap.o `test -f '../src/utilities/ParallelEdgeMap.cpp' || echo '$(srcdir)/'`../src/utilities/ParallelEdgeMap.cpp
+
+../src/utilities/libIBTK2d_a-ParallelEdgeMap.obj: ../src/utilities/ParallelEdgeMap.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-ParallelEdgeMap.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Tpo -c -o ../src/utilities/libIBTK2d_a-ParallelEdgeMap.obj `if test -f '../src/utilities/ParallelEdgeMap.cpp'; then $(CYGPATH_W) '../src/utilities/ParallelEdgeMap.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ParallelEdgeMap.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/ParallelEdgeMap.cpp' object='../src/utilities/libIBTK2d_a-ParallelEdgeMap.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-ParallelEdgeMap.obj `if test -f '../src/utilities/ParallelEdgeMap.cpp'; then $(CYGPATH_W) '../src/utilities/ParallelEdgeMap.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ParallelEdgeMap.cpp'; fi`
 
 ../src/utilities/libIBTK2d_a-ParallelMap.o: ../src/utilities/ParallelMap.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-ParallelMap.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelMap.Tpo -c -o ../src/utilities/libIBTK2d_a-ParallelMap.o `test -f '../src/utilities/ParallelMap.cpp' || echo '$(srcdir)/'`../src/utilities/ParallelMap.cpp
@@ -6519,6 +6608,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-FaceSynchCopyFillPattern.obj `if test -f '../src/utilities/FaceSynchCopyFillPattern.cpp'; then $(CYGPATH_W) '../src/utilities/FaceSynchCopyFillPattern.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/FaceSynchCopyFillPattern.cpp'; fi`
 
+../src/utilities/libIBTK3d_a-FixedSizedStream.o: ../src/utilities/FixedSizedStream.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-FixedSizedStream.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Tpo -c -o ../src/utilities/libIBTK3d_a-FixedSizedStream.o `test -f '../src/utilities/FixedSizedStream.cpp' || echo '$(srcdir)/'`../src/utilities/FixedSizedStream.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/FixedSizedStream.cpp' object='../src/utilities/libIBTK3d_a-FixedSizedStream.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-FixedSizedStream.o `test -f '../src/utilities/FixedSizedStream.cpp' || echo '$(srcdir)/'`../src/utilities/FixedSizedStream.cpp
+
+../src/utilities/libIBTK3d_a-FixedSizedStream.obj: ../src/utilities/FixedSizedStream.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-FixedSizedStream.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Tpo -c -o ../src/utilities/libIBTK3d_a-FixedSizedStream.obj `if test -f '../src/utilities/FixedSizedStream.cpp'; then $(CYGPATH_W) '../src/utilities/FixedSizedStream.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/FixedSizedStream.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/FixedSizedStream.cpp' object='../src/utilities/libIBTK3d_a-FixedSizedStream.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-FixedSizedStream.obj `if test -f '../src/utilities/FixedSizedStream.cpp'; then $(CYGPATH_W) '../src/utilities/FixedSizedStream.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/FixedSizedStream.cpp'; fi`
+
 ../src/utilities/libIBTK3d_a-HierarchyIntegrator.o: ../src/utilities/HierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-HierarchyIntegrator.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Tpo -c -o ../src/utilities/libIBTK3d_a-HierarchyIntegrator.o `test -f '../src/utilities/HierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/utilities/HierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po
@@ -6532,6 +6635,34 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/HierarchyIntegrator.cpp' object='../src/utilities/libIBTK3d_a-HierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-HierarchyIntegrator.obj `if test -f '../src/utilities/HierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/utilities/HierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/HierarchyIntegrator.cpp'; fi`
+
+../src/utilities/libIBTK3d_a-IBTK_MPI.o: ../src/utilities/IBTK_MPI.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-IBTK_MPI.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Tpo -c -o ../src/utilities/libIBTK3d_a-IBTK_MPI.o `test -f '../src/utilities/IBTK_MPI.cpp' || echo '$(srcdir)/'`../src/utilities/IBTK_MPI.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/IBTK_MPI.cpp' object='../src/utilities/libIBTK3d_a-IBTK_MPI.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-IBTK_MPI.o `test -f '../src/utilities/IBTK_MPI.cpp' || echo '$(srcdir)/'`../src/utilities/IBTK_MPI.cpp
+
+../src/utilities/libIBTK3d_a-IBTK_MPI.obj: ../src/utilities/IBTK_MPI.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-IBTK_MPI.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Tpo -c -o ../src/utilities/libIBTK3d_a-IBTK_MPI.obj `if test -f '../src/utilities/IBTK_MPI.cpp'; then $(CYGPATH_W) '../src/utilities/IBTK_MPI.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/IBTK_MPI.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/IBTK_MPI.cpp' object='../src/utilities/libIBTK3d_a-IBTK_MPI.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-IBTK_MPI.obj `if test -f '../src/utilities/IBTK_MPI.cpp'; then $(CYGPATH_W) '../src/utilities/IBTK_MPI.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/IBTK_MPI.cpp'; fi`
+
+../src/utilities/libIBTK3d_a-IBTKInit.o: ../src/utilities/IBTKInit.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-IBTKInit.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTKInit.Tpo -c -o ../src/utilities/libIBTK3d_a-IBTKInit.o `test -f '../src/utilities/IBTKInit.cpp' || echo '$(srcdir)/'`../src/utilities/IBTKInit.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTKInit.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTKInit.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/IBTKInit.cpp' object='../src/utilities/libIBTK3d_a-IBTKInit.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-IBTKInit.o `test -f '../src/utilities/IBTKInit.cpp' || echo '$(srcdir)/'`../src/utilities/IBTKInit.cpp
+
+../src/utilities/libIBTK3d_a-IBTKInit.obj: ../src/utilities/IBTKInit.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-IBTKInit.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTKInit.Tpo -c -o ../src/utilities/libIBTK3d_a-IBTKInit.obj `if test -f '../src/utilities/IBTKInit.cpp'; then $(CYGPATH_W) '../src/utilities/IBTKInit.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/IBTKInit.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTKInit.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTKInit.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/IBTKInit.cpp' object='../src/utilities/libIBTK3d_a-IBTKInit.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-IBTKInit.obj `if test -f '../src/utilities/IBTKInit.cpp'; then $(CYGPATH_W) '../src/utilities/IBTKInit.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/IBTKInit.cpp'; fi`
 
 ../src/utilities/libIBTK3d_a-IndexUtilities.o: ../src/utilities/IndexUtilities.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-IndexUtilities.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Tpo -c -o ../src/utilities/libIBTK3d_a-IndexUtilities.o `test -f '../src/utilities/IndexUtilities.cpp' || echo '$(srcdir)/'`../src/utilities/IndexUtilities.cpp
@@ -6616,6 +6747,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/NormOps.cpp' object='../src/utilities/libIBTK3d_a-NormOps.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-NormOps.obj `if test -f '../src/utilities/NormOps.cpp'; then $(CYGPATH_W) '../src/utilities/NormOps.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/NormOps.cpp'; fi`
+
+../src/utilities/libIBTK3d_a-ParallelEdgeMap.o: ../src/utilities/ParallelEdgeMap.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-ParallelEdgeMap.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Tpo -c -o ../src/utilities/libIBTK3d_a-ParallelEdgeMap.o `test -f '../src/utilities/ParallelEdgeMap.cpp' || echo '$(srcdir)/'`../src/utilities/ParallelEdgeMap.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/ParallelEdgeMap.cpp' object='../src/utilities/libIBTK3d_a-ParallelEdgeMap.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-ParallelEdgeMap.o `test -f '../src/utilities/ParallelEdgeMap.cpp' || echo '$(srcdir)/'`../src/utilities/ParallelEdgeMap.cpp
+
+../src/utilities/libIBTK3d_a-ParallelEdgeMap.obj: ../src/utilities/ParallelEdgeMap.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-ParallelEdgeMap.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Tpo -c -o ../src/utilities/libIBTK3d_a-ParallelEdgeMap.obj `if test -f '../src/utilities/ParallelEdgeMap.cpp'; then $(CYGPATH_W) '../src/utilities/ParallelEdgeMap.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ParallelEdgeMap.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/ParallelEdgeMap.cpp' object='../src/utilities/libIBTK3d_a-ParallelEdgeMap.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-ParallelEdgeMap.obj `if test -f '../src/utilities/ParallelEdgeMap.cpp'; then $(CYGPATH_W) '../src/utilities/ParallelEdgeMap.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ParallelEdgeMap.cpp'; fi`
 
 ../src/utilities/libIBTK3d_a-ParallelMap.o: ../src/utilities/ParallelMap.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-ParallelMap.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelMap.Tpo -c -o ../src/utilities/libIBTK3d_a-ParallelMap.o `test -f '../src/utilities/ParallelMap.cpp' || echo '$(srcdir)/'`../src/utilities/ParallelMap.cpp
@@ -7343,10 +7488,6 @@ distclean: distclean-am
 	-rm -f ../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSAMRAIVectorReal.Po
 	-rm -f ../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSNESFunctionGOWrapper.Po
 	-rm -f ../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSNESJacobianJOWrapper.Po
-	-rm -f ../src/utilities/$(DEPDIR)/FixedSizedStream.Po
-	-rm -f ../src/utilities/$(DEPDIR)/IBTKInit.Po
-	-rm -f ../src/utilities/$(DEPDIR)/IBTK_MPI.Po
-	-rm -f ../src/utilities/$(DEPDIR)/ParallelEdgeMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-AppInitializer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunction.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunctionSet.Po
@@ -7359,7 +7500,10 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-EdgeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTKInit.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Po
@@ -7368,6 +7512,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NormOps.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po
@@ -7394,7 +7539,10 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-EdgeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTKInit.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Po
@@ -7403,6 +7551,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NormOps.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po
@@ -7663,10 +7812,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSAMRAIVectorReal.Po
 	-rm -f ../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSNESFunctionGOWrapper.Po
 	-rm -f ../src/solvers/wrappers/$(DEPDIR)/libIBTK3d_a-PETScSNESJacobianJOWrapper.Po
-	-rm -f ../src/utilities/$(DEPDIR)/FixedSizedStream.Po
-	-rm -f ../src/utilities/$(DEPDIR)/IBTKInit.Po
-	-rm -f ../src/utilities/$(DEPDIR)/IBTK_MPI.Po
-	-rm -f ../src/utilities/$(DEPDIR)/ParallelEdgeMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-AppInitializer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunction.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunctionSet.Po
@@ -7679,7 +7824,10 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-EdgeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTKInit.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Po
@@ -7688,6 +7836,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NodeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-NormOps.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelEdgeMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-ParallelSet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-PartitioningBox.Po
@@ -7714,7 +7863,10 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-EdgeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTKInit.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Po
@@ -7723,6 +7875,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NodeSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-NormOps.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelEdgeMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelMap.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-ParallelSet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-PartitioningBox.Po

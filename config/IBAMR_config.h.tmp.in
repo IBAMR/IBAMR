@@ -210,5 +210,5 @@
 /* Subminor version of IBAMR. */
 #undef VERSION_SUBMINOR
 
-/* Define IBAMR-specific macros. */
-#include <ibamr/ibamr_macros.h>
+/* Include the new configuration file. */
+#include <ibamr/config.h>

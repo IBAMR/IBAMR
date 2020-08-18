@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBAMR_AdvDiffPhysicalBoundaryUtilities
 #define included_IBAMR_AdvDiffPhysicalBoundaryUtilities
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "tbox/Pointer.h"
 

@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBAMR_KrylovFreeBodyMobilitySolver
 #define included_IBAMR_KrylovFreeBodyMobilitySolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "tbox/Database.h"
 #include "tbox/DescribedClass.h"

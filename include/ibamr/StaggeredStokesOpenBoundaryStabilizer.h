@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBAMR_StaggeredStokesOpenBoundaryStabilizer
 #define included_IBAMR_StaggeredStokesOpenBoundaryStabilizer
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibtk/CartGridFunction.h"
 

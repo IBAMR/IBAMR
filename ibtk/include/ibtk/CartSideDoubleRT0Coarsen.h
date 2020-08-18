@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_CartSideDoubleRT0Coarsen
 #define included_IBTK_CartSideDoubleRT0Coarsen
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "Box.h"
 #include "CartesianSideDoubleWeightedAverage.h"

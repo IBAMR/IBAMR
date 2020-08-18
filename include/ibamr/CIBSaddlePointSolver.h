@@ -11,10 +11,15 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBAMR_CIBSaddlePointSolver
 #define included_IBAMR_CIBSaddlePointSolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
+
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 
 #include "tbox/DescribedClass.h"

@@ -11,12 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_compiler_hints
 #define included_IBTK_compiler_hints
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBTK_config.h"
+#include <ibtk/config.h>
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 

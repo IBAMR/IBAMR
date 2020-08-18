@@ -11,12 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_CFGiesekusRelaxation
 #define included_CFGiesekusRelaxation
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBAMR_config.h>
+#include <ibamr/config.h>
 
 #include "ibamr/CFRelaxationOperator.h"
 #include "ibamr/ibamr_enums.h"

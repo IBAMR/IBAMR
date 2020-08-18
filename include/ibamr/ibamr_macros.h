@@ -11,10 +11,12 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBAMR_ibamr_macros
 #define included_IBAMR_ibamr_macros
 
-#include <IBAMR_config.h>
+#include <ibamr/config.h>
 
 #define IBAMR_VERSION_GTE(major, minor, subminor)                                                                      \
     ((IBAMR_VERSION_MAJOR * 10000 + IBAMR_VERSION_MINOR * 100 + IBAMR_VERSION_SUBMINOR) >=                             \

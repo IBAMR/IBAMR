@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
-#ifndef included_IBTK_ibtk_boxpartitioner
-#define included_IBTK_ibtk_boxpartitioner
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
+#ifndef included_IBTK_boxpartitioner
+#define included_IBTK_boxpartitioner
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include <ibtk/PartitioningBox.h>
 
@@ -106,4 +110,4 @@ protected:
 };
 } // namespace IBTK
 //////////////////////////////////////////////////////////////////////////////
-#endif //#ifndef included_IBTK_ibtk_boxpartitioner
+#endif //#ifndef included_IBTK_boxpartitioner

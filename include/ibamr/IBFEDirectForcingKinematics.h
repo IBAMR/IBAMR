@@ -11,15 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBAMR_IBFEDirectForcingKinematics
 #define included_IBAMR_IBFEDirectForcingKinematics
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
-#include "ibtk/ibtk_macros.h"
-#include "ibtk/ibtk_utilities.h"
+#include <ibamr/config.h>
 
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"

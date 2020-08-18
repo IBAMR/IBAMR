@@ -33,11 +33,7 @@ clean-local:
 	rm -f $(PWD)/../src/libIBTK3d.a
 
 ## Dimension-independent library
-libIBTK_a_SOURCES = \
-../src/utilities/ParallelEdgeMap.cpp \
-../src/utilities/FixedSizedStream.cpp \
-../src/utilities/IBTK_MPI.cpp \
-../src/utilities/IBTKInit.cpp
+libIBTK_a_SOURCES =
 
 if USING_BUNDLED_MUPARSER
 libIBTK_a_SOURCES += \
@@ -163,13 +159,17 @@ DIM_DEPENDENT_SOURCES = \
 ../src/utilities/EdgeSynchCopyFillPattern.cpp \
 ../src/utilities/FaceDataSynchronization.cpp \
 ../src/utilities/FaceSynchCopyFillPattern.cpp \
+../src/utilities/FixedSizedStream.cpp \
 ../src/utilities/HierarchyIntegrator.cpp \
+../src/utilities/IBTK_MPI.cpp \
+../src/utilities/IBTKInit.cpp \
 ../src/utilities/IndexUtilities.cpp \
 ../src/utilities/LMarkerUtilities.cpp \
 ../src/utilities/MergingLoadBalancer.cpp \
 ../src/utilities/NodeDataSynchronization.cpp \
 ../src/utilities/NodeSynchCopyFillPattern.cpp \
 ../src/utilities/NormOps.cpp \
+../src/utilities/ParallelEdgeMap.cpp \
 ../src/utilities/ParallelMap.cpp \
 ../src/utilities/ParallelSet.cpp \
 ../src/utilities/PartitioningBox.cpp \

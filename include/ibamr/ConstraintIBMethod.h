@@ -11,12 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBAMR_ConstraintIBMethod
 #define included_IBAMR_ConstraintIBMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
+#include <ibamr/config.h>
 
 #include "ibamr/ConstraintIBKinematics.h"
 #include "ibamr/IBHierarchyIntegrator.h"

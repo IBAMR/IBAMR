@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_PhysicalBoundaryUtilities
 #define included_IBTK_PhysicalBoundaryUtilities
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "BoundaryBox.h"
 #include "Box.h"

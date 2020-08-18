@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_VCSCViscousOpPointRelaxationFACOperator
 #define included_IBTK_VCSCViscousOpPointRelaxationFACOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/SCPoissonPointRelaxationFACOperator.h"
 

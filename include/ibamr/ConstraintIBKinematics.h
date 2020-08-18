@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBAMR_ConstraintIBKinematics
 #define included_IBAMR_ConstraintIBKinematics
 
-///////////////////////////////////////// INCLUDES //////////////////////////////////////////
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"

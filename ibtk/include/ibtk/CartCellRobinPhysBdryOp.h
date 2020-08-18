@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_CartCellRobinPhysBdryOp
 #define included_IBTK_CartCellRobinPhysBdryOp
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 

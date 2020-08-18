@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_MergingLoadBalancer
 #define included_IBTK_MergingLoadBalancer
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/IBTK_MPI.h"
 #include <ibtk/box_utilities.h>

@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_PETScSAMRAIVectorReal
 #define included_IBTK_PETScSAMRAIVectorReal
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "IntVector.h"
 #include "SAMRAIVectorReal.h"

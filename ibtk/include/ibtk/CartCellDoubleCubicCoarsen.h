@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_CartCellDoubleCubicCoarsen
 #define included_IBTK_CartCellDoubleCubicCoarsen
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "Box.h"
 #include "CartesianCellDoubleWeightedAverage.h"

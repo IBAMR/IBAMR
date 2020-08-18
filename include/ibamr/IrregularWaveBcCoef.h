@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBAMR_IrregularWaveBcCoef
 #define included_IBAMR_IrregularWaveBcCoef
 
-/////////////////////////////// INCLUDES ///////////////////////////////////////
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/muParserRobinBcCoefs.h"

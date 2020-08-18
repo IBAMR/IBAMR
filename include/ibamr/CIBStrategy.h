@@ -11,17 +11,16 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBAMR_CIBStrategy
 #define included_IBAMR_CIBStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
+#include <ibamr/config.h>
 
 #include "ibamr/ibamr_enums.h"
-
-#include "ibtk/ibtk_macros.h"
-#include "ibtk/ibtk_utilities.h"
 
 #include "tbox/DescribedClass.h"
 

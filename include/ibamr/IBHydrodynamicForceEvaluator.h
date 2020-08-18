@@ -11,13 +11,12 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBHydrodynamicForceEvaluator
 #define included_IBHydrodynamicForceEvaluator
 
-#include <IBTK_config.h>
-
-#include "ibtk/ibtk_macros.h"
-#include <ibtk/ibtk_utilities.h>
+#include <ibamr/config.h>
 
 #include "Box.h"
 #include "CellVariable.h"

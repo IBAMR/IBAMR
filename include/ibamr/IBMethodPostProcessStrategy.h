@@ -11,8 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBAMR_IBMethodPostProcessStrategy
 #define included_IBAMR_IBMethodPostProcessStrategy
+
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "tbox/DescribedClass.h"
 

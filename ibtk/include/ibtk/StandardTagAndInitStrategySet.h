@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_StandardTagAndInitStrategySet
 #define included_IBTK_StandardTagAndInitStrategySet
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "BasePatchLevel.h"
 #include "IntVector.h"

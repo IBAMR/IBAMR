@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_LibMeshSystemVectors
 #define included_IBTK_LibMeshSystemVectors
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include <libmesh/equation_systems.h>
 #include <libmesh/petsc_vector.h>

@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_CartCellDoubleBoundsPreservingConservativeLinearRefine
 #define included_IBTK_CartCellDoubleBoundsPreservingConservativeLinearRefine
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "Box.h"
 #include "CartesianCellDoubleConservativeLinearRefine.h"

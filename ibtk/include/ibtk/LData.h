@@ -11,12 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_LData
 #define included_IBTK_LData
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/ibtk_macros.h"
+#include <ibtk/config.h>
 
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"

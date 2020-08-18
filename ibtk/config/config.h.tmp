@@ -21,7 +21,9 @@
 #include <IBTK_config.h>
 
 #include <ibtk/IBTK_CHKERRQ.h>
+#include <ibtk/compiler_hints.h>
 #include <ibtk/ibtk_macros.h>
+#include <ibtk/ibtk_utilities.h>
 
 // This header is a stub defined to improve compatibility with the new CMake
 // build system

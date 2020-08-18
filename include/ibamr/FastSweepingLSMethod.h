@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBAMR_FastSweepingLSMethod
 #define included_IBAMR_FastSweepingLSMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/LSInitStrategy.h"
 #include "ibamr/ibamr_enums.h"

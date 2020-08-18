@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_muParserCartGridFunction
 #define included_IBTK_muParserCartGridFunction
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/ibtk_utilities.h"

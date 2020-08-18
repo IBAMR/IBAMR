@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_CoarseFineBoundaryRefinePatchStrategy
 #define included_IBTK_CoarseFineBoundaryRefinePatchStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "Box.h"
 #include "ComponentSelector.h"

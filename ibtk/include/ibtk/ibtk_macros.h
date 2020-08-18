@@ -14,7 +14,7 @@
 #ifndef included_IBTK_ibtk_macros
 #define included_IBTK_ibtk_macros
 
-#include <IBTK_config.h>
+#include <ibtk/config.h>
 
 #ifdef IBTK_HAVE_PRAGMA_KEYWORD
 // Prevent clang-format from doing strange things to this very long macro:

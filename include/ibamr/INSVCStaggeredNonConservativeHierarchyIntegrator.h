@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBAMR_INSVCStaggeredNonConservativeHierarchyIntegrator
 #define included_IBAMR_INSVCStaggeredNonConservativeHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 

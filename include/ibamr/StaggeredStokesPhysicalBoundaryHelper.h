@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBAMR_StaggeredStokesPhysicalBoundaryHelper
 #define included_IBAMR_StaggeredStokesPhysicalBoundaryHelper
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 

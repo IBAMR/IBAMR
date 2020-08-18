@@ -11,10 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
+
 #ifndef included_IBTK_LibMeshSystemIBVectors
 #define included_IBTK_LibMeshSystemIBVectors
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include <ibtk/FEDataManager.h>
 #include <ibtk/LibMeshSystemVectors.h>
