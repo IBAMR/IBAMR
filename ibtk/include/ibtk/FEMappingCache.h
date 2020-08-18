@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-/////////////////////// INCLUDE GUARD ////////////////////////////////////
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBTK_FEMappingCache
 #define included_IBTK_FEMappingCache
@@ -108,8 +108,8 @@ FEMappingCache<dim, spacedim>::FEMappingCache(const FEUpdateFlags update_flags) 
 }
 
 template <int dim, int spacedim>
-inline typename FEMappingCache<dim, spacedim>::value_type& FEMappingCache<dim, spacedim>::
-operator[](const FEMappingCache<dim, spacedim>::key_type& quad_key)
+inline typename FEMappingCache<dim, spacedim>::value_type&
+FEMappingCache<dim, spacedim>::operator[](const FEMappingCache<dim, spacedim>::key_type& quad_key)
 {
     auto it = d_mappings.find(quad_key);
     if (it == d_mappings.end())

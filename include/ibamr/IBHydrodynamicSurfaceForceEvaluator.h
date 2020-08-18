@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-/////////////////////// INCLUDE GUARD ////////////////////////////////////
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBHydrodynamicSurfaceForceEvaluator
 #define included_IBHydrodynamicSurfaceForceEvaluator

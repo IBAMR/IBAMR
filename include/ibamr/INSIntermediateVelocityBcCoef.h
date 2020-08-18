@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-/////////////////////// INCLUDE GUARD ////////////////////////////////////
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBAMR_INSIntermediateVelocityBcCoef
 #define included_IBAMR_INSIntermediateVelocityBcCoef

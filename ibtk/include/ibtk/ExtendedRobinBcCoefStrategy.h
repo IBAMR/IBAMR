@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-/////////////////////// INCLUDE GUARD ////////////////////////////////////
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBTK_ExtendedRobinBcCoefStrategy
 #define included_IBTK_ExtendedRobinBcCoefStrategy

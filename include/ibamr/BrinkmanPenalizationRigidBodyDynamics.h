@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-/////////////////////// INCLUDE GUARD ////////////////////////////////////
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_BrinkmanPenalizationRigidBodyDynamics
 #define included_BrinkmanPenalizationRigidBodyDynamics

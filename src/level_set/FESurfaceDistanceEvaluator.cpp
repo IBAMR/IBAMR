@@ -592,7 +592,7 @@ FESurfaceDistanceEvaluator::calculateSurfaceNormals()
     return;
 } // calculateSurfaceNormal
 
-/////////////////////////////// STATIC //////////////////////////////////////
+/////////////////////////////// STATIC ///////////////////////////////////////
 void
 FESurfaceDistanceEvaluator::updateSignAwayFromInterface(int D_idx,
                                                         Pointer<PatchHierarchy<NDIM> > patch_hierarchy,

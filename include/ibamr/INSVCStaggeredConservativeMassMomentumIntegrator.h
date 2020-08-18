@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-/////////////////////// INCLUDE GUARD ////////////////////////////////////
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBAMR_INSVCStaggeredConservativeMassMomentumIntegrator
 #define included_IBAMR_INSVCStaggeredConservativeMassMomentumIntegrator
