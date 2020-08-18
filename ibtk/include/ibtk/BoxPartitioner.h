@@ -13,8 +13,8 @@
 
 /////////////////////// INCLUDE GUARD ////////////////////////////////////
 
-#ifndef included_IBTK_ibtk_boxpartitioner
-#define included_IBTK_ibtk_boxpartitioner
+#ifndef included_IBTK_boxpartitioner
+#define included_IBTK_boxpartitioner
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -110,4 +110,4 @@ protected:
 };
 } // namespace IBTK
 //////////////////////////////////////////////////////////////////////////////
-#endif //#ifndef included_IBTK_ibtk_boxpartitioner
+#endif //#ifndef included_IBTK_boxpartitioner
