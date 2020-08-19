@@ -14,7 +14,6 @@
 #include "ibamr/CFRelaxationOperator.h"
 #include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "tbox/Utilities.h"

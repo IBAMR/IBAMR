@@ -21,7 +21,6 @@
 #include <ibtk/config.h>
 
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/ibtk_macros.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/math/special_functions/round.hpp>

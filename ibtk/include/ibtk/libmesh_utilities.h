@@ -21,7 +21,6 @@
 #include <ibtk/config.h>
 
 #include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/ibtk_macros.h"
 
 #include "tbox/Utilities.h"
 

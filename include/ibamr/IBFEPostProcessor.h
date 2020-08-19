@@ -24,7 +24,6 @@
 
 #include "ibtk/FEDataManager.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/libmesh_utilities.h"
 
 #include "Variable.h"

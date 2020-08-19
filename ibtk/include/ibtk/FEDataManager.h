@@ -22,7 +22,6 @@
 
 #include "ibtk/QuadratureCache.h"
 #include "ibtk/SAMRAIDataCache.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchLevel.h"

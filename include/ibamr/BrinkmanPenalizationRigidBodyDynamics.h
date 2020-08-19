@@ -23,7 +23,6 @@
 #include "ibamr/BrinkmanPenalizationStrategy.h"
 #include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
 
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "tbox/Pointer.h"

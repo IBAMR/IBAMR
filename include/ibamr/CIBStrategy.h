@@ -22,6 +22,8 @@
 
 #include "ibamr/ibamr_enums.h"
 
+#include <ibtk/ibtk_utilities.h>
+
 #include "tbox/DescribedClass.h"
 
 #include "petscmat.h"
