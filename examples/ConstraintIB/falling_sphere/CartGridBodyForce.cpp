@@ -15,8 +15,6 @@
 
 ////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
 #include "ibamr/namespaces.h"
 
 #include "CellData.h"

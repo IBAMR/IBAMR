@@ -11,8 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-#include <IBTK_config.h>
-
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/IBTKInit.h>

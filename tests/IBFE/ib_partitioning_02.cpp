@@ -11,8 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-#include <IBAMR_config.h>
-
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/IBFESurfaceMethod.h>

@@ -12,8 +12,6 @@
 // ---------------------------------------------------------------------
 
 // Config files
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
 
 #include <SAMRAI_config.h>
 
@@ -28,8 +26,8 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
 #include <ibtk/FEMapCache.h>
-#include <ibtk/IBTKInit.h>
 #include <ibtk/FEMapping.h>
+#include <ibtk/IBTKInit.h>
 #include <ibtk/QuadratureCache.h>
 #include <ibtk/libmesh_utilities.h>
 

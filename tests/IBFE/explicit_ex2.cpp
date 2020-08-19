@@ -12,8 +12,6 @@
 // ---------------------------------------------------------------------
 
 // Config files
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
 
 #include <SAMRAI_config.h>
 
@@ -479,7 +477,6 @@ main(int argc, char* argv[])
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
     } // cleanup dynamically allocated objects prior to shutdown
-
 }
 
 void

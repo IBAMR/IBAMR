@@ -12,8 +12,6 @@
 // ---------------------------------------------------------------------
 
 // Config files
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
 
 #include <SAMRAI_config.h>
 
@@ -726,8 +724,8 @@ postprocess_data(Pointer<Database> input_db,
         // This output is not stable w.r.t. different versions of
         // libMesh. However, things are almost within numdiff's tolerance, so
         // multiply by 0.125 to lower the noise by the same factor.
-        pout << loop_time << " " << 0.125*F_integral[0] << endl;
-        pout << loop_time << " " << 0.125*F_integral[1] << endl;
+        pout << loop_time << " " << 0.125 * F_integral[0] << endl;
+        pout << loop_time << " " << 0.125 * F_integral[1] << endl;
     }
     return;
 } // postprocess_data

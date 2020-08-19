@@ -12,9 +12,6 @@
 // ---------------------------------------------------------------------
 
 // Config files
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
-
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -240,12 +237,8 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double> > phi_var_solid = new CellVariable<NDIM, double>(ls_name_solid);
         Pointer<RelaxationLSMethod> level_set_solid_ops =
             new RelaxationLSMethod(ls_name_solid, app_initializer->getComponentDatabase("LevelSet_Solid"));
-        LSLocateStructureInterface* ptr_LSLocateStructureInterface =
-            new LSLocateStructureInterface("LSLocateStructureInterface",
-                                           adv_diff_integrator,
-                                           phi_var_solid,
-                                           ib_method_ops->getLDataManager(),
-                                           &barge);
+        LSLocateStructureInterface* ptr_LSLocateStructureInterface = new LSLocateStructureInterface(
+            "LSLocateStructureInterface", adv_diff_integrator, phi_var_solid, ib_method_ops->getLDataManager(), &barge);
         level_set_solid_ops->registerInterfaceNeighborhoodLocatingFcn(
             &callLSLocateStructureInterfaceCallbackFunction, static_cast<void*>(ptr_LSLocateStructureInterface));
 
