@@ -24,7 +24,6 @@
 
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "GriddingAlgorithm.h"

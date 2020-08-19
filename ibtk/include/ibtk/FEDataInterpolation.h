@@ -22,7 +22,6 @@
 
 #include "ibtk/FEDataManager.h"
 #include "ibtk/FEValues.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/libmesh_utilities.h"
 
 #include "tbox/Utilities.h"

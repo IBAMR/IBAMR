@@ -20,7 +20,6 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "IntVector.h"

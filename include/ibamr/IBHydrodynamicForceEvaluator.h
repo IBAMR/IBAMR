@@ -18,6 +18,8 @@
 
 #include <ibamr/config.h>
 
+#include <ibtk/ibtk_utilities.h>
+
 #include "Box.h"
 #include "CellVariable.h"
 #include "RobinBcCoefStrategy.h"

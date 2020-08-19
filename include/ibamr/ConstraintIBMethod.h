@@ -29,7 +29,6 @@
 #include "ibtk/FACPreconditioner.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/PETScKrylovPoissonSolver.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "CellVariable.h"

@@ -23,7 +23,6 @@
 #include "ibamr/IBFEMethod.h"
 
 #include "ibtk/FEDataManager.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "tbox/DescribedClass.h"

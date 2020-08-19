@@ -20,7 +20,6 @@
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/libmesh_utilities.h"
 
 #include "SAMRAI_config.h"
