@@ -127,8 +127,8 @@ fi
 ###########################################################################
 dnl We have to use a funny name for the key to guarantee that it comes after
 dnl all constant definitions.
-AH_VERBATIM(Z_INCLUDE_MACRO_HEADER, [/* Define IBTK-specific macros. */
-#include <ibtk/ibtk_macros.h>])
+AH_VERBATIM(Z_INCLUDE_MACRO_HEADER, [/* Include the new configuration file. */
+#include <ibtk/config.h>])
 
 ###########################################################################
 # Output files.

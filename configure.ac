@@ -85,8 +85,8 @@ AC_DEFINE_UNQUOTED(VERSION_SUBMINOR, $ibamr_version_subminor, [Subminor version 
 
 dnl We have to use a funny name for the key to guarantee that it comes after
 dnl all constant definitions.
-AH_VERBATIM(Z_INCLUDE_MACRO_HEADER, [/* Define IBAMR-specific macros. */
-#include <ibamr/ibamr_macros.h>])
+AH_VERBATIM(Z_INCLUDE_MACRO_HEADER, [/* Include the new configuration file. */
+#include <ibamr/config.h>])
 
 ###########################################################################
 # Checks for optional and required third-party libraries.
