@@ -75,7 +75,7 @@ define(SPREAD_2D_SPECIALIZE_FIXED_WIDTH,
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 
 c     this is a Fortran include, not an m4 include
-      include 'lagrangian_delta.f'
+include(CURRENT_SRCDIR/lagrangian_delta.f.m4)
 
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc

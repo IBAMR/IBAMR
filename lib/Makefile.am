@@ -33,12 +33,7 @@ clean-local:
 	rm -f $(PWD)/../src/libIBAMR3d.a
 
 ## Dimension-independent library
-libIBAMR_a_SOURCES = \
-$(top_builddir)/src/advect/fortran/advect_helpers.f
-
-if LIBMESH_ENABLED
-  libIBAMR_a_SOURCES +=
-endif
+libIBAMR_a_SOURCES =
 
 pkg_include_HEADERS = \
 ../include/ibamr/app_namespaces.h \
@@ -357,6 +352,7 @@ $(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op2d.f \
 $(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f \
 $(top_builddir)/src/advect/fortran/advect_detect2d.f \
 $(top_builddir)/src/advect/fortran/advect_diff2d.f \
+$(top_builddir)/src/advect/fortran/advect_helpers2d.f \
 $(top_builddir)/src/advect/fortran/advect_stable2d.f \
 $(top_builddir)/src/advect/fortran/advect_predictors2d.f \
 $(top_builddir)/src/complex_fluids/fortran/div_tensor2d.f \
@@ -380,6 +376,7 @@ $(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op3d.f \
 $(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f \
 $(top_builddir)/src/advect/fortran/advect_detect3d.f \
 $(top_builddir)/src/advect/fortran/advect_diff3d.f \
+$(top_builddir)/src/advect/fortran/advect_helpers3d.f \
 $(top_builddir)/src/advect/fortran/advect_stable3d.f \
 $(top_builddir)/src/advect/fortran/advect_predictors3d.f \
 $(top_builddir)/src/complex_fluids/fortran/div_tensor3d.f \

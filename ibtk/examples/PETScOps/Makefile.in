@@ -789,7 +789,8 @@ uninstall-am:
 .PRECIOUS: Makefile
 
 .f.m4.f:
-	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
+	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DCURRENT_SRCDIR=$(srcdir) \
+		-DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
 all:
 	if test "$(CONFIGURATION_BUILD_DIR)" != ""; then \
