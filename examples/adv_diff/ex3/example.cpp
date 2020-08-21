@@ -43,12 +43,6 @@
 // Application specific includes
 #include "LevelSetInitialCondition.h"
 
-// Struct to specify the function required for inhomogeneous Neumann conditions for Brinkman penalization
-struct BrinkmanPenalizationCtx
-{
-    // intentionally blank
-};
-
 void
 evaluate_brinkman_bc_callback_fcn(int B_idx, Pointer<HierarchyMathOps> hier_math_ops, double /*time*/, void* ctx)
 {
@@ -214,19 +208,14 @@ main(int argc, char* argv[])
         time_integrator->setPhysicalBcCoef(q_var, q_bc_coef);
 
         // Brinkman penalization for Transport equation.
-        BrinkmanPenalizationCtx brinkman_penalization_ctx;
         const double eta = input_db->getDouble("ETA");
         const double num_of_interface_cells = input_db->getDouble("NUMBER_OF_INTERFACE_CELLS");
         Pointer<BrinkmanPenalizationAdvDiff> brinkman_adv_diff =
             new BrinkmanPenalizationAdvDiff("BrinkmanPenalizationAdvDiff", time_integrator);
 
         // setting inhomogeneous Neumann at the cylinder surface.
-        brinkman_adv_diff->registerInhomogeneousNeumannBC(q_var,
-                                                          phi_solid_var,
-                                                          &evaluate_brinkman_bc_callback_fcn,
-                                                          static_cast<void*>(&brinkman_penalization_ctx),
-                                                          num_of_interface_cells,
-                                                          eta);
+        brinkman_adv_diff->registerInhomogeneousNeumannBC(
+            q_var, phi_solid_var, &evaluate_brinkman_bc_callback_fcn, nullptr, num_of_interface_cells, eta);
         time_integrator->registerBrinkmanPenalization(brinkman_adv_diff);
 
         if (input_db->keyExists("TransportedQuantityForcingFunction"))

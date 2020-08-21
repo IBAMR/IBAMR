@@ -11,7 +11,7 @@ REF_RATIO  = 2                            // refinement ratio between levels
 N = 240                                   // actual number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
 
-ETA = 1e-4
+ETA = 1e-8
 NUMBER_OF_INTERFACE_CELLS = 2.0
 FLUID_IS_INTERIOR_TO_CYLINDER = FALSE     // flag to identify whether the fluid is inside the                                            cylinder or outside
 BrinkmanPenalization {
@@ -85,7 +85,7 @@ TAG_BUFFER           = 1                    // sized of tag buffer used by grid 
 REGRID_INTERVAL      = 10000000             // effectively disable regridding
 ENABLE_LOGGING       = TRUE
 MAX_INTEGRATOR_STEPS = 1                  // maximum number of integrator steps
-TIME_INDEPENDENT     = TRUE              // to zero out the temporal contribution
+BRINKMAN_TIME_INDEPENDENT     = TRUE              // to zero out the temporal contribution
 
 
 
@@ -113,7 +113,7 @@ AdvDiffSemiImplicitHierarchyIntegrator {
    tag_buffer                    = TAG_BUFFER
    enable_logging                = ENABLE_LOGGING
    max_integrator_steps          = MAX_INTEGRATOR_STEPS
-   time_independent              = TIME_INDEPENDENT
+   brinkman_time_independent     = BRINKMAN_TIME_INDEPENDENT
 }
 
 Main {

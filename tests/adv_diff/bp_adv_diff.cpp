@@ -43,14 +43,7 @@
 
 // Application specific includes
 #include "LevelSetInitialCondition.h"
-
 #include "LevelSetInitialCondition.cpp"
-
-// Struct to specify the function required for inhomogeneous Neumann conditions for Brinkman penalization
-struct BrinkmanPenalizationCtx
-{
-    // intentionally blank
-};
 
 void
 evaluate_brinkman_bc_callback_fcn(int B_idx, Pointer<HierarchyMathOps> hier_math_ops, double /*time*/, void* ctx)
@@ -77,16 +70,8 @@ evaluate_brinkman_bc_callback_fcn(int B_idx, Pointer<HierarchyMathOps> hier_math
                 for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
                 {
                     SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
+                    IBTK::Vector coord = IndexUtilities::getSideCenter(*patch, si);
 
-                    IBTK::Vector coord = IBTK::Vector::Zero();
-                    Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-                    const double* patch_X_lower = patch_geom->getXLower();
-                    const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
-                    const double* const patch_dx = patch_geom->getDx();
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(si(d) - patch_lower_idx(d)));
-                    }
                     if (axis == 0)
                     {
                         (*B_data)(si) = cos(coord[0]) * sin(coord[1]);
@@ -152,18 +137,8 @@ main(int argc, char* argv[])
         //
         Pointer<AdvDiffHierarchyIntegrator> time_integrator;
         const string solver_type =
-            app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "PREDICTOR_CORRECTOR");
-        if (solver_type == "PREDICTOR_CORRECTOR")
-        {
-            Pointer<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps(
-                "AdvectorExplicitPredictorPatchOps",
-                app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
-            time_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator(
-                "AdvDiffPredictorCorrectorHierarchyIntegrator",
-                app_initializer->getComponentDatabase("AdvDiffPredictorCorrectorHierarchyIntegrator"),
-                predictor);
-        }
-        else if (solver_type == "SEMI_IMPLICIT")
+            app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "SEMI_IMPLICIT");
+        if (solver_type == "SEMI_IMPLICIT")
         {
             time_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
                 "AdvDiffSemiImplicitHierarchyIntegrator",
@@ -172,7 +147,7 @@ main(int argc, char* argv[])
         else
         {
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
-                                                   << "Valid options are: PREDICTOR_CORRECTOR, SEMI_IMPLICIT");
+                                                   << "Valid option is: SEMI_IMPLICIT");
         }
 
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
@@ -235,19 +210,14 @@ main(int argc, char* argv[])
         time_integrator->setPhysicalBcCoef(q_var, q_bc_coef);
 
         // Brinkman penalization for Transport equation.
-        BrinkmanPenalizationCtx brinkman_penalization_ctx;
         const double eta = input_db->getDouble("ETA");
         const double num_of_interface_cells = input_db->getDouble("NUMBER_OF_INTERFACE_CELLS");
         Pointer<BrinkmanPenalizationAdvDiff> brinkman_adv_diff =
             new BrinkmanPenalizationAdvDiff("BrinkmanPenalizationAdvDiff", time_integrator);
 
         // setting inhomogeneous Neumann at the cylinder surface.
-        brinkman_adv_diff->registerInhomogeneousNeumannBC(q_var,
-                                                          phi_solid_var,
-                                                          &evaluate_brinkman_bc_callback_fcn,
-                                                          static_cast<void*>(&brinkman_penalization_ctx),
-                                                          num_of_interface_cells,
-                                                          eta);
+        brinkman_adv_diff->registerInhomogeneousNeumannBC(
+            q_var, phi_solid_var, &evaluate_brinkman_bc_callback_fcn, nullptr, num_of_interface_cells, eta);
         time_integrator->registerBrinkmanPenalization(brinkman_adv_diff);
 
         if (input_db->keyExists("TransportedQuantityForcingFunction"))
@@ -379,7 +349,6 @@ main(int argc, char* argv[])
 
             // Get volume weights in the region
             hier_cc_data_ops.multiply(phi_cloned_idx, phi_cloned_idx, wgt_cc_idx);
-
             if (fluid_is_interior_to_cylinder)
             {
                 double q_integral = hier_cc_data_ops.integral(q_idx, phi_cloned_idx);

@@ -144,9 +144,9 @@ BrinkmanPenalizationAdvDiff::setPenaltyCoefficient(double eta_penalty_coef)
 #if !defined(NDEBUG)
     TBOX_ASSERT(eta_penalty_coef > 0);
 #endif
-    for (auto& e : d_Q_bc)
+    for (auto& Q_bc_pair : d_Q_bc)
     {
-        for (auto& bc_prop : e.second)
+        for (auto& bc_prop : Q_bc_pair.second)
         {
             bc_prop.eta = eta_penalty_coef;
         }
@@ -160,9 +160,9 @@ BrinkmanPenalizationAdvDiff::setNumInterfaceCells(double num_interface_cells)
 #if !defined(NDEBUG)
     TBOX_ASSERT(num_interface_cells > 0);
 #endif
-    for (auto& e : d_Q_bc)
+    for (auto& Q_bc_pair : d_Q_bc)
     {
-        for (auto& bc_prop : e.second)
+        for (auto& bc_prop : Q_bc_pair.second)
         {
             bc_prop.num_interface_cells = num_interface_cells;
         }
@@ -202,12 +202,12 @@ BrinkmanPenalizationAdvDiff::registerDirichletHomogeneousNeumannBC(Pointer<CellV
     }
 
     // Store BC options within the map
-    for (const auto& e : d_Q_bc)
+    for (const auto& Q_bc_pair : d_Q_bc)
     {
         // Ensuring that a solid level set is only registered with each transported quantity once
-        if (e.first == Q_var)
+        if (Q_bc_pair.first == Q_var)
         {
-            for (const auto& bc_prop : e.second)
+            for (const auto& bc_prop : Q_bc_pair.second)
             {
                 if (bc_prop.ls_solid_var == ls_solid_var)
                 {
@@ -250,17 +250,16 @@ BrinkmanPenalizationAdvDiff::registerInhomogeneousNeumannBC(Pointer<CellVariable
     TBOX_ASSERT(Q_var);
     TBOX_ASSERT(ls_solid_var);
     TBOX_ASSERT(callback);
-    TBOX_ASSERT(ctx);
     TBOX_ASSERT(num_interface_cells > 0);
     TBOX_ASSERT(eta_penalty_coef > 0);
 #endif
     // Store BC options within the map
-    for (const auto& e : d_Q_bc)
+    for (const auto& Q_bc_pair : d_Q_bc)
     {
         // Ensuring that a solid level set is only registered with each transported quantity once
-        if (e.first == Q_var)
+        if (Q_bc_pair.first == Q_var)
         {
-            for (const auto& bc_prop : e.second)
+            for (const auto& bc_prop : Q_bc_pair.second)
             {
                 if (bc_prop.ls_solid_var == ls_solid_var)
                 {
@@ -298,7 +297,7 @@ BrinkmanPenalizationAdvDiff::computeDampingCoefficient(int C_idx, Pointer<CellVa
     TBOX_ASSERT(d_Q_bc.find(Q_var) != d_Q_bc.end());
 #endif
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    auto brinkman_zones = d_Q_bc[Q_var];
+    std::vector<BCProperties> brinkman_zones = d_Q_bc[Q_var];
 
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     const int coarsest_ln = 0;
@@ -331,6 +330,7 @@ BrinkmanPenalizationAdvDiff::computeDampingCoefficient(int C_idx, Pointer<CellVa
                     double eta = bc_prop.eta;
                     double num_interface_cells = bc_prop.num_interface_cells;
                     const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+
 #if !defined(NDEBUG)
                     TBOX_ASSERT(bc_type == DIRICHLET || bc_type == NEUMANN);
 #endif
@@ -338,19 +338,8 @@ BrinkmanPenalizationAdvDiff::computeDampingCoefficient(int C_idx, Pointer<CellVa
                         var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
                     Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(phi_idx);
                     double phi = (*ls_solid_data)(ci);
-                    double Hphi;
-                    if (phi < -alpha)
-                    {
-                        Hphi = 0.0;
-                    }
-                    else if (std::abs(phi) <= alpha)
-                    {
-                        Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
-                    }
-                    else
-                    {
-                        Hphi = 1.0;
-                    }
+                    double Hphi = IBTK::smooth_heaviside(phi, alpha);
+
                     // Note: assumes that chi is positive when phi is negative
                     const double chi = 1.0 - Hphi;
 
@@ -379,7 +368,7 @@ BrinkmanPenalizationAdvDiff::computeDiffusionCoefficient(int D_idx,
     TBOX_ASSERT(d_Q_bc.find(Q_var) != d_Q_bc.end());
 #endif
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    auto brinkman_zones = d_Q_bc[Q_var];
+    std::vector<BCProperties> brinkman_zones = d_Q_bc[Q_var];
     const bool variable_kappa = (kappa_idx != IBTK::invalid_index);
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
 
@@ -451,19 +440,8 @@ BrinkmanPenalizationAdvDiff::computeDiffusionCoefficient(int D_idx,
                         const double phi_lower = (*ls_solid_data)(s_i.toCell(0));
                         const double phi_upper = (*ls_solid_data)(s_i.toCell(1));
                         const double phi = 0.5 * (phi_lower + phi_upper);
-                        double Hphi;
-                        if (phi < -alpha)
-                        {
-                            Hphi = 0.0;
-                        }
-                        else if (std::abs(phi) <= alpha)
-                        {
-                            Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
-                        }
-                        else
-                        {
-                            Hphi = 1.0;
-                        }
+                        double Hphi = IBTK::smooth_heaviside(phi, alpha);
+
                         // Note: assumes that chi is positive when phi is negative
                         const double chi = 1.0 - Hphi;
 
@@ -490,7 +468,7 @@ BrinkmanPenalizationAdvDiff::computeForcing(int F_idx, Pointer<CellVariable<NDIM
     TBOX_ASSERT(d_Q_bc.find(Q_var) != d_Q_bc.end());
 #endif
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    auto brinkman_zones = d_Q_bc[Q_var];
+    std::vector<BCProperties> brinkman_zones = d_Q_bc[Q_var];
 
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     const int coarsest_ln = 0;
@@ -528,6 +506,7 @@ BrinkmanPenalizationAdvDiff::computeForcing(int F_idx, Pointer<CellVariable<NDIM
                     bool requires_callbacks = (bc_type == NEUMANN && bc_val != 0.0);
                     double num_interface_cells = bc_prop.num_interface_cells;
                     const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+
                     if (requires_callbacks) continue;
 #if !defined(NDEBUG)
                     TBOX_ASSERT(bc_type == DIRICHLET || bc_type == NEUMANN);
@@ -537,19 +516,8 @@ BrinkmanPenalizationAdvDiff::computeForcing(int F_idx, Pointer<CellVariable<NDIM
                         var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
                     Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(phi_idx);
                     double phi = (*ls_solid_data)(ci);
-                    double Hphi;
-                    if (phi < -alpha)
-                    {
-                        Hphi = 0.0;
-                    }
-                    else if (std::abs(phi) <= alpha)
-                    {
-                        Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
-                    }
-                    else
-                    {
-                        Hphi = 1.0;
-                    }
+                    double Hphi = IBTK::smooth_heaviside(phi, alpha);
+
                     // Note: assumes that chi is positive when phi is negative
                     const double chi = (1.0 - Hphi);
 
@@ -579,7 +547,6 @@ BrinkmanPenalizationAdvDiff::computeForcing(int F_idx, Pointer<CellVariable<NDIM
 #if !defined(NDEBUG)
         TBOX_ASSERT(bc_type == NEUMANN);
         TBOX_ASSERT(bp_fcn);
-        TBOX_ASSERT(bp_ctx);
 #endif
         Pointer<HierarchyMathOps> hier_math_ops = d_adv_diff_solver->getHierarchyMathOps();
         bp_fcn(d_B_scratch_idx, hier_math_ops, d_current_time, bp_ctx);
@@ -632,19 +599,8 @@ BrinkmanPenalizationAdvDiff::computeForcing(int F_idx, Pointer<CellVariable<NDIM
                         const double phi_lower = (*ls_solid_data)(s_i.toCell(0));
                         const double phi_upper = (*ls_solid_data)(s_i.toCell(1));
                         const double phi = 0.5 * (phi_lower + phi_upper);
-                        double Hphi;
-                        if (phi < -alpha)
-                        {
-                            Hphi = 0.0;
-                        }
-                        else if (std::abs(phi) <= alpha)
-                        {
-                            Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
-                        }
-                        else
-                        {
-                            Hphi = 1.0;
-                        }
+                        double Hphi = IBTK::smooth_heaviside(phi, alpha);
+
                         // Note: assumes that chi is positive when phi is negative
                         const double chi = 1.0 - Hphi;
 
@@ -657,19 +613,7 @@ BrinkmanPenalizationAdvDiff::computeForcing(int F_idx, Pointer<CellVariable<NDIM
                 {
                     CellIndex<NDIM> ci(it());
                     double phi = (*ls_solid_data)(ci);
-                    double Hphi;
-                    if (phi < -alpha)
-                    {
-                        Hphi = 0.0;
-                    }
-                    else if (std::abs(phi) <= alpha)
-                    {
-                        Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
-                    }
-                    else
-                    {
-                        Hphi = 1.0;
-                    }
+                    double Hphi = IBTK::smooth_heaviside(phi, alpha);
                     (*chi_data)(ci) = (1.0 - Hphi);
                 }
             }
@@ -702,7 +646,7 @@ BrinkmanPenalizationAdvDiff::maskForcingTerm(int N_idx, Pointer<CellVariable<NDI
     TBOX_ASSERT(d_Q_bc.find(Q_var) != d_Q_bc.end());
 #endif
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    auto brinkman_zones = d_Q_bc[Q_var];
+    std::vector<BCProperties> brinkman_zones = d_Q_bc[Q_var];
 
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     const int coarsest_ln = 0;
@@ -741,19 +685,8 @@ BrinkmanPenalizationAdvDiff::maskForcingTerm(int N_idx, Pointer<CellVariable<NDI
                         var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
                     Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(phi_idx);
                     double phi = (*ls_solid_data)(ci);
-                    double Hphi;
-                    if (phi < -alpha)
-                    {
-                        Hphi = 0.0;
-                    }
-                    else if (std::abs(phi) <= alpha)
-                    {
-                        Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
-                    }
-                    else
-                    {
-                        Hphi = 1.0;
-                    }
+                    double Hphi = IBTK::smooth_heaviside(phi, alpha);
+
                     // Note: assumes that chi is positive when phi is negative
                     const double chi = 1.0 - Hphi;
 
