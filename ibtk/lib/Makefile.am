@@ -33,7 +33,7 @@ clean-local:
 	rm -f $(PWD)/../src/libIBTK3d.a
 
 ## Dimension-independent library
-libIBTK_a_SOURCES =
+libIBTK_a_SOURCES = ../src/dummy.cpp
 
 if USING_BUNDLED_MUPARSER
 libIBTK_a_SOURCES += \

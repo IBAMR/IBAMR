@@ -33,7 +33,7 @@ clean-local:
 	rm -f $(PWD)/../src/libIBAMR3d.a
 
 ## Dimension-independent library
-libIBAMR_a_SOURCES =
+libIBAMR_a_SOURCES = ../src/dummy.cpp
 
 pkg_include_HEADERS = \
 ../include/ibamr/app_namespaces.h \
