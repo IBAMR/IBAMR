@@ -194,7 +194,8 @@ am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
 libIBTK_a_AR = $(AR) $(ARFLAGS)
 libIBTK_a_LIBADD =
-am__libIBTK_a_SOURCES_DIST = ../contrib/muparser/src/muParserDLL.cpp \
+am__libIBTK_a_SOURCES_DIST = ../src/dummy.cpp \
+	../contrib/muparser/src/muParserDLL.cpp \
 	../contrib/muparser/src/muParserTokenReader.cpp \
 	../contrib/muparser/src/muParserError.cpp \
 	../contrib/muparser/src/muParserCallback.cpp \
@@ -213,7 +214,7 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/muParserInt.$(OBJEXT) \
 @USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/muParserTest.$(OBJEXT) \
 @USING_BUNDLED_MUPARSER_TRUE@	../contrib/muparser/src/muParser.$(OBJEXT)
-am_libIBTK_a_OBJECTS = $(am__objects_1)
+am_libIBTK_a_OBJECTS = ../src/dummy.$(OBJEXT) $(am__objects_1)
 libIBTK_a_OBJECTS = $(am_libIBTK_a_OBJECTS)
 libIBTK2d_a_AR = $(AR) $(ARFLAGS)
 libIBTK2d_a_LIBADD =
@@ -879,6 +880,7 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../contrib/muparser/src/$(DEPDIR)/muParserInt.Po \
 	../contrib/muparser/src/$(DEPDIR)/muParserTest.Po \
 	../contrib/muparser/src/$(DEPDIR)/muParserTokenReader.Po \
+	../src/$(DEPDIR)/dummy.Po \
 	../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellInterpolation.Po \
 	../src/boundary/$(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Po \
 	../src/boundary/cf_interface/$(DEPDIR)/libIBTK2d_a-CartCellDoubleLinearCFInterpolation.Po \
@@ -1506,7 +1508,7 @@ IBTK3d_LIBS = ${top_builddir}/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 lib_LIBRARIES = libIBTK.a $(am__append_1) $(am__append_2)
-libIBTK_a_SOURCES = $(am__append_3)
+libIBTK_a_SOURCES = ../src/dummy.cpp $(am__append_3)
 pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
 	../include/ibtk/app_namespaces.h \
 	../include/ibtk/compiler_hints.h ../include/ibtk/ibtk_enums.h \
@@ -1888,6 +1890,14 @@ uninstall-libLIBRARIES:
 
 clean-libLIBRARIES:
 	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
+../src/$(am__dirstamp):
+	@$(MKDIR_P) ../src
+	@: > ../src/$(am__dirstamp)
+../src/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ../src/$(DEPDIR)
+	@: > ../src/$(DEPDIR)/$(am__dirstamp)
+../src/dummy.$(OBJEXT): ../src/$(am__dirstamp) \
+	../src/$(DEPDIR)/$(am__dirstamp)
 ../contrib/muparser/src/$(am__dirstamp):
 	@$(MKDIR_P) ../contrib/muparser/src
 	@: > ../contrib/muparser/src/$(am__dirstamp)
@@ -2979,6 +2989,7 @@ mostlyclean-compile:
 	-rm -f $(top_builddir)/src/refine_ops/fortran/*.$(OBJEXT)
 	-rm -f $(top_builddir)/src/solvers/impls/fortran/*.$(OBJEXT)
 	-rm -f ../contrib/muparser/src/*.$(OBJEXT)
+	-rm -f ../src/*.$(OBJEXT)
 	-rm -f ../src/boundary/*.$(OBJEXT)
 	-rm -f ../src/boundary/cf_interface/*.$(OBJEXT)
 	-rm -f ../src/boundary/physical_boundary/*.$(OBJEXT)
@@ -3003,6 +3014,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/muParserInt.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/muParserTest.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../contrib/muparser/src/$(DEPDIR)/muParserTokenReader.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/dummy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellInterpolation.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/boundary/$(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/boundary/cf_interface/$(DEPDIR)/libIBTK2d_a-CartCellDoubleLinearCFInterpolation.Po@am__quote@ # am--include-marker
@@ -7240,6 +7252,8 @@ distclean-generic:
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
 	-rm -f ../contrib/muparser/src/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ../contrib/muparser/src/$(am__dirstamp)
+	-rm -f ../src/$(DEPDIR)/$(am__dirstamp)
+	-rm -f ../src/$(am__dirstamp)
 	-rm -f ../src/boundary/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ../src/boundary/$(am__dirstamp)
 	-rm -f ../src/boundary/cf_interface/$(DEPDIR)/$(am__dirstamp)
@@ -7296,6 +7310,7 @@ distclean: distclean-am
 	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserInt.Po
 	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserTest.Po
 	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserTokenReader.Po
+	-rm -f ../src/$(DEPDIR)/dummy.Po
 	-rm -f ../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellInterpolation.Po
 	-rm -f ../src/boundary/$(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Po
 	-rm -f ../src/boundary/cf_interface/$(DEPDIR)/libIBTK2d_a-CartCellDoubleLinearCFInterpolation.Po
@@ -7620,6 +7635,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserInt.Po
 	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserTest.Po
 	-rm -f ../contrib/muparser/src/$(DEPDIR)/muParserTokenReader.Po
+	-rm -f ../src/$(DEPDIR)/dummy.Po
 	-rm -f ../src/boundary/$(DEPDIR)/libIBTK2d_a-HierarchyGhostCellInterpolation.Po
 	-rm -f ../src/boundary/$(DEPDIR)/libIBTK3d_a-HierarchyGhostCellInterpolation.Po
 	-rm -f ../src/boundary/cf_interface/$(DEPDIR)/libIBTK2d_a-CartCellDoubleLinearCFInterpolation.Po
