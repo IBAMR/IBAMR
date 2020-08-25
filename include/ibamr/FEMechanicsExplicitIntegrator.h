@@ -26,8 +26,10 @@ namespace IBAMR
 {
 /*!
  * \brief Class FEMechanicsExplicitIntegrator is an implementation of the abstract base class
- * IBStrategy that provides functionality required by the IB method with finite
- * element elasticity.
+ * FEMechanicsBase that provides a simple explicit elastodynamics time integrator with an
+ * interface that is similar to IBFEMethod to facilitate model re-use.
+ *
+ * \see IBFEMethod
  */
 class FEMechanicsExplicitIntegrator : public FEMechanicsBase
 {
