@@ -509,7 +509,7 @@ protected:
     /*!
      * The libMesh Systems set up by this system (for example, for velocity
      * projection) consist of one variable per spatial component. By default,
-     * libMesh assumes that all variables in a given System couple to eachother
+     * libMesh assumes that all variables in a given System couple to each other
      * which, since we only ever solve projection problems in this class, is not
      * the case. Hence we can save some memory by explicitly informing libMesh
      * that the variables in a system only couple to themselves by providing a
