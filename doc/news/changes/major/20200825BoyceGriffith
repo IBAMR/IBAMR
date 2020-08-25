@@ -1,0 +1,4 @@
+New: Added a new class IBAMR::FEMechanicsExplicitIntegrator that provides a
+basic explicit FE elastodynamics solver.
+<br>
+(Boyce Griffith, 2020/08/25)
