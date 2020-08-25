@@ -7,8 +7,8 @@ U_MAX = 5.0
 
 // grid spacing parameters
 N_X = 16
-N_Y = N_X * (L_Y / L_X)
-N_Z = N_X * (L_Z / L_X)
+N_Y = ceil(N_X * (L_Y / L_X))
+N_Z = ceil(N_X * (L_Z / L_X))
 DX = L_X / N_X
 
 // blocks
@@ -22,7 +22,8 @@ START_TIME                 = 0.0e0                  // initial simulation time
 END_TIME                   = 50.0                   // final simulation time
 LOAD_TIME                  = .05                    // time when full load is applied
 CFL_MAX                    = 0.2                    // maximum CFL number
-DT                         = 0.025*CFL_MAX*DX/U_MAX // maximum timestep size
+TIME_STEPPING_SCHEME       = "MODIFIED_TRAPEZOIDAL_RULE"
+DT                         = 0.04*CFL_MAX*DX/U_MAX  // maximum timestep size
 
 // model parameters
 STRESS_FUNCTION = "MODIFIED"
@@ -37,25 +38,25 @@ SAFETY         = 0.5
 KAPPA          = SAFETY * 2.5e-1 * DX / DT^2
 
 FEMechanicsExplicitIntegrator {
-   use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
+	use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
 }
 
 Main {
 // log file parameters
-   log_file_name               = "FEM2d.log"
-   log_all_nodes               = FALSE
+	log_file_name               = "FEM3d.log"
+	log_all_nodes               = FALSE
 
 // visualization dump parameters
-   viz_writer                  = "ExodusII"
-   viz_dump_interval           = 16
-   viz_dump_dirname            = "."
-   visit_number_procs_per_file = 1
+	viz_writer                  = "ExodusII"
+	viz_dump_interval           = 16
+	viz_dump_dirname            = "."
+	visit_number_procs_per_file = 1
 }
 
 TimerManager{
-   print_exclusive = FALSE
-   print_total = TRUE
-   print_threshold = 0.1
+	print_exclusive = FALSE
+	print_total = TRUE
+	print_threshold = 0.1
 
-   timer_list = "IBAMR::*::*","IBTK::*::*","*::*::*"
+	timer_list = "IBAMR::*::*","IBTK::*::*","*::*::*"
 }
