@@ -1375,14 +1375,11 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
                                                                          /*register_for_restart*/ false);
             for (unsigned int part = 0; part < d_meshes.size(); ++part)
             {
-                if (d_use_scratch_hierarchy)
-                {
-                    d_scratch_fe_data_managers[part]->setPatchHierarchy(d_scratch_hierarchy);
-                    assertStructureOnFinestLevel();
-                    d_scratch_fe_data_managers[part]->setPatchLevels(d_scratch_hierarchy->getFinestLevelNumber(),
-                                                                     d_scratch_hierarchy->getFinestLevelNumber());
-                    d_scratch_fe_data_managers[part]->reinitElementMappings();
-                }
+                d_scratch_fe_data_managers[part]->setPatchHierarchy(d_scratch_hierarchy);
+                assertStructureOnFinestLevel();
+                d_scratch_fe_data_managers[part]->setPatchLevels(d_scratch_hierarchy->getFinestLevelNumber(),
+                                                                 d_scratch_hierarchy->getFinestLevelNumber());
+                d_scratch_fe_data_managers[part]->reinitElementMappings();
             }
 
             // At this point the primary hierarchy has been regridded but the
