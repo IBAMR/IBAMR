@@ -85,22 +85,50 @@ public:
     void postprocessIntegrateData(double current_time, double new_time, int num_cycles) override;
 
     /*!
-     * Advance the positions of the Lagrangian structure using the forward Euler
-     * method.
+     * Advance the structural velocities and positions using forward Euler.
      */
     void forwardEulerStep(double current_time, double new_time);
 
     /*!
-     * Advance the positions of the Lagrangian structure using the explicit
-     * midpoint rule.
+     * Advance the structural velocities and positions using "modified" Euler.
+     *
+     * NOTE: This scheme first advances the velocity using forward Euler, and
+     * then uses the updated velocity to advance the position of the structure.
+     */
+    void modifiedEulerStep(double current_time, double new_time);
+
+    /*!
+     * Advance the structural velocities and positions using backward Euler.
+     *
+     * NOTE: This is not a true backward Euler method; we simply use the most
+     * recent approximations to the updated velocity and position to compute the
+     * force at the end of the time step, and then use that force to increment
+     * the velocity and position via backward Euler.
+     */
+    void backwardEulerStep(double current_time, double new_time);
+
+    /*!
+     * Advance the structural velocities and positions using the explicit midpoint rule.
      */
     void midpointStep(double current_time, double new_time);
 
     /*!
-     * Advance the positions of the Lagrangian structure using the explicit
-     * trapezoidal rule.
+     * Advance the structural velocities and positions using the explicit SSP
+     * RK2 scheme, which is the explicit trapezoidal rule.
      */
     void trapezoidalStep(double current_time, double new_time);
+
+    /*!
+     * Advance the structural velocities and positions using a modified explicit
+     * trapezoidal rule.
+     *
+     * NOTE: In this scheme, the first stage uses a modified Euler scheme (\see
+     * modifiedEulerStep), and the second stage uses a modified explicit
+     * trapezoidal rule, in which the final approximation to the updated
+     * velocity is used instead of the intermediate updated approximation used in the
+     * standard SSP RK2 scheme.
+     */
+    void modifiedTrapezoidalStep(double current_time, double new_time);
 
     /*!
      * Compute the Lagrangian force at the specified time within the current
