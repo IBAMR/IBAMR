@@ -1,34 +1,15 @@
-// Copyright (c) 2002-2014, Boyce Griffith
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2020 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
-
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
+// ---------------------------------------------------------------------
 
 #include <ibamr/FEMechanicsExplicitIntegrator.h>
 #include <ibamr/app_namespaces.h>
@@ -198,7 +179,6 @@ time_ramp(double time)
 {
     double displacement_factor;
     if (time < load_time)
-        //     displacement_factor = sin(PI * time / load_time / 2.0);
         displacement_factor = -2.0 * (time / load_time) * (time / load_time) * (time / load_time) +
                               3.0 * (time / load_time) * (time / load_time);
     else
@@ -224,7 +204,7 @@ using namespace ModelData;
 int
 main(int argc, char* argv[])
 {
-    // Initialize libMesh, PETSc, MPI, and SAMRAI.
+    // Initialize libMesh and SAMRAI.
     LibMeshInit init(argc, argv);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAIManager::startup();
@@ -369,6 +349,9 @@ main(int argc, char* argv[])
         unsigned int J_var = jac_system.add_variable("Avg J", CONSTANT, MONOMIAL);
         jac_system.attach_init_function(apply_initial_jacobian);
 
+        const std::string time_stepping_scheme =
+            input_db->getStringWithDefault("TIME_STEPPING_SCHEME", "MODIFIED_TRAPEZOIDAL_RULE");
+
         // Set up visualization plot file writers.
         unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
@@ -478,7 +461,30 @@ main(int argc, char* argv[])
             pout << "\n";
 
             fem_solver->preprocessIntegrateData(loop_time, loop_time + dt, /*num_cycles*/ 1);
-            fem_solver->forwardEulerStep(loop_time, loop_time + dt);
+            if (time_stepping_scheme == "FORWARD_EULER")
+            {
+                fem_solver->forwardEulerStep(loop_time, loop_time + dt);
+            }
+            else if (time_stepping_scheme == "MODIFIED_EULER")
+            {
+                fem_solver->modifiedEulerStep(loop_time, loop_time + dt);
+            }
+            else if (time_stepping_scheme == "MIDPOINT")
+            {
+                fem_solver->midpointStep(loop_time, loop_time + dt);
+            }
+            else if (time_stepping_scheme == "TRAPEZOIDAL_RULE" || time_stepping_scheme == "SSPRK2")
+            {
+                fem_solver->trapezoidalStep(loop_time, loop_time + dt);
+            }
+            else if (time_stepping_scheme == "MODIFIED_TRAPEZOIDAL_RULE")
+            {
+                fem_solver->modifiedTrapezoidalStep(loop_time, loop_time + dt);
+            }
+            else
+            {
+                TBOX_ERROR("unknown time stepping scheme: " << time_stepping_scheme << "\n");
+            }
             fem_solver->postprocessIntegrateData(loop_time, loop_time + dt, /*num_cycles*/ 1);
 
             loop_time += dt;
