@@ -406,8 +406,6 @@ FEMechanicsExplicitIntegrator::doInitializeFEEquationSystems()
 void
 FEMechanicsExplicitIntegrator::doInitializeFEData(const bool use_present_data)
 {
-    // The choice of FEDataManager set is important here since it determines the
-    // IB ghost regions.
     std::vector<EquationSystems*> equation_systems;
     for (const auto& es : d_equation_systems) equation_systems.push_back(es.get());
     d_X_vecs.reset(new LibMeshSystemVectors(equation_systems, COORDS_SYSTEM_NAME));
