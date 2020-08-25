@@ -298,6 +298,24 @@ class IBFEDirectForcingKinematics;
  * assigned to each node of every element (i.e., each node is counted more than
  * once): see IBTK::FEDataManager::WorkloadSpec for more information.
  *
+ * For efficiency reasons this class only associates elements with patches if
+ * they can interact with the patches (e.g., the points used for velocity
+ * interpolation can lie inside the patch). Hence, over time, this association
+ * needs to change as the structure moves. The frequency of reassociation is
+ * controlled by two things:
+ * <ol>
+ *   <li>The rate at which the hierarchy is regridded, as if the hierarchy itself
+ *   changes then we must recompute the association.</li>
+ *   <li>The value d_patch_assocation_cfl, which determines how frequently we regrid
+ *   purely based on the displacement of the structure. This parameter can be set
+ *   by providing <code>patch_association_cfl</code> to the input database.
+ * </ol>
+ *
+ * If you set IBHierarchyIntegrator::d_regrid_cfl_interval to a value larger
+ * than 1 and use AMR this class may not work correctly since, in that case,
+ * elements may move outside the patch level they are associated with before new
+ * cells are tagged to be on that level.
+ *
  * <h2>Options Controlling Logging</h2>
  * The logging options set by this class are propagated to the owned
  * IBTK::FEDataManager objects.
@@ -935,6 +953,23 @@ protected:
      * Maximum level number in the patch hierarchy.
      */
     int d_max_level_number = -1;
+
+    /// CFL-like number used to determine when we should call
+    /// reinitElementMappings() based on maximum structure point displacement.
+    /// More exactly: this class will call that function if the maximum
+    /// displacement of the structure (calculated by comparing the position
+    /// vector as of the last reassociation to the current position vector)
+    /// exceeds dx * d_patch_assocation_cfl, where dx is the smallest Eulerian
+    /// cell width.
+    ///
+    /// Note that this is not a regridding, in the sense that the grid changes:
+    /// instead only the association between patches and elements changes.
+    ///
+    /// @seealso IBHierarchyIntegrator::d_regrid_cfl_interval
+    ///
+    /// @note Most applications use a fluid solver regrid value of 0.5 - i.e.,
+    /// the default value given here is a conservative choice.
+    double d_patch_assocation_cfl = 0.75;
 
     /// Indexing information determining whether a given part is active or not.
     /// The default state for each part is to be active. Parts are active
