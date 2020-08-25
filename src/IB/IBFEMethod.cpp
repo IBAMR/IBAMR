@@ -1204,19 +1204,7 @@ IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                                      /*register_for_restart*/ false);
 
     // Initialize the FE data managers.
-    for (unsigned int part = 0; part < d_meshes.size(); ++part)
-    {
-        d_primary_fe_data_managers[part]->reinitElementMappings();
-        if (d_use_scratch_hierarchy)
-        {
-            d_scratch_fe_data_managers[part]->setPatchHierarchy(d_scratch_hierarchy);
-            // TODO: we will have to change this when we support structures
-            // than can live on more than just the finest level
-            d_scratch_fe_data_managers[part]->setPatchLevels(d_scratch_hierarchy->getFinestLevelNumber(),
-                                                             d_scratch_hierarchy->getFinestLevelNumber());
-            d_scratch_fe_data_managers[part]->reinitElementMappings();
-        }
-    }
+    reinitElementMappings();
 
     d_is_initialized = true;
     return;
@@ -1373,6 +1361,8 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             d_scratch_hierarchy = d_hierarchy->makeRefinedPatchHierarchy(d_object_name + "::scratch_hierarchy",
                                                                          IntVector<NDIM>(1),
                                                                          /*register_for_restart*/ false);
+            // We need the scratch FEDataManagers for the scratch hierarchy
+            // regrid coming up in a moment
             for (unsigned int part = 0; part < d_meshes.size(); ++part)
             {
                 d_scratch_fe_data_managers[part]->setPatchHierarchy(d_scratch_hierarchy);
@@ -1413,6 +1403,18 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
                 d_scratch_gridding_algorithm->regridAllFinerLevels(
                     d_scratch_hierarchy, max_level - 1, 0.0 /*d_current_time*/, tag_buffer);
             if (d_do_log) plog << "IBFEMethod: finished scratch hierarchy regrid" << std::endl;
+
+            // FEDataManager needs
+            // 1. velocity
+            // 2. force
+            // 3. workload or some quadrature point per cell count
+            // 4. tagging
+            //
+            // patch data in the scratch hierarchy. However, the data index is not
+            // known until the call to interpolateVelocity or spreadForce, so
+            // clear existing data but do not allocate yet.
+            d_scratch_transfer_forward_schedules.clear();
+            d_scratch_transfer_backward_schedules.clear();
         }
 
         // At this point in the code SAMRAI has already redistributed the
@@ -1431,38 +1433,11 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             }
         }
 
-        if (d_use_scratch_hierarchy)
-        {
-            // FEDataManager needs
-            // 1. velocity
-            // 2. force
-            // 3. workload or some quadrature point per cell count
-            // 4. tagging
-            //
-            // patch data in the scratch hierarchy. However, the data index is not
-            // known until the call to interpolateVelocity or spreadForce, so
-            // clear existing data but do not allocate yet.
-            d_scratch_transfer_forward_schedules.clear();
-            d_scratch_transfer_backward_schedules.clear();
-
-            for (unsigned int part = 0; part < d_meshes.size(); ++part)
-            {
-                d_scratch_fe_data_managers[part]->setPatchHierarchy(d_scratch_hierarchy);
-                assertStructureOnFinestLevel();
-                d_scratch_fe_data_managers[part]->setPatchLevels(d_scratch_hierarchy->getFinestLevelNumber(),
-                                                                 d_scratch_hierarchy->getFinestLevelNumber());
-            }
-        }
-
         // We only need to reinitialize FE data when AMR is enabled (which is
         // not yet implemented)
         if (d_libmesh_use_amr) reinitializeFEData();
 
-        for (unsigned int part = 0; part < d_meshes.size(); ++part)
-        {
-            d_primary_fe_data_managers[part]->reinitElementMappings();
-            if (d_use_scratch_hierarchy) d_scratch_fe_data_managers[part]->reinitElementMappings();
-        }
+        reinitElementMappings();
 
         // Reinitialize System vector objects that depend on the IB partitioning.
         d_X_IB_vecs->reinit();
@@ -3156,6 +3131,24 @@ IBFEMethod::assertStructureOnFinestLevel() const
             const auto scratch_pair = d_scratch_fe_data_managers[part]->getPatchLevels();
             TBOX_ASSERT(scratch_pair.first == d_hierarchy->getFinestLevelNumber() &&
                         scratch_pair.second == d_hierarchy->getFinestLevelNumber() + 1);
+        }
+    }
+}
+
+void
+IBFEMethod::reinitElementMappings()
+{
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        d_primary_fe_data_managers[part]->reinitElementMappings();
+        if (d_use_scratch_hierarchy)
+        {
+            d_scratch_fe_data_managers[part]->setPatchHierarchy(d_scratch_hierarchy);
+            // TODO: we will have to change this when we support structures
+            // than can live on more than just the finest level
+            d_scratch_fe_data_managers[part]->setPatchLevels(d_scratch_hierarchy->getFinestLevelNumber(),
+                                                             d_scratch_hierarchy->getFinestLevelNumber());
+            d_scratch_fe_data_managers[part]->reinitElementMappings();
         }
     }
 }

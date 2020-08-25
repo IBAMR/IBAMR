@@ -1114,6 +1114,13 @@ private:
      * explicitly asserts that this condition is met.
      */
     void assertStructureOnFinestLevel() const;
+
+    /*!
+     * Convenience function that reinitializes the patch-to-element mappings on
+     * all relevant FEDataManagers (i.e., for all parts and, if enabled, on the
+     * scratch hierarchy).
+     */
+    void reinitElementMappings();
 };
 } // namespace IBAMR
 
