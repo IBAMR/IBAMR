@@ -89,6 +89,18 @@ public:
     void forwardEulerStep(double current_time, double new_time);
 
     /*!
+     * Advance the positions of the Lagrangian structure using the explicit
+     * midpoint rule.
+     */
+    void midpointStep(double current_time, double new_time);
+
+    /*!
+     * Advance the positions of the Lagrangian structure using the explicit
+     * trapezoidal rule.
+     */
+    void trapezoidalStep(double current_time, double new_time);
+
+    /*!
      * Compute the Lagrangian force at the specified time within the current
      * time interval.
      */
