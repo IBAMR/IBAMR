@@ -137,9 +137,11 @@ class IBFEDirectForcingKinematics;
  *   <li><code>interp_use_adaptive_quadrature</code>: Whether or not the current
  *   deformation of each element should be considered when determining which
  *   quadrature rule to use. Defaults to <code>TRUE</code>.</li>
+ *   <li><code>interp_point_density</code>: Multiplier on the number of points
+ *   to use for doing IB calculations. Defaults to <code>2</code>.
  *   <li><code>spread_point_density</code>: Same as above, but for spreading.
- *   <li><code>IB_point_density</code>: overriding alias for the two previous
- *   entries - has the same default.</li>
+ *   <li><code>IB_point_density</code>: overriding alias for the previous
+ *   entry - has the same default.</li>
  *   <li><code>interp_point_density</code>: Parameter for adaptively computing the
  *   number of quadrature points in a quadrature rule. Defaults to
  *   <code>2.0</code>. See IBTK::getQuadratureKey() for a detailed
