@@ -179,6 +179,34 @@ enum_to_string<VCInterpType>(VCInterpType val)
     return "UNKNOWN_VC_INTERP_TYPE";
 } // enum_to_string
 
+enum NodeOutsidePatchCheckType
+{
+    NODE_OUTSIDE_PERMIT = 1,
+    NODE_OUTSIDE_WARN = 2,
+    NODE_OUTSIDE_ERROR = 3,
+    UNKNOWN_NODE_OUTSIDE_PATCH_CHECK_TYPE = -1
+};
+
+template <>
+inline NodeOutsidePatchCheckType
+string_to_enum<NodeOutsidePatchCheckType>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "NODE_OUTSIDE_PERMIT") == 0) return NODE_OUTSIDE_PERMIT;
+    if (strcasecmp(val.c_str(), "NODE_OUTSIDE_WARN") == 0) return NODE_OUTSIDE_WARN;
+    if (strcasecmp(val.c_str(), "NODE_OUTSIDE_ERROR") == 0) return NODE_OUTSIDE_ERROR;
+    return UNKNOWN_NODE_OUTSIDE_PATCH_CHECK_TYPE;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<NodeOutsidePatchCheckType>(NodeOutsidePatchCheckType val)
+{
+    if (val == NODE_OUTSIDE_PERMIT) return "NODE_OUTSIDE_PERMIT";
+    if (val == NODE_OUTSIDE_WARN) return "NODE_OUTSIDE_WARN";
+    if (val == NODE_OUTSIDE_ERROR) return "NODE_OUTSIDE_ERROR";
+    return "UNKNOWN_NODE_OUTSIDE_PATCH_CHECK_TYPE";
+} // enum_to_string
+
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

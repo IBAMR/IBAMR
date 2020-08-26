@@ -620,6 +620,119 @@ FEDataManager::reinitElementMappings()
     collectActivePatchNodes(d_active_patch_node_map, d_active_patch_elem_map);
     collect_unique_elems(d_active_elems, d_active_patch_elem_map);
 
+    // If we are not regridding in the usual way (i.e., if
+    // IBHierarchyIntegrator::d_regrid_cfl_interval > 1) then it is possible
+    // that an element has traveled outside of the top patch level. If this
+    // happens then IBFE won't work - we cannot correctly interpolate velocity
+    // at that point. Hence try to detect it by checking that all nodes are on
+    // the interior of some patch (or outside the domain) at the moment.
+    {
+        const Pointer<CartesianGridGeometry<NDIM> > hier_geom = d_hierarchy->getGridGeometry();
+        // TODO - we only support single box geometries right now
+        TBOX_ASSERT(hier_geom);
+        const double* const hier_x_lower = hier_geom->getXLower();
+        const double* const hier_x_upper = hier_geom->getXUpper();
+        const int rank = IBTK_MPI::getRank();
+        const int n_procs = IBTK_MPI::getNodes();
+        const MeshBase& mesh = getEquationSystems()->get_mesh();
+        std::unique_ptr<PetscVector<double> > X_petsc_vec = buildIBGhostedVector(COORDINATES_SYSTEM_NAME);
+        *X_petsc_vec = *getCoordsVector();
+        X_petsc_vec->close();
+        const double* const X_local_soln = X_petsc_vec->get_array_read();
+        const DofMap& X_dof_map = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME).get_dof_map();
+
+        std::vector<int> node_ranks(mesh.parallel_n_nodes());
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data->d_level_number);
+        int local_patch_num = 0;
+        std::vector<dof_id_type> X_idxs;
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+        {
+            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_x_lower = patch_geom->getXLower();
+            const double* const patch_x_upper = patch_geom->getXUpper();
+
+            for (const Node* n : d_active_patch_node_map[local_patch_num])
+            {
+                IBTK::Point X;
+                bool inside_patch = true;
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    IBTK::get_nodal_dof_indices(X_dof_map, n, d, X_idxs);
+                    X[d] = X_local_soln[X_petsc_vec->map_global_to_local_index(X_idxs[0])];
+                    // Due to how SAMRAI computes patch boundaries, even if the
+                    // patch's domain is [0, 1]^2 the patches on the boundary
+                    // may not actually end at 1.0. Hence allow a small
+                    // tolerance here to account for the case where two patches
+                    // are adjacent to each-other but their patch boundaries
+                    // don't quite line up:
+                    const double x_lower = patch_x_lower[d] - std::max(1.0, std::abs(patch_x_lower[d])) * 1e-14;
+                    const double x_upper = patch_x_upper[d] + std::max(1.0, std::abs(patch_x_upper[d])) * 1e-14;
+                    inside_patch = inside_patch && (x_lower <= X[d] && X[d] <= x_upper);
+                }
+                if (inside_patch)
+                {
+                    node_ranks[n->id()] = rank + 1;
+                }
+                else
+                {
+                    // Points are allowed to be outside the domain - they simply
+                    // are no longer used for IB calculations.
+                    bool inside_hier = true;
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        // Like above - permit points very close to the boundary
+                        // to pass the check and treat them as being outside
+                        const double x_lower = hier_x_lower[d] + std::max(1.0, std::abs(hier_x_lower[d])) * 1e-14;
+                        const double x_upper = hier_x_upper[d] - std::max(1.0, std::abs(hier_x_upper[d])) * 1e-14;
+                        inside_hier = inside_hier && (x_lower <= X[d] && X[d] <= x_upper);
+                    }
+                    if (!inside_hier)
+                    {
+                        node_ranks[n->id()] = n_procs + 1;
+                    }
+                }
+            }
+        }
+        X_petsc_vec->restore_array();
+
+        // send everything to rank 0 instead of doing an all-to-all:
+        IBTK_MPI::allToOneSumReduction(node_ranks.data(), node_ranks.size());
+        if (rank == 0)
+        {
+            const std::string message =
+                "At least one node in the current mesh is inside the fluid domain and not associated with any "
+                "patch. This class currently assumes that all elements are on the finest level and will not "
+                "work correctly if this assumption does not hold. This usually happens when you use multiple "
+                "patch levels and set the regrid CFL interval to a value larger than one. To change this check set "
+                "node_outside_patch_check to a different value in the input database: see the documentation of "
+                "FEDataManager for more information.";
+            for (const int node_rank : node_ranks)
+            {
+                if (node_rank == 0)
+                {
+                    switch (d_node_patch_check)
+                    {
+                    case NODE_OUTSIDE_PERMIT:
+                        break;
+                    case NODE_OUTSIDE_WARN:
+                        TBOX_WARNING(message);
+                        break;
+                    case NODE_OUTSIDE_ERROR:
+                        TBOX_ERROR(message);
+                        break;
+                    default:
+                        // we shouldn't get here
+                        TBOX_ERROR("unrecognized value for d_node_patch_check");
+                        break;
+                    }
+                    // no need to check more nodes if we already found one outside
+                    break;
+                }
+            }
+        }
+    }
+
     IBTK_TIMER_STOP(t_reinit_element_mappings);
     return;
 } // reinitElementMappings
@@ -2614,7 +2727,7 @@ FEDataManager::zeroExteriorValues(const CartesianPatchGeometry<NDIM>& patch_geom
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 FEDataManager::FEDataManager(std::string object_name,
-                             const Pointer<Database>& /*input_db*/,
+                             const Pointer<Database>& input_db,
                              FEDataManager::InterpSpec default_interp_spec,
                              FEDataManager::SpreadSpec default_spread_spec,
                              FEDataManager::WorkloadSpec default_workload_spec,
@@ -2659,6 +2772,14 @@ FEDataManager::FEDataManager(std::string object_name,
 
     // Setup the FE projector logging state.
     d_fe_projector->setLoggingEnabled(getLoggingEnabled());
+
+    d_node_patch_check = string_to_enum<NodeOutsidePatchCheckType>(
+        input_db->getStringWithDefault("node_outside_patch_check", "NODE_OUTSIDE_ERROR"));
+    if (d_node_patch_check == UNKNOWN_NODE_OUTSIDE_PATCH_CHECK_TYPE)
+    {
+        TBOX_ERROR("unrecognized value " << input_db->getString("node_outside_patch_check")
+                                         << "for input entry 'node_outside_patch_check'.");
+    }
 
     // Setup Timers.
     IBTK_DO_ONCE(
