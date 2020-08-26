@@ -373,6 +373,7 @@ unsigned char FEDataManager::s_shutdown_priority = 200;
 FEDataManager*
 FEDataManager::getManager(std::shared_ptr<FEData> fe_data,
                           const std::string& name,
+                          const Pointer<Database>& input_db,
                           const FEDataManager::InterpSpec& default_interp_spec,
                           const FEDataManager::SpreadSpec& default_spread_spec,
                           const FEDataManager::WorkloadSpec& default_workload_spec,
@@ -386,13 +387,14 @@ FEDataManager::getManager(std::shared_ptr<FEData> fe_data,
             min_ghost_width,
             IntVector<NDIM>(std::max(LEInteractor::getMinimumGhostWidth(default_interp_spec.kernel_fcn),
                                      LEInteractor::getMinimumGhostWidth(default_spread_spec.kernel_fcn))));
-        s_data_manager_instances[name] = new FEDataManager(fe_data,
-                                                           name,
+        s_data_manager_instances[name] = new FEDataManager(name,
+                                                           input_db,
                                                            default_interp_spec,
                                                            default_spread_spec,
                                                            default_workload_spec,
                                                            ghost_width,
                                                            eulerian_data_cache,
+                                                           fe_data,
                                                            register_for_restart);
     }
     if (!s_registered_callback)
@@ -401,6 +403,28 @@ FEDataManager::getManager(std::shared_ptr<FEData> fe_data,
         s_registered_callback = true;
     }
     return s_data_manager_instances[name];
+} // getManager
+
+FEDataManager*
+FEDataManager::getManager(std::shared_ptr<FEData> fe_data,
+                          const std::string& name,
+                          const FEDataManager::InterpSpec& default_interp_spec,
+                          const FEDataManager::SpreadSpec& default_spread_spec,
+                          const FEDataManager::WorkloadSpec& default_workload_spec,
+                          const IntVector<NDIM>& min_ghost_width,
+                          std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
+                          bool register_for_restart)
+{
+    Pointer<Database> input_db(new InputDatabase("empty_fe_data_manager_db"));
+    return getManager(fe_data,
+                      name,
+                      input_db,
+                      default_interp_spec,
+                      default_spread_spec,
+                      default_workload_spec,
+                      min_ghost_width,
+                      eulerian_data_cache,
+                      register_for_restart);
 } // getManager
 
 FEDataManager*
@@ -2589,13 +2613,14 @@ FEDataManager::zeroExteriorValues(const CartesianPatchGeometry<NDIM>& patch_geom
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-FEDataManager::FEDataManager(std::shared_ptr<FEData> fe_data,
-                             std::string object_name,
+FEDataManager::FEDataManager(std::string object_name,
+                             const Pointer<Database>& /*input_db*/,
                              FEDataManager::InterpSpec default_interp_spec,
                              FEDataManager::SpreadSpec default_spread_spec,
                              FEDataManager::WorkloadSpec default_workload_spec,
                              IntVector<NDIM> ghost_width,
                              std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
+                             std::shared_ptr<FEData> fe_data,
                              bool register_for_restart)
     : d_fe_data(fe_data),
       d_fe_projector(new FEProjector(d_fe_data)),
@@ -2665,13 +2690,14 @@ FEDataManager::FEDataManager(std::string object_name,
                              IntVector<NDIM> ghost_width,
                              std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
                              bool register_for_restart)
-    : FEDataManager(std::make_shared<FEData>(object_name + "::fe_data", register_for_restart),
-                    object_name,
+    : FEDataManager(object_name,
+                    Pointer<Database>(new InputDatabase("fe_data_manager_input_db")),
                     default_interp_spec,
                     default_spread_spec,
                     default_workload_spec,
                     ghost_width,
                     eulerian_data_cache,
+                    std::make_shared<FEData>(object_name + "::fe_data", register_for_restart),
                     register_for_restart)
 {
 } // FEDataManager
