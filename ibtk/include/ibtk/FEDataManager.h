@@ -442,11 +442,33 @@ public:
      * corresponding to the specified name.  Access to FEDataManager objects is
      * mediated by the getManager() function.
      *
-     * Note that when a manager is accessed for the first time, the
+     * The difference between this and the other getManager() functions is that
+     * this overload permits adding an input database as an argument for setting
+     * non-default parameters. The old overloads are kept for compatibility.
+     *
+     * @note When a manager is accessed for the first time, the
      * FEDataManager::freeAllManagers() static method is registered with the
      * SAMRAI::tbox::ShutdownRegistry class. Consequently, all allocated
      * managers are freed at program completion. Thus, users of this class do
      * not explicitly allocate or deallocate the FEDataManager instances.
+     *
+     * \return A pointer to the data manager instance.
+     */
+    static FEDataManager*
+    getManager(std::shared_ptr<FEData> fe_data,
+               const std::string& name,
+               const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+               const InterpSpec& default_interp_spec,
+               const SpreadSpec& default_spread_spec,
+               const WorkloadSpec& default_workload_spec,
+               const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
+               std::shared_ptr<SAMRAIDataCache> eulerian_data_cache = nullptr,
+               bool register_for_restart = true);
+
+    /*!
+     * Return a pointer to the instance of the Lagrangian data manager
+     * corresponding to the specified name.  Access to FEDataManager objects is
+     * mediated by the getManager() function.
      *
      * \return A pointer to the data manager instance.
      */
@@ -463,10 +485,6 @@ public:
      * Return a pointer to the instance of the Lagrangian data manager
      * corresponding to the specified name.  Access to FEDataManager objects is
      * mediated by the getManager() function.
-     *
-     * This is the same as the other methods except for the first argument:
-     * here the FEData object owned by the new FEDataManager will, in most
-     * cases, be co-owned by another FEDataManager object.
      *
      * \return A pointer to the data manager instance.
      */
@@ -1042,13 +1060,14 @@ protected:
      * \brief Constructor, where the FEData object owned by this class may be
      * co-owned by other objects.
      */
-    FEDataManager(std::shared_ptr<FEData> fe_data,
-                  std::string object_name,
+    FEDataManager(std::string object_name,
+                  const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
                   InterpSpec default_interp_spec,
                   SpreadSpec default_spread_spec,
                   WorkloadSpec default_workload_spec,
                   SAMRAI::hier::IntVector<NDIM> ghost_width,
                   std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
+                  std::shared_ptr<FEData> fe_data,
                   bool register_for_restart = true);
 
     /*!
