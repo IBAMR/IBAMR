@@ -22,6 +22,7 @@
 
 #include "ibtk/QuadratureCache.h"
 #include "ibtk/SAMRAIDataCache.h"
+#include "ibtk/ibtk_enums.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchLevel.h"
@@ -274,7 +275,24 @@ protected:
  * element data while this class stores additional data dependent on the
  * Eulerian grid.
  *
- * <h3>Parameters effecting workload estimate calculations</h3>
+ * <h2>Parameters read from the input database</h2>
+ *
+ * At the present time the only parameter read from the input database is
+ * <code>node_outside_patch_check</code>, which controls how this class responds
+ * to mesh nodes outside the finest patch level. In all cases, for backwards
+ * compatibility, nodes that are outside the computational domain are permitted
+ * and are ignored by this check. Possible values are:
+ * <ol>
+ *   <li><code>node_outside_permit</code>: Permit nodes to be outside the finest
+ *   patch level.</li>
+ *   <li><code>node_outside_warn</code>: Permit nodes to be outside the finest
+ *   patch level, but log a warning whenever this is detected.
+ *   <li><code>node_outside_error</code>: Abort the program when nodes are detected
+ *   outside the finest patch level.
+ * </ol>
+ * The default value is <code>node_outside_error</code>.
+ *
+ * <h2>Parameters effecting workload estimate calculations</h2>
  * FEDataManager can estimate the amount of work done in IBFE calculations
  * (such as FEDataManager::spread). Since most calculations use a variable
  * number of quadrature points on each libMesh element this estimate can vary
@@ -1254,6 +1272,15 @@ private:
      */
     const InterpSpec d_default_interp_spec;
     const SpreadSpec d_default_spread_spec;
+
+    /*!
+     * after reassociating patches with elements a node may still lie
+     * outside all patches on the finest level in unusual circumstances
+     * (like when the parent integrator class does not regrid sufficiently
+     * frequently and has more than one patch level). This enum controls
+     * what we do when this problem is detected.
+     */
+    NodeOutsidePatchCheckType d_node_patch_check = NODE_OUTSIDE_ERROR;
 
     /*!
      * SAMRAI::hier::IntVector object which determines the required ghost cell

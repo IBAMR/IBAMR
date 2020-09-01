@@ -392,6 +392,15 @@ class IBFEDirectForcingKinematics;
  * }
  * @endcode
  *
+ * <h2>Passing Data to the FEDataManager class</h2>
+ * IBFEMethod uses IBTK::FEDataManager to actually perform IB calculations with
+ * the finite element mesh. IBTK::FEDataManager objects are configured by
+ * setting spreading and interpolation parameters in the usual way (i.e., by
+ * providing the parameters described above in the input database). Options
+ * specific to the behavior of FEDataManager can be set by defining a database
+ * named <code>FEDataManager</code> inside the database provided to this class -
+ * see the documentation of FEDataManager for more information.
+ *
  * <h2>Handling Restart Data</h2>
  * The caching of the IBFE restart data is not managed by SAMRAI's
  * SAMRAI::tbox::RestartManager. It is instead handled by
@@ -1071,6 +1080,13 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_scratch_gridding_algorithm;
 
 private:
+    /*!
+     * The input database. This is explicitly stored (and used outside the
+     * constructor) since the FEDataManager instances created by this class
+     * will also read part of it.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_input_db;
+
     /*!
      * Implementation of class constructor.
      */
