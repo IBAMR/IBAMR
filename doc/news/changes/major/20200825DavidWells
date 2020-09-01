@@ -1,0 +1,5 @@
+Improved: IBAMR::IBFEMethod gained a new member variable d_patch_assocation_cfl
+which determines how often (independent of regrids) the association of elements
+to patches must be rebuilt.
+<br>
+(David Wells, 2020/08/25)
