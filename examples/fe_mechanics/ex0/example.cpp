@@ -41,6 +41,7 @@ static double traction_force = 6.25e3;
 static double load_time;
 static double PI = 3.141592653589793;
 
+static bool use_pressure_stabilization;
 static bool use_volumetric_term;
 static std::string stress_funtion;
 
@@ -279,7 +280,8 @@ main(int argc, char* argv[])
         traction_force = input_db->getDouble("TRACTION_FORCE");
         load_time = input_db->getDouble("LOAD_TIME");
 
-        use_volumetric_term = input_db->getBool("USE_VOLUMETRIC_TERM");
+        use_pressure_stabilization = input_db->getBool("USE_PRESSURE_STABILIZATION");
+        use_volumetric_term = input_db->getBool("USE_VOLUMETRIC_TERM") && !use_pressure_stabilization;
         stress_funtion = input_db->getString("STRESS_FUNCTION");
 
         // Setup the time stepping parameters.
@@ -344,6 +346,7 @@ main(int argc, char* argv[])
         }
 
         fem_solver->initializeFEEquationSystems();
+        fem_solver->registerPressureStabilizationPart();
         EquationSystems* equation_systems = fem_solver->getEquationSystems();
         ExplicitSystem& jac_system = equation_systems->add_system<ExplicitSystem>("JacobianDeterminant");
         unsigned int J_var = jac_system.add_variable("Avg J", CONSTANT, MONOMIAL);

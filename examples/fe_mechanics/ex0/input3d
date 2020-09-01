@@ -27,6 +27,7 @@ DT                         = 0.04*CFL_MAX*DX/U_MAX  // maximum timestep size
 
 // model parameters
 STRESS_FUNCTION = "MODIFIED"
+USE_PRESSURE_STABILIZATION = FALSE
 USE_VOLUMETRIC_TERM = TRUE
 YOUNGS_MOD     = 250
 TRACTION_FORCE = 6.25
