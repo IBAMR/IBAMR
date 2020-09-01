@@ -24,7 +24,6 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
-#include <ibtk/FEMapCache.h>
 #include <ibtk/FEMapping.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/QuadratureCache.h>
@@ -34,6 +33,8 @@
 #include <ibamr/app_namespaces.h>
 
 #include <boost/multi_array.hpp>
+
+#include "../tests.h"
 
 // Verify that FEMapping and descendants output the same values as libMesh::FEMap.
 using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;

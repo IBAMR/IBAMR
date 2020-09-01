@@ -453,8 +453,8 @@ copy_dof_ids_to_vector(const unsigned int var_n,
 void apply_transposed_constraint_matrix(const libMesh::DofMap& dof_map, libMesh::PetscVector<double>& rhs);
 
 /**
- * Return the quadrature key description (see QuadratureCache, FECache, and
- * FEMapCache) of a quadrature rule.
+ * Return the quadrature key description (see QuadratureCache and FECache) of a
+ * quadrature rule.
  *
  * @param[in] quad_type The type of quadrature rule to use. At the present
  * time only QGAUSS and QGRID are supported.

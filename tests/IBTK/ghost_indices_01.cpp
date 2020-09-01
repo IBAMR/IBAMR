@@ -68,10 +68,11 @@ main(int argc, char* argv[])
         const int u_depth = input_db->getIntegerWithDefault("depth", 1);
         const IntVector<NDIM> gcw(input_db->getIntegerWithDefault("ghost_width", 1));
         const bool use_cell = input_db->getStringWithDefault("var_type", "CELL") == "CELL";
-        auto u_var = use_cell ? Pointer<Variable<NDIM> >(new CellVariable<NDIM, double>("u", u_depth)) :
-                                Pointer<Variable<NDIM> >(new SideVariable<NDIM, double>("u", u_depth));
-        auto dof_var = use_cell ? Pointer<Variable<NDIM> >(new CellVariable<NDIM, int>("dof", u_depth)) :
-                                  Pointer<Variable<NDIM> >(new SideVariable<NDIM, int>("dof", u_depth));
+        // disambiguate between libMesh::Variable and SAMRAI::hier::Variable
+        auto u_var = use_cell ? Pointer<hier::Variable<NDIM> >(new CellVariable<NDIM, double>("u", u_depth)) :
+                                Pointer<hier::Variable<NDIM> >(new SideVariable<NDIM, double>("u", u_depth));
+        auto dof_var = use_cell ? Pointer<hier::Variable<NDIM> >(new CellVariable<NDIM, int>("dof", u_depth)) :
+                                  Pointer<hier::Variable<NDIM> >(new SideVariable<NDIM, int>("dof", u_depth));
 
         const int u_idx = var_db->registerVariableAndContext(u_var, ctx, gcw);
         const int dof_idx = var_db->registerVariableAndContext(dof_var, ctx, gcw);

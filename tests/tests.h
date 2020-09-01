@@ -11,7 +11,25 @@
 //
 // ---------------------------------------------------------------------
 
+#ifndef included_ibamr_tests_h
+#define included_ibamr_tests_h
+
+#include <ibamr/config.h>
+
+#include <ibtk/IBTK_MPI.h>
+
 #include <tbox/PIO.h>
+
+#ifdef IBAMR_HAVE_LIBMESH
+#include <ibtk/QuadratureCache.h>
+#include <ibtk/libmesh_utilities.h>
+
+#include <libmesh/elem.h>
+#include <libmesh/enum_elem_type.h>
+#include <libmesh/enum_quadrature_type.h>
+#include <libmesh/fe_map.h>
+#include <libmesh/quadrature.h>
+#endif
 
 #include <mpi.h>
 
@@ -49,3 +67,122 @@ print_strings_on_plog_0(const std::string& out)
     else
         MPI_Send(out.data(), size, MPI_CHAR, 0, 0, IBTK_MPI::getCommunicator());
 }
+
+#ifdef IBAMR_HAVE_LIBMESH
+/**
+ * \brief Class storing multiple libMesh::FEMap objects, each corresponding to
+ * a different quadrature rule. Each FEMap object is configured with a
+ * quadrature rule corresponding to the provided <code>quad_key</code>
+ * parameter.
+ *
+ * This class essentially provides a wrapper around std::map to manage FEMap
+ * objects and the quadrature rules they use. The keys are descriptions of
+ * quadrature rules.
+ *
+ * This class used to be part of IBTK but it is no longer needed since we
+ * reimplemented all the mappings ourselves. However, it is still useful in the
+ * test suite so that we can easily compare results against what libMesh
+ * calculates for a given quadrature key..
+ */
+class FEMapCache
+{
+public:
+    /**
+     * Key type. Completely describes (excepting p-refinement) a libMesh
+     * quadrature rule.
+     */
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+
+    /**
+     * Type of values stored by this class that are accessible through
+     * <code>operator[]</code>.
+     */
+    using value_type = libMesh::FEMap;
+
+    /**
+     * Constructor. Sets up a cache of FE objects calculating values for the
+     * given FEType argument. All cached FE objects have the same FEType.
+     *
+     * @param dim The topological dimension of the relevant libMesh::Mesh: see
+     * libMesh::MeshBase::mesh_dimension() for more information.
+     */
+    FEMapCache(const unsigned int dim);
+
+    /**
+     * Return a reference to an FEMap object that matches the specified
+     * quadrature rule type and order.
+     *
+     * @param quad_key a tuple of enums that completely describes
+     * a libMesh quadrature rule.
+     */
+    libMesh::FEMap& operator[](const key_type& quad_key);
+
+protected:
+    /**
+     * Topological dimension of the FE mesh.
+     */
+    const unsigned int d_dim;
+
+    /**
+     * Managed libMesh::Quadrature objects. These are used to partially
+     * initialize (i.e., points but not weights are stored) the FEMap objects.
+     */
+    QuadratureCache d_quadrature_cache;
+
+    /**
+     * Managed libMesh::FEMap objects of specified dimension and family.
+     */
+    std::map<key_type, libMesh::FEMap> d_fe_maps;
+};
+
+inline FEMapCache::FEMapCache(const unsigned int dim) : d_dim(dim), d_quadrature_cache(d_dim)
+{
+}
+
+inline libMesh::FEMap&
+FEMapCache::operator[](const FEMapCache::key_type& quad_key)
+{
+    TBOX_ASSERT(static_cast<unsigned int>(get_dim(std::get<0>(quad_key))) == d_dim);
+    auto it = d_fe_maps.find(quad_key);
+    if (it == d_fe_maps.end())
+    {
+        libMesh::QBase& quad = d_quadrature_cache[quad_key];
+        libMesh::FEMap& fe_map = d_fe_maps[quad_key];
+        // Calling this function enables JxW calculations
+        fe_map.get_JxW();
+
+        // Doing this may not work with future (1.4.0 or up) versions of
+        // libMesh. In particular; init_reference_to_physical_map is
+        // undocumented (and almost surely is not intended for use by anyone
+        // but libMesh developers) and *happens* to not read any geometric or
+        // topological information from the Elem argument (just the default
+        // order and type).
+        const libMesh::ElemType elem_type = std::get<0>(quad_key);
+        std::unique_ptr<libMesh::Elem> exemplar_elem(libMesh::Elem::build(elem_type));
+
+        // This is one of very few functions in libMesh that is templated on
+        // the dimension (not spatial dimension) of the mesh
+        switch (d_dim)
+        {
+        case 1:
+            fe_map.init_reference_to_physical_map<1>(quad.get_points(), exemplar_elem.get());
+            break;
+        case 2:
+            fe_map.init_reference_to_physical_map<2>(quad.get_points(), exemplar_elem.get());
+            break;
+        case 3:
+            fe_map.init_reference_to_physical_map<3>(quad.get_points(), exemplar_elem.get());
+            break;
+        default:
+            TBOX_ASSERT(false);
+        }
+        return fe_map;
+    }
+    else
+    {
+        return it->second;
+    }
+}
+#endif // ifdef IBAMR_HAVE_LIBMESH
+
+#endif // define included_ibamr_tests_h
