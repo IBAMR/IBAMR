@@ -1345,7 +1345,7 @@ FEDataManager::prolongData(const int f_data_idx,
 {
     IBTK_TIMER_START(t_prolong_data);
 
-    // NOTE #1: This routine is sepcialized for a staggered-grid Eulerian
+    // NOTE #1: This routine is specialized for a staggered-grid Eulerian
     // discretization.  It should be straightforward to generalize it to work
     // with other data centerings.
     //
