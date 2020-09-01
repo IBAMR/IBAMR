@@ -25,9 +25,10 @@
 namespace IBAMR
 {
 /*!
- * \brief Class FEMechanicsExplicitIntegrator is an implementation of the abstract base class
- * FEMechanicsBase that provides a simple explicit elastodynamics time integrator with an
- * interface that is similar to IBFEMethod to facilitate model re-use.
+ * \brief Class FEMechanicsExplicitIntegrator is an implementation of the
+ * abstract base class FEMechanicsBase that provides a simple explicit
+ * elastodynamics time integrator with an interface that is similar to
+ * IBFEMethod to facilitate model re-use.
  *
  * \see IBFEMethod
  */
@@ -75,6 +76,11 @@ public:
     ~FEMechanicsExplicitIntegrator() override = default;
 
     /*!
+     * Indicate that a part should use pressure stabilization.
+     */
+    void registerPressureStabilizationPart(unsigned int part = 0);
+
+    /*!
      * Method to prepare to advance data from current_time to new_time.
      */
     void preprocessIntegrateData(double current_time, double new_time, int num_cycles) override;
@@ -108,7 +114,8 @@ public:
     void backwardEulerStep(double current_time, double new_time);
 
     /*!
-     * Advance the structural velocities and positions using the explicit midpoint rule.
+     * Advance the structural velocities and positions using the explicit midpoint
+     * rule.
      */
     void midpointStep(double current_time, double new_time);
 
@@ -125,8 +132,8 @@ public:
      * NOTE: In this scheme, the first stage uses a modified Euler scheme (\see
      * modifiedEulerStep), and the second stage uses a modified explicit
      * trapezoidal rule, in which the final approximation to the updated
-     * velocity is used instead of the intermediate updated approximation used in the
-     * standard SSP RK2 scheme.
+     * velocity is used instead of the intermediate updated approximation used in
+     * the standard SSP RK2 scheme.
      */
     void modifiedTrapezoidalStep(double current_time, double new_time);
 
@@ -143,6 +150,14 @@ public:
 
 protected:
     /*!
+     * \brief Compute the pressure stabilization field.
+     */
+    void computePressureStabilization(libMesh::PetscVector<double>& P_vec,
+                                      libMesh::PetscVector<double>& X_vec,
+                                      double data_time,
+                                      unsigned int part);
+
+    /*!
      * Do the actual work in initializeFEEquationSystems.
      */
     void doInitializeFEEquationSystems() override;
@@ -156,11 +171,25 @@ protected:
      */
     void doInitializeFEData(bool use_present_data) override;
 
+    /*!
+     * \return The DofMapCache for a specified system.
+     */
+    IBTK::FEData::SystemDofMapCache* getDofMapCache(const std::string& system_name, unsigned int part);
+
+    /*!
+     * \return The DofMapCache for a specified system.
+     */
+    IBTK::FEData::SystemDofMapCache* getDofMapCache(unsigned int system_num, unsigned int part);
+
     /// Structure mass densities.
     std::vector<double> d_rhos;
 
     /// FEProjector objects.
     std::vector<std::unique_ptr<IBTK::FEProjector> > d_fe_projectors;
+
+    /// Cached DOF mapping data.
+    std::vector<std::map<std::pair<unsigned int, libMesh::FEType>, std::unique_ptr<IBTK::FEData::SystemDofMapCache> > >
+        d_system_dof_map_cache;
 
 private:
     /*!
@@ -182,6 +211,13 @@ private:
      * members.
      */
     void getFromRestart();
+
+    /*!
+     * Data related to handling pressure stabilization.
+     */
+    double d_kappa = 0.0;
+    bool d_has_pressure_stabilization_parts = false;
+    std::vector<bool> d_pressure_stabilization_part;
 };
 } // namespace IBAMR
 

@@ -13,20 +13,22 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <IBTK_config.h>
-
 #include "ibamr/FEMechanicsBase.h"
 #include "ibamr/FEMechanicsExplicitIntegrator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
+#include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEProjector.h"
+#include "ibtk/libmesh_utilities.h"
 
 #include "libmesh/boundary_info.h"
 #include "libmesh/enum_xdr_mode.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/quadrature_gauss.h"
+
+#include <IBTK_config.h>
 
 #include <algorithm>
 
@@ -99,6 +101,25 @@ has_physical_bdry(const Elem* elem, const BoundaryInfo& boundary_info, const Dof
     }
     return has_physical_bdry;
 }
+
+inline void
+get_FF(libMesh::TensorValue<double>& FF,
+       const std::vector<VectorValue<double> >& grad_x_data,
+       const unsigned int dim = NDIM)
+{
+    FF.zero();
+    for (unsigned int i = 0; i < dim; ++i)
+    {
+        for (unsigned int j = 0; j < dim; ++j)
+        {
+            FF(i, j) = grad_x_data[i](j);
+        }
+    }
+    for (unsigned int i = dim; i < LIBMESH_DIM; ++i)
+    {
+        FF(i, i) = 1.0;
+    }
+}
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -124,6 +145,22 @@ FEMechanicsExplicitIntegrator::FEMechanicsExplicitIntegrator(const std::string& 
 {
     commonConstructor(object_name, input_db, meshes, restart_read_dirname, restart_restore_number);
 }
+
+void
+FEMechanicsExplicitIntegrator::registerPressureStabilizationPart(unsigned int part)
+{
+    TBOX_ASSERT(d_fe_equation_systems_initialized);
+    TBOX_ASSERT(part < d_meshes.size());
+    if (d_pressure_stabilization_part[part]) return;
+    d_has_pressure_stabilization_parts = true;
+    d_pressure_stabilization_part[part] = true;
+    auto& P_system = d_equation_systems[part]->add_system<ExplicitSystem>(PRESSURE_SYSTEM_NAME);
+    // This system has a single variable so we don't need to also specify diagonal coupling
+    P_system.add_variable("p_stab", d_fe_order_pressure[part], d_fe_family_pressure[part]);
+    // Setup cached system vectors at restart.
+    std::vector<std::string> vector_names = { "current", "half", "new", "tmp", "RHS Vector" };
+    setup_system_vectors(d_equation_systems[part].get(), { PRESSURE_SYSTEM_NAME }, vector_names);
+} // registerpressureStabilizationPart
 
 void
 FEMechanicsExplicitIntegrator::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
@@ -394,6 +431,11 @@ FEMechanicsExplicitIntegrator::computeLagrangianForce(const double data_time)
     d_F_vecs->zero("tmp");
     for (unsigned part = 0; part < d_meshes.size(); ++part)
     {
+        if (d_pressure_stabilization_part[part])
+        {
+            computePressureStabilization(
+                d_P_vecs->get(data_time_str, part), d_X_vecs->get(data_time_str, part), data_time, part);
+        }
         assembleInteriorForceDensityRHS(d_F_vecs->get("RHS Vector", part),
                                         d_X_vecs->get(data_time_str, part),
                                         d_P_vecs ? &d_P_vecs->get(data_time_str, part) : nullptr,
@@ -432,6 +474,8 @@ FEMechanicsExplicitIntegrator::doInitializeFEEquationSystems()
     d_equation_systems.resize(d_meshes.size());
     d_fe_data.resize(d_meshes.size());
     d_fe_projectors.resize(d_meshes.size());
+    d_system_dof_map_cache.resize(d_meshes.size());
+    d_pressure_stabilization_part.resize(d_meshes.size(), false);
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         d_fe_data[part] =
@@ -502,6 +546,10 @@ FEMechanicsExplicitIntegrator::doInitializeFEData(const bool use_present_data)
     d_X_vecs.reset(new LibMeshSystemVectors(equation_systems, COORDS_SYSTEM_NAME));
     d_U_vecs.reset(new LibMeshSystemVectors(equation_systems, VELOCITY_SYSTEM_NAME));
     d_F_vecs.reset(new LibMeshSystemVectors(equation_systems, FORCE_SYSTEM_NAME));
+    if (d_has_pressure_stabilization_parts)
+    {
+        d_P_vecs.reset(new LibMeshSystemVectors(equation_systems, d_pressure_stabilization_part, PRESSURE_SYSTEM_NAME));
+    }
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         // Initialize FE equation systems.
@@ -578,21 +626,139 @@ FEMechanicsExplicitIntegrator::doInitializeFEData(const bool use_present_data)
                         {
                             const int F_dof_index = node->dof_number(F_sys_num, d, 0);
                             DofConstraintRow F_constraint_row;
-                            F_constraint_row[F_dof_index] = 1.0;
-                            F_dof_map.add_constraint_row(F_dof_index, F_constraint_row, 0.0, false);
+                            // NOTE: The diagonal entry is automatically constrained.
+                            F_dof_map.add_constraint_row(F_dof_index, {}, 0.0, false);
                         }
                         if (node->n_dofs(U_sys_num))
                         {
                             const int U_dof_index = node->dof_number(U_sys_num, d, 0);
                             DofConstraintRow U_constraint_row;
-                            U_constraint_row[U_dof_index] = 1.0;
-                            U_dof_map.add_constraint_row(U_dof_index, U_constraint_row, 0.0, false);
+                            // NOTE: The diagonal entry is automatically constrained.
+                            U_dof_map.add_constraint_row(U_dof_index, {}, 0.0, false);
                         }
                     }
                 }
             }
         }
     }
+}
+
+void
+FEMechanicsExplicitIntegrator::computePressureStabilization(PetscVector<double>& P_vec,
+                                                            PetscVector<double>& X_vec,
+                                                            const double /*data_time*/,
+                                                            const unsigned int part)
+{
+    // Extract the mesh.
+    EquationSystems& equation_systems = *d_equation_systems[part];
+    const MeshBase& mesh = equation_systems.get_mesh();
+    const BoundaryInfo& boundary_info = *mesh.boundary_info;
+    const unsigned int dim = mesh.mesh_dimension();
+
+    // Setup extra data needed to compute stresses/forces.
+
+    // Extract the FE systems and DOF maps, and setup the FE objects.
+    auto& P_system = equation_systems.get_system<ExplicitSystem>(PRESSURE_SYSTEM_NAME);
+    const DofMap& P_dof_map = P_system.get_dof_map();
+    FEDataManager::SystemDofMapCache& P_dof_map_cache = *getDofMapCache(PRESSURE_SYSTEM_NAME, part);
+    FEType P_fe_type = P_dof_map.variable_type(0);
+    std::vector<int> P_vars = { 0 };
+    std::vector<int> no_vars = {};
+    auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+    std::vector<int> X_vars(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) X_vars[d] = d;
+
+    FEDataInterpolation fe(dim, getFEData(part));
+    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, FIFTH);
+    fe.attachQuadratureRule(qrule.get());
+    fe.evalQuadraturePoints();
+    fe.evalQuadratureWeights();
+    fe.registerSystem(P_system, P_vars, no_vars);
+    const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, no_vars, X_vars, &X_vec);
+    fe.init();
+
+    const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
+    const std::vector<double>& JxW = fe.getQuadratureWeights();
+    const std::vector<std::vector<double> >& phi = fe.getPhi(P_fe_type);
+
+    const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
+    const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+        fe.getGradVarInterpolation();
+
+    // Setup global and elemental right-hand-side vectors.
+    PetscVector<double>& P_rhs_vec = d_P_vecs->get("RHS Vector", part);
+    P_rhs_vec.zero();
+    DenseVector<double> P_rhs_e;
+
+    TensorValue<double> FF;
+    double P;
+    std::vector<libMesh::dof_id_type> dof_id_scratch;
+    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    {
+        Elem* const elem = *el_it;
+        const auto& P_dof_indices = P_dof_map_cache.dof_indices(elem);
+        P_rhs_e.resize(static_cast<int>(P_dof_indices[0].size()));
+        fe.reinit(elem);
+        fe.collectDataForInterpolation(elem);
+        fe.interpolate(elem);
+        const unsigned int n_qp = qrule->n_points();
+        const size_t n_basis = phi.size();
+        for (unsigned int qp = 0; qp < n_qp; ++qp)
+        {
+            const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+            get_FF(FF, grad_x_data);
+            double J = FF.det();
+            P = -d_kappa * std::log(J);
+            for (unsigned int k = 0; k < n_basis; ++k)
+            {
+                P_rhs_e(k) += P * phi[k][qp] * JxW[qp];
+            }
+        }
+
+        // Apply constraints (e.g., enforce periodic boundary conditions)
+        // and add the elemental contributions to the global vector.
+        copy_dof_ids_to_vector(0, P_dof_indices, dof_id_scratch);
+        P_dof_map.constrain_element_vector(P_rhs_e, dof_id_scratch);
+        P_rhs_vec.add_vector(P_rhs_e, dof_id_scratch);
+    }
+
+    // Solve for P.
+    P_rhs_vec.close();
+    d_fe_projectors[part]->computeL2Projection(P_vec, P_rhs_vec, PRESSURE_SYSTEM_NAME, d_use_consistent_mass_matrix);
+}
+
+FEData::SystemDofMapCache*
+FEMechanicsExplicitIntegrator::getDofMapCache(const std::string& system_name, const unsigned int part)
+{
+    return getDofMapCache(d_equation_systems[part]->get_system(system_name).number(), part);
+}
+
+FEData::SystemDofMapCache*
+FEMechanicsExplicitIntegrator::getDofMapCache(unsigned int system_num, const unsigned int part)
+{
+    System& system = d_equation_systems[part]->get_system(system_num);
+    const unsigned int n_vars = system.n_vars();
+    TBOX_ASSERT(n_vars > 0);
+    const FEType& fe_type = system.variable_type(0);
+
+    // we assume that all variables have the same FEType inside IBAMR
+    for (unsigned int var_n = 1; var_n < n_vars; ++var_n)
+    {
+        TBOX_ASSERT(fe_type == system.variable_type(var_n));
+    }
+
+    // We assume that the dofs have the same layout as long as they have the
+    // same fe type and number of variables
+    std::pair<unsigned int, FEType> key(n_vars, fe_type);
+
+    std::unique_ptr<FEData::SystemDofMapCache>& dof_map_cache = d_system_dof_map_cache[part][key];
+    if (dof_map_cache == nullptr)
+    {
+        dof_map_cache.reset(new FEData::SystemDofMapCache(system));
+    }
+    return dof_map_cache.get();
 }
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
@@ -696,6 +862,10 @@ FEMechanicsExplicitIntegrator::getFromInput(const Pointer<Database>& db, bool /*
     {
         TBOX_ASSERT(db->getArraySize("mass_density") == d_rhos.size());
         db->getDoubleArray("mass_density", d_rhos.data(), db->getArraySize("mass_density"));
+    }
+    if (db->isDouble("kappa"))
+    {
+        d_kappa = db->getDouble("kappa");
     }
 
     // libMesh settings.
