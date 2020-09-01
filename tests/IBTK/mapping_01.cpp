@@ -25,7 +25,6 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
-#include <ibtk/FEMapCache.h>
 #include <ibtk/FEMapping.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/QuadratureCache.h>
@@ -33,6 +32,8 @@
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
+
+#include "../tests.h"
 
 template <int dim, libMesh::Order order, libMesh::FEFamily fe_family, libMesh::ElemType elem_type>
 void
