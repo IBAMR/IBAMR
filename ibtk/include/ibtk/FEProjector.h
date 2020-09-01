@@ -136,11 +136,11 @@ protected:
     /// in the absence of constraints, the matrix is diagonal.
     ///
     /// Here we refer to the unconstrained matrix (which is always diagonal) as
-    /// proj_matrix_diag and the constrained (should there be contraints) matrix
+    /// proj_matrix_diag and the constrained (should there be constraints) matrix
     /// as lumped_L2_proj_matrix.
     std::map<std::string, std::unique_ptr<libMesh::PetscMatrix<double> > > d_lumped_L2_proj_matrix;
     std::map<std::string, std::unique_ptr<libMesh::PetscLinearSolver<double> > > d_lumped_L2_proj_solver;
-    std::map<std::string, std::unique_ptr<libMesh::PetscVector<double> > > d_L2_proj_matrix_diag;
+    std::map<std::string, std::unique_ptr<libMesh::PetscVector<double> > > d_diag_L2_proj_matrix;
 
 private:
     /*!

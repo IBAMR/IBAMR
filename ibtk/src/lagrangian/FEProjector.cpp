@@ -35,19 +35,20 @@ namespace IBTK
 namespace
 {
 // Timers.
-static Timer* t_build_l2_projection_solver;
-static Timer* t_build_diagonal_l2_mass_matrix;
-static Timer* t_compute_l2_projection;
+static Timer* t_build_L2_projection_solver;
+static Timer* t_build_lumped_L2_projection_solver;
+static Timer* t_build_diag_L2_mass_matrix;
+static Timer* t_compute_L2_projection;
 
 // Remove entries that are due to roundoff in an element mass matrix.
 inline void
 prune_roundoff_entries(DenseMatrix<double>& M_e)
 {
     // find the smallest diagonal entry:
-    double min_diagonal_entry = std::numeric_limits<double>::max();
+    double min_diag_entry = std::numeric_limits<double>::max();
     for (unsigned int i = 0; i < std::min(M_e.m(), M_e.n()); ++i)
     {
-        min_diagonal_entry = std::min(M_e(i, i), min_diagonal_entry);
+        min_diag_entry = std::min(M_e(i, i), min_diag_entry);
     }
     // filter everything less than 1e-12 * that entry:
     for (unsigned int i = 0; i < M_e.m(); ++i)
@@ -56,7 +57,7 @@ prune_roundoff_entries(DenseMatrix<double>& M_e)
         {
             // keep the main diagonal
             if (i == j) continue;
-            if (std::abs(M_e(i, j)) < 1e-12 * min_diagonal_entry) M_e(i, j) = 0.0;
+            if (std::abs(M_e(i, j)) < 1e-12 * min_diag_entry) M_e(i, j) = 0.0;
         }
     }
 }
@@ -88,30 +89,34 @@ FEProjector::FEProjector(EquationSystems* equation_systems, const bool enable_lo
     : d_fe_data(new FEData("FEProjector", /*register_for_restart*/ false)), d_enable_logging(enable_logging)
 {
     d_fe_data->setEquationSystems(equation_systems, /*level_number*/ 0);
-    IBTK_DO_ONCE(t_build_l2_projection_solver =
+    IBTK_DO_ONCE(t_build_L2_projection_solver =
                      TimerManager::getManager()->getTimer("IBTK::FEProjector::buildL2ProjectionSolver()");
-                 t_build_diagonal_l2_mass_matrix =
+                 t_build_lumped_L2_projection_solver =
+                     TimerManager::getManager()->getTimer("IBTK::FEProjector::buildLumpedL2ProjectionSolver()");
+                 t_build_diag_L2_mass_matrix =
                      TimerManager::getManager()->getTimer("IBTK::FEProjector::buildDiagonalL2MassMatrix()");
-                 t_compute_l2_projection =
+                 t_compute_L2_projection =
                      TimerManager::getManager()->getTimer("IBTK::FEProjector::computeL2Projection()");)
 }
 
 FEProjector::FEProjector(std::shared_ptr<FEData> fe_data, const bool enable_logging)
-    : d_fe_data(fe_data), d_enable_logging(enable_logging)
+    : d_fe_data(std::move(fe_data)), d_enable_logging(enable_logging)
 {
     TBOX_ASSERT(d_fe_data);
-    IBTK_DO_ONCE(t_build_l2_projection_solver =
+    IBTK_DO_ONCE(t_build_L2_projection_solver =
                      TimerManager::getManager()->getTimer("IBTK::FEProjector::buildL2ProjectionSolver()");
-                 t_build_diagonal_l2_mass_matrix =
+                 t_build_lumped_L2_projection_solver =
+                     TimerManager::getManager()->getTimer("IBTK::FEProjector::buildLumpedL2ProjectionSolver()");
+                 t_build_diag_L2_mass_matrix =
                      TimerManager::getManager()->getTimer("IBTK::FEProjector::buildDiagonalL2MassMatrix()");
-                 t_compute_l2_projection =
+                 t_compute_L2_projection =
                      TimerManager::getManager()->getTimer("IBTK::FEProjector::computeL2Projection()");)
 }
 
 std::pair<PetscLinearSolver<double>*, PetscMatrix<double>*>
 FEProjector::buildL2ProjectionSolver(const std::string& system_name)
 {
-    IBTK_TIMER_START(t_build_l2_projection_solver);
+    IBTK_TIMER_START(t_build_L2_projection_solver);
 
     if (!d_L2_proj_solver.count(system_name) || !d_L2_proj_matrix.count(system_name))
     {
@@ -128,7 +133,7 @@ FEProjector::buildL2ProjectionSolver(const std::string& system_name)
 
         // Extract the FE system and DOF map, and setup the FE object.
         System& system = d_fe_data->getEquationSystems()->get_system(system_name);
-        const int sys_num = system.number();
+        const auto sys_num = system.number();
         DofMap& dof_map = system.get_dof_map();
         FEData::SystemDofMapCache& dof_map_cache = *d_fe_data->getDofMapCache(system_name);
         dof_map.compute_sparsity(mesh);
@@ -245,109 +250,14 @@ FEProjector::buildL2ProjectionSolver(const std::string& system_name)
         d_L2_proj_matrix[system_name] = std::move(M_mat);
     }
 
-    IBTK_TIMER_STOP(t_build_l2_projection_solver);
+    IBTK_TIMER_STOP(t_build_L2_projection_solver);
     return std::make_pair(d_L2_proj_solver[system_name].get(), d_L2_proj_matrix[system_name].get());
-}
-
-PetscVector<double>*
-FEProjector::buildDiagonalL2MassMatrix(const std::string& system_name)
-{
-    IBTK_TIMER_START(t_build_diagonal_l2_mass_matrix);
-
-    if (!d_L2_proj_matrix_diag.count(system_name))
-    {
-        if (d_enable_logging)
-        {
-            plog << "FEProjector::buildDiagonalL2MassMatrix(): building diagonal L2 mass matrix for system: "
-                 << system_name << "\n";
-        }
-
-        // Extract the mesh.
-        const MeshBase& mesh = d_fe_data->getEquationSystems()->get_mesh();
-        const unsigned int dim = mesh.mesh_dimension();
-
-        // Extract the FE system and DOF map, and setup the FE object.
-        System& system = d_fe_data->getEquationSystems()->get_system(system_name);
-        DofMap& dof_map = system.get_dof_map();
-        FEData::SystemDofMapCache& dof_map_cache = *d_fe_data->getDofMapCache(system_name);
-        dof_map.compute_sparsity(mesh);
-        FEType fe_type = dof_map.variable_type(0);
-        std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
-        std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
-        fe->attach_quadrature_rule(qrule.get());
-        const std::vector<double>& JxW = fe->get_JxW();
-        const std::vector<std::vector<double> >& phi = fe->get_phi();
-
-        // Build solver components.
-        std::unique_ptr<PetscVector<double> > M_vec(
-            static_cast<PetscVector<double>*>(system.solution->zero_clone().release()));
-
-        // Loop over the mesh to construct the system matrix.
-        DenseMatrix<double> M_e;
-        std::vector<dof_id_type> dof_id_scratch;
-        DenseVector<double> M_e_vec;
-        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
-        {
-            const Elem* const elem = *el_it;
-            fe->reinit(elem);
-            const auto& dof_indices = dof_map_cache.dof_indices(elem);
-            for (unsigned int var_n = 0; var_n < dof_map.n_variables(); ++var_n)
-            {
-                const auto dof_indices_sz = static_cast<unsigned int>(dof_indices[var_n].size());
-                M_e.resize(dof_indices_sz, dof_indices_sz);
-                M_e_vec.resize(dof_indices_sz);
-                const size_t n_basis = dof_indices[var_n].size();
-                const unsigned int n_qp = qrule->n_points();
-                for (unsigned int i = 0; i < n_basis; ++i)
-                {
-                    for (unsigned int j = 0; j < n_basis; ++j)
-                    {
-                        for (unsigned int qp = 0; qp < n_qp; ++qp)
-                        {
-                            M_e(i, j) += (phi[i][qp] * phi[j][qp]) * JxW[qp];
-                        }
-                    }
-                }
-
-                const double vol = elem->volume();
-                double tr_M = 0.0;
-                for (unsigned int i = 0; i < n_basis; ++i) tr_M += M_e(i, i);
-                for (unsigned int i = 0; i < n_basis; ++i)
-                {
-                    M_e_vec(i) = vol * M_e(i, i) / tr_M;
-                }
-
-                // We explicitly do *not* apply constraints because applying
-                // constraints would make this operator nondiagonal. In
-                // particular, we still want to compute the right quadrature
-                // value of shape functions regardless of whether or not they
-                // are constrained (e.g., periodic or hanging node dofs). This
-                // is because we use the values in this vector to compute values
-                // for spread forces and other places where we already have a
-                // finite element solution vector and are not solving a linear
-                // system.
-                copy_dof_ids_to_vector(var_n, dof_indices, dof_id_scratch);
-                M_vec->add_vector(M_e_vec, dof_id_scratch);
-            }
-        }
-
-        // Flush assemble the matrix.
-        M_vec->close();
-
-        // Store the diagonal mass matrix.
-        d_L2_proj_matrix_diag[system_name] = std::move(M_vec);
-    }
-
-    IBTK_TIMER_STOP(t_build_diagonal_l2_mass_matrix);
-    return d_L2_proj_matrix_diag[system_name].get();
 }
 
 std::pair<PetscLinearSolver<double>*, PetscMatrix<double>*>
 FEProjector::buildLumpedL2ProjectionSolver(const std::string& system_name)
 {
-    IBTK_TIMER_START(t_build_l2_projection_solver);
+    IBTK_TIMER_START(t_build_lumped_L2_projection_solver);
 
     if (!d_lumped_L2_proj_solver.count(system_name) || !d_lumped_L2_proj_matrix.count(system_name))
     {
@@ -443,8 +353,103 @@ FEProjector::buildLumpedL2ProjectionSolver(const std::string& system_name)
         d_lumped_L2_proj_matrix[system_name] = std::move(M_mat);
     }
 
-    IBTK_TIMER_STOP(t_build_l2_projection_solver);
+    IBTK_TIMER_STOP(t_build_lumped_L2_projection_solver);
     return std::make_pair(d_lumped_L2_proj_solver[system_name].get(), d_lumped_L2_proj_matrix[system_name].get());
+}
+
+PetscVector<double>*
+FEProjector::buildDiagonalL2MassMatrix(const std::string& system_name)
+{
+    IBTK_TIMER_START(t_build_diag_L2_mass_matrix);
+
+    if (!d_diag_L2_proj_matrix.count(system_name))
+    {
+        if (d_enable_logging)
+        {
+            plog << "FEProjector::buildDiagonalL2MassMatrix(): building diagonal L2 mass matrix for system: "
+                 << system_name << "\n";
+        }
+
+        // Extract the mesh.
+        const MeshBase& mesh = d_fe_data->getEquationSystems()->get_mesh();
+        const unsigned int dim = mesh.mesh_dimension();
+
+        // Extract the FE system and DOF map, and setup the FE object.
+        System& system = d_fe_data->getEquationSystems()->get_system(system_name);
+        DofMap& dof_map = system.get_dof_map();
+        FEData::SystemDofMapCache& dof_map_cache = *d_fe_data->getDofMapCache(system_name);
+        dof_map.compute_sparsity(mesh);
+        FEType fe_type = dof_map.variable_type(0);
+        std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
+        std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
+        fe->attach_quadrature_rule(qrule.get());
+        const std::vector<double>& JxW = fe->get_JxW();
+        const std::vector<std::vector<double> >& phi = fe->get_phi();
+
+        // Build solver components.
+        std::unique_ptr<PetscVector<double> > M_vec(
+            static_cast<PetscVector<double>*>(system.solution->zero_clone().release()));
+
+        // Loop over the mesh to construct the system matrix.
+        DenseMatrix<double> M_e;
+        std::vector<dof_id_type> dof_id_scratch;
+        DenseVector<double> M_e_vec;
+        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        {
+            const Elem* const elem = *el_it;
+            fe->reinit(elem);
+            const auto& dof_indices = dof_map_cache.dof_indices(elem);
+            for (unsigned int var_n = 0; var_n < dof_map.n_variables(); ++var_n)
+            {
+                const auto dof_indices_sz = static_cast<unsigned int>(dof_indices[var_n].size());
+                M_e.resize(dof_indices_sz, dof_indices_sz);
+                M_e_vec.resize(dof_indices_sz);
+                const size_t n_basis = dof_indices[var_n].size();
+                const unsigned int n_qp = qrule->n_points();
+                for (unsigned int i = 0; i < n_basis; ++i)
+                {
+                    for (unsigned int j = 0; j < n_basis; ++j)
+                    {
+                        for (unsigned int qp = 0; qp < n_qp; ++qp)
+                        {
+                            M_e(i, j) += (phi[i][qp] * phi[j][qp]) * JxW[qp];
+                        }
+                    }
+                }
+
+                const double vol = elem->volume();
+                double tr_M = 0.0;
+                for (unsigned int i = 0; i < n_basis; ++i) tr_M += M_e(i, i);
+                for (unsigned int i = 0; i < n_basis; ++i)
+                {
+                    M_e_vec(i) = vol * M_e(i, i) / tr_M;
+                }
+
+                // We explicitly do *not* apply constraints because applying
+                // constraints would make this operator nondiagonal. In
+                // particular, we still want to compute the right quadrature
+                // value of shape functions regardless of whether or not they
+                // are constrained (e.g., periodic or hanging node dofs). This
+                // is because we use the values in this vector to compute values
+                // for spread forces and other places where we already have a
+                // finite element solution vector and are not solving a linear
+                // system.
+                copy_dof_ids_to_vector(var_n, dof_indices, dof_id_scratch);
+                M_vec->add_vector(M_e_vec, dof_id_scratch);
+            }
+        }
+
+        // Flush assemble the matrix.
+        M_vec->close();
+
+        // Store the diagonal mass matrix.
+        d_diag_L2_proj_matrix[system_name] = std::move(M_vec);
+    }
+
+    IBTK_TIMER_STOP(t_build_diag_L2_mass_matrix);
+    return d_diag_L2_proj_matrix[system_name].get();
 }
 
 bool
@@ -457,7 +462,7 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
                                  const double tol,
                                  const unsigned int max_its)
 {
-    IBTK_TIMER_START(t_compute_l2_projection);
+    IBTK_TIMER_START(t_compute_L2_projection);
 
     int ierr;
     bool converged = false;
@@ -468,7 +473,7 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
     // We can use the diagonal mass matrix directly if we do not need a
     // consistent mass matrix *and* there are no constraints.
     //
-    // TODO: this would also work with Dirichlet boundary constraints but its not
+    // TODO: this would also work with Dirichlet boundary constraints but it is not
     // as easy to detect those constraints.
     if (!consistent_mass_matrix && system.get_dof_map().n_constrained_dofs() == 0)
     {
@@ -506,7 +511,7 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
     if (close_U) U_vec.close();
     system.get_dof_map().enforce_constraints_exactly(system, &U_vec);
 
-    IBTK_TIMER_STOP(t_compute_l2_projection);
+    IBTK_TIMER_STOP(t_compute_L2_projection);
     return converged;
 }
 
