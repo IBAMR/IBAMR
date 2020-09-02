@@ -152,7 +152,8 @@ public:
      */
     inline int getVariableIdx()
     {
-        return d_W_scratch_idx;
+        auto var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+        return var_db->mapVariableAndContextToIndex(d_W_cc_var, d_adv_diff_integrator->getCurrentContext());
     }
 
     /*!
