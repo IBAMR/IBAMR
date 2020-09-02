@@ -629,18 +629,22 @@ BrinkmanPenalizationAdvDiff::computeForcing(int F_idx, Pointer<CellVariable<NDIM
         hier_cc_data_ops.add(F_idx, F_idx, d_div_B_chi_scratch_idx);
         hier_cc_data_ops.subtract(F_idx, F_idx, d_div_B_scratch_idx);
 
+#if !defined(NDEBUG)
         // Nullify patch data just to be safe
         hier_sc_data_ops.setToScalar(d_B_scratch_idx, std::numeric_limits<double>::quiet_NaN());
         hier_sc_data_ops.setToScalar(d_B_chi_scratch_idx, std::numeric_limits<double>::quiet_NaN());
         hier_cc_data_ops.setToScalar(d_div_B_chi_scratch_idx, std::numeric_limits<double>::quiet_NaN());
         hier_cc_data_ops.setToScalar(d_div_B_scratch_idx, std::numeric_limits<double>::quiet_NaN());
         hier_cc_data_ops.setToScalar(d_chi_scratch_idx, std::numeric_limits<double>::quiet_NaN());
+#endif
     }
     return;
 } // computeForcing
 
 void
-BrinkmanPenalizationAdvDiff::maskForcingTerm(int N_idx, Pointer<CellVariable<NDIM, double> > Q_var)
+BrinkmanPenalizationAdvDiff::maskForcingTerm(int N_idx,
+                                             Pointer<CellVariable<NDIM, double> > Q_var,
+                                             const bool mask_smeared_region)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_bc.find(Q_var) != d_Q_bc.end());
@@ -688,7 +692,8 @@ BrinkmanPenalizationAdvDiff::maskForcingTerm(int N_idx, Pointer<CellVariable<NDI
                     double Hphi = IBTK::smooth_heaviside(phi, alpha);
 
                     // Note: assumes that chi is positive when phi is negative
-                    const double chi = 1.0 - Hphi;
+                    double chi = 1.0 - Hphi;
+                    if (mask_smeared_region && chi > 0.0) chi = 1.0;
 
                     // Dirichlet BCs have no contribution to the masking term
                     if (bc_type == NEUMANN)
@@ -704,7 +709,6 @@ BrinkmanPenalizationAdvDiff::maskForcingTerm(int N_idx, Pointer<CellVariable<NDI
     }
     return;
 } // maskForcingTerm
-
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

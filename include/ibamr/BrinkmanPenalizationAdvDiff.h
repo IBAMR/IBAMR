@@ -229,7 +229,9 @@ public:
      * \f$ N = (1-\sum_{Neumann} \chi_i) N\f$ where \f$\chi_i = 1-H_i\f$ and the sum is taken over all level sets
      * with Neumann BCs. Note that Dirichlet BCs do not mask this term presently.
      */
-    void maskForcingTerm(int N_idx, SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+    void maskForcingTerm(int N_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                         const bool mask_smeared_region = false);
 
 private:
     /*!

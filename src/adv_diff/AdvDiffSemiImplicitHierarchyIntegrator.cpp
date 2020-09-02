@@ -943,7 +943,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_
                 const int N_old_new_idx = var_db->mapVariableAndContextToIndex(N_old_var, getNewContext());
                 const int N_old_scratch_idx = var_db->mapVariableAndContextToIndex(N_old_var, getScratchContext());
                 d_hier_cc_data_ops->copyData(N_old_scratch_idx, N_old_new_idx);
-                d_brinkman_penalization->maskForcingTerm(N_old_scratch_idx, Q_var);
+                d_brinkman_penalization->maskForcingTerm(N_old_scratch_idx, Q_var, true /*mask_smeared_region*/);
 
                 if (convective_time_stepping_type == FORWARD_EULER)
                 {
@@ -992,7 +992,8 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_
             }
 
             // Mask the convective operator due to Brinkman penalization
-            if (apply_brinkman) d_brinkman_penalization->maskForcingTerm(N_scratch_idx, Q_var);
+            if (apply_brinkman)
+                d_brinkman_penalization->maskForcingTerm(N_scratch_idx, Q_var, true /*mask_smeared_region*/);
 
             if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
             {
