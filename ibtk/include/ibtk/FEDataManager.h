@@ -25,14 +25,10 @@
 #include "ibtk/ibtk_enums.h"
 #include "ibtk/ibtk_utilities.h"
 
-#include "BasePatchLevel.h"
 #include "CellVariable.h"
 #include "IntVector.h"
-#include "LoadBalancer.h"
 #include "PatchHierarchy.h"
 #include "RefineSchedule.h"
-#include "SideVariable.h"
-#include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
@@ -572,15 +568,6 @@ public:
      * \brief Determine whether logging is enabled or disabled.
      */
     bool getLoggingEnabled() const;
-
-    /*!
-     * \brief Register a load balancer for non-uniform load balancing.
-     *
-     * @deprecated Since the correct workload index is passed in via
-     * addWorkloadEstimate this function is no longer necessary.
-     */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
-                              int workload_data_idx);
 
     /*!
      * \name Methods to set and get the patch hierarchy and range of patch
@@ -1129,17 +1116,6 @@ private:
     void updateQuadPointCountData(int coarsest_ln, int finest_ln);
 
     /*!
-     * Compute the bounding boxes of all active elements.
-     *
-     * \note For inactive elements, the lower and upper bound values will be
-     * identically zero.
-     *
-     * @deprecated Use the non member function
-     * IBTK::get_global_active_element_bounding_boxes instead.
-     */
-    std::vector<std::pair<Point, Point> >* computeActiveElementBoundingBoxes();
-
-    /*!
      * Collect all of the active elements which are located within a local
      * Cartesian grid patch grown by a ghost width of 1 (like
      * IBTK::LEInteractor::getMinimumGhostWidth(), we assume that IB points
@@ -1212,14 +1188,6 @@ private:
     bool d_enable_logging = false;
 
     /*!
-     * We cache a pointer to the load balancer.
-     *
-     * @deprecated This pointer is never used and will be removed in the
-     * future.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
-
-    /*!
      * Grid hierarchy information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
@@ -1242,24 +1210,6 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_qp_count_var;
     int d_qp_count_idx;
-
-    /*!
-     * SAMRAI::xfer::RefineAlgorithm pointer to fill the ghost cell region of
-     * SAMRAI variables.
-     */
-    SAMRAI::xfer::RefineAlgorithm<NDIM> d_ghost_fill_alg;
-
-    /*!
-     * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
-     * cell variable used to determine the workload for nonuniform load
-     * balancing.
-     *
-     * @deprecated d_workload_var and d_workload_idx will not be stored in a
-     * future release since the correct workload index will be provided as an
-     * argument to addWorkloadEstimate.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
-    int d_workload_idx = IBTK::invalid_index;
 
     /*!
      * The default parameters used during workload calculations.
@@ -1306,7 +1256,6 @@ private:
     std::vector<std::vector<libMesh::Elem*> > d_active_patch_elem_map;
     std::vector<std::vector<libMesh::Node*> > d_active_patch_node_map;
     std::map<std::string, std::vector<unsigned int> > d_active_patch_ghost_dofs;
-    std::vector<std::pair<Point, Point> > d_active_elem_bboxes;
     std::vector<libMesh::Elem*> d_active_elems;
 
     /*!
