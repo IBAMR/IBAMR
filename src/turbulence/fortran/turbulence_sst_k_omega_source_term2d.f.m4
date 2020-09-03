@@ -141,7 +141,7 @@ c
      &                        *grad_k_dot_w/w(i0,i1)), 1E-10)
             second_term = 4.d0*rho(i0,i1)*sigma_w2*k(i0,i1)
      &                    /(cross_diffusion*(distance(i0,i1)**2.d0))
-            first_term = max((sqrt(k(i0,i1))/(beta_star*w(i0,i1)
+            first_term = max((sqrt(abs(k(i0,i1)))/(beta_star*w(i0,i1)
      &                   *distance(i0,i1))),(500.d0*mu(i0,i1)
      &                   /(rho(i0,i1)*w(i0,i1)*(distance(i0,i1)
      &                   **2.d0))))
@@ -201,7 +201,7 @@ c    Local variables.
 
       do i1 = ilower1,iupper1
         do i0 = ilower0,iupper0
-            gamma = max((2.d0*sqrt(k(i0,i1))/(beta_star*w(i0,i1)
+            gamma = max((2.d0*sqrt(abs(k(i0,i1)))/(beta_star*w(i0,i1)
      &                   *distance(i0,i1))),(500.d0*mu(i0,i1)
      &                   /(rho(i0,i1)*w(i0,i1)*(distance(i0,i1)
      &                   **2.d0))))

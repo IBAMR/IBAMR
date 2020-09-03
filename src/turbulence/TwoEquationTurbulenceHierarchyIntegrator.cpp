@@ -2239,10 +2239,6 @@ TwoEquationTurbulenceHierarchyIntegrator::calculateTurbulentViscosity()
 #endif
                          A1);
         }
-        std::ofstream mu_t;
-        mu_t.open("Turbulent_viscosity.dat");
-        d_hier_cc_data_ops->printData(mu_t_new_idx, mu_t);
-        mu_t.close();
     }
 
     return;
@@ -2889,11 +2885,11 @@ TwoEquationTurbulenceHierarchyIntegrator::postprocessTurbulentDissipationRate()
                     {
                         CellIndex<NDIM> ci(b());
                         // This is only for horizontal boundaries.
-                        if (ci(1) == 0 || ci(1) == number_of_indices(1) - 1)
+                        if (ci(axis) == 0 || ci(axis) == number_of_indices(1) - 1)
                         {
                             const double w_vis =
                                 6.0 * 4.0 * (*mu_data)(ci) / (BETA_1 * patch_dx[1] * patch_dx[1] * (*rho_data)(ci));
-                            const double U_star = std::pow(BETA_STAR, 0.25) * std::pow(((*k_data)(ci)), 0.5);
+                            const double U_star = std::pow(BETA_STAR, 0.25) * std::pow(std::abs((*k_data)(ci)), 0.5);
                             const double w_log = 2.0 * U_star / (KAPPA * patch_dx[1] * std::sqrt(BETA_STAR));
                             (*w_data)(ci) = std::sqrt((w_vis * w_vis) + (w_log * w_log));
                         }
@@ -2901,14 +2897,6 @@ TwoEquationTurbulenceHierarchyIntegrator::postprocessTurbulentDissipationRate()
                 }
             }
         }
-        std::ofstream k_value;
-        k_value.open("Turb_KE.dat");
-        d_hier_cc_data_ops->printData(k_new_idx, k_value);
-        k_value.close();
-        std::ofstream w_value;
-        w_value.open("Dissipation_rate.dat");
-        d_hier_cc_data_ops->printData(w_new_idx, w_value);
-        w_value.close();
     }
     return;
 } // postprocessTurbulentDissipationRate
