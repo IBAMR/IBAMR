@@ -694,6 +694,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     // during interpolation so nothing needs to be transferred back to
     // d_hierarchy from d_scratch_hierarchy.
     batch_vec_ghost_update(U_rhs_vecs, ADD_VALUES, SCATTER_REVERSE);
+    // We need ghost entries for constraint resolution
     batch_vec_ghost_update(U_rhs_vecs, INSERT_VALUES, SCATTER_FORWARD);
 
     // If the velocity system has constraints then those need to be dealt with
@@ -712,7 +713,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     }
 
     batch_vec_ghost_update(vecs_for_second_summation, ADD_VALUES, SCATTER_REVERSE);
-    batch_vec_ghost_update(vecs_for_second_summation, INSERT_VALUES, SCATTER_FORWARD);
+    // we don't need ghost values on the RHS for the linear solve so don't scatter forward
 
     // Solve for the interpolated data.
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
