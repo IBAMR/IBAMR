@@ -446,7 +446,10 @@ IBFEMethod::registerStressNormalizationPart(unsigned int part)
     default:
         vector_names = { "current", "half", "new", "tmp", "RHS Vector" };
     }
-    setup_system_vectors(d_equation_systems[part].get(), { PRESSURE_SYSTEM_NAME }, vector_names);
+    IBTK::setup_system_vectors(d_equation_systems[part].get(),
+                               { PRESSURE_SYSTEM_NAME },
+                               vector_names,
+                               RestartManager::getManager()->isFromRestart());
     return;
 } // registerStressNormalizationPart
 
@@ -463,8 +466,10 @@ IBFEMethod::registerLagBodySourceFunction(const LagBodySourceFcnData& data, cons
     // This system has a single variable so we don't need to also specify diagonal coupling
     Q_system.add_variable("Q", d_fe_order_pressure[part], d_fe_family_pressure[part]);
     // Setup cached system vectors.
-    setup_system_vectors(
-        d_equation_systems[part].get(), { SOURCE_SYSTEM_NAME }, { "current", "half", "tmp", "RHS Vector" });
+    IBTK::setup_system_vectors(d_equation_systems[part].get(),
+                               { SOURCE_SYSTEM_NAME },
+                               { "current", "half", "tmp", "RHS Vector" },
+                               RestartManager::getManager()->isFromRestart());
     return;
 } // registerLagBodySourceFunction
 
@@ -1730,9 +1735,12 @@ IBFEMethod::doInitializeFEEquationSystems()
             F_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
         }
 
-        setup_system_vectors(&equation_systems, { VELOCITY_SYSTEM_NAME }, { "current", "half", "new" });
-        setup_system_vectors(
-            &equation_systems, { COORDS_SYSTEM_NAME }, { "last_patch_elem_assoc", "current", "half", "new" });
+        IBTK::setup_system_vectors(
+            &equation_systems, { VELOCITY_SYSTEM_NAME }, { "current", "half", "new" }, from_restart);
+        IBTK::setup_system_vectors(&equation_systems,
+                                   { COORDS_SYSTEM_NAME },
+                                   { "last_patch_elem_assoc", "current", "half", "new" },
+                                   from_restart);
         std::vector<std::string> F_vector_names;
         switch (d_ib_solver->getTimeSteppingType())
         {
@@ -1742,7 +1750,7 @@ IBFEMethod::doInitializeFEEquationSystems()
         default:
             F_vector_names = { "current", "half", "new", "tmp", "RHS Vector" };
         }
-        setup_system_vectors(&equation_systems, { FORCE_SYSTEM_NAME }, F_vector_names);
+        IBTK::setup_system_vectors(&equation_systems, { FORCE_SYSTEM_NAME }, F_vector_names, from_restart);
     }
     return;
 }

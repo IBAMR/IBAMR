@@ -35,6 +35,7 @@
 #include "libmesh/dof_map.h"
 #include "libmesh/dof_object.h"
 #include "libmesh/edge.h"
+#include "libmesh/equation_systems.h"
 #include "libmesh/face.h"
 #include "libmesh/fe.h"
 #include "libmesh/petsc_vector.h"
@@ -402,6 +403,33 @@ batch_vec_ghost_update(const std::vector<std::vector<libMesh::PetscVector<double
         }
     }
 }
+
+/**
+ * Convenience function that calls setup_system_vector for all specified systems
+ * and vector names. This function is aware of System::rhs and will reset it
+ * correctly.
+ */
+void setup_system_vectors(libMesh::EquationSystems* equation_systems,
+                          const std::vector<std::string>& system_names,
+                          const std::vector<std::string>& vector_names,
+                          const bool from_restart);
+
+/**
+ * Setup the vector with name @p vector_name in the libMesh::System object named
+ * @p system_name.
+ *
+ * The behavior of this function depends on whether or not we are working with
+ * restart data:
+ * <ol>
+ *   <li>If @p from_restart is false then the vector is added to the system in
+ *   the normal way.</li>
+ *   <li>If @p from_restart is true then the vector stored in the System
+ *   corresponding to the given name is overwritten and has its type changed
+ *   from PARALLEL to GHOSTED. This works around a bug in libMesh where vectors
+ *   are always serialized as PARALLEL.</li>
+ * </ol>
+ */
+void setup_system_vector(libMesh::System& system, const std::string& vector_name, const bool from_restart);
 
 /**
  * Utility function for copying dofs from the format used by IBAMR for caching

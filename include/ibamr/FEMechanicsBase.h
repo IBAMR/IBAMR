@@ -422,6 +422,8 @@ protected:
     /*!
      * Convenience function to setup system vectors and, if necessary, convert
      * PARALLEL vectors into GHOSTED vectors for a collection of Systems.
+     *
+     * @deprecated use IBTK::setup_system_vectors instead.
      */
     static void setup_system_vectors(libMesh::EquationSystems* equation_systems,
                                      const std::vector<std::string>& system_names,
@@ -430,6 +432,8 @@ protected:
     /*!
      * Convenience function to setup a system vector and, if necessary, convert
      * a PARALLEL vector into a GHOSTED vector.
+     *
+     * @deprecated use IBTK::setup_system_vector instead.
      */
     static void setup_system_vector(libMesh::System& system, const std::string& vector_name);
 
