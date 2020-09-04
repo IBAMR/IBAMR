@@ -14,9 +14,6 @@
 #ifndef included_InterpolationUtilities
 #define included_InterpolationUtilities
 
-#include "IBAMR_config.h"
-#include "IBTK_config.h"
-
 #include "ibamr/namespaces.h"
 #include <ibamr/app_namespaces.h>
 
