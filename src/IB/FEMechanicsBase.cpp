@@ -959,47 +959,16 @@ FEMechanicsBase::setup_system_vectors(EquationSystems* equation_systems,
                                       const std::vector<std::string>& system_names,
                                       const std::vector<std::string>& vector_names)
 {
-    for (const std::string& system_name : system_names)
-    {
-        TBOX_ASSERT(equation_systems->has_system(system_name));
-        auto& system = equation_systems->get_system<ExplicitSystem>(system_name);
-        for (const std::string& vector_name : vector_names)
-        {
-            setup_system_vector(system, vector_name);
-            if (vector_name == "RHS Vector") system.rhs = &system.get_vector("RHS Vector");
-        }
-    }
+    IBAMR_DEPRECATED_MEMBER_FUNCTION1("FEMechanicsBase", "setup_system_vectors");
+    IBTK::setup_system_vectors(
+        equation_systems, system_names, vector_names, RestartManager::getManager()->isFromRestart());
 }
 
 void
 FEMechanicsBase::setup_system_vector(System& system, const std::string& vector_name)
 {
-    auto insert_parallel_into_ghosted = [](const PetscVector<Number>& parallel_vector,
-                                           PetscVector<Number>& ghosted_vector) {
-        TBOX_ASSERT(parallel_vector.size() == ghosted_vector.size());
-        TBOX_ASSERT(parallel_vector.local_size() == ghosted_vector.local_size());
-        ghosted_vector = parallel_vector;
-        ghosted_vector.close();
-    };
-
-    std::unique_ptr<NumericVector<double> > clone_vector;
-    if (RestartManager::getManager()->isFromRestart())
-    {
-        NumericVector<double>* current = system.request_vector(vector_name);
-        if (current != nullptr)
-        {
-            clone_vector = current->clone();
-        }
-    }
-    system.remove_vector(vector_name);
-    system.add_vector(vector_name, /*projections*/ true, /*type*/ GHOSTED);
-
-    if (clone_vector != nullptr)
-    {
-        const auto& parallel_vector = dynamic_cast<const PetscVector<Number>&>(*clone_vector);
-        auto& ghosted_vector = dynamic_cast<PetscVector<Number>&>(system.get_vector(vector_name));
-        insert_parallel_into_ghosted(parallel_vector, ghosted_vector);
-    }
+    IBAMR_DEPRECATED_MEMBER_FUNCTION1("FEMechanicsBase", "setup_system_vector");
+    IBTK::setup_system_vector(system, vector_name, RestartManager::getManager()->isFromRestart());
 }
 
 std::string

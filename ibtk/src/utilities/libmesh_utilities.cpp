@@ -29,6 +29,7 @@
 #include "libmesh/enum_elem_type.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
+#include "libmesh/explicit_system.h"
 #include "libmesh/fem_context.h"
 #include "libmesh/id_types.h"
 #include "libmesh/libmesh_config.h"
@@ -68,6 +69,50 @@ namespace IBTK
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
+void
+setup_system_vectors(libMesh::EquationSystems* equation_systems,
+                     const std::vector<std::string>& system_names,
+                     const std::vector<std::string>& vector_names,
+                     const bool from_restart)
+{
+    for (const std::string& system_name : system_names)
+    {
+        TBOX_ASSERT(equation_systems->has_system(system_name));
+        auto& system = equation_systems->get_system<libMesh::ExplicitSystem>(system_name);
+        for (const std::string& vector_name : vector_names)
+        {
+            setup_system_vector(system, vector_name, from_restart);
+            if (vector_name == "RHS Vector") system.rhs = &system.get_vector("RHS Vector");
+        }
+    }
+}
+
+void
+setup_system_vector(libMesh::System& system, const std::string& vector_name, const bool from_restart)
+{
+    std::unique_ptr<libMesh::NumericVector<double> > clone_vector;
+    if (from_restart)
+    {
+        libMesh::NumericVector<double>* current = system.request_vector(vector_name);
+        if (current != nullptr)
+        {
+            clone_vector = current->clone();
+        }
+    }
+    system.remove_vector(vector_name);
+    system.add_vector(vector_name, /*projections*/ true, /*type*/ libMesh::GHOSTED);
+
+    if (clone_vector != nullptr)
+    {
+        const auto& parallel_vector = dynamic_cast<const libMesh::PetscVector<double>&>(*clone_vector);
+        auto& ghosted_vector = dynamic_cast<libMesh::PetscVector<double>&>(system.get_vector(vector_name));
+        TBOX_ASSERT(parallel_vector.size() == ghosted_vector.size());
+        TBOX_ASSERT(parallel_vector.local_size() == ghosted_vector.local_size());
+        ghosted_vector = parallel_vector;
+        ghosted_vector.close();
+    }
+}
+
 void
 apply_transposed_constraint_matrix(const libMesh::DofMap& dof_map, libMesh::PetscVector<double>& rhs)
 {
