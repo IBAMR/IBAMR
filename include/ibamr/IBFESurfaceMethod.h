@@ -23,6 +23,7 @@
 #include "ibamr/IBStrategy.h"
 
 #include "ibtk/FEDataManager.h"
+#include "ibtk/LibMeshSystemIBVectors.h"
 #include "ibtk/SAMRAIGhostDataAccumulator.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
@@ -562,14 +563,23 @@ protected:
     std::unique_ptr<IBTK::SAMRAIGhostDataAccumulator> d_ghost_data_accumulator;
 
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
+
     std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_DP_systems;
-    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
-        d_X_IB_ghost_vecs;
+
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_DP_half_vecs, d_DP_IB_ghost_vecs;
+
+    /*!
+     * Object managing access to libMesh system vectors for the position system.
+     *
+     * @note Unlike IBAMR::IBFEMethod, this class does not inherit from
+     * FEMechanicsBase and therefore both normal and IB vectors are handled by
+     * d_X_vecs.
+     */
+    std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_X_vecs;
 
     bool d_fe_equation_systems_initialized = false, d_fe_data_initialized = false;
 
