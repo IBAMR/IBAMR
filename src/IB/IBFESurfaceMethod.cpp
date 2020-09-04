@@ -440,8 +440,6 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
         updateCoordinateMapping(part);
     }
 
-    d_X_systems.clear();
-
     d_U_systems.clear();
     d_U_current_vecs.clear();
     d_U_new_vecs.clear();
