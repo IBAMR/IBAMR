@@ -31,6 +31,7 @@
 #include "IntVector.h"
 #include "LoadBalancer.h"
 #include "PatchHierarchy.h"
+#include "SideIndex.h"
 #include "tbox/Pointer.h"
 
 #include "libmesh/enum_fe_family.h"

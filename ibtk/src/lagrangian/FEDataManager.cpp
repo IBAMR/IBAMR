@@ -44,7 +44,6 @@
 #include "HierarchyDataOpsReal.h"
 #include "Index.h"
 #include "IntVector.h"
-#include "LoadBalancer.h"
 #include "Patch.h"
 #include "PatchData.h"
 #include "PatchHierarchy.h"
@@ -511,16 +510,6 @@ FEDataManager::getDofMapCache(unsigned int system_num)
 } // getDofMapCache
 
 void
-FEDataManager::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
-{
-    IBTK_DEPRECATED_MEMBER_FUNCTION1("FEDataManager", "registerLoadBalancer");
-    TBOX_ASSERT(load_balancer);
-    d_load_balancer = load_balancer;
-    d_workload_idx = workload_data_idx;
-    return;
-} // registerLoadBalancer
-
-void
 FEDataManager::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
     // Reset the hierarchy.
@@ -608,14 +597,12 @@ FEDataManager::reinitElementMappings()
     d_active_patch_elem_map.clear();
     d_active_patch_node_map.clear();
     d_active_patch_ghost_dofs.clear();
-    d_active_elem_bboxes.clear();
     d_active_elems.clear();
     d_system_ghost_vec.clear();
     d_system_ib_ghost_vec.clear();
 
     // Reset the mappings between grid patches and active mesh
-    // elements. collectActivePatchElements will populate d_active_elem_bboxes
-    // and use it.
+    // elements.
     collectActivePatchElements(d_active_patch_elem_map, d_fe_data->d_level_number);
     collectActivePatchNodes(d_active_patch_node_map, d_active_patch_elem_map);
     collect_unique_elems(d_active_elems, d_active_patch_elem_map);
@@ -2993,26 +2980,6 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
     }
     return;
 } // updateQuadPointCountData
-
-std::vector<std::pair<Point, Point> >*
-FEDataManager::computeActiveElementBoundingBoxes()
-{
-    IBTK_DEPRECATED_MEMBER_FUNCTION1("FEDataManager", "computeActiveElementBoundingBoxes");
-    const MeshBase& mesh = d_fe_data->d_es->get_mesh();
-    const System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
-
-    const auto bboxes = get_global_element_bounding_boxes(mesh, X_system);
-    d_active_elem_bboxes.resize(bboxes.size());
-    for (std::size_t i = 0; i < bboxes.size(); ++i)
-    {
-        for (int d = 0; d < NDIM; ++d)
-        {
-            d_active_elem_bboxes[i].first[d] = bboxes[i].first(d);
-            d_active_elem_bboxes[i].second[d] = bboxes[i].second(d);
-        }
-    }
-    return &d_active_elem_bboxes;
-} // computeActiveElementBoundingBoxes
 
 void
 FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& active_patch_elems, const int level_number)
