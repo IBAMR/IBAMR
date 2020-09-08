@@ -127,7 +127,7 @@ namespace IBAMR
 namespace
 {
 // Version of IBFESurfaceMethod restart file data.
-static const int IBFE_METHOD_VERSION = 1;
+static const int IBFE_METHOD_VERSION = 2;
 
 std::string
 libmesh_restart_file_name(const std::string& restart_dump_dirname,
