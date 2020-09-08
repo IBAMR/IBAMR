@@ -482,7 +482,7 @@ EXAMPLES = $(am__append_1)
 main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 main3d_SOURCES = $(EXAMPLE_DRIVER)
-sphereGen3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+sphereGen3d_CXXFLAGS = $(AM_CXXFLAGS)
 sphereGen3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 sphereGen3d_SOURCES = sphereGen3d.cpp
 all: all-am
