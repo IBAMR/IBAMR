@@ -23,7 +23,7 @@
 
 // Set sphere related parameters.
 static const double DIAMETER = 0.625;
-// static const int NDIM = 3;
+static const int NDIM = 3;
 
 int
 main()
