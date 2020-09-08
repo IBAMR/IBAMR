@@ -564,9 +564,8 @@ protected:
 
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
 
-    std::vector<libMesh::System*> d_U_systems, d_F_systems, d_DP_systems;
+    std::vector<libMesh::System*> d_U_systems, d_DP_systems;
 
-    std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_DP_half_vecs, d_DP_IB_ghost_vecs;
 
     /*!
@@ -606,6 +605,15 @@ protected:
      * d_U_t_vecs.
      */
     std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_U_t_vecs;
+
+    /*!
+     * Object managing access to libMesh system vectors for the force system.
+     *
+     * @note Unlike IBAMR::IBFEMethod, this class does not inherit from
+     * FEMechanicsBase and therefore both normal and IB vectors are handled by
+     * d_F_vecs.
+     */
+    std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_F_vecs;
 
     bool d_fe_equation_systems_initialized = false, d_fe_data_initialized = false;
 
