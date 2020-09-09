@@ -272,7 +272,14 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     {
         if (!d_solve_rigid_vel(s))
         {
-            d_rot_vel_new(s) = W_imposed(s);
+            if (NDIM == 2)
+            {
+                d_rot_vel_new(s) = W_imposed(s);
+            }
+            else if (NDIM == 3)
+            {
+                d_rot_vel_new(s - NDIM) = W_imposed(s - NDIM);
+            }
         }
     }
 
@@ -328,19 +335,7 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
                 const double phi_lower = (*ls_solid_data)(s_i.toCell(0));
                 const double phi_upper = (*ls_solid_data)(s_i.toCell(1));
                 const double phi = 0.5 * (phi_lower + phi_upper);
-                double Hphi;
-                if (phi < -alpha)
-                {
-                    Hphi = 0.0;
-                }
-                else if (std::abs(phi) <= alpha)
-                {
-                    Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
-                }
-                else
-                {
-                    Hphi = 1.0;
-                }
+                const double Hphi = IBTK::smooth_heaviside(phi, alpha);
                 if (phi <= alpha)
                 {
                     const Eigen::Vector3d r = IBTK::IndexUtilities::getSideCenter<Eigen::Vector3d>(*patch, s_i);
@@ -402,20 +397,7 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
                 const double phi_lower = (*ls_solid_data)(s_i.toCell(0));
                 const double phi_upper = (*ls_solid_data)(s_i.toCell(1));
                 const double phi = 0.5 * (phi_lower + phi_upper);
-                double Hphi;
-                if (phi < -alpha)
-                {
-                    Hphi = 0.0;
-                }
-                else if (std::abs(phi) <= alpha)
-                {
-                    Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
-                }
-                else
-                {
-                    Hphi = 1.0;
-                }
-
+                const double Hphi = IBTK::smooth_heaviside(phi, alpha);
                 if (phi <= alpha)
                 {
                     const double penalty = (*rho_data)(s_i) / dt;
