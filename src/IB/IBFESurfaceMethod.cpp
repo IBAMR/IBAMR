@@ -127,7 +127,7 @@ namespace IBAMR
 namespace
 {
 // Version of IBFESurfaceMethod restart file data.
-static const int IBFE_METHOD_VERSION = 2;
+static const int IBFE_METHOD_VERSION = 3;
 
 std::string
 libmesh_restart_file_name(const std::string& restart_dump_dirname,
@@ -308,28 +308,8 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
     d_U_t_vecs->copy("solution", { "current", "new", "half" });
     // like spreadForce, assumes we are using the midpoint method
     d_F_vecs->copy("solution", { "current", "half" });
+    if (d_use_pressure_jump_conditions) d_DP_vecs->copy("solution", { "current", "half" });
 
-    d_DP_systems.resize(d_num_parts);
-    d_DP_half_vecs.resize(d_num_parts);
-    d_DP_IB_ghost_vecs.resize(d_num_parts);
-
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        if (d_use_pressure_jump_conditions)
-        {
-            d_DP_systems[part] = &d_equation_systems[part]->get_system(PRESSURE_JUMP_SYSTEM_NAME);
-            d_DP_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_DP_systems[part]->current_local_solution.get());
-            d_DP_IB_ghost_vecs[part] =
-                dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(
-                    PRESSURE_JUMP_SYSTEM_NAME, /*localize_data*/ false));
-        }
-
-        if (d_use_pressure_jump_conditions)
-        {
-            d_DP_systems[part]->solution->close();
-            d_DP_systems[part]->solution->localize(*d_DP_half_vecs[part]);
-        }
-    }
     return;
 } // preprocessIntegrateData
 
@@ -343,23 +323,12 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
         d_U_vecs->copy("new", { "solution", "current" });
         d_U_n_vecs->copy("new", { "solution" });
         d_U_t_vecs->copy("new", { "solution" });
-
-        if (d_use_pressure_jump_conditions)
-        {
-            d_DP_half_vecs[part]->close();
-            *d_DP_systems[part]->solution = *d_DP_half_vecs[part];
-            d_DP_systems[part]->solution->close();
-            d_DP_systems[part]->solution->localize(*d_DP_systems[part]->current_local_solution);
-        }
         d_F_vecs->copy("half", { "solution" });
+        if (d_use_pressure_jump_conditions) d_DP_vecs->copy("half", { "solution" });
 
         // Update the coordinate mapping dX = X - s.
         updateCoordinateMapping(part);
     }
-
-    d_DP_systems.clear();
-    d_DP_half_vecs.clear();
-    d_DP_IB_ghost_vecs.clear();
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -744,9 +713,10 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         PetscVector<double>& F_rhs_vec = d_F_vecs->get("RHS Vector", part);
         F_rhs_vec.zero();
         DenseVector<double> F_rhs_e[NDIM];
-        NumericVector<double>* DP_vec = d_DP_half_vecs[part];
-        std::unique_ptr<NumericVector<double> > DP_rhs_vec =
-            (d_use_pressure_jump_conditions ? DP_vec->zero_clone() : std::unique_ptr<NumericVector<double> >());
+        PetscVector<double>* DP_vec = d_use_pressure_jump_conditions ? &d_DP_vecs->get("half", part) : nullptr;
+        PetscVector<double>* DP_rhs_vec =
+            d_use_pressure_jump_conditions ? &d_DP_vecs->get("RHS Vector", part) : nullptr;
+        if (DP_rhs_vec) DP_rhs_vec->zero();
         DenseVector<double> DP_rhs_e;
         VectorValue<double>& F_integral = d_lag_surface_force_integral[part];
         F_integral.zero();
@@ -994,8 +964,19 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
     // Communicate ghost data.
     std::vector<PetscVector<double>*> X_IB_ghost_vecs = d_X_vecs->getIBGhosted("tmp");
     std::vector<PetscVector<double>*> F_IB_ghost_vecs = d_F_vecs->getIBGhosted("tmp");
-    batch_vec_copy({ d_X_vecs->get(data_time_str), d_F_vecs->get(data_time_str) },
-                   { X_IB_ghost_vecs, F_IB_ghost_vecs });
+    std::vector<PetscVector<double>*> DP_IB_ghost_vecs = d_use_pressure_jump_conditions ?
+                                                             d_DP_vecs->getIBGhosted("tmp") :
+                                                             std::vector<PetscVector<double>*>(d_num_parts, nullptr);
+    std::vector<PetscVector<double>*> DP_vecs = d_use_pressure_jump_conditions ?
+                                                    d_DP_vecs->get(data_time_str) :
+                                                    std::vector<PetscVector<double>*>(d_num_parts, nullptr);
+    batch_vec_copy(
+        {
+            d_X_vecs->get(data_time_str),
+            d_F_vecs->get(data_time_str),
+            DP_vecs,
+        },
+        { X_IB_ghost_vecs, F_IB_ghost_vecs, DP_IB_ghost_vecs });
     batch_vec_ghost_update({ X_IB_ghost_vecs, F_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
     const int ln = d_hierarchy->getFinestLevelNumber();
@@ -1015,10 +996,7 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
 
         if (d_use_pressure_jump_conditions)
         {
-            PetscVector<double>* DP_vec = d_DP_half_vecs[part];
-            PetscVector<double>* DP_ghost_vec = d_DP_IB_ghost_vecs[part];
-            DP_vec->localize(*DP_ghost_vec);
-            imposeJumpConditions(f_scratch_data_idx, *DP_ghost_vec, *X_ghost_vec, data_time, part);
+            imposeJumpConditions(f_scratch_data_idx, *DP_IB_ghost_vecs[part], *X_ghost_vec, data_time, part);
         }
     }
 
@@ -1190,6 +1168,8 @@ IBFESurfaceMethod::initializeFEData()
     d_U_n_vecs.reset(new LibMeshSystemIBVectors(d_fe_data_managers, NORMAL_VELOCITY_SYSTEM_NAME));
     d_U_t_vecs.reset(new LibMeshSystemIBVectors(d_fe_data_managers, TANGENTIAL_VELOCITY_SYSTEM_NAME));
     d_F_vecs.reset(new LibMeshSystemIBVectors(d_fe_data_managers, FORCE_SYSTEM_NAME));
+    if (d_use_pressure_jump_conditions)
+        d_DP_vecs.reset(new LibMeshSystemIBVectors(d_fe_data_managers, PRESSURE_JUMP_SYSTEM_NAME));
 
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -1321,6 +1301,7 @@ void IBFESurfaceMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*h
     d_U_n_vecs->reinit();
     d_U_t_vecs->reinit();
     d_F_vecs->reinit();
+    if (d_use_pressure_jump_conditions) d_DP_vecs->reinit();
     return;
 } // endDataRedistribution
 
