@@ -86,9 +86,9 @@ get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 FEProjector::FEProjector(EquationSystems* equation_systems, const bool enable_logging)
-    : d_fe_data(new FEData("FEProjector", /*register_for_restart*/ false)), d_enable_logging(enable_logging)
+    : d_fe_data(new FEData("FEProjector", *equation_systems, /*register_for_restart*/ false)),
+      d_enable_logging(enable_logging)
 {
-    d_fe_data->setEquationSystems(equation_systems, /*level_number*/ 0);
     IBTK_DO_ONCE(t_build_L2_projection_solver =
                      TimerManager::getManager()->getTimer("IBTK::FEProjector::buildL2ProjectionSolver()");
                  t_build_lumped_L2_projection_solver =

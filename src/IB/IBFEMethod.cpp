@@ -387,7 +387,7 @@ const std::string IBFEMethod::SOURCE_SYSTEM_NAME = "IB source system";
 IBFEMethod::IBFEMethod(const std::string& object_name,
                        const Pointer<Database>& input_db,
                        MeshBase* mesh,
-                       int max_level_number,
+                       int max_levels,
                        bool register_for_restart,
                        const std::string& restart_read_dirname,
                        unsigned int restart_restore_number)
@@ -396,7 +396,7 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
     commonConstructor(object_name,
                       input_db,
                       std::vector<MeshBase*>(1, mesh),
-                      max_level_number,
+                      max_levels,
                       restart_read_dirname,
                       restart_restore_number);
     return;
@@ -405,13 +405,13 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
 IBFEMethod::IBFEMethod(const std::string& object_name,
                        const Pointer<Database>& input_db,
                        const std::vector<MeshBase*>& meshes,
-                       int max_level_number,
+                       int max_levels,
                        bool register_for_restart,
                        const std::string& restart_read_dirname,
                        unsigned int restart_restore_number)
     : FEMechanicsBase(object_name, input_db, meshes, register_for_restart, restart_read_dirname, restart_restore_number)
 {
-    commonConstructor(object_name, input_db, meshes, max_level_number, restart_read_dirname, restart_restore_number);
+    commonConstructor(object_name, input_db, meshes, max_levels, restart_read_dirname, restart_restore_number);
     return;
 } // IBFEMethod
 
@@ -1452,12 +1452,12 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             // TODO: d_current_time is actually nan here. Since we don't do
             // any sort of tagging based on the current time I think we can
             // just put in a bogus (nonnegative) value.
-            int max_level = d_scratch_hierarchy->getFinestLevelNumber();
-            if (max_level == 0)
+            int finest_level = d_scratch_hierarchy->getFinestLevelNumber();
+            if (finest_level == 0)
                 d_scratch_gridding_algorithm->makeCoarsestLevel(d_scratch_hierarchy, 0.0 /*d_current_time*/);
             else
                 d_scratch_gridding_algorithm->regridAllFinerLevels(
-                    d_scratch_hierarchy, max_level - 1, 0.0 /*d_current_time*/, tag_buffer);
+                    d_scratch_hierarchy, finest_level - 1, 0.0 /*d_current_time*/, tag_buffer);
             if (d_do_log) plog << "IBFEMethod: finished scratch hierarchy regrid" << std::endl;
 
             // FEDataManager needs
@@ -1648,50 +1648,10 @@ IBFEMethod::doInitializeFEEquationSystems()
     if (d_input_db->keyExists("FEDataManager")) fe_data_manager_db = d_input_db->getDatabase("FEDataManager");
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
-        // Create FE data managers.
-        const std::string manager_name = "IBFEMethod FEDataManager::" + std::to_string(part);
-        auto fe_data = std::make_shared<FEData>(manager_name + "::fe_data", /*register_for_restart*/ true);
-        d_primary_fe_data_managers[part] = FEDataManager::getManager(fe_data,
-                                                                     manager_name,
-                                                                     fe_data_manager_db,
-                                                                     d_interp_spec[part],
-                                                                     d_spread_spec[part],
-                                                                     d_workload_spec[part],
-                                                                     min_ghost_width,
-                                                                     d_primary_eulerian_data_cache);
-        if (d_use_scratch_hierarchy)
-        {
-            if (!d_scratch_eulerian_data_cache) d_scratch_eulerian_data_cache = std::make_shared<SAMRAIDataCache>();
-            d_scratch_fe_data_managers[part] = FEDataManager::getManager(fe_data,
-                                                                         manager_name + "::scratch",
-                                                                         fe_data_manager_db,
-                                                                         d_interp_spec[part],
-                                                                         d_spread_spec[part],
-                                                                         d_workload_spec[part],
-                                                                         min_ghost_width,
-                                                                         d_scratch_eulerian_data_cache);
-            d_active_fe_data_managers[part] = d_scratch_fe_data_managers[part];
-            d_active_eulerian_data_cache = d_scratch_eulerian_data_cache;
-        }
-        else
-        {
-            d_active_fe_data_managers[part] = d_primary_fe_data_managers[part];
-        }
-        d_fe_data[part] = d_primary_fe_data_managers[part]->getFEData();
-
-        d_active_fe_data_managers[part]->setLoggingEnabled(d_do_log);
-        d_ghosts = IntVector<NDIM>::max(d_ghosts, d_active_fe_data_managers[part]->getGhostCellWidth());
-
         // Create FE equation systems objects and corresponding variables.
         d_equation_systems[part] = std::unique_ptr<EquationSystems>(new EquationSystems(*d_meshes[part]));
         EquationSystems& equation_systems = *d_equation_systems[part];
-        d_primary_fe_data_managers[part]->setEquationSystems(&equation_systems, d_max_level_number - 1);
-        if (d_use_scratch_hierarchy)
-            d_scratch_fe_data_managers[part]->setEquationSystems(&equation_systems, d_max_level_number - 1);
-        // Since the scratch and primary FEDataManagers use the same FEData object
-        // we only have to do this assignment
-        // once
-        d_active_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
+
         if (from_restart)
         {
             const std::string& file_name = libmesh_restart_file_name(
@@ -1752,6 +1712,46 @@ IBFEMethod::doInitializeFEEquationSystems()
             F_vector_names = { "current", "half", "new", "tmp", "RHS Vector" };
         }
         IBTK::setup_system_vectors(&equation_systems, { FORCE_SYSTEM_NAME }, F_vector_names, from_restart);
+
+        // Create FE data managers.
+        const std::string manager_name = "IBFEMethod FEDataManager::" + std::to_string(part);
+        d_fe_data[part] =
+            std::make_shared<FEData>(manager_name + "::fe_data", equation_systems, /*register_for_restart*/ true);
+        d_primary_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
+                                                                     manager_name,
+                                                                     fe_data_manager_db,
+                                                                     d_max_level_number + 1,
+                                                                     d_interp_spec[part],
+                                                                     d_spread_spec[part],
+                                                                     d_workload_spec[part],
+                                                                     min_ghost_width,
+                                                                     d_primary_eulerian_data_cache);
+        if (d_use_scratch_hierarchy)
+        {
+            if (!d_scratch_eulerian_data_cache) d_scratch_eulerian_data_cache = std::make_shared<SAMRAIDataCache>();
+            d_scratch_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
+                                                                         manager_name + "::scratch",
+                                                                         fe_data_manager_db,
+                                                                         d_max_level_number + 1,
+                                                                         d_interp_spec[part],
+                                                                         d_spread_spec[part],
+                                                                         d_workload_spec[part],
+                                                                         min_ghost_width,
+                                                                         d_scratch_eulerian_data_cache);
+            d_active_fe_data_managers[part] = d_scratch_fe_data_managers[part];
+            d_active_eulerian_data_cache = d_scratch_eulerian_data_cache;
+        }
+        else
+        {
+            d_active_fe_data_managers[part] = d_primary_fe_data_managers[part];
+        }
+
+        d_active_fe_data_managers[part]->setLoggingEnabled(d_do_log);
+        d_ghosts = IntVector<NDIM>::max(d_ghosts, d_active_fe_data_managers[part]->getGhostCellWidth());
+
+        // Since the scratch and primary FEDataManagers use the same FEData
+        // object we only have to do this assignment once
+        d_active_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
     }
     return;
 }
@@ -2822,7 +2822,7 @@ void
 IBFEMethod::commonConstructor(const std::string& object_name,
                               const Pointer<Database>& input_db,
                               const std::vector<libMesh::MeshBase*>& meshes,
-                              int max_level_number,
+                              int max_levels,
                               const std::string& restart_read_dirname,
                               unsigned int restart_restore_number)
 {
@@ -2834,7 +2834,7 @@ IBFEMethod::commonConstructor(const std::string& object_name,
 
     // Store the mesh pointers.
     d_meshes = meshes;
-    d_max_level_number = max_level_number;
+    d_max_level_number = max_levels - 1;
 
     // Indicate that all parts are active.
     d_part_is_active.resize(d_meshes.size(), true);

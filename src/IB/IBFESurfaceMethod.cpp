@@ -168,7 +168,7 @@ const std::array<std::string, NDIM> IBFESurfaceMethod::VELOCITY_JUMP_SYSTEM_NAME
 IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
                                      Pointer<Database> input_db,
                                      MeshBase* mesh,
-                                     int max_level_number,
+                                     int max_levels,
                                      bool register_for_restart,
                                      const std::string& restart_read_dirname,
                                      unsigned int restart_restore_number)
@@ -176,7 +176,7 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
     commonConstructor(object_name,
                       input_db,
                       std::vector<MeshBase*>(1, mesh),
-                      max_level_number,
+                      max_levels,
                       register_for_restart,
                       restart_read_dirname,
                       restart_restore_number);
@@ -186,19 +186,14 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
 IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
                                      Pointer<Database> input_db,
                                      const std::vector<MeshBase*>& meshes,
-                                     int max_level_number,
+                                     int max_levels,
                                      bool register_for_restart,
                                      const std::string& restart_read_dirname,
                                      unsigned int restart_restore_number)
     : d_num_parts(static_cast<int>(meshes.size()))
 {
-    commonConstructor(object_name,
-                      input_db,
-                      meshes,
-                      max_level_number,
-                      register_for_restart,
-                      restart_read_dirname,
-                      restart_restore_number);
+    commonConstructor(
+        object_name, input_db, meshes, max_levels, register_for_restart, restart_read_dirname, restart_restore_number);
     return;
 } // IBFESurfaceMethod
 
@@ -1066,27 +1061,19 @@ IBFESurfaceMethod::initializeFEEquationSystems()
 
     // Create the FE data managers that manage mappings between the FE mesh
     // parts and the Cartesian grid.
-    d_equation_systems.resize(d_num_parts, nullptr);
-    d_fe_data_managers.resize(d_num_parts, nullptr);
+    d_equation_systems.resize(d_num_parts);
+    d_fe_data_managers.resize(d_num_parts);
+    d_fe_data.resize(d_num_parts);
     IntVector<NDIM> min_ghost_width(0);
     if (!d_eulerian_data_cache) d_eulerian_data_cache.reset(new SAMRAIDataCache());
+
+    Pointer<Database> fe_data_manager_db(new InputDatabase("fe_data_manager_db"));
+    if (d_input_db->keyExists("FEDataManager")) fe_data_manager_db = d_input_db->getDatabase("FEDataManager");
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        // Create FE data managers.
-        const std::string manager_name = "IBFESurfaceMethod FEDataManager::" + std::to_string(part);
-        d_fe_data_managers[part] = FEDataManager::getManager(manager_name,
-                                                             d_interp_spec[part],
-                                                             d_spread_spec[part],
-                                                             d_default_workload_spec,
-                                                             min_ghost_width,
-                                                             d_eulerian_data_cache);
-        d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
-
         // Create FE equation systems objects and corresponding variables.
         d_equation_systems[part] = new EquationSystems(*d_meshes[part]);
         EquationSystems* equation_systems = d_equation_systems[part];
-        d_fe_data_managers[part]->setEquationSystems(equation_systems, d_max_level_number - 1);
-        d_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
         if (from_restart)
         {
             const std::string& file_name = libmesh_restart_file_name(
@@ -1153,6 +1140,22 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                              { FORCE_SYSTEM_NAME },
                              { "current", "half" },
                              RestartManager::getManager()->isFromRestart());
+
+        // Create FE data managers.
+        const std::string manager_name = "IBFESurfaceMethod FEDataManager::" + std::to_string(part);
+        d_fe_data[part] =
+            std::make_shared<FEData>(manager_name + "::fe_data", *equation_systems, /*register_for_restart*/ true);
+        d_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
+                                                             manager_name,
+                                                             fe_data_manager_db,
+                                                             d_max_level_number + 1,
+                                                             d_interp_spec[part],
+                                                             d_spread_spec[part],
+                                                             d_default_workload_spec,
+                                                             min_ghost_width,
+                                                             d_eulerian_data_cache);
+        d_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
+        d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
     }
     d_fe_equation_systems_initialized = true;
     return;
@@ -1843,7 +1846,7 @@ void
 IBFESurfaceMethod::commonConstructor(const std::string& object_name,
                                      Pointer<Database> input_db,
                                      const std::vector<libMesh::MeshBase*>& meshes,
-                                     int max_level_number,
+                                     int max_levels,
                                      bool register_for_restart,
                                      const std::string& restart_read_dirname,
                                      unsigned int restart_restore_number)
@@ -1861,7 +1864,7 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
 
     // Store the mesh pointers.
     d_meshes = meshes;
-    d_max_level_number = max_level_number;
+    d_max_level_number = max_levels - 1;
 
     // Set some default values.
     const bool use_adaptive_quadrature = true;
@@ -1944,6 +1947,9 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     // Set up the interaction spec objects.
     d_interp_spec.resize(d_num_parts, d_default_interp_spec);
     d_spread_spec.resize(d_num_parts, d_default_spread_spec);
+
+    // Store the input database since FEDataManager will need it too
+    d_input_db = input_db;
 
     return;
 } // commonConstructor
