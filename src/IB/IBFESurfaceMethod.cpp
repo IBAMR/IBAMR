@@ -168,7 +168,7 @@ const std::array<std::string, NDIM> IBFESurfaceMethod::VELOCITY_JUMP_SYSTEM_NAME
 IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
                                      Pointer<Database> input_db,
                                      MeshBase* mesh,
-                                     int max_level_number,
+                                     int max_levels,
                                      bool register_for_restart,
                                      const std::string& restart_read_dirname,
                                      unsigned int restart_restore_number)
@@ -176,7 +176,7 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
     commonConstructor(object_name,
                       input_db,
                       std::vector<MeshBase*>(1, mesh),
-                      max_level_number,
+                      max_levels,
                       register_for_restart,
                       restart_read_dirname,
                       restart_restore_number);
@@ -186,7 +186,7 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
 IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
                                      Pointer<Database> input_db,
                                      const std::vector<MeshBase*>& meshes,
-                                     int max_level_number,
+                                     int max_levels,
                                      bool register_for_restart,
                                      const std::string& restart_read_dirname,
                                      unsigned int restart_restore_number)
@@ -195,7 +195,7 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
     commonConstructor(object_name,
                       input_db,
                       meshes,
-                      max_level_number,
+                      max_levels,
                       register_for_restart,
                       restart_read_dirname,
                       restart_restore_number);
@@ -1843,7 +1843,7 @@ void
 IBFESurfaceMethod::commonConstructor(const std::string& object_name,
                                      Pointer<Database> input_db,
                                      const std::vector<libMesh::MeshBase*>& meshes,
-                                     int max_level_number,
+                                     int max_levels,
                                      bool register_for_restart,
                                      const std::string& restart_read_dirname,
                                      unsigned int restart_restore_number)
@@ -1861,7 +1861,7 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
 
     // Store the mesh pointers.
     d_meshes = meshes;
-    d_max_level_number = max_level_number;
+    d_finest_level_number = max_levels - 1;
 
     // Set some default values.
     const bool use_adaptive_quadrature = true;

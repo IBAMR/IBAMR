@@ -129,7 +129,7 @@ public:
     IBFESurfaceMethod(const std::string& object_name,
                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                       libMesh::MeshBase* mesh,
-                      int max_level_number,
+                      int max_levels,
                       bool register_for_restart = true,
                       const std::string& restart_read_dirname = "",
                       unsigned int restart_restore_number = 0);
@@ -140,7 +140,7 @@ public:
     IBFESurfaceMethod(const std::string& object_name,
                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                       const std::vector<libMesh::MeshBase*>& meshes,
-                      int max_level_number,
+                      int max_levels,
                       bool register_for_restart = true,
                       const std::string& restart_read_dirname = "",
                       unsigned int restart_restore_number = 0);
@@ -553,7 +553,7 @@ protected:
      * FE data associated with this object.
      */
     std::vector<libMesh::MeshBase*> d_meshes;
-    int d_max_level_number;
+    int d_finest_level_number = IBTK::invalid_level_number;
     std::vector<libMesh::EquationSystems*> d_equation_systems;
 
     const unsigned int d_num_parts = 1;
@@ -731,7 +731,7 @@ private:
     void commonConstructor(const std::string& object_name,
                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                            const std::vector<libMesh::MeshBase*>& meshes,
-                           int max_level_number,
+                           int max_levels,
                            bool register_for_restart,
                            const std::string& restart_read_dirname,
                            unsigned int restart_restore_number);

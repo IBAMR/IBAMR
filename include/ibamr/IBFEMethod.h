@@ -442,7 +442,7 @@ public:
     IBFEMethod(const std::string& object_name,
                const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
                libMesh::MeshBase* mesh,
-               int max_level_number,
+               int max_levels,
                bool register_for_restart = true,
                const std::string& restart_read_dirname = "",
                unsigned int restart_restore_number = 0);
@@ -453,7 +453,7 @@ public:
     IBFEMethod(const std::string& object_name,
                const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
                const std::vector<libMesh::MeshBase*>& meshes,
-               int max_level_number,
+               int max_levels,
                bool register_for_restart = true,
                const std::string& restart_read_dirname = "",
                unsigned int restart_restore_number = 0);
@@ -950,9 +950,9 @@ protected:
         d_scratch_transfer_backward_schedules;
 
     /*!
-     * Maximum level number in the patch hierarchy.
+     * Finest level number in the patch hierarchy.
      */
-    int d_max_level_number = -1;
+    int d_finest_level_number = IBTK::invalid_level_number;
 
     /// CFL-like number used to determine when we should call
     /// reinitElementMappings() based on maximum structure point displacement.
@@ -1128,7 +1128,7 @@ private:
     void commonConstructor(const std::string& object_name,
                            const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
                            const std::vector<libMesh::MeshBase*>& meshes,
-                           int max_level_number,
+                           int max_levels,
                            const std::string& restart_read_dirname,
                            unsigned int restart_restore_number);
 

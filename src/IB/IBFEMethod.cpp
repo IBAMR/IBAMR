@@ -387,7 +387,7 @@ const std::string IBFEMethod::SOURCE_SYSTEM_NAME = "IB source system";
 IBFEMethod::IBFEMethod(const std::string& object_name,
                        const Pointer<Database>& input_db,
                        MeshBase* mesh,
-                       int max_level_number,
+                       int max_levels,
                        bool register_for_restart,
                        const std::string& restart_read_dirname,
                        unsigned int restart_restore_number)
@@ -396,7 +396,7 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
     commonConstructor(object_name,
                       input_db,
                       std::vector<MeshBase*>(1, mesh),
-                      max_level_number,
+                      max_levels,
                       restart_read_dirname,
                       restart_restore_number);
     return;
@@ -405,13 +405,13 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
 IBFEMethod::IBFEMethod(const std::string& object_name,
                        const Pointer<Database>& input_db,
                        const std::vector<MeshBase*>& meshes,
-                       int max_level_number,
+                       int max_levels,
                        bool register_for_restart,
                        const std::string& restart_read_dirname,
                        unsigned int restart_restore_number)
     : FEMechanicsBase(object_name, input_db, meshes, register_for_restart, restart_read_dirname, restart_restore_number)
 {
-    commonConstructor(object_name, input_db, meshes, max_level_number, restart_read_dirname, restart_restore_number);
+    commonConstructor(object_name, input_db, meshes, max_levels, restart_read_dirname, restart_restore_number);
     return;
 } // IBFEMethod
 
@@ -2822,7 +2822,7 @@ void
 IBFEMethod::commonConstructor(const std::string& object_name,
                               const Pointer<Database>& input_db,
                               const std::vector<libMesh::MeshBase*>& meshes,
-                              int max_level_number,
+                              int max_levels,
                               const std::string& restart_read_dirname,
                               unsigned int restart_restore_number)
 {
@@ -2834,7 +2834,7 @@ IBFEMethod::commonConstructor(const std::string& object_name,
 
     // Store the mesh pointers.
     d_meshes = meshes;
-    d_max_level_number = max_level_number;
+    d_finest_level_number = max_levels - 1;
 
     // Indicate that all parts are active.
     d_part_is_active.resize(d_meshes.size(), true);
