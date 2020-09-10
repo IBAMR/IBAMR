@@ -30218,15 +30218,27 @@ if test "$SILO_ENABLED" = yes; then
   fi
 
   # handle silo's dependencies:
-  LDFLAGS="$ZLIB_DIR $LDFLAGS"
+  if test "x$ZLIB_DIR" = "x" ; then
+      :
+  else
+      LDFLAGS="-L$ZLIB_DIR/lib $LDFLAGS"
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for compress2 in -lz" >&5
-$as_echo_n "checking for compress2 in -lz... " >&6; }
-if ${ac_cv_lib_z_compress2+:} false; then :
+
+
+  if test "$enable_rpath" = yes; then
+    libdir=${ZLIB_DIR}/lib
+    rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
+    LDFLAGS=""$rpath_path" $LDFLAGS"
+
+  fi
+
+  fi
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing compress2" >&5
+$as_echo_n "checking for library containing compress2... " >&6; }
+if ${ac_cv_search_compress2+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lz  $LIBS"
+  ac_func_search_save_LIBS=$LIBS
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -30253,23 +30265,35 @@ return compress2 ();
   return 0;
 }
 _ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_z_compress2=yes
-else
-  ac_cv_lib_z_compress2=no
+for ac_lib in '' z; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_cxx_try_link "$LINENO"; then :
+  ac_cv_search_compress2=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+    conftest$ac_exeext
+  if ${ac_cv_search_compress2+:} false; then :
+  break
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_z_compress2" >&5
-$as_echo "$ac_cv_lib_z_compress2" >&6; }
-if test "x$ac_cv_lib_z_compress2" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBZ 1
-_ACEOF
+done
+if ${ac_cv_search_compress2+:} false; then :
 
-  LIBS="-lz $LIBS"
+else
+  ac_cv_search_compress2=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_compress2" >&5
+$as_echo "$ac_cv_search_compress2" >&6; }
+ac_res=$ac_cv_search_compress2
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
 else
   as_fn_error $? "Unable to locate a valid zlib installation, which is a dependency of Silo. Since Silo is usually statically linked this must be provided to IBAMR. If zlib is not installed in a standard location then a path to it must be provided via --with-zlib=PATH." "$LINENO" 5

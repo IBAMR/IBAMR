@@ -65,8 +65,14 @@ if test "$SILO_ENABLED" = yes; then
   fi
 
   # handle silo's dependencies:
-  LDFLAGS_PREPEND($ZLIB_DIR)
-  AC_CHECK_LIB(z, compress2, [], [AC_MSG_ERROR([Unable to locate a valid zlib installation, which is a dependency of Silo. Since Silo is usually statically linked this must be provided to IBAMR. If zlib is not installed in a standard location then a path to it must be provided via --with-zlib=PATH.])])
+  if test "x$ZLIB_DIR" = "x" ; then
+      :
+  else
+      LDFLAGS_PREPEND(-L$ZLIB_DIR/lib)
+      ADD_RPATH_LDFLAG(${ZLIB_DIR}/lib)
+  fi
+  AC_SEARCH_LIBS([compress2], [z], [],
+                 [AC_MSG_ERROR([Unable to locate a valid zlib installation, which is a dependency of Silo. Since Silo is usually statically linked this must be provided to IBAMR. If zlib is not installed in a standard location then a path to it must be provided via --with-zlib=PATH.])])
 
   # now handle silo:
   CPPFLAGS_PREPEND($SILO_CPPFLAGS)
