@@ -726,7 +726,11 @@ FEMechanicsExplicitIntegrator::computePressureStabilization(PetscVector<double>&
 
     // Solve for P.
     P_rhs_vec.close();
-    d_fe_projectors[part]->computeL2Projection(P_vec, P_rhs_vec, PRESSURE_SYSTEM_NAME, d_use_consistent_mass_matrix);
+#if 1
+    d_fe_projectors[part]->computeStabilizedL2Projection(P_vec, P_rhs_vec, PRESSURE_SYSTEM_NAME);
+#else
+    d_fe_projectors[part]->computeL2Projection(P_vec, P_rhs_vec, PRESSURE_SYSTEM_NAME, d_use_consistent_mass_matri);
+#endif
 }
 
 FEData::SystemDofMapCache*
