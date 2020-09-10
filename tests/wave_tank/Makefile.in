@@ -87,8 +87,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = $(am__EXEEXT_1)
-@LIBMESH_ENABLED_TRUE@am__append_1 = nwt_cylinder
+EXTRA_PROGRAMS = nwt$(EXEEXT) $(am__EXEEXT_1)
+@LIBMESH_ENABLED_TRUE@am__append_1 = nwt_cylinder 
 subdir = tests/wave_tank
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -121,16 +121,22 @@ CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 @LIBMESH_ENABLED_TRUE@am__EXEEXT_1 = nwt_cylinder$(EXEEXT)
+am_nwt_OBJECTS = nwt-nwt.$(OBJEXT)
+nwt_OBJECTS = $(am_nwt_OBJECTS)
+nwt_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+AM_V_lt = $(am__v_lt_@AM_V@)
+am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
+am__v_lt_0 = --silent
+am__v_lt_1 = 
+nwt_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(nwt_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__nwt_cylinder_SOURCES_DIST = nwt_cylinder.cpp
 @LIBMESH_ENABLED_TRUE@am_nwt_cylinder_OBJECTS =  \
 @LIBMESH_ENABLED_TRUE@	nwt_cylinder-nwt_cylinder.$(OBJEXT)
 nwt_cylinder_OBJECTS = $(am_nwt_cylinder_OBJECTS)
 @LIBMESH_ENABLED_TRUE@nwt_cylinder_DEPENDENCIES = $(IBAMR2d_LIBS) \
 @LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
-AM_V_lt = $(am__v_lt_@AM_V@)
-am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
-am__v_lt_0 = --silent
-am__v_lt_1 = 
 nwt_cylinder_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(nwt_cylinder_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
@@ -149,7 +155,8 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/nwt_cylinder-nwt_cylinder.Po
+am__depfiles_remade = ./$(DEPDIR)/nwt-nwt.Po \
+	./$(DEPDIR)/nwt_cylinder-nwt_cylinder.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -169,8 +176,8 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(nwt_cylinder_SOURCES)
-DIST_SOURCES = $(am__nwt_cylinder_SOURCES_DIST)
+SOURCES = $(nwt_SOURCES) $(nwt_cylinder_SOURCES)
+DIST_SOURCES = $(nwt_SOURCES) $(am__nwt_cylinder_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -462,6 +469,9 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
+nwt_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 
+nwt_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+nwt_SOURCES = nwt.cpp
 
 # this test needs some extra input files, so make SOURCE_DIR available:
 @LIBMESH_ENABLED_TRUE@nwt_cylinder_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
@@ -502,6 +512,10 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
+nwt$(EXEEXT): $(nwt_OBJECTS) $(nwt_DEPENDENCIES) $(EXTRA_nwt_DEPENDENCIES) 
+	@rm -f nwt$(EXEEXT)
+	$(AM_V_CXXLD)$(nwt_LINK) $(nwt_OBJECTS) $(nwt_LDADD) $(LIBS)
+
 nwt_cylinder$(EXEEXT): $(nwt_cylinder_OBJECTS) $(nwt_cylinder_DEPENDENCIES) $(EXTRA_nwt_cylinder_DEPENDENCIES) 
 	@rm -f nwt_cylinder$(EXEEXT)
 	$(AM_V_CXXLD)$(nwt_cylinder_LINK) $(nwt_cylinder_OBJECTS) $(nwt_cylinder_LDADD) $(LIBS)
@@ -512,6 +526,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nwt-nwt.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nwt_cylinder-nwt_cylinder.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -543,6 +558,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
+
+nwt-nwt.o: nwt.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_CXXFLAGS) $(CXXFLAGS) -MT nwt-nwt.o -MD -MP -MF $(DEPDIR)/nwt-nwt.Tpo -c -o nwt-nwt.o `test -f 'nwt.cpp' || echo '$(srcdir)/'`nwt.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nwt-nwt.Tpo $(DEPDIR)/nwt-nwt.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='nwt.cpp' object='nwt-nwt.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_CXXFLAGS) $(CXXFLAGS) -c -o nwt-nwt.o `test -f 'nwt.cpp' || echo '$(srcdir)/'`nwt.cpp
+
+nwt-nwt.obj: nwt.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_CXXFLAGS) $(CXXFLAGS) -MT nwt-nwt.obj -MD -MP -MF $(DEPDIR)/nwt-nwt.Tpo -c -o nwt-nwt.obj `if test -f 'nwt.cpp'; then $(CYGPATH_W) 'nwt.cpp'; else $(CYGPATH_W) '$(srcdir)/nwt.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nwt-nwt.Tpo $(DEPDIR)/nwt-nwt.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='nwt.cpp' object='nwt-nwt.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_CXXFLAGS) $(CXXFLAGS) -c -o nwt-nwt.obj `if test -f 'nwt.cpp'; then $(CYGPATH_W) 'nwt.cpp'; else $(CYGPATH_W) '$(srcdir)/nwt.cpp'; fi`
 
 nwt_cylinder-nwt_cylinder.o: nwt_cylinder.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nwt_cylinder_CXXFLAGS) $(CXXFLAGS) -MT nwt_cylinder-nwt_cylinder.o -MD -MP -MF $(DEPDIR)/nwt_cylinder-nwt_cylinder.Tpo -c -o nwt_cylinder-nwt_cylinder.o `test -f 'nwt_cylinder.cpp' || echo '$(srcdir)/'`nwt_cylinder.cpp
@@ -689,7 +718,8 @@ clean: clean-am
 clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/nwt_cylinder-nwt_cylinder.Po
+		-rm -f ./$(DEPDIR)/nwt-nwt.Po
+	-rm -f ./$(DEPDIR)/nwt_cylinder-nwt_cylinder.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -735,7 +765,8 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/nwt_cylinder-nwt_cylinder.Po
+		-rm -f ./$(DEPDIR)/nwt-nwt.Po
+	-rm -f ./$(DEPDIR)/nwt_cylinder-nwt_cylinder.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

@@ -41,7 +41,7 @@ Ny = 25
 Nx = 150                                   // coarsest grid spacing
 NXFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
 NYFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Ny  // finest   grid spacing
-
+Hy = H/NYFINEST
 
 // Level set parameters
 LS_ORDER           = "THIRD_ORDER_ENO"
@@ -72,9 +72,7 @@ U = "0.0"
 V = "0.0"
 
 ProbePoints {
-  probe_0 = 0.065,0.505
-  probe_1 = 3.165,0.505
-
+  output = 1.5 * WAVELENGTH , DEPTH + 2 * Hy	// 1 probe data as output
 }
 
 VelocityInitialConditions {
@@ -190,16 +188,16 @@ MuBcCoefs {
 SOLVER_TYPE                         = "STAGGERED"
 DISCRETIZATION_FORM                 = "CONSERVATIVE"
 START_TIME                          =  0.0e0     // initial simulation time
-END_TIME                            =  400.0e0    // final simulation time
+END_TIME                            =  50.0e0    // final simulation time
 GROW_DT                             =  2.0e0     // growth factor for timesteps
-MAX_INTEGRATOR_STEPS                =  500000  // max number of simulation timesteps
+MAX_INTEGRATOR_STEPS                =  10        // max number of simulation timesteps
 REGRID_INTERVAL                     =  10
 CFL_MAX                             =  0.5   
 NUM_INS_CYCLES                      =  2
 NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "CUI"
-CONVECTIVE_FORM                     = "CONSERVATIVE"                // how to compute the convective terms
+CONVECTIVE_FORM                     = "CONSERVATIVE"             // how to compute the convective terms
 INIT_CONVECTIVE_TS_TYPE             = "MIDPOINT_RULE"
-CONVECTIVE_TS_TYPE                  = "MIDPOINT_RULE"    // convective time stepping type
+CONVECTIVE_TS_TYPE                  = "MIDPOINT_RULE"            // convective time stepping type
 NORMALIZE_PRESSURE                  = FALSE
 VORTICITY_TAGGING                   = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                          = 2                          // size of tag buffer used by grid generation algorithm
@@ -263,7 +261,17 @@ INSVCStaggeredConservativeHierarchyIntegrator {
    max_integrator_steps       = MAX_INTEGRATOR_STEPS
    explicitly_remove_nullspace= EXPLICITLY_REMOVE_NULLSPACE
    num_cycles                 = NUM_INS_CYCLES
-
+  
+   // Solver parameters
+   stokes_solver_type   = "VC_STAGGERED_STOKES_PETSC_KRYLOV_SOLVER"
+   stokes_solver_db {
+      options_prefix    = "stokes_"
+      ksp_type          = "fgmres"
+      rel_residual_tol  = 1e-14
+      abs_residual_tol  = 1e-14
+      max_iterations    = 1000
+   }
+ 
    // Solver parameters
    velocity_solver_type = "VC_VELOCITY_PETSC_KRYLOV_SOLVER"
    velocity_precond_type = "VC_VELOCITY_POINT_RELAXATION_FAC_PRECONDITIONER"
@@ -461,7 +469,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 5
+   viz_dump_interval           = 100
    viz_dump_dirname            = "viz_INS2d"
    visit_number_procs_per_file = 1
 
