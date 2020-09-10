@@ -553,7 +553,7 @@ protected:
      * FE data associated with this object.
      */
     std::vector<libMesh::MeshBase*> d_meshes;
-    int d_finest_level_number = IBTK::invalid_level_number;
+    int d_max_level_number = IBTK::invalid_level_number;
     std::vector<libMesh::EquationSystems*> d_equation_systems;
 
     /// FEData objects provide key FE data management.

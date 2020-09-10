@@ -1138,9 +1138,9 @@ private:
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     /*!
-     * Finest level number in the patch hierarchy.
+     * Maximum possible level number in the patch hierarchy.
      */
-    int d_finest_level_number = IBTK::invalid_level_number;
+    int d_max_level_number = IBTK::invalid_level_number;
 
     /*!
      * Cached Eulerian data to reduce the number of allocations/deallocations.

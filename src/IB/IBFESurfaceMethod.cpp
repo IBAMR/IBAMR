@@ -1148,7 +1148,7 @@ IBFESurfaceMethod::initializeFEEquationSystems()
         d_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
                                                              manager_name,
                                                              fe_data_manager_db,
-                                                             d_finest_level_number + 1,
+                                                             d_max_level_number + 1,
                                                              d_interp_spec[part],
                                                              d_spread_spec[part],
                                                              d_default_workload_spec,
@@ -1864,7 +1864,7 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
 
     // Store the mesh pointers.
     d_meshes = meshes;
-    d_finest_level_number = max_levels - 1;
+    d_max_level_number = max_levels - 1;
 
     // Set some default values.
     const bool use_adaptive_quadrature = true;

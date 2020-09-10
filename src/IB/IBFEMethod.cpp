@@ -1452,12 +1452,12 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             // TODO: d_current_time is actually nan here. Since we don't do
             // any sort of tagging based on the current time I think we can
             // just put in a bogus (nonnegative) value.
-            int max_level = d_scratch_hierarchy->getFinestLevelNumber();
-            if (max_level == 0)
+            int finest_level = d_scratch_hierarchy->getFinestLevelNumber();
+            if (finest_level == 0)
                 d_scratch_gridding_algorithm->makeCoarsestLevel(d_scratch_hierarchy, 0.0 /*d_current_time*/);
             else
                 d_scratch_gridding_algorithm->regridAllFinerLevels(
-                    d_scratch_hierarchy, max_level - 1, 0.0 /*d_current_time*/, tag_buffer);
+                    d_scratch_hierarchy, finest_level - 1, 0.0 /*d_current_time*/, tag_buffer);
             if (d_do_log) plog << "IBFEMethod: finished scratch hierarchy regrid" << std::endl;
 
             // FEDataManager needs
@@ -1720,7 +1720,7 @@ IBFEMethod::doInitializeFEEquationSystems()
         d_primary_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
                                                                      manager_name,
                                                                      fe_data_manager_db,
-                                                                     d_finest_level_number + 1,
+                                                                     d_max_level_number + 1,
                                                                      d_interp_spec[part],
                                                                      d_spread_spec[part],
                                                                      d_workload_spec[part],
@@ -1732,7 +1732,7 @@ IBFEMethod::doInitializeFEEquationSystems()
             d_scratch_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
                                                                          manager_name + "::scratch",
                                                                          fe_data_manager_db,
-                                                                         d_finest_level_number + 1,
+                                                                         d_max_level_number + 1,
                                                                          d_interp_spec[part],
                                                                          d_spread_spec[part],
                                                                          d_workload_spec[part],
@@ -2834,7 +2834,7 @@ IBFEMethod::commonConstructor(const std::string& object_name,
 
     // Store the mesh pointers.
     d_meshes = meshes;
-    d_finest_level_number = max_levels - 1;
+    d_max_level_number = max_levels - 1;
 
     // Indicate that all parts are active.
     d_part_is_active.resize(d_meshes.size(), true);

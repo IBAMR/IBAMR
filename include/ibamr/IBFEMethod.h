@@ -950,9 +950,9 @@ protected:
         d_scratch_transfer_backward_schedules;
 
     /*!
-     * Finest level number in the patch hierarchy.
+     * Maximum level number in the patch hierarchy.
      */
-    int d_finest_level_number = IBTK::invalid_level_number;
+    int d_max_level_number = IBTK::invalid_level_number;
 
     /// CFL-like number used to determine when we should call
     /// reinitElementMappings() based on maximum structure point displacement.
