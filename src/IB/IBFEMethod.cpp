@@ -1717,11 +1717,10 @@ IBFEMethod::doInitializeFEEquationSystems()
         const std::string manager_name = "IBFEMethod FEDataManager::" + std::to_string(part);
         d_fe_data[part] =
             std::make_shared<FEData>(manager_name + "::fe_data", equation_systems, /*register_for_restart*/ true);
-        // This will be removed in the next commit
-        d_fe_data[part]->setEquationSystems(&equation_systems, d_max_level_number - 1);
         d_primary_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
                                                                      manager_name,
                                                                      fe_data_manager_db,
+                                                                     d_finest_level_number + 1,
                                                                      d_interp_spec[part],
                                                                      d_spread_spec[part],
                                                                      d_workload_spec[part],
@@ -1733,6 +1732,7 @@ IBFEMethod::doInitializeFEEquationSystems()
             d_scratch_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
                                                                          manager_name + "::scratch",
                                                                          fe_data_manager_db,
+                                                                         d_finest_level_number + 1,
                                                                          d_interp_spec[part],
                                                                          d_spread_spec[part],
                                                                          d_workload_spec[part],

@@ -192,8 +192,7 @@ public:
 
     /*!
      * \brief Set the equations systems object that is associated with the
-     * FEData object. Currently, each set of equation systems must be assigned
-     * to a particular level of the AMR grid.
+     * FEData object.
      *
      * @deprecated The equation systems object should be set by the constructor.
      */
@@ -249,11 +248,6 @@ protected:
      * but is overwritten once a libMesh::EquationSystems object is attached.
      */
     QuadratureCache d_quadrature_cache;
-
-    /*!
-     * Number of the level on which the equation systems live.
-     */
-    int d_level_number = IBTK::invalid_level_number;
 
     /*!
      * Mapping between system numbers and SystemDofMapCache objects.
@@ -474,6 +468,7 @@ public:
     getManager(std::shared_ptr<FEData> fe_data,
                const std::string& name,
                const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+               const int max_levels,
                const InterpSpec& default_interp_spec,
                const SpreadSpec& default_spread_spec,
                const WorkloadSpec& default_workload_spec,
@@ -1015,6 +1010,7 @@ protected:
      */
     FEDataManager(std::string object_name,
                   const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+                  const int max_levels,
                   InterpSpec default_interp_spec,
                   SpreadSpec default_spread_spec,
                   WorkloadSpec default_workload_spec,
@@ -1140,6 +1136,11 @@ private:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
+
+    /*!
+     * Finest level number in the patch hierarchy.
+     */
+    int d_finest_level_number = IBTK::invalid_level_number;
 
     /*!
      * Cached Eulerian data to reduce the number of allocations/deallocations.

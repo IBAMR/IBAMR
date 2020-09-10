@@ -192,13 +192,8 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
                                      unsigned int restart_restore_number)
     : d_num_parts(static_cast<int>(meshes.size()))
 {
-    commonConstructor(object_name,
-                      input_db,
-                      meshes,
-                      max_levels,
-                      register_for_restart,
-                      restart_read_dirname,
-                      restart_restore_number);
+    commonConstructor(
+        object_name, input_db, meshes, max_levels, register_for_restart, restart_read_dirname, restart_restore_number);
     return;
 } // IBFESurfaceMethod
 
@@ -1150,11 +1145,10 @@ IBFESurfaceMethod::initializeFEEquationSystems()
         const std::string manager_name = "IBFESurfaceMethod FEDataManager::" + std::to_string(part);
         d_fe_data[part] =
             std::make_shared<FEData>(manager_name + "::fe_data", *equation_systems, /*register_for_restart*/ true);
-        // This will be removed in the next commit
-        d_fe_data[part]->setEquationSystems(equation_systems, d_max_level_number - 1);
         d_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
                                                              manager_name,
                                                              fe_data_manager_db,
+                                                             d_finest_level_number + 1,
                                                              d_interp_spec[part],
                                                              d_spread_spec[part],
                                                              d_default_workload_spec,
