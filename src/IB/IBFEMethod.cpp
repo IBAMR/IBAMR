@@ -1648,50 +1648,10 @@ IBFEMethod::doInitializeFEEquationSystems()
     if (d_input_db->keyExists("FEDataManager")) fe_data_manager_db = d_input_db->getDatabase("FEDataManager");
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
-        // Create FE data managers.
-        const std::string manager_name = "IBFEMethod FEDataManager::" + std::to_string(part);
-        auto fe_data = std::make_shared<FEData>(manager_name + "::fe_data", /*register_for_restart*/ true);
-        d_primary_fe_data_managers[part] = FEDataManager::getManager(fe_data,
-                                                                     manager_name,
-                                                                     fe_data_manager_db,
-                                                                     d_interp_spec[part],
-                                                                     d_spread_spec[part],
-                                                                     d_workload_spec[part],
-                                                                     min_ghost_width,
-                                                                     d_primary_eulerian_data_cache);
-        if (d_use_scratch_hierarchy)
-        {
-            if (!d_scratch_eulerian_data_cache) d_scratch_eulerian_data_cache = std::make_shared<SAMRAIDataCache>();
-            d_scratch_fe_data_managers[part] = FEDataManager::getManager(fe_data,
-                                                                         manager_name + "::scratch",
-                                                                         fe_data_manager_db,
-                                                                         d_interp_spec[part],
-                                                                         d_spread_spec[part],
-                                                                         d_workload_spec[part],
-                                                                         min_ghost_width,
-                                                                         d_scratch_eulerian_data_cache);
-            d_active_fe_data_managers[part] = d_scratch_fe_data_managers[part];
-            d_active_eulerian_data_cache = d_scratch_eulerian_data_cache;
-        }
-        else
-        {
-            d_active_fe_data_managers[part] = d_primary_fe_data_managers[part];
-        }
-        d_fe_data[part] = d_primary_fe_data_managers[part]->getFEData();
-
-        d_active_fe_data_managers[part]->setLoggingEnabled(d_do_log);
-        d_ghosts = IntVector<NDIM>::max(d_ghosts, d_active_fe_data_managers[part]->getGhostCellWidth());
-
         // Create FE equation systems objects and corresponding variables.
         d_equation_systems[part] = std::unique_ptr<EquationSystems>(new EquationSystems(*d_meshes[part]));
         EquationSystems& equation_systems = *d_equation_systems[part];
-        d_primary_fe_data_managers[part]->setEquationSystems(&equation_systems, d_max_level_number - 1);
-        if (d_use_scratch_hierarchy)
-            d_scratch_fe_data_managers[part]->setEquationSystems(&equation_systems, d_max_level_number - 1);
-        // Since the scratch and primary FEDataManagers use the same FEData object
-        // we only have to do this assignment
-        // once
-        d_active_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
+
         if (from_restart)
         {
             const std::string& file_name = libmesh_restart_file_name(
@@ -1752,6 +1712,44 @@ IBFEMethod::doInitializeFEEquationSystems()
             F_vector_names = { "current", "half", "new", "tmp", "RHS Vector" };
         }
         IBTK::setup_system_vectors(&equation_systems, { FORCE_SYSTEM_NAME }, F_vector_names, from_restart);
+
+        // Create FE data managers.
+        const std::string manager_name = "IBFEMethod FEDataManager::" + std::to_string(part);
+        d_fe_data[part] = std::make_shared<FEData>(manager_name + "::fe_data", /*register_for_restart*/ true);
+        d_fe_data[part]->setEquationSystems(&equation_systems, d_max_level_number - 1);
+        d_primary_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
+                                                                     manager_name,
+                                                                     fe_data_manager_db,
+                                                                     d_interp_spec[part],
+                                                                     d_spread_spec[part],
+                                                                     d_workload_spec[part],
+                                                                     min_ghost_width,
+                                                                     d_primary_eulerian_data_cache);
+        if (d_use_scratch_hierarchy)
+        {
+            if (!d_scratch_eulerian_data_cache) d_scratch_eulerian_data_cache = std::make_shared<SAMRAIDataCache>();
+            d_scratch_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
+                                                                         manager_name + "::scratch",
+                                                                         fe_data_manager_db,
+                                                                         d_interp_spec[part],
+                                                                         d_spread_spec[part],
+                                                                         d_workload_spec[part],
+                                                                         min_ghost_width,
+                                                                         d_scratch_eulerian_data_cache);
+            d_active_fe_data_managers[part] = d_scratch_fe_data_managers[part];
+            d_active_eulerian_data_cache = d_scratch_eulerian_data_cache;
+        }
+        else
+        {
+            d_active_fe_data_managers[part] = d_primary_fe_data_managers[part];
+        }
+
+        d_active_fe_data_managers[part]->setLoggingEnabled(d_do_log);
+        d_ghosts = IntVector<NDIM>::max(d_ghosts, d_active_fe_data_managers[part]->getGhostCellWidth());
+
+        // Since the scratch and primary FEDataManagers use the same FEData
+        // object we only have to do this assignment once
+        d_active_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
     }
     return;
 }

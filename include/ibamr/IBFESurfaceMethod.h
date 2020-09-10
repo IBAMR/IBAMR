@@ -556,6 +556,9 @@ protected:
     int d_finest_level_number = IBTK::invalid_level_number;
     std::vector<libMesh::EquationSystems*> d_equation_systems;
 
+    /// FEData objects provide key FE data management.
+    std::vector<std::shared_ptr<IBTK::FEData> > d_fe_data;
+
     const unsigned int d_num_parts = 1;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
 
