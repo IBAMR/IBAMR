@@ -169,7 +169,7 @@ public:
      * Constructor. Registers the object with the restart database: i.e.,
      * inheriting classes should not also register themselves.
      */
-    FEData(std::string object_name, const bool register_for_restart);
+    FEData(std::string object_name, libMesh::EquationSystems& equation_systems, const bool register_for_restart);
 
     /*!
      * Destructor.
@@ -194,6 +194,8 @@ public:
      * \brief Set the equations systems object that is associated with the
      * FEData object. Currently, each set of equation systems must be assigned
      * to a particular level of the AMR grid.
+     *
+     * @deprecated The equation systems object should be set by the constructor.
      */
     void setEquationSystems(libMesh::EquationSystems* equation_systems, int level_number);
 
@@ -480,52 +482,6 @@ public:
                bool register_for_restart = true);
 
     /*!
-     * Return a pointer to the instance of the Lagrangian data manager
-     * corresponding to the specified name.  Access to FEDataManager objects is
-     * mediated by the getManager() function.
-     *
-     * \return A pointer to the data manager instance.
-     */
-    static FEDataManager*
-    getManager(const std::string& name,
-               const InterpSpec& default_interp_spec,
-               const SpreadSpec& default_spread_spec,
-               const WorkloadSpec& default_workload_spec,
-               const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
-               std::shared_ptr<SAMRAIDataCache> eulerian_data_cache = nullptr,
-               bool register_for_restart = true);
-
-    /*!
-     * Return a pointer to the instance of the Lagrangian data manager
-     * corresponding to the specified name.  Access to FEDataManager objects is
-     * mediated by the getManager() function.
-     *
-     * \return A pointer to the data manager instance.
-     */
-    static FEDataManager*
-    getManager(std::shared_ptr<FEData> fe_data,
-               const std::string& name,
-               const InterpSpec& default_interp_spec,
-               const SpreadSpec& default_spread_spec,
-               const WorkloadSpec& default_workload_spec,
-               const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
-               std::shared_ptr<SAMRAIDataCache> eulerian_data_cache = nullptr,
-               bool register_for_restart = true);
-
-    /*!
-     * Same as the last function, but uses a default workload specification
-     * for compatibility.
-     *
-     * \return A pointer to the data manager instance.
-     */
-    static FEDataManager*
-    getManager(const std::string& name,
-               const InterpSpec& default_interp_spec,
-               const SpreadSpec& default_spread_spec,
-               const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
-               bool register_for_restart = true);
-
-    /*!
      * Deallocate all of the FEDataManager instances.
      *
      * It is not necessary to call this function at program termination since it
@@ -537,6 +493,9 @@ public:
      * \brief Set the equations systems object that is associated with the
      * FEData object. Currently, each set of equation systems must be assigned
      * to a particular level of the AMR grid.
+     *
+     * @deprecated This function is deprecated since the FEData constructor now
+     * requires an EquationSystems argument.
      */
     void setEquationSystems(libMesh::EquationSystems* equation_systems, int level_number);
 
@@ -1050,17 +1009,6 @@ public:
                                    int n_vars);
 
 protected:
-    /*!
-     * \brief Constructor.
-     */
-    FEDataManager(std::string object_name,
-                  InterpSpec default_interp_spec,
-                  SpreadSpec default_spread_spec,
-                  WorkloadSpec default_workload_spec,
-                  SAMRAI::hier::IntVector<NDIM> ghost_width,
-                  std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
-                  bool register_for_restart = true);
-
     /*!
      * \brief Constructor, where the FEData object owned by this class may be
      * co-owned by other objects.

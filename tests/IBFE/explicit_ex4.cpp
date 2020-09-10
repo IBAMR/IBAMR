@@ -416,12 +416,14 @@ main(int argc, char** argv)
         const bool use_separate_fe_data_manager = input_db->getBoolWithDefault("use_separate_fe_data_manager", false);
         if (use_separate_fe_data_manager)
         {
-            FEDataManager::WorkloadSpec spec;
+            FEDataManager::WorkloadSpec workload_spec;
+            Pointer<Database> fe_data_manager_db(new InputDatabase("fe_data_manager_db"));
             other_manager = FEDataManager::getManager(fe_data_manager->getFEData(),
                                                       "cloned_fe_data_manager",
+                                                      fe_data_manager_db,
                                                       fe_data_manager->getDefaultInterpSpec(),
                                                       fe_data_manager->getDefaultSpreadSpec(),
-                                                      spec);
+                                                      workload_spec);
             other_manager->setPatchHierarchy(patch_hierarchy);
             // Check that we have the same Lagrangian data.
             TBOX_ASSERT(fe_data_manager->getFEData() == other_manager->getFEData());

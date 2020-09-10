@@ -1071,6 +1071,9 @@ IBFESurfaceMethod::initializeFEEquationSystems()
     d_fe_data.resize(d_num_parts);
     IntVector<NDIM> min_ghost_width(0);
     if (!d_eulerian_data_cache) d_eulerian_data_cache.reset(new SAMRAIDataCache());
+
+    Pointer<Database> fe_data_manager_db(new InputDatabase("fe_data_manager_db"));
+    if (d_input_db->keyExists("FEDataManager")) fe_data_manager_db = d_input_db->getDatabase("FEDataManager");
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Create FE equation systems objects and corresponding variables.
@@ -1145,10 +1148,13 @@ IBFESurfaceMethod::initializeFEEquationSystems()
 
         // Create FE data managers.
         const std::string manager_name = "IBFESurfaceMethod FEDataManager::" + std::to_string(part);
-        d_fe_data[part] = std::make_shared<FEData>(manager_name + "::fe_data", /*register_for_restart*/ true);
+        d_fe_data[part] =
+            std::make_shared<FEData>(manager_name + "::fe_data", *equation_systems, /*register_for_restart*/ true);
+        // This will be removed in the next commit
         d_fe_data[part]->setEquationSystems(equation_systems, d_max_level_number - 1);
         d_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
                                                              manager_name,
+                                                             fe_data_manager_db,
                                                              d_interp_spec[part],
                                                              d_spread_spec[part],
                                                              d_default_workload_spec,
@@ -1947,6 +1953,9 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     // Set up the interaction spec objects.
     d_interp_spec.resize(d_num_parts, d_default_interp_spec);
     d_spread_spec.resize(d_num_parts, d_default_spread_spec);
+
+    // Store the input database since FEDataManager will need it too
+    d_input_db = input_db;
 
     return;
 } // commonConstructor

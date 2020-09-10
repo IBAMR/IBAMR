@@ -250,8 +250,11 @@ bbox_intersects(const libMeshWrappers::BoundingBox& a, const libMeshWrappers::Bo
 }
 } // namespace
 
-FEData::FEData(std::string object_name, const bool register_for_restart)
-    : d_object_name(std::move(object_name)), d_registered_for_restart(register_for_restart), d_quadrature_cache(NDIM)
+FEData::FEData(std::string object_name, EquationSystems& equation_systems, const bool register_for_restart)
+    : d_object_name(std::move(object_name)),
+      d_registered_for_restart(register_for_restart),
+      d_es(&equation_systems),
+      d_quadrature_cache(d_es->get_mesh().mesh_dimension())
 {
     TBOX_ASSERT(!d_object_name.empty());
 
@@ -402,70 +405,6 @@ FEDataManager::getManager(std::shared_ptr<FEData> fe_data,
         s_registered_callback = true;
     }
     return s_data_manager_instances[name];
-} // getManager
-
-FEDataManager*
-FEDataManager::getManager(std::shared_ptr<FEData> fe_data,
-                          const std::string& name,
-                          const FEDataManager::InterpSpec& default_interp_spec,
-                          const FEDataManager::SpreadSpec& default_spread_spec,
-                          const FEDataManager::WorkloadSpec& default_workload_spec,
-                          const IntVector<NDIM>& min_ghost_width,
-                          std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
-                          bool register_for_restart)
-{
-    Pointer<Database> input_db(new InputDatabase("empty_fe_data_manager_db"));
-    return getManager(fe_data,
-                      name,
-                      input_db,
-                      default_interp_spec,
-                      default_spread_spec,
-                      default_workload_spec,
-                      min_ghost_width,
-                      eulerian_data_cache,
-                      register_for_restart);
-} // getManager
-
-FEDataManager*
-FEDataManager::getManager(const std::string& name,
-                          const FEDataManager::InterpSpec& default_interp_spec,
-                          const FEDataManager::SpreadSpec& default_spread_spec,
-                          const FEDataManager::WorkloadSpec& default_workload_spec,
-                          const IntVector<NDIM>& min_ghost_width,
-                          std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
-                          bool register_for_restart)
-{
-    if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
-    {
-        const IntVector<NDIM> ghost_width = IntVector<NDIM>::max(
-            min_ghost_width,
-            IntVector<NDIM>(std::max(LEInteractor::getMinimumGhostWidth(default_interp_spec.kernel_fcn),
-                                     LEInteractor::getMinimumGhostWidth(default_spread_spec.kernel_fcn))));
-        s_data_manager_instances[name] = new FEDataManager(name,
-                                                           default_interp_spec,
-                                                           default_spread_spec,
-                                                           default_workload_spec,
-                                                           ghost_width,
-                                                           eulerian_data_cache,
-                                                           register_for_restart);
-    }
-    if (!s_registered_callback)
-    {
-        ShutdownRegistry::registerShutdownRoutine(freeAllManagers, s_shutdown_priority);
-        s_registered_callback = true;
-    }
-    return s_data_manager_instances[name];
-} // getManager
-
-FEDataManager*
-FEDataManager::getManager(const std::string& name,
-                          const FEDataManager::InterpSpec& default_interp_spec,
-                          const FEDataManager::SpreadSpec& default_spread_spec,
-                          const IntVector<NDIM>& min_ghost_width,
-                          bool register_for_restart)
-{
-    return getManager(
-        name, default_interp_spec, default_spread_spec, {}, min_ghost_width, nullptr, register_for_restart);
 } // getManager
 
 void
@@ -2789,25 +2728,6 @@ FEDataManager::FEDataManager(std::string object_name,
             TimerManager::getManager()->getTimer("IBTK::FEDataManager::applyGradientDetector()");
         t_put_to_database = TimerManager::getManager()->getTimer("IBTK::FEDataManager::putToDatabase()");)
     return;
-} // FEDataManager
-
-FEDataManager::FEDataManager(std::string object_name,
-                             FEDataManager::InterpSpec default_interp_spec,
-                             FEDataManager::SpreadSpec default_spread_spec,
-                             FEDataManager::WorkloadSpec default_workload_spec,
-                             IntVector<NDIM> ghost_width,
-                             std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
-                             bool register_for_restart)
-    : FEDataManager(object_name,
-                    Pointer<Database>(new InputDatabase("fe_data_manager_input_db")),
-                    default_interp_spec,
-                    default_spread_spec,
-                    default_workload_spec,
-                    ghost_width,
-                    eulerian_data_cache,
-                    std::make_shared<FEData>(object_name + "::fe_data", register_for_restart),
-                    register_for_restart)
-{
 } // FEDataManager
 
 FEDataManager::~FEDataManager()
