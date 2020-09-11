@@ -346,7 +346,10 @@ main(int argc, char* argv[])
         }
 
         fem_solver->initializeFEEquationSystems();
-        fem_solver->registerPressureStabilizationPart();
+        if (use_pressure_stabilization)
+        {
+            fem_solver->registerPressureStabilizationPart();
+        }
         EquationSystems* equation_systems = fem_solver->getEquationSystems();
         ExplicitSystem& jac_system = equation_systems->add_system<ExplicitSystem>("JacobianDeterminant");
         unsigned int J_var = jac_system.add_variable("Avg J", CONSTANT, MONOMIAL);
