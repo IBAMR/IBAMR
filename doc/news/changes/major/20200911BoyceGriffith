@@ -1,0 +1,4 @@
+Improved: IBAMR::FEMechanicsBase is able to compute static pressures for
+mesh parts to enforce near incompressibility.
+<br>
+(Boyce Griffith, 2020/09/11)
