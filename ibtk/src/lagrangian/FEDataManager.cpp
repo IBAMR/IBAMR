@@ -496,13 +496,13 @@ FEDataManager::getDefaultSpreadSpec() const
 const std::vector<std::vector<Elem*> >&
 FEDataManager::getActivePatchElementMap() const
 {
-    return d_active_patch_elem_map;
+    return d_active_patch_elem_map.back();
 } // getActivePatchElementMap
 
 const std::vector<std::vector<Node*> >&
 FEDataManager::getActivePatchNodeMap() const
 {
-    return d_active_patch_node_map;
+    return d_active_patch_node_map.back();
 } // getActivePatchNodeMap
 
 void
@@ -519,7 +519,9 @@ FEDataManager::reinitElementMappings()
 
     // Delete cached hierarchy-dependent data.
     d_active_patch_elem_map.clear();
+    d_active_patch_elem_map.resize(d_max_level_number + 1);
     d_active_patch_node_map.clear();
+    d_active_patch_node_map.resize(d_max_level_number + 1);
     d_active_patch_ghost_dofs.clear();
     d_active_elems.clear();
     d_system_ghost_vec.clear();
@@ -527,9 +529,21 @@ FEDataManager::reinitElementMappings()
 
     // Reset the mappings between grid patches and active mesh
     // elements.
-    collectActivePatchElements(d_active_patch_elem_map, d_max_level_number);
-    collectActivePatchNodes(d_active_patch_node_map, d_active_patch_elem_map);
-    collect_unique_elems(d_active_elems, d_active_patch_elem_map);
+    //
+    // TODO: for now we simply set all patches on all levels except the finest
+    // to have no elements.
+    for (int ln = 0; ln < d_max_level_number; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        d_active_patch_elem_map[ln].resize(level->getProcessorMapping().getNumberOfLocalIndices());
+        d_active_patch_node_map[ln].resize(level->getProcessorMapping().getNumberOfLocalIndices());
+    }
+
+    // TODO: both of these functions still assume that all the elements are on
+    // the same patch level. They will need to be generalized.
+    collectActivePatchElements(d_active_patch_elem_map.back(), d_max_level_number);
+    collectActivePatchNodes(d_active_patch_node_map.back(), d_active_patch_elem_map.back());
+    collect_unique_elems(d_active_elems, d_active_patch_elem_map.back());
 
     // If we are not regridding in the usual way (i.e., if
     // IBHierarchyIntegrator::d_regrid_cfl_interval > 1) then it is possible
@@ -563,7 +577,7 @@ FEDataManager::reinitElementMappings()
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
 
-            for (const Node* n : d_active_patch_node_map[local_patch_num])
+            for (const Node* n : d_active_patch_node_map.back()[local_patch_num])
             {
                 IBTK::Point X;
                 bool inside_patch = true;
@@ -961,7 +975,7 @@ FEDataManager::spread(const int f_data_idx,
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
             // The relevant collection of nodes.
-            const std::vector<Node*>& patch_nodes = d_active_patch_node_map[local_patch_num];
+            const std::vector<Node*>& patch_nodes = d_active_patch_node_map.back()[local_patch_num];
             const size_t num_active_patch_nodes = patch_nodes.size();
             if (!num_active_patch_nodes) continue;
 
@@ -1052,7 +1066,7 @@ FEDataManager::spread(const int f_data_idx,
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
             // The relevant collection of elements.
-            const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
+            const std::vector<Elem*>& patch_elems = d_active_patch_elem_map.back()[local_patch_num];
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
 
@@ -1310,7 +1324,7 @@ FEDataManager::prolongData(const int f_data_idx,
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
-        const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
+        const std::vector<Elem*>& patch_elems = d_active_patch_elem_map.back()[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
@@ -1713,7 +1727,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
             // The relevant collection of nodes.
-            const std::vector<Node*>& patch_nodes = d_active_patch_node_map[local_patch_num];
+            const std::vector<Node*>& patch_nodes = d_active_patch_node_map.back()[local_patch_num];
             const size_t num_active_patch_nodes = patch_nodes.size();
             if (!num_active_patch_nodes) continue;
 
@@ -1824,7 +1838,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
             // The relevant collection of elements.
-            const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
+            const std::vector<Elem*>& patch_elems = d_active_patch_elem_map.back()[local_patch_num];
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
 
@@ -2116,7 +2130,7 @@ FEDataManager::restrictData(const int f_data_idx,
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
-        const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
+        const std::vector<Elem*>& patch_elems = d_active_patch_elem_map.back()[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
@@ -2395,7 +2409,7 @@ FEDataManager::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy,
         int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
-            const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
+            const std::vector<Elem*>& patch_elems = d_active_patch_elem_map.back()[local_patch_num];
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
 
@@ -2798,7 +2812,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
             if (d_default_interp_spec.use_nodal_quadrature || d_default_spread_spec.use_nodal_quadrature)
             {
                 // The relevant collection of nodes.
-                const std::vector<Node*>& patch_nodes = d_active_patch_node_map[local_patch_num];
+                const std::vector<Node*>& patch_nodes = d_active_patch_node_map.back()[local_patch_num];
                 const size_t num_active_patch_nodes = patch_nodes.size();
 
                 std::vector<dof_id_type> X_idxs;
@@ -2822,7 +2836,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
             // non-nodal case:
             else if (!d_default_interp_spec.use_nodal_quadrature || !d_default_spread_spec.use_nodal_quadrature)
             {
-                const std::vector<Elem*>& patch_elems = d_active_patch_elem_map[local_patch_num];
+                const std::vector<Elem*>& patch_elems = d_active_patch_elem_map.back()[local_patch_num];
                 const size_t num_active_patch_elems = patch_elems.size();
                 for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
                 {

@@ -1202,8 +1202,8 @@ private:
     /*!
      * Data to manage mappings between mesh elements and grid patches.
      */
-    std::vector<std::vector<libMesh::Elem*> > d_active_patch_elem_map;
-    std::vector<std::vector<libMesh::Node*> > d_active_patch_node_map;
+    std::vector<std::vector<std::vector<libMesh::Elem*> > > d_active_patch_elem_map;
+    std::vector<std::vector<std::vector<libMesh::Node*> > > d_active_patch_node_map;
     std::map<std::string, std::vector<unsigned int> > d_active_patch_ghost_dofs;
     std::vector<libMesh::Elem*> d_active_elems;
 
