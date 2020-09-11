@@ -485,9 +485,18 @@ public:
     IBTK::FEDataManager* getFEDataManager(unsigned int part = 0) const;
 
     /*!
+     * Indicate that a part should include a static pressure.
+     *
+     * @see FEMechanicsBase::registerStaticPressurePart for more details.
+     */
+    virtual void registerStaticPressurePart(PressureProjectionType projection_type = CONSISTENT_PROJECTION,
+                                            FEMechanicsBase::VolumetricEnergyDerivativeFcn U_prime_fcn = nullptr,
+                                            unsigned int part = 0) override;
+
+    /*!
      * Indicate that a part should use stress normalization.
      */
-    void registerStressNormalizationPart(unsigned int part = 0);
+    virtual void registerStressNormalizationPart(unsigned int part = 0);
 
     /*!
      * Typedef specifying interface for Lagrangian mass source/sink distribution
@@ -516,7 +525,7 @@ public:
      * Register the (optional) function to compute a mass source/sink
      * distribution on the Lagrangian finite element mesh.
      */
-    void registerLagBodySourceFunction(const LagBodySourceFcnData& data, unsigned int part = 0);
+    virtual void registerLagBodySourceFunction(const LagBodySourceFcnData& data, unsigned int part = 0);
 
     /*!
      * Get the Lagrangian body source function data.
@@ -527,8 +536,8 @@ public:
      * Register the (optional) direct forcing kinematics object with the finite
      * element mesh.
      */
-    void registerDirectForcingKinematics(const SAMRAI::tbox::Pointer<IBAMR::IBFEDirectForcingKinematics>& data,
-                                         unsigned int part = 0);
+    virtual void registerDirectForcingKinematics(const SAMRAI::tbox::Pointer<IBAMR::IBFEDirectForcingKinematics>& data,
+                                                 unsigned int part = 0);
 
     /*!
      * Return the number of ghost cells required by the Lagrangian-Eulerian

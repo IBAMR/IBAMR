@@ -424,11 +424,24 @@ IBFEMethod::getFEDataManager(const unsigned int part) const
 } // getFEDataManager
 
 void
+IBFEMethod::registerStaticPressurePart(PressureProjectionType projection_type,
+                                       FEMechanicsBase::VolumetricEnergyDerivativeFcn U_prime,
+                                       unsigned int part)
+{
+    TBOX_ASSERT(d_fe_equation_systems_initialized);
+    TBOX_ASSERT(part < d_meshes.size());
+    // The same part can either have a pressure or can use stress normalization, but not both.
+    if (d_has_stress_normalization_parts) TBOX_ASSERT(!d_stress_normalization_part[part]);
+    FEMechanicsBase::registerStaticPressurePart(projection_type, U_prime, part);
+}
+
+void
 IBFEMethod::registerStressNormalizationPart(unsigned int part)
 {
     TBOX_ASSERT(d_fe_equation_systems_initialized);
-    TBOX_ASSERT(!d_has_static_pressure_parts);
     TBOX_ASSERT(part < d_meshes.size());
+    // The same part can either have a pressure or can use stress normalization, but not both.
+    if (d_has_static_pressure_parts) TBOX_ASSERT(!d_static_pressure_part[part]);
     if (d_stress_normalization_part[part]) return;
     d_has_stress_normalization_parts = true;
     d_stress_normalization_part[part] = true;

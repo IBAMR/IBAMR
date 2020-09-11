@@ -130,7 +130,7 @@ public:
      *             i.e., the initial coordinate mapping is assumed to be the
      *             identity mapping.
      */
-    void registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data, unsigned int part = 0);
+    virtual void registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data, unsigned int part = 0);
 
     /*!
      * Get the initial coordinate mapping function data.
@@ -162,7 +162,7 @@ public:
      * @note       If no function is provided, the initial velocity is taken to
      *             be zero.
      */
-    void registerInitialVelocityFunction(const InitialVelocityFcnData& data, unsigned int part = 0);
+    virtual void registerInitialVelocityFunction(const InitialVelocityFcnData& data, unsigned int part = 0);
 
     /*!
      * Get the initial velocity function data.
@@ -204,7 +204,7 @@ public:
      *             this class.  This is intended to be used to implement
      *             selective reduced integration.
      */
-    void registerPK1StressFunction(const PK1StressFcnData& data, unsigned int part = 0);
+    virtual void registerPK1StressFunction(const PK1StressFcnData& data, unsigned int part = 0);
 
     /*!
      * Get the PK1 stress function data.
@@ -241,7 +241,7 @@ public:
      * @note       It is @em NOT possible to register multiple body force
      *             functions with this class.
      */
-    void registerLagBodyForceFunction(const LagBodyForceFcnData& data, unsigned int part = 0);
+    virtual void registerLagBodyForceFunction(const LagBodyForceFcnData& data, unsigned int part = 0);
 
     /*!
      * Get the Lagrangian body force function data.
@@ -278,7 +278,7 @@ public:
      * @note       It is @em NOT possible to register multiple pressure
      *             functions with this class.
      */
-    void registerLagSurfacePressureFunction(const LagSurfacePressureFcnData& data, unsigned int part = 0);
+    virtual void registerLagSurfacePressureFunction(const LagSurfacePressureFcnData& data, unsigned int part = 0);
 
     /*!
      * Get the Lagrangian surface pressure function data.
@@ -315,7 +315,7 @@ public:
      * @note       It is @em NOT possible to register multiple surface force
      *             functions with this class.
      */
-    void registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, unsigned int part = 0);
+    virtual void registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, unsigned int part = 0);
 
     /*!
      * Get the Lagrangian surface force function data.
@@ -345,9 +345,9 @@ public:
      * The sign convention used in the implementation generates a PK1 stress of
      * the form PP = -J P FF^{-T}.
      */
-    void registerStaticPressurePart(PressureProjectionType projection_type = CONSISTENT_PROJECTION,
-                                    VolumetricEnergyDerivativeFcn U_prime = nullptr,
-                                    unsigned int part = 0);
+    virtual void registerStaticPressurePart(PressureProjectionType projection_type = CONSISTENT_PROJECTION,
+                                            VolumetricEnergyDerivativeFcn U_prime_fcn = nullptr,
+                                            unsigned int part = 0);
 
     /*!
      * Method to prepare to advance data from current_time to new_time.

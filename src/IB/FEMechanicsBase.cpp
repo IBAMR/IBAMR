@@ -320,7 +320,7 @@ FEMechanicsBase::getLagSurfaceForceFunction(unsigned int part) const
 
 void
 FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_type,
-                                            VolumetricEnergyDerivativeFcn U_prime,
+                                            VolumetricEnergyDerivativeFcn U_prime_fcn,
                                             unsigned int part)
 {
     TBOX_ASSERT(d_fe_equation_systems_initialized);
@@ -339,7 +339,7 @@ FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_ty
                                from_restart);
     // Keep track of method parameters.
     d_static_pressure_proj_type[part] = projection_type;
-    d_static_pressure_vol_energy_deriv_fcn[part] = std::move(U_prime);
+    d_static_pressure_vol_energy_deriv_fcn[part] = std::move(U_prime_fcn);
 }
 
 void
@@ -430,8 +430,8 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
                                        const unsigned int part)
 {
     if (!d_static_pressure_part[part]) return;
-    const PressureProjectionType proj_type = d_static_pressure_proj_type[part];
-    const VolumetricEnergyDerivativeFcn U_prime_fcn = d_static_pressure_vol_energy_deriv_fcn[part];
+    const PressureProjectionType& proj_type = d_static_pressure_proj_type[part];
+    const VolumetricEnergyDerivativeFcn& U_prime_fcn = d_static_pressure_vol_energy_deriv_fcn[part];
 
     // Extract the mesh.
     EquationSystems& equation_systems = *d_equation_systems[part];
