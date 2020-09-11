@@ -85,6 +85,13 @@ public:
     buildLumpedL2ProjectionSolver(const std::string& system_name);
 
     /*!
+     * \return Pointers to a linear solver and sparse matrix corresponding to a
+     * L2 projection operator with a local projection stabilization term.
+     */
+    std::pair<libMesh::PetscLinearSolver<double>*, libMesh::PetscMatrix<double>*>
+    buildStabilizedL2ProjectionSolver(const std::string& system_name, double epsilon);
+
+    /*!
      * \return Pointer to vector representation of diagonal L2 mass matrix.
      * Unlike buildLumpedL2ProjectionSolver this matrix is always diagonal and
      * is always assembled without applying constraints.
@@ -106,6 +113,19 @@ public:
                              bool close_F = true,
                              double tol = 1.0e-6,
                              unsigned int max_its = 100);
+
+    /*!
+     * \brief Set U to be the L2 projection of F with a local projection
+     * stabilization term.
+     */
+    bool computeStabilizedL2Projection(libMesh::PetscVector<double>& U,
+                                       libMesh::PetscVector<double>& F,
+                                       const std::string& system_name,
+                                       double epsilon,
+                                       bool close_U = true,
+                                       bool close_F = true,
+                                       double tol = 1.0e-6,
+                                       unsigned int max_its = 100);
 
     /*!
      * \brief Enable or disable logging.
@@ -141,6 +161,11 @@ protected:
     std::map<std::string, std::unique_ptr<libMesh::PetscMatrix<double> > > d_lumped_L2_proj_matrix;
     std::map<std::string, std::unique_ptr<libMesh::PetscLinearSolver<double> > > d_lumped_L2_proj_solver;
     std::map<std::string, std::unique_ptr<libMesh::PetscVector<double> > > d_diag_L2_proj_matrix;
+
+    /// Data structures for consistent mass matrices and related solvers with local projection stabilization.
+    std::map<std::string, std::map<double, std::unique_ptr<libMesh::PetscMatrix<double> > > > d_stab_L2_proj_matrix;
+    std::map<std::string, std::map<double, std::unique_ptr<libMesh::PetscLinearSolver<double> > > >
+        d_stab_L2_proj_solver;
 
 private:
     /*!
