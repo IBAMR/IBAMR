@@ -87,6 +87,13 @@ public:
     /*!
      * \return Pointers to a linear solver and sparse matrix corresponding to a
      * L2 projection operator with a local projection stabilization term.
+     *
+     * This local stabilization approach augments the standard projection with a
+     * stabilization of the form (p, q) + epsilon (p - Pi p, q - Pi q) = (f, q).
+     * Currently the only supported local projection is to piecewise constant
+     * functions.
+     *
+     * Ref: https://epubs.siam.org/doi/abs/10.1137/S0036142905444482
      */
     std::pair<libMesh::PetscLinearSolver<double>*, libMesh::PetscMatrix<double>*>
     buildStabilizedL2ProjectionSolver(const std::string& system_name, double epsilon);
@@ -117,6 +124,13 @@ public:
     /*!
      * \brief Set U to be the L2 projection of F with a local projection
      * stabilization term.
+     *
+     * This local stabilization approach augments the standard projection with a
+     * stabilization of the form (p, q) + epsilon (p - Pi p, q - Pi q) = (f, q).
+     * Currently the only supported local projection is to piecewise constant
+     * functions.
+     *
+     * Ref: https://epubs.siam.org/doi/abs/10.1137/S0036142905444482
      */
     bool computeStabilizedL2Projection(libMesh::PetscVector<double>& U,
                                        libMesh::PetscVector<double>& F,
