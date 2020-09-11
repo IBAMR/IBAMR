@@ -326,7 +326,7 @@ public:
      * Function signature for specifying the energy functional that determines
      * the pressure.
      */
-    using VolumetricEnergyDerivativeFcn = std::function<double(double)>;
+    using VolumetricEnergyDerivativeFcn = double (*)(double);
 
     /*!
      * Indicate that a part should include a static pressure.
@@ -576,8 +576,9 @@ protected:
      */
     std::vector<libMesh::Order> d_fe_order_position, d_fe_order_force, d_fe_order_pressure;
     std::vector<libMesh::FEFamily> d_fe_family_position, d_fe_family_force, d_fe_family_pressure;
-    std::vector<libMesh::QuadratureType> d_default_quad_type_stress, d_default_quad_type_force;
-    std::vector<libMesh::Order> d_default_quad_order_stress, d_default_quad_order_force;
+    std::vector<libMesh::QuadratureType> d_default_quad_type_stress, d_default_quad_type_force,
+        d_default_quad_type_pressure;
+    std::vector<libMesh::Order> d_default_quad_order_stress, d_default_quad_order_force, d_default_quad_order_pressure;
     bool d_use_consistent_mass_matrix = true;
     bool d_include_normal_stress_in_weak_form = false;
     bool d_include_tangential_stress_in_weak_form = false;

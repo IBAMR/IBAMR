@@ -452,7 +452,8 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
     for (unsigned int d = 0; d < NDIM; ++d) X_vars[d] = d;
 
     FEDataInterpolation fe(dim, d_fe_data[part]);
-    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, FIFTH);
+    std::unique_ptr<QBase> qrule =
+        QBase::build(d_default_quad_type_pressure[part], dim, d_default_quad_order_pressure[part]);
     fe.attachQuadratureRule(qrule.get());
     fe.evalQuadraturePoints();
     fe.evalQuadratureWeights();
@@ -1165,8 +1166,10 @@ FEMechanicsBase::commonConstructor(const std::string& object_name,
     d_fe_family_pressure.resize(n_parts, INVALID_FE);
     d_default_quad_type_stress.resize(n_parts, INVALID_Q_RULE);
     d_default_quad_type_force.resize(n_parts, INVALID_Q_RULE);
+    d_default_quad_type_pressure.resize(n_parts, INVALID_Q_RULE);
     d_default_quad_order_stress.resize(n_parts, INVALID_ORDER);
     d_default_quad_order_force.resize(n_parts, INVALID_ORDER);
+    d_default_quad_order_pressure.resize(n_parts, INVALID_ORDER);
 
     // Initialize function data to NULL.
     d_coordinate_mapping_fcn_data.resize(n_parts);
@@ -1211,6 +1214,7 @@ FEMechanicsBase::commonConstructor(const std::string& object_name,
         d_fe_family_pressure[part] = LAGRANGE;
         d_default_quad_type_stress[part] = QGAUSS;
         d_default_quad_type_force[part] = QGAUSS;
+        d_default_quad_type_pressure[part] = QGAUSS;
         if (mesh_has_first_order_elems)
         {
             d_fe_order_position[part] = FIRST;
@@ -1218,6 +1222,7 @@ FEMechanicsBase::commonConstructor(const std::string& object_name,
             d_fe_order_pressure[part] = FIRST;
             d_default_quad_order_stress[part] = THIRD;
             d_default_quad_order_force[part] = THIRD;
+            d_default_quad_order_pressure[part] = THIRD;
         }
         if (mesh_has_second_order_elems)
         {
@@ -1226,6 +1231,7 @@ FEMechanicsBase::commonConstructor(const std::string& object_name,
             d_fe_order_pressure[part] = SECOND;
             d_default_quad_order_stress[part] = FIFTH;
             d_default_quad_order_force[part] = FIFTH;
+            d_default_quad_order_pressure[part] = FIFTH;
         }
     }
 

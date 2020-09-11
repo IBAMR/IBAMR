@@ -488,6 +488,10 @@ public:
      * Indicate that a part should include a static pressure.
      *
      * @see FEMechanicsBase::registerStaticPressurePart for more details.
+     *
+     * @note A given part cannot be registered both for stress normalization and
+     * also to have a static pressure. Attempting to do so will generate a fatal
+     * error.
      */
     virtual void registerStaticPressurePart(PressureProjectionType projection_type = CONSISTENT_PROJECTION,
                                             FEMechanicsBase::VolumetricEnergyDerivativeFcn U_prime_fcn = nullptr,
@@ -495,6 +499,10 @@ public:
 
     /*!
      * Indicate that a part should use stress normalization.
+     *
+     * @note A given part cannot be registered both for stress normalization and
+     * also to have a static pressure. Attempting to do so will generate a fatal
+     * error.
      */
     virtual void registerStressNormalizationPart(unsigned int part = 0);
 
