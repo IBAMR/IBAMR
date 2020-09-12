@@ -344,6 +344,41 @@ FEData::clearPatchHierarchyDependentData()
     d_quadrature_cache.clear();
 }
 
+SubdomainToLevelTranslation::SubdomainToLevelTranslation(const int max_level_number, const Pointer<Database>& input_db)
+    : d_max_level_number(max_level_number)
+{
+    std::fill(d_fixed.begin(), d_fixed.end(), d_max_level_number);
+
+    // check that no id is set more than once
+    std::set<libMesh::subdomain_id_type> known_subdomain_ids;
+    if (input_db)
+    {
+        for (int ln = 0; ln <= d_max_level_number; ++ln)
+        {
+            const std::string key = "level_" + std::to_string(ln);
+            if (input_db->keyExists(key))
+            {
+                const Array<int> subdomain_ids = input_db->getIntegerArray(key);
+                for (int i = 0; i < subdomain_ids.getSize(); ++i)
+                {
+                    const auto id = subdomain_ids[i];
+                    get(id) = ln;
+
+                    if (known_subdomain_ids.count(id) == 0)
+                        known_subdomain_ids.insert(id);
+                    else
+                    {
+                        TBOX_ERROR("The input database lists the subdomain id "
+                                   << id
+                                   << " more than once. Since each subdomain can only "
+                                      "be on exactly one level this is not permitted.");
+                    }
+                }
+            }
+        }
+    }
+}
+
 const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID = 0x100;
 const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID = 0x200;
 const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID = 0x400;
@@ -632,9 +667,9 @@ FEDataManager::reinitElementMappings()
                 "At least one node in the current mesh is inside the fluid domain and not associated with any "
                 "patch. This class currently assumes that all elements are on the finest level and will not "
                 "work correctly if this assumption does not hold. This usually happens when you use multiple "
-                "patch levels and set the regrid CFL interval to a value larger than one. To change this check set "
-                "node_outside_patch_check to a different value in the input database: see the documentation of "
-                "FEDataManager for more information.";
+                "patch levels and set the regrid CFL interval to a value larger than one. To change this check "
+                "set node_outside_patch_check to a different value in the input database: see the documentation "
+                "of FEDataManager for more information.";
             for (const int node_rank : node_ranks)
             {
                 if (node_rank == 0)
@@ -1737,8 +1772,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
         PetscVector<double>* dX_vec = buildIBGhostedDiagonalL2MassMatrix(system_name);
         const double* const dX_local_soln = dX_vec->get_array_read();
 
-        // Loop over the patches to interpolate values to the nodes from the grid, then use these values to compute the
-        // projection of the interpolated velocity field onto the FE basis functions.
+        // Loop over the patches to interpolate values to the nodes from the grid, then use these values to
+        // compute the projection of the interpolated velocity field onto the FE basis functions.
         for (int ln = 0; ln <= d_max_level_number; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -2693,6 +2728,11 @@ FEDataManager::FEDataManager(std::string object_name,
     : d_fe_data(fe_data),
       d_fe_projector(new FEProjector(d_fe_data)),
       COORDINATES_SYSTEM_NAME(d_fe_data->d_coordinates_system_name),
+      d_level_lookup(max_levels - 1,
+                     input_db ? (input_db->keyExists("subdomain_ids_on_levels") ?
+                                     input_db->getDatabase("subdomain_ids_on_levels") :
+                                     nullptr) :
+                                nullptr),
       d_object_name(std::move(object_name)),
       d_registered_for_restart(register_for_restart),
       d_max_level_number(max_levels - 1),
@@ -3067,6 +3107,12 @@ FEDataManager::collectActivePatchNodes(std::vector<std::vector<Node*> >& active_
         }
     }
     return;
+}
+
+int
+FEDataManager::getPatchLevel(const Elem* elem) const
+{
+    return d_level_lookup[elem->subdomain_id()];
 }
 
 void

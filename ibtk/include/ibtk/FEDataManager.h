@@ -261,6 +261,57 @@ protected:
 };
 
 /*!
+ * Class that can translate libMesh subdomain IDs into levels.
+ *
+ * The overwhelming majority of subdomain IDs used with IBAMR come from
+ * block IDs set by ExodusII - these are numbered sequentially from zero.
+ * However, in principle, a subdomain ID could be any signed 64-bit integer
+ * so we cannot use a small fixed length array.
+ *
+ * Since we look up element levels a lot optimize for the common case by
+ * using a fixed-length array and a map for everything else.
+ */
+class SubdomainToLevelTranslation
+{
+public:
+    SubdomainToLevelTranslation(const int max_level_number,
+                                const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
+
+    /*!
+     * Size of the fixed-size array.
+     */
+    static constexpr int fixed_array_size = 256;
+
+    /*!
+     * Return a constant reference. Returns d_max_level_number if no level
+     * is set
+     */
+    const int& operator[](const libMesh::subdomain_id_type id) const
+    {
+        if (id < fixed_array_size) return d_fixed[id];
+        const auto it = d_map.find(id);
+        if (it == d_map.end()) return d_max_level_number;
+        return it->second;
+    }
+
+private:
+    /*!
+     * Return a writeable reference.
+     */
+    int& get(const libMesh::subdomain_id_type id)
+    {
+        if (id < fixed_array_size) return d_fixed[id];
+        return d_map[id];
+    }
+
+    int d_max_level_number = IBTK::invalid_level_number;
+
+    std::array<int, fixed_array_size> d_fixed;
+
+    std::map<libMesh::subdomain_id_type, int> d_map;
+};
+
+/*!
  * \brief Class FEDataManager coordinates data required for
  * Lagrangian-Eulerian interaction between a Lagrangian finite element (FE)
  * mesh. In particular, the FEData member object stores the necessary finite
@@ -269,8 +320,7 @@ protected:
  *
  * <h2>Parameters read from the input database</h2>
  *
- * At the present time the only parameter read from the input database is
- * <code>node_outside_patch_check</code>, which controls how this class responds
+ * <code>node_outside_patch_check</code>: parameter controling how this class responds
  * to mesh nodes outside the finest patch level. In all cases, for backwards
  * compatibility, nodes that are outside the computational domain are permitted
  * and are ignored by this check. Possible values are:
@@ -283,6 +333,23 @@ protected:
  *   outside the finest patch level.
  * </ol>
  * The default value is <code>node_outside_error</code>.
+ *
+ * <code>subdomain_ids_on_levels</code>: a database correlating libMesh subdomain
+ * IDs to patch levels. A possible value for this is
+ * @code
+ * subdomain_ids_on_levels
+ * {
+ *   level_1 = 4
+ *   level_3 = 10, 12, 14
+ *   level_5 = 1000, 1003, 1006, 1009
+ * }
+ * @endcode
+ * This particular input will associate all elements with subdomain id 4 with
+ * patch level 1, all elements with subdomain ids 10, 12, or 14 with patch level
+ * 3, etc. All unspecified subdomain ids will be associated with the finest
+ * patch level. All inputs in this database for levels finer than the finest
+ * level are ignored (e.g., if the maximum patch level number is 4, then the
+ * values given in the example for level 5 ultimately end up on level 4).
  *
  * <h2>Parameters effecting workload estimate calculations</h2>
  * FEDataManager can estimate the amount of work done in IBFE calculations
@@ -1077,6 +1144,16 @@ private:
      */
     void collectActivePatchNodes(std::vector<std::vector<libMesh::Node*> >& active_patch_nodes,
                                  const std::vector<std::vector<libMesh::Elem*> >& active_patch_elems);
+
+    /*!
+     * Store the association between subdomain ids and patch levels.
+     */
+    SubdomainToLevelTranslation d_level_lookup;
+
+    /*!
+     * Get the patch level on which an element lives.
+     */
+    int getPatchLevel(const libMesh::Elem* elem) const;
 
     /*!
      * Collect all ghost DOF indices for the specified collection of elements.

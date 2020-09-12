@@ -116,6 +116,27 @@ def n_mpi_processes(input_file):
 
     return 1
 
+def expect_error(input_file):
+    """Determine if a test is expected to raise an error. Defaults to true.
+    """
+    mpirun_index = input_file.find("expect_error")
+    if mpirun_index != -1:
+        next_equals_index = input_file.find('=', mpirun_index)
+        next_dot_index = input_file.find('.', mpirun_index)
+        assert next_equals_index < next_dot_index
+
+        value = input_file[next_equals_index + 1:next_dot_index].lower()
+        if value == "true":
+            return True
+        elif value == "false":
+            return False
+        else:
+            raise ValueError("Could not convert the given string <" + value + "> to "
+                            "a boolean.")
+
+    return False
+
+
 
 def restart_n(input_file):
     """Determine the restart snapshot number to use when restarting the
@@ -192,6 +213,7 @@ class Test:
         self.input_file = input_file
         stripped_input_file = os.path.split(self.input_file)[-1]
         self._n_mpi_processes = n_mpi_processes(stripped_input_file)
+        self._expect_error = expect_error(stripped_input_file)
         self._restart_n = restart_n(stripped_input_file)
         self.output_file = output_file
         self._parameters = parameters
@@ -205,6 +227,8 @@ class Test:
         assert (os.path.splitext(self.input_file)[0] ==
                 os.path.splitext(self.output_file)[0])
 
+        if (self.do_restart() and self._expect_error):
+            raise ValueError("Restarts and expected errors cannot be used together.")
 
     def name(self):
         """Name of the test. Determined by the input file.
@@ -255,7 +279,10 @@ class Test:
                                         stderr=subprocess.PIPE,
                                         stdout=subprocess.PIPE,
                                         cwd=temporary_directory)
-            run_succeeded = run_result.returncode == 0
+            if self._expect_error:
+                run_succeeded = run_result.returncode != 0
+            else:
+                run_succeeded = run_result.returncode == 0
             if run_succeeded:
                 # The first run succeeded: if we are testing restart code we need to run again
                 if self.do_restart():

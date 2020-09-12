@@ -1,0 +1,13 @@
+// Like the other test but should cause an error
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+   timer_enabled = TRUE
+}
+
+trans
+{
+    level_1 = 4, 10
+    level_3 = 10, 12, 14 // this causes an error since 10 shows up twice
+    level_5 = 1000, 1003, 1006, 1009
+}

@@ -1,0 +1,12 @@
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+   timer_enabled = TRUE
+}
+
+trans
+{
+    level_1 = 4
+    level_3 = 10, 12, 14
+    level_5 = 1000, 1003, 1006, 1009
+}
