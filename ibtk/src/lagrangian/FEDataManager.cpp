@@ -667,9 +667,9 @@ FEDataManager::reinitElementMappings()
                 "At least one node in the current mesh is inside the fluid domain and not associated with any "
                 "patch. This class currently assumes that all elements are on the finest level and will not "
                 "work correctly if this assumption does not hold. This usually happens when you use multiple "
-                "patch levels and set the regrid CFL interval to a value larger than one. To change this check set "
-                "node_outside_patch_check to a different value in the input database: see the documentation of "
-                "FEDataManager for more information.";
+                "patch levels and set the regrid CFL interval to a value larger than one. To change this check "
+                "set node_outside_patch_check to a different value in the input database: see the documentation "
+                "of FEDataManager for more information.";
             for (const int node_rank : node_ranks)
             {
                 if (node_rank == 0)
@@ -1772,8 +1772,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
         PetscVector<double>* dX_vec = buildIBGhostedDiagonalL2MassMatrix(system_name);
         const double* const dX_local_soln = dX_vec->get_array_read();
 
-        // Loop over the patches to interpolate values to the nodes from the grid, then use these values to compute the
-        // projection of the interpolated velocity field onto the FE basis functions.
+        // Loop over the patches to interpolate values to the nodes from the grid, then use these values to
+        // compute the projection of the interpolated velocity field onto the FE basis functions.
         for (int ln = 0; ln <= d_max_level_number; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
