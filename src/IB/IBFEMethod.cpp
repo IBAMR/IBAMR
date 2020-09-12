@@ -424,10 +424,24 @@ IBFEMethod::getFEDataManager(const unsigned int part) const
 } // getFEDataManager
 
 void
+IBFEMethod::registerStaticPressurePart(PressureProjectionType projection_type,
+                                       FEMechanicsBase::VolumetricEnergyDerivativeFcn U_prime,
+                                       unsigned int part)
+{
+    TBOX_ASSERT(d_fe_equation_systems_initialized);
+    TBOX_ASSERT(part < d_meshes.size());
+    // The same part can either have a pressure or can use stress normalization, but not both.
+    if (d_has_stress_normalization_parts) TBOX_ASSERT(!d_stress_normalization_part[part]);
+    FEMechanicsBase::registerStaticPressurePart(projection_type, U_prime, part);
+}
+
+void
 IBFEMethod::registerStressNormalizationPart(unsigned int part)
 {
     TBOX_ASSERT(d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_meshes.size());
+    // The same part can either have a pressure or can use stress normalization, but not both.
+    if (d_has_static_pressure_parts) TBOX_ASSERT(!d_static_pressure_part[part]);
     if (d_stress_normalization_part[part]) return;
     d_has_stress_normalization_parts = true;
     d_stress_normalization_part[part] = true;
@@ -870,6 +884,11 @@ IBFEMethod::computeLagrangianForce(const double data_time)
         if (d_stress_normalization_part[part])
         {
             computeStressNormalization(
+                d_P_vecs->get(data_time_str, part), d_X_vecs->get(data_time_str, part), data_time, part);
+        }
+        if (d_static_pressure_part[part])
+        {
+            computeStaticPressure(
                 d_P_vecs->get(data_time_str, part), d_X_vecs->get(data_time_str, part), data_time, part);
         }
         assembleInteriorForceDensityRHS(d_F_vecs->get("RHS Vector", part),
@@ -1772,6 +1791,11 @@ IBFEMethod::doInitializeFEData(const bool use_present_data)
         d_P_vecs.reset(
             new LibMeshSystemIBVectors(d_active_fe_data_managers, d_stress_normalization_part, PRESSURE_SYSTEM_NAME));
     }
+    if (d_has_static_pressure_parts)
+    {
+        d_P_vecs.reset(
+            new LibMeshSystemIBVectors(d_active_fe_data_managers, d_static_pressure_part, PRESSURE_SYSTEM_NAME));
+    }
     if (d_has_lag_body_source_parts)
     {
         d_Q_vecs.reset(
@@ -1866,16 +1890,15 @@ IBFEMethod::doInitializeFEData(const bool use_present_data)
                         if (node->n_dofs(F_sys_num))
                         {
                             const int F_dof_index = node->dof_number(F_sys_num, d, 0);
-                            DofConstraintRow F_constraint_row;
-                            F_constraint_row[F_dof_index] = 1.0;
-                            F_dof_map.add_constraint_row(F_dof_index, F_constraint_row, 0.0, false);
+                            // NOTE: The diagonal entry is automatically constrained.
+                            F_dof_map.add_constraint_row(F_dof_index, {}, 0.0, false);
                         }
                         if (node->n_dofs(U_sys_num))
                         {
                             const int U_dof_index = node->dof_number(U_sys_num, d, 0);
                             DofConstraintRow U_constraint_row;
-                            U_constraint_row[U_dof_index] = 1.0;
-                            U_dof_map.add_constraint_row(U_dof_index, U_constraint_row, 0.0, false);
+                            // NOTE: The diagonal entry is automatically constrained.
+                            U_dof_map.add_constraint_row(U_dof_index, {}, 0.0, false);
                         }
                     }
                 }
@@ -2834,10 +2857,11 @@ IBFEMethod::commonConstructor(const std::string& object_name,
 
     // Store the mesh pointers.
     d_meshes = meshes;
+    const auto n_parts = d_meshes.size();
     d_max_level_number = max_levels - 1;
 
     // Indicate that all parts are active.
-    d_part_is_active.resize(d_meshes.size(), true);
+    d_part_is_active.resize(n_parts, true);
 
     // Set some default values.
     const bool use_adaptive_quadrature = true;
@@ -2854,24 +2878,28 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     d_default_spread_spec = FEDataManager::SpreadSpec(
         "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, use_nodal_quadrature);
 
-    // Indicate that all of the parts do NOT use stress normalization by default
-    // and set some default values.
-    d_stress_normalization_part.resize(d_meshes.size(), false);
-
     // Initialize function data to NULL.
-    d_coordinate_mapping_fcn_data.resize(d_meshes.size());
-    d_initial_velocity_fcn_data.resize(d_meshes.size());
-    d_PK1_stress_fcn_data.resize(d_meshes.size());
-    d_lag_body_force_fcn_data.resize(d_meshes.size());
-    d_lag_surface_pressure_fcn_data.resize(d_meshes.size());
-    d_lag_surface_force_fcn_data.resize(d_meshes.size());
-    d_lag_body_source_part.resize(d_meshes.size(), false);
-    d_lag_body_source_fcn_data.resize(d_meshes.size());
-    d_direct_forcing_kinematics_data.resize(d_meshes.size(), Pointer<IBFEDirectForcingKinematics>(nullptr));
+    d_coordinate_mapping_fcn_data.resize(n_parts);
+    d_initial_velocity_fcn_data.resize(n_parts);
+    d_PK1_stress_fcn_data.resize(n_parts);
+    d_lag_body_force_fcn_data.resize(n_parts);
+    d_lag_surface_pressure_fcn_data.resize(n_parts);
+    d_lag_surface_force_fcn_data.resize(n_parts);
+    d_lag_body_source_part.resize(n_parts, false);
+    d_lag_body_source_fcn_data.resize(n_parts);
+    d_direct_forcing_kinematics_data.resize(n_parts, Pointer<IBFEDirectForcingKinematics>(nullptr));
+
+    // Indicate that all of the parts do NOT use stress normalization by default.
+    d_stress_normalization_part.resize(n_parts, false);
+
+    // Indicate that all of the parts do NOT use static pressures by default.
+    d_static_pressure_part.resize(n_parts, false);
+    d_static_pressure_proj_type.resize(n_parts, UNKNOWN_PRESSURE_TYPE);
+    d_static_pressure_vol_energy_deriv_fcn.resize(n_parts, nullptr);
 
     // Determine whether we should use first-order or second-order shape
     // functions for each part of the structure.
-    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    for (unsigned int part = 0; part < n_parts; ++part)
     {
         const MeshBase& mesh = *meshes[part];
         bool mesh_has_first_order_elems = false;
@@ -2925,9 +2953,9 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     if (input_db) getFromInput(input_db, from_restart);
 
     // Set up the interaction spec objects.
-    d_interp_spec.resize(d_meshes.size(), d_default_interp_spec);
-    d_spread_spec.resize(d_meshes.size(), d_default_spread_spec);
-    d_workload_spec.resize(d_meshes.size(), d_default_workload_spec);
+    d_interp_spec.resize(n_parts, d_default_interp_spec);
+    d_spread_spec.resize(n_parts, d_default_spread_spec);
+    d_workload_spec.resize(n_parts, d_default_workload_spec);
 
     // Determine how to compute weak forms.
     d_include_normal_stress_in_weak_form = d_split_normal_force;

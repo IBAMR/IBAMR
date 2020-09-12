@@ -130,7 +130,7 @@ public:
      *             i.e., the initial coordinate mapping is assumed to be the
      *             identity mapping.
      */
-    void registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data, unsigned int part = 0);
+    virtual void registerInitialCoordinateMappingFunction(const CoordinateMappingFcnData& data, unsigned int part = 0);
 
     /*!
      * Get the initial coordinate mapping function data.
@@ -162,7 +162,7 @@ public:
      * @note       If no function is provided, the initial velocity is taken to
      *             be zero.
      */
-    void registerInitialVelocityFunction(const InitialVelocityFcnData& data, unsigned int part = 0);
+    virtual void registerInitialVelocityFunction(const InitialVelocityFcnData& data, unsigned int part = 0);
 
     /*!
      * Get the initial velocity function data.
@@ -204,7 +204,7 @@ public:
      *             this class.  This is intended to be used to implement
      *             selective reduced integration.
      */
-    void registerPK1StressFunction(const PK1StressFcnData& data, unsigned int part = 0);
+    virtual void registerPK1StressFunction(const PK1StressFcnData& data, unsigned int part = 0);
 
     /*!
      * Get the PK1 stress function data.
@@ -241,7 +241,7 @@ public:
      * @note       It is @em NOT possible to register multiple body force
      *             functions with this class.
      */
-    void registerLagBodyForceFunction(const LagBodyForceFcnData& data, unsigned int part = 0);
+    virtual void registerLagBodyForceFunction(const LagBodyForceFcnData& data, unsigned int part = 0);
 
     /*!
      * Get the Lagrangian body force function data.
@@ -278,7 +278,7 @@ public:
      * @note       It is @em NOT possible to register multiple pressure
      *             functions with this class.
      */
-    void registerLagSurfacePressureFunction(const LagSurfacePressureFcnData& data, unsigned int part = 0);
+    virtual void registerLagSurfacePressureFunction(const LagSurfacePressureFcnData& data, unsigned int part = 0);
 
     /*!
      * Get the Lagrangian surface pressure function data.
@@ -315,12 +315,39 @@ public:
      * @note       It is @em NOT possible to register multiple surface force
      *             functions with this class.
      */
-    void registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, unsigned int part = 0);
+    virtual void registerLagSurfaceForceFunction(const LagSurfaceForceFcnData& data, unsigned int part = 0);
 
     /*!
      * Get the Lagrangian surface force function data.
      */
     LagSurfaceForceFcnData getLagSurfaceForceFunction(unsigned int part = 0) const;
+
+    /*!
+     * Function signature for specifying the energy functional that determines
+     * the pressure.
+     */
+    using VolumetricEnergyDerivativeFcn = double (*)(double);
+
+    /*!
+     * Indicate that a part should include a static pressure.
+     *
+     * The pressure is determined via (P, Q) = (U'(J), Q), using either a
+     * consistent or lumped mass matrix, or via a locally stabilized projection
+     * of the form (P, Q) + epsilon (P - Pi P, Q - Pi Q) = (U'(J), Q), in which
+     * P is the pressure and Q is an arbitrary test function.
+     *
+     * Users can provide a function to evaluate U'(J).  If no function is
+     * provided, we default to using U(J) = -kappa (J ln(J) − J + 1), so that
+     * U'(J) = -kappa ln J. (Ref: C.H. Liu, G. Hofstetter, H.A. Mang, 3D finite
+     * element analysis of rubber-like materials at finite strains, Eng. Comput.
+     * 11 (2) (1994) 111–128.)
+     *
+     * The sign convention used in the implementation generates a PK1 stress of
+     * the form PP = -J P FF^{-T}.
+     */
+    virtual void registerStaticPressurePart(PressureProjectionType projection_type = CONSISTENT_PROJECTION,
+                                            VolumetricEnergyDerivativeFcn U_prime_fcn = nullptr,
+                                            unsigned int part = 0);
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
@@ -388,6 +415,14 @@ protected:
      * up to date.
      */
     virtual void doInitializeFEData(bool use_present_data) = 0;
+
+    /*!
+     * \brief Compute the static pressure  field.
+     */
+    void computeStaticPressure(libMesh::PetscVector<double>& P_vec,
+                               libMesh::PetscVector<double>& X_vec,
+                               double data_time,
+                               unsigned int part);
 
     /*!
      * Assemble the RHS for the interior elastic density, possibly splitting off
@@ -541,8 +576,9 @@ protected:
      */
     std::vector<libMesh::Order> d_fe_order_position, d_fe_order_force, d_fe_order_pressure;
     std::vector<libMesh::FEFamily> d_fe_family_position, d_fe_family_force, d_fe_family_pressure;
-    std::vector<libMesh::QuadratureType> d_default_quad_type_stress, d_default_quad_type_force;
-    std::vector<libMesh::Order> d_default_quad_order_stress, d_default_quad_order_force;
+    std::vector<libMesh::QuadratureType> d_default_quad_type_stress, d_default_quad_type_force,
+        d_default_quad_type_pressure;
+    std::vector<libMesh::Order> d_default_quad_order_stress, d_default_quad_order_force, d_default_quad_order_pressure;
     bool d_use_consistent_mass_matrix = true;
     bool d_include_normal_stress_in_weak_form = false;
     bool d_include_tangential_stress_in_weak_form = false;
@@ -571,6 +607,15 @@ protected:
     std::vector<LagBodyForceFcnData> d_lag_body_force_fcn_data;
     std::vector<LagSurfacePressureFcnData> d_lag_surface_pressure_fcn_data;
     std::vector<LagSurfaceForceFcnData> d_lag_surface_force_fcn_data;
+
+    /*!
+     * Data related to handling static pressures.
+     */
+    double d_static_pressure_kappa = 0.0, d_static_pressure_stab_param = 0.0;
+    bool d_has_static_pressure_parts = false;
+    std::vector<bool> d_static_pressure_part;
+    std::vector<PressureProjectionType> d_static_pressure_proj_type;
+    std::vector<VolumetricEnergyDerivativeFcn> d_static_pressure_vol_energy_deriv_fcn;
 
     /*!
      * The object name is used as a handle to databases stored in restart files
