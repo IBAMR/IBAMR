@@ -23,7 +23,8 @@ ghost_indices_01_3d ibtk_init hierarchy_callbacks ibtk_mpi
 
 if LIBMESH_ENABLED
 EXTRA_PROGRAMS += elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
-bounding_boxes_01_3d mapping_01 fe_values_01 fe_values_02
+bounding_boxes_01_3d mapping_01 fe_values_01 fe_values_02 \
+subdomain_level_translation_01
 endif
 
 if LIBMESH_ENABLED
@@ -183,6 +184,12 @@ ghost_accumulation_01_3d_SOURCES = ghost_accumulation_01.cpp
 hierarchy_callbacks_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 hierarchy_callbacks_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 hierarchy_callbacks_SOURCES = hierarchy_callbacks.cpp
+
+if LIBMESH_ENABLED
+subdomain_level_translation_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
+subdomain_level_translation_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+subdomain_level_translation_01_SOURCES = subdomain_level_translation_01.cpp
+endif
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \

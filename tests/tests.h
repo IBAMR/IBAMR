@@ -18,6 +18,7 @@
 
 #include <ibtk/IBTK_MPI.h>
 
+#include <tbox/Logger.h>
 #include <tbox/PIO.h>
 
 #ifdef IBAMR_HAVE_LIBMESH
@@ -184,5 +185,22 @@ FEMapCache::operator[](const FEMapCache::key_type& quad_key)
     }
 }
 #endif // ifdef IBAMR_HAVE_LIBMESH
+
+/**
+ * SAMRAI's default abort error message printer prints some things that are not
+ * compatible with the test suite (the line number and full path to the file).
+ * Get rid of them as needed in the test suite by replacing its abort appender
+ * with our own (see SAMRAI::tbox::Logger::setAbortAppender)
+ */
+class TestAppender : public SAMRAI::tbox::Logger::Appender
+{
+public:
+    virtual void logMessage(const std::string& message, const std::string&, const int) override
+    {
+        // SAMRAI appends an extra NUL to the message string so we have to
+        // convert it to a C string to prevent it from being printed
+        pout << "Program abort called with error message\n\n    " << message.c_str() << std::endl << std::flush;
+    }
+};
 
 #endif // define included_ibamr_tests_h

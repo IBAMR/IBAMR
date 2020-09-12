@@ -344,6 +344,41 @@ FEData::clearPatchHierarchyDependentData()
     d_quadrature_cache.clear();
 }
 
+SubdomainToLevelTranslation::SubdomainToLevelTranslation(const int max_level_number, const Pointer<Database>& input_db)
+    : d_max_level_number(max_level_number)
+{
+    std::fill(d_fixed.begin(), d_fixed.end(), d_max_level_number);
+
+    // check that no id is set more than once
+    std::set<libMesh::subdomain_id_type> known_subdomain_ids;
+    if (input_db)
+    {
+        for (int ln = 0; ln <= d_max_level_number; ++ln)
+        {
+            const std::string key = "level_" + std::to_string(ln);
+            if (input_db->keyExists(key))
+            {
+                const Array<int> subdomain_ids = input_db->getIntegerArray(key);
+                for (int i = 0; i < subdomain_ids.getSize(); ++i)
+                {
+                    const auto id = subdomain_ids[i];
+                    get(id) = ln;
+
+                    if (known_subdomain_ids.count(id) == 0)
+                        known_subdomain_ids.insert(id);
+                    else
+                    {
+                        TBOX_ERROR("The input database lists the subdomain id "
+                                   << id
+                                   << " more than once. Since each subdomain can only "
+                                      "be on exactly one level this is not permitted.");
+                    }
+                }
+            }
+        }
+    }
+}
+
 const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID = 0x100;
 const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID = 0x200;
 const boundary_id_type FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID = 0x400;
@@ -2693,6 +2728,11 @@ FEDataManager::FEDataManager(std::string object_name,
     : d_fe_data(fe_data),
       d_fe_projector(new FEProjector(d_fe_data)),
       COORDINATES_SYSTEM_NAME(d_fe_data->d_coordinates_system_name),
+      d_level_lookup(max_levels - 1,
+                     input_db ? (input_db->keyExists("subdomain_ids_on_levels") ?
+                                     input_db->getDatabase("subdomain_ids_on_levels") :
+                                     nullptr) :
+                                nullptr),
       d_object_name(std::move(object_name)),
       d_registered_for_restart(register_for_restart),
       d_max_level_number(max_levels - 1),
@@ -3067,6 +3107,12 @@ FEDataManager::collectActivePatchNodes(std::vector<std::vector<Node*> >& active_
         }
     }
     return;
+}
+
+int
+FEDataManager::getPatchLevel(const Elem* elem) const
+{
+    return d_level_lookup[elem->subdomain_id()];
 }
 
 void

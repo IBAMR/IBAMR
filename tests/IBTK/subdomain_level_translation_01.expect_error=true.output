@@ -1,0 +1,3 @@
+Program abort called with error message
+
+    The input database lists the subdomain id 10 more than once. Since each subdomain can only be on exactly one level this is not permitted.
