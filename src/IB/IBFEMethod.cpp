@@ -357,7 +357,7 @@ build_ib_ghosted_system_data(std::vector<SystemData>& ghosted_system_data,
  * collective.
  */
 double
-get_min_patch_dx(const Pointer<PatchHierarchy<NDIM> > hierarchy, const int level_num)
+get_min_patch_dx(const Pointer<PatchHierarchy<NDIM> >& hierarchy, const int level_num)
 {
     double result = std::numeric_limits<double>::max();
 
