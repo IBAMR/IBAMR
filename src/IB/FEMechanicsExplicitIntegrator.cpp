@@ -31,6 +31,7 @@
 #include <IBTK_config.h>
 
 #include <algorithm>
+#include <memory>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -61,64 +62,6 @@ get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
         }
     }
     return dirichlet_bdry_ids;
-}
-
-inline bool
-is_physical_bdry(const Elem* elem,
-                 const unsigned short int side,
-                 const BoundaryInfo& boundary_info,
-                 const DofMap& dof_map)
-{
-    std::vector<boundary_id_type> bdry_ids;
-    boundary_info.boundary_ids(elem, side, bdry_ids);
-    bool at_physical_bdry = !elem->neighbor_ptr(side);
-    for (const auto& bdry_id : bdry_ids)
-    {
-        if (dof_map.is_periodic_boundary(bdry_id)) at_physical_bdry = false;
-    }
-    return at_physical_bdry;
-}
-
-inline bool
-is_dirichlet_bdry(const Elem* elem,
-                  const unsigned short int side,
-                  const BoundaryInfo& boundary_info,
-                  const DofMap& dof_map)
-{
-    if (!is_physical_bdry(elem, side, boundary_info, dof_map)) return false;
-    std::vector<boundary_id_type> bdry_ids;
-    boundary_info.boundary_ids(elem, side, bdry_ids);
-    return get_dirichlet_bdry_ids(bdry_ids) != 0;
-}
-
-inline bool
-has_physical_bdry(const Elem* elem, const BoundaryInfo& boundary_info, const DofMap& dof_map)
-{
-    bool has_physical_bdry = false;
-    for (unsigned short int side = 0; side < elem->n_sides() && !has_physical_bdry; ++side)
-    {
-        has_physical_bdry = has_physical_bdry || is_physical_bdry(elem, side, boundary_info, dof_map);
-    }
-    return has_physical_bdry;
-}
-
-inline void
-get_FF(libMesh::TensorValue<double>& FF,
-       const std::vector<VectorValue<double> >& grad_x_data,
-       const unsigned int dim = NDIM)
-{
-    FF.zero();
-    for (unsigned int i = 0; i < dim; ++i)
-    {
-        for (unsigned int j = 0; j < dim; ++j)
-        {
-            FF(i, j) = grad_x_data[i](j);
-        }
-    }
-    for (unsigned int i = dim; i < LIBMESH_DIM; ++i)
-    {
-        FF(i, i) = 1.0;
-    }
 }
 } // namespace
 
@@ -298,7 +241,6 @@ void
 FEMechanicsExplicitIntegrator::trapezoidalStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
-    const double half_time = current_time + 0.5 * dt;
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         int ierr;
@@ -354,7 +296,6 @@ void
 FEMechanicsExplicitIntegrator::modifiedTrapezoidalStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
-    const double half_time = current_time + 0.5 * dt;
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         int ierr;
@@ -461,15 +402,12 @@ FEMechanicsExplicitIntegrator::doInitializeFEEquationSystems()
     d_system_dof_map_cache.resize(d_meshes.size());
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
-        d_fe_data[part] =
-            std::make_shared<FEData>(d_object_name + "::FEData::" + std::to_string(part), d_registered_for_restart);
-        d_fe_projectors[part].reset(new FEProjector(d_fe_data[part]));
-
         // Create FE equation systems objects and corresponding variables.
         d_equation_systems[part].reset(new EquationSystems(*d_meshes[part]));
         EquationSystems& equation_systems = *d_equation_systems[part];
-        d_fe_data[part]->setEquationSystems(d_equation_systems[part].get(),
-                                            /*level_number*/ 0); // TODO: remove level_number as a required parameter
+        d_fe_data[part] = std::make_shared<FEData>(
+            d_object_name + "::FEData::" + std::to_string(part), equation_systems, d_registered_for_restart);
+        d_fe_projectors[part] = std::make_shared<FEProjector>(d_fe_data[part]);
         if (from_restart)
         {
             const std::string& file_name = libmesh_restart_file_name(
@@ -725,7 +663,8 @@ FEMechanicsExplicitIntegrator::commonConstructor(const std::string& object_name,
             d_fe_order_force[part] = FIRST;
             d_fe_order_pressure[part] = FIRST;
             d_default_quad_order_stress[part] = THIRD;
-            d_default_quad_order_stress[part] = THIRD;
+            d_default_quad_order_force[part] = THIRD;
+            d_default_quad_order_pressure[part] = THIRD;
         }
         else if (mesh_has_second_order_elems)
         {
@@ -733,7 +672,8 @@ FEMechanicsExplicitIntegrator::commonConstructor(const std::string& object_name,
             d_fe_order_force[part] = SECOND;
             d_fe_order_pressure[part] = SECOND;
             d_default_quad_order_stress[part] = FIFTH;
-            d_default_quad_order_stress[part] = FIFTH;
+            d_default_quad_order_force[part] = FIFTH;
+            d_default_quad_order_pressure[part] = FIFTH;
         }
     }
 
