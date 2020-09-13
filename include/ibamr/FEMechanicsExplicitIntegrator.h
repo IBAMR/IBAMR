@@ -76,11 +76,6 @@ public:
     ~FEMechanicsExplicitIntegrator() override = default;
 
     /*!
-     * Indicate that a part should use pressure stabilization.
-     */
-    void registerPressureStabilizationPart(unsigned int part = 0);
-
-    /*!
      * Method to prepare to advance data from current_time to new_time.
      */
     void preprocessIntegrateData(double current_time, double new_time, int num_cycles) override;
@@ -150,14 +145,6 @@ public:
 
 protected:
     /*!
-     * \brief Compute the pressure stabilization field.
-     */
-    void computePressureStabilization(libMesh::PetscVector<double>& P_vec,
-                                      libMesh::PetscVector<double>& X_vec,
-                                      double data_time,
-                                      unsigned int part);
-
-    /*!
      * Do the actual work in initializeFEEquationSystems.
      */
     void doInitializeFEEquationSystems() override;
@@ -184,9 +171,6 @@ protected:
     /// Structure mass densities.
     std::vector<double> d_rhos;
 
-    /// FEProjector objects.
-    std::vector<std::unique_ptr<IBTK::FEProjector> > d_fe_projectors;
-
     /// Cached DOF mapping data.
     std::vector<std::map<std::pair<unsigned int, libMesh::FEType>, std::unique_ptr<IBTK::FEData::SystemDofMapCache> > >
         d_system_dof_map_cache;
@@ -211,13 +195,6 @@ private:
      * members.
      */
     void getFromRestart();
-
-    /*!
-     * Data related to handling pressure stabilization.
-     */
-    double d_kappa = 0.0;
-    bool d_has_pressure_stabilization_parts = false;
-    std::vector<bool> d_pressure_stabilization_part;
 };
 } // namespace IBAMR
 
