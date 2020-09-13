@@ -482,7 +482,7 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
     {
         Elem* const elem = *el_it;
         const auto& P_dof_indices = P_dof_map_cache.dof_indices(elem);
-        P_rhs_e.resize(static_cast<int>(P_dof_indices.size()));
+        P_rhs_e.resize(static_cast<int>(P_dof_indices[0].size()));
         fe.reinit(elem);
         fe.collectDataForInterpolation(elem);
         fe.interpolate(elem);
