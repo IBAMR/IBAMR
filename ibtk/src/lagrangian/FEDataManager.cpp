@@ -2599,6 +2599,9 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
+                // If the element should already be on the current level then we
+                // do not need to mark any cells for refinement
+                if (getPatchLevel(elem) <= level_number) continue;
                 const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
 
@@ -2626,7 +2629,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
 
         X_petsc_vec->restore_array();
     }
-    else if (level_number + 1 == d_max_level_number && level_number < d_hierarchy->getFinestLevelNumber())
+    else
     {
         Pointer<PatchLevel<NDIM> > finer_level = d_hierarchy->getPatchLevel(level_number + 1);
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
