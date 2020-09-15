@@ -5,19 +5,22 @@ IBFEMethod: mesh part 0 is using FIRST order LAGRANGE finite elements.
 IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 4
 INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field
-hierarchy boxes:
+rank: 0 level: 1 boxes:
 [(0,0),(3,3)]
 [(0,4),(3,7)]
 [(4,0),(7,3)]
 [(4,4),(7,7)]
+rank: 1 level: 1 boxes:
 [(0,8),(3,11)]
 [(0,12),(3,15)]
 [(4,8),(7,11)]
 [(4,12),(7,15)]
+rank: 2 level: 1 boxes:
 [(8,0),(11,3)]
 [(8,4),(11,7)]
 [(12,0),(15,3)]
 [(12,4),(15,7)]
+rank: 3 level: 1 boxes:
 [(8,8),(11,11)]
 [(8,12),(11,15)]
 [(12,8),(15,11)]
