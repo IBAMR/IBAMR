@@ -519,10 +519,6 @@ public:
      * corresponding to the specified name.  Access to FEDataManager objects is
      * mediated by the getManager() function.
      *
-     * The difference between this and the other getManager() functions is that
-     * this overload permits adding an input database as an argument for setting
-     * non-default parameters. The old overloads are kept for compatibility.
-     *
      * @note When a manager is accessed for the first time, the
      * FEDataManager::freeAllManagers() static method is registered with the
      * SAMRAI::tbox::ShutdownRegistry class. Consequently, all allocated

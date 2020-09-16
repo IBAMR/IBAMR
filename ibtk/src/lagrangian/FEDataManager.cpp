@@ -567,18 +567,30 @@ FEDataManager::reinitElementMappings()
     //
     // TODO: for now we simply set all patches on all levels except the finest
     // to have no elements.
-    for (int ln = 0; ln < d_max_level_number; ++ln)
+    for (int ln = 0; ln <= d_max_level_number; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         d_active_patch_elem_map[ln].resize(level->getProcessorMapping().getNumberOfLocalIndices());
         d_active_patch_node_map[ln].resize(level->getProcessorMapping().getNumberOfLocalIndices());
     }
 
-    // TODO: both of these functions still assume that all the elements are on
-    // the same patch level. They will need to be generalized.
+    // TODO: collectActivePatchElements still assumes every element is on the
+    // same patch level.
     collectActivePatchElements(d_active_patch_elem_map.back(), d_max_level_number);
-    collectActivePatchNodes(d_active_patch_node_map.back(), d_active_patch_elem_map.back());
-    collect_unique_elems(d_active_elems, d_active_patch_elem_map.back());
+    for (int ln = 0; ln <= d_max_level_number; ++ln)
+    {
+        collectActivePatchNodes(d_active_patch_node_map[ln], d_active_patch_elem_map[ln]);
+    }
+
+    std::set<Elem*> elem_set;
+    for (const std::vector<std::vector<Elem*> >& level_elems : d_active_patch_elem_map)
+    {
+        for (const std::vector<Elem*>& patch_elems : level_elems)
+        {
+            elem_set.insert(patch_elems.begin(), patch_elems.end());
+        }
+    }
+    d_active_elems.assign(elem_set.begin(), elem_set.end());
 
     // If we are not regridding in the usual way (i.e., if
     // IBHierarchyIntegrator::d_regrid_cfl_interval > 1) then it is possible
@@ -2587,6 +2599,9 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
+                // If the element should already be on the current level then we
+                // do not need to mark any cells for refinement
+                if (getPatchLevel(elem) <= level_number) continue;
                 const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
 
@@ -2614,7 +2629,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
 
         X_petsc_vec->restore_array();
     }
-    else if (level_number + 1 == d_max_level_number && level_number < d_hierarchy->getFinestLevelNumber())
+    else
     {
         Pointer<PatchLevel<NDIM> > finer_level = d_hierarchy->getPatchLevel(level_number + 1);
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
