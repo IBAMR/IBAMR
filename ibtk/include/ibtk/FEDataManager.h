@@ -294,6 +294,22 @@ public:
         return it->second;
     }
 
+    /*!
+     * Return whether or not there are any elements on a given level.
+     */
+    bool levelHasElements(const int level_number) const
+    {
+        const auto array_it = std::find(d_fixed.begin(), d_fixed.end(), level_number);
+        if (array_it != d_fixed.end())
+        {
+            return true;
+        }
+        else
+        {
+            return d_map.count(level_number) != 0;
+        }
+    }
+
 private:
     /*!
      * Return a writable reference.

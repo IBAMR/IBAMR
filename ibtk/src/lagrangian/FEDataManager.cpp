@@ -2990,6 +2990,16 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     std::vector<std::set<Elem*> > local_patch_elems(num_local_patches);
     active_patch_elems.resize(num_local_patches);
 
+    // Try to exit quickly if no patches will actually have elements (i.e., if
+    // there are no elements assigned to the range of levels we are working
+    // with)
+    bool levels_have_elements = false;
+    for (int ln = coarsest_elem_ln; ln <= finest_elem_ln; ++ln)
+    {
+        levels_have_elements = levels_have_elements || d_level_lookup.levelHasElements(ln);
+    }
+    if (!levels_have_elements) return;
+
     // We associate an element with a Cartesian grid patch if the element's
     // bounding box (which is computed based on the bounds of quadrature
     // points) intersects the patch interior grown by
