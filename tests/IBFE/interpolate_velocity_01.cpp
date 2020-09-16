@@ -178,6 +178,26 @@ main(int argc, char** argv)
         }
         mesh.prepare_for_use();
 
+        // Set up subdomain ids (which are only used in the multilevel test versions):
+        {
+            for (auto elem_iter = mesh.active_elements_begin(); elem_iter != mesh.active_elements_end(); ++elem_iter)
+            {
+                Elem* elem = *elem_iter;
+                const auto centroid = elem->centroid();
+#if NDIM == 2
+                if (centroid(1) > 0.0)
+                    elem->subdomain_id() = 1;
+                else
+                    elem->subdomain_id() = 2;
+#else
+                if (centroid(1) > 0.0 && centroid(2) > 0.0)
+                    elem->subdomain_id() = 1;
+                else
+                    elem->subdomain_id() = 2;
+#endif
+            }
+        }
+
         MeshRefinement mesh_refinement(mesh);
         if (input_db->getBoolWithDefault("use_amr", false))
         {
