@@ -296,7 +296,7 @@ public:
 
 private:
     /*!
-     * Return a writeable reference.
+     * Return a writable reference.
      */
     int& get(const libMesh::subdomain_id_type id)
     {
@@ -320,10 +320,10 @@ private:
  *
  * <h2>Parameters read from the input database</h2>
  *
- * <code>node_outside_patch_check</code>: parameter controling how this class responds
- * to mesh nodes outside the finest patch level. In all cases, for backwards
- * compatibility, nodes that are outside the computational domain are permitted
- * and are ignored by this check. Possible values are:
+ * <code>node_outside_patch_check</code>: parameter controlling how this class
+ * responds to mesh nodes outside the finest patch level. In all cases, for
+ * backwards compatibility, nodes that are outside the computational domain are
+ * permitted and are ignored by this check. Possible values are:
  * <ol>
  *   <li><code>node_outside_permit</code>: Permit nodes to be outside the finest
  *   patch level.</li>
@@ -949,7 +949,7 @@ public:
                              unsigned int max_its = 100);
 
     /*!
-     * Update the quarature rule for the current element.  If the provided
+     * Update the quadrature rule for the current element.  If the provided
      * qrule is already configured appropriately, it is not modified.
      *
      * \return true if the quadrature rule is updated or otherwise requires
