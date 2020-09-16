@@ -564,21 +564,9 @@ FEDataManager::reinitElementMappings()
 
     // Reset the mappings between grid patches and active mesh
     // elements.
-    //
-    // TODO: for now we simply set all patches on all levels except the finest
-    // to have no elements.
     for (int ln = 0; ln <= d_max_level_number; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        d_active_patch_elem_map[ln].resize(level->getProcessorMapping().getNumberOfLocalIndices());
-        d_active_patch_node_map[ln].resize(level->getProcessorMapping().getNumberOfLocalIndices());
-    }
-
-    // TODO: collectActivePatchElements still assumes every element is on the
-    // same patch level.
-    collectActivePatchElements(d_active_patch_elem_map.back(), d_max_level_number);
-    for (int ln = 0; ln <= d_max_level_number; ++ln)
-    {
+        collectActivePatchElements(d_active_patch_elem_map[ln], ln, ln, ln);
         collectActivePatchNodes(d_active_patch_node_map[ln], d_active_patch_elem_map[ln]);
     }
 
@@ -2543,7 +2531,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         // level.
         std::vector<std::vector<Elem*> > active_level_elem_map;
         const IntVector<NDIM> ghost_width = 1;
-        collectActivePatchElements(active_level_elem_map, level_number);
+        collectActivePatchElements(active_level_elem_map, level_number, level_number + 1, d_max_level_number);
         std::vector<unsigned int> X_ghost_dofs;
         std::vector<Elem*> active_level_elems;
         collect_unique_elems(active_level_elems, active_level_elem_map);
@@ -2599,9 +2587,8 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
                 Elem* const elem = patch_elems[e_idx];
-                // If the element should already be on the current level then we
-                // do not need to mark any cells for refinement
-                if (getPatchLevel(elem) <= level_number) continue;
+                const int elem_ln = getPatchLevel(elem);
+                TBOX_ASSERT(level_number + 1 <= elem_ln && elem_ln <= d_max_level_number);
                 const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                 get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
 
@@ -2987,7 +2974,10 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
 } // updateQuadPointCountData
 
 void
-FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& active_patch_elems, const int level_number)
+FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& active_patch_elems,
+                                          const int level_number,
+                                          const int coarsest_elem_ln,
+                                          const int finest_elem_ln)
 {
     // Get the necessary FE data.
     const MeshBase& mesh = d_fe_data->d_es->get_mesh();
@@ -3073,13 +3063,17 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         {
             if ((*el_it)->active())
             {
+                const int elem_ln = getPatchLevel(*el_it);
+                if (coarsest_elem_ln <= elem_ln && elem_ln <= finest_elem_ln)
+                {
 #if LIBMESH_VERSION_LESS_THAN(1, 6, 0)
-                if (bbox_intersects(bbox, patch_bbox)) elems.insert(*el_it);
+                    if (bbox_intersects(bbox, patch_bbox)) elems.insert(*el_it);
 #else
-                // New versions of libMesh have this function's performance
-                // problems fixed
-                if (bbox.intersects(patch_bbox)) elems.insert(*el_it);
+                    // New versions of libMesh have this function's performance
+                    // problems fixed
+                    if (bbox.intersects(patch_bbox)) elems.insert(*el_it);
 #endif
+                }
             }
             ++el_it;
         }

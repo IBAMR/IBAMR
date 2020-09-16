@@ -1129,10 +1129,29 @@ private:
      * are allowed to move no more than one cell width between regridding
      * operations).
      *
+     * The parameters refer to the levels of different objects:
+     * <ol>
+     *   <li>@p level_number - the level number in the patch hierarchy on which
+     *     we are identifying intersections.</li>
+     *   <li>@p coarsest_elem_ln - The minimum level number of elements we should
+     *     consider (see the main documentation of this class for an explanation
+     *     on how elements are assigned to particular levels)</li>
+     *   <li>@p finest_elem_ln - The maximum level number of elements we should
+     *     consider.</li>
+     * </ol>
+     *
+     * All three parameters are necessary because we use this function both to
+     * tag cells for refinement (i.e., we want to refine cells containing
+     * elements on levels higher than the present level) and to do IB
+     * calculations (where all three numbers will be the same).
+     *
      * In this method, the determination as to whether an element is local or
      * not is based on the position of the bounding box of the element.
      */
-    void collectActivePatchElements(std::vector<std::vector<libMesh::Elem*> >& active_patch_elems, int level_number);
+    void collectActivePatchElements(std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
+                                    int level_number,
+                                    int coarsest_elem_ln,
+                                    int finest_elem_ln);
 
     /*!
      * Collect all of the nodes of the active elements that are located within a
