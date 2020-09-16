@@ -5,7 +5,7 @@ IBFEMethod: mesh part 0 is using SECOND order LAGRANGE finite elements.
 IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
 INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field
-hierarchy boxes:
+rank: 0 level: 0 boxes:
 [(0,0),(3,3)]
 [(0,4),(3,7)]
 [(4,0),(7,3)]
@@ -15,6 +15,7 @@ hierarchy boxes:
 [(4,8),(7,11)]
 [(4,12),(7,15)]
 [(8,0),(11,3)]
+rank: 1 level: 0 boxes:
 [(8,4),(11,7)]
 [(12,0),(15,3)]
 [(12,4),(15,7)]
@@ -24,6 +25,7 @@ hierarchy boxes:
 [(12,12),(15,15)]
 [(0,16),(3,19)]
 [(0,20),(3,23)]
+rank: 2 level: 0 boxes:
 [(4,16),(7,19)]
 [(4,20),(7,23)]
 [(8,16),(11,19)]
@@ -33,6 +35,7 @@ hierarchy boxes:
 [(16,0),(19,3)]
 [(16,4),(19,7)]
 [(20,0),(23,3)]
+rank: 3 level: 0 boxes:
 [(20,4),(23,7)]
 [(16,8),(19,11)]
 [(16,12),(19,15)]

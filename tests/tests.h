@@ -11,6 +11,8 @@
 //
 // ---------------------------------------------------------------------
 
+// Collection of utility functions that are useful in tests.
+
 #ifndef included_ibamr_tests_h
 #define included_ibamr_tests_h
 
@@ -69,6 +71,30 @@ print_strings_on_plog_0(const std::string& out)
         MPI_Send(out.data(), size, MPI_CHAR, 0, 0, IBTK_MPI::getCommunicator());
 }
 
+/**
+ * Print the parallel partitioning (i.e., the boxes) on all processes to plog
+ * stream on processor 0.
+ */
+template <int DIM>
+inline void
+print_partitioning_on_plog_0(const Pointer<PatchHierarchy<DIM> >& patch_hierarchy,
+                             const int coarsest_ln,
+                             const int finest_ln)
+{
+    std::ostringstream out;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<DIM> > patch_level = patch_hierarchy->getPatchLevel(ln);
+        out << "rank: " << IBTK_MPI::getRank() << " level: " << ln << " boxes:\n";
+        for (typename PatchLevel<DIM>::Iterator p(patch_level); p; p++)
+        {
+            const Box<DIM> box = patch_level->getPatch(p())->getBox();
+            out << box << '\n';
+        }
+    }
+    print_strings_on_plog_0(out.str());
+}
+
 #ifdef IBAMR_HAVE_LIBMESH
 /**
  * \brief Class storing multiple libMesh::FEMap objects, each corresponding to
@@ -83,7 +109,7 @@ print_strings_on_plog_0(const std::string& out)
  * This class used to be part of IBTK but it is no longer needed since we
  * reimplemented all the mappings ourselves. However, it is still useful in the
  * test suite so that we can easily compare results against what libMesh
- * calculates for a given quadrature key..
+ * calculates for a given quadrature key.
  */
 class FEMapCache
 {
