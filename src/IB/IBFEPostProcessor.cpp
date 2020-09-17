@@ -220,9 +220,8 @@ void
 IBFEPostProcessor::interpolateVariables(const double data_time)
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = d_fe_data_manager->getPatchHierarchy();
-    const std::pair<int, int> patch_level_range = d_fe_data_manager->getPatchLevels();
-    const int coarsest_ln = patch_level_range.first;
-    const int finest_ln = patch_level_range.second - 1;
+    const int coarsest_ln = d_fe_data_manager->getCoarsestPatchLevelNumber();
+    const int finest_ln = d_fe_data_manager->getFinestPatchLevelNumber();
 
     const size_t num_eulerian_vars = d_scalar_interp_var_systems.size();
 

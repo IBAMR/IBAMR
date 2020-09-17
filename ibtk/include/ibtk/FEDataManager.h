@@ -619,27 +619,14 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getPatchHierarchy() const;
 
     /*!
-     * \brief Reset range of patch levels over which operations occur.
-     *
-     * The levels must exist in the hierarchy or an assertion failure will
-     * result.
+     * Get the coarsest patch level number on which elements are assigned.
      */
-    void setPatchLevels(int coarsest_ln, int finest_ln);
+    int getCoarsestPatchLevelNumber() const;
 
     /*!
-     * \brief Get the range of patch levels used by this object.
-     *
-     * \note Returns [coarsest_ln,finest_ln+1).
+     * Get the finest patch level number on which elements are assigned.
      */
-    std::pair<int, int> getPatchLevels() const;
-
-    //\}
-
-    /*!
-     * \return The level number to which the equations system object managed by
-     * the FEDataManager is assigned.
-     */
-    int getLevelNumber() const;
+    int getFinestPatchLevelNumber() const;
 
     /*!
      * \return The ghost cell width used for quantities that are to be
@@ -1243,7 +1230,6 @@ private:
      * Grid hierarchy information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     /*!
      * Maximum possible level number in the patch hierarchy.

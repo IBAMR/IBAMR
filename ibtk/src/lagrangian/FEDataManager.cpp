@@ -155,7 +155,7 @@ static Timer* t_apply_gradient_detector;
 static Timer* t_put_to_database;
 
 // Version of FEDataManager restart file data.
-static const int FE_DATA_MANAGER_VERSION = 3;
+static const int FE_DATA_MANAGER_VERSION = 4;
 
 // Local helper functions.
 struct ElemComp
@@ -485,30 +485,27 @@ FEDataManager::getPatchHierarchy() const
     return d_hierarchy;
 } // getPatchHierarchy
 
-void
-FEDataManager::setPatchLevels(const int coarsest_ln, const int finest_ln)
+int
+FEDataManager::getCoarsestPatchLevelNumber() const
 {
-    // Reset the level numbers.
-    TBOX_ASSERT(d_hierarchy);
-    TBOX_ASSERT((coarsest_ln >= 0) && (finest_ln >= coarsest_ln) && (finest_ln <= d_hierarchy->getFinestLevelNumber()));
-    d_coarsest_ln = coarsest_ln;
-    d_finest_ln = finest_ln;
-    TBOX_ASSERT(d_eulerian_data_cache);
-    d_eulerian_data_cache->resetLevels(coarsest_ln, finest_ln);
-    return;
-} // setPatchLevels
-
-std::pair<int, int>
-FEDataManager::getPatchLevels() const
-{
-    return std::make_pair(d_coarsest_ln, d_finest_ln + 1);
-} // getPatchLevels
+    for (int ln = 0; ln <= d_max_level_number; ++ln)
+    {
+        if (d_level_lookup.levelHasElements(ln)) return ln;
+    }
+    TBOX_ERROR("There must be a coarsest patch level number.");
+    return IBTK::invalid_level_number;
+}
 
 int
-FEDataManager::getLevelNumber() const
+FEDataManager::getFinestPatchLevelNumber() const
 {
-    return d_max_level_number;
-} // getLevelNumber
+    for (int ln = d_max_level_number; 0 <= ln; --ln)
+    {
+        if (d_level_lookup.levelHasElements(ln)) return ln;
+    }
+    TBOX_ERROR("There must be a finest patch level number.");
+    return IBTK::invalid_level_number;
+}
 
 const IntVector<NDIM>&
 FEDataManager::getGhostCellWidth() const
@@ -2436,10 +2433,10 @@ FEDataManager::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy,
 {
     IBTK_TIMER_START(t_update_workload_estimates);
 
-    const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
-    const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
-    TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
-    TBOX_ASSERT(finest_ln >= d_coarsest_ln && finest_ln <= d_finest_ln);
+    const int coarsest_ln = (coarsest_ln_in == -1) ? getCoarsestPatchLevelNumber() : coarsest_ln_in;
+    const int finest_ln = (finest_ln_in == -1) ? getFinestPatchLevelNumber() : finest_ln_in;
+    TBOX_ASSERT(coarsest_ln >= getCoarsestPatchLevelNumber() && coarsest_ln <= getFinestPatchLevelNumber());
+    TBOX_ASSERT(finest_ln >= getCoarsestPatchLevelNumber() && finest_ln <= getFinestPatchLevelNumber());
 
     // Workload estimates are computed only on the level to which the FE mesh
     // has been assigned.
@@ -2453,7 +2450,7 @@ FEDataManager::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy,
     }
 
     // Add work estimates from duplicated nodes.
-    if (d_default_workload_spec.duplicated_node_weight != 0.0 && finest_ln == d_finest_ln)
+    if (d_default_workload_spec.duplicated_node_weight != 0.0)
     {
         FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
 
@@ -2659,8 +2656,6 @@ FEDataManager::putToDatabase(Pointer<Database> db)
 
     TBOX_ASSERT(db);
     db->putInteger("FE_DATA_MANAGER_VERSION", FE_DATA_MANAGER_VERSION);
-    db->putInteger("d_coarsest_ln", d_coarsest_ln);
-    db->putInteger("d_finest_ln", d_finest_ln);
 
     IBTK_TIMER_STOP(t_put_to_database);
     return;
@@ -3248,8 +3243,6 @@ FEDataManager::getFromRestart()
                                  << "Restart file version different than class version.");
     }
 
-    d_coarsest_ln = db->getInteger("d_coarsest_ln");
-    d_finest_ln = db->getInteger("d_finest_ln");
     return;
 } // getFromRestart
 
