@@ -294,9 +294,25 @@ public:
         return it->second;
     }
 
+    /*!
+     * Return whether or not there are any elements on a given level.
+     */
+    bool levelHasElements(const int level_number) const
+    {
+        const auto array_it = std::find(d_fixed.begin(), d_fixed.end(), level_number);
+        if (array_it != d_fixed.end())
+        {
+            return true;
+        }
+        else
+        {
+            return d_map.count(level_number) != 0;
+        }
+    }
+
 private:
     /*!
-     * Return a writeable reference.
+     * Return a writable reference.
      */
     int& get(const libMesh::subdomain_id_type id)
     {
@@ -320,10 +336,10 @@ private:
  *
  * <h2>Parameters read from the input database</h2>
  *
- * <code>node_outside_patch_check</code>: parameter controling how this class responds
- * to mesh nodes outside the finest patch level. In all cases, for backwards
- * compatibility, nodes that are outside the computational domain are permitted
- * and are ignored by this check. Possible values are:
+ * <code>node_outside_patch_check</code>: parameter controlling how this class
+ * responds to mesh nodes outside the finest patch level. In all cases, for
+ * backwards compatibility, nodes that are outside the computational domain are
+ * permitted and are ignored by this check. Possible values are:
  * <ol>
  *   <li><code>node_outside_permit</code>: Permit nodes to be outside the finest
  *   patch level.</li>
@@ -949,7 +965,7 @@ public:
                              unsigned int max_its = 100);
 
     /*!
-     * Update the quarature rule for the current element.  If the provided
+     * Update the quadrature rule for the current element.  If the provided
      * qrule is already configured appropriately, it is not modified.
      *
      * \return true if the quadrature rule is updated or otherwise requires
@@ -1129,10 +1145,29 @@ private:
      * are allowed to move no more than one cell width between regridding
      * operations).
      *
+     * The parameters refer to the levels of different objects:
+     * <ol>
+     *   <li>@p level_number - the level number in the patch hierarchy on which
+     *     we are identifying intersections.</li>
+     *   <li>@p coarsest_elem_ln - The minimum level number of elements we should
+     *     consider (see the main documentation of this class for an explanation
+     *     on how elements are assigned to particular levels)</li>
+     *   <li>@p finest_elem_ln - The maximum level number of elements we should
+     *     consider.</li>
+     * </ol>
+     *
+     * All three parameters are necessary because we use this function both to
+     * tag cells for refinement (i.e., we want to refine cells containing
+     * elements on levels higher than the present level) and to do IB
+     * calculations (where all three numbers will be the same).
+     *
      * In this method, the determination as to whether an element is local or
      * not is based on the position of the bounding box of the element.
      */
-    void collectActivePatchElements(std::vector<std::vector<libMesh::Elem*> >& active_patch_elems, int level_number);
+    void collectActivePatchElements(std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
+                                    int level_number,
+                                    int coarsest_elem_ln,
+                                    int finest_elem_ln);
 
     /*!
      * Collect all of the nodes of the active elements that are located within a
