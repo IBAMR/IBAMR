@@ -344,7 +344,8 @@ FEData::clearPatchHierarchyDependentData()
     d_quadrature_cache.clear();
 }
 
-SubdomainToLevelTranslation::SubdomainToLevelTranslation(const int max_level_number, const Pointer<Database>& input_db)
+SubdomainToPatchLevelTranslation::SubdomainToPatchLevelTranslation(const int max_level_number,
+                                                                   const Pointer<Database>& input_db)
     : d_max_level_number(max_level_number)
 {
     std::fill(d_fixed.begin(), d_fixed.end(), d_max_level_number);
