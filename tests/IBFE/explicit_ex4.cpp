@@ -489,11 +489,6 @@ main(int argc, char** argv)
 
         if (ib_post_processor)
         {
-            if (other_manager != fe_data_manager)
-            {
-                other_manager->setPatchLevels(fe_data_manager->getPatchLevels().first,
-                                              fe_data_manager->getPatchLevels().second - 1);
-            }
             ib_post_processor->initializeFEData();
         }
 
