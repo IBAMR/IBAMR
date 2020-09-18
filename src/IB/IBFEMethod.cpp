@@ -1000,6 +1000,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
         }
     }
 
+    // Accumulate forces spread into patch ghost regions.
     {
         if (!d_ghost_data_accumulator)
         {
