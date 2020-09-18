@@ -149,7 +149,6 @@ get_FF(libMesh::TensorValue<double>& FF,
     {
         FF(i, i) = 1.0;
     }
-    return;
 }
 
 inline void
@@ -329,11 +328,12 @@ FEMechanicsBase::getLagSurfaceForceFunction(unsigned int part) const
 
 void
 FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_type,
-                                            VolumetricEnergyDerivativeFcn U_prime_fcn,
+                                            VolumetricEnergyDerivativeFcn dU_dJ_fcn,
                                             unsigned int part)
 {
     TBOX_ASSERT(d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_meshes.size());
+    TBOX_ASSERT(!d_dynamic_pressure_part[part]);
     if (d_static_pressure_part[part]) return;
     d_has_static_pressure_parts = true;
     d_static_pressure_part[part] = true;
@@ -348,7 +348,32 @@ FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_ty
                                from_restart);
     // Keep track of method parameters.
     d_static_pressure_proj_type[part] = projection_type;
-    d_static_pressure_vol_energy_deriv_fcn[part] = std::move(U_prime_fcn);
+    d_static_pressure_dU_dJ_fcn[part] = dU_dJ_fcn;
+}
+
+void
+FEMechanicsBase::registerDynamicPressurePart(PressureProjectionType projection_type,
+                                             VolumetricEnergyDerivativeFcn d2U_dJ2_fcn,
+                                             unsigned int part)
+{
+    TBOX_ASSERT(d_fe_equation_systems_initialized);
+    TBOX_ASSERT(part < d_meshes.size());
+    TBOX_ASSERT(!d_static_pressure_part[part]);
+    if (d_dynamic_pressure_part[part]) return;
+    d_has_dynamic_pressure_parts = true;
+    d_dynamic_pressure_part[part] = true;
+    auto& P_system = d_equation_systems[part]->add_system<ExplicitSystem>(PRESSURE_SYSTEM_NAME);
+    // This system has a single variable so we don't need to also specify diagonal coupling
+    P_system.add_variable("P", d_fe_order_pressure[part], d_fe_family_pressure[part]);
+    // Setup cached system vectors at restart.
+    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    IBTK::setup_system_vectors(d_equation_systems[part].get(),
+                               { PRESSURE_SYSTEM_NAME },
+                               { "current", "half", "new", "tmp", "RHS Vector" },
+                               from_restart);
+    // Keep track of method parameters.
+    d_dynamic_pressure_proj_type[part] = projection_type;
+    d_dynamic_pressure_d2U_dJ2_fcn[part] = d2U_dJ2_fcn;
 }
 
 void
@@ -440,7 +465,7 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
 {
     if (!d_static_pressure_part[part]) return;
     const PressureProjectionType& proj_type = d_static_pressure_proj_type[part];
-    const VolumetricEnergyDerivativeFcn& U_prime_fcn = d_static_pressure_vol_energy_deriv_fcn[part];
+    const VolumetricEnergyDerivativeFcn& dU_dJ_fcn = d_static_pressure_dU_dJ_fcn[part];
 
     // Extract the mesh.
     EquationSystems& equation_systems = *d_equation_systems[part];
@@ -500,7 +525,7 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
             const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
             get_FF(FF, grad_x_data);
             double J = FF.det();
-            const double P = (U_prime_fcn ? U_prime_fcn(J) : -d_static_pressure_kappa * std::log(J));
+            const double P = (dU_dJ_fcn ? dU_dJ_fcn(J) : -d_static_pressure_kappa * std::log(J));
             for (unsigned int k = 0; k < n_basis; ++k)
             {
                 P_rhs_e(k) += P * phi[k][qp] * JxW[qp];
@@ -528,6 +553,117 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
     case STABILIZED_PROJECTION:
         d_fe_projectors[part]->computeStabilizedL2Projection(
             P_vec, *P_rhs_vec, PRESSURE_SYSTEM_NAME, d_static_pressure_stab_param);
+        break;
+    default:
+        TBOX_ERROR("unsupported pressure projection type\n");
+    }
+}
+
+void
+FEMechanicsBase::computeDynamicPressureRateOfChange(PetscVector<double>& dP_dt_vec,
+                                                    PetscVector<double>& X_vec,
+                                                    PetscVector<double>& U_vec,
+                                                    const double /*data_time*/,
+                                                    const unsigned int part)
+{
+    if (!d_dynamic_pressure_part[part]) return;
+    const PressureProjectionType& proj_type = d_dynamic_pressure_proj_type[part];
+    const VolumetricEnergyDerivativeFcn& d2U_dJ2_fcn = d_dynamic_pressure_d2U_dJ2_fcn[part];
+
+    // Extract the mesh.
+    EquationSystems& equation_systems = *d_equation_systems[part];
+    const MeshBase& mesh = equation_systems.get_mesh();
+    const unsigned int dim = mesh.mesh_dimension();
+
+    // Setup extra data needed to compute stresses/forces.
+
+    // Extract the FE systems and DOF maps, and setup the FE objects.
+    auto& P_system = equation_systems.get_system<ExplicitSystem>(PRESSURE_SYSTEM_NAME);
+    const DofMap& P_dof_map = P_system.get_dof_map();
+    FEDataManager::SystemDofMapCache& P_dof_map_cache = *d_fe_data[part]->getDofMapCache(PRESSURE_SYSTEM_NAME);
+    FEType P_fe_type = P_dof_map.variable_type(0);
+    std::vector<int> P_vars = { 0 };
+    std::vector<int> no_vars = {};
+    auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+    std::vector<int> X_vars(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) X_vars[d] = d;
+    auto& U_system = equation_systems.get_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
+    std::vector<int> U_vars(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) U_vars[d] = d;
+
+    FEDataInterpolation fe(dim, d_fe_data[part]);
+    std::unique_ptr<QBase> qrule =
+        QBase::build(d_default_quad_type_pressure[part], dim, d_default_quad_order_pressure[part]);
+    fe.attachQuadratureRule(qrule.get());
+    fe.evalQuadraturePoints();
+    fe.evalQuadratureWeights();
+    fe.registerSystem(P_system, P_vars, no_vars);
+    const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, no_vars, X_vars, &X_vec);
+    const size_t U_sys_idx = fe.registerInterpolatedSystem(U_system, no_vars, U_vars, &U_vec);
+    fe.init();
+
+    const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
+    const std::vector<double>& JxW = fe.getQuadratureWeights();
+    const std::vector<std::vector<double> >& phi = fe.getPhi(P_fe_type);
+
+    const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
+    const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
+        fe.getGradVarInterpolation();
+
+    // Setup global and elemental right-hand-side vectors.
+    auto* dP_dt_rhs_vec = static_cast<PetscVector<double>*>(P_system.rhs);
+    dP_dt_rhs_vec->zero();
+    DenseVector<double> dP_dt_rhs_e;
+
+    TensorValue<double> FF, Grad_U;
+    std::vector<libMesh::dof_id_type> dof_id_scratch;
+    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    {
+        Elem* const elem = *el_it;
+        const auto& P_dof_indices = P_dof_map_cache.dof_indices(elem);
+        dP_dt_rhs_e.resize(static_cast<int>(P_dof_indices[0].size()));
+        fe.reinit(elem);
+        fe.collectDataForInterpolation(elem);
+        fe.interpolate(elem);
+        const unsigned int n_qp = qrule->n_points();
+        const size_t n_basis = phi.size();
+        for (unsigned int qp = 0; qp < n_qp; ++qp)
+        {
+            const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+            get_FF(FF, grad_x_data);
+            const std::vector<VectorValue<double> >& grad_U_data = fe_interp_grad_var_data[qp][U_sys_idx];
+            get_FF(Grad_U, grad_U_data);
+            double J = FF.det();
+            const double dP_dt = (d2U_dJ2_fcn ? J * d2U_dJ2_fcn(J) : -d_dynamic_pressure_kappa) * FF.contract(Grad_U);
+            for (unsigned int k = 0; k < n_basis; ++k)
+            {
+                dP_dt_rhs_e(k) += dP_dt * phi[k][qp] * JxW[qp];
+            }
+        }
+
+        // Apply constraints (e.g., enforce periodic boundary conditions)
+        // and add the elemental contributions to the global vector.
+        copy_dof_ids_to_vector(/*var_num*/ 0, P_dof_indices, dof_id_scratch);
+        P_dof_map.constrain_element_vector(dP_dt_rhs_e, dof_id_scratch);
+        dP_dt_rhs_vec->add_vector(dP_dt_rhs_e, dof_id_scratch);
+    }
+
+    // Solve for P.
+    switch (proj_type)
+    {
+    case CONSISTENT_PROJECTION:
+        d_fe_projectors[part]->computeL2Projection(
+            dP_dt_vec, *dP_dt_rhs_vec, PRESSURE_SYSTEM_NAME, /*use_consistent_mass_matrix*/ true);
+        break;
+    case LUMPED_PROJECTION:
+        d_fe_projectors[part]->computeL2Projection(
+            dP_dt_vec, *dP_dt_rhs_vec, PRESSURE_SYSTEM_NAME, /*use_consistent_mass_matrix*/ false);
+        break;
+    case STABILIZED_PROJECTION:
+        d_fe_projectors[part]->computeStabilizedL2Projection(
+            dP_dt_vec, *dP_dt_rhs_vec, PRESSURE_SYSTEM_NAME, d_dynamic_pressure_stab_param);
         break;
     default:
         TBOX_ERROR("unsupported pressure projection type\n");
@@ -1189,7 +1325,12 @@ FEMechanicsBase::commonConstructor(const std::string& object_name,
     // Indicate that all of the parts do NOT use static pressures by default.
     d_static_pressure_part.resize(n_parts, false);
     d_static_pressure_proj_type.resize(n_parts, UNKNOWN_PRESSURE_TYPE);
-    d_static_pressure_vol_energy_deriv_fcn.resize(n_parts, nullptr);
+    d_static_pressure_dU_dJ_fcn.resize(n_parts, nullptr);
+
+    // Indicate that all of the parts do NOT use dynamic pressures by default.
+    d_dynamic_pressure_part.resize(n_parts, false);
+    d_dynamic_pressure_proj_type.resize(n_parts, UNKNOWN_PRESSURE_TYPE);
+    d_dynamic_pressure_d2U_dJ2_fcn.resize(n_parts, nullptr);
 
     // Determine whether we should use first-order or second-order shape
     // functions for each part of the structure.
@@ -1288,6 +1429,10 @@ FEMechanicsBase::getFromInput(const Pointer<Database>& db, bool /*is_from_restar
     if (db->isDouble("static_pressure_kappa")) d_static_pressure_kappa = db->getDouble("static_pressure_kappa");
     if (db->isDouble("static_pressure_stab_param"))
         d_static_pressure_stab_param = db->getDouble("static_pressure_stab_param");
+
+    if (db->isDouble("dynamic_pressure_kappa")) d_dynamic_pressure_kappa = db->getDouble("dynamic_pressure_kappa");
+    if (db->isDouble("dynamic_pressure_stab_param"))
+        d_dynamic_pressure_stab_param = db->getDouble("dynamic_pressure_stab_param");
 
     // Restart settings.
     if (db->isString("libmesh_restart_file_extension"))

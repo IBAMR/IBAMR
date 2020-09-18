@@ -24,6 +24,7 @@
 #include "ibtk/CartSideDoubleRT0Refine.h"
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
+#include "ibtk/FEProjector.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
@@ -3019,7 +3020,7 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     // Indicate that all of the parts do NOT use static pressures by default.
     d_static_pressure_part.resize(n_parts, false);
     d_static_pressure_proj_type.resize(n_parts, UNKNOWN_PRESSURE_TYPE);
-    d_static_pressure_vol_energy_deriv_fcn.resize(n_parts, nullptr);
+    d_static_pressure_dU_dJ_fcn.resize(n_parts, nullptr);
 
     // Determine whether we should use first-order or second-order shape
     // functions for each part of the structure.

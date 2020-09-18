@@ -138,6 +138,19 @@ FEMechanicsExplicitIntegrator::forwardEulerStep(const double current_time, const
                         d_U_vecs->get("current", part).vec(),
                         d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
+        if (d_dynamic_pressure_part[part])
+        {
+            computeDynamicPressureRateOfChange(d_P_vecs->get("tmp", part),
+                                               d_X_vecs->get("current", part),
+                                               d_U_vecs->get("current", part),
+                                               current_time,
+                                               part);
+            ierr = VecWAXPY(d_P_vecs->get("new", part).vec(),
+                            dt,
+                            d_P_vecs->get("tmp", part).vec(),
+                            d_P_vecs->get("current", part).vec());
+            IBTK_CHKERRQ(ierr);
+        }
     }
     // We copy F^{n} into F^{n+1} to make sure that it is stored in the viz
     // file.
@@ -164,6 +177,16 @@ FEMechanicsExplicitIntegrator::modifiedEulerStep(const double current_time, cons
                         d_U_vecs->get("new", part).vec(),
                         d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
+        if (d_dynamic_pressure_part[part])
+        {
+            computeDynamicPressureRateOfChange(
+                d_P_vecs->get("tmp", part), d_X_vecs->get("new", part), d_U_vecs->get("new", part), new_time, part);
+            ierr = VecWAXPY(d_P_vecs->get("new", part).vec(),
+                            dt,
+                            d_P_vecs->get("tmp", part).vec(),
+                            d_P_vecs->get("current", part).vec());
+            IBTK_CHKERRQ(ierr);
+        }
     }
     // We copy F^{n} into F^{n+1} to make sure that it is stored in the viz
     // file.
@@ -190,6 +213,16 @@ FEMechanicsExplicitIntegrator::backwardEulerStep(const double current_time, cons
                         d_U_vecs->get("new", part).vec(),
                         d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
+        if (d_dynamic_pressure_part[part])
+        {
+            computeDynamicPressureRateOfChange(
+                d_P_vecs->get("tmp", part), d_X_vecs->get("new", part), d_U_vecs->get("new", part), new_time, part);
+            ierr = VecWAXPY(d_P_vecs->get("new", part).vec(),
+                            dt,
+                            d_P_vecs->get("tmp", part).vec(),
+                            d_P_vecs->get("current", part).vec());
+            IBTK_CHKERRQ(ierr);
+        }
     }
 }
 
@@ -216,6 +249,19 @@ FEMechanicsExplicitIntegrator::midpointStep(const double current_time, const dou
                         d_U_vecs->get("current", part).vec(),
                         d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
+        if (d_dynamic_pressure_part[part])
+        {
+            computeDynamicPressureRateOfChange(d_P_vecs->get("tmp", part),
+                                               d_X_vecs->get("current", part),
+                                               d_U_vecs->get("current", part),
+                                               current_time,
+                                               part);
+            ierr = VecWAXPY(d_P_vecs->get("half", part).vec(),
+                            0.5 * dt,
+                            d_P_vecs->get("tmp", part).vec(),
+                            d_P_vecs->get("current", part).vec());
+            IBTK_CHKERRQ(ierr);
+        }
 
         // Step 2:
         //    U^{n+1} := U^{n} + (dt/rho) F^{n+1/2}
@@ -231,6 +277,19 @@ FEMechanicsExplicitIntegrator::midpointStep(const double current_time, const dou
                         d_U_vecs->get("half", part).vec(),
                         d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
+        if (d_dynamic_pressure_part[part])
+        {
+            computeDynamicPressureRateOfChange(d_P_vecs->get("tmp", part),
+                                               d_X_vecs->get("half", part),
+                                               d_U_vecs->get("half", part),
+                                               current_time,
+                                               part);
+            ierr = VecWAXPY(d_P_vecs->get("new", part).vec(),
+                            dt,
+                            d_P_vecs->get("tmp", part).vec(),
+                            d_P_vecs->get("current", part).vec());
+            IBTK_CHKERRQ(ierr);
+        }
     }
     // We copy F^{n+1/2} into F^{n+1} to make sure that it is stored in the viz
     // file.
@@ -259,11 +318,29 @@ FEMechanicsExplicitIntegrator::trapezoidalStep(const double current_time, const 
                         d_U_vecs->get("current", part).vec(),
                         d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
+        if (d_dynamic_pressure_part[part])
+        {
+            computeDynamicPressureRateOfChange(d_P_vecs->get("tmp", part),
+                                               d_X_vecs->get("current", part),
+                                               d_U_vecs->get("current", part),
+                                               current_time,
+                                               part);
+            ierr = VecWAXPY(d_P_vecs->get("new", part).vec(),
+                            dt,
+                            d_P_vecs->get("tmp", part).vec(),
+                            d_P_vecs->get("current", part).vec());
+            IBTK_CHKERRQ(ierr);
+        }
 
         // Step 2 (trapezoidal rule "corrector"):
         //    U^{n+1} := U^{n} + (dt/(2 rho)) (F^{n} + F^{n+1,*})
         //    X^{n+1} := X^{n} + (dt/2)       (U^{n} + U^{n+1,*})
         computeLagrangianForce(new_time);
+        if (d_dynamic_pressure_part[part])
+        {
+            computeDynamicPressureRateOfChange(
+                d_P_vecs->get("tmp", part), d_X_vecs->get("new", part), d_U_vecs->get("new", part), new_time, part);
+        }
         ierr = VecAXPBYPCZ(d_F_vecs->get("half", part).vec(),
                            0.5,
                            0.5,
@@ -289,6 +366,18 @@ FEMechanicsExplicitIntegrator::trapezoidalStep(const double current_time, const 
                         d_U_vecs->get("half", part).vec(),
                         d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
+
+        if (d_dynamic_pressure_part[part])
+        {
+            ierr = VecAYPX(d_P_vecs->get("tmp", part).vec(), dt, d_P_vecs->get("new", part).vec());
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAXPBYPCZ(d_P_vecs->get("new", part).vec(),
+                               0.5,
+                               0.5,
+                               0.0,
+                               d_P_vecs->get("tmp", part).vec(),
+                               d_P_vecs->get("current", part).vec());
+        }
     }
 }
 
@@ -314,6 +403,19 @@ FEMechanicsExplicitIntegrator::modifiedTrapezoidalStep(const double current_time
                         d_U_vecs->get("new", part).vec(),
                         d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
+        if (d_dynamic_pressure_part[part])
+        {
+            computeDynamicPressureRateOfChange(d_P_vecs->get("tmp", part),
+                                               d_X_vecs->get("current", part),
+                                               d_U_vecs->get("current", part),
+                                               current_time,
+                                               part);
+            ierr = VecWAXPY(d_P_vecs->get("new", part).vec(),
+                            dt,
+                            d_P_vecs->get("tmp", part).vec(),
+                            d_P_vecs->get("current", part).vec());
+            IBTK_CHKERRQ(ierr);
+        }
 
         // Step 2 (modified trapezoidal rule "corrector"):
         //    U^{n+1} := U^{n} + (dt/(2 rho)) (F^{n} + F^{n+1,*})
@@ -344,6 +446,21 @@ FEMechanicsExplicitIntegrator::modifiedTrapezoidalStep(const double current_time
                         d_U_vecs->get("half", part).vec(),
                         d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
+
+        if (d_dynamic_pressure_part[part])
+        {
+            computeDynamicPressureRateOfChange(
+                d_P_vecs->get("tmp", part), d_X_vecs->get("new", part), d_U_vecs->get("new", part), new_time, part);
+            ierr = VecAYPX(d_P_vecs->get("tmp", part).vec(), dt, d_P_vecs->get("new", part).vec());
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAXPBYPCZ(d_P_vecs->get("new", part).vec(),
+                               0.5,
+                               0.5,
+                               0.0,
+                               d_P_vecs->get("tmp", part).vec(),
+                               d_P_vecs->get("current", part).vec());
+            IBTK_CHKERRQ(ierr);
+        }
     }
 }
 
@@ -452,10 +569,13 @@ FEMechanicsExplicitIntegrator::doInitializeFEEquationSystems()
             F_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
         }
 
-        setup_system_vectors(
-            &equation_systems, { COORDS_SYSTEM_NAME, VELOCITY_SYSTEM_NAME }, { "current", "half", "new" });
-        setup_system_vectors(
-            &equation_systems, { FORCE_SYSTEM_NAME }, { "current", "half", "new", "tmp", "RHS Vector" });
+        const bool from_restart = RestartManager::getManager()->isFromRestart();
+        IBTK::setup_system_vectors(&equation_systems,
+                                   { COORDS_SYSTEM_NAME, VELOCITY_SYSTEM_NAME },
+                                   { "current", "half", "new" },
+                                   from_restart);
+        IBTK::setup_system_vectors(
+            &equation_systems, { FORCE_SYSTEM_NAME }, { "current", "half", "new", "tmp", "RHS Vector" }, from_restart);
     }
 }
 
@@ -470,6 +590,10 @@ FEMechanicsExplicitIntegrator::doInitializeFEData(const bool use_present_data)
     if (d_has_static_pressure_parts)
     {
         d_P_vecs.reset(new LibMeshSystemVectors(equation_systems, d_static_pressure_part, PRESSURE_SYSTEM_NAME));
+    }
+    if (d_has_dynamic_pressure_parts)
+    {
+        d_P_vecs.reset(new LibMeshSystemVectors(equation_systems, d_dynamic_pressure_part, PRESSURE_SYSTEM_NAME));
     }
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {

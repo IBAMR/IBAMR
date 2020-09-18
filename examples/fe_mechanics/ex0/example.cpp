@@ -42,6 +42,7 @@ static double load_time;
 static double PI = 3.141592653589793;
 
 static bool use_static_pressure;
+static bool use_dynamic_pressure;
 static bool use_volumetric_term;
 static std::string stress_funtion;
 
@@ -281,13 +282,14 @@ main(int argc, char* argv[])
         load_time = input_db->getDouble("LOAD_TIME");
 
         use_static_pressure = input_db->getBool("USE_STATIC_PRESSURE");
+        use_dynamic_pressure = input_db->getBool("USE_DYNAMIC_PRESSURE");
         PressureProjectionType pressure_proj_type;
-        if (use_static_pressure)
+        if (use_static_pressure || use_dynamic_pressure)
         {
             pressure_proj_type =
                 IBAMR::string_to_enum<PressureProjectionType>(input_db->getString("PRESSURE_PROJECTION_TYPE"));
         }
-        use_volumetric_term = input_db->getBool("USE_VOLUMETRIC_TERM") && !use_static_pressure;
+        use_volumetric_term = input_db->getBool("USE_VOLUMETRIC_TERM") && !use_static_pressure && !use_dynamic_pressure;
         stress_funtion = input_db->getString("STRESS_FUNCTION");
 
         // Setup the time stepping parameters.
@@ -355,6 +357,10 @@ main(int argc, char* argv[])
         if (use_static_pressure)
         {
             fem_solver->registerStaticPressurePart(pressure_proj_type);
+        }
+        if (use_dynamic_pressure)
+        {
+            fem_solver->registerDynamicPressurePart(pressure_proj_type);
         }
         EquationSystems* equation_systems = fem_solver->getEquationSystems();
         ExplicitSystem& jac_system = equation_systems->add_system<ExplicitSystem>("JacobianDeterminant");
