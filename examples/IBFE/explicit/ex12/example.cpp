@@ -419,6 +419,12 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *                                                                             *
  *******************************************************************************/
 
+double Uprime(double J)
+{
+   return ModelData::Lambda * std::log(J);
+}
+
+
 int main(int argc, char** argv)
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
@@ -632,9 +638,10 @@ int main(int argc, char** argv)
             ib_method_ops->registerStressNormalizationPart();
         }
         // setup libmesh things for eliminating pressure jumps
-        if (input_db->getBoolWithDefault("DO_PRESSURE_STABILIZATION", false))
+        if (input_db->getBoolWithDefault("USE_PRESSURE_FIELD", false))
         {
-            ib_method_ops->registerPressureStabilizationPart();
+            std::string projection_type = input_db->getStringWithDefault("P_PROJECTION", "CONSISTENT_PROJECTION"); 
+            ib_method_ops->registerStaticPressurePart(IBAMR::string_to_enum<PressureProjectionType>(projection_type), &Uprime);
         }
 
         // Set up post processor to recover computed stresses.
