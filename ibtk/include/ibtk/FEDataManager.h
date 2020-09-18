@@ -261,30 +261,33 @@ protected:
 };
 
 /*!
- * Class that can translate libMesh subdomain IDs into levels.
+ * Class that can translate libMesh subdomain IDs into patch level numbers.
  *
- * The overwhelming majority of subdomain IDs used with IBAMR come from
- * block IDs set by ExodusII - these are numbered sequentially from zero.
- * However, in principle, a subdomain ID could be any signed 64-bit integer
- * so we cannot use a small fixed length array.
- *
- * Since we look up element levels a lot optimize for the common case by
- * using a fixed-length array and a map for everything else.
+ * The primary use of this class is multilevel IBFE - i.e., enabling a finite
+ * element mesh to interact with multiple patch levels.
  */
-class SubdomainToLevelTranslation
+class SubdomainToPatchLevelTranslation
 {
 public:
-    SubdomainToLevelTranslation(const int max_level_number,
-                                const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
-
     /*!
-     * Size of the fixed-size array.
+     * Constructor. Takes as argument the maximum level number in the Cartesian
+     * grid patch hierarchy and an input database enumerating the
+     * level-to-subdomain mapping, e.g.,
+     * @code
+     * {
+     *   level_1 = 1, 2
+     *   level_2 = 3
+     * }
+     * @endcode
+     * Any unspecified subdomain ids will be assigned to the finest patch level.
+     * Duplicated assignments are not permitted.
      */
-    static constexpr int fixed_array_size = 256;
+    SubdomainToPatchLevelTranslation(const int max_level_number,
+                                     const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
 
     /*!
-     * Return a constant reference. Returns d_max_level_number if no level
-     * is set
+     * Given a libMesh subdomain id, return the patch level of the Cartesian
+     * grid hierarchy on which that subdomain id interacts.
      */
     const int& operator[](const libMesh::subdomain_id_type id) const
     {
@@ -295,7 +298,7 @@ public:
     }
 
     /*!
-     * Return whether or not there are any elements on a given level.
+     * Return whether or not there are any elements on a given patch level.
      */
     bool levelHasElements(const int level_number) const
     {
@@ -312,18 +315,38 @@ public:
 
 private:
     /*!
-     * Return a writable reference.
+     * like operator[], but returns a mutable reference. Used to set up the object.
      */
     int& get(const libMesh::subdomain_id_type id)
     {
-        if (id < fixed_array_size) return d_fixed[id];
+        if (id < d_fixed.size()) return d_fixed[id];
         return d_map[id];
     }
 
+    /*!
+     * Maximum level number.
+     */
     int d_max_level_number = IBTK::invalid_level_number;
 
+    /*!
+     * Size of the fixed-size array.
+     */
+    static constexpr int fixed_array_size = 256;
+
+    /*!
+     * The overwhelming majority of subdomain IDs used with IBAMR come from
+     * block IDs set by ExodusII - these are numbered sequentially from zero.
+     * However, in principle, a subdomain ID could be any signed 64-bit integer
+     * so we cannot use a small fixed length array.
+     *
+     * Since we look up element levels a lot optimize for the common case by
+     * using a fixed-length array and a map for everything else.
+     */
     std::array<int, fixed_array_size> d_fixed;
 
+    /*!
+     * The map used for everything else.
+     */
     std::map<libMesh::subdomain_id_type, int> d_map;
 };
 
@@ -1166,7 +1189,7 @@ private:
     /*!
      * Store the association between subdomain ids and patch levels.
      */
-    SubdomainToLevelTranslation d_level_lookup;
+    SubdomainToPatchLevelTranslation d_level_lookup;
 
     /*!
      * Get the patch level on which an element lives.
