@@ -172,6 +172,21 @@ get_x_and_FF(libMesh::VectorValue<double>& x,
         FF(i, i) = 1.0;
     }
 }
+
+inline void
+get_Grad_U(libMesh::TensorValue<double>& Grad_U,
+           const std::vector<VectorValue<double> >& grad_U_data,
+           const unsigned int dim = NDIM)
+{
+    Grad_U.zero();
+    for (unsigned int i = 0; i < dim; ++i)
+    {
+        for (unsigned int j = 0; j < dim; ++j)
+        {
+            Grad_U(i, j) = grad_U_data[i](j);
+        }
+    }
+}
 } // namespace
 
 const std::string FEMechanicsBase::COORDS_SYSTEM_NAME = "IB coordinates system";
@@ -616,7 +631,7 @@ FEMechanicsBase::computeDynamicPressureRateOfChange(PetscVector<double>& dP_dt_v
     dP_dt_rhs_vec->zero();
     DenseVector<double> dP_dt_rhs_e;
 
-    TensorValue<double> FF, Grad_U;
+    TensorValue<double> FF, FF_inv_trans, Grad_U;
     std::vector<libMesh::dof_id_type> dof_id_scratch;
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
@@ -634,10 +649,12 @@ FEMechanicsBase::computeDynamicPressureRateOfChange(PetscVector<double>& dP_dt_v
         {
             const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
             get_FF(FF, grad_x_data);
+            FF_inv_trans = tensor_inverse_transpose(FF);
             const std::vector<VectorValue<double> >& grad_U_data = fe_interp_grad_var_data[qp][U_sys_idx];
-            get_FF(Grad_U, grad_U_data);
+            get_Grad_U(Grad_U, grad_U_data);
             double J = FF.det();
-            const double dP_dt = (d2U_dJ2_fcn ? J * d2U_dJ2_fcn(J) : -d_dynamic_pressure_kappa) * FF.contract(Grad_U);
+            const double dP_dt =
+                (d2U_dJ2_fcn ? J * d2U_dJ2_fcn(J) : -d_dynamic_pressure_kappa) * FF_inv_trans.contract(Grad_U);
             for (unsigned int k = 0; k < n_basis; ++k)
             {
                 dP_dt_rhs_e(k) += dP_dt * phi[k][qp] * JxW[qp];
