@@ -350,10 +350,40 @@ public:
      *
      * The sign convention used in the implementation generates a PK1 stress of
      * the form PP = -J P FF^{-T}.
+     *
+     * \note The same part cannot have both static and dynamic pressures.
+     *
+     * \see registerDynamicPressurePart
      */
     virtual void registerStaticPressurePart(PressureProjectionType projection_type = CONSISTENT_PROJECTION,
-                                            VolumetricEnergyDerivativeFcn U_prime_fcn = nullptr,
+                                            VolumetricEnergyDerivativeFcn dU_dJ_fcn = nullptr,
                                             unsigned int part = 0);
+
+    /*!
+     * Indicate that a part should include a dynamic pressure.
+     *
+     * The pressure is determined via (P-dot, Q) = (J U''(J) (FF : Grad U), Q),
+     * with HH = J FF^{-T}, using either a consistent or lumped mass matrix, or
+     * via a locally stabilized projection of the form (P, Q) + epsilon (P - Pi
+     * P, Q - Pi Q) = (U'(J), Q), in which P is the pressure and Q is an
+     * arbitrary test function.
+     *
+     * Users can provide a function to evaluate U''(J).  If no function is
+     * provided, we default to using U(J) = -kappa (J ln(J) − J + 1), so that
+     * U'(J) = -kappa ln J and U''(J) = -kappa J^{-1}. (Ref: C.H. Liu, G.
+     * Hofstetter, H.A. Mang, 3D finite element analysis of rubber-like
+     * materials at finite strains, Eng. Comput. 11 (2) (1994) 111–128.)
+     *
+     * The sign convention used in the implementation generates a PK1 stress of
+     * the form PP = -J P FF^{-T}.
+     *
+     * @note       The same part cannot have both static and dynamic pressures.
+     *
+     * @see        registerStaticPressurePart
+     */
+    virtual void registerDynamicPressurePart(PressureProjectionType projection_type = CONSISTENT_PROJECTION,
+                                             VolumetricEnergyDerivativeFcn d2U_dJ2_fcn = nullptr,
+                                             unsigned int part = 0);
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
@@ -423,12 +453,21 @@ protected:
     virtual void doInitializeFEData(bool use_present_data) = 0;
 
     /*!
-     * \brief Compute the static pressure  field.
+     * \brief Compute the static pressure field.
      */
     void computeStaticPressure(libMesh::PetscVector<double>& P_vec,
                                libMesh::PetscVector<double>& X_vec,
                                double data_time,
                                unsigned int part);
+
+    /*!
+     * \brief Compute the dynamic pressure time rate of change.
+     */
+    void computeDynamicPressureRateOfChange(libMesh::PetscVector<double>& dP_dt_vec,
+                                            libMesh::PetscVector<double>& X_vec,
+                                            libMesh::PetscVector<double>& U_vec,
+                                            double data_time,
+                                            unsigned int part);
 
     /*!
      * Assemble the RHS for the interior elastic density, possibly splitting off
@@ -621,7 +660,16 @@ protected:
     bool d_has_static_pressure_parts = false;
     std::vector<bool> d_static_pressure_part;
     std::vector<PressureProjectionType> d_static_pressure_proj_type;
-    std::vector<VolumetricEnergyDerivativeFcn> d_static_pressure_vol_energy_deriv_fcn;
+    std::vector<VolumetricEnergyDerivativeFcn> d_static_pressure_dU_dJ_fcn;
+
+    /*!
+     * Data related to handling dynamic pressures.
+     */
+    double d_dynamic_pressure_kappa = 0.0, d_dynamic_pressure_stab_param = 0.0;
+    bool d_has_dynamic_pressure_parts = false;
+    std::vector<bool> d_dynamic_pressure_part;
+    std::vector<PressureProjectionType> d_dynamic_pressure_proj_type;
+    std::vector<VolumetricEnergyDerivativeFcn> d_dynamic_pressure_d2U_dJ2_fcn;
 
     /*!
      * The object name is used as a handle to databases stored in restart files
