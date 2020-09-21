@@ -657,6 +657,21 @@ protected:
      * Data related to handling static pressures.
      */
     double d_static_pressure_kappa = 0.0, d_static_pressure_stab_param = 0.0;
+public:
+  /*!
+   * Setters for parameters related to static pressures.
+   */
+    void set_static_pressure_kappa(double kappa)
+    {
+      d_static_pressure_kappa = kappa;
+    }
+
+    void set_static_pressure_stab_param(double tau)
+    {
+      d_static_pressure_stab_param = tau;
+    }
+
+protected:
     bool d_has_static_pressure_parts = false;
     std::vector<bool> d_static_pressure_part;
     std::vector<PressureProjectionType> d_static_pressure_proj_type;

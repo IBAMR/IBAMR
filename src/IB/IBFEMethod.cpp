@@ -1652,7 +1652,6 @@ void
 IBFEMethod::doInitializeFEEquationSystems()
 {
     const bool from_restart = RestartManager::getManager()->isFromRestart();
-
     // Create the FE data managers that manage mappings between the FE mesh
     // parts and the Cartesian grid.
     d_equation_systems.resize(d_meshes.size());
@@ -1737,7 +1736,7 @@ IBFEMethod::doInitializeFEEquationSystems()
         const std::string manager_name = "IBFEMethod FEDataManager::" + std::to_string(part);
         d_fe_data[part] =
             std::make_shared<FEData>(manager_name + "::fe_data", equation_systems, /*register_for_restart*/ true);
-        d_fe_projectors[part] = std::make_shared<FEProjector>(d_fe_data[part]);
+        d_fe_projectors.push_back( std::make_shared<FEProjector>(d_fe_data[part]) );
         d_primary_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
                                                                      manager_name,
                                                                      fe_data_manager_db,
