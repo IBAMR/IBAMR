@@ -1283,7 +1283,7 @@ IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     // Initialize the FE data managers.
     reinitElementMappings();
 
-    // FEDataManager needs all scratch data for tagging cells:
+    // The patch hierarchies are finally available so set them up:
     d_primary_eulerian_data_cache->setPatchHierarchy(hierarchy);
     d_primary_eulerian_data_cache->resetLevels(0, getFinestPatchLevelNumber());
     if (d_use_scratch_hierarchy)

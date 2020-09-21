@@ -474,8 +474,16 @@ FEDataManager::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
     // Reset the hierarchy.
     TBOX_ASSERT(hierarchy);
     d_hierarchy = hierarchy;
-    TBOX_ASSERT(d_eulerian_data_cache);
-    d_eulerian_data_cache->setPatchHierarchy(hierarchy);
+    if (!d_eulerian_data_cache)
+    {
+        d_eulerian_data_cache = std::make_shared<SAMRAIDataCache>();
+        d_eulerian_data_cache->setPatchHierarchy(hierarchy);
+        d_eulerian_data_cache->resetLevels(0, d_max_level_number);
+    }
+    else
+    {
+        d_eulerian_data_cache->setPatchHierarchy(hierarchy);
+    }
     return;
 } // setPatchHierarchy
 
@@ -2438,13 +2446,9 @@ FEDataManager::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy,
     TBOX_ASSERT(coarsest_ln >= getCoarsestPatchLevelNumber() && coarsest_ln <= getFinestPatchLevelNumber());
     TBOX_ASSERT(finest_ln >= getCoarsestPatchLevelNumber() && finest_ln <= getFinestPatchLevelNumber());
 
-    // Workload estimates are computed only on the level to which the FE mesh
-    // has been assigned.
-    const int ln = d_max_level_number;
-    if (coarsest_ln <= ln && ln <= finest_ln)
     {
-        updateQuadPointCountData(ln, ln);
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, ln, ln);
+        updateQuadPointCountData(0, d_max_level_number);
+        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.axpy(
             workload_data_idx, d_default_workload_spec.q_point_weight, d_qp_count_idx, workload_data_idx);
     }
@@ -2461,7 +2465,7 @@ FEDataManager::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy,
 
         // Determine the position of the nodes of each element.
         boost::multi_array<double, 2> X_node;
-        for (int ln = 0; ln <= d_max_level_number; ++ln)
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             const IntVector<NDIM>& ratio = level->getRatio();
@@ -2480,6 +2484,7 @@ FEDataManager::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy,
                 for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
                 {
                     Elem* const elem = patch_elems[e_idx];
+                    if (!(getPatchLevel(elem) == ln)) continue;
                     const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                     get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
 
@@ -2615,18 +2620,35 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
     }
     else
     {
-        Pointer<PatchLevel<NDIM> > finer_level = d_hierarchy->getPatchLevel(level_number + 1);
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
+        // Tag all cells that correspond to elements that should be on finer
+        // element levels.
+        updateQuadPointCountData(level_number + 1, d_max_level_number);
+        const auto qp_scratch_idx = d_eulerian_data_cache->getCachedPatchDataIndex(d_qp_count_idx);
+        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, level_number, d_max_level_number);
+        hier_cc_data_ops.setToScalar(qp_scratch_idx, 0.0);
 
-        // Update the node count data and coarsen it from the finer level.
-        updateQuadPointCountData(level_number, level_number + 1);
-        Pointer<CoarsenOperator<NDIM> > coarsen_op = new CartesianCellDoubleWeightedAverage<NDIM>();
-        Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
-        coarsen_alg->registerCoarsen(d_qp_count_idx, d_qp_count_idx, coarsen_op);
-        coarsen_alg->createSchedule(level, finer_level)->coarsenData();
+        // The semantics of d_qp_count_idx are slightly abused here: since we
+        // need to tag cells for refinement whenever they contain a quadrature
+        // point on a finer level, the values (after this loop) in that index
+        // correspond to all quadrature points on finer levels.
+        for (int finer_ln = d_max_level_number; finer_ln > level_number; --finer_ln)
+        {
+            Pointer<PatchLevel<NDIM> > finer_level = d_hierarchy->getPatchLevel(finer_ln);
+            const int coarser_ln = finer_ln - 1;
+            TBOX_ASSERT(coarser_ln >= level_number);
+            Pointer<PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(coarser_ln);
+            Pointer<CoarsenOperator<NDIM> > coarsen_op = new CartesianCellDoubleWeightedAverage<NDIM>();
+            Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
+            // Coarsen into the scratch index and then add that to the quadrature count.
+            coarsen_alg->registerCoarsen(qp_scratch_idx, d_qp_count_idx, coarsen_op);
+            coarsen_alg->createSchedule(coarser_level, finer_level)->coarsenData();
+            hier_cc_data_ops.resetLevels(coarser_ln, coarser_ln);
+            hier_cc_data_ops.add(d_qp_count_idx, d_qp_count_idx, qp_scratch_idx);
+        }
 
         // Tag cells for refinement whenever they contain element quadrature
         // points.
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             const Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -2760,8 +2782,8 @@ FEDataManager::FEDataManager(std::string object_name,
     d_qp_count_var = new CellVariable<NDIM, double>(d_object_name + "::qp_count");
     d_qp_count_idx = var_db->registerVariableAndContext(d_qp_count_var, d_context, 0);
 
-    // Create a data caching object if one was not provided to the constructor.
-    if (!d_eulerian_data_cache) d_eulerian_data_cache.reset(new SAMRAIDataCache());
+    // We cannot set up or check the Eulerian data cache yet since we don't have
+    // the hierarchy - that will come later.
 
     // Setup the FE projector logging state.
     d_fe_projector->setLoggingEnabled(getLoggingEnabled());
@@ -2824,41 +2846,51 @@ FEDataManager::getLoggingEnabled() const
 void
 FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_ln)
 {
-    // Set the node count data on the specified range of levels of the
-    // hierarchy.
+    // The patch hierarchy should be completely set up at this point so we can
+    // 1. assert that the Eulerian data cache is ready
+    TBOX_ASSERT(d_eulerian_data_cache);
+    TBOX_ASSERT(d_eulerian_data_cache->getCoarsestLevelNumber() == 0);
+    TBOX_ASSERT(d_eulerian_data_cache->getFinestLevelNumber() >= d_max_level_number);
+
+    // 2. actually allocate the Eulerian data we keep
+    for (int ln = 0; ln <= d_max_level_number; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_qp_count_idx)) level->allocatePatchData(d_qp_count_idx);
+    }
+
+    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, 0, d_max_level_number);
+    hier_cc_data_ops.setToScalar(d_qp_count_idx, 0.0);
     unsigned long n_local_q_points = 0;
+
+    // Extract the mesh.
+    const MeshBase& mesh = d_fe_data->d_es->get_mesh();
+    const unsigned int dim = mesh.mesh_dimension();
+
+    // Extract the FE system and DOF map, and setup the FE object.
+    System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
+    const DofMap& X_dof_map = X_system.get_dof_map();
+    FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
+    FEType fe_type = X_dof_map.variable_type(0);
+    for (unsigned d = 0; d < NDIM; ++d)
+    {
+        TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
+    }
+
+    // convenience alias for the quadrature key type used by FECache and MappingCache
+    using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    FECache X_fe_cache(dim, fe_type, FEUpdateFlags::update_phi);
+
+    // Extract the underlying solution data.
+    NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
+    auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec);
+    const double* const X_local_soln = X_petsc_vec->get_array_read();
+
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         const IntVector<NDIM>& ratio = level->getRatio();
         const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
-        if (!level->checkAllocated(d_qp_count_idx)) level->allocatePatchData(d_qp_count_idx);
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, ln, ln);
-        hier_cc_data_ops.setToScalar(d_qp_count_idx, 0.0);
-        if (ln != d_max_level_number) continue;
-
-        // Extract the mesh.
-        const MeshBase& mesh = d_fe_data->d_es->get_mesh();
-        const unsigned int dim = mesh.mesh_dimension();
-
-        // Extract the FE system and DOF map, and setup the FE object.
-        System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
-        const DofMap& X_dof_map = X_system.get_dof_map();
-        FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
-        FEType fe_type = X_dof_map.variable_type(0);
-        for (unsigned d = 0; d < NDIM; ++d)
-        {
-            TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
-        }
-
-        // convenience alias for the quadrature key type used by FECache and MappingCache
-        using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
-        FECache X_fe_cache(dim, fe_type, FEUpdateFlags::update_phi);
-
-        // Extract the underlying solution data.
-        NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
-        auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec);
-        const double* const X_local_soln = X_petsc_vec->get_array_read();
 
         // Determine the number of element quadrature points associated with
         // each Cartesian grid cell.
@@ -2907,6 +2939,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
                 for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
                 {
                     Elem* const elem = patch_elems[e_idx];
+                    TBOX_ASSERT(getPatchLevel(elem) == ln);
                     const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                     get_values_for_interpolation(X_node, *X_petsc_vec, X_local_soln, X_dof_indices);
 
@@ -2936,35 +2969,35 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
                 }
             }
         }
+    }
 
-        if (d_enable_logging)
+    if (d_enable_logging)
+    {
+        const int n_processes = IBTK_MPI::getNodes();
+        const int current_rank = IBTK_MPI::getRank();
+        const auto right_padding = std::size_t(std::log10(n_processes)) + 1;
+
+        std::vector<unsigned long> n_q_points_on_processors(n_processes);
+        n_q_points_on_processors[current_rank] = n_local_q_points;
+
+        const int ierr = MPI_Allreduce(MPI_IN_PLACE,
+                                       n_q_points_on_processors.data(),
+                                       n_q_points_on_processors.size(),
+                                       MPI_UNSIGNED_LONG,
+                                       MPI_SUM,
+                                       IBTK_MPI::getCommunicator());
+        TBOX_ASSERT(ierr == 0);
+        if (current_rank == 0)
         {
-            const int n_processes = IBTK_MPI::getNodes();
-            const int current_rank = IBTK_MPI::getRank();
-            const auto right_padding = std::size_t(std::log10(n_processes)) + 1;
-
-            std::vector<unsigned long> n_q_points_on_processors(n_processes);
-            n_q_points_on_processors[current_rank] = n_local_q_points;
-
-            const int ierr = MPI_Allreduce(MPI_IN_PLACE,
-                                           n_q_points_on_processors.data(),
-                                           n_q_points_on_processors.size(),
-                                           MPI_UNSIGNED_LONG,
-                                           MPI_SUM,
-                                           IBTK_MPI::getCommunicator());
-            TBOX_ASSERT(ierr == 0);
-            if (current_rank == 0)
+            for (int rank = 0; rank < n_processes; ++rank)
             {
-                for (int rank = 0; rank < n_processes; ++rank)
-                {
-                    SAMRAI::tbox::plog << "quadrature points on processor " << std::setw(right_padding) << std::left
-                                       << rank << " = " << n_q_points_on_processors[rank] << '\n';
-                }
+                SAMRAI::tbox::plog << "quadrature points on processor " << std::setw(right_padding) << std::left << rank
+                                   << " = " << n_q_points_on_processors[rank] << '\n';
             }
         }
-
-        X_petsc_vec->restore_array();
     }
+
+    X_petsc_vec->restore_array();
     return;
 } // updateQuadPointCountData
 

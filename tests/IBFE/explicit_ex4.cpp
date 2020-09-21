@@ -426,7 +426,6 @@ main(int argc, char** argv)
                 fe_data_manager->getDefaultInterpSpec(),
                 fe_data_manager->getDefaultSpreadSpec(),
                 workload_spec);
-            other_manager->setPatchHierarchy(patch_hierarchy);
             // Check that we have the same Lagrangian data.
             TBOX_ASSERT(fe_data_manager->getFEData() == other_manager->getFEData());
             TBOX_ASSERT(fe_data_manager->getEquationSystems() == other_manager->getEquationSystems());
@@ -490,6 +489,10 @@ main(int argc, char** argv)
         if (ib_post_processor)
         {
             ib_post_processor->initializeFEData();
+        }
+        if (use_separate_fe_data_manager)
+        {
+            other_manager->setPatchHierarchy(patch_hierarchy);
         }
 
         // Write out initial visualization data.
