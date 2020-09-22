@@ -421,7 +421,7 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 
 double Uprime(double J)
 {
-   return ModelData::Lambda * std::log(J);
+   return - ModelData::Lambda * std::log(J);
 }
 
 
@@ -651,10 +651,10 @@ int main(int argc, char** argv)
             std::cout << "Registering pressure field" << std::endl;
             std::string projection_type = input_db->getStringWithDefault("P_PROJECTION", "CONSISTENT_PROJECTION");
             ib_method_ops->registerStaticPressurePart(IBAMR::string_to_enum<PressureProjectionType>(projection_type), &Uprime);
-            double tau =  ModelData::Lambda / ModelData::mu_e;
+            double ctau = input_db->getDoubleWithDefault("CTAU", 1.0);
+            double tau =  ctau * ModelData::Lambda / ModelData::mu_e;
             ib_method_ops->set_static_pressure_stab_param(tau);
             ib_method_ops->set_static_pressure_kappa(ModelData::Lambda);
-            
         }
         else
         {
