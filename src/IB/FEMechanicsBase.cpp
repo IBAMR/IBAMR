@@ -221,7 +221,6 @@ FEMechanicsBase::~FEMechanicsBase()
 std::shared_ptr<FEData>
 FEMechanicsBase::getFEData(const unsigned int part) const
 {
-    TBOX_ASSERT(d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_meshes.size());
     return d_fe_data[part];
 }
@@ -323,7 +322,6 @@ FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_ty
                                             VolumetricEnergyDerivativeFcn U_prime_fcn,
                                             unsigned int part)
 {
-    TBOX_ASSERT(d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_meshes.size());
     if (d_static_pressure_part[part]) return;
     d_has_static_pressure_parts = true;
@@ -369,15 +367,7 @@ FEMechanicsBase::postprocessIntegrateData(double /*current_time*/, double /*new_
 void
 FEMechanicsBase::initializeFEEquationSystems()
 {
-    if (d_fe_equation_systems_initialized) return;
-
-    // Set up the coupling matrix that will be used by each system.
-    d_diagonal_system_coupling.resize(NDIM);
-    for (unsigned int i = 0; i < NDIM; ++i)
-        for (unsigned int j = 0; j < NDIM; ++j) d_diagonal_system_coupling(i, j) = i == j ? 1 : 0;
-
-    doInitializeFEEquationSystems();
-    d_fe_equation_systems_initialized = true;
+    return;
 }
 
 void
@@ -385,7 +375,6 @@ FEMechanicsBase::initializeFEData()
 {
     if (d_fe_data_initialized) return;
 
-    initializeFEEquationSystems();
     doInitializeFEData(RestartManager::getManager()->isFromRestart());
     d_fe_data_initialized = true;
 }
@@ -1232,6 +1221,11 @@ FEMechanicsBase::commonConstructor(const std::string& object_name,
             d_default_quad_order_pressure[part] = FIFTH;
         }
     }
+
+    // Set up the coupling matrix that will be used by each system.
+    d_diagonal_system_coupling.resize(NDIM);
+    for (unsigned int i = 0; i < NDIM; ++i)
+        for (unsigned int j = 0; j < NDIM; ++j) d_diagonal_system_coupling(i, j) = i == j ? 1 : 0;
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();

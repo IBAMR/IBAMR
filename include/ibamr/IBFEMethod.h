@@ -345,12 +345,10 @@ class IBFEDirectForcingKinematics;
  * up if restart information is not available.
  *
  * This code is based on an IBFE example and assumes that the IBAMR objects
- * objects are already set up in the usual way.
+ * objects are already set up in the usual way and IBFEMethod has been
+ * constructed (but no further functions have been called).
  *
  * @code
- * // Actually create the EquationSystems objects.
- * ib_method_ops->initializeFEEquationSystems();
- *
  * // This code assumes we only have one part, so there is only one
  * // EquationSystems object.
  * libMesh::EquationSystems *equation_systems =
@@ -680,21 +678,6 @@ public:
     IBTK::FEDataManager::SpreadSpec getDefaultSpreadSpec() const;
 
     /*!
-     * Set the workload spec object used with a particular mesh part.
-     */
-    void setWorkloadSpec(const IBTK::FEDataManager::WorkloadSpec& workload_spec, unsigned int part = 0);
-
-    /*!
-     * Set the interpolation spec object used with a particular mesh part.
-     */
-    void setInterpSpec(const IBTK::FEDataManager::InterpSpec& interp_spec, unsigned int part = 0);
-
-    /*!
-     * Set the spread spec object used with a particular mesh part.
-     */
-    void setSpreadSpec(const IBTK::FEDataManager::SpreadSpec& spread_spec, unsigned int part = 0);
-
-    /*!
      * \brief Register Eulerian variables with the parent IBHierarchyIntegrator.
      */
     void registerEulerianVariables() override;
@@ -814,7 +797,7 @@ protected:
     /*!
      * Do the actual work in initializeFEEquationSystems.
      */
-    virtual void doInitializeFEEquationSystems() override;
+    void doInitializeFEEquationSystems();
 
     /*!
      * Do the actual work in reinitializeFEData and initializeFEData. if @p

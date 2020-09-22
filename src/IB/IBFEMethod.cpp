@@ -418,7 +418,6 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
 FEDataManager*
 IBFEMethod::getFEDataManager(const unsigned int part) const
 {
-    TBOX_ASSERT(d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_meshes.size());
     return d_primary_fe_data_managers[part];
 } // getFEDataManager
@@ -428,7 +427,6 @@ IBFEMethod::registerStaticPressurePart(PressureProjectionType projection_type,
                                        FEMechanicsBase::VolumetricEnergyDerivativeFcn U_prime,
                                        unsigned int part)
 {
-    TBOX_ASSERT(d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_meshes.size());
     // The same part can either have a pressure or can use stress normalization, but not both.
     if (d_has_stress_normalization_parts) TBOX_ASSERT(!d_stress_normalization_part[part]);
@@ -438,7 +436,6 @@ IBFEMethod::registerStaticPressurePart(PressureProjectionType projection_type,
 void
 IBFEMethod::registerStressNormalizationPart(unsigned int part)
 {
-    TBOX_ASSERT(d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_meshes.size());
     // The same part can either have a pressure or can use stress normalization, but not both.
     if (d_has_static_pressure_parts) TBOX_ASSERT(!d_static_pressure_part[part]);
@@ -452,17 +449,9 @@ IBFEMethod::registerStressNormalizationPart(unsigned int part)
     Phi_system.add_variable("Phi", d_fe_order_pressure[part], d_fe_family_pressure[part]);
     // Setup cached system vectors at restart.
     std::vector<std::string> vector_names;
-    switch (d_ib_solver->getTimeSteppingType())
-    {
-    case MIDPOINT_RULE:
-        vector_names = { "current", "half", "tmp", "RHS Vector" };
-        break;
-    default:
-        vector_names = { "current", "half", "new", "tmp", "RHS Vector" };
-    }
     IBTK::setup_system_vectors(d_equation_systems[part].get(),
                                { PRESSURE_SYSTEM_NAME },
-                               vector_names,
+                               { "current", "half", "new", "tmp", "RHS Vector" },
                                RestartManager::getManager()->isFromRestart());
     return;
 } // registerStressNormalizationPart
@@ -470,7 +459,6 @@ IBFEMethod::registerStressNormalizationPart(unsigned int part)
 void
 IBFEMethod::registerLagBodySourceFunction(const LagBodySourceFcnData& data, const unsigned int part)
 {
-    TBOX_ASSERT(d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_meshes.size());
     if (d_lag_body_source_part[part]) return;
     d_has_lag_body_source_parts = true;
@@ -1208,33 +1196,6 @@ IBFEMethod::getDefaultSpreadSpec() const
 }
 
 void
-IBFEMethod::setInterpSpec(const FEDataManager::InterpSpec& interp_spec, const unsigned int part)
-{
-    TBOX_ASSERT(!d_fe_equation_systems_initialized);
-    TBOX_ASSERT(part < d_meshes.size());
-    d_interp_spec[part] = interp_spec;
-    return;
-}
-
-void
-IBFEMethod::setSpreadSpec(const FEDataManager::SpreadSpec& spread_spec, const unsigned int part)
-{
-    TBOX_ASSERT(!d_fe_equation_systems_initialized);
-    TBOX_ASSERT(part < d_meshes.size());
-    d_spread_spec[part] = spread_spec;
-    return;
-}
-
-void
-IBFEMethod::setWorkloadSpec(const FEDataManager::WorkloadSpec& workload_spec, const unsigned int part)
-{
-    TBOX_ASSERT(!d_fe_equation_systems_initialized);
-    TBOX_ASSERT(part < d_meshes.size());
-    d_workload_spec[part] = workload_spec;
-    return;
-}
-
-void
 IBFEMethod::registerEulerianVariables()
 {
     const IntVector<NDIM> ghosts = 1;
@@ -1738,16 +1699,7 @@ IBFEMethod::doInitializeFEEquationSystems()
                                    { COORDS_SYSTEM_NAME },
                                    { "last_patch_elem_assoc", "current", "half", "new" },
                                    from_restart);
-        std::vector<std::string> F_vector_names;
-        switch (d_ib_solver->getTimeSteppingType())
-        {
-        case MIDPOINT_RULE:
-            F_vector_names = { "current", "half", "tmp", "RHS Vector" };
-            break;
-        default:
-            F_vector_names = { "current", "half", "new", "tmp", "RHS Vector" };
-        }
-        IBTK::setup_system_vectors(&equation_systems, { FORCE_SYSTEM_NAME }, F_vector_names, from_restart);
+        IBTK::setup_system_vectors(&equation_systems, { FORCE_SYSTEM_NAME }, { "current", "half", "new", "tmp", "RHS Vector" }, from_restart);
 
         // Create FE data managers.
         const std::string manager_name = "IBFEMethod FEDataManager::" + std::to_string(part);
@@ -3027,6 +2979,9 @@ IBFEMethod::commonConstructor(const std::string& object_name,
                   t_begin_data_redistribution = set_timer("IBAMR::IBFEMethod::beginDataRedistribution()");
                   t_end_data_redistribution = set_timer("IBAMR::IBFEMethod::endDataRedistribution()");
                   t_apply_gradient_detector = set_timer("IBAMR::IBFEMethod::applyGradientDetector()"););
+
+    // Set up the EquationSystems objects
+    doInitializeFEEquationSystems();
 
     return;
 } // commonConstructor

@@ -403,11 +403,6 @@ public:
 
 protected:
     /*!
-     * Do the actual work in initializeFEEquationSystems.
-     */
-    virtual void doInitializeFEEquationSystems() = 0;
-
-    /*!
      * Do the actual work in reinitializeFEData and initializeFEData. if @p
      * use_present_data is `true` then the current content of the solution
      * vectors is used: more exactly, the coordinates and velocities (computed
@@ -546,12 +541,6 @@ protected:
      * Object managing access to libMesh system vectors for the pressure.
      */
     std::unique_ptr<IBTK::LibMeshSystemVectors> d_P_vecs;
-
-    /*!
-     * Whether or not the libMesh equation systems objects have been initialized
-     * (i.e., whether or not initializeFEEquationSystems has been called).
-     */
-    bool d_fe_equation_systems_initialized = false;
 
     /*!
      * Whether or not all finite element data (including that initialized by
