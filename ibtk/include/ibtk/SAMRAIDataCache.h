@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/ibtk_utilities.h>
+
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "tbox/DescribedClass.h"
@@ -66,6 +68,16 @@ public:
      * @param[in]  finest_ln    The finest level number
      */
     void resetLevels(int coarsest_ln, int finest_ln);
+
+    /**
+     * Return the coarsest patch level for which scratch data is allocated.
+     */
+    int getCoarsestLevelNumber() const;
+
+    /**
+     * Return the finest patch level for which scratch data is allocated.
+     */
+    int getFinestLevelNumber() const;
 
     //\}
 
@@ -162,9 +174,14 @@ private:
     /// \brief Disable the assignment operator.
     SAMRAIDataCache& operator=(const SAMRAIDataCache& that) = delete;
 
-    /// \brief The patch hierarchy and range of levels to use in allocating/deallocating patch data.
+    /// \brief The patch hierarchy under consideration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+
+    /// Coarsest level of allocated patch data.
+    int d_coarsest_ln = IBTK::invalid_level_number;
+
+    /// Coarsest level of allocated patch data.
+    int d_finest_ln = IBTK::invalid_level_number;
 
     /// \brief Key type for looking up cached data.
     using key_type = std::tuple<std::type_index, /*data_depth*/ int, /*ghost_cell_width*/ int>;
