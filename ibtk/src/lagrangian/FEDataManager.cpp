@@ -1137,6 +1137,9 @@ FEDataManager::spread(const int f_data_idx,
                 for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
                 {
                     Elem* const elem = patch_elems[e_idx];
+#ifndef NDEBUG
+                    TBOX_ASSERT(getPatchLevel(elem) == ln);
+#endif // ifndef NDEBUG
                     const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
                     get_values_for_interpolation(X_nodes[e_idx], *X_petsc_vec, X_local_soln, X_dof_indices);
                     const quad_key_type key = getQuadratureKey(spread_spec.quad_type,
