@@ -1259,19 +1259,10 @@ IBFESurfaceMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hiera
         d_fe_data_managers[part]->reinitElementMappings();
     }
 
-    // Set up the Eulerian data caches.
-    int coarsest_fe_level_num = std::numeric_limits<int>::max();
-    int finest_fe_level_num = std::numeric_limits<int>::min();
-    for (unsigned int part = 0; part < d_meshes.size(); ++part)
-    {
-        coarsest_fe_level_num =
-            std::min(coarsest_fe_level_num, d_fe_data_managers[part]->getCoarsestPatchLevelNumber());
-        finest_fe_level_num = std::max(finest_fe_level_num, d_fe_data_managers[part]->getFinestPatchLevelNumber());
-    }
-
-    // Set up the scratch data cache to work on levels that actually have elements.
+    // Set up the Eulerian data caches to work on levels that actually have
+    // elements.
     d_eulerian_data_cache->setPatchHierarchy(hierarchy);
-    d_eulerian_data_cache->resetLevels(coarsest_fe_level_num, finest_fe_level_num);
+    d_eulerian_data_cache->resetLevels(0, getFinestPatchLevelNumber());
 
     d_is_initialized = true;
     return;
@@ -1693,6 +1684,30 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
     }
     return;
 } // imposeJumpConditions
+
+int
+IBFESurfaceMethod::getCoarsestPatchLevelNumber() const
+{
+    int level_number = std::numeric_limits<int>::max();
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        level_number = std::min(d_fe_data_managers[part]->getCoarsestPatchLevelNumber(), level_number);
+    }
+    TBOX_ASSERT(level_number != std::numeric_limits<int>::max());
+    return level_number;
+} // getCoarsestPatchLevelNumber
+
+int
+IBFESurfaceMethod::getFinestPatchLevelNumber() const
+{
+    int level_number = std::numeric_limits<int>::min();
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        level_number = std::max(d_fe_data_managers[part]->getFinestPatchLevelNumber(), level_number);
+    }
+    TBOX_ASSERT(level_number != std::numeric_limits<int>::min());
+    return level_number;
+} // getFinestPatchLevelNumber
 
 bool
 IBFESurfaceMethod::checkDoubleCountingIntersection(const int axis,

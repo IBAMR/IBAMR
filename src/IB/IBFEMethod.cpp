@@ -1283,24 +1283,13 @@ IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     // Initialize the FE data managers.
     reinitElementMappings();
 
-    // Set up the Eulerian data caches.
-    int coarsest_fe_level_num = std::numeric_limits<int>::max();
-    int finest_fe_level_num = std::numeric_limits<int>::min();
-    for (unsigned int part = 0; part < d_meshes.size(); ++part)
-    {
-        coarsest_fe_level_num =
-            std::min(coarsest_fe_level_num, d_primary_fe_data_managers[part]->getCoarsestPatchLevelNumber());
-        finest_fe_level_num =
-            std::max(finest_fe_level_num, d_primary_fe_data_managers[part]->getFinestPatchLevelNumber());
-    }
-
-    // Set up the scratch data cache to work on levels that actually have elements.
+    // The patch hierarchies are finally available so set them up:
     d_primary_eulerian_data_cache->setPatchHierarchy(hierarchy);
-    d_primary_eulerian_data_cache->resetLevels(coarsest_fe_level_num, finest_fe_level_num);
+    d_primary_eulerian_data_cache->resetLevels(0, getFinestPatchLevelNumber());
     if (d_use_scratch_hierarchy)
     {
         d_scratch_eulerian_data_cache->setPatchHierarchy(d_scratch_hierarchy);
-        d_scratch_eulerian_data_cache->resetLevels(coarsest_fe_level_num, finest_fe_level_num);
+        d_scratch_eulerian_data_cache->resetLevels(0, getFinestPatchLevelNumber());
     }
 
     d_is_initialized = true;
@@ -2815,6 +2804,30 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     return;
 } // imposeJumpConditions
 
+int
+IBFEMethod::getCoarsestPatchLevelNumber() const
+{
+    int level_number = std::numeric_limits<int>::max();
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        level_number = std::min(d_primary_fe_data_managers[part]->getCoarsestPatchLevelNumber(), level_number);
+    }
+    TBOX_ASSERT(level_number != std::numeric_limits<int>::max());
+    return level_number;
+} // getCoarsestPatchLevelNumber
+
+int
+IBFEMethod::getFinestPatchLevelNumber() const
+{
+    int level_number = std::numeric_limits<int>::min();
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        level_number = std::max(d_primary_fe_data_managers[part]->getFinestPatchLevelNumber(), level_number);
+    }
+    TBOX_ASSERT(level_number != std::numeric_limits<int>::min());
+    return level_number;
+} // getFinestPatchLevelNumber
+
 SAMRAI::xfer::RefineSchedule<NDIM>&
 IBFEMethod::getPrimaryToScratchSchedule(const int level_number,
                                         const int primary_data_idx,
@@ -3231,20 +3244,8 @@ IBFEMethod::getFromRestart()
 void
 IBFEMethod::assertStructureOnFinestLevel() const
 {
-    for (unsigned part = 0; part < d_meshes.size(); ++part)
-    {
-        const int coarsest_ln = d_primary_fe_data_managers[part]->getCoarsestPatchLevelNumber();
-        const int finest_ln = d_primary_fe_data_managers[part]->getFinestPatchLevelNumber();
-        TBOX_ASSERT(coarsest_ln == d_hierarchy->getFinestLevelNumber() &&
-                    finest_ln == d_hierarchy->getFinestLevelNumber());
-        if (d_use_scratch_hierarchy)
-        {
-            const int coarsest_scratch_ln = d_primary_fe_data_managers[part]->getCoarsestPatchLevelNumber();
-            const int finest_scratch_ln = d_primary_fe_data_managers[part]->getFinestPatchLevelNumber();
-            TBOX_ASSERT(coarsest_scratch_ln == d_hierarchy->getFinestLevelNumber() &&
-                        finest_scratch_ln == d_hierarchy->getFinestLevelNumber());
-        }
-    }
+    TBOX_ASSERT(getFinestPatchLevelNumber() == d_hierarchy->getFinestLevelNumber() &&
+                getCoarsestPatchLevelNumber() == d_hierarchy->getFinestLevelNumber());
 }
 
 void

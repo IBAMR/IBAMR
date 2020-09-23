@@ -854,6 +854,17 @@ protected:
                               unsigned int part);
 
     /*!
+     * Get the coarsest patch level number on which elements (including all
+     * parts) are assigned.
+     */
+    int getCoarsestPatchLevelNumber() const;
+
+    /*!
+     * Get the finest patch level number on which elements (including all parts) are assigned.
+     */
+    int getFinestPatchLevelNumber() const;
+
+    /*!
      * Get the transfer schedule from the primary hierarchy to the scratch
      * hierarchy associated with the given level and index. If necessary the
      * schedule is created and stored in a map.

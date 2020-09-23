@@ -205,6 +205,18 @@ SAMRAIDataCache::resetLevels(const int coarsest_ln, const int finest_ln)
     d_finest_ln = finest_ln;
 }
 
+int
+SAMRAIDataCache::getCoarsestLevelNumber() const
+{
+    return d_coarsest_ln;
+} // getCoarsestLevelNumber
+
+int
+SAMRAIDataCache::getFinestLevelNumber() const
+{
+    return d_finest_ln;
+} // getFinestLevelNumber
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 int

@@ -633,6 +633,11 @@ public:
 
     /*!
      * \brief Reset patch hierarchy over which operations occur.
+     *
+     * The patch hierarchy must be fully set up (i.e., contain all the levels it
+     * is expected to have) at the point this function is called. If you need to
+     * tag cells for refinement to create the initial hierarchy then use
+     * applyGradientDetector, which does not use the stored patch hierarchy.
      */
     void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 

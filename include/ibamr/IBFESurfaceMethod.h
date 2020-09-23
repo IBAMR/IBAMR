@@ -491,6 +491,17 @@ protected:
                               const unsigned int part);
 
     /*!
+     * Get the coarsest patch level number on which elements (including all
+     * parts) are assigned.
+     */
+    int getCoarsestPatchLevelNumber() const;
+
+    /*!
+     * Get the finest patch level number on which elements (including all parts) are assigned.
+     */
+    int getFinestPatchLevelNumber() const;
+
+    /*!
      * \brief Helper function for checking possible double-counting
      *  intesection points
      */
