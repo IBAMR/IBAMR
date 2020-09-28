@@ -216,10 +216,29 @@ main(int argc, char** argv)
         }
         mesh.prepare_for_use();
 
+        // Possibly assign boundary elements to a finer patch level (depending
+        // on what is in the input file)
+        {
+            const MeshBase::element_iterator el_end = mesh.active_elements_end();
+            for (MeshBase::element_iterator el = mesh.active_elements_begin(); el != el_end; ++el)
+            {
+                const auto centroid = (*el)->centroid();
+
+                if (centroid.norm() > 0.75 * R)
+                {
+                    (*el)->subdomain_id() = 2;
+                }
+                else
+                {
+                    (*el)->subdomain_id() = 1;
+                }
+            }
+        }
+
         const bool use_amr = input_db->getBoolWithDefault("use_amr", false);
         if (use_amr)
         {
-            MeshBase::element_iterator el_end = mesh.elements_end();
+            const MeshBase::element_iterator el_end = mesh.elements_end();
             for (MeshBase::element_iterator el = mesh.elements_begin(); el != el_end; ++el)
             {
                 Elem* elem = *el;
@@ -233,19 +252,21 @@ main(int argc, char** argv)
 
         // Ensure nodes on the surface are on the analytic boundary.
 #if NDIM == 2
-        MeshBase::element_iterator el_end = mesh.elements_end();
-        for (MeshBase::element_iterator el = mesh.elements_begin(); el != el_end; ++el)
         {
-            Elem* const elem = *el;
-            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            const MeshBase::element_iterator el_end = mesh.elements_end();
+            for (MeshBase::element_iterator el = mesh.elements_begin(); el != el_end; ++el)
             {
-                const bool at_mesh_bdry = !elem->neighbor_ptr(side);
-                if (!at_mesh_bdry) continue;
-                for (unsigned int k = 0; k < elem->n_nodes(); ++k)
+                Elem* const elem = *el;
+                for (unsigned int side = 0; side < elem->n_sides(); ++side)
                 {
-                    if (!elem->is_node_on_side(k, side)) continue;
-                    Node& n = elem->node_ref(k);
-                    n = R * n.unit();
+                    const bool at_mesh_bdry = !elem->neighbor_ptr(side);
+                    if (!at_mesh_bdry) continue;
+                    for (unsigned int k = 0; k < elem->n_nodes(); ++k)
+                    {
+                        if (!elem->is_node_on_side(k, side)) continue;
+                        Node& n = elem->node_ref(k);
+                        n = R * n.unit();
+                    }
                 }
             }
         }

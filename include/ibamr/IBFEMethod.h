@@ -893,6 +893,14 @@ protected:
                                 SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
 
     /*!
+     * Get the schedule used to prolong force values. Data is read from @p
+     * coarse_data_idx on level @p level_number and written into fine_data_idx
+     * on level level_number + 1.
+     */
+    SAMRAI::xfer::RefineSchedule<NDIM>&
+    getProlongationSchedule(int level_number, int coarse_data_idx, int fine_data_idx);
+
+    /*!
      * Whether or not the initial (i.e., before the regrid prior to
      * timestepping) workload calculations should be logged. This output is
      * generally not stable between machines and so this is usually disabled
@@ -1023,6 +1031,14 @@ protected:
 
     /// Pointer to object used to accumulate forces during spreading.
     std::unique_ptr<IBTK::SAMRAIGhostDataAccumulator> d_ghost_data_accumulator;
+
+    /*!
+     * Schedules for prolonging data during spreading. The keys are the level
+     * number, the patch data index for the coarse level data, and the patch
+     * data index which will be filled with fine level data.
+     */
+    std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
+        d_prolongation_schedules;
 
     /// Minimum ghost cell width.
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;

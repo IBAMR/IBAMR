@@ -389,6 +389,9 @@ private:
  * patch level. All inputs in this database for levels finer than the finest
  * level are ignored (e.g., if the maximum patch level number is 4, then the
  * values given in the example for level 5 ultimately end up on level 4).
+ * <em>This feature is experimental</em>: at the current time it is known that
+ * it produces some artifacts at the coarse-fine interface, but that these
+ * generally don't effect the overall solution quality.
  *
  * <h2>Parameters effecting workload estimate calculations</h2>
  * FEDataManager can estimate the amount of work done in IBFE calculations

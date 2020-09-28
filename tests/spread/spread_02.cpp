@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2019 by the IBAMR developers
+// Copyright (c) 2019 - 2020 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -29,6 +29,7 @@
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
 #include <libmesh/equation_systems.h>
+#include <libmesh/exodusII_io.h>
 #include <libmesh/linear_partitioner.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
@@ -45,6 +46,7 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/LEInteractor.h>
+#include <ibtk/StableCentroidPartitioner.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -57,45 +59,23 @@
 // test stuff
 #include "../tests.h"
 
-// This file is the main driver for force spreading tests (i.e.,
-// IBFEmethod::spreadForce). At the moment it simply prints out the force
-// values.
-
-// Coordinate mapping function.
-void
-coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
+// Like spread_02, but explicitly check the values spread from a constant field
+// when the structure lives on multiple levels. This shows that the correct value is spread away from
+IBTK::Point
+exact_forcing(const IBTK::Point&)
 {
-    // We have to be careful with how we pick these offsets since these tests
-    // validate spreading by comparing pointwise values. In particular: with
-    // an odd-order quadrature rule and a quad or hex mesh the cell midpoint
-    // is a quadrature point. Due to roundoff this could work out to be, e.g.,
-    // 0.5 +/- eps: this is problematic since we will get a different Eulerian
-    // cell now based on roundoff accumulation.
-    //
-    // Get around these rounding issues by picking strange-looking shifts that
-    // guarantee no quadrature point will be near 0.5, 0.75, or any other
-    // possible Eulerian cell midpoint coordinate.
-    X(0) = s(0) + 0.612345;
-    X(1) = s(1) + 0.512345;
-#if (NDIM == 3)
-    X(2) = s(2) + 0.512345;
+    IBTK::Point result;
+    result[0] = 1.0;
+    result[1] = 1.0;
+#if NDIM == 3
+    result[2] = 1.0;
 #endif
-    return;
-} // coordinate_mapping_function
+    return result;
+}
 
 static constexpr double R = 0.2;
 static constexpr double w = 0.0625;
 static constexpr double dx0 = 1.0 / 64.0;
-
-// alternative mapping function for periodic domains.
-void
-periodic_coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*ctx*/)
-{
-    static constexpr double gamma = 0.15;
-    X(0) = (R + s(1)) * cos(s(0) / R) + 0.505;
-    X(1) = (R + gamma + s(1)) * sin(s(0) / R) + 0.505;
-    return;
-} // periodic_coordinate_mapping_function
 
 int
 main(int argc, char** argv)
@@ -103,6 +83,10 @@ main(int argc, char** argv)
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
     const LibMeshInit& init = ibtk_init.getLibMeshInit();
+
+    // suppress warnings caused by using a refinement ratio of 4 and not
+    // setting up coarsening correctly
+    SAMRAI::tbox::Logger::getInstance()->setWarning(false);
 
     PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-16");
     PetscOptionsSetValue(nullptr, "-ksp_atol", "1e-16");
@@ -125,83 +109,39 @@ main(int argc, char** argv)
         const std::string elem_str = input_db->getString("ELEM_TYPE");
         const auto elem_type = Utility::string_to_enum<ElemType>(elem_str);
 
-        const std::string geometry = input_db->getStringWithDefault("geometry", "sphere");
-
-        if (geometry == "sphere")
-        {
-            ReplicatedMesh& mesh = *meshes[0];
-            // libMesh circa version 1.5 fixed a bug with the way they read
-            // Triangle input which results in vertices being numbered in a
-            // different way after the patch. This actually makes a
-            // substantial difference for this test since changing the vertex
-            // numbering changes the quadrature points, which in turn changes
-            // where we spread forces. Hence, unlike the examples, just avoid
-            // Triangle altogether here.
-            //
-            // NOTE: number of segments along boundary is 4*2^r.
-            const double num_circum_segments = 2.0 * M_PI * R / ds;
-            const int r = log2(0.25 * num_circum_segments);
-            MeshTools::Generation::build_sphere(mesh, R, r, elem_type);
-        }
-        else if (geometry == "cube")
+        // This test only supports one type of mesh.
         {
             ReplicatedMesh& mesh = *meshes[0];
             const double L = input_db->getDouble("L");
             if (NDIM == 2)
-                MeshTools::Generation::build_square(mesh, 10, 12, 0.0, L, 0.0, L, elem_type);
+                MeshTools::Generation::build_square(
+                    mesh, int(L / ds), int(L / (4.0 * ds)), 0.0, L, 0.0, L / 4.0, elem_type);
             else
-                MeshTools::Generation::build_cube(mesh, 10, 12, 14, 0.0, L, 0.0, L, 0.0, L, elem_type);
-        }
-        else if (geometry == "periodic")
-        {
-            const int n_x = ceil(2.0 * M_PI * R / ds);
-            const int n_y = ceil(w / ds);
-            MeshTools::Generation::build_square(*meshes[0], n_x, n_y, 0.0, 2.0 * M_PI * R, 0.0, w, elem_type);
-        }
-        else
-        {
-            TBOX_ASSERT(geometry == "composite_cube");
-            const double L = input_db->getDouble("L");
-            if (NDIM == 2)
-            {
-                ReplicatedMesh& mesh_0 = *meshes[0];
-                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
-                ReplicatedMesh& mesh_1 = *meshes[1];
-                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
-                ReplicatedMesh& mesh_2 = *meshes[2];
-                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
-                ReplicatedMesh& mesh_3 = *meshes[3];
-                MeshTools::Generation::build_square(mesh_0, 10, 12, 0.0, L / 2, 0.0, L / 2, elem_type);
-                MeshTools::Generation::build_square(mesh_1, 10, 12, L / 2, L, 0.0, L / 2, elem_type);
-                MeshTools::Generation::build_square(mesh_2, 10, 12, 0.0, L / 2, L / 2, L, elem_type);
-                MeshTools::Generation::build_square(mesh_3, 10, 12, L / 2, L, L / 2, L, elem_type);
-            }
-            else
-            {
-                ReplicatedMesh& mesh_0 = *meshes[0];
-                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
-                ReplicatedMesh& mesh_1 = *meshes[1];
-                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
-                ReplicatedMesh& mesh_2 = *meshes[2];
-                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
-                ReplicatedMesh& mesh_3 = *meshes[3];
-                MeshTools::Generation::build_cube(mesh_0, 5, 6, 7, 0.0, L / 2, 0.0, L / 2, 0.0, L / 2, elem_type);
-                MeshTools::Generation::build_cube(mesh_1, 5, 6, 7, L / 2, L, 0.0, L / 2, 0.0, L / 2, elem_type);
-                MeshTools::Generation::build_cube(mesh_2, 5, 6, 7, 0.0, L / 2, L / 2, L, 0.0, L / 2, elem_type);
-                MeshTools::Generation::build_cube(mesh_3, 5, 6, 7, L / 2, L, L / 2, L, 0.0, L / 2, elem_type);
+                MeshTools::Generation::build_cube(mesh,
+                                                  int(L / ds),
+                                                  int(L / (4.0 * ds)),
+                                                  int(L / (4.0 * ds)),
+                                                  0.0,
+                                                  L,
+                                                  0.0,
+                                                  L / 4.0,
+                                                  0.0,
+                                                  L / 4.0,
+                                                  elem_type);
 
-                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
-                ReplicatedMesh& mesh_4 = *meshes[4];
-                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
-                ReplicatedMesh& mesh_5 = *meshes[5];
-                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
-                ReplicatedMesh& mesh_6 = *meshes[6];
-                meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
-                ReplicatedMesh& mesh_7 = *meshes[7];
-                MeshTools::Generation::build_cube(mesh_4, 5, 6, 7, 0.0, L / 2, 0.0, L / 2, L / 2, L, elem_type);
-                MeshTools::Generation::build_cube(mesh_5, 5, 6, 7, L / 2, L, 0.0, L / 2, L / 2, L, elem_type);
-                MeshTools::Generation::build_cube(mesh_6, 5, 6, 7, 0.0, L / 2, L / 2, L, L / 2, L, elem_type);
-                MeshTools::Generation::build_cube(mesh_7, 5, 6, 7, L / 2, L, L / 2, L, L / 2, L, elem_type);
+            // Assign boundary elements to a finer patch level
+            MeshBase::element_iterator el_end = mesh.active_elements_end();
+            for (MeshBase::element_iterator el = mesh.active_elements_begin(); el != el_end; ++el)
+            {
+                const auto centroid = (*el)->centroid();
+                if (centroid(0) < 0.5)
+                {
+                    (*el)->subdomain_id() = 2;
+                }
+                else
+                {
+                    (*el)->subdomain_id() = 1;
+                }
             }
         }
 
@@ -212,14 +152,9 @@ main(int argc, char** argv)
         for (const auto& mesh : meshes)
         {
             mesh->prepare_for_use();
-            LinearPartitioner partitioner;
+            StableCentroidPartitioner partitioner;
             partitioner.partition(*mesh);
         }
-
-        VectorValue<double> boundary_translation(2.0 * M_PI * R, 0.0, 0.0);
-        PeriodicBoundary pbc(boundary_translation);
-        pbc.myboundary = 3;
-        pbc.pairedboundary = 1;
 
         std::size_t n_elem = 0;
         for (const auto& mesh : meshes) n_elem += mesh->n_active_elem();
@@ -275,6 +210,8 @@ main(int argc, char** argv)
                                               ib_method_ops,
                                               navier_stokes_integrator,
                                               false);
+        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        time_integrator->registerVisItDataWriter(visit_data_writer);
 
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
@@ -288,29 +225,7 @@ main(int argc, char** argv)
                                         load_balancer,
                                         false);
 
-        // Configure the IBFE solver.
-        if (geometry == "sphere")
-        {
-            ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
-        }
-        else if (geometry == "periodic")
-        {
-            ib_method_ops->registerInitialCoordinateMappingFunction(periodic_coordinate_mapping_function);
-        }
-        else
-        {
-            // other meshes are already centered correctly
-        }
         ib_method_ops->initializeFEEquationSystems();
-        if (geometry == "periodic")
-        {
-            EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
-            for (unsigned int k = 0; k < equation_systems->n_systems(); ++k)
-            {
-                System& system = equation_systems->get_system(k);
-                system.get_dof_map().add_periodic_boundary(pbc);
-            }
-        }
         ib_method_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
@@ -365,66 +280,106 @@ main(int argc, char** argv)
             time_integrator->getIntegratorTime(), time_integrator->getIntegratorTime() + dt, 1 /*???*/);
         for (unsigned int part_n = 0; part_n < meshes.size(); ++part_n)
         {
-            auto& fe_data_manager = *ib_method_ops->getFEDataManager(part_n);
-            auto& equation_systems = *fe_data_manager.getEquationSystems();
-            auto& force_system = equation_systems.get_system(IBFEMethod::FORCE_SYSTEM_NAME);
-            auto& half_f_vector = dynamic_cast<libMesh::PetscVector<double>&>(force_system.get_vector("half"));
-            for (unsigned int i = half_f_vector.first_local_index(); i < half_f_vector.last_local_index(); ++i)
+            const std::string& F_name = IBFEMethod::FORCE_SYSTEM_NAME;
+            const std::string& X_name = IBFEMethod::COORDS_SYSTEM_NAME;
+            EquationSystems* equation_systems = ib_method_ops->getFEDataManager(part_n)->getEquationSystems();
+            System& F_system = equation_systems->get_system(F_name);
+            System& X_system = equation_systems->get_system(X_name);
+
+            const unsigned int n_vars = F_system.n_vars();
+            TBOX_ASSERT(n_vars == NDIM);
+            const DofMap& F_dof_map = F_system.get_dof_map();
+            const DofMap& X_dof_map = X_system.get_dof_map();
+
+            PetscVector<double>& current_F = dynamic_cast<libMesh::PetscVector<double>&>(F_system.get_vector("half"));
+            PetscVector<double>& current_X = *dynamic_cast<PetscVector<double>*>(X_system.current_local_solution.get());
+
+            std::vector<dof_id_type> X_idxs;
+            std::vector<dof_id_type> F_idxs;
+            // Unlike elements, nodes are uniquely allocated to different processors
+            const ReplicatedMesh& mesh = *meshes[part_n];
+            for (auto node_iter = mesh.local_nodes_begin(); node_iter != mesh.local_nodes_end(); ++node_iter)
             {
-                half_f_vector.set(i, i % 10);
+                IBTK::Point X;
+                for (unsigned int var_n = 0; var_n < n_vars; ++var_n)
+                {
+                    IBTK::get_nodal_dof_indices(X_dof_map, *node_iter, var_n, X_idxs);
+                    X[var_n] = current_X(X_idxs[0]);
+                }
+
+                const auto F = exact_forcing(X);
+                for (unsigned int var_n = 0; var_n < n_vars; ++var_n)
+                {
+                    IBTK::get_nodal_dof_indices(F_dof_map, *node_iter, var_n, F_idxs);
+                    current_F.set(F_idxs[0], F[var_n]);
+                }
             }
-            half_f_vector.close();
+            current_F.close();
+            *F_system.solution = current_F;
         }
 
-        // the partitioning isn't relevant when we only have one processor
+        std::ostringstream out;
         if (IBTK_MPI::getNodes() != 1)
         {
-            print_partitioning_on_plog_0(
-                patch_hierarchy, patch_hierarchy->getFinestLevelNumber(), patch_hierarchy->getFinestLevelNumber());
+            // partitioning is only relevant when there are multiple processors
+            Pointer<PatchLevel<NDIM> > patch_level =
+                patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
+            const BoxArray<NDIM> boxes = patch_level->getBoxes();
+            plog << "hierarchy boxes:\n";
+            for (int i = 0; i < boxes.size(); ++i) plog << boxes[i] << '\n';
+            // rank is only relevant when there are multiple processors
+            out << "\nrank: " << IBTK_MPI::getRank() << '\n';
         }
 
-        // Test the accumulation code when we have meshes that are against the
-        // boundary (i.e., the cube and composite cube geometries)
+        // Here is the actual test:
+
         const double data_time = time_integrator->getIntegratorTime() + dt / 2;
-        RobinPhysBdryPatchStrategy* bdry_op = geometry == "sphere" ? nullptr : time_integrator->getVelocityPhysBdryOp();
-        if (input_db->getBoolWithDefault("spread_with_ibfemethod", true))
-            ib_method_ops->spreadForce(f_ghost_idx, bdry_op, {}, data_time);
-        else
-        {
-            TBOX_ASSERT(meshes.size() == 1); // not implemented for multiple parts
-            auto& fe_data_manager = *ib_method_ops->getFEDataManager(0);
-            auto& equation_systems = *fe_data_manager.getEquationSystems();
-            auto& force_system = equation_systems.get_system(IBFEMethod::FORCE_SYSTEM_NAME);
-            auto& F_vec = dynamic_cast<libMesh::PetscVector<double>&>(force_system.get_vector("half"));
-            auto& position_system = equation_systems.get_system(IBFEMethod::COORDS_SYSTEM_NAME);
-            auto& X_vec = dynamic_cast<libMesh::PetscVector<double>&>(*position_system.current_local_solution);
-            fe_data_manager.spread(
-                f_ghost_idx, F_vec, X_vec, IBFEMethod::FORCE_SYSTEM_NAME, nullptr, data_time, false, false);
+        RobinPhysBdryPatchStrategy* bdry_op = time_integrator->getVelocityPhysBdryOp();
+        ib_method_ops->spreadForce(f_ghost_idx, bdry_op, {}, data_time);
 
-            // here's the real test for the bug in this case: FEDataManager::spread()
-            // previously did not copy values spread into ghost regions, so the values
-            // computed by these two combined calls would be wrong.
-            bdry_op->setPatchDataIndex(f_ghost_idx);
-            const int ln = patch_hierarchy->getFinestLevelNumber();
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_ghost_idx);
-                bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
-            }
+        // velocity interpolation requires that ghost data be present
+        ghost_fill_op.fillData(/*time*/ 0.0);
+
+        // Now put it back on the structure:
+        ib_method_ops->interpolateVelocity(f_ghost_idx, {}, {}, data_time);
+
+        // The rest is just bookkeeping and some visualization.
+
+        // convert SC to CC for plotting purposes:
+        Pointer<CellVariable<NDIM, double> > f_cc_var = new CellVariable<NDIM, double>("f_cc", NDIM);
+        const int f_ghost_cc_idx = var_db->registerVariableAndContext(f_cc_var, f_ghost_ctx, IntVector<NDIM>(0));
+        visit_data_writer->registerPlotQuantity("f_ghost", "VECTOR", f_ghost_cc_idx);
+
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            visit_data_writer->registerPlotQuantity("f_ghost_" + std::to_string(d), "SCALAR", f_ghost_cc_idx, d);
         }
-        const double cutoff = input_db->getDoubleWithDefault("output_cutoff_value", 0.0);
-        std::ostringstream out;
+
+        HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
+        // This is what we get for SAMRAI inventing its own type system and then
+        // only half-implementing it
+        Pointer<SideVariable<NDIM, double> > temp = f_var;
+        TBOX_ASSERT(temp);
+        // Allocate data on each level of the patch hierarchy.
+        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(f_ghost_cc_idx, 0.0);
+        }
+
+        hier_math_ops.interp(f_ghost_cc_idx, f_cc_var, f_ghost_idx, temp, nullptr, 0.0, /*synch_cf_interface=*/true);
+
+        visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);
+
+        {
+            std::unique_ptr<ExodusII_IO> exodus_io(new ExodusII_IO(*meshes[0]));
+            EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
+            exodus_io->write_timestep("out.ex2", *equation_systems, 1, 0.0);
+        }
+
         {
             const int ln = patch_hierarchy->getFinestLevelNumber();
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-
-            // We don't need to print this if we are running in serial
-            if (IBTK_MPI::getNodes() != 1)
-            {
-                out << "\nrank: " << IBTK_MPI::getRank() << '\n';
-            }
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 bool printed_value = false;
@@ -435,9 +390,7 @@ main(int argc, char** argv)
                 Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_ghost_idx);
                 const Box<NDIM> patch_box = patch->getBox();
 
-                // same as SideData::print, but elides zero values. We don't
-                // print any information about the patch when no values are
-                // above the cutoff.
+                // same as SideData::print, but elides values close to 1.
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
                     patch_out << "Array side normal = " << axis << std::endl;
@@ -448,7 +401,7 @@ main(int argc, char** argv)
                         for (SideIterator<NDIM> i(patch_box, axis); i; i++)
                         {
                             const double value = data(i(), d);
-                            if (std::abs(value) > cutoff)
+                            if (std::abs(value - 1.0) > 1e-2)
                             {
                                 patch_out << "array" << i() << " = " << value << '\n';
                                 printed_value = true;
@@ -460,7 +413,6 @@ main(int argc, char** argv)
             }
         }
         IBTK_MPI::barrier();
-
         print_strings_on_plog_0(out.str());
     } // cleanup dynamically allocated objects prior to shutdown
 } // main
