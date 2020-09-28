@@ -667,10 +667,11 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 
     if (d_use_scratch_hierarchy)
     {
-        assertStructureOnFinestLevel();
-        getPrimaryToScratchSchedule(
-            d_hierarchy->getFinestLevelNumber(), u_data_idx, u_data_idx, d_ib_solver->getVelocityPhysBdryOp())
-            .fillData(data_time);
+        for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
+        {
+            getPrimaryToScratchSchedule(ln, u_data_idx, u_data_idx, d_ib_solver->getVelocityPhysBdryOp())
+                .fillData(data_time);
+        }
     }
     else
     {
@@ -1030,22 +1031,14 @@ IBFEMethod::spreadForce(const int f_data_idx,
     }
 
     // Prolong forces spread onto coarser levels onto finer levels.
-    if (d_use_scratch_hierarchy)
+    for (int coarse_ln = 0; coarse_ln < getFinestPatchLevelNumber(); ++coarse_ln)
     {
-        // not yet implemented
-        assertStructureOnFinestLevel();
-    }
-    else
-    {
-        for (int coarse_ln = 0; coarse_ln < getFinestPatchLevelNumber(); ++coarse_ln)
-        {
-            getProlongationSchedule(coarse_ln, f_scratch_data_idx, f_prolong_scratch_data_idx).fillData(data_time);
+        getProlongationSchedule(coarse_ln, f_scratch_data_idx, f_prolong_scratch_data_idx).fillData(data_time);
 
-            // Add the values prolonged from the coarser level onto the scratch index on the finer level.
-            auto f_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy);
-            f_data_ops->resetLevels(coarse_ln + 1, coarse_ln + 1);
-            f_data_ops->add(f_scratch_data_idx, f_scratch_data_idx, f_prolong_scratch_data_idx);
-        }
+        // Add the values prolonged from the coarser level onto the scratch index on the finer level.
+        auto f_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, hierarchy);
+        f_data_ops->resetLevels(coarse_ln + 1, coarse_ln + 1);
+        f_data_ops->add(f_scratch_data_idx, f_scratch_data_idx, f_prolong_scratch_data_idx);
     }
 
     if (d_use_scratch_hierarchy)
@@ -1055,17 +1048,18 @@ IBFEMethod::spreadForce(const int f_data_idx,
         //
         // unlike the other data ops, this is always on the primary hierarchy
         auto f_primary_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy);
-        f_primary_data_ops->resetLevels(ln, ln);
-        const auto f_primary_scratch_data_idx = d_primary_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
-        // we have to zero everything here since the scratch to primary
-        // communication does not touch ghost cells, which may have junk
-        f_primary_data_ops->setToScalar(f_primary_scratch_data_idx,
-                                        0.0,
-                                        /*interior_only*/ false);
-
-        assertStructureOnFinestLevel();
-        getScratchToPrimarySchedule(ln, f_primary_scratch_data_idx, f_scratch_data_idx).fillData(data_time);
-        f_primary_data_ops->add(f_data_idx, f_data_idx, f_primary_scratch_data_idx);
+        for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
+        {
+            f_primary_data_ops->resetLevels(ln, ln);
+            const auto f_primary_scratch_data_idx = d_primary_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
+            // we have to zero everything here since the scratch to primary
+            // communication does not touch ghost cells, which may have junk
+            f_primary_data_ops->setToScalar(f_primary_scratch_data_idx,
+                                            0.0,
+                                            /*interior_only*/ false);
+            getScratchToPrimarySchedule(ln, f_primary_scratch_data_idx, f_scratch_data_idx).fillData(data_time);
+            f_primary_data_ops->add(f_data_idx, f_data_idx, f_primary_scratch_data_idx);
+        }
     }
     else
     {
@@ -2910,6 +2904,7 @@ IBFEMethod::getProlongationSchedule(const int level_number, const int coarse_dat
     const auto key = std::make_pair(level_number, std::make_pair(coarse_data_idx, fine_data_idx));
     if (d_prolongation_schedules.count(key) == 0)
     {
+        Pointer<PatchHierarchy<NDIM> > hierarchy = d_use_scratch_hierarchy ? d_scratch_hierarchy : d_hierarchy;
         Pointer<RefineAlgorithm<NDIM> > refine_algorithm = new RefineAlgorithm<NDIM>();
         Pointer<RefineOperator<NDIM> > refine_op;
 
@@ -2929,20 +2924,20 @@ IBFEMethod::getProlongationSchedule(const int level_number, const int coarse_dat
         TBOX_ASSERT(cc_data || sc_data);
         if (cc_data)
         {
-            Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
+            Pointer<CartesianGridGeometry<NDIM> > geometry = hierarchy->getGridGeometry();
             refine_op = geometry->lookupRefineOperator(f_var, "CONSERVATIVE_LINEAR_REFINE");
         }
         else
             refine_op = new CartSideDoubleRT0Refine();
         TBOX_ASSERT(refine_op);
         refine_algorithm->registerRefine(fine_data_idx, coarse_data_idx, fine_data_idx, refine_op);
-        Pointer<PatchLevel<NDIM> > fine_level = d_hierarchy->getPatchLevel(level_number + 1);
+        Pointer<PatchLevel<NDIM> > fine_level = hierarchy->getPatchLevel(level_number + 1);
         // We can ignore the fifth argument since we don't need to deal with
         // forces outside the physical domain (this was handled previously by
         // f_phys_bdry_op). In particular we don't need it since we don't care
         // about ghost force values (they aren't used in the solver).
         Pointer<RefineSchedule<NDIM> > schedule =
-            refine_algorithm->createSchedule(fine_level, nullptr, level_number, d_hierarchy);
+            refine_algorithm->createSchedule(fine_level, nullptr, level_number, hierarchy);
         d_prolongation_schedules[key] = schedule;
     }
     return *d_prolongation_schedules[key];
