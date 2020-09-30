@@ -749,6 +749,16 @@ FEDataManager::buildIBGhostedVector(const std::string& system_name)
     TBOX_ASSERT(d_system_ib_ghost_vec.find(system_name) != d_system_ib_ghost_vec.end());
     const std::unique_ptr<PetscVector<double> >& exemplar_ib_vector = d_system_ib_ghost_vec.at(system_name);
     TBOX_ASSERT(exemplar_ib_vector);
+    // Sanity check:
+    const System& system = d_fe_data->d_es->get_system(system_name);
+    if (system.solution->local_size() != exemplar_ib_vector->local_size())
+    {
+        TBOX_ERROR(
+            "The locally stored example IB vector does not have the same local size as the relevant system's solution "
+            "vector. This usually occurs when the finite element data has been modified (e.g., the mesh has been "
+            "refined) outside of one of IBAMR's classes (like FEDataManager or IBFEMethod).");
+    }
+
     std::unique_ptr<NumericVector<double> > clone = exemplar_ib_vector->zero_clone();
     auto ptr = dynamic_cast<PetscVector<double>*>(clone.release());
     TBOX_ASSERT(ptr);
