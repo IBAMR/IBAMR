@@ -331,12 +331,13 @@ class IBFEDirectForcingKinematics;
  *
  * <h2>Using IBFEMethod with your own libMesh System objects</h2>
  *
- * It is often useful to add your own libMesh data to the same EquationSystems
+ * It is often useful to add your own libMesh data to the EquationSystems
  * object used by IBAMR objects. One such example would be defining fields of
- * fibers to give direction to add anisotropy to solid models. The primary
- * advantage of adding your own Systems to the EquationSystems objects stored
- * by IBFEMethod is that your Systems will be automatically saved to restart
- * files and then set up again by IBFEMethod when resuming from such a file.
+ * fibers to give direction to add anisotropy to solid models. Since a libMesh
+ * Mesh object also stores all the degrees of freedom of all the systems, there
+ * can only be one EquationSystems object for each Mesh object. If you set up
+ * your own systems in this way then they will be automatically saved and loaded
+ * from restart data.
  *
  * Since initialization of this class occurs in multiple stages and IBFEMethod
  * assumes that it is ultimately responsible for setting up the EquationSystems
