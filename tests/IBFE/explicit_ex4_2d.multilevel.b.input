@@ -117,8 +117,8 @@ IBFEMethod {
 
    FEDataManager {
       subdomain_ids_on_levels {
-         // level_0 = 1
-         // level_1 = 2
+         level_0 = 1
+         level_1 = 2
       }
    }
 }
