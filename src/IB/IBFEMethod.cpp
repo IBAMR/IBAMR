@@ -1379,7 +1379,7 @@ IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const 
         const int current_rank = IBTK_MPI::getRank();
 
         std::vector<double> workload_per_processor(n_processes);
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy);
+        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, 0, hierarchy->getFinestLevelNumber());
         workload_per_processor[current_rank] = hier_cc_data_ops.L1Norm(workload_data_idx, IBTK::invalid_index, true);
 
         const auto right_padding = std::size_t(std::log10(n_processes)) + 1;
@@ -1506,12 +1506,22 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             // TODO: d_current_time is actually nan here. Since we don't do
             // any sort of tagging based on the current time I think we can
             // just put in a bogus (nonnegative) value.
-            int finest_level = d_scratch_hierarchy->getFinestLevelNumber();
-            if (finest_level == 0)
+            //
+            // Handle the case where everything is on the coarsest level:
+            if (getFinestPatchLevelNumber() == 0)
+            {
                 d_scratch_gridding_algorithm->makeCoarsestLevel(d_scratch_hierarchy, 0.0 /*d_current_time*/);
+            }
             else
+            // Handle every other case:
+            {
+                if (getCoarsestPatchLevelNumber() == 0)
+                {
+                    d_scratch_gridding_algorithm->makeCoarsestLevel(d_scratch_hierarchy, 0.0 /*d_current_time*/);
+                }
                 d_scratch_gridding_algorithm->regridAllFinerLevels(
-                    d_scratch_hierarchy, finest_level - 1, 0.0 /*d_current_time*/, tag_buffer);
+                    d_scratch_hierarchy, std::max(getCoarsestPatchLevelNumber() - 1, 0), 0.0 /*d_current_time*/, tag_buffer);
+            }
             if (d_do_log) plog << "IBFEMethod: finished scratch hierarchy regrid" << std::endl;
 
             // FEDataManager needs
