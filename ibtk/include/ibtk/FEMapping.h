@@ -44,6 +44,7 @@ IBTK_ENABLE_EXTRA_WARNINGS
 
 namespace IBTK
 {
+class Tri6Mapping;
 class Tet10Mapping;
 class Hex27Mapping;
 } // namespace IBTK
@@ -381,6 +382,8 @@ protected:
     virtual void fillTransforms(const libMesh::Elem* elem) override;
 
     virtual bool isAffine() const override;
+
+    friend class Tri6Mapping;
 };
 
 /*!
@@ -436,6 +439,38 @@ protected:
      * tensor product, define the mapping) at reference quadrature points.
      */
     libMesh::DenseMatrix<double> d_dphi;
+};
+
+/*!
+ * Specialization for TRI6 elements with codimension zero.
+ */
+class Tri6Mapping : public FELagrangeMapping<2, 2, 6>
+{
+public:
+    /*!
+     * Key type. Completely describes (excepting p-refinement) a libMesh
+     * quadrature rule.
+     */
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+
+    /*!
+     * Constructor.
+     */
+    Tri6Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
+
+    virtual void reinit(const libMesh::Elem* elem) override;
+
+protected:
+    /*!
+     * TRI3 mapping that is used whenever the given elem is affine.
+     */
+    Tri3Mapping tri3_mapping;
+
+    /*!
+     * Utility function that determines if the element is affine (i.e., all
+     * nodes at edge midpoints are averages of corners)
+     */
+    static bool elem_is_affine(const libMesh::Elem* elem);
 };
 
 /*!
