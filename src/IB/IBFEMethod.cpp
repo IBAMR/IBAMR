@@ -1528,8 +1528,10 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
                 {
                     d_scratch_gridding_algorithm->makeCoarsestLevel(d_scratch_hierarchy, 0.0 /*d_current_time*/);
                 }
-                d_scratch_gridding_algorithm->regridAllFinerLevels(
-                    d_scratch_hierarchy, std::max(getCoarsestPatchLevelNumber() - 1, 0), 0.0 /*d_current_time*/, tag_buffer);
+                d_scratch_gridding_algorithm->regridAllFinerLevels(d_scratch_hierarchy,
+                                                                   std::max(getCoarsestPatchLevelNumber() - 1, 0),
+                                                                   0.0 /*d_current_time*/,
+                                                                   tag_buffer);
             }
             if (d_do_log) plog << "IBFEMethod: finished scratch hierarchy regrid" << std::endl;
 
