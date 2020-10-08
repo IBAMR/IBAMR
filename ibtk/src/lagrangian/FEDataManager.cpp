@@ -179,6 +179,20 @@ collect_unique_elems(std::vector<Elem*>& elems, const ContainerOfContainers& ele
     return;
 } // collect_unique_elems
 
+std::set<libMesh::subdomain_id_type>
+collect_subdomain_ids(const libMesh::MeshBase& mesh)
+{
+    std::set<libMesh::subdomain_id_type> subdomain_ids;
+    // Get all subdomain ids present, not just local elements.
+    const auto el_begin = mesh.elements_begin();
+    const auto el_end = mesh.elements_end();
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
+    {
+        subdomain_ids.insert((*el_it)->subdomain_id());
+    }
+    return subdomain_ids;
+}
+
 /**
  * A difficulty with FEDataManager is that it needs to work with both volumetric
  * and surface meshes, even though for performance reasons we template FEMapping
@@ -344,11 +358,20 @@ FEData::clearPatchHierarchyDependentData()
     d_quadrature_cache.clear();
 }
 
-SubdomainToPatchLevelTranslation::SubdomainToPatchLevelTranslation(const int max_level_number,
-                                                                   const Pointer<Database>& input_db)
+SubdomainToPatchLevelTranslation::SubdomainToPatchLevelTranslation(
+    const int max_level_number,
+    const std::set<libMesh::subdomain_id_type>& subdomain_ids,
+    const Pointer<Database>& input_db)
     : d_max_level_number(max_level_number)
 {
-    std::fill(d_fixed.begin(), d_fixed.end(), d_max_level_number);
+    std::fill(d_fixed.begin(), d_fixed.end(), IBTK::invalid_level_number);
+
+    // Overwrite all mesh subdomain ids to be on the finest level. Any that are
+    // specified in the input database will be corrected when we read it.
+    for (const libMesh::subdomain_id_type id : subdomain_ids)
+    {
+        get(id) = max_level_number;
+    }
 
     // check that no id is set more than once
     std::set<libMesh::subdomain_id_type> known_subdomain_ids;
@@ -479,7 +502,7 @@ FEDataManager::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
     {
         d_eulerian_data_cache = std::make_shared<SAMRAIDataCache>();
         d_eulerian_data_cache->setPatchHierarchy(hierarchy);
-        d_eulerian_data_cache->resetLevels(0, d_max_level_number);
+        d_eulerian_data_cache->resetLevels(0, hierarchy->getFinestLevelNumber());
     }
     else
     {
@@ -570,7 +593,7 @@ FEDataManager::reinitElementMappings()
 
     // Reset the mappings between grid patches and active mesh
     // elements.
-    for (int ln = 0; ln <= d_max_level_number; ++ln)
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         collectActivePatchElements(d_active_patch_elem_map[ln], ln, ln, ln);
         collectActivePatchNodes(d_active_patch_node_map[ln], d_active_patch_elem_map[ln]);
@@ -609,7 +632,7 @@ FEDataManager::reinitElementMappings()
 
         std::vector<int> node_ranks(mesh.parallel_n_nodes());
         std::vector<dof_id_type> X_idxs;
-        for (int ln = 0; ln <= d_max_level_number; ++ln)
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             int local_patch_num = 0;
@@ -1021,7 +1044,7 @@ FEDataManager::spread(const int f_data_idx,
         auto X_petsc_vec = static_cast<PetscVector<double>*>(&X_vec);
         const double* const X_local_soln = X_petsc_vec->get_array_read();
 
-        for (int ln = 0; ln <= d_max_level_number; ++ln)
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             int local_patch_num = 0;
@@ -1117,7 +1140,7 @@ FEDataManager::spread(const int f_data_idx,
         // Eulerian grid.
         boost::multi_array<double, 2> F_node;
         std::vector<double> F_JxW_qp, X_qp;
-        for (int ln = 0; ln <= d_max_level_number; ++ln)
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             int local_patch_num = 0;
@@ -1272,7 +1295,7 @@ FEDataManager::spread(const int f_data_idx,
     const auto f_copy_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
     Pointer<HierarchyDataOpsReal<NDIM, double> > f_data_ops =
         HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
-    f_data_ops->resetLevels(d_max_level_number, d_max_level_number);
+    f_data_ops->resetLevels(0, d_hierarchy->getFinestLevelNumber());
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
     f_data_ops->setToScalar(f_data_idx, 0.0, /*interior_only*/ false);
 
@@ -1287,7 +1310,7 @@ FEDataManager::spread(const int f_data_idx,
     if (f_phys_bdry_op)
     {
         f_phys_bdry_op->setPatchDataIndex(f_data_idx);
-        for (int ln = 0; ln <= d_max_level_number; ++ln)
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             int local_patch_num = 0;
@@ -1386,7 +1409,7 @@ FEDataManager::prolongData(const int f_data_idx,
     Point X_min, X_max;
     std::vector<libMesh::Point> intersection_ref_coords;
     std::vector<SideIndex<NDIM> > intersection_indices;
-    for (int ln = 0; ln <= d_max_level_number; ++ln)
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         const IntVector<NDIM>& ratio = level->getRatio();
@@ -1793,7 +1816,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
 
         // Loop over the patches to interpolate values to the nodes from the grid, then use these values to
         // compute the projection of the interpolated velocity field onto the FE basis functions.
-        for (int ln = 0; ln <= d_max_level_number; ++ln)
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             int local_patch_num = 0;
@@ -1908,7 +1931,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
         std::vector<double> F_rhs_concatenated;
         std::vector<double> F_qp, X_qp;
         std::vector<libMesh::dof_id_type> dof_id_scratch;
-        for (int ln = 0; ln <= d_max_level_number; ++ln)
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             int local_patch_num = 0;
@@ -2201,7 +2224,7 @@ FEDataManager::restrictData(const int f_data_idx,
     Point X_min, X_max;
     std::vector<libMesh::Point> intersection_ref_coords;
     std::vector<SideIndex<NDIM> > intersection_indices;
-    for (int ln = 0; ln <= d_max_level_number; ++ln)
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         const IntVector<NDIM>& ratio = level->getRatio();
@@ -2461,7 +2484,7 @@ FEDataManager::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy,
     TBOX_ASSERT(finest_ln >= getCoarsestPatchLevelNumber() && finest_ln <= getFinestPatchLevelNumber());
 
     {
-        updateQuadPointCountData(0, d_max_level_number);
+        updateQuadPointCountData(0, hierarchy->getFinestLevelNumber());
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.axpy(
             workload_data_idx, d_default_workload_spec.q_point_weight, d_qp_count_idx, workload_data_idx);
@@ -2636,16 +2659,17 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
     {
         // Tag all cells that correspond to elements that should be on finer
         // element levels.
-        updateQuadPointCountData(level_number + 1, d_max_level_number);
+        updateQuadPointCountData(level_number + 1, d_hierarchy->getFinestLevelNumber());
         const auto qp_scratch_idx = d_eulerian_data_cache->getCachedPatchDataIndex(d_qp_count_idx);
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, level_number, d_max_level_number);
+        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(
+            d_hierarchy, level_number, d_hierarchy->getFinestLevelNumber());
         hier_cc_data_ops.setToScalar(qp_scratch_idx, 0.0);
 
         // The semantics of d_qp_count_idx are slightly abused here: since we
         // need to tag cells for refinement whenever they contain a quadrature
         // point on a finer level, the values (after this loop) in that index
         // correspond to all quadrature points on finer levels.
-        for (int finer_ln = d_max_level_number; finer_ln > level_number; --finer_ln)
+        for (int finer_ln = d_hierarchy->getFinestLevelNumber(); finer_ln > level_number; --finer_ln)
         {
             Pointer<PatchLevel<NDIM> > finer_level = d_hierarchy->getPatchLevel(finer_ln);
             const int coarser_ln = finer_ln - 1;
@@ -2762,6 +2786,7 @@ FEDataManager::FEDataManager(std::string object_name,
       d_fe_projector(new FEProjector(d_fe_data)),
       COORDINATES_SYSTEM_NAME(d_fe_data->d_coordinates_system_name),
       d_level_lookup(max_levels - 1,
+                     collect_subdomain_ids(d_fe_data->getEquationSystems()->get_mesh()),
                      input_db ? (input_db->keyExists("subdomain_ids_on_levels") ?
                                      input_db->getDatabase("subdomain_ids_on_levels") :
                                      nullptr) :
@@ -2864,16 +2889,16 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
     // 1. assert that the Eulerian data cache is ready
     TBOX_ASSERT(d_eulerian_data_cache);
     TBOX_ASSERT(d_eulerian_data_cache->getCoarsestLevelNumber() == 0);
-    TBOX_ASSERT(d_eulerian_data_cache->getFinestLevelNumber() >= d_max_level_number);
+    TBOX_ASSERT(d_eulerian_data_cache->getFinestLevelNumber() >= getFinestPatchLevelNumber());
 
     // 2. actually allocate the Eulerian data we keep
-    for (int ln = 0; ln <= d_max_level_number; ++ln)
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_qp_count_idx)) level->allocatePatchData(d_qp_count_idx);
     }
 
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, 0, d_max_level_number);
+    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy, 0, d_hierarchy->getFinestLevelNumber());
     hier_cc_data_ops.setToScalar(d_qp_count_idx, 0.0);
     unsigned long n_local_q_points = 0;
 
