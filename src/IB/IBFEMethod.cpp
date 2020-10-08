@@ -666,7 +666,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
 
     // Ensure coarse grid data are consistent with any overlying fine grid data.
-    for (unsigned int ln = getFinestPatchLevelNumber(); ln > getCoarsestPatchLevelNumber(); --ln)
+    for (int ln = getFinestPatchLevelNumber(); ln > getCoarsestPatchLevelNumber(); --ln)
     {
         if (ln < u_synch_scheds.size() && u_synch_scheds[ln])
         {
