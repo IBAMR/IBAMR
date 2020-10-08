@@ -666,7 +666,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
 
     // Ensure coarse grid data are consistent with any overlying fine grid data.
-    for (unsigned int ln = getFinestPatchLevelNumber(); ln > getCoarsestPatchLevelNumber(); --ln)
+    for (int ln = getFinestPatchLevelNumber(); ln > getCoarsestPatchLevelNumber(); --ln)
     {
         if (ln < u_synch_scheds.size() && u_synch_scheds[ln])
         {
@@ -1528,8 +1528,10 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
                 {
                     d_scratch_gridding_algorithm->makeCoarsestLevel(d_scratch_hierarchy, 0.0 /*d_current_time*/);
                 }
-                d_scratch_gridding_algorithm->regridAllFinerLevels(
-                    d_scratch_hierarchy, std::max(getCoarsestPatchLevelNumber() - 1, 0), 0.0 /*d_current_time*/, tag_buffer);
+                d_scratch_gridding_algorithm->regridAllFinerLevels(d_scratch_hierarchy,
+                                                                   std::max(getCoarsestPatchLevelNumber() - 1, 0),
+                                                                   0.0 /*d_current_time*/,
+                                                                   tag_buffer);
             }
             if (d_do_log) plog << "IBFEMethod: finished scratch hierarchy regrid" << std::endl;
 
