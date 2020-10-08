@@ -13,10 +13,14 @@
 
 include $(top_srcdir)/config/Make-rules
 
-EXTRA_PROGRAMS =
+EXTRA_PROGRAMS = nwt
 if LIBMESH_ENABLED
-EXTRA_PROGRAMS += nwt_cylinder
+EXTRA_PROGRAMS += nwt_cylinder 
 endif
+
+nwt_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 
+nwt_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+nwt_SOURCES = nwt.cpp
 
 if LIBMESH_ENABLED
 # this test needs some extra input files, so make SOURCE_DIR available:

@@ -11,6 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
+// Config files
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -50,10 +51,16 @@
 
 // Application
 #include "GravityForcing.h"
-#include "LSLocateColumnInterface.h"
+#include "LSLocateGasInterface.h"
 #include "SetFluidProperties.h"
 #include "SetLSProperties.h"
 #include "TagLSRefinementCells.h"
+
+#include "GravityForcing.cpp"
+#include "LSLocateGasInterface.cpp"
+#include "SetFluidProperties.cpp"
+#include "SetLSProperties.cpp"
+#include "TagLSRefinementCells.cpp"
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
@@ -174,9 +181,7 @@ main(int argc, char* argv[])
                                         load_balancer);
 
         // Setup level set information
-        ColumnInterface column;
-        column.DEPTH = input_db->getDouble("DEPTH");
-
+        const double fluid_height = input_db->getDouble("DEPTH");
         const string& ls_name = "level_set";
         Pointer<CellVariable<NDIM, double> > phi_var = new CellVariable<NDIM, double>(ls_name);
         adv_diff_integrator->registerTransportedQuantity(phi_var);
@@ -185,13 +190,15 @@ main(int argc, char* argv[])
 
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
-        LSLocateColumnInterface* ptr_LSLocateColumnInterface =
-            new LSLocateColumnInterface("LSLocateColumnInterface", adv_diff_integrator, phi_var, column);
-        level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateColumnInterfaceCallbackFunction,
-                                                                static_cast<void*>(ptr_LSLocateColumnInterface));
+
+        LSLocateGasInterface* ptr_LSLocateGasInterface =
+            new LSLocateGasInterface("LSLocateGasInterface", adv_diff_integrator, phi_var, fluid_height);
+        level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateGasInterfaceCallbackFunction,
+                                                                static_cast<void*>(ptr_LSLocateGasInterface));
+
         SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
-            phi_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
+            phi_var, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
 
         // Setup the INS maintained material properties.
         Pointer<Variable<NDIM> > rho_var;
@@ -320,6 +327,7 @@ main(int argc, char* argv[])
         wave_damper.d_x_zone_end = x_zone_end;
         wave_damper.d_depth = depth;
         wave_damper.d_alpha = alpha;
+        wave_damper.d_sign_gas_phase = -1;
         wave_damper.d_ins_hier_integrator = time_integrator;
         wave_damper.d_adv_diff_hier_integrator = adv_diff_integrator;
         wave_damper.d_phi_var = phi_var;
@@ -368,6 +376,7 @@ main(int argc, char* argv[])
             wave_generator->d_wave_gen_data.d_x_zone_start = inlet_zone_start;
             wave_generator->d_wave_gen_data.d_x_zone_end = inlet_zone_end;
             wave_generator->d_wave_gen_data.d_alpha = alpha;
+            wave_generator->d_wave_gen_data.d_sign_gas_phase = -1;
             wave_generator->d_wave_gen_data.d_ins_hier_integrator = time_integrator;
             wave_generator->d_wave_gen_data.d_adv_diff_hier_integrator = adv_diff_integrator;
             wave_generator->d_wave_gen_data.d_phi_var = phi_var;
@@ -461,7 +470,7 @@ main(int argc, char* argv[])
         probe_streams.resize(num_probes);
         for (int i = 0; i < num_probes; ++i)
         {
-            std::string probe_name = "probe_" + Utilities::intToString(i);
+            std::string probe_name = "output";
             probe_points[i].resize(NDIM);
             probe_db->getDoubleArray(probe_name, &probe_points[i][0], NDIM);
 
@@ -499,7 +508,7 @@ main(int argc, char* argv[])
                 IrregularWaveGenerator* irregular_wave_generator =
                     dynamic_cast<IrregularWaveGenerator*>(wave_generator);
 
-                wave_stream.open("irregular_wave_data_at_gen_zone.txt", fstream::out);
+                wave_stream.open("gen_output", fstream::out);
                 wave_stream.precision(10);
                 irregular_wave_generator->printWaveData(wave_stream);
                 wave_stream.close();
@@ -630,7 +639,6 @@ main(int argc, char* argv[])
         // Cleanup other dumb pointers
         delete ptr_SetLSProperties;
         delete ptr_SetFluidProperties;
-        delete ptr_LSLocateColumnInterface;
         delete wave_generator;
         for (int i = 0; i < num_probes; ++i) delete probe_streams[i];
 
