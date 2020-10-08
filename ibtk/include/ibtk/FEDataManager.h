@@ -271,7 +271,8 @@ class SubdomainToPatchLevelTranslation
 public:
     /*!
      * Constructor. Takes as argument the maximum level number in the Cartesian
-     * grid patch hierarchy and an input database enumerating the
+     * grid patch hierarchy, a set of all subdomain ids (including those not on
+     * the current processor), and an input database enumerating the
      * level-to-subdomain mapping, e.g.,
      * @code
      * {
@@ -283,6 +284,7 @@ public:
      * Duplicated assignments are not permitted.
      */
     SubdomainToPatchLevelTranslation(const int max_level_number,
+                                     const std::set<libMesh::subdomain_id_type>& subdomain_ids,
                                      const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
 
     /*!
