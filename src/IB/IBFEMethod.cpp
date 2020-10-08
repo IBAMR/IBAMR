@@ -658,12 +658,21 @@ IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int n
 
 void
 IBFEMethod::interpolateVelocity(const int u_data_idx,
-                                const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
+                                const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                 const double data_time)
 {
     IBAMR_TIMER_START(t_interpolate_velocity);
     const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
+
+    // Ensure coarse grid data are consistent with any overlying fine grid data.
+    for (unsigned int ln = getFinestPatchLevelNumber(); ln > getCoarsestPatchLevelNumber(); --ln)
+    {
+        if (ln < u_synch_scheds.size() && u_synch_scheds[ln])
+        {
+            u_synch_scheds[ln]->coarsenData();
+        }
+    }
 
     if (d_use_scratch_hierarchy)
     {
