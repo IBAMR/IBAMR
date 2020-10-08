@@ -259,6 +259,28 @@ main(int argc, char** argv)
         }
 
         {
+            plog << "Test " << test_n << ": TRI6 square" << std::endl;
+            const key_type key(TRI6, QGAUSS, FIFTH);
+            Tri6Mapping jac_calc_1(key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<2> jac_calc_2(key, FEUpdateFlags::update_JxW);
+            const key_type boundary_key(EDGE2, QGAUSS, FIFTH);
+            FELagrangeMapping<1, 2> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
+            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, key);
+            ++test_n;
+        }
+
+        {
+            plog << "Test " << test_n << ": TRI6 square" << std::endl;
+            const key_type key(TRI6, QGAUSS, FIFTH);
+            Tri6Mapping jac_calc_1(key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<2> jac_calc_2(key, FEUpdateFlags::update_JxW);
+            const key_type boundary_key(EDGE2, QGAUSS, FIFTH);
+            FELagrangeMapping<1, 2> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
+            test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, key);
+            ++test_n;
+        }
+
+        {
             plog << "Test " << test_n << ": Quad4 square" << std::endl;
             const key_type key(QUAD4, QGAUSS, THIRD);
             Quad4Mapping jac_calc_1(key, FEUpdateFlags::update_JxW);
