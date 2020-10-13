@@ -668,7 +668,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     // Ensure coarse grid data are consistent with any overlying fine grid data.
     for (int ln = getFinestPatchLevelNumber(); ln > getCoarsestPatchLevelNumber(); --ln)
     {
-        if (ln < u_synch_scheds.size() && u_synch_scheds[ln])
+        if (ln < static_cast<int>(u_synch_scheds.size()) && u_synch_scheds[ln])
         {
             u_synch_scheds[ln]->coarsenData();
         }
