@@ -306,7 +306,7 @@ class IBFEDirectForcingKinematics;
  * <ol>
  *   <li>The rate at which the hierarchy is regridded, as if the hierarchy itself
  *   changes then we must recompute the association.</li>
- *   <li>The value d_patch_assocation_cfl, which determines how frequently we regrid
+ *   <li>The value d_patch_association_cfl, which determines how frequently we regrid
  *   purely based on the displacement of the structure. This parameter can be set
  *   by providing <code>patch_association_cfl</code> to the input database.
  * </ol>
@@ -996,7 +996,7 @@ protected:
     /// More exactly: this class will call that function if the maximum
     /// displacement of the structure (calculated by comparing the position
     /// vector as of the last reassociation to the current position vector)
-    /// exceeds dx * d_patch_assocation_cfl, where dx is the smallest Eulerian
+    /// exceeds dx * d_patch_association_cfl, where dx is the smallest Eulerian
     /// cell width.
     ///
     /// Note that this is not a regridding, in the sense that the grid changes:
@@ -1006,7 +1006,7 @@ protected:
     ///
     /// @note Most applications use a fluid solver regrid value of 0.5 - i.e.,
     /// the default value given here is a conservative choice.
-    double d_patch_assocation_cfl = 0.75;
+    double d_patch_association_cfl = 0.75;
 
     /// Indexing information determining whether a given part is active or not.
     /// The default state for each part is to be active. Parts are active
