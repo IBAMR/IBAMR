@@ -582,7 +582,7 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
         VecWAXPY(diff.vec(), -1.0, last.vec(), d_X_vecs->get("solution", part).vec());
         const double max_distance = diff.linfty_norm();
 
-        if (max_distance > d_patch_assocation_cfl * patch_dx)
+        if (max_distance > d_patch_association_cfl * patch_dx)
         {
             plog << d_object_name << "::preprocessIntegrateData(): "
                  << "Maximum structure node displacement is " << max_distance
@@ -3297,8 +3297,8 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
         d_scratch_load_balancer_db = db->getDatabase("LoadBalancer");
     }
 
-    d_patch_assocation_cfl = db->getDoubleWithDefault("patch_association_cfl", d_patch_assocation_cfl);
-    TBOX_ASSERT(d_patch_assocation_cfl > 0.0);
+    d_patch_association_cfl = db->getDoubleWithDefault("patch_association_cfl", d_patch_association_cfl);
+    TBOX_ASSERT(d_patch_association_cfl > 0.0);
 
     return;
 } // getFromInput
