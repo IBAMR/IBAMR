@@ -800,8 +800,12 @@ template class FELagrangeMapping<2, 2>;
 template class FELagrangeMapping<2, 3>;
 template class FELagrangeMapping<3, 3>;
 
+template class FELagrangeMapping<2, 2, 6>;
+template class FELagrangeMapping<3, 3, 10>;
+
 template class FENodalMapping<2, 2, 3>;
 template class FENodalMapping<2, 2, 4>;
+template class FENodalMapping<2, 2, 6>;
 template class FENodalMapping<2, 2, 9>;
 template class FENodalMapping<3, 3, 4>;
 
