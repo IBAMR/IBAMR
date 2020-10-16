@@ -981,7 +981,7 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
     const auto f_scratch_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
     Pointer<hier::Variable<NDIM> > f_var;
     VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(f_data_idx, f_var);
-    auto f_active_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy);
+    auto f_active_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_active_data_ops->resetLevels(ln, ln);
     f_active_data_ops->setToScalar(f_scratch_data_idx, 0.0, /*interior_only*/ false);
 

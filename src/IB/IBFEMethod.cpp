@@ -962,7 +962,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
     // zero data.
     Pointer<hier::Variable<NDIM> > f_var;
     VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(f_data_idx, f_var);
-    auto f_active_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, hierarchy);
+    auto f_active_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, hierarchy, true);
     f_active_data_ops->resetLevels(0, getFinestPatchLevelNumber());
     f_active_data_ops->setToScalar(f_scratch_data_idx,
                                    0.0,
@@ -1045,7 +1045,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
         getProlongationSchedule(coarse_ln, f_scratch_data_idx, f_prolong_scratch_data_idx).fillData(data_time);
 
         // Add the values prolonged from the coarser level onto the scratch index on the finer level.
-        auto f_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, hierarchy);
+        auto f_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, hierarchy, true);
         f_data_ops->resetLevels(coarse_ln + 1, coarse_ln + 1);
         f_data_ops->add(f_scratch_data_idx, f_scratch_data_idx, f_prolong_scratch_data_idx);
     }
@@ -1056,7 +1056,8 @@ IBFEMethod::spreadForce(const int f_data_idx,
         // no corresponding index on the primary hierarchy.
         //
         // unlike the other data ops, this is always on the primary hierarchy
-        auto f_primary_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy);
+        auto f_primary_data_ops =
+            HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
         for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
         {
             f_primary_data_ops->resetLevels(ln, ln);

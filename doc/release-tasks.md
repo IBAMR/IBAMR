@@ -41,6 +41,10 @@ GitHub.
 - [ ] Check that we don't call functions like
   `ReplicatedMesh::active_local_elements_end()` inside `for`-loop declarations
   since the end iterator is expensive to compute.
+- [ ] Check that we always get unique `HierarchyDataOps` by passing `true` as
+  the third argument to `getOperationsDouble` et al. This prevents memory leaks
+  where a statically stored `HierarchyDataOps` object keeps a patch hierarchy
+  alive that is otherwise inaccessible.
 - [ ] Run clang-format on the entire code base.
 
 ## testing
