@@ -357,7 +357,7 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
 
     HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
     Pointer<HierarchyDataOpsReal<NDIM, double> > hier_cc_data_ops =
-        hier_data_ops_manager->getOperationsDouble(d_W_cc_var, hierarchy);
+        hier_data_ops_manager->getOperationsDouble(d_W_cc_var, hierarchy, true);
     // Convert evolved quantity including ghost cells to conformation tensor.
     switch (d_evolve_type)
     {
