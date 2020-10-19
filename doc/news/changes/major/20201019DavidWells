@@ -1,0 +1,4 @@
+New: IBAMR can now be configured, compiled, and installed with CMake instead of
+with autotools.
+<br>
+(David Wells, 2020/10/19)
