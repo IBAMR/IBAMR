@@ -47,8 +47,6 @@ else
   LDFLAGS_PREPEND($HDF5_LDFLAGS)
   AC_CHECK_LIB([hdf5], H5open, [],
                [AC_MSG_ERROR([could not find working libhdf5])])
-  AC_CHECK_LIB([hdf5_hl], H5LTfind_dataset, [],
-               [AC_MSG_ERROR([could not find working libhdf5_hl])])
   # set up rpath
   ADD_RPATH_LDFLAG(${HDF5_DIR}/lib)
 fi

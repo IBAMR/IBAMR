@@ -306,7 +306,7 @@ class IBFEDirectForcingKinematics;
  * <ol>
  *   <li>The rate at which the hierarchy is regridded, as if the hierarchy itself
  *   changes then we must recompute the association.</li>
- *   <li>The value d_patch_assocation_cfl, which determines how frequently we regrid
+ *   <li>The value d_patch_association_cfl, which determines how frequently we regrid
  *   purely based on the displacement of the structure. This parameter can be set
  *   by providing <code>patch_association_cfl</code> to the input database.
  * </ol>
@@ -331,12 +331,13 @@ class IBFEDirectForcingKinematics;
  *
  * <h2>Using IBFEMethod with your own libMesh System objects</h2>
  *
- * It is often useful to add your own libMesh data to the same EquationSystems
+ * It is often useful to add your own libMesh data to the EquationSystems
  * object used by IBAMR objects. One such example would be defining fields of
- * fibers to give direction to add anisotropy to solid models. The primary
- * advantage of adding your own Systems to the EquationSystems objects stored
- * by IBFEMethod is that your Systems will be automatically saved to restart
- * files and then set up again by IBFEMethod when resuming from such a file.
+ * fibers to give direction to add anisotropy to solid models. Since a libMesh
+ * Mesh object also stores all the degrees of freedom of all the systems, there
+ * can only be one EquationSystems object for each Mesh object. If you set up
+ * your own systems in this way then they will be automatically saved and loaded
+ * from restart data.
  *
  * Since initialization of this class occurs in multiple stages and IBFEMethod
  * assumes that it is ultimately responsible for setting up the EquationSystems
@@ -854,6 +855,17 @@ protected:
                               unsigned int part);
 
     /*!
+     * Get the coarsest patch level number on which elements (including all
+     * parts) are assigned.
+     */
+    int getCoarsestPatchLevelNumber() const;
+
+    /*!
+     * Get the finest patch level number on which elements (including all parts) are assigned.
+     */
+    int getFinestPatchLevelNumber() const;
+
+    /*!
      * Get the transfer schedule from the primary hierarchy to the scratch
      * hierarchy associated with the given level and index. If necessary the
      * schedule is created and stored in a map.
@@ -880,6 +892,14 @@ protected:
                                 int primary_data_idx,
                                 int scratch_data_idx,
                                 SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
+
+    /*!
+     * Get the schedule used to prolong force values. Data is read from @p
+     * coarse_data_idx on level @p level_number and written into fine_data_idx
+     * on level level_number + 1.
+     */
+    SAMRAI::xfer::RefineSchedule<NDIM>&
+    getProlongationSchedule(int level_number, int coarse_data_idx, int fine_data_idx);
 
     /*!
      * Whether or not the initial (i.e., before the regrid prior to
@@ -976,7 +996,7 @@ protected:
     /// More exactly: this class will call that function if the maximum
     /// displacement of the structure (calculated by comparing the position
     /// vector as of the last reassociation to the current position vector)
-    /// exceeds dx * d_patch_assocation_cfl, where dx is the smallest Eulerian
+    /// exceeds dx * d_patch_association_cfl, where dx is the smallest Eulerian
     /// cell width.
     ///
     /// Note that this is not a regridding, in the sense that the grid changes:
@@ -986,7 +1006,7 @@ protected:
     ///
     /// @note Most applications use a fluid solver regrid value of 0.5 - i.e.,
     /// the default value given here is a conservative choice.
-    double d_patch_assocation_cfl = 0.75;
+    double d_patch_association_cfl = 0.75;
 
     /// Indexing information determining whether a given part is active or not.
     /// The default state for each part is to be active. Parts are active
@@ -1012,6 +1032,14 @@ protected:
 
     /// Pointer to object used to accumulate forces during spreading.
     std::unique_ptr<IBTK::SAMRAIGhostDataAccumulator> d_ghost_data_accumulator;
+
+    /*!
+     * Schedules for prolonging data during spreading. The keys are the level
+     * number, the patch data index for the coarse level data, and the patch
+     * data index which will be filled with fine level data.
+     */
+    std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
+        d_prolongation_schedules;
 
     /// Minimum ghost cell width.
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;

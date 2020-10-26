@@ -261,30 +261,35 @@ protected:
 };
 
 /*!
- * Class that can translate libMesh subdomain IDs into levels.
+ * Class that can translate libMesh subdomain IDs into patch level numbers.
  *
- * The overwhelming majority of subdomain IDs used with IBAMR come from
- * block IDs set by ExodusII - these are numbered sequentially from zero.
- * However, in principle, a subdomain ID could be any signed 64-bit integer
- * so we cannot use a small fixed length array.
- *
- * Since we look up element levels a lot optimize for the common case by
- * using a fixed-length array and a map for everything else.
+ * The primary use of this class is multilevel IBFE - i.e., enabling a finite
+ * element mesh to interact with multiple patch levels.
  */
-class SubdomainToLevelTranslation
+class SubdomainToPatchLevelTranslation
 {
 public:
-    SubdomainToLevelTranslation(const int max_level_number,
-                                const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
-
     /*!
-     * Size of the fixed-size array.
+     * Constructor. Takes as argument the maximum level number in the Cartesian
+     * grid patch hierarchy, a set of all subdomain ids (including those not on
+     * the current processor), and an input database enumerating the
+     * level-to-subdomain mapping, e.g.,
+     * @code
+     * {
+     *   level_1 = 1, 2
+     *   level_2 = 3
+     * }
+     * @endcode
+     * Any unspecified subdomain ids will be assigned to the finest patch level.
+     * Duplicated assignments are not permitted.
      */
-    static constexpr int fixed_array_size = 256;
+    SubdomainToPatchLevelTranslation(const int max_level_number,
+                                     const std::set<libMesh::subdomain_id_type>& subdomain_ids,
+                                     const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
 
     /*!
-     * Return a constant reference. Returns d_max_level_number if no level
-     * is set
+     * Given a libMesh subdomain id, return the patch level of the Cartesian
+     * grid hierarchy on which that subdomain id interacts.
      */
     const int& operator[](const libMesh::subdomain_id_type id) const
     {
@@ -294,20 +299,56 @@ public:
         return it->second;
     }
 
+    /*!
+     * Return whether or not there are any elements on a given patch level.
+     */
+    bool levelHasElements(const int level_number) const
+    {
+        const auto array_it = std::find(d_fixed.begin(), d_fixed.end(), level_number);
+        if (array_it != d_fixed.end())
+        {
+            return true;
+        }
+        else
+        {
+            return d_map.count(level_number) != 0;
+        }
+    }
+
 private:
     /*!
-     * Return a writeable reference.
+     * like operator[], but returns a mutable reference. Used to set up the object.
      */
     int& get(const libMesh::subdomain_id_type id)
     {
-        if (id < fixed_array_size) return d_fixed[id];
+        if (id < d_fixed.size()) return d_fixed[id];
         return d_map[id];
     }
 
+    /*!
+     * Maximum level number.
+     */
     int d_max_level_number = IBTK::invalid_level_number;
 
+    /*!
+     * Size of the fixed-size array.
+     */
+    static constexpr int fixed_array_size = 256;
+
+    /*!
+     * The overwhelming majority of subdomain IDs used with IBAMR come from
+     * block IDs set by ExodusII - these are numbered sequentially from zero.
+     * However, in principle, a subdomain ID could be any signed 64-bit integer
+     * so we cannot use a small fixed length array.
+     *
+     * Since we look up element levels a lot optimize for the common case by
+     * using a fixed-length array and a map for everything else.
+     */
     std::array<int, fixed_array_size> d_fixed;
 
+    /*!
+     * The map used for everything else.
+     */
     std::map<libMesh::subdomain_id_type, int> d_map;
 };
 
@@ -320,10 +361,10 @@ private:
  *
  * <h2>Parameters read from the input database</h2>
  *
- * <code>node_outside_patch_check</code>: parameter controling how this class responds
- * to mesh nodes outside the finest patch level. In all cases, for backwards
- * compatibility, nodes that are outside the computational domain are permitted
- * and are ignored by this check. Possible values are:
+ * <code>node_outside_patch_check</code>: parameter controlling how this class
+ * responds to mesh nodes outside the finest patch level. In all cases, for
+ * backwards compatibility, nodes that are outside the computational domain are
+ * permitted and are ignored by this check. Possible values are:
  * <ol>
  *   <li><code>node_outside_permit</code>: Permit nodes to be outside the finest
  *   patch level.</li>
@@ -350,6 +391,9 @@ private:
  * patch level. All inputs in this database for levels finer than the finest
  * level are ignored (e.g., if the maximum patch level number is 4, then the
  * values given in the example for level 5 ultimately end up on level 4).
+ * <em>This feature is experimental</em>: at the current time it is known that
+ * it produces some artifacts at the coarse-fine interface, but that these
+ * generally don't effect the overall solution quality.
  *
  * <h2>Parameters effecting workload estimate calculations</h2>
  * FEDataManager can estimate the amount of work done in IBFE calculations
@@ -519,10 +563,6 @@ public:
      * corresponding to the specified name.  Access to FEDataManager objects is
      * mediated by the getManager() function.
      *
-     * The difference between this and the other getManager() functions is that
-     * this overload permits adding an input database as an argument for setting
-     * non-default parameters. The old overloads are kept for compatibility.
-     *
      * @note When a manager is accessed for the first time, the
      * FEDataManager::freeAllManagers() static method is registered with the
      * SAMRAI::tbox::ShutdownRegistry class. Consequently, all allocated
@@ -598,6 +638,11 @@ public:
 
     /*!
      * \brief Reset patch hierarchy over which operations occur.
+     *
+     * The patch hierarchy must be fully set up (i.e., contain all the levels it
+     * is expected to have) at the point this function is called. If you need to
+     * tag cells for refinement to create the initial hierarchy then use
+     * applyGradientDetector, which does not use the stored patch hierarchy.
      */
     void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
@@ -607,27 +652,14 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getPatchHierarchy() const;
 
     /*!
-     * \brief Reset range of patch levels over which operations occur.
-     *
-     * The levels must exist in the hierarchy or an assertion failure will
-     * result.
+     * Get the coarsest patch level number on which elements are assigned.
      */
-    void setPatchLevels(int coarsest_ln, int finest_ln);
+    int getCoarsestPatchLevelNumber() const;
 
     /*!
-     * \brief Get the range of patch levels used by this object.
-     *
-     * \note Returns [coarsest_ln,finest_ln+1).
+     * Get the finest patch level number on which elements are assigned.
      */
-    std::pair<int, int> getPatchLevels() const;
-
-    //\}
-
-    /*!
-     * \return The level number to which the equations system object managed by
-     * the FEDataManager is assigned.
-     */
-    int getLevelNumber() const;
+    int getFinestPatchLevelNumber() const;
 
     /*!
      * \return The ghost cell width used for quantities that are to be
@@ -953,7 +985,7 @@ public:
                              unsigned int max_its = 100);
 
     /*!
-     * Update the quarature rule for the current element.  If the provided
+     * Update the quadrature rule for the current element.  If the provided
      * qrule is already configured appropriately, it is not modified.
      *
      * \return true if the quadrature rule is updated or otherwise requires
@@ -1133,10 +1165,29 @@ private:
      * are allowed to move no more than one cell width between regridding
      * operations).
      *
+     * The parameters refer to the levels of different objects:
+     * <ol>
+     *   <li>@p level_number - the level number in the patch hierarchy on which
+     *     we are identifying intersections.</li>
+     *   <li>@p coarsest_elem_ln - The minimum level number of elements we should
+     *     consider (see the main documentation of this class for an explanation
+     *     on how elements are assigned to particular levels)</li>
+     *   <li>@p finest_elem_ln - The maximum level number of elements we should
+     *     consider.</li>
+     * </ol>
+     *
+     * All three parameters are necessary because we use this function both to
+     * tag cells for refinement (i.e., we want to refine cells containing
+     * elements on levels higher than the present level) and to do IB
+     * calculations (where all three numbers will be the same).
+     *
      * In this method, the determination as to whether an element is local or
      * not is based on the position of the bounding box of the element.
      */
-    void collectActivePatchElements(std::vector<std::vector<libMesh::Elem*> >& active_patch_elems, int level_number);
+    void collectActivePatchElements(std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
+                                    int level_number,
+                                    int coarsest_elem_ln,
+                                    int finest_elem_ln);
 
     /*!
      * Collect all of the nodes of the active elements that are located within a
@@ -1148,7 +1199,7 @@ private:
     /*!
      * Store the association between subdomain ids and patch levels.
      */
-    SubdomainToLevelTranslation d_level_lookup;
+    SubdomainToPatchLevelTranslation d_level_lookup;
 
     /*!
      * Get the patch level on which an element lives.
@@ -1212,7 +1263,6 @@ private:
      * Grid hierarchy information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     /*!
      * Maximum possible level number in the patch hierarchy.

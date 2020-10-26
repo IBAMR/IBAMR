@@ -25,6 +25,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/FifthOrderStokesWaveGenerator.h>
+#include <ibamr/FirstOrderStokesWaveGenerator.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
@@ -348,6 +349,10 @@ main(int argc, char* argv[])
         Pointer<Database> wave_db =
             app_initializer->getComponentDatabase("VelocityBcCoefs_0")->getDatabase("wave_parameters_db");
         StokesWaveGeneratorStrategy* wave_generator = nullptr;
+        if (wave_generator_type == "FIRST_ORDER_STOKES")
+        {
+            wave_generator = new FirstOrderStokesWaveGenerator("FIRST_ORDER_STOKES", wave_db);
+        }
         if (wave_generator_type == "FIFTH_ORDER_STOKES")
         {
             wave_generator = new FifthOrderStokesWaveGenerator("FIFTH_ORDER_STOKES", wave_db);

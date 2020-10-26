@@ -176,6 +176,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
 ../src/utilities/ConvectiveOperator.cpp \
 ../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
+../src/wave_generation/FirstOrderStokesWaveGenerator.cpp \
 ../src/wave_generation/IrregularWaveBcCoef.cpp \
 ../src/wave_generation/IrregularWaveGenerator.cpp \
 ../src/wave_generation/StokesFifthOrderWaveBcCoef.cpp \
@@ -231,6 +232,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/DirectMobilitySolver.h \
 ../include/ibamr/FastSweepingLSMethod.h \
 ../include/ibamr/FifthOrderStokesWaveGenerator.h \
+../include/ibamr/FirstOrderStokesWaveGenerator.h \
 ../include/ibamr/IBAnchorPointSpec.h \
 ../include/ibamr/IBBeamForceSpec.h \
 ../include/ibamr/IBExplicitHierarchyIntegrator.h \

@@ -22,6 +22,7 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/BoxPartitioner.h"
+#include "ibtk/CartSideDoubleRT0Refine.h"
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/FEProjector.h"
@@ -519,7 +520,9 @@ IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDI
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         const int gcw = d_primary_fe_data_managers[part]->getGhostCellWidth().max();
-        const int tag_ln = d_primary_fe_data_managers[part]->getLevelNumber() - 1;
+        // We need to refine cells up to, but not including, those on
+        // FEDataManager's finest patch level used for interaction
+        const int tag_ln = d_primary_fe_data_managers[part]->getFinestPatchLevelNumber() - 1;
         if (tag_ln >= 0 && tag_ln < finest_hier_ln)
         {
             tag_buffer[tag_ln] = std::max(tag_buffer[tag_ln], gcw);
@@ -569,10 +572,10 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
 
     // Determine if we need to execute reinitElementMappings().
     bool do_reinit_element_mappings = false;
-    assertStructureOnFinestLevel();
-    const double patch_dx = get_min_patch_dx(d_hierarchy, d_hierarchy->getFinestLevelNumber());
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
+        const double patch_dx =
+            get_min_patch_dx(d_hierarchy, d_active_fe_data_managers[part]->getFinestPatchLevelNumber());
         // To avoid allocating an extra vector we abuse "new" for a moment since
         // it gets overwritten below anyway
         PetscVector<double>& diff = d_X_vecs->get("new", part);
@@ -580,7 +583,7 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
         VecWAXPY(diff.vec(), -1.0, last.vec(), d_X_vecs->get("solution", part).vec());
         const double max_distance = diff.linfty_norm();
 
-        if (max_distance > d_patch_assocation_cfl * patch_dx)
+        if (max_distance > d_patch_association_cfl * patch_dx)
         {
             plog << d_object_name << "::preprocessIntegrateData(): "
                  << "Maximum structure node displacement is " << max_distance
@@ -656,19 +659,29 @@ IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int n
 
 void
 IBFEMethod::interpolateVelocity(const int u_data_idx,
-                                const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
+                                const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                 const double data_time)
 {
     IBAMR_TIMER_START(t_interpolate_velocity);
     const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
 
+    // Ensure coarse grid data are consistent with any overlying fine grid data.
+    for (int ln = getFinestPatchLevelNumber(); ln > getCoarsestPatchLevelNumber(); --ln)
+    {
+        if (ln < static_cast<int>(u_synch_scheds.size()) && u_synch_scheds[ln])
+        {
+            u_synch_scheds[ln]->coarsenData();
+        }
+    }
+
     if (d_use_scratch_hierarchy)
     {
-        assertStructureOnFinestLevel();
-        getPrimaryToScratchSchedule(
-            d_hierarchy->getFinestLevelNumber(), u_data_idx, u_data_idx, d_ib_solver->getVelocityPhysBdryOp())
-            .fillData(data_time);
+        for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
+        {
+            getPrimaryToScratchSchedule(ln, u_data_idx, u_data_idx, d_ib_solver->getVelocityPhysBdryOp())
+                .fillData(data_time);
+        }
     }
     else
     {
@@ -946,12 +959,16 @@ IBFEMethod::spreadForce(const int f_data_idx,
     Pointer<PatchHierarchy<NDIM> > hierarchy = d_use_scratch_hierarchy ? d_scratch_hierarchy : d_hierarchy;
     const int ln = hierarchy->getFinestLevelNumber();
     const auto f_scratch_data_idx = d_active_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
+    const auto f_prolong_scratch_data_idx = d_active_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
     // zero data.
     Pointer<hier::Variable<NDIM> > f_var;
     VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(f_data_idx, f_var);
-    auto f_active_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, hierarchy);
-    f_active_data_ops->resetLevels(ln, ln);
+    auto f_active_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, hierarchy, true);
+    f_active_data_ops->resetLevels(0, getFinestPatchLevelNumber());
     f_active_data_ops->setToScalar(f_scratch_data_idx,
+                                   0.0,
+                                   /*interior_only*/ false);
+    f_active_data_ops->setToScalar(f_prolong_scratch_data_idx,
                                    0.0,
                                    /*interior_only*/ false);
 
@@ -974,10 +991,12 @@ IBFEMethod::spreadForce(const int f_data_idx,
         {
             if (d_use_jump_conditions && d_split_normal_force)
             {
+                assertStructureOnFinestLevel();
                 imposeJumpConditions(f_scratch_data_idx, *F_ghost_vec, *X_ghost_vec, data_time, part);
             }
             if (!d_use_jump_conditions || d_split_tangential_force)
             {
+                assertStructureOnFinestLevel();
                 spreadTransmissionForceDensity(f_scratch_data_idx, *X_ghost_vec, data_time, part);
             }
         }
@@ -989,16 +1008,20 @@ IBFEMethod::spreadForce(const int f_data_idx,
     // handle this before we do that.
     if (f_phys_bdry_op)
     {
-        f_phys_bdry_op->setPatchDataIndex(f_scratch_data_idx);
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (int ln = getCoarsestPatchLevelNumber(); ln <= getFinestPatchLevelNumber(); ++ln)
         {
-            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_scratch_data_idx);
-            f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
+            f_phys_bdry_op->setPatchDataIndex(f_scratch_data_idx);
+            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_scratch_data_idx);
+                f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
+            }
         }
     }
 
+    // Accumulate forces spread into patch ghost regions.
     {
         if (!d_ghost_data_accumulator)
         {
@@ -1010,10 +1033,22 @@ IBFEMethod::spreadForce(const int f_data_idx,
             const IntVector<NDIM> gcw =
                 level->getPatchDescriptor()->getPatchDataFactory(f_scratch_data_idx)->getGhostCellWidth();
 
+            // TODO - SAMRAIGhostDataAccumulator has not been tested with multiple levels
             d_ghost_data_accumulator.reset(new SAMRAIGhostDataAccumulator(
-                hierarchy, f_var, gcw, d_hierarchy->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
+                hierarchy, f_var, gcw, getCoarsestPatchLevelNumber(), getFinestPatchLevelNumber()));
         }
         d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx);
+    }
+
+    // Prolong forces spread onto coarser levels onto finer levels.
+    for (int coarse_ln = 0; coarse_ln < getFinestPatchLevelNumber(); ++coarse_ln)
+    {
+        getProlongationSchedule(coarse_ln, f_scratch_data_idx, f_prolong_scratch_data_idx).fillData(data_time);
+
+        // Add the values prolonged from the coarser level onto the scratch index on the finer level.
+        auto f_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, hierarchy, true);
+        f_data_ops->resetLevels(coarse_ln + 1, coarse_ln + 1);
+        f_data_ops->add(f_scratch_data_idx, f_scratch_data_idx, f_prolong_scratch_data_idx);
     }
 
     if (d_use_scratch_hierarchy)
@@ -1022,23 +1057,26 @@ IBFEMethod::spreadForce(const int f_data_idx,
         // no corresponding index on the primary hierarchy.
         //
         // unlike the other data ops, this is always on the primary hierarchy
-        auto f_primary_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy);
-        f_primary_data_ops->resetLevels(ln, ln);
-        const auto f_primary_scratch_data_idx = d_primary_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
-        // we have to zero everything here since the scratch to primary
-        // communication does not touch ghost cells, which may have junk
-        f_primary_data_ops->setToScalar(f_primary_scratch_data_idx,
-                                        0.0,
-                                        /*interior_only*/ false);
-
-        assertStructureOnFinestLevel();
-        getScratchToPrimarySchedule(ln, f_primary_scratch_data_idx, f_scratch_data_idx).fillData(data_time);
-        f_primary_data_ops->add(f_data_idx, f_data_idx, f_primary_scratch_data_idx);
+        auto f_primary_data_ops =
+            HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+        for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
+        {
+            f_primary_data_ops->resetLevels(ln, ln);
+            const auto f_primary_scratch_data_idx = d_primary_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
+            // we have to zero everything here since the scratch to primary
+            // communication does not touch ghost cells, which may have junk
+            f_primary_data_ops->setToScalar(f_primary_scratch_data_idx,
+                                            0.0,
+                                            /*interior_only*/ false);
+            getScratchToPrimarySchedule(ln, f_primary_scratch_data_idx, f_scratch_data_idx).fillData(data_time);
+            f_primary_data_ops->add(f_data_idx, f_data_idx, f_primary_scratch_data_idx);
+        }
     }
     else
     {
         // easier case: f_scratch_data_idx is on the primary hierarchy so we
         // just need to add its values to those in f_data_idx
+        f_active_data_ops->resetLevels(0, getFinestPatchLevelNumber());
         f_active_data_ops->add(f_data_idx, f_data_idx, f_scratch_data_idx);
     }
     IBAMR_TIMER_STOP(t_spread_force);
@@ -1282,6 +1320,15 @@ IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     // Initialize the FE data managers.
     reinitElementMappings();
 
+    // The patch hierarchies are finally available so set them up:
+    d_primary_eulerian_data_cache->setPatchHierarchy(hierarchy);
+    d_primary_eulerian_data_cache->resetLevels(0, getFinestPatchLevelNumber());
+    if (d_use_scratch_hierarchy)
+    {
+        d_scratch_eulerian_data_cache->setPatchHierarchy(d_scratch_hierarchy);
+        d_scratch_eulerian_data_cache->resetLevels(0, getFinestPatchLevelNumber());
+    }
+
     d_is_initialized = true;
     return;
 } // initializePatchHierarchy
@@ -1343,7 +1390,7 @@ IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const 
         const int current_rank = IBTK_MPI::getRank();
 
         std::vector<double> workload_per_processor(n_processes);
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy);
+        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, 0, hierarchy->getFinestLevelNumber());
         workload_per_processor[current_rank] = hier_cc_data_ops.L1Norm(workload_data_idx, IBTK::invalid_index, true);
 
         const auto right_padding = std::size_t(std::log10(n_processes)) + 1;
@@ -1407,6 +1454,7 @@ void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierar
     IBAMR_TIMER_START(t_begin_data_redistribution);
     // clear some things that contain data specific to the current patch hierarchy
     d_ghost_data_accumulator.reset();
+    d_prolongation_schedules.clear();
     IBAMR_TIMER_STOP(t_begin_data_redistribution);
     return;
 } // beginDataRedistribution
@@ -1442,9 +1490,6 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             for (unsigned int part = 0; part < d_meshes.size(); ++part)
             {
                 d_scratch_fe_data_managers[part]->setPatchHierarchy(d_scratch_hierarchy);
-                assertStructureOnFinestLevel();
-                d_scratch_fe_data_managers[part]->setPatchLevels(d_scratch_hierarchy->getFinestLevelNumber(),
-                                                                 d_scratch_hierarchy->getFinestLevelNumber());
                 d_scratch_fe_data_managers[part]->reinitElementMappings();
             }
 
@@ -1472,12 +1517,24 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             // TODO: d_current_time is actually nan here. Since we don't do
             // any sort of tagging based on the current time I think we can
             // just put in a bogus (nonnegative) value.
-            int finest_level = d_scratch_hierarchy->getFinestLevelNumber();
-            if (finest_level == 0)
+            //
+            // Handle the case where everything is on the coarsest level:
+            if (getFinestPatchLevelNumber() == 0)
+            {
                 d_scratch_gridding_algorithm->makeCoarsestLevel(d_scratch_hierarchy, 0.0 /*d_current_time*/);
+            }
             else
-                d_scratch_gridding_algorithm->regridAllFinerLevels(
-                    d_scratch_hierarchy, finest_level - 1, 0.0 /*d_current_time*/, tag_buffer);
+            // Handle every other case:
+            {
+                if (getCoarsestPatchLevelNumber() == 0)
+                {
+                    d_scratch_gridding_algorithm->makeCoarsestLevel(d_scratch_hierarchy, 0.0 /*d_current_time*/);
+                }
+                d_scratch_gridding_algorithm->regridAllFinerLevels(d_scratch_hierarchy,
+                                                                   std::max(getCoarsestPatchLevelNumber() - 1, 0),
+                                                                   0.0 /*d_current_time*/,
+                                                                   tag_buffer);
+            }
             if (d_do_log) plog << "IBFEMethod: finished scratch hierarchy regrid" << std::endl;
 
             // FEDataManager needs
@@ -1561,8 +1618,6 @@ IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hiera
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         d_primary_fe_data_managers[part]->setPatchHierarchy(hierarchy);
-        d_primary_fe_data_managers[part]->setPatchLevels(hierarchy->getFinestLevelNumber(),
-                                                         hierarchy->getFinestLevelNumber());
     }
     return;
 } // resetHierarchyConfiguration
@@ -1773,8 +1828,9 @@ IBFEMethod::doInitializeFEEquationSystems()
         // object we only have to do this assignment once
         d_active_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
     }
+
     return;
-}
+} // doInitializeFEEquationSystems
 
 void
 IBFEMethod::doInitializeFEData(const bool use_present_data)
@@ -2142,7 +2198,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     if (!integrate_normal_force && !integrate_tangential_force) return;
 
     assertStructureOnFinestLevel();
-    const int level_num = d_primary_fe_data_managers[part]->getLevelNumber();
+    const int level_num = d_primary_fe_data_managers[part]->getFinestPatchLevelNumber();
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
 
     // Extract the mesh.
@@ -2511,7 +2567,8 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     // densities.
     const std::vector<std::vector<Elem*> >& active_patch_element_map =
         d_primary_fe_data_managers[part]->getActivePatchElementMap();
-    const int level_num = d_primary_fe_data_managers[part]->getLevelNumber();
+    assertStructureOnFinestLevel();
+    const int level_num = d_primary_fe_data_managers[part]->getFinestPatchLevelNumber();
     TensorValue<double> PP, FF, FF_inv_trans;
     VectorValue<double> G, F, F_s, n;
     std::vector<libMesh::Point> X_node_cache, x_node_cache;
@@ -2797,6 +2854,30 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     return;
 } // imposeJumpConditions
 
+int
+IBFEMethod::getCoarsestPatchLevelNumber() const
+{
+    int level_number = std::numeric_limits<int>::max();
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        level_number = std::min(d_primary_fe_data_managers[part]->getCoarsestPatchLevelNumber(), level_number);
+    }
+    TBOX_ASSERT(level_number != std::numeric_limits<int>::max());
+    return level_number;
+} // getCoarsestPatchLevelNumber
+
+int
+IBFEMethod::getFinestPatchLevelNumber() const
+{
+    int level_number = std::numeric_limits<int>::min();
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        level_number = std::max(d_primary_fe_data_managers[part]->getFinestPatchLevelNumber(), level_number);
+    }
+    TBOX_ASSERT(level_number != std::numeric_limits<int>::min());
+    return level_number;
+} // getFinestPatchLevelNumber
+
 SAMRAI::xfer::RefineSchedule<NDIM>&
 IBFEMethod::getPrimaryToScratchSchedule(const int level_number,
                                         const int primary_data_idx,
@@ -2839,6 +2920,51 @@ IBFEMethod::getScratchToPrimarySchedule(const int level_number,
     }
     return *d_scratch_transfer_backward_schedules[key];
 } // getScratchToPrimarySchedule
+
+SAMRAI::xfer::RefineSchedule<NDIM>&
+IBFEMethod::getProlongationSchedule(const int level_number, const int coarse_data_idx, const int fine_data_idx)
+{
+    const auto key = std::make_pair(level_number, std::make_pair(coarse_data_idx, fine_data_idx));
+    if (d_prolongation_schedules.count(key) == 0)
+    {
+        Pointer<PatchHierarchy<NDIM> > hierarchy = d_use_scratch_hierarchy ? d_scratch_hierarchy : d_hierarchy;
+        Pointer<RefineAlgorithm<NDIM> > refine_algorithm = new RefineAlgorithm<NDIM>();
+        Pointer<RefineOperator<NDIM> > refine_op;
+
+        Pointer<hier::Variable<NDIM> > f_var;
+        VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(coarse_data_idx, f_var);
+        {
+            Pointer<hier::Variable<NDIM> > f_var_2;
+            VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(fine_data_idx, f_var_2);
+            // These should be the same variable
+            TBOX_ASSERT(&*f_var == &*f_var_2);
+        }
+
+        Pointer<CellVariable<NDIM, double> > f_cc_var = f_var;
+        Pointer<SideVariable<NDIM, double> > f_sc_var = f_var;
+        const bool cc_data = f_cc_var;
+        const bool sc_data = f_sc_var;
+        TBOX_ASSERT(cc_data || sc_data);
+        if (cc_data)
+        {
+            Pointer<CartesianGridGeometry<NDIM> > geometry = hierarchy->getGridGeometry();
+            refine_op = geometry->lookupRefineOperator(f_var, "CONSERVATIVE_LINEAR_REFINE");
+        }
+        else
+            refine_op = new CartSideDoubleRT0Refine();
+        TBOX_ASSERT(refine_op);
+        refine_algorithm->registerRefine(fine_data_idx, coarse_data_idx, fine_data_idx, refine_op);
+        Pointer<PatchLevel<NDIM> > fine_level = hierarchy->getPatchLevel(level_number + 1);
+        // We can ignore the fifth argument since we don't need to deal with
+        // forces outside the physical domain (this was handled previously by
+        // f_phys_bdry_op). In particular we don't need it since we don't care
+        // about ghost force values (they aren't used in the solver).
+        Pointer<RefineSchedule<NDIM> > schedule =
+            refine_algorithm->createSchedule(fine_level, nullptr, level_number, hierarchy);
+        d_prolongation_schedules[key] = schedule;
+    }
+    return *d_prolongation_schedules[key];
+} // getProlongationSchedule
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -3173,8 +3299,8 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
         d_scratch_load_balancer_db = db->getDatabase("LoadBalancer");
     }
 
-    d_patch_assocation_cfl = db->getDoubleWithDefault("patch_association_cfl", d_patch_assocation_cfl);
-    TBOX_ASSERT(d_patch_assocation_cfl > 0.0);
+    d_patch_association_cfl = db->getDoubleWithDefault("patch_association_cfl", d_patch_association_cfl);
+    TBOX_ASSERT(d_patch_association_cfl > 0.0);
 
     return;
 } // getFromInput
@@ -3213,18 +3339,8 @@ IBFEMethod::getFromRestart()
 void
 IBFEMethod::assertStructureOnFinestLevel() const
 {
-    for (unsigned part = 0; part < d_meshes.size(); ++part)
-    {
-        const auto pair = d_primary_fe_data_managers[part]->getPatchLevels();
-        TBOX_ASSERT(pair.first == d_hierarchy->getFinestLevelNumber() &&
-                    pair.second == d_hierarchy->getFinestLevelNumber() + 1);
-        if (d_use_scratch_hierarchy)
-        {
-            const auto scratch_pair = d_scratch_fe_data_managers[part]->getPatchLevels();
-            TBOX_ASSERT(scratch_pair.first == d_hierarchy->getFinestLevelNumber() &&
-                        scratch_pair.second == d_hierarchy->getFinestLevelNumber() + 1);
-        }
-    }
+    TBOX_ASSERT(getFinestPatchLevelNumber() == d_hierarchy->getFinestLevelNumber() &&
+                getCoarsestPatchLevelNumber() == d_hierarchy->getFinestLevelNumber());
 }
 
 void
@@ -3238,10 +3354,6 @@ IBFEMethod::reinitElementMappings()
         if (d_use_scratch_hierarchy)
         {
             d_scratch_fe_data_managers[part]->setPatchHierarchy(d_scratch_hierarchy);
-            // TODO: we will have to change this when we support structures
-            // than can live on more than just the finest level
-            d_scratch_fe_data_managers[part]->setPatchLevels(d_scratch_hierarchy->getFinestLevelNumber(),
-                                                             d_scratch_hierarchy->getFinestLevelNumber());
             d_scratch_fe_data_managers[part]->reinitElementMappings();
         }
     }

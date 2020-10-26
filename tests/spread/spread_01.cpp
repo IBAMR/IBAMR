@@ -376,17 +376,11 @@ main(int argc, char** argv)
             half_f_vector.close();
         }
 
-        std::ostringstream out;
+        // the partitioning isn't relevant when we only have one processor
         if (IBTK_MPI::getNodes() != 1)
         {
-            // partitioning is only relevant when there are multiple processors
-            Pointer<PatchLevel<NDIM> > patch_level =
-                patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
-            const BoxArray<NDIM> boxes = patch_level->getBoxes();
-            plog << "hierarchy boxes:\n";
-            for (int i = 0; i < boxes.size(); ++i) plog << boxes[i] << '\n';
-            // rank is only relevant when there are multiple processors
-            out << "\nrank: " << IBTK_MPI::getRank() << '\n';
+            print_partitioning_on_plog_0(
+                patch_hierarchy, patch_hierarchy->getFinestLevelNumber(), patch_hierarchy->getFinestLevelNumber());
         }
 
         // Test the accumulation code when we have meshes that are against the
@@ -421,9 +415,16 @@ main(int argc, char** argv)
             }
         }
         const double cutoff = input_db->getDoubleWithDefault("output_cutoff_value", 0.0);
+        std::ostringstream out;
         {
             const int ln = patch_hierarchy->getFinestLevelNumber();
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+
+            // We don't need to print this if we are running in serial
+            if (IBTK_MPI::getNodes() != 1)
+            {
+                out << "\nrank: " << IBTK_MPI::getRank() << '\n';
+            }
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 bool printed_value = false;
@@ -456,7 +457,6 @@ main(int argc, char** argv)
                     }
                 }
                 if (printed_value) out << patch_out.str();
-                // f_data->print(patch_box, plog, 16);
             }
         }
         IBTK_MPI::barrier();

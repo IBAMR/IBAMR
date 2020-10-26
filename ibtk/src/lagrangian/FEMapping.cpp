@@ -130,7 +130,7 @@ FEMapping<2, 2>::build(const key_type key, const FEUpdateFlags update_flags)
     case libMesh::ElemType::TRI3:
         return std::unique_ptr<FEMapping<2, 2> >(new Tri3Mapping(key, update_flags));
     case libMesh::ElemType::TRI6:
-        return std::unique_ptr<FEMapping<2, 2> >(new FELagrangeMapping<2, 2, 6>(key, update_flags));
+        return std::unique_ptr<FEMapping<2, 2> >(new Tri6Mapping(key, update_flags));
     case libMesh::ElemType::QUAD4:
         return std::unique_ptr<FEMapping<2, 2> >(new Quad4Mapping(key, update_flags));
     case libMesh::ElemType::QUAD9:
@@ -362,7 +362,9 @@ void
 Tri3Mapping::fillTransforms(const libMesh::Elem* elem)
 {
     TBOX_ASSERT(this->d_update_flags & FEUpdateFlags::update_contravariants);
-    TBOX_ASSERT(elem->type() == std::get<0>(this->d_quadrature_data.d_key));
+    // also permit TRI6
+    const auto type = elem->type();
+    TBOX_ASSERT(type == libMesh::TRI3 || type == libMesh::TRI6);
 
     const libMesh::Point p0 = elem->point(0);
     const libMesh::Point p1 = elem->point(1);
@@ -388,6 +390,54 @@ bool
 Tri3Mapping::isAffine() const
 {
     return true;
+}
+
+//
+// Tri6Mapping
+//
+
+Tri6Mapping::Tri6Mapping(const key_type quad_key, const FEUpdateFlags update_flags)
+    : FELagrangeMapping<2, 2, 6>(quad_key, update_flags),
+      tri3_mapping(std::make_tuple(libMesh::TRI3, std::get<1>(quad_key), std::get<2>(quad_key)), update_flags)
+{
+}
+
+void
+Tri6Mapping::reinit(const libMesh::Elem* elem)
+{
+    if (elem_is_affine(elem))
+    {
+        tri3_mapping.reinit(elem);
+        // If we ever add more fields to the mapping classes we will need to
+        // duplicate them here
+        std::swap(d_contravariants, tri3_mapping.d_contravariants);
+        std::swap(d_covariants, tri3_mapping.d_covariants);
+        std::swap(d_Jacobians, tri3_mapping.d_Jacobians);
+        std::swap(d_JxW, tri3_mapping.d_JxW);
+        std::swap(d_quadrature_points, tri3_mapping.d_quadrature_points);
+    }
+    else
+        FELagrangeMapping<2, 2, 6>::reinit(elem);
+}
+
+bool
+Tri6Mapping::elem_is_affine(const libMesh::Elem* elem)
+{
+    std::array<libMesh::Point, 6> nodes;
+    for (unsigned int n = 0; n < nodes.size(); ++n) nodes[n] = elem->node_ref(n);
+
+    // try to determine the size of the coordinates to use as the tolerance.
+    double characteristic_point_size = 0.0;
+    for (int d = 0; d < LIBMESH_DIM; ++d)
+    {
+        characteristic_point_size += std::abs(nodes[0](d));
+        characteristic_point_size += std::abs(nodes[4](d));
+    }
+    const double tol = 1e-16 * characteristic_point_size;
+
+    return nodes[3].absolute_fuzzy_equals(0.5 * (nodes[0] + nodes[1]), tol) &&
+           nodes[4].absolute_fuzzy_equals(0.5 * (nodes[1] + nodes[2]), tol) &&
+           nodes[5].absolute_fuzzy_equals(0.5 * (nodes[0] + nodes[2]), tol);
 }
 
 //
@@ -750,8 +800,12 @@ template class FELagrangeMapping<2, 2>;
 template class FELagrangeMapping<2, 3>;
 template class FELagrangeMapping<3, 3>;
 
+template class FELagrangeMapping<2, 2, 6>;
+template class FELagrangeMapping<3, 3, 10>;
+
 template class FENodalMapping<2, 2, 3>;
 template class FENodalMapping<2, 2, 4>;
+template class FENodalMapping<2, 2, 6>;
 template class FENodalMapping<2, 2, 9>;
 template class FENodalMapping<3, 3, 4>;
 

@@ -275,7 +275,9 @@ IBFESurfaceMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgori
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         const int gcw = d_fe_data_managers[part]->getGhostCellWidth().max();
-        const int tag_ln = d_fe_data_managers[part]->getLevelNumber() - 1;
+        // We need to refine cells up to, but not including, those on
+        // FEDataManager's finest patch level used for interaction
+        const int tag_ln = d_fe_data_managers[part]->getFinestPatchLevelNumber() - 1;
         if (tag_ln >= 0 && tag_ln < finest_hier_ln)
         {
             tag_buffer[tag_ln] = std::max(tag_buffer[tag_ln], gcw);
@@ -422,7 +424,8 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         std::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
 
         std::vector<libMesh::dof_id_type> dof_id_scratch;
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getLevelNumber());
+        Pointer<PatchLevel<NDIM> > level =
+            d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
         int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
@@ -978,7 +981,7 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
     const auto f_scratch_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
     Pointer<hier::Variable<NDIM> > f_var;
     VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(f_data_idx, f_var);
-    auto f_active_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy);
+    auto f_active_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_active_data_ops->resetLevels(ln, ln);
     f_active_data_ops->setToScalar(f_scratch_data_idx, 0.0, /*interior_only*/ false);
 
@@ -1256,6 +1259,11 @@ IBFESurfaceMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hiera
         d_fe_data_managers[part]->reinitElementMappings();
     }
 
+    // Set up the Eulerian data caches to work on levels that actually have
+    // elements.
+    d_eulerian_data_cache->setPatchHierarchy(hierarchy);
+    d_eulerian_data_cache->resetLevels(0, getFinestPatchLevelNumber());
+
     d_is_initialized = true;
     return;
 } // initializePatchHierarchy
@@ -1317,11 +1325,9 @@ IBFESurfaceMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierar
                                        Pointer<BasePatchLevel<NDIM> > /*old_level*/,
                                        bool /*allocate_data*/)
 {
-    const int finest_hier_level = hierarchy->getFinestLevelNumber();
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_fe_data_managers[part]->setPatchHierarchy(hierarchy);
-        d_fe_data_managers[part]->setPatchLevels(0, finest_hier_level);
     }
     return;
 } // initializeLevelData
@@ -1335,7 +1341,6 @@ IBFESurfaceMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_fe_data_managers[part]->setPatchHierarchy(hierarchy);
-        d_fe_data_managers[part]->setPatchLevels(0, hierarchy->getFinestLevelNumber());
     }
     return;
 } // resetHierarchyConfiguration
@@ -1447,7 +1452,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
     // Loop over the patches to impose jump conditions on the Eulerian grid.
     const std::vector<std::vector<Elem*> >& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
-    const int level_num = d_fe_data_managers[part]->getLevelNumber();
+    const int level_num = d_fe_data_managers[part]->getFinestPatchLevelNumber();
     boost::multi_array<double, 1> DP_node;
     boost::multi_array<double, 2> x_node;
     std::array<VectorValue<double>, 2> dx_dxi;
@@ -1679,6 +1684,30 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
     }
     return;
 } // imposeJumpConditions
+
+int
+IBFESurfaceMethod::getCoarsestPatchLevelNumber() const
+{
+    int level_number = std::numeric_limits<int>::max();
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        level_number = std::min(d_fe_data_managers[part]->getCoarsestPatchLevelNumber(), level_number);
+    }
+    TBOX_ASSERT(level_number != std::numeric_limits<int>::max());
+    return level_number;
+} // getCoarsestPatchLevelNumber
+
+int
+IBFESurfaceMethod::getFinestPatchLevelNumber() const
+{
+    int level_number = std::numeric_limits<int>::min();
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        level_number = std::max(d_fe_data_managers[part]->getFinestPatchLevelNumber(), level_number);
+    }
+    TBOX_ASSERT(level_number != std::numeric_limits<int>::min());
+    return level_number;
+} // getFinestPatchLevelNumber
 
 bool
 IBFESurfaceMethod::checkDoubleCountingIntersection(const int axis,

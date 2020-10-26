@@ -78,11 +78,24 @@ setup_system_vectors(libMesh::EquationSystems* equation_systems,
     for (const std::string& system_name : system_names)
     {
         TBOX_ASSERT(equation_systems->has_system(system_name));
-        auto& system = equation_systems->get_system<libMesh::ExplicitSystem>(system_name);
+        libMesh::System& system = equation_systems->get_system(system_name);
         for (const std::string& vector_name : vector_names)
         {
             setup_system_vector(system, vector_name, from_restart);
-            if (vector_name == "RHS Vector") system.rhs = &system.get_vector("RHS Vector");
+            if (vector_name == "RHS Vector")
+            {
+                auto* explicit_system = dynamic_cast<libMesh::ExplicitSystem*>(&system);
+                if (!explicit_system)
+                {
+                    TBOX_ERROR(
+                        "You are attempting to add a RHS vector to a libMesh system that does not have one (i.e., it "
+                        "does not inherit from ExplicitSystem).");
+                }
+                else
+                {
+                    explicit_system->rhs = &system.get_vector("RHS Vector");
+                }
+            }
         }
     }
 }

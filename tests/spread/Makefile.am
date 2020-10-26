@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2019 - 2019 by the IBAMR developers
+## Copyright (c) 2019 - 2020 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -15,7 +15,7 @@ include $(top_srcdir)/config/Make-rules
 
 EXTRA_PROGRAMS =
 if LIBMESH_ENABLED
-EXTRA_PROGRAMS += spread_01_2d spread_01_3d
+EXTRA_PROGRAMS += spread_01_2d spread_01_3d spread_02_2d spread_02_3d
 endif
 
 if LIBMESH_ENABLED
@@ -29,6 +29,19 @@ spread_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 spread_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 spread_01_3d_SOURCES = spread_01.cpp
 endif
+
+if LIBMESH_ENABLED
+spread_02_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+spread_02_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+spread_02_2d_SOURCES = spread_02.cpp
+endif
+
+if LIBMESH_ENABLED
+spread_02_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+spread_02_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+spread_02_3d_SOURCES = spread_02.cpp
+endif
+
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \

@@ -15,12 +15,15 @@ OMEGA       =  2*PI/TIME_PERIOD
 WAVELENGTH  =  2.8264
 WAVENUMBER  =  2.223
 WAVE_TYPE   = "FIRST_ORDER_STOKES"
+WAVE_GENERATOR_TYPE = WAVE_TYPE
 
-// Damping parameters
-WAVE_DAMPING_METHOD = "RELAXATION"
-X_ZONE_START = L - 1.0 * WAVELENGTH
-X_ZONE_END = L
-ALPHA = 2.0
+// Wave relaxation parameters
+WAVE_DAMPING_METHOD   = "RELAXATION"
+X_ZONE_START          = L - 2.0 * WAVELENGTH
+X_ZONE_END            = L
+INLET_ZONE_START      = 0.0
+INLET_ZONE_END        = WAVELENGTH
+ALPHA                 = 3.5
 
 // material properties
 MU_I       = 1.137e-3

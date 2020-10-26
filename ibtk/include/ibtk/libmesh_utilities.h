@@ -1573,7 +1573,7 @@ std::vector<libMeshWrappers::BoundingBox> get_local_element_bounding_boxes(const
                                                                            const double point_density,
                                                                            const double patch_dx_min);
 
-/*
+/**
  * Compute bounding boxes for each local (i.e., owned by the current
  * processor) element in @p mesh with coordinates given by @p X_system.
  *
@@ -1597,7 +1597,7 @@ std::vector<libMeshWrappers::BoundingBox>
 get_global_element_bounding_boxes(const libMesh::MeshBase& mesh,
                                   const std::vector<libMeshWrappers::BoundingBox>& local_bboxes);
 
-/*
+/**
  * Compute bounding boxes for all elements in @p mesh with coordinates given
  * by @p X_system.
  *
