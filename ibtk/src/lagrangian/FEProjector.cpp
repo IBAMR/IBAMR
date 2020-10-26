@@ -366,7 +366,7 @@ FEProjector::buildLumpedL2ProjectionSolver(const std::string& system_name)
 }
 
 std::pair<PetscLinearSolver<double>*, PetscMatrix<double>*>
-FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, const double epsilon)
+FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, const double epsilon, const std::map<unsigned int, double>* epsilon_map_ptr)
 {
     IBTK_TIMER_START(t_build_stab_L2_projection_solver);
 
@@ -375,10 +375,25 @@ FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, c
     {
         if (d_enable_logging)
         {
+          if(epsilon_map_ptr)
+          {
             plog << "FEProjector::buildStabilizedL2ProjectionSolver(): building stabilized L2 projection solver for "
                     "system: "
-                 << system_name << " with epsilon: " << epsilon << "\n";
+                 << system_name << " with (blockID/epsilon): ";
+                 for(auto it = epsilon_map_ptr->begin(); it != epsilon_map_ptr->end(); ++it)
+                 {
+                      plog << "(" << it->first << ", " << it->second << ") ";
+                 }
+                 plog << "\n";
+           }
+           else
+           {
+             plog << "FEProjector::buildStabilizedL2ProjectionSolver(): building stabilized L2 projection solver for "
+                     "system: "
+                  << system_name << " with epsilon: " << epsilon << "\n";
+           }
         }
+        double tau = epsilon;
 
         // Extract the mesh.
         const MeshBase& mesh = d_fe_data->getEquationSystems()->get_mesh();
@@ -418,6 +433,10 @@ FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, c
         {
             const Elem* const elem = *el_it;
             fe->reinit(elem);
+
+            unsigned int blockID = elem->subdomain_id();
+            if(epsilon_map_ptr) tau = epsilon_map_ptr->at(blockID);
+
             const auto& dof_indices = dof_map_cache.dof_indices(elem);
             for (unsigned int var_n = 0; var_n < dof_map.n_variables(); ++var_n)
             {
@@ -443,7 +462,7 @@ FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, c
                         for (unsigned int qp = 0; qp < n_qp; ++qp)
                         {
                             M_e(i, j) += ((phi[i][qp] * phi[j][qp]) +
-                                          epsilon * (phi[i][qp] - Pi_phi_e(i)) * (phi[j][qp] - Pi_phi_e(j))) *
+                                          tau * (phi[i][qp] - Pi_phi_e(i)) * (phi[j][qp] - Pi_phi_e(j))) *
                                          JxW[qp];
                         }
                     }
@@ -522,6 +541,7 @@ FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, c
     return std::make_pair(d_stab_L2_proj_solver[system_name][epsilon].get(),
                           d_stab_L2_proj_matrix[system_name][epsilon].get());
 }
+
 
 PetscVector<double>*
 FEProjector::buildDiagonalL2MassMatrix(const std::string& system_name)

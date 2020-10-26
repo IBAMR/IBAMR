@@ -96,7 +96,7 @@ public:
      * Ref: https://epubs.siam.org/doi/abs/10.1137/S0036142905444482
      */
     std::pair<libMesh::PetscLinearSolver<double>*, libMesh::PetscMatrix<double>*>
-    buildStabilizedL2ProjectionSolver(const std::string& system_name, double epsilon);
+    buildStabilizedL2ProjectionSolver(const std::string& system_name, double epsilon, const std::map<unsigned int, double>* epsilon_map_ptr = nullptr);
 
     /*!
      * \return Pointer to vector representation of diagonal L2 mass matrix.

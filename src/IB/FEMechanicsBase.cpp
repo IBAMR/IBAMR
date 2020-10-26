@@ -481,6 +481,12 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
     const PressureProjectionType& proj_type = d_static_pressure_proj_type[part];
     const VolumetricEnergyDerivativeFcn& dU_dJ_fcn = d_static_pressure_dU_dJ_fcn[part];
 
+    int map_size = 0;
+    if ( part < d_static_pressure_kappa_vector_map.size() )
+    {
+        map_size = d_static_pressure_kappa_vector_map[part].size();
+    }
+
     // Extract the mesh.
     EquationSystems& equation_systems = *d_equation_systems[part];
     const MeshBase& mesh = equation_systems.get_mesh();
@@ -534,6 +540,10 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
         fe.reinit(elem);
         fe.collectDataForInterpolation(elem);
         fe.interpolate(elem);
+
+        unsigned int blockID = elem->subdomain_id();
+        if(map_size > 0) d_static_pressure_kappa = d_static_pressure_kappa_vector_map[part][blockID];
+
         const unsigned int n_qp = qrule->n_points();
         const size_t n_basis = phi.size();
         for (unsigned int qp = 0; qp < n_qp; ++qp)
@@ -567,6 +577,10 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
             P_vec, *P_rhs_vec, PRESSURE_SYSTEM_NAME, /*use_consistent_mass_matrix*/ false);
         break;
     case STABILIZED_PROJECTION:
+        if(map_size > 0)
+        d_fe_projectors[part]->computeStabilizedL2Projection(
+            P_vec, *P_rhs_vec, PRESSURE_SYSTEM_NAME, d_static_pressure_stab_param, &d_static_pressure_stab_param_vector_map[part]);
+        else
         d_fe_projectors[part]->computeStabilizedL2Projection(
             P_vec, *P_rhs_vec, PRESSURE_SYSTEM_NAME, d_static_pressure_stab_param);
         break;
@@ -1490,6 +1504,51 @@ FEMechanicsBase::getFromRestart()
     }
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
     d_libmesh_partitioner_type = string_to_enum<LibmeshPartitionerType>(db->getString("d_libmesh_partitioner_type"));
+}
+
+
+void
+FEMechanicsBase::add_static_pressure_kappa_vector_map_entry(double kappa, unsigned int blockID, int part)
+{
+    int vec_size = d_static_pressure_kappa_vector_map.size();
+    // if we have not created the map for this part
+    // then create it
+    if(vec_size == part )
+    {
+      d_static_pressure_kappa_vector_map.push_back( std::map<unsigned int, double>() );
+    }
+    // insert new entry
+    if( vec_size >= part )
+    {
+      d_static_pressure_kappa_vector_map[part].insert(std::pair<unsigned int, double>(blockID, kappa));
+    }
+    // throw an error
+    else
+    {
+      TBOX_ERROR(d_object_name << " adding kappa entry to part " << part << ", but the vector size is only " << vec_size << std::endl);
+    }
+}
+
+void
+FEMechanicsBase::add_static_pressure_stab_param_vector_map_entry(double tau, unsigned int blockID, int part)
+{
+    int vec_size = d_static_pressure_stab_param_vector_map.size();
+    // if we have not created the map for this part
+    // then create it
+    if(vec_size == part )
+    {
+      d_static_pressure_stab_param_vector_map.push_back( std::map<unsigned int, double>() );
+    }
+    // insert new entry
+    if( vec_size >= part )
+    {
+      d_static_pressure_stab_param_vector_map[part].insert(std::pair<unsigned int, double>(blockID, tau));
+    }
+    // throw an error
+    else
+    {
+      TBOX_ERROR(d_object_name << " adding kappa entry to part " << part << ", but the vector size is only " << vec_size << std::endl);
+    }
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
