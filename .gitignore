@@ -175,3 +175,6 @@ build-*.sh
 objs-*
 *.py
 *.sh
+
+*.ptp-sync-folder
+*.ptp-sync/
