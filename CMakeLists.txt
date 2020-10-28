@@ -89,9 +89,21 @@ ENDFOREACH()
 # ---------------------------------------------------------------------------- #
 #                       1: manage mandatory dependencies                       #
 # ---------------------------------------------------------------------------- #
+
+#
+# We and our dependencies require MPI so set that up first:
+#
 MESSAGE(STATUS "")
 MESSAGE(STATUS "Setting up MPI")
 FIND_PACKAGE(MPI REQUIRED)
+# If we are using the compiler wrappers then CMake may not set MPI_C_LIBRARIES -
+# if its empty then try to add something in anyway
+IF("${MPI_C_LIBRARIES}" STREQUAL "")
+  FIND_LIBRARY(_mpi_lib NAMES mpi HINTS ${MPI_ROOT}/lib)
+  IF(NOT "${_mpi_lib}" STREQUAL "_mpi_lib-NOTFOUND")
+    SET(MPI_C_LIBRARIES ${_mpi_lib})
+  ENDIF()
+ENDIF()
 MESSAGE(STATUS "MPI_C_INCLUDE_DIRS: ${MPI_C_INCLUDE_DIRS}")
 MESSAGE(STATUS "MPI_C_LIBRARIES: ${MPI_C_LIBRARIES}")
 
@@ -299,9 +311,12 @@ PETSc installation).")
   FILE(STRINGS ${PETSC_VARIABLES_FILE} PETSC_LIBRARIES REGEX "^PETSC_WITH_EXTERNAL_LIB =.*")
   STRING(REGEX REPLACE "^PETSC_WITH_EXTERNAL_LIB =(.*)" "\\1" PETSC_LIBRARIES ${PETSC_LIBRARIES})
   SEPARATE_ARGUMENTS(PETSC_LIBRARIES)
+  FIND_LIBRARY(PETSC_LIBRARY REQUIRED NAMES "petsc" HINTS ${PETSC_ROOT}/lib)
+  LIST(PREPEND PETSC_LIBRARIES ${PETSC_LIBRARY})
+  MESSAGE(STATUS "PETSC LIBRARIES: ${PETSC_LIBRARIES}")
 
   # extract the version numbers:
-  FIND_FILE(PETSC_VERSION_FILE petscversion.h HINTS ${PETSC_ROOT} PATH_SUFFIXES include)
+  FIND_FILE(PETSC_VERSION_FILE petscversion.h HINTS ${PETSC_INCLUDE_DIRS})
   FILE(STRINGS "${PETSC_VERSION_FILE}" PETSC_VERSION_MAJOR_STRING
     REGEX "#define.*PETSC_VERSION_MAJOR")
   STRING(REGEX REPLACE "^.*PETSC_VERSION_MAJOR.* ([0-9]+).*" "\\1"
@@ -476,7 +491,171 @@ IF(GSL_FOUND)
 ENDIF()
 
 # ---------------------------------------------------------------------------- #
-#                       3: IBAMR-specific configuration                        #
+#                 3: Check for conflicts between dependencies                  #
+# ---------------------------------------------------------------------------- #
+
+#
+# Helper function that checks that we can compile and link _src with the given
+# dependency libraries and dependency includes against the copy of MPI we found
+# - i.e., this function verifies that a dependency uses the same MPI as the one
+# we just found. As an extra check we use PETSc's MPI consistency checks in
+# petscsys.h to verify that we do have the same MPI version at the preprocessor
+# step.
+#
+FUNCTION(IBAMR_CHECK_COMPILATION_WITH_MPI _dependency_name _src _dependency_libraries
+    _dependency_includes)
+  MESSAGE(STATUS "Verifying that ${_dependency_name} is configured with the same version of MPI as IBAMR is:")
+  SET(CMAKE_REQUIRED_INCLUDES)
+  LIST(APPEND CMAKE_REQUIRED_INCLUDES "${_dependency_includes}")
+  LIST(APPEND CMAKE_REQUIRED_INCLUDES "${PETSC_INCLUDE_DIRS}")
+  LIST(APPEND CMAKE_REQUIRED_LIBRARIES "${MPI_C_INCLUDE_DIRS}")
+  SET(CMAKE_REQUIRED_LIBRARIES)
+  LIST(APPEND CMAKE_REQUIRED_LIBRARIES "${_dependency_libraries}")
+  LIST(APPEND CMAKE_REQUIRED_LIBRARIES "${PETSC_LIBRARIES}")
+  LIST(APPEND CMAKE_REQUIRED_LIBRARIES "${MPI_C_LIBRARIES}")
+  LIST(APPEND CMAKE_REQUIRED_LIBRARIES "${MPI_CXX_LIBRARIES}")
+
+  SET(_test_name "${_dependency_name}_SAME_MPI_COMPILE_TEST")
+  CHECK_CXX_SOURCE_COMPILES("${_src}" ${_test_name})
+  IF(NOT "${${_test_name}}")
+    MESSAGE(FATAL_ERROR "\
+Unable to compile a test program dependent on ${_dependency} that links against
+MPI. This usually means that the dependency is misconfigured or is using a
+different version of MPI than the one supplied to IBAMR.")
+  ENDIF()
+  SET(CMAKE_REQUIRED_INCLUDES)
+  SET(CMAKE_REQUIRED_LIBRARIES)
+
+  MESSAGE(STATUS "Checking that we do not link against a different MPI library - ")
+  FIND_PROGRAM(_ldd "ldd")
+  FIND_PROGRAM(_readlink "readlink")
+  IF(NOT ${_ldd} STREQUAL "ldd-NOTFOUND" AND NOT ${_readlink} STREQUAL "readlink-NOTFOUND")
+    FOREACH(_lib ${_dependency_libraries})
+      IF(EXISTS ${_lib})
+        EXECUTE_PROCESS(COMMAND "${_ldd}" "${_lib}"
+          OUTPUT_VARIABLE _libs ERROR_QUIET)
+        SEPARATE_ARGUMENTS(_libs)
+        FOREACH(_dep ${_libs})
+          STRING(REGEX MATCH "libmpi\." _has_mpi ${_dep})
+          IF("${_has_mpi}" STREQUAL "libmpi\." AND EXISTS "${_dep}")
+            # We found an MPI library: first resolve symbolic links and then
+            # check for equality
+            SET(_found FALSE)
+            EXECUTE_PROCESS(COMMAND "${_readlink}" "-f" "${_dep}"
+              OUTPUT_VARIABLE _resolved_dep)
+            FOREACH(_mpi_lib "${MPI_C_LIBRARIES}")
+              EXECUTE_PROCESS(COMMAND "${_readlink}" "-f" "${_mpi_lib}"
+                OUTPUT_VARIABLE _resolved_mpi_lib)
+              IF("${_resolved_mpi_lib}" STREQUAL "${_resolved_dep}")
+                SET(_found TRUE)
+                BREAK()
+              ENDIF()
+            ENDFOREACH()
+            IF(NOT ${_found})
+              MESSAGE(FATAL_ERROR "\
+The library
+    ${_lib}
+a part of ${_dependency_name}, links against
+    ${_dep}
+which conflicts with the MPI implementation explicitly provided to IBAMR, which includes
+    ${MPI_C_LIBRARIES}
+Please recompile ${_dependency} to link against the same version of MPI.")
+            ENDIF()
+          ENDIF()
+        ENDFOREACH()
+      ENDIF()
+    ENDFOREACH()
+  ENDIF()
+  MESSAGE(STATUS "Checking that we do not link against a different MPI library - Success")
+ENDFUNCTION()
+
+#
+# PETSc:
+IBAMR_CHECK_COMPILATION_WITH_MPI(PETSC
+  "\
+#include <mpi.h>
+#include <petscvec.h>
+
+int main(int argc, char **argv)
+{
+    PetscInitialize(&argc, &argv, NULL, NULL);
+
+    Vec vec;
+    double values[2] = {42.0, 42.0};
+    VecCreateGhostWithArray(MPI_COMM_WORLD, 2, PETSC_DECIDE, 0, NULL,
+                            values, &vec);
+    VecDestroy(&vec);
+
+    PetscFinalize();
+}"
+  "${PETSC_LIBRARIES}"
+  "${PETSC_INCLUDE_DIRS}")
+
+#
+# HDF5:
+#
+IBAMR_CHECK_COMPILATION_WITH_MPI(HDF5
+  "\
+#include <hdf5.h>
+#include <mpi.h>
+#include <petscsys.h> // this is the preprocessor check
+
+int main(int argc, char **argv)
+{
+    MPI_Init(&argc, &argv);
+    hid_t  file_id = H5Fcreate(\"file.h5\", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    (void)file_id;
+    herr_t status  = H5Fclose(file_id);
+    (void)status;
+    MPI_Finalize();
+}"
+  "${HDF5_LIBRARIES}"
+  "${HDF5_INCLUDE_DIRS}")
+
+#
+# HYPRE:
+#
+IBAMR_CHECK_COMPILATION_WITH_MPI(HYPRE
+  "\
+#include <HYPRE_struct_ls.h>
+#include <mpi.h>
+#include <petscsys.h>
+
+int main(int argc, char **argv)
+{
+    MPI_Init(&argc, &argv);
+    HYPRE_StructGrid grid;
+    HYPRE_StructGridCreate(MPI_COMM_WORLD, 2, &grid);
+    HYPRE_StructGridAssemble(grid);
+    HYPRE_StructGridDestroy(grid);
+    MPI_Finalize();
+}"
+  "${HYPRE_LIBRARIES}"
+  "${HYPRE_INCLUDE_DIRS}")
+
+# SAMRAI is statically linked and doesn't export its linkage information in a
+# way that's easy to parse so we cannot execute the MPI check
+
+#
+# libMesh:
+#
+IBAMR_CHECK_COMPILATION_WITH_MPI(LIBMESH
+      "\
+#include <mpi.h>
+#include <petscsys.h>
+// This test is a little different: since libMesh may use C++11 or C++14 but we
+// have not yet configured that flag yet, we instead use libMesh's petsc dependency
+// to check that we have the same MPI version.
+int main(int argc, char **argv)
+{
+    PetscInitialize(&argc, &argv, NULL, NULL);
+    PetscFinalize();
+}"
+  "${LIBMESH_LIBRARIES}"
+  "${LIBMESH_INCLUDE_DIRS}")
+
+# ---------------------------------------------------------------------------- #
+#                       4: IBAMR-specific configuration                        #
 # ---------------------------------------------------------------------------- #
 
 # generate the configuration header. Define a few more things for IBTK.
@@ -668,7 +847,7 @@ INSTALL(TARGETS IBTKHeaders EXPORT IBAMRTargets)
 INSTALL(TARGETS IBAMRHeaders EXPORT IBAMRTargets)
 
 # ---------------------------------------------------------------------------- #
-#                               4: Define targets                              #
+#                               5: Define targets                              #
 # ---------------------------------------------------------------------------- #
 
 #
