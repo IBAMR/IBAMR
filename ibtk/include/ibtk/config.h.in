@@ -11,19 +11,50 @@
 //
 // ---------------------------------------------------------------------
 
-/////////////////////// INCLUDE GUARD ////////////////////////////////////
-
 #ifndef included_IBTK_config
 #define included_IBTK_config
 
-///////////////////////////// INCLUDES ///////////////////////////////////
+//
+// Version information
+//
 
-#include <IBTK_config.h>
+// Major version of IBTK and IBAMR.
+#define IBTK_VERSION_MAJOR @IBTK_VERSION_MAJOR@
 
-// This header is a stub defined to keep the CMake and autotools build systems
-// compatible. As such, headers are included in an odd order to keep things
-// working.
+// Minor version of IBTK and IBAMR.
+#define IBTK_VERSION_MINOR @IBTK_VERSION_MINOR@
 
+// Subminor version of IBTK and IBAMR.
+#define IBTK_VERSION_SUBMINOR @IBTK_VERSION_SUBMINOR@
+
+#define IBTK_VERSION_GTE(major, minor, subminor)                                          \
+    ((IBTK_VERSION_MAJOR * 10000 + IBTK_VERSION_MINOR * 100 + IBTK_VERSION_SUBMINOR) >= \
+     (major)*10000 + (minor)*100 + (subminor))
+
+//
+// Dependency information
+//
+
+// Whether or not _Pragma is available
+#cmakedefine IBTK_HAVE_PRAGMA_KEYWORD
+
+// Whether or not libMesh is available
+#cmakedefine IBTK_HAVE_LIBMESH
+
+// Whether or not Silo is available
+#cmakedefine IBTK_HAVE_SILO
+
+//
+// Utility macros
+//
+
+// Correctly mangle Fortran names
+#define IBTK_FC_FUNC(name, NAME) @IBTK_FC_FUNC@
+
+// Like IBTK_FC_FUNC, but for names containing underscores
+#define IBTK_FC_FUNC_(name, NAME) @IBTK_FC_FUNC_@
+
+// Macro for disabling warnings
 #ifdef IBTK_HAVE_PRAGMA_KEYWORD
 // Prevent clang-format from doing strange things to this very long macro:
 // clang-format off
@@ -57,8 +88,4 @@ _Pragma("GCC diagnostic ignored \"-Wunneeded-internal-declaration\"")
 
 #endif // #ifdef IBTK_HAVE_PRAGMA_KEYWORD
 
-#include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/compiler_hints.h>
-#include <ibtk/ibtk_utilities.h>
-
-#endif //#ifndef included_IBTK_config
+#endif // included_IBTK_config

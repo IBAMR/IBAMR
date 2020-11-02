@@ -1,0 +1,10 @@
+# attest default configuration file
+[attest]
+jobs = 1
+keep_work_directories = False
+mpiexec = @MPIEXEC_EXECUTABLE@
+numdiff = @NUMDIFF_EXECUTABLE@
+show_only = False
+test_directory = /tests/
+include_regex = .*
+exclude_regex = ^$

@@ -48,8 +48,8 @@ minmod3(
      & 2.d0*d_dx2_L($1,$2,$3,$4),
      & 2.d0*d_dx2_R($1,$2,$3,$4))')dnl'
 
-c     this is a Fortran include, not an m4 include
-      include 'cart_side_helpers.f'
+c     this is an m4 include, not a Fortran include
+include(CURRENT_SRCDIR/cart_side_helpers.f.m4)
 
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
