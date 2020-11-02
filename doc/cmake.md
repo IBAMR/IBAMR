@@ -59,6 +59,10 @@ IBAMR requires
 - PETSc, and
 - SAMRAI.
 
+Of these, Boost, Eigen3, and muParser are also bundled with IBAMR and IBAMR will
+build its own copies of those libraries if it cannot find working externally
+available versions.
+
 The CMake build system will attempt to find these with default search paths and
 also in the directory provided by `PKG_ROOT` (i.e., for Boost, the build system
 will search in `BOOST_ROOT`).
