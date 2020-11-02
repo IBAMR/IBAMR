@@ -83,6 +83,16 @@ problems with CMake, a good way to get out of trouble is to delete
 `CMakeCache.txt`, which will delete the cache. Deleting the cache is harmless -
 the subsequent initial configuration run will just take a few more seconds.
 
+### Configuring the build
+- If you want to build IBAMR with static libraries then pass the argument
+  `-DBUILD_SHARED_LIBS=OFF` to the initial call to `cmake`. IBAMR defaults to
+  building shared libraries.
+- At the current time the build system does not support compiling with CMake's
+  own debug or release modes since this is not compatible with the way things
+  were done with the autotools based build system. If you want to compile a
+  debug build or an optimized build you will have to provide the flags yourself,
+  like what was done at the top of the previous section.
+
 ## Debugging configuration issues
 - If you need to change a parameter passed to CMake and things don't work then
   try deleting the `CMakeCache.txt` file.
