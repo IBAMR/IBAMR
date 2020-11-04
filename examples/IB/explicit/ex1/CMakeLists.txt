@@ -23,7 +23,7 @@ IBAMR_ADD_EXAMPLE(
   SOURCES
     example.cpp
   LINK_TARGETS
-    EXECUTABLE2d
+    IBAMR2d
   INPUT_FILES
     input2d input2d.shell input2d.shell_circum_fibers
     curve2d_64.spring curve2d_64.vertex curve2d_128.spring curve2d_128.vertex

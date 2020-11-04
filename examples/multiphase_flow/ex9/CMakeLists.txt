@@ -26,7 +26,7 @@ IBAMR_ADD_EXAMPLE(
     SetFluidGasSolidViscosity.cpp SetLSProperties.cpp TagLSRefinementCells.cpp
     example.cpp
   LINK_TARGETS
-    EXECUTABLE2d
+    IBAMR2d
   INPUT_FILES
     input2d.flow input2d.full cylinder2d.vertex
   )

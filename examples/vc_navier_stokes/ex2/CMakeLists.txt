@@ -24,7 +24,7 @@ IBAMR_ADD_EXAMPLE(
     GravityForcing.cpp LSLocateCircularInterface.cpp SetFluidProperties.cpp
     SetLSProperties.cpp TagLSRefinementCells.cpp example.cpp
   LINK_TARGETS
-    EXECUTABLE2d
+    IBAMR2d
   INPUT_FILES
     input2d.cgs input2d.mks
   )

@@ -24,7 +24,7 @@ IBAMR_ADD_EXAMPLE(
     GravityForcing.cpp LSLocateLayerInterface.cpp SetFluidProperties.cpp
     SetLSProperties.cpp example.cpp
   LINK_TARGETS
-    EXECUTABLE2d
+    IBAMR2d
   INPUT_FILES
     input2d.filling input2d.stationary
   )

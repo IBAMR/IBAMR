@@ -23,7 +23,7 @@ IBAMR_ADD_EXAMPLE(
   SOURCES
     SetFluidProperties.cpp example.cpp
   LINK_TARGETS
-    EXECUTABLE2d
+    IBAMR2d
   INPUT_FILES
     input2d input2d.amr input2d.bubble
   EXTRA_FILES
@@ -42,7 +42,7 @@ IBAMR_ADD_EXAMPLE(
   SOURCES
     SetFluidProperties.cpp example.cpp
   LINK_TARGETS
-    EXECUTABLE3d
+    IBAMR3d
   INPUT_FILES
     input3d input3d.amr
   EXTRA_FILES

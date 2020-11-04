@@ -23,7 +23,7 @@ IBAMR_ADD_EXAMPLE(
   SOURCES
     example.cpp LSLocateCircularInterface.cpp SetFluidProperties.cpp SetLSProperties.cpp
   LINK_TARGETS
-    EXECUTABLE2d
+    IBAMR2d
   INPUT_FILES
     input2d
   )
@@ -41,7 +41,7 @@ IBAMR_ADD_EXAMPLE(
   SOURCES
     example.cpp LSLocateCircularInterface.cpp SetFluidProperties.cpp SetLSProperties.cpp
   LINK_TARGETS
-    EXECUTABLE3d
+    IBAMR3d
   INPUT_FILES
     input3d
   )

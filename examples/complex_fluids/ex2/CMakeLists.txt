@@ -23,7 +23,7 @@ IBAMR_ADD_EXAMPLE(
   SOURCES
     example.cpp InterpolationUtilities.cpp
   LINK_TARGETS
-    EXECUTABLE2d
+    IBAMR2d
   INPUT_FILES
     input2d
   EXTRA_FILES
@@ -42,5 +42,5 @@ IBAMR_ADD_EXAMPLE(
   SOURCES
     convergence_tester.cpp
   LINK_TARGETS
-    EXECUTABLE2d
+    IBAMR2d
     )

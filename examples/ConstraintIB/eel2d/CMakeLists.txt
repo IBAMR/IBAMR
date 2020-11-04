@@ -23,7 +23,7 @@ IBAMR_ADD_EXAMPLE(
   SOURCES
     IBEELKinematics.cpp example.cpp
   LINK_TARGETS
-    EXECUTABLE2d
+    IBAMR2d
   INPUT_FILES
     input2d eel2d.vertex
   EXTRA_FILES
