@@ -25,7 +25,7 @@ IF(IBAMR_HAVE_GSL)
     SOURCES
       IBEELKinematics3d.cpp example.cpp
     LINK_TARGETS
-      EXECUTABLE3d GSL::gsl
+      IBAMR3d GSL::gsl
     INPUT_FILES
       input3d eel3d.vertex)
 

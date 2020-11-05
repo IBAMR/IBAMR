@@ -23,7 +23,7 @@ IBAMR_ADD_EXAMPLE(
   SOURCES
     example.cpp
   LINK_TARGETS
-    EXECUTABLE2d
+    IBAMR2d
   INPUT_FILES
     input2d.cylinder input2d.cylinder_stabilized
     cylinder2d_128.spring cylinder2d_128.vertex
@@ -44,7 +44,7 @@ IBAMR_ADD_EXAMPLE(
   SOURCES
     example.cpp
   LINK_TARGETS
-    EXECUTABLE3d
+    IBAMR3d
   INPUT_FILES
     input3d.cylinder input3d.cylinder.test
     input3d.sphere

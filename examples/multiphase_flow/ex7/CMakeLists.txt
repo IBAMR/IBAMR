@@ -25,7 +25,7 @@ IBAMR_ADD_EXAMPLE(
     RigidBodyKinematics.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp
     SetLSProperties.cpp TagLSRefinementCells.cpp example.cpp
   LINK_TARGETS
-    EXECUTABLE2d
+    IBAMR2d
   INPUT_FILES
     input2d.cyl cylinder2d.vertex
   )

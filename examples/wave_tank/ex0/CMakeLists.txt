@@ -24,7 +24,7 @@ IBAMR_ADD_EXAMPLE(
     GravityForcing.cpp LSLocateColumnInterface.cpp SetFluidProperties.cpp
     SetLSProperties.cpp TagLSRefinementCells.cpp example.cpp
   LINK_TARGETS
-    EXECUTABLE2d
+    IBAMR2d
   INPUT_FILES
     input2d input2d_5thOrderStokes input2d_CaseA
     input2d_CaseA_IrregularWave input2d_CaseB input2d_CaseC
@@ -46,7 +46,7 @@ IBAMR_ADD_EXAMPLE(
     GravityForcing.cpp LSLocateColumnInterface.cpp SetFluidProperties.cpp
     SetLSProperties.cpp TagLSRefinementCells.cpp example.cpp
   LINK_TARGETS
-    EXECUTABLE3d
+    IBAMR3d
   INPUT_FILES
     input3d
   )

@@ -23,6 +23,6 @@ IBAMR_ADD_EXAMPLE(
   SOURCES
     RigidBodyKinematics.cpp example.cpp
   LINK_TARGETS
-    EXECUTABLE2d
+    IBAMR2d
   INPUT_FILES
     input2d cylinder2d.vertex)

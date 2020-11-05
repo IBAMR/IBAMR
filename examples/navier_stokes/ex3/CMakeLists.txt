@@ -23,7 +23,7 @@ IBAMR_ADD_EXAMPLE(
   SOURCES
     example.cpp
   LINK_TARGETS
-    EXECUTABLE2d
+    IBAMR2d
   INPUT_FILES
     input2d
   EXTRA_FILES

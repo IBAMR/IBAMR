@@ -28,7 +28,7 @@ IBAMR_ADD_EXAMPLE(
     SetLSProperties.cpp TagLSRefinementCells.cpp
     example.cpp
   LINK_TARGETS
-    EXECUTABLE3d
+    IBAMR3d
   INPUT_FILES
     input3d rectangle3d.vertex
   EXTRA_FILES

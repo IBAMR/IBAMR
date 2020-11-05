@@ -25,7 +25,7 @@ IBAMR_ADD_EXAMPLE(
   REQUIRES
     IBAMR_HAVE_LIBMESH
   LINK_TARGETS
-    EXECUTABLE2d
+    IBAMR2d
   INPUT_FILES
     input2d.caseC input2d.caseS2 input2d.caseSP
     )

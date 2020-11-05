@@ -24,7 +24,7 @@ IBAMR_ADD_EXAMPLE(
     CartGridBodyForce.cpp ForceProjector.cpp RigidBodyKinematics.cpp
     example.cpp
   LINK_TARGETS
-    EXECUTABLE3d
+    IBAMR3d
   INPUT_FILES
     input3d sphere3d.vertex
   )

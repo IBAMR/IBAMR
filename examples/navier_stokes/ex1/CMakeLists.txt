@@ -23,7 +23,7 @@ IBAMR_ADD_EXAMPLE(
   SOURCES
     example.cpp
   LINK_TARGETS
-    EXECUTABLE2d
+    IBAMR2d
   INPUT_FILES
     input2d
   )
@@ -40,7 +40,7 @@ IBAMR_ADD_EXAMPLE(
   SOURCES
     example.cpp
   LINK_TARGETS
-    EXECUTABLE3d
+    IBAMR3d
   INPUT_FILES
     input3d
   )
@@ -57,7 +57,7 @@ IBAMR_ADD_EXAMPLE(
   SOURCES
     convergence_tester.cpp
   LINK_TARGETS
-    EXECUTABLE2d
+    IBAMR2d
   )
 
 IBAMR_ADD_EXAMPLE(
@@ -72,5 +72,5 @@ IBAMR_ADD_EXAMPLE(
   SOURCES
     convergence_tester.cpp
   LINK_TARGETS
-    EXECUTABLE3d
+    IBAMR3d
   )

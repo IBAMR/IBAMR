@@ -34,7 +34,7 @@ SET(EXAMPLE_DIRECTORIES CIB ConstraintIB IB IBFE IBLevelSet IMP adv_diff
 #   REQUIRES
 #     IBAMR_HAVE_LIBMESH
 #   LINK_TARGETS
-#     EXECUTABLE2d
+#     IBAMR2d
 #   INPUT_FILES
 #     input2d cylinder2d.vertex petsc_options.dat
 #   )
