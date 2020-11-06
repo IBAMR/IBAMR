@@ -343,7 +343,7 @@ FEMechanicsBase::getLagSurfaceForceFunction(unsigned int part) const
 void
 FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_type,
                                             VolumetricEnergyDerivativeFcn dU_dJ_fcn,
-                                            unsigned int part)
+                                            unsigned int part, const std::set< subdomain_id_type > * subdomains_set_ptr )
 {
     TBOX_ASSERT(d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_meshes.size());
@@ -353,7 +353,9 @@ FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_ty
     d_static_pressure_part[part] = true;
     auto& P_system = d_equation_systems[part]->add_system<ExplicitSystem>(PRESSURE_SYSTEM_NAME);
     // This system has a single variable so we don't need to also specify diagonal coupling
-    P_system.add_variable("P", d_fe_order_pressure[part], d_fe_family_pressure[part]);
+    std::string pressure_variable_name = "P_" + std::to_string(part);
+    if(subdoamins_set_ptr) pressure_variable_name += "_" + std::to_string( *(subdoamins_set_ptr->begin()) );
+    P_system.add_variable(pressure_variable_name, d_fe_order_pressure[part], d_fe_family_pressure[part], subdomain_set_ptr);
     // Setup cached system vectors at restart.
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     IBTK::setup_system_vectors(d_equation_systems[part].get(),
@@ -499,7 +501,8 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
     const DofMap& P_dof_map = P_system.get_dof_map();
     FEDataManager::SystemDofMapCache& P_dof_map_cache = *d_fe_data[part]->getDofMapCache(PRESSURE_SYSTEM_NAME);
     FEType P_fe_type = P_dof_map.variable_type(0);
-    std::vector<int> P_vars = { 0 };
+    std::vector<int> P_vars(P_system.n_vars());
+    for(int i = 0; i < P_vars.size(); ++i) P_vars[i] = i;
     std::vector<int> no_vars = {};
     auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
     std::vector<int> X_vars(NDIM);
@@ -932,7 +935,8 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
     System* P_system = using_pressure ? &equation_systems.get_system<ExplicitSystem>(PRESSURE_SYSTEM_NAME) : nullptr;
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
-    std::vector<int> P_vars(1, 0);
+    std::vector<int> P_vars(P_system->n_vars());
+    for(int i = 0; i < P_vars.size(); ++i) P_vars[i] = i;
     std::vector<int> no_vars;
 
     FEDataInterpolation fe(dim, d_fe_data[part]);

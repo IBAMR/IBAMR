@@ -357,7 +357,7 @@ public:
      */
     virtual void registerStaticPressurePart(PressureProjectionType projection_type = CONSISTENT_PROJECTION,
                                             VolumetricEnergyDerivativeFcn dU_dJ_fcn = nullptr,
-                                            unsigned int part = 0);
+                                            unsigned int part = 0,   const std::set< subdomain_id_type > * subdomains_set_ptr = nullptr);
 
     /*!
      * Indicate that a part should include a dynamic pressure.
