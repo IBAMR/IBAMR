@@ -199,6 +199,13 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
                                                      const bool skip_synchronize_new_state_data,
                                                      const int num_cycles)
 {
+    // postprocess the objects this class manages...
+    d_ib_method_ops->postprocessIntegrateData(current_time, new_time, num_cycles);
+
+    d_ins_hier_integrator->postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, d_ins_hier_integrator->getNumberOfCycles());
+
+    // ... and postprocess ourself.
     HierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 

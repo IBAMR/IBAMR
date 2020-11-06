@@ -178,15 +178,10 @@ IBInterpolantHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
                                                                 const bool skip_synchronize_new_state_data,
                                                                 const int num_cycles)
 {
+    // We don't have any data ourselves that needs to be postprocessed so defer
+    // immediately to the base class:
     IBHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
-
-    // Deallocate the fluid solver.
-    d_ins_hier_integrator->postprocessIntegrateHierarchy(
-        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
-
-    // Deallocate IB data.
-    d_ib_method_ops->postprocessIntegrateData(current_time, new_time, num_cycles);
 
     // Execute any registered callbacks.
     executePostprocessIntegrateHierarchyCallbackFcns(

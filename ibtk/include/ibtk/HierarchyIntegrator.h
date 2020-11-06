@@ -430,6 +430,9 @@ public:
      *
      * A default implementation is provided that resets the current values of
      * num_cycles and the time step size.
+     *
+     * @note Inheriting classes should call their base class versions of this
+     * method.
      */
     virtual void postprocessIntegrateHierarchy(double current_time,
                                                double new_time,

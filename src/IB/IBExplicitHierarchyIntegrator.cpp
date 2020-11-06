@@ -413,18 +413,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
                                          getGhostfillRefineSchedules(d_object_name + "::u"),
                                          new_time);
 
-    IBHierarchyIntegrator::postprocessIntegrateHierarchy(
-        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
-
-    // Deallocate the fluid solver.
-    const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
-    d_ins_hier_integrator->postprocessIntegrateHierarchy(
-        current_time, new_time, skip_synchronize_new_state_data, ins_num_cycles);
-
-    // Deallocate IB data.
-    d_ib_method_ops->postprocessIntegrateData(current_time, new_time, num_cycles);
-
-    // Deallocate Eulerian scratch data.
+    // postprocess the objects this class manages...
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -439,6 +428,10 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
             level->deallocatePatchData(d_q_idx);
         }
     }
+
+    // and postprocess ourself.
+    IBHierarchyIntegrator::postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
     // Execute any registered callbacks.
     executePostprocessIntegrateHierarchyCallbackFcns(
