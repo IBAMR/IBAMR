@@ -341,9 +341,21 @@ FEMechanicsBase::getLagSurfaceForceFunction(unsigned int part) const
 }
 
 void
+FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_type = CONSISTENT_PROJECTION,
+                                        VolumetricEnergyDerivativeFcn dU_dJ_fcn = nullptr,
+                                        unsigned int part,   const std::set< subdomain_id_type > * subdomains_set_ptr)
+{
+	std::vector< std::set< subdomain_id_type > * > v(1);
+	v[0] = subdomains_set_ptr;
+	registerStaticPressurePart(projection_type, dU_dJ_fcn, part, v);
+}
+
+
+
+void
 FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_type,
                                             VolumetricEnergyDerivativeFcn dU_dJ_fcn,
-                                            unsigned int part, const std::set< subdomain_id_type > * subdomains_set_ptr )
+                                            unsigned int part, const std::vector< std::set< subdomain_id_type > * >* subdomains_set_ptr_vec )
 {
     TBOX_ASSERT(d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_meshes.size());
@@ -352,10 +364,27 @@ FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_ty
     d_has_static_pressure_parts = true;
     d_static_pressure_part[part] = true;
     auto& P_system = d_equation_systems[part]->add_system<ExplicitSystem>(PRESSURE_SYSTEM_NAME);
+
+    // setup subdomain restricted pressure in case of different material models
+    int n_pressure_subdomains = 0;
+    if( subdomains_set_ptr_vec ) n_pressure_subdomains = subdomains_set_ptr_vec->size();
+
     // This system has a single variable so we don't need to also specify diagonal coupling
-    std::string pressure_variable_name = "P_" + std::to_string(part);
-    if(subdoamins_set_ptr) pressure_variable_name += "_" + std::to_string( *(subdoamins_set_ptr->begin()) );
-    P_system.add_variable(pressure_variable_name, d_fe_order_pressure[part], d_fe_family_pressure[part], subdomain_set_ptr);
+    std::string pressure_variable_name = "P";
+    if( n_pressure_subdomains == 0 )
+    {
+        P_system.add_variable(pressure_variable_name, d_fe_order_pressure[part], d_fe_family_pressure[part]);
+    }
+    else
+    {
+    	for(auto && subdomain_set_ptr : *subdomains_set_ptr_vec)
+    	{
+    		std::string subdomain_id = std::to_string( *(subdoamins_set_ptr->begin()) );
+    		std::string pressure_variable_name = "P_" + subdomai_id;
+    		P_system.add_variable(pressure_variable_name, d_fe_order_pressure[part], d_fe_family_pressure[part], subdomain_set_ptr);
+    	}
+    }
+
     // Setup cached system vectors at restart.
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     IBTK::setup_system_vectors(d_equation_systems[part].get(),
@@ -537,28 +566,31 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
     {
         Elem* const elem = *el_it;
         const auto& P_dof_indices = P_dof_map_cache.dof_indices(elem);
+        // check if there is a pressure associated with this element
         P_rhs_e.resize(static_cast<int>(P_dof_indices[0].size()));
-        fe.reinit(elem);
-        fe.collectDataForInterpolation(elem);
-        fe.interpolate(elem);
-
-        unsigned int blockID = elem->subdomain_id();
-        if(map_size > 0) d_static_pressure_kappa = d_static_pressure_kappa_vector_map[part][blockID];
-
-        const unsigned int n_qp = qrule->n_points();
-        const size_t n_basis = phi.size();
-        for (unsigned int qp = 0; qp < n_qp; ++qp)
+        if( P_rhs_e.size() > 0)
         {
-            const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
-            get_FF(FF, grad_x_data);
-            double J = FF.det();
-            const double P = (dU_dJ_fcn ? dU_dJ_fcn(J) : -d_static_pressure_kappa * std::log(J));
-            for (unsigned int k = 0; k < n_basis; ++k)
-            {
-                P_rhs_e(k) += P * phi[k][qp] * JxW[qp];
-            }
-        }
+			fe.reinit(elem);
+			fe.collectDataForInterpolation(elem);
+			fe.interpolate(elem);
 
+			unsigned int blockID = elem->subdomain_id();
+			if(map_size > 0) d_static_pressure_kappa = d_static_pressure_kappa_vector_map[part][blockID];
+
+			const unsigned int n_qp = qrule->n_points();
+			const size_t n_basis = phi.size();
+			for (unsigned int qp = 0; qp < n_qp; ++qp)
+			{
+				const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+				get_FF(FF, grad_x_data);
+				double J = FF.det();
+				const double P = (dU_dJ_fcn ? dU_dJ_fcn(J) : -d_static_pressure_kappa * std::log(J));
+				for (unsigned int k = 0; k < n_basis; ++k)
+				{
+					P_rhs_e(k) += P * phi[k][qp] * JxW[qp];
+				}
+			}
+        }
         // Apply constraints (e.g., enforce periodic boundary conditions)
         // and add the elemental contributions to the global vector.
         copy_dof_ids_to_vector(/*var_num*/ 0, P_dof_indices, dof_id_scratch);
