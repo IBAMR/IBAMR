@@ -340,10 +340,21 @@ FEMechanicsBase::getLagSurfaceForceFunction(unsigned int part) const
     return d_lag_surface_force_fcn_data[part];
 }
 
+
 void
-FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_type = CONSISTENT_PROJECTION,
-                                        VolumetricEnergyDerivativeFcn dU_dJ_fcn = nullptr,
-                                        unsigned int part,   const std::set< subdomain_id_type > * subdomains_set_ptr)
+FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_type,
+                                        VolumetricEnergyDerivativeFcn dU_dJ_fcn,
+                                        unsigned int part )
+{
+	registerStaticPressurePart(projection_type, dU_dJ_fcn, part, nullptr);
+}
+
+
+void
+FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_type,
+                                        VolumetricEnergyDerivativeFcn dU_dJ_fcn,
+                                        unsigned int part,
+										const std::set< subdomain_id_type > * subdomains_set_ptr)
 {
 	std::vector< std::set< subdomain_id_type > * > v(1);
 	v[0] = subdomains_set_ptr;
@@ -355,7 +366,8 @@ FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_ty
 void
 FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_type,
                                             VolumetricEnergyDerivativeFcn dU_dJ_fcn,
-                                            unsigned int part, const std::vector< std::set< subdomain_id_type > * >* subdomains_set_ptr_vec )
+                                            unsigned int part,
+											const std::vector< std::set< subdomain_id_type > * >* subdomains_set_ptr_vec )
 {
     TBOX_ASSERT(d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_meshes.size());
