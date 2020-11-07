@@ -172,7 +172,7 @@ static Timer* t_begin_data_redistribution;
 static Timer* t_end_data_redistribution;
 static Timer* t_apply_gradient_detector;
 // Version of IBFEMethod restart file data.
-const int IBFE_METHOD_VERSION = 5;
+const int IBFE_METHOD_VERSION = 6;
 
 inline boundary_id_type
 get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
@@ -352,33 +352,6 @@ build_ib_ghosted_system_data(std::vector<SystemData>& ghosted_system_data,
     }
     return;
 }
-
-/*
- * Get the smallest cell width on the specified level. This operation is
- * collective.
- */
-double
-get_min_patch_dx(const Pointer<PatchHierarchy<NDIM> > hierarchy, const int level_num)
-{
-    double result = std::numeric_limits<double>::max();
-
-    // Some processors might not have any patches so its easier to just quit
-    // after one loop operation than to check
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-        const double* const patch_dx = patch_geom->getDx();
-        const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
-        result = std::min(result, patch_dx_min);
-        break; // all patches on the same level have the same dx values
-    }
-
-    result = IBTK_MPI::minReduction(result);
-
-    return result;
-}
 } // namespace
 
 const std::string IBFEMethod::SOURCE_SYSTEM_NAME = "IB source system";
@@ -535,6 +508,24 @@ IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDI
     return;
 } // setupTagBuffer
 
+double
+IBFEMethod::getMaxPointDisplacement() const
+{
+    double max_displacement = 0.0;
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        PetscVector<double>& last = d_X_vecs->get("last_regrid", part);
+        PetscVector<double>& diff = d_X_vecs->get("tmp", part);
+        diff = d_X_vecs->get("solution", part);
+        diff -= last;
+        max_displacement = std::max(max_displacement, diff.linfty_norm());
+    }
+    // That's right: SAMRAI doesn't define BasePatchLevel::getPatch() making
+    // this interface always require a cast
+    return max_displacement / get_min_patch_dx(dynamic_cast<const PatchLevel<NDIM>&>(
+                                  *d_hierarchy->getPatchLevel(getFinestPatchLevelNumber())));
+} // getMaxPointDisplacement
+
 void
 IBFEMethod::inactivateLagrangianStructure(int structure_number, int /*level_number*/)
 {
@@ -573,8 +564,8 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
     bool do_reinit_element_mappings = false;
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
-        const double patch_dx =
-            get_min_patch_dx(d_hierarchy, d_active_fe_data_managers[part]->getFinestPatchLevelNumber());
+        const double patch_dx = get_min_patch_dx(dynamic_cast<const PatchLevel<NDIM>&>(
+            *d_hierarchy->getPatchLevel(d_active_fe_data_managers[part]->getFinestPatchLevelNumber())));
         // To avoid allocating an extra vector we abuse "new" for a moment since
         // it gets overwritten below anyway
         PetscVector<double>& diff = d_X_vecs->get("new", part);
@@ -1593,6 +1584,11 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             if (d_do_log) plog << "IBFEMethod:: end scratch hierarchy workload" << std::endl;
         }
     }
+
+    // Store the coordinates at which we performed the regrid for later use in
+    // calculating structure displacement.
+    d_X_vecs->copy("solution", { "last_regrid" });
+
     IBAMR_TIMER_STOP(t_end_data_redistribution);
     return;
 } // endDataRedistribution
@@ -1774,7 +1770,7 @@ IBFEMethod::doInitializeFEEquationSystems()
             &equation_systems, { VELOCITY_SYSTEM_NAME }, { "current", "half", "new" }, from_restart);
         IBTK::setup_system_vectors(&equation_systems,
                                    { COORDS_SYSTEM_NAME },
-                                   { "last_patch_elem_assoc", "current", "half", "new" },
+                                   { "last_patch_elem_assoc", "last_regrid", "current", "half", "new", "tmp" },
                                    from_restart);
         std::vector<std::string> F_vector_names;
         switch (d_ib_solver->getTimeSteppingType())

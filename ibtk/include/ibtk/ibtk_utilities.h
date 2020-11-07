@@ -20,6 +20,7 @@
 
 #include <ibtk/config.h>
 
+#include "PatchHierarchy.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
 #include "tbox/Utilities.h"
@@ -136,6 +137,12 @@ get_data_time_str(const double data_time, const double current_time, const doubl
         return "unknown";
     }
 }
+
+/*!
+ * Get the smallest cell width on the specified level. This operation is
+ * collective.
+ */
+double get_min_patch_dx(const SAMRAI::hier::PatchLevel<NDIM>& patch_level);
 
 template <class T, unsigned N>
 inline std::array<T, N>

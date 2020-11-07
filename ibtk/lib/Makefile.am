@@ -182,6 +182,7 @@ DIM_DEPENDENT_SOURCES = \
 ../src/utilities/Streamable.cpp \
 ../src/utilities/StreamableManager.cpp \
 ../src/utilities/box_utilities.cpp \
+../src/utilities/ibtk_utilities.cpp \
 ../src/utilities/muParserCartGridFunction.cpp
 
 if LIBMESH_ENABLED

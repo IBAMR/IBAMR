@@ -561,6 +561,11 @@ public:
                         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) const override;
 
     /*!
+     * Same as the base class.
+     */
+    virtual double getMaxPointDisplacement() const override;
+
+    /*!
      * Inactivate a structure/part. See IBAMR::IBStrategy::inactivateLagrangianStructure().
      *
      * @note Since this class assumes that structures live on the finest grid

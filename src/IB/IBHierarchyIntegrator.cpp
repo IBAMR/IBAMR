@@ -240,14 +240,28 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
     }
 
     cfl_max = IBTK_MPI::maxReduction(cfl_max);
-    d_regrid_cfl_estimate += cfl_max;
+    d_regrid_fluid_cfl_estimate += cfl_max;
+
+    // Not all IBStrategy objects implement this so make it optional (-1.0 is
+    // the default value)
+    if (d_regrid_structure_cfl_interval != -1.0)
+        d_regrid_structure_cfl_estimate = d_ib_method_ops->getMaxPointDisplacement();
+
     if (d_enable_logging)
     {
         plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
         plog << d_object_name
-             << "::postprocessIntegrateHierarchy(): estimated upper bound on IB "
-                "point displacement since last regrid = "
-             << d_regrid_cfl_estimate << "\n";
+             << "::postprocessIntegrateHierarchy(): Eulerian estimate of "
+                "upper bound on IB point displacement since last regrid = "
+             << d_regrid_fluid_cfl_estimate << "\n";
+
+        if (d_regrid_structure_cfl_interval != -1.0)
+        {
+            plog << d_object_name
+                 << "::postprocessIntegrateHierarchy(): Lagrangian estimate of "
+                    "upper bound on IB point displacement since last regrid = "
+                 << d_regrid_structure_cfl_estimate << "\n";
+        }
     }
 }
 
@@ -524,8 +538,9 @@ IBHierarchyIntegrator::regridHierarchyEndSpecialized()
         updateWorkloadEstimates();
     }
 
-    // Reset the regrid CFL estimate.
-    d_regrid_cfl_estimate = 0.0;
+    // Reset the regrid CFL estimates.
+    d_regrid_fluid_cfl_estimate = 0.0;
+    d_regrid_structure_cfl_estimate = 0.0;
     return;
 } // regridHierarchyEndSpecialized
 
@@ -571,9 +586,15 @@ IBHierarchyIntegrator::atRegridPointSpecialized() const
 {
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     if (initial_time) return true;
-    if (d_regrid_cfl_interval > 0.0)
+    if (d_regrid_fluid_cfl_interval > 0.0 || d_regrid_structure_cfl_interval > 0.0)
     {
-        return (d_regrid_cfl_estimate >= d_regrid_cfl_interval);
+        // Account for the use of -1.0 as a default value
+        const bool regrid_fluid =
+            d_regrid_fluid_cfl_interval == -1.0 ? false : d_regrid_fluid_cfl_estimate >= d_regrid_fluid_cfl_interval;
+        const bool regrid_structure = d_regrid_structure_cfl_interval == -1.0 ?
+                                          false :
+                                          d_regrid_structure_cfl_estimate >= d_regrid_structure_cfl_interval;
+        return regrid_fluid || regrid_structure;
     }
     else if (d_regrid_interval != 0)
     {
@@ -680,8 +701,8 @@ IBHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 {
     db->putInteger("IB_HIERARCHY_INTEGRATOR_VERSION", IB_HIERARCHY_INTEGRATOR_VERSION);
     db->putString("d_time_stepping_type", enum_to_string<TimeSteppingType>(d_time_stepping_type));
-    db->putDouble("d_regrid_cfl_interval", d_regrid_cfl_interval);
-    db->putDouble("d_regrid_cfl_estimate", d_regrid_cfl_estimate);
+    db->putDouble("d_regrid_fluid_cfl_estimate", d_regrid_fluid_cfl_estimate);
+    db->putDouble("d_regrid_structure_cfl_estimate", d_regrid_structure_cfl_estimate);
     return;
 } // putToDatabaseSpecialized
 
@@ -697,7 +718,11 @@ IBHierarchyIntegrator::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierar
 void
 IBHierarchyIntegrator::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 {
-    if (db->keyExists("regrid_cfl_interval")) d_regrid_cfl_interval = db->getDouble("regrid_cfl_interval");
+    if (db->keyExists("regrid_cfl_interval")) d_regrid_fluid_cfl_interval = db->getDouble("regrid_cfl_interval");
+    if (db->keyExists("regrid_fluid_cfl_interval"))
+        d_regrid_fluid_cfl_interval = db->getDouble("regrid_fluid_cfl_interval");
+    if (db->keyExists("regrid_structure_cfl_interval"))
+        d_regrid_structure_cfl_interval = db->getDouble("regrid_cfl_interval");
     if (db->keyExists("error_on_dt_change"))
         d_error_on_dt_change = db->getBool("error_on_dt_change");
     else if (db->keyExists("error_on_timestep_change"))
@@ -738,8 +763,8 @@ IBHierarchyIntegrator::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
     d_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_time_stepping_type"));
-    d_regrid_cfl_interval = db->getDouble("d_regrid_cfl_interval");
-    d_regrid_cfl_estimate = db->getDouble("d_regrid_cfl_estimate");
+    d_regrid_fluid_cfl_estimate = db->getDouble("d_regrid_fluid_cfl_estimate");
+    d_regrid_structure_cfl_estimate = db->getDouble("d_regrid_structure_cfl_estimate");
     return;
 } // getFromRestart
 

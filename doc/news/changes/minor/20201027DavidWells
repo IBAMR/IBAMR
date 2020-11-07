@@ -1,0 +1,5 @@
+New: IBAMR::IBHierarchyIntegrator gained an input database option
+<code>regrid_structure_cfl_interval</code> that allows the user to set the
+number of cells the structure may move before triggering a regrid.
+<br>
+(David Wells, 2020/10/27)

@@ -114,6 +114,18 @@ IBStrategySet::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<
     return;
 } // setupTagBuffer
 
+double
+IBStrategySet::getMaxPointDisplacement() const
+{
+    double displacement = std::numeric_limits<double>::min();
+    for (const auto& strategy : d_strategy_set)
+    {
+        displacement = std::max(displacement, strategy->getMaxPointDisplacement());
+    }
+
+    return displacement;
+} // getMaxPointDisplacement
+
 void
 IBStrategySet::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
