@@ -48,6 +48,9 @@ static std::string stress_funtion;
 
 double time_ramp(double time);
 
+static int dirichlet_sideset = 3;
+static int traction_sideset = 1;
+
 void
 solid_surface_force_function(VectorValue<double>& F,
                              const VectorValue<double>& /*n*/,
@@ -62,11 +65,11 @@ solid_surface_force_function(VectorValue<double>& F,
                              double time,
                              void* /*ctx*/)
 {
-    if (lag_bdry_info->has_boundary_id(elem, side, 3))
+    if (lag_bdry_info->has_boundary_id(elem, side, dirichlet_sideset))
     {
         F = kappa * (X - x);
     }
-    else if (lag_bdry_info->has_boundary_id(elem, side, 1))
+    else if (lag_bdry_info->has_boundary_id(elem, side, traction_sideset))
     {
         F = libMesh::Point(0.0, time_ramp(time) * traction_force, 0.0);
     }
@@ -272,6 +275,9 @@ main(int argc, char* argv[])
 
         mesh.prepare_for_use();
         lag_bdry_info = &mesh.get_boundary_info();
+        // BC sidesets
+        dirichlet_sideset = input_db->getIntegerWithDefault("DIRICHLET_SIDESET",3);
+        traction_sideset = input_db->getIntegerWithDefault("TRACTION_SIDESET",1);
 
         // Setup the model parameters.
         shear_mod = input_db->getDouble("SHEAR_MOD");
@@ -356,7 +362,14 @@ main(int argc, char* argv[])
         fem_solver->initializeFEEquationSystems();
         if (use_static_pressure)
         {
-            fem_solver->registerStaticPressurePart(pressure_proj_type);
+        	std::vector< std::set< subdomain_id_type > * > subdomains( mesh.n_subdomains() );
+        	std::set< subdomain_id_type > ids;
+        	mesh.subdomain_ids (ids);
+        	for(auto it = ids.begin(); it != ids.end(); ++it)
+			{
+        		subdomains.push_back( new std::set< subdomain_id_type >( {*it} ) );
+			}
+            fem_solver->registerStaticPressurePart(pressure_proj_type, nullptr, 0, &subdomains);
         }
         if (use_dynamic_pressure)
         {
