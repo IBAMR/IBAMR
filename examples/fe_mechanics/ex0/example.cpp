@@ -81,6 +81,7 @@ solid_surface_force_function(VectorValue<double>& F,
 
 static double shear_mod, bulk_mod;
 static double shear_mod1, shear_mod2;
+static double bulk_mod1, bulk_mod2;
 void
 PK1_dev_stress_function_mod(TensorValue<double>& PP,
                             const TensorValue<double>& FF,
@@ -96,9 +97,10 @@ PK1_dev_stress_function_mod(TensorValue<double>& PP,
     const double I1 = CC.tr();
     const RealTensor dI1_bar_dFF = pow(FF.det(), -2.0 / 3.0) * (FF - I1 / 3.0 * tensor_inverse_transpose(FF, NDIM));
     auto blockID = elem->subdomain_id();
-    if( 1 == blockID ) shear_mod = shear_mod1;
-    else if( 2 == blockID ) shear_mod = shear_mod2;
-    PP = shear_mod * dI1_bar_dFF;
+    double mu = shear_mod;
+    if( 1 == blockID ) mu = shear_mod1;
+    else if( 2 == blockID ) mu = shear_mod2;
+    PP = mu * dI1_bar_dFF;
 }
 
 void
@@ -142,7 +144,11 @@ PK1_dil_stress_function(TensorValue<double>& PP,
                         double /*time*/,
                         void* /*ctx*/)
 {
-    PP = bulk_mod * log(FF.det()) * tensor_inverse_transpose(FF, NDIM);
+    auto blockID = elem->subdomain_id();
+    double k = bulk_mod;
+    if( 1 == blockID ) k = bulk_mod1;
+    else if( 2 == blockID ) k = bulk_mod2;
+    PP = k * log(FF.det()) * tensor_inverse_transpose(FF, NDIM);
 }
 
 void
@@ -287,7 +293,11 @@ main(int argc, char* argv[])
         shear_mod = input_db->getDoubleWithDefault("SHEAR_MOD", 250.0/3);
         shear_mod1 = input_db->getDoubleWithDefault("SHEAR_MOD1", 250.0/3);
         shear_mod2 = input_db->getDoubleWithDefault("SHEAR_MOD2", 250.0/3);
-        bulk_mod = input_db->getDouble("BULK_MOD");
+        double poisson_ratio = input_db->getDoubleWithDefault("POISSON_RATIO", 0.49995);
+        bulk_mod  = 2 * shear_mod  * ( 1.0 + poisson_ratio ) / 3.0 / ( 1.0 - 2.0 * poisson_ratio );
+        bulk_mod1 = 2 * shear_mod1 * ( 1.0 + poisson_ratio ) / 3.0 / ( 1.0 - 2.0 * poisson_ratio );
+        bulk_mod2 = 2 * shear_mod2 * ( 1.0 + poisson_ratio ) / 3.0 / ( 1.0 - 2.0 * poisson_ratio );
+		//bulk_mod = input_db->getDouble("BULK_MOD");
         damping = input_db->getDouble("ETA");
         kappa = input_db->getDouble("KAPPA");
         traction_force = input_db->getDouble("TRACTION_FORCE");
@@ -374,14 +384,14 @@ main(int argc, char* argv[])
 				std::vector< std::set< subdomain_id_type > * > subdomains( n_subdomains );
 				std::set< subdomain_id_type > ids;
 				mesh.subdomain_ids (ids);
-				double tau1 = bulk_mod / shear_mod1;
-				double tau2 = bulk_mod / shear_mod2;
+				double tau1 = bulk_mod1 / shear_mod1;
+				double tau2 = bulk_mod2 / shear_mod2;
 				for(auto it = ids.begin(); it != ids.end(); ++it)
 				{
 					subdomains.push_back( new std::set< subdomain_id_type >( {*it} ) );
 				}
-				fem_solver->add_static_pressure_kappa_vector_map_entry(bulk_mod, 1);
-				fem_solver->add_static_pressure_kappa_vector_map_entry(bulk_mod, 2);
+				fem_solver->add_static_pressure_kappa_vector_map_entry(bulk_mod1, 1);
+				fem_solver->add_static_pressure_kappa_vector_map_entry(bulk_mod2, 2);
 				fem_solver->add_static_pressure_stab_param_vector_map_entry(tau1, 1);
 				fem_solver->add_static_pressure_stab_param_vector_map_entry(tau2, 2);
 				fem_solver->registerStaticPressurePart(pressure_proj_type, nullptr, 0, &subdomains);
