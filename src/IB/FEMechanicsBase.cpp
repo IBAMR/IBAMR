@@ -341,26 +341,26 @@ FEMechanicsBase::getLagSurfaceForceFunction(unsigned int part) const
 }
 
 
-void
+/*void
 FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_type,
                                         VolumetricEnergyDerivativeFcn dU_dJ_fcn,
                                         unsigned int part )
 {
 	registerStaticPressurePart(projection_type, dU_dJ_fcn, part, nullptr);
-}
+}*/
 
 
-void
+/*void
 FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_type,
                                         VolumetricEnergyDerivativeFcn dU_dJ_fcn,
                                         unsigned int part,
-										const std::set< subdomain_id_type > * subdomains_set_ptr)
+                                        const std::set< subdomain_id_type >& subdomains_set)
 {
 	std::vector< std::set< subdomain_id_type > * > v(1);
-	v[0] = subdomains_set_ptr;
+	v[0] = &subdomains_set_ptr;
 	registerStaticPressurePart(projection_type, dU_dJ_fcn, part, v);
 }
-
+*/
 
 
 void
@@ -391,8 +391,8 @@ FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_ty
     {
     	for(auto && subdomain_set_ptr : *subdomains_set_ptr_vec)
     	{
-    		std::string subdomain_id = std::to_string( *(subdoamins_set_ptr->begin()) );
-    		std::string pressure_variable_name = "P_" + subdomai_id;
+    		std::string subdomain_id = std::to_string( *(subdomain_set_ptr->begin()) );
+    		std::string pressure_variable_name = "P_" + subdomain_id;
     		P_system.add_variable(pressure_variable_name, d_fe_order_pressure[part], d_fe_family_pressure[part], subdomain_set_ptr);
     	}
     }
