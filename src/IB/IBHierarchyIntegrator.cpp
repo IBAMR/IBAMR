@@ -25,6 +25,7 @@
 #include "ibtk/CartGridFunctionSet.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LMarkerSetVariable.h"
 #include "ibtk/LMarkerUtilities.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
@@ -191,6 +192,64 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
 
     return;
 } // preprocessIntegrateHierarchy
+
+void
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
+                                                     const double new_time,
+                                                     const bool skip_synchronize_new_state_data,
+                                                     const int num_cycles)
+{
+    // postprocess the objects this class manages...
+    d_ib_method_ops->postprocessIntegrateData(current_time, new_time, num_cycles);
+
+    d_ins_hier_integrator->postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, d_ins_hier_integrator->getNumberOfCycles());
+
+    // ... and postprocess ourself.
+    HierarchyIntegrator::postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const double dt = new_time - current_time;
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
+                                                               d_ins_hier_integrator->getNewContext());
+
+    // Determine the CFL number.
+    double cfl_max = 0.0;
+    PatchCellDataOpsReal<NDIM, double> patch_cc_ops;
+    PatchSideDataOpsReal<NDIM, double> patch_sc_ops;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const double* const dx = pgeom->getDx();
+            const double dx_min = *(std::min_element(dx, dx + NDIM));
+            Pointer<CellData<NDIM, double> > u_cc_new_data = patch->getPatchData(u_new_idx);
+            Pointer<SideData<NDIM, double> > u_sc_new_data = patch->getPatchData(u_new_idx);
+            double u_max = 0.0;
+            if (u_cc_new_data) u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
+            if (u_sc_new_data) u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);
+            cfl_max = std::max(cfl_max, u_max * dt / dx_min);
+        }
+    }
+
+    cfl_max = IBTK_MPI::maxReduction(cfl_max);
+    d_regrid_cfl_estimate += cfl_max;
+    if (d_enable_logging)
+    {
+        plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
+        plog << d_object_name
+             << "::postprocessIntegrateHierarchy(): estimated upper bound on IB "
+                "point displacement since last regrid = "
+             << d_regrid_cfl_estimate << "\n";
+    }
+}
 
 void
 IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
