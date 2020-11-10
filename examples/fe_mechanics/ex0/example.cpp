@@ -71,7 +71,7 @@ solid_surface_force_function(VectorValue<double>& F,
     }
     else if (lag_bdry_info->has_boundary_id(elem, side, traction_sideset))
     {
-        F = libMesh::Point(0.0, time_ramp(time) * traction_force, 0.0);
+        F = libMesh::Point(0.0, traction_force, 0.0);
     }
     else
     {
@@ -138,7 +138,7 @@ PK1_dil_stress_function(TensorValue<double>& PP,
                         const TensorValue<double>& FF,
                         const libMesh::Point& /*x*/,
                         const libMesh::Point& /*X*/,
-                        Elem* const /*elem*/,
+                        Elem* const elem,
                         const vector<const vector<double>*>& /*var_data*/,
                         const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                         double /*time*/,
@@ -308,8 +308,9 @@ main(int argc, char* argv[])
         PressureProjectionType pressure_proj_type;
         if (use_static_pressure || use_dynamic_pressure)
         {
-            pressure_proj_type =
-                IBAMR::string_to_enum<PressureProjectionType>(input_db->getString("PRESSURE_PROJECTION_TYPE"));
+            pressure_proj_type = STABILIZED_PROJECTION;
+//            pressure_proj_type =
+//                IBAMR::string_to_enum<PressureProjectionType>(input_db->getString("PRESSURE_PROJECTION_TYPE"));
         }
         use_volumetric_term = input_db->getBool("USE_VOLUMETRIC_TERM") && !use_static_pressure && !use_dynamic_pressure;
         stress_funtion = input_db->getString("STRESS_FUNCTION");
