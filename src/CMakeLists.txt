@@ -11,8 +11,8 @@
 ##
 ## ---------------------------------------------------------------------
 
-ADD_LIBRARY(IBAMR2d SHARED)
-ADD_LIBRARY(IBAMR3d SHARED)
+ADD_LIBRARY(IBAMR2d)
+ADD_LIBRARY(IBAMR3d)
 
 # 'base' names (without, 2d.f.m4 or 3d.f.m4) for all the fortran that is
 # explicitly compiled

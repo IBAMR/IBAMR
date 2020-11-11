@@ -23,6 +23,9 @@ STRING(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_SUBMINOR
 SET(IBTK_VERSION ${IBTK_VERSION_MAJOR}.${IBTK_VERSION_MINOR}.${IBTK_VERSION_SUBMINOR})
 SET(IBAMR_VERSION ${IBTK_VERSION})
 
+# Do we want dynamic or static linking?
+OPTION(BUILD_SHARED_LIBS "Whether or not to build shared libraries." ON)
+
 PROJECT(IBAMR
   DESCRIPTION "Software infrastructure for the IB method with adaptively-refined grids"
   VERSION ${IBAMR_VERSION}
@@ -745,6 +748,21 @@ ENDMACRO()
 # everything but the source files)
 FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   MESSAGE(STATUS "setting up target ${target_library}")
+
+  # Figure out if we are a 2D or a 3D library:
+  SET(_2_location = -1)
+  SET(_3_location = -1)
+  STRING(FIND "${target_library}" "2" _2_location)
+  STRING(FIND "${target_library}" "3" _3_location)
+  SET(_d "")
+  IF(NOT ${_2_location} STREQUAL "-1")
+    SET(_d "2")
+  ELSE()
+    SET(_d "3")
+  ENDIF()
+
+  MESSAGE(STATUS "Adding flag -DNDIM=${_d} to target ${target_library}")
+  TARGET_COMPILE_OPTIONS(${target_library} PUBLIC -DNDIM=${_d})
   IF(${IBAMR_HAVE_LIBMESH} AND "${LIBMESH_WITH_CXX14}")
     MESSAGE(STATUS "libMesh expects C++14, so ${target_library} will be built with C++14 as a requirement.")
     SET_PROPERTY(TARGET ${target_library} PROPERTY CXX_STANDARD 14)
@@ -759,6 +777,18 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   IF(${IBAMR_HAVE_LIBMESH})
     TARGET_LINK_LIBRARIES(${target_library} PUBLIC MPI::MPI_CXX)
   ENDIF()
+  # Silo is underlinked and depends on HDF5, so do it first:
+  IF(IBAMR_HAVE_SILO)
+    TARGET_LINK_LIBRARIES(${target_library} PRIVATE "${SILO_LIBRARIES}")
+    TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${SILO_INCLUDE_DIRS}")
+    # Silo is statically linked so we need to export its zlib dependency
+    TARGET_LINK_LIBRARIES(${target_library} PUBLIC ZLIB::ZLIB)
+  ENDIF()
+  # SAMRAI is also underlinked and depends on HDF5:
+  TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC ${SAMRAI_INCLUDE_DIRS})
+  FOREACH(_lib ${SAMRAI${_d}d_LIBRARIES})
+    TARGET_LINK_LIBRARIES(${target_library} PUBLIC ${_lib})
+  ENDFOREACH()
   # HDF5:
   TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${HDF5_LIBRARIES}")
   TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${HDF5_INCLUDE_DIRS}")
@@ -792,33 +822,6 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
     TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${LIBMESH_LIBRARIES}")
     TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${LIBMESH_INCLUDE_DIRS}")
   ENDIF()
-  # Silo:
-  IF(IBAMR_HAVE_SILO)
-    TARGET_LINK_LIBRARIES(${target_library} PRIVATE "${SILO_LIBRARIES}")
-    TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${SILO_INCLUDE_DIRS}")
-    TARGET_LINK_LIBRARIES(${target_library} PRIVATE ZLIB::ZLIB)
-  ENDIF()
-
-  # Figure out if we are a 2D or a 3D library:
-  SET(_2_location = -1)
-  SET(_3_location = -1)
-  STRING(FIND "${target_library}" "2" _2_location)
-  STRING(FIND "${target_library}" "3" _3_location)
-  SET(_d "")
-  IF(NOT ${_2_location} STREQUAL "-1")
-    SET(_d "2")
-  ELSE()
-    SET(_d "3")
-  ENDIF()
-
-  # SAMRAI:
-  TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC ${SAMRAI_INCLUDE_DIRS})
-  FOREACH(_lib ${SAMRAI${_d}d_LIBRARIES})
-    TARGET_LINK_LIBRARIES(${target_library} PUBLIC ${_lib})
-  ENDFOREACH()
-
-  MESSAGE(STATUS "Adding flag -DNDIM=${_d} to target ${target_library}")
-  TARGET_COMPILE_OPTIONS(${target_library} PUBLIC -DNDIM=${_d})
 ENDFUNCTION()
 
 MESSAGE(STATUS "")

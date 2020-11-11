@@ -11,8 +11,8 @@
 ##
 ## ---------------------------------------------------------------------
 
-ADD_LIBRARY(IBTK2d SHARED)
-ADD_LIBRARY(IBTK3d SHARED)
+ADD_LIBRARY(IBTK2d)
+ADD_LIBRARY(IBTK3d)
 
 # 'base' names (without, 2d.f.m4 or 3d.f.m4) for all the fortran that is
 # explicitly compiled
