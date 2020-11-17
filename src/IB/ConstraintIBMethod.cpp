@@ -13,85 +13,34 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/ConstraintIBKinematics.h"
 #include "ibamr/ConstraintIBMethod.h"
-#include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/IBStrategy.h"
-#include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
+#include "ibamr/namespaces.h"
 
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/FACPreconditioner.h"
-#include "ibtk/FACPreconditionerStrategy.h"
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/LData.h"
-#include "ibtk/LDataManager.h"
-#include "ibtk/LIndexSetData.h"
-#include "ibtk/LMesh.h"
-#include "ibtk/LNode.h"
 #include "ibtk/LNodeSetData.h"
-#include "ibtk/LSet.h"
-#include "ibtk/LSetData.h"
-#include "ibtk/LSetDataIterator.h"
-#include "ibtk/LinearOperator.h"
-#include "ibtk/LinearSolver.h"
+#include "ibtk/PETScKrylovLinearSolver.h"
 #include "ibtk/SideDataSynchronization.h"
 #include "ibtk/ibtk_utilities.h"
 
-#include "ArrayData.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIndex.h"
-#include "CellIterator.h"
-#include "ComponentSelector.h"
 #include "HierarchyDataOpsManager.h"
-#include "HierarchyDataOpsReal.h"
-#include "Patch.h"
 #include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "PoissonSpecifications.h"
-#include "SAMRAIVectorReal.h"
-#include "SideData.h"
 #include "VariableDatabase.h"
-#include "VariableFillPattern.h"
-#include "tbox/Array.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/PIO.h"
-#include "tbox/RestartManager.h"
+#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
-#include "petscvec.h"
-
-IBTK_DISABLE_EXTRA_WARNINGS
-#include <boost/multi_array.hpp>
-IBTK_ENABLE_EXTRA_WARNINGS
-
 #include <algorithm>
+#include <cmath>
 #include <limits>
+#include <sstream>
 #include <utility>
-
-namespace SAMRAI
-{
-namespace hier
-{
-template <int DIM>
-class Box;
-} // namespace hier
-namespace solv
-{
-template <int DIM>
-class RobinBcCoefStrategy;
-} // namespace solv
-} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -115,6 +64,7 @@ static Pointer<Timer> t_midpointStep;
 
 // Number of ghost cells used for each variable quantity.
 static const int CELLG = 1;
+static const int SIDEG = 1;
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
@@ -217,6 +167,8 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
       d_vel_com_def_new(d_no_structures, std::vector<double>(3, 0.0)),
       d_omega_com_def_current(d_no_structures, std::vector<double>(3, 0.0)),
       d_omega_com_def_new(d_no_structures, std::vector<double>(3, 0.0)),
+      d_center_of_mass_unshifted_current(d_no_structures, std::vector<double>(3, 0.0)),
+      d_center_of_mass_unshifted_new(d_no_structures, std::vector<double>(3, 0.0)),
       d_center_of_mass_current(d_no_structures, std::vector<double>(3, 0.0)),
       d_center_of_mass_new(d_no_structures, std::vector<double>(3, 0.0)),
       d_moment_of_inertia_current(d_no_structures, Eigen::Matrix3d::Zero()),
@@ -298,7 +250,7 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
     }
 
     // Do printing operation for processor 0 only.
-    if (!IBTK_MPI::getRank() && d_print_output)
+    if (!SAMRAI_MPI::getRank() && d_print_output)
     {
         d_trans_vel_stream.resize(d_no_structures);
         d_rot_vel_stream.resize(d_no_structures);
@@ -535,7 +487,7 @@ ConstraintIBMethod::calculateEulerianMomentum()
         wgt_sc_active->freeVectorComponents();
     }
 
-    if (!IBTK_MPI::getRank() && d_print_output && d_output_eul_mom && (d_timestep_counter % d_output_interval) == 0)
+    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_eul_mom && (d_timestep_counter % d_output_interval) == 0)
     {
         d_eulerian_mom_stream << d_FuRMoRP_new_time << '\t' << momentum[0] << '\t' << momentum[1] << '\t' << momentum[2]
                               << '\t' << std::endl;
@@ -565,6 +517,7 @@ ConstraintIBMethod::registerEulerianVariables()
         d_Div_u_var = new CellVariable<NDIM, double>(d_object_name + "::Div_u");
         d_phi_var = new CellVariable<NDIM, double>(d_object_name + "::phi");
         const IntVector<NDIM> cell_ghosts = CELLG;
+        const IntVector<NDIM> side_ghosts = SIDEG;
         d_phi_idx = var_db->registerVariableAndContext(d_phi_var, d_scratch_context, cell_ghosts);
         d_Div_u_scratch_idx = var_db->registerVariableAndContext(d_Div_u_var, d_scratch_context, cell_ghosts);
     }
@@ -870,6 +823,7 @@ ConstraintIBMethod::setInitialLagrangianVelocity()
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
+        //printf(" HONG : setInitialLagrangianVelocity , struct_no = %d\n", struct_no);
         d_ib_kinematics[struct_no]->setKinematicsVelocity(d_FuRMoRP_current_time,
                                                           d_incremented_angle_from_reference_axis[struct_no],
                                                           d_center_of_mass_current[struct_no],
@@ -896,11 +850,26 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
+    // HONG ADDED BEGIN
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    const double* const domain_x_lower = grid_geom->getXLower();
+    const double* const domain_x_upper = grid_geom->getXUpper();
+    double domain_length[NDIM];
+    for (int d = 0; d < NDIM; ++d)
+    {
+        domain_length[d] = domain_x_upper[d] - domain_x_lower[d];
+    }
+    const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
+    // HONG ADDED END
+
+
     // Zero out the COM vector.
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
         for (int d = 0; d < 3; ++d)
         {
+            d_center_of_mass_unshifted_current[struct_no][d] = 0.0;
+            d_center_of_mass_unshifted_new[struct_no][d] = 0.0;
             d_center_of_mass_current[struct_no][d] = 0.0;
             d_center_of_mass_new[struct_no][d] = 0.0;
         }
@@ -949,12 +918,14 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
                 if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
                 {
                     const int local_idx = node_idx->getLocalPETScIndex();
+                    const Vector &displacement = node_idx->getPeriodicDisplacement(); // HONG ADDED
+
                     const double* const X_current = &X_data_current[local_idx][0];
                     const double* const X_new = &X_data_new[local_idx][0];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        X_com_current[d] += X_current[d];
-                        X_com_new[d] += X_new[d];
+                        X_com_current[d] += (X_current[d] + displacement[d]); // HONG
+                        X_com_new[d] += (X_new[d] + displacement[d]);
                     }
                     if (lag_idx == d_tagged_pt_lag_idx[location_struct_handle])
                     {
@@ -964,8 +935,8 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
             }
             for (int d = 0; d < NDIM; ++d)
             {
-                d_center_of_mass_current[location_struct_handle][d] += X_com_current[d];
-                d_center_of_mass_new[location_struct_handle][d] += X_com_new[d];
+                d_center_of_mass_unshifted_current[location_struct_handle][d] += X_com_current[d];
+                d_center_of_mass_unshifted_new[location_struct_handle][d] += X_com_new[d];
             }
         }
         ptr_x_lag_data_current->restoreArrays();
@@ -977,19 +948,52 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
         const StructureParameters& struct_param = d_ib_kinematics[struct_no]->getStructureParameters();
         const int total_nodes = struct_param.getTotalNodes();
 
-        IBTK_MPI::sumReduction(d_center_of_mass_current[struct_no].data(), d_center_of_mass_current[struct_no].size());
-        IBTK_MPI::sumReduction(d_center_of_mass_new[struct_no].data(), d_center_of_mass_new[struct_no].size());
+        SAMRAI_MPI::sumReduction(d_center_of_mass_unshifted_current[struct_no].data(), d_center_of_mass_unshifted_current[struct_no].size());
+        SAMRAI_MPI::sumReduction(d_center_of_mass_unshifted_new[struct_no].data(), d_center_of_mass_unshifted_new[struct_no].size());
 
         for (int i = 0; i < 3; ++i)
         {
-            d_center_of_mass_current[struct_no][i] /= total_nodes;
-            d_center_of_mass_new[struct_no][i] /= total_nodes;
+            d_center_of_mass_unshifted_current[struct_no][i] /= total_nodes;
+            d_center_of_mass_unshifted_new[struct_no][i] /= total_nodes;
+
+            d_center_of_mass_current[struct_no][i] = d_center_of_mass_unshifted_current[struct_no][i];
+            d_center_of_mass_new[struct_no][i] = d_center_of_mass_unshifted_new[struct_no][i];
         }
     }
 
+    // now apply displacement
+    for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
+    { //            #if 0
+        // HONG ADDED BEGIN
+        for (unsigned int i = 0; i < NDIM; ++i)
+        {
+            if (periodic_shift[i])
+            {
+                while (d_center_of_mass_current[struct_no][i] < domain_x_lower[i])
+                {
+                    d_center_of_mass_current[struct_no][i] += domain_length[i];
+                }
+                while (d_center_of_mass_current[struct_no][i] >= domain_x_upper[i])
+                {
+                    d_center_of_mass_current[struct_no][i] -= domain_length[i];
+                }
+
+                while (d_center_of_mass_new[struct_no][i] < domain_x_lower[i])
+                {
+                    d_center_of_mass_new[struct_no][i] += domain_length[i];
+                }
+                while (d_center_of_mass_new[struct_no][i] >= domain_x_upper[i])
+                {
+                    d_center_of_mass_new[struct_no][i] -= domain_length[i];
+                }
+            } // HONG ADDED END
+        }
+    }
+
+
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        IBTK_MPI::sumReduction(&tagged_position[struct_no][0], 3);
+        SAMRAI_MPI::sumReduction(&tagged_position[struct_no][0], 3);
         d_tagged_pt_position[struct_no] = tagged_position[struct_no];
     }
 
@@ -1036,8 +1040,8 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
 
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
-            const std::vector<double>& X_com_current = d_center_of_mass_current[location_struct_handle];
-            const std::vector<double>& X_com_new = d_center_of_mass_new[location_struct_handle];
+            const std::vector<double>& X_com_current = d_center_of_mass_unshifted_current[location_struct_handle];
+            const std::vector<double>& X_com_new = d_center_of_mass_unshifted_new[location_struct_handle];
 
             Eigen::Matrix3d Inertia_current(3, 3), Inertia_new(3, 3);
             Inertia_current.setZero();
@@ -1051,36 +1055,39 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
                     const int local_idx = node_idx->getLocalPETScIndex();
                     const double* const X_current = &X_data_current[local_idx][0];
                     const double* const X_new = &X_data_new[local_idx][0];
-#if (NDIM == 2)
-                    Inertia_current(0, 0) += std::pow(X_current[1] - X_com_current[1], 2);
-                    Inertia_current(0, 1) += -(X_current[0] - X_com_current[0]) * (X_current[1] - X_com_current[1]);
-                    Inertia_current(1, 1) += std::pow(X_current[0] - X_com_current[0], 2);
-                    Inertia_current(2, 2) +=
-                        std::pow(X_current[0] - X_com_current[0], 2) + std::pow(X_current[1] - X_com_current[1], 2);
+                    const Vector &displacement = node_idx->getPeriodicDisplacement(); // HONG ADDED
 
-                    Inertia_new(0, 0) += std::pow(X_new[1] - X_com_new[1], 2);
-                    Inertia_new(0, 1) += -(X_new[0] - X_com_new[0]) * (X_new[1] - X_com_new[1]);
-                    Inertia_new(1, 1) += std::pow(X_new[0] - X_com_new[0], 2);
-                    Inertia_new(2, 2) += std::pow(X_new[0] - X_com_new[0], 2) + std::pow(X_new[1] - X_com_new[1], 2);
+
+#if (NDIM == 2)
+                    Inertia_current(0, 0) += std::pow(displacement[1] + X_current[1] - X_com_current[1], 2);
+                    Inertia_current(0, 1) += -(displacement[0] + X_current[0] - X_com_current[0]) * (displacement[1] + X_current[1] - X_com_current[1]);
+                    Inertia_current(1, 1) += std::pow(displacement[0] + X_current[0] - X_com_current[0], 2);
+                    Inertia_current(2, 2) +=
+                        std::pow(displacement[0] + X_current[0] - X_com_current[0], 2) + std::pow(displacement[1] + X_current[1] - X_com_current[1], 2);
+
+                    Inertia_new(0, 0) += std::pow(displacement[1] + X_new[1] - X_com_new[1], 2);
+                    Inertia_new(0, 1) += -(displacement[0] + X_new[0] - X_com_new[0]) * (displacement[1] + X_new[1] - X_com_new[1]);
+                    Inertia_new(1, 1) += std::pow(displacement[0] + X_new[0] - X_com_new[0], 2);
+                    Inertia_new(2, 2) += std::pow(displacement[0] + X_new[0] - X_com_new[0], 2) + std::pow(displacement[1] + X_new[1] - X_com_new[1], 2);
 #endif
 
 #if (NDIM == 3)
                     Inertia_current(0, 0) +=
-                        std::pow(X_current[1] - X_com_current[1], 2) + std::pow(X_current[2] - X_com_current[2], 2);
-                    Inertia_current(0, 1) += -(X_current[0] - X_com_current[0]) * (X_current[1] - X_com_current[1]);
-                    Inertia_current(0, 2) += -(X_current[0] - X_com_current[0]) * (X_current[2] - X_com_current[2]);
+                        std::pow(displacement[1] + X_current[1] - X_com_current[1], 2) + std::pow(displacement[2] + X_current[2] - X_com_current[2], 2);
+                    Inertia_current(0, 1) += -(displacement[0] + X_current[0] - X_com_current[0]) * (displacement[1] + X_current[1] - X_com_current[1]);
+                    Inertia_current(0, 2) += -(displacement[0] + X_current[0] - X_com_current[0]) * (displacement[2] + X_current[2] - X_com_current[2]);
                     Inertia_current(1, 1) +=
-                        std::pow(X_current[0] - X_com_current[0], 2) + std::pow(X_current[2] - X_com_current[2], 2);
-                    Inertia_current(1, 2) += -(X_current[1] - X_com_current[1]) * (X_current[2] - X_com_current[2]);
+                        std::pow(displacement[0] + X_current[0] - X_com_current[0], 2) + std::pow(displacement[2] + X_current[2] - X_com_current[2], 2);
+                    Inertia_current(1, 2) += -(displacement[1] + X_current[1] - X_com_current[1]) * (displacement[2] + X_current[2] - X_com_current[2]);
                     Inertia_current(2, 2) +=
-                        std::pow(X_current[0] - X_com_current[0], 2) + std::pow(X_current[1] - X_com_current[1], 2);
+                        std::pow(displacement[0] + X_current[0] - X_com_current[0], 2) + std::pow(displacement[1] + X_current[1] - X_com_current[1], 2);
 
-                    Inertia_new(0, 0) += std::pow(X_new[1] - X_com_new[1], 2) + std::pow(X_new[2] - X_com_new[2], 2);
-                    Inertia_new(0, 1) += -(X_new[0] - X_com_new[0]) * (X_new[1] - X_com_new[1]);
-                    Inertia_new(0, 2) += -(X_new[0] - X_com_new[0]) * (X_new[2] - X_com_new[2]);
-                    Inertia_new(1, 1) += std::pow(X_new[0] - X_com_new[0], 2) + std::pow(X_new[2] - X_com_new[2], 2);
-                    Inertia_new(1, 2) += -(X_new[1] - X_com_new[1]) * (X_new[2] - X_com_new[2]);
-                    Inertia_new(2, 2) += std::pow(X_new[0] - X_com_new[0], 2) + std::pow(X_new[1] - X_com_new[1], 2);
+                    Inertia_new(0, 0) += std::pow(displacement[1] + X_new[1] - X_com_new[1], 2) + std::pow(displacement[2] + X_new[2] - X_com_new[2], 2);
+                    Inertia_new(0, 1) += -(displacement[0] + X_new[0] - X_com_new[0]) * (displacement[1] + X_new[1] - X_com_new[1]);
+                    Inertia_new(0, 2) += -(displacement[0] + X_new[0] - X_com_new[0]) * (displacement[2] + X_new[2] - X_com_new[2]);
+                    Inertia_new(1, 1) += std::pow(displacement[0] + X_new[0] - X_com_new[0], 2) + std::pow(displacement[2] + X_new[2] - X_com_new[2], 2);
+                    Inertia_new(1, 2) += -(displacement[1] + X_new[1] - X_com_new[1]) * (displacement[2] + X_new[2] - X_com_new[2]);
+                    Inertia_new(2, 2) += std::pow(displacement[0] + X_new[0] - X_com_new[0], 2) + std::pow(displacement[1] + X_new[1] - X_com_new[1], 2);
 #endif
                 }
             }
@@ -1096,10 +1103,12 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
         const StructureParameters& struct_param = d_ib_kinematics[struct_no]->getStructureParameters();
         if (struct_param.getStructureIsSelfRotating())
         {
-            IBTK_MPI::sumReduction(&d_moment_of_inertia_current[struct_no](0, 0), 9);
-            IBTK_MPI::sumReduction(&d_moment_of_inertia_new[struct_no](0, 0), 9);
+            SAMRAI_MPI::sumReduction(&d_moment_of_inertia_current[struct_no](0, 0), 9);
+            SAMRAI_MPI::sumReduction(&d_moment_of_inertia_new[struct_no](0, 0), 9);
         }
     }
+
+
 
     // Fill-in symmetric part of inertia tensor.
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
@@ -1114,19 +1123,21 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
     }
 
     // write the COM and MOI to the output file
-    if (!IBTK_MPI::getRank() && d_print_output && d_output_COM_coordinates &&
+    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_COM_coordinates &&
         (d_timestep_counter % d_output_interval) == 0 && !MathUtilities<double>::equalEps(d_FuRMoRP_current_time, 0.0))
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
             *d_position_COM_stream[struct_no]
                 << d_FuRMoRP_current_time << '\t' << d_center_of_mass_current[struct_no][0] << '\t'
-                << d_center_of_mass_current[struct_no][1] << '\t' << d_center_of_mass_current[struct_no][2]
+                << d_center_of_mass_current[struct_no][1] << '\t' << d_center_of_mass_current[struct_no][2] << '\t'
+                << d_center_of_mass_unshifted_current[struct_no][0] << '\t'
+                << d_center_of_mass_unshifted_current[struct_no][1] << '\t' << d_center_of_mass_unshifted_current[struct_no][2]
                 << std::endl;
         }
     }
 
-    if (!IBTK_MPI::getRank() && d_print_output && d_output_MOI && (d_timestep_counter % d_output_interval) == 0 &&
+    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_MOI && (d_timestep_counter % d_output_interval) == 0 &&
         !MathUtilities<double>::equalEps(d_FuRMoRP_current_time, 0.0))
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
@@ -1148,6 +1159,8 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
 void
 ConstraintIBMethod::calculateKinematicsVelocity()
 {
+    //printf("HONG: calculateKinematicsVelocity\n");
+
     using StructureParameters = ConstraintIBKinematics::StructureParameters;
     const double dt = d_FuRMoRP_new_time - d_FuRMoRP_current_time;
     // Theta_new = Theta_old + Omega_old*dt
@@ -1178,8 +1191,8 @@ ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_han
     using StructureParameters = ConstraintIBKinematics::StructureParameters;
     Pointer<ConstraintIBKinematics> ptr_ib_kinematics = d_ib_kinematics[position_handle];
     const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
-    tbox::Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
-    tbox::Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
+    Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
+    Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
     const int coarsest_ln = struct_param.getCoarsestLevelNumber();
     const int finest_ln = struct_param.getFinestLevelNumber();
     const std::vector<std::pair<int, int> >& range = struct_param.getLagIdxRange();
@@ -1221,7 +1234,7 @@ ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_han
             d_vel_com_def_new[position_handle][d] += U_com_def[d];
         }
     }
-    IBTK_MPI::sumReduction(d_vel_com_def_new[position_handle].data(), d_vel_com_def_new[position_handle].size());
+    SAMRAI_MPI::sumReduction(d_vel_com_def_new[position_handle].data(), d_vel_com_def_new[position_handle].size());
 
     for (int d = 0; d < 3; ++d)
     {
@@ -1271,17 +1284,18 @@ ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_han
                 {
                     const int local_idx = node_idx->getLocalPETScIndex();
                     const double* const X = &X_data[local_idx][0];
+                    const Vector &displacement = node_idx->getPeriodicDisplacement(); // HONG ADDED
 #if (NDIM == 2)
-                    double x = X[0] - d_center_of_mass_new[position_handle][0];
-                    double y = X[1] - d_center_of_mass_new[position_handle][1];
+                    double x = displacement[0] + X[0] - d_center_of_mass_unshifted_new[position_handle][0];
+                    double y = displacement[1] + X[1] - d_center_of_mass_unshifted_new[position_handle][1];
                     R_cross_U_def[2] += (x * (def_vel[1][lag_idx - offset]) - y * (def_vel[0][lag_idx - offset]));
 
 #endif
 
 #if (NDIM == 3)
-                    double x = X[0] - d_center_of_mass_new[position_handle][0];
-                    double y = X[1] - d_center_of_mass_new[position_handle][1];
-                    double z = X[2] - d_center_of_mass_new[position_handle][2];
+                    double x = displacement[0] + X[0] - d_center_of_mass_unshifted_new[position_handle][0];
+                    double y = displacement[1] + X[1] - d_center_of_mass_unshifted_new[position_handle][1];
+                    double z = displacement[2] + X[2] - d_center_of_mass_unshifted_new[position_handle][2];
 
                     R_cross_U_def[0] += (y * (def_vel[2][lag_idx - offset]) - z * (def_vel[1][lag_idx - offset]));
 
@@ -1297,7 +1311,7 @@ ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_han
             }
             ptr_x_lag_data->restoreArrays();
         } // all levels
-        IBTK_MPI::sumReduction(&d_omega_com_def_new[position_handle][0], 3);
+        SAMRAI_MPI::sumReduction(&d_omega_com_def_new[position_handle][0], 3);
 
 // Find angular velocity of deformational velocity.
 #if (NDIM == 2)
@@ -1414,7 +1428,7 @@ ConstraintIBMethod::calculateVolumeElement()
         }     // all structs
         d_l_data_manager->getLData("X", ln)->restoreArrays();
     } // all levels
-    IBTK_MPI::sumReduction(&d_structure_vol[0], d_no_structures);
+    SAMRAI_MPI::sumReduction(&d_structure_vol[0], d_no_structures);
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
@@ -1464,6 +1478,7 @@ ConstraintIBMethod::calculateVolumeElement()
 void
 ConstraintIBMethod::calculateRigidTranslationalMomentum()
 {
+    //printf(" HONG: calculateRigidTranslationalMomentum\n");
     // Zero out new rigid momentum.
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
@@ -1524,8 +1539,8 @@ ConstraintIBMethod::calculateRigidTranslationalMomentum()
         const StructureParameters& struct_param = d_ib_kinematics[struct_no]->getStructureParameters();
         if (struct_param.getStructureIsSelfTranslating())
         {
-            IBTK_MPI::sumReduction(d_rigid_trans_vel_new[struct_no].data(), d_rigid_trans_vel_new[struct_no].size());
-            tbox::Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
+            SAMRAI_MPI::sumReduction(d_rigid_trans_vel_new[struct_no].data(), d_rigid_trans_vel_new[struct_no].size());
+            Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
             for (int d = 0; d < NDIM; ++d)
             {
                 if (calculate_trans_mom[d])
@@ -1536,7 +1551,7 @@ ConstraintIBMethod::calculateRigidTranslationalMomentum()
         }
     }
 
-    if (!IBTK_MPI::getRank() && d_print_output && d_output_trans_vel && (d_timestep_counter % d_output_interval) == 0)
+    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_trans_vel && (d_timestep_counter % d_output_interval) == 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -1601,16 +1616,17 @@ ConstraintIBMethod::calculateRigidRotationalMomentum()
                     const int local_idx = node_idx->getLocalPETScIndex();
                     const double* const U = &U_interp_data[local_idx][0];
                     const double* const X = &X_data[local_idx][0];
+                    const Vector &displacement = node_idx->getPeriodicDisplacement(); // HONG ADDED
 #if (NDIM == 2)
-                    const double x = X[0] - d_center_of_mass_new[location_struct_handle][0];
-                    const double y = X[1] - d_center_of_mass_new[location_struct_handle][1];
+                    const double x = displacement[0] + X[0] - d_center_of_mass_unshifted_new[location_struct_handle][0];
+                    const double y = displacement[1] + X[1] - d_center_of_mass_unshifted_new[location_struct_handle][1];
                     Omega_rigid[2] += x * U[1] - y * U[0];
 #endif
 
 #if (NDIM == 3)
-                    const double x = X[0] - d_center_of_mass_new[location_struct_handle][0];
-                    const double y = X[1] - d_center_of_mass_new[location_struct_handle][1];
-                    const double z = X[2] - d_center_of_mass_new[location_struct_handle][2];
+                    const double x = displacement[0] + X[0] - d_center_of_mass_unshifted_new[location_struct_handle][0];
+                    const double y = displacement[1] + X[1] - d_center_of_mass_unshifted_new[location_struct_handle][1];
+                    const double z = displacement[2] + X[2] - d_center_of_mass_unshifted_new[location_struct_handle][2];
                     Omega_rigid[0] += y * U[2] - z * U[1];
                     Omega_rigid[1] += -x * U[2] + z * U[0];
                     Omega_rigid[2] += x * U[1] - y * U[0];
@@ -1628,14 +1644,14 @@ ConstraintIBMethod::calculateRigidRotationalMomentum()
         const StructureParameters& struct_param = d_ib_kinematics[struct_no]->getStructureParameters();
         if (struct_param.getStructureIsSelfRotating())
         {
-            IBTK_MPI::sumReduction(&d_rigid_rot_vel_new[struct_no][0], 3);
+            SAMRAI_MPI::sumReduction(&d_rigid_rot_vel_new[struct_no][0], 3);
 #if (NDIM == 2)
             d_rigid_rot_vel_new[struct_no][2] /= d_moment_of_inertia_new[struct_no](2, 2);
 #endif
 
 #if (NDIM == 3)
             solveSystemOfEqns(d_rigid_rot_vel_new[struct_no], d_moment_of_inertia_new[struct_no]);
-            tbox::Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
+            Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
             for (int d = 0; d < NDIM; ++d)
             {
                 if (!calculate_rot_mom[d]) d_rigid_rot_vel_new[struct_no][d] = 0.0;
@@ -1644,7 +1660,7 @@ ConstraintIBMethod::calculateRigidRotationalMomentum()
         }
     }
 
-    if (!IBTK_MPI::getRank() && d_print_output && d_output_rot_vel && (d_timestep_counter % d_output_interval) == 0)
+    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_rot_vel && (d_timestep_counter % d_output_interval) == 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -1664,6 +1680,8 @@ ConstraintIBMethod::calculateRigidRotationalMomentum()
 void
 ConstraintIBMethod::calculateCurrentLagrangianVelocity()
 {
+    //printf(" HONG: calculateCurrentLagrangianVelocity\n");
+
     using StructureParameters = ConstraintIBKinematics::StructureParameters;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1723,11 +1741,12 @@ ConstraintIBMethod::calculateCurrentLagrangianVelocity()
                     }
 
                     // Rotational velocity
+                    const Vector &displacement = node_idx->getPeriodicDisplacement(); // HONG ADDED
                     if (struct_param.getStructureIsSelfRotating())
                     {
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            R[d] = X[d] - d_center_of_mass_current[location_struct_handle][d];
+                            R[d] = displacement[d] + X[d] - d_center_of_mass_unshifted_current[location_struct_handle][d];
                         }
 
                         WxR[0] = R[2] * (d_rigid_rot_vel_current[location_struct_handle][1] -
@@ -1764,6 +1783,8 @@ ConstraintIBMethod::calculateCurrentLagrangianVelocity()
 void
 ConstraintIBMethod::correctVelocityOnLagrangianMesh()
 {
+    //printf(" HONG correctVelocityOnLagrangianMesh\n");
+
     using StructureParameters = ConstraintIBKinematics::StructureParameters;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1826,11 +1847,12 @@ ConstraintIBMethod::correctVelocityOnLagrangianMesh()
                     }
 
                     // Rotational velocity
+                    const Vector &displacement = node_idx->getPeriodicDisplacement(); // HONG ADDED
                     if (struct_param.getStructureIsSelfRotating())
                     {
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            R[d] = X[d] - d_center_of_mass_new[location_struct_handle][d];
+                            R[d] = displacement[d] + X[d] - d_center_of_mass_unshifted_new[location_struct_handle][d];
                         }
                         WxR[0] = R[2] * (d_rigid_rot_vel_new[location_struct_handle][1] -
                                          d_omega_com_def_new[location_struct_handle][1]) -
@@ -2470,8 +2492,8 @@ ConstraintIBMethod::calculateDrag()
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        IBTK_MPI::sumReduction(&inertia_force[struct_no][0], 3);
-        IBTK_MPI::sumReduction(&constraint_force[struct_no][0], 3);
+        SAMRAI_MPI::sumReduction(&inertia_force[struct_no][0], 3);
+        SAMRAI_MPI::sumReduction(&constraint_force[struct_no][0], 3);
         for (int d = 0; d < NDIM; ++d)
         {
             inertia_force[struct_no][d] *= (d_rho_solid[struct_no] / dt) * d_vol_element[struct_no];
@@ -2479,7 +2501,7 @@ ConstraintIBMethod::calculateDrag()
         }
     }
 
-    if (!IBTK_MPI::getRank() && d_print_output && d_output_drag && (d_timestep_counter % d_output_interval) == 0)
+    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_drag && (d_timestep_counter % d_output_interval) == 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -2539,18 +2561,19 @@ ConstraintIBMethod::calculateTorque()
                     const double* const U_current = &U_current_data[local_idx][0];
                     const double* const U_correction = &U_correction_data[local_idx][0];
                     const double* const X = &X_data[local_idx][0];
+                    const Vector &displacement = node_idx->getPeriodicDisplacement(); // HONG ADDED
 #if (NDIM == 2)
-                    double x = X[0] - d_center_of_mass_new[location_struct_handle][0];
-                    double y = X[1] - d_center_of_mass_new[location_struct_handle][1];
+                    double x = displacement[0] + X[0] - d_center_of_mass_unshifted_new[location_struct_handle][0];
+                    double y = displacement[1] + X[1] - d_center_of_mass_unshifted_new[location_struct_handle][1];
 
                     R_cross_U_inertia[2] = (x * (U_new[1] - U_current[1]) - y * (U_new[0] - U_current[0]));
                     R_cross_U_constraint[2] = (x * (U_correction[1]) - y * (U_correction[0]));
 #endif
 
 #if (NDIM == 3)
-                    double x = X[0] - d_center_of_mass_new[location_struct_handle][0];
-                    double y = X[1] - d_center_of_mass_new[location_struct_handle][1];
-                    double z = X[2] - d_center_of_mass_new[location_struct_handle][2];
+                    double x = displacement[0] + X[0] - d_center_of_mass_unshifted_new[location_struct_handle][0];
+                    double y = displacement[1] + X[1] - d_center_of_mass_unshifted_new[location_struct_handle][1];
+                    double z = displacement[2] + X[2] - d_center_of_mass_unshifted_new[location_struct_handle][2];
 
                     R_cross_U_inertia[0] = (y * (U_new[2] - U_current[2]) - z * (U_new[1] - U_current[1]));
 
@@ -2580,8 +2603,8 @@ ConstraintIBMethod::calculateTorque()
     }
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        IBTK_MPI::sumReduction(&inertia_torque[struct_no][0], 3);
-        IBTK_MPI::sumReduction(&constraint_torque[struct_no][0], 3);
+        SAMRAI_MPI::sumReduction(&inertia_torque[struct_no][0], 3);
+        SAMRAI_MPI::sumReduction(&constraint_torque[struct_no][0], 3);
         for (int d = 0; d < 3; ++d)
         {
             inertia_torque[struct_no][d] *= (d_rho_solid[struct_no] / dt) * d_vol_element[struct_no];
@@ -2589,7 +2612,7 @@ ConstraintIBMethod::calculateTorque()
         }
     }
 
-    if (!IBTK_MPI::getRank() && d_print_output && d_output_torque && (d_timestep_counter % d_output_interval) == 0)
+    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_torque && (d_timestep_counter % d_output_interval) == 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -2662,8 +2685,8 @@ ConstraintIBMethod::calculatePower()
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        IBTK_MPI::sumReduction(&inertia_power[struct_no][0], 3);
-        IBTK_MPI::sumReduction(&constraint_power[struct_no][0], 3);
+        SAMRAI_MPI::sumReduction(&inertia_power[struct_no][0], 3);
+        SAMRAI_MPI::sumReduction(&constraint_power[struct_no][0], 3);
         for (int d = 0; d < NDIM; ++d)
         {
             inertia_power[struct_no][d] *= (d_rho_solid[struct_no] / dt) * d_vol_element[struct_no];
@@ -2671,7 +2694,7 @@ ConstraintIBMethod::calculatePower()
         }
     }
 
-    if (!IBTK_MPI::getRank() && d_print_output && d_output_drag && (d_timestep_counter % d_output_interval) == 0)
+    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_drag && (d_timestep_counter % d_output_interval) == 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -2732,7 +2755,7 @@ ConstraintIBMethod::calculateStructureMomentum()
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        IBTK_MPI::sumReduction(&d_structure_mom[struct_no][0], 3);
+        SAMRAI_MPI::sumReduction(&d_structure_mom[struct_no][0], 3);
         for (int d = 0; d < NDIM; ++d)
         {
             d_structure_mom[struct_no][d] *= d_rho_solid[struct_no] * d_vol_element[struct_no];
@@ -2781,16 +2804,17 @@ ConstraintIBMethod::calculateStructureRotationalMomentum()
                     const int local_idx = node_idx->getLocalPETScIndex();
                     const double* const U_new = &U_new_data[local_idx][0];
                     const double* const X = &X_data[local_idx][0];
+                    const Vector &displacement = node_idx->getPeriodicDisplacement(); // HONG ADDED
 #if (NDIM == 2)
-                    double x = X[0] - d_center_of_mass_new[location_struct_handle][0];
-                    double y = X[1] - d_center_of_mass_new[location_struct_handle][1];
+                    double x = displacement[0] + X[0] - d_center_of_mass_unshifted_new[location_struct_handle][0];
+                    double y = displacement[1] + X[1] - d_center_of_mass_unshifted_new[location_struct_handle][1];
                     R_cross_U[2] = (x * (U_new[1]) - y * (U_new[0]));
 #endif
 
 #if (NDIM == 3)
-                    double x = X[0] - d_center_of_mass_new[location_struct_handle][0];
-                    double y = X[1] - d_center_of_mass_new[location_struct_handle][1];
-                    double z = X[2] - d_center_of_mass_new[location_struct_handle][2];
+                    double x = displacement[0] + X[0] - d_center_of_mass_unshifted_new[location_struct_handle][0];
+                    double y = displacement[1] + X[1] - d_center_of_mass_unshifted_new[location_struct_handle][1];
+                    double z = displacement[2] + X[2] - d_center_of_mass_unshifted_new[location_struct_handle][2];
 
                     R_cross_U[0] = (y * (U_new[2]) - z * (U_new[1]));
 
@@ -2811,7 +2835,7 @@ ConstraintIBMethod::calculateStructureRotationalMomentum()
     }
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        IBTK_MPI::sumReduction(&d_structure_rotational_mom[struct_no][0], 3);
+        SAMRAI_MPI::sumReduction(&d_structure_rotational_mom[struct_no][0], 3);
         for (int d = 0; d < 3; ++d)
         {
             d_structure_rotational_mom[struct_no][d] *= d_rho_solid[struct_no] * d_vol_element[struct_no];
