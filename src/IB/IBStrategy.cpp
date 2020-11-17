@@ -140,6 +140,13 @@ IBStrategy::getLagrangianStructureIsActivated(int /*structure_number*/, int /*le
     return true;
 } // activateLagrangianStructure
 
+double
+IBStrategy::getMaxPointDisplacement() const
+{
+    TBOX_ERROR("IBStrategy::getMaxPointDisplacement(): unimplemented\n");
+    return std::numeric_limits<double>::max();
+} // getMaxPointDisplacement
+
 void
 IBStrategy::preprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
 {

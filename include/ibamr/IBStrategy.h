@@ -226,6 +226,22 @@ public:
                                                    int level_number = std::numeric_limits<int>::max()) const;
 
     /*!
+     * Get the ratio of the maximum point displacement of all the structures
+     * owned by the current class to the cell width of the grid level on which
+     * the structure is assigned. This value is useful for determining if the
+     * Eulerian patch hierarchy needs to be regridded.
+     *
+     * @note The process of regridding is distinct, for some IBStrategy objects
+     * (like IBFEMethod), from forming (or reforming) the association between
+     * Lagrangian structures and patches. In particular, this function computes
+     * the distance between the current position of the structure and the
+     * structure at the point of the last regrid, which may not be the same point
+     * at which we last rebuilt the structure-to-patch mappings. The reassociation
+     * check should be implemented in postprocessIntegrateData().
+     */
+    virtual double getMaxPointDisplacement() const;
+
+    /*!
      * Method to prepare to advance data from current_time to new_time.
      *
      * An empty default implementation is provided.

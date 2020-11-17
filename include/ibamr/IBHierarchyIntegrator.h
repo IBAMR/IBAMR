@@ -86,6 +86,47 @@ namespace IBAMR
  * integrator for various versions of the immersed boundary method on an AMR
  * grid hierarchy, along with basic data management for variables defined on
  * that hierarchy.
+ *
+ * <h2>Options Controlling Regridding</h2>
+ *
+ * Most IBAMR applications involve structure meshes defined on the finest level
+ * of the patch hierarchy. These structures move: in particular, they can
+ * potentially move off the finest grid level, causing the interaction routines
+ * to no longer work.
+ *
+ * This class offers two different strategies for calculating how much the
+ * structure has moved (which it then uses to specify that a regrid is
+ * required):
+ *
+ * <ol>
+ *   <li><em>Estimation based on the fluid</em>: The structure is assumed to
+ *     move at the maximum velocity of the fluid at each time step. This class
+ *     will regrid once a single fluid point has moved at least
+ *     <code>regrid_fluid_cfl_interval</code> cell widths since the last
+ *     regrid.</li>
+ *
+ *   <li><em>Estimation based on the structure</em>: The structure's
+ *     displacement is calculated directly from its position vector and that
+ *     value is used to determine the number of cell widths the structure has
+ *     moved. In this case we will regrid once a point on the structure has
+ *     moved at least <code>regrid_structure_cfl_interval</code> cell widths
+ *     since the last regrid.</li>
+ * </ol>
+ *
+ * Both <code>regrid_fluid_cfl_interval</code> and
+ * <code>regrid_structure_cfl_interval</code> can be specified in the input
+ * database. For backwards compatibility the value
+ * <code>regrid_cfl_interval</code> is equivalent to
+ * <code>regrid_fluid_cfl_interval</code>. <em>At the present time
+ * <code>regrid_structure_cfl_interval</code> is not implemented for all
+ * IBStrategy classes.</em>
+ *
+ * Alternatively, one can request that the solver (regardless of any computed
+ * displacement or velocity) regrid every time a fixed number of timesteps have
+ * occurred by specifying <code>regrid_interval</code> in the input database.
+ * <em>If either <code>regrid_structure_cfl_interval</code> or
+ * <code>regrid_fluid_cfl_interval</code> are provided in the input database
+ * then <code>regrid_interval</code> is ignored.</em>
  */
 class IBHierarchyIntegrator : public IBTK::HierarchyIntegrator
 {
@@ -299,15 +340,37 @@ protected:
      */
     SAMRAI::tbox::Pointer<INSHierarchyIntegrator> d_ins_hier_integrator;
 
+    /**
+     * The regrid CFL interval indicates the number of meshwidths a particle may
+     * move in any coordinate direction between invocations of the regridding
+     * process.
+     *
+     * @note Currently, when the CFL-based regrid interval is specified, it is
+     * always used instead of the fixed-step regrid interval.
+     */
+    double d_regrid_fluid_cfl_interval = -1.0;
+
     /*
      * The regrid CFL interval indicates the number of meshwidths a particle may
      * move in any coordinate direction between invocations of the regridding
      * process.
      *
-     * NOTE: Currently, when the CFL-based regrid interval is specified, it is
+     * @note Currently, when the CFL-based regrid interval is specified, it is
      * always used instead of the fixed-step regrid interval.
      */
-    double d_regrid_cfl_interval = 0.0, d_regrid_cfl_estimate = 0.0;
+    double d_regrid_structure_cfl_interval = -1.0;
+
+    /**
+     * Estimation on the maximum fraction of fluid cells the structure has
+     * moved based on the maximum fluid velocity.
+     */
+    double d_regrid_fluid_cfl_estimate = 0.0;
+
+    /**
+     * Estimation on the maximum fraction of fluid cells the structure has
+     * moved based on the infinity norm of the structure's displacement.
+     */
+    double d_regrid_structure_cfl_estimate = 0.0;
 
     /*
      * IB method implementation object.

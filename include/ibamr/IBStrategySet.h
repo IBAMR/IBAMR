@@ -125,6 +125,11 @@ public:
                         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) const override;
 
     /*!
+     * Same as the base class: considers all owned IBStrategy objects.
+     */
+    virtual double getMaxPointDisplacement() const override;
+
+    /*!
      * Method to prepare to advance data from current_time to new_time.
      */
     void preprocessIntegrateData(double current_time, double new_time, int num_cycles) override;

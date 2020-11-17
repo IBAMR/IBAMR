@@ -180,6 +180,7 @@ SET(CXX_SRC
   utilities/FixedSizedStream.cpp
   utilities/muParserCartGridFunction.cpp
   utilities/IBTK_MPI.cpp
+  utilities/ibtk_utilities.cpp
   utilities/FaceSynchCopyFillPattern.cpp
   utilities/CartGridFunctionSet.cpp
   utilities/EdgeDataSynchronization.cpp
