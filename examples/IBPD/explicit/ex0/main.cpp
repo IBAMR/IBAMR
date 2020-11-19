@@ -115,7 +115,7 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
            const Eigen::Map<const IBTK::Vector>& /*X0*/,
            int /*lag_idx*/)
 {
-    typedef Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> mat_type;
+    using mat_type = Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>;
     static const mat_type II = mat_type::Identity();
     mat_type e = 0.5 * (FF.transpose() + FF) - II;
     const double tr_e = e.trace();
@@ -151,8 +151,8 @@ my_force_damage_fcn(const double /*horizon*/,
     double& fail = parameters[4];
 
     // PK1 stress tensor
-    typedef IBTK::Vector vec_type;
-    typedef Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> mat_type;
+    using vec_type = IBTK::Vector;
+    using mat_type = Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>;
     mat_type PK1_mastr, PK1_slave;
     my_PK1_fcn(PK1_mastr, FF_mastr, X0_mastr, lag_mastr_node_idx);
     my_PK1_fcn(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
@@ -182,8 +182,8 @@ private:
     std::fstream d_ss_stream;
 
 public:
-    MyIBPDMethod(const std::string& object_name, Pointer<Database> input_db, bool register_for_restart = true)
-        : IBPDMethod(object_name, input_db, register_for_restart)
+    MyIBPDMethod(std::string object_name, Pointer<Database> input_db, bool register_for_restart = true)
+        : IBPDMethod(std::move(object_name), input_db, register_for_restart)
     {
         bool from_restart = RestartManager::getManager()->isFromRestart();
         if (!from_restart)
@@ -199,18 +199,15 @@ public:
 
     } // MyIBPDMethod
 
-    ~MyIBPDMethod()
-    {
-        return;
-    } // ~MyIBPDMethod
+    ~MyIBPDMethod() = default;
 
-    void preprocessIntegrateData(double current_time, double new_time, int num_cycles)
+    void preprocessIntegrateData(double current_time, double new_time, int num_cycles) override
     {
         IBPDMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
         return;
     } // preprocessIntegrateData
 
-    void postprocessIntegrateData(double current_time, double new_time, int num_cycles)
+    void postprocessIntegrateData(double current_time, double new_time, int num_cycles) override
     {
         const int struct_ln = d_hierarchy->getFinestLevelNumber();
         const int step_no = d_ib_solver->getIntegratorStep() + 1;
@@ -219,24 +216,24 @@ public:
         {
             Pointer<LData> D_LData = d_l_data_manager->getLData("damage", struct_ln);
             Vec D_petsc_vec_parallel = D_LData->getVec();
-            Vec D_lag_vec_parallel = NULL;
-            Vec D_lag_vec_seq = NULL;
+            Vec D_lag_vec_parallel = nullptr;
+            Vec D_lag_vec_seq = nullptr;
             VecDuplicate(D_petsc_vec_parallel, &D_lag_vec_parallel);
             d_l_data_manager->scatterPETScToLagrangian(D_petsc_vec_parallel, D_lag_vec_parallel, struct_ln);
             d_l_data_manager->scatterToZero(D_lag_vec_parallel, D_lag_vec_seq);
 
             Pointer<LData> X0_LData = d_l_data_manager->getLData("X0", struct_ln);
             Vec X0_petsc_vec_parallel = X0_LData->getVec();
-            Vec X0_lag_vec_parallel = NULL;
-            Vec X0_lag_vec_seq = NULL;
+            Vec X0_lag_vec_parallel = nullptr;
+            Vec X0_lag_vec_seq = nullptr;
             VecDuplicate(X0_petsc_vec_parallel, &X0_lag_vec_parallel);
             d_l_data_manager->scatterPETScToLagrangian(X0_petsc_vec_parallel, X0_lag_vec_parallel, struct_ln);
             d_l_data_manager->scatterToZero(X0_lag_vec_parallel, X0_lag_vec_seq);
 
             Pointer<LData> X_LData = d_X_new_data[struct_ln];
             Vec X_petsc_vec_parallel = X_LData->getVec();
-            Vec X_lag_vec_parallel = NULL;
-            Vec X_lag_vec_seq = NULL;
+            Vec X_lag_vec_parallel = nullptr;
+            Vec X_lag_vec_seq = nullptr;
             VecDuplicate(X_petsc_vec_parallel, &X_lag_vec_parallel);
             d_l_data_manager->scatterPETScToLagrangian(X_petsc_vec_parallel, X_lag_vec_parallel, struct_ln);
             d_l_data_manager->scatterToZero(X_lag_vec_parallel, X_lag_vec_seq);
@@ -294,7 +291,7 @@ public:
         return;
     } // postprocessIntegrateData
 
-    void forwardEulerStep(const double current_time, const double new_time)
+    void forwardEulerStep(const double current_time, const double new_time) override
     {
         const double dt = new_time - current_time;
         const int coarsest_ln = 0;
@@ -316,10 +313,9 @@ public:
 
             const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+            for (const auto& node : local_nodes)
             {
-                const LNode* const node_idx = *cit;
-                const int local_idx = node_idx->getLocalPETScIndex();
+                const int local_idx = node->getLocalPETScIndex();
 
                 const double* U_current = &U_current_data_array[local_idx][0];
                 const double* X_current = &X_current_data_array[local_idx][0];
@@ -339,7 +335,7 @@ public:
         return;
     } // forwardEulerStep
 
-    void midpointStep(const double current_time, const double new_time)
+    void midpointStep(const double current_time, const double new_time) override
     {
         static const double cn = 4e8;
 
@@ -367,11 +363,10 @@ public:
 
             const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+            for (const auto& node : local_nodes)
             {
-                const LNode* const node_idx = *cit;
-                const int lag_idx = node_idx->getLagrangianIndex();
-                const int local_idx = node_idx->getLocalPETScIndex();
+                const int lag_idx = node->getLagrangianIndex();
+                const int local_idx = node->getLocalPETScIndex();
 
                 const double* U_current = &U_current_data_array[local_idx][0];
                 double* U_new = &U_new_data_array[local_idx][0];
@@ -431,7 +426,7 @@ public:
     void spreadForce(const int /*f_data_idx*/,
                      RobinPhysBdryPatchStrategy* /*f_phys_bdry_op*/,
                      const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
-                     const double /*data_time*/)
+                     const double /*data_time*/) override
     {
         return;
     } // spreadForce
@@ -439,7 +434,7 @@ public:
     void interpolateVelocity(const int /*u_data_idx*/,
                              const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
                              const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
-                             const double /*data_time*/)
+                             const double /*data_time*/) override
     {
         return;
     } // interpolateVelocity
@@ -547,7 +542,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else

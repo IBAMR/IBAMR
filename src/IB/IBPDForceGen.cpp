@@ -80,9 +80,8 @@ resetLocalOrNonlocalPETScIndices(std::vector<int>& inds,
                                  const int num_local_nodes,
                                  const std::vector<int>& nonlocal_petsc_idxs)
 {
-    for (std::vector<int>::iterator it = inds.begin(); it != inds.end(); ++it)
+    for (auto& idx : inds)
     {
-        int& idx = *it;
         if (idx >= global_node_offset && idx < global_node_offset + num_local_nodes)
         {
             // A local node.
@@ -100,7 +99,7 @@ resetLocalOrNonlocalPETScIndices(std::vector<int>& inds,
 #endif
             // Second, set the local index via the offset of the ghost node
             // index within the set of ghost nodes.
-            const int offset = static_cast<int>(std::distance(nonlocal_petsc_idxs.begin(), posn));
+            const auto offset = static_cast<int>(std::distance(nonlocal_petsc_idxs.begin(), posn));
             idx = num_local_nodes + offset;
         }
     }
@@ -165,7 +164,7 @@ default_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
                 const Eigen::Map<const IBTK::Vector>& /*X0*/,
                 int /*lag_idx*/)
 {
-    typedef Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> mat_type;
+    using mat_type = Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>;
     static const mat_type II = mat_type::Identity();
     mat_type E = 0.5 * (FF.transpose() * FF - II);
     const double trE = E.trace();
@@ -211,8 +210,8 @@ default_force_damage_fcn(const double /*horizon*/,
     }
 
     // PK1 stress tensor
-    typedef IBTK::Vector vec_type;
-    typedef Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> mat_type;
+    using vec_type = IBTK::Vector;
+    using mat_type = Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>;
     mat_type PK1_mastr, PK1_slave;
     default_PK1_fcn(PK1_mastr, FF_mastr, X0_mastr, lag_mastr_node_idx);
     default_PK1_fcn(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
@@ -253,7 +252,7 @@ double IBPDForceGen::s_lame_1 = 1.0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBPDForceGen::IBPDForceGen(Pointer<Database> input_db) : d_horizon(3.0), d_ds(1.0), d_use_mean_disp(false)
+IBPDForceGen::IBPDForceGen(Pointer<Database> input_db)
 {
     // Get values from input database.
     if (input_db)
@@ -279,12 +278,6 @@ IBPDForceGen::IBPDForceGen(Pointer<Database> input_db) : d_horizon(3.0), d_ds(1.
 
     return;
 } // IBStandardForceGen
-
-IBPDForceGen::~IBPDForceGen()
-{
-    // intentionally blank
-    return;
-} // ~IBPDForceGen
 
 void
 IBPDForceGen::registerBondForceSpecificationFunction(int force_fcn_index,
@@ -331,15 +324,15 @@ IBPDForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hierarchy
 
     d_bond_data.resize(new_size);
     d_target_point_data.resize(new_size);
-    d_X0_ghost_data.resize(new_size, Pointer<LData>(NULL));
-    d_X_ghost_data.resize(new_size, Pointer<LData>(NULL));
-    d_X_mean_ghost_data.resize(new_size, Pointer<LData>(NULL));
-    d_F_ghost_data.resize(new_size, Pointer<LData>(NULL));
-    d_N_ghost_data.resize(new_size, Pointer<LData>(NULL));
-    d_dmg_ghost_data.resize(new_size, Pointer<LData>(NULL));
-    d_B_ghost_data.resize(new_size, Pointer<LData>(NULL));
-    d_FF_ghost_data.resize(new_size, Pointer<LData>(NULL));
-    d_dX_data.resize(new_size, Pointer<LData>(NULL));
+    d_X0_ghost_data.resize(new_size, Pointer<LData>(nullptr));
+    d_X_ghost_data.resize(new_size, Pointer<LData>(nullptr));
+    d_X_mean_ghost_data.resize(new_size, Pointer<LData>(nullptr));
+    d_F_ghost_data.resize(new_size, Pointer<LData>(nullptr));
+    d_N_ghost_data.resize(new_size, Pointer<LData>(nullptr));
+    d_dmg_ghost_data.resize(new_size, Pointer<LData>(nullptr));
+    d_B_ghost_data.resize(new_size, Pointer<LData>(nullptr));
+    d_FF_ghost_data.resize(new_size, Pointer<LData>(nullptr));
+    d_dX_data.resize(new_size, Pointer<LData>(nullptr));
     d_is_initialized.resize(new_size, false);
 
     // Keep track of all of the nonlocal PETSc indices required to compute the
@@ -531,10 +524,9 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
 
         boost::multi_array_ref<double, 1>& N_ghost_data_array = *N_ghost_data->getLocalFormArray();
         boost::multi_array_ref<double, 2>& X_mean_ghost_data_array = *X_mean_ghost_data->getLocalFormVecArray();
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (const auto& node : local_nodes)
         {
-            const LNode* const node_idx = *cit;
-            const int local_idx = node_idx->getLocalPETScIndex();
+            const int local_idx = node->getLocalPETScIndex();
             double* X_mean = &X_mean_ghost_data_array[local_idx][0];
             double* N = &N_ghost_data_array[local_idx];
 
@@ -559,11 +551,10 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
     IBTK_CHKERRQ(ierr);
 
     boost::multi_array_ref<double, 2>& B_ghost_data_array = *B_ghost_data->getLocalFormVecArray();
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (const auto& node : local_nodes)
     {
-        const LNode* const node_idx = *cit;
-        const int lag_idx = node_idx->getLagrangianIndex();
-        const int local_idx = node_idx->getLocalPETScIndex();
+        const int lag_idx = node->getLagrangianIndex();
+        const int local_idx = node->getLocalPETScIndex();
         double* B = &B_ghost_data_array[local_idx][0];
         Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B(B);
 
@@ -621,10 +612,9 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
     {
         boost::multi_array_ref<double, 2>& FF_ghost_data_array = *FF_ghost_data->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& B_ghost_data_array = *B_ghost_data->getLocalFormVecArray();
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (const auto& node : local_nodes)
         {
-            const LNode* const node_idx = *cit;
-            const int local_idx = node_idx->getLocalPETScIndex();
+            const int local_idx = node->getLocalPETScIndex();
             const double* B = &B_ghost_data_array[local_idx][0];
             double* FF = &FF_ghost_data_array[local_idx][0];
             Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B(B);
@@ -665,10 +655,9 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
     // Compute the damage factor.
     boost::multi_array_ref<double, 1>& D_data_array = *D_data->getLocalFormArray();
     boost::multi_array_ref<double, 2>& D_ghost_data_array = *D_ghost_data->getLocalFormVecArray();
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (const auto& node : local_nodes)
     {
-        const LNode* const node_idx = *cit;
-        const int local_idx = node_idx->getLocalPETScIndex();
+        const int local_idx = node->getLocalPETScIndex();
         double* D_ghost = &D_ghost_data_array[local_idx][0];
         double* D = &D_data_array[local_idx];
 
@@ -693,7 +682,7 @@ IBPDForceGen::computeMeanPosition(Pointer<LData> X_mean_data,
                                   double /*data_time*/,
                                   IBTK::LDataManager* /*l_data_manager*/)
 {
-    const int num_bonds = static_cast<int>(d_bond_data[level_number].lag_mastr_node_idxs.size());
+    const auto num_bonds = static_cast<int>(d_bond_data[level_number].lag_mastr_node_idxs.size());
     if (num_bonds == 0) return;
 
     const int* const petsc_mastr_node_idxs = &d_bond_data[level_number].petsc_mastr_node_idxs[0];
@@ -780,7 +769,7 @@ IBPDForceGen::computeShapeTensor(Pointer<LData> B_data,
                                  double /*data_time*/,
                                  LDataManager* /*l_data_manager*/)
 {
-    const int num_bonds = static_cast<int>(d_bond_data[level_number].lag_mastr_node_idxs.size());
+    const auto num_bonds = static_cast<int>(d_bond_data[level_number].lag_mastr_node_idxs.size());
     if (num_bonds == 0) return;
 
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -898,7 +887,7 @@ IBPDForceGen::computeDeformationGradientTensor(Pointer<LData> FF_data,
                                                double /*data_time*/,
                                                LDataManager* /*l_data_manager*/)
 {
-    const int num_bonds = static_cast<int>(d_bond_data[level_number].lag_mastr_node_idxs.size());
+    const auto num_bonds = static_cast<int>(d_bond_data[level_number].lag_mastr_node_idxs.size());
     if (num_bonds == 0) return;
 
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -1046,14 +1035,13 @@ IBPDForceGen::initializeBondLevelData(std::set<int>& nonlocal_petsc_idx_set,
     // The LMesh object provides the set of local Lagrangian nodes.
     const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    const int num_local_nodes = static_cast<int>(local_nodes.size());
+    const auto num_local_nodes = static_cast<int>(local_nodes.size());
 
     // Determine how many bonds are associated with the present MPI process.
     unsigned int num_bonds = 0;
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (const auto& node : local_nodes)
     {
-        const LNode* const node_idx = *cit;
-        const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
+        const IBSpringForceSpec* const force_spec = node->getNodeDataItem<IBSpringForceSpec>();
         if (force_spec) num_bonds += force_spec->getNumberOfSprings();
     }
 
@@ -1072,17 +1060,16 @@ IBPDForceGen::initializeBondLevelData(std::set<int>& nonlocal_petsc_idx_set,
 
     // Setup the data structures used to compute bond forces.
     int current_bond = 0;
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (const auto& node : local_nodes)
     {
-        const LNode* const node_idx = *cit;
-        IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
+        IBSpringForceSpec* const force_spec = node->getNodeDataItem<IBSpringForceSpec>();
         if (!force_spec) continue;
 
-        const int lag_idx = node_idx->getLagrangianIndex();
+        const int lag_idx = node->getLagrangianIndex();
 #if !defined(NDEBUG)
         TBOX_ASSERT(lag_idx == force_spec->getMasterNodeIndex());
 #endif
-        const int petsc_idx = node_idx->getGlobalPETScIndex();
+        const int petsc_idx = node->getGlobalPETScIndex();
         const std::vector<int>& slv = force_spec->getSlaveNodeIndices();
         const std::vector<int>& fcn = force_spec->getForceFunctionIndices();
         std::vector<std::vector<double> >& params = force_spec->getParameters();
@@ -1100,7 +1087,7 @@ IBPDForceGen::initializeBondLevelData(std::set<int>& nonlocal_petsc_idx_set,
             force_PK1_fcns[current_bond] = d_bond_PK1_fcn_map[fcn[k]];
             force_inf_fcns[current_bond] = d_bond_inf_fcn_map[fcn[k]];
             force_vol_frac_fcns[current_bond] = d_bond_vol_frac_fcn_map[fcn[k]];
-            parameters[current_bond] = params.empty() ? NULL : &params[k][0];
+            parameters[current_bond] = params.empty() ? nullptr : &params[k][0];
             ++current_bond;
         }
     }
@@ -1142,7 +1129,7 @@ IBPDForceGen::computeLagrangianBondForceAndDamage(Pointer<LData> F_data,
                                                   const double /*data_time*/,
                                                   LDataManager* const /*l_data_manager*/)
 {
-    const int num_bonds = static_cast<int>(d_bond_data[level_number].lag_mastr_node_idxs.size());
+    const auto num_bonds = static_cast<int>(d_bond_data[level_number].lag_mastr_node_idxs.size());
     if (num_bonds == 0) return;
 
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
@@ -1356,10 +1343,9 @@ IBPDForceGen::initializeTargetPointLevelData(std::set<int>& /*nonlocal_petsc_idx
     // Determine how many target points are associated with the present MPI
     // process.
     unsigned int num_target_points = 0;
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (const auto& node : local_nodes)
     {
-        const LNode* const node_idx = *cit;
-        const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
+        const IBTargetPointForceSpec* const force_spec = node->getNodeDataItem<IBTargetPointForceSpec>();
         if (force_spec) num_target_points += 1;
     }
 
@@ -1373,13 +1359,12 @@ IBPDForceGen::initializeTargetPointLevelData(std::set<int>& /*nonlocal_petsc_idx
 
     // Setup the data structures used to compute target point forces.
     int current_target_point = 0;
-    for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+    for (const auto& node : local_nodes)
     {
-        const LNode* const node_idx = *cit;
-        const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
+        const IBTargetPointForceSpec* const force_spec = node->getNodeDataItem<IBTargetPointForceSpec>();
         if (!force_spec) continue;
         petsc_global_node_idxs[current_target_point] = petsc_node_idxs[current_target_point] =
-            node_idx->getGlobalPETScIndex();
+            node->getGlobalPETScIndex();
         kappa[current_target_point] = &force_spec->getStiffness();
         eta[current_target_point] = &force_spec->getDamping();
         X0[current_target_point] = &force_spec->getTargetPointPosition();
@@ -1398,7 +1383,7 @@ IBPDForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
                                                 const double /*data_time*/,
                                                 LDataManager* const /*l_data_manager*/)
 {
-    const int num_target_points = static_cast<int>(d_target_point_data[level_number].petsc_node_idxs.size());
+    const auto num_target_points = static_cast<int>(d_target_point_data[level_number].petsc_node_idxs.size());
     if (num_target_points == 0) return;
     const int* const petsc_node_idxs = &d_target_point_data[level_number].petsc_node_idxs[0];
     const int* const petsc_global_node_idxs = &d_target_point_data[level_number].petsc_global_node_idxs[0];

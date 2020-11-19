@@ -51,9 +51,19 @@ public:
     IBPDForceGen(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
+     * \brief Deleted copy constructor.
+     */
+    IBPDForceGen(const IBPDForceGen& from) = delete;
+
+    /*!
+     * \brief Deleted assignment operator.
+     */
+    IBPDForceGen& operator=(const IBPDForceGen& that) = delete;
+
+    /*!
      * \brief Destructor.
      */
-    ~IBPDForceGen();
+    ~IBPDForceGen() = default;
 
     /*!
      * \brief Lame parameters for default PK1 function.
@@ -63,7 +73,7 @@ public:
     /*!
      * \brief Function pointer to compute state based bond forces.
      */
-    typedef Eigen::Vector4d (*BondForceDamageFcnPtr)(
+    using BondForceDamageFcnPtr = std::function<Eigen::Vector4d(
         const double horizon,
         const double delta,
         const double W,
@@ -80,19 +90,19 @@ public:
         Eigen::Map<IBTK::Vector>& F_mastr,
         Eigen::Map<IBTK::Vector>& F_slave,
         int lag_mastr_node_idx,
-        int lag_slave_node_idx);
+        int lag_slave_node_idx)>;
 
     /*!
      * \brief Function pointer to compute influence of slave idx of a bond based upon
      * its distance from master idx.
      */
-    typedef double (*BondInfluenceFcnPtr)(double R0, double delta);
+    using BondInfluenceFcnPtr = std::function<double(double R0, double delta)>;
 
     /*!
      * \brief Function pointer to compute volume fraction of slave idx of a bond
      * based upon its distance.
      */
-    typedef double (*BondVolFracFcnPtr)(double R0, double horizon, double delta);
+    using BondVolFracFcnPtr = std::function<double(double R0, double horizon, double delta)>;
 
     /*!
      * \brief Function pointer to define PK1 stress tensor.
@@ -101,22 +111,23 @@ public:
      * with Lame's parameters, 0 and 1, defined by static data memebers, s_lame_0 and
      * s_lame_1, respectively.
      */
-    typedef void (*BondPK1FcnPtr)(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
-                                  const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& FF,
-                                  const Eigen::Map<const IBTK::Vector>& X0,
-                                  int lag_idx);
+    using BondPK1FcnPtr =
+        std::function<void(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
+                           const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& FF,
+                           const Eigen::Map<const IBTK::Vector>& X0,
+                           int lag_idx)>;
 
     /*!
      * \brief Function pointer to define (extra) stress on Target points.
      *
      */
-    typedef void (*TargetPointForceFcnPtr)(const Eigen::Map<const IBTK::Vector>& X,
-                                           const Eigen::Map<const IBTK::Vector>& X_target,
-                                           const Eigen::Map<const IBTK::Vector>& U,
-                                           double K,
-                                           double E,
-                                           int lag_idx,
-                                           Eigen::Map<IBTK::Vector>& F);
+    using TargetPointForceFcnPtr = std::function<void(const Eigen::Map<const IBTK::Vector>& X,
+                                                      const Eigen::Map<const IBTK::Vector>& X_target,
+                                                      const Eigen::Map<const IBTK::Vector>& U,
+                                                      double K,
+                                                      double E,
+                                                      int lag_idx,
+                                                      Eigen::Map<IBTK::Vector>& F)>;
     /*!
      * \brief Register a bond force and damage, influence, volume fraction, PK1 stress
      * specification function with the force generator.
@@ -130,9 +141,9 @@ public:
      */
     void registerBondForceSpecificationFunction(int force_fcn_index,
                                                 const BondPK1FcnPtr bond_PK1_fcn_ptr,
-                                                const BondForceDamageFcnPtr bond_force_damage_fcn_ptr = NULL,
-                                                const BondInfluenceFcnPtr bond_inf_fcn_ptr = NULL,
-                                                const BondVolFracFcnPtr bond_vol_frac_fcn_ptr = NULL);
+                                                const BondForceDamageFcnPtr bond_force_damage_fcn_ptr = nullptr,
+                                                const BondInfluenceFcnPtr bond_inf_fcn_ptr = nullptr,
+                                                const BondVolFracFcnPtr bond_vol_frac_fcn_ptr = nullptr);
 
     /*!
      * \brief Register target point force function with the force generator.
@@ -149,7 +160,7 @@ public:
                              int level_number,
                              double init_data_time,
                              bool initial_time,
-                             IBTK::LDataManager* l_data_manager);
+                             IBTK::LDataManager* l_data_manager) override;
     /*!
      * \brief Compute the force generated by the Lagrangian structure on the
      * specified level of the patch hierarchy and the damage occured during bond
@@ -169,29 +180,9 @@ public:
 
 private:
     /*!
-     * \brief Copy constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     *
-     * \param from The value to copy to this object.
-     */
-    IBPDForceGen(const IBPDForceGen& from);
-
-    /*!
-     * \brief Assignment operator.
-     *
-     * \note This operator is not implemented and should not be used.
-     *
-     * \param that The value to assign to this object.
-     *
-     * \return A reference to this object.
-     */
-    IBPDForceGen& operator=(const IBPDForceGen& that);
-
-    /*!
      * \name Horizon and Lagrangian point spacing w.r.t Eulerian mesh spacing.
      */
-    double d_horizon, d_ds;
+    double d_horizon = 3.0, d_ds = 1.0;
 
     /*!
      * \name Data maintained separately for each level of the patch hierarchy.
@@ -227,7 +218,7 @@ private:
      * PD tensor routines.
      */
     //\{
-    bool d_use_mean_disp;
+    bool d_use_mean_disp = false;
 
     void computeMeanPosition(SAMRAI::tbox::Pointer<IBTK::LData> X_mean_data,
                              SAMRAI::tbox::Pointer<IBTK::LData> N_data,

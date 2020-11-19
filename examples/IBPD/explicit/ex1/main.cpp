@@ -191,8 +191,8 @@ sheet_force_damage_fcn(const double /*horizon*/,
     double& fail = parameters[4];
 
     // PK1 stress tensor
-    typedef IBTK::Vector vec_type;
-    typedef Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> mat_type;
+    using vec_type = IBTK::Vector;
+    using mat_type = Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>;
     mat_type PK1_mastr, PK1_slave;
     sheet_PK1_fcn(PK1_mastr, FF_mastr, X0_mastr, lag_mastr_node_idx);
     sheet_PK1_fcn(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
@@ -217,18 +217,15 @@ sheet_force_damage_fcn(const double /*horizon*/,
 class SheetIBPDMethod : public IBPDMethod
 {
 public:
-    SheetIBPDMethod(const std::string& object_name, Pointer<Database> input_db, bool register_for_restart = true)
-        : IBPDMethod(object_name, input_db, register_for_restart)
+    SheetIBPDMethod(std::string object_name, Pointer<Database> input_db, bool register_for_restart = true)
+        : IBPDMethod(std::move(object_name), input_db, register_for_restart)
     {
         return;
     } // SheetIBPDMethod
 
-    ~SheetIBPDMethod()
-    {
-        return;
-    } // ~SheetIBPDMethod
+    ~SheetIBPDMethod() = default;
 
-    void preprocessIntegrateData(double current_time, double new_time, int num_cycles)
+    void preprocessIntegrateData(double current_time, double new_time, int num_cycles) override
     {
         IBPDMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
 
@@ -244,10 +241,9 @@ public:
             const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+            for (const auto& node : local_nodes)
             {
-                const LNode* const node_idx = *cit;
-                const int local_idx = node_idx->getLocalPETScIndex();
+                const int local_idx = node->getLocalPETScIndex();
 
                 double* U_current = &U_current_data_array[local_idx][0];
                 U_current[2] = 0.0;
@@ -257,7 +253,7 @@ public:
         return;
     } // preprocessIntegrateData
 
-    void midpointStep(const double current_time, const double new_time)
+    void midpointStep(const double current_time, const double new_time) override
     {
         IBPDMethod::midpointStep(current_time, new_time);
 
@@ -277,10 +273,9 @@ public:
 
             const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+            for (const auto& node : local_nodes)
             {
-                const LNode* const node_idx = *cit;
-                const int local_idx = node_idx->getLocalPETScIndex();
+                const int local_idx = node->getLocalPETScIndex();
 
                 double* U_new = &U_new_data_array[local_idx][0];
                 const double* X_0 = &X_0_data_array[local_idx][0];
@@ -384,7 +379,7 @@ main(int argc, char* argv[])
         ib_force_fcn->registerBondForceSpecificationFunction(
             0, &sheet_PK1_fcn, &sheet_force_damage_fcn, &sheet_inf_fcn, &sheet_vol_frac_fcn);
         ib_method_ops->registerIBPDForceGen(ib_force_fcn);
-        ib_method_ops->registerInitialCoordinateMappingFunction(&coordTransform, NULL);
+        ib_method_ops->registerInitialCoordinateMappingFunction(&coordTransform, nullptr);
 
         // Create Eulerian initial condition specification objects.  These
         // objects also are used to specify exact solution values for error
@@ -404,7 +399,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else

@@ -53,8 +53,8 @@ static const int IB_PD_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBPDMethod::IBPDMethod(const std::string& object_name, Pointer<Database> input_db, bool register_for_restart)
-    : IBMethod(object_name, input_db, register_for_restart)
+IBPDMethod::IBPDMethod(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
+    : IBMethod(std::move(object_name), input_db, register_for_restart)
 {
     // NOTE: Parent class constructor registers class with the restart manager, sets object
     // name.
@@ -64,20 +64,8 @@ IBPDMethod::IBPDMethod(const std::string& object_name, Pointer<Database> input_d
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, from_restart);
 
-    // Indicate if initilization is needed for the objects.
-    d_ib_pd_force_fcn_needs_init = true;
-
     return;
 } // IBPDMethod
-
-IBPDMethod::~IBPDMethod()
-{
-    // intentionally blank
-    //
-    // NOTE: Parent class constructor unregisters class with the restart
-    // manager.
-    return;
-} // ~IBPDMethod
 
 void
 IBPDMethod::registerInitialCoordinateMappingFunction(CoordinateMappingFcnPtr fcn, void* ctx)
@@ -191,9 +179,9 @@ IBPDMethod::computeLagrangianForce(const double data_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> >* F_data = NULL;
-    std::vector<Pointer<LData> >* X_data = NULL;
-    std::vector<Pointer<LData> >* U_data = NULL;
+    std::vector<Pointer<LData> >* F_data = nullptr;
+    std::vector<Pointer<LData> >* X_data = nullptr;
+    std::vector<Pointer<LData> >* U_data = nullptr;
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
         d_F_current_needs_ghost_fill = true;
@@ -292,11 +280,10 @@ IBPDMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
 
         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (const auto& node : local_nodes)
         {
-            const LNode* const node_idx = *cit;
-            const int local_idx = node_idx->getLocalPETScIndex();
-            const Vector& displacement_0 = node_idx->getInitialPeriodicDisplacement();
+            const int local_idx = node->getLocalPETScIndex();
+            const Vector& displacement_0 = node->getInitialPeriodicDisplacement();
             double* const X0_unshifted = &X0_unshifted_data_array[local_idx][0];
             const double* const X0 = &X0_data_array[local_idx][0];
 
@@ -335,11 +322,10 @@ IBPDMethod::initializePDData()
         boost::multi_array_ref<double, 2>& X0_data_array = *X0_data->getLocalFormVecArray();
         boost::multi_array_ref<double, 2>& X_data_array = *X_data->getLocalFormVecArray();
 
-        for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
+        for (const auto& node : local_nodes)
         {
-            const LNode* const node_idx = *cit;
-            const int lag_idx = node_idx->getLagrangianIndex();
-            const int local_idx = node_idx->getLocalPETScIndex();
+            const int lag_idx = node->getLagrangianIndex();
+            const int local_idx = node->getLocalPETScIndex();
             const double* X0 = &X0_data_array[local_idx][0];
             double* X = &X_data_array[local_idx][0];
             Eigen::Map<const IBTK::Point> eig_X0(X0);

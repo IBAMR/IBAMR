@@ -21,8 +21,8 @@
 #include <utility>
 #include <vector>
 
-typedef std::pair<int, int> Edge;
-typedef std::pair<double, double> EdgeProp;
+using Edge = std::pair<int, int>;
+using EdgeProp = std::pair<double, double>;
 struct EdgeComp : public std::binary_function<Edge, Edge, bool>
 {
     inline bool operator()(const Edge& e1, const Edge& e2) const
@@ -172,7 +172,7 @@ main(int /*argc*/, char** /*argv*/)
             }
         }
     }
-    const int num_springs = static_cast<int>(mesh.size());
+    const auto num_springs = static_cast<int>(mesh.size());
 
     // Step 1:  Write out the vertex information
     std::fstream vertex_stream;
@@ -204,10 +204,10 @@ main(int /*argc*/, char** /*argv*/)
     const double K = 0.0;
     const int force_fcn_idx = 0;
 
-    for (std::map<Edge, EdgeProp, EdgeComp>::const_iterator it = mesh.begin(); it != mesh.end(); ++it)
+    for (const auto& edge_edge_prop_pair : mesh)
     {
-        const Edge& e = it->first;
-        const EdgeProp& prop = it->second;
+        const Edge& e = edge_edge_prop_pair.first;
+        const EdgeProp& prop = edge_edge_prop_pair.second;
 
         const int& idx_master = e.first;
         const int& idx_slave = e.second;
