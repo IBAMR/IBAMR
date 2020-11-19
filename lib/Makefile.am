@@ -80,6 +80,8 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/IBLagrangianSourceStrategy.cpp \
 ../src/IB/IBLevelSetMethod.cpp \
 ../src/IB/IBMethod.cpp \
+../src/IB/IBPDForceGen.cpp \
+../src/IB/IBPDMethod.cpp \
 ../src/IB/IBRedundantInitializer.cpp \
 ../src/IB/IBRodForceSpec.cpp \
 ../src/IB/IBRodForceSpecFactory.cpp \
@@ -250,6 +252,8 @@ pkg_include_HEADERS += \
 ../include/ibamr/IBLevelSetMethod.h \
 ../include/ibamr/IBMethod.h \
 ../include/ibamr/IBMethodPostProcessStrategy.h \
+../include/ibamr/IBPDForceGen.h \
+../include/ibamr/IBPDMethod.h \
 ../include/ibamr/IBRedundantInitializer.h \
 ../include/ibamr/IBRodForceSpec.h \
 ../include/ibamr/IBHydrodynamicSurfaceForceEvaluator.h \
