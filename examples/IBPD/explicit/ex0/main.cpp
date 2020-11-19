@@ -266,8 +266,12 @@ public:
                 {
                     const double X0_0 = X0[++counter_X0];
                     const double X0_1 = X0[++counter_X0];
+                    const double X0_2 = X0[++counter_X0];
+                    (void)X0_2;
                     const double X_0 = X[++counter_X];
                     const double X_1 = X[++counter_X];
+                    const double X_2 = X[++counter_X];
+                    (void)X_2;
                     const double dmg = D[++counter_D];
                     D_stream << X0_0 << "\t" << X0_1 << "\t" << X_0 - X0_0 << "\t" << X_1 - X0_1 << "\t" << dmg
                              << std::endl;
