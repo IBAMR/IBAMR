@@ -156,6 +156,8 @@ SET(CXX_SRC
   # This file is not yet finished
   # IB/IBFEPatchRecoveryPostProcessor.cpp
   IB/IBFEPostProcessor.cpp
+  IB/IBPDMethod.cpp
+  IB/IBPDForceGen.cpp
   IB/BrinkmanPenalizationRigidBodyDynamics.cpp
   IB/CIBMobilitySolver.cpp
   IB/IBStrategy.cpp
