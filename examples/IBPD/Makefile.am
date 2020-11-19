@@ -1,7 +1,24 @@
+## ---------------------------------------------------------------------
+##
+## Copyright (c) 2010 - 2018 by the IBAMR developers
+## All rights reserved.
+##
+## This file is part of IBAMR.
+##
+## IBAMR is free software and is distributed under the 3-clause BSD
+## license. The full text of the license can be found in the file
+## COPYRIGHT at the top level directory of IBAMR.
+##
+## ---------------------------------------------------------------------
+
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
 SUBDIRS = explicit
 
-## Standard make targets.
-examples:
-	@(cd explicit && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+COMPLETE_EXAMPLES = $(SUBDIRS)
+INCOMPLETE_EXAMPLES =
+.PHONY: examples $(COMPLETE_EXAMPLES)
+examples: $(COMPLETE_EXAMPLES)
+
+$(COMPLETE_EXAMPLES):
+	cd $@ && $(MAKE) $(AM_MAKEFLAGS) examples
