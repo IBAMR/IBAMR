@@ -341,7 +341,16 @@ FEData::getDofMapCache(unsigned int system_num)
 
     // We assume that the dofs have the same layout as long as they have the
     // same fe type and number of variables
-    std::pair<unsigned int, FEType> key(n_vars, fe_type);
+    // SR: adding support for subdomain restrcted variables
+    //     create a vector that containes the list of subdomains in which the variable is active
+    std::vector<libMesh::subdomain_id_type> variables_active_subdomains;
+    for(unsigned int var_n = 0; var_n < n_vars; ++var_n)
+    {
+    	auto active_subdomains = system.variable(var_n).active_subdomains();
+    	for(auto && as : active_subdomains) variables_active_subdomains.push_back(as);
+    }
+    DofMapCacheKeyType key = std::make_tuple(n_vars, fe_type, variables_active_subdomains);
+    //std::pair<unsigned int, FEType> key(n_vars, fe_type);
 
     std::unique_ptr<FEData::SystemDofMapCache>& dof_map_cache = d_system_dof_map_cache[key];
     if (dof_map_cache == nullptr)

@@ -55,6 +55,7 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <tuple>
 
 namespace IBTK
 {
@@ -144,11 +145,10 @@ public:
                 // We assume in a lot of other places that all variables in a
                 // system have the same finite element (i.e., dofs per element)
                 // so assert that here too
-                for (unsigned int var_n = 0; var_n < d_dof_map.n_variables(); ++var_n)
-                {
-                    TBOX_ASSERT(d_scratch_dofs[var_n].size() == d_scratch_dofs[0].size());
-                }
-
+                //for (unsigned int var_n = 0; var_n < d_dof_map.n_variables(); ++var_n)
+                //{
+                //    TBOX_ASSERT(d_scratch_dofs[var_n].size() == d_scratch_dofs[0].size());
+                //}
                 boost::multi_array<libMesh::dof_id_type, 2>::extent_gen extents;
                 elem_dof_indices.resize(extents[d_scratch_dofs.size()][d_scratch_dofs[0].size()]);
                 for (unsigned int var_n = 0; var_n < d_dof_map.n_variables(); ++var_n)
@@ -252,7 +252,8 @@ protected:
     /*!
      * Mapping between system numbers and SystemDofMapCache objects.
      */
-    std::map<std::pair<unsigned int, libMesh::FEType>, std::unique_ptr<SystemDofMapCache> > d_system_dof_map_cache;
+    typedef std::tuple<unsigned int, libMesh::FEType, std::vector<libMesh::subdomain_id_type> > DofMapCacheKeyType;
+    std::map<DofMapCacheKeyType, std::unique_ptr<SystemDofMapCache> > d_system_dof_map_cache;
 
     /**
      * Permit FEDataManager to directly examine the internals of this class.

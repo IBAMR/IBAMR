@@ -36,6 +36,10 @@
 #include "libmesh/equation_systems.h"
 #include "libmesh/explicit_system.h"
 
+#include <libmesh/petsc_matrix.h>
+#include <libmesh/petsc_vector.h>
+#include <libmesh/petsc_linear_solver.h>
+
 #include <string>
 #include <utility>
 
@@ -667,6 +671,7 @@ protected:
      double d_static_pressure_kappa = 0.0, d_static_pressure_stab_param = 0.0;
      std::vector<std::map<unsigned int, double> > d_static_pressure_kappa_vector_map;
      std::vector<std::map<unsigned int, double> > d_static_pressure_stab_param_vector_map;
+     std::vector<std::map<unsigned int, double> > d_dynamic_pressure_stab_param_vector_map;
 public:
     /*!
      * Setters for parameters related to static pressures.
@@ -688,6 +693,9 @@ protected:
     std::vector<bool> d_static_pressure_part;
     std::vector<PressureProjectionType> d_static_pressure_proj_type;
     std::vector<VolumetricEnergyDerivativeFcn> d_static_pressure_dU_dJ_fcn;
+    std::vector< std::unique_ptr<libMesh::PetscMatrix<double> > > d_pressure_matrix;
+    std::vector< bool > d_pressure_matrix_is_assembled;
+    std::vector< std::unique_ptr<libMesh::PetscLinearSolver<double> > > d_pressure_solver;
 
     /*!
      * Data related to handling dynamic pressures.

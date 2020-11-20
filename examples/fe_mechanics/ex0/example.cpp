@@ -376,17 +376,38 @@ main(int argc, char* argv[])
             fem_solver->registerPK1StressFunction(PK1_dil_stress_data);
         }
 
+
         fem_solver->initializeFEEquationSystems();
+
+        EquationSystems* equation_systems = fem_solver->getEquationSystems();
+        ExplicitSystem& jac_system = equation_systems->add_system<ExplicitSystem>("JacobianDeterminant");
+        unsigned int J_var = jac_system.add_variable("Avg J", CONSTANT, MONOMIAL);
+        jac_system.attach_init_function(apply_initial_jacobian);
+
+        const std::string time_stepping_scheme =
+            input_db->getStringWithDefault("TIME_STEPPING_SCHEME", "MODIFIED_TRAPEZOIDAL_RULE");
+
+        // Set up visualization plot file writers.
+        unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+
         if (use_static_pressure)
         {
         	int n_subdomains =  mesh.n_subdomains();
-        	if(n_subdomains > 1)
+                bool one_pressure = input_db->getBoolWithDefault("ONE_PRESSURE", false);
+                double ctau = input_db->getDoubleWithDefault("CTAU", 1.0);
+                double ctau1 = input_db->getDoubleWithDefault("CTAU1", 1.0);
+                double ctau2 = input_db->getDoubleWithDefault("CTAU2", 1.0);
+		std::cout << "n_subdomains: " << n_subdomains << std::endl;
+
+        	if(n_subdomains > 1 && !one_pressure)
         	{
-				std::vector< std::set< subdomain_id_type > * > subdomains( n_subdomains );
+				std::vector< std::set< subdomain_id_type > * > subdomains;
 				std::set< subdomain_id_type > ids;
 				mesh.subdomain_ids (ids);
-				double tau1 = bulk_mod1 / shear_mod1;
-				double tau2 = bulk_mod2 / shear_mod2;
+				double tau1 = ctau1 * bulk_mod1 / shear_mod1;
+				double tau2 = ctau2 * bulk_mod2 / shear_mod2;
+				std::cout << "tau1: " << tau1 << std::endl;
+				std::cout << "tau2: " << tau2 << std::endl;
 				for(auto it = ids.begin(); it != ids.end(); ++it)
 				{
 					subdomains.push_back( new std::set< subdomain_id_type >( {*it} ) );
@@ -400,9 +421,13 @@ main(int argc, char* argv[])
         	else
         	{
                 fem_solver->registerStaticPressurePart(pressure_proj_type);
-				double tau = bulk_mod / shear_mod;
+				double tau = ctau * bulk_mod / shear_mod;
 				fem_solver->set_static_pressure_kappa(bulk_mod);
 				fem_solver->set_static_pressure_stab_param(tau);
+				fem_solver->add_static_pressure_kappa_vector_map_entry(bulk_mod, 1);
+				fem_solver->add_static_pressure_kappa_vector_map_entry(bulk_mod, 2);
+				fem_solver->add_static_pressure_stab_param_vector_map_entry(tau, 1);
+				fem_solver->add_static_pressure_stab_param_vector_map_entry(tau, 2);
         	}
 
         }
@@ -410,16 +435,6 @@ main(int argc, char* argv[])
         {
             fem_solver->registerDynamicPressurePart(pressure_proj_type);
         }
-        EquationSystems* equation_systems = fem_solver->getEquationSystems();
-        ExplicitSystem& jac_system = equation_systems->add_system<ExplicitSystem>("JacobianDeterminant");
-        unsigned int J_var = jac_system.add_variable("Avg J", CONSTANT, MONOMIAL);
-        jac_system.attach_init_function(apply_initial_jacobian);
-
-        const std::string time_stepping_scheme =
-            input_db->getStringWithDefault("TIME_STEPPING_SCHEME", "MODIFIED_TRAPEZOIDAL_RULE");
-
-        // Set up visualization plot file writers.
-        unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize solver data.
         fem_solver->initializeFEData();
@@ -449,7 +464,8 @@ main(int argc, char* argv[])
         }
 
         // Main time step loop.
-        while (!MathUtilities<double>::equalEps(loop_time, loop_time_end))
+        bool last_time_step = false;
+        while ( false == last_time_step )
         {
             pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
@@ -561,11 +577,12 @@ main(int argc, char* argv[])
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
 
+            if(loop_time > loop_time_end) last_time_step = true;
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
             // processing.
             iteration_num += 1;
-            if (dump_viz_data && (iteration_num % viz_dump_interval == 0))
+            if ( ( dump_viz_data && (iteration_num % viz_dump_interval == 0) ) || last_time_step )
             {
                 pout << "\nWriting visualization files...\n\n";
                 if (uses_exodus)

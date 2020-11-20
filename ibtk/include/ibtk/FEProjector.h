@@ -96,7 +96,7 @@ public:
      * Ref: https://epubs.siam.org/doi/abs/10.1137/S0036142905444482
      */
     std::pair<libMesh::PetscLinearSolver<double>*, libMesh::PetscMatrix<double>*>
-    buildStabilizedL2ProjectionSolver(const std::string& system_name, double epsilon, const std::map<unsigned int, double>* epsilon_map_ptr = nullptr);
+    buildStabilizedL2ProjectionSolver(const std::string& system_name, double epsilon, const std::map<unsigned int, double>& epsilon_map);
 
     /*!
      * \return Pointer to vector representation of diagonal L2 mass matrix.
@@ -136,12 +136,13 @@ public:
                                        libMesh::PetscVector<double>& F,
                                        const std::string& system_name,
                                        double epsilon,
+    								   const std::map<unsigned int, double>& epsilon_map,
                                        bool close_U = true,
                                        bool close_F = true,
                                        double tol = 1.0e-6,
                                        unsigned int max_its = 100);
 
-    /*!
+        /*!
      * \brief Enable or disable logging.
      */
     void setLoggingEnabled(bool enable_logging = true);

@@ -167,17 +167,21 @@ FEProjector::buildL2ProjectionSolver(const std::string& system_name)
         // Loop over the mesh to construct the system matrix.
         DenseMatrix<double> M_e;
         std::vector<libMesh::dof_id_type> dof_id_scratch;
+        std::vector<libMesh::dof_id_type> dof_indices;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
             fe->reinit(elem);
-            const auto& dof_indices = dof_map_cache.dof_indices(elem);
+            //const auto& dof_indices = dof_map_cache.dof_indices(elem);
+
             for (unsigned int var_n = 0; var_n < dof_map.n_variables(); ++var_n)
             {
-                const auto& dof_indices_var = dof_indices[var_n];
-                const auto n_basis = static_cast<unsigned int>(dof_indices_var.size());
+                //const auto& dof_indices_var = dof_indices[var_n];
+                //const auto n_basis = static_cast<unsigned int>(dof_indices_var.size());
+                dof_map.dof_indices(elem, dof_indices, var_n);
+            	const auto n_basis = static_cast<unsigned int>(dof_indices.size());
                 M_e.resize(n_basis, n_basis);
                 const unsigned int n_qp = qrule->n_points();
                 for (unsigned int i = 0; i < n_basis; ++i)
@@ -190,11 +194,11 @@ FEProjector::buildL2ProjectionSolver(const std::string& system_name)
                         }
                     }
                 }
-                copy_dof_ids_to_vector(var_n, dof_indices, dof_id_scratch);
-                dof_map.constrain_element_matrix(M_e,
-                                                 dof_id_scratch,
-                                                 /*assymetric_constraint_rows*/ false);
-                prune_roundoff_entries(M_e);
+                //copy_dof_ids_to_vector(var_n, dof_indices, dof_id_scratch);
+                //dof_map.constrain_element_matrix(M_e,
+                //                                 dof_id_scratch,
+                //                                 /*assymetric_constraint_rows*/ false);
+                //prune_roundoff_entries(M_e);
                 M_mat->add_matrix(M_e, dof_id_scratch);
             }
         }
@@ -366,21 +370,22 @@ FEProjector::buildLumpedL2ProjectionSolver(const std::string& system_name)
 }
 
 std::pair<PetscLinearSolver<double>*, PetscMatrix<double>*>
-FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, const double epsilon, const std::map<unsigned int, double>* epsilon_map_ptr)
+FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, const double epsilon, const std::map<unsigned int, double>& epsilon_map)
 {
     IBTK_TIMER_START(t_build_stab_L2_projection_solver);
-
+    bool using_epsilon_map = ( epsilon_map.size() > 0 ) ? true : false;
     if ((!d_stab_L2_proj_solver.count(system_name) || !d_stab_L2_proj_matrix.count(system_name)) ||
         (!d_stab_L2_proj_solver[system_name].count(epsilon) || !d_stab_L2_proj_matrix[system_name].count(epsilon)))
     {
         if (d_enable_logging)
         {
-          if(epsilon_map_ptr)
+
+          if(using_epsilon_map)
           {
             plog << "FEProjector::buildStabilizedL2ProjectionSolver(): building stabilized L2 projection solver for "
                     "system: "
                  << system_name << " with (blockID/epsilon): ";
-                 for(auto it = epsilon_map_ptr->begin(); it != epsilon_map_ptr->end(); ++it)
+                 for(auto it = epsilon_map.begin(); it != epsilon_map.end(); ++it)
                  {
                       plog << "(" << it->first << ", " << it->second << ") ";
                  }
@@ -427,6 +432,7 @@ FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, c
         DenseMatrix<double> M_e;
         DenseVector<double> Pi_phi_e;
         std::vector<libMesh::dof_id_type> dof_id_scratch;
+        std::vector<libMesh::dof_id_type> dof_indices;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
@@ -435,13 +441,15 @@ FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, c
             fe->reinit(elem);
 
             unsigned int blockID = elem->subdomain_id();
-            if(epsilon_map_ptr) tau = epsilon_map_ptr->at(blockID);
-
-            const auto& dof_indices = dof_map_cache.dof_indices(elem);
+            if(using_epsilon_map) tau = epsilon_map.at(blockID);
+            //const auto& dof_indices = dof_map_cache.dof_indices(elem);
             for (unsigned int var_n = 0; var_n < dof_map.n_variables(); ++var_n)
             {
-                const auto& dof_indices_var = dof_indices[var_n];
-                const auto n_basis = static_cast<unsigned int>(dof_indices_var.size());
+                dof_map.dof_indices(elem, dof_indices, var_n);
+                const auto n_basis = dof_indices.size();
+                if(n_basis <= 0 ) continue;
+                //const auto& dof_indices_var = dof_indices[var_n];
+                //const auto n_basis = static_cast<unsigned int>(dof_indices_var.size());
                 M_e.resize(n_basis, n_basis);
                 Pi_phi_e.resize(n_basis);
                 const unsigned int n_qp = qrule->n_points();
@@ -468,12 +476,12 @@ FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, c
                     }
                 }
 
-                copy_dof_ids_to_vector(var_n, dof_indices, dof_id_scratch);
+                //copy_dof_ids_to_vector(var_n, dof_indices, dof_id_scratch);
                 dof_map.constrain_element_matrix(M_e,
-                                                 dof_id_scratch,
+                								 dof_indices,
                                                  /*assymetric_constraint_rows*/ false);
                 prune_roundoff_entries(M_e);
-                M_mat->add_matrix(M_e, dof_id_scratch);
+                M_mat->add_matrix(M_e, dof_indices);
             }
         }
 
@@ -705,6 +713,7 @@ FEProjector::computeStabilizedL2Projection(PetscVector<double>& U_vec,
                                            PetscVector<double>& F_vec,
                                            const std::string& system_name,
                                            const double epsilon,
+	    								   const std::map<unsigned int, double>& epsilon_map,
                                            const bool close_U,
                                            const bool close_F,
                                            const double tol,
@@ -717,9 +726,10 @@ FEProjector::computeStabilizedL2Projection(PetscVector<double>& U_vec,
 
     if (close_F) F_vec.close();
     const System& system = d_fe_data->getEquationSystems()->get_system(system_name);
-
     std::pair<PetscLinearSolver<double>*, PetscMatrix<double>*> proj_solver_components =
-        buildStabilizedL2ProjectionSolver(system_name, epsilon);
+        buildStabilizedL2ProjectionSolver(system_name, epsilon, epsilon_map);
+    //proj_solver_components.second->print(std::cout, false);
+    //F_vec.print();
     PetscLinearSolver<double>* solver = proj_solver_components.first;
     PetscMatrix<double>* M_mat = proj_solver_components.second;
     PetscBool rtol_set;

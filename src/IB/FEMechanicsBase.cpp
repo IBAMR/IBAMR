@@ -68,6 +68,13 @@
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
+#include "libmesh/fe_map.h"
+#include "libmesh/fe_interface.h"
+
+#include <libmesh/enum_preconditioner_type.h>
+#include <libmesh/enum_solver_type.h>
+
+
 
 #include <iterator>
 #include <utility>
@@ -375,12 +382,19 @@ FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_ty
     if (d_static_pressure_part[part]) return;
     d_has_static_pressure_parts = true;
     d_static_pressure_part[part] = true;
-    auto& P_system = d_equation_systems[part]->add_system<ExplicitSystem>(PRESSURE_SYSTEM_NAME);
+    auto& P_system = d_equation_systems[part]->add_system<LinearImplicitSystem>(PRESSURE_SYSTEM_NAME);
 
     // setup subdomain restricted pressure in case of different material models
     int n_pressure_subdomains = 0;
-    if( subdomains_set_ptr_vec ) n_pressure_subdomains = subdomains_set_ptr_vec->size();
-
+    if( subdomains_set_ptr_vec ) 
+    {
+        n_pressure_subdomains = subdomains_set_ptr_vec->size();
+    	std::cout << "registering static pressure on part " << part << " for " << n_pressure_subdomains << " subdomains" << std::endl;
+    }
+    else
+    {
+    	std::cout << subdomains_set_ptr_vec << std::endl;
+    }
     // This system has a single variable so we don't need to also specify diagonal coupling
     std::string pressure_variable_name = "P";
     if( n_pressure_subdomains == 0 )
@@ -517,11 +531,16 @@ FEMechanicsBase::writeFEDataToRestartFile(const std::string& restart_dump_dirnam
 void
 FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
                                        PetscVector<double>& X_vec,
-                                       const double /*data_time*/,
+                                       const double data_time,
                                        const unsigned int part)
 {
-    if (!d_static_pressure_part[part]) return;
-    const PressureProjectionType& proj_type = d_static_pressure_proj_type[part];
+	if (!d_static_pressure_part[part]) return;
+	std::cout << "calling computeStaticPressure" << std::endl;
+
+    double tau = d_static_pressure_stab_param;
+
+	bool using_epsilon_map = ( d_static_pressure_stab_param_vector_map[part].size() > 0 ) ? true : false;
+	//const PressureProjectionType& proj_type = d_static_pressure_proj_type[part];
     const VolumetricEnergyDerivativeFcn& dU_dJ_fcn = d_static_pressure_dU_dJ_fcn[part];
 
     int map_size = 0;
@@ -533,105 +552,630 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
     // Extract the mesh.
     EquationSystems& equation_systems = *d_equation_systems[part];
     const MeshBase& mesh = equation_systems.get_mesh();
+    const Parallel::Communicator& comm = mesh.comm();
     const unsigned int dim = mesh.mesh_dimension();
+    const BoundaryInfo& boundary_info = *mesh.boundary_info;
 
     // Setup extra data needed to compute stresses/forces.
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
-    auto& P_system = equation_systems.get_system<ExplicitSystem>(PRESSURE_SYSTEM_NAME);
-    const DofMap& P_dof_map = P_system.get_dof_map();
-    FEDataManager::SystemDofMapCache& P_dof_map_cache = *d_fe_data[part]->getDofMapCache(PRESSURE_SYSTEM_NAME);
-    FEType P_fe_type = P_dof_map.variable_type(0);
-    std::vector<int> P_vars(P_system.n_vars());
-    for(int i = 0; i < P_vars.size(); ++i) P_vars[i] = i;
-    std::vector<int> no_vars = {};
-    auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
-    std::vector<int> X_vars(NDIM);
-    for (unsigned int d = 0; d < NDIM; ++d) X_vars[d] = d;
-
-    FEDataInterpolation fe(dim, d_fe_data[part]);
-    std::unique_ptr<QBase> qrule =
-        QBase::build(d_default_quad_type_pressure[part], dim, d_default_quad_order_pressure[part]);
-    fe.attachQuadratureRule(qrule.get());
-    fe.evalQuadraturePoints();
-    fe.evalQuadratureWeights();
-    fe.registerSystem(P_system, P_vars, no_vars);
-    const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, no_vars, X_vars, &X_vec);
-    fe.init();
-
-    const std::vector<double>& JxW = fe.getQuadratureWeights();
-    const std::vector<std::vector<double> >& phi = fe.getPhi(P_fe_type);
-
-    const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
-        fe.getGradVarInterpolation();
-
-    // Setup global and elemental right-hand-side vectors.
+    auto& P_system = equation_systems.get_system<LinearImplicitSystem>(PRESSURE_SYSTEM_NAME);
+    const libMesh::DofMap& P_dof_map = P_system.get_dof_map();
+    libMesh::FEType P_fe_type = P_dof_map.variable_type(0);
     auto* P_rhs_vec = static_cast<PetscVector<double>*>(P_system.rhs);
     P_rhs_vec->zero();
-    DenseVector<double> P_rhs_e;
 
-    TensorValue<double> FF;
-    std::vector<libMesh::dof_id_type> dof_id_scratch;
-    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+
+
+    auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+    	//const libMesh::DofMap& X_dof_map = X_system.get_dof_map();
+
+    std::vector<int> X_vars(NDIM);
+    for (unsigned int d = 0; d < NDIM; ++d) X_vars[d] = d;
+    std::vector<int> P_vars(P_system.n_vars());
+    for(unsigned int i = 0; i < P_vars.size(); ++i) P_vars[i] = i;
+    std::vector<int> no_vars = {};
+//
+//    // set up RHS
+//    {
+//
+//		std::unique_ptr<libMesh::FEBase> fe (libMesh::FEBase::build(dim, P_fe_type));
+//		libMesh::QGauss qrule (dim, FIRST);
+//		fe->attach_quadrature_rule (&qrule);
+//		const std::vector<libMesh::Real> & JxW = fe->get_JxW();
+//		const std::vector<std::vector<libMesh::Real>> & phi = fe->get_phi();
+//
+//		// Setup global and elemental right-hand-side vectors.
+//		auto* P_rhs_vec = static_cast<PetscVector<double>*>(P_system.rhs);
+//		P_rhs_vec->zero();
+//		DenseVector<double> P_rhs_e;
+//
+//		// Deformation gradient tensor
+//		TensorValue<double> FF;
+//		// FF_{ij} = \partial_j x_i
+//		//    = [ d1 x_1, d2 x_1, d3 x_1 ]
+//		//    = [ d1 x_2, d2 x_2, d3 x_2 ]
+//		//    = [ d1 x_3, d2 x_3, d3 x_3 ]
+//
+//
+//		std::vector<libMesh::dof_id_type> pressure_dof_indices;
+//		std::vector<libMesh::dof_id_type> X_dof_indices;
+//		const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+//		const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+//		for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+//		{
+//			Elem* const elem = *el_it;
+//			unsigned int blockID = elem->subdomain_id();
+//
+//			P_dof_map.dof_indices(elem, pressure_dof_indices);
+//			const auto n_basis = pressure_dof_indices.size();
+//
+//			if( n_basis > 0)
+//			{
+//				// check if there is a pressure associated with this element
+//				P_rhs_e.resize(static_cast<int>(n_basis));
+//
+//				fe->reinit (elem);
+//
+//				if(map_size > 0) d_static_pressure_kappa = d_static_pressure_kappa_vector_map[part][blockID];
+//				const unsigned int n_qp = qrule_pressure_rhs->n_points();
+//				for (unsigned int qp = 0; qp < n_qp; ++qp)
+//				{
+//					FF *= 0.0;
+//					for(unsigned int idim = 0; idim < 3; ++idim)
+//					{
+//						if(idim < dim)
+//						{
+//							auto dx_dX = X_system.point_gradient (idim, qrule->qp(qp), elem);
+//							FF(idim, 0) = dx_dX(0);
+//							FF(idim, 1) = dx_dX(1);
+//							FF(idim, 2) = dx_dX(2);
+//						}
+//						else
+//						{
+//							FF(idim, idim) = 1.0;
+//						}
+//					}
+//					double J = FF.det();
+//					const double P = (dU_dJ_fcn ? dU_dJ_fcn(J) : -d_static_pressure_kappa * std::log(J));
+//					for (unsigned int k = 0; k < n_basis; ++k)
+//					{
+//						P_rhs_e(k) += P * phi[k][qp] * JxW[qp];
+//					}
+//				}
+//			}
+//			// Apply constraints (e.g., enforce periodic boundary conditions)
+//			// and add the elemental contributions to the global vector.
+//			//copy_dof_ids_to_vector(/*var_num*/ 0, P_dof_indices, dof_id_scratch);
+//			//P_dof_map.constrain_element_vector(P_rhs_e, pressure_dof_indices);
+//			P_rhs_vec->add_vector(P_rhs_e, pressure_dof_indices);
+//		}
+//	}
+
+    // If it is the first time through, create the LHS matrix
+    // Build solver components.
+
+
+	double penalty = 1e8;
+    if( !d_pressure_matrix_is_assembled[part] )
     {
-        Elem* const elem = *el_it;
-        const auto& P_dof_indices = P_dof_map_cache.dof_indices(elem);
-        // check if there is a pressure associated with this element
-        P_rhs_e.resize(static_cast<int>(P_dof_indices[0].size()));
-        if( P_rhs_e.size() > 0)
-        {
-			fe.reinit(elem);
-			fe.collectDataForInterpolation(elem);
-			fe.interpolate(elem);
+    	d_pressure_matrix_is_assembled[part] = true;
 
+    	//d_pressure_solver[part].reset(new PetscLinearSolver<double>(comm));
+		//d_pressure_matrix[part].reset(new PetscMatrix<double>(comm));
+		//d_pressure_matrix[part]->attach_dof_map(P_dof_map);
+		//d_pressure_matrix[part]->init();
+
+		PetscMatrix<double> * M_mat = dynamic_cast<PetscMatrix<double>*>(P_system.matrix);
+		MatSetOption(M_mat->mat(), MAT_IGNORE_ZERO_ENTRIES, PETSC_TRUE);
+		MatSetOption(M_mat->mat(), MAT_SPD, PETSC_TRUE);
+		MatSetOption(M_mat->mat(), MAT_SYMMETRY_ETERNAL, PETSC_TRUE);
+		MatSetOption(M_mat->mat(), MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE);
+
+		// Loop over the mesh to construct the system matrix.
+		DenseMatrix<double> M_e;
+		DenseMatrix<double> K_ee;
+		DenseMatrix<double> K_en;
+		DenseMatrix<double> K_ne;
+		DenseMatrix<double> K_nn;
+		DenseVector<double> Pi_phi_e;
+		std::vector<libMesh::dof_id_type> dof_indices;
+		std::vector<libMesh::dof_id_type> dof_indices_neighbor;
+
+
+		//
+		std::unique_ptr<FEBase> fe_matrix (FEBase::build(dim, P_fe_type));
+        // A 5th order Gauss quadrature rule for numerical integration.
+        QGauss qrule_matrix (dim, FIFTH);
+        // Tell the finite element object to use our quadrature rule.
+        fe_matrix->attach_quadrature_rule (&qrule_matrix);
+
+		const std::vector<libMesh::Real> & JxW = fe_matrix->get_JxW();
+		const std::vector<std::vector<libMesh::Real>> & phi = fe_matrix->get_phi();
+
+
+        // Add interface conditions
+        std::unique_ptr<FEBase> fe_elem_face(FEBase::build(dim, P_fe_type));
+        std::unique_ptr<FEBase> fe_neighbor_face(FEBase::build(dim, P_fe_type));
+        libMesh::QGauss qface(dim-1, P_fe_type.default_quadrature_order());
+        // Tell the finite element object to use our quadrature rule.
+        fe_elem_face->attach_quadrature_rule(&qface);
+        fe_neighbor_face->attach_quadrature_rule(&qface);
+
+        // Data for surface integrals on the element boundary
+        const std::vector<std::vector<Real>> &  phi_face = fe_elem_face->get_phi();
+        //const std::vector<std::vector<RealGradient>> & dphi_face = fe_elem_face->get_dphi();
+        const std::vector<Real> & JxW_face = fe_elem_face->get_JxW();
+        //const std::vector<libMesh::Point> & qface_normals = fe_elem_face->get_normals();
+        //const std::vector<libMesh::Point> & qface_points = fe_elem_face->get_xyz();
+
+        // Data for surface integrals on the neighbor boundary
+        const std::vector<std::vector<Real>> &  phi_neighbor_face = fe_neighbor_face->get_phi();
+        //const std::vector<std::vector<RealGradient>> & dphi_neighbor_face = fe_neighbor_face->get_dphi();
+
+
+		const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+		const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+
+		for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+		{
+			Elem* const elem = *el_it;
+			fe_matrix->reinit(elem);
 			unsigned int blockID = elem->subdomain_id();
-			if(map_size > 0) d_static_pressure_kappa = d_static_pressure_kappa_vector_map[part][blockID];
+			if(using_epsilon_map) tau = d_static_pressure_stab_param_vector_map[part].at(blockID);
 
-			const unsigned int n_qp = qrule->n_points();
-			const size_t n_basis = phi.size();
-			for (unsigned int qp = 0; qp < n_qp; ++qp)
+			//const auto& dof_indices = dof_map_cache.dof_indices(elem);
+			for (unsigned int var_n = 0; var_n < P_dof_map.n_variables(); ++var_n)
 			{
-				const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
-				get_FF(FF, grad_x_data);
-				double J = FF.det();
-				const double P = (dU_dJ_fcn ? dU_dJ_fcn(J) : -d_static_pressure_kappa * std::log(J));
-				for (unsigned int k = 0; k < n_basis; ++k)
+				P_dof_map.dof_indices(elem, dof_indices, var_n);
+				const auto n_basis = dof_indices.size();
+				if(n_basis <= 0 ) continue;
+				//const auto& dof_indices_var = dof_indices[var_n];
+				//const auto n_basis = static_cast<unsigned int>(dof_indices_var.size());
+				M_e.resize(n_basis, n_basis);
+				Pi_phi_e.resize(n_basis);
+				const unsigned int n_qp = qrule_matrix.n_points();
+
+				const double vol_e = elem->volume();
+				for (unsigned int i = 0; i < n_basis; ++i)
 				{
-					P_rhs_e(k) += P * phi[k][qp] * JxW[qp];
+					for (unsigned int qp = 0; qp < n_qp; ++qp)
+					{
+						Pi_phi_e(i) += phi[i][qp] * JxW[qp] / vol_e;
+					}
+				}
+				for (unsigned int i = 0; i < n_basis; ++i)
+				{
+					for (unsigned int j = 0; j < n_basis; ++j)
+					{
+						for (unsigned int qp = 0; qp < n_qp; ++qp)
+						{
+							M_e(i, j) += ((phi[i][qp] * phi[j][qp]) +
+										  tau * (phi[i][qp] - Pi_phi_e(i)) * (phi[j][qp] - Pi_phi_e(j))) *
+										 JxW[qp];
+						}
+					}
+				}
+				M_e.print();
+				P_system.matrix->add_matrix(M_e, dof_indices, dof_indices);
+			}
+
+			for (auto side : elem->side_index_range())
+			{
+				if (elem->neighbor_ptr(side) == nullptr) continue;
+	            const Elem * neighbor = elem->neighbor_ptr(side);
+				unsigned int neighbor_blockID = neighbor->subdomain_id();
+				// if we are on the same block ID skip the assembly
+				if(neighbor_blockID == blockID ) continue;
+				for (unsigned int var_n = 0; var_n < P_dof_map.n_variables(); ++var_n)
+				{
+					P_dof_map.dof_indices(elem, dof_indices, var_n);
+					const auto n_basis = dof_indices.size();
+					if(n_basis <= 0 ) continue;
+					P_dof_map.dof_indices(neighbor, dof_indices_neighbor, var_n);
+		            auto n_basis_neighbor = dof_indices_neighbor.size();
+
+		            // if the number of dofs on opposite elements is different
+		            // it means we are on an interior interface
+		            if( n_basis > 0 && n_basis != n_basis_neighbor )
+		            {
+		            	  // get the actual dofs for the neighbor element
+			              P_dof_map.dof_indices(neighbor, dof_indices_neighbor);
+			              n_basis_neighbor = dof_indices_neighbor.size();
+
+		                  K_ne.resize (n_basis_neighbor, n_basis);
+		                  K_en.resize (n_basis, n_basis_neighbor);
+		                  K_ee.resize (n_basis, n_basis);
+		                  K_nn.resize (n_basis_neighbor, n_basis_neighbor);
+
+		                  // Pointer to the element side
+		                  std::unique_ptr<const libMesh::Elem> elem_side (elem->build_side_ptr(side));
+
+		                  // The quadrature point locations on the neighbor side
+		                  std::vector<libMesh::Point> qface_neighbor_point;
+		                  // The quadrature point locations on the element side
+		                  std::vector<libMesh::Point > qface_point;
+		                  // Reinitialize shape functions on the element side
+		                  fe_elem_face->reinit(elem, side);
+		                  // Get the physical locations of the element quadrature points
+		                  qface_point = fe_elem_face->get_xyz();
+
+		                  libMesh::FEInterface::inverse_map (elem->dim(), P_fe_type, neighbor,
+		                		  	  	  	  qface_point,
+											  qface_neighbor_point);
+
+		                  // Calculate the neighbor element shape functions at those locations
+		                  fe_neighbor_face->reinit(neighbor, &qface_neighbor_point);
+
+		                  for (unsigned int qp=0; qp<qface.n_points(); qp++)
+		                  {
+		                      for (unsigned int i=0; i<n_basis; i++)
+		                          for (unsigned int j=0; j<n_basis; j++)
+		                        	  K_ee(i,j) += JxW_face[qp] * penalty * phi_face[j][qp]*phi_face[i][qp];
+
+		                      for (unsigned int i=0; i<n_basis_neighbor; i++)
+		                          for (unsigned int j=0; j<n_basis_neighbor; j++)
+		                        	  K_nn(i,j) +=
+		                                JxW_face[qp] * penalty * phi_neighbor_face[j][qp]*phi_neighbor_face[i][qp];
+
+		                      for (unsigned int i=0; i<n_basis_neighbor; i++)
+		                          for (unsigned int j=0; j<n_basis; j++)
+		                              K_ne(i,j) -= JxW_face[qp] * penalty * phi_face[j][qp]*phi_neighbor_face[i][qp];
+
+		                      for (unsigned int i=0; i<n_basis; i++)
+		                          for (unsigned int j=0; j<n_basis_neighbor; j++)
+		                              K_en(i,j) -= JxW_face[qp] * penalty * phi_face[i][qp]*phi_neighbor_face[j][qp];
+		                  }
+		            }
+		            K_ee.print();
+					P_system.matrix->add_matrix(K_ee, dof_indices, dof_indices);
+					P_system.matrix->add_matrix(K_nn, dof_indices_neighbor, dof_indices_neighbor);
+					P_system.matrix->add_matrix(K_ne, dof_indices_neighbor, dof_indices);
+					P_system.matrix->add_matrix(K_en, dof_indices, dof_indices_neighbor);
 				}
 			}
-        }
-        // Apply constraints (e.g., enforce periodic boundary conditions)
-        // and add the elemental contributions to the global vector.
-        copy_dof_ids_to_vector(/*var_num*/ 0, P_dof_indices, dof_id_scratch);
-        P_dof_map.constrain_element_vector(P_rhs_e, dof_id_scratch);
-        P_rhs_vec->add_vector(P_rhs_e, dof_id_scratch);
+		}
+    	P_system.matrix->close();
+
+        // Setup the solver.
+    	PetscLinearSolver<double> * solver = dynamic_cast< PetscLinearSolver<double> * >(P_system.get_linear_solver());
+    	solver->reuse_preconditioner(true);
+    	solver->set_preconditioner_type(JACOBI_PRECOND);
+    	solver->set_solver_type(MINRES);
+    	solver->init();
+
+    	P_system.matrix->print();
     }
 
+	std::cout << "calling computeStaticPressure: matrix done" << std::endl;
+
+	// Assemble RHS
+	{
+		// handle the stress contributions.  These are handled separately
+		// because each stress function may use a different quadrature rule.
+		const size_t num_PK1_fcns = d_PK1_stress_fcn_data[part].size();
+		for (unsigned int k = 0; k < num_PK1_fcns; ++k)
+		{
+			if (!d_PK1_stress_fcn_data[part][k].fcn)
+				continue;
+
+			FEDataInterpolation fe(dim, d_fe_data[part]);
+			std::unique_ptr<QBase> qrule = QBase::build(d_PK1_stress_fcn_data[part][k].quad_type, dim, d_PK1_stress_fcn_data[part][k].quad_order);
+			std::unique_ptr<QBase> qrule_face = QBase::build(d_PK1_stress_fcn_data[part][k].quad_type, dim - 1, d_PK1_stress_fcn_data[part][k].quad_order);
+			fe.attachQuadratureRule(qrule.get());
+			fe.attachQuadratureRuleFace(qrule_face.get());
+			fe.evalNormalsFace();
+			fe.evalQuadraturePoints();
+			fe.evalQuadraturePointsFace();
+			fe.evalQuadratureWeights();
+			fe.evalQuadratureWeightsFace();
+			fe.registerSystem(P_system, P_vars, no_vars);
+			const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, no_vars, X_vars, &X_vec);
+			std::vector < size_t > PK1_fcn_system_idxs;
+			fe.setupInterpolatedSystemDataIndexes(PK1_fcn_system_idxs, d_PK1_stress_fcn_data[part][k].system_data, &equation_systems);
+			fe.init();
+
+			//const std::vector<libMesh::Point> &q_point = fe.getQuadraturePoints();
+			const std::vector<double> &JxW = fe.getQuadratureWeights();
+			const std::vector<std::vector<double> > &phi = fe.getPhi(P_fe_type);
+			//const std::vector<std::vector<VectorValue<double> > > &dphi = fe.getDphi(P_fe_type);
+			const std::vector < libMesh::Point >&  qface_point = fe.getQuadraturePointsFace();
+
+
+			const std::vector<libMesh::Point> &q_point_face = fe.getQuadraturePointsFace();
+			const std::vector<double> &JxW_face = fe.getQuadratureWeightsFace();
+			const std::vector<libMesh::Point> &normal_face = fe.getNormalsFace();
+			const std::vector<std::vector<double> > &phi_face = fe.getPhiFace(P_fe_type);
+
+			const std::vector<std::vector<std::vector<double> > > &fe_interp_var_data = fe.getVarInterpolation();
+			const std::vector<std::vector<std::vector<VectorValue<double> > > > &fe_interp_grad_var_data = fe.getGradVarInterpolation();
+
+			std::vector<const std::vector<double>*> PK1_var_data;
+			std::vector<const std::vector<VectorValue<double> >*> PK1_grad_var_data;
+
+			// Loop over the elements to compute the right-hand side vector.  This
+			// is computed via
+			//
+			//    rhs_k = -int{PP(s,t) grad phi_k(s)}ds + int{PP(s,t) N(s,t)
+			//    phi_k(s)}dA(s)
+			//
+			// This right-hand side vector is used to solve for the nodal values of
+			// the interior elastic force density.
+			TensorValue<double> PP, FF, FF_inv_trans;
+			TensorValue<double> PPe, FFe, FFe_inv_trans;
+			TensorValue<double> PPn, FFn, FFn_inv_trans;
+			TensorValue<double> sigma_n, sigma_e;
+			VectorValue<double> F, F_qp, n, x;
+			VectorValue<double> xe, xn, ne, nn;
+			DenseVector<double> P_rhs_e;
+			DenseVector<double> P_rhs_n;
+
+			std::vector < libMesh::dof_id_type > pressure_dof_indices;
+			std::vector < libMesh::dof_id_type > dof_indices_neighbor;
+
+			// neighbor element
+			FEDataInterpolation fe_neighbor(dim, d_fe_data[part]);
+			fe_neighbor.attachQuadratureRule(qrule.get());
+			fe_neighbor.attachQuadratureRuleFace(qrule_face.get());
+			fe_neighbor.evalNormalsFace();
+			fe_neighbor.evalQuadraturePoints();
+			fe_neighbor.evalQuadraturePointsFace();
+			fe_neighbor.evalQuadratureWeights();
+			fe_neighbor.evalQuadratureWeightsFace();
+
+			fe_neighbor.registerSystem(P_system, P_vars, no_vars);
+			const size_t X_sys_idx_neighbor = fe_neighbor.registerInterpolatedSystem(X_system, no_vars, X_vars, &X_vec);
+			std::vector < size_t > PK1_fcn_system_idxs_neighbor;
+			fe_neighbor.setupInterpolatedSystemDataIndexes(PK1_fcn_system_idxs_neighbor, d_PK1_stress_fcn_data[part][k].system_data, &equation_systems);
+			fe_neighbor.init();
+
+			//const std::vector<libMesh::Point> &q_point_face_neighbor = fe_neighbor.getQuadraturePointsFace();
+			//const std::vector<double> &JxW_face_neighbor = fe_neighbor.getQuadratureWeightsFace();
+			//const std::vector<libMesh::Point> &normal_face_neighbor = fe_neighbor.getNormalsFace();
+			const std::vector<std::vector<double> > &phi_face_neighbor = fe_neighbor.getPhiFace(P_fe_type);
+
+			const std::vector<std::vector<std::vector<double> > > &fe_interp_var_data_neighbor = fe_neighbor.getVarInterpolation();
+			const std::vector<std::vector<std::vector<VectorValue<double> > > > &fe_interp_grad_var_data_neighbor = fe_neighbor.getGradVarInterpolation();
+
+			std::vector<const std::vector<double>*> PK1_var_data_neighbor;
+			std::vector<const std::vector<VectorValue<double> >*> PK1_grad_var_data_neighbor;
+
+			// Loop over elements
+			const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+			const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+			for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+			{
+				Elem *const elem = *el_it;
+				unsigned int blockID = elem->subdomain_id();
+
+				P_dof_map.dof_indices(elem, pressure_dof_indices);
+				const auto n_basis = pressure_dof_indices.size();
+				if (n_basis <= 0)
+					continue;
+
+				P_rhs_e.resize(static_cast<int>(n_basis));
+
+				if (map_size > 0)
+					d_static_pressure_kappa = d_static_pressure_kappa_vector_map[part][blockID];
+
+				fe.reinit(elem);
+				fe.collectDataForInterpolation(elem);
+				fe.interpolate(elem);
+				const unsigned int n_qp = qrule->n_points();
+
+				for (unsigned int qp = 0; qp < n_qp; ++qp)
+				{
+					//const libMesh::Point &X = q_point[qp];
+					const std::vector<double> &x_data = fe_interp_var_data[qp][X_sys_idx];
+					const std::vector<VectorValue<double> > &grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
+					get_x_and_FF(x, FF, x_data, grad_x_data);
+					//SR: HACK
+					FF *= 0.0;
+					for (unsigned int idim = 0; idim < 3; ++idim)
+					{
+						if (idim < dim)
+						{
+							x(idim) = X_system.point_value(idim, qrule->qp(qp), elem);
+							auto dx_dX = X_system.point_gradient(idim, qrule->qp(qp), elem);
+							FF(idim, 0) = dx_dX(0);
+							FF(idim, 1) = dx_dX(1);
+							FF(idim, 2) = dx_dX(2);
+						}
+						else
+						{
+							x(idim) = 0.0;
+							FF(idim, idim) = 1.0;
+						}
+					}
+
+					double J = FF.det();
+					const double P = (dU_dJ_fcn ? dU_dJ_fcn(J) : -d_static_pressure_kappa * std::log(J));
+					for (unsigned int k = 0; k < n_basis; ++k)
+					{
+						P_rhs_e(k) += P * phi[k][qp] * JxW[qp];
+					}
+				}
+
+				P_rhs_vec->add_vector(P_rhs_e, pressure_dof_indices);
+				std::cout << "elem: " << elem->id() << " U(J) done " << std::endl;
+
+				// Loop over the element boundaries.
+				for (unsigned int side = 0; side < elem->n_sides(); ++side)
+				{
+					// Skip non-physical boundaries.
+					if (elem->neighbor_ptr(side) == nullptr) continue;
+
+					Elem *neighbor = elem->neighbor_ptr(side);
+					unsigned int neighbor_blockID = neighbor->subdomain_id();
+					std::cout << "side: " << side << ", blockID: " << blockID << ", n blockID: " << neighbor_blockID << std::endl;
+					if (neighbor_blockID == blockID)
+						continue;
+
+					for (unsigned int var_n = 0; var_n < P_dof_map.n_variables(); ++var_n)
+					{
+						P_dof_map.dof_indices(elem, pressure_dof_indices, var_n);
+						auto ndofs = pressure_dof_indices.size();
+						P_dof_map.dof_indices(neighbor, dof_indices_neighbor, var_n);
+						auto ndofs_neighbor = dof_indices_neighbor.size();
+						if (ndofs > 0 && ndofs != ndofs_neighbor)
+						{
+							std::cout << "assembling jump in stress  " << std::endl;
+							fe.reinit(elem, side);
+							std::cout << "interpolate  " << std::endl;
+							fe.interpolate(elem, side);
+
+							// get the actual dofs for the neighbor element
+							std::cout << "n dofmap  " << std::endl;
+							P_dof_map.dof_indices(neighbor, dof_indices_neighbor);
+							//auto n_basis_neighbor = dof_indices_neighbor.size();
+
+							// The quadrature point locations on the neighbor side
+							std::vector < libMesh::Point > qface_neighbor_point;
+							// The quadrature point locations on the element side
+
+							std::cout << "inverse map  " << std::endl;
+			                  libMesh::FEInterface::inverse_map (elem->dim(), P_fe_type, neighbor,
+			                		  	  	  	  qface_point,
+												  qface_neighbor_point);
+
+								std::cout << " n reinit  " << std::endl;
+							fe_neighbor.reinit(elem, side, libMesh::TOLERANCE, &qface_neighbor_point);
+							std::cout << " n interpolate  " << std::endl;
+							fe_neighbor.interpolate(elem, side);
+							std::cout << " n_qp_face  " << std::endl;
+							const unsigned int n_qp_face = qrule_face->n_points();
+							const size_t n_basis_face = phi_face.size();
+
+							std::cout << "loop over qp  " << std::endl;
+							for (unsigned int qp = 0; qp < n_qp_face; ++qp)
+							{
+								F.zero();
+
+								// Compute the value of the first Piola-Kirchhoff stress
+								// tensor at the quadrature point and add the corresponding
+								// traction force to the right-hand-side vector.
+								if (d_PK1_stress_fcn_data[part][k].fcn)
+								{
+									PPe *= 0;
+									FFe *= 0;
+									FFe_inv_trans *= 0;
+									xe *= 0;
+									const libMesh::Point &Xe = q_point_face[qp];
+									const std::vector<double> &xe_data = fe_interp_var_data[qp][X_sys_idx];
+									const std::vector<VectorValue<double> > &grad_xe_data = fe_interp_grad_var_data[qp][X_sys_idx];
+									get_x_and_FF(xe, FF, xe_data, grad_xe_data);
+									tensor_inverse_transpose(FFe_inv_trans, FFe, NDIM);
+
+									fe.setInterpolatedDataPointers(PK1_var_data, PK1_grad_var_data, PK1_fcn_system_idxs, elem, qp);
+									d_PK1_stress_fcn_data[part][k].fcn(PP, FF, xe, Xe, elem, PK1_var_data, PK1_grad_var_data, data_time, d_PK1_stress_fcn_data[part][k].ctx);
+
+									PPn *= 0;
+									FFn *= 0;
+									FFn_inv_trans *= 0;
+									xn *= 0;
+									const libMesh::Point &Xn = q_point_face[qp];
+									const std::vector<double> &xn_data = fe_interp_var_data_neighbor[qp][X_sys_idx_neighbor];
+									const std::vector<VectorValue<double> > &grad_xn_data = fe_interp_grad_var_data_neighbor[qp][X_sys_idx_neighbor];
+									get_x_and_FF(xn, FFn, xn_data, grad_xn_data);
+									tensor_inverse_transpose(FFn_inv_trans, FFn, NDIM);
+
+									fe_neighbor.setInterpolatedDataPointers(PK1_var_data_neighbor, PK1_grad_var_data_neighbor, PK1_fcn_system_idxs, neighbor, qp);
+									d_PK1_stress_fcn_data[part][k].fcn(PPn, FFn, xn, Xn, neighbor, PK1_var_data_neighbor, PK1_grad_var_data_neighbor, data_time,
+											d_PK1_stress_fcn_data[part][k].ctx);
+								} // evaluate PK1
+
+								n = (FFe_inv_trans * normal_face[qp]).unit();
+
+								sigma_e = 1.0 / FFe.det() * PPe * FFe_inv_trans;
+								sigma_n = 1.0 / FFn.det() * PPn * FFn_inv_trans;
+								double stress_jump = penalty * ((sigma_e - sigma_n) * n) * n;
+
+								P_rhs_e *= 0;
+								P_rhs_n *= 0;
+								// Add the boundary forces to the right-hand-side vector.
+								for (unsigned int i = 0; i < n_basis_face; ++i)
+								{
+									P_rhs_e(i) += JxW_face[qp] * stress_jump * phi_face[i][qp];
+									P_rhs_n(i) += JxW_face[qp] * stress_jump * phi_face_neighbor[i][qp];
+								} // assemble local RHS
+							} //loop over quadrature points
+						} // check if ndofs = ndofs_neighbor
+					} // loop over variables in pressure system
+
+					P_rhs_vec->add_vector(P_rhs_e, pressure_dof_indices);
+					P_rhs_vec->add_vector(P_rhs_e, dof_indices_neighbor);
+
+				} // loop
+
+			} // loop over elements
+		} // loop over PK1 functions
+	} // Assemble RHS
+
+	std::cout << "calling computeStaticPressure: rhs done" << std::endl;
+
+	PetscLinearSolver<double> * solver = dynamic_cast< PetscLinearSolver<double> * >(P_system.get_linear_solver());
+	PetscMatrix<double> * M_mat = dynamic_cast<PetscMatrix<double>*>(P_system.matrix);
+	//P_rhs_vec->print();
+    PetscBool rtol_set;
+    double runtime_rtol;
+    int ierr;
+    double tol = 1e-6;
+    int max_its = 100;
+    ierr = PetscOptionsGetReal(nullptr, "", "-ksp_rtol", &runtime_rtol, &rtol_set);
+    IBTK_CHKERRQ(ierr);
+    PetscBool max_it_set;
+    int runtime_max_it;
+    ierr = PetscOptionsGetInt(nullptr, "", "-ksp_max_it", &runtime_max_it, &max_it_set);
+    IBTK_CHKERRQ(ierr);
+    ierr = KSPSetFromOptions( solver->ksp());
+    IBTK_CHKERRQ(ierr);
+    solver->solve(*M_mat, *M_mat, P_vec, *P_rhs_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
+    KSPConvergedReason reason;
+    ierr = KSPGetConvergedReason(solver->ksp(), &reason);
+    IBTK_CHKERRQ(ierr);
+    //bool converged = reason > 0;
+
+
+
+    //if (close_U) U_vec.close();
+    //system.get_dof_map().enforce_constraints_exactly(system, &U_vec);
+
+
+    //std::cout << "static pressure RHS: " << P_rhs_vec->l2_norm() << std::endl;
+    //P_rhs_vec->print(std::cout);
     // Solve for P.
-    switch (proj_type)
-    {
-    case CONSISTENT_PROJECTION:
-        d_fe_projectors[part]->computeL2Projection(
-            P_vec, *P_rhs_vec, PRESSURE_SYSTEM_NAME, /*use_consistent_mass_matrix*/ true);
-        break;
-    case LUMPED_PROJECTION:
-        d_fe_projectors[part]->computeL2Projection(
-            P_vec, *P_rhs_vec, PRESSURE_SYSTEM_NAME, /*use_consistent_mass_matrix*/ false);
-        break;
-    case STABILIZED_PROJECTION:
-        if(map_size > 0)
-        d_fe_projectors[part]->computeStabilizedL2Projection(
-            P_vec, *P_rhs_vec, PRESSURE_SYSTEM_NAME, d_static_pressure_stab_param, &d_static_pressure_stab_param_vector_map[part]);
-        else
-        d_fe_projectors[part]->computeStabilizedL2Projection(
-            P_vec, *P_rhs_vec, PRESSURE_SYSTEM_NAME, d_static_pressure_stab_param);
-        break;
-    default:
-        TBOX_ERROR("unsupported pressure projection type\n");
-    }
+    //P_rhs_vec->print();
+    //for(auto && v : d_static_pressure_stab_param_vector_map[part]) std::cout << "[ " << v.first << ", " << v.second << std::endl;
+
+    //std::cout << "map_size: " << map_size << std::endl;
+//    switch (proj_type)
+//    {
+//    case CONSISTENT_PROJECTION:
+//        d_fe_projectors[part]->computeL2Projection(
+//            P_vec, *P_rhs_vec, PRESSURE_SYSTEM_NAME, /*use_consistent_mass_matrix*/ true);
+//        break;
+//    case LUMPED_PROJECTION:
+//        d_fe_projectors[part]->computeL2Projection(
+//            P_vec, *P_rhs_vec, PRESSURE_SYSTEM_NAME, /*use_consistent_mass_matrix*/ false);
+//        break;
+//    case STABILIZED_PROJECTION:
+//        //if(map_size > 0)
+//        //{
+//        //	std::cout << "passing" << std::endl;
+//        d_fe_projectors[part]->computeStabilizedL2Projection(
+//            P_vec, *P_rhs_vec, PRESSURE_SYSTEM_NAME, d_static_pressure_stab_param, d_static_pressure_stab_param_vector_map[part]);
+//        //}
+//        //else
+//        //{
+//        //	std::cout << "not passing" << std::endl;
+//        //d_fe_projectors[part]->computeStabilizedL2Projection(
+//        //    P_vec, *P_rhs_vec, PRESSURE_SYSTEM_NAME, d_static_pressure_stab_param);
+//        //}
+//        break;
+//    default:
+//        TBOX_ERROR("unsupported pressure projection type\n");
+//    }
+//    //P_vec.print();
 }
 
 void
@@ -740,7 +1284,7 @@ FEMechanicsBase::computeDynamicPressureRateOfChange(PetscVector<double>& dP_dt_v
         break;
     case STABILIZED_PROJECTION:
         d_fe_projectors[part]->computeStabilizedL2Projection(
-            dP_dt_vec, *dP_dt_rhs_vec, PRESSURE_SYSTEM_NAME, d_dynamic_pressure_stab_param);
+            dP_dt_vec, *dP_dt_rhs_vec, PRESSURE_SYSTEM_NAME, d_dynamic_pressure_stab_param, d_dynamic_pressure_stab_param_vector_map[part]);
         break;
     default:
         TBOX_ERROR("unsupported pressure projection type\n");
@@ -761,9 +1305,18 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
     const MeshBase& mesh = equation_systems.get_mesh();
     const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
+//    // debugging
+//    unsigned int n_subdomains = mesh.n_subdomains();
+//    std::set< libMesh::subdomain_id_type >  subdomain_ids;
+//    mesh.subdomain_ids(subdomain_ids);
+//    std::cout << "mesh has " << n_subdomains << std::endl;
+//    for(auto && sid : subdomain_ids) std::cout << sid << " ";
+//    std::cout << std::endl;
+//    //
 
     // Setup global and elemental right-hand-side vectors.
     auto& F_system = equation_systems.get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
+
     // During assembly we sum into ghost regions - this only makes sense if we
     // have a ghosted vector.
     int ierr;
@@ -777,6 +1330,24 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
     std::array<DenseVector<double>, NDIM> F_rhs_e;
     std::vector<libMesh::dof_id_type> dof_id_scratch;
 
+//    // debugging
+//    std::cout << " assembleInteriorForceDensityRHS test" << std::endl;
+//    X_system_tmp.print_info();
+//    std::cout << " is F system initialized:" << F_system.is_initialized()  << std::endl;
+//    F_system.print_info();
+//    unsigned int nvars_F = F_system.n_vars() ;
+//    std::cout << " n vars:" << nvars_F << std::endl;
+//    for(unsigned int nv = 0; nv < nvars_F; ++nv )
+//    {
+//    	auto active_on_subdomains = F_system.variable(nv).active_subdomains();
+//    	std::cout << "F_" << nv << " is active on " << active_on_subdomains.size() <<  " subdomains: " << std::flush;
+//    	for (auto && as : active_on_subdomains) std::cout << as << " " << std::flush;
+//    	std::cout << std::endl;
+//    }
+//    std::cout << " n dofs:" << F_system.n_dofs()  << std::endl;
+//    const DofMap& F_dof_map_tmp = F_system.get_dof_map();
+//    F_dof_map_tmp.print_info();
+//    //
     // First handle the stress contributions.  These are handled separately
     // because each stress function may use a different quadrature rule.
     const size_t num_PK1_fcns = d_PK1_stress_fcn_data[part].size();
@@ -786,6 +1357,7 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
 
         // Extract the FE systems and DOF maps, and setup the FE object.
         const DofMap& F_dof_map = F_system.get_dof_map();
+
         FEDataManager::SystemDofMapCache& F_dof_map_cache = *d_fe_data[part]->getDofMapCache(FORCE_SYSTEM_NAME);
         FEType F_fe_type = F_dof_map.variable_type(0);
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -851,6 +1423,7 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
             {
                 F_rhs_e[d].resize(static_cast<int>(F_dof_indices[d].size()));
             }
+
             fe.reinit(elem);
             fe.collectDataForInterpolation(elem);
             fe.interpolate(elem);
@@ -862,7 +1435,24 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
                 const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
                 const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
                 get_x_and_FF(x, FF, x_data, grad_x_data);
-
+                //SR: HACK
+                FF *= 0.0;
+                for(unsigned int idim = 0; idim < 3; ++idim)
+                {
+                	if(idim < dim )
+					{
+                		x(idim) = X_system.point_value(idim, qrule->qp(qp), elem);
+						auto dx_dX = X_system.point_gradient (idim, qrule->qp(qp), elem);
+						FF(idim, 0) = dx_dX(0);
+						FF(idim, 1) = dx_dX(1);
+						FF(idim, 2) = dx_dX(2);
+					}
+                	else
+                	{
+                		x(idim) = 0.0;
+						FF(idim, idim) = 1.0;
+                	}
+                }
                 // Compute the value of the first Piola-Kirchhoff stress tensor
                 // at the quadrature point and add the corresponding forces to
                 // the right-hand-side vector.
@@ -878,6 +1468,12 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
                     }
                 }
             }
+
+//            for (unsigned int d = 0; d < NDIM; ++d)
+//            {
+//                F_rhs_e[d].print(std::cout);
+//            }
+
 
             // Loop over the element boundaries.
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
@@ -980,7 +1576,7 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
     std::vector<int> P_vars(P_system->n_vars());
-    for(int i = 0; i < P_vars.size(); ++i) P_vars[i] = i;
+    for(unsigned int i = 0; i < P_vars.size(); ++i) P_vars[i] = i;
     std::vector<int> no_vars;
 
     FEDataInterpolation fe(dim, d_fe_data[part]);
@@ -996,8 +1592,8 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
     fe.evalQuadratureWeightsFace();
     fe.registerSystem(F_system, vars, vars); // compute phi and dphi for the force system
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_vec);
-    const size_t P_sys_idx = using_pressure ? fe.registerInterpolatedSystem(*P_system, P_vars, no_vars, P_vec) :
-                                              std::numeric_limits<size_t>::max();
+    //const size_t P_sys_idx = using_pressure ? fe.registerInterpolatedSystem(*P_system, P_vars, no_vars, P_vec) :
+    //                                          std::numeric_limits<size_t>::max();
     std::vector<size_t> body_force_fcn_system_idxs;
     fe.setupInterpolatedSystemDataIndexes(
         body_force_fcn_system_idxs, d_lag_body_force_fcn_data[part].system_data, &equation_systems);
@@ -1053,13 +1649,41 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
             const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
             const std::vector<VectorValue<double> >& grad_x_data = fe_interp_grad_var_data[qp][X_sys_idx];
             get_x_and_FF(x, FF, x_data, grad_x_data);
+
+            // SR: HACK
+            FF *= 0.0;
+            for(unsigned int idim = 0; idim < 3; ++idim)
+            {
+            	if(idim < dim )
+				{
+            		x(idim) = X_system.point_value(idim, qrule->qp(qp), elem);
+					auto dx_dX = X_system.point_gradient (idim, qrule->qp(qp), elem);
+					FF(idim, 0) = dx_dX(0);
+					FF(idim, 1) = dx_dX(1);
+					FF(idim, 2) = dx_dX(2);
+				}
+            	else
+            	{
+            		x(idim) = 0.0;
+					FF(idim, idim) = 1.0;
+            	}
+            }
+
+
             const double J = std::abs(FF.det());
             tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
 
             if (using_pressure)
             {
-                const double P = fe_interp_var_data[qp][P_sys_idx][0];
-
+                //const double P = fe_interp_var_data[qp][P_sys_idx][0];
+            	double P = 0.0;
+            	std::vector<libMesh::dof_id_type> dofs;
+            	for(unsigned int varn = 0; varn < P_system->n_vars(); varn++)
+            	{
+                	P_system->get_dof_map().dof_indices(elem, dofs, varn);
+                	if(dofs.size() > 0)
+            		P = P_system->point_value(varn, qrule->qp(qp), elem);
+            	}
                 // Compute the value of the first Piola-Kirchhoff stress tensor
                 // at the quadrature point and add the corresponding forces to
                 // the right-hand-side vector.
@@ -1410,6 +2034,9 @@ FEMechanicsBase::commonConstructor(const std::string& object_name,
     d_dynamic_pressure_proj_type.resize(n_parts, UNKNOWN_PRESSURE_TYPE);
     d_dynamic_pressure_d2U_dJ2_fcn.resize(n_parts, nullptr);
 
+    d_pressure_matrix.resize(n_parts);
+    d_pressure_matrix_is_assembled.resize(n_parts, false);
+    d_pressure_solver.resize(n_parts);
     // Determine whether we should use first-order or second-order shape
     // functions for each part of the structure.
     for (unsigned int part = 0; part < n_parts; ++part)

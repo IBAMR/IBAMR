@@ -393,6 +393,8 @@ FEMechanicsExplicitIntegrator::modifiedTrapezoidalStep(const double current_time
         //    U^{n+1,*} := U^{n} + (dt/rho) F^{n}
         //    X^{n+1,*} := X^{n} + dt       U^{n+1,*}
         computeLagrangianForce(current_time);
+        //std::cout << "step 1: F_vec: " << d_F_vecs->get("current", part).l2_norm() << std::endl;
+        //d_F_vecs->get("current", part).print();
         ierr = VecWAXPY(d_U_vecs->get("new", part).vec(),
                         dt / d_rhos[part],
                         d_F_vecs->get("current", part).vec(),
@@ -421,6 +423,9 @@ FEMechanicsExplicitIntegrator::modifiedTrapezoidalStep(const double current_time
         //    U^{n+1} := U^{n} + (dt/(2 rho)) (F^{n} + F^{n+1,*})
         //    X^{n+1} := X^{n} + (dt/2)       (U^{n} + U^{n+1})
         computeLagrangianForce(new_time);
+        //std::cout << "step 2: F_vec: " << d_F_vecs->get("current", part).l2_norm() << std::endl;
+       // d_F_vecs->get("current", part).print();
+
         ierr = VecAXPBYPCZ(d_F_vecs->get("half", part).vec(),
                            0.5,
                            0.5,
@@ -477,12 +482,14 @@ FEMechanicsExplicitIntegrator::computeLagrangianForce(const double data_time)
         {
             computeStaticPressure(
                 d_P_vecs->get(data_time_str, part), d_X_vecs->get(data_time_str, part), data_time, part);
+            //std::cout << "computeStaticPressure: RHS: " << d_P_vecs->get(data_time_str, part).l2_norm() << std::endl;
         }
         assembleInteriorForceDensityRHS(d_F_vecs->get("RHS Vector", part),
                                         d_X_vecs->get(data_time_str, part),
                                         d_P_vecs ? &d_P_vecs->get(data_time_str, part) : nullptr,
                                         data_time,
                                         part);
+        //std::cout << "assembleInteriorForceDensityRHS: RHS: " << d_F_vecs->get("RHS Vector", part).l2_norm() << std::endl;
     }
     batch_vec_ghost_update(d_F_vecs->get("RHS Vector"), ADD_VALUES, SCATTER_REVERSE);
     for (unsigned part = 0; part < d_meshes.size(); ++part)
@@ -493,6 +500,9 @@ FEMechanicsExplicitIntegrator::computeLagrangianForce(const double data_time)
                                                    d_use_consistent_mass_matrix,
                                                    /*close_U*/ false,
                                                    /*close_F*/ false);
+
+        //std::cout << "computeL2Projection: soludion: " << d_F_vecs->get("solution", part).l2_norm() << std::endl;
+        //std::cout << "computeL2Projection: RHS: " << d_F_vecs->get("RHS Vector", part).l2_norm() << std::endl;
     }
     d_F_vecs->copy("solution", { data_time_str });
 }
@@ -539,10 +549,14 @@ FEMechanicsExplicitIntegrator::doInitializeFEEquationSystems()
         }
         else
         {
+
+            std::set< libMesh::subdomain_id_type >  subdomain_ids;
+            d_meshes[part]->subdomain_ids(subdomain_ids);
+
             auto& X_system = equation_systems.add_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                X_system.add_variable("X_" + std::to_string(d), d_fe_order_position[part], d_fe_family_position[part]);
+                X_system.add_variable("X_" + std::to_string(d), d_fe_order_position[part], d_fe_family_position[part], &subdomain_ids);
             }
             X_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
 
@@ -550,21 +564,21 @@ FEMechanicsExplicitIntegrator::doInitializeFEEquationSystems()
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 dX_system.add_variable(
-                    "dX_" + std::to_string(d), d_fe_order_position[part], d_fe_family_position[part]);
+                    "dX_" + std::to_string(d), d_fe_order_position[part], d_fe_family_position[part], &subdomain_ids);
             }
             dX_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
 
             auto& U_system = equation_systems.add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                U_system.add_variable("U_" + std::to_string(d), d_fe_order_position[part], d_fe_family_position[part]);
+                U_system.add_variable("U_" + std::to_string(d), d_fe_order_position[part], d_fe_family_position[part], &subdomain_ids);
             }
             U_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
 
             auto& F_system = equation_systems.add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                F_system.add_variable("F_" + std::to_string(d), d_fe_order_force[part], d_fe_family_force[part]);
+                F_system.add_variable("F_" + std::to_string(d), d_fe_order_force[part], d_fe_family_force[part], &subdomain_ids);
             }
             F_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
         }

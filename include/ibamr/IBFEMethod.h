@@ -497,7 +497,7 @@ public:
     virtual void registerStaticPressurePart(PressureProjectionType projection_type = CONSISTENT_PROJECTION,
                                             FEMechanicsBase::VolumetricEnergyDerivativeFcn U_prime_fcn = nullptr,
                                             unsigned int part = 0,
-					    const std::vector< std::set< subdomain_id_type > * > * subdomains_set_ptr_vec = nullptr) override;
+					    const std::vector< std::set< libMesh::subdomain_id_type > * > * subdomains_set_ptr_vec = nullptr) override;
 
     /*!
      * Indicate that a part should use stress normalization.
