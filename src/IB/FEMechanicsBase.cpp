@@ -756,7 +756,7 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
 						}
 					}
 				}
-				M_e.print();
+				//M_e.print();
 				P_system.matrix->add_matrix(M_e, dof_indices, dof_indices);
 			}
 
@@ -827,7 +827,7 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
 		                              K_en(i,j) -= JxW_face[qp] * penalty * phi_face[i][qp]*phi_neighbor_face[j][qp];
 		                  }
 		            }
-		            K_ee.print();
+		            //K_ee.print();
 					P_system.matrix->add_matrix(K_ee, dof_indices, dof_indices);
 					P_system.matrix->add_matrix(K_nn, dof_indices_neighbor, dof_indices_neighbor);
 					P_system.matrix->add_matrix(K_ne, dof_indices_neighbor, dof_indices);
@@ -844,7 +844,7 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
     	solver->set_solver_type(MINRES);
     	solver->init();
 
-    	P_system.matrix->print();
+    	//P_system.matrix->print();
     }
 
 	std::cout << "calling computeStaticPressure: matrix done" << std::endl;
@@ -941,12 +941,26 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
 			std::vector<const std::vector<VectorValue<double> >*> PK1_grad_var_data_neighbor;
 
 			// Loop over elements
+		    FEDataManager::SystemDofMapCache& P_dof_map_cache = *d_fe_data[part]->getDofMapCache(PRESSURE_SYSTEM_NAME);
 			const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
 			const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
 			for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
 			{
 				Elem *const elem = *el_it;
 				unsigned int blockID = elem->subdomain_id();
+
+
+		        const auto& dof_indices_test = P_dof_map_cache.dof_indices(elem);
+		        std::cout << " dof indices " << std::endl;
+			        for(size_t m = 0; m < dof_indices_test.shape()[0]; ++m)
+		        {
+			        for(size_t n = 0; n < dof_indices_test.shape()[1]; ++n)
+			        {
+			        	std::cout << " " << dof_indices_test[m][n] << " " << std::flush;
+			        }
+			        std::cout << std::endl;
+		        }
+		        std::cout << std::endl;
 
 				P_dof_map.dof_indices(elem, pressure_dof_indices);
 				const auto n_basis = pressure_dof_indices.size();
@@ -1039,9 +1053,9 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
 												  qface_neighbor_point);
 
 								std::cout << " n reinit  " << std::endl;
-							fe_neighbor.reinit(elem, side, libMesh::TOLERANCE, &qface_neighbor_point);
+							fe_neighbor.reinit(neighbor, side, libMesh::TOLERANCE, &qface_neighbor_point);
 							std::cout << " n interpolate  " << std::endl;
-							fe_neighbor.interpolate(elem, side);
+							fe_neighbor.interpolate(neighbor, side);
 							std::cout << " n_qp_face  " << std::endl;
 							const unsigned int n_qp_face = qrule_face->n_points();
 							const size_t n_basis_face = phi_face.size();
