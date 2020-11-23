@@ -577,7 +577,7 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
         {
             plog << d_object_name << "::preprocessIntegrateData(): "
                  << "Maximum structure node displacement is " << max_distance
-                 << ". Reinitializing element to patch mappings.\n";
+                 << " - reinitializing element to patch mappings\n";
             do_reinit_element_mappings = true;
             break;
         }

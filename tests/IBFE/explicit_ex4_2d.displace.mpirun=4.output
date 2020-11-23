@@ -2875,7 +2875,7 @@ Simulation time is 0.0890625
 At beginning of timestep # 114
 Simulation time is 0.0890625
 IBHierarchyIntegrator::advanceHierarchy(): time interval = [0.089062500000,0.089843750000], dt = 0.000781250000
-IBFEMethod::preprocessIntegrateData(): Maximum structure node displacement is 0.002501697679. Reinitializing element to patch mappings.
+IBFEMethod::preprocessIntegrateData(): Maximum structure node displacement is 0.002501698048 - reinitializing element to patch mappings
 IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
 IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
@@ -4401,7 +4401,7 @@ Simulation time is 0.136719
 At beginning of timestep # 175
 Simulation time is 0.136719
 IBHierarchyIntegrator::advanceHierarchy(): time interval = [0.136718750000,0.137500000000], dt = 0.000781250000
-IBFEMethod::preprocessIntegrateData(): Maximum structure node displacement is 0.002533934041. Reinitializing element to patch mappings.
+IBFEMethod::preprocessIntegrateData(): Maximum structure node displacement is 0.002533934630 - reinitializing element to patch mappings
 IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
 IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
