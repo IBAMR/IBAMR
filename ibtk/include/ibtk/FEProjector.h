@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#include <ibtk/FischerGuess.h>
+
 #include <libmesh/equation_systems.h>
 #include <libmesh/petsc_linear_solver.h>
 #include <libmesh/petsc_matrix.h>
@@ -45,10 +47,11 @@ class FEProjector
 {
 public:
     /// Constructor.
-    FEProjector(libMesh::EquationSystems* equation_systems, bool enable_logging = true);
+    FEProjector(libMesh::EquationSystems* equation_systems,
+                const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
 
     /// Alternative constructor that takes in a shared pointer to an FEData object.
-    FEProjector(std::shared_ptr<FEData> fe_data, bool enable_logging = true);
+    FEProjector(std::shared_ptr<FEData> fe_data, const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
 
     /// Deleted default constructor.
     FEProjector() = delete;
@@ -181,6 +184,8 @@ protected:
     std::map<std::string, std::map<double, std::unique_ptr<libMesh::PetscLinearSolver<double> > > >
         d_stab_L2_proj_solver;
 
+    std::map<std::string, FischerGuess> d_initial_guesses;
+
 private:
     /*!
      * Whether or not to log data to the screen: see
@@ -188,6 +193,11 @@ private:
      * FEProjector::getLoggingEnabled().
      */
     bool d_enable_logging = false;
+
+    /*!
+     * Number of vectors to use in the FischerGuess objects.
+     */
+    int d_num_fischer_vectors = 5;
 };
 } // namespace IBTK
 

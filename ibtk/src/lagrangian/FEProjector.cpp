@@ -87,9 +87,10 @@ get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FEProjector::FEProjector(EquationSystems* equation_systems, const bool enable_logging)
+FEProjector::FEProjector(EquationSystems* equation_systems, const Pointer<Database>& input_db)
     : d_fe_data(new FEData("FEProjector", *equation_systems, /*register_for_restart*/ false)),
-      d_enable_logging(enable_logging)
+      d_enable_logging(input_db->getBoolWithDefault("enable_logging", false)),
+      d_num_fischer_vectors(input_db->getIntegerWithDefault("num_fischer_vectors", 5))
 {
     IBTK_DO_ONCE(t_build_L2_projection_solver =
                      TimerManager::getManager()->getTimer("IBTK::FEProjector::buildL2ProjectionSolver()");
@@ -105,8 +106,10 @@ FEProjector::FEProjector(EquationSystems* equation_systems, const bool enable_lo
                      TimerManager::getManager()->getTimer("IBTK::FEProjector::computeStabilizedL2Projection()");)
 }
 
-FEProjector::FEProjector(std::shared_ptr<FEData> fe_data, const bool enable_logging)
-    : d_fe_data(std::move(fe_data)), d_enable_logging(enable_logging)
+FEProjector::FEProjector(std::shared_ptr<FEData> fe_data, const Pointer<Database>& input_db)
+    : d_fe_data(std::move(fe_data)),
+      d_enable_logging(input_db->getBoolWithDefault("enable_logging", false)),
+      d_num_fischer_vectors(input_db->getIntegerWithDefault("num_fischer_vectors", 5))
 {
     TBOX_ASSERT(d_fe_data);
     IBTK_DO_ONCE(t_build_L2_projection_solver =
@@ -665,12 +668,19 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
         IBTK_CHKERRQ(ierr);
         ierr = KSPSetFromOptions(solver->ksp());
         IBTK_CHKERRQ(ierr);
+
+        auto pair = d_initial_guesses.emplace(system_name, d_num_fischer_vectors);
+        FischerGuess& fischer_guess = (pair.first)->second;
+
+        fischer_guess.guess(U_vec, F_vec);
         solver->solve(
             *M_mat, lumped_mass, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
         KSPConvergedReason reason;
         ierr = KSPGetConvergedReason(solver->ksp(), &reason);
         IBTK_CHKERRQ(ierr);
         converged = reason > 0;
+
+        fischer_guess.submit(U_vec, F_vec);
     }
 
     if (close_U) U_vec.close();
