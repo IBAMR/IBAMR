@@ -31,11 +31,6 @@
 #ifndef included_IBAMR_multiphase_flow_LSLocateBargeInterface
 #define included_IBAMR_multiphase_flow_LSLocateBargeInterface
 
-namespace IBTK
-{
-class IBTK_MPI;
-};
-
 // Struct to maintain the properties of the barge interface
 struct BargeInterface
 {
