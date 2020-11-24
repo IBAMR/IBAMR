@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <ibtk/PartitioningBox.h>
 #include <ibtk/ibtk_utilities.h>
-#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 #include "IntVector.h"
 #include "Patch.h"
@@ -30,6 +29,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 namespace IBTK

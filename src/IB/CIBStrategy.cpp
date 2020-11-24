@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/CIBStrategy.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/ibtk_utilities.h"
@@ -30,6 +29,8 @@
 
 #include <algorithm>
 #include <memory>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

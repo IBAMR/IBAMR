@@ -17,7 +17,6 @@
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/LData.h"
 #include "ibtk/LSiloDataWriter.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "IntVector.h"
 #include "PatchHierarchy.h"
@@ -43,6 +42,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 // IWYU pragma: no_include "petsc-private/vecimpl.h"
 
 #if defined(IBTK_HAVE_SILO)

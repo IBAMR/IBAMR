@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/CoarsenPatchStrategySet.h"
+
 #include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI

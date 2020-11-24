@@ -20,7 +20,6 @@
 #include "ibtk/VCSCViscousOperator.h"
 #include "ibtk/ibtk_enums.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "EdgeVariable.h"
@@ -36,6 +35,8 @@
 #include <algorithm>
 #include <string>
 #include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

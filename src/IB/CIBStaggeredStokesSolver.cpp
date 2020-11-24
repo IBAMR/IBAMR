@@ -20,7 +20,6 @@
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
@@ -50,6 +49,8 @@
 #include <ostream>
 #include <string>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

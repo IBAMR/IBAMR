@@ -18,7 +18,6 @@
 #include "ibamr/DirectMobilitySolver.h"
 #include "ibamr/KrylovFreeBodyMobilitySolver.h"
 #include "ibamr/StokesSpecifications.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 #include "ibamr/ibamr_utilities.h"
 
 #include "tbox/Database.h"
@@ -39,6 +38,8 @@
 #include <ostream>
 #include <string>
 #include <utility>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 namespace IBAMR
 {

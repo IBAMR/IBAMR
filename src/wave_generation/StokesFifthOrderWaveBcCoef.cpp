@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/StokesFifthOrderWaveBcCoef.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -30,6 +29,8 @@
 #include <cmath>
 #include <limits>
 #include <utility>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

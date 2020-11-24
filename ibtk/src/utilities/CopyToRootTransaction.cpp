@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/CopyToRootTransaction.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BoxArray.h"
 #include "BoxGeometry.h"
@@ -29,6 +28,8 @@
 #include "tbox/Pointer.h"
 
 #include <ostream>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

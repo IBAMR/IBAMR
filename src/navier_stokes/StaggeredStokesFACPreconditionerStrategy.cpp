@@ -18,7 +18,6 @@
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CartCellDoubleCubicCoarsen.h"
 #include "ibtk/CartCellDoubleQuadraticCFInterpolation.h"
@@ -79,6 +78,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

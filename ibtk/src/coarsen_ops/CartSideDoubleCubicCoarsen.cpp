@@ -15,7 +15,6 @@
 
 #include "ibtk/CartSideDoubleCubicCoarsen.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "SideData.h"
@@ -25,6 +24,8 @@
 
 #include <ostream>
 #include <string>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

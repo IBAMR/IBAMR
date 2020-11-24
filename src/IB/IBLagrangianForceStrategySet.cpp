@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/IBLagrangianForceStrategySet.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
@@ -23,6 +22,8 @@
 #include "PatchHierarchy.h"
 
 #include <string>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace IBTK
 {

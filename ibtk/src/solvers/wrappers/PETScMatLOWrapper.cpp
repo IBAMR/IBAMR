@@ -18,7 +18,6 @@
 #include "ibtk/LinearOperator.h"
 #include "ibtk/PETScMatLOWrapper.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -30,6 +29,8 @@
 
 #include <string>
 #include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

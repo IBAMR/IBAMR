@@ -17,12 +17,13 @@
 #include "ibtk/LIndexSetVariable.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Variable.h"
 
 #include <string>
 #include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

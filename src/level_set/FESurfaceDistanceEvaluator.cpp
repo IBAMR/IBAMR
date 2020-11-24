@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/FESurfaceDistanceEvaluator.h"
-#include "ibamr/app_namespaces.h"
 
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
@@ -67,6 +66,8 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+
+#include "ibamr/app_namespaces.h"
 
 namespace libMesh
 {

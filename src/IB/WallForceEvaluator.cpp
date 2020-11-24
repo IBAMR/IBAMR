@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/WallForceEvaluator.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
@@ -39,6 +38,8 @@
 
 #include <sstream>
 #include <string>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

@@ -15,7 +15,6 @@
 
 #include "ibamr/IrregularWaveBcCoef.h"
 #include "ibamr/RNG.h"
-#include "ibamr/namespaces.h"
 
 #include "ibtk/IBTK_MPI.h"
 
@@ -35,6 +34,8 @@
 #include <fstream>
 #include <limits>
 #include <utility>
+
+#include "ibamr/namespaces.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

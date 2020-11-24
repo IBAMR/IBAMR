@@ -17,7 +17,6 @@
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/LinearSolver.h"
@@ -50,6 +49,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

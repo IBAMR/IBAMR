@@ -14,11 +14,12 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/StokesWaveGeneratorStrategy.h"
-#include "ibamr/app_namespaces.h"
 
 #include "tbox/Database.h"
 
 #include <limits>
+
+#include "ibamr/app_namespaces.h"
 
 namespace IBAMR
 {

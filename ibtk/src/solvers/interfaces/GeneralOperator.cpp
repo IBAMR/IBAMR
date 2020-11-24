@@ -15,7 +15,6 @@
 
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/HierarchyMathOps.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "SAMRAIVectorReal.h"
@@ -23,6 +22,8 @@
 
 #include <ostream>
 #include <string>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

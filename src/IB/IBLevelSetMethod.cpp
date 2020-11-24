@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/IBLevelSetMethod.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -26,6 +25,8 @@
 
 #include <string>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -27,7 +27,6 @@
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
 #include "Box.h"
@@ -62,6 +61,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

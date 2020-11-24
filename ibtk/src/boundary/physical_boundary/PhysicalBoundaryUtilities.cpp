@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/PhysicalBoundaryUtilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BoundaryBox.h"
 #include "Box.h"
@@ -25,6 +24,8 @@
 #include "tbox/Utilities.h"
 
 #include <algorithm>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

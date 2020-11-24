@@ -17,7 +17,6 @@
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/WaveDampingFunctions.h"
 #include "ibamr/WaveUtilities.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
@@ -55,6 +54,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

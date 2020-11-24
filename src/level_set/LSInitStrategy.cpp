@@ -14,12 +14,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/LSInitStrategy.h"
-#include "ibamr/namespaces.h"
 
 #include "tbox/Database.h"
 #include "tbox/RestartManager.h"
 
 #include <utility>
+
+#include "ibamr/namespaces.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

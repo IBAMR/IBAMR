@@ -15,7 +15,6 @@
 
 #include "ibamr/IBFESurfaceMethod.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
@@ -89,6 +88,8 @@
 #include "libmesh/vector_value.h"
 
 #include "petscvec.h"
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/math/special_functions/round.hpp>

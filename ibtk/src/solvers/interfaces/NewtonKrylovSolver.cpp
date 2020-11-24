@@ -19,13 +19,14 @@
 #include "ibtk/JacobianOperator.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/NewtonKrylovSolver.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "SAMRAIVectorReal.h"
 #include "tbox/Pointer.h"
 
 #include <string>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

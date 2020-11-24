@@ -24,7 +24,6 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/RefinePatchStrategySet.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
@@ -57,6 +56,8 @@
 #include <ostream>
 #include <string>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

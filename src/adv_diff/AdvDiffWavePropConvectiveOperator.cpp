@@ -17,7 +17,6 @@
 #include "ibamr/AdvDiffWavePropConvectiveOperator.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h"
 
 #include "ibtk/CartExtrapPhysBdryOp.h"
 
@@ -52,6 +51,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h"
 
 namespace SAMRAI
 {

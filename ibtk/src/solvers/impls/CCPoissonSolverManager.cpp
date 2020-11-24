@@ -25,7 +25,6 @@
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PETScKrylovPoissonSolver.h"
 #include "ibtk/PoissonSolver.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
@@ -37,6 +36,8 @@
 #include <ostream>
 #include <string>
 #include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -16,7 +16,6 @@
 #include "ibtk/CartSideDoubleCubicCoarsen.h"
 #include "ibtk/SideDataSynchronization.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
@@ -40,6 +39,8 @@
 #include <ostream>
 #include <string>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

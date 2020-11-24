@@ -16,7 +16,6 @@
 #include "ibtk/CopyToRootSchedule.h"
 #include "ibtk/CopyToRootTransaction.h"
 #include "ibtk/IBTK_MPI.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BoxArray.h"
 #include "GridGeometry.h"
@@ -30,6 +29,8 @@
 
 #include <utility>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

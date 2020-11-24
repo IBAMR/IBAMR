@@ -17,7 +17,6 @@
 #include "ibamr/AdvDiffStochasticForcing.h"
 #include "ibamr/RNG.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
@@ -60,6 +59,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

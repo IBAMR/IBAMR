@@ -19,7 +19,6 @@
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/INSVCStaggeredPressureBcCoef.h"
 #include "ibamr/StokesSpecifications.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/IBTK_MPI.h"
@@ -55,6 +54,8 @@
 #include <fstream>
 #include <utility>
 #include <vector>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

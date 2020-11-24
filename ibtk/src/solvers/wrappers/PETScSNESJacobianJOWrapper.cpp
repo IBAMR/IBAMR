@@ -18,7 +18,6 @@
 #include "ibtk/JacobianOperator.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/PETScSNESJacobianJOWrapper.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -33,6 +32,8 @@
 
 #include <string>
 #include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

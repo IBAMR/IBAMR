@@ -18,7 +18,6 @@
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
@@ -32,6 +31,8 @@
 #include <array>
 #include <utility>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

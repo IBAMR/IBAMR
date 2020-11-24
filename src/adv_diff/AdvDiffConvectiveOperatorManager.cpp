@@ -20,7 +20,6 @@
 #include "ibamr/AdvDiffWavePropConvectiveOperator.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "CellVariable.h"
 #include "tbox/Database.h"
@@ -34,6 +33,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

@@ -15,7 +15,6 @@
 
 #include "ibamr/IrregularWaveGenerator.h"
 #include "ibamr/RNG.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/IBTK_MPI.h"
 
@@ -24,6 +23,8 @@
 
 #include <algorithm>
 #include <cmath>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 namespace IBAMR
 {

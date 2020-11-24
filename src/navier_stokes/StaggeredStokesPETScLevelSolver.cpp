@@ -17,7 +17,6 @@
 #include "ibamr/StaggeredStokesPETScMatUtilities.h"
 #include "ibamr/StaggeredStokesPETScVecUtilities.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -54,6 +53,8 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -26,7 +26,6 @@
 #include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BasePatchHierarchy.h"
 #include "Box.h"
@@ -116,6 +115,8 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <tuple>
 #include <utility>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace libMesh
 {

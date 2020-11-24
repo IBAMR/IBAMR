@@ -15,7 +15,6 @@
 
 #include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "CellDataFactory.h"
 #include "CellVariable.h"
@@ -42,6 +41,8 @@
 #include "tbox/Utilities.h"
 
 #include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

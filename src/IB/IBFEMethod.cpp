@@ -19,7 +19,6 @@
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/BoxPartitioner.h"
 #include "ibtk/CartSideDoubleRT0Refine.h"
@@ -122,6 +121,8 @@
 #include "petscvec.h"
 #include <petsclog.h>
 #include <petscsys.h>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>

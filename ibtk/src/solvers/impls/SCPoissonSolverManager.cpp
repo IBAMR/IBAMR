@@ -23,7 +23,6 @@
 #include "ibtk/SCPoissonPETScLevelSolver.h"
 #include "ibtk/SCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/SCPoissonSolverManager.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
@@ -35,6 +34,8 @@
 #include <ostream>
 #include <string>
 #include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

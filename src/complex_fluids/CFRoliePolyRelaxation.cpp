@@ -12,7 +12,6 @@
 // ---------------------------------------------------------------------
 
 #include "ibamr/CFRoliePolyRelaxation.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/ibtk_utilities.h"
 
@@ -23,6 +22,8 @@
 #include "tbox/Database.h"
 
 #include <cmath>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

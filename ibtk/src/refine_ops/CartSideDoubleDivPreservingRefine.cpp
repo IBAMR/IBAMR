@@ -15,7 +15,6 @@
 
 #include "ibtk/CartSideDoubleDivPreservingRefine.h"
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "Patch.h"
@@ -31,6 +30,8 @@
 #include <cmath>
 #include <limits>
 #include <string>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

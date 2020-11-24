@@ -16,7 +16,6 @@
 #include "ibamr/StaggeredStokesBlockFactorizationPreconditioner.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CellNoCornersFillPattern.h"
 #include "ibtk/GeneralSolver.h"
@@ -47,6 +46,8 @@
 
 #include <ostream>
 #include <string>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -25,7 +25,6 @@
 #include "ibamr/StaggeredStokesPETScVecUtilities.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyMathOps.h"
@@ -76,6 +75,8 @@
 #include <ostream>
 #include <string>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

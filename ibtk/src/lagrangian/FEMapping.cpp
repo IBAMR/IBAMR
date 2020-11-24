@@ -13,7 +13,6 @@
 
 #include "ibtk/FEMapping.h"
 #include "ibtk/libmesh_utilities.h"
-#include "ibtk/namespaces.h"
 
 #include "tbox/Utilities.h"
 
@@ -33,6 +32,8 @@
 #include <algorithm>
 #include <cmath>
 #include <memory>
+
+#include "ibtk/namespaces.h"
 
 namespace IBTK
 {

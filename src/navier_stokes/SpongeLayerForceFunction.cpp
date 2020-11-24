@@ -16,7 +16,6 @@
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/SpongeLayerForceFunction.h"
 #include "ibamr/StokesSpecifications.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/ibtk_utilities.h"
@@ -41,6 +40,8 @@
 
 #include <cmath>
 #include <string>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

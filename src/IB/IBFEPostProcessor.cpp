@@ -15,7 +15,6 @@
 
 #include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBFEPostProcessor.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/FEDataManager.h"
 #include "ibtk/LEInteractor.h"
@@ -42,6 +41,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace libMesh
 {

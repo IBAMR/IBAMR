@@ -22,7 +22,6 @@
 #include "ibamr/IBSpringForceSpec.h"
 #include "ibamr/IBStandardSourceGen.h"
 #include "ibamr/IBTargetPointForceSpec.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
@@ -50,6 +49,8 @@
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/math/special_functions/round.hpp>

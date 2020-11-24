@@ -18,7 +18,6 @@
 #include "ibtk/PETScLevelSolver.h"
 #include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "CoarseFineBoundary.h"
 #include "IntVector.h"
@@ -48,6 +47,8 @@
 #include <set>
 #include <string>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

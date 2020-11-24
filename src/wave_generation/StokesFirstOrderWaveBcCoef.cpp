@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/StokesFirstOrderWaveBcCoef.h"
-#include "ibamr/namespaces.h"
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -28,6 +27,8 @@
 
 #include <cmath>
 #include <utility>
+
+#include "ibamr/namespaces.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

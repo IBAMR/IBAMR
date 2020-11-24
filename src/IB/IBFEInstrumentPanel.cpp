@@ -16,7 +16,6 @@
 #include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBFEInstrumentPanel.h"
 #include "ibamr/IBFEMethod.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/FEDataManager.h"
 #include "ibtk/IBTK_MPI.h"
@@ -70,6 +69,8 @@
 #include "libmesh/system.h"
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Geometry" // IWYU pragma: keep

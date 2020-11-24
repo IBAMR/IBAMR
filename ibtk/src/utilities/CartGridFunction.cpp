@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/CartGridFunction.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "IntVector.h"
 #include "Patch.h"
@@ -23,6 +22,8 @@
 
 #include <string>
 #include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

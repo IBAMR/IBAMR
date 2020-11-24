@@ -19,7 +19,6 @@
 #include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/ibtk_utilities.h"
@@ -54,6 +53,8 @@
 #include <cmath>
 #include <string>
 #include <utility>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

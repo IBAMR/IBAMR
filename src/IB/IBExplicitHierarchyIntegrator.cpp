@@ -18,7 +18,6 @@
 #include "ibamr/IBStrategy.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/IBTK_MPI.h"
@@ -49,6 +48,8 @@
 #include <ostream>
 #include <string>
 #include <utility>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

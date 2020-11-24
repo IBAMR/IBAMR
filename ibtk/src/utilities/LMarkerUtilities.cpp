@@ -26,7 +26,6 @@
 #include "ibtk/LSetData.h"
 #include "ibtk/LSetDataIterator.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BasePatchLevel.h"
 #include "Box.h"
@@ -63,6 +62,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

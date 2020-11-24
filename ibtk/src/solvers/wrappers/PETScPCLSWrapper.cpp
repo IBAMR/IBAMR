@@ -19,7 +19,6 @@
 #include "ibtk/PETScPCLSWrapper.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "MultiblockDataTranslator.h"
@@ -35,6 +34,8 @@
 #include <ostream>
 #include <string>
 #include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -16,7 +16,6 @@
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/VCStaggeredStokesOperator.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
@@ -35,6 +34,8 @@
 
 #include <string>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

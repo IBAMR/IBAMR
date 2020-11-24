@@ -16,11 +16,12 @@
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
 #include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/FACPreconditionerStrategy.h"
 
 #include "tbox/Database.h"
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

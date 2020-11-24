@@ -14,10 +14,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/FixedSizedStream.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include <cstring>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

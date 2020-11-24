@@ -18,7 +18,6 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/LSetDataFactory.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "IntVector.h"
@@ -31,6 +30,8 @@
 
 #include <algorithm>
 #include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

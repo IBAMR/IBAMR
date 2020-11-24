@@ -14,10 +14,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/BrinkmanPenalizationStrategy.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "tbox/Database.h"
 #include "tbox/RestartManager.h"
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

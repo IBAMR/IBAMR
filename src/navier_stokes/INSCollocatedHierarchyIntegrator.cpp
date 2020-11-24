@@ -24,7 +24,6 @@
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartCellRobinPhysBdryOp.h"
@@ -89,6 +88,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

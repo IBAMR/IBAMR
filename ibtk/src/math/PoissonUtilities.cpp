@@ -18,7 +18,6 @@
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/PoissonUtilities.h"
 #include "ibtk/ibtk_enums.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
 #include "ArrayDataBasicOps.h"
@@ -48,6 +47,8 @@
 #include <map>
 #include <string>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -15,7 +15,6 @@
 
 #include "ibamr/LSInitStrategy.h"
 #include "ibamr/RelaxationLSMethod.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 #include "ibamr/ibamr_enums.h"
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
@@ -45,6 +44,8 @@
 #include <ostream>
 #include <string>
 #include <vector>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

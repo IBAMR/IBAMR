@@ -21,7 +21,6 @@
 #include "ibtk/VCSCViscousOpPointRelaxationFACOperator.h"
 #include "ibtk/ibtk_enums.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
 #include "Box.h"
@@ -43,6 +42,8 @@
 
 #include <map>
 #include <memory>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

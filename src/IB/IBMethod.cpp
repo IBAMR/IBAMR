@@ -22,7 +22,6 @@
 #include "ibamr/IBMethod.h"
 #include "ibamr/IBMethodPostProcessStrategy.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -77,6 +76,8 @@
 #include "petscsys.h"
 #include "petscvec.h"
 #include <petsclog.h>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>

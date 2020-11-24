@@ -15,7 +15,6 @@
 
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/LinearOperator.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "LocationIndexRobinBcCoefs.h"
@@ -27,6 +26,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

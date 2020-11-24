@@ -15,11 +15,12 @@
 
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/ParallelEdgeMap.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include <algorithm>
 #include <map>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

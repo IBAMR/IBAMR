@@ -19,7 +19,6 @@
 #include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/LSetDataFactory.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CellGeometry.h"
@@ -34,6 +33,8 @@
 
 #include <algorithm>
 #include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

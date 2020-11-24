@@ -15,7 +15,6 @@
 
 #include <ibtk/FEDataManager.h>
 #include <ibtk/FEProjector.h>
-#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 #include <tbox/Timer.h>
 #include <tbox/TimerManager.h>
@@ -25,6 +24,8 @@
 #include <libmesh/elem.h>
 #include <libmesh/enum_preconditioner_type.h>
 #include <libmesh/enum_solver_type.h>
+
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

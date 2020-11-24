@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/CartCellDoubleBoundsPreservingConservativeLinearRefine.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "BoxList.h"
@@ -25,6 +24,8 @@
 #include <algorithm>
 #include <limits>
 #include <string>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

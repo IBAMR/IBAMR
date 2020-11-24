@@ -15,7 +15,6 @@
 
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/NormOps.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "CellData.h"
 #include "CellVariable.h"
@@ -37,6 +36,8 @@
 #include <numeric>
 #include <string>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

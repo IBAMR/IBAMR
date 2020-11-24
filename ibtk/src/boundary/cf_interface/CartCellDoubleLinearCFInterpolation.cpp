@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/CartCellDoubleLinearCFInterpolation.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BoundaryBox.h"
 #include "BoxArray.h"
@@ -32,6 +31,8 @@
 #include <set>
 #include <string>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

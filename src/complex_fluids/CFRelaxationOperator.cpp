@@ -12,7 +12,6 @@
 // ---------------------------------------------------------------------
 
 #include "ibamr/CFRelaxationOperator.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/ibtk_utilities.h"
 
@@ -21,6 +20,8 @@
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <unsupported/Eigen/MatrixFunctions>
 IBTK_ENABLE_EXTRA_WARNINGS
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 // Namespace
 namespace IBAMR

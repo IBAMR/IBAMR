@@ -14,7 +14,6 @@
 #include "ibamr/AdvDiffConvectiveOperatorManager.h"
 #include "ibamr/CFUpperConvectiveOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 
@@ -37,6 +36,8 @@
 #include "VariableDatabase.h"
 #include "tbox/Database.h"
 #include "tbox/Utilities.h"
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

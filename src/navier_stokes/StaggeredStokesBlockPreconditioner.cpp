@@ -16,7 +16,6 @@
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/LinearSolver.h"
@@ -36,6 +35,8 @@
 #include <ostream>
 #include <string>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

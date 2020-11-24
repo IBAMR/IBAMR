@@ -18,7 +18,6 @@
 #include "ibtk/ParallelMap.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "IntVector.h"
 #include "tbox/Pointer.h"
@@ -26,6 +25,8 @@
 #include <map>
 #include <utility>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -15,7 +15,6 @@
 
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -37,6 +36,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

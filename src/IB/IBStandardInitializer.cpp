@@ -23,7 +23,6 @@
 #include "ibamr/IBStandardInitializer.h"
 #include "ibamr/IBStandardSourceGen.h"
 #include "ibamr/IBTargetPointForceSpec.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/LSiloDataWriter.h"
@@ -54,6 +53,8 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

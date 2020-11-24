@@ -15,7 +15,6 @@
 
 #include "ibtk/CartExtrapPhysBdryOp.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BoundaryBox.h"
 #include "Box.h"
@@ -49,6 +48,8 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -14,13 +14,14 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/CartSideDoubleRT0Refine.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "SideVariable.h"
 #include "tbox/Pointer.h"
 
 #include <string>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {
