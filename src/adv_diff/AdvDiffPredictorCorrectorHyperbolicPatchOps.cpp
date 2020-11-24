@@ -18,7 +18,6 @@
 #include "ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CartGridFunction.h"
 
@@ -48,6 +47,8 @@
 #include <set>
 #include <string>
 #include <utility>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

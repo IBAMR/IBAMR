@@ -17,7 +17,6 @@
 #include "ibamr/IBStrategy.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CartCellRobinPhysBdryOp.h"
 #include "ibtk/CartExtrapPhysBdryOp.h"
@@ -69,6 +68,8 @@
 #include <ostream>
 #include <string>
 #include <utility>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

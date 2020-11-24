@@ -16,7 +16,6 @@
 #include "ibtk/AppInitializer.h"
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/LSiloDataWriter.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "VisItDataWriter.h"
 #include "tbox/Array.h"
@@ -36,6 +35,8 @@
 #include <ostream>
 #include <string>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

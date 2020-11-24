@@ -17,11 +17,12 @@
 #include "ibtk/KrylovLinearSolverPoissonSolverInterface.h"
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/PoissonSolver.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "PoissonSpecifications.h"
 
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

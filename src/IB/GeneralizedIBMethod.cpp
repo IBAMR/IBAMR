@@ -17,7 +17,6 @@
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBKirchhoffRodForceGen.h"
 #include "ibamr/IBMethod.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
@@ -53,6 +52,8 @@
 #include "petscvec.h"
 
 #include "Eigen/src/Core/GeneralProduct.h"
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>

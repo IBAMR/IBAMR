@@ -16,7 +16,6 @@
 #include "ibamr/FEMechanicsBase.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
@@ -71,6 +70,8 @@
 
 #include <iterator>
 #include <utility>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

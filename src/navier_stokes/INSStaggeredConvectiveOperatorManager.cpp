@@ -22,7 +22,6 @@
 #include "ibamr/INSStaggeredUpwindConvectiveOperator.h"
 #include "ibamr/INSStaggeredWavePropConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
@@ -35,6 +34,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

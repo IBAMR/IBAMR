@@ -16,7 +16,6 @@
 #include "ibamr/CIBMethod.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/MobilityFunctions.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/IBTK_MPI.h"
@@ -53,6 +52,8 @@
 #include "petscistypes.h"
 #include <petsclog.h>
 #include <petscsys.h>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>

@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/RNG.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "tbox/PIO.h"
 #include "tbox/Utilities.h"
@@ -27,6 +26,8 @@
 #include <iostream>
 #include <set>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

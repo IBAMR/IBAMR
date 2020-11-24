@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/LibMeshSystemIBVectors.h>
-#include <ibtk/namespaces.h>
 
 #include <tbox/Utilities.h>
 
@@ -26,6 +25,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+
+#include <ibtk/namespaces.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

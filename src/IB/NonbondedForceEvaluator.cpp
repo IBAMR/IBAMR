@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/NonbondedForceEvaluator.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
@@ -43,6 +42,8 @@
 #include <algorithm>
 #include <cmath>
 #include <string>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

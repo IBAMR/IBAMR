@@ -16,7 +16,6 @@
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonSolverManager.h"
@@ -73,6 +72,8 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

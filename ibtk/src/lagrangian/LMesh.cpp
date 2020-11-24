@@ -14,9 +14,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/LMesh.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace IBTK
 {

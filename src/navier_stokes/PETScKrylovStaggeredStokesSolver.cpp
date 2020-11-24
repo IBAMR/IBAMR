@@ -14,9 +14,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/PETScKrylovStaggeredStokesSolver.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "tbox/Database.h"
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

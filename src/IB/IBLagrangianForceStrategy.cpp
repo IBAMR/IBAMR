@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/IBLagrangianForceStrategy.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
@@ -23,6 +22,8 @@
 
 #include <ostream>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace IBTK
 {

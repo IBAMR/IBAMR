@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include "ibamr/IBHydrodynamicForceEvaluator.h"
 #include "ibamr/INSStaggeredPressureBcCoef.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/IBTK_MPI.h"
@@ -63,6 +62,8 @@
 #include <array>
 #include <cmath>
 #include <fstream>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

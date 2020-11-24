@@ -18,7 +18,6 @@
 #include "ibamr/StokesBcCoefStrategy.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 
@@ -36,6 +35,8 @@
 #include <ostream>
 #include <string>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

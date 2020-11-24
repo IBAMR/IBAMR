@@ -16,7 +16,6 @@
 #include "ibamr/IMPMethod.h"
 #include "ibamr/MaterialPointSpec.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
@@ -73,6 +72,8 @@
 #include "libmesh/vector_value.h"
 
 #include "petscvec.h"
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/math/special_functions/round.hpp>

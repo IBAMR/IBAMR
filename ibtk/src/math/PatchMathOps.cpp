@@ -15,7 +15,6 @@
 
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/PatchMathOps.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
@@ -33,6 +32,8 @@
 #include <array>
 #include <ostream>
 #include <string>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

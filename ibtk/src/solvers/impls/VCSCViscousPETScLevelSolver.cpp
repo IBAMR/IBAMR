@@ -22,7 +22,6 @@
 #include "ibtk/SCPoissonPETScLevelSolver.h"
 #include "ibtk/VCSCViscousPETScLevelSolver.h"
 #include "ibtk/ibtk_enums.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BoundaryBox.h"
 #include "Box.h"
@@ -42,6 +41,8 @@
 
 #include <string>
 #include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -37,7 +37,6 @@
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/compiler_hints.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -97,6 +96,8 @@
 #include <petsclog.h>
 
 #include "Eigen/src/Core/Map.h"
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>

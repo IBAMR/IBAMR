@@ -21,7 +21,6 @@
 #include "ibamr/StaggeredStokesProjectionPreconditioner.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearOperator.h"
@@ -37,6 +36,8 @@
 #include <ostream>
 #include <string>
 #include <utility>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

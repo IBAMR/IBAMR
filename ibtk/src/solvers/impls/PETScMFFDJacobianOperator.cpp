@@ -20,7 +20,6 @@
 #include "ibtk/PETScMFFDJacobianOperator.h"
 #include "ibtk/PETScNewtonKrylovSolver.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "MultiblockDataTranslator.h"
@@ -35,6 +34,8 @@
 #include <algorithm>
 #include <string>
 #include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

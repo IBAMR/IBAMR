@@ -15,12 +15,13 @@
 
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
 #include "petscvec.h"
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>

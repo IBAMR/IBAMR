@@ -15,7 +15,6 @@
 
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "IntVector.h"
 #include "LocationIndexRobinBcCoefs.h"
@@ -24,6 +23,8 @@
 #include "tbox/Pointer.h"
 
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

@@ -16,7 +16,6 @@
 #include "ibamr/FastSweepingLSMethod.h"
 #include "ibamr/LSInitStrategy.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h"
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
@@ -45,6 +44,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h"
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

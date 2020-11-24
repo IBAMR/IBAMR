@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/IBLagrangianSourceStrategy.h"
+
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace IBTK

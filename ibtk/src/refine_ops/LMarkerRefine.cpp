@@ -21,7 +21,6 @@
 #include "ibtk/LMarkerSetVariable.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
@@ -34,6 +33,8 @@
 #include <algorithm>
 #include <array>
 #include <string>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

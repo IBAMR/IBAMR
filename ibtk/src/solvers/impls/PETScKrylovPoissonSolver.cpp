@@ -14,11 +14,12 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/PETScKrylovPoissonSolver.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "tbox/Database.h"
 
 #include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

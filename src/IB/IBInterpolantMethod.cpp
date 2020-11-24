@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/IBInterpolantMethod.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -56,6 +55,8 @@
 
 #include "petscvec.h"
 #include <petscsys.h>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>

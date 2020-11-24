@@ -15,7 +15,6 @@
 
 #include "ibamr/IBMethod.h"
 #include "ibamr/PenaltyIBMethod.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IBTK_MPI.h"
@@ -38,6 +37,8 @@
 #include "tbox/Utilities.h"
 
 #include "petscvec.h"
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>

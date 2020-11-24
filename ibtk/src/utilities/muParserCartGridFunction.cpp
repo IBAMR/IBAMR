@@ -16,7 +16,6 @@
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/muParserCartGridFunction.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
@@ -55,6 +54,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

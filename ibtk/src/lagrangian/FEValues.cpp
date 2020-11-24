@@ -17,7 +17,6 @@
 #include <ibtk/FECache.h>
 #include <ibtk/FEMapping.h>
 #include <ibtk/FEValues.h>
-#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 #include <tbox/PIO.h>
 #include <tbox/Utilities.h>
@@ -33,6 +32,8 @@
 
 #include <map>
 #include <vector>
+
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

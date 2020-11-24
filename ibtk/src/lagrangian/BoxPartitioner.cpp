@@ -16,7 +16,6 @@
 #include "ibtk/ibtk_utilities.h"
 #include <ibtk/BoxPartitioner.h>
 #include <ibtk/PartitioningBox.h>
-#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 #include "tbox/Utilities.h"
 #include <tbox/PIO.h>
@@ -38,6 +37,8 @@
 #include <algorithm>
 #include <cstdio>
 #include <sstream>
+
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

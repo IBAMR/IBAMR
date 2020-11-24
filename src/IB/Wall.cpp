@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/Wall.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "BoxArray.h"
 #include "CartesianGridGeometry.h"
@@ -22,6 +21,8 @@
 #include "tbox/Utilities.h"
 
 #include <cmath>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

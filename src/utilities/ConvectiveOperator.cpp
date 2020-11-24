@@ -14,11 +14,12 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/ConvectiveOperator.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "SAMRAIVectorReal.h"
 
 #include <utility>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

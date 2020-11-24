@@ -17,7 +17,6 @@
 #include "ibamr/StaggeredStokesOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/KrylovLinearSolver.h"
 
@@ -25,6 +24,8 @@
 #include "tbox/Pointer.h"
 
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

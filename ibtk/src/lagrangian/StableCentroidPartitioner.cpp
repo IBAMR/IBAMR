@@ -15,7 +15,6 @@
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/ibtk_utilities.h"
 #include <ibtk/StableCentroidPartitioner.h>
-#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 #include <tbox/PIO.h>
 
@@ -27,6 +26,8 @@
 
 #include <algorithm>
 #include <array>
+
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -15,8 +15,6 @@
 
 #include "ibamr/RelaxationLSBcCoefs.h"
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
-
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"
@@ -27,6 +25,8 @@
 #include "tbox/Pointer.h"
 
 #include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

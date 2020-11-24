@@ -18,7 +18,6 @@
 #include "ibtk/PatchMathOps.h"
 #include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_enums.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayDataBasicOps.h"
 #include "BasePatchLevel.h"
@@ -71,6 +70,8 @@
 #include <ostream>
 #include <utility>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

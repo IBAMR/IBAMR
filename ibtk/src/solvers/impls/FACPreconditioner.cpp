@@ -17,7 +17,6 @@
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/ibtk_enums.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"
@@ -29,6 +28,8 @@
 #include <ostream>
 #include <string>
 #include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

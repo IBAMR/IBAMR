@@ -16,7 +16,6 @@
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/DirectMobilitySolver.h"
 #include "ibamr/StokesSpecifications.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 
@@ -49,6 +48,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 extern "C"
 {

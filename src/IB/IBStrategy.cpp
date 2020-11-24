@@ -16,7 +16,6 @@
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBStrategy.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyMathOps.h"
@@ -42,6 +41,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace IBTK
 {

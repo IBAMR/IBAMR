@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/ConstraintIBKinematics.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/LDataManager.h"
 
@@ -24,6 +23,8 @@
 #include "tbox/Utilities.h"
 
 #include <string>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 namespace IBAMR
 {

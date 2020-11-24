@@ -18,7 +18,6 @@
 #include "ibamr/StokesWaveGeneratorStrategy.h"
 #include "ibamr/WaveGenerationFunctions.h"
 #include "ibamr/WaveUtilities.h"
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
@@ -40,6 +39,8 @@
 
 #include <cmath>
 #include <string>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 namespace IBAMR
 {
