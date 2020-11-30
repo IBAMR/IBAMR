@@ -904,7 +904,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
     double domain_length[NDIM];
     for (int d = 0; d < NDIM; ++d)
     {
-       domain_length[d] = domain_x_upper[d] - domain_x_lower[d];
+        domain_length[d] = domain_x_upper[d] - domain_x_lower[d];
     }
     const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
 
@@ -963,7 +963,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
                 if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
                 {
                     const int local_idx = node_idx->getLocalPETScIndex();
-                    const Vector &displacement = node_idx->getPeriodicDisplacement();
+                    const Vector& displacement = node_idx->getPeriodicDisplacement();
                     const double* const X_current = &X_data_current[local_idx][0];
                     const double* const X_new = &X_data_new[local_idx][0];
                     for (unsigned int d = 0; d < NDIM; ++d)
@@ -992,8 +992,10 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
         const StructureParameters& struct_param = d_ib_kinematics[struct_no]->getStructureParameters();
         const int total_nodes = struct_param.getTotalNodes();
 
-        IBTK_MPI::sumReduction(d_center_of_mass_unshifted_current[struct_no].data(), d_center_of_mass_unshifted_current[struct_no].size());
-        IBTK_MPI::sumReduction(d_center_of_mass_unshifted_new[struct_no].data(), d_center_of_mass_unshifted_new[struct_no].size());
+        IBTK_MPI::sumReduction(d_center_of_mass_unshifted_current[struct_no].data(),
+                               d_center_of_mass_unshifted_current[struct_no].size());
+        IBTK_MPI::sumReduction(d_center_of_mass_unshifted_new[struct_no].data(),
+                               d_center_of_mass_unshifted_new[struct_no].size());
 
         for (int i = 0; i < 3; ++i)
         {
@@ -1032,7 +1034,6 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
             }
         }
     }
-
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
@@ -1096,39 +1097,51 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
                 if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
                 {
                     const int local_idx = node_idx->getLocalPETScIndex();
-                    const Vector &displacement = node_idx->getPeriodicDisplacement();
+                    const Vector& displacement = node_idx->getPeriodicDisplacement();
                     const double* const X_current = &X_data_current[local_idx][0];
                     const double* const X_new = &X_data_new[local_idx][0];
 #if (NDIM == 2)
                     Inertia_current(0, 0) += std::pow(displacement[1] + X_current[1] - X_com_current[1], 2);
-                    Inertia_current(0, 1) += -(displacement[0] + X_current[0] - X_com_current[0]) * (displacement[1] + X_current[1] - X_com_current[1]);
+                    Inertia_current(0, 1) += -(displacement[0] + X_current[0] - X_com_current[0]) *
+                                             (displacement[1] + X_current[1] - X_com_current[1]);
                     Inertia_current(1, 1) += std::pow(displacement[0] + X_current[0] - X_com_current[0], 2);
-                    Inertia_current(2, 2) +=
-                        std::pow(displacement[0] + X_current[0] - X_com_current[0], 2) + std::pow(displacement[1] + X_current[1] - X_com_current[1], 2);
+                    Inertia_current(2, 2) += std::pow(displacement[0] + X_current[0] - X_com_current[0], 2) +
+                                             std::pow(displacement[1] + X_current[1] - X_com_current[1], 2);
 
                     Inertia_new(0, 0) += std::pow(displacement[1] + X_new[1] - X_com_new[1], 2);
-                    Inertia_new(0, 1) += -(displacement[0] + X_new[0] - X_com_new[0]) * (displacement[1] + X_new[1] - X_com_new[1]);
+                    Inertia_new(0, 1) +=
+                        -(displacement[0] + X_new[0] - X_com_new[0]) * (displacement[1] + X_new[1] - X_com_new[1]);
                     Inertia_new(1, 1) += std::pow(displacement[0] + X_new[0] - X_com_new[0], 2);
-                    Inertia_new(2, 2) += std::pow(displacement[0] + X_new[0] - X_com_new[0], 2) + std::pow(displacement[1] + X_new[1] - X_com_new[1], 2);
+                    Inertia_new(2, 2) += std::pow(displacement[0] + X_new[0] - X_com_new[0], 2) +
+                                         std::pow(displacement[1] + X_new[1] - X_com_new[1], 2);
 #endif
 
 #if (NDIM == 3)
-                    Inertia_current(0, 0) +=
-                        std::pow(displacement[1] + X_current[1] - X_com_current[1], 2) + std::pow(displacement[2] + X_current[2] - X_com_current[2], 2);
-                    Inertia_current(0, 1) += -(displacement[0] + X_current[0] - X_com_current[0]) * (displacement[1] + X_current[1] - X_com_current[1]);
-                    Inertia_current(0, 2) += -(displacement[0] + X_current[0] - X_com_current[0]) * (displacement[2] + X_current[2] - X_com_current[2]);
-                    Inertia_current(1, 1) +=
-                        std::pow(displacement[0] + X_current[0] - X_com_current[0], 2) + std::pow(displacement[2] + X_current[2] - X_com_current[2], 2);
-                    Inertia_current(1, 2) += -(displacement[1] + X_current[1] - X_com_current[1]) * (displacement[2] + X_current[2] - X_com_current[2]);
-                    Inertia_current(2, 2) +=
-                        std::pow(displacement[0] + X_current[0] - X_com_current[0], 2) + std::pow(displacement[1] + X_current[1] - X_com_current[1], 2);
+                    Inertia_current(0, 0) += std::pow(displacement[1] + X_current[1] - X_com_current[1], 2) +
+                                             std::pow(displacement[2] + X_current[2] - X_com_current[2], 2);
+                    Inertia_current(0, 1) += -(displacement[0] + X_current[0] - X_com_current[0]) *
+                                             (displacement[1] + X_current[1] - X_com_current[1]);
+                    Inertia_current(0, 2) += -(displacement[0] + X_current[0] - X_com_current[0]) *
+                                             (displacement[2] + X_current[2] - X_com_current[2]);
+                    Inertia_current(1, 1) += std::pow(displacement[0] + X_current[0] - X_com_current[0], 2) +
+                                             std::pow(displacement[2] + X_current[2] - X_com_current[2], 2);
+                    Inertia_current(1, 2) += -(displacement[1] + X_current[1] - X_com_current[1]) *
+                                             (displacement[2] + X_current[2] - X_com_current[2]);
+                    Inertia_current(2, 2) += std::pow(displacement[0] + X_current[0] - X_com_current[0], 2) +
+                                             std::pow(displacement[1] + X_current[1] - X_com_current[1], 2);
 
-                    Inertia_new(0, 0) += std::pow(displacement[1] + X_new[1] - X_com_new[1], 2) + std::pow(displacement[2] + X_new[2] - X_com_new[2], 2);
-                    Inertia_new(0, 1) += -(displacement[0] + X_new[0] - X_com_new[0]) * (displacement[1] + X_new[1] - X_com_new[1]);
-                    Inertia_new(0, 2) += -(displacement[0] + X_new[0] - X_com_new[0]) * (displacement[2] + X_new[2] - X_com_new[2]);
-                    Inertia_new(1, 1) += std::pow(displacement[0] + X_new[0] - X_com_new[0], 2) + std::pow(displacement[2] + X_new[2] - X_com_new[2], 2);
-                    Inertia_new(1, 2) += -(displacement[1] + X_new[1] - X_com_new[1]) * (displacement[2] + X_new[2] - X_com_new[2]);
-                    Inertia_new(2, 2) += std::pow(displacement[0] + X_new[0] - X_com_new[0], 2) + std::pow(displacement[1] + X_new[1] - X_com_new[1], 2);
+                    Inertia_new(0, 0) += std::pow(displacement[1] + X_new[1] - X_com_new[1], 2) +
+                                         std::pow(displacement[2] + X_new[2] - X_com_new[2], 2);
+                    Inertia_new(0, 1) +=
+                        -(displacement[0] + X_new[0] - X_com_new[0]) * (displacement[1] + X_new[1] - X_com_new[1]);
+                    Inertia_new(0, 2) +=
+                        -(displacement[0] + X_new[0] - X_com_new[0]) * (displacement[2] + X_new[2] - X_com_new[2]);
+                    Inertia_new(1, 1) += std::pow(displacement[0] + X_new[0] - X_com_new[0], 2) +
+                                         std::pow(displacement[2] + X_new[2] - X_com_new[2], 2);
+                    Inertia_new(1, 2) +=
+                        -(displacement[1] + X_new[1] - X_com_new[1]) * (displacement[2] + X_new[2] - X_com_new[2]);
+                    Inertia_new(2, 2) += std::pow(displacement[0] + X_new[0] - X_com_new[0], 2) +
+                                         std::pow(displacement[1] + X_new[1] - X_com_new[1], 2);
 #endif
                 }
             }
@@ -1171,8 +1184,8 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
                 << d_FuRMoRP_current_time << '\t' << d_center_of_mass_current[struct_no][0] << '\t'
                 << d_center_of_mass_current[struct_no][1] << '\t' << d_center_of_mass_current[struct_no][2] << '\t'
                 << d_center_of_mass_unshifted_current[struct_no][0] << '\t'
-                << d_center_of_mass_unshifted_current[struct_no][1] << '\t' << d_center_of_mass_unshifted_current[struct_no][2]
-                << std::endl;
+                << d_center_of_mass_unshifted_current[struct_no][1] << '\t'
+                << d_center_of_mass_unshifted_current[struct_no][2] << std::endl;
         }
     }
 
@@ -1321,7 +1334,7 @@ ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_han
                 {
                     const int local_idx = node_idx->getLocalPETScIndex();
                     const double* const X = &X_data[local_idx][0];
-                    const Vector &displacement = node_idx->getPeriodicDisplacement(); // HONG ADDED
+                    const Vector& displacement = node_idx->getPeriodicDisplacement();
 #if (NDIM == 2)
                     double x = displacement[0] + X[0] - d_center_of_mass_unshifted_new[position_handle][0];
                     double y = displacement[1] + X[1] - d_center_of_mass_unshifted_new[position_handle][1];
@@ -1650,7 +1663,7 @@ ConstraintIBMethod::calculateRigidRotationalMomentum()
                 if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
                 {
                     const int local_idx = node_idx->getLocalPETScIndex();
-                    const Vector &displacement = node_idx->getPeriodicDisplacement();
+                    const Vector& displacement = node_idx->getPeriodicDisplacement();
                     const double* const U = &U_interp_data[local_idx][0];
                     const double* const X = &X_data[local_idx][0];
 #if (NDIM == 2)
@@ -1775,12 +1788,13 @@ ConstraintIBMethod::calculateCurrentLagrangianVelocity()
                     }
 
                     // Rotational velocity
-                    const Vector &displacement = node_idx->getPeriodicDisplacement();
+                    const Vector& displacement = node_idx->getPeriodicDisplacement();
                     if (struct_param.getStructureIsSelfRotating())
                     {
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            R[d] = displacement[d] + X[d] - d_center_of_mass_unshifted_current[location_struct_handle][d];
+                            R[d] =
+                                displacement[d] + X[d] - d_center_of_mass_unshifted_current[location_struct_handle][d];
                         }
 
                         WxR[0] = R[2] * (d_rigid_rot_vel_current[location_struct_handle][1] -
@@ -1879,7 +1893,7 @@ ConstraintIBMethod::correctVelocityOnLagrangianMesh()
                     }
 
                     // Rotational velocity
-                    const Vector &displacement = node_idx->getPeriodicDisplacement();
+                    const Vector& displacement = node_idx->getPeriodicDisplacement();
                     if (struct_param.getStructureIsSelfRotating())
                     {
                         for (int d = 0; d < NDIM; ++d)
@@ -2589,7 +2603,7 @@ ConstraintIBMethod::calculateTorque()
                 if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
                 {
                     const int local_idx = node_idx->getLocalPETScIndex();
-                    const Vector &displacement = node_idx->getPeriodicDisplacement();
+                    const Vector& displacement = node_idx->getPeriodicDisplacement();
                     const double* const U_new = &U_new_data[local_idx][0];
                     const double* const U_current = &U_current_data[local_idx][0];
                     const double* const U_correction = &U_correction_data[local_idx][0];
@@ -2834,7 +2848,7 @@ ConstraintIBMethod::calculateStructureRotationalMomentum()
                 if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
                 {
                     const int local_idx = node_idx->getLocalPETScIndex();
-                    const Vector &displacement = node_idx->getPeriodicDisplacement();
+                    const Vector& displacement = node_idx->getPeriodicDisplacement();
                     const double* const U_new = &U_new_data[local_idx][0];
                     const double* const X = &X_data[local_idx][0];
 #if (NDIM == 2)
