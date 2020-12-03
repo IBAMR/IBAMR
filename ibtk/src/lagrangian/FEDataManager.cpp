@@ -2773,6 +2773,18 @@ FEDataManager::zeroExteriorValues(const CartesianPatchGeometry<NDIM>& patch_geom
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
+namespace
+{
+Pointer<Database>
+setup_fe_projector_db(const Pointer<Database>& input_db)
+{
+    Pointer<Database> db(new InputDatabase(input_db->getName() + "::FEProjector"));
+    if (input_db->keyExists("num_fischer_vectors"))
+        db->putInteger("num_fischer_vectors", input_db->getInteger("num_fischer_vectors"));
+    return db;
+}
+} // namespace
+
 FEDataManager::FEDataManager(std::string object_name,
                              const Pointer<Database>& input_db,
                              const int max_levels,
@@ -2784,7 +2796,7 @@ FEDataManager::FEDataManager(std::string object_name,
                              std::shared_ptr<FEData> fe_data,
                              bool register_for_restart)
     : d_fe_data(fe_data),
-      d_fe_projector(new FEProjector(d_fe_data)),
+      d_fe_projector(new FEProjector(d_fe_data, setup_fe_projector_db(input_db))),
       COORDINATES_SYSTEM_NAME(d_fe_data->d_coordinates_system_name),
       d_level_lookup(max_levels - 1,
                      collect_subdomain_ids(d_fe_data->getEquationSystems()->get_mesh()),

@@ -103,7 +103,8 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	hierarchy_callbacks$(EXEEXT) ibtk_mpi$(EXEEXT) $(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@am__append_1 = elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
 @LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d mapping_01 fe_values_01 fe_values_02 \
-@LIBMESH_ENABLED_TRUE@multilevel_fe_01_2d multilevel_fe_01_3d subdomain_level_translation_01
+@LIBMESH_ENABLED_TRUE@multilevel_fe_01_2d multilevel_fe_01_3d subdomain_level_translation_01 \
+@LIBMESH_ENABLED_TRUE@fischer_guess_01
 
 subdir = tests/IBTK
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -146,7 +147,8 @@ CONFIG_CLEAN_VPATH_FILES =
 @LIBMESH_ENABLED_TRUE@	fe_values_02$(EXEEXT) \
 @LIBMESH_ENABLED_TRUE@	multilevel_fe_01_2d$(EXEEXT) \
 @LIBMESH_ENABLED_TRUE@	multilevel_fe_01_3d$(EXEEXT) \
-@LIBMESH_ENABLED_TRUE@	subdomain_level_translation_01$(EXEEXT)
+@LIBMESH_ENABLED_TRUE@	subdomain_level_translation_01$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	fischer_guess_01$(EXEEXT)
 am__bounding_boxes_01_2d_SOURCES_DIST = bounding_boxes_01.cpp
 @LIBMESH_ENABLED_TRUE@am_bounding_boxes_01_2d_OBJECTS = bounding_boxes_01_2d-bounding_boxes_01.$(OBJEXT)
 bounding_boxes_01_2d_OBJECTS = $(am_bounding_boxes_01_2d_OBJECTS)
@@ -221,6 +223,15 @@ fe_values_02_OBJECTS = $(am_fe_values_02_OBJECTS)
 fe_values_02_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(fe_values_02_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am__fischer_guess_01_SOURCES_DIST = fischer_guess_01.cpp
+@LIBMESH_ENABLED_TRUE@am_fischer_guess_01_OBJECTS = fischer_guess_01-fischer_guess_01.$(OBJEXT)
+fischer_guess_01_OBJECTS = $(am_fischer_guess_01_OBJECTS)
+@LIBMESH_ENABLED_TRUE@fischer_guess_01_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
+fischer_guess_01_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(fischer_guess_01_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_ghost_accumulation_01_2d_OBJECTS =  \
 	ghost_accumulation_01_2d-ghost_accumulation_01.$(OBJEXT)
 ghost_accumulation_01_2d_OBJECTS =  \
@@ -480,6 +491,7 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po \
 	./$(DEPDIR)/fe_values_01-fe_values_01.Po \
 	./$(DEPDIR)/fe_values_02-fe_values_02.Po \
+	./$(DEPDIR)/fischer_guess_01-fischer_guess_01.Po \
 	./$(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Po \
 	./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po \
 	./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po \
@@ -533,7 +545,8 @@ SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(bounding_boxes_01_3d_SOURCES) $(box_utilities_01_2d_SOURCES) \
 	$(box_utilities_01_3d_SOURCES) $(elem_hmax_01_SOURCES) \
 	$(elem_hmax_02_SOURCES) $(fe_values_01_SOURCES) \
-	$(fe_values_02_SOURCES) $(ghost_accumulation_01_2d_SOURCES) \
+	$(fe_values_02_SOURCES) $(fischer_guess_01_SOURCES) \
+	$(ghost_accumulation_01_2d_SOURCES) \
 	$(ghost_accumulation_01_3d_SOURCES) \
 	$(ghost_indices_01_2d_SOURCES) $(ghost_indices_01_3d_SOURCES) \
 	$(hierarchy_callbacks_SOURCES) $(ibtk_init_SOURCES) \
@@ -559,6 +572,7 @@ DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(am__elem_hmax_02_SOURCES_DIST) \
 	$(am__fe_values_01_SOURCES_DIST) \
 	$(am__fe_values_02_SOURCES_DIST) \
+	$(am__fischer_guess_01_SOURCES_DIST) \
 	$(ghost_accumulation_01_2d_SOURCES) \
 	$(ghost_accumulation_01_3d_SOURCES) \
 	$(ghost_indices_01_2d_SOURCES) $(ghost_indices_01_3d_SOURCES) \
@@ -989,6 +1003,9 @@ hierarchy_callbacks_SOURCES = hierarchy_callbacks.cpp
 @LIBMESH_ENABLED_TRUE@multilevel_fe_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3 -DSOURCE_DIR=\"$(abs_srcdir)\"
 @LIBMESH_ENABLED_TRUE@multilevel_fe_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 @LIBMESH_ENABLED_TRUE@multilevel_fe_01_3d_SOURCES = multilevel_fe_01.cpp
+@LIBMESH_ENABLED_TRUE@fischer_guess_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
+@LIBMESH_ENABLED_TRUE@fischer_guess_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@fischer_guess_01_SOURCES = fischer_guess_01.cpp
 all: all-am
 
 .SUFFIXES:
@@ -1055,6 +1072,10 @@ fe_values_01$(EXEEXT): $(fe_values_01_OBJECTS) $(fe_values_01_DEPENDENCIES) $(EX
 fe_values_02$(EXEEXT): $(fe_values_02_OBJECTS) $(fe_values_02_DEPENDENCIES) $(EXTRA_fe_values_02_DEPENDENCIES) 
 	@rm -f fe_values_02$(EXEEXT)
 	$(AM_V_CXXLD)$(fe_values_02_LINK) $(fe_values_02_OBJECTS) $(fe_values_02_LDADD) $(LIBS)
+
+fischer_guess_01$(EXEEXT): $(fischer_guess_01_OBJECTS) $(fischer_guess_01_DEPENDENCIES) $(EXTRA_fischer_guess_01_DEPENDENCIES) 
+	@rm -f fischer_guess_01$(EXEEXT)
+	$(AM_V_CXXLD)$(fischer_guess_01_LINK) $(fischer_guess_01_OBJECTS) $(fischer_guess_01_LDADD) $(LIBS)
 
 ghost_accumulation_01_2d$(EXEEXT): $(ghost_accumulation_01_2d_OBJECTS) $(ghost_accumulation_01_2d_DEPENDENCIES) $(EXTRA_ghost_accumulation_01_2d_DEPENDENCIES) 
 	@rm -f ghost_accumulation_01_2d$(EXEEXT)
@@ -1190,6 +1211,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fe_values_01-fe_values_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fe_values_02-fe_values_02.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fischer_guess_01-fischer_guess_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po@am__quote@ # am--include-marker
@@ -1362,6 +1384,20 @@ fe_values_02-fe_values_02.obj: fe_values_02.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fe_values_02.cpp' object='fe_values_02-fe_values_02.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_values_02_CXXFLAGS) $(CXXFLAGS) -c -o fe_values_02-fe_values_02.obj `if test -f 'fe_values_02.cpp'; then $(CYGPATH_W) 'fe_values_02.cpp'; else $(CYGPATH_W) '$(srcdir)/fe_values_02.cpp'; fi`
+
+fischer_guess_01-fischer_guess_01.o: fischer_guess_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fischer_guess_01_CXXFLAGS) $(CXXFLAGS) -MT fischer_guess_01-fischer_guess_01.o -MD -MP -MF $(DEPDIR)/fischer_guess_01-fischer_guess_01.Tpo -c -o fischer_guess_01-fischer_guess_01.o `test -f 'fischer_guess_01.cpp' || echo '$(srcdir)/'`fischer_guess_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fischer_guess_01-fischer_guess_01.Tpo $(DEPDIR)/fischer_guess_01-fischer_guess_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fischer_guess_01.cpp' object='fischer_guess_01-fischer_guess_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fischer_guess_01_CXXFLAGS) $(CXXFLAGS) -c -o fischer_guess_01-fischer_guess_01.o `test -f 'fischer_guess_01.cpp' || echo '$(srcdir)/'`fischer_guess_01.cpp
+
+fischer_guess_01-fischer_guess_01.obj: fischer_guess_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fischer_guess_01_CXXFLAGS) $(CXXFLAGS) -MT fischer_guess_01-fischer_guess_01.obj -MD -MP -MF $(DEPDIR)/fischer_guess_01-fischer_guess_01.Tpo -c -o fischer_guess_01-fischer_guess_01.obj `if test -f 'fischer_guess_01.cpp'; then $(CYGPATH_W) 'fischer_guess_01.cpp'; else $(CYGPATH_W) '$(srcdir)/fischer_guess_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fischer_guess_01-fischer_guess_01.Tpo $(DEPDIR)/fischer_guess_01-fischer_guess_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fischer_guess_01.cpp' object='fischer_guess_01-fischer_guess_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fischer_guess_01_CXXFLAGS) $(CXXFLAGS) -c -o fischer_guess_01-fischer_guess_01.obj `if test -f 'fischer_guess_01.cpp'; then $(CYGPATH_W) 'fischer_guess_01.cpp'; else $(CYGPATH_W) '$(srcdir)/fischer_guess_01.cpp'; fi`
 
 ghost_accumulation_01_2d-ghost_accumulation_01.o: ghost_accumulation_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ghost_accumulation_01_2d_CXXFLAGS) $(CXXFLAGS) -MT ghost_accumulation_01_2d-ghost_accumulation_01.o -MD -MP -MF $(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Tpo -c -o ghost_accumulation_01_2d-ghost_accumulation_01.o `test -f 'ghost_accumulation_01.cpp' || echo '$(srcdir)/'`ghost_accumulation_01.cpp
@@ -1922,6 +1958,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
 	-rm -f ./$(DEPDIR)/fe_values_01-fe_values_01.Po
 	-rm -f ./$(DEPDIR)/fe_values_02-fe_values_02.Po
+	-rm -f ./$(DEPDIR)/fischer_guess_01-fischer_guess_01.Po
 	-rm -f ./$(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po
@@ -2005,6 +2042,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
 	-rm -f ./$(DEPDIR)/fe_values_01-fe_values_01.Po
 	-rm -f ./$(DEPDIR)/fe_values_02-fe_values_02.Po
+	-rm -f ./$(DEPDIR)/fischer_guess_01-fischer_guess_01.Po
 	-rm -f ./$(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po

@@ -432,7 +432,10 @@ main(int argc, char** argv)
             // mass matrix
             if (input_db->getBoolWithDefault("print_diagonal_mass_matrix", false))
             {
-                FEProjector fe_projector(equation_systems);
+                Pointer<Database> db(new InputDatabase("database"));
+                db->putBool("enable_logging", true);
+
+                FEProjector fe_projector(equation_systems, db);
                 PetscVector<double>& diagonal_mass = *fe_projector.buildDiagonalL2MassMatrix(velocity_system.name());
                 diagonal_mass.print_global(plog);
             }

@@ -194,6 +194,7 @@ DIM_DEPENDENT_SOURCES += \
 ../src/lagrangian/FEMapping.cpp \
 ../src/lagrangian/FEProjector.cpp \
 ../src/lagrangian/FEValues.cpp \
+../src/lagrangian/FischerGuess.cpp \
 ../src/utilities/LibMeshSystemIBVectors.cpp \
 ../src/utilities/LibMeshSystemVectors.cpp \
 ../src/utilities/libmesh_utilities.cpp

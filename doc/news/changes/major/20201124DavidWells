@@ -1,0 +1,7 @@
+New: Added a new class IBTK::FischerGuess, which implements an algorithm for
+estimating a solution to a linear system of equations based on a RHS and a
+history of solution vectors and RHSs. This is now on by default in IBFE. A
+benchmark based on IBFE/ex4 requires 75% fewer solver iterations with this class
+and its default settings.
+<br>
+(David Wells, 2020/11/24)
