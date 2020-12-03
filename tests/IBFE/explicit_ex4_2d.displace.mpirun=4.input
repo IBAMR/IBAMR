@@ -98,7 +98,6 @@ IBHierarchyIntegrator {
    end_time            = END_TIME
    grow_dt             = GROW_DT
    num_cycles          = NUM_CYCLES
-   regrid_cfl_interval = REGRID_CFL_INTERVAL
    dt_max              = DT
    error_on_dt_change  = ERROR_ON_DT_CHANGE
    enable_logging      = ENABLE_LOGGING
