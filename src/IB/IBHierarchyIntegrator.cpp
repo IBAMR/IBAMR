@@ -723,7 +723,7 @@ IBHierarchyIntegrator::getFromInput(Pointer<Database> db, bool /*is_from_restart
     if (db->keyExists("regrid_fluid_cfl_interval"))
         d_regrid_fluid_cfl_interval = db->getDouble("regrid_fluid_cfl_interval");
     if (db->keyExists("regrid_structure_cfl_interval"))
-        d_regrid_structure_cfl_interval = db->getDouble("regrid_cfl_interval");
+        d_regrid_structure_cfl_interval = db->getDouble("regrid_structure_cfl_interval");
     if (db->keyExists("error_on_dt_change"))
         d_error_on_dt_change = db->getBool("error_on_dt_change");
     else if (db->keyExists("error_on_timestep_change"))
