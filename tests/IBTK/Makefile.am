@@ -19,7 +19,7 @@ laplace_01_3d laplace_02_2d laplace_02_3d laplace_03_2d laplace_03_3d ldata_01 \
 prolongation_mat_2d prolongation_mat_3d phys_boundary_ops_2d phys_boundary_ops_3d \
 vc_viscous_solver_2d vc_viscous_solver_3d box_utilities_01_2d box_utilities_01_3d \
 ghost_accumulation_01_2d ghost_accumulation_01_3d ghost_indices_01_2d \
-ghost_indices_01_3d ibtk_init hierarchy_callbacks ibtk_mpi
+ghost_indices_01_3d ibtk_init hierarchy_callbacks ibtk_mpi equal_eps
 
 if LIBMESH_ENABLED
 EXTRA_PROGRAMS += elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
@@ -39,6 +39,10 @@ elem_hmax_02_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 elem_hmax_02_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 elem_hmax_02_SOURCES = elem_hmax_02.cpp
 endif
+
+equal_eps_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+equal_eps_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+equal_eps_SOURCES = equal_eps.cpp
 
 ibtk_init_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 ibtk_init_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
