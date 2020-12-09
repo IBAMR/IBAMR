@@ -518,6 +518,10 @@ private:
     std::vector<std::vector<double> > d_center_of_mass_current, d_center_of_mass_new;
 
     /*!
+     * unshifted center of mass
+     */
+    std::vector<std::vector<double> > d_center_of_mass_unshifted_current, d_center_of_mass_unshifted_new;
+    /*!
      * Moment of inertia of the structures.
      */
     IBTK::EigenAlignedVector<Eigen::Matrix3d> d_moment_of_inertia_current, d_moment_of_inertia_new;
