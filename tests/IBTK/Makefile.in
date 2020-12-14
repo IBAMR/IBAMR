@@ -100,7 +100,8 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	ghost_accumulation_01_2d$(EXEEXT) \
 	ghost_accumulation_01_3d$(EXEEXT) ghost_indices_01_2d$(EXEEXT) \
 	ghost_indices_01_3d$(EXEEXT) ibtk_init$(EXEEXT) \
-	hierarchy_callbacks$(EXEEXT) ibtk_mpi$(EXEEXT) $(am__EXEEXT_1)
+	hierarchy_callbacks$(EXEEXT) ibtk_mpi$(EXEEXT) \
+	equal_eps$(EXEEXT) $(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@am__append_1 = elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
 @LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d mapping_01 fe_values_01 fe_values_02 \
 @LIBMESH_ENABLED_TRUE@multilevel_fe_01_2d multilevel_fe_01_3d subdomain_level_translation_01 \
@@ -204,6 +205,12 @@ elem_hmax_02_OBJECTS = $(am_elem_hmax_02_OBJECTS)
 @LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 elem_hmax_02_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(elem_hmax_02_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_equal_eps_OBJECTS = equal_eps-equal_eps.$(OBJEXT)
+equal_eps_OBJECTS = $(am_equal_eps_OBJECTS)
+equal_eps_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+equal_eps_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(equal_eps_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__fe_values_01_SOURCES_DIST = fe_values_01.cpp
 @LIBMESH_ENABLED_TRUE@am_fe_values_01_OBJECTS =  \
@@ -489,6 +496,7 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/box_utilities_01_3d-box_utilities_01.Po \
 	./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po \
 	./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po \
+	./$(DEPDIR)/equal_eps-equal_eps.Po \
 	./$(DEPDIR)/fe_values_01-fe_values_01.Po \
 	./$(DEPDIR)/fe_values_02-fe_values_02.Po \
 	./$(DEPDIR)/fischer_guess_01-fischer_guess_01.Po \
@@ -544,8 +552,9 @@ am__v_CXXLD_1 =
 SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(bounding_boxes_01_3d_SOURCES) $(box_utilities_01_2d_SOURCES) \
 	$(box_utilities_01_3d_SOURCES) $(elem_hmax_01_SOURCES) \
-	$(elem_hmax_02_SOURCES) $(fe_values_01_SOURCES) \
-	$(fe_values_02_SOURCES) $(fischer_guess_01_SOURCES) \
+	$(elem_hmax_02_SOURCES) $(equal_eps_SOURCES) \
+	$(fe_values_01_SOURCES) $(fe_values_02_SOURCES) \
+	$(fischer_guess_01_SOURCES) \
 	$(ghost_accumulation_01_2d_SOURCES) \
 	$(ghost_accumulation_01_3d_SOURCES) \
 	$(ghost_indices_01_2d_SOURCES) $(ghost_indices_01_3d_SOURCES) \
@@ -569,7 +578,7 @@ DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(am__bounding_boxes_01_3d_SOURCES_DIST) \
 	$(box_utilities_01_2d_SOURCES) $(box_utilities_01_3d_SOURCES) \
 	$(am__elem_hmax_01_SOURCES_DIST) \
-	$(am__elem_hmax_02_SOURCES_DIST) \
+	$(am__elem_hmax_02_SOURCES_DIST) $(equal_eps_SOURCES) \
 	$(am__fe_values_01_SOURCES_DIST) \
 	$(am__fe_values_02_SOURCES_DIST) \
 	$(am__fischer_guess_01_SOURCES_DIST) \
@@ -891,6 +900,9 @@ SUFFIXES = .f.m4
 @LIBMESH_ENABLED_TRUE@elem_hmax_02_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 @LIBMESH_ENABLED_TRUE@elem_hmax_02_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 @LIBMESH_ENABLED_TRUE@elem_hmax_02_SOURCES = elem_hmax_02.cpp
+equal_eps_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+equal_eps_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+equal_eps_SOURCES = equal_eps.cpp
 ibtk_init_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 ibtk_init_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 ibtk_init_SOURCES = ibtk_init.cpp
@@ -1065,6 +1077,10 @@ elem_hmax_02$(EXEEXT): $(elem_hmax_02_OBJECTS) $(elem_hmax_02_DEPENDENCIES) $(EX
 	@rm -f elem_hmax_02$(EXEEXT)
 	$(AM_V_CXXLD)$(elem_hmax_02_LINK) $(elem_hmax_02_OBJECTS) $(elem_hmax_02_LDADD) $(LIBS)
 
+equal_eps$(EXEEXT): $(equal_eps_OBJECTS) $(equal_eps_DEPENDENCIES) $(EXTRA_equal_eps_DEPENDENCIES) 
+	@rm -f equal_eps$(EXEEXT)
+	$(AM_V_CXXLD)$(equal_eps_LINK) $(equal_eps_OBJECTS) $(equal_eps_LDADD) $(LIBS)
+
 fe_values_01$(EXEEXT): $(fe_values_01_OBJECTS) $(fe_values_01_DEPENDENCIES) $(EXTRA_fe_values_01_DEPENDENCIES) 
 	@rm -f fe_values_01$(EXEEXT)
 	$(AM_V_CXXLD)$(fe_values_01_LINK) $(fe_values_01_OBJECTS) $(fe_values_01_LDADD) $(LIBS)
@@ -1209,6 +1225,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/box_utilities_01_3d-box_utilities_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/equal_eps-equal_eps.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fe_values_01-fe_values_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fe_values_02-fe_values_02.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fischer_guess_01-fischer_guess_01.Po@am__quote@ # am--include-marker
@@ -1356,6 +1373,20 @@ elem_hmax_02-elem_hmax_02.obj: elem_hmax_02.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='elem_hmax_02.cpp' object='elem_hmax_02-elem_hmax_02.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(elem_hmax_02_CXXFLAGS) $(CXXFLAGS) -c -o elem_hmax_02-elem_hmax_02.obj `if test -f 'elem_hmax_02.cpp'; then $(CYGPATH_W) 'elem_hmax_02.cpp'; else $(CYGPATH_W) '$(srcdir)/elem_hmax_02.cpp'; fi`
+
+equal_eps-equal_eps.o: equal_eps.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(equal_eps_CXXFLAGS) $(CXXFLAGS) -MT equal_eps-equal_eps.o -MD -MP -MF $(DEPDIR)/equal_eps-equal_eps.Tpo -c -o equal_eps-equal_eps.o `test -f 'equal_eps.cpp' || echo '$(srcdir)/'`equal_eps.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/equal_eps-equal_eps.Tpo $(DEPDIR)/equal_eps-equal_eps.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='equal_eps.cpp' object='equal_eps-equal_eps.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(equal_eps_CXXFLAGS) $(CXXFLAGS) -c -o equal_eps-equal_eps.o `test -f 'equal_eps.cpp' || echo '$(srcdir)/'`equal_eps.cpp
+
+equal_eps-equal_eps.obj: equal_eps.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(equal_eps_CXXFLAGS) $(CXXFLAGS) -MT equal_eps-equal_eps.obj -MD -MP -MF $(DEPDIR)/equal_eps-equal_eps.Tpo -c -o equal_eps-equal_eps.obj `if test -f 'equal_eps.cpp'; then $(CYGPATH_W) 'equal_eps.cpp'; else $(CYGPATH_W) '$(srcdir)/equal_eps.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/equal_eps-equal_eps.Tpo $(DEPDIR)/equal_eps-equal_eps.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='equal_eps.cpp' object='equal_eps-equal_eps.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(equal_eps_CXXFLAGS) $(CXXFLAGS) -c -o equal_eps-equal_eps.obj `if test -f 'equal_eps.cpp'; then $(CYGPATH_W) 'equal_eps.cpp'; else $(CYGPATH_W) '$(srcdir)/equal_eps.cpp'; fi`
 
 fe_values_01-fe_values_01.o: fe_values_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_values_01_CXXFLAGS) $(CXXFLAGS) -MT fe_values_01-fe_values_01.o -MD -MP -MF $(DEPDIR)/fe_values_01-fe_values_01.Tpo -c -o fe_values_01-fe_values_01.o `test -f 'fe_values_01.cpp' || echo '$(srcdir)/'`fe_values_01.cpp
@@ -1956,6 +1987,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/box_utilities_01_3d-box_utilities_01.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
+	-rm -f ./$(DEPDIR)/equal_eps-equal_eps.Po
 	-rm -f ./$(DEPDIR)/fe_values_01-fe_values_01.Po
 	-rm -f ./$(DEPDIR)/fe_values_02-fe_values_02.Po
 	-rm -f ./$(DEPDIR)/fischer_guess_01-fischer_guess_01.Po
@@ -2040,6 +2072,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/box_utilities_01_3d-box_utilities_01.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
+	-rm -f ./$(DEPDIR)/equal_eps-equal_eps.Po
 	-rm -f ./$(DEPDIR)/fe_values_01-fe_values_01.Po
 	-rm -f ./$(DEPDIR)/fe_values_02-fe_values_02.Po
 	-rm -f ./$(DEPDIR)/fischer_guess_01-fischer_guess_01.Po
