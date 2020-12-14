@@ -190,6 +190,11 @@ AC_CONFIG_FILES([
   examples/IBFE/explicit/ex11/Makefile
   examples/IBLevelSet/Makefile
   examples/IBLevelSet/ex0/Makefile
+  examples/IBPD/Makefile
+  examples/IBPD/explicit/Makefile
+  examples/IBPD/explicit/ex0/Makefile
+  examples/IBPD/explicit/ex1/Makefile
+  examples/IBPD/explicit/ex2/Makefile
   examples/IMP/Makefile
   examples/IMP/explicit/Makefile
   examples/IMP/explicit/ex0/Makefile
