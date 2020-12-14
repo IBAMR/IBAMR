@@ -354,8 +354,8 @@ IF(NOT "${LIBMESH_ROOT}" STREQUAL "")
   FIND_PROGRAM(_libmesh_config "libmesh-config" HINTS ${LIBMESH_ROOT}/bin/)
   IF("${_libmesh_config}" STREQUAL "_libmesh_config-NOTFOUND")
     MESSAGE(FATAL_ERROR "\
-libMesh (an optional dependency) was specified with LIBMESH_ROOT=${LIBMESH_ROOT}
-but a valid libmesh-config script could not be found in ${LIBMESH_ROOT}/bin/.
+libMesh (an optional dependency) was specified with LIBMESH_ROOT=${LIBMESH_ROOT} \
+but a valid libmesh-config script could not be found in ${LIBMESH_ROOT}/bin/. \
 Please check the value of LIBMESH_ROOT and rerun CMake.")
   ELSE()
     SET(IBAMR_HAVE_LIBMESH TRUE)
@@ -448,7 +448,7 @@ CMake.")
       )
     IF(NOT "${LIBMESH_WITH_SAME_PETSC}")
       MESSAGE(FATAL_ERROR "\
-The version of PETSc detected by libMesh differs from the version of PETSc
+The version of PETSc detected by libMesh differs from the version of PETSc \
 detected by IBAMR. This is not allowed.")
     ENDIF()
 
@@ -475,8 +475,8 @@ IF(NOT "${LIBMESH_ROOT}" STREQUAL "")
     FIND_PACKAGE(ZLIB REQUIRED)
   ELSE()
     MESSAGE(FATAL_ERROR "\
-Silo (an optional dependency) was specified with SILO_ROOT=${SILO_ROOT} but a
-silo installation could not be found in that location. Please check the value
+Silo (an optional dependency) was specified with SILO_ROOT=${SILO_ROOT} but a \
+silo installation could not be found in that location. Please check the value \
 of SILO_ROOT and rerun CMake.")
   ENDIF()
 ELSE()
