@@ -18,7 +18,7 @@ ADD_CUSTOM_TARGET(tests)
 #    only compiles the IBFE tests.
 # 2. all input and output files in these source directories are symlinked into
 #    their corresponding build directories.
-SET(TEST_DIRECTORIES CIB IB IBFE IBTK adv_diff advect complex_fluids interpolate
+SET(TEST_DIRECTORIES CIB IB IBFE IBTK adv_diff advect coarsen complex_fluids interpolate
   level_set multiphase_flow navier_stokes physical_boundary refine spread
   vc_navier_stokes wave_tank)
 
@@ -101,6 +101,10 @@ SETUP_3D(adv_diff adv_diff_convec_opers.cpp)
 # advect:
 SETUP_2D(advect advect_01.cpp)
 SETUP_3D(advect advect_01.cpp)
+
+#coarsen:
+SETUP_2D(coarsen rt0_coarsen_01.cpp)
+SETUP_3D(coarsen rt0_coarsen_01.cpp)
 
 # complex_fluids:
 SETUP(complex_fluids cf_four_roll_mill.cpp IBAMR2d)
@@ -214,7 +218,6 @@ SETUP_2D(IBTK laplace_03.cpp)
 SETUP_2D(IBTK phys_boundary_ops.cpp)
 SETUP_2D(IBTK poisson_01.cpp)
 SETUP_2D(IBTK prolongation_mat.cpp)
-SETUP_2D(IBTK rt0_coarsen_01.cpp)
 SETUP_2D(IBTK samraidatacache_01.cpp)
 SETUP_2D(IBTK vc_viscous_solver.cpp)
 
@@ -231,7 +234,6 @@ SETUP_3D(IBTK laplace_03.cpp)
 SETUP_3D(IBTK phys_boundary_ops.cpp)
 SETUP_3D(IBTK poisson_01.cpp)
 SETUP_3D(IBTK prolongation_mat.cpp)
-SETUP_3D(IBTK rt0_coarsen_01.cpp)
 SETUP_3D(IBTK samraidatacache_01.cpp)
 SETUP_3D(IBTK vc_viscous_solver.cpp)
 
