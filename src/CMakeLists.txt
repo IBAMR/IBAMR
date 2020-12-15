@@ -229,9 +229,14 @@ TARGET_SOURCES(IBAMR3d PRIVATE ${FORTRAN_GENERATED_SRC3D} ${CXX_SRC})
 TARGET_LINK_LIBRARIES(IBAMR2d PUBLIC IBAMRHeaders IBTKHeaders)
 TARGET_LINK_LIBRARIES(IBAMR3d PUBLIC IBAMRHeaders IBTKHeaders)
 
-IBAMR_SETUP_TARGET_LIBRARY(IBAMR2d)
-IBAMR_SETUP_TARGET_LIBRARY(IBAMR3d)
-
+# Since libIBAMR and libIBTK have the same dependencies (and libIBAMR always
+# depends on libIBTK), satisfy the dependencies (and NDIM definition) for
+# libIBAMR by linking against libIBTK.
+#
+# The order we resolve libIBAMR's dependencies in is important since SAMRAI is
+# usually staticly linked - if we do SAMRAI then IBTK we will end up with
+# duplicate symbols, so it has to be the other way around (so that we pick up
+# any SAMRAI symbols in libIBTK rather than adding them to libIBAMR).
 TARGET_LINK_LIBRARIES(IBAMR2d PUBLIC IBTK2d)
 TARGET_LINK_LIBRARIES(IBAMR3d PUBLIC IBTK3d)
 
