@@ -509,67 +509,12 @@ FEMechanicsExplicitIntegrator::putToDatabase(Pointer<Database> db)
 void
 FEMechanicsExplicitIntegrator::doInitializeFEEquationSystems()
 {
-    const bool from_restart = RestartManager::getManager()->isFromRestart();
-
-    // Create the FE data managers that manage mappings between the FE mesh
-    // parts and the Cartesian grid.
-    d_equation_systems.resize(d_meshes.size());
-    d_fe_data.resize(d_meshes.size());
-    d_fe_projectors.resize(d_meshes.size());
+    FEMechanicsBase::doInitializeFEEquationSystems();
     d_system_dof_map_cache.resize(d_meshes.size());
+    const bool from_restart = RestartManager::getManager()->isFromRestart();
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
-        // Create FE equation systems objects and corresponding variables.
-        d_equation_systems[part].reset(new EquationSystems(*d_meshes[part]));
         EquationSystems& equation_systems = *d_equation_systems[part];
-        d_fe_data[part] = std::make_shared<FEData>(
-            d_object_name + "::FEData::" + std::to_string(part), equation_systems, d_registered_for_restart);
-        d_fe_projectors[part] = std::make_shared<FEProjector>(d_fe_data[part]);
-        if (from_restart)
-        {
-            const std::string& file_name = libmesh_restart_file_name(
-                d_libmesh_restart_read_dir, d_libmesh_restart_restore_number, part, d_libmesh_restart_file_extension);
-            const XdrMODE xdr_mode = (d_libmesh_restart_file_extension == "xdr" ? DECODE : READ);
-            const int read_mode =
-                EquationSystems::READ_HEADER | EquationSystems::READ_DATA | EquationSystems::READ_ADDITIONAL_DATA;
-            equation_systems.read(file_name,
-                                  xdr_mode,
-                                  read_mode,
-                                  /*partition_agnostic*/ true);
-        }
-        else
-        {
-            auto& X_system = equation_systems.add_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                X_system.add_variable("X_" + std::to_string(d), d_fe_order_position[part], d_fe_family_position[part]);
-            }
-            X_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
-
-            auto& dX_system = equation_systems.add_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                dX_system.add_variable(
-                    "dX_" + std::to_string(d), d_fe_order_position[part], d_fe_family_position[part]);
-            }
-            dX_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
-
-            auto& U_system = equation_systems.add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                U_system.add_variable("U_" + std::to_string(d), d_fe_order_position[part], d_fe_family_position[part]);
-            }
-            U_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
-
-            auto& F_system = equation_systems.add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                F_system.add_variable("F_" + std::to_string(d), d_fe_order_force[part], d_fe_family_force[part]);
-            }
-            F_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
-        }
-
-        const bool from_restart = RestartManager::getManager()->isFromRestart();
         IBTK::setup_system_vectors(&equation_systems,
                                    { COORDS_SYSTEM_NAME, VELOCITY_SYSTEM_NAME },
                                    { "current", "half", "new" },
@@ -580,8 +525,9 @@ FEMechanicsExplicitIntegrator::doInitializeFEEquationSystems()
 }
 
 void
-FEMechanicsExplicitIntegrator::doInitializeFEData(const bool use_present_data)
+FEMechanicsExplicitIntegrator::doInitializeFESystemVectors()
 {
+    FEMechanicsBase::doInitializeFESystemVectors();
     std::vector<EquationSystems*> equation_systems;
     for (const auto& es : d_equation_systems) equation_systems.push_back(es.get());
     d_X_vecs.reset(new LibMeshSystemVectors(equation_systems, COORDS_SYSTEM_NAME));
@@ -595,97 +541,12 @@ FEMechanicsExplicitIntegrator::doInitializeFEData(const bool use_present_data)
     {
         d_P_vecs.reset(new LibMeshSystemVectors(equation_systems, d_dynamic_pressure_part, PRESSURE_SYSTEM_NAME));
     }
-    for (unsigned int part = 0; part < d_meshes.size(); ++part)
-    {
-        // Initialize FE equation systems.
-        EquationSystems& equation_systems = *d_equation_systems[part];
-        if (use_present_data)
-        {
-            equation_systems.reinit();
-        }
-        else
-        {
-            equation_systems.init();
-            initializeCoordinates(part);
-            initializeVelocity(part);
-        }
-        updateCoordinateMapping(part);
+}
 
-        // Assemble systems.
-        auto& X_system = equation_systems.get_system<System>(COORDS_SYSTEM_NAME);
-        auto& dX_system = equation_systems.get_system<System>(COORD_MAPPING_SYSTEM_NAME);
-        auto& U_system = equation_systems.get_system<System>(VELOCITY_SYSTEM_NAME);
-        auto& F_system = equation_systems.get_system<System>(FORCE_SYSTEM_NAME);
-
-        X_system.assemble_before_solve = false;
-        X_system.assemble();
-
-        dX_system.assemble_before_solve = false;
-        dX_system.assemble();
-
-        U_system.assemble_before_solve = false;
-        U_system.assemble();
-
-        F_system.assemble_before_solve = false;
-        F_system.assemble();
-
-        // Set up boundary conditions.  Specifically, add appropriate boundary
-        // IDs to the BoundaryInfo object associated with the mesh, and add DOF
-        // constraints for the nodal forces and velocities.
-        const MeshBase& mesh = equation_systems.get_mesh();
-
-        DofMap& F_dof_map = F_system.get_dof_map();
-        DofMap& U_dof_map = U_system.get_dof_map();
-        const unsigned int F_sys_num = F_system.number();
-        const unsigned int U_sys_num = U_system.number();
-        MeshBase::const_element_iterator el_it = mesh.elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.elements_end();
-        for (; el_it != el_end; ++el_it)
-        {
-            Elem* const elem = *el_it;
-            for (unsigned int side = 0; side < elem->n_sides(); ++side)
-            {
-                const bool at_mesh_bdry = !elem->neighbor_ptr(side);
-                if (!at_mesh_bdry) continue;
-
-                static const std::array<boundary_id_type, 3> dirichlet_bdry_id_set{
-                    FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID,
-                    FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID,
-                    FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID
-                };
-                std::vector<boundary_id_type> bdry_ids;
-                mesh.boundary_info->boundary_ids(elem, side, bdry_ids);
-                const boundary_id_type dirichlet_bdry_ids = get_dirichlet_bdry_ids(bdry_ids);
-                if (!dirichlet_bdry_ids) continue;
-
-                for (unsigned int n = 0; n < elem->n_nodes(); ++n)
-                {
-                    if (!elem->is_node_on_side(n, side)) continue;
-
-                    const Node* const node = elem->node_ptr(n);
-                    mesh.boundary_info->add_node(node, dirichlet_bdry_ids);
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[d])) continue;
-                        if (node->n_dofs(F_sys_num))
-                        {
-                            const int F_dof_index = node->dof_number(F_sys_num, d, 0);
-                            DofConstraintRow F_constraint_row;
-                            // NOTE: The diagonal entry is automatically constrained.
-                            F_dof_map.add_constraint_row(F_dof_index, {}, 0.0, false);
-                        }
-                        if (node->n_dofs(U_sys_num))
-                        {
-                            const int U_dof_index = node->dof_number(U_sys_num, d, 0);
-                            DofConstraintRow U_constraint_row;
-                            // NOTE: The diagonal entry is automatically constrained.
-                            U_dof_map.add_constraint_row(U_dof_index, {}, 0.0, false);
-                        }
-                    }
-                }
-            }
-        }
-    }
+void
+FEMechanicsExplicitIntegrator::doInitializeFEData(const bool use_present_data)
+{
+    FEMechanicsBase::doInitializeFEData(use_present_data);
 }
 
 FEData::SystemDofMapCache*

@@ -441,7 +441,12 @@ protected:
     /*!
      * Do the actual work in initializeFEEquationSystems.
      */
-    virtual void doInitializeFEEquationSystems() = 0;
+    virtual void doInitializeFEEquationSystems();
+
+    /*!
+     * Do the actual work of setting up libMesh system vectors.
+     */
+    virtual void doInitializeFESystemVectors();
 
     /*!
      * Do the actual work in reinitializeFEData and initializeFEData. if @p
@@ -450,7 +455,7 @@ protected:
      * by initializeCoordinates and initializeVelocity) are considered as being
      * up to date.
      */
-    virtual void doInitializeFEData(bool use_present_data) = 0;
+    virtual void doInitializeFEData(bool use_present_data);
 
     /*!
      * \brief Compute the static pressure field.

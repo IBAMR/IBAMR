@@ -823,6 +823,11 @@ protected:
     virtual void doInitializeFEEquationSystems() override;
 
     /*!
+     * Do the actual work of setting up libMesh system vectors.
+     */
+    void doInitializeFESystemVectors() override;
+
+    /*!
      * Do the actual work in reinitializeFEData and initializeFEData. if @p
      * use_present_data is `true` then the current content of the solution
      * vectors is used: more exactly, the coordinates and velocities (computed
