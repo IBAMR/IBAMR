@@ -584,83 +584,14 @@ FEMechanicsExplicitIntegrator::getDofMapCache(unsigned int system_num, const uns
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-FEMechanicsExplicitIntegrator::commonConstructor(const std::string& object_name,
+FEMechanicsExplicitIntegrator::commonConstructor(const std::string& /*object_name*/,
                                                  const Pointer<Database>& input_db,
-                                                 const std::vector<libMesh::MeshBase*>& meshes,
-                                                 const std::string& restart_read_dirname,
-                                                 unsigned int restart_restore_number)
+                                                 const std::vector<libMesh::MeshBase*>& /*meshes*/,
+                                                 const std::string& /*restart_read_dirname*/,
+                                                 unsigned int /*restart_restore_number*/)
 {
-    // Set the object name and register it with the restart manager.
-    d_object_name = object_name;
-    d_registered_for_restart = false;
-    d_libmesh_restart_read_dir = restart_read_dirname;
-    d_libmesh_restart_restore_number = restart_restore_number;
-
-    // Store the mesh pointers.
-    d_meshes = meshes;
-
-    // Initialize function data to NULL.
-    d_coordinate_mapping_fcn_data.resize(d_meshes.size());
-    d_initial_velocity_fcn_data.resize(d_meshes.size());
-    d_PK1_stress_fcn_data.resize(d_meshes.size());
-    d_lag_body_force_fcn_data.resize(d_meshes.size());
-    d_lag_surface_pressure_fcn_data.resize(d_meshes.size());
-    d_lag_surface_force_fcn_data.resize(d_meshes.size());
-
     // Set some default values.
     d_rhos.resize(d_meshes.size(), 1.0);
-    d_libmesh_restart_file_extension = "xdr";
-    d_libmesh_partitioner_type = LIBMESH_DEFAULT;
-
-    // Determine whether we should use first-order or second-order shape
-    // functions for each part of the structure.
-    for (unsigned int part = 0; part < d_meshes.size(); ++part)
-    {
-        const MeshBase& mesh = *meshes[part];
-        bool mesh_has_first_order_elems = false;
-        bool mesh_has_second_order_elems = false;
-        MeshBase::const_element_iterator el_it = mesh.elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.elements_end();
-        for (; el_it != el_end; ++el_it)
-        {
-            const Elem* const elem = *el_it;
-            mesh_has_first_order_elems = mesh_has_first_order_elems || elem->default_order() == FIRST;
-            mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
-        }
-        mesh_has_first_order_elems = SAMRAI_MPI::maxReduction(mesh_has_first_order_elems);
-        mesh_has_second_order_elems = SAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
-        if ((mesh_has_first_order_elems && mesh_has_second_order_elems) ||
-            (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
-        {
-            TBOX_ERROR(d_object_name << "::FEMechanicsExplicitIntegrator():\n"
-                                     << "  each FE mesh part must contain only FIRST "
-                                        "order elements or only SECOND order elements"
-                                     << std::endl);
-        }
-        d_fe_family_position[part] = LAGRANGE;
-        d_fe_family_force[part] = LAGRANGE;
-        d_fe_family_pressure[part] = LAGRANGE;
-        d_default_quad_type_stress[part] = QGAUSS;
-        d_default_quad_type_force[part] = QGAUSS;
-        if (mesh_has_first_order_elems)
-        {
-            d_fe_order_position[part] = FIRST;
-            d_fe_order_force[part] = FIRST;
-            d_fe_order_pressure[part] = FIRST;
-            d_default_quad_order_stress[part] = THIRD;
-            d_default_quad_order_force[part] = THIRD;
-            d_default_quad_order_pressure[part] = THIRD;
-        }
-        else if (mesh_has_second_order_elems)
-        {
-            d_fe_order_position[part] = SECOND;
-            d_fe_order_force[part] = SECOND;
-            d_fe_order_pressure[part] = SECOND;
-            d_default_quad_order_stress[part] = FIFTH;
-            d_default_quad_order_force[part] = FIFTH;
-            d_default_quad_order_pressure[part] = FIFTH;
-        }
-    }
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -685,18 +616,6 @@ FEMechanicsExplicitIntegrator::getFromInput(const Pointer<Database>& db, bool /*
         TBOX_ASSERT(db->getArraySize("mass_density") == d_rhos.size());
         db->getDoubleArray("mass_density", d_rhos.data(), db->getArraySize("mass_density"));
     }
-
-    // libMesh settings.
-    if (db->isString("libmesh_restart_file_extension"))
-        d_libmesh_restart_file_extension = db->getString("libmesh_restart_file_extension");
-    if (db->isString("libmesh_partitioner_type"))
-        d_libmesh_partitioner_type = string_to_enum<LibmeshPartitionerType>(db->getString("libmesh_partitioner_type"));
-
-    // Other settings.
-    if (db->keyExists("do_log"))
-        d_do_log = db->getBool("do_log");
-    else if (db->keyExists("enable_logging"))
-        d_do_log = db->getBool("enable_logging");
 }
 
 void

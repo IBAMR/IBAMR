@@ -351,9 +351,9 @@ public:
      * The sign convention used in the implementation generates a PK1 stress of
      * the form PP = -J P FF^{-T}.
      *
-     * \note The same part cannot have both static and dynamic pressures.
+     * @note       The same part cannot have both static and dynamic pressures.
      *
-     * \see registerDynamicPressurePart
+     * @see        registerDynamicPressurePart
      */
     virtual void registerStaticPressurePart(PressureProjectionType projection_type = CONSISTENT_PROJECTION,
                                             VolumetricEnergyDerivativeFcn dU_dJ_fcn = nullptr,
@@ -363,10 +363,10 @@ public:
      * Indicate that a part should include a dynamic pressure.
      *
      * The pressure is determined via (P-dot, Q) = (J U''(J) (FF : Grad U), Q),
-     * with HH = J FF^{-T}, using either a consistent or lumped mass matrix, or
-     * via a locally stabilized projection of the form (P, Q) + epsilon (P - Pi
-     * P, Q - Pi Q) = (U'(J), Q), in which P is the pressure and Q is an
-     * arbitrary test function.
+     * using either a consistent or lumped mass matrix, or via a locally
+     * stabilized projection of the form (P, Q) + epsilon (P - Pi P, Q - Pi Q) =
+     * (U'(J), Q), in which P is the pressure and Q is an arbitrary test
+     * function.
      *
      * Users can provide a function to evaluate U''(J).  If no function is
      * provided, we default to using U(J) = -kappa (J ln(J) − J + 1), so that

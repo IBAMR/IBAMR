@@ -2849,18 +2849,11 @@ IBFEMethod::commonConstructor(const std::string& object_name,
                               const std::string& restart_read_dirname,
                               unsigned int restart_restore_number)
 {
-    // Set the object name and register it with the restart manager.
-    d_object_name = object_name;
-    d_registered_for_restart = false;
-    d_libmesh_restart_read_dir = restart_read_dirname;
-    d_libmesh_restart_restore_number = restart_restore_number;
-
-    // Store the mesh pointers.
-    d_meshes = meshes;
-    const auto n_parts = d_meshes.size();
+    // Keep track of the maximum possible level number.
     d_max_level_number = max_levels - 1;
 
     // Indicate that all parts are active.
+    const auto n_parts = d_meshes.size();
     d_part_is_active.resize(n_parts, true);
 
     // Set some default values.
@@ -2879,12 +2872,6 @@ IBFEMethod::commonConstructor(const std::string& object_name,
         "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, use_nodal_quadrature);
 
     // Initialize function data to NULL.
-    d_coordinate_mapping_fcn_data.resize(n_parts);
-    d_initial_velocity_fcn_data.resize(n_parts);
-    d_PK1_stress_fcn_data.resize(n_parts);
-    d_lag_body_force_fcn_data.resize(n_parts);
-    d_lag_surface_pressure_fcn_data.resize(n_parts);
-    d_lag_surface_force_fcn_data.resize(n_parts);
     d_lag_body_source_part.resize(n_parts, false);
     d_lag_body_source_fcn_data.resize(n_parts);
     d_direct_forcing_kinematics_data.resize(n_parts, Pointer<IBFEDirectForcingKinematics>(nullptr));
@@ -2892,76 +2879,21 @@ IBFEMethod::commonConstructor(const std::string& object_name,
     // Indicate that all of the parts do NOT use stress normalization by default.
     d_stress_normalization_part.resize(n_parts, false);
 
-    // Indicate that all of the parts do NOT use static pressures by default.
-    d_static_pressure_part.resize(n_parts, false);
-    d_static_pressure_proj_type.resize(n_parts, UNKNOWN_PRESSURE_TYPE);
-    d_static_pressure_dU_dJ_fcn.resize(n_parts, nullptr);
-
-    // Determine whether we should use first-order or second-order shape
-    // functions for each part of the structure.
-    for (unsigned int part = 0; part < n_parts; ++part)
-    {
-        const MeshBase& mesh = *meshes[part];
-        bool mesh_has_first_order_elems = false;
-        bool mesh_has_second_order_elems = false;
-        MeshBase::const_element_iterator el_it = mesh.elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.elements_end();
-        for (; el_it != el_end; ++el_it)
-        {
-            const Elem* const elem = *el_it;
-            mesh_has_first_order_elems = mesh_has_first_order_elems || elem->default_order() == FIRST;
-            mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
-        }
-        mesh_has_first_order_elems = IBTK_MPI::maxReduction(static_cast<int>(mesh_has_first_order_elems));
-        mesh_has_second_order_elems = IBTK_MPI::maxReduction(static_cast<int>(mesh_has_second_order_elems));
-        if ((mesh_has_first_order_elems && mesh_has_second_order_elems) ||
-            (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
-        {
-            TBOX_ERROR(d_object_name << "::IBFEMethod():\n"
-                                     << "  each FE mesh part must contain only FIRST "
-                                        "order elements or only SECOND order elements"
-                                     << std::endl);
-        }
-        FEFamily default_fe_family = LAGRANGE;
-        d_fe_family_position[part] = default_fe_family;
-        d_fe_family_force[part] = default_fe_family;
-        d_fe_family_pressure[part] = default_fe_family;
-        QuadratureType default_quad_type = QGAUSS;
-        d_default_quad_type_stress[part] = default_quad_type;
-        d_default_quad_type_force[part] = default_quad_type;
-        Order default_fe_order = INVALID_ORDER, default_quad_order = INVALID_ORDER;
-        if (mesh_has_first_order_elems)
-        {
-            default_fe_order = FIRST;
-            default_quad_order = THIRD;
-        }
-        else if (mesh_has_second_order_elems)
-        {
-            default_fe_order = SECOND;
-            default_quad_order = FIFTH;
-        }
-        d_fe_order_position[part] = default_fe_order;
-        d_fe_order_force[part] = default_fe_order;
-        d_fe_order_pressure[part] = default_fe_order;
-        d_default_quad_order_stress[part] = default_quad_order;
-        d_default_quad_order_force[part] = default_quad_order;
-    }
-
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, from_restart);
-
-    // Set up the interaction spec objects.
-    d_interp_spec.resize(n_parts, d_default_interp_spec);
-    d_spread_spec.resize(n_parts, d_default_spread_spec);
-    d_workload_spec.resize(n_parts, d_default_workload_spec);
 
     // Determine how to compute weak forms.
     d_include_normal_stress_in_weak_form = d_split_normal_force;
     d_include_tangential_stress_in_weak_form = d_split_tangential_force;
     d_include_normal_surface_forces_in_weak_form = !d_split_normal_force;
     d_include_tangential_surface_forces_in_weak_form = !d_split_tangential_force;
+
+    // Set up the interaction spec objects.
+    d_interp_spec.resize(n_parts, d_default_interp_spec);
+    d_spread_spec.resize(n_parts, d_default_spread_spec);
+    d_workload_spec.resize(n_parts, d_default_workload_spec);
 
     // If needed, set up the scratch hierarchy regridding objects.
     if (d_use_scratch_hierarchy)

@@ -419,6 +419,12 @@ void
 FEMechanicsBase::initializeFEEquationSystems()
 {
     if (d_fe_equation_systems_initialized) return;
+
+    // Set up the coupling matrix that will be used by each system.
+    d_diagonal_system_coupling.resize(NDIM);
+    for (unsigned int i = 0; i < NDIM; ++i)
+        for (unsigned int j = 0; j < NDIM; ++j) d_diagonal_system_coupling(i, j) = i == j ? 1 : 0;
+
     doInitializeFEEquationSystems();
     d_fe_equation_systems_initialized = true;
 }
@@ -429,8 +435,7 @@ FEMechanicsBase::initializeFEData()
     if (d_fe_data_initialized) return;
 
     initializeFEEquationSystems();
-    const bool use_present_data = RestartManager::getManager()->isFromRestart();
-    doInitializeFEData(use_present_data);
+    doInitializeFEData(RestartManager::getManager()->isFromRestart());
     d_fe_data_initialized = true;
 }
 
@@ -470,11 +475,6 @@ FEMechanicsBase::writeFEDataToRestartFile(const std::string& restart_dump_dirnam
 void
 FEMechanicsBase::doInitializeFEEquationSystems()
 {
-    // Set up the coupling matrix that will be used by each system.
-    d_diagonal_system_coupling.resize(NDIM);
-    for (unsigned int i = 0; i < NDIM; ++i)
-        for (unsigned int j = 0; j < NDIM; ++j) d_diagonal_system_coupling(i, j) = i == j ? 1 : 0;
-
     // Setup equation systems objects used by all subclasses.
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     d_equation_systems.resize(d_meshes.size());
@@ -1496,6 +1496,8 @@ FEMechanicsBase::commonConstructor(const std::string& object_name,
     d_default_quad_order_stress.resize(n_parts, INVALID_ORDER);
     d_default_quad_order_force.resize(n_parts, INVALID_ORDER);
     d_default_quad_order_pressure.resize(n_parts, INVALID_ORDER);
+    d_libmesh_restart_file_extension = "xdr";
+    d_libmesh_partitioner_type = LIBMESH_DEFAULT;
 
     // Initialize function data to NULL.
     d_coordinate_mapping_fcn_data.resize(n_parts);
@@ -1626,6 +1628,8 @@ FEMechanicsBase::getFromInput(const Pointer<Database>& db, bool /*is_from_restar
     {
         d_libmesh_restart_file_extension = "xdr";
     }
+    if (db->isString("libmesh_partitioner_type"))
+        d_libmesh_partitioner_type = string_to_enum<LibmeshPartitionerType>(db->getString("libmesh_partitioner_type"));
 
     // Other settings.
     if (db->keyExists("do_log"))
