@@ -245,10 +245,6 @@ ADD_CUSTOM_COMMAND(TARGET tests
 # really used by the build system we use a shell script to find them every time
 # 'make test' is run rather than evaluating the glob when cmake generates the
 # build system.
-SET(TEST_DIRECTORIES CIB IB IBFE IBTK adv_diff advect complex_fluids interpolate
-  level_set multiphase_flow navier_stokes physical_boundary refine spread
-  vc_navier_stokes wave_tank)
-
 FOREACH(_dir ${TEST_DIRECTORIES})
   ADD_CUSTOM_COMMAND(TARGET "tests-${_dir}"
     POST_BUILD
