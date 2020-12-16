@@ -480,6 +480,7 @@ FEMechanicsBase::doInitializeFEEquationSystems()
     d_equation_systems.resize(d_meshes.size());
     d_fe_data.resize(d_meshes.size());
     d_fe_projectors.resize(d_meshes.size());
+
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         // Create FE equation systems objects and corresponding variables.
@@ -487,7 +488,7 @@ FEMechanicsBase::doInitializeFEEquationSystems()
         EquationSystems& equation_systems = *d_equation_systems[part];
         d_fe_data[part] = std::make_shared<FEData>(
             d_object_name + "::FEData::" + std::to_string(part), equation_systems, d_registered_for_restart);
-        d_fe_projectors[part] = std::make_shared<FEProjector>(d_fe_data[part]);
+        d_fe_projectors[part] = std::make_shared<FEProjector>(d_fe_data[part], d_fe_data_manager_db);
         if (from_restart)
         {
             const std::string& file_name = libmesh_restart_file_name(
@@ -1605,6 +1606,39 @@ FEMechanicsBase::getFromInput(const Pointer<Database>& db, bool /*is_from_restar
     // libMesh parallelization settings.
     d_libmesh_partitioner_type =
         string_to_enum<LibmeshPartitionerType>(db->getStringWithDefault("libmesh_partitioner_type", "LIBMESH_DEFAULT"));
+
+    // FEDataManager settings.
+    if (db->keyExists("FEDataManager"))
+    {
+        d_fe_data_manager_db = db->getDatabase("FEDataManager");
+    }
+    else
+    {
+        d_fe_data_manager_db = new InputDatabase("FEDataManager");
+    }
+
+    // FEProjector settings.
+    if (db->keyExists("FEProjector"))
+    {
+        d_fe_projector_db = db->getDatabase("FEProjector");
+    }
+    else if (d_fe_data_manager_db->keyExists("FEProjector"))
+    {
+        d_fe_projector_db = d_fe_data_manager_db->getDatabase("FEProjector");
+    }
+    else
+    {
+        d_fe_projector_db = new InputDatabase("FEProjector");
+        if (db->keyExists("num_fischer_vectors"))
+        {
+            d_fe_projector_db->putInteger("num_fischer_vectors", db->getInteger("num_fischer_vectors"));
+        }
+        else if (d_fe_data_manager_db->keyExists("num_fischer_vectors"))
+        {
+            d_fe_projector_db->putInteger("num_fischer_vectors",
+                                          d_fe_data_manager_db->getInteger("num_fischer_vectors"));
+        }
+    }
 
     // Force computation settings.
     if (db->isBool("use_consistent_mass_matrix"))

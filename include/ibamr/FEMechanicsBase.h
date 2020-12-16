@@ -531,6 +531,11 @@ protected:
                                                  const std::string& extension);
 
     /*!
+     * Cached input databases.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fe_data_manager_db, d_fe_projector_db;
+
+    /*!
      * Indicates whether the integrator should output logging messages.
      */
     bool d_do_log = false;

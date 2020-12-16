@@ -1171,13 +1171,6 @@ protected:
 
 private:
     /*!
-     * The input database. This is explicitly stored (and used outside the
-     * constructor) since the FEDataManager instances created by this class
-     * will also read part of it.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_input_db;
-
-    /*!
      * Implementation of class constructor.
      */
     void commonConstructor(const std::string& object_name,

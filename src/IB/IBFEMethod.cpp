@@ -1733,18 +1733,16 @@ IBFEMethod::doInitializeFEEquationSystems()
     IntVector<NDIM> min_ghost_width(0);
     if (!d_primary_eulerian_data_cache) d_primary_eulerian_data_cache = std::make_shared<SAMRAIDataCache>();
     d_active_eulerian_data_cache = d_primary_eulerian_data_cache;
-    Pointer<Database> fe_data_manager_db(new InputDatabase("fe_data_manager_db"));
-    if (d_input_db->keyExists("FEDataManager")) fe_data_manager_db = d_input_db->getDatabase("FEDataManager");
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         EquationSystems& equation_systems = *d_equation_systems[part];
         const std::string manager_name = "IBFEMethod FEDataManager::" + std::to_string(part);
         d_fe_data[part] =
             std::make_shared<FEData>(manager_name + "::fe_data", equation_systems, /*register_for_restart*/ true);
-        d_fe_projectors[part] = std::make_shared<FEProjector>(d_fe_data[part]);
+        d_fe_projectors[part] = std::make_shared<FEProjector>(d_fe_data[part], d_fe_projector_db);
         d_primary_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
                                                                      manager_name,
-                                                                     fe_data_manager_db,
+                                                                     d_fe_data_manager_db,
                                                                      d_max_level_number + 1,
                                                                      d_interp_spec[part],
                                                                      d_spread_spec[part],
@@ -1756,7 +1754,7 @@ IBFEMethod::doInitializeFEEquationSystems()
             if (!d_scratch_eulerian_data_cache) d_scratch_eulerian_data_cache = std::make_shared<SAMRAIDataCache>();
             d_scratch_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
                                                                          manager_name + "::scratch",
-                                                                         fe_data_manager_db,
+                                                                         d_fe_data_manager_db,
                                                                          d_max_level_number + 1,
                                                                          d_interp_spec[part],
                                                                          d_spread_spec[part],
@@ -2923,9 +2921,6 @@ IBFEMethod::commonConstructor(const std::string& object_name,
                                         d_scratch_load_balancer,
                                         /*due to a bug in SAMRAI this *has* to be true*/ true);
     }
-
-    // Store the input database since FEDataManager will need it too
-    d_input_db = input_db;
 
     // Setup timers.
     auto set_timer = [&](const char* name) { return TimerManager::getManager()->getTimer(name); };
