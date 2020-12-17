@@ -261,6 +261,7 @@ AC_CONFIG_FILES([
   tests/coarsen/Makefile
   tests/complex_fluids/Makefile
   tests/CIB/Makefile
+  tests/fe_mechanics/Makefile
   tests/IB/Makefile
   tests/IBFE/Makefile
   tests/IBTK/Makefile
