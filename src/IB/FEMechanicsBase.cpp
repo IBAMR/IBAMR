@@ -488,7 +488,7 @@ FEMechanicsBase::doInitializeFEEquationSystems()
         EquationSystems& equation_systems = *d_equation_systems[part];
         d_fe_data[part] = std::make_shared<FEData>(
             d_object_name + "::FEData::" + std::to_string(part), equation_systems, d_registered_for_restart);
-        d_fe_projectors[part] = std::make_shared<FEProjector>(d_fe_data[part], d_fe_data_manager_db);
+        d_fe_projectors[part] = std::make_shared<FEProjector>(d_fe_data[part], d_fe_projector_db);
         if (from_restart)
         {
             const std::string& file_name = libmesh_restart_file_name(
@@ -1607,14 +1607,14 @@ FEMechanicsBase::getFromInput(const Pointer<Database>& db, bool /*is_from_restar
     d_libmesh_partitioner_type =
         string_to_enum<LibmeshPartitionerType>(db->getStringWithDefault("libmesh_partitioner_type", "LIBMESH_DEFAULT"));
 
-    // FEDataManager settings.
-    if (db->keyExists("FEDataManager"))
+    // Restart settings.
+    if (db->isString("libmesh_restart_file_extension"))
     {
-        d_fe_data_manager_db = db->getDatabase("FEDataManager");
+        d_libmesh_restart_file_extension = db->getString("libmesh_restart_file_extension");
     }
     else
     {
-        d_fe_data_manager_db = new InputDatabase("FEDataManager");
+        d_libmesh_restart_file_extension = "xdr";
     }
 
     // FEProjector settings.
@@ -1622,21 +1622,12 @@ FEMechanicsBase::getFromInput(const Pointer<Database>& db, bool /*is_from_restar
     {
         d_fe_projector_db = db->getDatabase("FEProjector");
     }
-    else if (d_fe_data_manager_db->keyExists("FEProjector"))
-    {
-        d_fe_projector_db = d_fe_data_manager_db->getDatabase("FEProjector");
-    }
     else
     {
         d_fe_projector_db = new InputDatabase("FEProjector");
         if (db->keyExists("num_fischer_vectors"))
         {
             d_fe_projector_db->putInteger("num_fischer_vectors", db->getInteger("num_fischer_vectors"));
-        }
-        else if (d_fe_data_manager_db->keyExists("num_fischer_vectors"))
-        {
-            d_fe_projector_db->putInteger("num_fischer_vectors",
-                                          d_fe_data_manager_db->getInteger("num_fischer_vectors"));
         }
     }
 

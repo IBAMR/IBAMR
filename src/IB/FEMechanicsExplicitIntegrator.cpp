@@ -18,7 +18,6 @@
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 
-#include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEProjector.h"
 #include "ibtk/libmesh_utilities.h"
 
@@ -26,8 +25,6 @@
 #include "libmesh/enum_xdr_mode.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/quadrature_gauss.h"
-
-#include <IBTK_config.h>
 
 #include <algorithm>
 #include <memory>
@@ -548,38 +545,6 @@ void
 FEMechanicsExplicitIntegrator::doInitializeFEData(const bool use_present_data)
 {
     FEMechanicsBase::doInitializeFEData(use_present_data);
-}
-
-FEData::SystemDofMapCache*
-FEMechanicsExplicitIntegrator::getDofMapCache(const std::string& system_name, const unsigned int part)
-{
-    return getDofMapCache(d_equation_systems[part]->get_system(system_name).number(), part);
-}
-
-FEData::SystemDofMapCache*
-FEMechanicsExplicitIntegrator::getDofMapCache(unsigned int system_num, const unsigned int part)
-{
-    System& system = d_equation_systems[part]->get_system(system_num);
-    const unsigned int n_vars = system.n_vars();
-    TBOX_ASSERT(n_vars > 0);
-    const FEType& fe_type = system.variable_type(0);
-
-    // we assume that all variables have the same FEType inside IBAMR
-    for (unsigned int var_n = 1; var_n < n_vars; ++var_n)
-    {
-        TBOX_ASSERT(fe_type == system.variable_type(var_n));
-    }
-
-    // We assume that the dofs have the same layout as long as they have the
-    // same fe type and number of variables
-    std::pair<unsigned int, FEType> key(n_vars, fe_type);
-
-    std::unique_ptr<FEData::SystemDofMapCache>& dof_map_cache = d_system_dof_map_cache[part][key];
-    if (dof_map_cache == nullptr)
-    {
-        dof_map_cache.reset(new FEData::SystemDofMapCache(system));
-    }
-    return dof_map_cache.get();
 }
 
 /////////////////////////////// PRIVATE //////////////////////////////////////

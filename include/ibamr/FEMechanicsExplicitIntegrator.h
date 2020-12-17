@@ -16,9 +16,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/FEMechanicsBase.h"
+#include <ibamr/config.h>
 
-#include "ibtk/FEProjector.h"
+#include "ibamr/FEMechanicsBase.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -162,16 +162,6 @@ protected:
      * being up to date, as is the direct forcing kinematic data.
      */
     void doInitializeFEData(bool use_present_data) override;
-
-    /*!
-     * \return The DofMapCache for a specified system.
-     */
-    IBTK::FEData::SystemDofMapCache* getDofMapCache(const std::string& system_name, unsigned int part);
-
-    /*!
-     * \return The DofMapCache for a specified system.
-     */
-    IBTK::FEData::SystemDofMapCache* getDofMapCache(unsigned int system_num, unsigned int part);
 
     /// Structure mass densities.
     std::vector<double> d_rhos;

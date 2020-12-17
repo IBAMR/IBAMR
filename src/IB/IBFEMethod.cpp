@@ -3042,17 +3042,38 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
     else if (db->isBool("split_forces"))
         d_split_tangential_force = db->getBool("split_forces");
     if (db->isBool("use_jump_conditions")) d_use_jump_conditions = db->getBool("use_jump_conditions");
-    if (db->isBool("use_consistent_mass_matrix"))
-        d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
 
-    // Restart settings.
-    if (db->isString("libmesh_restart_file_extension"))
+    // FEDataManager settings.
+    if (db->keyExists("FEDataManager"))
     {
-        d_libmesh_restart_file_extension = db->getString("libmesh_restart_file_extension");
+        d_fe_data_manager_db = db->getDatabase("FEDataManager");
     }
     else
     {
-        d_libmesh_restart_file_extension = "xdr";
+        d_fe_data_manager_db = new InputDatabase("FEDataManager");
+    }
+
+    // FEProjector settings.
+    if (db->keyExists("FEProjector"))
+    {
+        d_fe_projector_db = db->getDatabase("FEProjector");
+    }
+    else if (d_fe_data_manager_db->keyExists("FEProjector"))
+    {
+        d_fe_projector_db = d_fe_data_manager_db->getDatabase("FEProjector");
+    }
+    else
+    {
+        d_fe_projector_db = new InputDatabase("FEProjector");
+        if (db->keyExists("num_fischer_vectors"))
+        {
+            d_fe_projector_db->putInteger("num_fischer_vectors", db->getInteger("num_fischer_vectors"));
+        }
+        else if (d_fe_data_manager_db->keyExists("num_fischer_vectors"))
+        {
+            d_fe_projector_db->putInteger("num_fischer_vectors",
+                                          d_fe_data_manager_db->getInteger("num_fischer_vectors"));
+        }
     }
 
     // Other settings.

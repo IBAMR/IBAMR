@@ -912,6 +912,11 @@ protected:
     getProlongationSchedule(int level_number, int coarse_data_idx, int fine_data_idx);
 
     /*!
+     * Cached input databases.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fe_data_manager_db;
+
+    /*!
      * Whether or not the initial (i.e., before the regrid prior to
      * timestepping) workload calculations should be logged. This output is
      * generally not stable between machines and so this is usually disabled

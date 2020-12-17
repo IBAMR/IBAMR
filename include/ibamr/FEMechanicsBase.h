@@ -533,7 +533,7 @@ protected:
     /*!
      * Cached input databases.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fe_data_manager_db, d_fe_projector_db;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fe_projector_db;
 
     /*!
      * Indicates whether the integrator should output logging messages.
