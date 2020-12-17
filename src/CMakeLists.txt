@@ -66,6 +66,7 @@ SET(CXX_SRC
   adv_diff/AdvDiffWavePropConvectiveOperator.cpp
   adv_diff/AdvDiffStochasticForcing.cpp
   adv_diff/AdvDiffPPMConvectiveOperator.cpp
+  adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp
 
   # wave generation
   wave_generation/StokesFirstOrderWaveBcCoef.cpp
@@ -133,6 +134,7 @@ SET(CXX_SRC
   # IB
   IB/IBInstrumentPanel.cpp
   IB/BrinkmanPenalizationStrategy.cpp
+  IB/BrinkmanAdvDiffBcHelper.cpp
   IB/PenaltyIBMethod.cpp
   IB/GeneralizedIBMethod.cpp
   IB/IBLagrangianForceStrategy.cpp
