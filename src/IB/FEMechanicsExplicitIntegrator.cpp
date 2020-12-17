@@ -508,7 +508,6 @@ void
 FEMechanicsExplicitIntegrator::doInitializeFEEquationSystems()
 {
     FEMechanicsBase::doInitializeFEEquationSystems();
-    d_system_dof_map_cache.resize(d_meshes.size());
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {

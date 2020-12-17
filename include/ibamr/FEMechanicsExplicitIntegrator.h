@@ -166,10 +166,6 @@ protected:
     /// Structure mass densities.
     std::vector<double> d_rhos;
 
-    /// Cached DOF mapping data.
-    std::vector<std::map<std::pair<unsigned int, libMesh::FEType>, std::unique_ptr<IBTK::FEData::SystemDofMapCache> > >
-        d_system_dof_map_cache;
-
 private:
     /*!
      * Implementation of class constructor.
