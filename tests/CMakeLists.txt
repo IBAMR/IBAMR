@@ -18,9 +18,9 @@ ADD_CUSTOM_TARGET(tests)
 #    only compiles the IBFE tests.
 # 2. all input and output files in these source directories are symlinked into
 #    their corresponding build directories.
-SET(TEST_DIRECTORIES CIB IB IBFE IBTK adv_diff advect coarsen complex_fluids interpolate
-  level_set multiphase_flow navier_stokes physical_boundary refine spread
-  vc_navier_stokes wave_tank)
+SET(TEST_DIRECTORIES CIB IB IBFE IBTK adv_diff advect coarsen complex_fluids
+  fe_mechanics interpolate level_set multiphase_flow navier_stokes
+  physical_boundary refine spread vc_navier_stokes wave_tank)
 
 FOREACH(_dir ${TEST_DIRECTORIES})
   ADD_CUSTOM_TARGET("tests-${_dir}")
@@ -113,6 +113,12 @@ SETUP_2D(complex_fluids cf_forcing_op_01.cpp)
 
 SETUP_3D(complex_fluids cf_relaxation_op_01.cpp)
 SETUP_3D(complex_fluids cf_forcing_op_01.cpp)
+
+# fe_mechanics:
+IF(IBAMR_HAVE_LIBMESH)
+  SETUP_2D(fe_mechanics fe_mechanics_ex0.cpp)
+  SETUP_3D(fe_mechanics fe_mechanics_ex0.cpp)
+ENDIF()
 
 # interpolate:
 SETUP_2D(interpolate interpolate_01.cpp)
