@@ -73,7 +73,7 @@ FEMechanicsExplicitIntegrator::FEMechanicsExplicitIntegrator(const std::string& 
                                                              unsigned int restart_restore_number)
     : FEMechanicsBase(object_name, input_db, mesh, register_for_restart, restart_read_dirname, restart_restore_number)
 {
-    commonConstructor(object_name, input_db, { mesh }, restart_read_dirname, restart_restore_number);
+    commonConstructor(input_db);
 }
 
 FEMechanicsExplicitIntegrator::FEMechanicsExplicitIntegrator(const std::string& object_name,
@@ -84,7 +84,7 @@ FEMechanicsExplicitIntegrator::FEMechanicsExplicitIntegrator(const std::string& 
                                                              unsigned int restart_restore_number)
     : FEMechanicsBase(object_name, input_db, meshes, register_for_restart, restart_read_dirname, restart_restore_number)
 {
-    commonConstructor(object_name, input_db, meshes, restart_read_dirname, restart_restore_number);
+    commonConstructor(input_db);
 }
 
 void
@@ -549,11 +549,7 @@ FEMechanicsExplicitIntegrator::doInitializeFEData(const bool use_present_data)
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-FEMechanicsExplicitIntegrator::commonConstructor(const std::string& /*object_name*/,
-                                                 const Pointer<Database>& input_db,
-                                                 const std::vector<libMesh::MeshBase*>& /*meshes*/,
-                                                 const std::string& /*restart_read_dirname*/,
-                                                 unsigned int /*restart_restore_number*/)
+FEMechanicsExplicitIntegrator::commonConstructor(const Pointer<Database>& input_db)
 {
     // Set some default values.
     d_rhos.resize(d_meshes.size(), 1.0);
@@ -578,7 +574,7 @@ FEMechanicsExplicitIntegrator::getFromInput(const Pointer<Database>& db, bool /*
         std::fill(d_rhos.begin(), d_rhos.end(), db->getDouble("mass_density"));
     else if (db->keyExists("mass_density"))
     {
-        TBOX_ASSERT(db->getArraySize("mass_density") == d_rhos.size());
+        TBOX_ASSERT(static_cast<std::size_t>(db->getArraySize("mass_density")) == d_rhos.size());
         db->getDoubleArray("mass_density", d_rhos.data(), db->getArraySize("mass_density"));
     }
 }

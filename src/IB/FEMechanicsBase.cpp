@@ -205,12 +205,8 @@ FEMechanicsBase::FEMechanicsBase(const std::string& object_name,
                                  const std::string& restart_read_dirname,
                                  unsigned int restart_restore_number)
 {
-    commonConstructor(object_name,
-                      input_db,
-                      std::vector<MeshBase*>(1, mesh),
-                      register_for_restart,
-                      restart_read_dirname,
-                      restart_restore_number);
+    commonConstructor(
+        object_name, input_db, { mesh }, register_for_restart, restart_read_dirname, restart_restore_number);
 }
 
 FEMechanicsBase::FEMechanicsBase(const std::string& object_name,
@@ -784,11 +780,9 @@ FEMechanicsBase::computeDynamicPressureRateOfChange(PetscVector<double>& dP_dt_v
     const size_t U_sys_idx = fe.registerInterpolatedSystem(U_system, no_vars, U_vars, &U_vec);
     fe.init();
 
-    const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
     const std::vector<double>& JxW = fe.getQuadratureWeights();
     const std::vector<std::vector<double> >& phi = fe.getPhi(P_fe_type);
 
-    const std::vector<std::vector<std::vector<double> > >& fe_interp_var_data = fe.getVarInterpolation();
     const std::vector<std::vector<std::vector<VectorValue<double> > > >& fe_interp_grad_var_data =
         fe.getGradVarInterpolation();
 

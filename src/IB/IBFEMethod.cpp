@@ -369,7 +369,7 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        unsigned int restart_restore_number)
     : FEMechanicsBase(object_name, input_db, mesh, register_for_restart, restart_read_dirname, restart_restore_number)
 {
-    commonConstructor(object_name, input_db, { mesh }, max_levels, restart_read_dirname, restart_restore_number);
+    commonConstructor(input_db, max_levels);
     return;
 } // IBFEMethod
 
@@ -382,7 +382,7 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        unsigned int restart_restore_number)
     : FEMechanicsBase(object_name, input_db, meshes, register_for_restart, restart_read_dirname, restart_restore_number)
 {
-    commonConstructor(object_name, input_db, meshes, max_levels, restart_read_dirname, restart_restore_number);
+    commonConstructor(input_db, max_levels);
     return;
 } // IBFEMethod
 
@@ -2840,12 +2840,7 @@ IBFEMethod::getProlongationSchedule(const int level_number, const int coarse_dat
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IBFEMethod::commonConstructor(const std::string& object_name,
-                              const Pointer<Database>& input_db,
-                              const std::vector<libMesh::MeshBase*>& meshes,
-                              int max_levels,
-                              const std::string& restart_read_dirname,
-                              unsigned int restart_restore_number)
+IBFEMethod::commonConstructor(const Pointer<Database>& input_db, int max_levels)
 {
     // Keep track of the maximum possible level number.
     d_max_level_number = max_levels - 1;

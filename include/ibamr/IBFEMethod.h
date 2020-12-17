@@ -1178,12 +1178,7 @@ private:
     /*!
      * Implementation of class constructor.
      */
-    void commonConstructor(const std::string& object_name,
-                           const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
-                           const std::vector<libMesh::MeshBase*>& meshes,
-                           int max_levels,
-                           const std::string& restart_read_dirname,
-                           unsigned int restart_restore_number);
+    void commonConstructor(const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db, int max_levels);
 
     /*!
      * Read input values from a given database.

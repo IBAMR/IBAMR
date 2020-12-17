@@ -40,7 +40,6 @@ static double kappa = 1.0e6;
 static double damping = 0.0;
 static double traction_force = 6.25e3;
 static double load_time;
-static double PI = 3.141592653589793;
 
 static bool use_static_pressure;
 static bool use_dynamic_pressure;
@@ -224,7 +223,6 @@ main(int argc, char* argv[])
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
-        const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
         const bool uses_exodus = dump_viz_data && !app_initializer->getExodusIIFilename().empty();
         const string exodus_filename = app_initializer->getExodusIIFilename();
 
@@ -285,7 +283,7 @@ main(int argc, char* argv[])
 
         use_static_pressure = input_db->getBool("USE_STATIC_PRESSURE");
         use_dynamic_pressure = input_db->getBool("USE_DYNAMIC_PRESSURE");
-        PressureProjectionType pressure_proj_type;
+        PressureProjectionType pressure_proj_type = UNKNOWN_PRESSURE_TYPE;
         if (use_static_pressure || use_dynamic_pressure)
         {
             pressure_proj_type =
@@ -366,7 +364,7 @@ main(int argc, char* argv[])
         }
         EquationSystems* equation_systems = fem_solver->getEquationSystems();
         ExplicitSystem& jac_system = equation_systems->add_system<ExplicitSystem>("JacobianDeterminant");
-        unsigned int J_var = jac_system.add_variable("Avg J", CONSTANT, MONOMIAL);
+        jac_system.add_variable("Avg J", CONSTANT, MONOMIAL);
         jac_system.attach_init_function(apply_initial_jacobian);
 
         const std::string time_stepping_scheme =
