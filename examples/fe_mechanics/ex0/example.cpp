@@ -62,11 +62,12 @@ solid_surface_force_function(VectorValue<double>& F,
                              double time,
                              void* /*ctx*/)
 {
-    if (lag_bdry_info->has_boundary_id(elem, side, 3))
+    const auto dim = elem->dim();
+    if (lag_bdry_info->has_boundary_id(elem, side, dim == 2 ? 3 : 4))
     {
         F = kappa * (X - x);
     }
-    else if (lag_bdry_info->has_boundary_id(elem, side, 1))
+    else if (lag_bdry_info->has_boundary_id(elem, side, dim == 2 ? 1 : 2))
     {
         F = libMesh::Point(0.0, time_ramp(time) * traction_force, 0.0);
     }
@@ -289,8 +290,8 @@ main(int argc, char* argv[])
             pressure_proj_type =
                 IBAMR::string_to_enum<PressureProjectionType>(input_db->getString("PRESSURE_PROJECTION_TYPE"));
         }
-        use_volumetric_term = input_db->getBool("USE_VOLUMETRIC_TERM") && !use_static_pressure && !use_dynamic_pressure;
         stress_funtion = input_db->getString("STRESS_FUNCTION");
+        use_volumetric_term = input_db->getBool("USE_VOLUMETRIC_TERM") && !use_static_pressure && !use_dynamic_pressure;
 
         // Setup the time stepping parameters.
         const double loop_time_end = input_db->getDouble("END_TIME");
