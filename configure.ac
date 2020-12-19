@@ -197,6 +197,11 @@ AC_CONFIG_FILES([
   examples/adv_diff/ex0/Makefile
   examples/adv_diff/ex1/Makefile
   examples/adv_diff/ex2/Makefile
+  examples/adv_diff/ex3/Makefile
+  examples/adv_diff/ex4/Makefile
+  examples/adv_diff/ex5/Makefile
+  examples/adv_diff/ex6/Makefile
+  examples/adv_diff/ex7/Makefile
   examples/advect/Makefile
   examples/complex_fluids/Makefile
   examples/complex_fluids/ex0/Makefile
@@ -256,7 +261,6 @@ AC_CONFIG_FILES([
   tests/Makefile
   tests/adv_diff/Makefile
   tests/advect/Makefile
-  tests/coarsen/Makefile
   tests/complex_fluids/Makefile
   tests/CIB/Makefile
   tests/IB/Makefile

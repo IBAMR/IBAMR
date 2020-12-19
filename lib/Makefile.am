@@ -47,6 +47,7 @@ endif
 
 ## Dimension-dependent libraries
 DIM_INDEPENDENT_SOURCES = \
+../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 ../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 ../src/IB/BrinkmanPenalizationStrategy.cpp \
 ../src/IB/CIBMethod.cpp \
@@ -114,6 +115,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.cpp \
 ../src/adv_diff/AdvDiffStochasticForcing.cpp \
 ../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp \
+../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp \
 ../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 ../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 ../src/complex_fluids/CFUpperConvectiveOperator.cpp \
@@ -216,6 +218,8 @@ pkg_include_HEADERS += \
 ../include/ibamr/AdvDiffStochasticForcing.h \
 ../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 ../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+../include/ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h \
+../include/ibamr/BrinkmanAdvDiffBcHelper.h \
 ../include/ibamr/BrinkmanPenalizationStrategy.h \
 ../include/ibamr/BrinkmanPenalizationRigidBodyDynamics.h \
 ../include/ibamr/CIBMethod.h \
