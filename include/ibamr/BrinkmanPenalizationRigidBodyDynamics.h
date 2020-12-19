@@ -311,6 +311,9 @@ protected:
     // Contour level
     double d_contour_level = 0.0;
 
+    // Number of interface cells to compute the Heaviside function
+    double d_num_interface_cells = 2.0;
+
     // Forces and torques on the body.
     Eigen::Vector3d d_hydro_force_pressure, d_hydro_force_viscous, d_hydro_torque_pressure, d_hydro_torque_viscous,
         d_ext_force, d_ext_torque;
