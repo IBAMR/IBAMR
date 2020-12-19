@@ -519,6 +519,65 @@ enum_to_string<TensorEvolutionType>(TensorEvolutionType val)
     if (val == LOGARITHM) return "LOGARITHM";
     return "UNKNOWN_TENSOR_EVOLUTION_TYPE";
 }
+
+/*!
+ * \brief Enumerated type for different Advection-Diffusion Brinkman penalization boundary conditions
+ */
+enum AdvDiffBrinkmanPenalizationBcType
+{
+    DIRICHLET = 1,
+    NEUMANN = 2,
+    ROBIN = 3,
+    UNKNOWN_BRINKMAN_BC_TYPE = -1
+};
+
+template <>
+inline AdvDiffBrinkmanPenalizationBcType
+string_to_enum<AdvDiffBrinkmanPenalizationBcType>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "DIRICHLET") == 0) return DIRICHLET;
+    if (strcasecmp(val.c_str(), "NEUMANN") == 0) return NEUMANN;
+    if (strcasecmp(val.c_str(), "ROBIN") == 0) return ROBIN;
+    return UNKNOWN_BRINKMAN_BC_TYPE;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<AdvDiffBrinkmanPenalizationBcType>(AdvDiffBrinkmanPenalizationBcType val)
+{
+    if (val == DIRICHLET) return "DIRICHLET";
+    if (val == NEUMANN) return "NEUMANN";
+    if (val == ROBIN) return "ROBIN";
+    return "UNKNOWN_BRINKMAN_BC_TYPE";
+} // enum_to_string
+
+/*!
+ * \brief Enumerated type for different indicator functions.
+ */
+enum IndicatorFunctionType
+{
+    SMOOTH = 1,
+    DISCONTINUOUS = 2,
+    UNKNOWN_INDICATOR_FUNC_TYPE = -1
+};
+
+template <>
+inline IndicatorFunctionType
+string_to_enum<IndicatorFunctionType>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "SMOOTH") == 0) return SMOOTH;
+    if (strcasecmp(val.c_str(), "DISCONTINUOUS") == 0) return DISCONTINUOUS;
+    return UNKNOWN_INDICATOR_FUNC_TYPE;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<IndicatorFunctionType>(IndicatorFunctionType val)
+{
+    if (val == SMOOTH) return "SMOOTH";
+    if (val == DISCONTINUOUS) return "DISCONTINUOUS";
+    return "UNKNOWN_INDICATOR_FUNC_TYPE";
+} // enum_to_string
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
