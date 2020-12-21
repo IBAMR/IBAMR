@@ -114,7 +114,9 @@ class IBFEDirectForcingKinematics;
 /*!
  * \brief Class IBFEMethod is an implementation of the abstract base class
  * IBStrategy that provides functionality required by the IB method with finite
- * element elasticity.
+ * element elasticity. Much of the setup for finite element computations is done
+ * by the IBAMR::FEMechanicsBase: see the documentation of that class for
+ * additional information on input parameters.
  *
  * By default, the libMesh data is partitioned once at the beginning of the
  * computation by libMesh's default partitioner.
@@ -823,6 +825,11 @@ protected:
     virtual void doInitializeFEEquationSystems() override;
 
     /*!
+     * Do the actual work of setting up libMesh system vectors.
+     */
+    void doInitializeFESystemVectors() override;
+
+    /*!
      * Do the actual work in reinitializeFEData and initializeFEData. if @p
      * use_present_data is `true` then the current content of the solution
      * vectors is used: more exactly, the coordinates and velocities (computed
@@ -905,6 +912,11 @@ protected:
      */
     SAMRAI::xfer::RefineSchedule<NDIM>&
     getProlongationSchedule(int level_number, int coarse_data_idx, int fine_data_idx);
+
+    /*!
+     * Cached input databases.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fe_data_manager_db;
 
     /*!
      * Whether or not the initial (i.e., before the regrid prior to
@@ -1166,21 +1178,9 @@ protected:
 
 private:
     /*!
-     * The input database. This is explicitly stored (and used outside the
-     * constructor) since the FEDataManager instances created by this class
-     * will also read part of it.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_input_db;
-
-    /*!
      * Implementation of class constructor.
      */
-    void commonConstructor(const std::string& object_name,
-                           const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
-                           const std::vector<libMesh::MeshBase*>& meshes,
-                           int max_levels,
-                           const std::string& restart_read_dirname,
-                           unsigned int restart_restore_number);
+    void commonConstructor(const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db, int max_levels);
 
     /*!
      * Read input values from a given database.

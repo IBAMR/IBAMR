@@ -188,6 +188,7 @@ SET(CXX_SRC
   IB/IBLagrangianForceStrategySet.cpp
   IB/IBRodForceSpec.cpp
   IB/FEMechanicsBase.cpp
+  IB/FEMechanicsExplicitIntegrator.cpp
   IB/IBSourceSpec.cpp
   IB/IBSourceSpecFactory.cpp
   IB/CIBSaddlePointSolver.cpp

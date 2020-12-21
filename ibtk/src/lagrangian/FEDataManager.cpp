@@ -1345,7 +1345,7 @@ FEDataManager::prolongData(const int f_data_idx,
 {
     IBTK_TIMER_START(t_prolong_data);
 
-    // NOTE #1: This routine is sepcialized for a staggered-grid Eulerian
+    // NOTE #1: This routine is specialized for a staggered-grid Eulerian
     // discretization.  It should be straightforward to generalize it to work
     // with other data centerings.
     //
@@ -2778,9 +2778,15 @@ namespace
 Pointer<Database>
 setup_fe_projector_db(const Pointer<Database>& input_db)
 {
-    Pointer<Database> db(new InputDatabase(input_db->getName() + "::FEProjector"));
-    if (input_db->keyExists("num_fischer_vectors"))
-        db->putInteger("num_fischer_vectors", input_db->getInteger("num_fischer_vectors"));
+    Pointer<Database> db;
+    if (input_db->keyExists("FEProjector"))
+    {
+        db = input_db->getDatabase("FEProjector");
+    }
+    else
+    {
+        db = new InputDatabase("FEProjector");
+    }
     return db;
 }
 } // namespace

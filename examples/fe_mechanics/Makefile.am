@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2015 - 2019 by the IBAMR developers
+## Copyright (c) 2010 - 2018 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -11,13 +11,17 @@
 ##
 ## ---------------------------------------------------------------------
 
+## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-TEST_DIRECTORIES = adv_diff advect CIB coarsen complex_fluids \
-fe_mechanics IB IBFE IBTK interpolate level_set multiphase_flow \
-navier_stokes physical_boundary refine spread vc_navier_stokes wave_tank
+SUBDIRS = ex0
 
-tests: $(TEST_DIRECTORIES)
+COMPLETE_EXAMPLES = $(SUBDIRS)
+INCOMPLETE_EXAMPLES =
+.PHONY: examples $(COMPLETE_EXAMPLES)
+examples: $(COMPLETE_EXAMPLES)
 
-$(TEST_DIRECTORIES):
-	cd $@ && $(MAKE) $(AM_MAKEFLAGS) tests
-.PHONY: tests $(TEST_DIRECTORIES)
+$(COMPLETE_EXAMPLES):
+	cd $@ && $(MAKE) $(AM_MAKEFLAGS) examples
+
+
+
