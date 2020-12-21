@@ -144,10 +144,10 @@ solid_body_force_function(VectorValue<double>& F,
                           const TensorValue<double>& /*FF*/,
                           const libMesh::Point& /*x*/,
                           const libMesh::Point& /*X*/,
-                          Elem* const elem,
+                          Elem* const /*elem*/,
                           const vector<const vector<double>*>& var_data,
                           const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
-                          double time,
+                          double /*time*/,
                           void* /*ctx*/)
 {
     VectorValue<double> U;

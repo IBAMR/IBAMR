@@ -1735,11 +1735,7 @@ IBFEMethod::doInitializeFEEquationSystems()
     d_active_eulerian_data_cache = d_primary_eulerian_data_cache;
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
-        EquationSystems& equation_systems = *d_equation_systems[part];
         const std::string manager_name = "IBFEMethod FEDataManager::" + std::to_string(part);
-        d_fe_data[part] =
-            std::make_shared<FEData>(manager_name + "::fe_data", equation_systems, /*register_for_restart*/ true);
-        d_fe_projectors[part] = std::make_shared<FEProjector>(d_fe_data[part], d_fe_projector_db);
         d_primary_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
                                                                      manager_name,
                                                                      d_fe_data_manager_db,
@@ -3048,26 +3044,17 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
         d_fe_data_manager_db = new InputDatabase("FEDataManager");
     }
 
-    // FEProjector settings.
-    if (db->keyExists("FEProjector"))
+    // Workaround: support passing FEProjector to FEDataManager as an
+    // undocumented feature until FEDataManager loses its copy of FEProjector.
+    if (!d_fe_data_manager_db->keyExists("FEProjector"))
     {
-        d_fe_projector_db = db->getDatabase("FEProjector");
-    }
-    else if (d_fe_data_manager_db->keyExists("FEProjector"))
-    {
-        d_fe_projector_db = d_fe_data_manager_db->getDatabase("FEProjector");
-    }
-    else
-    {
-        d_fe_projector_db = new InputDatabase("FEProjector");
-        if (db->keyExists("num_fischer_vectors"))
+        auto db = d_fe_data_manager_db->putDatabase("FEProjector");
+        // Technically we should copy every key, but the only key we actually
+        // use is num_fischer_vectors, so do that until we remove this
+        // workaround
+        if (d_fe_projector_db->keyExists("num_fischer_vectors"))
         {
-            d_fe_projector_db->putInteger("num_fischer_vectors", db->getInteger("num_fischer_vectors"));
-        }
-        else if (d_fe_data_manager_db->keyExists("num_fischer_vectors"))
-        {
-            d_fe_projector_db->putInteger("num_fischer_vectors",
-                                          d_fe_data_manager_db->getInteger("num_fischer_vectors"));
+            db->putInteger("num_fischer_vectors", d_fe_projector_db->getInteger("num_fischer_vectors"));
         }
     }
 

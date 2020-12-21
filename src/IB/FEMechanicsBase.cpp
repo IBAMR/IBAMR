@@ -1619,10 +1619,6 @@ FEMechanicsBase::getFromInput(const Pointer<Database>& db, bool /*is_from_restar
     else
     {
         d_fe_projector_db = new InputDatabase("FEProjector");
-        if (db->keyExists("num_fischer_vectors"))
-        {
-            d_fe_projector_db->putInteger("num_fischer_vectors", db->getInteger("num_fischer_vectors"));
-        }
     }
 
     // Force computation settings.

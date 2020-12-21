@@ -12,7 +12,6 @@
 // ---------------------------------------------------------------------
 
 #include <ibamr/FEMechanicsExplicitIntegrator.h>
-#include <ibamr/app_namespaces.h>
 
 #include <ibtk/AppInitializer.h>
 
@@ -23,6 +22,8 @@
 #include <libmesh/mesh_generation.h>
 
 #include <SAMRAI_config.h>
+
+#include <ibamr/app_namespaces.h>
 
 using namespace IBAMR;
 using namespace IBTK;
