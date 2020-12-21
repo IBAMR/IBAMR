@@ -46,6 +46,13 @@ namespace IBAMR
 /*!
  * @brief      Class FEMechanicsBase provides core finite element mechanics
  *             functionality and data management.
+ *
+ * <h2>Parameters read from the input database</h2>
+ * <ol>
+ *   <li>FEProjector: Input database passed along to the object responsible for
+ *     computing projections onto the finite element space. See the
+ *     documentation of IBTK::FEProjector for more information.</li>
+ * </ol>
  */
 class FEMechanicsBase : public SAMRAI::tbox::Serializable
 {

@@ -114,7 +114,9 @@ class IBFEDirectForcingKinematics;
 /*!
  * \brief Class IBFEMethod is an implementation of the abstract base class
  * IBStrategy that provides functionality required by the IB method with finite
- * element elasticity.
+ * element elasticity. Much of the setup for finite element computations is done
+ * by the IBAMR::FEMechanicsBase: see the documentation of that class for
+ * additional information on input parameters.
  *
  * By default, the libMesh data is partitioned once at the beginning of the
  * computation by libMesh's default partitioner.

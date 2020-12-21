@@ -395,11 +395,6 @@ private:
  * it produces some artifacts at the coarse-fine interface, but that these
  * generally don't effect the overall solution quality.
  *
- * <code>num_fischer_vectors</code>: The number of vectors used to compute
- * initial guesses in FischerGuess. Defaults to 5. Using more vectors lowers the
- * number of solver iterations but requires more memory and also more inner
- * products.
- *
  * <h2>Parameters effecting workload estimate calculations</h2>
  * FEDataManager can estimate the amount of work done in IBFE calculations
  * (such as FEDataManager::spread). Since most calculations use a variable

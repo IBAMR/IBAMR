@@ -2786,10 +2786,6 @@ setup_fe_projector_db(const Pointer<Database>& input_db)
     else
     {
         db = new InputDatabase("FEProjector");
-        if (input_db->keyExists("num_fischer_vectors"))
-        {
-            db->putInteger("num_fischer_vectors", input_db->getInteger("num_fischer_vectors"));
-        }
     }
     return db;
 }

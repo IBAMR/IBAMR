@@ -42,6 +42,17 @@ namespace IBTK
 /*!
  * \brief Class FEProjector coordinates data structures for projecting
  * fields in FE models.
+ *
+ * <h2>Parameters read from the input database</h2>
+ * <ol>
+ *   <li>num_fischer_vectors: Number of previous solution and RHS pairs stored for
+ *   use in computing the initial guess to each linear system. Defaults to five.
+ *   Using more vectors will require additional computational work when computing
+ *   the initial guess (roughly N*N dot products, where N is the number of stored
+ *   vector pairs) but will decrease the number of solver iterations. The default
+ *   value lowers the number of solver iterations to, typically, no more than two
+ *   or three, so its usually the right value.</li>
+ * </ol>
  */
 class FEProjector
 {
