@@ -51,8 +51,11 @@ BARGE_Y             = 0.0
 
 // Surface tension parameters
 SIGMA               = 0.0
-SMOOTHER            = "IB_4" 
-NUM_INTERFACE_CELLS = 2.5 
+SMOOTHER            = "IB_4"
+NUM_INTERFACE_CELLS = 2.5
+
+// Marangoni force parameters
+MARANGONI_COEFFICIENT = 0.0
 
 // Level set option parameters
 LS_ORDER              = "THIRD_ORDER_ENO"
@@ -164,7 +167,7 @@ START_TIME           =   0.0e0     // initial simulation time
 END_TIME             =   5.0e0     // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   20        // max number of simulation timesteps
-CFL_MAX              =   0.5   
+CFL_MAX              =   0.5
 NUM_INS_CYCLES       =   2
 NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "CUI"
 CONVECTIVE_FORM      = "CONSERVATIVE"                // how to compute the convective terms
@@ -214,8 +217,8 @@ IBHierarchyIntegrator {
    grow_dt               = GROW_DT               // growth factor for timesteps
    max_integrator_steps  = MAX_INTEGRATOR_STEPS   // max number of simulation timesteps
    regrid_cfl_interval   = REGRID_CFL_INTERVAL
-   
-   dt_max             = DT_MAX 
+
+   dt_max             = DT_MAX
    num_cycles         = NUM_INS_CYCLES
    delta_fcn          = DELTA_FUNCTION
    enable_logging     = ENABLE_LOGGING
@@ -230,7 +233,7 @@ ConstraintIBMethod {
    needs_divfree_projection       = NEEDS_DIVFREE_PROJ
    rho_solid                      = RHO_S
 
-   
+
    PrintOutput {
    print_output          = TRUE               //default false
    output_interval       = 1                  //default 1
@@ -241,7 +244,7 @@ ConstraintIBMethod {
    output_com_coords     = TRUE               //default false
    output_moment_inertia = TRUE               //default false
    output_dirname        = "./Dump--Barge"    //default "./ConstraintIBMethodDump"
-   base_filename         = "Barge"      //default  "ImmersedStructure" 
+   base_filename         = "Barge"      //default  "ImmersedStructure"
   }
 
 }
@@ -280,7 +283,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
    rho_is_const               = RHO_IS_CONST
    mu_is_const                = MU_IS_CONST
    precond_reinit_interval    = PRECOND_REINIT_INTERVAL
-   operator_scale_factors     = OPERATOR_SCALE_FACTORS 
+   operator_scale_factors     = OPERATOR_SCALE_FACTORS
    vc_interpolation_type      = VC_INTERPOLATION_TYPE
    enable_logging             = ENABLE_LOGGING
    max_integrator_steps       = MAX_INTEGRATOR_STEPS
@@ -311,7 +314,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
    }
     pressure_solver_type = "PETSC_KRYLOV_SOLVER"
     pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-    pressure_solver_db 
+    pressure_solver_db
     {
       ksp_type = "richardson"
       max_iterations = 5
@@ -338,7 +341,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
       density_convective_limiter = DENSITY_CONVECTIVE_LIMITER
       enable_logging = ENABLE_LOGGING
     }
-   
+
 }
 
 INSVCStaggeredNonConservativeHierarchyIntegrator {
@@ -378,7 +381,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator {
    velocity_precond_type = "VC_VELOCITY_POINT_RELAXATION_FAC_PRECONDITIONER"
    velocity_solver_db {
       ksp_type = "richardson"
-      max_iterations = 5 
+      max_iterations = 5
       rel_residual_tol = 1.0e-2
    }
    velocity_precond_db {
@@ -397,7 +400,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator {
    }
     pressure_solver_type = "PETSC_KRYLOV_SOLVER"
     pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-    pressure_solver_db 
+    pressure_solver_db
     {
       ksp_type = "richardson"
       max_iterations = 5
@@ -494,7 +497,7 @@ LevelSet_Gas {
 ConstraintIBKinematics {
 
      Barge {
-     structure_names                  = "barge2d" 
+     structure_names                  = "barge2d"
      structure_levels                 = MAX_LEVELS - 1
      calculate_translational_momentum = 0,0,0
      calculate_rotational_momentum    = 0,0,1
@@ -512,10 +515,10 @@ ConstraintIBKinematics {
 IBHydrodynamicSurfaceForceEvaluator {
   surface_contour_value = 0.0
 }
-  
-  
+
+
   PrintOutput {
-    
+
       print_output                = TRUE    //default false, if false nothing will be printed.
       output_interval             = 1       //default 1
       output_drag                 = TRUE    //default false, if false it will not be computed.
@@ -526,10 +529,10 @@ IBHydrodynamicSurfaceForceEvaluator {
       output_moment_inertia       = FALSE   //default false
       output_eulerian_mom         = TRUE    //default false
 
-      
+
       output_dirname              = "./barge_dump"
       base_filename               = "barge2d"
-  }                 
+  }
 
 SurfaceTensionForceFunction {
     smoother            = SMOOTHER
@@ -537,6 +540,12 @@ SurfaceTensionForceFunction {
     num_interface_cells = NUM_INTERFACE_CELLS
 }
 
+MarangoniSurfaceTensionForceFunction {
+    smoother            = SMOOTHER
+    sigma               = SIGMA
+    num_interface_cells = NUM_INTERFACE_CELLS
+    marangoni_coef            = MARANGONI_COEFFICIENT
+}
 
 
 Main {

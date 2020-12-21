@@ -37,7 +37,7 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER V_gcw,U_gcw
-    
+
 c
 c     Input/Output.
 c
@@ -51,7 +51,7 @@ c     Local variables.
 c
       INTEGER k0,k1
       INTEGER i0,i1
-      
+
 
 c     Compute 1D weights.
       w0(-1) = fourth; w1(-1) = fourth
@@ -64,8 +64,8 @@ c     Compute the tensor product weight
          do k0 = -1,1
             w(k0,k1) = w0(k0)*wy
          enddo
-      enddo  
-    
+      enddo
+
 c     Mollify U to V.
       do i1 = ilower1,iupper1
          do i0 = ilower0,iupper0
@@ -76,10 +76,10 @@ c     Mollify U to V.
                V(i0,i1) = V(i0,i1) + U(i0+k0,i1+k1)*w(k0,k1)
                enddo
             enddo
- 
+
          enddo
       enddo
-      
+
 
       return
       end
@@ -87,7 +87,7 @@ c     Mollify U to V.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Compute gradient of the indicator function to estimate 
+c     Compute gradient of the indicator function to estimate
 c     interface normal
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -109,7 +109,7 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER N_gcw,U_gcw
-    
+
 c
 c     Input/Output.
 c
@@ -118,7 +118,7 @@ c
       REAL N10(SIDE2d1(ilower,iupper,N_gcw))
       REAL N11(SIDE2d1(ilower,iupper,N_gcw))
       REAL U(CELL2d(ilower,iupper,U_gcw))
-     
+
       REAL dx(0:NDIM-1)
 
 c
@@ -126,27 +126,27 @@ c     Local variables.
 c
       INTEGER i0,i1
       REAL fac0,fac1
-      
+
       fac0 = 1.d0/(dx(0))
-      fac1 = 1.d0/(dx(1))      
+      fac1 = 1.d0/(dx(1))
 
 c
-c     Find face normal gradients first and then interpolate 
+c     Find face normal gradients first and then interpolate
 c     face tangential gradients
 
 c     Do N00.
       do i1 = ilower1 - 2, iupper1 + 2
          do i0 = ilower0 - 1, iupper0 + 2
-             
+
             N00(i0,i1) = fac0*(U(i0,i1) - U(i0-1,i1))
 
          enddo
       enddo
-      
+
 c     Do N11.
       do i1 = ilower1 - 1, iupper1 + 2
          do i0 = ilower0 - 2, iupper0 + 2
-             
+
             N11(i0,i1) = fac1*(U(i0,i1) - U(i0,i1-1))
 
          enddo
@@ -155,9 +155,9 @@ c     Do N11.
 c     Interpolate N11 to N01
       do i1 = ilower1 - 1, iupper1 + 1
          do i0 = ilower0 - 1, iupper0 + 2
-             
-            N01(i0,i1) = fourth*(N11(i0-1,i1) + N11(i0,i1) + 
-     &                    N11(i0-1,i1+1) + N11(i0,i1+1)) 
+
+            N01(i0,i1) = fourth*(N11(i0-1,i1) + N11(i0,i1) +
+     &                    N11(i0-1,i1+1) + N11(i0,i1+1))
 
          enddo
       enddo
@@ -199,7 +199,7 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER K_gcw,N_gcw
-    
+
 c
 c     Input/Output.
 c
@@ -208,7 +208,7 @@ c
       REAL N10(SIDE2d1(ilower,iupper,N_gcw))
       REAL N11(SIDE2d1(ilower,iupper,N_gcw))
       REAL K(CELL2d(ilower,iupper,K_gcw))
-     
+
       REAL dx(0:NDIM-1)
 
 c
@@ -217,22 +217,22 @@ c
       INTEGER i0,i1
       REAL fac0,fac1
       REAL norm_grad_upper,norm_grad_lower,eps
- 
+
       fac0 = 1.d0/(dx(0))
-      fac1 = 1.d0/(dx(1))      
+      fac1 = 1.d0/(dx(1))
       eps = 1.d-10
 
 c
-c     Compute curvature K = -div (n/|n|) 
-c     
+c     Compute curvature K = -div (n/|n|)
+c
       do i1 = ilower1 - 1, iupper1 + 1
          do i0 = ilower0 - 1, iupper0 + 1
-            
+
 c           compute -d/dx term.
 
             norm_grad_upper = sqrt(N00(i0+1,i1)**2+N01(i0+1,i1)**2)
             norm_grad_lower = sqrt(N00(i0,i1)**2+N01(i0,i1)**2)
-            
+
             if (norm_grad_upper .gt. eps) then
                 norm_grad_upper = 1.d0/norm_grad_upper
             else
@@ -246,9 +246,9 @@ c           compute -d/dx term.
             endif
 
 c           Compute -div
-            K(i0,i1) = fac0*(N00(i0,i1)*norm_grad_lower - 
+            K(i0,i1) = fac0*(N00(i0,i1)*norm_grad_lower -
      &              N00(i0+1,i1)*norm_grad_upper)
-            
+
 
 c           compute -d/dy term.
 
@@ -260,20 +260,20 @@ c           compute -d/dy term.
             else
                 norm_grad_upper = 0.d0
             endif
-            
+
             if (norm_grad_lower .gt. eps) then
                 norm_grad_lower = 1.d0/norm_grad_lower
             else
                 norm_grad_lower = 0.d0
-            endif    
-              
+            endif
+
 c           Compute -div
             K(i0,i1) = K(i0,i1) + fac1*(N11(i0,i1)*norm_grad_lower -
-     &              N11(i0,i1+1)*norm_grad_upper)          
+     &              N11(i0,i1+1)*norm_grad_upper)
 
          enddo
       enddo
-      
+
       return
       end
 c
@@ -300,7 +300,7 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER F_gcw,K_gcw,N_gcw
-    
+
 c
 c     Input/Output.
 c
@@ -309,7 +309,7 @@ c
       REAL N00(SIDE2d0(ilower,iupper,N_gcw))
       REAL N11(SIDE2d1(ilower,iupper,N_gcw))
       REAL K(CELL2d(ilower,iupper,K_gcw))
-     
+
       REAL sigma
 
 c
@@ -317,16 +317,16 @@ c     Local variables.
 c
       INTEGER i0,i1
       REAL kappa
-  
+
 c
-c     Compute F0  = sigma * K_x * N_x 
-c     
+c     Compute F0  = sigma * K_x * N_x
+c
       do i1 = ilower1, iupper1
          do i0 = ilower0, iupper0 + 1
-            
+
             kappa = 0.5d0*(K(i0-1,i1)+K(i0,i1))
             F0(i0,i1) = sigma*kappa*N00(i0,i1)
-            
+
          enddo
       enddo
 
@@ -338,12 +338,100 @@ c
 
             kappa = 0.5d0*(K(i0,i1-1)+K(i0,i1))
             F1(i0,i1) = sigma*kappa*N11(i0,i1)
-                    
+
          enddo
       enddo
-      
+
       return
       end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute Marangoni force
+c
+c     F = marangoni_coef(grad T |grad C| - (grad T dot grad \phi)grad C)
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine sc_marangoni_force_2d(
+     &     F0,F1,F_gcw,
+     &     gradT00,gradT01,
+     &     gradT10,gradT11,
+     &     gradT_gcw,
+     &     N00,N01,
+     &     N10,N11,
+     &     N_gcw,
+     &     gradC00,gradC01,
+     &     gradC10,gradC11,
+     &     gradC_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     marangoni_coefficient)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER F_gcw,gradT_gcw,N_gcw,gradC_gcw
+c
+c     Input/Output.
+c
+      REAL F0(SIDE2d0(ilower,iupper,F_gcw))
+      REAL F1(SIDE2d1(ilower,iupper,F_gcw))
+      REAL gradT00(SIDE2d0(ilower,iupper,gradT_gcw))
+      REAL gradT01(SIDE2d0(ilower,iupper,gradT_gcw))
+      REAL gradT10(SIDE2d1(ilower,iupper,gradT_gcw))
+      REAL gradT11(SIDE2d1(ilower,iupper,gradT_gcw))
+      REAL N00(SIDE2d0(ilower,iupper,N_gcw))
+      REAL N01(SIDE2d0(ilower,iupper,N_gcw))
+      REAL N10(SIDE2d1(ilower,iupper,N_gcw))
+      REAL N11(SIDE2d1(ilower,iupper,N_gcw))
+      REAL gradC00(SIDE2d0(ilower,iupper,gradC_gcw))
+      REAL gradC01(SIDE2d0(ilower,iupper,gradC_gcw))
+      REAL gradC10(SIDE2d1(ilower,iupper,gradC_gcw))
+      REAL gradC11(SIDE2d1(ilower,iupper,gradC_gcw))
+c
+      REAL marangoni_coefficient
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL gradC_mag
+      REAL gradT_dot_gradphi
+c
+c     Compute F0  = dt_dx * |grad C| - (grad T dot grad phi) dc_dx
+c
+      do i1 = ilower1, iupper1
+         do i0 = ilower0, iupper0 + 1
+            gradC_mag = sqrt(gradC00(i0,i1)**2+gradC01(i0,i1)**2)
+            gradT_dot_gradphi = gradT00(i0,i1)*N00(i0,i1) +
+     &                          gradT01(i0,i1)*N01(i0,i1)
+            F0(i0,i1) = F0(i0,i1)+marangoni_coefficient*(gradT00(i0,i1)
+     &                *gradC_mag-gradT_dot_gradphi*gradC00(i0,i1))
+         enddo
+      enddo
+c
+c     Compute F1  = dt_dy * |grad C| - (grad T dot grad phi) dc_dy
+c
+      do i1 = ilower1, iupper1 + 1
+         do i0 = ilower0, iupper0
+
+            gradC_mag = sqrt(gradC10(i0,i1)**2+gradC11(i0,i1)**2)
+            gradT_dot_gradphi = gradT00(i0,i1)*N00(i0,i1) +
+     &                          gradT01(i0,i1)*N01(i0,i1)
+            F1(i0,i1) = F1(i0,i1)+marangoni_coefficient*(gradT11(i0,i1)
+     &                *gradC_mag-gradT_dot_gradphi*gradC11(i0,i1))
+         enddo
+      enddo
+      return
+      end
+
+
+
+
+
+
 
 
 
