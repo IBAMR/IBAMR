@@ -176,7 +176,7 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_var;
     int d_T_idx = IBTK::invalid_index;
-    double d_marangoni_coefficient;
+    double d_marangoni_coefficient_1 = 0.0, d_marangoni_coefficient_2 = 0.0, d_ref_temperature = 0.0;
 };
 } // namespace IBAMR
 
