@@ -244,7 +244,6 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx
         hierarchy->getPatchLevel(ln)->allocatePatchData(d_T_idx, data_time);
     }
 
-    // Copy level set into phi and C.
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
     if (d_ts_type == MIDPOINT_RULE)
     {
@@ -306,27 +305,16 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
                                                      const bool initial_time,
                                                      Pointer<PatchLevel<NDIM> > level)
 {
+    SurfaceTensionForceFunction::setDataOnPatch(data_idx, var, patch, data_time, initial_time, level);
+
+    if (initial_time) return;
+
     Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_data);
 #endif
     Pointer<CellData<NDIM, double> > f_cc_data = f_data;
     Pointer<SideData<NDIM, double> > f_sc_data = f_data;
-#if !defined(NDEBUG)
-    TBOX_ASSERT(f_cc_data || f_sc_data);
-#endif
-    if (f_cc_data) f_cc_data->fillAll(0.0);
-    if (f_sc_data) f_sc_data->fillAll(0.0);
-
-    if (initial_time) return;
-
-    SurfaceTensionForceFunction::setDataOnPatch(data_idx, var, patch, data_time);
-    f_data = patch->getPatchData(data_idx);
-#if !defined(NDEBUG)
-    TBOX_ASSERT(f_data);
-#endif
-    f_cc_data = f_data;
-    f_sc_data = f_data;
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
@@ -455,7 +443,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, 
 #endif
                  dx);
 
-    // Compute F = grad T |grad C| - (grad T dot grad \phi) grad C
+    // Compute F = marangoni_coefficient_1*(grad T |grad C| - (grad T dot grad \phi) grad C).
     SC_MARANGONI_FORCE_FC(F_data->getPointer(0),
                           F_data->getPointer(1),
 #if (NDIM == 3)

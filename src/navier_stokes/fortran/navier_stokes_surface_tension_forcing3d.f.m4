@@ -575,8 +575,6 @@ c
       REAL gradT_dot_gradphi
 
 c
-c     Compute F0  = dt_dx * |grad C| - (grad T dot grad phi) dc_dx
-c
       do i2 = ilower2, iupper2
         do i1 = ilower1, iupper1
           do i0 = ilower0, iupper0 + 1
@@ -592,16 +590,14 @@ c
         enddo
       enddo
 c
-c     Compute F1  = dt_dy * |grad C| - (grad T dot grad phi) dc_dy
-c
       do i2 = ilower2, iupper2
         do i1 = ilower1, iupper1+1
           do i0 = ilower0, iupper0
             gradC_mag = sqrt(gradC10(i0,i1,i2)**2+gradC11(i0,i1,i2)**2
      &                + gradC12(i0,i1,i2)**2)
-            gradT_dot_gradphi = gradT00(i0,i1,i2)*N00(i0,i1,i2) +
-     &                          gradT01(i0,i1,i2)*N01(i0,i1,i2) +
-     &                          gradT02(i0,i1,i2)*N02(i0,i1,i2)
+            gradT_dot_gradphi = gradT10(i0,i1,i2)*N10(i0,i1,i2) +
+     &                          gradT11(i0,i1,i2)*N11(i0,i1,i2) +
+     &                          gradT12(i0,i1,i2)*N12(i0,i1,i2)
             F1(i0,i1,i2)=F1(i0,i1,i2)+marangoni_coefficient
      &                  *(gradT11(i0,i1,i2)*gradC_mag-gradT_dot_gradphi
      &                  *gradC11(i0,i1,i2))
@@ -609,16 +605,14 @@ c
         enddo
       enddo
 c
-c     Compute F2  = dt_dz * |grad C| - (grad T dot grad phi) dc_dz
-c
       do i2 = ilower2, iupper2+1
         do i1 = ilower1, iupper1
           do i0 = ilower0, iupper0
             gradC_mag = sqrt(gradC20(i0,i1,i2)**2+gradC21(i0,i1,i2)**2
      &                + gradC22(i0,i1,i2)**2)
-            gradT_dot_gradphi = gradT00(i0,i1,i2)*N00(i0,i1,i2) +
-     &                          gradT01(i0,i1,i2)*N01(i0,i1,i2) +
-     &                          gradT02(i0,i1,i2)*N02(i0,i1,i2)
+            gradT_dot_gradphi = gradT20(i0,i1,i2)*N20(i0,i1,i2) +
+     &                          gradT21(i0,i1,i2)*N21(i0,i1,i2) +
+     &                          gradT22(i0,i1,i2)*N22(i0,i1,i2)
             F2(i0,i1,i2)=F2(i0,i1,i2)+marangoni_coefficient
      &                  *(gradT22(i0,i1,i2)*gradC_mag-gradT_dot_gradphi
      &                  *gradC22(i0,i1,i2))

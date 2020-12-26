@@ -400,8 +400,6 @@ c
       REAL gradC_mag
       REAL gradT_dot_gradphi
 c
-c     Compute F0  = dt_dx * |grad C| - (grad T dot grad phi) dc_dx
-c
       do i1 = ilower1, iupper1
          do i0 = ilower0, iupper0 + 1
             gradC_mag = sqrt(gradC00(i0,i1)**2+gradC01(i0,i1)**2)
@@ -412,14 +410,12 @@ c
          enddo
       enddo
 c
-c     Compute F1  = dt_dy * |grad C| - (grad T dot grad phi) dc_dy
-c
       do i1 = ilower1, iupper1 + 1
          do i0 = ilower0, iupper0
 
             gradC_mag = sqrt(gradC10(i0,i1)**2+gradC11(i0,i1)**2)
-            gradT_dot_gradphi = gradT00(i0,i1)*N00(i0,i1) +
-     &                          gradT01(i0,i1)*N01(i0,i1)
+            gradT_dot_gradphi = gradT10(i0,i1)*N10(i0,i1) +
+     &                          gradT11(i0,i1)*N11(i0,i1)
             F1(i0,i1) = F1(i0,i1)+marangoni_coefficient*(gradT11(i0,i1)
      &                *gradC_mag-gradT_dot_gradphi*gradC11(i0,i1))
          enddo
