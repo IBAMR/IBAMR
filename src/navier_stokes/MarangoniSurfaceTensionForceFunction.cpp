@@ -62,12 +62,16 @@ class RobinBcCoefStrategy;
 #define SC_NORMAL_FC IBAMR_FC_FUNC(sc_normal_2d, SC_NORMAL_2D)
 #define SC_MARANGONI_FORCE_FC IBAMR_FC_FUNC(sc_marangoni_force_2d, SC_MARANGONI_FORCE_2D)
 #define CC_CURVATURE_FC IBAMR_FC_FUNC(cc_curvature_2d, CC_CURVATURE_2D)
+#define SC_TEMPERATURE_SURFACE_TENSION_FORCE_FC                                                                        \
+    IBAMR_FC_FUNC(sc_temperature_surface_tension_force_2d, SC_TEMPERATURE_SURFACE_TENSION_FORCE_2D)
 #endif
 
 #if (NDIM == 3)
 #define SC_NORMAL_FC IBAMR_FC_FUNC(sc_normal_3d, SC_NORMAL_3D)
 #define SC_MARANGONI_FORCE_FC IBAMR_FC_FUNC(sc_marangoni_force_3d, SC_MARANGONI_FORCE_3D)
 #define CC_CURVATURE_FC IBAMR_FC_FUNC(cc_curvature_3d, CC_CURVATURE_3D)
+#define SC_TEMPERATURE_SURFACE_TENSION_FORCE_FC                                                                        \
+    IBAMR_FC_FUNC(sc_temperature_surface_tension_force_3d, SC_TEMPERATURE_SURFACE_TENSION_FORCE_3D)
 #endif
 
 extern "C"
@@ -181,6 +185,33 @@ extern "C"
                          const int& iupper2,
 #endif
                          const double* dx);
+
+    void SC_TEMPERATURE_SURFACE_TENSION_FORCE_FC(double* F0,
+                                                 double* F1,
+#if (NDIM == 3)
+                                                 double* F2,
+#endif
+                                                 const int& F_gcw,
+                                                 const double* T,
+                                                 const int& T_gcw,
+                                                 const double* K,
+                                                 const int& K_gcw,
+                                                 const double* gradC00,
+                                                 const double* gradC11,
+#if (NDIM == 3)
+                                                 const double* gradC22,
+#endif
+                                                 const int& gradC_gcw,
+                                                 const double& reference_temperature,
+                                                 const int& ilower0,
+                                                 const int& iupper0,
+                                                 const int& ilower1,
+                                                 const int& iupper1,
+#if (NDIM == 3)
+                                                 const int& ilower2,
+                                                 const int& iupper2,
+#endif
+                                                 const double& marangoni_coefficient);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -532,18 +563,46 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, 
 #endif
                     dx);
 
-    for (unsigned int axis = 0; axis < NDIM; ++axis)
-    {
-        for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-        {
-            SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
-            const double T_sc = 0.5 * ((*T_data)(si.toCell(0)) + (*T_data)(si.toCell(1)));
-            const double K_sc = 0.5 * ((K)(si.toCell(0)) + (K)(si.toCell(1)));
+    //    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    //    {
+    //        for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+    //        {
+    //            SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
+    //            const double T_sc = 0.5 * ((*T_data)(si.toCell(0)) + (*T_data)(si.toCell(1)));
+    //            const double K_sc = 0.5 * ((K)(si.toCell(0)) + (K)(si.toCell(1)));
+    //
+    //            (*F_data)(si) =
+    //                (*F_data)(si) + d_marangoni_coefficient_2 * (T_sc - d_ref_temperature) * K_sc * (grad_C)(si,
+    //                axis);
+    //        }
+    //    }
 
-            (*F_data)(si) =
-                (*F_data)(si) + d_marangoni_coefficient_2 * (T_sc - d_ref_temperature) * K_sc * (grad_C)(si, axis);
-        }
-    }
+    SC_TEMPERATURE_SURFACE_TENSION_FORCE_FC(F_data->getPointer(0),
+                                            F_data->getPointer(1),
+#if (NDIM == 3)
+                                            F_data->getPointer(2),
+#endif
+                                            F_data->getGhostCellWidth().max(),
+                                            T_data->getPointer(),
+                                            T_data->getGhostCellWidth().max(),
+                                            K.getPointer(),
+                                            K.getGhostCellWidth().max(),
+                                            grad_C.getPointer(0, 0),
+                                            grad_C.getPointer(1, 1),
+#if (NDIM == 3)
+                                            grad_C.getPointer(2, 2),
+#endif
+                                            grad_C.getGhostCellWidth().max(),
+                                            d_ref_temperature,
+                                            patch_box.lower(0),
+                                            patch_box.upper(0),
+                                            patch_box.lower(1),
+                                            patch_box.upper(1),
+#if (NDIM == 3)
+                                            patch_box.lower(2),
+                                            patch_box.upper(2),
+#endif
+                                            d_marangoni_coefficient_2);
 
     return;
 } // setDataOnPatchSide
