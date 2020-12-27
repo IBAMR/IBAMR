@@ -541,7 +541,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, 
             const double K_sc = 0.5 * ((K)(si.toCell(0)) + (K)(si.toCell(1)));
 
             (*F_data)(si) =
-                (*F_data)(si) + d_marangoni_coefficient_2 * (T_sc - d_ref_temperature) * K_sc * (grad_C)(si);
+                (*F_data)(si) + d_marangoni_coefficient_2 * (T_sc - d_ref_temperature) * K_sc * (grad_C)(si, axis);
         }
     }
 

@@ -412,7 +412,6 @@ c
 c
       do i1 = ilower1, iupper1 + 1
          do i0 = ilower0, iupper0
-
             gradC_mag = sqrt(gradC10(i0,i1)**2+gradC11(i0,i1)**2)
             gradT_dot_gradphi = gradT10(i0,i1)*N10(i0,i1) +
      &                          gradT11(i0,i1)*N11(i0,i1)
