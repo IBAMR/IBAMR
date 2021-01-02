@@ -642,6 +642,7 @@ protected:
         d_default_quad_type_pressure;
     std::vector<libMesh::Order> d_default_quad_order_stress, d_default_quad_order_force, d_default_quad_order_pressure;
     bool d_use_consistent_mass_matrix = true;
+    bool d_allow_rules_with_negative_weights = true;
     bool d_include_normal_stress_in_weak_form = false;
     bool d_include_tangential_stress_in_weak_form = false;
     bool d_include_normal_surface_forces_in_weak_form = true;

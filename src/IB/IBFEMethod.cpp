@@ -1102,6 +1102,7 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
 
         FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]->getFEData());
         std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, FIFTH);
+        qrule->allow_rules_with_negative_weights = d_allow_rules_with_negative_weights;
         fe.attachQuadratureRule(qrule.get());
         fe.evalQuadraturePoints();
         fe.evalQuadratureWeights();
@@ -1860,6 +1861,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
 
     FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]->getFEData());
     std::unique_ptr<QBase> qrule_face = QBase::build(QGAUSS, dim - 1, FIFTH);
+    qrule_face->allow_rules_with_negative_weights = d_allow_rules_with_negative_weights;
     fe.attachQuadratureRuleFace(qrule_face.get());
     fe.evalNormalsFace();
     fe.evalQuadraturePointsFace();
@@ -2094,6 +2096,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     Order default_quad_order = (d_spread_spec[part].quad_order != INVALID_ORDER) ? d_spread_spec[part].quad_order :
                                                                                    d_default_quad_order_stress[part];
     std::unique_ptr<QBase> default_qrule_face = QBase::build(default_quad_type, dim - 1, default_quad_order);
+    default_qrule_face->allow_rules_with_negative_weights = d_allow_rules_with_negative_weights;
     fe.attachQuadratureRuleFace(default_qrule_face.get());
     fe.evalNormalsFace();
     fe.evalQuadraturePointsFace();
@@ -2190,21 +2193,24 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
 
             // Set the length scale for each side (and, therefore, the quadrature
             // rule) to be the same as the length scale for the element.
-            using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+            using quad_key_type = quadrature_key_type;
             // This duplicates the logic in updateSpreadQuadratureRule so that
             // we can get the key here
             const quad_key_type elem_quad_key = getQuadratureKey(d_spread_spec[part].quad_type,
                                                                  d_spread_spec[part].quad_order,
                                                                  d_spread_spec[part].use_adaptive_quadrature,
                                                                  d_spread_spec[part].point_density,
+                                                                 d_spread_spec[part].allow_rules_with_negative_weights,
                                                                  elem,
                                                                  X_node,
                                                                  patch_dx_min);
             // TODO: surely there is a better way to get the type of a side
             // than this!
             std::unique_ptr<Elem> side_ptr = elem->build_side_ptr(0);
-            const quad_key_type side_quad_key =
-                std::make_tuple(side_ptr->type(), d_spread_spec[part].quad_type, std::get<2>(elem_quad_key));
+            const quad_key_type side_quad_key = std::make_tuple(side_ptr->type(),
+                                                                d_spread_spec[part].quad_type,
+                                                                std::get<2>(elem_quad_key),
+                                                                std::get<3>(elem_quad_key));
             libMesh::QBase& side_quadrature = side_quad_cache[side_quad_key];
 
             // Loop over the element boundaries.
@@ -2846,6 +2852,7 @@ IBFEMethod::commonConstructor(const Pointer<Database>& input_db, int max_levels)
     d_part_is_active.resize(n_parts, true);
 
     // Set some default values.
+    const bool allow_rules_with_negative_weights = true;
     const bool use_adaptive_quadrature = true;
     const int point_density = 2.0;
     const bool use_nodal_quadrature = false;
@@ -2856,9 +2863,15 @@ IBFEMethod::commonConstructor(const Pointer<Database>& input_db, int max_levels)
                                                       use_adaptive_quadrature,
                                                       point_density,
                                                       interp_use_consistent_mass_matrix,
-                                                      use_nodal_quadrature);
-    d_default_spread_spec = FEDataManager::SpreadSpec(
-        "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, use_nodal_quadrature);
+                                                      use_nodal_quadrature,
+                                                      allow_rules_with_negative_weights);
+    d_default_spread_spec = FEDataManager::SpreadSpec("IB_4",
+                                                      QGAUSS,
+                                                      INVALID_ORDER,
+                                                      use_adaptive_quadrature,
+                                                      point_density,
+                                                      use_nodal_quadrature,
+                                                      allow_rules_with_negative_weights);
 
     // Initialize function data to NULL.
     d_lag_body_source_part.resize(n_parts, false);

@@ -168,9 +168,9 @@ FEValues<dim, spacedim>::reinit(const libMesh::Elem* elem)
     {
         typename decltype(d_mappings)::value_type new_entry{ elem_type, nullptr };
         map_iter = d_mappings.insert(map_iter, std::move(new_entry));
-        const std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order> key{ elem_type,
-                                                                                          d_qrule->type(),
-                                                                                          d_qrule->get_order() };
+        const quadrature_key_type key{
+            elem_type, d_qrule->type(), d_qrule->get_order(), d_qrule->allow_rules_with_negative_weights
+        };
         map_iter->second = FEMapping<dim, spacedim>::build(key, d_update_flags);
     }
     FEMapping<dim, spacedim>& mapping = *map_iter->second;

@@ -204,7 +204,7 @@ collect_subdomain_ids(const libMesh::MeshBase& mesh)
  * dimensionality of the mesh.
  */
 const std::vector<double>&
-get_JxW(const std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order> key,
+get_JxW(quadrature_key_type key,
         const Elem* elem,
         const bool is_volume_mesh,
         FEMappingCache<NDIM, NDIM>& volume_mapping_cache,
@@ -1009,7 +1009,7 @@ FEDataManager::spread(const int f_data_idx,
     }
 
     // convenience alias for the quadrature key type used by FECache and FEMappingCache
-    using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    using quad_key_type = quadrature_key_type;
     FECache F_fe_cache(dim, F_fe_type, FEUpdateFlags::update_phi);
     FECache X_fe_cache(dim, X_fe_type, FEUpdateFlags::update_phi);
 
@@ -1180,6 +1180,7 @@ FEDataManager::spread(const int f_data_idx,
                                                                spread_spec.quad_order,
                                                                spread_spec.use_adaptive_quadrature,
                                                                spread_spec.point_density,
+                                                               spread_spec.allow_rules_with_negative_weights,
                                                                elem,
                                                                X_nodes[e_idx],
                                                                patch_dx_min);
@@ -1757,7 +1758,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
     }
 
     // convenience alias for the quadrature key type used by FECache and FEMappingCache
-    using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    using quad_key_type = quadrature_key_type;
     FECache F_fe_cache(dim, F_fe_type, FEUpdateFlags::update_phi);
     FECache X_fe_cache(dim, X_fe_type, FEUpdateFlags::update_phi);
     FEMappingCache<NDIM, NDIM> volume_mapping_cache(FEUpdateFlags::update_JxW);
@@ -1967,6 +1968,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                                                                interp_spec.quad_order,
                                                                interp_spec.use_adaptive_quadrature,
                                                                interp_spec.point_density,
+                                                               interp_spec.allow_rules_with_negative_weights,
                                                                elem,
                                                                X_nodes[e_idx],
                                                                patch_dx_min);
@@ -2425,6 +2427,7 @@ FEDataManager::updateQuadratureRule(std::unique_ptr<QBase>& qrule,
                                     Order order,
                                     bool use_adaptive_quadrature,
                                     double point_density,
+                                    bool allow_rules_with_negative_weights,
                                     const Elem* const elem,
                                     const boost::multi_array<double, 2>& X_node,
                                     const double dx_min)
@@ -2434,15 +2437,16 @@ FEDataManager::updateQuadratureRule(std::unique_ptr<QBase>& qrule,
     bool qrule_updated = false;
 
     ElemType elem_type;
-    std::tie(elem_type, type, order) =
-        getQuadratureKey(type, order, use_adaptive_quadrature, point_density, elem, X_node, dx_min);
+    std::tie(elem_type, type, order, allow_rules_with_negative_weights) = getQuadratureKey(
+        type, order, use_adaptive_quadrature, point_density, allow_rules_with_negative_weights, elem, X_node, dx_min);
 
     if (!qrule || qrule->type() != type || qrule->get_dim() != elem_dim || qrule->get_order() != order ||
+        qrule->allow_rules_with_negative_weights != allow_rules_with_negative_weights ||
         qrule->get_elem_type() != elem_type || qrule->get_p_level() != elem_p_level)
     {
         qrule =
             (type == QGRID ? std::unique_ptr<QBase>(new QGrid(elem_dim, order)) : QBase::build(type, elem_dim, order));
-        // qrule->allow_rules_with_negative_weights = false;
+        qrule->allow_rules_with_negative_weights = allow_rules_with_negative_weights;
         qrule->init(elem_type, elem_p_level);
         qrule_updated = true;
     }
@@ -2456,8 +2460,15 @@ FEDataManager::updateInterpQuadratureRule(std::unique_ptr<QBase>& qrule,
                                           const boost::multi_array<double, 2>& X_node,
                                           const double dx_min)
 {
-    return updateQuadratureRule(
-        qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature, spec.point_density, elem, X_node, dx_min);
+    return updateQuadratureRule(qrule,
+                                spec.quad_type,
+                                spec.quad_order,
+                                spec.use_adaptive_quadrature,
+                                spec.point_density,
+                                spec.allow_rules_with_negative_weights,
+                                elem,
+                                X_node,
+                                dx_min);
 }
 
 bool
@@ -2467,8 +2478,15 @@ FEDataManager::updateSpreadQuadratureRule(std::unique_ptr<QBase>& qrule,
                                           const boost::multi_array<double, 2>& X_node,
                                           const double dx_min)
 {
-    return updateQuadratureRule(
-        qrule, spec.quad_type, spec.quad_order, spec.use_adaptive_quadrature, spec.point_density, elem, X_node, dx_min);
+    return updateQuadratureRule(qrule,
+                                spec.quad_type,
+                                spec.quad_order,
+                                spec.allow_rules_with_negative_weights,
+                                spec.point_density,
+                                spec.use_adaptive_quadrature,
+                                elem,
+                                X_node,
+                                dx_min);
 }
 
 void
@@ -2591,7 +2609,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         {
             TBOX_ASSERT(X_dof_map.variable_type(d) == fe_type);
         }
-        using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+        using quad_key_type = quadrature_key_type;
         FECache X_fe_cache(dim, fe_type, FEUpdateFlags::update_phi);
 
         // Setup and extract the underlying solution data.
@@ -2636,6 +2654,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
                                                            d_default_interp_spec.quad_order,
                                                            d_default_interp_spec.use_adaptive_quadrature,
                                                            d_default_interp_spec.point_density,
+                                                           d_default_interp_spec.allow_rules_with_negative_weights,
                                                            elem,
                                                            X_node,
                                                            patch_dx_min);
@@ -2936,7 +2955,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
     }
 
     // convenience alias for the quadrature key type used by FECache and MappingCache
-    using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    using quad_key_type = quadrature_key_type;
     FECache X_fe_cache(dim, fe_type, FEUpdateFlags::update_phi);
 
     // Extract the underlying solution data.
@@ -3005,6 +3024,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
                                                                d_default_interp_spec.quad_order,
                                                                d_default_interp_spec.use_adaptive_quadrature,
                                                                d_default_interp_spec.point_density,
+                                                               d_default_interp_spec.allow_rules_with_negative_weights,
                                                                elem,
                                                                X_node,
                                                                patch_dx_min);
@@ -3112,6 +3132,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
                                          d_default_interp_spec.quad_order,
                                          d_default_interp_spec.use_adaptive_quadrature,
                                          d_default_interp_spec.point_density,
+                                         d_default_interp_spec.allow_rules_with_negative_weights,
                                          dx_0);
     TBOX_ASSERT(local_nodal_bboxes.size() == local_qp_bboxes.size());
     std::vector<libMeshWrappers::BoundingBox> local_bboxes;

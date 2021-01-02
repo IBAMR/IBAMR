@@ -127,7 +127,7 @@ public:
      * Standard 'quadrature key' alias - all the information to completely
      * define a libMesh quadrature rule.
      */
-    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    using key_type = quadrature_key_type;
 
     /*!
      * Return a pointer to the correct mapping for a given quadrature key and
@@ -170,7 +170,7 @@ struct QuadratureData
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    using key_type = quadrature_key_type;
 
     /*!
      * Constructor.
@@ -216,7 +216,7 @@ public:
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    using key_type = quadrature_key_type;
 
     /*!
      * Constructor.
@@ -342,7 +342,7 @@ public:
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    using key_type = quadrature_key_type;
 
     /**
      * Constructor.
@@ -412,7 +412,7 @@ public:
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    using key_type = quadrature_key_type;
 
     /**
      * Constructor.
@@ -451,7 +451,7 @@ public:
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    using key_type = quadrature_key_type;
 
     /*!
      * Constructor.
@@ -505,7 +505,7 @@ public:
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    using key_type = quadrature_key_type;
 
     /*!
      * Constructor.
@@ -539,7 +539,7 @@ public:
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    using key_type = quadrature_key_type;
 
     /*!
      * Constructor.
