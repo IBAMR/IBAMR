@@ -1,0 +1,127 @@
+// In this test, we solve the helmholtz equation with constant C and variable D coefficients.
+
+PI = 3.14159265358979
+
+C_IS_VAR = FALSE     // specify whether the C coefficient is spatially varying
+D_IS_CONST = FALSE  //  specify whether the diffusion coefficient is constant
+
+U = "sin(2*PI*(X_0-0.1234))*sin(2*PI*(X_1-0.1234))*sin(2*PI*(X_2-0.1234))"
+u {
+   function = U
+}
+
+f {
+   function = "12*PI^2*X_0*X_1*X_2*sin(2*PI*(X_0-0.1234))*sin(2*PI*(X_1-0.1234))*sin(2*PI*(X_2-0.1234)) + sin(2*PI*(X_0-0.1234))*sin(2*PI*(X_1-0.1234))*sin(2*PI*(X_2-0.1234)) -2*PI*X_1*X_2*cos(2*PI*(X_0-0.1234))*sin(2*PI*(X_1-0.1234))*sin(2*PI*(X_2-0.1234)) -2*PI*X_0*X_2*sin(2*PI*(X_0-0.1234))*cos(2*PI*(X_1-0.1234))*sin(2*PI*(X_2-0.1234)) -2*PI*X_0*X_1*sin(2*PI*(X_0-0.1234))*sin(2*PI*(X_1-0.1234))*cos(2*PI*(X_2-0.1234))"
+}
+
+VariableDCoefficient {
+ function = "X_0*X_1*X_2"
+}
+
+C_COEFFICIENT  = 1.0
+
+UBcCoefs
+{
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+
+   gcoef_function_0 = U
+   gcoef_function_1 = U
+   gcoef_function_2 = U
+   gcoef_function_3 = U
+   gcoef_function_4 = U
+   gcoef_function_5 = U
+}
+
+solver_type = "PETSC_KRYLOV_SOLVER"
+solver_db
+ {
+   rel_residual_tol = 1.0e-12
+ }
+
+precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+precond_db {
+   num_pre_sweeps  = 0
+   num_post_sweeps = 3
+   prolongation_method = "LINEAR_REFINE"
+   restriction_method  = "CONSERVATIVE_COARSEN"
+   coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
+   coarse_solver_rel_residual_tol = 1.0e-12
+   coarse_solver_abs_residual_tol = 1.0e-50
+   coarse_solver_max_iterations = 1
+   coarse_solver_db {
+      solver_type          = "PFMG"
+      num_pre_relax_steps  = 0
+      num_post_relax_steps = 3
+      enable_logging       = FALSE
+   }
+}
+
+Main {
+// log file parameters
+   log_file_name = "Helmholtz2d.log"
+   log_all_nodes = FALSE
+
+// visualization dump parameters
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2d"
+   visit_number_procs_per_file = 1
+
+// timer dump parameters
+   timer_enabled = TRUE
+}
+
+N = 64
+CartesianGeometry {
+   domain_boxes       = [(0,0,0), (N - 1,N - 1,N - 1)]
+   x_lo               = 0, 0, 0   // lower end of computational domain.
+   x_up               = 1, 1, 1   // upper end of computational domain.
+   periodic_dimension = 0, 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = 2                 // Maximum number of levels in hierarchy.
+
+   ratio_to_coarser {
+      level_1 = 4, 4, 4           // vector ratio to next coarser level
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512, 512     // largest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 =   1,   1,   1     // smallest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   efficiency_tolerance = 0.70e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller
+                                  // boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(0,0,0), (N/2 - 1,N/2 - 1,N/2 - 1)]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}

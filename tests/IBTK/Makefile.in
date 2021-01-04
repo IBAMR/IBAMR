@@ -101,7 +101,8 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	ghost_accumulation_01_3d$(EXEEXT) ghost_indices_01_2d$(EXEEXT) \
 	ghost_indices_01_3d$(EXEEXT) ibtk_init$(EXEEXT) \
 	hierarchy_callbacks$(EXEEXT) ibtk_mpi$(EXEEXT) \
-	equal_eps$(EXEEXT) $(am__EXEEXT_1)
+	equal_eps$(EXEEXT) helmholtz_2d$(EXEEXT) helmholtz_3d$(EXEEXT) \
+	$(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@am__append_1 = elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
 @LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d mapping_01 fe_values_01 fe_values_02 \
 @LIBMESH_ENABLED_TRUE@multilevel_fe_01_2d multilevel_fe_01_3d subdomain_level_translation_01 \
@@ -273,6 +274,18 @@ ghost_indices_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(ghost_indices_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_helmholtz_2d_OBJECTS = helmholtz_2d-helmholtz.$(OBJEXT)
+helmholtz_2d_OBJECTS = $(am_helmholtz_2d_OBJECTS)
+helmholtz_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+helmholtz_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(helmholtz_2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_helmholtz_3d_OBJECTS = helmholtz_3d-helmholtz.$(OBJEXT)
+helmholtz_3d_OBJECTS = $(am_helmholtz_3d_OBJECTS)
+helmholtz_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+helmholtz_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(helmholtz_3d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_hierarchy_callbacks_OBJECTS =  \
 	hierarchy_callbacks-hierarchy_callbacks.$(OBJEXT)
 hierarchy_callbacks_OBJECTS = $(am_hierarchy_callbacks_OBJECTS)
@@ -504,6 +517,8 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po \
 	./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po \
 	./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po \
+	./$(DEPDIR)/helmholtz_2d-helmholtz.Po \
+	./$(DEPDIR)/helmholtz_3d-helmholtz.Po \
 	./$(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Po \
 	./$(DEPDIR)/ibtk_init-ibtk_init.Po \
 	./$(DEPDIR)/ibtk_mpi-ibtk_mpi.Po \
@@ -558,6 +573,7 @@ SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(ghost_accumulation_01_2d_SOURCES) \
 	$(ghost_accumulation_01_3d_SOURCES) \
 	$(ghost_indices_01_2d_SOURCES) $(ghost_indices_01_3d_SOURCES) \
+	$(helmholtz_2d_SOURCES) $(helmholtz_3d_SOURCES) \
 	$(hierarchy_callbacks_SOURCES) $(ibtk_init_SOURCES) \
 	$(ibtk_mpi_SOURCES) $(jacobian_calc_01_SOURCES) \
 	$(laplace_01_2d_SOURCES) $(laplace_01_3d_SOURCES) \
@@ -585,6 +601,7 @@ DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(ghost_accumulation_01_2d_SOURCES) \
 	$(ghost_accumulation_01_3d_SOURCES) \
 	$(ghost_indices_01_2d_SOURCES) $(ghost_indices_01_3d_SOURCES) \
+	$(helmholtz_2d_SOURCES) $(helmholtz_3d_SOURCES) \
 	$(hierarchy_callbacks_SOURCES) $(ibtk_init_SOURCES) \
 	$(ibtk_mpi_SOURCES) $(am__jacobian_calc_01_SOURCES_DIST) \
 	$(laplace_01_2d_SOURCES) $(laplace_01_3d_SOURCES) \
@@ -1018,6 +1035,12 @@ hierarchy_callbacks_SOURCES = hierarchy_callbacks.cpp
 @LIBMESH_ENABLED_TRUE@fischer_guess_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
 @LIBMESH_ENABLED_TRUE@fischer_guess_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 @LIBMESH_ENABLED_TRUE@fischer_guess_01_SOURCES = fischer_guess_01.cpp
+helmholtz_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+helmholtz_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+helmholtz_2d_SOURCES = helmholtz.cpp
+helmholtz_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+helmholtz_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+helmholtz_3d_SOURCES = helmholtz.cpp
 all: all-am
 
 .SUFFIXES:
@@ -1108,6 +1131,14 @@ ghost_indices_01_2d$(EXEEXT): $(ghost_indices_01_2d_OBJECTS) $(ghost_indices_01_
 ghost_indices_01_3d$(EXEEXT): $(ghost_indices_01_3d_OBJECTS) $(ghost_indices_01_3d_DEPENDENCIES) $(EXTRA_ghost_indices_01_3d_DEPENDENCIES) 
 	@rm -f ghost_indices_01_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(ghost_indices_01_3d_LINK) $(ghost_indices_01_3d_OBJECTS) $(ghost_indices_01_3d_LDADD) $(LIBS)
+
+helmholtz_2d$(EXEEXT): $(helmholtz_2d_OBJECTS) $(helmholtz_2d_DEPENDENCIES) $(EXTRA_helmholtz_2d_DEPENDENCIES) 
+	@rm -f helmholtz_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(helmholtz_2d_LINK) $(helmholtz_2d_OBJECTS) $(helmholtz_2d_LDADD) $(LIBS)
+
+helmholtz_3d$(EXEEXT): $(helmholtz_3d_OBJECTS) $(helmholtz_3d_DEPENDENCIES) $(EXTRA_helmholtz_3d_DEPENDENCIES) 
+	@rm -f helmholtz_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(helmholtz_3d_LINK) $(helmholtz_3d_OBJECTS) $(helmholtz_3d_LDADD) $(LIBS)
 
 hierarchy_callbacks$(EXEEXT): $(hierarchy_callbacks_OBJECTS) $(hierarchy_callbacks_DEPENDENCIES) $(EXTRA_hierarchy_callbacks_DEPENDENCIES) 
 	@rm -f hierarchy_callbacks$(EXEEXT)
@@ -1233,6 +1264,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/helmholtz_2d-helmholtz.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/helmholtz_3d-helmholtz.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ibtk_init-ibtk_init.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ibtk_mpi-ibtk_mpi.Po@am__quote@ # am--include-marker
@@ -1485,6 +1518,34 @@ ghost_indices_01_3d-ghost_indices_01.obj: ghost_indices_01.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ghost_indices_01.cpp' object='ghost_indices_01_3d-ghost_indices_01.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ghost_indices_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o ghost_indices_01_3d-ghost_indices_01.obj `if test -f 'ghost_indices_01.cpp'; then $(CYGPATH_W) 'ghost_indices_01.cpp'; else $(CYGPATH_W) '$(srcdir)/ghost_indices_01.cpp'; fi`
+
+helmholtz_2d-helmholtz.o: helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(helmholtz_2d_CXXFLAGS) $(CXXFLAGS) -MT helmholtz_2d-helmholtz.o -MD -MP -MF $(DEPDIR)/helmholtz_2d-helmholtz.Tpo -c -o helmholtz_2d-helmholtz.o `test -f 'helmholtz.cpp' || echo '$(srcdir)/'`helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/helmholtz_2d-helmholtz.Tpo $(DEPDIR)/helmholtz_2d-helmholtz.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='helmholtz.cpp' object='helmholtz_2d-helmholtz.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(helmholtz_2d_CXXFLAGS) $(CXXFLAGS) -c -o helmholtz_2d-helmholtz.o `test -f 'helmholtz.cpp' || echo '$(srcdir)/'`helmholtz.cpp
+
+helmholtz_2d-helmholtz.obj: helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(helmholtz_2d_CXXFLAGS) $(CXXFLAGS) -MT helmholtz_2d-helmholtz.obj -MD -MP -MF $(DEPDIR)/helmholtz_2d-helmholtz.Tpo -c -o helmholtz_2d-helmholtz.obj `if test -f 'helmholtz.cpp'; then $(CYGPATH_W) 'helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/helmholtz.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/helmholtz_2d-helmholtz.Tpo $(DEPDIR)/helmholtz_2d-helmholtz.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='helmholtz.cpp' object='helmholtz_2d-helmholtz.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(helmholtz_2d_CXXFLAGS) $(CXXFLAGS) -c -o helmholtz_2d-helmholtz.obj `if test -f 'helmholtz.cpp'; then $(CYGPATH_W) 'helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/helmholtz.cpp'; fi`
+
+helmholtz_3d-helmholtz.o: helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(helmholtz_3d_CXXFLAGS) $(CXXFLAGS) -MT helmholtz_3d-helmholtz.o -MD -MP -MF $(DEPDIR)/helmholtz_3d-helmholtz.Tpo -c -o helmholtz_3d-helmholtz.o `test -f 'helmholtz.cpp' || echo '$(srcdir)/'`helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/helmholtz_3d-helmholtz.Tpo $(DEPDIR)/helmholtz_3d-helmholtz.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='helmholtz.cpp' object='helmholtz_3d-helmholtz.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(helmholtz_3d_CXXFLAGS) $(CXXFLAGS) -c -o helmholtz_3d-helmholtz.o `test -f 'helmholtz.cpp' || echo '$(srcdir)/'`helmholtz.cpp
+
+helmholtz_3d-helmholtz.obj: helmholtz.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(helmholtz_3d_CXXFLAGS) $(CXXFLAGS) -MT helmholtz_3d-helmholtz.obj -MD -MP -MF $(DEPDIR)/helmholtz_3d-helmholtz.Tpo -c -o helmholtz_3d-helmholtz.obj `if test -f 'helmholtz.cpp'; then $(CYGPATH_W) 'helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/helmholtz.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/helmholtz_3d-helmholtz.Tpo $(DEPDIR)/helmholtz_3d-helmholtz.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='helmholtz.cpp' object='helmholtz_3d-helmholtz.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(helmholtz_3d_CXXFLAGS) $(CXXFLAGS) -c -o helmholtz_3d-helmholtz.obj `if test -f 'helmholtz.cpp'; then $(CYGPATH_W) 'helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/helmholtz.cpp'; fi`
 
 hierarchy_callbacks-hierarchy_callbacks.o: hierarchy_callbacks.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hierarchy_callbacks_CXXFLAGS) $(CXXFLAGS) -MT hierarchy_callbacks-hierarchy_callbacks.o -MD -MP -MF $(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Tpo -c -o hierarchy_callbacks-hierarchy_callbacks.o `test -f 'hierarchy_callbacks.cpp' || echo '$(srcdir)/'`hierarchy_callbacks.cpp
@@ -1995,6 +2056,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po
+	-rm -f ./$(DEPDIR)/helmholtz_2d-helmholtz.Po
+	-rm -f ./$(DEPDIR)/helmholtz_3d-helmholtz.Po
 	-rm -f ./$(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Po
 	-rm -f ./$(DEPDIR)/ibtk_init-ibtk_init.Po
 	-rm -f ./$(DEPDIR)/ibtk_mpi-ibtk_mpi.Po
@@ -2080,6 +2143,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po
+	-rm -f ./$(DEPDIR)/helmholtz_2d-helmholtz.Po
+	-rm -f ./$(DEPDIR)/helmholtz_3d-helmholtz.Po
 	-rm -f ./$(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Po
 	-rm -f ./$(DEPDIR)/ibtk_init-ibtk_init.Po
 	-rm -f ./$(DEPDIR)/ibtk_mpi-ibtk_mpi.Po

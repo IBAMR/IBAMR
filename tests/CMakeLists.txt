@@ -226,6 +226,7 @@ SETUP_2D(IBTK poisson_01.cpp)
 SETUP_2D(IBTK prolongation_mat.cpp)
 SETUP_2D(IBTK samraidatacache_01.cpp)
 SETUP_2D(IBTK vc_viscous_solver.cpp)
+SETUP_2D(IBTK helmholtz.cpp)
 
 IF(IBAMR_HAVE_LIBMESH)
   SETUP_3D(IBTK bounding_boxes_01.cpp)
@@ -242,6 +243,7 @@ SETUP_3D(IBTK poisson_01.cpp)
 SETUP_3D(IBTK prolongation_mat.cpp)
 SETUP_3D(IBTK samraidatacache_01.cpp)
 SETUP_3D(IBTK vc_viscous_solver.cpp)
+SETUP_3D(IBTK helmholtz.cpp)
 
 ADD_CUSTOM_COMMAND(TARGET tests
   POST_BUILD

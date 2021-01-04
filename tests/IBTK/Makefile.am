@@ -19,7 +19,8 @@ laplace_01_3d laplace_02_2d laplace_02_3d laplace_03_2d laplace_03_3d ldata_01 \
 prolongation_mat_2d prolongation_mat_3d phys_boundary_ops_2d phys_boundary_ops_3d \
 vc_viscous_solver_2d vc_viscous_solver_3d box_utilities_01_2d box_utilities_01_3d \
 ghost_accumulation_01_2d ghost_accumulation_01_3d ghost_indices_01_2d \
-ghost_indices_01_3d ibtk_init hierarchy_callbacks ibtk_mpi equal_eps
+ghost_indices_01_3d ibtk_init hierarchy_callbacks ibtk_mpi equal_eps helmholtz_2d \
+helmholtz_3d
 
 if LIBMESH_ENABLED
 EXTRA_PROGRAMS += elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
@@ -210,6 +211,14 @@ fischer_guess_01_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)
 fischer_guess_01_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 fischer_guess_01_SOURCES = fischer_guess_01.cpp
 endif
+
+helmholtz_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+helmholtz_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+helmholtz_2d_SOURCES = helmholtz.cpp
+
+helmholtz_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+helmholtz_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+helmholtz_3d_SOURCES = helmholtz.cpp
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
