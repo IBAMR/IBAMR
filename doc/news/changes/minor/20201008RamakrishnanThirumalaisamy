@@ -1,0 +1,3 @@
+Improved: Added a functionality to handle variable C coefficient in CCPoissonPointRelaxationFACOperator class.
+    <br>
+    (Ramakrishnan Thirumalaisamy, 2020/10/08)
