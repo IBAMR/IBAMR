@@ -432,14 +432,16 @@ public:
                    bool use_adaptive_quadrature,
                    double point_density,
                    bool use_consistent_mass_matrix,
-                   bool use_nodal_quadrature)
+                   bool use_nodal_quadrature,
+                   bool allow_rules_with_negative_weights = true)
             : kernel_fcn(kernel_fcn),
               quad_type(quad_type),
               quad_order(quad_order),
               use_adaptive_quadrature(use_adaptive_quadrature),
               point_density(point_density),
               use_consistent_mass_matrix(use_consistent_mass_matrix),
-              use_nodal_quadrature(use_nodal_quadrature)
+              use_nodal_quadrature(use_nodal_quadrature),
+              allow_rules_with_negative_weights(allow_rules_with_negative_weights)
         {
         }
 
@@ -450,6 +452,7 @@ public:
         double point_density;
         bool use_consistent_mass_matrix;
         bool use_nodal_quadrature;
+        bool allow_rules_with_negative_weights;
     };
 
     /*!
@@ -466,13 +469,15 @@ public:
                    const libMesh::Order& quad_order,
                    bool use_adaptive_quadrature,
                    double point_density,
-                   bool use_nodal_quadrature)
+                   bool use_nodal_quadrature,
+                   bool allow_rules_with_negative_weights = true)
             : kernel_fcn(kernel_fcn),
               quad_type(quad_type),
               quad_order(quad_order),
               use_adaptive_quadrature(use_adaptive_quadrature),
               point_density(point_density),
-              use_nodal_quadrature(use_nodal_quadrature)
+              use_nodal_quadrature(use_nodal_quadrature),
+              allow_rules_with_negative_weights(allow_rules_with_negative_weights)
         {
         }
 
@@ -482,6 +487,7 @@ public:
         bool use_adaptive_quadrature;
         double point_density;
         bool use_nodal_quadrature;
+        bool allow_rules_with_negative_weights;
     };
 
     /*!
@@ -997,6 +1003,7 @@ public:
                                      libMesh::Order quad_order,
                                      bool use_adaptive_quadrature,
                                      double point_density,
+                                     bool allow_rules_with_negative_weights,
                                      const libMesh::Elem* elem,
                                      const boost::multi_array<double, 2>& X_node,
                                      double dx_min);

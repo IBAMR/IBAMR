@@ -1897,6 +1897,7 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     d_max_level_number = max_levels - 1;
 
     // Set some default values.
+    const bool allow_rules_with_negative_weights = true;
     const bool use_adaptive_quadrature = true;
     const int point_density = 2.0;
     const bool use_nodal_quadrature = false;
@@ -1907,9 +1908,15 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
                                                       use_adaptive_quadrature,
                                                       point_density,
                                                       interp_use_consistent_mass_matrix,
-                                                      use_nodal_quadrature);
-    d_default_spread_spec = FEDataManager::SpreadSpec(
-        "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, use_nodal_quadrature);
+                                                      use_nodal_quadrature,
+                                                      allow_rules_with_negative_weights);
+    d_default_spread_spec = FEDataManager::SpreadSpec("IB_4",
+                                                      QGAUSS,
+                                                      INVALID_ORDER,
+                                                      use_adaptive_quadrature,
+                                                      point_density,
+                                                      use_nodal_quadrature,
+                                                      allow_rules_with_negative_weights);
 
     d_fe_family.resize(d_num_parts, INVALID_FE);
     d_fe_order.resize(d_num_parts, INVALID_ORDER);

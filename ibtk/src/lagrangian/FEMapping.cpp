@@ -399,7 +399,8 @@ Tri3Mapping::isAffine() const
 
 Tri6Mapping::Tri6Mapping(const key_type quad_key, const FEUpdateFlags update_flags)
     : FELagrangeMapping<2, 2, 6>(quad_key, update_flags),
-      tri3_mapping(std::make_tuple(libMesh::TRI3, std::get<1>(quad_key), std::get<2>(quad_key)), update_flags)
+      tri3_mapping(std::make_tuple(libMesh::TRI3, std::get<1>(quad_key), std::get<2>(quad_key), std::get<3>(quad_key)),
+                   update_flags)
 {
 }
 
@@ -663,7 +664,8 @@ Tet4Mapping::isAffine() const
 
 Tet10Mapping::Tet10Mapping(const key_type quad_key, const FEUpdateFlags update_flags)
     : FELagrangeMapping<3, 3, 10>(quad_key, update_flags),
-      tet4_mapping(std::make_tuple(libMesh::TET4, std::get<1>(quad_key), std::get<2>(quad_key)), update_flags)
+      tet4_mapping(std::make_tuple(libMesh::TET4, std::get<1>(quad_key), std::get<2>(quad_key), std::get<3>(quad_key)),
+                   update_flags)
 {
 }
 
@@ -714,7 +716,8 @@ Tet10Mapping::elem_is_affine(const libMesh::Elem* elem)
 
 Hex27Mapping::Hex27Mapping(const key_type quad_key, const FEUpdateFlags update_flags)
     : FELagrangeMapping<3, 3, 27>(quad_key, update_flags),
-      hex8_mapping(std::make_tuple(libMesh::HEX8, std::get<1>(quad_key), std::get<2>(quad_key)), update_flags)
+      hex8_mapping(std::make_tuple(libMesh::HEX8, std::get<1>(quad_key), std::get<2>(quad_key), std::get<3>(quad_key)),
+                   update_flags)
 {
 }
 

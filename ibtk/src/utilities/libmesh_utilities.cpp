@@ -187,11 +187,12 @@ apply_transposed_constraint_matrix(const libMesh::DofMap& dof_map, libMesh::Pets
     }
 }
 
-std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>
+quadrature_key_type
 getQuadratureKey(const libMesh::QuadratureType quad_type,
                  libMesh::Order order,
                  const bool use_adaptive_quadrature,
                  const double point_density,
+                 const bool allow_rules_with_negative_weights,
                  const libMesh::Elem* const elem,
                  const boost::multi_array<double, 2>& X_node,
                  const double dx_min)
@@ -226,7 +227,7 @@ getQuadratureKey(const libMesh::QuadratureType quad_type,
         }
     }
 
-    return std::make_tuple(elem_type, quad_type, order);
+    return std::make_tuple(elem_type, quad_type, order, allow_rules_with_negative_weights);
 }
 
 void
@@ -362,6 +363,7 @@ get_local_element_bounding_boxes(const libMesh::MeshBase& mesh,
                                  const libMesh::Order quad_order,
                                  const bool use_adaptive_quadrature,
                                  const double point_density,
+                                 bool allow_rules_with_negative_weights,
                                  const double patch_dx_min)
 {
     const unsigned int dim = mesh.mesh_dimension();
@@ -378,7 +380,7 @@ get_local_element_bounding_boxes(const libMesh::MeshBase& mesh,
     boost::multi_array<double, 2> X_node;
     QuadratureCache quad_cache(dim);
     FECache fe_cache(dim, X_system.get_dof_map().variable_type(0), update_phi);
-    using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    using quad_key_type = quadrature_key_type;
     const auto el_begin = mesh.local_elements_begin();
     const auto el_end = mesh.local_elements_end();
     for (auto el_it = el_begin; el_it != el_end; ++el_it)
@@ -415,8 +417,14 @@ get_local_element_bounding_boxes(const libMesh::MeshBase& mesh,
         get_values_for_interpolation(X_node, X_ghost_vec, dof_indices);
 
         // 2. compute mapped quadrature points in the deformed configuration
-        const quad_key_type key =
-            getQuadratureKey(quad_type, quad_order, use_adaptive_quadrature, point_density, elem, X_node, patch_dx_min);
+        const quad_key_type key = getQuadratureKey(quad_type,
+                                                   quad_order,
+                                                   use_adaptive_quadrature,
+                                                   point_density,
+                                                   allow_rules_with_negative_weights,
+                                                   elem,
+                                                   X_node,
+                                                   patch_dx_min);
         libMesh::QBase& quadrature = quad_cache[key];
         libMesh::FEBase& fe = fe_cache(key, elem);
         const std::vector<std::vector<double> >& phi_X = fe.get_phi();

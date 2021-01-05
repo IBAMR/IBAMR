@@ -52,7 +52,7 @@ public:
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    using key_type = quadrature_key_type;
 
     /**
      * Type of values stored by this class that are accessible through
@@ -66,7 +66,7 @@ public:
      * @param dim The topological dimension of the relevant libMesh::Mesh: see
      * libMesh::MeshBase::mesh_dimension() for more information.
      */
-    QuadratureCache(const unsigned int dim);
+    QuadratureCache(unsigned int dim);
 
     /**
      * Return a reference to a Quadrature object that matches the specified
@@ -111,9 +111,11 @@ QuadratureCache::operator[](const QuadratureCache::key_type& quad_key)
         const libMesh::ElemType elem_type = std::get<0>(quad_key);
         const libMesh::QuadratureType quad_type = std::get<1>(quad_key);
         const libMesh::Order order = std::get<2>(quad_key);
+        const bool allow_rules_with_negative_weights = std::get<3>(quad_key);
 
         libMesh::QBase& new_quad =
             *(*d_quadratures.emplace(quad_key, libMesh::QBase::build(quad_type, d_dim, order)).first).second;
+        new_quad.allow_rules_with_negative_weights = allow_rules_with_negative_weights;
         new_quad.init(elem_type);
         return new_quad;
     }
@@ -122,6 +124,7 @@ QuadratureCache::operator[](const QuadratureCache::key_type& quad_key)
         return *(it->second);
     }
 }
+
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

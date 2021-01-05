@@ -68,7 +68,7 @@ test(LibMeshInit& init)
     libmesh_fe->get_xyz();
     libmesh_fe->get_JxW();
 
-    const std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order> key{ elem_type, QGAUSS, THIRD };
+    const quadrature_key_type key{ elem_type, QGAUSS, THIRD, true };
     std::unique_ptr<FEMapping<dim> > mapping =
         FEMapping<dim>::build(key, FEUpdateFlags::update_JxW | FEUpdateFlags::update_quadrature_points);
 

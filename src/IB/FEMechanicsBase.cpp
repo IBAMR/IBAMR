@@ -666,6 +666,7 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
     FEDataInterpolation fe(dim, d_fe_data[part]);
     std::unique_ptr<QBase> qrule =
         QBase::build(d_default_quad_type_pressure[part], dim, d_default_quad_order_pressure[part]);
+    qrule->allow_rules_with_negative_weights = d_allow_rules_with_negative_weights;
     fe.attachQuadratureRule(qrule.get());
     fe.evalQuadraturePoints();
     fe.evalQuadratureWeights();
@@ -772,6 +773,7 @@ FEMechanicsBase::computeDynamicPressureRateOfChange(PetscVector<double>& dP_dt_v
     FEDataInterpolation fe(dim, d_fe_data[part]);
     std::unique_ptr<QBase> qrule =
         QBase::build(d_default_quad_type_pressure[part], dim, d_default_quad_order_pressure[part]);
+    qrule->allow_rules_with_negative_weights = d_allow_rules_with_negative_weights;
     fe.attachQuadratureRule(qrule.get());
     fe.evalQuadraturePoints();
     fe.evalQuadratureWeights();
@@ -900,8 +902,10 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
         FEDataInterpolation fe(dim, d_fe_data[part]);
         std::unique_ptr<QBase> qrule =
             QBase::build(d_PK1_stress_fcn_data[part][k].quad_type, dim, d_PK1_stress_fcn_data[part][k].quad_order);
+        qrule->allow_rules_with_negative_weights = d_allow_rules_with_negative_weights;
         std::unique_ptr<QBase> qrule_face =
             QBase::build(d_PK1_stress_fcn_data[part][k].quad_type, dim - 1, d_PK1_stress_fcn_data[part][k].quad_order);
+        qrule_face->allow_rules_with_negative_weights = d_allow_rules_with_negative_weights;
         fe.attachQuadratureRule(qrule.get());
         fe.attachQuadratureRuleFace(qrule_face.get());
         fe.evalNormalsFace();
@@ -1085,8 +1089,10 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
 
     FEDataInterpolation fe(dim, d_fe_data[part]);
     std::unique_ptr<QBase> qrule = QBase::build(d_default_quad_type_force[part], dim, d_default_quad_order_force[part]);
+    qrule->allow_rules_with_negative_weights = d_allow_rules_with_negative_weights;
     std::unique_ptr<QBase> qrule_face =
         QBase::build(d_default_quad_type_force[part], dim - 1, d_default_quad_order_force[part]);
+    qrule_face->allow_rules_with_negative_weights = d_allow_rules_with_negative_weights;
     fe.attachQuadratureRule(qrule.get());
     fe.attachQuadratureRuleFace(qrule_face.get());
     fe.evalNormalsFace();
@@ -1624,6 +1630,8 @@ FEMechanicsBase::getFromInput(const Pointer<Database>& db, bool /*is_from_restar
     // Force computation settings.
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
+    if (db->isBool("allow_rules_with_negative_weights"))
+        d_allow_rules_with_negative_weights = db->getBool("allow_rules_with_negative_weights");
 
     // Pressure settings.
     if (db->isDouble("static_pressure_kappa")) d_static_pressure_kappa = db->getDouble("static_pressure_kappa");

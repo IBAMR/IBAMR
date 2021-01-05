@@ -118,7 +118,7 @@ public:
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    using key_type = quadrature_key_type;
 
     /**
      * Type of values stored by this class that are accessible through
