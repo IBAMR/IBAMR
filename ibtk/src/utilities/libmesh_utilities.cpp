@@ -139,7 +139,7 @@ apply_transposed_constraint_matrix(const libMesh::DofMap& dof_map, libMesh::Pets
         // only resolve constraints if the DoF is locally owned
         if (dof_map.first_dof() <= constrained_dof && constrained_dof < dof_map.end_dof())
         {
-            for (const std::pair<libMesh::dof_id_type, double>& pair : constraint.second)
+            for (const std::pair<const libMesh::dof_id_type, double>& pair : constraint.second)
             {
                 dofs.push_back(pair.first);
                 values_to_add.push_back(pair.second * rhs(constrained_dof));
