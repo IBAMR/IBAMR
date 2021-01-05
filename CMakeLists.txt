@@ -521,7 +521,7 @@ FUNCTION(IBAMR_CHECK_COMPILATION_WITH_MPI _dependency_name _src _dependency_libr
   CHECK_CXX_SOURCE_COMPILES("${_src}" ${_test_name})
   IF(NOT "${${_test_name}}")
     MESSAGE(FATAL_ERROR "\
-Unable to compile a test program dependent on ${_dependency} that links \
+Unable to compile a test program dependent on ${_dependency_name} that links \
 against MPI. This usually means that the dependency is misconfigured or is \
 using a different version of MPI than the one supplied to IBAMR.")
   ENDIF()
@@ -532,8 +532,7 @@ using a different version of MPI than the one supplied to IBAMR.")
   FIND_PROGRAM(_readlink "readlink")
   IF(NOT "${_ldd}" STREQUAL "_ldd-NOTFOUND" AND NOT "${_readlink}" STREQUAL "_readlink-NOTFOUND")
     MESSAGE(STATUS "\
-Verifying that ${_dependency_name} is configured with the same version of MPI \
-as IBAMR is")
+Verifying that ${_dependency_name} and IBAMR use the same MPI implementation")
     FOREACH(_lib ${_dependency_libraries})
       IF(EXISTS ${_lib})
         EXECUTE_PROCESS(COMMAND "${_ldd}" "${_lib}"
@@ -570,8 +569,7 @@ Please recompile ${_dependency} to link against the same version of MPI.")
       ENDIF()
     ENDFOREACH()
     MESSAGE(STATUS "\
-Verifying that ${_dependency_name} is configured with the same version of MPI \
-as IBAMR is - library resolution check succeeded")
+Verifying that ${_dependency_name} and IBAMR use the same MPI implementation - Success")
   ENDIF()
 ENDFUNCTION()
 
