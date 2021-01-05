@@ -1,0 +1,3 @@
+New: Added a new classes BrinkmanAdvDiffSemiImplicitHierarchyIntegrator and BrinkmanAdvDiffBcHelper. Class BrinkmanAdvDiffSemiImplicitHierarchyIntegrator solves a penalized advection-diffusion equation for the registered scalar and vector-valued quantities. The BrinkmanAdvDiffBcHelper provides an implementation of a volume penalized body force and linear operator modifications required to impose Dirichlet, Neumann and Robin boundary conditions  to scalar and vector quantities maintained by BrinkmanSemiImplicitAdvDiffHierarchyIntegrator.
+<br>
+(Ramakrishnan Thirumalaisamy, 2020/12/18)

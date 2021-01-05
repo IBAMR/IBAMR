@@ -1,0 +1,1 @@
+In this example, an annulus with an outer surface is a hexagram and the inner surface is circle is embedded in a square computational domain and imposed with an inhomogeneous Neumann boundary condition on the surfaces of hexagram and circle. The flux-forcing function is constructed analytically.

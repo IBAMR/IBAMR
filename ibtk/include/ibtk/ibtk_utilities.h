@@ -233,6 +233,42 @@ tensor_idx_to_voigt(const std::pair<int, int>& idx)
 }
 
 /*!
+ * Smooth heaviside function.
+ */
+inline double
+smooth_heaviside(const double& phi, const double& alpha)
+{
+    double Hphi = 1.0;
+    if (phi < -alpha)
+    {
+        Hphi = 0.0;
+    }
+    else if (std::abs(phi) <= alpha)
+    {
+        Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
+    }
+    return Hphi;
+}
+
+/*!
+ * Discontinuous heaviside function.
+ */
+inline double
+discontinuous_heaviside(const double& phi)
+{
+    double Hphi = 1.0;
+    if (phi < 0.0)
+    {
+        Hphi = 0.0;
+    }
+    else if (phi == 0.0)
+    {
+        Hphi = 0.5;
+    }
+    return Hphi;
+}
+
+/*!
  * Eigen types have special alignment requirements and require a specific
  * memory allocator. This is a convenience type alias for a
  * <code>std::vector</code> with the correct allocator.

@@ -93,6 +93,8 @@ ENDMACRO()
 SETUP_2D(adv_diff adv_diff_02.cpp)
 SETUP_2D(adv_diff adv_diff_03.cpp)
 SETUP_2D(adv_diff adv_diff_convec_opers.cpp)
+SETUP_2D(adv_diff bp_adv_diff_01.cpp)
+SETUP_2D(adv_diff bp_adv_diff_02.cpp)
 
 SETUP_3D(adv_diff adv_diff_01.cpp)
 SETUP_3D(adv_diff adv_diff_02.cpp)
