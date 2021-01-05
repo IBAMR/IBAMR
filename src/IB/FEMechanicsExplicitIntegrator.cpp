@@ -41,26 +41,6 @@ namespace
 {
 // Version of FEMechanicsExplicitIntegrator restart file data.
 const int EXPLICIT_FE_MECHANICS_INTEGRATOR_VERSION = 0;
-
-inline boundary_id_type
-get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
-{
-    boundary_id_type dirichlet_bdry_ids = 0;
-    for (const auto& bdry_id : bdry_ids)
-    {
-        if (bdry_id == FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID ||
-            bdry_id == FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID ||
-            bdry_id == FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID ||
-            bdry_id == FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID ||
-            bdry_id == FEDataManager::ZERO_DISPLACEMENT_XZ_BDRY_ID ||
-            bdry_id == FEDataManager::ZERO_DISPLACEMENT_YZ_BDRY_ID ||
-            bdry_id == FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID)
-        {
-            dirichlet_bdry_ids |= bdry_id;
-        }
-    }
-    return dirichlet_bdry_ids;
-}
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

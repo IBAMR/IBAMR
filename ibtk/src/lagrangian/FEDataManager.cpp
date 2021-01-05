@@ -224,6 +224,7 @@ get_JxW(quadrature_key_type key,
     }
 }
 
+#if LIBMESH_VERSION_LESS_THAN(1, 6, 0)
 // libMesh's box intersection code is slow and not in a header (i.e., cannot be
 // inlined). This is problematic for us since we presently call this function
 // for every element on every patch: i.e., for N patches on the current
@@ -263,6 +264,7 @@ bbox_intersects(const libMeshWrappers::BoundingBox& a, const libMeshWrappers::Bo
 
     return true;
 }
+#endif
 } // namespace
 
 FEData::FEData(std::string object_name, EquationSystems& equation_systems, const bool register_for_restart)
