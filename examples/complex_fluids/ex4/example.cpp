@@ -405,8 +405,6 @@ main(int argc, char* argv[])
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
 
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-
         // Create Eulerian body force function specification objects.
         Pointer<CFINSForcing> polymericStressForcing;
         if (input_db->keyExists("ForcingFunction"))

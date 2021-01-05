@@ -123,11 +123,6 @@ private:
     double d_mu_fluid, d_mu_gas, d_mu_solid;
 
     /*!
-     * Level set reinitialization interval
-     */
-    int d_ls_reinit_interval;
-
-    /*!
      * Number of cells over which to transition between values
      */
     double d_num_solid_interface_cells, d_num_gas_interface_cells;
