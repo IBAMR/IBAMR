@@ -1,0 +1,2 @@
+In this example, 1D penalized Poisson equation is solved to assess the accuracy of flux-based VP method using MMS problem. The MMS problem is given in Section 2.1 of "Volume penalization for inhomogeneous Neumann boundary
+conditions modeling scalar flux in complicated geometry" by Sakurai et al. The only modification is the computational domain which varies from -pi to 2pi instead of 0 to 2pi. The flux-forcing function is constructed analytically.

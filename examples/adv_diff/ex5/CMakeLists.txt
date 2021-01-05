@@ -11,6 +11,19 @@
 ##
 ## ---------------------------------------------------------------------
 
-FOREACH(_dir ex0 ex1 ex2 ex3 ex4 ex5 ex6 ex7)
-  ADD_SUBDIRECTORY(${_dir})
-ENDFOREACH()
+IBAMR_ADD_EXAMPLE(
+  TARGET_NAME
+    "adv_diff-ex5"
+  OUTPUT_DIRECTORY
+    "${CMAKE_BINARY_DIR}/examples/adv_diff/ex5"
+  OUTPUT_NAME
+    main2d
+  EXAMPLE_GROUP
+    examples-adv_diff
+  SOURCES
+    example.cpp LevelSetInitialCondition.cpp
+  LINK_TARGETS
+    IBAMR2d
+  INPUT_FILES
+    input2d
+    )
