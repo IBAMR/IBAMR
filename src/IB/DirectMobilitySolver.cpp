@@ -681,8 +681,8 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
     else if (inv_type == LAPACK_SVD)
     {
         // Locals.
-        int il, iu, m, lwork, liwork, iwkopt;
-        double abstol, vl, vu, wkopt;
+        int il = 0, iu = 0, m = 0, lwork, liwork, iwkopt = 0;
+        double abstol, vl = 0.0, vu = 0.0, wkopt = 0.0;
 
         // Local arrays.
         std::vector<int> isuppz(2 * mat_size);
