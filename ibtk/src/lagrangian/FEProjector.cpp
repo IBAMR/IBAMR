@@ -84,6 +84,44 @@ get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
     }
     return dirichlet_bdry_ids;
 }
+
+inline std::unique_ptr<QBase>
+build_nodal_qrule(const unsigned int dim)
+{
+#if LIBMESH_VERSION_LESS_THAN(1, 5, 0)
+    return QBase::build(fe_type.order == FIRST ? QTRAP : QSIMPSON, dim);
+#else
+    return QBase::build(QNODAL, dim);
+#endif
+}
+
+inline void
+assert_qrule_is_nodal(const FEType& fe_type, const QBase* const qrule, const Elem* const elem)
+{
+#if !LIBMESH_VERSION_LESS_THAN(1, 5, 0)
+    if (qrule->type() == QNODAL) return;
+#endif
+    auto fe_order = fe_type.order;
+    TBOX_ASSERT(elem->default_order() == fe_order);
+    auto elem_type = elem->type();
+    switch (fe_order)
+    {
+    case FIRST:
+        TBOX_ASSERT(qrule->type() == QTRAP);
+        TBOX_ASSERT((elem_type == EDGE2) || (elem_type == TRI3 || elem_type == QUAD4) ||
+                    (elem_type == TET4 || elem_type == HEX8));
+        break;
+    case SECOND:
+        TBOX_ASSERT(qrule->type() == QSIMPSON);
+        TBOX_ASSERT((elem_type == EDGE3) || (elem_type == TRI6 || elem_type == QUAD9) ||
+                    (elem_type == TET10 || elem_type == HEX27));
+        break;
+    default:
+        TBOX_ERROR("FEProjector::assert_qrule_is_nodal(): unsupported element order "
+                   << Utility::enum_to_string<Order>(fe_order) << "\n");
+    }
+}
+
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -291,11 +329,7 @@ FEProjector::buildLumpedL2ProjectionSolver(const std::string& system_name)
         FEData::SystemDofMapCache& dof_map_cache = *d_fe_data->getDofMapCache(system_name);
         dof_map.compute_sparsity(mesh);
         FEType fe_type = dof_map.variable_type(0);
-#if LIBMESH_VERSION_LESS_THAN(1, 5, 0)
-        std::unique_ptr<QBase> qrule = QBase::build(fe_type.order == FIRST ? QTRAP : QSIMPSON, dim);
-#else
-        std::unique_ptr<QBase> qrule = QBase::build(QNODAL, dim);
-#endif
+        std::unique_ptr<QBase> qrule = build_nodal_qrule(dim);
         std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
@@ -320,27 +354,7 @@ FEProjector::buildLumpedL2ProjectionSolver(const std::string& system_name)
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
-#if LIBMESH_VERSION_LESS_THAN(1, 5, 0)
-            {
-                auto fe_order = fe_type.order;
-                TBOX_ASSERT(elem->default_order() == fe_order);
-                auto elem_type = elem->elem_type();
-                switch (fe_order)
-                {
-                case FIRST:
-                    TBOX_ASSERT((elem_type == EDGE2) || (elem_type == TRI3 || elem_type == QUAD4) ||
-                                (elem_type == TET4 || elem_type == HEX8));
-                    break;
-                case SECOND:
-                    TBOX_ASSERT((elem_type == EDGE3) || (elem_type == TRI6 || elem_type == QUAD9) ||
-                                (elem_type == TET10 || elem_type == HEX27));
-                    break;
-                default:
-                    TBOX_ERROR("FEProjector::buildLumpedL2ProjectionSolver(): unsupported element order "
-                               << Utility::enum_to_string<Order>(fe_order) << "\n");
-                }
-            }
-#endif
+            assert_qrule_is_nodal(fe_type, qrule.get(), elem);
             fe->reinit(elem);
             const auto& dof_indices = dof_map_cache.dof_indices(elem);
             for (unsigned int var_n = 0; var_n < dof_map.n_variables(); ++var_n)
@@ -562,11 +576,7 @@ FEProjector::buildDiagonalL2MassMatrix(const std::string& system_name)
         FEData::SystemDofMapCache& dof_map_cache = *d_fe_data->getDofMapCache(system_name);
         dof_map.compute_sparsity(mesh);
         FEType fe_type = dof_map.variable_type(0);
-#if LIBMESH_VERSION_LESS_THAN(1, 5, 0)
-        std::unique_ptr<QBase> qrule = QBase::build(fe_type.order == FIRST ? QTRAP : QSIMPSON, dim);
-#else
-        std::unique_ptr<QBase> qrule = QBase::build(QNODAL, dim);
-#endif
+        std::unique_ptr<QBase> qrule = build_nodal_qrule(dim);
         std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
@@ -584,27 +594,7 @@ FEProjector::buildDiagonalL2MassMatrix(const std::string& system_name)
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
-#if LIBMESH_VERSION_LESS_THAN(1, 5, 0)
-            {
-                auto fe_order = fe_type.order;
-                TBOX_ASSERT(elem->default_order() == fe_order);
-                auto elem_type = elem->elem_type();
-                switch (fe_order)
-                {
-                case FIRST:
-                    TBOX_ASSERT((elem_type == EDGE2) || (elem_type == TRI3 || elem_type == QUAD4) ||
-                                (elem_type == TET4 || elem_type == HEX8));
-                    break;
-                case SECOND:
-                    TBOX_ASSERT((elem_type == EDGE3) || (elem_type == TRI6 || elem_type == QUAD9) ||
-                                (elem_type == TET10 || elem_type == HEX27));
-                    break;
-                default:
-                    TBOX_ERROR("FEProjector::buildLumpedL2ProjectionSolver(): unsupported element order "
-                               << Utility::enum_to_string<Order>(fe_order) << "\n");
-                }
-            }
-#endif
+            assert_qrule_is_nodal(fe_type, qrule.get(), elem);
             fe->reinit(elem);
             const auto& dof_indices = dof_map_cache.dof_indices(elem);
             for (unsigned int var_n = 0; var_n < dof_map.n_variables(); ++var_n)
