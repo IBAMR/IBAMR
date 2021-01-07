@@ -1,5 +1,5 @@
 Changed: Diagonal (lumped) mass matrices are constructed using nodal quadrature
-rules.  The implementation uses QNODAL if available (libMesh 1.5.0 and later),
-otherwise it reverts to QTRAP or QSIMPSON as appropriate.
+rules (the midpoint rule for constants, QTRAP for linears, and QSIMPSON for
+quadratics).
 <br>
-(Boyce Griffith, 2021/01/06)
+(Boyce Griffith, David Wells, 2021/01/06)

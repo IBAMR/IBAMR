@@ -86,30 +86,55 @@ get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
 }
 
 inline std::unique_ptr<QBase>
-build_nodal_qrule(const unsigned int dim)
+build_nodal_qrule(const Order order, const unsigned int dim)
 {
-#if LIBMESH_VERSION_LESS_THAN(1, 5, 0)
-    return QBase::build(fe_type.order == FIRST ? QTRAP : QSIMPSON, dim);
-#else
-    return QBase::build(QNODAL, dim);
-#endif
+    // libMesh claims that it does nodal quadrature, but its nodal rules are
+    // actually based on the element and not the order of the finite element.
+    // This doesn't work for our case since we sometimes have lower-order FE
+    // spaces on higher-order elements (particularly in the postprocessor).
+    // Hence we dont use QNODAL and instead always make this determination
+    // ourselves correctly (i.e., based on the order).
+    switch (order)
+    {
+    case CONSTANT:
+        // midpoint rule
+        return QBase::build(QGAUSS, dim, CONSTANT);
+    case FIRST:
+        // tensor-product trapezoid or vertex-based quadrature on simplices
+        return QBase::build(QTRAP, dim, FIRST);
+    case SECOND:
+        // tensor-product trapezoid or vertex-based quadrature on simplices
+        return QBase::build(QSIMPSON, dim, SECOND);
+    default:
+        TBOX_ERROR(
+            "FEProjector::build_nodal_qrule(): unsupported combination "
+            "order "
+            << order << " and dim " << dim << '\n');
+    }
+
+    return {};
 }
 
 inline void
 assert_qrule_is_nodal(const FEType& fe_type, const QBase* const qrule, const Elem* const elem)
 {
-#if !LIBMESH_VERSION_LESS_THAN(1, 5, 0)
-    if (qrule->type() == QNODAL) return;
-#endif
     auto fe_order = fe_type.order;
-    TBOX_ASSERT(elem->default_order() == fe_order);
     auto elem_type = elem->type();
+    std::vector<FEFamily> permitted_fe_families{ LAGRANGE, L2_LAGRANGE, MONOMIAL };
+    TBOX_ASSERT(std::find(permitted_fe_families.begin(), permitted_fe_families.end(), fe_type.family) !=
+                permitted_fe_families.end());
+    if (fe_type.family == MONOMIAL)
+    {
+        // Monomials can only be considered nodal for piecewise constants
+        TBOX_ASSERT(fe_order == CONSTANT);
+    }
     switch (fe_order)
     {
+    case CONSTANT:
+        TBOX_ASSERT(qrule->type() == QGAUSS); // the midpoint rule
+        break;
     case FIRST:
         TBOX_ASSERT(qrule->type() == QTRAP);
-        TBOX_ASSERT((elem_type == EDGE2) || (elem_type == TRI3 || elem_type == QUAD4) ||
-                    (elem_type == TET4 || elem_type == HEX8));
         break;
     case SECOND:
         TBOX_ASSERT(qrule->type() == QSIMPSON);
@@ -329,7 +354,7 @@ FEProjector::buildLumpedL2ProjectionSolver(const std::string& system_name)
         FEData::SystemDofMapCache& dof_map_cache = *d_fe_data->getDofMapCache(system_name);
         dof_map.compute_sparsity(mesh);
         FEType fe_type = dof_map.variable_type(0);
-        std::unique_ptr<QBase> qrule = build_nodal_qrule(dim);
+        std::unique_ptr<QBase> qrule = build_nodal_qrule(fe_type.order, dim);
         std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
@@ -576,7 +601,7 @@ FEProjector::buildDiagonalL2MassMatrix(const std::string& system_name)
         FEData::SystemDofMapCache& dof_map_cache = *d_fe_data->getDofMapCache(system_name);
         dof_map.compute_sparsity(mesh);
         FEType fe_type = dof_map.variable_type(0);
-        std::unique_ptr<QBase> qrule = build_nodal_qrule(dim);
+        std::unique_ptr<QBase> qrule = build_nodal_qrule(fe_type.order, dim);
         std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
