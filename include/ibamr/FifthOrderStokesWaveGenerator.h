@@ -48,12 +48,12 @@ public:
     /*!
      * Get surface elevation at a specified horizontal position and time.
      */
-    double getSurfaceElevation(double x, double time) const;
+    double getSurfaceElevation(double x, double time) const override;
 
     /*!
      * Get velocity component at a specified position and time.
      */
-    double getVelocity(double x, double z_plus_d, double time, int comp_idx) const;
+    double getVelocity(double x, double z_plus_d, double time, int comp_idx) const override;
 
 private:
     /*!

@@ -102,12 +102,12 @@ public:
     // Destructor
     ~CFUpperConvectiveOperator();
 
-    void applyConvectiveOperator(int Q_idx, int Y_idx);
+    void applyConvectiveOperator(int Q_idx, int Y_idx) override;
 
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
 
-    void deallocateOperatorState();
+    void deallocateOperatorState() override;
 
     /*!
      * \brief: Registers a source function with the convective operator. Note that this source function is given the
