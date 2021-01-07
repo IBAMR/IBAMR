@@ -263,6 +263,7 @@ AC_CONFIG_FILES([
   tests/Makefile
   tests/adv_diff/Makefile
   tests/advect/Makefile
+  tests/coarsen/Makefile
   tests/complex_fluids/Makefile
   tests/CIB/Makefile
   tests/fe_mechanics/Makefile
