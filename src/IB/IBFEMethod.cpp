@@ -2966,6 +2966,7 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
         d_default_interp_spec.quad_order = FIRST;
         d_default_interp_spec.use_adaptive_quadrature = false;
         d_default_interp_spec.use_consistent_mass_matrix = false;
+        d_default_interp_spec.allow_rules_with_negative_weights = false;
         // we default to using a lumped mass matrix, but allow users to choose to use a consistent mass matrix (even
         // though it seems like a bad idea)
     }
@@ -2995,6 +2996,12 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
     else if (db->isBool("IB_use_consistent_mass_matrix"))
         d_default_interp_spec.use_consistent_mass_matrix = db->getBool("IB_use_consistent_mass_matrix");
 
+    if (db->isBool("interp_allow_rules_with_negative_weights"))
+        d_default_interp_spec.allow_rules_with_negative_weights =
+            db->getBool("interp_allow_rules_with_negative_weights");
+    else if (db->isBool("IB_allow_rules_with_negative_weights"))
+        d_default_interp_spec.allow_rules_with_negative_weights = db->getBool("IB_allow_rules_with_negative_weights");
+
     // Spreading settings.
     if (db->isString("spread_delta_fcn"))
         d_default_spread_spec.kernel_fcn = db->getString("spread_delta_fcn");
@@ -3014,6 +3021,7 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
         d_default_spread_spec.quad_type = QTRAP;
         d_default_spread_spec.quad_order = FIRST;
         d_default_spread_spec.use_adaptive_quadrature = false;
+        d_default_spread_spec.allow_rules_with_negative_weights = false;
     }
 
     if (db->isString("spread_quad_type"))
@@ -3035,6 +3043,12 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
         d_default_spread_spec.point_density = db->getDouble("spread_point_density");
     else if (db->isDouble("IB_point_density"))
         d_default_spread_spec.point_density = db->getDouble("IB_point_density");
+
+    if (db->isBool("spread_allow_rules_with_negative_weights"))
+        d_default_spread_spec.allow_rules_with_negative_weights =
+            db->getBool("spread_allow_rules_with_negative_weights");
+    else if (db->isBool("IB_allow_rules_with_negative_weights"))
+        d_default_spread_spec.allow_rules_with_negative_weights = db->getBool("IB_allow_rules_with_negative_weights");
 
     // Force computation settings.
     if (db->isBool("split_normal_force"))
