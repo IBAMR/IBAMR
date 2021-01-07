@@ -12,13 +12,13 @@
 // ---------------------------------------------------------------------
 
 // APPLICATION INCLUDES
-#include <ibamr/app_namespaces.h>
-
 #include <ibtk/HierarchyMathOps.h>
 
 #include "SetFluidGasSolidDensity.h"
 
 #include <CartesianGridGeometry.h>
+
+#include <ibamr/app_namespaces.h>
 
 // C++ INCLUDES
 
@@ -52,7 +52,7 @@ SetFluidGasSolidDensity::SetFluidGasSolidDensity(const std::string& object_name,
                                                  const double rho_fluid,
                                                  const double rho_gas,
                                                  const double rho_solid,
-                                                 const int ls_reinit_interval,
+                                                 const int /*ls_reinit_interval*/,
                                                  const double num_solid_interface_cells,
                                                  const double num_gas_interface_cells,
                                                  const bool set_rho_solid)
@@ -63,7 +63,6 @@ SetFluidGasSolidDensity::SetFluidGasSolidDensity(const std::string& object_name,
       d_rho_fluid(rho_fluid),
       d_rho_gas(rho_gas),
       d_rho_solid(rho_solid),
-      d_ls_reinit_interval(ls_reinit_interval),
       d_num_solid_interface_cells(num_solid_interface_cells),
       d_num_gas_interface_cells(num_gas_interface_cells),
       d_set_rho_solid(set_rho_solid)

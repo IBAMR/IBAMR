@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-#include "ibtk/ibtk_macros.h"
+#include <ibtk/config.h>
 
 #include "InterpolationUtilities.h"
 #include "tbox/MathUtilities.h"

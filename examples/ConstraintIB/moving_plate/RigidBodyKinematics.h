@@ -17,8 +17,6 @@
 ///////////////////////////// INCLUDES ///////////////////////////////////////
 #include "ibamr/ConstraintIBKinematics.h"
 
-#include "ibtk/ibtk_macros.h"
-
 #include "PatchHierarchy.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"

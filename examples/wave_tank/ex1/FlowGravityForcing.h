@@ -19,6 +19,7 @@
 // IBAMR INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+
 #include <ibamr/app_namespaces.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -92,7 +93,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_gas_var;
     double d_rho_neg, d_rho_pos;
     std::vector<double> d_grav_const;
-    int d_num_solid_interface_cells, d_num_gas_interface_cells;
+    int d_num_gas_interface_cells;
 };
 
 //////////////////////////////////////////////////////////////////////////////

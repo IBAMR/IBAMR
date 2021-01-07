@@ -12,13 +12,13 @@
 // ---------------------------------------------------------------------
 
 // APPLICATION INCLUDES
-#include <ibamr/app_namespaces.h>
-
 #include <ibtk/HierarchyMathOps.h>
 
 #include "SetFluidGasSolidViscosity.h"
 
 #include <CartesianGridGeometry.h>
+
+#include <ibamr/app_namespaces.h>
 
 // C++ INCLUDES
 
@@ -52,7 +52,7 @@ SetFluidGasSolidViscosity::SetFluidGasSolidViscosity(const std::string& object_n
                                                      const double mu_fluid,
                                                      const double mu_gas,
                                                      const double mu_solid,
-                                                     const int ls_reinit_interval,
+                                                     const int /*ls_reinit_interval*/,
                                                      const double num_solid_interface_cells,
                                                      const double num_gas_interface_cells,
                                                      const bool set_mu_solid)
@@ -63,7 +63,6 @@ SetFluidGasSolidViscosity::SetFluidGasSolidViscosity(const std::string& object_n
       d_mu_fluid(mu_fluid),
       d_mu_gas(mu_gas),
       d_mu_solid(mu_solid),
-      d_ls_reinit_interval(ls_reinit_interval),
       d_num_solid_interface_cells(num_solid_interface_cells),
       d_num_gas_interface_cells(num_gas_interface_cells),
       d_set_mu_solid(set_mu_solid)
