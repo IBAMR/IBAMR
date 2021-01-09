@@ -116,6 +116,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/adv_diff/AdvDiffStochasticForcing.cpp \
 ../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp \
 ../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp \
+../src/adv_diff/TemperatureSemiImplicitHierarchyIntegrator.cpp \
 ../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 ../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 ../src/complex_fluids/CFUpperConvectiveOperator.cpp \
@@ -329,6 +330,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/StokesSpecifications.h \
 ../include/ibamr/StokesWaveGeneratorStrategy.h \
 ../include/ibamr/SurfaceTensionForceFunction.h \
+../include/ibamr/TemperatureSemiImplicitHierarchyIntegrator.h \
 ../include/ibamr/VCStaggeredStokesOperator.h \
 ../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
 ../include/ibamr/Wall.h \
