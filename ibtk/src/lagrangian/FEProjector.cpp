@@ -84,6 +84,69 @@ get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
     }
     return dirichlet_bdry_ids;
 }
+
+inline std::unique_ptr<QBase>
+build_nodal_qrule(const Order order, const unsigned int dim)
+{
+    // libMesh claims that it does nodal quadrature, but its nodal rules are
+    // actually based on the element and not the order of the finite element.
+    // This doesn't work for our case since we sometimes have lower-order FE
+    // spaces on higher-order elements (particularly in the postprocessor).
+    // Hence we dont use QNODAL and instead always make this determination
+    // ourselves correctly (i.e., based on the order).
+    switch (order)
+    {
+    case CONSTANT:
+        // midpoint rule
+        return QBase::build(QGAUSS, dim, CONSTANT);
+    case FIRST:
+        // tensor-product trapezoid or vertex-based quadrature on simplices
+        return QBase::build(QTRAP, dim, FIRST);
+    case SECOND:
+        // tensor-product trapezoid or vertex-based quadrature on simplices
+        return QBase::build(QSIMPSON, dim, SECOND);
+    default:
+        TBOX_ERROR(
+            "FEProjector::build_nodal_qrule(): unsupported combination "
+            "order "
+            << order << " and dim " << dim << '\n');
+    }
+
+    return {};
+}
+
+inline void
+assert_qrule_is_nodal(const FEType& fe_type, const QBase* const qrule, const Elem* const elem)
+{
+    auto fe_order = fe_type.order;
+    auto elem_type = elem->type();
+    std::vector<FEFamily> permitted_fe_families{ LAGRANGE, L2_LAGRANGE, MONOMIAL };
+    TBOX_ASSERT(std::find(permitted_fe_families.begin(), permitted_fe_families.end(), fe_type.family) !=
+                permitted_fe_families.end());
+    if (fe_type.family == MONOMIAL)
+    {
+        // Monomials can only be considered nodal for piecewise constants
+        TBOX_ASSERT(fe_order == CONSTANT);
+    }
+    switch (fe_order)
+    {
+    case CONSTANT:
+        TBOX_ASSERT(qrule->type() == QGAUSS); // the midpoint rule
+        break;
+    case FIRST:
+        TBOX_ASSERT(qrule->type() == QTRAP);
+        break;
+    case SECOND:
+        TBOX_ASSERT(qrule->type() == QSIMPSON);
+        TBOX_ASSERT((elem_type == EDGE3) || (elem_type == TRI6 || elem_type == QUAD9) ||
+                    (elem_type == TET10 || elem_type == HEX27));
+        break;
+    default:
+        TBOX_ERROR("FEProjector::assert_qrule_is_nodal(): unsupported element order "
+                   << Utility::enum_to_string<Order>(fe_order) << "\n");
+    }
+}
+
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -291,7 +354,7 @@ FEProjector::buildLumpedL2ProjectionSolver(const std::string& system_name)
         FEData::SystemDofMapCache& dof_map_cache = *d_fe_data->getDofMapCache(system_name);
         dof_map.compute_sparsity(mesh);
         FEType fe_type = dof_map.variable_type(0);
-        std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
+        std::unique_ptr<QBase> qrule = build_nodal_qrule(fe_type.order, dim);
         std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
@@ -308,7 +371,6 @@ FEProjector::buildLumpedL2ProjectionSolver(const std::string& system_name)
         MatSetOption(M_mat->mat(), MAT_SPD, PETSC_TRUE);
         MatSetOption(M_mat->mat(), MAT_SYMMETRY_ETERNAL, PETSC_TRUE);
 
-        DenseMatrix<double> M_e;
         DenseMatrix<double> M_e_diagonal;
         std::vector<libMesh::dof_id_type> dof_id_scratch;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
@@ -317,32 +379,21 @@ FEProjector::buildLumpedL2ProjectionSolver(const std::string& system_name)
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
+            assert_qrule_is_nodal(fe_type, qrule.get(), elem);
             fe->reinit(elem);
             const auto& dof_indices = dof_map_cache.dof_indices(elem);
             for (unsigned int var_n = 0; var_n < dof_map.n_variables(); ++var_n)
             {
                 const auto& dof_indices_var = dof_indices[var_n];
                 const auto n_basis = static_cast<unsigned int>(dof_indices_var.size());
-                M_e.resize(n_basis, n_basis);
                 M_e_diagonal.resize(n_basis, n_basis);
                 const unsigned int n_qp = qrule->n_points();
                 for (unsigned int i = 0; i < n_basis; ++i)
                 {
-                    for (unsigned int j = 0; j < n_basis; ++j)
+                    for (unsigned int qp = 0; qp < n_qp; ++qp)
                     {
-                        for (unsigned int qp = 0; qp < n_qp; ++qp)
-                        {
-                            M_e(i, j) += (phi[i][qp] * phi[j][qp]) * JxW[qp];
-                        }
+                        M_e_diagonal(i, i) += (phi[i][qp] * phi[i][qp]) * JxW[qp];
                     }
-                }
-
-                const double vol = elem->volume();
-                double tr_M = 0.0;
-                for (unsigned int i = 0; i < n_basis; ++i) tr_M += M_e(i, i);
-                for (unsigned int i = 0; i < n_basis; ++i)
-                {
-                    M_e_diagonal(i, i) = vol * M_e(i, i) / tr_M;
                 }
 
                 copy_dof_ids_to_vector(var_n, dof_indices, dof_id_scratch);
@@ -550,7 +601,7 @@ FEProjector::buildDiagonalL2MassMatrix(const std::string& system_name)
         FEData::SystemDofMapCache& dof_map_cache = *d_fe_data->getDofMapCache(system_name);
         dof_map.compute_sparsity(mesh);
         FEType fe_type = dof_map.variable_type(0);
-        std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
+        std::unique_ptr<QBase> qrule = build_nodal_qrule(fe_type.order, dim);
         std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
         fe->attach_quadrature_rule(qrule.get());
         const std::vector<double>& JxW = fe->get_JxW();
@@ -561,43 +612,31 @@ FEProjector::buildDiagonalL2MassMatrix(const std::string& system_name)
             static_cast<PetscVector<double>*>(system.solution->zero_clone().release()));
 
         // Loop over the mesh to construct the system matrix.
-        DenseMatrix<double> M_e;
-        std::vector<dof_id_type> dof_id_scratch;
         DenseVector<double> M_e_vec;
+        std::vector<dof_id_type> dof_id_scratch;
         const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
+            assert_qrule_is_nodal(fe_type, qrule.get(), elem);
             fe->reinit(elem);
             const auto& dof_indices = dof_map_cache.dof_indices(elem);
             for (unsigned int var_n = 0; var_n < dof_map.n_variables(); ++var_n)
             {
                 const auto n_basis = static_cast<unsigned int>(dof_indices[var_n].size());
-                M_e.resize(n_basis, n_basis);
                 M_e_vec.resize(n_basis);
                 const unsigned int n_qp = qrule->n_points();
                 for (unsigned int i = 0; i < n_basis; ++i)
                 {
-                    for (unsigned int j = 0; j < n_basis; ++j)
+                    for (unsigned int qp = 0; qp < n_qp; ++qp)
                     {
-                        for (unsigned int qp = 0; qp < n_qp; ++qp)
-                        {
-                            M_e(i, j) += (phi[i][qp] * phi[j][qp]) * JxW[qp];
-                        }
+                        M_e_vec(i) += (phi[i][qp] * phi[i][qp]) * JxW[qp];
                     }
                 }
 
-                const double vol = elem->volume();
-                double tr_M = 0.0;
-                for (unsigned int i = 0; i < n_basis; ++i) tr_M += M_e(i, i);
-                for (unsigned int i = 0; i < n_basis; ++i)
-                {
-                    M_e_vec(i) = vol * M_e(i, i) / tr_M;
-                }
-
                 // We explicitly do *not* apply constraints because applying
-                // constraints would make this operator nondiagonal. In
+                // constraints could make this operator nondiagonal. In
                 // particular, we still want to compute the right quadrature
                 // value of shape functions regardless of whether or not they
                 // are constrained (e.g., periodic or hanging node dofs). This

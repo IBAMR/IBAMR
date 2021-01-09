@@ -91,9 +91,7 @@ public:
      * is that this function assembles the mass matrix while imposing
      * constraints.
      *
-     * For more information on the algorithm used to generate the (nearly)
-     * diagonal matrix see 'A note on mass lumping and related processes in the
-     * finite element method', Hinton, 1976.
+     * This mass matrix is constructed using nodal quadrature.
      */
     std::pair<libMesh::PetscLinearSolver<double>*, libMesh::PetscMatrix<double>*>
     buildLumpedL2ProjectionSolver(const std::string& system_name);
@@ -117,9 +115,7 @@ public:
      * Unlike buildLumpedL2ProjectionSolver this matrix is always diagonal and
      * is always assembled without applying constraints.
      *
-     * For more information on the algorithm used to generate the diagonal
-     * matrix see 'A note on mass lumping and related processes in the finite
-     * element method', Hinton, 1976.
+     * This mass matrix is constructed using nodal quadrature.
      */
     libMesh::PetscVector<double>* buildDiagonalL2MassMatrix(const std::string& system_name);
 
