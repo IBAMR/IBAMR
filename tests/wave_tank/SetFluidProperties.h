@@ -153,11 +153,6 @@ private:
     double d_mu_outside, d_mu_inside;
 
     /*!
-     * Level set reinitialization interval
-     */
-    int d_ls_reinit_interval;
-
-    /*!
      * Number of interface cells over which to smooth the material properties
      */
     double d_num_interface_cells;
