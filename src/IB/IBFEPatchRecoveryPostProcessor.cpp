@@ -405,10 +405,10 @@ IBFEPatchRecoveryPostProcessor::initializeCauchyStressSystem()
         for (unsigned int j = i; j < NDIM; ++j)
         {
             std::string var_name = "sigma_";
-            var_name += (i == 0 ? 'x') : i == 1 ? 'y' : 'z');
-            var_name += (j == 0 ? 'x') : j == 1 ? 'y' : 'z');
+            var_name += (i == 0 ? 'x' : (i == 1 ? 'y' : 'z'));
+            var_name += (j == 0 ? 'x' : (j == 1 ? 'y' : 'z'));
 
-            sigma_system->add_variable(var_name), d_interp_order, LAGRANGE);
+            sigma_system->add_variable(var_name, d_interp_order, LAGRANGE);
         }
     }
     return sigma_system;
