@@ -1055,8 +1055,12 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
             {
                 for (unsigned int j = 0; j < NDIM; ++j)
                 {
-                    const std::string suffix =
-                        std::string(i == 0 ? "x" : i == 1 ? "y" : "z") + std::string(j == 0 ? "x" : j == 1 ? "y" : "z");
+                    const std::string suffix = std::string(i == 0 ? "x" :
+                                                           i == 1 ? "y" :
+                                                                    "z") +
+                                               std::string(j == 0 ? "x" :
+                                                           j == 1 ? "y" :
+                                                                    "z");
                     d_visit_writer->registerPlotQuantity(
                         "UU_mean_" + suffix, "SCALAR", d_UU_mean_current_idx, i * NDIM + j, std::pow(d_U_scale, 2));
                 }
@@ -1071,8 +1075,12 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
             {
                 for (unsigned int j = 0; j < NDIM; ++j)
                 {
-                    const std::string suffix =
-                        std::string(i == 0 ? "x" : i == 1 ? "y" : "z") + std::string(j == 0 ? "x" : j == 1 ? "y" : "z");
+                    const std::string suffix = std::string(i == 0 ? "x" :
+                                                           i == 1 ? "y" :
+                                                                    "z") +
+                                               std::string(j == 0 ? "x" :
+                                                           j == 1 ? "y" :
+                                                                    "z");
                     d_visit_writer->registerPlotQuantity(
                         "UU_fluct_" + suffix, "SCALAR", d_UU_fluct_current_idx, i * NDIM + j, std::pow(d_U_scale, 2));
                 }
