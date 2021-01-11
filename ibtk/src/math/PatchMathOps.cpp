@@ -1477,9 +1477,10 @@ PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
     if (
 #if (NDIM == 2)
         (W_depth != 1)
-#endif
-#if (NDIM == 3)
-            (W_depth != NDIM)
+#elif (NDIM == 3)
+        (W_depth != NDIM)
+#else
+        false
 #endif
     )
     {
