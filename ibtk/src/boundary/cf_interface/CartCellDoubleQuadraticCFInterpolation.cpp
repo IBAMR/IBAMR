@@ -318,9 +318,6 @@ CartCellDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy
     Pointer<GridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     const BoxArray<NDIM>& domain_boxes = grid_geom->getPhysicalDomain();
 
-    CoarseFineBoundary<NDIM> bdry1, bdry2;
-    bdry1 = bdry2;
-
     d_domain_boxes.resize(finest_level_number + 1);
     d_periodic_shift.resize(finest_level_number + 1);
     for (int ln = 0; ln <= finest_level_number; ++ln)
@@ -668,8 +665,6 @@ CartCellDoubleQuadraticCFInterpolation::computeNormalExtension_expensive(Patch<N
     // Collect pointers to all of the cf boundary boxes.
     std::vector<const BoundaryBox<NDIM>*> patch_cf_bdry_boxes;
     {
-        const Array<BoundaryBox<NDIM> >& cf_bdry_codim1_boxes =
-            d_cf_boundary[patch_level_num].getBoundaries(patch_num, 1);
         for (int k = 0; k < cf_bdry_codim1_boxes.size(); ++k)
         {
             patch_cf_bdry_boxes.push_back(cf_bdry_codim1_boxes.getPointer(k));
