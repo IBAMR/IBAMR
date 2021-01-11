@@ -60,7 +60,7 @@ main(int argc, char* argv[])
     std::vector<std::string> strs = { "Relative", "Absolute", "SAMRAI" };
 
     auto loop_test = [&](const double a, const double b) {
-        for (int i = 0; i < fcns.size(); ++i)
+        for (unsigned int i = 0; i < fcns.size(); ++i)
         {
             test(a, b, fcns[i], strs[i]);
         }
