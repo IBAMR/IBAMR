@@ -719,8 +719,9 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
                             const double u_ADV = (*U_adv_data[axis])(i);
                             const double U_lower = U_array_data(i.toCell(0), 0);
                             const double U_upper = U_array_data(i.toCell(1), 0);
-                            (*U_half_upwind_data[axis])(i) =
-                                (u_ADV > 1.0e-8) ? U_lower : (u_ADV < 1.0e-8) ? U_upper : 0.5 * (U_lower + U_upper);
+                            (*U_half_upwind_data[axis])(i) = (u_ADV > 1.0e-8) ? U_lower :
+                                                             (u_ADV < 1.0e-8) ? U_upper :
+                                                                                0.5 * (U_lower + U_upper);
                         }
                     }
                 }

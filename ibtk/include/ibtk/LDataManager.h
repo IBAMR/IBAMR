@@ -87,13 +87,13 @@ namespace IBTK
  * LDataManager objects is via the static method getManager().
  *
  * Each Lagrangian point is associated with an LNode object which provides an interface between the Lagrangian and PETSc
- * ordering as well as the data storage for force specification objects and other objects associated with the point. From each LNode object, we
- * can retrieve the Lagrangian index as well as any associated node data. The LNode objects for each processor are
- * contained in an LMesh object. The LMesh object contains two vectors of LNodes: one containing just the local LNode
- * objects, and another containing 'ghost' LNodes. The 'ghost' LNodes are Lagrangian points assigned to other processors
- * but have data needed for calculations. Interacting with Lagrangian data is mediated through the static LDataManager
- * object. From this class, we can get the local LMesh object for each level of the Cartesian grid, and then loop
- * through all associated Lagrangian nodes.
+ * ordering as well as the data storage for force specification objects and other objects associated with the point.
+ * From each LNode object, we can retrieve the Lagrangian index as well as any associated node data. The LNode objects
+ * for each processor are contained in an LMesh object. The LMesh object contains two vectors of LNodes: one containing
+ * just the local LNode objects, and another containing 'ghost' LNodes. The 'ghost' LNodes are Lagrangian points
+ * assigned to other processors but have data needed for calculations. Interacting with Lagrangian data is mediated
+ * through the static LDataManager object. From this class, we can get the local LMesh object for each level of the
+ * Cartesian grid, and then loop through all associated Lagrangian nodes.
  *
  * As an example, suppose we have a circle of Lagrangian points that are tethered to target points, and we wish to
  * specify the motion of the target points, and hence the circle, to move in a straight line. We can do this by looping

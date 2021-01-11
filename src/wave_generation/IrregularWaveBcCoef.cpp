@@ -189,9 +189,10 @@ IrregularWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
     else
     {
         const unsigned int bdry_normal_axis = location_index / 2;
-        const Box<NDIM>& bc_coef_box =
-            (acoef_data ? acoef_data->getBox() :
-                          bcoef_data ? bcoef_data->getBox() : gcoef_data ? gcoef_data->getBox() : Box<NDIM>());
+        const Box<NDIM>& bc_coef_box = (acoef_data ? acoef_data->getBox() :
+                                        bcoef_data ? bcoef_data->getBox() :
+                                        gcoef_data ? gcoef_data->getBox() :
+                                                     Box<NDIM>());
 #if !defined(NDEBUG)
         TBOX_ASSERT(!acoef_data || bc_coef_box == acoef_data->getBox());
         TBOX_ASSERT(!bcoef_data || bc_coef_box == bcoef_data->getBox());
