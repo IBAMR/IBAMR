@@ -1,4 +1,0 @@
-Changed: IBAMR no longer links against the high-level HDF5 (hdf5_hl) library. If you
-need to use this library you will need to add it to the link interface manually.
-<br>
-(David Wells, 2020/09/16)

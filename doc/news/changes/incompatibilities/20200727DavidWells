@@ -1,7 +1,0 @@
-Removed: The IB6 delta function, <code>lagrangian_ib_6_delta</code>, has been
-removed from the library. This does not effect the IB6 spreading and
-interpolation functions since they directly inline the kernel: i.e., the IB6
-delta function can still be used in the same way as before through the normal
-interface.
-<br>
-(David Wells, 2020/07/27)

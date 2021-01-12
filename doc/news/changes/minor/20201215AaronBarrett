@@ -1,3 +1,0 @@
-Fixed: RT0_COARSEN now corresponds to the adjoint of RT0_REFINE on uniformly refined grid hierarchies.
-<br>
-(Aaron Barret, Boyce Griffith, David Wells 2020/12/15)

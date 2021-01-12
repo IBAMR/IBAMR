@@ -1,4 +1,0 @@
-Fix: Fixed a problem with IBFEMethod when the ghost data size required by
-IBFEMethod is not equal to that required by another class.
-<br>
-(David Wells, 2020/07/13)

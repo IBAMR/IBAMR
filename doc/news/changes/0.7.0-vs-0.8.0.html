@@ -1,0 +1,281 @@
+<h2>Incompatibilities</h2>
+<ol>
+<li>
+New: IBAMR now requires the initialization object IBTKInit to be created upon
+program start. IBTKInit is responsible for initializing and deinitializing all
+libraries as well as registering the MPI communicator with IBTK_MPI. All
+SAMRAI_MPI calls in the library have been replaced with respective IBTK_MPI
+calls. The perl script scripts/code_updates/update_mpi_calls.pl will
+automatically complete most of the changes.
+<br>
+(Aaron Barrett, 2020/04/25)
+</li>
+<li>
+Changed: IBTK::get_local_active_element_bounding_boxes() and related functions
+have been renamed to IBTK::get_local_element_bounding_boxes() (i.e., without the
+active part). This change is necessary since the current version of the function
+does not work correctly when AMR is used inside libMesh - switching to computing
+all bounding boxes resolves the issue.
+<br>
+(David Wells, 2020/06/25)
+</li>
+<li>
+Removed: The IB6 delta function, <code>lagrangian_ib_6_delta</code>, has been
+removed from the library. This does not effect the IB6 spreading and
+interpolation functions since they directly inline the kernel: i.e., the IB6
+delta function can still be used in the same way as before through the normal
+interface.
+<br>
+(David Wells, 2020/07/27)
+</li>
+<li>
+Removed: The classes IBTK::JacobianCalculator and IBTK::JacobianCalculatorCache
+have been removed. Their replacements are IBTK::Mapping and IBTK::MappingCache,
+respectively, which can compute many more finite element mapping quantities than
+JacobianCalculator could.
+<br>
+(David Wells, 2020/07/28)
+</li>
+<li>
+Changed: IBTK::Mapping, IBTK::NodalMapping, and IBTK::MappingCache have been
+renamed to IBTK::FEMapping, IBTK::FENodalMapping, and IBTK::FEMappingCache
+respectively.
+<br>
+(David Wells, 2020/08/03)
+</li>
+<li>
+Changed: IBTK::FEData::SystemDofMapCache::dof_indices() now returns a
+<code>boost::multi_array</code> instead of nested <code>std::vector</code>s.
+<br>
+(David Wells, 2020/08/13)
+</li>
+<li>
+Removed: The class IBTK::FEMapCache has been removed.
+<br>
+(David Wells, 2020/09/01)
+</li>
+<li>
+Changed: IBTK::FEData now requires that the relevant libMesh::EquationSystems
+object be passed to its constructor.
+<br>
+(David Wells, 2020/09/10)
+</li>
+<li>
+Changed: The overloads of IBTK::FEDataManager::getManager() have been
+consolidated into a single function.
+<br>
+(David Wells, 2020/09/10)
+</li>
+<li>
+Changed: IBAMR no longer links against the high-level HDF5 (hdf5_hl) library. If you
+need to use this library you will need to add it to the link interface manually.
+<br>
+(David Wells, 2020/09/16)
+</li>
+<li>
+Changed: The functions IBTK::FEDataManager::setPatchLevels(),
+IBTK::FEDataManager::getPatchLevels(), and IBTK::FEDataManager::getLevelNumber()
+have been removed. The first function was previously never used since the class
+assumed the structure interacted with the finest patch level. The other two
+functions have been replaced by
+IBTK::FEDataManager::getCoarsestPatchLevelNumber() and
+IBTK::FEDataManager::getFinestPatchLevelNumber().
+<br>
+(David Wells, 2020/09/17)
+</li>
+</ol>
+
+<h2>Major Changes</h2>
+<ol>
+<li>
+New: Added a new class IBTK::FEValues, which is a replacement for libMesh::FE
+for Lagrange elements that is 4-5 times faster. This is now used inside various
+parts of the IBFE stack and makes, in particular, assembling the interior force
+density much less expensive. For some models this leads to a 10% overall run
+time reduction.
+<br>
+(David Wells, 2020/05/19)
+</li>
+<li>
+Bug fix: IBAMR now correctly handles constraints (such as hanging node or
+periodicity) inside libMesh correctly when doing IB calculations. In particular,
+libMesh structures that have periodic boundary conditions now work correctly in
+parallel (such as IBFE example 1). See the documentation of the new function
+IBTK::apply_transposed_constraint_matrix() for more information.
+<br>
+(David Wells, 2020/07/01)
+</li>
+<li>
+Improved: IBTK::FEProjector now uses a much better algorithm for solving L2
+projections (Jacobi preconditioner based on the lumped mass matrix and MINRES)
+which is about twice as fast for large tetrahedral meshes.
+<br>
+(David Wells, 2020/07/23)
+</li>
+<li>
+New: Added a new class IBAMR::FEMechanicsExplicitIntegrator that provides a
+basic explicit FE elastodynamics solver.
+<br>
+(Boyce Griffith, 2020/08/25)
+</li>
+<li>
+Improved: IBAMR::IBFEMethod gained a new member variable d_patch_assocation_cfl
+which determines how often (independent of regrids) the association of elements
+to patches must be rebuilt.
+<br>
+(David Wells, 2020/08/25)
+</li>
+<li>
+Improved: IBAMR::FEMechanicsBase is able to compute static pressures for
+mesh parts to enforce near incompressibility.
+<br>
+(Boyce Griffith, 2020/09/11)
+</li>
+<li>
+New: IBAMR::IBFEMethod can now be set up to have a single structure interact
+with multiple patch levels.
+<br>
+(David Wells, 2020/09/28)
+</li>
+<li>
+New: IBAMR can now be configured, compiled, and installed with CMake instead of
+with autotools.
+<br>
+(David Wells, 2020/10/19)
+</li>
+<li>
+New: Added a new class IBTK::FischerGuess, which implements an algorithm for
+estimating a solution to a linear system of equations based on a RHS and a
+history of solution vectors and RHSs. This is now on by default in IBFE. A
+benchmark based on IBFE/ex4 requires 75% fewer solver iterations with this class
+and its default settings.
+<br>
+(David Wells, 2020/11/24)
+</li>
+<li>
+New: Added a new classes BrinkmanAdvDiffSemiImplicitHierarchyIntegrator and BrinkmanAdvDiffBcHelper. Class BrinkmanAdvDiffSemiImplicitHierarchyIntegrator solves a penalized advection-diffusion equation for the registered scalar and vector-valued quantities. The BrinkmanAdvDiffBcHelper provides an implementation of a volume penalized body force and linear operator modifications required to impose Dirichlet, Neumann and Robin boundary conditions  to scalar and vector quantities maintained by BrinkmanSemiImplicitAdvDiffHierarchyIntegrator.
+<br>
+(Ramakrishnan Thirumalaisamy, 2020/12/18)
+</li>
+</ol>
+
+<h2>Minor Changes</h2>
+<ol>
+<li>
+Bug fix: AdvDiffHierarchyIntegrator correctly computes maximum timesteps consistent across all timesteps.
+<br>
+(Aaron Barret, 2020/06/26)
+</li>
+<li>
+Fix: GCC 10.1.0 generates incorrect vectorized code for the multi-variable
+overload of IBTK::get_values_for_interpolation(). Get around this by adding
+a temporary array to the function.
+<br>
+(David Wells, 2020/06/29)
+</li>
+<li>
+Changed: The database option <code>vector_assembly_accumulation</code> has been
+removed from IBFEMethod since the <code>CACHED</code> option (which is not the
+default) does not work correctly when the finite element space has constraints,
+while the default option <code>GHOSTED</code> has superior performance and works
+correctly with or without constraints.
+<br>
+(David Wells, 2020/07/14)
+</li>
+<li>
+New: Added a new field IBTK::FEDataManager::WorkloadSpec::duplicated_node_weight
+which allows for accounting for the number of elements (in an indirect way) when
+doing IB load balancing.
+<br>
+(David Wells, 2020/07/24)
+</li>
+<li>
+Bug fix: AppInitializer now creates the TimerManager correctly using the
+database provided from the input file.
+<br>
+(Aaron Barret, 2020/06/26)
+</li>
+<li>
+Improved: The bounding box intersection algorithm for associating libMesh
+elements with patches has been rewritten to be about 9 times faster. This
+substantially lowers the time required in regrid operations.
+<br>
+(David Wells, 2020/07/31)
+</li>
+<li>
+New: IBFEMethod now logs its time spent in various functions with the standard
+SAMRAI TimerManager interface.
+<br>
+(David Wells, 2020/08/06)
+</li>
+<li>
+Improved: IBTK::FEDataManager now executes a check that, after associating
+patches with elements, that all mesh nodes are assigned to at least one patch.
+<br>
+(David Wells, 2020/06/29)
+</li>
+<li>
+Bug fix: CFINSForcing::getVariableIdx() now returns the correct patch data index that stores the extra stress.
+<br>
+(Aaron Barret, 2020/09/01)
+
+</li>
+<li>
+Fixed: The configuration option <code>--with-zlib</code> now works correctly.
+<br>
+(David Wells, 2020/09/10)
+</li>
+<li>
+Improved: Added a functionality to handle variable C coefficient in CCPoissonPointRelaxationFACOperator class.
+    <br>
+    (Ramakrishnan Thirumalaisamy, 2020/10/08)
+</li>
+<li>
+Fix: The internal PatchHierarchy optionally created by IBFEMethod (i.e., the
+scratch hierarchy) is now correctly deallocated during regridding.
+<br>
+(David Wells, 2020/10/16)
+</li>
+<li>
+New: IBAMR::IBHierarchyIntegrator gained an input database option
+<code>regrid_structure_cfl_interval</code> that allows the user to set the
+number of cells the structure may move before triggering a regrid.
+<br>
+(David Wells, 2020/10/27)
+</li>
+<li>
+Documentation update: Adds in notes for interacting with Lagrangian data controlled by LDataManager.
+<br>
+(Aaron Barret, 2020/12/07)
+</li>
+<li>
+New: Added in functions to check relative and absolute equality between doubles.
+<br>
+(Aaron Barret, 2020/12/08)
+</li>
+<li>
+Fixed: RT0_COARSEN now corresponds to the adjoint of RT0_REFINE on uniformly refined grid hierarchies.
+<br>
+(Aaron Barret, Boyce Griffith, David Wells 2020/12/15)
+</li>
+<li>
+Fix: Fixed a problem with IBFEMethod when the ghost data size required by
+IBFEMethod is not equal to that required by another class.
+<br>
+(David Wells, 2020/07/13)
+</li>
+<li>
+New: Input settings to control whether libMesh is allowed to use negative quadrature weights.
+(The libMesh default is to allow for negative weights, which is currently also the IBAMR default.)
+<br>
+(Boyce Griffith, David Wells 2021/01/05)
+
+</li>
+<li>
+Changed: Diagonal (lumped) mass matrices are constructed using nodal quadrature
+rules (the midpoint rule for constants, QTRAP for linears, and QSIMPSON for
+quadratics).
+<br>
+(Boyce Griffith, David Wells, 2021/01/06)
+</li>
+</ol>

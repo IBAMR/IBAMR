@@ -1,9 +1,0 @@
-Changed: The functions IBTK::FEDataManager::setPatchLevels(),
-IBTK::FEDataManager::getPatchLevels(), and IBTK::FEDataManager::getLevelNumber()
-have been removed. The first function was previously never used since the class
-assumed the structure interacted with the finest patch level. The other two
-functions have been replaced by
-IBTK::FEDataManager::getCoarsestPatchLevelNumber() and
-IBTK::FEDataManager::getFinestPatchLevelNumber().
-<br>
-(David Wells, 2020/09/17)

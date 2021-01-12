@@ -1,7 +1,0 @@
-Bug fix: IBAMR now correctly handles constraints (such as hanging node or
-periodicity) inside libMesh correctly when doing IB calculations. In particular,
-libMesh structures that have periodic boundary conditions now work correctly in
-parallel (such as IBFE example 1). See the documentation of the new function
-IBTK::apply_transposed_constraint_matrix() for more information.
-<br>
-(David Wells, 2020/07/01)

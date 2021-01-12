@@ -1,5 +1,0 @@
-Improved: The bounding box intersection algorithm for associating libMesh
-elements with patches has been rewritten to be about 9 times faster. This
-substantially lowers the time required in regrid operations.
-<br>
-(David Wells, 2020/07/31)

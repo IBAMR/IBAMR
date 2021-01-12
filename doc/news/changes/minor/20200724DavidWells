@@ -1,5 +1,0 @@
-New: Added a new field IBTK::FEDataManager::WorkloadSpec::duplicated_node_weight
-which allows for accounting for the number of elements (in an indirect way) when
-doing IB load balancing.
-<br>
-(David Wells, 2020/07/24)

@@ -1,3 +1,0 @@
-Bug fix: AdvDiffHierarchyIntegrator correctly computes maximum timesteps consistent across all timesteps.
-<br>
-(Aaron Barret, 2020/06/26)
