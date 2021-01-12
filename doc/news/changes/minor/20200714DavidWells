@@ -1,7 +1,0 @@
-Changed: The database option <code>vector_assembly_accumulation</code> has been
-removed from IBFEMethod since the <code>CACHED</code> option (which is not the
-default) does not work correctly when the finite element space has constraints,
-while the default option <code>GHOSTED</code> has superior performance and works
-correctly with or without constraints.
-<br>
-(David Wells, 2020/07/14)

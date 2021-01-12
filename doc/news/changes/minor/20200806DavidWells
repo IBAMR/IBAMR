@@ -1,4 +1,0 @@
-New: IBFEMethod now logs its time spent in various functions with the standard
-SAMRAI TimerManager interface.
-<br>
-(David Wells, 2020/08/06)

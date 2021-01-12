@@ -1,4 +1,0 @@
-Bug fix: CFINSForcing::getVariableIdx() now returns the correct patch data index that stores the extra stress.
-<br>
-(Aaron Barret, 2020/09/01)
-

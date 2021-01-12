@@ -1,7 +1,0 @@
-New: Added a new class IBTK::FEValues, which is a replacement for libMesh::FE
-for Lagrange elements that is 4-5 times faster. This is now used inside various
-parts of the IBFE stack and makes, in particular, assembling the interior force
-density much less expensive. For some models this leads to a 10% overall run
-time reduction.
-<br>
-(David Wells, 2020/05/19)

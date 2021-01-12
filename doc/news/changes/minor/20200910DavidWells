@@ -1,3 +1,0 @@
-Fixed: The configuration option <code>--with-zlib</code> now works correctly.
-<br>
-(David Wells, 2020/09/10)

@@ -1,4 +1,0 @@
-Improved: IBTK::FEDataManager now executes a check that, after associating
-patches with elements, that all mesh nodes are assigned to at least one patch.
-<br>
-(David Wells, 2020/06/29)
