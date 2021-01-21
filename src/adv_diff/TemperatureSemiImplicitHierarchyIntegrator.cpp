@@ -111,6 +111,8 @@ TemperatureSemiImplicitHierarchyIntegrator::TemperatureSemiImplicitHierarchyInte
     TBOX_ASSERT(!object_name.empty());
     TBOX_ASSERT(input_db);
 #endif
+    if (input_db->keyExists("latent_heat")) d_latent_heat = input_db->getDouble("latent_heat");
+    if (input_db->keyExists("phase_change")) d_phase_change = input_db->getBool("phase_change");
 
     return;
 } // TemperatureSemiImplicitHierarchyIntegrator
@@ -180,81 +182,82 @@ TemperatureSemiImplicitHierarchyIntegrator::setDensityVariable(Pointer<CellVaria
     return;
 } // setDensityVariable
 
-void
-TemperatureSemiImplicitHierarchyIntegrator::registerINSVCStaggeredHierarchyIntegrator(
-    Pointer<INSVCStaggeredHierarchyIntegrator> ins_cons_hier_integrator)
-{
-    d_ins_hierarchy_integrator = ins_cons_hier_integrator;
-    return;
-} // registerINSVCStaggeredHierarchyIntegrator
+// void
+// TemperatureSemiImplicitHierarchyIntegrator::registerINSVCStaggeredHierarchyIntegrator(
+//    Pointer<INSVCStaggeredHierarchyIntegrator> ins_cons_hier_integrator)
+//{
+//    d_ins_hierarchy_integrator = ins_cons_hier_integrator;
+//    return;
+//} // registerINSVCStaggeredHierarchyIntegrator
 
-void
-TemperatureSemiImplicitHierarchyIntegrator::interpolateSCMassDensityToCC(Pointer<CellVariable<NDIM, double> > Q_var,
-                                                                         Pointer<VariableContext> ctx)
-{
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > rho_var = d_ins_hierarchy_integrator->getMassDensityVariable();
-    Pointer<SideVariable<NDIM, double> > rho_sc_var = rho_var;
-    Pointer<CellVariable<NDIM, double> > rho_cc_var = rho_var;
-
-    if (rho_sc_var)
-    {
-        int rho_sc_idx = 0;
-        if (ctx == getNewContext())
-        {
-            rho_sc_idx = var_db->mapVariableAndContextToIndex(rho_sc_var, d_ins_hierarchy_integrator->getNewContext());
-        }
-        else if (ctx == getCurrentContext())
-        {
-            rho_sc_idx =
-                var_db->mapVariableAndContextToIndex(rho_sc_var, d_ins_hierarchy_integrator->getCurrentContext());
-        }
-
-        Pointer<CellVariable<NDIM, double> > rho_cc_var = d_Q_rho_map[Q_var];
-        const int rho_cc_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, ctx);
-        const int rho_vec_cc_idx = var_db->mapVariableAndContextToIndex(d_rho_vec_cc_var, ctx);
-        static const bool synch_cf_interface = true;
-
-        d_hier_math_ops->interp(rho_vec_cc_idx,
-                                d_rho_vec_cc_var,
-                                rho_sc_idx,
-                                rho_sc_var,
-                                d_no_fill_op,
-                                d_integrator_time,
-                                synch_cf_interface);
-
-        for (int ln = coarsest_ln; ln <= finest_ln; ln++)
-        {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-
-            for (PatchLevelIterator<NDIM> p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-                Pointer<CellData<NDIM, double> > rho_cc_data = patch->getPatchData(rho_cc_idx);
-                Pointer<CellData<NDIM, double> > rho_vec_data = patch->getPatchData(rho_vec_cc_idx);
-                for (Box<NDIM>::Iterator it(patch_box); it; it++)
-                {
-                    CellIndex<NDIM> ci(it());
-                    double sum = 0.0;
-                    for (int d = 0; d < NDIM; d++)
-                    {
-                        sum += (*rho_vec_data)(ci, d);
-                    }
-#if (NDIM == 2)
-                    (*rho_cc_data)(ci) = 0.5 * sum;
-#elif (NDIM == 3)
-                    (*rho_cc_data)(ci) = 1.0 / 3.0 * sum;
-#endif
-                }
-            }
-        }
-    }
-    return;
-} // interpolateSCMassDensityToCC
+// void
+// TemperatureSemiImplicitHierarchyIntegrator::interpolateSCMassDensityToCC(Pointer<CellVariable<NDIM, double> > Q_var,
+//                                                                         Pointer<VariableContext> ctx)
+//{
+//    const int coarsest_ln = 0;
+//    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+//
+//    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+//    Pointer<Variable<NDIM> > rho_var = d_ins_hierarchy_integrator->getMassDensityVariable();
+//    Pointer<SideVariable<NDIM, double> > rho_sc_var = rho_var;
+//    Pointer<CellVariable<NDIM, double> > rho_cc_var = rho_var;
+//
+//    if (rho_sc_var)
+//    {
+//        int rho_sc_idx = 0;
+//        if (ctx == getNewContext())
+//        {
+//            rho_sc_idx = var_db->mapVariableAndContextToIndex(rho_sc_var,
+//            d_ins_hierarchy_integrator->getNewContext());
+//        }
+//        else if (ctx == getCurrentContext())
+//        {
+//            rho_sc_idx =
+//                var_db->mapVariableAndContextToIndex(rho_sc_var, d_ins_hierarchy_integrator->getCurrentContext());
+//        }
+//
+//        Pointer<CellVariable<NDIM, double> > rho_cc_var = d_Q_rho_map[Q_var];
+//        const int rho_cc_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, ctx);
+//        const int rho_vec_cc_idx = var_db->mapVariableAndContextToIndex(d_rho_vec_cc_var, ctx);
+//        static const bool synch_cf_interface = true;
+//
+//        d_hier_math_ops->interp(rho_vec_cc_idx,
+//                                d_rho_vec_cc_var,
+//                                rho_sc_idx,
+//                                rho_sc_var,
+//                                d_no_fill_op,
+//                                d_integrator_time,
+//                                synch_cf_interface);
+//
+//        for (int ln = coarsest_ln; ln <= finest_ln; ln++)
+//        {
+//            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+//
+//            for (PatchLevelIterator<NDIM> p(level); p; p++)
+//            {
+//                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+//                const Box<NDIM>& patch_box = patch->getBox();
+//                Pointer<CellData<NDIM, double> > rho_cc_data = patch->getPatchData(rho_cc_idx);
+//                Pointer<CellData<NDIM, double> > rho_vec_data = patch->getPatchData(rho_vec_cc_idx);
+//                for (Box<NDIM>::Iterator it(patch_box); it; it++)
+//                {
+//                    CellIndex<NDIM> ci(it());
+//                    double sum = 0.0;
+//                    for (int d = 0; d < NDIM; d++)
+//                    {
+//                        sum += (*rho_vec_data)(ci, d);
+//                    }
+//#if (NDIM == 2)
+//                    (*rho_cc_data)(ci) = 0.5 * sum;
+//#elif (NDIM == 3)
+//                    (*rho_cc_data)(ci) = 1.0 / 3.0 * sum;
+//#endif
+//                }
+//            }
+//        }
+//    }
+//    return;
+//} // interpolateSCMassDensityToCC
 
 void
 TemperatureSemiImplicitHierarchyIntegrator::setSpecificHeatVariable(Pointer<CellVariable<NDIM, double> > Q_var,
@@ -267,6 +270,40 @@ TemperatureSemiImplicitHierarchyIntegrator::setSpecificHeatVariable(Pointer<Cell
     d_Q_Cp_map[Q_var] = Cp_var;
     return;
 } // setSpecificHeatVariable
+
+void
+TemperatureSemiImplicitHierarchyIntegrator::registerResetLiquidFractionFcn(ResetLiquidFractionFcnPtr callback,
+                                                                           void* ctx)
+{
+    d_reset_liquid_fraction_fcns.push_back(callback);
+    d_reset_liquid_fraction_fcns_ctx.push_back(ctx);
+    return;
+} // registerResetLiquidFractionFcn
+
+Pointer<CellVariable<NDIM, double> >
+TemperatureSemiImplicitHierarchyIntegrator::getLiquidFractionVariable() const
+{
+    return d_fl_var;
+} // getLiquidFractionVariable
+
+void
+TemperatureSemiImplicitHierarchyIntegrator::registerLiquidFractionVariable(Pointer<CellVariable<NDIM, double> > fl_var)
+{
+    d_fl_var = fl_var;
+} // registerLiquidFractionVariable
+
+void
+TemperatureSemiImplicitHierarchyIntegrator::registerLiquidFractionBoundaryConditions(
+    RobinBcCoefStrategy<NDIM>* fl_bc_coef)
+{
+    d_fl_bc_coef = fl_bc_coef;
+} // registerLiquidFractionBoundaryConditions
+
+RobinBcCoefStrategy<NDIM>*
+TemperatureSemiImplicitHierarchyIntegrator::getLiquidFractionBoundaryConditions() const
+{
+    return d_fl_bc_coef;
+} // getLiquidFractionBoundaryConditions
 
 void
 TemperatureSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
@@ -342,6 +379,31 @@ TemperatureSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
 
+    if (d_phase_change)
+    {
+        registerVariable(d_fl_current_idx,
+                         d_fl_new_idx,
+                         d_fl_scratch_idx,
+                         d_fl_var,
+                         cell_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE");
+
+        if (d_visit_writer) d_visit_writer->registerPlotQuantity(d_fl_var->getName(), "SCALAR", d_fl_current_idx);
+
+        d_dfl_dT_var = new CellVariable<NDIM, double>("dfl_dT_var");
+        registerVariable(d_dfl_dT_current_idx,
+                         d_dfl_dT_new_idx,
+                         d_dfl_dT_scratch_idx,
+                         d_dfl_dT_var,
+                         cell_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE");
+
+        d_fl_inverse_var = new CellVariable<NDIM, double>("fl_inverse");
+        d_fl_inverse_scratch_idx = var_db->registerVariableAndContext(d_fl_inverse_var, getCurrentContext(), no_ghosts);
+    }
+
     // Perform hierarchy initialization operations common to all implementations
     // of AdvDiffSemiImplicitHierarchyIntegrator.
     AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
@@ -382,6 +444,7 @@ TemperatureSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const d
         level->allocatePatchData(d_scratch_data, current_time);
         level->allocatePatchData(d_new_data, new_time);
         level->allocatePatchData(d_C_rhs_scratch_idx, current_time);
+        if (d_phase_change) level->allocatePatchData(d_fl_inverse_scratch_idx, current_time);
     }
 
     // Update the advection velocity.
@@ -470,6 +533,23 @@ TemperatureSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const d
             }
         }
 
+        if (d_phase_change)
+        {
+            for (unsigned k = 0; k < d_reset_liquid_fraction_fcns.size(); ++k)
+            {
+                d_reset_liquid_fraction_fcns[k](d_fl_current_idx,
+                                                d_fl_inverse_scratch_idx,
+                                                d_dfl_dT_current_idx,
+                                                Q_current_idx,
+                                                d_hier_math_ops,
+                                                -1 /*cycle_num*/,
+                                                apply_time,
+                                                current_time,
+                                                new_time,
+                                                d_reset_liquid_fraction_fcns_ctx[k]);
+            }
+        }
+
         // Account for the convective difference term.
         Pointer<FaceVariable<NDIM, double> > u_var = d_Q_u_map[Q_var];
         if (u_var)
@@ -525,6 +605,7 @@ TemperatureSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const d
 
         // Set the initial guess.
         d_hier_cc_data_ops->copyData(Q_new_idx, Q_current_idx);
+        d_hier_cc_data_ops->copyData(d_fl_new_idx, d_fl_current_idx);
     }
 
     // Execute any registered callbacks.
@@ -618,6 +699,23 @@ TemperatureSemiImplicitHierarchyIntegrator::integrateHierarchy(const double curr
             }
         }
 
+        if (d_phase_change)
+        {
+            for (unsigned k = 0; k < d_reset_liquid_fraction_fcns.size(); ++k)
+            {
+                d_reset_liquid_fraction_fcns[k](d_fl_new_idx,
+                                                d_fl_inverse_scratch_idx,
+                                                d_dfl_dT_new_idx,
+                                                Q_new_idx,
+                                                d_hier_math_ops,
+                                                -1 /*cycle_num*/,
+                                                apply_time,
+                                                current_time,
+                                                new_time,
+                                                d_reset_liquid_fraction_fcns_ctx[k]);
+            }
+        }
+
         // Setup the problem coefficients for the linear solve
         double K = 0.0;
         switch (diffusion_time_stepping_type)
@@ -649,6 +747,17 @@ TemperatureSemiImplicitHierarchyIntegrator::integrateHierarchy(const double curr
             d_hier_cc_data_ops->scale(d_C_new_idx, 1.0 / dt, d_C_new_idx);
 
             d_hier_cc_data_ops->addScalar(d_C_scratch_idx, d_C_new_idx, K * lambda);
+
+            if (d_phase_change)
+            {
+                d_hier_cc_data_ops->multiply(d_dfl_dT_scratch_idx, rho_new_idx, d_dfl_dT_new_idx);
+                d_hier_cc_data_ops->scale(d_dfl_dT_scratch_idx, d_latent_heat / dt, d_dfl_dT_scratch_idx);
+
+                d_hier_cc_data_ops->add(d_C_scratch_idx, d_dfl_dT_scratch_idx, d_C_scratch_idx);
+                pout << "L1 norm of latent heat C coefficient\t" << d_hier_cc_data_ops->L1Norm(d_dfl_dT_scratch_idx)
+                     << "\n";
+            }
+
             solver_spec.setCPatchDataId(d_C_scratch_idx);
         }
         else
@@ -875,6 +984,21 @@ TemperatureSemiImplicitHierarchyIntegrator::integrateHierarchy(const double curr
         {
             d_F_fcn[F_var]->setDataOnPatchHierarchy(F_scratch_idx, F_var, d_hierarchy, half_time);
 
+            // Account for source terms related to phase change.
+            if (d_phase_change)
+            {
+                d_hier_cc_data_ops->multiply(d_fl_scratch_idx, d_dfl_dT_new_idx, d_fl_inverse_scratch_idx);
+                d_hier_cc_data_ops->add(d_fl_scratch_idx, d_fl_current_idx, d_fl_scratch_idx);
+                d_hier_cc_data_ops->subtract(d_fl_scratch_idx, d_fl_scratch_idx, d_fl_new_idx);
+                d_hier_cc_data_ops->multiply(d_fl_scratch_idx, rho_new_idx, d_fl_scratch_idx);
+                d_hier_cc_data_ops->scale(d_fl_scratch_idx, d_latent_heat / dt, d_fl_scratch_idx);
+                pout << "L1 norm of F_scratch\t" << d_hier_cc_data_ops->L1Norm(F_scratch_idx) << "\n";
+
+                d_hier_cc_data_ops->add(F_scratch_idx, d_fl_scratch_idx, F_scratch_idx);
+                pout << "L1 norm of liquid fraction source terms\t" << d_hier_cc_data_ops->L1Norm(d_fl_scratch_idx)
+                     << "\n";
+            }
+
             d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, 1.0, F_scratch_idx, Q_rhs_scratch_idx);
         }
 
@@ -901,6 +1025,44 @@ TemperatureSemiImplicitHierarchyIntegrator::integrateHierarchy(const double curr
             // No solve needed for Q(n+1)
             d_hier_cc_data_ops->scale(Q_new_idx, dt, Q_rhs_scratch_idx);
             if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): completed solution update.\n";
+        }
+
+        // update the liquid fraction.
+        if (d_phase_change)
+        {
+            d_hier_cc_data_ops->subtract(d_fl_inverse_scratch_idx, Q_new_idx, d_fl_inverse_scratch_idx);
+            d_hier_cc_data_ops->multiply(d_fl_inverse_scratch_idx, d_dfl_dT_new_idx, d_fl_inverse_scratch_idx);
+
+            d_hier_cc_data_ops->copyData(d_fl_scratch_idx, d_fl_new_idx);
+            d_hier_cc_data_ops->add(d_fl_new_idx, d_fl_new_idx, d_fl_inverse_scratch_idx);
+
+            const int coarsest_ln = 0;
+            const int finest_ln = d_hierarchy->getFinestLevelNumber();
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    const Box<NDIM>& patch_box = patch->getBox();
+                    Pointer<CellData<NDIM, double> > fl_data = patch->getPatchData(d_fl_new_idx);
+                    for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                    {
+                        CellIndex<NDIM> ci(it());
+
+                        const double fl = (*fl_data)(ci);
+                        if (fl > 1.0)
+                            (*fl_data)(ci) = 1.0;
+                        else if (fl < 0.0)
+                            (*fl_data)(ci) = 0.0;
+                    }
+                }
+            }
+            d_hier_cc_data_ops->subtract(d_fl_scratch_idx, d_fl_scratch_idx, d_fl_new_idx);
+            // Error norms
+            pout << "L2 norm of liquid fraction correction\t" << d_hier_cc_data_ops->L2Norm(d_fl_scratch_idx) << "\n";
+            pout << "L1 norm of liquid fraction correction\t" << d_hier_cc_data_ops->L1Norm(d_fl_scratch_idx) << "\n";
+            pout << "max norm of liquid fraction correction\t" << d_hier_cc_data_ops->maxNorm(d_fl_scratch_idx) << "\n";
         }
 
         // Reset the right-hand side vector.
@@ -943,6 +1105,7 @@ TemperatureSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const 
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_C_rhs_scratch_idx);
+        if (d_phase_change) level->deallocatePatchData(d_fl_inverse_scratch_idx);
     }
 
     AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(

@@ -37,7 +37,6 @@
 namespace IBAMR
 {
 class ConvectiveOperator;
-class INSVCStaggeredHierarchyIntegrator;
 } // namespace IBAMR
 namespace SAMRAI
 {
@@ -202,8 +201,50 @@ public:
      * Register INSVCStaggeredHierarchyIntegrator class which will be
      * used to get the variables maintained by this hierarchy integrator.
      */
-    void registerINSVCStaggeredHierarchyIntegrator(
-        SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator> ins_hier_integrator);
+    //    void registerINSVCStaggeredHierarchyIntegrator(
+    //        SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator> ins_hier_integrator);
+
+    /*!
+     * \brief Function to reset the liquid fraction (fl) if they are
+     * maintained by this integrator.
+     */
+    using ResetLiquidFractionFcnPtr = void (*)(int fl_idx,
+                                               int fl_inverse_idx,
+                                               int dfl_dT_idx,
+                                               int T_idx,
+                                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                               int cycle_num,
+                                               double time,
+                                               double current_time,
+                                               double new_time,
+                                               void* ctx);
+
+    /*!
+     * \brief Register function to reset fluid viscosity.
+     */
+    void registerResetLiquidFractionFcn(ResetLiquidFractionFcnPtr callback, void* ctx);
+
+    /*!
+     * \brief Register liquid fraction variable.
+     */
+    void registerLiquidFractionVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > fl_var);
+
+    /*!
+     * \brief Get the liquid fraction variable that is being manintained by an advection-diffusion integrator.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getLiquidFractionVariable() const;
+
+    /*
+     * \brief Register boundary condition for the density field, if maintained by an advection-diffusion
+     * integrator.
+     */
+
+    void registerLiquidFractionBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* fl_bc_coef);
+
+    /*!
+     * \brief Get the liquid fraction boundary conditions.
+     */
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getLiquidFractionBoundaryConditions() const;
 
 private:
     /*!
@@ -237,8 +278,8 @@ private:
      * Interpolating the side centered density to cell-centered density
      * using bilinear interpolation.
      */
-    void interpolateSCMassDensityToCC(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                                      SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
+    //    void interpolateSCMassDensityToCC(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+    //                                      SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx);
 
     /*!
      * Additional variables required.
@@ -260,7 +301,28 @@ private:
         d_C_rhs_scratch_idx = IBTK::invalid_index, d_rho_vec_cc_current_idx = IBTK::invalid_index,
         d_rho_vec_cc_scratch_idx = IBTK::invalid_index, d_rho_vec_cc_new_idx = IBTK::invalid_index;
 
-    SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator> d_ins_hierarchy_integrator;
+    /*!
+     * Additional variables for phase change.
+     */
+    bool d_phase_change = false;
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_fl_var;
+    int d_fl_scratch_idx = IBTK::invalid_index, d_fl_current_idx = IBTK::invalid_index,
+        d_fl_new_idx = IBTK::invalid_index;
+
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_fl_bc_coef = nullptr;
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_dfl_dT_var;
+    int d_dfl_dT_scratch_idx = IBTK::invalid_index, d_dfl_dT_current_idx = IBTK::invalid_index,
+        d_dfl_dT_new_idx = IBTK::invalid_index;
+
+    double d_latent_heat = 0.0;
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_fl_inverse_var;
+    int d_fl_inverse_scratch_idx = IBTK::invalid_index;
+
+    std::vector<ResetLiquidFractionFcnPtr> d_reset_liquid_fraction_fcns;
+    std::vector<void*> d_reset_liquid_fraction_fcns_ctx;
 };
 } // namespace IBAMR
 
