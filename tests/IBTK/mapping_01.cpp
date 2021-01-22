@@ -60,37 +60,47 @@ test(LibMeshInit& init)
         TBOX_ASSERT(false);
     }
 
-    std::unique_ptr<QBase> quad = QBase::build(QGAUSS, dim, THIRD);
-    quad->init(elem_type);
-    FEType fe_type(order, fe_family);
-    std::unique_ptr<FEBase> libmesh_fe = FEBase::build(dim, fe_type);
-    libmesh_fe->attach_quadrature_rule(quad.get());
-    libmesh_fe->get_xyz();
-    libmesh_fe->get_JxW();
+    std::vector<libMesh::QuadratureType> quad_types;
+    quad_types.push_back(QGAUSS);
+    quad_types.push_back(QGRID);
+#if !LIBMESH_VERSION_LESS_THAN(1, 5, 0)
+    quad_types.push_back(QNODAL);
+#endif
 
-    const quadrature_key_type key{ elem_type, QGAUSS, THIRD, true };
-    std::unique_ptr<FEMapping<dim> > mapping =
-        FEMapping<dim>::build(key, FEUpdateFlags::update_JxW | FEUpdateFlags::update_quadrature_points);
-
-    for (auto elem_iter = mesh.active_local_elements_begin(); elem_iter != mesh.active_local_elements_end();
-         ++elem_iter)
+    for (const libMesh::QuadratureType quad_type : quad_types)
     {
-        libmesh_fe->reinit(*elem_iter);
-        mapping->reinit(*elem_iter);
+        std::unique_ptr<QBase> quad = QBase::build(quad_type, dim, THIRD);
+        quad->init(elem_type);
+        FEType fe_type(order, fe_family);
+        std::unique_ptr<FEBase> libmesh_fe = FEBase::build(dim, fe_type);
+        libmesh_fe->attach_quadrature_rule(quad.get());
+        libmesh_fe->get_xyz();
+        libmesh_fe->get_JxW();
 
-        const std::vector<double>& JxW = libmesh_fe->get_JxW();
-        const std::vector<double>& JxW_2 = mapping->getJxW();
-        for (unsigned int i = 0; i < JxW.size(); ++i)
+        const quadrature_key_type key{ elem_type, quad_type, THIRD, true };
+        std::unique_ptr<FEMapping<dim> > mapping =
+            FEMapping<dim>::build(key, FEUpdateFlags::update_JxW | FEUpdateFlags::update_quadrature_points);
+
+        for (auto elem_iter = mesh.active_local_elements_begin(); elem_iter != mesh.active_local_elements_end();
+             ++elem_iter)
         {
-            TBOX_ASSERT(std::abs(JxW[i] - JxW_2[i]) < 1e-14 * std::max(1.0, std::abs(JxW[i])));
-        }
+            libmesh_fe->reinit(*elem_iter);
+            mapping->reinit(*elem_iter);
 
-        const std::vector<libMesh::Point>& q = libmesh_fe->get_xyz();
-        const std::vector<libMesh::Point>& q_2 = mapping->getQuadraturePoints();
+            const std::vector<double>& JxW = libmesh_fe->get_JxW();
+            const std::vector<double>& JxW_2 = mapping->getJxW();
+            for (unsigned int i = 0; i < JxW.size(); ++i)
+            {
+                TBOX_ASSERT(std::abs(JxW[i] - JxW_2[i]) < 1e-14 * std::max(1.0, std::abs(JxW[i])));
+            }
 
-        for (unsigned int i = 0; i < q.size(); ++i)
-        {
-            TBOX_ASSERT(q[i].relative_fuzzy_equals(q_2[i], 1e-15));
+            const std::vector<libMesh::Point>& q = libmesh_fe->get_xyz();
+            const std::vector<libMesh::Point>& q_2 = mapping->getQuadraturePoints();
+
+            for (unsigned int i = 0; i < q.size(); ++i)
+            {
+                TBOX_ASSERT(q[i].relative_fuzzy_equals(q_2[i], 1e-14));
+            }
         }
     }
 }

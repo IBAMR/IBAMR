@@ -30,9 +30,9 @@
 #include <ibtk/libmesh_utilities.h>
 
 // Set up application namespace declarations
-#include <ibamr/app_namespaces.h>
-
 #include <boost/multi_array.hpp>
+
+#include <ibamr/app_namespaces.h>
 
 #include "../tests.h"
 
@@ -240,9 +240,9 @@ main(int argc, char** argv)
             plog << "Test " << test_n << ": TRI3 square" << std::endl;
             const key_type key(TRI3, QGAUSS, THIRD, true);
             Tri3Mapping jac_calc_1(key, FEUpdateFlags::update_JxW);
-            FELagrangeMapping<2> jac_calc_2(key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<2> jac_calc_2(key, std::get<0>(key), FEUpdateFlags::update_JxW);
             const key_type boundary_key(EDGE2, QGAUSS, THIRD, true);
-            FELagrangeMapping<1, 2> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<1, 2> jac_calc_b(boundary_key, std::get<0>(boundary_key), FEUpdateFlags::update_JxW);
             test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, key);
             ++test_n;
         }
@@ -251,9 +251,9 @@ main(int argc, char** argv)
             plog << "Test " << test_n << ": TRI3 square" << std::endl;
             const key_type key(TRI3, QGAUSS, THIRD, true);
             Tri3Mapping jac_calc_1(key, FEUpdateFlags::update_JxW);
-            FELagrangeMapping<2> jac_calc_2(key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<2> jac_calc_2(key, std::get<0>(key), FEUpdateFlags::update_JxW);
             const key_type boundary_key(EDGE2, QGAUSS, THIRD, true);
-            FELagrangeMapping<1, 2> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<1, 2> jac_calc_b(boundary_key, std::get<0>(boundary_key), FEUpdateFlags::update_JxW);
             test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, key);
             ++test_n;
         }
@@ -262,9 +262,9 @@ main(int argc, char** argv)
             plog << "Test " << test_n << ": TRI6 square" << std::endl;
             const key_type key(TRI6, QGAUSS, FIFTH, true);
             Tri6Mapping jac_calc_1(key, FEUpdateFlags::update_JxW);
-            FELagrangeMapping<2> jac_calc_2(key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<2> jac_calc_2(key, std::get<0>(key), FEUpdateFlags::update_JxW);
             const key_type boundary_key(EDGE2, QGAUSS, FIFTH, true);
-            FELagrangeMapping<1, 2> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<1, 2> jac_calc_b(boundary_key, std::get<0>(boundary_key), FEUpdateFlags::update_JxW);
             test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, key);
             ++test_n;
         }
@@ -273,9 +273,9 @@ main(int argc, char** argv)
             plog << "Test " << test_n << ": TRI6 square" << std::endl;
             const key_type key(TRI6, QGAUSS, FIFTH, true);
             Tri6Mapping jac_calc_1(key, FEUpdateFlags::update_JxW);
-            FELagrangeMapping<2> jac_calc_2(key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<2> jac_calc_2(key, std::get<0>(key), FEUpdateFlags::update_JxW);
             const key_type boundary_key(EDGE2, QGAUSS, FIFTH, true);
-            FELagrangeMapping<1, 2> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<1, 2> jac_calc_b(boundary_key, std::get<0>(boundary_key), FEUpdateFlags::update_JxW);
             test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, key);
             ++test_n;
         }
@@ -284,9 +284,9 @@ main(int argc, char** argv)
             plog << "Test " << test_n << ": Quad4 square" << std::endl;
             const key_type key(QUAD4, QGAUSS, THIRD, true);
             Quad4Mapping jac_calc_1(key, FEUpdateFlags::update_JxW);
-            FELagrangeMapping<2> jac_calc_2(key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<2> jac_calc_2(key, std::get<0>(key), FEUpdateFlags::update_JxW);
             const key_type boundary_key(EDGE2, QGAUSS, THIRD, true);
-            FELagrangeMapping<1, 2> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<1, 2> jac_calc_b(boundary_key, std::get<0>(boundary_key), FEUpdateFlags::update_JxW);
             test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, key);
             ++test_n;
         }
@@ -295,9 +295,9 @@ main(int argc, char** argv)
             plog << "Test " << test_n << ": Quad4 circle" << std::endl;
             const key_type key(QUAD4, QGAUSS, THIRD, true);
             Quad4Mapping jac_calc_1(key, FEUpdateFlags::update_JxW);
-            FELagrangeMapping<2> jac_calc_2(key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<2> jac_calc_2(key, std::get<0>(key), FEUpdateFlags::update_JxW);
             const key_type boundary_key(EDGE2, QGAUSS, THIRD, true);
-            FELagrangeMapping<1, 2> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<1, 2> jac_calc_b(boundary_key, std::get<0>(boundary_key), FEUpdateFlags::update_JxW);
             test_circle(init, jac_calc_1, jac_calc_2, jac_calc_b, 5, key);
             ++test_n;
         }
@@ -306,9 +306,9 @@ main(int argc, char** argv)
             plog << "Test " << test_n << ": Quad9 square" << std::endl;
             const key_type key(QUAD9, QGAUSS, FOURTH, true);
             Quad9Mapping jac_calc_1(key, FEUpdateFlags::update_JxW);
-            FELagrangeMapping<2> jac_calc_2(key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<2> jac_calc_2(key, std::get<0>(key), FEUpdateFlags::update_JxW);
             const key_type boundary_key(EDGE3, QGAUSS, FOURTH, true);
-            FELagrangeMapping<1, 2> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<1, 2> jac_calc_b(boundary_key, std::get<0>(boundary_key), FEUpdateFlags::update_JxW);
             test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, key);
             ++test_n;
         }
@@ -317,9 +317,9 @@ main(int argc, char** argv)
             plog << "Test " << test_n << ": Quad9 circle" << std::endl;
             const key_type key(QUAD9, QGAUSS, FOURTH, true);
             Quad9Mapping jac_calc_1(key, FEUpdateFlags::update_JxW);
-            FELagrangeMapping<2> jac_calc_2(key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<2> jac_calc_2(key, std::get<0>(key), FEUpdateFlags::update_JxW);
             const key_type boundary_key(EDGE3, QGAUSS, FOURTH, true);
-            FELagrangeMapping<1, 2> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<1, 2> jac_calc_b(boundary_key, std::get<0>(boundary_key), FEUpdateFlags::update_JxW);
             test_circle(init, jac_calc_1, jac_calc_2, jac_calc_b, 4, key);
             ++test_n;
         }
@@ -328,9 +328,9 @@ main(int argc, char** argv)
             plog << "Test " << test_n << ": TET4 cube" << std::endl;
             const key_type key(TET4, QGAUSS, THIRD, true);
             Tet4Mapping jac_calc_1(key, FEUpdateFlags::update_JxW);
-            FELagrangeMapping<3> jac_calc_2(key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<3> jac_calc_2(key, std::get<0>(key), FEUpdateFlags::update_JxW);
             const key_type boundary_key(TRI3, QGAUSS, THIRD, true);
-            FELagrangeMapping<2, 3> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<2, 3> jac_calc_b(boundary_key, std::get<0>(boundary_key), FEUpdateFlags::update_JxW);
             test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, key);
             ++test_n;
         }
@@ -339,10 +339,10 @@ main(int argc, char** argv)
             plog << "Test " << test_n << ": HEX8 square" << std::endl;
             const key_type key(HEX8, QGAUSS, THIRD, true);
             // HEX8 doesn't have a custom calculator yet
-            FELagrangeMapping<3> jac_calc_1(key, FEUpdateFlags::update_JxW);
-            FELagrangeMapping<3> jac_calc_2(key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<3> jac_calc_1(key, std::get<0>(key), FEUpdateFlags::update_JxW);
+            FELagrangeMapping<3> jac_calc_2(key, std::get<0>(key), FEUpdateFlags::update_JxW);
             const key_type boundary_key(QUAD4, QGAUSS, THIRD, true);
-            FELagrangeMapping<2, 3> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<2, 3> jac_calc_b(boundary_key, std::get<0>(boundary_key), FEUpdateFlags::update_JxW);
             test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, key);
             ++test_n;
         }
@@ -351,10 +351,10 @@ main(int argc, char** argv)
             plog << "Test " << test_n << ": HEX8 circle" << std::endl;
             const key_type key(HEX8, QGAUSS, THIRD, true);
             // HEX8 doesn't have a custom calculator yet
-            FELagrangeMapping<3> jac_calc_1(key, FEUpdateFlags::update_JxW);
-            FELagrangeMapping<3> jac_calc_2(key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<3> jac_calc_1(key, std::get<0>(key), FEUpdateFlags::update_JxW);
+            FELagrangeMapping<3> jac_calc_2(key, std::get<0>(key), FEUpdateFlags::update_JxW);
             const key_type boundary_key(QUAD4, QGAUSS, THIRD, true);
-            FELagrangeMapping<2, 3> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<2, 3> jac_calc_b(boundary_key, std::get<0>(boundary_key), FEUpdateFlags::update_JxW);
             test_circle(init, jac_calc_1, jac_calc_2, jac_calc_b, 4, key);
             ++test_n;
         }
@@ -363,10 +363,10 @@ main(int argc, char** argv)
             plog << "Test " << test_n << ": HEX27 square" << std::endl;
             const key_type key(HEX27, QGAUSS, FOURTH, true);
             // HEX27 doesn't have a custom calculator yet
-            FELagrangeMapping<3> jac_calc_1(key, FEUpdateFlags::update_JxW);
-            FELagrangeMapping<3> jac_calc_2(key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<3> jac_calc_1(key, std::get<0>(key), FEUpdateFlags::update_JxW);
+            FELagrangeMapping<3> jac_calc_2(key, std::get<0>(key), FEUpdateFlags::update_JxW);
             const key_type boundary_key(QUAD9, QGAUSS, FOURTH, true);
-            FELagrangeMapping<2, 3> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<2, 3> jac_calc_b(boundary_key, std::get<0>(boundary_key), FEUpdateFlags::update_JxW);
             test_cube(init, jac_calc_1, jac_calc_2, jac_calc_b, key);
             ++test_n;
         }
@@ -375,10 +375,10 @@ main(int argc, char** argv)
             plog << "Test " << test_n << ": HEX27 circle" << std::endl;
             const key_type key(HEX27, QGAUSS, FOURTH, true);
             // HEX27 doesn't have a custom calculator yet
-            FELagrangeMapping<3> jac_calc_1(key, FEUpdateFlags::update_JxW);
-            FELagrangeMapping<3> jac_calc_2(key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<3> jac_calc_1(key, std::get<0>(key), FEUpdateFlags::update_JxW);
+            FELagrangeMapping<3> jac_calc_2(key, std::get<0>(key), FEUpdateFlags::update_JxW);
             const key_type boundary_key(QUAD9, QGAUSS, FOURTH, true);
-            FELagrangeMapping<2, 3> jac_calc_b(boundary_key, FEUpdateFlags::update_JxW);
+            FELagrangeMapping<2, 3> jac_calc_b(boundary_key, std::get<0>(boundary_key), FEUpdateFlags::update_JxW);
             test_circle(init, jac_calc_1, jac_calc_2, jac_calc_b, 2, key);
             ++test_n;
         }
