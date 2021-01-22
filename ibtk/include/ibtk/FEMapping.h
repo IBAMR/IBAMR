@@ -220,8 +220,19 @@ public:
 
     /*!
      * Constructor.
+     *
+     * @param[in] quad_key The quadrature key (i.e., a complete description of
+     * the quadrature rule).
+     * @param[in] mapping_element_type The element type used to compute the
+     * mapping from the reference element to the physical element. This may be
+     * different from the element type in the quadrature rule - for example,
+     * one could provide TRI6 in the quadrature rule and TRI3 here.
+     * @param[in] update_flags An enum describing which values need to be
+     * computed on each element.
      */
-    FENodalMapping(const key_type quad_key, const FEUpdateFlags update_flags);
+    FENodalMapping(const key_type quad_key,
+                   const libMesh::ElemType mapping_element_type,
+                   const FEUpdateFlags update_flags);
 
     /*!
      * Recalculate relevant quantities for the provided element.
@@ -344,10 +355,21 @@ public:
      */
     using key_type = quadrature_key_type;
 
-    /**
+    /*!
      * Constructor.
+     *
+     * @param[in] quad_key The quadrature key (i.e., a complete description of
+     * the quadrature rule).
+     * @param[in] mapping_element_type The element type used to compute the
+     * mapping from the reference element to the physical element. This may be
+     * different from the element type in the quadrature rule - for example,
+     * one could provide TRI6 in the quadrature rule and TRI3 here.
+     * @param[in] update_flags An enum describing which values need to be
+     * computed on each element.
      */
-    FELagrangeMapping(const key_type quad_key, const FEUpdateFlags update_flags);
+    FELagrangeMapping(const key_type quad_key,
+                      const libMesh::ElemType mapping_element_type,
+                      const FEUpdateFlags update_flags);
 
 protected:
     virtual void fillTransforms(const libMesh::Elem* elem) override;
@@ -372,11 +394,16 @@ protected:
 class Tri3Mapping : public FENodalMapping<2, 2, 3>
 {
 public:
-    /**
-     * Explicitly use the base class' constructor (this class does not require
-     * any additional setup).
+    /*!
+     * Key type. Completely describes (excepting p-refinement) a libMesh
+     * quadrature rule.
      */
-    using FENodalMapping<2, 2, 3>::FENodalMapping;
+    using key_type = quadrature_key_type;
+
+    /*!
+     * Constructor.
+     */
+    Tri3Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
 protected:
     virtual void fillTransforms(const libMesh::Elem* elem) override;
@@ -392,11 +419,16 @@ protected:
 class Quad4Mapping : public FENodalMapping<2, 2, 4>
 {
 public:
-    /**
-     * Explicitly use the base class' constructor (this class does not require
-     * any additional setup).
+    /*!
+     * Key type. Completely describes (excepting p-refinement) a libMesh
+     * quadrature rule.
      */
-    using FENodalMapping<2, 2, 4>::FENodalMapping;
+    using key_type = quadrature_key_type;
+
+    /*!
+     * Constructor.
+     */
+    Quad4Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
 protected:
     virtual void fillTransforms(const libMesh::Elem* elem) override;
@@ -479,11 +511,16 @@ protected:
 class Tet4Mapping : public FENodalMapping<3, 3, 4>
 {
 public:
-    /**
-     * Explicitly use the base class' constructor (this class does not require
-     * any additional setup).
+    /*!
+     * Key type. Completely describes (excepting p-refinement) a libMesh
+     * quadrature rule.
      */
-    using FENodalMapping<3, 3, 4>::FENodalMapping;
+    using key_type = quadrature_key_type;
+
+    /**
+     * Constructor.
+     */
+    Tet4Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
 protected:
     virtual void fillTransforms(const libMesh::Elem* elem) override;
