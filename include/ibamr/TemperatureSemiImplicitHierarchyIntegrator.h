@@ -323,6 +323,10 @@ private:
 
     std::vector<ResetLiquidFractionFcnPtr> d_reset_liquid_fraction_fcns;
     std::vector<void*> d_reset_liquid_fraction_fcns_ctx;
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_D_cc_var;
+    int d_D_cc_scratch_idx = IBTK::invalid_index, d_D_cc_current_idx = IBTK::invalid_index,
+        d_D_cc_new_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR
 

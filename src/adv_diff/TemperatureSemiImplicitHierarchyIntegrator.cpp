@@ -404,6 +404,16 @@ TemperatureSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
         d_fl_inverse_scratch_idx = var_db->registerVariableAndContext(d_fl_inverse_var, getCurrentContext(), no_ghosts);
     }
 
+    d_D_cc_var = new CellVariable<NDIM, double>("D_cc", NDIM);
+    registerVariable(d_D_cc_current_idx,
+                     d_D_cc_new_idx,
+                     d_D_cc_scratch_idx,
+                     d_D_cc_var,
+                     cell_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE");
+    if (d_visit_writer) d_visit_writer->registerPlotQuantity(d_D_cc_var->getName(), "SCALAR", d_D_cc_current_idx);
+
     // Perform hierarchy initialization operations common to all implementations
     // of AdvDiffSemiImplicitHierarchyIntegrator.
     AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(hierarchy, gridding_alg);
@@ -754,8 +764,6 @@ TemperatureSemiImplicitHierarchyIntegrator::integrateHierarchy(const double curr
                 d_hier_cc_data_ops->scale(d_dfl_dT_scratch_idx, d_latent_heat / dt, d_dfl_dT_scratch_idx);
 
                 d_hier_cc_data_ops->add(d_C_scratch_idx, d_dfl_dT_scratch_idx, d_C_scratch_idx);
-                pout << "L1 norm of latent heat C coefficient\t" << d_hier_cc_data_ops->L1Norm(d_dfl_dT_scratch_idx)
-                     << "\n";
             }
 
             solver_spec.setCPatchDataId(d_C_scratch_idx);
@@ -807,6 +815,9 @@ TemperatureSemiImplicitHierarchyIntegrator::integrateHierarchy(const double curr
                                       new_time,
                                       d_reset_kappa_fcns_ctx[k]);
             }
+            static const bool synch_cf_interface = true;
+            d_hier_math_ops->interp(
+                d_D_cc_new_idx, d_D_cc_var, D_new_idx, D_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
         }
 
         if (isDiffusionCoefficientVariable(Q_var))
@@ -992,11 +1003,8 @@ TemperatureSemiImplicitHierarchyIntegrator::integrateHierarchy(const double curr
                 d_hier_cc_data_ops->subtract(d_fl_scratch_idx, d_fl_scratch_idx, d_fl_new_idx);
                 d_hier_cc_data_ops->multiply(d_fl_scratch_idx, rho_new_idx, d_fl_scratch_idx);
                 d_hier_cc_data_ops->scale(d_fl_scratch_idx, d_latent_heat / dt, d_fl_scratch_idx);
-                pout << "L1 norm of F_scratch\t" << d_hier_cc_data_ops->L1Norm(F_scratch_idx) << "\n";
 
                 d_hier_cc_data_ops->add(F_scratch_idx, d_fl_scratch_idx, F_scratch_idx);
-                pout << "L1 norm of liquid fraction source terms\t" << d_hier_cc_data_ops->L1Norm(d_fl_scratch_idx)
-                     << "\n";
             }
 
             d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, 1.0, F_scratch_idx, Q_rhs_scratch_idx);
