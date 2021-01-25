@@ -20,8 +20,11 @@
 
 #include <ibtk/config.h>
 
-#include <libmesh/dense_matrix.h>
 #include <libmesh/numeric_vector.h>
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include <Eigen/Core>
+IBTK_ENABLE_EXTRA_WARNINGS
 
 namespace IBTK
 {
@@ -86,7 +89,7 @@ protected:
 
     int d_n_stored_vectors = 0;
 
-    libMesh::DenseMatrix<double> d_correlation_matrix;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> d_correlation_matrix;
 
     std::vector<std::unique_ptr<libMesh::NumericVector<double> > > d_solutions;
     std::vector<std::unique_ptr<libMesh::NumericVector<double> > > d_rhs;

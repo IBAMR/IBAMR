@@ -85,7 +85,7 @@ PointMap<dim, spacedim, n_nodes>::getMappedQuadraturePoints(const libMesh::Point
     if (n_nodes != -1) TBOX_ASSERT(nodes_end - nodes == n_nodes);
     const int n_nodes_ = n_nodes == -1 ? nodes_end - nodes : n_nodes;
     TBOX_ASSERT(d_reference_q_points.size() == physical_q_points.size());
-    TBOX_ASSERT(static_cast<std::size_t>(n_nodes_) == d_phi.m());
+    TBOX_ASSERT(n_nodes_ == d_phi.rows());
     // assumes same node ordering in the input node array as is stored in d_phi
     for (unsigned int q = 0; q < d_reference_q_points.size(); ++q)
     {
