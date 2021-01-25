@@ -18,6 +18,8 @@
 
 #include <tbox/TimerManager.h>
 
+#include <Eigen/Dense>
+
 #include <ibtk/app_namespaces.h>
 
 namespace IBTK
@@ -55,8 +57,7 @@ FischerGuess::submit(const libMesh::NumericVector<double>& solution, const libMe
         d_rhs.push_back(rhs.clone());
 
         // shift the computed dot products up and to the left:
-        libMesh::DenseMatrix<double> mat_copy;
-        mat_copy = d_correlation_matrix;
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> mat_copy(d_correlation_matrix);
         for (int i = 1; i < d_n_max_vectors; ++i)
         {
             for (int j = 1; j < d_n_max_vectors; ++j)
@@ -72,8 +73,7 @@ FischerGuess::submit(const libMesh::NumericVector<double>& solution, const libMe
         d_rhs.push_back(rhs.clone());
 
         // Save the prior dot products in a different way:
-        libMesh::DenseMatrix<double> mat_copy;
-        libMesh::DenseVector<double> vec_copy;
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> mat_copy;
 
         mat_copy = d_correlation_matrix;
         d_correlation_matrix.resize(d_n_stored_vectors, d_n_stored_vectors);
@@ -105,7 +105,7 @@ FischerGuess::guess(libMesh::NumericVector<double>& solution, const libMesh::Num
     }
 
     IBTK_TIMER_START(t_guess);
-    libMesh::DenseVector<double> coef_rhs(d_n_stored_vectors);
+    Eigen::VectorXd coef_rhs(d_n_stored_vectors);
     for (int i = 0; i < d_n_stored_vectors; ++i)
     {
         coef_rhs(i) = d_rhs[i]->dot(rhs);
@@ -113,10 +113,7 @@ FischerGuess::guess(libMesh::NumericVector<double>& solution, const libMesh::Num
     // TODO - if we were especially clever we could use these dot
     // products to update d_correlation_matrix for next time.
 
-    libMesh::DenseMatrix<double> copy;
-    copy = d_correlation_matrix;
-    libMesh::DenseVector<double> coefs(d_n_stored_vectors);
-    copy.svd_solve(coef_rhs, coefs);
+    const Eigen::VectorXd coefs(d_correlation_matrix.bdcSvd(ComputeThinU | ComputeThinV).solve(coef_rhs));
 
     solution = 0.0;
     for (int i = 0; i < d_n_stored_vectors; ++i)

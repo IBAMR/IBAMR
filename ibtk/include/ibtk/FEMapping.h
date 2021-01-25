@@ -25,7 +25,6 @@
 
 #include "tbox/Utilities.h"
 
-#include <libmesh/dense_matrix.h>
 #include <libmesh/elem.h>
 #include <libmesh/enum_elem_type.h>
 #include <libmesh/enum_order.h>
@@ -35,6 +34,10 @@
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
+IBTK_ENABLE_EXTRA_WARNINGS
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include <Eigen/Core>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <array>
@@ -88,7 +91,7 @@ protected:
      * Table containing the values of 1D shape functions (which, with a tensor
      * product, define the mapping) at reference quadrature points.
      */
-    libMesh::DenseMatrix<double> d_phi;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> d_phi;
 };
 
 /*!
@@ -464,13 +467,13 @@ protected:
      * Table containing the values of 1D shape functions (which, with a tensor
      * product, define the mapping) at reference quadrature points.
      */
-    libMesh::DenseMatrix<double> d_phi;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> d_phi;
 
     /**
      * Table containing the derivatives of 1D shape functions (which, with a
      * tensor product, define the mapping) at reference quadrature points.
      */
-    libMesh::DenseMatrix<double> d_dphi;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> d_dphi;
 };
 
 /*!
