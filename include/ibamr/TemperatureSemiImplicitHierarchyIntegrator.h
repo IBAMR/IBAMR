@@ -327,6 +327,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_D_cc_var;
     int d_D_cc_scratch_idx = IBTK::invalid_index, d_D_cc_current_idx = IBTK::invalid_index,
         d_D_cc_new_idx = IBTK::invalid_index;
+
+    double d_rho_solid, d_rho_liquid, d_Cp_solid, d_Cp_liquid;
 };
 } // namespace IBAMR
 

@@ -114,6 +114,11 @@ TemperatureSemiImplicitHierarchyIntegrator::TemperatureSemiImplicitHierarchyInte
     if (input_db->keyExists("latent_heat")) d_latent_heat = input_db->getDouble("latent_heat");
     if (input_db->keyExists("phase_change")) d_phase_change = input_db->getBool("phase_change");
 
+    if (input_db->keyExists("rho_solid")) d_rho_solid = input_db->getDouble("rho_solid");
+    if (input_db->keyExists("rho_liquid")) d_rho_liquid = input_db->getDouble("rho_liquid");
+    if (input_db->keyExists("Cp_solid")) d_Cp_solid = input_db->getDouble("Cp_solid");
+    if (input_db->keyExists("Cp_liquid")) d_Cp_liquid = input_db->getDouble("Cp_liquid");
+
     return;
 } // TemperatureSemiImplicitHierarchyIntegrator
 
@@ -760,9 +765,16 @@ TemperatureSemiImplicitHierarchyIntegrator::integrateHierarchy(const double curr
 
             if (d_phase_change)
             {
-                d_hier_cc_data_ops->multiply(d_dfl_dT_scratch_idx, rho_new_idx, d_dfl_dT_new_idx);
-                d_hier_cc_data_ops->scale(d_dfl_dT_scratch_idx, d_latent_heat / dt, d_dfl_dT_scratch_idx);
+                // d_hier_cc_data_ops->multiply(d_dfl_dT_scratch_idx, rho_new_idx, d_dfl_dT_new_idx);
+                rho_scratch_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, getScratchContext());
+                rho_new_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, getNewContext());
+                d_hier_cc_data_ops->scale(rho_scratch_idx, d_latent_heat / dt, rho_new_idx);
 
+                d_hier_cc_data_ops->scale(
+                    Q_scratch_idx, (d_rho_liquid * d_Cp_liquid - d_rho_solid * d_Cp_solid) / dt, Q_new_idx);
+
+                d_hier_cc_data_ops->add(d_dfl_dT_scratch_idx, Q_scratch_idx, rho_scratch_idx);
+                d_hier_cc_data_ops->multiply(d_dfl_dT_scratch_idx, d_dfl_dT_scratch_idx, d_dfl_dT_new_idx);
                 d_hier_cc_data_ops->add(d_C_scratch_idx, d_dfl_dT_scratch_idx, d_C_scratch_idx);
             }
 
@@ -998,11 +1010,21 @@ TemperatureSemiImplicitHierarchyIntegrator::integrateHierarchy(const double curr
             // Account for source terms related to phase change.
             if (d_phase_change)
             {
+                rho_scratch_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, getScratchContext());
+                rho_new_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, getNewContext());
                 d_hier_cc_data_ops->multiply(d_fl_scratch_idx, d_dfl_dT_new_idx, d_fl_inverse_scratch_idx);
                 d_hier_cc_data_ops->add(d_fl_scratch_idx, d_fl_current_idx, d_fl_scratch_idx);
                 d_hier_cc_data_ops->subtract(d_fl_scratch_idx, d_fl_scratch_idx, d_fl_new_idx);
-                d_hier_cc_data_ops->multiply(d_fl_scratch_idx, rho_new_idx, d_fl_scratch_idx);
-                d_hier_cc_data_ops->scale(d_fl_scratch_idx, d_latent_heat / dt, d_fl_scratch_idx);
+                //                d_hier_cc_data_ops->multiply(d_fl_scratch_idx, rho_new_idx, d_fl_scratch_idx);
+                //                d_hier_cc_data_ops->scale(d_fl_scratch_idx, d_latent_heat / dt, d_fl_scratch_idx);
+
+                d_hier_cc_data_ops->scale(rho_scratch_idx, d_latent_heat / dt, rho_new_idx);
+
+                d_hier_cc_data_ops->scale(
+                    Q_scratch_idx, (d_rho_liquid * d_Cp_liquid - d_rho_solid * d_Cp_solid) / dt, Q_new_idx);
+
+                d_hier_cc_data_ops->add(d_dfl_dT_scratch_idx, Q_scratch_idx, rho_scratch_idx);
+                d_hier_cc_data_ops->multiply(d_fl_scratch_idx, d_fl_scratch_idx, d_dfl_dT_scratch_idx);
 
                 d_hier_cc_data_ops->add(F_scratch_idx, d_fl_scratch_idx, F_scratch_idx);
             }
