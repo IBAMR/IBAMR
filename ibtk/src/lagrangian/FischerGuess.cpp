@@ -113,7 +113,10 @@ FischerGuess::guess(libMesh::NumericVector<double>& solution, const libMesh::Num
     // TODO - if we were especially clever we could use these dot
     // products to update d_correlation_matrix for next time.
 
-    const Eigen::VectorXd coefs(d_correlation_matrix.bdcSvd(ComputeThinU | ComputeThinV).solve(coef_rhs));
+    // TODO - at some point in the future (if and when we require Eigen 3.3 or
+    // newer) we can use the slightly better bcdSvd algorithm here. This isn't
+    // worth worrying about yet since the SVD is O(n^3) and typically n = 5.
+    const Eigen::VectorXd coefs(d_correlation_matrix.jacobiSvd(ComputeThinU | ComputeThinV).solve(coef_rhs));
 
     solution = 0.0;
     for (int i = 0; i < d_n_stored_vectors; ++i)
