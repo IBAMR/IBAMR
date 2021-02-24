@@ -1183,10 +1183,8 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
         {
             *d_position_COM_stream[struct_no]
                 << d_FuRMoRP_current_time << '\t' << d_center_of_mass_current[struct_no][0] << '\t'
-                << d_center_of_mass_current[struct_no][1] << '\t' << d_center_of_mass_current[struct_no][2] << '\t'
-                << d_center_of_mass_unshifted_current[struct_no][0] << '\t'
-                << d_center_of_mass_unshifted_current[struct_no][1] << '\t'
-                << d_center_of_mass_unshifted_current[struct_no][2] << std::endl;
+                << d_center_of_mass_current[struct_no][1] << '\t' << d_center_of_mass_current[struct_no][2]
+                << std::endl;
         }
     }
 
