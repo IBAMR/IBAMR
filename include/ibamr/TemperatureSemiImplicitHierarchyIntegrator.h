@@ -321,6 +321,9 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_fl_inverse_var;
     int d_fl_inverse_scratch_idx = IBTK::invalid_index;
 
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_dh_var;
+    int d_dh_scratch_idx = IBTK::invalid_index;
+
     std::vector<ResetLiquidFractionFcnPtr> d_reset_liquid_fraction_fcns;
     std::vector<void*> d_reset_liquid_fraction_fcns_ctx;
 
@@ -328,7 +331,7 @@ private:
     int d_D_cc_scratch_idx = IBTK::invalid_index, d_D_cc_current_idx = IBTK::invalid_index,
         d_D_cc_new_idx = IBTK::invalid_index;
 
-    double d_rho_solid, d_rho_liquid, d_Cp_solid, d_Cp_liquid;
+    double d_rho_solid, d_rho_liquid, d_Cp_solid, d_Cp_liquid, d_T_ref;
 };
 } // namespace IBAMR
 

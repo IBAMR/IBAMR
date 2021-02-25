@@ -118,6 +118,7 @@ TemperatureSemiImplicitHierarchyIntegrator::TemperatureSemiImplicitHierarchyInte
     if (input_db->keyExists("rho_liquid")) d_rho_liquid = input_db->getDouble("rho_liquid");
     if (input_db->keyExists("Cp_solid")) d_Cp_solid = input_db->getDouble("Cp_solid");
     if (input_db->keyExists("Cp_liquid")) d_Cp_liquid = input_db->getDouble("Cp_liquid");
+    if (input_db->keyExists("T_ref")) d_T_ref = input_db->getDouble("T_ref");
 
     return;
 } // TemperatureSemiImplicitHierarchyIntegrator
@@ -407,6 +408,10 @@ TemperatureSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
 
         d_fl_inverse_var = new CellVariable<NDIM, double>("fl_inverse");
         d_fl_inverse_scratch_idx = var_db->registerVariableAndContext(d_fl_inverse_var, getCurrentContext(), no_ghosts);
+
+        d_dh_var = new CellVariable<NDIM, double>("enthalpy_change");
+        d_dh_scratch_idx = var_db->registerVariableAndContext(d_dh_var, getCurrentContext(), no_ghosts);
+        if (d_visit_writer) d_visit_writer->registerPlotQuantity(d_dh_var->getName(), "SCALAR", d_dh_scratch_idx);
     }
 
     d_D_cc_var = new CellVariable<NDIM, double>("D_cc", NDIM);
@@ -459,7 +464,11 @@ TemperatureSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const d
         level->allocatePatchData(d_scratch_data, current_time);
         level->allocatePatchData(d_new_data, new_time);
         level->allocatePatchData(d_C_rhs_scratch_idx, current_time);
-        if (d_phase_change) level->allocatePatchData(d_fl_inverse_scratch_idx, current_time);
+        if (d_phase_change)
+        {
+            level->allocatePatchData(d_fl_inverse_scratch_idx, current_time);
+            level->allocatePatchData(d_dh_scratch_idx, current_time);
+        }
     }
 
     // Update the advection velocity.
@@ -765,17 +774,14 @@ TemperatureSemiImplicitHierarchyIntegrator::integrateHierarchy(const double curr
 
             if (d_phase_change)
             {
-                // d_hier_cc_data_ops->multiply(d_dfl_dT_scratch_idx, rho_new_idx, d_dfl_dT_new_idx);
-                rho_scratch_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, getScratchContext());
-                rho_new_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, getNewContext());
-                d_hier_cc_data_ops->scale(rho_scratch_idx, d_latent_heat / dt, rho_new_idx);
+                d_hier_cc_data_ops->addScalar(d_dh_scratch_idx, Q_new_idx, -d_T_ref);
+                d_hier_cc_data_ops->scale(d_dh_scratch_idx, (d_Cp_liquid - d_Cp_solid) / dt, d_dh_scratch_idx);
+                d_hier_cc_data_ops->addScalar(d_dh_scratch_idx, d_dh_scratch_idx, d_latent_heat / dt);
 
-                d_hier_cc_data_ops->scale(
-                    Q_scratch_idx, (d_rho_liquid * d_Cp_liquid - d_rho_solid * d_Cp_solid) / dt, Q_new_idx);
-
-                d_hier_cc_data_ops->add(d_dfl_dT_scratch_idx, Q_scratch_idx, rho_scratch_idx);
-                d_hier_cc_data_ops->multiply(d_dfl_dT_scratch_idx, d_dfl_dT_scratch_idx, d_dfl_dT_new_idx);
-                d_hier_cc_data_ops->add(d_C_scratch_idx, d_dfl_dT_scratch_idx, d_C_scratch_idx);
+                d_hier_cc_data_ops->multiply(d_dh_scratch_idx, d_dh_scratch_idx, rho_new_idx);
+                d_hier_cc_data_ops->multiply(d_dh_scratch_idx, d_dh_scratch_idx, d_dfl_dT_new_idx);
+                pout << "L2 norm of d_dh_scratch_idx is\t" << d_hier_cc_data_ops->L2Norm(d_dh_scratch_idx) << "\n";
+                d_hier_cc_data_ops->add(d_C_scratch_idx, d_dh_scratch_idx, d_C_scratch_idx);
             }
 
             solver_spec.setCPatchDataId(d_C_scratch_idx);
@@ -790,7 +796,7 @@ TemperatureSemiImplicitHierarchyIntegrator::integrateHierarchy(const double curr
         {
             rho_current_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, getCurrentContext());
             Cp_current_idx = var_db->mapVariableAndContextToIndex(Cp_var, getCurrentContext());
-            d_hier_cc_data_ops->multiply(d_C_current_idx, rho_current_idx, Cp_current_idx);
+            d_hier_cc_data_ops->multiply(d_C_current_idx, rho_new_idx, Cp_new_idx);
             d_hier_cc_data_ops->scale(d_C_current_idx, 1.0 / dt, d_C_current_idx);
 
             d_hier_cc_data_ops->addScalar(d_C_rhs_scratch_idx, d_C_current_idx, -(1.0 - K) * lambda);
@@ -1010,22 +1016,18 @@ TemperatureSemiImplicitHierarchyIntegrator::integrateHierarchy(const double curr
             // Account for source terms related to phase change.
             if (d_phase_change)
             {
-                rho_scratch_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, getScratchContext());
-                rho_new_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, getNewContext());
                 d_hier_cc_data_ops->multiply(d_fl_scratch_idx, d_dfl_dT_new_idx, d_fl_inverse_scratch_idx);
                 d_hier_cc_data_ops->add(d_fl_scratch_idx, d_fl_current_idx, d_fl_scratch_idx);
                 d_hier_cc_data_ops->subtract(d_fl_scratch_idx, d_fl_scratch_idx, d_fl_new_idx);
-                //                d_hier_cc_data_ops->multiply(d_fl_scratch_idx, rho_new_idx, d_fl_scratch_idx);
-                //                d_hier_cc_data_ops->scale(d_fl_scratch_idx, d_latent_heat / dt, d_fl_scratch_idx);
 
-                d_hier_cc_data_ops->scale(rho_scratch_idx, d_latent_heat / dt, rho_new_idx);
+                d_hier_cc_data_ops->addScalar(d_dh_scratch_idx, Q_new_idx, -d_T_ref);
+                d_hier_cc_data_ops->scale(d_dh_scratch_idx, (d_Cp_liquid - d_Cp_solid) / dt, d_dh_scratch_idx);
+                d_hier_cc_data_ops->addScalar(d_dh_scratch_idx, d_dh_scratch_idx, d_latent_heat / dt);
 
-                d_hier_cc_data_ops->scale(
-                    Q_scratch_idx, (d_rho_liquid * d_Cp_liquid - d_rho_solid * d_Cp_solid) / dt, Q_new_idx);
+                d_hier_cc_data_ops->multiply(d_dh_scratch_idx, d_dh_scratch_idx, rho_new_idx);
 
-                d_hier_cc_data_ops->add(d_dfl_dT_scratch_idx, Q_scratch_idx, rho_scratch_idx);
-                d_hier_cc_data_ops->multiply(d_fl_scratch_idx, d_fl_scratch_idx, d_dfl_dT_scratch_idx);
-
+                d_hier_cc_data_ops->multiply(d_fl_scratch_idx, d_fl_scratch_idx, d_dh_scratch_idx);
+                pout << "L2 norm of d_fl_scratch_idx is\t" << d_hier_cc_data_ops->L2Norm(d_fl_scratch_idx) << "\n";
                 d_hier_cc_data_ops->add(F_scratch_idx, d_fl_scratch_idx, F_scratch_idx);
             }
 
@@ -1135,7 +1137,11 @@ TemperatureSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const 
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_C_rhs_scratch_idx);
-        if (d_phase_change) level->deallocatePatchData(d_fl_inverse_scratch_idx);
+        if (d_phase_change)
+        {
+            level->deallocatePatchData(d_fl_inverse_scratch_idx);
+            level->deallocatePatchData(d_dh_scratch_idx);
+        }
     }
 
     AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
