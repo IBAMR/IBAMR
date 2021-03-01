@@ -227,9 +227,6 @@ FEProjector::buildL2ProjectionSolver(const std::string& system_name)
         std::unique_ptr<PetscMatrix<double> > M_mat(new PetscMatrix<double>(comm));
         M_mat->attach_dof_map(dof_map);
         M_mat->init();
-        MatSetOption(M_mat->mat(), MAT_IGNORE_ZERO_ENTRIES, PETSC_TRUE);
-        MatSetOption(M_mat->mat(), MAT_SPD, PETSC_TRUE);
-        MatSetOption(M_mat->mat(), MAT_SYMMETRY_ETERNAL, PETSC_TRUE);
 
         // Loop over the mesh to construct the system matrix.
         DenseMatrix<double> M_e;
@@ -312,7 +309,12 @@ FEProjector::buildL2ProjectionSolver(const std::string& system_name)
             }
         }
 
-        // Assemble the matrix.
+        // Assemble the matrix. These options need to be set here (rather than
+        // at the top of the function) since we modify entries with MatSet to
+        // enforce constraints that aren't stored by an SPD matrix.
+        MatSetOption(M_mat->mat(), MAT_IGNORE_ZERO_ENTRIES, PETSC_TRUE);
+        MatSetOption(M_mat->mat(), MAT_SPD, PETSC_TRUE);
+        MatSetOption(M_mat->mat(), MAT_SYMMETRY_ETERNAL, PETSC_TRUE);
         M_mat->close();
 
         // Setup the solver.
@@ -459,9 +461,6 @@ FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, c
         std::unique_ptr<PetscMatrix<double> > M_mat(new PetscMatrix<double>(comm));
         M_mat->attach_dof_map(dof_map);
         M_mat->init();
-        MatSetOption(M_mat->mat(), MAT_IGNORE_ZERO_ENTRIES, PETSC_TRUE);
-        MatSetOption(M_mat->mat(), MAT_SPD, PETSC_TRUE);
-        MatSetOption(M_mat->mat(), MAT_SYMMETRY_ETERNAL, PETSC_TRUE);
 
         // Loop over the mesh to construct the system matrix.
         DenseMatrix<double> M_e;
@@ -559,7 +558,12 @@ FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, c
             }
         }
 
-        // Assemble the matrix.
+        // Assemble the matrix. These options need to be set here (rather than
+        // at the top of the function) since we modify entries with MatSet to
+        // enforce constraints that aren't stored by an SPD matrix.
+        MatSetOption(M_mat->mat(), MAT_IGNORE_ZERO_ENTRIES, PETSC_TRUE);
+        MatSetOption(M_mat->mat(), MAT_SPD, PETSC_TRUE);
+        MatSetOption(M_mat->mat(), MAT_SYMMETRY_ETERNAL, PETSC_TRUE);
         M_mat->close();
 
         // Setup the solver.
