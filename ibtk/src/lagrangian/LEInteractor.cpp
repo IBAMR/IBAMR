@@ -1,56 +1,32 @@
-// Filename: LEInteractor.cpp
-// Created on 14 Jul 2004 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include "IBTK_config.h"
 
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LData.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/LIndexSetData.h"
 #include "ibtk/LSet.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
+#include "ArrayData.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
-#include "CellIndex.h"
 #include "EdgeData.h"
 #include "EdgeGeometry.h"
 #include "Index.h"
-#include "IntVector.h"
 #include "NodeData.h"
 #include "NodeGeometry.h"
 #include "Patch.h"
@@ -60,12 +36,14 @@
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
-IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
-IBTK_ENABLE_EXTRA_WARNINGS
+#include "ibtk/app_namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <Eigen/Dense>
+IBTK_ENABLE_EXTRA_WARNINGS
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
@@ -1035,11 +1013,11 @@ perform_mls(const int stencil_sz,
             {
                 const int ic0 = stencil_lower[0] + i0;
 #if (NDIM == 2)
-                const Index<NDIM> idx(ic0, ic1);
+                const hier::Index<NDIM> idx(ic0, ic1);
                 T[i1][i0] = D[0][i0] * D[1][i1] * mask_data(idx, /*depth*/ 0);
 #elif (NDIM == 3)
-            const Index<NDIM> idx(ic0, ic1, ic2);
-            T[i2][i1][i0] = D[0][i0] * D[1][i1] * D[2][i2] * mask_data(idx, /*depth*/ 0);
+                const hier::Index<NDIM> idx(ic0, ic1, ic2);
+                T[i2][i1][i0] = D[0][i0] * D[1][i1] * D[2][i2] * mask_data(idx, /*depth*/ 0);
 #endif
             }
         }
@@ -1081,9 +1059,9 @@ perform_mls(const int stencil_sz,
                         p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : x[1]);
                         G(j, k) += p_j * p_k * T[i1][i0];
 #elif (NDIM == 3)
-                    p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
-                    p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : k == 2 ? x[1] : x[2]);
-                    G(j, k) += p_j * p_k * T[i2][i1][i0];
+                        p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
+                        p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : k == 2 ? x[1] : x[2]);
+                        G(j, k) += p_j * p_k * T[i2][i1][i0];
 #endif
                     }
                 }
@@ -1118,12 +1096,12 @@ perform_mls(const int stencil_sz,
                 }
                 Psi[i1][i0] *= T[i1][i0];
 #elif (NDIM == 3)
-            for (int j = 0; j <= 3; ++j)
-            {
-                p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
-                Psi[i2][i1][i0] += L[j] * p_j;
-            }
-            Psi[i2][i1][i0] *= T[i2][i1][i0];
+                for (int j = 0; j <= 3; ++j)
+                {
+                    p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
+                    Psi[i2][i1][i0] += L[j] * p_j;
+                }
+                Psi[i2][i1][i0] *= T[i2][i1][i0];
 #endif
             }
         }
@@ -1272,11 +1250,11 @@ interpolate_data(const int stencil_sz,
             {
                 const int ic0 = stencil_lower[0] + i0;
 #if (NDIM == 2)
-                const Index<NDIM> idx(ic0, ic1);
+                const hier::Index<NDIM> idx(ic0, ic1);
                 Q += q_data(idx, q_comp) * Psi[i1][i0];
 #elif (NDIM == 3)
-            const Index<NDIM> idx(ic0, ic1, ic2);
-            Q += q_data(idx, q_comp) * Psi[i2][i1][i0];
+                const hier::Index<NDIM> idx(ic0, ic1, ic2);
+                Q += q_data(idx, q_comp) * Psi[i2][i1][i0];
 #endif
             }
         }
@@ -1321,11 +1299,11 @@ spread_data(const int stencil_sz,
             {
                 const int ic0 = stencil_lower[0] + i0;
 #if (NDIM == 2)
-                const Index<NDIM> idx(ic0, ic1);
+                const hier::Index<NDIM> idx(ic0, ic1);
                 q_data(idx, q_comp) += Q * Psi[i1][i0] * fac;
 #elif (NDIM == 3)
-            const Index<NDIM> idx(ic0, ic1, ic2);
-            q_data(idx, q_comp) += Q * Psi[i2][i1][i0] * fac;
+                const hier::Index<NDIM> idx(ic0, ic1, ic2);
+                q_data(idx, q_comp) += Q * Psi[i2][i1][i0] * fac;
 #endif
             }
         }
@@ -4673,8 +4651,8 @@ LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
     periodic_shifts.reserve(NDIM * upper_bound);
 
     const Box<NDIM>& patch_box = patch->getBox();
-    const Index<NDIM>& ilower = patch_box.lower();
-    const Index<NDIM>& iupper = patch_box.upper();
+    const hier::Index<NDIM>& ilower = patch_box.lower();
+    const hier::Index<NDIM>& iupper = patch_box.upper();
     const Box<NDIM>& ghost_box = idx_data->getGhostBox();
 
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -4700,7 +4678,7 @@ LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
     {
         for (typename LIndexSetData<T>::SetIterator it(*idx_data); it; it++)
         {
-            const Index<NDIM>& i = it.getIndex();
+            const hier::Index<NDIM>& i = it.getIndex();
             if (!box.contains(i)) continue;
 
             std::array<int, NDIM> offset;
@@ -4754,7 +4732,7 @@ LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
     for (int k = 0; k < X_size / X_depth; ++k)
     {
         const double* const X = &X_data[NDIM * k];
-        const Index<NDIM> i = IndexUtilities::getCellIndex(X, patch_geom, patch_box);
+        const hier::Index<NDIM> i = IndexUtilities::getCellIndex(X, patch_geom, patch_box);
         if (box.contains(i)) local_indices.push_back(k);
     }
     return;

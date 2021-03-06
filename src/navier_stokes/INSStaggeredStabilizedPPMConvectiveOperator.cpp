@@ -1,45 +1,23 @@
-// Filename: INSStaggeredStabilizedPPMConvectiveOperator.cpp
-// Created on 07 Sep 2012 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include "IBAMR_config.h"
 
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSStaggeredStabilizedPPMConvectiveOperator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/ibtk_utilities.h"
@@ -78,6 +56,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {
@@ -509,9 +489,11 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
         if (input_db->keyExists("stabilization_type")) d_stabilization_type = input_db->getString("stabilization_type");
         if (d_stabilization_type != "UPWIND" && d_stabilization_type != "VISCOUS_ONLY")
         {
-            TBOX_ERROR("INSStaggeredStabilizedPPMConvectiveOperator: unrecognized value for stabilization_type, "
-                       << d_stabilization_type << "\n"
-                       << "  recognized choices are UPWIND, VISCOUS_ONLY\n");
+            TBOX_ERROR(
+                "INSStaggeredStabilizedPPMConvectiveOperator: unrecognized "
+                "value for stabilization_type, "
+                << d_stabilization_type << "\n"
+                << "  recognized choices are UPWIND, VISCOUS_ONLY\n");
         }
         if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
         for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
@@ -545,13 +527,16 @@ INSStaggeredStabilizedPPMConvectiveOperator::INSStaggeredStabilizedPPMConvective
 
     // Setup Timers.
     IBAMR_DO_ONCE(
-        t_apply_convective_operator = TimerManager::getManager()->getTimer(
-            "IBAMR::INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator()");
+        t_apply_convective_operator =
+            TimerManager::getManager()->getTimer("IBAMR::INSStaggeredStabilizedPPMConvectiveOperator::"
+                                                 "applyConvectiveOperator()");
         t_apply = TimerManager::getManager()->getTimer("IBAMR::INSStaggeredStabilizedPPMConvectiveOperator::apply()");
-        t_initialize_operator_state = TimerManager::getManager()->getTimer(
-            "IBAMR::INSStaggeredStabilizedPPMConvectiveOperator::initializeOperatorState()");
-        t_deallocate_operator_state = TimerManager::getManager()->getTimer(
-            "IBAMR::INSStaggeredStabilizedPPMConvectiveOperator::deallocateOperatorState()"););
+        t_initialize_operator_state =
+            TimerManager::getManager()->getTimer("IBAMR::INSStaggeredStabilizedPPMConvectiveOperator::"
+                                                 "initializeOperatorState()");
+        t_deallocate_operator_state =
+            TimerManager::getManager()->getTimer("IBAMR::INSStaggeredStabilizedPPMConvectiveOperator::"
+                                                 "deallocateOperatorState()"););
     return;
 } // INSStaggeredStabilizedPPMConvectiveOperator
 
@@ -568,8 +553,11 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
 #if !defined(NDEBUG)
     if (!d_is_initialized)
     {
-        TBOX_ERROR("INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  operator must be initialized prior to call to applyConvectiveOperator\n");
+        TBOX_ERROR(
+            "INSStaggeredStabilizedPPMConvectiveOperator::"
+            "applyConvectiveOperator():\n"
+            << "  operator must be initialized prior to call to "
+               "applyConvectiveOperator\n");
     }
     TBOX_ASSERT(U_idx == d_u_idx);
 #endif
@@ -731,8 +719,9 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
                             const double u_ADV = (*U_adv_data[axis])(i);
                             const double U_lower = U_array_data(i.toCell(0), 0);
                             const double U_upper = U_array_data(i.toCell(1), 0);
-                            (*U_half_upwind_data[axis])(i) =
-                                (u_ADV > 1.0e-8) ? U_lower : (u_ADV < 1.0e-8) ? U_upper : 0.5 * (U_lower + U_upper);
+                            (*U_half_upwind_data[axis])(i) = (u_ADV > 1.0e-8) ? U_lower :
+                                                             (u_ADV < 1.0e-8) ? U_upper :
+                                                                                0.5 * (U_lower + U_upper);
                         }
                     }
                 }
@@ -1176,11 +1165,13 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
                     break;
                 default:
                     TBOX_ERROR(
-                        "INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator("
+                        "INSStaggeredStabilizedPPMConvectiveOperator::"
+                        "applyConvectiveOperator("
                         "):\n"
                         << "  unsupported differencing form: "
                         << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
-                        << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+                        << "  valid choices are: ADVECTIVE, CONSERVATIVE, "
+                           "SKEW_SYMMETRIC\n");
                 }
             }
 
@@ -1197,9 +1188,11 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
             }
             else
             {
-                TBOX_ERROR("INSStaggeredStabilizedPPMConvectiveOperator: unrecognized value for stabilization_type, "
-                           << d_stabilization_type << "\n"
-                           << "  recognized choices are UPWIND, VISCOUS_ONLY\n");
+                TBOX_ERROR(
+                    "INSStaggeredStabilizedPPMConvectiveOperator: unrecognized "
+                    "value for stabilization_type, "
+                    << d_stabilization_type << "\n"
+                    << "  recognized choices are UPWIND, VISCOUS_ONLY\n");
             }
             if (patch_geom->getTouchesRegularBoundary())
             {
@@ -1228,7 +1221,7 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
                             }
                             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(bdry_box * patch_box, d)); b; b++)
                             {
-                                const Index<NDIM>& i = b();
+                                const hier::Index<NDIM>& i = b();
                                 const SideIndex<NDIM> i_s(i, d, SideIndex<NDIM>::Lower);
                                 const double x =
                                     x_lower[axis] + dx[axis] * static_cast<double>(i(axis) - patch_box.lower(axis));

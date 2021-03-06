@@ -1,41 +1,49 @@
-// Filename: NonbondedForceEvaluator.cpp
-// Created by Steven DeLong
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Steven DeLong and Boyce Griffith
+// Copyright (c) 2015 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/NonbondedForceEvaluator.h"
-#include "ibamr/namespaces.h"
 
+#include "ibtk/LData.h"
+#include "ibtk/LDataManager.h"
+#include "ibtk/LIndexSetData.h"
+#include "ibtk/LNode.h"
+#include "ibtk/LNodeSet.h"
 #include "ibtk/LNodeSetData.h"
+#include "ibtk/LSetData.h"
+
+#include "Box.h"
+#include "CartesianPatchGeometry.h"
+#include "CellIndex.h"
+#include "CellIterator.h"
+#include "Index.h"
+#include "Patch.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "tbox/Database.h"
+#include "tbox/Utilities.h"
+
+#include "petscvec.h"
+#include <petscsys.h>
+
+#include <assert.h>
+
+#include <algorithm>
+#include <cmath>
+#include <string>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -152,7 +160,7 @@ NonbondedForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
     const double* const x_upper = grid_geom->getXUpper();
 
     // we will grow the search box by interaction_radius + 2.0*regrid_alpha
-    IntVector<NDIM> grow_amount(int(ceil(d_interaction_radius + 2.0 * d_regrid_alpha)));
+    IntVector<NDIM> grow_amount(static_cast<int>(ceil(d_interaction_radius + 2.0 * d_regrid_alpha)));
     const int lag_node_idx_current_idx = l_data_manager->getLNodePatchDescriptorIndex();
 
     // iterate through levels.
@@ -172,7 +180,7 @@ NonbondedForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
         for (LNodeSetData::CellIterator cit(patch_box); cit; cit++)
         {
             // get list of particles in this cell
-            const Index<NDIM>& first_cell_idx = *cit;
+            const hier::Index<NDIM>& first_cell_idx = *cit;
             LNodeSet* const mstr_node_set = current_idx_data->getItem(first_cell_idx);
             if (mstr_node_set)
             {
@@ -185,7 +193,7 @@ NonbondedForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
                     // forces onto the particle in the "master" cell At this
                     // point we know both cells, need to figure out periodic
                     // additions.
-                    const Index<NDIM>& search_cell_idx = *scit;
+                    const hier::Index<NDIM>& search_cell_idx = *scit;
 
                     // search across periodic boundaries.
                     for (int k = 0; k < NDIM; ++k)

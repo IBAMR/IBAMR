@@ -1,36 +1,17 @@
-// Copyright (c) 2002-2014, Amneet Bhalla and Nishant Nangia
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2018 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 // Config files
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
-
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -51,6 +32,8 @@
 #include <ibamr/app_namespaces.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
@@ -58,6 +41,7 @@
 #include "LSLocateCircularInterface.h"
 #include "SetFluidProperties.h"
 #include "SetLSProperties.h"
+#include "TagLSRefinementCells.h"
 #include "VelocityInitialCondition.h"
 
 // Function prototypes
@@ -78,14 +62,11 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-bool
-run_example(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     // Increase maximum patch data component indices
     SAMRAIManager::setMaxNumberPatchDataEntries(2500);
@@ -204,6 +185,14 @@ run_example(int argc, char* argv[])
         adv_diff_integrator->registerResetFunction(
             phi_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
 
+        // LS initial conditions
+        if (input_db->keyExists("LevelSetInitialConditions"))
+        {
+            Pointer<CartGridFunction> phi_init = new muParserCartGridFunction(
+                "phi_init", app_initializer->getComponentDatabase("LevelSetInitialConditions"), grid_geometry);
+            adv_diff_integrator->setInitialConditions(phi_var, phi_init);
+        }
+
         // Setup the INS maintained material properties.
         Pointer<Variable<NDIM> > rho_var;
         if (conservative_form)
@@ -245,6 +234,15 @@ run_example(int argc, char* argv[])
                                                       static_cast<void*>(ptr_SetFluidProperties));
         time_integrator->registerResetFluidViscosityFcn(&callSetFluidViscosityCallbackFunction,
                                                         static_cast<void*>(ptr_SetFluidProperties));
+
+        // Register callback function for tagging refined cells for level set data
+        const double tag_thresh = input_db->getDouble("LS_TAG_THRESH");
+        TagLSRefinementCells ls_tagger;
+        ls_tagger.d_ls_gas_var = phi_var;
+        ls_tagger.d_tag_thresh = tag_thresh;
+        ls_tagger.d_adv_diff_solver = adv_diff_integrator;
+        time_integrator->registerApplyGradientDetectorCallback(&callTagLSRefinementCellsCallbackFunction,
+                                                               static_cast<void*>(&ls_tagger));
 
         // Create Eulerian initial condition specification objects.
         Pointer<CartGridFunction> u_init =
@@ -374,7 +372,7 @@ run_example(int argc, char* argv[])
             const double mass_fluid = hier_rho_data_ops.integral(rho_ins_idx, wgt_sc_idx);
 
             // Write to file
-            if (!SAMRAI_MPI::getRank())
+            if (!IBTK_MPI::getRank())
             {
                 mass_file << std::setprecision(13) << loop_time << "\t" << mass_fluid << std::endl;
             }
@@ -419,11 +417,7 @@ run_example(int argc, char* argv[])
         delete ptr_LSLocateCircularInterface;
 
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
-    PetscFinalize();
-    return true;
-} // run_example
+} // main
 
 void
 output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
@@ -438,7 +432,7 @@ output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     // Write Cartesian data.
     string file_name = data_dump_dirname + "/" + "hier_data.";
     char temp_buf[128];
-    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
+    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, IBTK_MPI::getRank());
     file_name += temp_buf;
     Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
     hier_db->create(file_name);

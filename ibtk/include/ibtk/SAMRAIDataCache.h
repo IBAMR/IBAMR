@@ -1,40 +1,28 @@
-// Filename: SAMRAIDataCache.h
-// Created on 23 Apr 2019 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2019, Boyce Griffith
+// Copyright (c) 2019 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
+
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBTK_SAMRAIDataCache
 #define included_IBTK_SAMRAIDataCache
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/config.h>
+
+#include <ibtk/ibtk_utilities.h>
+
+#include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
@@ -42,6 +30,7 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <string>
 #include <tuple>
 #include <typeindex>
 
@@ -79,6 +68,16 @@ public:
      * @param[in]  finest_ln    The finest level number
      */
     void resetLevels(int coarsest_ln, int finest_ln);
+
+    /**
+     * Return the coarsest patch level for which scratch data is allocated.
+     */
+    int getCoarsestLevelNumber() const;
+
+    /**
+     * Return the finest patch level for which scratch data is allocated.
+     */
+    int getFinestLevelNumber() const;
 
     //\}
 
@@ -175,9 +174,14 @@ private:
     /// \brief Disable the assignment operator.
     SAMRAIDataCache& operator=(const SAMRAIDataCache& that) = delete;
 
-    /// \brief The patch hierarchy and range of levels to use in allocating/deallocating patch data.
+    /// \brief The patch hierarchy under consideration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln, d_finest_ln;
+
+    /// Coarsest level of allocated patch data.
+    int d_coarsest_ln = IBTK::invalid_level_number;
+
+    /// Coarsest level of allocated patch data.
+    int d_finest_ln = IBTK::invalid_level_number;
 
     /// \brief Key type for looking up cached data.
     using key_type = std::tuple<std::type_index, /*data_depth*/ int, /*ghost_cell_width*/ int>;

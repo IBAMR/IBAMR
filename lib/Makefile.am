@@ -1,3 +1,16 @@
+## ---------------------------------------------------------------------
+##
+## Copyright (c) 2009 - 2021 by the IBAMR developers
+## All rights reserved.
+##
+## This file is part of IBAMR.
+##
+## IBAMR is free software and is distributed under the 3-clause BSD
+## license. The full text of the license can be found in the file
+## COPYRIGHT at the top level directory of IBAMR.
+##
+## ---------------------------------------------------------------------
+
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
 
@@ -20,18 +33,9 @@ clean-local:
 	rm -f $(PWD)/../src/libIBAMR3d.a
 
 ## Dimension-independent library
-libIBAMR_a_SOURCES = \
-$(top_builddir)/src/advect/fortran/advect_helpers.f \
-../src/navier_stokes/StokesSpecifications.cpp \
-../src/utilities/RNG.cpp
-
-if LIBMESH_ENABLED
-  libIBAMR_a_SOURCES +=
-endif
+libIBAMR_a_SOURCES = ../src/dummy.cpp
 
 pkg_include_HEADERS = \
-../include/ibamr/RNG.h \
-../include/ibamr/StokesSpecifications.h \
 ../include/ibamr/app_namespaces.h \
 ../include/ibamr/ibamr_enums.h \
 ../include/ibamr/ibamr_utilities.h \
@@ -43,6 +47,7 @@ endif
 
 ## Dimension-dependent libraries
 DIM_INDEPENDENT_SOURCES = \
+../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 ../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 ../src/IB/BrinkmanPenalizationStrategy.cpp \
 ../src/IB/CIBMethod.cpp \
@@ -68,10 +73,13 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/IBInstrumentPanel.cpp \
 ../src/IB/IBInstrumentationSpec.cpp \
 ../src/IB/IBInstrumentationSpecFactory.cpp \
+../src/IB/IBInterpolantHierarchyIntegrator.cpp \
+../src/IB/IBInterpolantMethod.cpp \
 ../src/IB/IBKirchhoffRodForceGen.cpp \
 ../src/IB/IBLagrangianForceStrategy.cpp \
 ../src/IB/IBLagrangianForceStrategySet.cpp \
 ../src/IB/IBLagrangianSourceStrategy.cpp \
+../src/IB/IBLevelSetMethod.cpp \
 ../src/IB/IBMethod.cpp \
 ../src/IB/IBRedundantInitializer.cpp \
 ../src/IB/IBRodForceSpec.cpp \
@@ -107,8 +115,15 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.cpp \
 ../src/adv_diff/AdvDiffStochasticForcing.cpp \
 ../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp \
+../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp \
 ../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 ../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
+../src/complex_fluids/CFUpperConvectiveOperator.cpp \
+../src/complex_fluids/CFRelaxationOperator.cpp \
+../src/complex_fluids/CFGiesekusRelaxation.cpp \
+../src/complex_fluids/CFOldroydBRelaxation.cpp \
+../src/complex_fluids/CFRoliePolyRelaxation.cpp \
+../src/complex_fluids/CFINSForcing.cpp \
 ../src/level_set/FastSweepingLSMethod.cpp \
 ../src/level_set/LSInitStrategy.cpp \
 ../src/level_set/RelaxationLSBcCoefs.cpp \
@@ -157,14 +172,27 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/StaggeredStokesSolver.cpp \
 ../src/navier_stokes/StaggeredStokesSolverManager.cpp \
 ../src/navier_stokes/StokesBcCoefStrategy.cpp \
+../src/navier_stokes/StokesSpecifications.cpp \
 ../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 ../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 ../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
-../src/utilities/ConvectiveOperator.cpp
+../src/utilities/ConvectiveOperator.cpp \
+../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
+../src/wave_generation/FirstOrderStokesWaveGenerator.cpp \
+../src/wave_generation/IrregularWaveBcCoef.cpp \
+../src/wave_generation/IrregularWaveGenerator.cpp \
+../src/wave_generation/StokesFifthOrderWaveBcCoef.cpp \
+../src/wave_generation/StokesFirstOrderWaveBcCoef.cpp \
+../src/wave_generation/StokesSecondOrderWaveBcCoef.cpp \
+../src/wave_generation/StokesWaveGeneratorStrategy.cpp \
+../src/wave_generation/WaveDampingFunctions.cpp \
+../src/wave_generation/WaveGenerationFunctions.cpp \
+../src/utilities/RNG.cpp
 
 if LIBMESH_ENABLED
   DIM_INDEPENDENT_SOURCES += \
-  ../src/IB/CIBFEMethod.cpp \
+  ../src/IB/FEMechanicsBase.cpp \
+  ../src/IB/FEMechanicsExplicitIntegrator.cpp \
   ../src/IB/IBFECentroidPostProcessor.cpp \
   ../src/IB/IBFEDirectForcingKinematics.cpp \
   ../src/IB/IBFEInstrumentPanel.cpp \
@@ -174,7 +202,8 @@ if LIBMESH_ENABLED
   ../src/IB/IMPInitializer.cpp \
   ../src/IB/IMPMethod.cpp \
   ../src/IB/MaterialPointSpec.cpp \
-  ../src/IB/MaterialPointSpecFactory.cpp
+  ../src/IB/MaterialPointSpecFactory.cpp \
+  ../src/level_set/FESurfaceDistanceEvaluator.cpp
 endif
 
 pkg_include_HEADERS += \
@@ -190,6 +219,8 @@ pkg_include_HEADERS += \
 ../include/ibamr/AdvDiffStochasticForcing.h \
 ../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 ../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+../include/ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h \
+../include/ibamr/BrinkmanAdvDiffBcHelper.h \
 ../include/ibamr/BrinkmanPenalizationStrategy.h \
 ../include/ibamr/BrinkmanPenalizationRigidBodyDynamics.h \
 ../include/ibamr/CIBMethod.h \
@@ -204,6 +235,8 @@ pkg_include_HEADERS += \
 ../include/ibamr/GeneralizedIBMethod.h \
 ../include/ibamr/DirectMobilitySolver.h \
 ../include/ibamr/FastSweepingLSMethod.h \
+../include/ibamr/FifthOrderStokesWaveGenerator.h \
+../include/ibamr/FirstOrderStokesWaveGenerator.h \
 ../include/ibamr/IBAnchorPointSpec.h \
 ../include/ibamr/IBBeamForceSpec.h \
 ../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -213,10 +246,13 @@ pkg_include_HEADERS += \
 ../include/ibamr/IBImplicitStrategy.h \
 ../include/ibamr/IBInstrumentPanel.h \
 ../include/ibamr/IBInstrumentationSpec.h \
+../include/ibamr/IBInterpolantHierarchyIntegrator.h \
+../include/ibamr/IBInterpolantMethod.h \
 ../include/ibamr/IBKirchhoffRodForceGen.h \
 ../include/ibamr/IBLagrangianForceStrategy.h \
 ../include/ibamr/IBLagrangianForceStrategySet.h \
 ../include/ibamr/IBLagrangianSourceStrategy.h \
+../include/ibamr/IBLevelSetMethod.h \
 ../include/ibamr/IBMethod.h \
 ../include/ibamr/IBMethodPostProcessStrategy.h \
 ../include/ibamr/IBRedundantInitializer.h \
@@ -255,6 +291,8 @@ pkg_include_HEADERS += \
 ../include/ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h \
 ../include/ibamr/INSVCStaggeredPressureBcCoef.h \
 ../include/ibamr/INSVCStaggeredVelocityBcCoef.h \
+../include/ibamr/IrregularWaveBcCoef.h \
+../include/ibamr/IrregularWaveGenerator.h \
 ../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 ../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 ../include/ibamr/KrylovMobilitySolver.h \
@@ -282,16 +320,26 @@ pkg_include_HEADERS += \
 ../include/ibamr/StaggeredStokesSolver.h \
 ../include/ibamr/StaggeredStokesSolverManager.h \
 ../include/ibamr/StokesBcCoefStrategy.h \
+../include/ibamr/StokesFifthOrderWaveBcCoef.h \
+../include/ibamr/StokesFirstOrderWaveBcCoef.h \
+../include/ibamr/StokesSecondOrderWaveBcCoef.h \
 ../include/ibamr/StokesSpecifications.h \
+../include/ibamr/StokesSpecifications.h \
+../include/ibamr/StokesWaveGeneratorStrategy.h \
 ../include/ibamr/SurfaceTensionForceFunction.h \
 ../include/ibamr/VCStaggeredStokesOperator.h \
 ../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
 ../include/ibamr/Wall.h \
-../include/ibamr/WallForceEvaluator.h
+../include/ibamr/WallForceEvaluator.h \
+../include/ibamr/WaveDampingFunctions.h \
+../include/ibamr/WaveGenerationFunctions.h \
+../include/ibamr/RNG.h
 
 if LIBMESH_ENABLED
   pkg_include_HEADERS += \
-  ../include/ibamr/CIBFEMethod.h \
+  ../include/ibamr/FEMechanicsBase.h \
+  ../include/ibamr/FEMechanicsExplicitIntegrator.h \
+  ../include/ibamr/FESurfaceDistanceEvaluator.h \
   ../include/ibamr/IBFECentroidPostProcessor.h \
   ../include/ibamr/IBFEDirectForcingKinematics.h \
   ../include/ibamr/IBFEInstrumentPanel.h \
@@ -312,8 +360,13 @@ $(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op2d.f \
 $(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f \
 $(top_builddir)/src/advect/fortran/advect_detect2d.f \
 $(top_builddir)/src/advect/fortran/advect_diff2d.f \
+$(top_builddir)/src/advect/fortran/advect_helpers2d.f \
 $(top_builddir)/src/advect/fortran/advect_stable2d.f \
 $(top_builddir)/src/advect/fortran/advect_predictors2d.f \
+$(top_builddir)/src/complex_fluids/fortran/div_tensor2d.f \
+$(top_builddir)/src/complex_fluids/fortran/log_upper_convective_op2d.f \
+$(top_builddir)/src/complex_fluids/fortran/sqrt_upper_convective_op2d.f \
+$(top_builddir)/src/complex_fluids/fortran/upper_convective_op2d.f \
 $(top_builddir)/src/level_set/fortran/levelsetops2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop2d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource2d.f \
@@ -331,8 +384,13 @@ $(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op3d.f \
 $(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f \
 $(top_builddir)/src/advect/fortran/advect_detect3d.f \
 $(top_builddir)/src/advect/fortran/advect_diff3d.f \
+$(top_builddir)/src/advect/fortran/advect_helpers3d.f \
 $(top_builddir)/src/advect/fortran/advect_stable3d.f \
 $(top_builddir)/src/advect/fortran/advect_predictors3d.f \
+$(top_builddir)/src/complex_fluids/fortran/div_tensor3d.f \
+$(top_builddir)/src/complex_fluids/fortran/log_upper_convective_op3d.f \
+$(top_builddir)/src/complex_fluids/fortran/sqrt_upper_convective_op3d.f \
+$(top_builddir)/src/complex_fluids/fortran/upper_convective_op3d.f \
 $(top_builddir)/src/level_set/fortran/levelsetops3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_bdryop3d.f \
 $(top_builddir)/src/navier_stokes/fortran/navier_stokes_divsource3d.f \

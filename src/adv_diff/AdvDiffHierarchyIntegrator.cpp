@@ -1,43 +1,21 @@
-// Filename: AdvDiffHierarchyIntegrator.cpp
-// Created on 21 May 2012 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith, Amneet Bhalla and Nishant Nangia
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include "IBAMR_config.h"
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonSolverManager.h"
@@ -46,6 +24,7 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LaplaceOperator.h"
 #include "ibtk/PoissonSolver.h"
 
@@ -78,7 +57,6 @@
 #include "VariableDatabase.h"
 #include "VisItDataWriter.h"
 #include "tbox/Database.h"
-#include "tbox/MathUtilities.h"
 #include "tbox/MemoryDatabase.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
@@ -86,14 +64,16 @@
 #include "tbox/Utilities.h"
 
 #include <algorithm>
-#include <deque>
 #include <iterator>
 #include <limits>
 #include <map>
 #include <ostream>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {
@@ -302,9 +282,8 @@ AdvDiffHierarchyIntegrator::setSourceTermFunction(Pointer<CellVariable<NDIM, dou
         {
             pout << d_object_name << "::setSourceTermFunction(): WARNING:\n"
                  << "  source term function for source term variable " << F_var_name << " has already been set.\n"
-                 << "  functions will be evaluated in the order in which they were registered "
-                    "with "
-                    "the solver\n"
+                 << "  functions will be evaluated in the order in which they were "
+                    "registered with the solver\n"
                  << "  when evaluating the source term value.\n";
             p_F_fcn = new CartGridFunctionSet(d_object_name + "::" + F_var_name + "::source_function_set");
             p_F_fcn->addFunction(d_F_fcn[F_var]);
@@ -460,8 +439,8 @@ AdvDiffHierarchyIntegrator::setDiffusionCoefficient(Pointer<CellVariable<NDIM, d
              << "::setDiffusionCoefficient(Pointer<CellVariable<NDIM,double> > "
                 "Q_var, const double kappa): WARNING: \n"
              << "   a variable diffusion coefficient for the variable " << Q_var_name << " has already been set.\n"
-             << "   this variable coefficient will be overriden by the constant diffusion "
-                "coefficient "
+             << "   this variable coefficient will be overriden by the constant "
+                "diffusion coefficient "
              << "kappa = " << kappa << "\n";
         // erase entries from maps with key D_var
         d_diffusion_coef_fcn.erase(D_var);
@@ -518,9 +497,11 @@ AdvDiffHierarchyIntegrator::setDiffusionCoefficientFunction(Pointer<SideVariable
         if (!p_D_fcn)
         {
             pout << d_object_name << "::setDiffusionCoefficientFunction(): WARNING:\n"
-                 << "  diffusion coefficient function for diffusion coefficient variable " << D_var_name
-                 << " has already been set.\n"
-                 << "  functions will be evaluated in the order in which they were registered "
+                 << "  diffusion coefficient function for diffusion coefficient "
+                    "variable "
+                 << D_var_name << " has already been set.\n"
+                 << "  functions will be evaluated in the order in which they were "
+                    "registered "
                     "with "
                     "the solver\n"
                  << "  when evaluating the source term value.\n";
@@ -746,8 +727,8 @@ AdvDiffHierarchyIntegrator::getHelmholtzRHSOperator(Pointer<CellVariable<NDIM, d
     if (!d_helmholtz_rhs_ops[l])
     {
         const std::string& name = Q_var->getName();
-        d_helmholtz_rhs_ops[l] =
-            new CCLaplaceOperator(d_object_name + "::helmholtz_rhs_op::" + name, /*homogeneous_bc*/ false);
+        d_helmholtz_rhs_ops[l] = new CCLaplaceOperator(d_object_name + "::helmholtz_rhs_op::" + name,
+                                                       /*homogeneous_bc*/ false);
         d_helmholtz_rhs_ops_need_init[l] = true;
     }
     return d_helmholtz_rhs_ops[l];
@@ -851,7 +832,8 @@ AdvDiffHierarchyIntegrator::preprocessIntegrateHierarchy(double current_time, do
     const bool initial_time = false;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    // Build the priority mapping, which determines which variables are reset first
+    // Build the priority mapping, which determines which variables are reset
+    // first
     std::multimap<int, Pointer<CellVariable<NDIM, double> > > priority_Q_map;
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
@@ -955,8 +937,8 @@ AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            const Index<NDIM>& ilower = patch_box.lower();
-            const Index<NDIM>& iupper = patch_box.upper();
+            const hier::Index<NDIM>& ilower = patch_box.lower();
+            const hier::Index<NDIM>& iupper = patch_box.upper();
             const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
             for (const auto& u_var : d_u_var)
@@ -996,7 +978,7 @@ AdvDiffHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
             }
         }
     }
-    return dt;
+    return IBTK_MPI::minReduction(dt);
 } // getMaximumTimeStepSizeSpecialized
 
 void
@@ -1004,7 +986,8 @@ AdvDiffHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double i
 {
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    // Build the priority mapping, which determines which variables are reset first
+    // Build the priority mapping, which determines which variables are reset
+    // first
     std::multimap<int, Pointer<CellVariable<NDIM, double> > > priority_Q_map;
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)

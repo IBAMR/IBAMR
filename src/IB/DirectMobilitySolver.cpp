@@ -1,54 +1,55 @@
-// Filename: DirectMobilitySolver.cpp
-// Created on 20 Feb 2015 by Amneet Bhalla and Bakytzhan Kallemov
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Amneet Bhalla and Boyce Griffith
+// Copyright (c) 2015 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/DirectMobilitySolver.h"
 #include "ibamr/StokesSpecifications.h"
+#include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h"
 
-#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "CartesianGridGeometry.h"
+#include "IntVector.h"
 #include "PatchHierarchy.h"
-#include "petsc/private/petscimpl.h"
+#include "PatchLevel.h"
+#include "SAMRAIVectorReal.h"
+#include "tbox/Database.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
+#include "tbox/Utilities.h"
+
+#include "petscmat.h"
+#include "petscvec.h"
+#include "petscviewer.h"
+#include "petscviewertypes.h"
 
 #include <algorithm>
 #include <cmath>
+#include <map>
+#include <ostream>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 extern "C"
 {
@@ -224,7 +225,7 @@ DirectMobilitySolver::registerMobilityMat(const std::string& mat_name,
     // Allocate the actual matrices.
     const int mobility_mat_size = num_nodes * NDIM;
     const int body_mobility_mat_size = d_mat_parts_map[mat_name] * s_max_free_dofs;
-    const int rank = SAMRAI_MPI::getRank();
+    const int rank = IBTK_MPI::getRank();
 
     if (rank == managing_proc)
     {
@@ -322,7 +323,7 @@ DirectMobilitySolver::solveSystem(Vec x, Vec b)
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
 
-    const int rank = SAMRAI_MPI::getRank();
+    const int rank = IBTK_MPI::getRank();
     static const int data_depth = NDIM;
 
     for (const auto& petsc_mat_pair : d_petsc_mat_map)
@@ -375,7 +376,7 @@ DirectMobilitySolver::solveBodySystem(Vec x, Vec b)
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
 
-    const int rank = SAMRAI_MPI::getRank();
+    const int rank = IBTK_MPI::getRank();
     static const int data_depth = s_max_free_dofs;
 
     for (const auto& petsc_mat_pair : d_petsc_mat_map)
@@ -426,7 +427,7 @@ DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
 
     IBAMR_TIMER_START(t_initialize_solver_state);
 
-    int rank = SAMRAI_MPI::getRank();
+    int rank = IBTK_MPI::getRank();
     auto managed_mats = static_cast<unsigned>(d_mat_map.size());
 
     static bool recreate_mobility_matrices = true;
@@ -565,7 +566,7 @@ DirectMobilitySolver::getFromInput(Pointer<Database> input_db)
 void
 DirectMobilitySolver::factorizeMobilityMatrix()
 {
-    int rank = SAMRAI_MPI::getRank();
+    int rank = IBTK_MPI::getRank();
     for (const auto& petsc_mat_pair : d_petsc_mat_map)
     {
         const std::string& mat_name = petsc_mat_pair.first;
@@ -586,7 +587,7 @@ DirectMobilitySolver::factorizeMobilityMatrix()
 void
 DirectMobilitySolver::constructBodyMobilityMatrix()
 {
-    int rank = SAMRAI_MPI::getRank();
+    int rank = IBTK_MPI::getRank();
     for (const auto& petsc_mat_pair : d_petsc_mat_map)
     {
         const std::string& mat_name = petsc_mat_pair.first;
@@ -626,7 +627,7 @@ DirectMobilitySolver::constructBodyMobilityMatrix()
 void
 DirectMobilitySolver::factorizeBodyMobilityMatrix()
 {
-    int rank = SAMRAI_MPI::getRank();
+    int rank = IBTK_MPI::getRank();
     for (const auto& petsc_mat_pair : d_petsc_mat_map)
     {
         const std::string& mat_name = petsc_mat_pair.first;
@@ -680,8 +681,8 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
     else if (inv_type == LAPACK_SVD)
     {
         // Locals.
-        int il, iu, m, lwork, liwork, iwkopt;
-        double abstol, vl, vu, wkopt;
+        int il = 0, iu = 0, m = 0, lwork, liwork, iwkopt = 0;
+        double abstol, vl = 0.0, vu = 0.0, wkopt = 0.0;
 
         // Local arrays.
         std::vector<int> isuppz(2 * mat_size);

@@ -1,76 +1,55 @@
-// Filename: PETScKrylovLinearSolver.cpp
-// Created on 16 Sep 2003 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearOperator.h"
-#include "ibtk/LinearSolver.h"
 #include "ibtk/PETScKrylovLinearSolver.h"
 #include "ibtk/PETScMatLOWrapper.h"
 #include "ibtk/PETScPCLSWrapper.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "IntVector.h"
+#include "Box.h"
 #include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
 #include "tbox/Database.h"
-#include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
-#include "petscerror.h"
 #include "petscksp.h"
 #include "petscmat.h"
-#include "petscoptions.h"
 #include "petscpc.h"
-#include "petscsys.h"
+#include "petscpctypes.h"
 #include "petscvec.h"
+#include <petsclog.h>
 
 #include <mpi.h>
 
 #include <algorithm>
-#include <cmath>
 #include <cstring>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -218,9 +197,6 @@ PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
 #endif
     resetKSPOptions();
 
-    // Allocate scratch data.
-    d_b->allocateVectorData();
-
     // Solve the system using a PETSc KSP object.
     d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
     d_A->setHomogeneousBc(d_homogeneous_bc);
@@ -246,9 +222,6 @@ PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
     IBTK_CHKERRQ(ierr);
     const bool converged = (static_cast<int>(reason) > 0);
     if (d_enable_logging) reportKSPConvergedReason(reason, plog);
-
-    // Dealocate scratch data.
-    d_b->deallocateVectorData();
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -342,6 +315,9 @@ PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, doub
     d_b = b.cloneVector(b.getName());
     d_petsc_b = PETScSAMRAIVectorReal::createPETScVector(d_b, d_petsc_comm);
 
+    // Allocate scratch data.
+    d_b->allocateVectorData();
+
     // Initialize the linear operator and preconditioner objects.
     if (d_A) d_A->initializeOperatorState(*d_x, *d_b);
     if (d_managing_petsc_ksp || d_user_provided_mat) resetKSPOperators();
@@ -389,8 +365,6 @@ PETScKrylovLinearSolver::deallocateSolverState()
 
     IBTK_TIMER_START(t_deallocate_solver_state);
 
-    int ierr;
-
     // Deallocate the operator and preconditioner states only if we are not
     // re-initializing the solver.
     if (!d_reinitializing_solver)
@@ -398,6 +372,9 @@ PETScKrylovLinearSolver::deallocateSolverState()
         if (d_pc_solver) d_pc_solver->deallocateSolverState();
         if (d_A) d_A->deallocateOperatorState();
     }
+
+    // Dealocate scratch data.
+    d_b->deallocateVectorData();
 
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
@@ -416,7 +393,7 @@ PETScKrylovLinearSolver::deallocateSolverState()
     // Destroy the KSP solver.
     if (d_managing_petsc_ksp)
     {
-        ierr = KSPDestroy(&d_petsc_ksp);
+        int ierr = KSPDestroy(&d_petsc_ksp);
         IBTK_CHKERRQ(ierr);
         d_petsc_ksp = nullptr;
         d_solver_has_attached_nullspace = false;
@@ -752,12 +729,10 @@ PETScKrylovLinearSolver::resetMatNullspace()
 void
 PETScKrylovLinearSolver::deallocateNullspaceData()
 {
-    int ierr;
-
     // Deallocate PETSc data structures.
     if (d_petsc_nullsp)
     {
-        ierr = MatNullSpaceDestroy(&d_petsc_nullsp);
+        int ierr = MatNullSpaceDestroy(&d_petsc_nullsp);
         IBTK_CHKERRQ(ierr);
         d_petsc_nullsp = nullptr;
         if (d_petsc_mat)
@@ -794,9 +769,8 @@ PETScKrylovLinearSolver::deallocateNullspaceData()
 PetscErrorCode
 PETScKrylovLinearSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
 {
-    int ierr;
     void* p_ctx;
-    ierr = MatShellGetContext(A, &p_ctx);
+    int ierr = MatShellGetContext(A, &p_ctx);
     CHKERRQ(ierr);
     auto krylov_solver = static_cast<PETScKrylovLinearSolver*>(p_ctx);
 #if !defined(NDEBUG)

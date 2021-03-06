@@ -1,34 +1,15 @@
-// Filename: IBHierarchyIntegrator.cpp
-// Created on 12 Jul 2004 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -36,7 +17,6 @@
 #include "ibamr/IBStrategy.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CartCellRobinPhysBdryOp.h"
 #include "ibtk/CartExtrapPhysBdryOp.h"
@@ -44,6 +24,7 @@
 #include "ibtk/CartGridFunctionSet.h"
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LMarkerSetVariable.h"
 #include "ibtk/LMarkerUtilities.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
@@ -62,11 +43,13 @@
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
 #include "IntVector.h"
+#include "LoadBalancer.h"
 #include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "RefineAlgorithm.h"
 #include "RefineOperator.h"
+#include "RefinePatchStrategy.h"
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableContext.h"
@@ -80,17 +63,13 @@
 #include "tbox/Utilities.h"
 
 #include <algorithm>
+#include <deque>
+#include <memory>
 #include <ostream>
 #include <string>
+#include <utility>
 
-namespace SAMRAI
-{
-namespace xfer
-{
-template <int DIM>
-class RefinePatchStrategy;
-} // namespace xfer
-} // namespace SAMRAI
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -105,6 +84,12 @@ static const int IB_HIERARCHY_INTEGRATOR_VERSION = 2;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
+
+TimeSteppingType
+IBHierarchyIntegrator::getTimeSteppingType() const
+{
+    return d_time_stepping_type;
+}
 
 Pointer<IBStrategy>
 IBHierarchyIntegrator::getIBStrategy() const
@@ -210,6 +195,78 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
 } // preprocessIntegrateHierarchy
 
 void
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
+                                                     const double new_time,
+                                                     const bool skip_synchronize_new_state_data,
+                                                     const int num_cycles)
+{
+    // postprocess the objects this class manages...
+    d_ib_method_ops->postprocessIntegrateData(current_time, new_time, num_cycles);
+
+    d_ins_hier_integrator->postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, d_ins_hier_integrator->getNumberOfCycles());
+
+    // ... and postprocess ourself.
+    HierarchyIntegrator::postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const double dt = new_time - current_time;
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
+                                                               d_ins_hier_integrator->getNewContext());
+
+    // Determine the CFL number.
+    double cfl_max = 0.0;
+    PatchCellDataOpsReal<NDIM, double> patch_cc_ops;
+    PatchSideDataOpsReal<NDIM, double> patch_sc_ops;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const double* const dx = pgeom->getDx();
+            const double dx_min = *(std::min_element(dx, dx + NDIM));
+            Pointer<CellData<NDIM, double> > u_cc_new_data = patch->getPatchData(u_new_idx);
+            Pointer<SideData<NDIM, double> > u_sc_new_data = patch->getPatchData(u_new_idx);
+            double u_max = 0.0;
+            if (u_cc_new_data) u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
+            if (u_sc_new_data) u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);
+            cfl_max = std::max(cfl_max, u_max * dt / dx_min);
+        }
+    }
+
+    cfl_max = IBTK_MPI::maxReduction(cfl_max);
+    d_regrid_fluid_cfl_estimate += cfl_max;
+
+    // Not all IBStrategy objects implement this so make it optional (-1.0 is
+    // the default value)
+    if (d_regrid_structure_cfl_interval != -1.0)
+        d_regrid_structure_cfl_estimate = d_ib_method_ops->getMaxPointDisplacement();
+
+    if (d_enable_logging)
+    {
+        plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
+        plog << d_object_name
+             << "::postprocessIntegrateHierarchy(): Eulerian estimate of "
+                "upper bound on IB point displacement since last regrid = "
+             << d_regrid_fluid_cfl_estimate << "\n";
+
+        if (d_regrid_structure_cfl_interval != -1.0)
+        {
+            plog << d_object_name
+                 << "::postprocessIntegrateHierarchy(): Lagrangian estimate of "
+                    "upper bound on IB point displacement since last regrid = "
+                 << d_regrid_structure_cfl_estimate << "\n";
+        }
+    }
+}
+
+void
 IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                      Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
@@ -305,7 +362,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     d_u_ghostfill_alg = new RefineAlgorithm<NDIM>();
     d_u_ghostfill_op = nullptr;
     d_u_ghostfill_alg->registerRefine(d_u_idx, d_u_idx, d_u_idx, d_u_ghostfill_op);
-    registerGhostfillRefineAlgorithm(d_object_name + "::u", d_u_ghostfill_alg, d_u_phys_bdry_op);
+    std::unique_ptr<RefinePatchStrategy<NDIM> > u_phys_bdry_op_unique(d_u_phys_bdry_op);
+    registerGhostfillRefineAlgorithm(d_object_name + "::u", d_u_ghostfill_alg, std::move(u_phys_bdry_op_unique));
 
     d_u_coarsen_alg = new CoarsenAlgorithm<NDIM>();
     d_u_coarsen_op = grid_geom->lookupCoarsenOperator(d_u_var, "CONSERVATIVE_COARSEN");
@@ -336,7 +394,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
         d_p_ghostfill_alg = new RefineAlgorithm<NDIM>();
         d_p_ghostfill_op = nullptr;
         d_p_ghostfill_alg->registerRefine(d_p_idx, d_p_idx, d_p_idx, d_p_ghostfill_op);
-        registerGhostfillRefineAlgorithm(d_object_name + "::p", d_p_ghostfill_alg, d_p_phys_bdry_op);
+        std::unique_ptr<RefinePatchStrategy<NDIM> > p_phys_bdry_op_unique(d_p_phys_bdry_op);
+        registerGhostfillRefineAlgorithm(d_object_name + "::p", d_p_ghostfill_alg, std::move(p_phys_bdry_op_unique));
 
         d_p_coarsen_alg = new CoarsenAlgorithm<NDIM>();
         d_p_coarsen_op = grid_geom->lookupCoarsenOperator(d_p_var, "CONSERVATIVE_COARSEN");
@@ -358,9 +417,10 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     ComponentSelector instrumentation_data_fill_bc_idxs;
     instrumentation_data_fill_bc_idxs.setFlag(u_scratch_idx);
     instrumentation_data_fill_bc_idxs.setFlag(p_scratch_idx);
-    RefinePatchStrategy<NDIM>* refine_patch_bdry_op =
-        new CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "LINEAR");
-    registerGhostfillRefineAlgorithm(d_object_name + "::INSTRUMENTATION_DATA_FILL", refine_alg, refine_patch_bdry_op);
+    std::unique_ptr<RefinePatchStrategy<NDIM> > refine_patch_bdry_op(
+        new CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "LINEAR"));
+    registerGhostfillRefineAlgorithm(
+        d_object_name + "::INSTRUMENTATION_DATA_FILL", refine_alg, std::move(refine_patch_bdry_op));
 
     // Read in initial marker positions.
     if (!d_mark_file_name.empty())
@@ -479,8 +539,9 @@ IBHierarchyIntegrator::regridHierarchyEndSpecialized()
         updateWorkloadEstimates();
     }
 
-    // Reset the regrid CFL estimate.
-    d_regrid_cfl_estimate = 0.0;
+    // Reset the regrid CFL estimates.
+    d_regrid_fluid_cfl_estimate = 0.0;
+    d_regrid_structure_cfl_estimate = 0.0;
     return;
 } // regridHierarchyEndSpecialized
 
@@ -526,9 +587,15 @@ IBHierarchyIntegrator::atRegridPointSpecialized() const
 {
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     if (initial_time) return true;
-    if (d_regrid_cfl_interval > 0.0)
+    if (d_regrid_fluid_cfl_interval > 0.0 || d_regrid_structure_cfl_interval > 0.0)
     {
-        return (d_regrid_cfl_estimate >= d_regrid_cfl_interval);
+        // Account for the use of -1.0 as a default value
+        const bool regrid_fluid =
+            d_regrid_fluid_cfl_interval == -1.0 ? false : d_regrid_fluid_cfl_estimate >= d_regrid_fluid_cfl_interval;
+        const bool regrid_structure = d_regrid_structure_cfl_interval == -1.0 ?
+                                          false :
+                                          d_regrid_structure_cfl_estimate >= d_regrid_structure_cfl_interval;
+        return regrid_fluid || regrid_structure;
     }
     else if (d_regrid_interval != 0)
     {
@@ -635,8 +702,8 @@ IBHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 {
     db->putInteger("IB_HIERARCHY_INTEGRATOR_VERSION", IB_HIERARCHY_INTEGRATOR_VERSION);
     db->putString("d_time_stepping_type", enum_to_string<TimeSteppingType>(d_time_stepping_type));
-    db->putDouble("d_regrid_cfl_interval", d_regrid_cfl_interval);
-    db->putDouble("d_regrid_cfl_estimate", d_regrid_cfl_estimate);
+    db->putDouble("d_regrid_fluid_cfl_estimate", d_regrid_fluid_cfl_estimate);
+    db->putDouble("d_regrid_structure_cfl_estimate", d_regrid_structure_cfl_estimate);
     return;
 } // putToDatabaseSpecialized
 
@@ -652,7 +719,11 @@ IBHierarchyIntegrator::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierar
 void
 IBHierarchyIntegrator::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 {
-    if (db->keyExists("regrid_cfl_interval")) d_regrid_cfl_interval = db->getDouble("regrid_cfl_interval");
+    if (db->keyExists("regrid_cfl_interval")) d_regrid_fluid_cfl_interval = db->getDouble("regrid_cfl_interval");
+    if (db->keyExists("regrid_fluid_cfl_interval"))
+        d_regrid_fluid_cfl_interval = db->getDouble("regrid_fluid_cfl_interval");
+    if (db->keyExists("regrid_structure_cfl_interval"))
+        d_regrid_structure_cfl_interval = db->getDouble("regrid_structure_cfl_interval");
     if (db->keyExists("error_on_dt_change"))
         d_error_on_dt_change = db->getBool("error_on_dt_change");
     else if (db->keyExists("error_on_timestep_change"))
@@ -693,8 +764,8 @@ IBHierarchyIntegrator::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
     d_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("d_time_stepping_type"));
-    d_regrid_cfl_interval = db->getDouble("d_regrid_cfl_interval");
-    d_regrid_cfl_estimate = db->getDouble("d_regrid_cfl_estimate");
+    d_regrid_fluid_cfl_estimate = db->getDouble("d_regrid_fluid_cfl_estimate");
+    d_regrid_structure_cfl_estimate = db->getDouble("d_regrid_structure_cfl_estimate");
     return;
 } // getFromRestart
 

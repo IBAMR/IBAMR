@@ -1,0 +1,18 @@
+Number of elements: 256
+
+IBFEMethod: mesh part 0 is using SECOND order LAGRANGE finite elements.
+
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+locally owned range on 0: [0, 514)
+total length on 0: 654
+global index ranges on 0:
+[0, 654)
+locally owned range on 1: [514, 1024)
+total length on 1: 644
+global index ranges on 1:
+[514, 1024)
+[250, 252)
+[254, 258)
+[386, 514)

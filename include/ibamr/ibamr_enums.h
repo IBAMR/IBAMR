@@ -1,39 +1,24 @@
-// Filename: ibamr_enums.h
-// Created on 03 Mar 2011 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2011 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
+
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBAMR_ibamr_enums
 #define included_IBAMR_ibamr_enums
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "tbox/Utilities.h"
 
@@ -226,6 +211,37 @@ enum_to_string<LevelSetOrder>(LevelSetOrder val)
     if (val == THIRD_ORDER_WENO_LS) return "THIRD_ORDER_WENO";
     if (val == FIFTH_ORDER_WENO_LS) return "FIFTH_ORDER_WENO";
     return "UNKNOWN_LEVEL_SET_ORDER";
+} // enum_to_string
+
+/*!
+ * \brief Enumerated type for pressure formulations.
+ */
+enum PressureProjectionType
+{
+    CONSISTENT_PROJECTION,
+    LUMPED_PROJECTION,
+    STABILIZED_PROJECTION,
+    UNKNOWN_PRESSURE_TYPE = -1
+};
+
+template <>
+inline PressureProjectionType
+string_to_enum<PressureProjectionType>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "CONSISTENT_PROJECTION") == 0) return CONSISTENT_PROJECTION;
+    if (strcasecmp(val.c_str(), "LUMPED_PROJECTION") == 0) return LUMPED_PROJECTION;
+    if (strcasecmp(val.c_str(), "STABILIZED_PROJECTION") == 0) return STABILIZED_PROJECTION;
+    return UNKNOWN_PRESSURE_TYPE;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<PressureProjectionType>(PressureProjectionType val)
+{
+    if (val == CONSISTENT_PROJECTION) return "CONSISTENT_PROJECTION";
+    if (val == LUMPED_PROJECTION) return "LUMPED_PROJECTION";
+    if (val == STABILIZED_PROJECTION) return "STABILIZED_PROJECTION";
+    return "UNKNOWN_PRESSURE_TYPE";
 } // enum_to_string
 
 /*!
@@ -450,7 +466,6 @@ enum_to_string<MobilityMatrixInverseType>(MobilityMatrixInverseType val)
  */
 enum LibmeshPartitionerType
 {
-    AUTOMATIC,
     LIBMESH_DEFAULT,
     SAMRAI_BOX,
     UNKNOWN_LIBMESH_PARTITIONER_TYPE = -1
@@ -460,7 +475,6 @@ template <>
 inline LibmeshPartitionerType
 string_to_enum<LibmeshPartitionerType>(const std::string& val)
 {
-    if (strcasecmp(val.c_str(), "AUTOMATIC") == 0) return AUTOMATIC;
     if (strcasecmp(val.c_str(), "LIBMESH_DEFAULT") == 0) return LIBMESH_DEFAULT;
     if (strcasecmp(val.c_str(), "SAMRAI_BOX") == 0) return SAMRAI_BOX;
     return UNKNOWN_LIBMESH_PARTITIONER_TYPE;
@@ -470,12 +484,100 @@ template <>
 inline std::string
 enum_to_string<LibmeshPartitionerType>(LibmeshPartitionerType val)
 {
-    if (val == AUTOMATIC) return "AUTOMATIC";
     if (val == LIBMESH_DEFAULT) return "LIBMESH_DEFAULT";
     if (val == SAMRAI_BOX) return "SAMRAI_BOX";
     return "UNKNOWN_LIBMESH_PARTITIONER_TYPE";
 } // enum_to_string
 
+/*!
+ * \brief Enumerated type for different evolution of SPD tensors.
+ */
+enum TensorEvolutionType
+{
+    STANDARD,
+    SQUARE_ROOT,
+    LOGARITHM,
+    UNKNOWN_TENSOR_EVOLUTION_TYPE = -1
+};
+
+template <>
+inline TensorEvolutionType
+string_to_enum<TensorEvolutionType>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "STANDARD") == 0) return STANDARD;
+    if (strcasecmp(val.c_str(), "SQUARE_ROOT") == 0) return SQUARE_ROOT;
+    if (strcasecmp(val.c_str(), "LOGARITHM") == 0) return LOGARITHM;
+    return UNKNOWN_TENSOR_EVOLUTION_TYPE;
+}
+
+template <>
+inline std::string
+enum_to_string<TensorEvolutionType>(TensorEvolutionType val)
+{
+    if (val == STANDARD) return "STANDARD";
+    if (val == SQUARE_ROOT) return "SQUARE_ROOT";
+    if (val == LOGARITHM) return "LOGARITHM";
+    return "UNKNOWN_TENSOR_EVOLUTION_TYPE";
+}
+
+/*!
+ * \brief Enumerated type for different Advection-Diffusion Brinkman penalization boundary conditions
+ */
+enum AdvDiffBrinkmanPenalizationBcType
+{
+    DIRICHLET = 1,
+    NEUMANN = 2,
+    ROBIN = 3,
+    UNKNOWN_BRINKMAN_BC_TYPE = -1
+};
+
+template <>
+inline AdvDiffBrinkmanPenalizationBcType
+string_to_enum<AdvDiffBrinkmanPenalizationBcType>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "DIRICHLET") == 0) return DIRICHLET;
+    if (strcasecmp(val.c_str(), "NEUMANN") == 0) return NEUMANN;
+    if (strcasecmp(val.c_str(), "ROBIN") == 0) return ROBIN;
+    return UNKNOWN_BRINKMAN_BC_TYPE;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<AdvDiffBrinkmanPenalizationBcType>(AdvDiffBrinkmanPenalizationBcType val)
+{
+    if (val == DIRICHLET) return "DIRICHLET";
+    if (val == NEUMANN) return "NEUMANN";
+    if (val == ROBIN) return "ROBIN";
+    return "UNKNOWN_BRINKMAN_BC_TYPE";
+} // enum_to_string
+
+/*!
+ * \brief Enumerated type for different indicator functions.
+ */
+enum IndicatorFunctionType
+{
+    SMOOTH = 1,
+    DISCONTINUOUS = 2,
+    UNKNOWN_INDICATOR_FUNC_TYPE = -1
+};
+
+template <>
+inline IndicatorFunctionType
+string_to_enum<IndicatorFunctionType>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "SMOOTH") == 0) return SMOOTH;
+    if (strcasecmp(val.c_str(), "DISCONTINUOUS") == 0) return DISCONTINUOUS;
+    return UNKNOWN_INDICATOR_FUNC_TYPE;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<IndicatorFunctionType>(IndicatorFunctionType val)
+{
+    if (val == SMOOTH) return "SMOOTH";
+    if (val == DISCONTINUOUS) return "DISCONTINUOUS";
+    return "UNKNOWN_INDICATOR_FUNC_TYPE";
+} // enum_to_string
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

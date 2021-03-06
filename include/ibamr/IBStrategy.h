@@ -1,48 +1,37 @@
-// Filename: IBStrategy.h
-// Created on 21 Sep 2011 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
+
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBAMR_IBStrategy
 #define included_IBAMR_IBStrategy
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/config.h>
+
 #include "ibtk/CartGridFunction.h"
 
+#include "CoarsenPatchStrategy.h"
 #include "IntVector.h"
+#include "RefinePatchStrategy.h"
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
+#include <limits>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -92,13 +81,9 @@ namespace xfer
 template <int DIM>
 class CoarsenAlgorithm;
 template <int DIM>
-class CoarsenPatchStrategy;
-template <int DIM>
 class CoarsenSchedule;
 template <int DIM>
 class RefineAlgorithm;
-template <int DIM>
-class RefinePatchStrategy;
 template <int DIM>
 class RefineSchedule;
 } // namespace xfer
@@ -181,6 +166,80 @@ public:
      */
     virtual void setupTagBuffer(SAMRAI::tbox::Array<int>& tag_buffer,
                                 SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) const;
+
+    /*!
+     * Inactivate a structure or part. Such a structure will be ignored by FSI
+     * calculations: i.e., it will have its velocity set to zero and no forces
+     * will be spread from the structure to the Eulerian grid.
+     *
+     * @param[in] structure_number Number of the structure/part.
+     * @param[in] level_number Level on which the structure lives. For some
+     * inheriting classes (e.g., IBAMR::IBMethod) the structure number alone
+     * is not enough to establish uniqueness. The default value is interpreted
+     * as the finest level in the patch hierarchy.
+     *
+     * @note This method should be implemented by inheriting classes for which
+     * the notion of activating and inactivating a structure 'owned' by this
+     * class makes sense (for example, IBAMR::IBStrategySet does not directly
+     * own any structures, but IBAMR::IBMethod and IBAMR::IBFEMethod both
+     * do). The default implementation unconditionally aborts the program.
+     */
+    virtual void inactivateLagrangianStructure(int structure_number = 0,
+                                               int level_number = std::numeric_limits<int>::max());
+
+    /*!
+     * Activate a previously inactivated structure or part to be used again in
+     * FSI calculations.
+     *
+     * @param[in] structure_number Number of the structure/part.
+     * @param[in] level_number Level on which the structure lives. For some
+     * inheriting classes (e.g., IBAMR::IBMethod) the structure number alone
+     * is not enough to establish uniqueness. The default value is interpreted
+     * as the finest level in the patch hierarchy.
+     *
+     * @note This method should be implemented by inheriting classes for which
+     * the notion of activating and inactivating a structure 'owned' by this
+     * class makes sense (for example, IBAMR::IBStrategySet does not directly
+     * own any structures, but IBAMR::IBMethod and IBAMR::IBFEMethod both
+     * do). The default implementation unconditionally aborts the program.
+     */
+    virtual void activateLagrangianStructure(int structure_number = 0,
+                                             int level_number = std::numeric_limits<int>::max());
+
+    /*!
+     * Determine whether or not the given structure or part is currently
+     * activated.
+     *
+     * @param[in] structure_number Number of the structure/part.
+     * @param[in] level_number Level on which the structure lives. For some
+     * inheriting classes (e.g., IBAMR::IBMethod) the structure number alone
+     * is not enough to establish uniqueness. The default value is interpreted
+     * as the finest level in the patch hierarchy.
+     *
+     * @note This method should be implemented by inheriting classes for which
+     * the notion of activating and inactivating a structure 'owned' by this
+     * class makes sense (for example, IBAMR::IBStrategySet does not directly
+     * own any structures, but IBAMR::IBMethod and IBAMR::IBFEMethod both
+     * do). The default implementation unconditionally aborts the program.
+     */
+    virtual bool getLagrangianStructureIsActivated(int structure_number = 0,
+                                                   int level_number = std::numeric_limits<int>::max()) const;
+
+    /*!
+     * Get the ratio of the maximum point displacement of all the structures
+     * owned by the current class to the cell width of the grid level on which
+     * the structure is assigned. This value is useful for determining if the
+     * Eulerian patch hierarchy needs to be regridded.
+     *
+     * @note The process of regridding is distinct, for some IBStrategy objects
+     * (like IBFEMethod), from forming (or reforming) the association between
+     * Lagrangian structures and patches. In particular, this function computes
+     * the distance between the current position of the structure and the
+     * structure at the point of the last regrid, which may not be the same point
+     * at which we last rebuilt the structure-to-patch mappings. The reassociation
+     * check should be implemented in postprocessIntegrateData().
+     */
+    virtual double getMaxPointDisplacement() const;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
@@ -493,23 +552,26 @@ protected:
     /*!
      * Register a ghost cell-filling refine algorithm.
      */
-    void registerGhostfillRefineAlgorithm(const std::string& name,
-                                          SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > ghostfill_alg,
-                                          SAMRAI::xfer::RefinePatchStrategy<NDIM>* ghostfill_patch_strategy = NULL);
+    void registerGhostfillRefineAlgorithm(
+        const std::string& name,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > ghostfill_alg,
+        std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM> > ghostfill_patch_strategy = nullptr);
 
     /*!
      * Register a data-prolonging refine algorithm.
      */
-    void registerProlongRefineAlgorithm(const std::string& name,
-                                        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > prolong_alg,
-                                        SAMRAI::xfer::RefinePatchStrategy<NDIM>* prolong_patch_strategy = NULL);
+    void registerProlongRefineAlgorithm(
+        const std::string& name,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > prolong_alg,
+        std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM> > prolong_patch_strategy = nullptr);
 
     /*!
      * Register a coarsen algorithm.
      */
-    void registerCoarsenAlgorithm(const std::string& name,
-                                  SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > coarsen_alg,
-                                  SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy = NULL);
+    void registerCoarsenAlgorithm(
+        const std::string& name,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > coarsen_alg,
+        std::unique_ptr<SAMRAI::xfer::CoarsenPatchStrategy<NDIM> > coarsen_patch_strategy = nullptr);
 
     /*!
      * Get ghost cell-filling refine algorithm.

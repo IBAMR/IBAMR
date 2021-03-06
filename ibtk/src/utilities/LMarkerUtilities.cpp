@@ -1,37 +1,19 @@
-// Filename: LMarkerUtilities.cpp
-// Created on 28 Apr 2010 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/LMarker.h"
@@ -44,7 +26,6 @@
 #include "ibtk/LSetData.h"
 #include "ibtk/LSetDataIterator.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "BasePatchLevel.h"
 #include "Box.h"
@@ -70,7 +51,6 @@
 #include "VariableDatabase.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include <algorithm>
@@ -79,8 +59,11 @@
 #include <iosfwd>
 #include <istream>
 #include <limits>
+#include <memory>
 #include <string>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {
@@ -137,8 +120,8 @@ LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init_posns,
     if (mark_input_file_name.empty()) return 0;
 
     // Read in the initial marker positions.
-    const int mpi_rank = SAMRAI_MPI::getRank();
-    const int mpi_size = SAMRAI_MPI::getNodes();
+    const int mpi_rank = IBTK_MPI::getRank();
+    const int mpi_size = IBTK_MPI::getNodes();
 
     const double* const grid_xLower = grid_geom->getXLower();
     const double* const grid_xUpper = grid_geom->getXUpper();
@@ -512,7 +495,7 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<Pat
             Pointer<LMarkerSetData> mark_scratch_data = patch->getPatchData(mark_scratch_idx);
             for (LMarkerSetData::Iterator it(*mark_scratch_data); it; it++)
             {
-                const Index<NDIM>& i = it.getIndex();
+                const hier::Index<NDIM>& i = it.getIndex();
                 if (!mark_current_data->isElement(i))
                 {
                     mark_current_data->appendItemPointer(i, new LMarkerSet());
@@ -600,7 +583,7 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<Pat
                 ;
             if (patch_owns_mark_at_new_loc)
             {
-                const Index<NDIM> i = IndexUtilities::getCellIndex(X_shifted, grid_geom, ratio);
+                const hier::Index<NDIM> i = IndexUtilities::getCellIndex(X_shifted, grid_geom, ratio);
                 if (!mark_data_new->isElement(i))
                 {
                     mark_data_new->appendItemPointer(i, new LMarkerSet());
@@ -671,7 +654,7 @@ LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
                     ;
                 if (patch_owns_mark_at_loc)
                 {
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(X, grid_geom, ratio);
+                    const hier::Index<NDIM> i = IndexUtilities::getCellIndex(X, grid_geom, ratio);
                     if (!mark_data->isElement(i))
                     {
                         mark_data->appendItemPointer(i, new LMarkerSet());
@@ -762,7 +745,7 @@ LMarkerUtilities::countMarkers(const int mark_idx,
             num_marks += countMarkersOnPatch(mark_data);
         }
     }
-    return static_cast<unsigned int>(SAMRAI_MPI::sumReduction(static_cast<int>(num_marks)));
+    return static_cast<unsigned int>(IBTK_MPI::sumReduction(static_cast<int>(num_marks)));
 } // countMarkers
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

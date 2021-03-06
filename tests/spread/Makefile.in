@@ -87,7 +87,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = spread_01_2d$(EXEEXT) spread_01_3d$(EXEEXT)
+EXTRA_PROGRAMS = $(am__EXEEXT_1)
+@LIBMESH_ENABLED_TRUE@am__append_1 = spread_01_2d spread_01_3d spread_02_2d spread_02_3d
 subdir = tests/spread
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -99,7 +100,6 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
 	$(top_srcdir)/m4/configure_boost.m4 \
 	$(top_srcdir)/m4/configure_eigen.m4 \
 	$(top_srcdir)/m4/configure_gsl.m4 \
-	$(top_srcdir)/m4/configure_gtest.m4 \
 	$(top_srcdir)/m4/configure_hdf5.m4 \
 	$(top_srcdir)/m4/configure_hypre.m4 \
 	$(top_srcdir)/m4/configure_libmesh.m4 \
@@ -120,9 +120,16 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am_spread_01_2d_OBJECTS = spread_01_2d-spread_01.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@am__EXEEXT_1 = spread_01_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	spread_01_3d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	spread_02_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	spread_02_3d$(EXEEXT)
+am__spread_01_2d_SOURCES_DIST = spread_01.cpp
+@LIBMESH_ENABLED_TRUE@am_spread_01_2d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	spread_01_2d-spread_01.$(OBJEXT)
 spread_01_2d_OBJECTS = $(am_spread_01_2d_OBJECTS)
-spread_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@spread_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -130,11 +137,32 @@ am__v_lt_1 =
 spread_01_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(spread_01_2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_spread_01_3d_OBJECTS = spread_01_3d-spread_01.$(OBJEXT)
+am__spread_01_3d_SOURCES_DIST = spread_01.cpp
+@LIBMESH_ENABLED_TRUE@am_spread_01_3d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	spread_01_3d-spread_01.$(OBJEXT)
 spread_01_3d_OBJECTS = $(am_spread_01_3d_OBJECTS)
-spread_01_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@spread_01_3d_DEPENDENCIES = $(IBAMR3d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 spread_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(spread_01_3d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am__spread_02_2d_SOURCES_DIST = spread_02.cpp
+@LIBMESH_ENABLED_TRUE@am_spread_02_2d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	spread_02_2d-spread_02.$(OBJEXT)
+spread_02_2d_OBJECTS = $(am_spread_02_2d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@spread_02_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
+spread_02_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(spread_02_2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am__spread_02_3d_SOURCES_DIST = spread_02.cpp
+@LIBMESH_ENABLED_TRUE@am_spread_02_3d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	spread_02_3d-spread_02.$(OBJEXT)
+spread_02_3d_OBJECTS = $(am_spread_02_3d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@spread_02_3d_DEPENDENCIES = $(IBAMR3d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
+spread_02_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(spread_02_3d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -152,7 +180,9 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/spread_01_2d-spread_01.Po \
-	./$(DEPDIR)/spread_01_3d-spread_01.Po
+	./$(DEPDIR)/spread_01_3d-spread_01.Po \
+	./$(DEPDIR)/spread_02_2d-spread_02.Po \
+	./$(DEPDIR)/spread_02_3d-spread_02.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -172,8 +202,12 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(spread_01_2d_SOURCES) $(spread_01_3d_SOURCES)
-DIST_SOURCES = $(spread_01_2d_SOURCES) $(spread_01_3d_SOURCES)
+SOURCES = $(spread_01_2d_SOURCES) $(spread_01_3d_SOURCES) \
+	$(spread_02_2d_SOURCES) $(spread_02_3d_SOURCES)
+DIST_SOURCES = $(am__spread_01_2d_SOURCES_DIST) \
+	$(am__spread_01_3d_SOURCES_DIST) \
+	$(am__spread_02_2d_SOURCES_DIST) \
+	$(am__spread_02_3d_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -244,7 +278,6 @@ GREP = @GREP@
 HAVE_CXX11 = @HAVE_CXX11@
 HAVE_LIBGSL = @HAVE_LIBGSL@
 HAVE_LIBGSLCBLAS = @HAVE_LIBGSLCBLAS@
-HAVE_LIBGTEST = @HAVE_LIBGTEST@
 HAVE_LIBMESH_DBG = @HAVE_LIBMESH_DBG@
 HAVE_LIBMESH_DEVEL = @HAVE_LIBMESH_DEVEL@
 HAVE_LIBMESH_OPROF = @HAVE_LIBMESH_OPROF@
@@ -281,8 +314,6 @@ LIBGSL = @LIBGSL@
 LIBGSLCBLAS = @LIBGSLCBLAS@
 LIBGSLCBLAS_PREFIX = @LIBGSLCBLAS_PREFIX@
 LIBGSL_PREFIX = @LIBGSL_PREFIX@
-LIBGTEST = @LIBGTEST@
-LIBGTEST_PREFIX = @LIBGTEST_PREFIX@
 LIBMESH_CONFIG = @LIBMESH_CONFIG@
 LIBMESH_DBG = @LIBMESH_DBG@
 LIBMESH_DBG_PREFIX = @LIBMESH_DBG_PREFIX@
@@ -341,7 +372,6 @@ LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBGSL = @LTLIBGSL@
 LTLIBGSLCBLAS = @LTLIBGSLCBLAS@
-LTLIBGTEST = @LTLIBGTEST@
 LTLIBMESH_DBG = @LTLIBMESH_DBG@
 LTLIBMESH_DEVEL = @LTLIBMESH_DEVEL@
 LTLIBMESH_OPROF = @LTLIBMESH_OPROF@
@@ -469,12 +499,18 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-spread_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-spread_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-spread_01_2d_SOURCES = spread_01.cpp
-spread_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-spread_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-spread_01_3d_SOURCES = spread_01.cpp
+@LIBMESH_ENABLED_TRUE@spread_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@spread_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@spread_01_2d_SOURCES = spread_01.cpp
+@LIBMESH_ENABLED_TRUE@spread_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@spread_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@spread_01_3d_SOURCES = spread_01.cpp
+@LIBMESH_ENABLED_TRUE@spread_02_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@spread_02_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@spread_02_2d_SOURCES = spread_02.cpp
+@LIBMESH_ENABLED_TRUE@spread_02_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@spread_02_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@spread_02_3d_SOURCES = spread_02.cpp
 all: all-am
 
 .SUFFIXES:
@@ -518,6 +554,14 @@ spread_01_3d$(EXEEXT): $(spread_01_3d_OBJECTS) $(spread_01_3d_DEPENDENCIES) $(EX
 	@rm -f spread_01_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(spread_01_3d_LINK) $(spread_01_3d_OBJECTS) $(spread_01_3d_LDADD) $(LIBS)
 
+spread_02_2d$(EXEEXT): $(spread_02_2d_OBJECTS) $(spread_02_2d_DEPENDENCIES) $(EXTRA_spread_02_2d_DEPENDENCIES) 
+	@rm -f spread_02_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(spread_02_2d_LINK) $(spread_02_2d_OBJECTS) $(spread_02_2d_LDADD) $(LIBS)
+
+spread_02_3d$(EXEEXT): $(spread_02_3d_OBJECTS) $(spread_02_3d_DEPENDENCIES) $(EXTRA_spread_02_3d_DEPENDENCIES) 
+	@rm -f spread_02_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(spread_02_3d_LINK) $(spread_02_3d_OBJECTS) $(spread_02_3d_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -526,6 +570,8 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spread_01_2d-spread_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spread_01_3d-spread_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spread_02_2d-spread_02.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spread_02_3d-spread_02.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -584,6 +630,34 @@ spread_01_3d-spread_01.obj: spread_01.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='spread_01.cpp' object='spread_01_3d-spread_01.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(spread_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o spread_01_3d-spread_01.obj `if test -f 'spread_01.cpp'; then $(CYGPATH_W) 'spread_01.cpp'; else $(CYGPATH_W) '$(srcdir)/spread_01.cpp'; fi`
+
+spread_02_2d-spread_02.o: spread_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(spread_02_2d_CXXFLAGS) $(CXXFLAGS) -MT spread_02_2d-spread_02.o -MD -MP -MF $(DEPDIR)/spread_02_2d-spread_02.Tpo -c -o spread_02_2d-spread_02.o `test -f 'spread_02.cpp' || echo '$(srcdir)/'`spread_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/spread_02_2d-spread_02.Tpo $(DEPDIR)/spread_02_2d-spread_02.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='spread_02.cpp' object='spread_02_2d-spread_02.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(spread_02_2d_CXXFLAGS) $(CXXFLAGS) -c -o spread_02_2d-spread_02.o `test -f 'spread_02.cpp' || echo '$(srcdir)/'`spread_02.cpp
+
+spread_02_2d-spread_02.obj: spread_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(spread_02_2d_CXXFLAGS) $(CXXFLAGS) -MT spread_02_2d-spread_02.obj -MD -MP -MF $(DEPDIR)/spread_02_2d-spread_02.Tpo -c -o spread_02_2d-spread_02.obj `if test -f 'spread_02.cpp'; then $(CYGPATH_W) 'spread_02.cpp'; else $(CYGPATH_W) '$(srcdir)/spread_02.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/spread_02_2d-spread_02.Tpo $(DEPDIR)/spread_02_2d-spread_02.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='spread_02.cpp' object='spread_02_2d-spread_02.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(spread_02_2d_CXXFLAGS) $(CXXFLAGS) -c -o spread_02_2d-spread_02.obj `if test -f 'spread_02.cpp'; then $(CYGPATH_W) 'spread_02.cpp'; else $(CYGPATH_W) '$(srcdir)/spread_02.cpp'; fi`
+
+spread_02_3d-spread_02.o: spread_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(spread_02_3d_CXXFLAGS) $(CXXFLAGS) -MT spread_02_3d-spread_02.o -MD -MP -MF $(DEPDIR)/spread_02_3d-spread_02.Tpo -c -o spread_02_3d-spread_02.o `test -f 'spread_02.cpp' || echo '$(srcdir)/'`spread_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/spread_02_3d-spread_02.Tpo $(DEPDIR)/spread_02_3d-spread_02.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='spread_02.cpp' object='spread_02_3d-spread_02.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(spread_02_3d_CXXFLAGS) $(CXXFLAGS) -c -o spread_02_3d-spread_02.o `test -f 'spread_02.cpp' || echo '$(srcdir)/'`spread_02.cpp
+
+spread_02_3d-spread_02.obj: spread_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(spread_02_3d_CXXFLAGS) $(CXXFLAGS) -MT spread_02_3d-spread_02.obj -MD -MP -MF $(DEPDIR)/spread_02_3d-spread_02.Tpo -c -o spread_02_3d-spread_02.obj `if test -f 'spread_02.cpp'; then $(CYGPATH_W) 'spread_02.cpp'; else $(CYGPATH_W) '$(srcdir)/spread_02.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/spread_02_3d-spread_02.Tpo $(DEPDIR)/spread_02_3d-spread_02.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='spread_02.cpp' object='spread_02_3d-spread_02.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(spread_02_3d_CXXFLAGS) $(CXXFLAGS) -c -o spread_02_3d-spread_02.obj `if test -f 'spread_02.cpp'; then $(CYGPATH_W) 'spread_02.cpp'; else $(CYGPATH_W) '$(srcdir)/spread_02.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -718,6 +792,8 @@ clean-am: clean-generic clean-libtool mostlyclean-am
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/spread_01_2d-spread_01.Po
 	-rm -f ./$(DEPDIR)/spread_01_3d-spread_01.Po
+	-rm -f ./$(DEPDIR)/spread_02_2d-spread_02.Po
+	-rm -f ./$(DEPDIR)/spread_02_3d-spread_02.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -765,6 +841,8 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/spread_01_2d-spread_01.Po
 	-rm -f ./$(DEPDIR)/spread_01_3d-spread_01.Po
+	-rm -f ./$(DEPDIR)/spread_02_2d-spread_02.Po
+	-rm -f ./$(DEPDIR)/spread_02_3d-spread_02.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -802,7 +880,8 @@ uninstall-am:
 .PRECIOUS: Makefile
 
 .f.m4.f:
-	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
+	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DCURRENT_SRCDIR=$(srcdir) \
+		-DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \

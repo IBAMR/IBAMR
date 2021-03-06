@@ -1,50 +1,51 @@
-// Filename: RelaxationLSMethod.cpp
-// Created on 10 Oct 2017 by Nishant Nangia and Amneet Bhalla
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Nishant Nangia and Amneet Bhalla
+// Copyright (c) 2017 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
-
-#include "ibamr/RelaxationLSBcCoefs.h"
+#include "ibamr/LSInitStrategy.h"
 #include "ibamr/RelaxationLSMethod.h"
-#include "ibamr/namespaces.h"
+#include "ibamr/ibamr_enums.h"
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
 
+#include "BasePatchLevel.h"
+#include "Box.h"
+#include "CartesianPatchGeometry.h"
+#include "CellData.h"
+#include "CellIndex.h"
 #include "CellVariable.h"
 #include "HierarchyCellDataOpsReal.h"
+#include "IntVector.h"
+#include "Patch.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "Variable.h"
+#include "VariableContext.h"
 #include "VariableDatabase.h"
-#include "tbox/RestartManager.h"
+#include "tbox/Database.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+#include "tbox/Utilities.h"
+
+#include <algorithm>
+#include <cmath>
+#include <ostream>
+#include <string>
+#include <vector>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -253,7 +254,8 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     if (d_apply_mass_constraint && initial_time)
     {
         TBOX_WARNING(d_object_name << "::initializeLSData():\n"
-                                   << " Mass constraint is automatically turned off for initial hierarchy time"
+                                   << " Mass constraint is automatically turned "
+                                      "off for initial hierarchy time"
                                    << std::endl);
     }
     const bool constrain_ls_mass = (d_apply_mass_constraint && !initial_time);
@@ -270,14 +272,16 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
-    // Create a temporary variable to hold previous iteration values with appropriate ghost cell width
-    // since it is not guaranteed that D_idx will have proper ghost cell width.
+    // Create a temporary variable to hold previous iteration values with
+    // appropriate ghost cell width since it is not guaranteed that D_idx will
+    // have proper ghost cell width.
     IntVector<NDIM> cell_ghosts;
     IntVector<NDIM> no_ghosts = 0;
     if (d_ls_order == FIRST_ORDER_LS)
     {
         TBOX_WARNING(d_object_name << "::initializeLSData():\n"
-                                   << " First order relxation is known to cause significant interface volume loss \n"
+                                   << " First order relxation is known to cause significant "
+                                      "interface volume loss \n"
                                    << " consider trying THIRD_ORDER_ENO or THIRD_ORDER_WENO." << std::endl);
         cell_ghosts = std::max(1, d_D_gcw);
     }
@@ -320,8 +324,11 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         hierarchy->getPatchLevel(ln)->allocatePatchData(D_copy_idx, time);
         hierarchy->getPatchLevel(ln)->allocatePatchData(H_init_idx, time);
         hierarchy->getPatchLevel(ln)->allocatePatchData(H_scratch_idx, time);
-        if (d_apply_volume_shift) hierarchy->getPatchLevel(ln)->allocatePatchData(HS_init_idx, time);
-        if (d_apply_volume_shift) hierarchy->getPatchLevel(ln)->allocatePatchData(HS_copy_idx, time);
+        if (d_apply_volume_shift)
+        {
+            hierarchy->getPatchLevel(ln)->allocatePatchData(HS_init_idx, time);
+            hierarchy->getPatchLevel(ln)->allocatePatchData(HS_copy_idx, time);
+        }
     }
 
     // First, fill cells with some positive/negative values
@@ -396,7 +403,9 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         if (constrain_ls_mass)
         {
             D_fill_op->fillData(time);
-            hier_cc_data_ops.copyData(D_copy_idx, D_scratch_idx, /*interior_only*/ false);
+            hier_cc_data_ops.copyData(D_copy_idx,
+                                      D_scratch_idx,
+                                      /*interior_only*/ false);
             applyMassConstraint(hier_math_ops, D_scratch_idx, D_copy_idx, D_init_idx, H_init_idx);
         }
 
@@ -450,8 +459,11 @@ RelaxationLSMethod::initializeLSData(int D_idx,
         hierarchy->getPatchLevel(ln)->deallocatePatchData(H_init_idx);
         hierarchy->getPatchLevel(ln)->deallocatePatchData(H_scratch_idx);
 
-        if (d_apply_volume_shift) hierarchy->getPatchLevel(ln)->deallocatePatchData(HS_init_idx);
-        if (d_apply_volume_shift) hierarchy->getPatchLevel(ln)->deallocatePatchData(HS_copy_idx);
+        if (d_apply_volume_shift)
+        {
+            hierarchy->getPatchLevel(ln)->deallocatePatchData(HS_init_idx);
+            hierarchy->getPatchLevel(ln)->deallocatePatchData(HS_copy_idx);
+        }
     }
     var_db->removePatchDataIndex(D_scratch_idx);
     var_db->removePatchDataIndex(D_iter_idx);
@@ -460,8 +472,11 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     var_db->removePatchDataIndex(H_init_idx);
     var_db->removePatchDataIndex(H_scratch_idx);
 
-    if (d_apply_volume_shift) var_db->removePatchDataIndex(HS_init_idx);
-    if (d_apply_volume_shift) var_db->removePatchDataIndex(HS_copy_idx);
+    if (d_apply_volume_shift)
+    {
+        var_db->removePatchDataIndex(HS_init_idx);
+        var_db->removePatchDataIndex(HS_copy_idx);
+    }
 
     // Indicate that the LS has been initialized.
     d_reinitialize_ls = false;

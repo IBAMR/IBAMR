@@ -1,39 +1,16 @@
+c ---------------------------------------------------------------------
 c
-c     Copyright (c) 2002-2017, Boyce Griffith
-c     All rights reserved.
+c Copyright (c) 2008 - 2020 by the IBAMR developers
+c All rights reserved.
 c
-c     Redistribution and use in source and binary forms, with or without
-c     modification, are permitted provided that the following conditions
-c     are met:
+c This file is part of IBAMR.
 c
-c        * Redistributions of source code must retain the above
-c          copyright notice, this list of conditions and the following
-c          disclaimer.
+c IBAMR is free software and is distributed under the 3-clause BSD
+c license. The full text of the license can be found in the file
+c COPYRIGHT at the top level directory of IBAMR.
 c
-c        * Redistributions in binary form must reproduce the above
-c          copyright notice, this list of conditions and the following
-c          disclaimer in the documentation and/or other materials
-c          provided with the distribution.
-c
-c        * Neither the name of The University of North Carolina nor the
-c          names of its contributors may be used to endorse or promote
-c          products derived from this software without specific prior
-c          written permission.
-c
-c     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
-c     CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-c     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-c     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-c     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
-c     BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-c     EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
-c     TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-c     DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-c     ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
-c     TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-c     THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-c     SUCH DAMAGE.
-c
+c ---------------------------------------------------------------------
+
 define(NDIM,3)dnl
 define(REAL,`double precision')dnl
 define(INTEGER,`integer')dnl
@@ -1553,18 +1530,20 @@ c     High-resolution scheme (HR)
       ac = (qC - qU)/(qD - qU)
 
       if (qD - qU .eq. zero) then
-c       ac will be NaN, but qf = qU, so af can be any number
-        af = zero
-      else if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
-        af = three*ac
-      else if (2.d0/13.d0 .lt. ac .and. ac .le. 4.d0/5.d0) then
-        af = ac*5.d0/6.d0 + third
-      else if (4.d0/5.d0 .lt. ac .and. ac .le. one) then
-        af = one
+c       default to upwinding
+        qf = qC
       else
-        af = ac
+        if (zero .lt. ac .and. ac .le. 2.d0/13.d0) then
+          af = three*ac
+        else if (2.d0/13.d0 .lt. ac .and. ac .le. 4.d0/5.d0) then
+          af = ac*5.d0/6.d0 + third
+        else if (4.d0/5.d0 .lt. ac .and. ac .le. one) then
+          af = one
+        else
+          af = ac
+        endif
+        qf = af*(qD - qU) + qU
       endif
-      qf = af*(qD - qU) + qU
 
       return
       end
@@ -1597,16 +1576,18 @@ c     High-resolution scheme (HR)
       ac = (qC - qU)/(qD - qU)
 
       if (qD - qU .eq. zero) then
-c       ac will be NaN, but qf = qU, so af can be any number
-        af = zero
-      else if (zero .lt. ac .and. ac .le. third) then
-        af = three*ac
-      else if (third .lt. ac .and. ac .le. one) then
-        af = one
+c       default to upwinding
+        qf = qC
       else
-        af = ac
+        if (zero .lt. ac .and. ac .le. third) then
+          af = three*ac
+        else if (third .lt. ac .and. ac .le. one) then
+          af = one
+        else
+          af = ac
+        endif
+        qf = af*(qD - qU) + qU
       endif
-      qf = af*(qD - qU) + qU
 
       return
       end
@@ -1639,18 +1620,20 @@ c     High-resolution scheme (HR)
       ac = (qC - qU)/(qD - qU)
 
       if (qD - qU .eq. zero) then
-c       ac will be NaN, but qf = qU, so af can be any number
-        af = zero
-      else if (zero .lt. ac .and. ac .le. eighth) then
-        af = three*ac
-      else if (eighth .lt. ac .and. ac .le. threefourth) then
-        af = ac + fourth
-      else if (threefourth .lt. ac .and. ac .le. one) then
-        af = one
+c       default to upwinding
+        qf = qC
       else
-        af = ac
+        if (zero .lt. ac .and. ac .le. eighth) then
+          af = three*ac
+        else if (eighth .lt. ac .and. ac .le. threefourth) then
+          af = ac + fourth
+        else if (threefourth .lt. ac .and. ac .le. one) then
+          af = one
+        else
+          af = ac
+        endif
+        qf = af*(qD - qU) + qU
       endif
-      qf = af*(qD - qU) + qU
 
       return
       end
@@ -1683,16 +1666,18 @@ c     High-resolution scheme (HR)
       ac = (qC - qU)/(qD - qU)
 
       if (qD - qU .eq. zero) then
-c       ac will be NaN, but qf = qU, so af can be any number
-        af = zero
-      else if (zero .lt. ac .and. ac .le. fourth) then
-        af = 5.d0/2.d0*ac
-      else if (fourth .lt. ac .and. ac .le. one) then
-        af = half*ac + half
-      else
-        af = ac
+c       default to upwinding
+        qf = qC
+        else
+        if (zero .lt. ac .and. ac .le. fourth) then
+          af = 5.d0/2.d0*ac
+        else if (fourth .lt. ac .and. ac .le. one) then
+          af = half*ac + half
+        else
+          af = ac
+        endif
+        qf = af*(qD - qU) + qU
       endif
-      qf = af*(qD - qU) + qU
 
       return
       end

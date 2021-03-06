@@ -1,39 +1,20 @@
-// Filename LSLocateStructureInterface.cpp
-// Created by Nishant Nangia
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2018, Nishant Nangia and Amneet Bhalla
+// Copyright (c) 2019 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
-
+// ---------------------------------------------------------------------
 
 #include <ibamr/app_namespaces.h>
 
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBTK_MPI.h>
 
 #include "LSLocateStructureInterface.h"
 
@@ -59,13 +40,11 @@ LSLocateStructureInterface::LSLocateStructureInterface(const std::string& object
                                                        Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
                                                        Pointer<CellVariable<NDIM, double> > ls_var,
                                                        LDataManager* lag_data_manager,
-                                                       double vol_elem,
                                                        BargeInterface* barge)
     : d_object_name(object_name),
       d_adv_diff_solver(adv_diff_solver),
       d_ls_var(ls_var),
       d_lag_data_manager(lag_data_manager),
-      d_vol_elem(vol_elem),
       d_barge(barge)
 {
     // intentionally left blank
@@ -254,10 +233,10 @@ LSLocateStructureInterface::getExtremeCoords(std::vector<IBTK::Vector>& corners,
 
     // For each of the coordinates, carry out reduction but keep track of which processor has the extreme value
     int rank_xmin, rank_xmax, rank_ymin, rank_ymax;
-    xmin = SAMRAI_MPI::minReduction(xmin, &rank_xmin);
-    xmax = SAMRAI_MPI::maxReduction(xmax, &rank_xmax);
-    ymin = SAMRAI_MPI::minReduction(ymin, &rank_ymin);
-    ymax = SAMRAI_MPI::maxReduction(ymax, &rank_ymax);
+    xmin = IBTK_MPI::minReduction(xmin, &rank_xmin);
+    xmax = IBTK_MPI::maxReduction(xmax, &rank_xmax);
+    ymin = IBTK_MPI::minReduction(ymin, &rank_ymin);
+    ymax = IBTK_MPI::maxReduction(ymax, &rank_ymax);
 
     // Broadcast via minReduction the missing coordinate from the appropriate rank.
     const int num_corners = 4;
@@ -266,11 +245,11 @@ LSLocateStructureInterface::getExtremeCoords(std::vector<IBTK::Vector>& corners,
     other_coords[1] = y_xmax;
     other_coords[2] = x_ymin;
     other_coords[3] = x_ymax;
-    if (SAMRAI_MPI::getRank() != rank_xmin) other_coords[0] = std::numeric_limits<double>::max();
-    if (SAMRAI_MPI::getRank() != rank_xmax) other_coords[1] = std::numeric_limits<double>::max();
-    if (SAMRAI_MPI::getRank() != rank_ymin) other_coords[2] = std::numeric_limits<double>::max();
-    if (SAMRAI_MPI::getRank() != rank_ymax) other_coords[3] = std::numeric_limits<double>::max();
-    SAMRAI_MPI::minReduction(&other_coords[0], num_corners);
+    if (IBTK_MPI::getRank() != rank_xmin) other_coords[0] = std::numeric_limits<double>::max();
+    if (IBTK_MPI::getRank() != rank_xmax) other_coords[1] = std::numeric_limits<double>::max();
+    if (IBTK_MPI::getRank() != rank_ymin) other_coords[2] = std::numeric_limits<double>::max();
+    if (IBTK_MPI::getRank() != rank_ymax) other_coords[3] = std::numeric_limits<double>::max();
+    IBTK_MPI::minReduction(&other_coords[0], num_corners);
     y_xmin = other_coords[0];
     y_xmax = other_coords[1];
     x_ymin = other_coords[2];

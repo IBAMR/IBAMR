@@ -1,54 +1,41 @@
-// Filename: BrinkmanPenalizationRigidBodyDynamics.h
-// Created on 05 Dec 2018 by Amneet Bhalla
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2018, Amneet Bhalla
+// Copyright (c) 2019 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
+
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_BrinkmanPenalizationRigidBodyDynamics
 #define included_BrinkmanPenalizationRigidBodyDynamics
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/config.h>
+
 #include "ibamr/BrinkmanPenalizationStrategy.h"
+#include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
 
 #include "ibtk/ibtk_utilities.h"
 
 #include "tbox/Pointer.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Core"
 #include "Eigen/Geometry"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
 {
-class IBHydrodynamicSurfaceForceEvaluator;
 class INSVCStaggeredHierarchyIntegrator;
 class AdvDiffHierarchyIntegrator;
 } // namespace IBAMR
@@ -88,6 +75,13 @@ namespace IBAMR
 class BrinkmanPenalizationRigidBodyDynamics : public BrinkmanPenalizationStrategy
 {
 public:
+    /*!
+     * Since this class has Eigen object members, which have special alignment
+     * requirements, we must explicitly override operator new to get the
+     * correct aligment for the object as a whole.
+     */
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     /*
      * \brief Constructor of the class.
      */
@@ -119,7 +113,8 @@ public:
     /*!
      * \brief Typedef specifying interface for specifying rigid body velocities.
      */
-    using KinematicsFcnPtr = void (*)(double data_time, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* ctx);
+    using KinematicsFcnPtr =
+        void (*)(double data_time, int cycle_num, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* ctx);
 
     /*
      * \brief Kinematics function data.
@@ -153,7 +148,8 @@ public:
     /*!
      * \brief Typedef specifying interface for specifying additional rigid body force and torque.
      */
-    using ExternalForceTorqueFcnPtr = void (*)(double data_time, Eigen::Vector3d& F, Eigen::Vector3d& T, void* ctx);
+    using ExternalForceTorqueFcnPtr =
+        void (*)(double data_time, int cycle_num, Eigen::Vector3d& F, Eigen::Vector3d& T, void* ctx);
 
     /*
      * \brief External force/torque function data.
@@ -314,6 +310,9 @@ protected:
 
     // Contour level
     double d_contour_level = 0.0;
+
+    // Number of interface cells to compute the Heaviside function
+    double d_num_interface_cells = 2.0;
 
     // Forces and torques on the body.
     Eigen::Vector3d d_hydro_force_pressure, d_hydro_force_viscous, d_hydro_torque_pressure, d_hydro_torque_viscous,

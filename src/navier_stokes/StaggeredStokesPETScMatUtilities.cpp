@@ -1,42 +1,23 @@
-// Filename: StaggeredStokesPETScMatUtilities.cpp
-// Created on 03 Apr 2012 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/StaggeredStokesPETScMatUtilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/PETScMatUtilities.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
@@ -47,38 +28,48 @@
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"
+#include "BoxArray.h"
+#include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellGeometry.h"
 #include "CellIndex.h"
-#include "CoarseFineBoundary.h"
 #include "Index.h"
 #include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchGeometry.h"
 #include "PatchLevel.h"
 #include "PoissonSpecifications.h"
+#include "ProcessorMapping.h"
 #include "RefineAlgorithm.h"
+#include "RefineOperator.h"
+#include "RefineSchedule.h"
 #include "RobinBcCoefStrategy.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
+#include "SideVariable.h"
 #include "Variable.h"
+#include "VariableDatabase.h"
+#include "VariableFillPattern.h"
 #include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include "petscmat.h"
-#include "petscsys.h"
+#include <petsclog.h>
 
 #include <algorithm>
 #include <array>
+#include <memory>
 #include <numeric>
 #include <ostream>
 #include <set>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -119,7 +110,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
     // Setup the finite difference stencils.
     static const int uu_stencil_sz = 2 * NDIM + 1;
-    std::array<Index<NDIM>, uu_stencil_sz> uu_stencil(array_constant<Index<NDIM>, uu_stencil_sz>(Index<NDIM>(0)));
+    std::array<hier::Index<NDIM>, uu_stencil_sz> uu_stencil(
+        array_constant<hier::Index<NDIM>, uu_stencil_sz>(hier::Index<NDIM>(0)));
     for (unsigned int axis = 0, uu_stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++uu_stencil_index)
@@ -128,9 +120,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         }
     }
     static const int up_stencil_sz = 2;
-    std::array<std::array<Index<NDIM>, up_stencil_sz>, NDIM> up_stencil(
-        array_constant<std::array<Index<NDIM>, up_stencil_sz>, NDIM>(
-            array_constant<Index<NDIM>, up_stencil_sz>(Index<NDIM>(0))));
+    std::array<std::array<hier::Index<NDIM>, up_stencil_sz>, NDIM> up_stencil(
+        array_constant<std::array<hier::Index<NDIM>, up_stencil_sz>, NDIM>(
+            array_constant<hier::Index<NDIM>, up_stencil_sz>(hier::Index<NDIM>(0))));
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side)
@@ -139,7 +131,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         }
     }
     static const int pu_stencil_sz = 2 * NDIM;
-    std::array<Index<NDIM>, pu_stencil_sz> pu_stencil(array_constant<Index<NDIM>, pu_stencil_sz>(Index<NDIM>(0)));
+    std::array<hier::Index<NDIM>, pu_stencil_sz> pu_stencil(
+        array_constant<hier::Index<NDIM>, pu_stencil_sz>(hier::Index<NDIM>(0)));
     for (unsigned int axis = 0, pu_stencil_index = 0; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++pu_stencil_index)
@@ -149,7 +142,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     }
 
     // Determine the index ranges.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int nlocal = num_dofs_per_proc[mpi_rank];
     const int ilower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int iupper = ilower + nlocal;
@@ -388,7 +381,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 // boundary conditions.
                 for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
                 {
-                    const Index<NDIM>& i = bc();
+                    const hier::Index<NDIM>& i = bc();
                     const double& a = (*acoef_data)(i, 0);
                     const double& b = (*bcoef_data)(i, 0);
                     const bool velocity_bc = (a == 1.0 || MathUtilities<double>::equalEps(a, 1.0));
@@ -396,7 +389,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 #if !defined(NDEBUG)
                     TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
 #endif
-                    Index<NDIM> i_intr = i;
+                    hier::Index<NDIM> i_intr = i;
                     if (is_lower)
                     {
                         i_intr(bdry_normal_axis) += 0;
@@ -436,7 +429,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     else
                     {
                         TBOX_ERROR(
-                            "StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(): Unknown BC type for "
+                            "StaggeredStokesPETScMatUtilities::"
+                            "constructPatchLevelMACStokesOp(): Unknown BC type for "
                             "tangential velocity specified.");
                     }
                 }
@@ -487,7 +481,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 // boundary conditions.
                 for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
                 {
-                    const Index<NDIM>& i = bc();
+                    const hier::Index<NDIM>& i = bc();
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                     const double& a = (*acoef_data)(i, 0);
                     const double& b = (*bcoef_data)(i, 0);
@@ -526,7 +520,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     else
                     {
                         TBOX_ERROR(
-                            "StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(): Unknown BC type for "
+                            "StaggeredStokesPETScMatUtilities::"
+                            "constructPatchLevelMACStokesOp(): Unknown BC type for "
                             "normal velocity specified.");
                     }
                 }
@@ -632,11 +627,14 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
     // is the "master" location.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<SideVariable<NDIM, int> > patch_num_var = new SideVariable<NDIM, int>(
-        "StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains()::patch_num_var");
+        "StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains()::"
+        "patch_num_var");
     static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
     patch_level->allocatePatchData(patch_num_idx);
     Pointer<SideVariable<NDIM, bool> > u_mastr_loc_var = new SideVariable<NDIM, bool>(
-        "StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains()::u_mastr_loc_var");
+        "StaggeredStokesPETScMatUtilities::"
+        "constructPatchLevelASMSubdomains()::u_"
+        "mastr_loc_var");
     static const int u_mastr_loc_idx = var_db->registerPatchDataIndex(u_mastr_loc_var);
     patch_level->allocatePatchData(u_mastr_loc_idx);
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
@@ -662,7 +660,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
 #if !defined(NDEBUG)
     TBOX_ASSERT(domain_boxes.size() == 1);
 #endif
-    const Index<NDIM>& domain_upper = domain_boxes[0].upper();
+    const hier::Index<NDIM>& domain_upper = domain_boxes[0].upper();
 
     // Determine the number of local DOFs.
     int local_dof_count = 0;
@@ -835,7 +833,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
     is_field_name[P_FIELD_IDX] = "pressure";
 
     // DOFs on this processor.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int n_local_dofs = num_dofs_per_proc[mpi_rank];
 
     const int first_local_dof = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);

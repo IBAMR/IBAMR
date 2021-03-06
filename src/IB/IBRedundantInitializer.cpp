@@ -1,34 +1,15 @@
-// Filename: IBRedundantInitializer.cpp
-// Created on 24 May 2018 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2018 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -41,8 +22,8 @@
 #include "ibamr/IBSpringForceSpec.h"
 #include "ibamr/IBStandardSourceGen.h"
 #include "ibamr/IBTargetPointForceSpec.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LData.h"
 #include "ibtk/LIndexSetData.h"
@@ -51,7 +32,6 @@
 #include "ibtk/LNodeSetData.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/Streamable.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "Box.h"
@@ -68,25 +48,21 @@
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/math/special_functions/round.hpp"
-#include "boost/multi_array.hpp"
+#include <boost/math/special_functions/round.hpp>
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <array>
 #include <cmath>
-#include <ios>
-#include <iosfwd>
-#include <istream>
-#include <iterator>
 #include <limits>
 #include <map>
 #include <numeric>
-#include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -196,8 +172,6 @@ IBRedundantInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHie
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_data_processed);
 #endif
-    // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
 
     // Loop over all patches in the specified level of the patch level and count
     // the number of local vertices.
@@ -395,7 +369,8 @@ IBRedundantInitializer::initializeSprings()
                     if (edge_pair.first > e.second)
                     {
                         TBOX_ERROR(d_object_name << ":\n Error on level " << ln << " and structure number " << j
-                                                 << ".\n Master index must be lower than the slave index for springs.");
+                                                 << ".\n Master index must be lower than "
+                                                    "the slave index for springs.");
                     }
                     if (spec.parameters[0] < 0.0)
                     {
@@ -449,9 +424,9 @@ IBRedundantInitializer::initializeXSprings()
                     }
                     if (edge_pair.first > e.second)
                     {
-                        TBOX_ERROR(d_object_name
-                                   << ":\n Error on level " << ln << " and structure number " << j
-                                   << ".\n Master index must be lower than the slave index for xsprings.");
+                        TBOX_ERROR(d_object_name << ":\n Error on level " << ln << " and structure number " << j
+                                                 << ".\n Master index must be lower than "
+                                                    "the slave index for xsprings.");
                     }
                     if (spec.parameters[0] < 0.0)
                     {
@@ -868,8 +843,9 @@ IBRedundantInitializer::initializeInstrumentationData()
                 }
                 if (encountered_instrument_idx.size() != new_names.size())
                 {
-                    TBOX_ERROR(d_object_name << ":\n Not all anticipated instrument indices were found on level " << ln
-                                             << " and structure number " << j << ". Expected to find "
+                    TBOX_ERROR(d_object_name << ":\n Not all anticipated instrument "
+                                                "indices were found on level "
+                                             << ln << " and structure number " << j << ". Expected to find "
                                              << new_names.size() << " distinct meter indices.");
                 }
             }
@@ -886,13 +862,13 @@ IBRedundantInitializer::initializeSourceData()
     {
         std::vector<std::string> source_names;
         std::vector<double> source_radii;
-        int source_offset = 0;
         const size_t num_base_filename = d_base_filename[ln].size();
         d_source_idx[ln].resize(num_base_filename);
         if (d_init_source_on_level_fcn)
         {
             std::vector<std::string> new_names;
             std::vector<double> new_radii;
+            int source_offset = 0;
             for (unsigned int j = 0; j < num_base_filename; ++j)
             {
                 const int min_idx = 0;
@@ -1097,9 +1073,6 @@ IBRedundantInitializer::initializeMassDataOnPatchLevel(const unsigned int /*glob
     TBOX_ASSERT(d_data_processed);
 #endif
 
-    // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
-
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
     boost::multi_array_ref<double, 1>& M_array = *M_data->getLocalFormArray();
@@ -1159,9 +1132,6 @@ IBRedundantInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*
     TBOX_ASSERT(d_data_processed);
 #endif
 
-    // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
-
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
     boost::multi_array_ref<double, 2>& D_array = *D_data->getLocalFormVecArray();
@@ -1217,7 +1187,6 @@ IBRedundantInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarch
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const Box<NDIM>& patch_box = patch->getBox();
 
         Pointer<CellData<NDIM, int> > tag_data = patch->getPatchData(tag_index);
@@ -1302,13 +1271,15 @@ IBRedundantInitializer::initializeLSiloDataWriter(const int level_number)
     // any of the levels of the locally refined Cartesian grid.
     if (d_global_index_offset[level_number] != 0)
     {
-        TBOX_ERROR("This is broken --- please submit a bug report if you encounter this error.\n");
+        TBOX_ERROR(
+            "This is broken --- please submit a bug report if you encounter "
+            "this error.\n");
     }
 
     // WARNING: For now, we just register the visualization data on MPI process
     // 0.  This will fail if the structure is too large to be stored in the
     // memory available to a single MPI process.
-    if (SAMRAI_MPI::getRank() == 0)
+    if (IBTK_MPI::getRank() == 0)
     {
         for (unsigned int j = 0; j < d_num_vertex[level_number].size(); ++j)
         {
@@ -1393,7 +1364,6 @@ IBRedundantInitializer::getPatchVerticesAtLevel(std::vector<std::pair<int, int> 
     // NOTE: This is clearly not the best way to do this, but it will work for
     // now.
     const Box<NDIM>& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
     for (unsigned int j = 0; j < d_num_vertex[vertex_level_number].size(); ++j)
     {
         for (int k = 0; k < d_num_vertex[vertex_level_number][j]; ++k)

@@ -1,40 +1,24 @@
-// Copyright (c) 2019, Boyce Griffith
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2019 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 // Config files
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
 
 #include <SAMRAI_config.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/LData.h>
 
 // Set up application namespace declarations
@@ -48,15 +32,15 @@
 void
 write_ldata_info(LData& l_data)
 {
-    if (SAMRAI_MPI::getRank() == 0)
+    if (IBTK_MPI::getRank() == 0)
     {
         std::ofstream output("output", std::ios_base::app);
         output << "object name: " << l_data.getName() << '\n';
     }
 
-    for (int rank = 0; rank < SAMRAI_MPI::getNodes(); ++rank)
+    for (int rank = 0; rank < IBTK_MPI::getNodes(); ++rank)
     {
-        if (SAMRAI_MPI::getRank() == rank)
+        if (IBTK_MPI::getRank() == rank)
         {
             std::ofstream output("output", std::ios_base::app);
             output << "\nrank: " << rank << '\n'
@@ -120,8 +104,8 @@ write_ldata_info(LData& l_data)
             if (l_data.getDepth() == 1)
             {
                 boost::multi_array_ref<double, 1> local_entries = *l_data.getArray();
-                const int begin = SAMRAI_MPI::getRank() * 10;
-                const int end = begin + (SAMRAI_MPI::getRank() == 3 ? 6 : 10);
+                const int begin = IBTK_MPI::getRank() * 10;
+                const int end = begin + (IBTK_MPI::getRank() == 3 ? 6 : 10);
                 output << "local range: " << '[' << begin << ", " << end << ")\n";
                 output << "local entries: ";
                 for (int i = begin; i < end - 1; ++i) output << local_entries[i] << ", ";
@@ -132,8 +116,8 @@ write_ldata_info(LData& l_data)
             {
                 output << "with 2D vector:\n" << std::flush;
                 boost::multi_array_ref<double, 2> local_entries = *l_data.getVecArray();
-                const int begin = SAMRAI_MPI::getRank() * 10;
-                const int end = begin + (SAMRAI_MPI::getRank() == 3 ? 3 : 5);
+                const int begin = IBTK_MPI::getRank() * 10;
+                const int end = begin + (IBTK_MPI::getRank() == 3 ? 3 : 5);
                 output << "local range: " << '[' << begin << ", " << end << ")\n";
                 output << "index bases: " << local_entries.index_bases()[0] << ", " << local_entries.index_bases()[1]
                        << '\n';
@@ -146,19 +130,17 @@ write_ldata_info(LData& l_data)
             }
             output << "finished rank " << rank << '\n';
         }
-        SAMRAI_MPI::barrier();
+        IBTK_MPI::barrier();
     }
 }
 
 int
 main(int argc, char** argv)
 {
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
-    const int rank = SAMRAI_MPI::getRank();
+    const int rank = IBTK_MPI::getRank();
 
     // clear the output file, since we will append to it from multiple processes below:
     if (rank == 0)
@@ -170,7 +152,7 @@ main(int argc, char** argv)
     // test 1: set up an owning PETSc vector with depth 1.
     {
         std::vector<int> nonlocal_nodes;
-        if (SAMRAI_MPI::getNodes() == 4)
+        if (IBTK_MPI::getNodes() == 4)
         {
             switch (rank)
             {
@@ -193,7 +175,7 @@ main(int argc, char** argv)
         // use fewer entries on the last process
         LData l_data_1("l_data_1", rank == 3 ? 6 : 10, 1, nonlocal_nodes);
 
-        for (int i = 0; i < SAMRAI_MPI::getNodes(); ++i)
+        for (int i = 0; i < IBTK_MPI::getNodes(); ++i)
         {
             boost::multi_array_ref<double, 1> entries = *l_data_1.getLocalFormArray();
             double offset = 0.0;
@@ -211,7 +193,7 @@ main(int argc, char** argv)
     // test 2: set up an owning PETSc vector with depth 2.
     {
         std::vector<int> nonlocal_nodes;
-        if (SAMRAI_MPI::getNodes() == 4)
+        if (IBTK_MPI::getNodes() == 4)
         {
             switch (rank)
             {
@@ -234,7 +216,7 @@ main(int argc, char** argv)
         // use fewer entries on the last process
         LData l_data_2("l_data_2", rank == 3 ? 6 : 10, 2, nonlocal_nodes);
 
-        for (int i = 0; i < SAMRAI_MPI::getNodes(); ++i)
+        for (int i = 0; i < IBTK_MPI::getNodes(); ++i)
         {
             boost::multi_array_ref<double, 2> entries = *l_data_2.getLocalFormVecArray();
             for (unsigned int row_n = 0; row_n < entries.shape()[0]; ++row_n)
@@ -247,7 +229,4 @@ main(int argc, char** argv)
         l_data_2.endGhostUpdate();
         write_ldata_info(l_data_2);
     }
-
-    SAMRAIManager::shutdown();
-    PetscFinalize();
 } // main

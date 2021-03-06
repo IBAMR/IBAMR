@@ -1,0 +1,111 @@
+Number of elements: 10
+
+IBFEMethod: mesh part 0 is using FIRST order LAGRANGE finite elements.
+
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+rank: 0 level: 0 boxes:
+[(0,0),(3,3)]
+rank: 1 level: 0 boxes:
+[(0,4),(3,7)]
+rank: 2 level: 0 boxes:
+[(4,0),(7,3)]
+rank: 3 level: 0 boxes:
+[(4,4),(7,7)]
+
+rank: 0
+patch number 0
+Array side normal = 0
+Array depth = 0
+array(3,1) = 0.0001948272180803837
+array(4,1) = 0.0005052134412843066
+array(3,2) = 0.1947589272936701
+array(4,2) = 0.5052983631461017
+array(3,3) = 0.1714461822657845
+array(4,3) = 0.6075138771335998
+Array side normal = 1
+Array depth = 0
+array(2,2) = 0.007858685623027658
+array(3,2) = 0.1970932607272722
+array(2,3) = 0.04149587325073695
+array(3,3) = 1.050509457640107
+array(2,4) = 0.01330069555985446
+array(3,4) = 0.4048090397173166
+
+rank: 1
+patch number 1
+Array side normal = 0
+Array depth = 0
+array(3,4) = 0.5201531960762272
+array(4,4) = 1.827751572257623
+array(3,5) = 1.188572161778535
+array(4,5) = 3.117512618321792
+array(3,6) = 0.0464779666395723
+array(4,6) = 0.1205236809375751
+Array side normal = 1
+Array depth = 0
+array(2,4) = 0.01330069555985446
+array(3,4) = 0.4048090397173166
+array(2,5) = 0.1387556800786053
+array(3,5) = 3.503765715333916
+array(2,6) = 0.05305967690069172
+array(3,6) = 1.330719313017117
+
+rank: 2
+patch number 2
+Array side normal = 0
+Array depth = 0
+array(4,1) = 0.0005052134412843066
+array(5,1) = 0.0002179079181680673
+array(6,1) = 0.001302597424276322
+array(7,1) = 0.0002443493227503003
+array(4,2) = 0.5052983631461017
+array(5,2) = 0.2207230173456196
+array(6,2) = 1.302939978150752
+array(7,2) = 0.2442636734881081
+array(4,3) = 0.6075138771335998
+array(5,3) = 1.350983240972332
+array(6,3) = 1.428156526006255
+array(7,3) = 0.2150251845585788
+Array side normal = 1
+Array depth = 0
+array(4,2) = 0.08553055469758745
+array(5,2) = 0.2726949348994544
+array(6,2) = 0.3068452972546149
+array(7,2) = 0.0002631925212903998
+array(4,3) = 0.6648041652856885
+array(5,3) = 1.614563156585427
+array(6,3) = 1.622101631271392
+array(7,3) = 0.001389723934496913
+array(4,4) = 2.714098188068797
+array(5,4) = 3.132226050060326
+array(6,4) = 0.2837176768341275
+array(7,4) = 0.0002139643320768729
+
+rank: 3
+patch number 3
+Array side normal = 0
+Array depth = 0
+array(4,4) = 1.827751572257623
+array(5,4) = 3.265712393595944
+array(6,4) = 0.7582505147842815
+array(4,5) = 3.117512618321792
+array(5,5) = 0.3865487310397663
+array(6,5) = 0.05343782767507164
+array(4,6) = 0.1205236809375751
+array(5,6) = 0.006191387543631442
+Array side normal = 1
+Array depth = 0
+array(4,4) = 2.714098188068797
+array(5,4) = 3.132226050060326
+array(6,4) = 0.2837176768341275
+array(7,4) = 0.0002139643320768729
+array(4,5) = 2.60713034112083
+array(5,5) = 1.580009480083784
+array(6,5) = 0.2680937060173217
+array(7,5) = 0.0002160026290845016
+array(4,6) = 0.5774787051021547
+array(5,6) = 0.08558081041880441
+array(6,6) = 0.09629833873493568
+array(7,6) = 8.259863453828282e-05

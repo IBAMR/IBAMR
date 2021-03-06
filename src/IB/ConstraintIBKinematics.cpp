@@ -1,56 +1,39 @@
-// Filename: ConstraintIBKinematics.cpp
-// Created on 10 Dec 2011 by Amneet Bhalla
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Amneet Bhalla and Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
-/////////////////////////////////// INCLUDES /////////////////////////////////////
+/////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/ConstraintIBKinematics.h"
-#include "ibamr/namespaces.h"
 
+#include "ibtk/LDataManager.h"
+
+#include "tbox/Array.h"
+#include "tbox/Database.h"
+#include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
 
 #include <string>
 
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
+
 namespace IBAMR
 {
-namespace
-{
-} // namespace
-
 ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Database> input_db,
                                                                  LDataManager* l_data_manager)
     : d_total_nodes(0), d_tagged_pt_idx(-1), d_struct_is_self_translating(false), d_struct_is_self_rotating(false)
 {
-    Array<std::string> struct_names = input_db->getStringArray("structure_names");
-    Array<int> struct_levels = input_db->getIntegerArray("structure_levels");
+    tbox::Array<std::string> struct_names = input_db->getStringArray("structure_names");
+    tbox::Array<int> struct_levels = input_db->getIntegerArray("structure_levels");
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(!struct_names.isNull());
@@ -99,7 +82,7 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Databas
             << std::endl);
     }
 
-    Array<int> tagged_pt_identifier = input_db->getIntegerArray("tagged_pt_identifier");
+    tbox::Array<int> tagged_pt_identifier = input_db->getIntegerArray("tagged_pt_identifier");
     const int level_tagged = tagged_pt_identifier[0];
     const int relative_idx_tagged = tagged_pt_identifier[1];
     for (int i = 0; i < struct_levels.size(); ++i)

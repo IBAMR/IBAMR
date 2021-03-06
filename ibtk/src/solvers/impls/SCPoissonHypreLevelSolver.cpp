@@ -1,68 +1,52 @@
-// Filename: SCPoissonHypreLevelSolver.cpp
-// Created on 17 Sep 2008 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/GeneralSolver.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/PoissonUtilities.h"
 #include "ibtk/SCPoissonHypreLevelSolver.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
+#include "BoundaryBox.h"
 #include "Box.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
-#include "HYPRE_sstruct_ls.h"
-#include "HYPRE_sstruct_mv.h"
-#include "Index.h"
-#include "IntVector.h"
+#include "CoarseFineBoundary.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "SAMRAIVectorReal.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
+#include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
+#include "ibtk/namespaces.h" // IWYU pragma: keep
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "HYPRE_sstruct_ls.h"
+#include "HYPRE_sstruct_mv.h"
+IBTK_ENABLE_EXTRA_WARNINGS
+
 #include <mpi.h>
 
 #include <algorithm>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -313,7 +297,7 @@ void
 SCPoissonHypreLevelSolver::allocateHypreData()
 {
     // Get the MPI communicator.
-    MPI_Comm communicator = SAMRAI_MPI::getCommunicator();
+    MPI_Comm communicator = IBTK_MPI::getCommunicator();
 
     // Setup the hypre grid and variables and assemble the grid.
     Pointer<CartesianGridGeometry<NDIM> > grid_geometry = d_hierarchy->getGridGeometry();
@@ -324,8 +308,8 @@ SCPoissonHypreLevelSolver::allocateHypreData()
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
         const Box<NDIM>& patch_box = d_level->getPatch(p())->getBox();
-        Index<NDIM> lower = patch_box.lower();
-        Index<NDIM> upper = patch_box.upper();
+        hier::Index<NDIM> lower = patch_box.lower();
+        hier::Index<NDIM> upper = patch_box.upper();
         HYPRE_SStructGridSetExtents(d_grid, PART, lower, upper);
     }
 
@@ -355,7 +339,7 @@ SCPoissonHypreLevelSolver::allocateHypreData()
     // Allocate stencil data and set stencil offsets.
     static const int stencil_sz = 2 * NDIM + 1;
     d_stencil_offsets.resize(stencil_sz);
-    std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), Index<NDIM>(0));
+    std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), hier::Index<NDIM>(0));
     for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++stencil_index)
@@ -441,7 +425,7 @@ void
 SCPoissonHypreLevelSolver::setupHypreSolver()
 {
     // Get the MPI communicator.
-    MPI_Comm communicator = SAMRAI_MPI::getCommunicator();
+    MPI_Comm communicator = IBTK_MPI::getCommunicator();
 
     // Determine the split solver type.
     int split_solver_type_id = -1;
@@ -719,6 +703,9 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     // Solve the system.
     IBTK_TIMER_START(t_solve_system_hypre);
 
+    d_current_iterations = 0;
+    d_current_residual_norm = 0.0;
+
     if (d_solver_type == "SysPFMG")
     {
         HYPRE_SStructSysPFMGSetMaxIter(d_solver, d_max_iterations);
@@ -808,6 +795,12 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         Pointer<SideData<NDIM, double> > x_data = patch->getPatchData(x_idx);
         copyFromHypre(*x_data, d_sol_vec, patch_box);
     }
+
+    // During initialization we may call this function with zero vectors for
+    // the RHS and solution - in that case we converge with zero iterations
+    // and the relative error is NaN. If this is the case then return true.
+    if (std::isnan(d_current_residual_norm) && d_current_iterations == 0) return true;
+
     return (d_current_residual_norm <= d_rel_residual_tol || d_current_residual_norm <= d_abs_residual_tol);
 } // solveSystem
 
@@ -823,9 +816,9 @@ SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
     for (int var = 0; var < NVARS; ++var)
     {
         const unsigned int axis = var;
-        Index<NDIM> lower = box.lower();
+        hier::Index<NDIM> lower = box.lower();
         lower(axis) -= 1;
-        Index<NDIM> upper = box.upper();
+        hier::Index<NDIM> upper = box.upper();
         HYPRE_SStructVectorSetBoxValues(vector, PART, lower, upper, var, hypre_data.getPointer(axis));
     }
     return;
@@ -842,9 +835,9 @@ SCPoissonHypreLevelSolver::copyFromHypre(SideData<NDIM, double>& dst_data,
     for (int var = 0; var < NVARS; ++var)
     {
         const unsigned int axis = var;
-        Index<NDIM> lower = box.lower();
+        hier::Index<NDIM> lower = box.lower();
         lower(axis) -= 1;
-        Index<NDIM> upper = box.upper();
+        hier::Index<NDIM> upper = box.upper();
         HYPRE_SStructVectorGetBoxValues(vector, PART, lower, upper, var, hypre_data.getPointer(axis));
     }
     if (copy_data)

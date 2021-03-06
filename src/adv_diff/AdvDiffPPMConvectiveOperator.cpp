@@ -1,45 +1,23 @@
-// Filename: AdvDiffPPMConvectiveOperator.cpp
-// Created on 24 Aug 2011 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include "IBAMR_config.h"
 
 #include "ibamr/AdvDiffPPMConvectiveOperator.h"
 #include "ibamr/AdvDiffPhysicalBoundaryUtilities.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CartExtrapPhysBdryOp.h"
 
@@ -74,10 +52,13 @@
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
+#include <memory>
 #include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {
@@ -340,10 +321,12 @@ AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(std::string object_na
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
     {
-        TBOX_ERROR("AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator():\n"
-                   << "  unsupported differencing form: "
-                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
-                   << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+        TBOX_ERROR(
+            "AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator()"
+            ":\n"
+            << "  unsupported differencing form: " << enum_to_string<ConvectiveDifferencingType>(d_difference_form)
+            << " \n"
+            << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
     if (input_db)
@@ -394,12 +377,15 @@ AdvDiffPPMConvectiveOperator::AdvDiffPPMConvectiveOperator(std::string object_na
 
     // Setup Timers.
     IBAMR_DO_ONCE(t_apply_convective_operator = TimerManager::getManager()->getTimer(
-                      "IBAMR::AdvDiffCenteredConvectiveOperator::applyConvectiveOperator()");
+                      "IBAMR::AdvDiffCenteredConvectiveOperator::applyConvectiveOperator("
+                      ")");
                   t_apply = TimerManager::getManager()->getTimer("IBAMR::AdvDiffCenteredConvectiveOperator::apply()");
                   t_initialize_operator_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::AdvDiffCenteredConvectiveOperator::initializeOperatorState()");
+                      "IBAMR::AdvDiffCenteredConvectiveOperator::initializeOperatorState("
+                      ")");
                   t_deallocate_operator_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::AdvDiffCenteredConvectiveOperator::deallocateOperatorState()"););
+                      "IBAMR::AdvDiffCenteredConvectiveOperator::deallocateOperatorState("
+                      ")"););
     return;
 } // AdvDiffPPMConvectiveOperator
 
@@ -417,7 +403,8 @@ AdvDiffPPMConvectiveOperator::applyConvectiveOperator(const int Q_idx, const int
     if (!d_is_initialized)
     {
         TBOX_ERROR("AdvDiffPPMConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  operator must be initialized prior to call to applyConvectiveOperator\n");
+                   << "  operator must be initialized prior to call to "
+                      "applyConvectiveOperator\n");
     }
 #endif
 

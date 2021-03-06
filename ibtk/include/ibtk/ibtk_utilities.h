@@ -1,42 +1,27 @@
-// Filename: ibtk_utilities.h
-// Created on 27 Jan 2011 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2011 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
+
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBTK_ibtk_utilities
 #define included_IBTK_ibtk_utilities
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/ibtk_macros.h"
+#include <ibtk/config.h>
 
+#include "PatchHierarchy.h"
+#include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
 #include "tbox/Utilities.h"
 
@@ -47,6 +32,7 @@ IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <array>
+#include <utility>
 
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 
@@ -130,6 +116,58 @@ static const bool ENABLE_TIMERS = true;
 
 namespace IBTK
 {
+inline std::string
+get_data_time_str(const double data_time, const double current_time, const double new_time)
+{
+    const double half_time = 0.5 * (current_time + new_time);
+    if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, current_time))
+    {
+        return "current";
+    }
+    else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, half_time))
+    {
+        return "half";
+    }
+    else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, new_time))
+    {
+        return "new";
+    }
+    else
+    {
+        return "unknown";
+    }
+}
+
+/*!
+ * Get the smallest cell width on the specified level. This operation is
+ * collective.
+ */
+double get_min_patch_dx(const SAMRAI::hier::PatchLevel<NDIM>& patch_level);
+
+/*!
+ * Check whether the relative difference between a and b are within the threshold eps.
+ *
+ * \note This function should be used with caution to check numbers close to zero. In this case, consider using the
+ * abs_equal_eps function.
+ */
+inline bool
+rel_equal_eps(double a, double b, double eps = std::sqrt(std::numeric_limits<double>::epsilon()))
+{
+    return (a == b) || (std::abs(a - b) / std::max(std::abs(a), std::abs(b))) < eps;
+}
+
+/*!
+ * \brief Check whether the absolute difference between a and b are within the threshold eps.
+ *
+ * \note This function should be used with caution to check numbers that have large magnitudes. In these cases, consider
+ * using the rel_equal_eps function.
+ */
+inline bool
+abs_equal_eps(double a, double b, double eps = std::sqrt(std::numeric_limits<double>::epsilon()))
+{
+    return std::abs(a - b) < eps;
+}
+
 template <class T, unsigned N>
 inline std::array<T, N>
 array_constant(const T& v)
@@ -162,6 +200,72 @@ level_can_be_refined(int level_number, int max_levels)
 {
     const int finest_level_number = max_levels - 1;
     return level_number < finest_level_number;
+}
+
+/*!
+ * Convert a Voigt notation index to the corresponding symmetric tensor index. This function only returns the upper
+ * triangular index.
+ */
+inline std::pair<int, int>
+voigt_to_tensor_idx(const int k)
+{
+    if (k < NDIM)
+        return std::make_pair(k, k);
+    else
+#if (NDIM == 2)
+        return std::make_pair(0, 1);
+#endif
+#if (NDIM == 3)
+    return std::make_pair(k > 3 ? 0 : 1, k > 4 ? 1 : 2);
+#endif
+}
+
+/*!
+ * Convert a symmetric tensor index to the corresponding Voigt notation index.
+ */
+inline int
+tensor_idx_to_voigt(const std::pair<int, int>& idx)
+{
+    if (idx.first == idx.second)
+        return idx.first;
+    else
+        return 3 * NDIM - 3 - idx.first - idx.second;
+}
+
+/*!
+ * Smooth heaviside function.
+ */
+inline double
+smooth_heaviside(const double& phi, const double& alpha)
+{
+    double Hphi = 1.0;
+    if (phi < -alpha)
+    {
+        Hphi = 0.0;
+    }
+    else if (std::abs(phi) <= alpha)
+    {
+        Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
+    }
+    return Hphi;
+}
+
+/*!
+ * Discontinuous heaviside function.
+ */
+inline double
+discontinuous_heaviside(const double& phi)
+{
+    double Hphi = 1.0;
+    if (phi < 0.0)
+    {
+        Hphi = 0.0;
+    }
+    else if (phi == 0.0)
+    {
+        Hphi = 0.5;
+    }
+    return Hphi;
 }
 
 /*!

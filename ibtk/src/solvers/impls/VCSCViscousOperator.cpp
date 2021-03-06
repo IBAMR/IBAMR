@@ -1,62 +1,42 @@
-// Filename: VCSCViscousOperator.cpp
-// Created on 17 Aug 2017 by Amneet Bhalla
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2014, Amneet Bhalla and Nishant Nangia
+// Copyright (c) 2017 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
-#include "ibtk/LaplaceOperator.h"
-#include "ibtk/SideNoCornersFillPattern.h"
+#include "ibtk/SCLaplaceOperator.h"
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "ibtk/VCSCViscousOperator.h"
+#include "ibtk/ibtk_enums.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "IntVector.h"
+#include "Box.h"
+#include "EdgeVariable.h"
 #include "MultiblockDataTranslator.h"
+#include "NodeVariable.h"
 #include "PatchHierarchy.h"
-#include "PoissonSpecifications.h"
 #include "SAMRAIVectorReal.h"
-#include "SideDataFactory.h"
 #include "SideVariable.h"
 #include "VariableFillPattern.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
 
-#include <ostream>
+#include <algorithm>
 #include <string>
-#include <vector>
+#include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {
@@ -152,9 +132,6 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
     }
 #endif
 
-    // Allocate scratch data.
-    d_x->allocateVectorData();
-
     // Simultaneously fill ghost cell values for all components.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
@@ -211,9 +188,6 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
         d_bc_helpers[comp]->copyDataAtDirichletBoundaries(y_idx, x_idx);
     }
 
-    // Deallocate scratch data.
-    d_x->deallocateVectorData();
-
     IBTK_TIMER_STOP(t_apply);
     return;
 } // apply
@@ -230,6 +204,9 @@ VCSCViscousOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double
     // Setup solution and rhs vectors.
     d_x = in.cloneVector(in.getName());
     d_b = out.cloneVector(out.getName());
+
+    // Allocate scratch data.
+    d_x->allocateVectorData();
 
     // Setup operator state.
     d_hierarchy = in.getPatchHierarchy();
@@ -309,6 +286,9 @@ VCSCViscousOperator::deallocateOperatorState()
 
     // Deallocate hierarchy math operations object.
     if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
+
+    // Deallocate scratch data.
+    d_x->deallocateVectorData();
 
     // Delete the solution and rhs vectors.
     d_x->freeVectorComponents();

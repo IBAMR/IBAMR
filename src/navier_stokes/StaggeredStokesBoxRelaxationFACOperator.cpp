@@ -1,40 +1,20 @@
-// Filename: StaggeredStokesBoxRelaxationFACOperator.cpp
-// Created on 11 Jun 2010 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/StaggeredStokesBoxRelaxationFACOperator.h"
 #include "ibamr/StaggeredStokesFACPreconditionerStrategy.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -77,6 +57,8 @@
 #include <utility>
 #include <vector>
 
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -89,7 +71,7 @@ namespace
 static const int GHOSTS = 1;
 
 inline int
-compute_side_index(const Index<NDIM>& i, const Box<NDIM>& box, const unsigned int axis)
+compute_side_index(const hier::Index<NDIM>& i, const Box<NDIM>& box, const unsigned int axis)
 {
     const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box, axis);
     if (!side_box.contains(i)) return -1;
@@ -102,7 +84,7 @@ compute_side_index(const Index<NDIM>& i, const Box<NDIM>& box, const unsigned in
 } // compute_side_index
 
 inline int
-compute_cell_index(const Index<NDIM>& i, const Box<NDIM>& box)
+compute_cell_index(const hier::Index<NDIM>& i, const Box<NDIM>& box)
 {
     if (!box.contains(i)) return -1;
     int offset = 0;
@@ -198,7 +180,7 @@ buildBoxOperator(Mat& A,
     {
         for (Box<NDIM>::Iterator b(side_boxes[axis]); b; b++)
         {
-            Index<NDIM> i = b();
+            hier::Index<NDIM> i = b();
             const int mat_row = compute_side_index(i, ghost_box, axis);
 
             std::vector<int> mat_cols(U_stencil_sz, -1);
@@ -209,10 +191,10 @@ buildBoxOperator(Mat& A,
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                Index<NDIM> shift = 0;
+                hier::Index<NDIM> shift = 0;
                 shift(d) = 1;
-                const Index<NDIM> u_left = i - shift;
-                const Index<NDIM> u_rght = i + shift;
+                const hier::Index<NDIM> u_left = i - shift;
+                const hier::Index<NDIM> u_rght = i + shift;
                 mat_cols[2 * d + 1] = compute_side_index(u_left, ghost_box, axis);
                 mat_cols[2 * d + 2] = compute_side_index(u_rght, ghost_box, axis);
 
@@ -221,10 +203,10 @@ buildBoxOperator(Mat& A,
                 mat_vals[2 * d + 2] = D / (dx[d] * dx[d]);
             }
 
-            Index<NDIM> shift = 0;
+            hier::Index<NDIM> shift = 0;
             shift(axis) = 1;
-            const Index<NDIM> p_left = i - shift;
-            const Index<NDIM> p_rght = i;
+            const hier::Index<NDIM> p_left = i - shift;
+            const hier::Index<NDIM> p_rght = i;
             mat_cols[2 * NDIM + 1] = compute_cell_index(p_left, ghost_box);
             mat_cols[2 * NDIM + 2] = compute_cell_index(p_rght, ghost_box);
 
@@ -240,7 +222,7 @@ buildBoxOperator(Mat& A,
 
     for (Box<NDIM>::Iterator b(box); b; b++)
     {
-        Index<NDIM> i = b();
+        hier::Index<NDIM> i = b();
         const int mat_row = compute_cell_index(i, ghost_box);
 
         std::vector<int> mat_cols(P_stencil_sz, -1);
@@ -251,10 +233,10 @@ buildBoxOperator(Mat& A,
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            Index<NDIM> shift = 0;
+            hier::Index<NDIM> shift = 0;
             shift(axis) = 1;
-            const Index<NDIM> u_left = i;
-            const Index<NDIM> u_rght = i + shift;
+            const hier::Index<NDIM> u_left = i;
+            const hier::Index<NDIM> u_rght = i + shift;
             mat_cols[2 * axis + 1] = compute_side_index(u_left, ghost_box, axis);
             mat_cols[2 * axis + 2] = compute_side_index(u_rght, ghost_box, axis);
 
@@ -318,15 +300,15 @@ modifyRhsForBcs(Vec& v,
         const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box, axis);
         for (Box<NDIM>::Iterator b(side_box); b; b++)
         {
-            Index<NDIM> i = b();
+            hier::Index<NDIM> i = b();
             const int idx = compute_side_index(i, ghost_box, axis);
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                Index<NDIM> shift = 0;
+                hier::Index<NDIM> shift = 0;
                 shift(d) = 1;
-                const Index<NDIM> u_left = i - shift;
-                const Index<NDIM> u_rght = i + shift;
+                const hier::Index<NDIM> u_left = i - shift;
+                const hier::Index<NDIM> u_rght = i + shift;
                 if (!side_box.contains(u_left))
                 {
                     ierr = VecSetValue(v,
@@ -347,10 +329,10 @@ modifyRhsForBcs(Vec& v,
                 }
             }
 
-            Index<NDIM> shift = 0;
+            hier::Index<NDIM> shift = 0;
             shift(axis) = 1;
-            const Index<NDIM> p_left = i - shift;
-            const Index<NDIM> p_rght = i;
+            const hier::Index<NDIM> p_left = i - shift;
+            const hier::Index<NDIM> p_rght = i;
             if (!box.contains(p_left))
             {
                 ierr = VecSetValue(v, idx, +P_data(p_left) / dx[axis], ADD_VALUES);
@@ -385,7 +367,7 @@ copyToVec(Vec& v,
         const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box, axis);
         for (Box<NDIM>::Iterator b(side_box); b; b++)
         {
-            const Index<NDIM>& i = b();
+            const hier::Index<NDIM>& i = b();
             const SideIndex<NDIM> s_i(i, axis, 0);
             const int idx = compute_side_index(i, ghost_box, axis);
             ierr = VecSetValue(v, idx, U_data(s_i), INSERT_VALUES);
@@ -395,7 +377,7 @@ copyToVec(Vec& v,
 
     for (Box<NDIM>::Iterator b(box); b; b++)
     {
-        const Index<NDIM>& i = b();
+        const hier::Index<NDIM>& i = b();
         const int idx = compute_cell_index(i, ghost_box);
         ierr = VecSetValue(v, idx, P_data(i), INSERT_VALUES);
         IBTK_CHKERRQ(ierr);
@@ -425,7 +407,7 @@ copyFromVec(Vec& v,
         const Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(box, axis);
         for (Box<NDIM>::Iterator b(side_box); b; b++)
         {
-            const Index<NDIM>& i = b();
+            const hier::Index<NDIM>& i = b();
             const SideIndex<NDIM> s_i(i, axis, SideIndex<NDIM>::Lower);
             const int idx = compute_side_index(i, ghost_box, axis);
             ierr = VecGetValues(v, 1, &idx, &U);
@@ -437,7 +419,7 @@ copyFromVec(Vec& v,
     double P;
     for (Box<NDIM>::Iterator b(box); b; b++)
     {
-        const Index<NDIM>& i = b();
+        const hier::Index<NDIM>& i = b();
         const int idx = compute_cell_index(i, ghost_box);
         ierr = VecGetValues(v, 1, &idx, &P);
         IBTK_CHKERRQ(ierr);
@@ -617,7 +599,7 @@ StaggeredStokesBoxRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, doub
             const double* const dx = pgeom->getDx();
             for (Box<NDIM>::Iterator b(patch_box); b; b++)
             {
-                const Index<NDIM>& i = b();
+                const hier::Index<NDIM>& i = b();
                 const Box<NDIM> box(i, i);
                 copyToVec(e, *U_error_data, *P_error_data, box, box);
                 copyToVec(r, *U_residual_data, *P_residual_data, box, box);
@@ -649,7 +631,7 @@ StaggeredStokesBoxRelaxationFACOperator::initializeOperatorStateSpecialized(cons
     d_box_e.resize(d_finest_ln + 1);
     d_box_r.resize(d_finest_ln + 1);
     d_box_ksp.resize(d_finest_ln + 1);
-    const Box<NDIM> box(Index<NDIM>(0), Index<NDIM>(0));
+    const Box<NDIM> box(hier::Index<NDIM>(0), hier::Index<NDIM>(0));
     Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
     const double* const dx_coarsest = geometry->getDx();
     std::array<double, NDIM> dx;

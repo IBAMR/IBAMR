@@ -1,53 +1,30 @@
-// Filename: CCPoissonHypreLevelSolver.cpp
-// Created on 30 May 2005 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/CCPoissonHypreLevelSolver.h"
 #include "ibtk/GeneralSolver.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/PoissonUtilities.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
+#include "BoundaryBox.h"
 #include "Box.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellDataFactory.h"
-#include "CellIndex.h"
-#include "HYPRE_struct_ls.h"
-#include "HYPRE_struct_mv.h"
-#include "Index.h"
-#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchDescriptor.h"
@@ -60,19 +37,26 @@
 #include "SideDataFactory.h"
 #include "SideIndex.h"
 #include "VariableDatabase.h"
+#include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
+#include "ibtk/namespaces.h" // IWYU pragma: keep
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "HYPRE_struct_ls.h"
+#include "HYPRE_struct_mv.h"
+IBTK_ENABLE_EXTRA_WARNINGS
+
 #include <mpi.h>
 
 #include <algorithm>
-#include <functional>
 #include <map>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -109,7 +93,7 @@ enum HypreStructRelaxType
 
 struct IndexComp
 {
-    bool operator()(const Index<NDIM>& lhs, const Index<NDIM>& rhs) const
+    bool operator()(const hier::Index<NDIM>& lhs, const hier::Index<NDIM>& rhs) const
     {
         return (lhs(0) < rhs(0)
 #if (NDIM > 1)
@@ -372,7 +356,7 @@ void
 CCPoissonHypreLevelSolver::allocateHypreData()
 {
     // Get the MPI communicator.
-    MPI_Comm communicator = SAMRAI_MPI::getCommunicator();
+    MPI_Comm communicator = IBTK_MPI::getCommunicator();
 
     // Setup the hypre grid.
     Pointer<CartesianGridGeometry<NDIM> > grid_geometry = d_hierarchy->getGridGeometry();
@@ -383,8 +367,8 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
         const Box<NDIM>& patch_box = d_level->getPatch(p())->getBox();
-        Index<NDIM> lower = patch_box.lower();
-        Index<NDIM> upper = patch_box.upper();
+        hier::Index<NDIM> lower = patch_box.lower();
+        hier::Index<NDIM> upper = patch_box.upper();
         HYPRE_StructGridSetExtents(d_grid, lower, upper);
     }
 
@@ -405,7 +389,7 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     {
         static const int stencil_sz = 2 * NDIM + 1;
         d_stencil_offsets.resize(stencil_sz);
-        std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), Index<NDIM>(0));
+        std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), hier::Index<NDIM>(0));
         for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
         {
             for (int side = 0; side <= 1; ++side, ++stencil_index)
@@ -423,7 +407,7 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     {
         static const int stencil_sz = (NDIM == 2) ? 9 : 19;
         d_stencil_offsets.resize(stencil_sz);
-        std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), Index<NDIM>(0));
+        std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), hier::Index<NDIM>(0));
         int stencil_index = 0;
 #if (NDIM == 3)
         for (int z_offset = -1; z_offset <= 1; ++z_offset)
@@ -513,7 +497,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
                 matrix_coefs, patch, d_stencil_offsets, d_poisson_spec, d_bc_coefs[k], d_solution_time);
             for (Box<NDIM>::Iterator b(patch_box); b; b++)
             {
-                Index<NDIM> i = b();
+                hier::Index<NDIM> i = b();
                 for (int j = 0; j < stencil_sz; ++j)
                 {
                     mat_vals[j] = matrix_coefs(i, j);
@@ -587,7 +571,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
             stencil_indices[i] = i;
         }
 
-        std::map<Index<NDIM>, int, IndexComp> stencil_index_map;
+        std::map<hier::Index<NDIM>, int, IndexComp> stencil_index_map;
         int stencil_index = 0;
 #if (NDIM == 3)
         for (int z_offset = -1; z_offset <= 1; ++z_offset)
@@ -603,10 +587,10 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                     {
 #endif
 #if (NDIM == 2)
-                        const Index<NDIM> i(x_offset, y_offset);
+                        const hier::Index<NDIM> i(x_offset, y_offset);
 #endif
 #if (NDIM == 3)
-                        const Index<NDIM> i(x_offset, y_offset, z_offset);
+                        const hier::Index<NDIM> i(x_offset, y_offset, z_offset);
 #endif
                         stencil_index_map[i] = stencil_index++;
 #if (NDIM == 3)
@@ -620,8 +604,8 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
         // finite difference stencil for the Laplace operator.
         for (Box<NDIM>::Iterator b(patch_box); b; b++)
         {
-            Index<NDIM> i = b();
-            static const Index<NDIM> i_stencil_center(0);
+            hier::Index<NDIM> i = b();
+            static const hier::Index<NDIM> i_stencil_center(0);
             const int stencil_center = stencil_index_map[i_stencil_center];
 
             std::vector<double> mat_vals(stencil_sz, 0.0);
@@ -632,7 +616,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
             {
                 const double& h = dx[axis];
                 {
-                    Index<NDIM> i_stencil_lower(0);
+                    hier::Index<NDIM> i_stencil_lower(0);
                     --i_stencil_lower[axis];
                     const int stencil_lower = stencil_index_map[i_stencil_lower];
 
@@ -642,7 +626,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                     mat_vals[stencil_center] -= D_lower / (h * h);
                 }
                 {
-                    Index<NDIM> i_stencil_upper(0);
+                    hier::Index<NDIM> i_stencil_upper(0);
                     ++i_stencil_upper[axis];
                     const int stencil_upper = stencil_index_map[i_stencil_upper];
 
@@ -680,7 +664,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                         {
                             for (int trans_shift = -1; trans_shift <= 1; trans_shift += 2)
                             {
-                                Index<NDIM> i_stencil(0);
+                                hier::Index<NDIM> i_stencil(0);
                                 i_stencil[norm_axis] += norm_shift;
                                 i_stencil[trans_axis] += trans_shift;
                                 const int stencil_index = stencil_index_map[i_stencil];
@@ -704,7 +688,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                         {
                             for (int trans_shift = -1; trans_shift <= 1; trans_shift += 2)
                             {
-                                Index<NDIM> i_stencil(0);
+                                hier::Index<NDIM> i_stencil(0);
                                 i_stencil[norm_axis] += norm_shift;
                                 i_stencil[trans_axis] += trans_shift;
                                 const int stencil_index = stencil_index_map[i_stencil];
@@ -741,7 +725,7 @@ void
 CCPoissonHypreLevelSolver::setupHypreSolver()
 {
     // Get the MPI communicator.
-    MPI_Comm communicator = SAMRAI_MPI::getCommunicator();
+    MPI_Comm communicator = IBTK_MPI::getCommunicator();
 
     d_solvers.resize(d_depth);
     d_preconds.resize(d_depth);
@@ -1078,6 +1062,9 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         // Solve the system.
         IBTK_TIMER_START(t_solve_system_hypre);
 
+        d_current_iterations = 0;
+        d_current_residual_norm = 0.0;
+
         if (d_solver_type == "PFMG")
         {
             HYPRE_StructPFMGSetMaxIter(d_solvers[k], d_max_iterations);
@@ -1166,6 +1153,12 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         Pointer<CellData<NDIM, double> > x_data = patch->getPatchData(x_idx);
         copyFromHypre(*x_data, d_sol_vecs, patch_box);
     }
+
+    // During initialization we may call this function with zero vectors for
+    // the RHS and solution - in that case we converge with zero iterations
+    // and the relative error is NaN. If this is the case then return true.
+    if (std::isnan(d_current_residual_norm) && d_current_iterations == 0) return true;
+
     return (d_current_residual_norm <= d_rel_residual_tol || d_current_residual_norm <= d_abs_residual_tol);
 } // solveSystem
 
@@ -1179,8 +1172,8 @@ CCPoissonHypreLevelSolver::copyToHypre(const std::vector<HYPRE_StructVector>& ve
         copy_data ? new CellData<NDIM, double>(box, src_data.getDepth(), 0) : nullptr);
     CellData<NDIM, double>& hypre_data = copy_data ? *src_data_box : src_data;
     if (copy_data) hypre_data.copyOnBox(src_data, box);
-    Index<NDIM> lower = box.lower();
-    Index<NDIM> upper = box.upper();
+    hier::Index<NDIM> lower = box.lower();
+    hier::Index<NDIM> upper = box.upper();
     for (unsigned int k = 0; k < d_depth; ++k)
     {
         HYPRE_StructVectorSetBoxValues(vectors[k], lower, upper, hypre_data.getPointer(k));
@@ -1197,8 +1190,8 @@ CCPoissonHypreLevelSolver::copyFromHypre(CellData<NDIM, double>& dst_data,
     std::unique_ptr<CellData<NDIM, double> > dst_data_box(
         copy_data ? new CellData<NDIM, double>(box, dst_data.getDepth(), 0) : nullptr);
     CellData<NDIM, double>& hypre_data = copy_data ? *dst_data_box : dst_data;
-    Index<NDIM> lower = box.lower();
-    Index<NDIM> upper = box.upper();
+    hier::Index<NDIM> lower = box.lower();
+    hier::Index<NDIM> upper = box.upper();
     for (unsigned int k = 0; k < d_depth; ++k)
     {
         HYPRE_StructVectorGetBoxValues(vectors[k], lower, upper, hypre_data.getPointer(k));

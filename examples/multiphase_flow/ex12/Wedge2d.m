@@ -1,6 +1,16 @@
-%% Filename: Wedge2d.m
-%% Written by Nishant Nangia
- 
+%% ---------------------------------------------------------------------
+%%
+%% Copyright (c) 2019 - 2020 by the IBAMR developers
+%% All rights reserved.
+%%
+%% This file is part of IBAMR.
+%%
+%% IBAMR is free software and is distributed under the 3-clause BSD
+%% license. The full text of the license can be found in the file
+%% COPYRIGHT at the top level directory of IBAMR.
+%%
+%% ---------------------------------------------------------------------
+
 clear all;
   
 PATH = './';
@@ -9,7 +19,7 @@ WallPath = strcat(PATH,'wedge2d.vertex');
 %%
 % Domain parameters (note that z dir is actually y dir in IBAMR)
 Lx = 12.0; Lz = 3.0;
-N = 50*2;
+N = 100*2;
 Nx = 6*N;  Nz = 3*N/2;
   
 % Dimensional parameters

@@ -1,0 +1,43 @@
+// check DOF numberings with two periodic directions
+//
+// Same as ghost_accumulation_01_2d.side.input but for a single patch
+
+depth = 1
+var_type = "SIDE"
+ghost_width = 1
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+   timer_enabled = TRUE
+}
+
+N = 4
+
+CartesianGeometry {
+   domain_boxes       = [(0, 0), (N - 1, N - 1)]
+   x_lo               = 0, 0
+   x_up               = 1, 1
+   periodic_dimension = 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+   ratio_to_coarser    {level_0 =   1,   1}
+   largest_patch_size  {level_0 =   8,   8}
+   smallest_patch_size {level_0 =   4,   4}
+
+   efficiency_tolerance = 0.70e0
+   combine_efficiency   = 0.85e0
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}

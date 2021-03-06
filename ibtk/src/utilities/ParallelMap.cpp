@@ -1,53 +1,32 @@
-// Filename: ParallelMap.cpp
-// Created on 28 Jun 2010 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/FixedSizedStream.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/ParallelMap.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/StreamableManager.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "IntVector.h"
-#include "tbox/AbstractStream.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
 
 #include <map>
-#include <ostream>
 #include <utility>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -86,11 +65,11 @@ ParallelMap::removeItem(const int key)
 void
 ParallelMap::communicateData()
 {
-    const int size = SAMRAI_MPI::getNodes();
-    const int rank = SAMRAI_MPI::getRank();
+    const int size = IBTK_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
 
     // Add items to the map.
-    if (SAMRAI_MPI::maxReduction(static_cast<int>(d_pending_additions.size())) > 0)
+    if (IBTK_MPI::maxReduction(static_cast<int>(d_pending_additions.size())) > 0)
     {
         StreamableManager* streamable_manager = StreamableManager::getManager();
 
@@ -98,7 +77,7 @@ ParallelMap::communicateData()
         // process.
         std::vector<int> num_additions(size, 0);
         num_additions[rank] = static_cast<int>(d_pending_additions.size());
-        SAMRAI_MPI::sumReduction(&num_additions[0], size);
+        IBTK_MPI::sumReduction(&num_additions[0], size);
 
         // Get the local values to send and determine the amount of data to be
         // broadcast by each process.
@@ -112,7 +91,7 @@ ParallelMap::communicateData()
         std::vector<int> data_sz(size, 0);
         data_sz[rank] = static_cast<int>(tbox::AbstractStream::sizeofInt() * keys_to_send.size() +
                                          streamable_manager->getDataStreamSize(data_items_to_send));
-        SAMRAI_MPI::sumReduction(&data_sz[0], size);
+        IBTK_MPI::sumReduction(&data_sz[0], size);
 
         // Broadcast data from each process.
         for (int sending_proc = 0; sending_proc < size; ++sending_proc)
@@ -130,7 +109,7 @@ ParallelMap::communicateData()
                 TBOX_ASSERT(static_cast<int>(d_pending_additions.size()) == num_keys);
                 TBOX_ASSERT(data_size == data_sz[sending_proc]);
 #endif
-                SAMRAI_MPI::bcast(static_cast<char*>(stream.getBufferStart()), data_size, sending_proc);
+                IBTK_MPI::bcast(static_cast<char*>(stream.getBufferStart()), data_size, sending_proc);
                 for (int k = 0; k < num_keys; ++k)
                 {
                     d_map[keys_to_send[k]] = data_items_to_send[k];
@@ -141,7 +120,7 @@ ParallelMap::communicateData()
                 // Receive and unpack data broadcast from process sending_proc.
                 std::vector<char> buffer(data_sz[sending_proc]);
                 int data_size = data_sz[sending_proc];
-                SAMRAI_MPI::bcast(&buffer[0], data_size, sending_proc);
+                IBTK_MPI::bcast(&buffer[0], data_size, sending_proc);
 #if !defined(NDEBUG)
                 TBOX_ASSERT(data_size == data_sz[sending_proc]);
 #endif
@@ -166,13 +145,13 @@ ParallelMap::communicateData()
     }
 
     // Remove items from the map.
-    if (SAMRAI_MPI::maxReduction(static_cast<int>(d_pending_removals.size())) > 0)
+    if (IBTK_MPI::maxReduction(static_cast<int>(d_pending_removals.size())) > 0)
     {
         // Determine how many keys have been registered for removal on each
         // process.
         std::vector<int> num_removals(size, 0);
         num_removals[rank] = static_cast<int>(d_pending_removals.size());
-        SAMRAI_MPI::sumReduction(&num_removals[0], size);
+        IBTK_MPI::sumReduction(&num_removals[0], size);
 
         // Broadcast data from each process.
         for (int sending_proc = 0; sending_proc < size; ++sending_proc)
@@ -185,7 +164,7 @@ ParallelMap::communicateData()
 #if !defined(NDEBUG)
                 TBOX_ASSERT(static_cast<int>(d_pending_removals.size()) == num_keys);
 #endif
-                SAMRAI_MPI::bcast(&d_pending_removals[0], num_keys, sending_proc);
+                IBTK_MPI::bcast(&d_pending_removals[0], num_keys, sending_proc);
                 for (int k = 0; k < num_keys; ++k)
                 {
                     d_map.erase(d_pending_removals[k]);
@@ -195,7 +174,7 @@ ParallelMap::communicateData()
             {
                 // Receive and unpack data broadcast from process sending_proc.
                 std::vector<int> keys_received(num_removals[sending_proc]);
-                SAMRAI_MPI::bcast(&keys_received[0], num_keys, sending_proc);
+                IBTK_MPI::bcast(&keys_received[0], num_keys, sending_proc);
                 for (int k = 0; k < num_keys; ++k)
                 {
                     d_map.erase(keys_received[k]);

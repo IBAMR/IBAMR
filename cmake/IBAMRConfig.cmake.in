@@ -1,0 +1,40 @@
+## ---------------------------------------------------------------------
+##
+## Copyright (c) 2020 - 2020 by the IBAMR developers
+## All rights reserved.
+##
+## This file is part of IBAMR.
+##
+## IBAMR is free software and is distributed under the 3-clause BSD
+## license. The full text of the license can be found in the file
+## COPYRIGHT at the top level directory of IBAMR.
+##
+## ---------------------------------------------------------------------
+
+# This file is a template that is populated by CMake with the actual locations
+# of external dependencies and also the file containing information on IBAMR's
+# own targets.
+@PACKAGE_INIT@
+
+SET(MPI_ROOT "@MPI_ROOT@")
+FIND_PACKAGE(MPI REQUIRED)
+
+SET(Boost_FOUND "@Boost_FOUND@")
+SET(BOOST_ROOT "@BOOST_ROOT@")
+IF("${Boost_FOUND}")
+  FIND_PACKAGE(Boost 1.57 REQUIRED)
+ENDIF()
+
+SET(Eigen3_FOUND "@Eigen3_FOUND@")
+SET(EIGEN_ROOT "@EIGEN_ROOT@")
+IF("${Eigen3_FOUND}")
+  FIND_PACKAGE(Eigen3 3.2.5 REQUIRED)
+ENDIF()
+
+SET(IBAMR_HAVE_SILO "@IBAMR_HAVE_SILO@")
+IF("${IBAMR_HAVE_SILO}")
+  SET(ZLIB_ROOT "@ZLIB_ROOT@")
+  FIND_PACKAGE(ZLIB REQUIRED)
+ENDIF()
+
+INCLUDE(${CMAKE_CURRENT_LIST_DIR}/IBAMRTargets.cmake)

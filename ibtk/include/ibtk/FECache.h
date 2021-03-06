@@ -1,39 +1,24 @@
-// Filename: FECache.h
-// Created on 25 Jan 2019 by David Wells
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2019, Boyce Griffith
+// Copyright (c) 2019 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
+
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBTK_FECache
 #define included_IBTK_FECache
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include <ibtk/QuadratureCache.h>
 
@@ -79,8 +64,71 @@ enum FEUpdateFlags
     /**
      * Update dphi (shape function gradients).
      */
-    update_dphi = 2
+    update_dphi = 2,
+
+    /**
+     * Update mapping contravariants.
+     */
+    update_contravariants = 4,
+
+    /**
+     * Update mapping covariants.
+     */
+    update_covariants = 8,
+
+    /**
+     * Update mapping Jacobians.
+     */
+    update_jacobians = 16,
+
+    /**
+     * Update JxW values.
+     */
+    update_JxW = 32,
+
+    /**
+     * Update mapped quadrature points.
+     */
+    update_quadrature_points = 64
 };
+
+/**
+ * Permit modifying FEUpdateFlags as though it were an integer type.
+ */
+inline FEUpdateFlags
+operator&(const FEUpdateFlags f1, const FEUpdateFlags f2)
+{
+    return static_cast<FEUpdateFlags>(static_cast<unsigned int>(f1) & static_cast<unsigned int>(f2));
+}
+
+/**
+ * Permit modifying FEUpdateFlags as though it were an integer type.
+ */
+inline FEUpdateFlags
+operator|(const FEUpdateFlags f1, const FEUpdateFlags f2)
+{
+    return static_cast<FEUpdateFlags>(static_cast<unsigned int>(f1) | static_cast<unsigned int>(f2));
+}
+
+/**
+ * Permit modifying FEUpdateFlags as though it were an integer type.
+ */
+inline FEUpdateFlags&
+operator|=(FEUpdateFlags& f1, const FEUpdateFlags f2)
+{
+    f1 = f1 | f2;
+    return f1;
+}
+
+/**
+ * Permit modifying FEUpdateFlags as though it were an integer type.
+ */
+inline FEUpdateFlags&
+operator&=(FEUpdateFlags& f1, const FEUpdateFlags f2)
+{
+    f1 = f1 & f2;
+    return f1;
+}
 
 /**
  * \brief Class storing multiple libMesh::FE objects, each corresponding to a
@@ -106,7 +154,7 @@ public:
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    using key_type = quadrature_key_type;
 
     /**
      * Type of values stored by this class that are accessible through
@@ -126,7 +174,7 @@ public:
      * @param flags FEUpdateFlags indicating which values should be calculated
      * by each libMesh::FEBase object.
      */
-    FECache(const unsigned int dim, const libMesh::FEType& fe_type, const FEUpdateFlags flags);
+    FECache(unsigned int dim, const libMesh::FEType& fe_type, FEUpdateFlags flags);
 
     /**
      * Return a reference to an FE object that matches the specified

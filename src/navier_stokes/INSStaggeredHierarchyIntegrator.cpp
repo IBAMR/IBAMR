@@ -1,38 +1,17 @@
-// Filename: INSStaggeredHierarchyIntegrator.cpp
-// Created on 20 Mar 2008 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include "IBAMR_config.h"
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/ConvectiveOperator.h"
@@ -51,7 +30,6 @@
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartCellDoubleBoundsPreservingConservativeLinearRefine.h"
@@ -63,6 +41,7 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/NewtonKrylovSolver.h"
@@ -70,6 +49,7 @@
 #include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/SideDataSynchronization.h"
 #include "ibtk/ibtk_enums.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "ArrayData.h"
 #include "BasePatchHierarchy.h"
@@ -109,6 +89,7 @@
 #include "RobinBcCoefStrategy.h"
 #include "SAMRAIVectorReal.h"
 #include "SideData.h"
+#include "SideIndex.h"
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableContext.h"
@@ -120,7 +101,6 @@
 #include "tbox/MemoryDatabase.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include <algorithm>
@@ -129,7 +109,10 @@
 #include <limits>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -381,8 +364,8 @@ copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHierarchy
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Index<NDIM>& ilower = patch->getBox().lower();
-            const Index<NDIM>& iupper = patch->getBox().upper();
+            const hier::Index<NDIM>& ilower = patch->getBox().lower();
+            const hier::Index<NDIM>& iupper = patch->getBox().upper();
             Pointer<SideData<NDIM, double> > U_sc_data = patch->getPatchData(U_sc_idx);
             Pointer<FaceData<NDIM, double> > U_fc_data = patch->getPatchData(U_fc_idx);
 #if !defined(NDEBUG)
@@ -485,7 +468,8 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
         TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                  << "  unsupported viscous time stepping type: "
                                  << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << " \n"
-                                 << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+                                 << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, "
+                                    "TRAPEZOIDAL_RULE\n");
     }
     switch (d_convective_time_stepping_type)
     {
@@ -513,7 +497,8 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
             TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                      << "  unsupported initial convective time stepping type: "
                                      << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type) << " \n"
-                                     << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+                                     << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, "
+                                        "TRAPEZOIDAL_RULE\n");
         }
     }
 
@@ -565,7 +550,8 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     }
     d_P_bc_coef = new INSStaggeredPressureBcCoef(this, d_bc_coefs, d_traction_bc_type);
 
-    // Check to see whether to track mean flow quantities and turbulent kinetic energy.
+    // Check to see whether to track mean flow quantities and turbulent kinetic
+    // energy.
     if (input_db->keyExists("flow_averaging_interval"))
         d_flow_averaging_interval = input_db->getInteger("flow_averaging_interval");
 
@@ -628,8 +614,6 @@ INSStaggeredHierarchyIntegrator::~INSStaggeredHierarchyIntegrator()
     }
     delete d_P_bc_coef;
     d_P_bc_coef = nullptr;
-    delete d_fill_after_regrid_phys_bdry_bc_op;
-    d_fill_after_regrid_phys_bdry_bc_op = nullptr;
     d_velocity_solver.setNull();
     d_pressure_solver.setNull();
     if (d_U_rhs_vec) d_U_rhs_vec->freeVectorComponents();
@@ -955,7 +939,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
         d_F_div_idx = -1;
     }
 
-    // Register variables for tracking mean flow quantities and turbulent kinetic energy.
+    // Register variables for tracking mean flow quantities and turbulent kinetic
+    // energy.
     if (d_U_mean_var)
     {
         registerVariable(d_U_mean_current_idx,
@@ -1070,8 +1055,12 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
             {
                 for (unsigned int j = 0; j < NDIM; ++j)
                 {
-                    const std::string suffix =
-                        std::string(i == 0 ? "x" : i == 1 ? "y" : "z") + std::string(j == 0 ? "x" : j == 1 ? "y" : "z");
+                    const std::string suffix = std::string(i == 0 ? "x" :
+                                                           i == 1 ? "y" :
+                                                                    "z") +
+                                               std::string(j == 0 ? "x" :
+                                                           j == 1 ? "y" :
+                                                                    "z");
                     d_visit_writer->registerPlotQuantity(
                         "UU_mean_" + suffix, "SCALAR", d_UU_mean_current_idx, i * NDIM + j, std::pow(d_U_scale, 2));
                 }
@@ -1086,8 +1075,12 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
             {
                 for (unsigned int j = 0; j < NDIM; ++j)
                 {
-                    const std::string suffix =
-                        std::string(i == 0 ? "x" : i == 1 ? "y" : "z") + std::string(j == 0 ? "x" : j == 1 ? "y" : "z");
+                    const std::string suffix = std::string(i == 0 ? "x" :
+                                                           i == 1 ? "y" :
+                                                                    "z") +
+                                               std::string(j == 0 ? "x" :
+                                                           j == 1 ? "y" :
+                                                                    "z");
                     d_visit_writer->registerPlotQuantity(
                         "UU_fluct_" + suffix, "SCALAR", d_UU_fluct_current_idx, i * NDIM + j, std::pow(d_U_scale, 2));
                 }
@@ -1145,7 +1138,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     d_convective_op = getConvectiveOperator();
 
     // Setup a boundary op to set velocity boundary conditions on regrid.
-    d_fill_after_regrid_phys_bdry_bc_op = new CartSideRobinPhysBdryOp(d_U_scratch_idx, d_U_bc_coefs, false);
+    d_fill_after_regrid_phys_bdry_bc_op.reset(new CartSideRobinPhysBdryOp(d_U_scratch_idx, d_U_bc_coefs, false));
 
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;
@@ -1177,7 +1170,7 @@ INSStaggeredHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy
                 const Box<NDIM>& patch_box = patch->getBox();
                 for (Box<NDIM>::Iterator it(patch_box); it; it++)
                 {
-                    const Index<NDIM>& ic = it();
+                    const hier::Index<NDIM>& ic = it();
                     VectorNd U;
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
@@ -1299,7 +1292,9 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
                                                               /*P_bc_coef*/ nullptr);
     d_hier_math_ops->laplace(
         U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var, d_no_fill_op, current_time);
-    d_hier_sc_data_ops->copyData(d_U_src_idx, d_U_scratch_idx, /*interior_only*/ false);
+    d_hier_sc_data_ops->copyData(d_U_src_idx,
+                                 d_U_scratch_idx,
+                                 /*interior_only*/ false);
 
     // Set the initial guess.
     d_hier_sc_data_ops->copyData(d_U_new_idx, d_U_current_idx);
@@ -1317,9 +1312,11 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
                                      << "  attempting to perform " << d_current_num_cycles
                                      << " cycles of fixed point iteration.\n"
-                                     << "  number of cycles required by coupled advection-diffusion solver = "
+                                     << "  number of cycles required by coupled advection-diffusion "
+                                        "solver = "
                                      << adv_diff_num_cycles << ".\n"
-                                     << "  current implementation requires either that both solvers use the same "
+                                     << "  current implementation requires either that both solvers use "
+                                        "the same "
                                         "number of cycles,\n"
                                      << "  or that the Navier-Stokes solver use only a single cycle.\n");
         }
@@ -1528,7 +1525,7 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
                 cfl_max = std::max(cfl_max, u_max * dt / dx_min);
             }
         }
-        cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
+        cfl_max = IBTK_MPI::maxReduction(cfl_max);
         if (d_enable_logging)
             plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
     }
@@ -1570,13 +1567,14 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
 
     // Update mean quantities.
     //
-    // NOTE: The time step indexing is a little funny here.  We are computing new quantities associated with the time
-    // step at the end of the current interval, and so we shift the step index by 1.
+    // NOTE: The time step indexing is a little funny here.  We are computing
+    // new quantities associated with the time step at the end of the current
+    // interval, and so we shift the step index by 1.
     const int new_time_step = getIntegratorStep() + 1;
     if (d_flow_averaging_interval && (new_time_step % d_flow_averaging_interval == 0))
     {
-        // N is the number of samples.  Currently we always capture the value at the initial time, which is why N is
-        // shifted by 1.
+        // N is the number of samples.  Currently we always capture the value
+        // at the initial time, which is why N is shifted by 1.
         const double N = 1 + new_time_step / d_flow_averaging_interval;
         const double weight = ((N - 1.0) / N);
 
@@ -1594,24 +1592,28 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
                 Pointer<CellData<NDIM, double> > k_data = patch->getPatchData(d_k_new_idx);
                 for (Box<NDIM>::Iterator it(patch_box); it; it++)
                 {
-                    const Index<NDIM>& ic = it();
+                    const hier::Index<NDIM>& ic = it();
 
                     // To simplifiy notation in this comment, define U = mean(u).
                     //
-                    // We decompose u as u = U + u', so u' = u - U, and we track the mean values of u(i), u(i)*u(j), and
-                    // u'(i)*u'(j).  These values are needed to determine the turbulent kinetic energy and Reynolds
-                    // stresses.
+                    // We decompose u as u = U + u', so u' = u - U, and we
+                    // track the mean values of u(i), u(i)*u(j), and
+                    // u'(i)*u'(j).  These values are needed to determine the
+                    // turbulent kinetic energy and Reynolds stresses.
                     //
-                    // Turbulent kinetic energy is k = 0.5*(mean(u'^2) + mean(v'^2) + mean(w'^2)).
+                    // Turbulent kinetic energy is k = 0.5*(mean(u'^2) +
+                    // mean(v'^2) + mean(w'^2)).
                     //
                     // Reynolds stresses are rho * mean(u'(i) * u'(j)).
                     //
-                    // TODO: These tensors are all symmetric, so we could use Voigt notation to cut down on redundant
-                    // data storage.
+                    // TODO: These tensors are all symmetric, so we could use
+                    // Voigt notation to cut down on redundant data storage.
                     //
-                    // TODO: Consider adding a helper function to translate between tensor indices and data depth.
+                    // TODO: Consider adding a helper function to translate
+                    // between tensor indices and data depth.
 
-                    // Evaluate the current velocity at the cell center at the end of the current time interval:
+                    // Evaluate the current velocity at the cell center at the
+                    // end of the current time interval:
                     VectorNd u;
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
@@ -1619,7 +1621,8 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
                                       (*U_data)(SideIndex<NDIM>(ic, i, SideIndex<NDIM>::Lower)));
                     }
 
-                    // Compute the mean values of u(i), u'(i), and u(i)*u(j) at the end of the current time interval:
+                    // Compute the mean values of u(i), u'(i), and u(i)*u(j)
+                    // at the end of the current time interval:
                     VectorNd u_mean, u_fluct;
                     MatrixNd uu_mean;
                     for (unsigned int i = 0; i < NDIM; ++i)
@@ -1632,7 +1635,8 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
                         }
                     }
 
-                    // Compute the mean values of u'(i)*u'(j) at the end of the current time interval:
+                    // Compute the mean values of u'(i)*u'(j) at the end of
+                    // the current time interval:
                     MatrixNd uu_fluct;
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
@@ -1643,7 +1647,8 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
                         }
                     }
 
-                    // Evaluate the turbulent kinetic energy at the end of the current time interval:
+                    // Evaluate the turbulent kinetic energy at the end of the
+                    // current time interval:
                     double k = 0.0;
                     for (unsigned int i = 0; i < NDIM; ++i)
                     {
@@ -1894,8 +1899,8 @@ INSStaggeredHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) 
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const Index<NDIM>& ilower = patch->getBox().lower();
-    const Index<NDIM>& iupper = patch->getBox().upper();
+    const hier::Index<NDIM>& ilower = patch->getBox().lower();
+    const hier::Index<NDIM>& iupper = patch->getBox().upper();
 
     Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_var, getCurrentContext());
     const IntVector<NDIM>& U_ghost_cells = U_data->getGhostCellWidth();
@@ -1971,10 +1976,9 @@ INSStaggeredHierarchyIntegrator::regridHierarchyEndSpecialized()
     d_div_U_norm_1_post = d_hier_cc_data_ops->L1Norm(d_Div_U_idx, wgt_cc_idx);
     d_div_U_norm_2_post = d_hier_cc_data_ops->L2Norm(d_Div_U_idx, wgt_cc_idx);
     d_div_U_norm_oo_post = d_hier_cc_data_ops->maxNorm(d_Div_U_idx, wgt_cc_idx);
-    d_do_regrid_projection =
-        d_div_U_norm_1_post > d_regrid_max_div_growth_factor * d_div_U_norm_1_pre ||
-        d_div_U_norm_2_post > d_regrid_max_div_growth_factor * d_div_U_norm_2_pre ||
-        d_div_U_norm_oo_post > d_regrid_max_div_growth_factor * d_div_U_norm_oo_pre;
+    d_do_regrid_projection = d_div_U_norm_1_post > d_regrid_max_div_growth_factor * d_div_U_norm_1_pre ||
+                             d_div_U_norm_2_post > d_regrid_max_div_growth_factor * d_div_U_norm_2_pre ||
+                             d_div_U_norm_oo_post > d_regrid_max_div_growth_factor * d_div_U_norm_oo_pre;
     return;
 } // regridHierarchyEndSpecialized
 
@@ -2289,7 +2293,7 @@ INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<
                 Pointer<CellData<NDIM, double> > Omega_data = patch->getPatchData(d_Omega_idx);
                 for (CellIterator<NDIM> ic(patch_box); ic; ic++)
                 {
-                    const Index<NDIM>& i = ic();
+                    const hier::Index<NDIM>& i = ic();
                     double norm_Omega_sq = 0.0;
                     for (unsigned int d = 0; d < (NDIM == 2 ? 1 : NDIM); ++d)
                     {
@@ -2461,10 +2465,14 @@ INSStaggeredHierarchyIntegrator::regridProjection()
     // Solve the projection pressure-Poisson problem.
     regrid_projection_solver->solveSystem(sol_vec, rhs_vec);
     if (d_enable_logging && d_enable_logging_solver_iterations)
-        plog << d_object_name << "::regridProjection(): regrid projection solve number of iterations = "
+        plog << d_object_name
+             << "::regridProjection(): regrid projection solve "
+                "number of iterations = "
              << regrid_projection_solver->getNumIterations() << "\n";
     if (d_enable_logging)
-        plog << d_object_name << "::regridProjection(): regrid projection solve residual norm        = "
+        plog << d_object_name
+             << "::regridProjection(): regrid projection solve "
+                "residual norm        = "
              << regrid_projection_solver->getResidualNorm() << "\n";
 
     // Fill ghost cells for Phi, compute Grad Phi, and set U := U - Grad Phi
@@ -2667,7 +2675,10 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
     if (d_convective_op && d_convective_op_needs_init)
     {
         if (d_enable_logging)
-            plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing convective operator" << std::endl;
+            plog << d_object_name
+                 << "::preprocessIntegrateHierarchy(): initializing "
+                    "convective operator"
+                 << std::endl;
         d_convective_op->setAdvectionVelocity(d_U_scratch_idx);
         d_convective_op->setSolutionTime(d_integrator_time);
         d_convective_op->initializeOperatorState(*d_U_scratch_vec, *d_U_rhs_vec);
@@ -2810,8 +2821,8 @@ INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
 
-            const Index<NDIM>& ilower = patch->getBox().lower();
-            const Index<NDIM>& iupper = patch->getBox().upper();
+            const hier::Index<NDIM>& ilower = patch->getBox().lower();
+            const hier::Index<NDIM>& iupper = patch->getBox().upper();
 
             Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(U_idx);
             Pointer<CellData<NDIM, double> > Q_data = patch->getPatchData(Q_idx);
@@ -2964,7 +2975,8 @@ INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int
                     << "  unsupported differencing form: "
                     << enum_to_string<ConvectiveDifferencingType>(d_convective_op->getConvectiveDifferencingType())
                     << " \n"
-                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, "
+                       "SKEW_SYMMETRIC\n");
             }
         }
     }

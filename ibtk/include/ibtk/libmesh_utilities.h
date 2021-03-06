@@ -1,50 +1,42 @@
-// Filename: libmesh_utilities.h
-// Created on 19 Apr 2010 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2011 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
+
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBTK_libmesh_utilities
 #define included_IBTK_libmesh_utilities
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/config.h>
+
 #include "ibtk/IBTK_CHKERRQ.h"
-#include "ibtk/ibtk_macros.h"
 
 #include "tbox/Utilities.h"
 
+#include "libmesh/libmesh_config.h"
+#include "libmesh/libmesh_version.h"
+
+#if LIBMESH_VERSION_LESS_THAN(1, 2, 0)
+#include "libmesh/mesh_tools.h"
+#else
 #include "libmesh/bounding_box.h"
+#endif
 #include "libmesh/dof_map.h"
 #include "libmesh/dof_object.h"
 #include "libmesh/edge.h"
 #include "libmesh/enum_quadrature_type.h"
+#include "libmesh/equation_systems.h"
 #include "libmesh/face.h"
 #include "libmesh/face_tri3_subdivision.h"
 #include "libmesh/fe.h"
@@ -61,12 +53,135 @@ IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
+#include <array>
 #include <tuple>
 
 /////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
 
 namespace IBTK
 {
+using quadrature_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order, bool>;
+
+namespace libMeshWrappers
+{
+/**
+ * Compatibility type alias for supporting older versions of libMesh.
+ */
+#if LIBMESH_VERSION_LESS_THAN(1, 2, 0)
+using BoundingBox = libMesh::MeshTools::BoundingBox;
+#else
+using BoundingBox = libMesh::BoundingBox;
+#endif
+} // namespace libMeshWrappers
+
+/**
+ * Utility function for getting the dimensionality of a libMesh element type.
+ */
+inline int
+get_dim(const libMesh::ElemType elem_type)
+{
+    switch (elem_type)
+    {
+    case libMesh::ElemType::EDGE2:
+    case libMesh::ElemType::EDGE3:
+    case libMesh::ElemType::EDGE4:
+        return 1;
+    case libMesh::ElemType::TRI3:
+    case libMesh::ElemType::TRI6:
+    case libMesh::ElemType::QUAD4:
+    case libMesh::ElemType::QUAD8:
+    case libMesh::ElemType::QUAD9:
+        return 2;
+    case libMesh::ElemType::TET4:
+    case libMesh::ElemType::TET10:
+    case libMesh::ElemType::HEX8:
+    case libMesh::ElemType::HEX27:
+        return 3;
+    default:
+        TBOX_ERROR("unimplemented element type");
+    }
+    // bogus return to placate compilers
+    return 3;
+}
+
+/**
+ * Utility function for getting the number of nodes of a libMesh element type.
+ */
+inline std::size_t
+get_n_nodes(const libMesh::ElemType elem_type)
+{
+    switch (elem_type)
+    {
+    case libMesh::ElemType::EDGE2:
+        return 2;
+    case libMesh::ElemType::EDGE3:
+        return 3;
+    case libMesh::ElemType::EDGE4:
+        return 4;
+    case libMesh::ElemType::TRI3:
+        return 3;
+    case libMesh::ElemType::TRI6:
+        return 6;
+    case libMesh::ElemType::QUAD4:
+        return 4;
+    case libMesh::ElemType::QUAD8:
+        return 8;
+    case libMesh::ElemType::QUAD9:
+        return 9;
+    case libMesh::ElemType::TET4:
+        return 4;
+    case libMesh::ElemType::TET10:
+        return 10;
+    case libMesh::ElemType::HEX8:
+        return 8;
+    case libMesh::ElemType::HEX27:
+        return 27;
+    default:
+        TBOX_ERROR("unimplemented element type");
+    }
+
+    return 0;
+}
+
+/**
+ * Utility function for getting the default order of a libMesh element type.
+ */
+inline libMesh::Order
+get_default_order(const libMesh::ElemType elem_type)
+{
+    switch (elem_type)
+    {
+    case libMesh::ElemType::EDGE2:
+        return libMesh::Order::FIRST;
+    case libMesh::ElemType::EDGE3:
+        return libMesh::Order::SECOND;
+    case libMesh::ElemType::EDGE4:
+        return libMesh::Order::THIRD;
+    case libMesh::ElemType::TRI3:
+        return libMesh::Order::FIRST;
+    case libMesh::ElemType::TRI6:
+        return libMesh::Order::SECOND;
+    case libMesh::ElemType::QUAD4:
+        return libMesh::Order::FIRST;
+    case libMesh::ElemType::QUAD8:
+        return libMesh::Order::SECOND;
+    case libMesh::ElemType::QUAD9:
+        return libMesh::Order::SECOND;
+    case libMesh::ElemType::TET4:
+        return libMesh::Order::FIRST;
+    case libMesh::ElemType::TET10:
+        return libMesh::Order::SECOND;
+    case libMesh::ElemType::HEX8:
+        return libMesh::Order::FIRST;
+    case libMesh::ElemType::HEX27:
+        return libMesh::Order::SECOND;
+    default:
+        TBOX_ERROR("unimplemented element type");
+    }
+
+    return libMesh::Order::CONSTANT;
+}
+
 /*!
  * Struct allowing for the specification of system variables / gradients and the NumericVector used to evaluate
  * those quantities.
@@ -295,8 +410,84 @@ batch_vec_ghost_update(const std::vector<std::vector<libMesh::PetscVector<double
 }
 
 /**
- * Return the quadrature key description (see QuadratureCache, FECache, and
- * FEMapCache) of a quadrature rule.
+ * Convenience function that calls setup_system_vector for all specified systems
+ * and vector names. This function is aware of System::rhs and will reset it
+ * correctly.
+ */
+void setup_system_vectors(libMesh::EquationSystems* equation_systems,
+                          const std::vector<std::string>& system_names,
+                          const std::vector<std::string>& vector_names,
+                          const bool from_restart);
+
+/**
+ * Setup the vector with name @p vector_name in the libMesh::System object named
+ * @p system_name.
+ *
+ * The behavior of this function depends on whether or not we are working with
+ * restart data:
+ * <ol>
+ *   <li>If @p from_restart is false then the vector is added to the system in
+ *   the normal way.</li>
+ *   <li>If @p from_restart is true then the vector stored in the System
+ *   corresponding to the given name is overwritten and has its type changed
+ *   from PARALLEL to GHOSTED. This works around a bug in libMesh where vectors
+ *   are always serialized as PARALLEL.</li>
+ * </ol>
+ */
+void setup_system_vector(libMesh::System& system, const std::string& vector_name, const bool from_restart);
+
+/**
+ * Utility function for copying dofs from the format used by IBAMR for caching
+ * to the format libMesh expects.
+ *
+ * @param[in] var_n The variable number.
+ *
+ * @param[in] elem_dofs Dofs on the current element, indexed first by variable.
+ *
+ * @param[out] dofs vector containing the dofs for the given vector.
+ */
+inline void
+copy_dof_ids_to_vector(const unsigned int var_n,
+                       const boost::multi_array<libMesh::dof_id_type, 2>& elem_dofs,
+                       std::vector<libMesh::dof_id_type>& dofs)
+{
+#ifndef NDEBUG
+    TBOX_ASSERT(var_n < elem_dofs.size());
+#endif // ifindef NDEBUG
+    dofs.clear();
+    dofs.insert(dofs.begin(), elem_dofs[var_n].begin(), elem_dofs[var_n].end());
+}
+
+/**
+ * Apply in-place the action of the transpose of the constraint matrix stored
+ * by @p dof_map to @p rhs.
+ *
+ * This function is necessary (instead of the usual procedure, where we apply
+ * constraints to element vectors during assembly) when assembly is done with
+ * the IB partitioning since, in that case, the constraints corresponding to
+ * the elements used for assembly are not available. To resolve this problem
+ * we recommend doing the following:
+ *
+ * <ol>
+ *   <li>Assemble a RHS vector without considering the constraints (this is
+ *   done, for example, in FEDataManager::interpWeighted()).</li>
+ *   <li>Assemble the vector in parallel in the normal way (i.e., via
+ *   VecGhostUpdateBegin() and VecGhostUpdateEnd()). <em>This function assumes
+ *   that the input vector contains up-to-date ghost data for all entries
+ *   relevant to resolving constraints.</em></li>
+ *   <li>Call this function. This function replaces the ghost values in the
+ *   input vector with entries that need to be summed into off-processor
+ *   entries (i.e., the values generated during constraint resolution when a
+ *   locally owned dof is constrained by values of off-processor dofs.)</li>
+ *   <li>Do assembly a second time (i.e., again with VecGhostUpdateBegin() and
+ *   VecGhostUpdateEnd()).</li>
+ * </ol>
+ */
+void apply_transposed_constraint_matrix(const libMesh::DofMap& dof_map, libMesh::PetscVector<double>& rhs);
+
+/**
+ * Return the quadrature key description (see QuadratureCache and FECache) of a
+ * quadrature rule.
  *
  * @param[in] quad_type The type of quadrature rule to use. At the present
  * time only QGAUSS and QGRID are supported.
@@ -313,6 +504,9 @@ batch_vec_ghost_update(const std::vector<std::vector<libMesh::PetscVector<double
  * is the maximum edge length of the deformed element (i.e., with nodal
  * coordinates given by @p X_node).
  *
+ * @param[in] allow_rules_with_negative_weights Whether the quadrature rule
+ * is allowed to have any negative weights.
+ *
  * @param[in] elem The libMesh element. The quadrature rule generated by this
  * function will always have enough points to integrate the basis functions
  * defined on the element exactly.
@@ -328,14 +522,14 @@ batch_vec_ghost_update(const std::vector<std::vector<libMesh::PetscVector<double
  *
  * @seealso FEDataManager::updateQuadratureRule.
  */
-std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>
-getQuadratureKey(const libMesh::QuadratureType quad_type,
-                 libMesh::Order order,
-                 const bool use_adaptive_quadrature,
-                 const double point_density,
-                 const libMesh::Elem* const elem,
-                 const boost::multi_array<double, 2>& X_node,
-                 const double dx_min);
+quadrature_key_type getQuadratureKey(libMesh::QuadratureType quad_type,
+                                     libMesh::Order order,
+                                     bool use_adaptive_quadrature,
+                                     double point_density,
+                                     bool allow_rules_with_negative_weights,
+                                     const libMesh::Elem* elem,
+                                     const boost::multi_array<double, 2>& X_node,
+                                     double dx_min);
 
 /**
  * Populate @p U_node with the finite element solution coefficients on the
@@ -387,25 +581,42 @@ get_values_for_interpolation(MultiArray& U_node,
  *
  * @param[in] dof_indices DoF indices of the current element.
  */
-template <class MultiArray, class Array>
+template <class MultiArray_1, class MultiArray_2, class Array>
 inline void
-get_values_for_interpolation(MultiArray& U_node,
+get_values_for_interpolation(MultiArray_1& U_node,
                              const libMesh::PetscVector<double>& U_petsc_vec,
                              const Array& U_local_soln,
-                             const std::vector<std::vector<unsigned int> >& dof_indices)
+                             const MultiArray_2& dof_indices)
 {
     const std::size_t n_vars = dof_indices.size();
+    TBOX_ASSERT(n_vars > 0);
     const std::size_t n_nodes = dof_indices[0].size();
     if (U_node.shape()[0] != n_nodes || U_node.shape()[1] != n_vars)
     {
-        typename MultiArray::extent_gen extents;
+        typename MultiArray_1::extent_gen extents;
         U_node.resize(extents[n_nodes][n_vars]);
     }
+
     for (std::size_t k = 0; k < n_nodes; ++k)
     {
+        // Unfortunately, GCC 10.1.0 generates, on some processors with -O3 and
+        // -march=native, incorrect vectorization for the loop with the
+        // assignment to U_node which cause either segmentation faults, bus
+        // errors, or uninitialized reads (which can be found by valgrind). The
+        // problem is with the indices: e.g., if we print the indices to a file
+        // inside the loop the problem goes away. Defeat the optimizer by
+        // assigning first to a temporary array: this is a fragile workaround
+        // but it suffices for now.
+        std::array<unsigned int, 100> indices;
+        TBOX_ASSERT(n_vars < indices.size());
+        for (std::size_t i = 0; i < dof_indices.size(); ++i)
+        {
+            indices[i] = U_petsc_vec.map_global_to_local_index(dof_indices[i][k]);
+        }
+
         for (std::size_t i = 0; i < n_vars; ++i)
         {
-            U_node[k][i] = U_local_soln[U_petsc_vec.map_global_to_local_index(dof_indices[i][k])];
+            U_node[k][i] = U_local_soln[indices[i]];
         }
     }
     return;
@@ -449,11 +660,11 @@ get_values_for_interpolation(MultiArray& U_node,
  *
  * @param[in] dof_indices DoF indices of the current element.
  */
-template <class MultiArray>
+template <class MultiArray_1, class MultiArray_2>
 inline void
-get_values_for_interpolation(MultiArray& U_node,
+get_values_for_interpolation(MultiArray_1& U_node,
                              libMesh::NumericVector<double>& U_vec,
-                             const std::vector<std::vector<unsigned int> >& dof_indices)
+                             const MultiArray_2& dof_indices)
 {
     libMesh::PetscVector<double>* U_petsc_vec = dynamic_cast<libMesh::PetscVector<double>*>(&U_vec);
     TBOX_ASSERT(U_petsc_vec);
@@ -593,8 +804,8 @@ interpolate(libMesh::TypeVector<double>& U,
  * Compute the jacobian with respect to the initial configuration in the deformed configuration
  * @p X_node at quadrature point number @qp.
  *
- * \f[ 
- * J(qp) = \sum_{i = 1}^n \xi_i \otimes \nabla_X \phi_i(qp) 
+ * \f[
+ * J(qp) = \sum_{i = 1}^n \xi_i \otimes \nabla_X \phi_i(qp)
  * \f]
  *
  * @param[out] dX_ds Tensor containing the output of this function of size 3x3.
@@ -1137,7 +1348,7 @@ get_nodal_dof_indices(const libMesh::DofMap& dof_map,
                       const unsigned int variable_n,
                       std::vector<libMesh::dof_id_type>& nodal_indices)
 {
-#if LIBMESH_MINOR_VERSION < 2
+#if LIBMESH_VERSION_LESS_THAN(1, 2, 0)
     // See dof_map.C, circa line 2208
 
     // We only call this function with variable numbers 0, 1, or 2, so skip
@@ -1334,19 +1545,59 @@ void write_elem_partitioning(const std::string& file_name, const libMesh::System
  */
 void write_node_partitioning(const std::string& file_name, const libMesh::System& position_system);
 
-/*
- * Compute bounding boxes for each local active (i.e., active on the current
- * processor) element in @p mesh with coordinates given by @p X_system.
+/**
+ * Compute bounding boxes based on where an elements quadrature points
+ * are. See getQuadratureKey for descriptions of the last five arguments.
+ *
+ * @warning Since non-active elements do not have degrees of freedom assigned
+ * to them, this function assigns them bounding boxes that cover the complete
+ * range of finite double precision values. They are still included in the
+ * output vector so that that vector can be indexed by element ids.
  */
-std::vector<libMesh::BoundingBox> get_local_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
-                                                                          const libMesh::System& X_system);
+std::vector<libMeshWrappers::BoundingBox> get_local_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                                                           const libMesh::System& X_system,
+                                                                           libMesh::QuadratureType quad_type,
+                                                                           libMesh::Order quad_order,
+                                                                           bool use_adaptive_quadrature,
+                                                                           double point_density,
+                                                                           bool allow_rules_with_negative_weights,
+                                                                           double patch_dx_min);
 
-/*
- * Compute bounding boxes for each active (i.e., active on any processor)
- * element in @p mesh with coordinates given by @p X_system.
+/**
+ * Compute bounding boxes for each local (i.e., owned by the current
+ * processor) element in @p mesh with coordinates given by @p X_system.
+ *
+ * @warning Since non-active elements do not have degrees of freedom assigned
+ * to them, this function assigns them bounding boxes that cover the complete
+ * range of finite double precision values. They are still included in the
+ * output vector so that that vector can be indexed by element ids.
  */
-std::vector<libMesh::BoundingBox> get_global_active_element_bounding_boxes(const libMesh::MeshBase& mesh,
+std::vector<libMeshWrappers::BoundingBox> get_local_element_bounding_boxes(const libMesh::MeshBase& mesh,
                                                                            const libMesh::System& X_system);
+
+/**
+ * Get the global list of bounding boxes from the local list.
+ *
+ * @warning Since non-active elements do not have degrees of freedom assigned
+ * to them, this function assigns them bounding boxes that cover the complete
+ * range of finite double precision values. They are still included in the
+ * output vector so that that vector can be indexed by element ids.
+ */
+std::vector<libMeshWrappers::BoundingBox>
+get_global_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                  const std::vector<libMeshWrappers::BoundingBox>& local_bboxes);
+
+/**
+ * Compute bounding boxes for all elements in @p mesh with coordinates given
+ * by @p X_system.
+ *
+ * @warning Since non-active elements do not have degrees of freedom assigned
+ * to them, this function assigns them bounding boxes that cover the complete
+ * range of finite double precision values. They are still included in the
+ * output vector so that that vector can be indexed by element ids.
+ */
+std::vector<libMeshWrappers::BoundingBox> get_global_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                                                            const libMesh::System& X_system);
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

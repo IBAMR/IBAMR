@@ -1,39 +1,16 @@
+c ---------------------------------------------------------------------
 c
-c     Copyright (c) 2002-2017, Boyce Griffith
-c     All rights reserved.
+c Copyright (c) 2014 - 2020 by the IBAMR developers
+c All rights reserved.
 c
-c     Redistribution and use in source and binary forms, with or without
-c     modification, are permitted provided that the following conditions
-c     are met:
+c This file is part of IBAMR.
 c
-c        * Redistributions of source code must retain the above
-c          copyright notice, this list of conditions and the following
-c          disclaimer.
+c IBAMR is free software and is distributed under the 3-clause BSD
+c license. The full text of the license can be found in the file
+c COPYRIGHT at the top level directory of IBAMR.
 c
-c        * Redistributions in binary form must reproduce the above
-c          copyright notice, this list of conditions and the following
-c          disclaimer in the documentation and/or other materials
-c          provided with the distribution.
-c
-c        * Neither the name of The University of North Carolina nor the
-c          names of its contributors may be used to endorse or promote
-c          products derived from this software without specific prior
-c          written permission.
-c
-c     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
-c     CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-c     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-c     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-c     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
-c     BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-c     EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
-c     TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-c     DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-c     ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
-c     TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-c     THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-c     SUCH DAMAGE.
-c
+c ---------------------------------------------------------------------
+
 dnl Process this file with m4 to produce FORTRAN source code
 define(NDIM,3)dnl
 define(REAL,`double precision')dnl
@@ -209,7 +186,9 @@ c
 
       INTEGER limiter
 
-      LOGICAL usefullctu
+c     It would make more sense to pass a LOGICAL but its not clear which
+c     C type that corresponds to, so use an integer
+      INTEGER usefullctu
 
       REAL dx(0:NDIM-1), dt
 
@@ -297,7 +276,8 @@ c     differences of the "temporary" predicted values.  Full corner
 c     transport upwinding (increasing the largest stable timestep but
 c     not order of accuracy) is somewhat expensive and optional.
 c
-      if ( usefullctu ) then
+
+      if ( usefullctu .eq. 1 ) then
 c
 c     Include full corner transport upwinding.
 c
@@ -407,7 +387,9 @@ c
       INTEGER nugc0,nugc1,nugc2
       INTEGER nqhalfgc0,nqhalfgc1,nqhalfgc2
 
-      LOGICAL usefullctu
+c     It would make more sense to pass a LOGICAL but its not clear which
+c     C type that corresponds to, so use an integer
+      INTEGER usefullctu
 
       INTEGER limiter
 
@@ -520,7 +502,7 @@ c     differences of the "temporary" predicted values.  Full corner
 c     transport upwinding (increasing the largest stable timestep but
 c     not order of accuracy) is somewhat expensive and optional.
 c
-      if ( usefullctu ) then
+      if ( usefullctu .eq. 1 ) then
 c
 c     Include full corner transport upwinding.
 c
@@ -626,7 +608,9 @@ c
       INTEGER nugc0,nugc1,nugc2
       INTEGER nqhalfgc0,nqhalfgc1,nqhalfgc2
 
-      LOGICAL usefullctu
+c     It would make more sense to pass a LOGICAL but its not clear which
+c     C type that corresponds to, so use an integer
+      INTEGER usefullctu
 
       INTEGER limiter
 
@@ -750,7 +734,7 @@ c     differences of the "temporary" predicted values.  Full corner
 c     transport upwinding (increasing the largest stable timestep but
 c     not order of accuracy) is somewhat expensive and optional.
 c
-      if ( usefullctu ) then
+      if ( usefullctu .eq. 1 ) then
 c
 c     Include full corner transport upwinding.
 c
@@ -860,7 +844,9 @@ c
       INTEGER nugc0,nugc1,nugc2
       INTEGER nqhalfgc0,nqhalfgc1,nqhalfgc2
 
-      LOGICAL usefullctu
+c     It would make more sense to pass a LOGICAL but its not clear which
+c     C type that corresponds to, so use an integer
+      INTEGER usefullctu
 
       INTEGER limiter
 
@@ -1012,7 +998,7 @@ c     differences of the "temporary" predicted values.  Full corner
 c     transport upwinding (increasing the largest stable timestep but
 c     not order of accuracy) is somewhat expensive and optional.
 c
-      if ( usefullctu ) then
+      if ( usefullctu .eq. 1 ) then
 c
 c     Include full corner transport upwinding.
 c

@@ -1,39 +1,46 @@
-// Filename: FEDataInterpolation.cpp
-// Created on 9 Oct 2015 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2015 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/FECache.h"
 #include "ibtk/FEDataInterpolation.h"
+#include "ibtk/libmesh_utilities.h"
+
+#include "libmesh/compare_types.h"
+#include "libmesh/dof_map.h"
+#include "libmesh/equation_systems.h"
+#include "libmesh/quadrature.h"
+#include "libmesh/system.h"
+#include "libmesh/type_vector.h"
+
 #include "ibtk/namespaces.h"
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include <boost/multi_array.hpp>
+IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <algorithm>
+#include <iterator>
+#include <set>
+
+namespace libMesh
+{
+class Elem;
+class Point;
+template <typename T>
+class NumericVector;
+} // namespace libMesh
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -43,8 +50,8 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FEDataInterpolation::FEDataInterpolation(const unsigned int dim, FEDataManager* const fe_data_manager)
-    : d_dim(dim), d_fe_data_manager(fe_data_manager)
+FEDataInterpolation::FEDataInterpolation(const unsigned int dim, std::shared_ptr<FEData> fe_data)
+    : d_dim(dim), d_fe_data(std::move(fe_data))
 {
     return;
 }
@@ -104,7 +111,7 @@ size_t
 FEDataInterpolation::registerInterpolatedSystem(const System& system,
                                                 const std::vector<int>& vars,
                                                 const std::vector<int>& grad_vars,
-                                                NumericVector<double>* system_data)
+                                                NumericVector<double>* system_vec)
 {
     TBOX_ASSERT(!d_initialized && (!vars.empty() || !grad_vars.empty()));
     const unsigned int sys_num = system.number();
@@ -123,7 +130,7 @@ FEDataInterpolation::registerInterpolatedSystem(const System& system,
             bool same_data = true;
             same_data = same_data && (vars == d_system_vars[system_idx]);
             same_data = same_data && (grad_vars == d_system_grad_vars[system_idx]);
-            same_data = same_data && (system_data == d_system_data[system_idx]);
+            same_data = same_data && (system_vec == d_system_vecs[system_idx]);
             if (same_data) return system_idx;
         }
     }
@@ -132,7 +139,7 @@ FEDataInterpolation::registerInterpolatedSystem(const System& system,
     // collection of variables/data.  In either case, we need to register it here.
     const size_t system_idx = d_systems.size();
     d_systems.push_back(&system);
-    d_system_dof_map_caches.push_back(d_fe_data_manager->getDofMapCache(system.name()));
+    d_system_dof_map_caches.push_back(d_fe_data->getDofMapCache(system.name()));
     std::set<int> all_vars_set;
     all_vars_set.insert(vars.begin(), vars.end());
     all_vars_set.insert(grad_vars.begin(), grad_vars.end());
@@ -152,7 +159,7 @@ FEDataInterpolation::registerInterpolatedSystem(const System& system,
         grad_var_idx[k] = std::distance(all_vars.begin(), std::find(all_vars.begin(), all_vars.end(), grad_vars[k]));
     }
     d_system_grad_var_idx.push_back(grad_var_idx);
-    d_system_data.push_back(system_data);
+    d_system_vecs.push_back(system_vec);
     return system_idx;
 }
 
@@ -196,7 +203,7 @@ FEDataInterpolation::setInterpolatedDataPointers(std::vector<const std::vector<d
 }
 
 void
-FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
+FEDataInterpolation::init()
 {
     TBOX_ASSERT(!d_initialized);
 
@@ -238,15 +245,8 @@ FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
         const System& system = *d_systems[system_idx];
         const DofMap& system_dof_map = system.get_dof_map();
 
-        NumericVector<double>*& system_data = d_system_data[system_idx];
-        if (!system_data) system_data = system.current_local_solution.get();
-        if (use_IB_ghosted_vecs)
-        {
-            NumericVector<double>* ghost_data =
-                d_fe_data_manager->buildGhostedSolutionVector(system.name(), /*synch_data*/ false);
-            copy_and_synch(*system_data, *ghost_data, /*close_v_in*/ false);
-            system_data = ghost_data;
-        }
+        NumericVector<double>*& system_vec = d_system_vecs[system_idx];
+        if (!system_vec) system_vec = system.current_local_solution.get();
 
         const std::vector<int>& vars = d_system_vars[system_idx];
         d_system_var_fe_type_idx[system_idx].resize(vars.size(), -1);
@@ -299,16 +299,21 @@ FEDataInterpolation::init(const bool use_IB_ghosted_vecs)
     d_dphi_face.resize(num_fe_types, nullptr);
     for (unsigned int fe_type_idx = 0; fe_type_idx < num_fe_types; ++fe_type_idx)
     {
-        std::unique_ptr<FEBase>& fe = d_fe[fe_type_idx];
+        std::unique_ptr<IBTK::FEValuesBase>& fe = d_fe[fe_type_idx];
         if (!fe)
         {
-            const FEType& fe_type = d_fe_types[fe_type_idx];
-            fe = FEBase::build(d_dim, fe_type);
-            if (d_qrule) fe->attach_quadrature_rule(d_qrule);
-            if (d_eval_q_point && !d_q_point) d_q_point = &fe->get_xyz();
-            if (d_eval_JxW && !d_JxW) d_JxW = &fe->get_JxW();
-            if (d_eval_phi[fe_type_idx]) d_phi[fe_type_idx] = &fe->get_phi();
-            if (d_eval_dphi[fe_type_idx]) d_dphi[fe_type_idx] = &fe->get_dphi();
+            FEUpdateFlags update_flags = FEUpdateFlags::update_default;
+            if (d_eval_q_point) update_flags |= update_quadrature_points;
+            if (d_eval_JxW) update_flags |= update_JxW;
+            if (d_eval_phi[fe_type_idx]) update_flags |= update_phi;
+            if (d_eval_dphi[fe_type_idx]) update_flags |= update_dphi;
+
+            fe = FEValuesBase::build(d_dim, NDIM, d_qrule, d_fe_types[fe_type_idx], update_flags);
+
+            if (d_eval_q_point && !d_q_point) d_q_point = &fe->getQuadraturePoints();
+            if (d_eval_JxW && !d_JxW) d_JxW = &fe->getJxW();
+            if (d_eval_phi[fe_type_idx]) d_phi[fe_type_idx] = &fe->getShapeValues();
+            if (d_eval_dphi[fe_type_idx]) d_dphi[fe_type_idx] = &fe->getShapeGradients();
         }
 
         std::unique_ptr<FEBase>& fe_face = d_fe_face[fe_type_idx];
@@ -341,7 +346,9 @@ FEDataInterpolation::reinit(const Elem* elem,
     {
         for (const auto& fe : d_fe)
         {
-            fe->reinit(elem, points, weights);
+            TBOX_ASSERT(points == nullptr);
+            TBOX_ASSERT(weights == nullptr);
+            fe->reinit(elem);
         }
     }
     d_n_qp = static_cast<unsigned int>(points ? points->size() : d_qrule ? d_qrule->n_points() : 0);
@@ -382,10 +389,10 @@ FEDataInterpolation::collectDataForInterpolation(const Elem* const elem)
     {
         FEDataManager::SystemDofMapCache* system_dof_map_cache = d_system_dof_map_caches[system_idx];
         // Get the DOF mappings and local data for all variables.
-        NumericVector<double>* system_data = d_system_data[system_idx];
+        NumericVector<double>* system_vec = d_system_vecs[system_idx];
         const auto& dof_indices = system_dof_map_cache->dof_indices(d_current_elem);
         boost::multi_array<double, 2>& elem_data = d_system_elem_data[system_idx];
-        get_values_for_interpolation(elem_data, *system_data, dof_indices);
+        get_values_for_interpolation(elem_data, *system_vec, dof_indices);
     }
     return;
 }
@@ -403,7 +410,6 @@ void
 FEDataInterpolation::interpolate(const Elem* const elem)
 {
     TBOX_ASSERT(d_initialized);
-    TBOX_ASSERT(d_qrule);
     TBOX_ASSERT(elem == d_current_elem);
     interpolateCommon(d_system_var_data, d_system_grad_var_data, d_phi, d_dphi);
     return;
@@ -413,7 +419,6 @@ void
 FEDataInterpolation::interpolate(const Elem* const elem, const unsigned int side)
 {
     TBOX_ASSERT(d_initialized);
-    TBOX_ASSERT(d_qrule_face);
     TBOX_ASSERT(elem == d_current_elem);
     TBOX_ASSERT(side == d_current_side);
     interpolateCommon(d_system_var_data, d_system_grad_var_data, d_phi_face, d_dphi_face);

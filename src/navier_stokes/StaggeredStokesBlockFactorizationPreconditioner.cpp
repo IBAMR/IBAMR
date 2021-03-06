@@ -1,41 +1,21 @@
-// Filename: StaggeredStokesBlockFactorizationPreconditioner.cpp
-// Created on 22 Sep 2008 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/StaggeredStokesBlockFactorizationPreconditioner.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CellNoCornersFillPattern.h"
 #include "ibtk/GeneralSolver.h"
@@ -66,6 +46,8 @@
 
 #include <ostream>
 #include <string>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -177,12 +159,15 @@ StaggeredStokesBlockFactorizationPreconditioner::StaggeredStokesBlockFactorizati
 
     // Setup Timers.
     IBAMR_DO_ONCE(t_solve_system = TimerManager::getManager()->getTimer(
-                      "IBAMR::StaggeredStokesBlockFactorizationPreconditioner::solveSystem()");
-                  t_initialize_solver_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState()");
-                  t_deallocate_solver_state = TimerManager::getManager()->getTimer(
-                      "IBAMR::StaggeredStokesBlockFactorizationPreconditioner::deallocateSolverState("
-                      ")"););
+                      "IBAMR::StaggeredStokesBlockFactorizationPreconditioner::solveSystem("
+                      ")");
+                  t_initialize_solver_state =
+                      TimerManager::getManager()->getTimer("IBAMR::StaggeredStokesBlockFactorizationPreconditioner::"
+                                                           "initializeSolverState()");
+                  t_deallocate_solver_state =
+                      TimerManager::getManager()->getTimer("IBAMR::StaggeredStokesBlockFactorizationPreconditioner::"
+                                                           "deallocateSolverState("
+                                                           ")"););
     return;
 } // StaggeredStokesBlockFactorizationPreconditioner
 
@@ -302,7 +287,9 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
                               F_U_idx,
                               F_U_sc_var);
         d_P_bdry_fill_op->resetTransactionComponent(P_scratch_transaction_comp);
-        solveVelocitySubsystem(*U_vec, *F_U_mod_vec, /*initial_guess_nonzero*/ false);
+        solveVelocitySubsystem(*U_vec,
+                               *F_U_mod_vec,
+                               /*initial_guess_nonzero*/ false);
         break;
 
     case LOWER_TRIANGULAR:
@@ -318,7 +305,9 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
                              1.0,
                              F_P_idx,
                              F_P_cc_var);
-        solvePressureSubsystem(*P_vec, *F_P_mod_vec, /*initial_guess_nonzero*/ false);
+        solvePressureSubsystem(*P_vec,
+                               *F_P_mod_vec,
+                               /*initial_guess_nonzero*/ false);
         break;
 
     case SYMMETRIC:
@@ -334,7 +323,9 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
                              1.0,
                              F_P_idx,
                              F_P_cc_var);
-        solvePressureSubsystem(*P_vec, *F_P_mod_vec, /*initial_guess_nonzero*/ false);
+        solvePressureSubsystem(*P_vec,
+                               *F_P_mod_vec,
+                               /*initial_guess_nonzero*/ false);
         d_P_bdry_fill_op->resetTransactionComponent(P_transaction_comp);
         d_hier_math_ops->grad(d_F_U_mod_idx,
                               F_U_sc_var,
@@ -348,7 +339,9 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
                               F_U_idx,
                               F_U_sc_var);
         d_P_bdry_fill_op->resetTransactionComponent(P_scratch_transaction_comp);
-        solveVelocitySubsystem(*U_vec, *F_U_mod_vec, /*initial_guess_nonzero*/ true);
+        solveVelocitySubsystem(*U_vec,
+                               *F_U_mod_vec,
+                               /*initial_guess_nonzero*/ true);
         break;
 
     case DIAGONAL:
@@ -436,7 +429,9 @@ StaggeredStokesBlockFactorizationPreconditioner::setInitialGuessNonzero(bool ini
     if (initial_guess_nonzero)
     {
         TBOX_ERROR(d_object_name + "::setInitialGuessNonzero()\n"
-                   << "  class IBAMR::StaggeredStokesBlockFactorizationPreconditioner requires a "
+                   << "  class "
+                      "IBAMR::StaggeredStokesBlockFactorizationPreconditioner "
+                      "requires a "
                       "zero initial guess"
                    << std::endl);
     }
@@ -449,7 +444,8 @@ StaggeredStokesBlockFactorizationPreconditioner::setMaxIterations(int max_iterat
     if (max_iterations != 1)
     {
         TBOX_ERROR(d_object_name + "::setMaxIterations()\n"
-                   << "  class IBAMR::StaggeredStokesBlockFactorizationPreconditioner only "
+                   << "  class "
+                      "IBAMR::StaggeredStokesBlockFactorizationPreconditioner only "
                       "performs a single iteration"
                    << std::endl);
     }
@@ -467,12 +463,7 @@ StaggeredStokesBlockFactorizationPreconditioner::solvePressureSubsystem(SAMRAIVe
 {
     // Get the vector components.
     const int P_idx = P_vec.getComponentDescriptorIndex(0);
-    const Pointer<Variable<NDIM> >& P_var = P_vec.getComponentVariable(0);
-    Pointer<CellVariable<NDIM, double> > P_cc_var = P_var;
-
     const int F_P_idx = F_P_vec.getComponentDescriptorIndex(0);
-    const Pointer<Variable<NDIM> >& F_P_var = F_P_vec.getComponentVariable(0);
-    Pointer<CellVariable<NDIM, double> > F_P_cc_var = F_P_var;
 
     Pointer<SAMRAIVectorReal<NDIM, double> > P_scratch_vec;
     P_scratch_vec =
@@ -534,7 +525,8 @@ StaggeredStokesBlockFactorizationPreconditioner::solvePressureSubsystem(SAMRAIVe
         d_pressure_solver->setHomogeneousBc(true);
         auto p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
         if (p_pressure_solver) p_pressure_solver->setInitialGuessNonzero(initial_guess_nonzero);
-        d_pressure_solver->solveSystem(*P_scratch_vec, F_P_vec); // P_scratch_idx := -inv(L_rho)*F_P
+        d_pressure_solver->solveSystem(*P_scratch_vec,
+                                       F_P_vec); // P_scratch_idx := -inv(L_rho)*F_P
         d_pressure_data_ops->linearSum(
             P_idx, -1.0 / getDt(), d_P_scratch_idx, d_U_problem_coefs.getDConstant(), F_P_idx);
     }

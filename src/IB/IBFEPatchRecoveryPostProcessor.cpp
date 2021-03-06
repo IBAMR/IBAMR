@@ -1,47 +1,24 @@
-// Filename: IBFEPatchRecoveryPostProcessor.cpp
-// Created on 2 Jul 2013 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
-
 #include "ibamr/IBFEPatchRecoveryPostProcessor.h"
 #include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/libmesh_utilities.h"
 
 #include "SAMRAI_config.h"
@@ -59,8 +36,10 @@
 #include "libmesh/quadrature.h"
 #include "libmesh/string_to_enum.h"
 
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 IBTK_DISABLE_EXTRA_WARNINGS
@@ -198,7 +177,9 @@ IBFEPatchRecoveryPostProcessor::IBFEPatchRecoveryPostProcessor(MeshBase* mesh, F
     }
     if (first_order_elems && second_order_elems)
     {
-        TBOX_ERROR("cannot have both first- and second-order elements in the same mesh.\n");
+        TBOX_ERROR(
+            "cannot have both first- and second-order elements in the same "
+            "mesh.\n");
     }
     d_interp_order = first_order_elems ? FIRST : SECOND;
     d_quad_order = first_order_elems ? THIRD : FIFTH;
@@ -406,9 +387,8 @@ IBFEPatchRecoveryPostProcessor::initializeFEData(const PeriodicBoundaries* const
         if (!d_local_patch_proj_solver[k].isInvertible())
         {
             TBOX_ERROR(
-                "IBFEPatchRecoveryPostProcessor could not construct L2 reconstruction for "
-                "element "
-                "patch associated with node "
+                "IBFEPatchRecoveryPostProcessor could not construct L2 "
+                "reconstruction for element patch associated with node "
                 << node_id << "\n");
         }
     }
@@ -425,10 +405,10 @@ IBFEPatchRecoveryPostProcessor::initializeCauchyStressSystem()
         for (unsigned int j = i; j < NDIM; ++j)
         {
             std::string var_name = "sigma_";
-            var_name += (i == 0 ? 'x') : i == 1 ? 'y' : 'z');
-            var_name += (j == 0 ? 'x') : j == 1 ? 'y' : 'z');
+            var_name += (i == 0 ? 'x' : (i == 1 ? 'y' : 'z'));
+            var_name += (j == 0 ? 'x' : (j == 1 ? 'y' : 'z'));
 
-            sigma_system->add_variable(var_name), d_interp_order, LAGRANGE);
+            sigma_system->add_variable(var_name, d_interp_order, LAGRANGE);
         }
     }
     return sigma_system;

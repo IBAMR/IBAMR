@@ -1,54 +1,34 @@
-// Filename: StaggeredStokesPETScVecUtilities.cpp
-// Created on 03 Apr 2012 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
-
 #include "ibamr/StaggeredStokesPETScVecUtilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
-#include "ibtk/compiler_hints.h"
 
 #include "Box.h"
+#include "BoxArray.h"
 #include "BoxList.h"
 #include "CartesianGridGeometry.h"
 #include "CellData.h"
 #include "CellGeometry.h"
 #include "CellIndex.h"
 #include "CellVariable.h"
+#include "Index.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
@@ -65,11 +45,12 @@
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
+#include "petscao.h"
 #include "petscsys.h"
 #include "petscvec.h"
+#include <petsclog.h>
 
 #include <algorithm>
 #include <array>
@@ -77,6 +58,8 @@
 #include <ostream>
 #include <string>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -149,15 +132,6 @@ extern "C"
                                          const int&,
                                          const double*);
 }
-
-namespace SAMRAI
-{
-namespace hier
-{
-template <int DIM>
-class Index;
-} // namespace hier
-} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -338,10 +312,9 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelAO(AO& ao,
                                                         int& u_ao_offset,
                                                         int& p_ao_offset)
 {
-    int ierr;
     if (ao)
     {
-        ierr = AODestroy(&ao);
+        int ierr = AODestroy(&ao);
         IBTK_CHKERRQ(ierr);
     }
 
@@ -350,16 +323,16 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelAO(AO& ao,
 #if !defined(NDEBUG)
     TBOX_ASSERT(domain_boxes.size() == 1);
 #endif
-    const Index<NDIM>& domain_lower = domain_boxes[0].lower();
-    const Index<NDIM>& domain_upper = domain_boxes[0].upper();
+    const hier::Index<NDIM>& domain_lower = domain_boxes[0].lower();
+    const hier::Index<NDIM>& domain_upper = domain_boxes[0].upper();
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_level->getGridGeometry();
     IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(patch_level->getRatio());
 
-    const Index<NDIM> p_num_cells = domain_upper - domain_lower + 1;
-    std::array<Index<NDIM>, NDIM> u_num_cells;
+    const hier::Index<NDIM> p_num_cells = domain_upper - domain_lower + 1;
+    std::array<hier::Index<NDIM>, NDIM> u_num_cells;
     for (unsigned d = 0; d < NDIM; ++d)
     {
-        Index<NDIM> offset = 1;
+        hier::Index<NDIM> offset = 1;
         offset(d) = periodic_shift(d) ? 1 : 2;
         u_num_cells[d] = domain_upper - domain_lower + offset;
     }
@@ -371,7 +344,7 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelAO(AO& ao,
     p_ao_offset = u_ao_offset + n_u_samrai_dofs;
 
     // Compute PETSc to SAMRAI index mapping
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int n_local = num_dofs_per_proc[mpi_rank];
     const int i_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int i_upper = i_lower + n_local;
@@ -610,11 +583,14 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
     // is the "master" location.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<SideVariable<NDIM, int> > patch_num_var = new SideVariable<NDIM, int>(
-        "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_num_var");
+        "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::"
+        "patch_num_var");
     static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
     patch_level->allocatePatchData(patch_num_idx);
     Pointer<SideVariable<NDIM, bool> > u_mastr_loc_var = new SideVariable<NDIM, bool>(
-        "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::u_mastr_loc_var");
+        "StaggeredStokesPETScVecUtilities::"
+        "constructPatchLevelDOFIndices_side()::u_"
+        "mastr_loc_var");
     static const int u_mastr_loc_idx = var_db->registerPatchDataIndex(u_mastr_loc_var);
     patch_level->allocatePatchData(u_mastr_loc_idx);
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
@@ -642,7 +618,7 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
 #if !defined(NDEBUG)
     TBOX_ASSERT(domain_boxes.size() == 1);
 #endif
-    const Index<NDIM>& domain_upper = domain_boxes[0].upper();
+    const hier::Index<NDIM>& domain_upper = domain_boxes[0].upper();
 
     // Determine the number of local DOFs.
     int local_dof_count = 0;
@@ -678,11 +654,11 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
 
     // Determine the number of DOFs local to each MPI process and compute the
     // local DOF index offset.
-    const int mpi_size = SAMRAI_MPI::getNodes();
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_size = IBTK_MPI::getNodes();
+    const int mpi_rank = IBTK_MPI::getRank();
     num_dofs_per_proc.resize(mpi_size);
     std::fill(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
-    SAMRAI_MPI::allGather(local_dof_count, &num_dofs_per_proc[0]);
+    IBTK_MPI::allGather(local_dof_count, &num_dofs_per_proc[0]);
     const int local_dof_offset = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
 
     // Assign local DOF indices.
@@ -708,7 +684,7 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
         {
             for (Box<NDIM>::Iterator b(bl()); b; b++)
             {
-                const Index<NDIM>& ic = b();
+                const hier::Index<NDIM>& ic = b();
                 for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
                 {
                     if (data_boxes[component_axis].contains(ic))

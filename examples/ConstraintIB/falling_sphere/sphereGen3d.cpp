@@ -1,3 +1,16 @@
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2016 - 2020 by the IBAMR developers
+// All rights reserved.
+//
+// This file is part of IBAMR.
+//
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
+//
+// ---------------------------------------------------------------------
+
 // Written by namu patel on mahavira@mech.northwestern.edu
 
 #include <math.h>
@@ -10,7 +23,7 @@
 
 // Set sphere related parameters.
 static const double DIAMETER = 0.625;
-// static const int NDIM = 3;
+static const int NDIM = 3;
 
 int
 main()

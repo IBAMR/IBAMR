@@ -1,39 +1,24 @@
-// Filename: muParserRobinBcCoefs.h
-// Created on 25 Aug 2007 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2011 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
+
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBTK_muParserRobinBcCoefs
 #define included_IBTK_muParserRobinBcCoefs
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/ibtk_utilities.h"
 
@@ -74,10 +59,22 @@ class Database;
 
 namespace IBTK
 {
-/*!
- * \brief Class muParserRobinBcCoefs is an implementation of the strategy class
- * SAMRAI::solv::RobinBcCoefStrategy that allows for the run-time specification
- * of (possibly spatially- and temporally-varying) Robin boundary conditions.
+/*!  \brief Class muParserRobinBcCoefs is an implementation of the strategy
+ * class SAMRAI::solv::RobinBcCoefStrategy that allows for the run-time
+ * specification of (possibly spatially- and temporally-varying) Robin boundary
+ * conditions.
+ *
+ * This class uses the muParser library to parse strings into mathematical
+ * functions. This class is the most common method to specify boundary
+ * conditions uses in the examples. The database in the input file contains
+ * strings for each coefficient (\f$a\f$, \f$b\f$, and \f$g\f$) at each face
+ * of the physical boundary. Strings ending in 0 and 1 are for the \f$x\f$-faces,
+ * 2 and 3 are for the \f$y\f$-faces, and 4 and 5 are for the \f$z\f$-faces.
+ * These strings can contain spatial and temporal variables using the variable
+ * names `X_0`, `X_1`, `X_2`, and `t`. These strings can also contain `if`
+ * statements  using the conditional operator
+ * `condition ? result_if_true : result_if_false`. For more exotic boundary
+ * conditions, one would need to create an extension of the class `RobinBcCoefStrategy`.
  *
  * \warning Not all linear solvers in IBTK properly handle time-varying \em
  * homogeneous Robin boundary condition coefficients.  Note, however, that all

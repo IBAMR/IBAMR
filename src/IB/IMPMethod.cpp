@@ -1,41 +1,21 @@
-// Filename: IMPMethod.cpp
-// Created on 16 Oct 2012 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/IMPMethod.h"
 #include "ibamr/MaterialPointSpec.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LData.h"
@@ -47,11 +27,9 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeSet.h"
 #include "ibtk/LNodeSetData.h"
-#include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/libmesh_utilities.h"
 
 #include "BasePatchHierarchy.h"
@@ -87,6 +65,7 @@
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
 
+#include "libmesh/compare_types.h"
 #include "libmesh/tensor_value.h"
 #include "libmesh/type_tensor.h"
 #include "libmesh/type_vector.h"
@@ -94,22 +73,22 @@
 
 #include "petscvec.h"
 
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/math/special_functions/round.hpp"
-#include "boost/multi_array.hpp"
+#include <boost/math/special_functions/round.hpp>
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <limits>
+#include <memory>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
-
-namespace IBTK
-{
-} // namespace IBTK
 
 using namespace libMesh;
 
@@ -459,7 +438,7 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
             }
             for (LNodeSetData::CellIterator it(idx_data->getGhostBox()); it; it++)
             {
-                const Index<NDIM>& i = *it;
+                const hier::Index<NDIM>& i = *it;
                 LNodeSet* const node_set = idx_data->getItem(i);
                 if (!node_set) continue;
                 for (const auto& node_idx : *node_set)
@@ -496,8 +475,8 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
                         }
                         for (Box<NDIM>::Iterator b(stencil_box * side_boxes[component]); b; b++)
                         {
-                            const Index<NDIM>& i = b();
-                            const Index<NDIM> i_shift = i - stencil_box.lower();
+                            const hier::Index<NDIM>& i = b();
+                            const hier::Index<NDIM> i_shift = i - stencil_box.lower();
                             const SideIndex<NDIM> i_s(i, component, SideIndex<NDIM>::Lower);
                             const double u = (*u_data)(i_s);
                             double w = 1.0;
@@ -847,7 +826,7 @@ IMPMethod::spreadForce(const int f_data_idx,
             for (unsigned int d = 0; d < NDIM; ++d) dV_c *= dx[d];
             for (LNodeSetData::CellIterator it(idx_data->getGhostBox()); it; it++)
             {
-                const Index<NDIM>& i = *it;
+                const hier::Index<NDIM>& i = *it;
                 LNodeSet* const node_set = idx_data->getItem(i);
                 if (!node_set) continue;
                 for (const auto& node_idx : *node_set)
@@ -893,8 +872,8 @@ IMPMethod::spreadForce(const int f_data_idx,
                         }
                         for (Box<NDIM>::Iterator b(stencil_box * side_boxes[component]); b; b++)
                         {
-                            const Index<NDIM>& i = b();
-                            const Index<NDIM> i_shift = i - stencil_box.lower();
+                            const hier::Index<NDIM>& i = b();
+                            const hier::Index<NDIM> i_shift = i - stencil_box.lower();
                             const SideIndex<NDIM> i_s(i, component, SideIndex<NDIM>::Lower);
                             double f = 0.0;
                             for (unsigned int k = 0; k < NDIM; ++k)
@@ -955,9 +934,8 @@ IMPMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     // Initialize various Lagrangian data objects.
     if (initial_time)
     {
-        pout << "WARNING: IMPMethod implementation currently requires that the initial "
-                "velocity is "
-                "*zero*.\n";
+        pout << "WARNING: IMPMethod implementation currently requires that the "
+                "initial velocity is *zero*.\n";
     }
     return;
 } // initializePatchHierarchy
@@ -1020,8 +998,7 @@ IMPMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
         hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
-        Pointer<LData> Grad_U_data =
-            d_l_data_manager->createLData("Grad_U", level_number, NDIM * NDIM, /*manage_data*/ true);
+        d_l_data_manager->createLData("Grad_U", level_number, NDIM * NDIM, /*manage_data*/ true);
         Pointer<LData> F_data = d_l_data_manager->createLData("F",
                                                               level_number,
                                                               NDIM * NDIM,
@@ -1088,8 +1065,6 @@ IMPMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarc
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-
     // Tag cells that contain Lagrangian nodes.
     d_l_data_manager->applyGradientDetector(
         hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);

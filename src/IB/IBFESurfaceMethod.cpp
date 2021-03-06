@@ -1,83 +1,60 @@
-// Filename: IBFESurfaceMethod.cpp
-// Created on 19 May 2018 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2018 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/IBFESurfaceMethod.h"
-#include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibamr/ibamr_utilities.h"
 
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/SAMRAIDataCache.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
 #include "Box.h"
+#include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
+#include "CellData.h"
 #include "CellIndex.h"
 #include "GriddingAlgorithm.h"
 #include "HierarchyDataOpsManager.h"
-#include "HierarchyDataOpsReal.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "LoadBalancer.h"
-#include "MultiblockDataTranslator.h"
 #include "Patch.h"
+#include "PatchData.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
+#include "RefineSchedule.h"
 #include "SideData.h"
+#include "SideGeometry.h"
 #include "SideIndex.h"
-#include "Variable.h"
-#include "VariableDatabase.h"
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
-#include "libmesh/boundary_info.h"
 #include "libmesh/compare_types.h"
 #include "libmesh/dense_vector.h"
 #include "libmesh/dof_map.h"
@@ -85,42 +62,48 @@
 #include "libmesh/elem.h"
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
+#include "libmesh/enum_parallel_type.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/enum_xdr_mode.h"
 #include "libmesh/equation_systems.h"
+#include "libmesh/face.h"
+#include "libmesh/fe_base.h"
 #include "libmesh/fe_type.h"
 #include "libmesh/fem_context.h"
-#include "libmesh/linear_implicit_system.h"
-#include "libmesh/mesh.h"
+#include "libmesh/id_types.h"
+#include "libmesh/libmesh_common.h"
+#include "libmesh/libmesh_config.h"
+#include "libmesh/libmesh_version.h"
 #include "libmesh/mesh_base.h"
 #include "libmesh/node.h"
 #include "libmesh/numeric_vector.h"
 #include "libmesh/petsc_vector.h"
 #include "libmesh/point.h"
 #include "libmesh/quadrature.h"
-#include "libmesh/sparse_matrix.h"
 #include "libmesh/string_to_enum.h"
 #include "libmesh/system.h"
 #include "libmesh/tensor_value.h"
-#include "libmesh/type_tensor.h"
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
 
 #include "petscvec.h"
 
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/math/special_functions/round.hpp"
-#include "boost/multi_array.hpp"
+#include <boost/math/special_functions/round.hpp>
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <iomanip>
 #include <limits>
+#include <map>
 #include <memory>
 #include <ostream>
-#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -129,8 +112,6 @@ namespace SAMRAI
 {
 namespace xfer
 {
-template <int DIM>
-class RefineSchedule;
 template <int DIM>
 class CoarsenSchedule;
 } // namespace xfer
@@ -147,7 +128,7 @@ namespace IBAMR
 namespace
 {
 // Version of IBFESurfaceMethod restart file data.
-static const int IBFE_METHOD_VERSION = 1;
+static const int IBFE_METHOD_VERSION = 3;
 
 std::string
 libmesh_restart_file_name(const std::string& restart_dump_dirname,
@@ -169,13 +150,26 @@ const std::string IBFESurfaceMethod::NORMAL_VELOCITY_SYSTEM_NAME = "IB normal ve
 const std::string IBFESurfaceMethod::PRESSURE_JUMP_SYSTEM_NAME = "IB [[p]] system";
 const std::string IBFESurfaceMethod::TANGENTIAL_VELOCITY_SYSTEM_NAME = "IB tangential velocity system";
 const std::string IBFESurfaceMethod::VELOCITY_SYSTEM_NAME = "IB velocity system";
+const std::string IBFESurfaceMethod::WSS_IN_SYSTEM_NAME = "One sided interior wall shear stress system";
+const std::string IBFESurfaceMethod::WSS_OUT_SYSTEM_NAME = "One sided exterior wall shear stress system";
+const std::string IBFESurfaceMethod::PRESSURE_IN_SYSTEM_NAME = "One sided interior pressure system";
+const std::string IBFESurfaceMethod::PRESSURE_OUT_SYSTEM_NAME = "One sided exterior pressure system";
+const std::string IBFESurfaceMethod::TAU_IN_SYSTEM_NAME = "Interior traction system";
+const std::string IBFESurfaceMethod::TAU_OUT_SYSTEM_NAME = "Exterior traction system";
+const std::array<std::string, NDIM> IBFESurfaceMethod::VELOCITY_JUMP_SYSTEM_NAME = { { "velocity [[du]] jump system",
+                                                                                       "velocity [[dv]] jump system"
+#if (NDIM == 3)
+                                                                                       ,
+                                                                                       "velocity [[dw]] jump system"
+#endif
+} };
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
                                      Pointer<Database> input_db,
                                      MeshBase* mesh,
-                                     int max_level_number,
+                                     int max_levels,
                                      bool register_for_restart,
                                      const std::string& restart_read_dirname,
                                      unsigned int restart_restore_number)
@@ -183,7 +177,7 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
     commonConstructor(object_name,
                       input_db,
                       std::vector<MeshBase*>(1, mesh),
-                      max_level_number,
+                      max_levels,
                       register_for_restart,
                       restart_read_dirname,
                       restart_restore_number);
@@ -193,19 +187,14 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
 IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
                                      Pointer<Database> input_db,
                                      const std::vector<MeshBase*>& meshes,
-                                     int max_level_number,
+                                     int max_levels,
                                      bool register_for_restart,
                                      const std::string& restart_read_dirname,
                                      unsigned int restart_restore_number)
     : d_num_parts(static_cast<int>(meshes.size()))
 {
-    commonConstructor(object_name,
-                      input_db,
-                      meshes,
-                      max_level_number,
-                      register_for_restart,
-                      restart_read_dirname,
-                      restart_restore_number);
+    commonConstructor(
+        object_name, input_db, meshes, max_levels, register_for_restart, restart_read_dirname, restart_restore_number);
     return;
 } // IBFESurfaceMethod
 
@@ -287,7 +276,9 @@ IBFESurfaceMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgori
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         const int gcw = d_fe_data_managers[part]->getGhostCellWidth().max();
-        const int tag_ln = d_fe_data_managers[part]->getLevelNumber() - 1;
+        // We need to refine cells up to, but not including, those on
+        // FEDataManager's finest patch level used for interaction
+        const int tag_ln = d_fe_data_managers[part]->getFinestPatchLevelNumber() - 1;
         if (tag_ln >= 0 && tag_ln < finest_hier_ln)
         {
             tag_buffer[tag_ln] = std::max(tag_buffer[tag_ln], gcw);
@@ -309,114 +300,14 @@ IBFESurfaceMethod::preprocessIntegrateData(double current_time, double new_time,
     d_half_time = current_time + 0.5 * (new_time - current_time);
 
     // Extract the FE data.
-    d_X_systems.resize(d_num_parts);
-    d_X_current_vecs.resize(d_num_parts);
-    d_X_new_vecs.resize(d_num_parts);
-    d_X_half_vecs.resize(d_num_parts);
-    d_X_IB_ghost_vecs.resize(d_num_parts);
+    d_X_vecs->copy("solution", { "current", "new", "half" });
+    d_U_vecs->copy("solution", { "current", "new", "half" });
+    d_U_n_vecs->copy("solution", { "current", "new", "half" });
+    d_U_t_vecs->copy("solution", { "current", "new", "half" });
+    // like spreadForce, assumes we are using the midpoint method
+    d_F_vecs->copy("solution", { "current", "half" });
+    if (d_use_pressure_jump_conditions) d_DP_vecs->copy("solution", { "current", "half" });
 
-    d_U_systems.resize(d_num_parts);
-    d_U_current_vecs.resize(d_num_parts);
-    d_U_new_vecs.resize(d_num_parts);
-    d_U_half_vecs.resize(d_num_parts);
-
-    d_U_n_systems.resize(d_num_parts);
-    d_U_n_current_vecs.resize(d_num_parts);
-    d_U_n_new_vecs.resize(d_num_parts);
-    d_U_n_half_vecs.resize(d_num_parts);
-
-    d_U_t_systems.resize(d_num_parts);
-    d_U_t_current_vecs.resize(d_num_parts);
-    d_U_t_new_vecs.resize(d_num_parts);
-    d_U_t_half_vecs.resize(d_num_parts);
-
-    d_F_systems.resize(d_num_parts);
-    d_F_half_vecs.resize(d_num_parts);
-    d_F_IB_ghost_vecs.resize(d_num_parts);
-
-    d_DP_systems.resize(d_num_parts);
-    d_DP_half_vecs.resize(d_num_parts);
-    d_DP_IB_ghost_vecs.resize(d_num_parts);
-
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        d_X_systems[part] = &d_equation_systems[part]->get_system(COORDS_SYSTEM_NAME);
-        d_X_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_X_systems[part]->current_local_solution.get());
-        d_X_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_X_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-        d_X_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_X_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-        d_X_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_fe_data_managers[part]->buildGhostedCoordsVector(/*localize_data*/ false));
-
-        d_U_systems[part] = &d_equation_systems[part]->get_system(VELOCITY_SYSTEM_NAME);
-        d_U_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->current_local_solution.get());
-        d_U_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_U_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-        d_U_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_U_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-
-        d_U_n_systems[part] = &d_equation_systems[part]->get_system(NORMAL_VELOCITY_SYSTEM_NAME);
-        d_U_n_current_vecs[part] =
-            dynamic_cast<PetscVector<double>*>(d_U_n_systems[part]->current_local_solution.get());
-        d_U_n_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_U_n_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-        d_U_n_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_U_n_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-
-        d_U_t_systems[part] = &d_equation_systems[part]->get_system(TANGENTIAL_VELOCITY_SYSTEM_NAME);
-        d_U_t_current_vecs[part] =
-            dynamic_cast<PetscVector<double>*>(d_U_t_systems[part]->current_local_solution.get());
-        d_U_t_new_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_U_t_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-        d_U_t_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_U_t_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
-
-        d_F_systems[part] = &d_equation_systems[part]->get_system<LinearImplicitSystem>(FORCE_SYSTEM_NAME);
-        d_F_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->current_local_solution.get());
-        d_F_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
-            d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME, /*localize_data*/ false));
-
-        if (d_use_jump_conditions)
-        {
-            d_DP_systems[part] = &d_equation_systems[part]->get_system(PRESSURE_JUMP_SYSTEM_NAME);
-            d_DP_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_DP_systems[part]->current_local_solution.get());
-            d_DP_IB_ghost_vecs[part] =
-                dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(
-                    PRESSURE_JUMP_SYSTEM_NAME, /*localize_data*/ false));
-        }
-
-        // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
-        // U^{n+1/2} and U^{n+1} to equal U^{n}.
-        d_X_systems[part]->solution->close();
-        d_X_systems[part]->solution->localize(*d_X_current_vecs[part]);
-        d_X_systems[part]->solution->localize(*d_X_new_vecs[part]);
-        d_X_systems[part]->solution->localize(*d_X_half_vecs[part]);
-
-        d_U_systems[part]->solution->close();
-        d_U_systems[part]->solution->localize(*d_U_current_vecs[part]);
-        d_U_systems[part]->solution->localize(*d_U_new_vecs[part]);
-        d_U_systems[part]->solution->localize(*d_U_half_vecs[part]);
-
-        d_U_n_systems[part]->solution->close();
-        d_U_n_systems[part]->solution->localize(*d_U_n_current_vecs[part]);
-        d_U_n_systems[part]->solution->localize(*d_U_n_new_vecs[part]);
-        d_U_n_systems[part]->solution->localize(*d_U_n_half_vecs[part]);
-
-        d_U_t_systems[part]->solution->close();
-        d_U_t_systems[part]->solution->localize(*d_U_t_current_vecs[part]);
-        d_U_t_systems[part]->solution->localize(*d_U_t_new_vecs[part]);
-        d_U_t_systems[part]->solution->localize(*d_U_t_half_vecs[part]);
-
-        d_F_systems[part]->solution->close();
-        d_F_systems[part]->solution->localize(*d_F_half_vecs[part]);
-
-        if (d_use_jump_conditions)
-        {
-            d_DP_systems[part]->solution->close();
-            d_DP_systems[part]->solution->localize(*d_DP_half_vecs[part]);
-        }
-    }
     return;
 } // preprocessIntegrateData
 
@@ -426,79 +317,16 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         // Reset time-dependent Lagrangian data.
-        d_X_new_vecs[part]->close();
-        *d_X_systems[part]->solution = *d_X_new_vecs[part];
-        d_X_systems[part]->solution->close();
-        d_X_systems[part]->solution->localize(*d_X_systems[part]->current_local_solution);
-        delete d_X_new_vecs[part];
-        delete d_X_half_vecs[part];
-
-        d_U_new_vecs[part]->close();
-        *d_U_systems[part]->solution = *d_U_new_vecs[part];
-        d_U_systems[part]->solution->close();
-        d_U_systems[part]->solution->localize(*d_U_systems[part]->current_local_solution);
-        delete d_U_new_vecs[part];
-        delete d_U_half_vecs[part];
-
-        d_U_n_new_vecs[part]->close();
-        *d_U_n_systems[part]->solution = *d_U_n_new_vecs[part];
-        d_U_n_systems[part]->solution->close();
-        d_U_n_systems[part]->solution->localize(*d_U_n_systems[part]->current_local_solution);
-        delete d_U_n_new_vecs[part];
-        delete d_U_n_half_vecs[part];
-
-        d_U_t_new_vecs[part]->close();
-        *d_U_t_systems[part]->solution = *d_U_t_new_vecs[part];
-        d_U_t_systems[part]->solution->close();
-        d_U_t_systems[part]->solution->localize(*d_U_t_systems[part]->current_local_solution);
-        delete d_U_t_new_vecs[part];
-        delete d_U_t_half_vecs[part];
-
-        d_F_half_vecs[part]->close();
-        *d_F_systems[part]->solution = *d_F_half_vecs[part];
-        d_F_systems[part]->solution->close();
-        d_F_systems[part]->solution->localize(*d_F_systems[part]->current_local_solution);
-
-        if (d_use_jump_conditions)
-        {
-            d_DP_half_vecs[part]->close();
-            *d_DP_systems[part]->solution = *d_DP_half_vecs[part];
-            d_DP_systems[part]->solution->close();
-            d_DP_systems[part]->solution->localize(*d_DP_systems[part]->current_local_solution);
-        }
+        d_X_vecs->copy("new", { "solution", "current" });
+        d_U_vecs->copy("new", { "solution", "current" });
+        d_U_n_vecs->copy("new", { "solution" });
+        d_U_t_vecs->copy("new", { "solution" });
+        d_F_vecs->copy("half", { "solution" });
+        if (d_use_pressure_jump_conditions) d_DP_vecs->copy("half", { "solution" });
 
         // Update the coordinate mapping dX = X - s.
         updateCoordinateMapping(part);
     }
-
-    d_X_systems.clear();
-    d_X_current_vecs.clear();
-    d_X_new_vecs.clear();
-    d_X_half_vecs.clear();
-    d_X_IB_ghost_vecs.clear();
-
-    d_U_systems.clear();
-    d_U_current_vecs.clear();
-    d_U_new_vecs.clear();
-    d_U_half_vecs.clear();
-
-    d_U_n_systems.clear();
-    d_U_n_current_vecs.clear();
-    d_U_n_new_vecs.clear();
-    d_U_n_half_vecs.clear();
-
-    d_U_t_systems.clear();
-    d_U_t_current_vecs.clear();
-    d_U_t_new_vecs.clear();
-    d_U_t_half_vecs.clear();
-
-    d_F_systems.clear();
-    d_F_half_vecs.clear();
-    d_F_IB_ghost_vecs.clear();
-
-    d_DP_systems.clear();
-    d_DP_half_vecs.clear();
-    d_DP_IB_ghost_vecs.clear();
 
     // Reset the current time step interval.
     d_current_time = std::numeric_limits<double>::quiet_NaN();
@@ -513,35 +341,27 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                                        const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                                        const double data_time)
 {
+    const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
+    std::vector<PetscVector<double>*> U_vecs = d_U_vecs->get(data_time_str);
+    std::vector<PetscVector<double>*> U_n_vecs = d_U_n_vecs->get(data_time_str);
+    std::vector<PetscVector<double>*> U_t_vecs = d_U_t_vecs->get(data_time_str);
+    // TODO - for better performance we should use IB-ghosted RHS vectors here
+    // instead of relying on VecStash
+    std::vector<PetscVector<double>*> U_rhs_vecs = d_U_vecs->get("RHS Vector");
+    std::vector<PetscVector<double>*> U_n_rhs_vecs = d_U_n_vecs->get("RHS Vector");
+    std::vector<PetscVector<double>*> U_t_rhs_vecs = d_U_t_vecs->get("RHS Vector");
+    std::vector<PetscVector<double>*> X_IB_ghost_vecs = d_X_vecs->getIBGhosted("tmp");
+    {
+        std::vector<PetscVector<double>*> X_vecs = d_X_vecs->get(data_time_str);
+        batch_vec_copy(X_vecs, X_IB_ghost_vecs);
+        batch_vec_ghost_update(X_IB_ghost_vecs, INSERT_VALUES, SCATTER_FORWARD);
+    }
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        NumericVector<double>* U_vec = nullptr;
-        NumericVector<double>* U_n_vec = nullptr;
-        NumericVector<double>* U_t_vec = nullptr;
-        NumericVector<double>* X_vec = nullptr;
-        NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        if (MathUtilities<double>::equalEps(data_time, d_current_time))
-        {
-            U_vec = d_U_current_vecs[part];
-            U_n_vec = d_U_n_current_vecs[part];
-            U_t_vec = d_U_t_current_vecs[part];
-            X_vec = d_X_current_vecs[part];
-        }
-        else if (MathUtilities<double>::equalEps(data_time, d_half_time))
-        {
-            U_vec = d_U_half_vecs[part];
-            U_n_vec = d_U_n_half_vecs[part];
-            U_t_vec = d_U_t_half_vecs[part];
-            X_vec = d_X_half_vecs[part];
-        }
-        else if (MathUtilities<double>::equalEps(data_time, d_new_time))
-        {
-            U_vec = d_U_new_vecs[part];
-            U_n_vec = d_U_n_new_vecs[part];
-            U_t_vec = d_U_t_new_vecs[part];
-            X_vec = d_X_new_vecs[part];
-        }
-        X_vec->localize(*X_ghost_vec);
+        PetscVector<double>* U_vec = U_vecs[part];
+        PetscVector<double>* U_n_vec = U_n_vecs[part];
+        PetscVector<double>* U_t_vec = U_t_vecs[part];
+        PetscVector<double>* X_vec = X_IB_ghost_vecs[part];
 
         // Extract the mesh.
         EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
@@ -578,25 +398,26 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             if (u_ghost_fill_sched) u_ghost_fill_sched->fillData(data_time);
         }
 
-        X_ghost_vec->close();
-        auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec);
-        Vec X_global_vec = X_petsc_vec->vec();
+        Vec X_ghosted_vec = X_vec->vec();
         Vec X_local_vec;
-        VecGhostGetLocalForm(X_global_vec, &X_local_vec);
+        VecGhostGetLocalForm(X_ghosted_vec, &X_local_vec);
         double* X_local_soln;
         VecGetArray(X_local_vec, &X_local_soln);
-        std::unique_ptr<NumericVector<double> > X0_vec = X_petsc_vec->clone();
+        std::unique_ptr<NumericVector<double> > X0_vec = X_vec->clone();
         X_system.get_vector("INITIAL_COORDINATES").localize(*X0_vec);
         X0_vec->close();
 
         // Loop over the patches to interpolate values to the element quadrature
         // points from the grid, then use these values to compute the projection
         // of the interpolated velocity field onto the FE basis functions.
-        std::unique_ptr<NumericVector<double> > U_rhs_vec = U_vec->zero_clone();
+        PetscVector<double>* U_rhs_vec = U_rhs_vecs[part];
+        U_rhs_vec->zero();
         std::vector<DenseVector<double> > U_rhs_e(NDIM);
-        std::unique_ptr<NumericVector<double> > U_n_rhs_vec = U_n_vec->zero_clone();
+        PetscVector<double>* U_n_rhs_vec = U_n_rhs_vecs[part];
+        U_n_rhs_vec->zero();
         std::vector<DenseVector<double> > U_n_rhs_e(NDIM);
-        std::unique_ptr<NumericVector<double> > U_t_rhs_vec = U_t_vec->zero_clone();
+        PetscVector<double>* U_t_rhs_vec = U_t_rhs_vecs[part];
+        U_t_rhs_vec->zero();
         std::vector<DenseVector<double> > U_t_rhs_e(NDIM);
         boost::multi_array<double, 2> X_node, x_node;
         std::vector<double> U_qp, x_qp;
@@ -604,7 +425,8 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         std::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
 
         std::vector<libMesh::dof_id_type> dof_id_scratch;
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getLevelNumber());
+        Pointer<PatchLevel<NDIM> > level =
+            d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
         int local_patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
         {
@@ -626,7 +448,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             {
                 Elem* const elem = patch_elems[e_idx];
                 const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
-                get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+                get_values_for_interpolation(x_node, *X_vec, X_local_soln, X_dof_indices);
                 FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);
                 n_qp_patch += qrule->n_points();
             }
@@ -642,7 +464,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             {
                 Elem* const elem = patch_elems[e_idx];
                 const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
-                get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+                get_values_for_interpolation(x_node, *X_vec, X_local_soln, X_dof_indices);
                 const bool qrule_changed =
                     FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);
                 if (qrule_changed) fe->attach_quadrature_rule(qrule.get());
@@ -700,7 +522,7 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                     U_t_rhs_e[d].resize(static_cast<int>(U_dof_indices[d].size()));
                 }
                 get_values_for_interpolation(X_node, *X0_vec, X_dof_indices);
-                get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
+                get_values_for_interpolation(x_node, *X_vec, X_local_soln, X_dof_indices);
                 const bool qrule_changed =
                     FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);
                 if (qrule_changed) fe->attach_quadrature_rule(qrule.get());
@@ -739,25 +561,35 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
                         }
                     }
                 }
-                for (unsigned int d = 0; d < NDIM; ++d)
+                for (unsigned int var_n = 0; var_n < NDIM; ++var_n)
                 {
-                    dof_id_scratch = U_dof_indices[d];
-                    U_dof_map.constrain_element_vector(U_rhs_e[d], dof_id_scratch);
-                    U_dof_map.constrain_element_vector(U_n_rhs_e[d], dof_id_scratch);
-                    U_dof_map.constrain_element_vector(U_t_rhs_e[d], dof_id_scratch);
-                    U_rhs_vec->add_vector(U_rhs_e[d], dof_id_scratch);
-                    U_n_rhs_vec->add_vector(U_n_rhs_e[d], dof_id_scratch);
-                    U_t_rhs_vec->add_vector(U_t_rhs_e[d], dof_id_scratch);
+                    // We want to do several insertions with the same set of
+                    // dofs - however, constrain_element_vector actually
+                    // modifies the input dof vector. Hence we need to reset it
+                    // each time:
+                    copy_dof_ids_to_vector(var_n, U_dof_indices, dof_id_scratch);
+                    U_dof_map.constrain_element_vector(U_rhs_e[var_n], dof_id_scratch);
+                    U_rhs_vec->add_vector(U_rhs_e[var_n], dof_id_scratch);
+
+                    copy_dof_ids_to_vector(var_n, U_dof_indices, dof_id_scratch);
+                    U_dof_map.constrain_element_vector(U_n_rhs_e[var_n], dof_id_scratch);
+                    U_n_rhs_vec->add_vector(U_n_rhs_e[var_n], dof_id_scratch);
+
+                    copy_dof_ids_to_vector(var_n, U_dof_indices, dof_id_scratch);
+                    U_dof_map.constrain_element_vector(U_t_rhs_e[var_n], dof_id_scratch);
+                    U_t_rhs_vec->add_vector(U_t_rhs_e[var_n], dof_id_scratch);
                 }
                 qp_offset += n_qp;
             }
         }
+
+        // TODO - once we finish converting all systems do this outside the part loop
         U_rhs_vec->close();
         U_n_rhs_vec->close();
         U_t_rhs_vec->close();
 
         VecRestoreArray(X_local_vec, &X_local_soln);
-        VecGhostRestoreLocalForm(X_global_vec, &X_local_vec);
+        VecGhostRestoreLocalForm(X_ghosted_vec, &X_local_vec);
 
         // Solve for the nodal values.
         d_fe_data_managers[part]->computeL2Projection(
@@ -775,24 +607,28 @@ IBFESurfaceMethod::forwardEulerStep(const double current_time, const double new_
 {
     const double dt = new_time - current_time;
     int ierr;
+    if (d_use_direct_forcing)
+    {
+        d_X_vecs->copy("current", { "new" });
+    }
+
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        if (d_use_direct_forcing)
+        if (!d_use_direct_forcing)
         {
-            ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+            ierr = VecWAXPY(d_X_vecs->get("new", part).vec(),
+                            dt,
+                            d_U_vecs->get("current", part).vec(),
+                            d_X_vecs->get("current", part).vec());
             IBTK_CHKERRQ(ierr);
         }
-        else
-        {
-            ierr =
-                VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
-            IBTK_CHKERRQ(ierr);
-        }
-        ierr = VecAXPBYPCZ(
-            d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        ierr = VecAXPBYPCZ(d_X_vecs->get("half", part).vec(),
+                           0.5,
+                           0.5,
+                           0.0,
+                           d_X_vecs->get("current", part).vec(),
+                           d_X_vecs->get("new", part).vec());
         IBTK_CHKERRQ(ierr);
-        d_X_new_vecs[part]->close();
-        d_X_half_vecs[part]->close();
     }
     return;
 } // eulerStep
@@ -801,24 +637,28 @@ void
 IBFESurfaceMethod::midpointStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
+    if (d_use_direct_forcing)
+    {
+        d_X_vecs->copy("current", { "new" });
+    }
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        if (d_use_direct_forcing)
+        if (!d_use_direct_forcing)
         {
-            ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+            ierr = VecWAXPY(d_X_vecs->get("new", part).vec(),
+                            dt,
+                            d_U_vecs->get("half", part).vec(),
+                            d_X_vecs->get("current", part).vec());
             IBTK_CHKERRQ(ierr);
         }
-        else
-        {
-            ierr = VecWAXPY(d_X_new_vecs[part]->vec(), dt, d_U_half_vecs[part]->vec(), d_X_current_vecs[part]->vec());
-            IBTK_CHKERRQ(ierr);
-        }
-        ierr = VecAXPBYPCZ(
-            d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        ierr = VecAXPBYPCZ(d_X_vecs->get("half", part).vec(),
+                           0.5,
+                           0.5,
+                           0.0,
+                           d_X_vecs->get("current", part).vec(),
+                           d_X_vecs->get("new", part).vec());
         IBTK_CHKERRQ(ierr);
-        d_X_new_vecs[part]->close();
-        d_X_half_vecs[part]->close();
     }
     return;
 } // midpointStep
@@ -828,26 +668,29 @@ IBFESurfaceMethod::trapezoidalStep(const double current_time, const double new_t
 {
     const double dt = new_time - current_time;
     int ierr;
+    if (d_use_direct_forcing)
+    {
+        d_X_vecs->copy("current", { "new" });
+    }
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        if (d_use_direct_forcing)
+        if (!d_use_direct_forcing)
         {
-            ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+            ierr = VecWAXPY(d_X_vecs->get("new", part).vec(),
+                            0.5 * dt,
+                            d_U_vecs->get("current", part).vec(),
+                            d_X_vecs->get("current", part).vec());
+            IBTK_CHKERRQ(ierr);
+            ierr = VecAXPY(d_X_vecs->get("new", part).vec(), 0.5 * dt, d_U_vecs->get("new", part).vec());
             IBTK_CHKERRQ(ierr);
         }
-        else
-        {
-            ierr = VecWAXPY(
-                d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_current_vecs[part]->vec(), d_X_current_vecs[part]->vec());
-            IBTK_CHKERRQ(ierr);
-            ierr = VecAXPY(d_X_new_vecs[part]->vec(), 0.5 * dt, d_U_new_vecs[part]->vec());
-            IBTK_CHKERRQ(ierr);
-        }
-        ierr = VecAXPBYPCZ(
-            d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        ierr = VecAXPBYPCZ(d_X_vecs->get("half", part).vec(),
+                           0.5,
+                           0.5,
+                           0.0,
+                           d_X_vecs->get("current", part).vec(),
+                           d_X_vecs->get("new", part).vec());
         IBTK_CHKERRQ(ierr);
-        d_X_new_vecs[part]->close();
-        d_X_half_vecs[part]->close();
     }
     return;
 } // trapezoidalStep
@@ -856,6 +699,8 @@ void
 IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
+    batch_vec_ghost_update(d_X_vecs->get(data_time_str), INSERT_VALUES, SCATTER_FORWARD);
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
@@ -863,18 +708,20 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         const unsigned int dim = mesh.mesh_dimension();
 
         // Setup global and elemental right-hand-side vectors.
-        NumericVector<double>* F_vec = d_F_half_vecs[part];
-        std::unique_ptr<NumericVector<double> > F_rhs_vec = F_vec->zero_clone();
+        PetscVector<double>& F_vec = d_F_vecs->get("half", part);
+        PetscVector<double>& F_rhs_vec = d_F_vecs->get("RHS Vector", part);
+        F_rhs_vec.zero();
         DenseVector<double> F_rhs_e[NDIM];
-        NumericVector<double>* DP_vec = d_DP_half_vecs[part];
-        std::unique_ptr<NumericVector<double> > DP_rhs_vec =
-            (d_use_jump_conditions ? DP_vec->zero_clone() : std::unique_ptr<NumericVector<double> >());
+        PetscVector<double>* DP_vec = d_use_pressure_jump_conditions ? &d_DP_vecs->get("half", part) : nullptr;
+        PetscVector<double>* DP_rhs_vec =
+            d_use_pressure_jump_conditions ? &d_DP_vecs->get("RHS Vector", part) : nullptr;
+        if (DP_rhs_vec) DP_rhs_vec->zero();
         DenseVector<double> DP_rhs_e;
         VectorValue<double>& F_integral = d_lag_surface_force_integral[part];
         F_integral.zero();
         double DP_rhs_integral = 0.0;
         double surface_area = 0.0;
-        NumericVector<double>* X_vec = d_X_half_vecs[part];
+        PetscVector<double>& X_vec = d_X_vecs->get("half", part);
 
         // Extract the FE systems and DOF maps, and setup the FE objects.
         LinearImplicitSystem& F_system = equation_systems->get_system<LinearImplicitSystem>(FORCE_SYSTEM_NAME);
@@ -902,11 +749,12 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         // silence some warnings by giving DP_dof_map_cache a bogus, but
         // valid, value if we don't use jump conditions
         FEDataManager::SystemDofMapCache* DP_dof_map_cache =
-            d_use_jump_conditions ? d_fe_data_managers[part]->getDofMapCache(PRESSURE_JUMP_SYSTEM_NAME) : nullptr;
+            d_use_pressure_jump_conditions ? d_fe_data_managers[part]->getDofMapCache(PRESSURE_JUMP_SYSTEM_NAME) :
+                                             nullptr;
         const System* DP_system =
-            d_use_jump_conditions ? &equation_systems->get_system(PRESSURE_JUMP_SYSTEM_NAME) : nullptr;
-        const DofMap* DP_dof_map = d_use_jump_conditions ? &DP_system->get_dof_map() : nullptr;
-        if (d_use_jump_conditions)
+            d_use_pressure_jump_conditions ? &equation_systems->get_system(PRESSURE_JUMP_SYSTEM_NAME) : nullptr;
+        const DofMap* DP_dof_map = d_use_pressure_jump_conditions ? &DP_system->get_dof_map() : nullptr;
+        if (d_use_pressure_jump_conditions)
         {
             FEType DP_fe_type = DP_dof_map->variable_type(0);
             TBOX_ASSERT(DP_fe_type == X_fe_type);
@@ -925,7 +773,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         dphi_dxi[0] = &fe->get_dphidxi();
         if (NDIM > 2) dphi_dxi[1] = &fe->get_dphideta();
 
-        FEDataInterpolation fe_interpolator(dim, d_fe_data_managers[part]);
+        FEDataInterpolation fe_interpolator(dim, d_fe_data_managers[part]->getFEData());
         fe_interpolator.attachQuadratureRule(qrule.get());
         std::vector<size_t> surface_force_fcn_system_idxs;
         fe_interpolator.setupInterpolatedSystemDataIndexes(
@@ -933,7 +781,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
         std::vector<size_t> surface_pressure_fcn_system_idxs;
         fe_interpolator.setupInterpolatedSystemDataIndexes(
             surface_pressure_fcn_system_idxs, d_lag_surface_pressure_fcn_data[part].system_data, equation_systems);
-        fe_interpolator.init(/*use_IB_ghosted_vecs*/ false);
+        fe_interpolator.init();
 
         std::vector<const std::vector<double>*> surface_force_var_data, surface_pressure_var_data;
         std::vector<const std::vector<VectorValue<double> >*> surface_force_grad_var_data,
@@ -956,7 +804,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             {
                 F_rhs_e[d].resize(static_cast<int>(F_dof_indices[d].size()));
             }
-            if (d_use_jump_conditions)
+            if (d_use_pressure_jump_conditions)
             {
                 DP_rhs_e.resize(static_cast<int>(F_dof_indices[0].size()));
             }
@@ -964,7 +812,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
             fe_interpolator.reinit(elem);
             fe_interpolator.collectDataForInterpolation(elem);
             fe_interpolator.interpolate(elem);
-            get_values_for_interpolation(x_node, *X_vec, X_dof_indices);
+            get_values_for_interpolation(x_node, X_vec, X_dof_indices);
             get_values_for_interpolation(X_node, X0_vec, X_dof_indices);
             const unsigned int n_qp = qrule->n_points();
             const size_t n_basis = phi.size();
@@ -1045,7 +893,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                 for (unsigned int d = 0; d < NDIM; ++d) F_integral(d) += F(d) * JxW[qp];
 
                 const double C_p = F * n * dA / da;
-                if (d_use_jump_conditions)
+                if (d_use_pressure_jump_conditions)
                 {
                     F -= (F * n) * n;
                 }
@@ -1058,9 +906,9 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
                     {
                         F_rhs_e[i](k) += F_qp(i);
                     }
-                    if (d_use_jump_conditions) DP_rhs_e(k) += C_p * phi[k][qp] * JxW[qp];
+                    if (d_use_pressure_jump_conditions) DP_rhs_e(k) += C_p * phi[k][qp] * JxW[qp];
                 }
-                if (d_use_jump_conditions)
+                if (d_use_pressure_jump_conditions)
                 {
                     DP_rhs_integral += C_p * JxW[qp];
                     surface_area += JxW[qp];
@@ -1069,31 +917,32 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 
             // Apply constraints (e.g., enforce periodic boundary conditions)
             // and add the elemental contributions to the global vector.
-            for (unsigned int i = 0; i < NDIM; ++i)
+            for (unsigned int var_n = 0; var_n < NDIM; ++var_n)
             {
-                dof_id_scratch = F_dof_indices[i];
-                F_dof_map.constrain_element_vector(F_rhs_e[i], dof_id_scratch);
-                F_rhs_vec->add_vector(F_rhs_e[i], dof_id_scratch);
+                copy_dof_ids_to_vector(var_n, F_dof_indices, dof_id_scratch);
+                F_dof_map.constrain_element_vector(F_rhs_e[var_n], dof_id_scratch);
+                F_rhs_vec.add_vector(F_rhs_e[var_n], dof_id_scratch);
             }
-            if (d_use_jump_conditions)
+            if (d_use_pressure_jump_conditions)
             {
-                dof_id_scratch = DP_dof_map_cache->dof_indices(elem)[0];
+                const auto& DP_dof_indices = DP_dof_map_cache->dof_indices(elem);
+                copy_dof_ids_to_vector(0, DP_dof_indices, dof_id_scratch);
                 DP_dof_map->constrain_element_vector(DP_rhs_e, dof_id_scratch);
                 DP_rhs_vec->add_vector(DP_rhs_e, dof_id_scratch);
             }
         }
 
-        SAMRAI_MPI::sumReduction(&F_integral(0), LIBMESH_DIM);
+        IBTK_MPI::sumReduction(&F_integral(0), LIBMESH_DIM);
 
         // Solve for F.
         d_fe_data_managers[part]->computeL2Projection(
-            *F_vec, *F_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
-        if (d_use_jump_conditions)
+            F_vec, F_rhs_vec, FORCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
+        if (d_use_pressure_jump_conditions)
         {
             d_fe_data_managers[part]->computeL2Projection(
                 *DP_vec, *DP_rhs_vec, PRESSURE_JUMP_SYSTEM_NAME, d_use_consistent_mass_matrix);
-            DP_rhs_integral = SAMRAI_MPI::sumReduction(DP_rhs_integral);
-            surface_area = SAMRAI_MPI::sumReduction(surface_area);
+            DP_rhs_integral = IBTK_MPI::sumReduction(DP_rhs_integral);
+            surface_area = IBTK_MPI::sumReduction(surface_area);
             if (d_normalize_pressure_jump) DP_vec->add(-DP_rhs_integral / surface_area);
             DP_vec->close();
         }
@@ -1107,25 +956,73 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
                                const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
                                const double data_time)
 {
+    const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
+    // "half" is hardcoded below anyway
+    TBOX_ASSERT(data_time_str == "half");
+
+    // Communicate ghost data.
+    std::vector<PetscVector<double>*> X_IB_ghost_vecs = d_X_vecs->getIBGhosted("tmp");
+    std::vector<PetscVector<double>*> F_IB_ghost_vecs = d_F_vecs->getIBGhosted("tmp");
+    std::vector<PetscVector<double>*> DP_IB_ghost_vecs = d_use_pressure_jump_conditions ?
+                                                             d_DP_vecs->getIBGhosted("tmp") :
+                                                             std::vector<PetscVector<double>*>(d_num_parts, nullptr);
+    std::vector<PetscVector<double>*> DP_vecs = d_use_pressure_jump_conditions ?
+                                                    d_DP_vecs->get(data_time_str) :
+                                                    std::vector<PetscVector<double>*>(d_num_parts, nullptr);
+    batch_vec_copy(
+        {
+            d_X_vecs->get(data_time_str),
+            d_F_vecs->get(data_time_str),
+            DP_vecs,
+        },
+        { X_IB_ghost_vecs, F_IB_ghost_vecs, DP_IB_ghost_vecs });
+    batch_vec_ghost_update({ X_IB_ghost_vecs, F_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
+
+    const int ln = d_hierarchy->getFinestLevelNumber();
+    const auto f_scratch_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
+    Pointer<hier::Variable<NDIM> > f_var;
+    VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(f_data_idx, f_var);
+    auto f_active_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+    f_active_data_ops->resetLevels(ln, ln);
+    f_active_data_ops->setToScalar(f_scratch_data_idx, 0.0, /*interior_only*/ false);
+
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        PetscVector<double>* X_vec = d_X_half_vecs[part];
-        PetscVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
-        PetscVector<double>* F_vec = d_F_half_vecs[part];
-        PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
-        X_vec->localize(*X_ghost_vec);
-        F_vec->localize(*F_ghost_vec);
-        d_fe_data_managers[part]->spread(
-            f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op, data_time);
-        if (d_use_jump_conditions)
+        PetscVector<double>* X_ghost_vec = X_IB_ghost_vecs[part];
+        PetscVector<double>* F_ghost_vec = F_IB_ghost_vecs[part];
+        d_fe_data_managers[part]->spread(f_scratch_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME);
+
+        if (d_use_pressure_jump_conditions)
         {
-            PetscVector<double>* DP_vec = d_DP_half_vecs[part];
-            PetscVector<double>* DP_ghost_vec = d_DP_IB_ghost_vecs[part];
-            DP_vec->localize(*DP_ghost_vec);
-            imposeJumpConditions(f_data_idx, *DP_ghost_vec, *X_ghost_vec, data_time, part);
+            imposeJumpConditions(f_scratch_data_idx, *DP_IB_ghost_vecs[part], *X_ghost_vec, data_time, part);
         }
     }
+
+    if (f_phys_bdry_op)
+    {
+        f_phys_bdry_op->setPatchDataIndex(f_scratch_data_idx);
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_scratch_data_idx);
+            f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
+        }
+    }
+
+    {
+        if (!d_ghost_data_accumulator)
+            d_ghost_data_accumulator.reset(new SAMRAIGhostDataAccumulator(d_hierarchy,
+                                                                          f_var,
+                                                                          d_ghosts,
+                                                                          d_hierarchy->getFinestLevelNumber(),
+                                                                          d_hierarchy->getFinestLevelNumber()));
+        d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx);
+    }
+
+    f_active_data_ops->add(f_data_idx, f_data_idx, f_scratch_data_idx);
+
     return;
 } // spreadForce
 
@@ -1168,27 +1065,19 @@ IBFESurfaceMethod::initializeFEEquationSystems()
 
     // Create the FE data managers that manage mappings between the FE mesh
     // parts and the Cartesian grid.
-    d_equation_systems.resize(d_num_parts, nullptr);
-    d_fe_data_managers.resize(d_num_parts, nullptr);
+    d_equation_systems.resize(d_num_parts);
+    d_fe_data_managers.resize(d_num_parts);
+    d_fe_data.resize(d_num_parts);
     IntVector<NDIM> min_ghost_width(0);
     if (!d_eulerian_data_cache) d_eulerian_data_cache.reset(new SAMRAIDataCache());
+
+    Pointer<Database> fe_data_manager_db(new InputDatabase("fe_data_manager_db"));
+    if (d_input_db->keyExists("FEDataManager")) fe_data_manager_db = d_input_db->getDatabase("FEDataManager");
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        // Create FE data managers.
-        const std::string manager_name = "IBFESurfaceMethod FEDataManager::" + std::to_string(part);
-        d_fe_data_managers[part] = FEDataManager::getManager(manager_name,
-                                                             d_interp_spec[part],
-                                                             d_spread_spec[part],
-                                                             d_default_workload_spec,
-                                                             min_ghost_width,
-                                                             d_eulerian_data_cache);
-        d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
-
         // Create FE equation systems objects and corresponding variables.
         d_equation_systems[part] = new EquationSystems(*d_meshes[part]);
         EquationSystems* equation_systems = d_equation_systems[part];
-        d_fe_data_managers[part]->setEquationSystems(equation_systems, d_max_level_number - 1);
-        d_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
         if (from_restart)
         {
             const std::string& file_name = libmesh_restart_file_name(
@@ -1205,7 +1094,6 @@ IBFESurfaceMethod::initializeFEEquationSystems()
             {
                 X_system.add_variable("X_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
-            X_system.add_vector("INITIAL_COORDINATES", /*projections*/ true, GHOSTED);
 
             auto& dX_system = equation_systems->add_system<System>(COORD_MAPPING_SYSTEM_NAME);
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -1237,12 +1125,41 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                 F_system.add_variable("F_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
             }
 
-            if (d_use_jump_conditions)
+            if (d_use_pressure_jump_conditions)
             {
                 auto& DP_system = equation_systems->add_system<System>(PRESSURE_JUMP_SYSTEM_NAME);
                 DP_system.add_variable("C_p", d_fe_order[part], d_fe_family[part]);
             }
         }
+
+        setup_system_vectors(equation_systems,
+                             { COORDS_SYSTEM_NAME },
+                             { "INITIAL_COORDINATES", "current", "half", "new" },
+                             RestartManager::getManager()->isFromRestart());
+        setup_system_vectors(equation_systems,
+                             { VELOCITY_SYSTEM_NAME, NORMAL_VELOCITY_SYSTEM_NAME, TANGENTIAL_VELOCITY_SYSTEM_NAME },
+                             { "current", "half", "new" },
+                             RestartManager::getManager()->isFromRestart());
+        setup_system_vectors(equation_systems,
+                             { FORCE_SYSTEM_NAME },
+                             { "current", "half" },
+                             RestartManager::getManager()->isFromRestart());
+
+        // Create FE data managers.
+        const std::string manager_name = "IBFESurfaceMethod FEDataManager::" + std::to_string(part);
+        d_fe_data[part] =
+            std::make_shared<FEData>(manager_name + "::fe_data", *equation_systems, /*register_for_restart*/ true);
+        d_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
+                                                             manager_name,
+                                                             fe_data_manager_db,
+                                                             d_max_level_number + 1,
+                                                             d_interp_spec[part],
+                                                             d_spread_spec[part],
+                                                             d_default_workload_spec,
+                                                             min_ghost_width,
+                                                             d_eulerian_data_cache);
+        d_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
+        d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
     }
     d_fe_equation_systems_initialized = true;
     return;
@@ -1253,6 +1170,14 @@ IBFESurfaceMethod::initializeFEData()
 {
     if (d_fe_data_initialized) return;
     initializeFEEquationSystems();
+    d_X_vecs.reset(new LibMeshSystemIBVectors(d_fe_data_managers, COORDS_SYSTEM_NAME));
+    d_U_vecs.reset(new LibMeshSystemIBVectors(d_fe_data_managers, VELOCITY_SYSTEM_NAME));
+    d_U_n_vecs.reset(new LibMeshSystemIBVectors(d_fe_data_managers, NORMAL_VELOCITY_SYSTEM_NAME));
+    d_U_t_vecs.reset(new LibMeshSystemIBVectors(d_fe_data_managers, TANGENTIAL_VELOCITY_SYSTEM_NAME));
+    d_F_vecs.reset(new LibMeshSystemIBVectors(d_fe_data_managers, FORCE_SYSTEM_NAME));
+    if (d_use_pressure_jump_conditions)
+        d_DP_vecs.reset(new LibMeshSystemIBVectors(d_fe_data_managers, PRESSURE_JUMP_SYSTEM_NAME));
+
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -1284,6 +1209,7 @@ IBFESurfaceMethod::initializeFEData()
         dX_system.assemble_before_solve = false;
         dX_system.assemble();
 
+        d_U_systems.push_back(&U_system);
         U_system.assemble_before_solve = false;
         U_system.assemble();
 
@@ -1296,7 +1222,7 @@ IBFESurfaceMethod::initializeFEData()
         F_system.assemble_before_solve = false;
         F_system.assemble();
 
-        if (d_use_jump_conditions)
+        if (d_use_pressure_jump_conditions)
         {
             auto& DP_system = equation_systems->get_system<System>(PRESSURE_JUMP_SYSTEM_NAME);
             DP_system.assemble_before_solve = false;
@@ -1334,6 +1260,11 @@ IBFESurfaceMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hiera
         d_fe_data_managers[part]->reinitElementMappings();
     }
 
+    // Set up the Eulerian data caches to work on levels that actually have
+    // elements.
+    d_eulerian_data_cache->setPatchHierarchy(hierarchy);
+    d_eulerian_data_cache->resetLevels(0, getFinestPatchLevelNumber());
+
     d_is_initialized = true;
     return;
 } // initializePatchHierarchy
@@ -1345,11 +1276,6 @@ IBFESurfaceMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balanc
     TBOX_ASSERT(load_balancer);
     d_load_balancer = load_balancer;
     d_workload_idx = workload_data_idx;
-
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        d_fe_data_managers[part]->registerLoadBalancer(load_balancer, workload_data_idx);
-    }
     return;
 } // registerLoadBalancer
 
@@ -1366,7 +1292,8 @@ IBFESurfaceMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy,
 void IBFESurfaceMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                                 Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
-    // intentionally blank
+    // clear some things that contain data specific to the current patch hierarchy
+    d_ghost_data_accumulator.reset();
     return;
 } // beginDataRedistribution
 
@@ -1380,6 +1307,13 @@ void IBFESurfaceMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*h
             d_fe_data_managers[part]->reinitElementMappings();
         }
     }
+
+    d_X_vecs->reinit();
+    d_U_vecs->reinit();
+    d_U_n_vecs->reinit();
+    d_U_t_vecs->reinit();
+    d_F_vecs->reinit();
+    if (d_use_pressure_jump_conditions) d_DP_vecs->reinit();
     return;
 } // endDataRedistribution
 
@@ -1392,11 +1326,9 @@ IBFESurfaceMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierar
                                        Pointer<BasePatchLevel<NDIM> > /*old_level*/,
                                        bool /*allocate_data*/)
 {
-    const int finest_hier_level = hierarchy->getFinestLevelNumber();
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_fe_data_managers[part]->setPatchHierarchy(hierarchy);
-        d_fe_data_managers[part]->setPatchLevels(0, finest_hier_level);
     }
     return;
 } // initializeLevelData
@@ -1410,7 +1342,6 @@ IBFESurfaceMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_fe_data_managers[part]->setPatchHierarchy(hierarchy);
-        d_fe_data_managers[part]->setPatchLevels(0, hierarchy->getFinestLevelNumber());
     }
     return;
 } // resetHierarchyConfiguration
@@ -1441,7 +1372,9 @@ IBFESurfaceMethod::putToDatabase(Pointer<Database> db)
     db->putInteger("IBFE_METHOD_VERSION", IBFE_METHOD_VERSION);
     db->putInteger("d_num_parts", d_num_parts);
     db->putIntegerArray("d_ghosts", d_ghosts, NDIM);
-    db->putBool("d_use_jump_conditions", d_use_jump_conditions);
+    db->putBool("d_use_velocity_jump_conditions", d_use_velocity_jump_conditions);
+    db->putBool("d_use_pressure_jump_conditions", d_use_pressure_jump_conditions);
+    db->putBool("d_compute_fluid_traction", d_compute_fluid_traction);
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
     db->putBool("d_use_direct_forcing", d_use_direct_forcing);
     return;
@@ -1520,7 +1453,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
     // Loop over the patches to impose jump conditions on the Eulerian grid.
     const std::vector<std::vector<Elem*> >& active_patch_element_map =
         d_fe_data_managers[part]->getActivePatchElementMap();
-    const int level_num = d_fe_data_managers[part]->getLevelNumber();
+    const int level_num = d_fe_data_managers[part]->getFinestPatchLevelNumber();
     boost::multi_array<double, 1> DP_node;
     boost::multi_array<double, 2> x_node;
     std::array<VectorValue<double>, 2> dx_dxi;
@@ -1634,7 +1567,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                 axis_box.upper(axis) = 0;
                 for (BoxIterator<NDIM> b(axis_box); b; b++)
                 {
-                    const Index<NDIM>& i_c = b();
+                    const hier::Index<NDIM>& i_c = b();
                     libMesh::Point r;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -1753,6 +1686,80 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
     return;
 } // imposeJumpConditions
 
+int
+IBFESurfaceMethod::getCoarsestPatchLevelNumber() const
+{
+    int level_number = std::numeric_limits<int>::max();
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        level_number = std::min(d_fe_data_managers[part]->getCoarsestPatchLevelNumber(), level_number);
+    }
+    TBOX_ASSERT(level_number != std::numeric_limits<int>::max());
+    return level_number;
+} // getCoarsestPatchLevelNumber
+
+int
+IBFESurfaceMethod::getFinestPatchLevelNumber() const
+{
+    int level_number = std::numeric_limits<int>::min();
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        level_number = std::max(d_fe_data_managers[part]->getFinestPatchLevelNumber(), level_number);
+    }
+    TBOX_ASSERT(level_number != std::numeric_limits<int>::min());
+    return level_number;
+} // getFinestPatchLevelNumber
+
+bool
+IBFESurfaceMethod::checkDoubleCountingIntersection(const int axis,
+                                                   const double* const dx,
+                                                   const libMesh::VectorValue<double>& n,
+                                                   const libMesh::Point& x,
+                                                   const libMesh::Point& xi,
+                                                   const SideIndex<NDIM>& i_s,
+                                                   const SideIndex<NDIM>& i_s_prime,
+                                                   const std::vector<libMesh::Point>& candidate_coords,
+                                                   const std::vector<libMesh::Point>& candidate_ref_coords,
+                                                   const std::vector<libMesh::VectorValue<double> >& candidate_normals)
+{
+    bool found_same_intersection_point = false;
+    std::vector<libMesh::Point>::const_iterator x_prime_it = candidate_coords.begin();
+    std::vector<libMesh::Point>::const_iterator xi_prime_it = candidate_ref_coords.begin();
+    std::vector<VectorValue<double> >::const_iterator n_prime_it = candidate_normals.begin();
+    for (; x_prime_it != candidate_coords.end(); ++x_prime_it, ++xi_prime_it, ++n_prime_it)
+    {
+        const libMesh::Point& x_prime = *x_prime_it;
+        const libMesh::Point& xi_prime = *xi_prime_it;
+        const libMesh::Point& n_prime = *n_prime_it;
+        // TODO: Do not use a hard-coded magic number?
+        if (x.absolute_fuzzy_equals(x_prime, 1.0e-5 * dx[axis]))
+        {
+            // WARNING: This check is ONLY
+            // guaranteed to work at edges (where
+            // only two elements meet).  To avoid FE
+            // mesh nodes, set
+            // d_perturb_fe_mesh_nodes to true.
+            found_same_intersection_point = n(axis) * n_prime(axis) > 0.0;
+            if (d_do_log)
+            {
+                plog << "==========\n";
+                plog << "multiple intersections detected:\n";
+                plog << "  x    = " << x << "\n";
+                plog << "  x'   = " << x_prime << "\n";
+                plog << "  xi   = " << xi << "\n";
+                plog << "  xi'  = " << xi_prime << "\n";
+                plog << "  n    = " << n << "\n";
+                plog << "  n'   = " << n_prime << "\n";
+                plog << "  i_s  = " << i_s << "\n";
+                plog << "  i_s' = " << i_s_prime << "\n";
+                plog << "  axis = " << axis << "\n";
+            }
+        }
+        if (found_same_intersection_point) break;
+    }
+    return found_same_intersection_point;
+}
+
 void
 IBFESurfaceMethod::initializeCoordinates(const unsigned int part)
 {
@@ -1762,7 +1769,9 @@ IBFESurfaceMethod::initializeCoordinates(const unsigned int part)
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>& X_coords = *X_system.solution;
     const bool identity_mapping = !d_coordinate_mapping_fcn_data[part].fcn;
-    for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+    auto it = mesh.local_nodes_begin();
+    const auto end_it = mesh.local_nodes_end();
+    for (; it != end_it; ++it)
     {
         Node* n = *it;
         if (n->n_vars(X_sys_num))
@@ -1799,7 +1808,9 @@ IBFESurfaceMethod::updateCoordinateMapping(const unsigned int part)
     System& dX_system = equation_systems->get_system(COORD_MAPPING_SYSTEM_NAME);
     const unsigned int dX_sys_num = dX_system.number();
     NumericVector<double>& dX_coords = *dX_system.solution;
-    for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+    auto it = mesh.local_nodes_begin();
+    const auto end_it = mesh.local_nodes_end();
+    for (; it != end_it; ++it)
     {
         Node* n = *it;
         if (n->n_vars(X_sys_num))
@@ -1835,7 +1846,9 @@ IBFESurfaceMethod::initializeVelocity(const unsigned int part)
     }
     else
     {
-        for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+        auto it = mesh.local_nodes_begin();
+        const auto end_it = mesh.local_nodes_end();
+        for (; it != end_it; ++it)
         {
             Node* n = *it;
             if (n->n_vars(U_sys_num))
@@ -1863,7 +1876,7 @@ void
 IBFESurfaceMethod::commonConstructor(const std::string& object_name,
                                      Pointer<Database> input_db,
                                      const std::vector<libMesh::MeshBase*>& meshes,
-                                     int max_level_number,
+                                     int max_levels,
                                      bool register_for_restart,
                                      const std::string& restart_read_dirname,
                                      unsigned int restart_restore_number)
@@ -1881,9 +1894,10 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
 
     // Store the mesh pointers.
     d_meshes = meshes;
-    d_max_level_number = max_level_number;
+    d_max_level_number = max_levels - 1;
 
     // Set some default values.
+    const bool allow_rules_with_negative_weights = true;
     const bool use_adaptive_quadrature = true;
     const int point_density = 2.0;
     const bool use_nodal_quadrature = false;
@@ -1894,9 +1908,15 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
                                                       use_adaptive_quadrature,
                                                       point_density,
                                                       interp_use_consistent_mass_matrix,
-                                                      use_nodal_quadrature);
-    d_default_spread_spec = FEDataManager::SpreadSpec(
-        "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, use_nodal_quadrature);
+                                                      use_nodal_quadrature,
+                                                      allow_rules_with_negative_weights);
+    d_default_spread_spec = FEDataManager::SpreadSpec("IB_4",
+                                                      QGAUSS,
+                                                      INVALID_ORDER,
+                                                      use_adaptive_quadrature,
+                                                      point_density,
+                                                      use_nodal_quadrature,
+                                                      allow_rules_with_negative_weights);
 
     d_fe_family.resize(d_num_parts, INVALID_FE);
     d_fe_order.resize(d_num_parts, INVALID_ORDER);
@@ -1932,9 +1952,9 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
             mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
             mesh_has_fourth_order_elems = mesh_has_fourth_order_elems || elem->default_order() == FOURTH;
         }
-        mesh_has_first_order_elems = SAMRAI_MPI::maxReduction(mesh_has_first_order_elems);
-        mesh_has_second_order_elems = SAMRAI_MPI::maxReduction(mesh_has_second_order_elems);
-        mesh_has_fourth_order_elems = SAMRAI_MPI::maxReduction(mesh_has_fourth_order_elems);
+        mesh_has_first_order_elems = IBTK_MPI::maxReduction(static_cast<int>(mesh_has_first_order_elems));
+        mesh_has_second_order_elems = IBTK_MPI::maxReduction(static_cast<int>(mesh_has_second_order_elems));
+	mesh_has_fourth_order_elems = IBTK_MPI::maxReduction(static_cast<int>(mesh_has_fourth_order_elems));
         if ((mesh_has_first_order_elems && mesh_has_second_order_elems) ||
             (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
         {
@@ -1972,6 +1992,9 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     // Set up the interaction spec objects.
     d_interp_spec.resize(d_num_parts, d_default_interp_spec);
     d_spread_spec.resize(d_num_parts, d_default_spread_spec);
+
+    // Store the input database since FEDataManager will need it too
+    d_input_db = input_db;
 
     return;
 } // commonConstructor
@@ -2058,11 +2081,38 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_default_spread_spec.use_nodal_quadrature = db->getBool("IB_use_nodal_quadrature");
 
     // Force computation settings.
-    if (db->isBool("use_jump_conditions")) d_use_jump_conditions = db->getBool("use_jump_conditions");
-    if (d_use_jump_conditions)
+    if (db->isBool("use_pressure_jump_conditions"))
+        d_use_pressure_jump_conditions = db->getBool("use_pressure_jump_conditions");
+    if (d_use_pressure_jump_conditions)
+    {
+        if (db->isBool("normalize_pressure_jump")) d_normalize_pressure_jump = db->getBool("normalize_pressure_jump");
+        if (db->isString("pressure_jump_fe_family"))
+            d_pressure_jump_fe_family = Utility::string_to_enum<FEFamily>(db->getString("pressure_jump_fe_family"));
+    }
+
+    if (db->isBool("use_velocity_jump_conditions"))
+        d_use_velocity_jump_conditions = db->getBool("use_velocity_jump_conditions");
+    if (d_use_velocity_jump_conditions)
+    {
+        if (db->isDouble("wss_calc_width")) d_wss_calc_width = db->getDouble("wss_calc_width");
+        if (db->isString("velocity_jump_fe_family"))
+            d_velocity_jump_fe_family = Utility::string_to_enum<FEFamily>(db->getString("velocity_jump_fe_family"));
+        if (db->isString("wss_fe_family"))
+            d_wss_fe_family = Utility::string_to_enum<FEFamily>(db->getString("wss_fe_family"));
+    }
+    if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions)
+    {
+        if (db->isString("tau_fe_family"))
+            d_tau_fe_family = Utility::string_to_enum<FEFamily>(db->getString("tau_fe_family"));
+    }
+    if (d_use_pressure_jump_conditions || d_use_velocity_jump_conditions)
     {
         if (db->isBool("perturb_fe_mesh_nodes")) d_perturb_fe_mesh_nodes = db->getBool("perturb_fe_mesh_nodes");
-        if (db->isBool("normalize_pressure_jump")) d_normalize_pressure_jump = db->getBool("normalize_pressure_jump");
+    }
+    if (db->isBool("compute_fluid_traction")) d_compute_fluid_traction = db->getBool("compute_fluid_traction");
+    if (d_compute_fluid_traction)
+    {
+        if (db->isDouble("p_calc_width")) d_p_calc_width = db->getDouble("p_calc_width");
     }
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
@@ -2070,13 +2120,7 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 
     // Restart settings.
     if (db->isString("libmesh_restart_file_extension"))
-    {
         d_libmesh_restart_file_extension = db->getString("libmesh_restart_file_extension");
-    }
-    else
-    {
-        d_libmesh_restart_file_extension = "xdr";
-    }
 
     // Other settings.
     if (db->isInteger("min_ghost_cell_width"))
@@ -2114,7 +2158,7 @@ IBFESurfaceMethod::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
     db->getIntegerArray("d_ghosts", d_ghosts, NDIM);
-    d_use_jump_conditions = db->getBool("d_use_jump_conditions");
+    d_use_pressure_jump_conditions = db->getBool("d_use_pressure_jump_conditions");
     d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
     d_use_direct_forcing = db->getBool("d_use_direct_forcing");
     return;

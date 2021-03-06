@@ -1,34 +1,15 @@
-// Filename: GeneralizedIBMethod.cpp
-// Created on 12 Dec 2011 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -36,7 +17,6 @@
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBKirchhoffRodForceGen.h"
 #include "ibamr/IBMethod.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
@@ -45,14 +25,12 @@
 #include "ibtk/LDataManager.h"
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
 #include "CellVariable.h"
 #include "CoarsenSchedule.h"
-#include "Geometry.h"
 #include "GriddingAlgorithm.h"
 #include "HierarchyDataOpsReal.h"
 #include "IntVector.h"
@@ -73,14 +51,20 @@
 
 #include "petscvec.h"
 
+#include "Eigen/src/Core/GeneralProduct.h"
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace IBTK
@@ -105,8 +89,8 @@ static const int GENERALIZED_IB_METHOD_VERSION = 1;
 GeneralizedIBMethod::GeneralizedIBMethod(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
     : IBMethod(std::move(object_name), input_db, register_for_restart)
 {
-    // NOTE: Parent class constructor registers class with the restart manager, sets object
-    // name.
+    // NOTE: Parent class constructor registers class with the restart manager,
+    // sets object name.
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -132,7 +116,6 @@ GeneralizedIBMethod::registerEulerianVariables()
     IBMethod::registerEulerianVariables();
 
     const IntVector<NDIM> ib_ghosts = getMinimumGhostCellWidth();
-    const IntVector<NDIM> ghosts = 1;
     const IntVector<NDIM> no_ghosts = 0;
 
     Pointer<Variable<NDIM> > u_var = d_ib_solver->getVelocityVariable();
@@ -166,7 +149,6 @@ GeneralizedIBMethod::registerEulerianCommunicationAlgorithms()
 {
     IBMethod::registerEulerianCommunicationAlgorithms();
 
-    Pointer<Geometry<NDIM> > grid_geom = d_ib_solver->getPatchHierarchy()->getGridGeometry();
     Pointer<RefineAlgorithm<NDIM> > refine_alg;
     Pointer<RefineOperator<NDIM> > refine_op;
 
@@ -285,6 +267,7 @@ GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
     {
         W_data = &d_W_new_data;
     }
+    TBOX_ASSERT(W_data);
 
     Pointer<Variable<NDIM> > u_var = d_ib_solver->getVelocityVariable();
     Pointer<CellVariable<NDIM, double> > u_cc_var = u_var;
@@ -382,7 +365,8 @@ void
 GeneralizedIBMethod::midpointStep(const double /*current_time*/, const double /*new_time*/)
 {
     TBOX_ERROR(d_object_name << "::midpointStep():\n"
-                             << "  time-stepping type MIDPOINT_RULE not supported by class GeneralizedIBMethod;\n"
+                             << "  time-stepping type MIDPOINT_RULE not "
+                                "supported by class GeneralizedIBMethod;\n"
                              << "  use TRAPEZOIDAL_RULE instead.\n");
     return;
 } // midpointStep
@@ -532,6 +516,8 @@ GeneralizedIBMethod::spreadForce(const int f_data_idx,
         N_data = &d_N_new_data;
         N_needs_ghost_fill = &d_N_new_needs_ghost_fill;
     }
+    TBOX_ASSERT(N_data);
+    TBOX_ASSERT(N_needs_ghost_fill);
 
     std::vector<Pointer<LData> >* X_LE_data;
     bool* X_LE_needs_ghost_fill;

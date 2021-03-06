@@ -1,56 +1,69 @@
-// Filename: IBHydrodynamicForceEvaluator.cpp
-// Created on 22 Oct 2016 by Amneet Bhalla and Nishant Nangia
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2018, Amneet Bhalla and Nishant Nangia
+// Copyright (c) 2017 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include "ibamr/IBHydrodynamicForceEvaluator.h"
 #include "ibamr/INSStaggeredPressureBcCoef.h"
-#include "ibamr/namespaces.h"
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
+#include "ibtk/ibtk_utilities.h"
 
+#include "ArrayData.h"
 #include "ArrayDataBasicOps.h"
+#include "BoundaryBox.h"
+#include "Box.h"
+#include "BoxArray.h"
+#include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
+#include "CellIndex.h"
 #include "CoarseFineBoundary.h"
+#include "GridGeometry.h"
 #include "HierarchyDataOpsManager.h"
-#include "PatchData.h"
+#include "HierarchyDataOpsReal.h"
+#include "Index.h"
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
+#include "Patch.h"
 #include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "RobinBcCoefStrategy.h"
 #include "SideData.h"
+#include "SideGeometry.h"
 #include "SideIndex.h"
+#include "Variable.h"
+#include "VariableContext.h"
+#include "VariableDatabase.h"
+#include "VariableFillPattern.h"
+#include "VisItDataWriter.h"
+#include "tbox/Array.h"
+#include "tbox/Database.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
+#include "tbox/Utilities.h"
+
+#include "Eigen/Core"
+#include "Eigen/src/Geometry/OrthoMethods.h"
 
 #include <array>
+#include <cmath>
+#include <fstream>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -208,7 +221,7 @@ IBHydrodynamicForceEvaluator::registerStructure(IBTK::Vector3d& box_X_lower,
     }
 
     // Set up the streams for printing drag and torque
-    if (SAMRAI_MPI::getRank() == 0)
+    if (IBTK_MPI::getRank() == 0)
     {
         const std::string strct_id_str = std::to_string(strct_id);
 
@@ -434,8 +447,8 @@ IBHydrodynamicForceEvaluator::computeLaggedMomentumIntegral(
             }
         }
 
-        SAMRAI_MPI::sumReduction(fobj.P_box_current.data(), 3);
-        SAMRAI_MPI::sumReduction(fobj.L_box_current.data(), 3);
+        IBTK_MPI::sumReduction(fobj.P_box_current.data(), 3);
+        IBTK_MPI::sumReduction(fobj.L_box_current.data(), 3);
     }
 
     return;
@@ -601,8 +614,8 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
             }
         }
 
-        SAMRAI_MPI::sumReduction(fobj.P_box_new.data(), 3);
-        SAMRAI_MPI::sumReduction(fobj.L_box_new.data(), 3);
+        IBTK_MPI::sumReduction(fobj.P_box_new.data(), 3);
+        IBTK_MPI::sumReduction(fobj.L_box_new.data(), 3);
 
         // Compute surface integral term.
         IBTK::Vector3d trac, torque_trac;
@@ -759,8 +772,8 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                 }
             }
         }
-        SAMRAI_MPI::sumReduction(trac.data(), 3);
-        SAMRAI_MPI::sumReduction(torque_trac.data(), 3);
+        IBTK_MPI::sumReduction(trac.data(), 3);
+        IBTK_MPI::sumReduction(torque_trac.data(), 3);
 
         // Compute hydrodynamic force on the body : -integral_{box_new} (rho du/dt) + d/dt(rho u)_body + trac
         fobj.F_new = -(fobj.P_box_new - fobj.P_box_current) / dt + (fobj.P_new - fobj.P_current) / dt + trac;
@@ -782,7 +795,7 @@ IBHydrodynamicForceEvaluator::postprocessIntegrateData(double /*current_time*/, 
         IBHydrodynamicForceObject& force_obj = hydro_obj.second;
 
         // Output drag and torque to stream
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             *force_obj.drag_CV_stream << new_time << '\t' << force_obj.F_new(0) << '\t' << force_obj.F_new(1) << '\t'
                                       << force_obj.F_new(2) << std::endl;
@@ -1127,7 +1140,7 @@ IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchy<NDIM> > 
             {
                 const IntVector<NDIM>& ratio = level->getRatioToCoarserLevel();
                 const int bdry_type = 1;
-                const Array<BoundaryBox<NDIM> >& cf_bdry_boxes = cf_bdry.getBoundaries(p(), bdry_type);
+                const tbox::Array<BoundaryBox<NDIM> >& cf_bdry_boxes = cf_bdry.getBoundaries(p(), bdry_type);
                 for (int k = 0; k < cf_bdry_boxes.getSize(); ++k)
                 {
                     const Box<NDIM>& bdry_box = cf_bdry_boxes[k].getBox();
@@ -1271,7 +1284,7 @@ IBHydrodynamicForceEvaluator::getPhysicalCoordinateFromSideIndex(IBTK::Vector3d&
     Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
     const double* patch_X_lower = patch_geom->getXLower();
     const Box<NDIM>& patch_box = patch->getBox();
-    const Index<NDIM>& patch_lower_idx = patch_box.lower();
+    const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
     const double* const patch_dx = patch_geom->getDx();
 
     for (int d = 0; d < NDIM; ++d)

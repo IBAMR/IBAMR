@@ -1,44 +1,69 @@
-// Filename: IBFEDirectForcingKinematics.cpp
-// Created on 24 May 2018 by Amneet Bhalla
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2018, Amneet Bhalla
+// Copyright (c) 2018 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBFEMethod.h"
-#include "ibamr/namespaces.h"
 
+#include "ibtk/FEDataManager.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
+#include "ibtk/libmesh_utilities.h"
 
+#include "tbox/Database.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/RestartManager.h"
+#include "tbox/Utilities.h"
+
+#include "libmesh/dof_map.h"
 #include "libmesh/equation_systems.h"
+#include "libmesh/fe_base.h"
+#include "libmesh/fe_type.h"
+#include "libmesh/fem_context.h"
+#include "libmesh/id_types.h"
+#include "libmesh/mesh_base.h"
+#include "libmesh/node.h"
+#include "libmesh/numeric_vector.h"
+#include "libmesh/petsc_vector.h"
+#include "libmesh/point.h"
+#include "libmesh/quadrature.h"
+#include "libmesh/system.h"
+#include "libmesh/type_vector.h"
+#include "libmesh/variant_filter_iterator.h"
+
+#include "petscvec.h"
+#include <petscsys.h>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include <boost/multi_array.hpp>
+IBTK_ENABLE_EXTRA_WARNINGS
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include "Eigen/Core"
+IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <memory>
+#include <ostream>
+#include <utility>
+#include <vector>
+
+namespace libMesh
+{
+class Elem;
+} // namespace libMesh
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -241,16 +266,12 @@ IBFEDirectForcingKinematics::forwardEulerStep(double current_time,
 
     // Rotate the body with current rotational velocity about center of mass
     // and translate the body to predicted position.
-    Eigen::Vector3d dr = Eigen::Vector3d::Zero();
-    Eigen::Vector3d Rxdr_half = Eigen::Vector3d::Zero();
-    Eigen::Vector3d Rxdr_new = Eigen::Vector3d::Zero();
-
     EquationSystems* equation_systems = d_ibfe_method_ops->getFEDataManager(d_part)->getEquationSystems();
     System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
 
     MeshBase& mesh = equation_systems->get_mesh();
-    const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
+    const unsigned int total_local_nodes = mesh.n_nodes_on_proc(IBTK_MPI::getRank());
     std::vector<std::vector<numeric_index_type> > nodal_X_indices(NDIM);
     std::vector<std::vector<double> > nodal_X0_values(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -261,7 +282,9 @@ IBFEDirectForcingKinematics::forwardEulerStep(double current_time,
 
     IBFEMethod::CoordinateMappingFcnData mapping = d_ibfe_method_ops->getInitialCoordinateMappingFunction(d_part);
     const bool identity_mapping = !(mapping.fcn);
-    for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+    auto it = mesh.local_nodes_begin();
+    const auto end_it = mesh.local_nodes_end();
+    for (; it != end_it; ++it)
     {
         const Node* const n = *it;
         const libMesh::Point& s = *n;
@@ -285,14 +308,15 @@ IBFEDirectForcingKinematics::forwardEulerStep(double current_time,
 
     for (unsigned int k = 0; k < total_local_nodes; ++k)
     {
+        Eigen::Vector3d dr = Eigen::Vector3d::Zero();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dr[d] = nodal_X0_values[d][k] - d_center_of_mass_initial[d];
         }
 
         // Rotate dr vector using the rotation matrix.
-        Rxdr_half = rotation_mat_half * dr;
-        Rxdr_new = rotation_mat_new * dr;
+        const Eigen::Vector3d Rxdr_half = rotation_mat_half * dr;
+        const Eigen::Vector3d Rxdr_new = rotation_mat_new * dr;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             X_half_petsc.set(nodal_X_indices[d][k],
@@ -326,15 +350,12 @@ IBFEDirectForcingKinematics::midpointStep(double current_time,
 
     // Rotate the body with current rotational velocity about center of mass
     // and translate the body to predicted position.
-    Eigen::Vector3d dr = Eigen::Vector3d::Zero();
-    Eigen::Vector3d Rxdr = Eigen::Vector3d::Zero();
-
     EquationSystems* equation_systems = d_ibfe_method_ops->getFEDataManager(d_part)->getEquationSystems();
     System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
     const unsigned int X_sys_num = X_system.number();
 
     MeshBase& mesh = equation_systems->get_mesh();
-    const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
+    const unsigned int total_local_nodes = mesh.n_nodes_on_proc(IBTK_MPI::getRank());
     std::vector<std::vector<numeric_index_type> > nodal_X_indices(NDIM);
     std::vector<std::vector<double> > nodal_X0_values(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -345,7 +366,9 @@ IBFEDirectForcingKinematics::midpointStep(double current_time,
 
     IBFEMethod::CoordinateMappingFcnData mapping = d_ibfe_method_ops->getInitialCoordinateMappingFunction(d_part);
     const bool identity_mapping = !(mapping.fcn);
-    for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+    auto it = mesh.local_nodes_begin();
+    const auto end_it = mesh.local_nodes_end();
+    for (; it != end_it; ++it)
     {
         const Node* const n = *it;
         const libMesh::Point& s = *n;
@@ -369,13 +392,14 @@ IBFEDirectForcingKinematics::midpointStep(double current_time,
 
     for (unsigned int k = 0; k < total_local_nodes; ++k)
     {
+        Eigen::Vector3d dr = Eigen::Vector3d::Zero();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dr[d] = nodal_X0_values[d][k] - d_center_of_mass_initial[d];
         }
 
         // Rotate dr vector using the rotation matrix.
-        Rxdr = rotation_mat * dr;
+        const Eigen::Vector3d Rxdr = rotation_mat * dr;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             X_half_petsc.set(nodal_X_indices[d][k], d_center_of_mass_current[d] + Rxdr[d] + dt * d_trans_vel_half[d]);
@@ -528,7 +552,7 @@ IBFEDirectForcingKinematics::computeCOMOfStructure(Eigen::Vector3d& X0)
 
     // Extract the FE system and DOF map, and setup the FE object.
     System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
-    X_system.solution->localize(*X_system.current_local_solution);
+    copy_and_synch(*X_system.solution, *X_system.current_local_solution);
     DofMap& X_dof_map = X_system.get_dof_map();
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
@@ -576,8 +600,8 @@ IBFEDirectForcingKinematics::computeCOMOfStructure(Eigen::Vector3d& X0)
             vol_part += JxW[qp];
         }
     }
-    SAMRAI_MPI::sumReduction(X0.data(), X0.size());
-    vol_part = SAMRAI_MPI::sumReduction(vol_part);
+    IBTK_MPI::sumReduction(X0.data(), X0.size());
+    vol_part = IBTK_MPI::sumReduction(vol_part);
     X0 /= vol_part;
 
     VecRestoreArray(X_local_ghost_vec, &X_local_ghost_soln);
@@ -596,7 +620,7 @@ IBFEDirectForcingKinematics::computeMOIOfStructure(Eigen::Matrix3d& I, const Eig
 
     // Extract the FE system and DOF map, and setup the FE object.
     System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
-    X_system.solution->localize(*X_system.current_local_solution);
+    copy_and_synch(*X_system.solution, *X_system.current_local_solution);
     DofMap& X_dof_map = X_system.get_dof_map();
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
@@ -657,7 +681,7 @@ IBFEDirectForcingKinematics::computeMOIOfStructure(Eigen::Matrix3d& I, const Eig
 #endif
         }
     }
-    SAMRAI_MPI::sumReduction(&I(0, 0), 9);
+    IBTK_MPI::sumReduction(&I(0, 0), 9);
 
     // Fill-in the symmetric part of inertia tensor.
     I(1, 0) = I(0, 1);
@@ -686,7 +710,7 @@ IBFEDirectForcingKinematics::computeImposedLagrangianForceDensity(PetscVector<do
     const unsigned int U_sys_num = U_system.number();
 
     MeshBase& mesh = equation_systems->get_mesh();
-    const unsigned int total_local_nodes = mesh.n_nodes_on_proc(SAMRAI_MPI::getRank());
+    const unsigned int total_local_nodes = mesh.n_nodes_on_proc(IBTK_MPI::getRank());
     std::vector<std::vector<numeric_index_type> > nodal_indices(NDIM);
     std::vector<std::vector<double> > nodal_X_values(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -695,7 +719,9 @@ IBFEDirectForcingKinematics::computeImposedLagrangianForceDensity(PetscVector<do
         nodal_X_values[d].resize(total_local_nodes);
     }
 
-    for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+    auto it = mesh.local_nodes_begin();
+    const auto end_it = mesh.local_nodes_end();
+    for (; it != end_it; ++it)
     {
         const Node* const n = *it;
         if (n->n_vars(X_sys_num) && n->n_vars(U_sys_num))
@@ -844,9 +870,9 @@ IBFEDirectForcingKinematics::computeMixedLagrangianForceDensity(PetscVector<doub
 #endif
         }
     }
-    SAMRAI_MPI::sumReduction(&F[0], 3);
-    SAMRAI_MPI::sumReduction(&L[0], 3);
-    vol_mesh = SAMRAI_MPI::sumReduction(vol_mesh);
+    IBTK_MPI::sumReduction(&F[0], 3);
+    IBTK_MPI::sumReduction(&L[0], 3);
+    vol_mesh = IBTK_MPI::sumReduction(vol_mesh);
 
     ierr = VecRestoreArray(X_local_ghost_vec, &X_local_ghost_soln);
     IBTK_CHKERRQ(ierr);
@@ -858,8 +884,7 @@ IBFEDirectForcingKinematics::computeMixedLagrangianForceDensity(PetscVector<doub
     IBTK_CHKERRQ(ierr);
 
     // Linear momentum balance.
-    Eigen::Vector3d U_new = Eigen::Vector3d::Zero();
-    U_new = F / vol_mesh;
+    const Eigen::Vector3d U_new = F / vol_mesh;
 
     // Angular momentum balance.
     // NOTE: Here we rotate the angular momentum vector back to initial time

@@ -1,41 +1,21 @@
-// Filename: DebuggingUtilities.cpp
-// Created on 12 Dec 2008 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/DebuggingUtilities.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LData.h"
-#include "ibtk/ibtk_macros.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CellData.h"
@@ -57,11 +37,11 @@
 #include "SideIndex.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <cmath>
@@ -97,7 +77,7 @@ DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
             const Box<NDIM>& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (Box<NDIM>::Iterator it(data_box); it; it++)
             {
-                const Index<NDIM>& i = it();
+                const hier::Index<NDIM>& i = it();
                 for (int d = 0; d < patch_data->getDepth(); ++d)
                 {
                     if ((*patch_data)(i, d) != (*patch_data)(i, d) || std::isnan((*patch_data)(i, d)))
@@ -121,7 +101,7 @@ DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
             }
         }
     }
-    return SAMRAI_MPI::minReduction(num_nans) > 0;
+    return IBTK_MPI::minReduction(num_nans) > 0;
 } // checkCellDataForNaNs
 
 bool
@@ -147,7 +127,7 @@ DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
             {
                 for (Box<NDIM>::Iterator it(FaceGeometry<NDIM>::toFaceBox(data_box, axis)); it; it++)
                 {
-                    const Index<NDIM>& i = it();
+                    const hier::Index<NDIM>& i = it();
                     const FaceIndex<NDIM> i_f(i, axis, FaceIndex<NDIM>::Lower);
                     for (int d = 0; d < patch_data->getDepth(); ++d)
                     {
@@ -173,7 +153,7 @@ DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
             }
         }
     }
-    return SAMRAI_MPI::minReduction(num_nans) > 0;
+    return IBTK_MPI::minReduction(num_nans) > 0;
 } // checkFaceDataForNaNs
 
 bool
@@ -197,7 +177,7 @@ DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
             const Box<NDIM>& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (Box<NDIM>::Iterator it(NodeGeometry<NDIM>::toNodeBox(data_box)); it; it++)
             {
-                const Index<NDIM>& i = it();
+                const hier::Index<NDIM>& i = it();
                 const NodeIndex<NDIM> i_n(i, 0);
                 for (int d = 0; d < patch_data->getDepth(); ++d)
                 {
@@ -222,7 +202,7 @@ DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
             }
         }
     }
-    return SAMRAI_MPI::minReduction(num_nans) > 0;
+    return IBTK_MPI::minReduction(num_nans) > 0;
 } // checkNodeDataForNaNs
 
 bool
@@ -248,7 +228,7 @@ DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
             {
                 for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(data_box, axis)); it; it++)
                 {
-                    const Index<NDIM>& i = it();
+                    const hier::Index<NDIM>& i = it();
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                     for (int d = 0; d < patch_data->getDepth(); ++d)
                     {
@@ -274,7 +254,7 @@ DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
             }
         }
     }
-    return SAMRAI_MPI::minReduction(num_nans) > 0;
+    return IBTK_MPI::minReduction(num_nans) > 0;
 } // checkSideDataForNaNs
 
 void
@@ -290,8 +270,8 @@ DebuggingUtilities::saveCellData(const int patch_data_idx,
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     for (int n = 0; n < nodes; ++n)
     {
         if (n == rank)
@@ -329,7 +309,7 @@ DebuggingUtilities::saveCellData(const int patch_data_idx,
                 }
             }
         }
-        SAMRAI_MPI::barrier();
+        IBTK_MPI::barrier();
     }
     return;
 } // saveCellData
@@ -347,8 +327,8 @@ DebuggingUtilities::saveFaceData(const int patch_data_idx,
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     for (int n = 0; n < nodes; ++n)
     {
         if (n == rank)
@@ -389,7 +369,7 @@ DebuggingUtilities::saveFaceData(const int patch_data_idx,
                 }
             }
         }
-        SAMRAI_MPI::barrier();
+        IBTK_MPI::barrier();
     }
     return;
 } // saveFaceData
@@ -407,8 +387,8 @@ DebuggingUtilities::saveNodeData(const int patch_data_idx,
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     for (int n = 0; n < nodes; ++n)
     {
         if (n == rank)
@@ -446,7 +426,7 @@ DebuggingUtilities::saveNodeData(const int patch_data_idx,
                 }
             }
         }
-        SAMRAI_MPI::barrier();
+        IBTK_MPI::barrier();
     }
     return;
 } // saveNodeData
@@ -464,8 +444,8 @@ DebuggingUtilities::saveSideData(const int patch_data_idx,
     }
     Utilities::recursiveMkdir(truncated_dirname);
 
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     for (int n = 0; n < nodes; ++n)
     {
         if (n == rank)
@@ -506,7 +486,7 @@ DebuggingUtilities::saveSideData(const int patch_data_idx,
                 }
             }
         }
-        SAMRAI_MPI::barrier();
+        IBTK_MPI::barrier();
     }
     return;
 } // saveSideData
@@ -525,8 +505,8 @@ DebuggingUtilities::saveLagrangianData(const Pointer<LData> lag_data,
     Utilities::recursiveMkdir(truncated_dirname);
 
     const boost::multi_array_ref<double, 2>& array_data = *lag_data->getGhostedLocalFormVecArray();
-    const int rank = SAMRAI_MPI::getRank();
-    const int nodes = SAMRAI_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    const int nodes = IBTK_MPI::getNodes();
     for (int n = 0; n < nodes; ++n)
     {
         if (n == rank)
@@ -559,7 +539,7 @@ DebuggingUtilities::saveLagrangianData(const Pointer<LData> lag_data,
             }
             of.close();
         }
-        SAMRAI_MPI::barrier();
+        IBTK_MPI::barrier();
     }
     lag_data->restoreArrays();
     return;

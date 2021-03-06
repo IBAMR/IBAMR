@@ -1,38 +1,17 @@
-// Filename: INSCollocatedHierarchyIntegrator.cpp
-// Created on 24 Aug 2011 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include "IBAMR_config.h"
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/ConvectiveOperator.h"
@@ -45,7 +24,6 @@
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartCellRobinPhysBdryOp.h"
@@ -53,9 +31,11 @@
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/ibtk_enums.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -98,7 +78,6 @@
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include <algorithm>
@@ -107,7 +86,10 @@
 #include <limits>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -325,7 +307,8 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(std::string o
         TBOX_ERROR(d_object_name << "::INSCollocatedHierarchyIntegrator():\n"
                                  << "  unsupported viscous time stepping type: "
                                  << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << " \n"
-                                 << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+                                 << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, "
+                                    "TRAPEZOIDAL_RULE\n");
     }
     switch (d_convective_time_stepping_type)
     {
@@ -353,7 +336,8 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(std::string o
             TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                      << "  unsupported initial convective time stepping type: "
                                      << enum_to_string<TimeSteppingType>(d_init_convective_time_stepping_type) << " \n"
-                                     << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+                                     << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, "
+                                        "TRAPEZOIDAL_RULE\n");
         }
     }
 
@@ -452,8 +436,6 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(std::string o
 
 INSCollocatedHierarchyIntegrator::~INSCollocatedHierarchyIntegrator()
 {
-    delete d_fill_after_regrid_phys_bdry_bc_op;
-    d_fill_after_regrid_phys_bdry_bc_op = nullptr;
     d_velocity_solver.setNull();
     d_pressure_solver.setNull();
     if (d_U_rhs_vec) d_U_rhs_vec->freeVectorComponents();
@@ -547,35 +529,43 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
     {
         pout << "\n"
              << "   "
-                "******************************************************************************"
+                "******************************************************************"
+                "************"
                 "**\n"
-             << "   * INSCollocatedHierarchyIntegrator:                                        "
+             << "   * INSCollocatedHierarchyIntegrator:                            "
+                "            "
                 "    "
                 "*\n"
-             << "   *                                                                          "
+             << "   *                                                              "
+                "            "
                 "    "
                 "*\n"
-             << "   * WARNING: PRESSURE_INCREMENT projection method exhibits very slow "
+             << "   * WARNING: PRESSURE_INCREMENT projection method exhibits very "
+                "slow "
                 "convergence "
                 "*\n"
-             << "   *          when used with locally refined grids.                           "
+             << "   *          when used with locally refined grids.               "
+                "            "
                 "    "
                 "*\n"
-             << "   *                                                                          "
+             << "   *                                                              "
+                "            "
                 "    "
                 "*\n"
-             << "   *          Sugest changing projection method type to PRESSURE_UPDATE.      "
+             << "   *          Sugest changing projection method type to "
+                "PRESSURE_UPDATE.      "
                 "    "
                 "*\n"
              << "   "
-                "******************************************************************************"
+                "******************************************************************"
+                "************"
                 "\n\n";
         // NOTE: It is not clear what is causing this lack of convergence.
         //
         // The basic pressure-increment projection method with is:
         //
-        // (1)      rho{[u(*) - u(n)]/dt + N(n+1/2)} = - Grad_h P(n-1/2) + mu Lap_h[u(*) +
-        // u(n)]/2
+        // (1)      rho{[u(*) - u(n)]/dt + N(n+1/2)} = - Grad_h P(n-1/2)
+        //                                    + mu Lap_h[u(*) + u(n)]/2
         //
         // (2)      rho[u(n+1) - u(*)]/dt = - Grad_h Phi
         //          Div_h u(n+1)          = 0
@@ -597,7 +587,8 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
         // instead of P.  E.g., by keeping track of a vector-valued quantity GP,
         // as follows:
         //
-        // (1)      rho{[u(*) - u(n)]/dt + N(n+1/2)} = - GP(n-1/2) + mu Lap_h[u(*) + u(n)]/2
+        // (1)      rho{[u(*) - u(n)]/dt + N(n+1/2)} = - GP(n-1/2) + mu Lap_h[u(*)
+        //                                               + u(n)]/2
         //
         // (2)      rho[u(n+1) - u(*)]/dt = - Grad_h Phi
         //          Div_h u(n+1)          = 0
@@ -850,7 +841,7 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
     d_convective_op = getConvectiveOperator();
 
     // Setup a boundary op to set velocity boundary conditions on regrid.
-    d_fill_after_regrid_phys_bdry_bc_op = new CartCellRobinPhysBdryOp(d_U_scratch_idx, d_U_star_bc_coefs, false);
+    d_fill_after_regrid_phys_bdry_bc_op.reset(new CartCellRobinPhysBdryOp(d_U_scratch_idx, d_U_star_bc_coefs, false));
 
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;
@@ -980,9 +971,11 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
                                      << "  attempting to perform " << d_current_num_cycles
                                      << " cycles of fixed point iteration.\n"
-                                     << "  number of cycles required by coupled advection-diffusion solver = "
+                                     << "  number of cycles required by coupled advection-diffusion "
+                                        "solver = "
                                      << adv_diff_num_cycles << ".\n"
-                                     << "  current implementation requires either that both solvers use the same "
+                                     << "  current implementation requires either that both solvers use "
+                                        "the same "
                                         "number of cycles,\n"
                                      << "  or that the Navier-Stokes solver use only a single cycle.\n");
         }
@@ -1490,7 +1483,7 @@ INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
                 cfl_max = std::max(cfl_max, u_max * dt / dx_min);
             }
         }
-        cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
+        cfl_max = IBTK_MPI::maxReduction(cfl_max);
         if (d_enable_logging)
             plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
     }
@@ -1543,8 +1536,8 @@ INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch)
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const Index<NDIM>& ilower = patch->getBox().lower();
-    const Index<NDIM>& iupper = patch->getBox().upper();
+    const hier::Index<NDIM>& ilower = patch->getBox().lower();
+    const hier::Index<NDIM>& iupper = patch->getBox().upper();
 
     Pointer<FaceData<NDIM, double> > u_ADV_data = patch->getPatchData(d_u_ADV_var, getCurrentContext());
     const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV_data->getGhostCellWidth();
@@ -1608,8 +1601,6 @@ INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
     }
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-
     // Initialize level data at the initial time.
     if (initial_time)
     {
@@ -1807,7 +1798,7 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer
                 Pointer<CellData<NDIM, double> > Omega_data = patch->getPatchData(d_Omega_idx);
                 for (CellIterator<NDIM> ic(patch_box); ic; ic++)
                 {
-                    const Index<NDIM>& i = ic();
+                    const hier::Index<NDIM>& i = ic();
 #if (NDIM == 2)
                     if (std::abs((*Omega_data)(i)) > thresh)
                     {
@@ -2132,7 +2123,10 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
     if (d_convective_op && d_convective_op_needs_init)
     {
         if (d_enable_logging)
-            plog << d_object_name << "::preprocessIntegrateHierarchy(): initializing convective operator" << std::endl;
+            plog << d_object_name
+                 << "::preprocessIntegrateHierarchy(): initializing "
+                    "convective operator"
+                 << std::endl;
         d_convective_op->setAdvectionVelocity(d_U_scratch_idx);
         d_convective_op->initializeOperatorState(*d_U_scratch_vec, *d_U_rhs_vec);
         d_convective_op_needs_init = false;
@@ -2201,8 +2195,8 @@ INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const in
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
 
-            const Index<NDIM>& ilower = patch->getBox().lower();
-            const Index<NDIM>& iupper = patch->getBox().upper();
+            const hier::Index<NDIM>& ilower = patch->getBox().lower();
+            const hier::Index<NDIM>& iupper = patch->getBox().upper();
 
             Pointer<FaceData<NDIM, double> > u_data = patch->getPatchData(u_idx);
             Pointer<CellData<NDIM, double> > Q_data = patch->getPatchData(Q_idx);
@@ -2337,7 +2331,8 @@ INSCollocatedHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const in
                     << "  unsupported differencing form: "
                     << enum_to_string<ConvectiveDifferencingType>(d_convective_op->getConvectiveDifferencingType())
                     << " \n"
-                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
+                    << "  valid choices are: ADVECTIVE, CONSERVATIVE, "
+                       "SKEW_SYMMETRIC\n");
             }
         }
     }

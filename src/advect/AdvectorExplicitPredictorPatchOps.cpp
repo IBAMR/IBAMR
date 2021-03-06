@@ -1,42 +1,20 @@
-// Filename: AdvectorExplicitPredictorPatchOps.cpp
-// Created on 14 Feb 2004 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
-
 #include "ibamr/AdvectorExplicitPredictorPatchOps.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
 #include "Box.h"
@@ -54,6 +32,8 @@
 #include <limits>
 #include <ostream>
 #include <string>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -245,7 +225,7 @@ extern "C"
                            const double&,
                            const int&,
 #if (NDIM == 3)
-                           const unsigned int&,
+                           const int&,
 #endif
 #if (NDIM == 2)
                            const int&,
@@ -302,7 +282,7 @@ extern "C"
                                        const double&,
                                        const int&,
 #if (NDIM == 3)
-                                       const unsigned int&,
+                                       const int&,
 #endif
 #if (NDIM == 2)
                                        const int&,
@@ -368,7 +348,7 @@ extern "C"
                                const double&,
                                const int&,
 #if (NDIM == 3)
-                               const unsigned int&,
+                               const int&,
 #endif
 #if (NDIM == 2)
                                const int&,
@@ -431,7 +411,7 @@ extern "C"
                                            const double&,
                                            const int&,
 #if (NDIM == 3)
-                                           const unsigned int&,
+                                           const int&,
 #endif
 #if (NDIM == 2)
                                            const int&,
@@ -567,8 +547,8 @@ AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const FaceData<NDIM, d
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
+    const hier::Index<NDIM>& ilower = patch.getBox().lower();
+    const hier::Index<NDIM>& iupper = patch.getBox().upper();
 
     const IntVector<NDIM>& u_ghost_cells = u_ADV.getGhostCellWidth();
 
@@ -623,8 +603,8 @@ AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(CellData<NDIM, dou
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
+    const hier::Index<NDIM>& ilower = patch.getBox().lower();
+    const hier::Index<NDIM>& iupper = patch.getBox().upper();
 
     const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
     const IntVector<NDIM>& q_half_ghost_cells = q_half.getGhostCellWidth();
@@ -695,8 +675,8 @@ AdvectorExplicitPredictorPatchOps::computeFlux(FaceData<NDIM, double>& flux,
 
     TBOX_ASSERT(q_half.getBox() == patch.getBox());
 #endif
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
+    const hier::Index<NDIM>& ilower = patch.getBox().lower();
+    const hier::Index<NDIM>& iupper = patch.getBox().upper();
 
     const IntVector<NDIM>& flux_ghost_cells = flux.getGhostCellWidth();
     const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
@@ -840,8 +820,8 @@ AdvectorExplicitPredictorPatchOps::enforceIncompressibility(FaceData<NDIM, doubl
 #else
     NULL_USE(u_ADV);
 #endif
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
+    const hier::Index<NDIM>& ilower = patch.getBox().lower();
+    const hier::Index<NDIM>& iupper = patch.getBox().upper();
 
     const IntVector<NDIM>& grad_phi_ghost_cells = grad_phi.getGhostCellWidth();
     const IntVector<NDIM>& v_half_ghost_cells = v_half.getGhostCellWidth();
@@ -962,8 +942,8 @@ AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
+    const hier::Index<NDIM>& ilower = patch.getBox().lower();
+    const hier::Index<NDIM>& iupper = patch.getBox().upper();
 
     const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
     const IntVector<NDIM>& Q_ghost_cells = Q.getGhostCellWidth();
@@ -1016,7 +996,7 @@ AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
             ADVECT_PREDICT_FC(dx,
                               dt,
                               d_limiter_type,
-                              static_cast<unsigned int>(d_using_full_ctu),
+                              d_using_full_ctu,
                               ilower(0),
                               iupper(0),
                               ilower(1),
@@ -1078,7 +1058,7 @@ AdvectorExplicitPredictorPatchOps::predict(FaceData<NDIM, double>& q_half,
             ADVECT_PREDICT_PPM_FC(dx,
                                   dt,
                                   d_limiter_type,
-                                  static_cast<unsigned int>(d_using_full_ctu),
+                                  d_using_full_ctu,
                                   ilower(0),
                                   iupper(0),
                                   ilower(1),
@@ -1144,8 +1124,8 @@ AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, double>&
     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
-    const Index<NDIM>& ilower = patch.getBox().lower();
-    const Index<NDIM>& iupper = patch.getBox().upper();
+    const hier::Index<NDIM>& ilower = patch.getBox().lower();
+    const hier::Index<NDIM>& iupper = patch.getBox().upper();
 
     const IntVector<NDIM>& u_ADV_ghost_cells = u_ADV.getGhostCellWidth();
     const IntVector<NDIM>& Q_ghost_cells = Q.getGhostCellWidth();
@@ -1205,7 +1185,7 @@ AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, double>&
             ADVECT_PREDICT_WITH_SOURCE_FC(dx,
                                           dt,
                                           d_limiter_type,
-                                          static_cast<unsigned int>(d_using_full_ctu),
+                                          d_using_full_ctu,
                                           ilower(0),
                                           iupper(0),
                                           ilower(1),
@@ -1277,7 +1257,7 @@ AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceData<NDIM, double>&
             ADVECT_PREDICT_PPM_WITH_SOURCE_FC(dx,
                                               dt,
                                               d_limiter_type,
-                                              static_cast<unsigned int>(d_using_full_ctu),
+                                              d_using_full_ctu,
                                               ilower(0),
                                               iupper(0),
                                               ilower(1),
@@ -1338,7 +1318,7 @@ AdvectorExplicitPredictorPatchOps::getFromInput(Pointer<Database> db, bool /*is_
         TBOX_ASSERT(d_limiter_type != UNKNOWN_LIMITER_TYPE);
     }
 #if (NDIM == 3)
-    if (db->keyExists("using_full_ctu")) d_using_full_ctu = db->getBool("using_full_ctu");
+    if (db->keyExists("using_full_ctu")) d_using_full_ctu = db->getBool("using_full_ctu") ? 1 : 0;
 #endif
     return;
 } // getFromInput
@@ -1370,7 +1350,7 @@ AdvectorExplicitPredictorPatchOps::getFromRestart()
                                  << "  Restart file version different than class version.");
     }
 #if (NDIM == 3)
-    d_using_full_ctu = db->getBool("d_using_full_ctu");
+    d_using_full_ctu = db->getBool("d_using_full_ctu") ? 1 : 0;
 #endif
     return;
 } // getFromRestart

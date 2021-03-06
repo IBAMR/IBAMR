@@ -1,38 +1,17 @@
-// Filename: CCPoissonBoxRelaxationFACOperator.cpp
-// Created on 7 Feb 2015 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2015 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include "IBTK_config.h"
 
 #include "ibtk/CCPoissonBoxRelaxationFACOperator.h"
 #include "ibtk/CCPoissonSolverManager.h"
@@ -47,23 +26,16 @@
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "ibtk/PoissonSolver.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
-#include "Box.h"
-#include "BoxList.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellDataFactory.h"
-#include "CellIndex.h"
 #include "CellVariable.h"
 #include "CoarsenOperator.h"
 #include "HierarchyCellDataOpsReal.h"
-#include "Index.h"
-#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchDescriptor.h"
@@ -80,25 +52,28 @@
 #include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/MemoryDatabase.h"
-#include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
+#include "petscksp.h"
 #include "petscmat.h"
-#include "petscsys.h"
 #include "petscvec.h"
+#include <petsclog.h>
 
 #include <algorithm>
 #include <array>
 #include <cstring>
 #include <functional>
 #include <map>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -135,7 +110,7 @@ static const bool CONSISTENT_TYPE_2_BDRY = false;
 
 struct IndexComp
 {
-    inline bool operator()(const Index<NDIM>& lhs, const Index<NDIM>& rhs) const
+    inline bool operator()(const hier::Index<NDIM>& lhs, const hier::Index<NDIM>& rhs) const
     {
         return ((lhs(0) < rhs(0))
 #if (NDIM > 1)
@@ -924,7 +899,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
 
     for (Box<NDIM>::Iterator b(patch_box); b; b++)
     {
-        const Index<NDIM>& i = b();
+        const hier::Index<NDIM>& i = b();
 
         std::vector<double> mat_vals(stencil_sz, 0.0);
         mat_vals[NDIM] = (*C_data)(i);
@@ -950,7 +925,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_aligned(Mat& A,
         std::vector<int> idxn(stencil_sz);
         const int idxm = ghost_box.offset(i);
 
-        std::transform(mat_stencil.begin(), mat_stencil.end(), idxn.begin(), std::bind2nd(std::plus<int>(), idxm));
+        std::transform(mat_stencil.begin(), mat_stencil.end(), idxn.begin(), [=](const int& i) { return i + idxm; });
         ierr = MatSetValues(A, m, &idxm, n, &idxn[0], &mat_vals[0], INSERT_VALUES);
         IBTK_CHKERRQ(ierr);
     }
@@ -1019,7 +994,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
         num_cells[d] = ghost_box.numberCells(d);
     }
     std::vector<int> mat_stencil(stencil_sz);
-    std::map<Index<NDIM>, int, IndexComp> stencil_indices;
+    std::map<hier::Index<NDIM>, int, IndexComp> stencil_indices;
     int stencil_index = 0;
     static const int x_axis = 0;
 #if (NDIM == 3)
@@ -1037,10 +1012,10 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
                 {
 #endif
 #if (NDIM == 2)
-                    const Index<NDIM> i(x_offset, y_offset);
+                    const hier::Index<NDIM> i(x_offset, y_offset);
 #endif
 #if (NDIM == 3)
-                    const Index<NDIM> i(x_offset, y_offset, z_offset);
+                    const hier::Index<NDIM> i(x_offset, y_offset, z_offset);
 #endif
                     stencil_indices[i] = stencil_index++;
                     mat_stencil[stencil_indices[i]] = x_offset + y_offset * num_cells[x_axis]
@@ -1062,8 +1037,8 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
 
     for (Box<NDIM>::Iterator b(patch_box); b; b++)
     {
-        const Index<NDIM>& i = b();
-        static const Index<NDIM> i_stencil_center(0);
+        const hier::Index<NDIM>& i = b();
+        static const hier::Index<NDIM> i_stencil_center(0);
         const int stencil_center = stencil_indices[i_stencil_center];
 
         std::vector<double> mat_vals(stencil_sz, 0.0);
@@ -1076,7 +1051,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
 
             // Lower side normal flux.
             {
-                Index<NDIM> i_stencil_lower(0);
+                hier::Index<NDIM> i_stencil_lower(0);
                 --i_stencil_lower[axis];
                 const int stencil_lower = stencil_indices[i_stencil_lower];
 
@@ -1088,7 +1063,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
 
             // Upper side normal flux.
             {
-                Index<NDIM> i_stencil_upper(0);
+                hier::Index<NDIM> i_stencil_upper(0);
                 ++i_stencil_upper[axis];
                 const int stencil_upper = stencil_indices[i_stencil_upper];
 
@@ -1115,7 +1090,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
                     {
                         for (int trans_shift = -1; trans_shift <= 1; trans_shift += 2)
                         {
-                            Index<NDIM> i_stencil(0);
+                            hier::Index<NDIM> i_stencil(0);
                             i_stencil[norm_axis] += norm_shift;
                             i_stencil[trans_axis] += trans_shift;
                             const int stencil_index = stencil_indices[i_stencil];
@@ -1138,7 +1113,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
                     {
                         for (int trans_shift = -1; trans_shift <= 1; trans_shift += 2)
                         {
-                            Index<NDIM> i_stencil(0);
+                            hier::Index<NDIM> i_stencil(0);
                             i_stencil[norm_axis] += norm_shift;
                             i_stencil[trans_axis] += trans_shift;
                             const int stencil_index = stencil_indices[i_stencil];
@@ -1161,7 +1136,7 @@ CCPoissonBoxRelaxationFACOperator::buildPatchLaplaceOperator_nonaligned(Mat& A,
         std::vector<int> idxn(stencil_sz);
         const int idxm = ghost_box.offset(i);
 
-        std::transform(mat_stencil.begin(), mat_stencil.end(), idxn.begin(), std::bind2nd(std::plus<int>(), idxm));
+        std::transform(mat_stencil.begin(), mat_stencil.end(), idxn.begin(), [=](const int& i) { return i + idxm; });
         ierr = MatSetValues(A, m, &idxm, n, &idxn[0], &mat_vals[0], INSERT_VALUES);
         IBTK_CHKERRQ(ierr);
     }

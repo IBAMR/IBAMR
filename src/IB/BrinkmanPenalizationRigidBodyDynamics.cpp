@@ -1,45 +1,60 @@
-// Filename BrinkmanPenalizationRigidBodyDynamics.cpp
-// Created on Dec 05, 2018 by Amneet Bhalla
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2018, Amneet Bhalla
+// Copyright (c) 2019 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/BrinkmanPenalizationRigidBodyDynamics.h"
+#include "ibamr/BrinkmanPenalizationStrategy.h"
 #include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
+#include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibamr/namespaces.h"
 
 #include "ibtk/IndexUtilities.h"
+#include "ibtk/ibtk_utilities.h"
 
+#include "Box.h"
+#include "CartesianPatchGeometry.h"
+#include "CellData.h"
+#include "CellVariable.h"
+#include "HierarchyCellDataOpsReal.h"
+#include "IntVector.h"
+#include "Patch.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "RefineAlgorithm.h"
+#include "RefineOperator.h"
+#include "RefineSchedule.h"
+#include "SideData.h"
+#include "SideGeometry.h"
+#include "SideIndex.h"
+#include "Variable.h"
+#include "VariableContext.h"
+#include "VariableDatabase.h"
+#include "tbox/Database.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
+#include "tbox/Utilities.h"
+
+#include "Eigen/src/Geometry/Quaternion.h"
+#include "Eigen/src/LU/FullPivLU.h"
+
+#include <cmath>
+#include <string>
+#include <utility>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -98,6 +113,8 @@ BrinkmanPenalizationRigidBodyDynamics::BrinkmanPenalizationRigidBodyDynamics(
                                                                  d_adv_diff_solver,
                                                                  d_fluid_solver))
 {
+    d_hydro_force_eval->writeToFile(false);
+
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
@@ -203,7 +220,8 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
 
     if (d_ext_force_torque_fcn_data.forcetorquefcn)
     {
-        d_ext_force_torque_fcn_data.forcetorquefcn(time, d_ext_force, d_ext_torque, d_ext_force_torque_fcn_data.ctx);
+        d_ext_force_torque_fcn_data.forcetorquefcn(
+            time, cycle_num, d_ext_force, d_ext_torque, d_ext_force_torque_fcn_data.ctx);
     }
     else
     {
@@ -215,10 +233,11 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     Eigen::Vector3d U_imposed = Eigen::Vector3d::Zero(), W_imposed = Eigen::Vector3d::Zero();
     if (d_kinematics_fcn_data.comvelfcn)
     {
-        d_kinematics_fcn_data.comvelfcn(time, U_imposed, W_imposed, d_kinematics_fcn_data.ctx);
+        d_kinematics_fcn_data.comvelfcn(time, cycle_num, U_imposed, W_imposed, d_kinematics_fcn_data.ctx);
     }
 
-    // Integrate Newton's second law of motion to find updated COM velocity and position.
+    // Integrate Newton's second law of motion to find updated COM velocity and
+    // position.
     // a) Translational motion
     const double dt = d_new_time - d_current_time;
     Eigen::Vector3d F_rigid;
@@ -234,8 +253,10 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     d_center_of_mass_new = d_center_of_mass_current + dt * d_trans_vel_new;
 
     // b) Rotational motion
-    Eigen::Matrix3d R = Eigen::Matrix3d::Identity(3, 3);
-    set_rotation_matrix(d_rot_vel_new, d_quaternion_current, d_quaternion_new, R, dt);
+    const Eigen::Matrix3d R_current = d_quaternion_current.toRotationMatrix();
+    Eigen::Matrix3d R_new = Eigen::Matrix3d::Identity(3, 3);
+    set_rotation_matrix(d_rot_vel_new, d_quaternion_current, d_quaternion_new, R_new, dt);
+
     Eigen::Vector3d T_rigid = d_hydro_torque_pressure + d_hydro_torque_viscous + d_ext_torque;
     d_rot_vel_new.setZero();
     if (NDIM == 2)
@@ -244,14 +265,22 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     }
     else if (NDIM == 3)
     {
-        const Eigen::Vector3d T0_rigid = solve_3x3_system((R.transpose()) * T_rigid, d_inertia_tensor_initial);
-        d_rot_vel_new = d_rot_vel_current + dt * R * T0_rigid;
+        const Eigen::Vector3d IW_new =
+            (T_rigid * dt + R_current * d_inertia_tensor_initial * R_current.transpose() * d_rot_vel_current);
+        d_rot_vel_new = R_new * solve_3x3_system(R_new.transpose() * IW_new, d_inertia_tensor_initial);
     }
     for (unsigned s = NDIM; s < s_max_free_dofs; ++s)
     {
         if (!d_solve_rigid_vel(s))
         {
-            d_rot_vel_new(s) = W_imposed(s);
+            if (NDIM == 2)
+            {
+                d_rot_vel_new(s) = W_imposed(s);
+            }
+            else if (NDIM == 3)
+            {
+                d_rot_vel_new(s - NDIM) = W_imposed(s - NDIM);
+            }
         }
     }
 
@@ -267,13 +296,20 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
     Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_ops(patch_hierarchy);
-    hier_cc_ops.copyData(ls_scratch_idx, ls_solid_idx);
 
-    Pointer<RefineAlgorithm<NDIM> > ghost_fill_alg = new RefineAlgorithm<NDIM>();
-    Pointer<RefineOperator<NDIM> > refine_op = NULL;
-    ghost_fill_alg->registerRefine(ls_scratch_idx, ls_scratch_idx, ls_scratch_idx, refine_op);
-    ghost_fill_alg->createSchedule(finest_level)->fillData(time);
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> phi_transaction_comps(1);
+    phi_transaction_comps[0] = InterpolationTransactionComponent(ls_scratch_idx,
+                                                                 ls_solid_idx,
+                                                                 "CONSERVATIVE_LINEAR_REFINE",
+                                                                 false,
+                                                                 "CONSERVATIVE_COARSEN",
+                                                                 "LINEAR",
+                                                                 false,
+                                                                 d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var));
+    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
+    hier_bdry_fill->fillData(time);
 
     // Set the rigid body velocity in u_idx
     for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
@@ -282,7 +318,9 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
         const Box<NDIM>& patch_box = patch->getBox();
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* patch_dx = patch_geom->getDx();
-        const double alpha = 2.0 * patch_dx[0];
+        double vol_cell = 1.0;
+        for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
+        const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
         Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
         Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
@@ -298,28 +336,11 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
                 const double phi_lower = (*ls_solid_data)(s_i.toCell(0));
                 const double phi_upper = (*ls_solid_data)(s_i.toCell(1));
                 const double phi = 0.5 * (phi_lower + phi_upper);
-                double Hphi;
-                if (phi < -alpha)
-                {
-                    Hphi = 0.0;
-                }
-                else if (std::abs(phi) <= alpha)
-                {
-                    Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
-                }
-                else
-                {
-                    Hphi = 1.0;
-                }
+                const double Hphi = IBTK::smooth_heaviside(phi, alpha);
                 if (phi <= alpha)
                 {
-                    const IBTK::VectorNd side_center = IndexUtilities::getSideCenter(*patch, s_i);
-                    IBTK::Vector3d dr = IBTK::Vector3d::Zero();
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        dr[d] = side_center[d] - d_center_of_mass_new[d];
-                    }
-
+                    const Eigen::Vector3d r = IBTK::IndexUtilities::getSideCenter<Eigen::Vector3d>(*patch, s_i);
+                    const Eigen::Vector3d dr = r - d_center_of_mass_new;
                     const Eigen::Vector3d Wxdr = d_rot_vel_new.cross(dr);
                     const double penalty = (*rho_data)(s_i) / dt;
                     (*u_data)(s_i) = d_trans_vel_new(axis) + Wxdr(axis);
@@ -346,8 +367,8 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
     // Get the interpolated density variable
     const int rho_ins_idx = d_fluid_solver->getLinearOperatorRhoPatchDataIndex();
 
-    // Get the solid level set data. We have already copied new data into scratch data and have also
-    // filled its ghost cells on the finest level.
+    // Get the solid level set data. We have already copied new data into scratch
+    // data and have also filled its ghost cells on the finest level.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int ls_scratch_idx =
         var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
@@ -360,7 +381,9 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
         const Box<NDIM>& patch_box = patch->getBox();
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* patch_dx = patch_geom->getDx();
-        const double alpha = 2.0 * patch_dx[0];
+        double vol_cell = 1.0;
+        for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
+        const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
         Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
         Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
@@ -375,20 +398,7 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
                 const double phi_lower = (*ls_solid_data)(s_i.toCell(0));
                 const double phi_upper = (*ls_solid_data)(s_i.toCell(1));
                 const double phi = 0.5 * (phi_lower + phi_upper);
-                double Hphi;
-                if (phi < -alpha)
-                {
-                    Hphi = 0.0;
-                }
-                else if (std::abs(phi) <= alpha)
-                {
-                    Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
-                }
-                else
-                {
-                    Hphi = 1.0;
-                }
-
+                const double Hphi = IBTK::smooth_heaviside(phi, alpha);
                 if (phi <= alpha)
                 {
                     const double penalty = (*rho_data)(s_i) / dt;
@@ -465,6 +475,11 @@ BrinkmanPenalizationRigidBodyDynamics::getFromInput(Pointer<Database> input_db, 
         d_contour_level = input_db->getDouble("contour_level");
     }
 
+    if (input_db->keyExists("num_interface_cells"))
+    {
+        d_num_interface_cells = input_db->getDouble("num_interface_cells");
+    }
+
     return;
 } // getFromInput
 
@@ -479,8 +494,10 @@ BrinkmanPenalizationRigidBodyDynamics::getFromRestart()
     }
     else
     {
-        TBOX_ERROR("BrinkmanPenalizationRigidBodyDynamics::getFromRestart(): Restart database corresponding to "
-                   << d_object_name << " not found in restart file." << std::endl);
+        TBOX_ERROR(
+            "BrinkmanPenalizationRigidBodyDynamics::getFromRestart(): "
+            "Restart database corresponding to "
+            << d_object_name << " not found in restart file." << std::endl);
     }
 
     std::string U = "U", W = "W", C0 = "C0", C = "C", J0 = "J0", Q = "Q", M = "M";

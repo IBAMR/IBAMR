@@ -1,40 +1,22 @@
-// Filename: PETScNewtonKrylovSolver.cpp
-// Created on 26 Nov 2003 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/JacobianOperator.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearOperator.h"
@@ -44,21 +26,16 @@
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/PETScSNESFunctionGOWrapper.h"
 #include "ibtk/PETScSNESJacobianJOWrapper.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "IntVector.h"
+#include "Box.h"
 #include "MultiblockDataTranslator.h"
-#include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
-#include "tbox/Utilities.h"
 
-#include "petscerror.h"
 #include "petscksp.h"
 #include "petscmat.h"
 #include "petscsnes.h"
@@ -70,6 +47,9 @@
 
 #include <ostream>
 #include <string>
+#include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -215,10 +195,6 @@ PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
     Pointer<PETScKrylovLinearSolver> p_krylov_solver = d_krylov_solver;
     if (p_krylov_solver) p_krylov_solver->resetKSPOptions();
 
-    // Allocate scratch data.
-    d_b->allocateVectorData();
-    d_r->allocateVectorData();
-
     // Solve the system using a PETSc SNES object.
     d_b->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
     d_F->setHomogeneousBc(d_homogeneous_bc);
@@ -249,10 +225,6 @@ PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
     IBTK_CHKERRQ(ierr);
     const bool converged = (static_cast<int>(reason) > 0);
     if (d_enable_logging) reportSNESConvergedReason(reason, plog);
-
-    // Deallocate scratch data.
-    d_b->deallocateVectorData();
-    d_r->deallocateVectorData();
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -348,6 +320,10 @@ PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, doub
     d_r = b.cloneVector(b.getName());
     d_petsc_r = PETScSAMRAIVectorReal::createPETScVector(d_r, d_petsc_comm);
 
+    // Allocate scratch data.
+    d_b->allocateVectorData();
+    d_r->allocateVectorData();
+
     // Setup the nonlinear operator.
     if (d_F) d_F->initializeOperatorState(*d_x, *d_b);
     if (d_managing_petsc_snes || d_user_provided_function) resetSNESFunction();
@@ -396,8 +372,6 @@ PETScNewtonKrylovSolver::deallocateSolverState()
 
     IBTK_TIMER_START(t_deallocate_solver_state);
 
-    int ierr;
-
     // Deallocate the linear solver and operator states only if we are not
     // re-initializing the Newton solver.
     if (!d_reinitializing_solver)
@@ -406,6 +380,10 @@ PETScNewtonKrylovSolver::deallocateSolverState()
         if (d_J) d_J->deallocateOperatorState();
         if (d_F) d_F->deallocateOperatorState();
     }
+
+    // Deallocate scratch data.
+    d_b->deallocateVectorData();
+    d_r->deallocateVectorData();
 
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
@@ -426,7 +404,7 @@ PETScNewtonKrylovSolver::deallocateSolverState()
     // Destroy the SNES solver.
     if (d_managing_petsc_snes)
     {
-        ierr = SNESDestroy(&d_petsc_snes);
+        int ierr = SNESDestroy(&d_petsc_snes);
         IBTK_CHKERRQ(ierr);
         d_petsc_snes = nullptr;
     }
@@ -670,7 +648,6 @@ PETScNewtonKrylovSolver::FormFunction_SAMRAI(SNES /*snes*/, Vec x, Vec f, void* 
 PetscErrorCode
 PETScNewtonKrylovSolver::FormJacobian_SAMRAI(SNES snes, Vec x, Mat A, Mat /*B*/, void* p_ctx)
 {
-    int ierr;
     auto newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(newton_solver);
@@ -685,7 +662,7 @@ PETScNewtonKrylovSolver::FormJacobian_SAMRAI(SNES snes, Vec x, Mat A, Mat /*B*/,
     else
     {
         Vec u, f;
-        ierr = SNESGetSolution(snes, &u);
+        int ierr = SNESGetSolution(snes, &u);
         CHKERRQ(ierr);
         ierr = SNESGetFunction(snes, &f, nullptr, nullptr);
         CHKERRQ(ierr);

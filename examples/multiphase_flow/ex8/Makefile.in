@@ -87,13 +87,11 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = $(am__EXEEXT_7) $(am__EXEEXT_8)
+EXTRA_PROGRAMS = $(am__EXEEXT_4) $(am__EXEEXT_5)
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
-@GTEST_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_2 = test2d
-@SAMRAI2D_ENABLED_TRUE@am__append_3 = $(GTESTS) $(EXAMPLES)
-@GTEST_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_4 = test3d
-@SAMRAI3D_ENABLED_TRUE@am__append_5 = main3d
-@SAMRAI3D_ENABLED_TRUE@am__append_6 = $(GTESTS) $(EXAMPLES) sphereGen
+@SAMRAI2D_ENABLED_TRUE@am__append_2 = $(EXAMPLES)
+@SAMRAI3D_ENABLED_TRUE@am__append_3 = main3d
+@SAMRAI3D_ENABLED_TRUE@am__append_4 = $(EXAMPLES) sphereGen
 subdir = examples/multiphase_flow/ex8
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -105,7 +103,6 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
 	$(top_srcdir)/m4/configure_boost.m4 \
 	$(top_srcdir)/m4/configure_eigen.m4 \
 	$(top_srcdir)/m4/configure_gsl.m4 \
-	$(top_srcdir)/m4/configure_gtest.m4 \
 	$(top_srcdir)/m4/configure_hdf5.m4 \
 	$(top_srcdir)/m4/configure_hypre.m4 \
 	$(top_srcdir)/m4/configure_libmesh.m4 \
@@ -126,18 +123,13 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-@GTEST_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 =  \
-@GTEST_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	test2d$(EXEEXT)
-@GTEST_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_2 =  \
-@GTEST_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	test3d$(EXEEXT)
+@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT)
+@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_2 = main3d$(EXEEXT)
 am__EXEEXT_3 = $(am__EXEEXT_1) $(am__EXEEXT_2)
-@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_4 = main2d$(EXEEXT)
-@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_5 = main3d$(EXEEXT)
-am__EXEEXT_6 = $(am__EXEEXT_4) $(am__EXEEXT_5)
-@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_7 = $(am__EXEEXT_3) $(am__EXEEXT_6)
-@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_8 = $(am__EXEEXT_3) $(am__EXEEXT_6) \
+@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_4 = $(am__EXEEXT_3)
+@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_5 = $(am__EXEEXT_3) \
 @SAMRAI3D_ENABLED_TRUE@	sphereGen$(EXEEXT)
-am__objects_1 = main2d-ex_main.$(OBJEXT) \
+am__objects_1 = main2d-example.$(OBJEXT) \
 	main2d-SetFluidGasSolidDensity.$(OBJEXT) \
 	main2d-SetFluidGasSolidViscosity.$(OBJEXT) \
 	main2d-LSLocateCircularInterface.$(OBJEXT) \
@@ -156,7 +148,7 @@ am__v_lt_1 =
 main2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_2 = main3d-ex_main.$(OBJEXT) \
+am__objects_2 = main3d-example.$(OBJEXT) \
 	main3d-SetFluidGasSolidDensity.$(OBJEXT) \
 	main3d-SetFluidGasSolidViscosity.$(OBJEXT) \
 	main3d-LSLocateCircularInterface.$(OBJEXT) \
@@ -176,36 +168,6 @@ sphereGen_OBJECTS = $(am_sphereGen_OBJECTS)
 sphereGen_DEPENDENCIES =
 sphereGen_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(sphereGen_CXXFLAGS) \
-	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_3 = test2d-test_main.$(OBJEXT) \
-	test2d-SetFluidGasSolidDensity.$(OBJEXT) \
-	test2d-SetFluidGasSolidViscosity.$(OBJEXT) \
-	test2d-LSLocateCircularInterface.$(OBJEXT) \
-	test2d-LSLocateGasInterface.$(OBJEXT) \
-	test2d-RigidBodyKinematics.$(OBJEXT) \
-	test2d-TagLSRefinementCells.$(OBJEXT) \
-	test2d-SetLSProperties.$(OBJEXT) \
-	test2d-GravityForcing.$(OBJEXT)
-am_test2d_OBJECTS = $(am__objects_3)
-test2d_OBJECTS = $(am_test2d_OBJECTS)
-test2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-test2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(test2d_CXXFLAGS) \
-	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_4 = test3d-test_main.$(OBJEXT) \
-	test3d-SetFluidGasSolidDensity.$(OBJEXT) \
-	test3d-SetFluidGasSolidViscosity.$(OBJEXT) \
-	test3d-LSLocateCircularInterface.$(OBJEXT) \
-	test3d-LSLocateGasInterface.$(OBJEXT) \
-	test3d-RigidBodyKinematics.$(OBJEXT) \
-	test3d-TagLSRefinementCells.$(OBJEXT) \
-	test3d-SetLSProperties.$(OBJEXT) \
-	test3d-GravityForcing.$(OBJEXT)
-am_test3d_OBJECTS = $(am__objects_4)
-test3d_OBJECTS = $(am_test3d_OBJECTS)
-test3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-test3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(test3d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -230,7 +192,7 @@ am__depfiles_remade = ./$(DEPDIR)/main2d-GravityForcing.Po \
 	./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po \
 	./$(DEPDIR)/main2d-SetLSProperties.Po \
 	./$(DEPDIR)/main2d-TagLSRefinementCells.Po \
-	./$(DEPDIR)/main2d-ex_main.Po \
+	./$(DEPDIR)/main2d-example.Po \
 	./$(DEPDIR)/main3d-GravityForcing.Po \
 	./$(DEPDIR)/main3d-LSLocateCircularInterface.Po \
 	./$(DEPDIR)/main3d-LSLocateGasInterface.Po \
@@ -239,26 +201,8 @@ am__depfiles_remade = ./$(DEPDIR)/main2d-GravityForcing.Po \
 	./$(DEPDIR)/main3d-SetFluidGasSolidViscosity.Po \
 	./$(DEPDIR)/main3d-SetLSProperties.Po \
 	./$(DEPDIR)/main3d-TagLSRefinementCells.Po \
-	./$(DEPDIR)/main3d-ex_main.Po \
-	./$(DEPDIR)/sphereGen-sphereGen.Po \
-	./$(DEPDIR)/test2d-GravityForcing.Po \
-	./$(DEPDIR)/test2d-LSLocateCircularInterface.Po \
-	./$(DEPDIR)/test2d-LSLocateGasInterface.Po \
-	./$(DEPDIR)/test2d-RigidBodyKinematics.Po \
-	./$(DEPDIR)/test2d-SetFluidGasSolidDensity.Po \
-	./$(DEPDIR)/test2d-SetFluidGasSolidViscosity.Po \
-	./$(DEPDIR)/test2d-SetLSProperties.Po \
-	./$(DEPDIR)/test2d-TagLSRefinementCells.Po \
-	./$(DEPDIR)/test2d-test_main.Po \
-	./$(DEPDIR)/test3d-GravityForcing.Po \
-	./$(DEPDIR)/test3d-LSLocateCircularInterface.Po \
-	./$(DEPDIR)/test3d-LSLocateGasInterface.Po \
-	./$(DEPDIR)/test3d-RigidBodyKinematics.Po \
-	./$(DEPDIR)/test3d-SetFluidGasSolidDensity.Po \
-	./$(DEPDIR)/test3d-SetFluidGasSolidViscosity.Po \
-	./$(DEPDIR)/test3d-SetLSProperties.Po \
-	./$(DEPDIR)/test3d-TagLSRefinementCells.Po \
-	./$(DEPDIR)/test3d-test_main.Po
+	./$(DEPDIR)/main3d-example.Po \
+	./$(DEPDIR)/sphereGen-sphereGen.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -278,10 +222,9 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(main2d_SOURCES) $(main3d_SOURCES) $(sphereGen_SOURCES) \
-	$(test2d_SOURCES) $(test3d_SOURCES)
+SOURCES = $(main2d_SOURCES) $(main3d_SOURCES) $(sphereGen_SOURCES)
 DIST_SOURCES = $(main2d_SOURCES) $(main3d_SOURCES) \
-	$(sphereGen_SOURCES) $(test2d_SOURCES) $(test3d_SOURCES)
+	$(sphereGen_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -353,7 +296,6 @@ GREP = @GREP@
 HAVE_CXX11 = @HAVE_CXX11@
 HAVE_LIBGSL = @HAVE_LIBGSL@
 HAVE_LIBGSLCBLAS = @HAVE_LIBGSLCBLAS@
-HAVE_LIBGTEST = @HAVE_LIBGTEST@
 HAVE_LIBMESH_DBG = @HAVE_LIBMESH_DBG@
 HAVE_LIBMESH_DEVEL = @HAVE_LIBMESH_DEVEL@
 HAVE_LIBMESH_OPROF = @HAVE_LIBMESH_OPROF@
@@ -390,8 +332,6 @@ LIBGSL = @LIBGSL@
 LIBGSLCBLAS = @LIBGSLCBLAS@
 LIBGSLCBLAS_PREFIX = @LIBGSLCBLAS_PREFIX@
 LIBGSL_PREFIX = @LIBGSL_PREFIX@
-LIBGTEST = @LIBGTEST@
-LIBGTEST_PREFIX = @LIBGTEST_PREFIX@
 LIBMESH_CONFIG = @LIBMESH_CONFIG@
 LIBMESH_DBG = @LIBMESH_DBG@
 LIBMESH_DBG_PREFIX = @LIBMESH_DBG_PREFIX@
@@ -450,7 +390,6 @@ LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBGSL = @LTLIBGSL@
 LTLIBGSLCBLAS = @LTLIBGSLCBLAS@
-LTLIBGTEST = @LTLIBGTEST@
 LTLIBMESH_DBG = @LTLIBMESH_DBG@
 LTLIBMESH_DEVEL = @LTLIBMESH_DEVEL@
 LTLIBMESH_OPROF = @LTLIBMESH_OPROF@
@@ -578,11 +517,9 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXAMPLE_DRIVER = ex_main.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp LSLocateCircularInterface.cpp LSLocateGasInterface.cpp RigidBodyKinematics.cpp TagLSRefinementCells.cpp SetLSProperties.cpp GravityForcing.cpp
-GTEST_DRIVER = test_main.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp LSLocateCircularInterface.cpp LSLocateGasInterface.cpp RigidBodyKinematics.cpp TagLSRefinementCells.cpp SetLSProperties.cpp GravityForcing.cpp
-EXTRA_DIST = input2d.cyl input2d.test input3d
-EXAMPLES = $(am__append_1) $(am__append_5)
-GTESTS = $(am__append_2) $(am__append_4)
+EXAMPLE_DRIVER = example.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp LSLocateCircularInterface.cpp LSLocateGasInterface.cpp RigidBodyKinematics.cpp TagLSRefinementCells.cpp SetLSProperties.cpp GravityForcing.cpp
+EXTRA_DIST = input2d.cyl input3d
+EXAMPLES = $(am__append_1) $(am__append_3)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = $(EXAMPLE_DRIVER)
@@ -592,12 +529,6 @@ main3d_SOURCES = $(EXAMPLE_DRIVER)
 sphereGen_CXXFLAGS = $(AM_CXXFLAGS)
 sphereGen_LDADD = 
 sphereGen_SOURCES = sphereGen.cpp
-test2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-test2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-test2d_SOURCES = $(GTEST_DRIVER)
-test3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-test3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-test3d_SOURCES = $(GTEST_DRIVER)
 all: all-am
 
 .SUFFIXES:
@@ -645,14 +576,6 @@ sphereGen$(EXEEXT): $(sphereGen_OBJECTS) $(sphereGen_DEPENDENCIES) $(EXTRA_spher
 	@rm -f sphereGen$(EXEEXT)
 	$(AM_V_CXXLD)$(sphereGen_LINK) $(sphereGen_OBJECTS) $(sphereGen_LDADD) $(LIBS)
 
-test2d$(EXEEXT): $(test2d_OBJECTS) $(test2d_DEPENDENCIES) $(EXTRA_test2d_DEPENDENCIES) 
-	@rm -f test2d$(EXEEXT)
-	$(AM_V_CXXLD)$(test2d_LINK) $(test2d_OBJECTS) $(test2d_LDADD) $(LIBS)
-
-test3d$(EXEEXT): $(test3d_OBJECTS) $(test3d_DEPENDENCIES) $(EXTRA_test3d_DEPENDENCIES) 
-	@rm -f test3d$(EXEEXT)
-	$(AM_V_CXXLD)$(test3d_LINK) $(test3d_OBJECTS) $(test3d_LDADD) $(LIBS)
-
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -667,7 +590,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetLSProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-TagLSRefinementCells.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-ex_main.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-example.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-GravityForcing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-LSLocateCircularInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-LSLocateGasInterface.Po@am__quote@ # am--include-marker
@@ -676,26 +599,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-SetFluidGasSolidViscosity.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-SetLSProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-TagLSRefinementCells.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-ex_main.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-example.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sphereGen-sphereGen.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-GravityForcing.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-LSLocateCircularInterface.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-LSLocateGasInterface.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-RigidBodyKinematics.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-SetFluidGasSolidDensity.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-SetFluidGasSolidViscosity.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-SetLSProperties.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-TagLSRefinementCells.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test2d-test_main.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-GravityForcing.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-LSLocateCircularInterface.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-LSLocateGasInterface.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-RigidBodyKinematics.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-SetFluidGasSolidDensity.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-SetFluidGasSolidViscosity.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-SetLSProperties.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-TagLSRefinementCells.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test3d-test_main.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -727,19 +632,19 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
 
-main2d-ex_main.o: ex_main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-ex_main.o -MD -MP -MF $(DEPDIR)/main2d-ex_main.Tpo -c -o main2d-ex_main.o `test -f 'ex_main.cpp' || echo '$(srcdir)/'`ex_main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-ex_main.Tpo $(DEPDIR)/main2d-ex_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex_main.cpp' object='main2d-ex_main.o' libtool=no @AMDEPBACKSLASH@
+main2d-example.o: example.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-example.o -MD -MP -MF $(DEPDIR)/main2d-example.Tpo -c -o main2d-example.o `test -f 'example.cpp' || echo '$(srcdir)/'`example.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-example.Tpo $(DEPDIR)/main2d-example.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='example.cpp' object='main2d-example.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-ex_main.o `test -f 'ex_main.cpp' || echo '$(srcdir)/'`ex_main.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-example.o `test -f 'example.cpp' || echo '$(srcdir)/'`example.cpp
 
-main2d-ex_main.obj: ex_main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-ex_main.obj -MD -MP -MF $(DEPDIR)/main2d-ex_main.Tpo -c -o main2d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-ex_main.Tpo $(DEPDIR)/main2d-ex_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex_main.cpp' object='main2d-ex_main.obj' libtool=no @AMDEPBACKSLASH@
+main2d-example.obj: example.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-example.obj -MD -MP -MF $(DEPDIR)/main2d-example.Tpo -c -o main2d-example.obj `if test -f 'example.cpp'; then $(CYGPATH_W) 'example.cpp'; else $(CYGPATH_W) '$(srcdir)/example.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-example.Tpo $(DEPDIR)/main2d-example.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='example.cpp' object='main2d-example.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-example.obj `if test -f 'example.cpp'; then $(CYGPATH_W) 'example.cpp'; else $(CYGPATH_W) '$(srcdir)/example.cpp'; fi`
 
 main2d-SetFluidGasSolidDensity.o: SetFluidGasSolidDensity.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-SetFluidGasSolidDensity.o -MD -MP -MF $(DEPDIR)/main2d-SetFluidGasSolidDensity.Tpo -c -o main2d-SetFluidGasSolidDensity.o `test -f 'SetFluidGasSolidDensity.cpp' || echo '$(srcdir)/'`SetFluidGasSolidDensity.cpp
@@ -853,19 +758,19 @@ main2d-GravityForcing.obj: GravityForcing.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-GravityForcing.obj `if test -f 'GravityForcing.cpp'; then $(CYGPATH_W) 'GravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/GravityForcing.cpp'; fi`
 
-main3d-ex_main.o: ex_main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-ex_main.o -MD -MP -MF $(DEPDIR)/main3d-ex_main.Tpo -c -o main3d-ex_main.o `test -f 'ex_main.cpp' || echo '$(srcdir)/'`ex_main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-ex_main.Tpo $(DEPDIR)/main3d-ex_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex_main.cpp' object='main3d-ex_main.o' libtool=no @AMDEPBACKSLASH@
+main3d-example.o: example.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-example.o -MD -MP -MF $(DEPDIR)/main3d-example.Tpo -c -o main3d-example.o `test -f 'example.cpp' || echo '$(srcdir)/'`example.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-example.Tpo $(DEPDIR)/main3d-example.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='example.cpp' object='main3d-example.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-ex_main.o `test -f 'ex_main.cpp' || echo '$(srcdir)/'`ex_main.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-example.o `test -f 'example.cpp' || echo '$(srcdir)/'`example.cpp
 
-main3d-ex_main.obj: ex_main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-ex_main.obj -MD -MP -MF $(DEPDIR)/main3d-ex_main.Tpo -c -o main3d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-ex_main.Tpo $(DEPDIR)/main3d-ex_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ex_main.cpp' object='main3d-ex_main.obj' libtool=no @AMDEPBACKSLASH@
+main3d-example.obj: example.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-example.obj -MD -MP -MF $(DEPDIR)/main3d-example.Tpo -c -o main3d-example.obj `if test -f 'example.cpp'; then $(CYGPATH_W) 'example.cpp'; else $(CYGPATH_W) '$(srcdir)/example.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-example.Tpo $(DEPDIR)/main3d-example.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='example.cpp' object='main3d-example.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-ex_main.obj `if test -f 'ex_main.cpp'; then $(CYGPATH_W) 'ex_main.cpp'; else $(CYGPATH_W) '$(srcdir)/ex_main.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-example.obj `if test -f 'example.cpp'; then $(CYGPATH_W) 'example.cpp'; else $(CYGPATH_W) '$(srcdir)/example.cpp'; fi`
 
 main3d-SetFluidGasSolidDensity.o: SetFluidGasSolidDensity.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-SetFluidGasSolidDensity.o -MD -MP -MF $(DEPDIR)/main3d-SetFluidGasSolidDensity.Tpo -c -o main3d-SetFluidGasSolidDensity.o `test -f 'SetFluidGasSolidDensity.cpp' || echo '$(srcdir)/'`SetFluidGasSolidDensity.cpp
@@ -992,258 +897,6 @@ sphereGen-sphereGen.obj: sphereGen.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='sphereGen.cpp' object='sphereGen-sphereGen.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sphereGen_CXXFLAGS) $(CXXFLAGS) -c -o sphereGen-sphereGen.obj `if test -f 'sphereGen.cpp'; then $(CYGPATH_W) 'sphereGen.cpp'; else $(CYGPATH_W) '$(srcdir)/sphereGen.cpp'; fi`
-
-test2d-test_main.o: test_main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-test_main.o -MD -MP -MF $(DEPDIR)/test2d-test_main.Tpo -c -o test2d-test_main.o `test -f 'test_main.cpp' || echo '$(srcdir)/'`test_main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-test_main.Tpo $(DEPDIR)/test2d-test_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test_main.cpp' object='test2d-test_main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-test_main.o `test -f 'test_main.cpp' || echo '$(srcdir)/'`test_main.cpp
-
-test2d-test_main.obj: test_main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-test_main.obj -MD -MP -MF $(DEPDIR)/test2d-test_main.Tpo -c -o test2d-test_main.obj `if test -f 'test_main.cpp'; then $(CYGPATH_W) 'test_main.cpp'; else $(CYGPATH_W) '$(srcdir)/test_main.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-test_main.Tpo $(DEPDIR)/test2d-test_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test_main.cpp' object='test2d-test_main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-test_main.obj `if test -f 'test_main.cpp'; then $(CYGPATH_W) 'test_main.cpp'; else $(CYGPATH_W) '$(srcdir)/test_main.cpp'; fi`
-
-test2d-SetFluidGasSolidDensity.o: SetFluidGasSolidDensity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-SetFluidGasSolidDensity.o -MD -MP -MF $(DEPDIR)/test2d-SetFluidGasSolidDensity.Tpo -c -o test2d-SetFluidGasSolidDensity.o `test -f 'SetFluidGasSolidDensity.cpp' || echo '$(srcdir)/'`SetFluidGasSolidDensity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-SetFluidGasSolidDensity.Tpo $(DEPDIR)/test2d-SetFluidGasSolidDensity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidGasSolidDensity.cpp' object='test2d-SetFluidGasSolidDensity.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-SetFluidGasSolidDensity.o `test -f 'SetFluidGasSolidDensity.cpp' || echo '$(srcdir)/'`SetFluidGasSolidDensity.cpp
-
-test2d-SetFluidGasSolidDensity.obj: SetFluidGasSolidDensity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-SetFluidGasSolidDensity.obj -MD -MP -MF $(DEPDIR)/test2d-SetFluidGasSolidDensity.Tpo -c -o test2d-SetFluidGasSolidDensity.obj `if test -f 'SetFluidGasSolidDensity.cpp'; then $(CYGPATH_W) 'SetFluidGasSolidDensity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidGasSolidDensity.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-SetFluidGasSolidDensity.Tpo $(DEPDIR)/test2d-SetFluidGasSolidDensity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidGasSolidDensity.cpp' object='test2d-SetFluidGasSolidDensity.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-SetFluidGasSolidDensity.obj `if test -f 'SetFluidGasSolidDensity.cpp'; then $(CYGPATH_W) 'SetFluidGasSolidDensity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidGasSolidDensity.cpp'; fi`
-
-test2d-SetFluidGasSolidViscosity.o: SetFluidGasSolidViscosity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-SetFluidGasSolidViscosity.o -MD -MP -MF $(DEPDIR)/test2d-SetFluidGasSolidViscosity.Tpo -c -o test2d-SetFluidGasSolidViscosity.o `test -f 'SetFluidGasSolidViscosity.cpp' || echo '$(srcdir)/'`SetFluidGasSolidViscosity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-SetFluidGasSolidViscosity.Tpo $(DEPDIR)/test2d-SetFluidGasSolidViscosity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidGasSolidViscosity.cpp' object='test2d-SetFluidGasSolidViscosity.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-SetFluidGasSolidViscosity.o `test -f 'SetFluidGasSolidViscosity.cpp' || echo '$(srcdir)/'`SetFluidGasSolidViscosity.cpp
-
-test2d-SetFluidGasSolidViscosity.obj: SetFluidGasSolidViscosity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-SetFluidGasSolidViscosity.obj -MD -MP -MF $(DEPDIR)/test2d-SetFluidGasSolidViscosity.Tpo -c -o test2d-SetFluidGasSolidViscosity.obj `if test -f 'SetFluidGasSolidViscosity.cpp'; then $(CYGPATH_W) 'SetFluidGasSolidViscosity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidGasSolidViscosity.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-SetFluidGasSolidViscosity.Tpo $(DEPDIR)/test2d-SetFluidGasSolidViscosity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidGasSolidViscosity.cpp' object='test2d-SetFluidGasSolidViscosity.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-SetFluidGasSolidViscosity.obj `if test -f 'SetFluidGasSolidViscosity.cpp'; then $(CYGPATH_W) 'SetFluidGasSolidViscosity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidGasSolidViscosity.cpp'; fi`
-
-test2d-LSLocateCircularInterface.o: LSLocateCircularInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-LSLocateCircularInterface.o -MD -MP -MF $(DEPDIR)/test2d-LSLocateCircularInterface.Tpo -c -o test2d-LSLocateCircularInterface.o `test -f 'LSLocateCircularInterface.cpp' || echo '$(srcdir)/'`LSLocateCircularInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-LSLocateCircularInterface.Tpo $(DEPDIR)/test2d-LSLocateCircularInterface.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LSLocateCircularInterface.cpp' object='test2d-LSLocateCircularInterface.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-LSLocateCircularInterface.o `test -f 'LSLocateCircularInterface.cpp' || echo '$(srcdir)/'`LSLocateCircularInterface.cpp
-
-test2d-LSLocateCircularInterface.obj: LSLocateCircularInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-LSLocateCircularInterface.obj -MD -MP -MF $(DEPDIR)/test2d-LSLocateCircularInterface.Tpo -c -o test2d-LSLocateCircularInterface.obj `if test -f 'LSLocateCircularInterface.cpp'; then $(CYGPATH_W) 'LSLocateCircularInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateCircularInterface.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-LSLocateCircularInterface.Tpo $(DEPDIR)/test2d-LSLocateCircularInterface.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LSLocateCircularInterface.cpp' object='test2d-LSLocateCircularInterface.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-LSLocateCircularInterface.obj `if test -f 'LSLocateCircularInterface.cpp'; then $(CYGPATH_W) 'LSLocateCircularInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateCircularInterface.cpp'; fi`
-
-test2d-LSLocateGasInterface.o: LSLocateGasInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-LSLocateGasInterface.o -MD -MP -MF $(DEPDIR)/test2d-LSLocateGasInterface.Tpo -c -o test2d-LSLocateGasInterface.o `test -f 'LSLocateGasInterface.cpp' || echo '$(srcdir)/'`LSLocateGasInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-LSLocateGasInterface.Tpo $(DEPDIR)/test2d-LSLocateGasInterface.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LSLocateGasInterface.cpp' object='test2d-LSLocateGasInterface.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-LSLocateGasInterface.o `test -f 'LSLocateGasInterface.cpp' || echo '$(srcdir)/'`LSLocateGasInterface.cpp
-
-test2d-LSLocateGasInterface.obj: LSLocateGasInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-LSLocateGasInterface.obj -MD -MP -MF $(DEPDIR)/test2d-LSLocateGasInterface.Tpo -c -o test2d-LSLocateGasInterface.obj `if test -f 'LSLocateGasInterface.cpp'; then $(CYGPATH_W) 'LSLocateGasInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateGasInterface.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-LSLocateGasInterface.Tpo $(DEPDIR)/test2d-LSLocateGasInterface.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LSLocateGasInterface.cpp' object='test2d-LSLocateGasInterface.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-LSLocateGasInterface.obj `if test -f 'LSLocateGasInterface.cpp'; then $(CYGPATH_W) 'LSLocateGasInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateGasInterface.cpp'; fi`
-
-test2d-RigidBodyKinematics.o: RigidBodyKinematics.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-RigidBodyKinematics.o -MD -MP -MF $(DEPDIR)/test2d-RigidBodyKinematics.Tpo -c -o test2d-RigidBodyKinematics.o `test -f 'RigidBodyKinematics.cpp' || echo '$(srcdir)/'`RigidBodyKinematics.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-RigidBodyKinematics.Tpo $(DEPDIR)/test2d-RigidBodyKinematics.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='RigidBodyKinematics.cpp' object='test2d-RigidBodyKinematics.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-RigidBodyKinematics.o `test -f 'RigidBodyKinematics.cpp' || echo '$(srcdir)/'`RigidBodyKinematics.cpp
-
-test2d-RigidBodyKinematics.obj: RigidBodyKinematics.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-RigidBodyKinematics.obj -MD -MP -MF $(DEPDIR)/test2d-RigidBodyKinematics.Tpo -c -o test2d-RigidBodyKinematics.obj `if test -f 'RigidBodyKinematics.cpp'; then $(CYGPATH_W) 'RigidBodyKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/RigidBodyKinematics.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-RigidBodyKinematics.Tpo $(DEPDIR)/test2d-RigidBodyKinematics.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='RigidBodyKinematics.cpp' object='test2d-RigidBodyKinematics.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-RigidBodyKinematics.obj `if test -f 'RigidBodyKinematics.cpp'; then $(CYGPATH_W) 'RigidBodyKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/RigidBodyKinematics.cpp'; fi`
-
-test2d-TagLSRefinementCells.o: TagLSRefinementCells.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-TagLSRefinementCells.o -MD -MP -MF $(DEPDIR)/test2d-TagLSRefinementCells.Tpo -c -o test2d-TagLSRefinementCells.o `test -f 'TagLSRefinementCells.cpp' || echo '$(srcdir)/'`TagLSRefinementCells.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-TagLSRefinementCells.Tpo $(DEPDIR)/test2d-TagLSRefinementCells.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagLSRefinementCells.cpp' object='test2d-TagLSRefinementCells.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-TagLSRefinementCells.o `test -f 'TagLSRefinementCells.cpp' || echo '$(srcdir)/'`TagLSRefinementCells.cpp
-
-test2d-TagLSRefinementCells.obj: TagLSRefinementCells.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-TagLSRefinementCells.obj -MD -MP -MF $(DEPDIR)/test2d-TagLSRefinementCells.Tpo -c -o test2d-TagLSRefinementCells.obj `if test -f 'TagLSRefinementCells.cpp'; then $(CYGPATH_W) 'TagLSRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagLSRefinementCells.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-TagLSRefinementCells.Tpo $(DEPDIR)/test2d-TagLSRefinementCells.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagLSRefinementCells.cpp' object='test2d-TagLSRefinementCells.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-TagLSRefinementCells.obj `if test -f 'TagLSRefinementCells.cpp'; then $(CYGPATH_W) 'TagLSRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagLSRefinementCells.cpp'; fi`
-
-test2d-SetLSProperties.o: SetLSProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-SetLSProperties.o -MD -MP -MF $(DEPDIR)/test2d-SetLSProperties.Tpo -c -o test2d-SetLSProperties.o `test -f 'SetLSProperties.cpp' || echo '$(srcdir)/'`SetLSProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-SetLSProperties.Tpo $(DEPDIR)/test2d-SetLSProperties.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetLSProperties.cpp' object='test2d-SetLSProperties.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-SetLSProperties.o `test -f 'SetLSProperties.cpp' || echo '$(srcdir)/'`SetLSProperties.cpp
-
-test2d-SetLSProperties.obj: SetLSProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-SetLSProperties.obj -MD -MP -MF $(DEPDIR)/test2d-SetLSProperties.Tpo -c -o test2d-SetLSProperties.obj `if test -f 'SetLSProperties.cpp'; then $(CYGPATH_W) 'SetLSProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetLSProperties.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-SetLSProperties.Tpo $(DEPDIR)/test2d-SetLSProperties.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetLSProperties.cpp' object='test2d-SetLSProperties.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-SetLSProperties.obj `if test -f 'SetLSProperties.cpp'; then $(CYGPATH_W) 'SetLSProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetLSProperties.cpp'; fi`
-
-test2d-GravityForcing.o: GravityForcing.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-GravityForcing.o -MD -MP -MF $(DEPDIR)/test2d-GravityForcing.Tpo -c -o test2d-GravityForcing.o `test -f 'GravityForcing.cpp' || echo '$(srcdir)/'`GravityForcing.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-GravityForcing.Tpo $(DEPDIR)/test2d-GravityForcing.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='GravityForcing.cpp' object='test2d-GravityForcing.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-GravityForcing.o `test -f 'GravityForcing.cpp' || echo '$(srcdir)/'`GravityForcing.cpp
-
-test2d-GravityForcing.obj: GravityForcing.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -MT test2d-GravityForcing.obj -MD -MP -MF $(DEPDIR)/test2d-GravityForcing.Tpo -c -o test2d-GravityForcing.obj `if test -f 'GravityForcing.cpp'; then $(CYGPATH_W) 'GravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/GravityForcing.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test2d-GravityForcing.Tpo $(DEPDIR)/test2d-GravityForcing.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='GravityForcing.cpp' object='test2d-GravityForcing.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test2d_CXXFLAGS) $(CXXFLAGS) -c -o test2d-GravityForcing.obj `if test -f 'GravityForcing.cpp'; then $(CYGPATH_W) 'GravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/GravityForcing.cpp'; fi`
-
-test3d-test_main.o: test_main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-test_main.o -MD -MP -MF $(DEPDIR)/test3d-test_main.Tpo -c -o test3d-test_main.o `test -f 'test_main.cpp' || echo '$(srcdir)/'`test_main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-test_main.Tpo $(DEPDIR)/test3d-test_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test_main.cpp' object='test3d-test_main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-test_main.o `test -f 'test_main.cpp' || echo '$(srcdir)/'`test_main.cpp
-
-test3d-test_main.obj: test_main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-test_main.obj -MD -MP -MF $(DEPDIR)/test3d-test_main.Tpo -c -o test3d-test_main.obj `if test -f 'test_main.cpp'; then $(CYGPATH_W) 'test_main.cpp'; else $(CYGPATH_W) '$(srcdir)/test_main.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-test_main.Tpo $(DEPDIR)/test3d-test_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='test_main.cpp' object='test3d-test_main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-test_main.obj `if test -f 'test_main.cpp'; then $(CYGPATH_W) 'test_main.cpp'; else $(CYGPATH_W) '$(srcdir)/test_main.cpp'; fi`
-
-test3d-SetFluidGasSolidDensity.o: SetFluidGasSolidDensity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-SetFluidGasSolidDensity.o -MD -MP -MF $(DEPDIR)/test3d-SetFluidGasSolidDensity.Tpo -c -o test3d-SetFluidGasSolidDensity.o `test -f 'SetFluidGasSolidDensity.cpp' || echo '$(srcdir)/'`SetFluidGasSolidDensity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-SetFluidGasSolidDensity.Tpo $(DEPDIR)/test3d-SetFluidGasSolidDensity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidGasSolidDensity.cpp' object='test3d-SetFluidGasSolidDensity.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-SetFluidGasSolidDensity.o `test -f 'SetFluidGasSolidDensity.cpp' || echo '$(srcdir)/'`SetFluidGasSolidDensity.cpp
-
-test3d-SetFluidGasSolidDensity.obj: SetFluidGasSolidDensity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-SetFluidGasSolidDensity.obj -MD -MP -MF $(DEPDIR)/test3d-SetFluidGasSolidDensity.Tpo -c -o test3d-SetFluidGasSolidDensity.obj `if test -f 'SetFluidGasSolidDensity.cpp'; then $(CYGPATH_W) 'SetFluidGasSolidDensity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidGasSolidDensity.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-SetFluidGasSolidDensity.Tpo $(DEPDIR)/test3d-SetFluidGasSolidDensity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidGasSolidDensity.cpp' object='test3d-SetFluidGasSolidDensity.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-SetFluidGasSolidDensity.obj `if test -f 'SetFluidGasSolidDensity.cpp'; then $(CYGPATH_W) 'SetFluidGasSolidDensity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidGasSolidDensity.cpp'; fi`
-
-test3d-SetFluidGasSolidViscosity.o: SetFluidGasSolidViscosity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-SetFluidGasSolidViscosity.o -MD -MP -MF $(DEPDIR)/test3d-SetFluidGasSolidViscosity.Tpo -c -o test3d-SetFluidGasSolidViscosity.o `test -f 'SetFluidGasSolidViscosity.cpp' || echo '$(srcdir)/'`SetFluidGasSolidViscosity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-SetFluidGasSolidViscosity.Tpo $(DEPDIR)/test3d-SetFluidGasSolidViscosity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidGasSolidViscosity.cpp' object='test3d-SetFluidGasSolidViscosity.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-SetFluidGasSolidViscosity.o `test -f 'SetFluidGasSolidViscosity.cpp' || echo '$(srcdir)/'`SetFluidGasSolidViscosity.cpp
-
-test3d-SetFluidGasSolidViscosity.obj: SetFluidGasSolidViscosity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-SetFluidGasSolidViscosity.obj -MD -MP -MF $(DEPDIR)/test3d-SetFluidGasSolidViscosity.Tpo -c -o test3d-SetFluidGasSolidViscosity.obj `if test -f 'SetFluidGasSolidViscosity.cpp'; then $(CYGPATH_W) 'SetFluidGasSolidViscosity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidGasSolidViscosity.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-SetFluidGasSolidViscosity.Tpo $(DEPDIR)/test3d-SetFluidGasSolidViscosity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidGasSolidViscosity.cpp' object='test3d-SetFluidGasSolidViscosity.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-SetFluidGasSolidViscosity.obj `if test -f 'SetFluidGasSolidViscosity.cpp'; then $(CYGPATH_W) 'SetFluidGasSolidViscosity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidGasSolidViscosity.cpp'; fi`
-
-test3d-LSLocateCircularInterface.o: LSLocateCircularInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-LSLocateCircularInterface.o -MD -MP -MF $(DEPDIR)/test3d-LSLocateCircularInterface.Tpo -c -o test3d-LSLocateCircularInterface.o `test -f 'LSLocateCircularInterface.cpp' || echo '$(srcdir)/'`LSLocateCircularInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-LSLocateCircularInterface.Tpo $(DEPDIR)/test3d-LSLocateCircularInterface.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LSLocateCircularInterface.cpp' object='test3d-LSLocateCircularInterface.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-LSLocateCircularInterface.o `test -f 'LSLocateCircularInterface.cpp' || echo '$(srcdir)/'`LSLocateCircularInterface.cpp
-
-test3d-LSLocateCircularInterface.obj: LSLocateCircularInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-LSLocateCircularInterface.obj -MD -MP -MF $(DEPDIR)/test3d-LSLocateCircularInterface.Tpo -c -o test3d-LSLocateCircularInterface.obj `if test -f 'LSLocateCircularInterface.cpp'; then $(CYGPATH_W) 'LSLocateCircularInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateCircularInterface.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-LSLocateCircularInterface.Tpo $(DEPDIR)/test3d-LSLocateCircularInterface.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LSLocateCircularInterface.cpp' object='test3d-LSLocateCircularInterface.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-LSLocateCircularInterface.obj `if test -f 'LSLocateCircularInterface.cpp'; then $(CYGPATH_W) 'LSLocateCircularInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateCircularInterface.cpp'; fi`
-
-test3d-LSLocateGasInterface.o: LSLocateGasInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-LSLocateGasInterface.o -MD -MP -MF $(DEPDIR)/test3d-LSLocateGasInterface.Tpo -c -o test3d-LSLocateGasInterface.o `test -f 'LSLocateGasInterface.cpp' || echo '$(srcdir)/'`LSLocateGasInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-LSLocateGasInterface.Tpo $(DEPDIR)/test3d-LSLocateGasInterface.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LSLocateGasInterface.cpp' object='test3d-LSLocateGasInterface.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-LSLocateGasInterface.o `test -f 'LSLocateGasInterface.cpp' || echo '$(srcdir)/'`LSLocateGasInterface.cpp
-
-test3d-LSLocateGasInterface.obj: LSLocateGasInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-LSLocateGasInterface.obj -MD -MP -MF $(DEPDIR)/test3d-LSLocateGasInterface.Tpo -c -o test3d-LSLocateGasInterface.obj `if test -f 'LSLocateGasInterface.cpp'; then $(CYGPATH_W) 'LSLocateGasInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateGasInterface.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-LSLocateGasInterface.Tpo $(DEPDIR)/test3d-LSLocateGasInterface.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LSLocateGasInterface.cpp' object='test3d-LSLocateGasInterface.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-LSLocateGasInterface.obj `if test -f 'LSLocateGasInterface.cpp'; then $(CYGPATH_W) 'LSLocateGasInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateGasInterface.cpp'; fi`
-
-test3d-RigidBodyKinematics.o: RigidBodyKinematics.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-RigidBodyKinematics.o -MD -MP -MF $(DEPDIR)/test3d-RigidBodyKinematics.Tpo -c -o test3d-RigidBodyKinematics.o `test -f 'RigidBodyKinematics.cpp' || echo '$(srcdir)/'`RigidBodyKinematics.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-RigidBodyKinematics.Tpo $(DEPDIR)/test3d-RigidBodyKinematics.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='RigidBodyKinematics.cpp' object='test3d-RigidBodyKinematics.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-RigidBodyKinematics.o `test -f 'RigidBodyKinematics.cpp' || echo '$(srcdir)/'`RigidBodyKinematics.cpp
-
-test3d-RigidBodyKinematics.obj: RigidBodyKinematics.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-RigidBodyKinematics.obj -MD -MP -MF $(DEPDIR)/test3d-RigidBodyKinematics.Tpo -c -o test3d-RigidBodyKinematics.obj `if test -f 'RigidBodyKinematics.cpp'; then $(CYGPATH_W) 'RigidBodyKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/RigidBodyKinematics.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-RigidBodyKinematics.Tpo $(DEPDIR)/test3d-RigidBodyKinematics.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='RigidBodyKinematics.cpp' object='test3d-RigidBodyKinematics.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-RigidBodyKinematics.obj `if test -f 'RigidBodyKinematics.cpp'; then $(CYGPATH_W) 'RigidBodyKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/RigidBodyKinematics.cpp'; fi`
-
-test3d-TagLSRefinementCells.o: TagLSRefinementCells.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-TagLSRefinementCells.o -MD -MP -MF $(DEPDIR)/test3d-TagLSRefinementCells.Tpo -c -o test3d-TagLSRefinementCells.o `test -f 'TagLSRefinementCells.cpp' || echo '$(srcdir)/'`TagLSRefinementCells.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-TagLSRefinementCells.Tpo $(DEPDIR)/test3d-TagLSRefinementCells.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagLSRefinementCells.cpp' object='test3d-TagLSRefinementCells.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-TagLSRefinementCells.o `test -f 'TagLSRefinementCells.cpp' || echo '$(srcdir)/'`TagLSRefinementCells.cpp
-
-test3d-TagLSRefinementCells.obj: TagLSRefinementCells.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-TagLSRefinementCells.obj -MD -MP -MF $(DEPDIR)/test3d-TagLSRefinementCells.Tpo -c -o test3d-TagLSRefinementCells.obj `if test -f 'TagLSRefinementCells.cpp'; then $(CYGPATH_W) 'TagLSRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagLSRefinementCells.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-TagLSRefinementCells.Tpo $(DEPDIR)/test3d-TagLSRefinementCells.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagLSRefinementCells.cpp' object='test3d-TagLSRefinementCells.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-TagLSRefinementCells.obj `if test -f 'TagLSRefinementCells.cpp'; then $(CYGPATH_W) 'TagLSRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagLSRefinementCells.cpp'; fi`
-
-test3d-SetLSProperties.o: SetLSProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-SetLSProperties.o -MD -MP -MF $(DEPDIR)/test3d-SetLSProperties.Tpo -c -o test3d-SetLSProperties.o `test -f 'SetLSProperties.cpp' || echo '$(srcdir)/'`SetLSProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-SetLSProperties.Tpo $(DEPDIR)/test3d-SetLSProperties.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetLSProperties.cpp' object='test3d-SetLSProperties.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-SetLSProperties.o `test -f 'SetLSProperties.cpp' || echo '$(srcdir)/'`SetLSProperties.cpp
-
-test3d-SetLSProperties.obj: SetLSProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-SetLSProperties.obj -MD -MP -MF $(DEPDIR)/test3d-SetLSProperties.Tpo -c -o test3d-SetLSProperties.obj `if test -f 'SetLSProperties.cpp'; then $(CYGPATH_W) 'SetLSProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetLSProperties.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-SetLSProperties.Tpo $(DEPDIR)/test3d-SetLSProperties.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetLSProperties.cpp' object='test3d-SetLSProperties.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-SetLSProperties.obj `if test -f 'SetLSProperties.cpp'; then $(CYGPATH_W) 'SetLSProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetLSProperties.cpp'; fi`
-
-test3d-GravityForcing.o: GravityForcing.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-GravityForcing.o -MD -MP -MF $(DEPDIR)/test3d-GravityForcing.Tpo -c -o test3d-GravityForcing.o `test -f 'GravityForcing.cpp' || echo '$(srcdir)/'`GravityForcing.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-GravityForcing.Tpo $(DEPDIR)/test3d-GravityForcing.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='GravityForcing.cpp' object='test3d-GravityForcing.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-GravityForcing.o `test -f 'GravityForcing.cpp' || echo '$(srcdir)/'`GravityForcing.cpp
-
-test3d-GravityForcing.obj: GravityForcing.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -MT test3d-GravityForcing.obj -MD -MP -MF $(DEPDIR)/test3d-GravityForcing.Tpo -c -o test3d-GravityForcing.obj `if test -f 'GravityForcing.cpp'; then $(CYGPATH_W) 'GravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/GravityForcing.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/test3d-GravityForcing.Tpo $(DEPDIR)/test3d-GravityForcing.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='GravityForcing.cpp' object='test3d-GravityForcing.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test3d_CXXFLAGS) $(CXXFLAGS) -c -o test3d-GravityForcing.obj `if test -f 'GravityForcing.cpp'; then $(CYGPATH_W) 'GravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/GravityForcing.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -1384,7 +1037,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po
 	-rm -f ./$(DEPDIR)/main2d-SetLSProperties.Po
 	-rm -f ./$(DEPDIR)/main2d-TagLSRefinementCells.Po
-	-rm -f ./$(DEPDIR)/main2d-ex_main.Po
+	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f ./$(DEPDIR)/main3d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/main3d-LSLocateCircularInterface.Po
 	-rm -f ./$(DEPDIR)/main3d-LSLocateGasInterface.Po
@@ -1393,26 +1046,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/main3d-SetFluidGasSolidViscosity.Po
 	-rm -f ./$(DEPDIR)/main3d-SetLSProperties.Po
 	-rm -f ./$(DEPDIR)/main3d-TagLSRefinementCells.Po
-	-rm -f ./$(DEPDIR)/main3d-ex_main.Po
+	-rm -f ./$(DEPDIR)/main3d-example.Po
 	-rm -f ./$(DEPDIR)/sphereGen-sphereGen.Po
-	-rm -f ./$(DEPDIR)/test2d-GravityForcing.Po
-	-rm -f ./$(DEPDIR)/test2d-LSLocateCircularInterface.Po
-	-rm -f ./$(DEPDIR)/test2d-LSLocateGasInterface.Po
-	-rm -f ./$(DEPDIR)/test2d-RigidBodyKinematics.Po
-	-rm -f ./$(DEPDIR)/test2d-SetFluidGasSolidDensity.Po
-	-rm -f ./$(DEPDIR)/test2d-SetFluidGasSolidViscosity.Po
-	-rm -f ./$(DEPDIR)/test2d-SetLSProperties.Po
-	-rm -f ./$(DEPDIR)/test2d-TagLSRefinementCells.Po
-	-rm -f ./$(DEPDIR)/test2d-test_main.Po
-	-rm -f ./$(DEPDIR)/test3d-GravityForcing.Po
-	-rm -f ./$(DEPDIR)/test3d-LSLocateCircularInterface.Po
-	-rm -f ./$(DEPDIR)/test3d-LSLocateGasInterface.Po
-	-rm -f ./$(DEPDIR)/test3d-RigidBodyKinematics.Po
-	-rm -f ./$(DEPDIR)/test3d-SetFluidGasSolidDensity.Po
-	-rm -f ./$(DEPDIR)/test3d-SetFluidGasSolidViscosity.Po
-	-rm -f ./$(DEPDIR)/test3d-SetLSProperties.Po
-	-rm -f ./$(DEPDIR)/test3d-TagLSRefinementCells.Po
-	-rm -f ./$(DEPDIR)/test3d-test_main.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1466,7 +1101,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po
 	-rm -f ./$(DEPDIR)/main2d-SetLSProperties.Po
 	-rm -f ./$(DEPDIR)/main2d-TagLSRefinementCells.Po
-	-rm -f ./$(DEPDIR)/main2d-ex_main.Po
+	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f ./$(DEPDIR)/main3d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/main3d-LSLocateCircularInterface.Po
 	-rm -f ./$(DEPDIR)/main3d-LSLocateGasInterface.Po
@@ -1475,26 +1110,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/main3d-SetFluidGasSolidViscosity.Po
 	-rm -f ./$(DEPDIR)/main3d-SetLSProperties.Po
 	-rm -f ./$(DEPDIR)/main3d-TagLSRefinementCells.Po
-	-rm -f ./$(DEPDIR)/main3d-ex_main.Po
+	-rm -f ./$(DEPDIR)/main3d-example.Po
 	-rm -f ./$(DEPDIR)/sphereGen-sphereGen.Po
-	-rm -f ./$(DEPDIR)/test2d-GravityForcing.Po
-	-rm -f ./$(DEPDIR)/test2d-LSLocateCircularInterface.Po
-	-rm -f ./$(DEPDIR)/test2d-LSLocateGasInterface.Po
-	-rm -f ./$(DEPDIR)/test2d-RigidBodyKinematics.Po
-	-rm -f ./$(DEPDIR)/test2d-SetFluidGasSolidDensity.Po
-	-rm -f ./$(DEPDIR)/test2d-SetFluidGasSolidViscosity.Po
-	-rm -f ./$(DEPDIR)/test2d-SetLSProperties.Po
-	-rm -f ./$(DEPDIR)/test2d-TagLSRefinementCells.Po
-	-rm -f ./$(DEPDIR)/test2d-test_main.Po
-	-rm -f ./$(DEPDIR)/test3d-GravityForcing.Po
-	-rm -f ./$(DEPDIR)/test3d-LSLocateCircularInterface.Po
-	-rm -f ./$(DEPDIR)/test3d-LSLocateGasInterface.Po
-	-rm -f ./$(DEPDIR)/test3d-RigidBodyKinematics.Po
-	-rm -f ./$(DEPDIR)/test3d-SetFluidGasSolidDensity.Po
-	-rm -f ./$(DEPDIR)/test3d-SetFluidGasSolidViscosity.Po
-	-rm -f ./$(DEPDIR)/test3d-SetLSProperties.Po
-	-rm -f ./$(DEPDIR)/test3d-TagLSRefinementCells.Po
-	-rm -f ./$(DEPDIR)/test3d-test_main.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -1532,7 +1149,8 @@ uninstall-am:
 .PRECIOUS: Makefile
 
 .f.m4.f:
-	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
+	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DCURRENT_SRCDIR=$(srcdir) \
+		-DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
 sphere3d.vertex: sphereGen
 	./sphereGen
@@ -1544,30 +1162,10 @@ examples: $(EXAMPLES) sphere3d.vertex
 	  cp -f $(srcdir)/Cylinder2d_cubic.m $(PWD) ; \
 	fi ;
 
-@GTEST_ENABLED_TRUE@gtest: $(GTESTS)
-@GTEST_ENABLED_TRUE@	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-@GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/input2d.test $(PWD) ; \
-@GTEST_ENABLED_TRUE@	  cp -f $(srcdir)/cylinder2d.vertex $(PWD) ; \
-@GTEST_ENABLED_TRUE@	fi ;
-@GTEST_ENABLED_TRUE@	./test2d input2d.test
-
-@GTEST_ENABLED_TRUE@gtest-long:
-@GTEST_ENABLED_TRUE@	make gtest
-
-@GTEST_ENABLED_FALSE@gtest:
-@GTEST_ENABLED_FALSE@	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-@GTEST_ENABLED_FALSE@	@echo " To run tests, Google Test Framework must be enabled.                "
-@GTEST_ENABLED_FALSE@	@echo " Configure IBAMR with additional options:                            "
-@GTEST_ENABLED_FALSE@	@echo "                      --enable-gtest --with-gtest=path               "
-@GTEST_ENABLED_FALSE@	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-@GTEST_ENABLED_FALSE@gtest-long:
-@GTEST_ENABLED_FALSE@	make gtest
-
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input2d.cyl ; \
-	  rm -f $(builddir)/input2d.test ; \
 	  rm -f $(builddir)/input3d.sphere ; \
 	  rm -f $(builddir)/cylinder2d.vertex ; \
 	  rm -f $(builddir)/Cylinder2d_cubic.m ; \

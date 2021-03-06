@@ -1,34 +1,15 @@
-// Filename: INSStaggeredPressureBcCoef.cpp
-// Created on 06 Sep 2012 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -37,7 +18,6 @@
 #include "ibamr/StokesBcCoefStrategy.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 
@@ -62,6 +42,8 @@
 #include <ostream>
 #include <string>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -270,8 +252,8 @@ INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
     const double* const dx = pgeom->getDx();
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
-        const Index<NDIM>& i = it();
-        double dummy_val;
+        const hier::Index<NDIM>& i = it();
+        double dummy_val = std::numeric_limits<double>::quiet_NaN();
         double& alpha = acoef_data ? (*acoef_data)(i, 0) : dummy_val;
         double& beta = bcoef_data ? (*bcoef_data)(i, 0) : dummy_val;
         double& gamma = gcoef_data ? (*gcoef_data)(i, 0) : dummy_val;
@@ -294,7 +276,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
             {
                 // Place i_i in the interior cell abutting the boundary, and
                 // place i_g in the ghost cell abutting the boundary.
-                Index<NDIM> i_i(i), i_g(i);
+                hier::Index<NDIM> i_i(i), i_g(i);
                 if (is_lower)
                 {
                     i_g(bdry_normal_axis) -= 1;
@@ -338,8 +320,8 @@ INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
             default:
             {
                 TBOX_ERROR(
-                    "INSStaggeredPressureBcCoef::setBcCoefs(): unrecognized or unsupported "
-                    "traction boundary condition type: "
+                    "INSStaggeredPressureBcCoef::setBcCoefs(): unrecognized or "
+                    "unsupported traction boundary condition type: "
                     << enum_to_string<TractionBcType>(d_traction_bc_type) << "\n");
             }
             }

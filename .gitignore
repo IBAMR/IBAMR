@@ -11,6 +11,7 @@ ibtk/contrib/autotools/share
 *compile_commands*.json
 *.sublime-project
 *.sublime-workspace
+.cache
 .clangd
 
 # Created by https://www.gitignore.io/api/linux,osx,c,c++,fortran
@@ -165,7 +166,13 @@ Temporary Items
 *.exe
 *.out
 *.app
+
+# build files and other related scripts
 build
 configure.log
 configure.log.bkp
 RDict.log
+build-*.sh
+objs-*
+*.py
+*.sh

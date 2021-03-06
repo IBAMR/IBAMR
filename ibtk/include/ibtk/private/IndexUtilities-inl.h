@@ -1,45 +1,29 @@
-// Filename: IndexUtilities-inl.h
-// Created on 18 Jun 2005 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
+
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBTK_IndexUtilities_inl_h
 #define included_IBTK_IndexUtilities_inl_h
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/config.h>
+
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/ibtk_macros.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/math/special_functions/round.hpp"
+#include <boost/math/special_functions/round.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <cmath>
@@ -94,29 +78,41 @@ IndexUtilities::getCellIndex(const DoubleArray& X,
     return idx;
 } // getCellIndex
 
-inline IBTK::VectorNd
+template <typename Vector>
+inline Vector
 IndexUtilities::getSideCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::pdat::SideIndex<NDIM>& side_idx)
 {
     const int axis = side_idx.getAxis();
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
-    const double* patch_X_lower = patch_geom->getXLower();
+    const double* const patch_x_lower = patch_geom->getXLower();
     const SAMRAI::hier::Box<NDIM>& patch_box = patch.getBox();
     const SAMRAI::hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
     const double* const patch_dx = patch_geom->getDx();
 
-    IBTK::VectorNd side_coord;
+    Vector side_coord;
     for (int d = 0; d < NDIM; ++d)
     {
         if (d == axis)
         {
-            side_coord[d] = patch_X_lower[d] + patch_dx[d] * (side_idx(d) - patch_lower_idx(d));
+            side_coord[d] = patch_x_lower[d] + patch_dx[d] * (static_cast<double>(side_idx(d) - patch_lower_idx(d)));
         }
         else
         {
-            side_coord[d] = patch_X_lower[d] + patch_dx[d] * (double(side_idx(d) - patch_lower_idx(d)) + 0.5);
+            side_coord[d] =
+                patch_x_lower[d] + patch_dx[d] * (static_cast<double>(side_idx(d) - patch_lower_idx(d)) + 0.5);
         }
     }
+    for (int d = NDIM; d < side_coord.size(); ++d)
+    {
+        side_coord[d] = 0.0;
+    }
     return side_coord;
+} // getSideCenter
+
+inline VectorNd
+IndexUtilities::getSideCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::pdat::SideIndex<NDIM>& side_idx)
+{
+    return getSideCenter<VectorNd>(patch, side_idx);
 } // getSideCenter
 
 template <class DoubleArray>

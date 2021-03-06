@@ -1,0 +1,190 @@
+<h2>Incompatibilities</h2>
+<ol>
+  <li>
+    Changed: FEDataManager no longer inherits from
+    StandardTagAndInitStrategy. The member functions
+    FEDataManager::initializeLevelData and
+    FEDataManager::resetHierarchyConfiguration have been removed.
+    <br>
+    (David Wells, 2019/07/10)
+  </li>
+  <li>
+    Changed: IBAMR no longer explicitly links against netCDF when libMesh is
+    present: instead, it relies on libMesh to link against the correct version
+    of netCDF to resolve the dependency.
+    <br>
+    (David Wells, 2019/09/09)
+  </li>
+  <li>
+    Changed: IBTK::FECache has been changed in several incompatible ways to
+    enable compatibility with elements that are not translation invariant (e.g.,
+    libMesh's subdivision elements). In particular, IBTK::FECache will now
+    reinitialize libMesh::FEBase objects based on a provided set of flags and
+    known properties of the finite element space before returning the object to
+    the caller. The interface changes are
+    <ol>
+      <li>IBTK::FECache objects must be set up with an enum
+        (IBTK::FEUpdateFlags) describing which values should be computed on each
+        element.</li>
+      <li>IBTK::FECache::operator[]() has been replaced by
+        IBTK::FECache::operator()(), which takes a libMesh::Elem pointer as an
+        argument which is used to reinitialize values and gradients when
+        appropriate.</li>
+    </ol>
+    <br>
+    (David Wells, 2019/09/16)
+  </li>
+  <li>
+    Removed: The overlap code in IBFEMethod
+    (IBFEMethod::computeOverlapConstraintForceDensity(),
+    IBFEMethod::resetOverlapNodalValues(), and related functions) has been
+    removed because the algorithm generates spurious motion.
+    <br>
+    (Boyce Griffith, 2019/09/19)
+  </li>
+  <li>
+    Changed: The default value for
+    IBTK::FEDataManager::WorkloadSpec::q_point_weight has been changed to 1.0.
+    <br>
+    (David Wells, 2019/10/04)
+  </li>
+  <li>
+    Changed: IBAMR now requires Eigen 3.2.5 or newer. The bundled version of
+    Eigen has been updated to the latest release (3.3.7).
+    <br>
+    (David Wells, 2019/12/05)
+  </li>
+</ol>
+
+<h2>Major Changes</h2>
+<ol>
+  <li>
+    New: Added a polymeric fluid solver that can solve a Maxwell type fluid
+    model.  Different fluid models can be implemented through a relaxation
+    operator. The solver currently solves for the conformation tensor, not the
+    stress tensor. The current assumption is that the relationship between the
+    conformation tensor and stress tensor is linear. Added several new examples
+    demonstrating the capabilities of the solver.
+    <br>
+    (Aaron Barrett, 2019/10/23)
+  </li>
+  <li>
+    New: IBFEMethod can now partition data internally based on the number of IB
+    (i.e., quadrature) points used in spreading and velocity interpolation. This
+    feature greatly improves parallel scalability of this class since, in
+    general, the number of IB points on a processor is only weakly correlated
+    with the number of cells on that processor.
+    <br>
+    (David Wells, 2019/10/31)
+  </li>
+  <li>
+    Removed: The old test suite based on gtest has been completely removed in
+    favor of the one based on attest. In particular:
+    <ol>
+      <li>gtest is no longer recognized as a dependency.</li>
+      <li><code>example.cpp</code> and <code>ex_main.cpp</code> have been
+        brought back together.</li>
+      <li>The <code>gtest</code> and <code>gtest-long</code> make targets have
+        been removed.</li>
+    </ol>
+    <br>
+    (David Wells, 2019/12/03)
+  </li>
+  <li>
+    New: Several classes (StokesWaveGeneratorStrategy,
+    StokesSecondOrderWaveBcCoef, StokesFifthOrderWaveBcCoef,
+    FifthOrderStokesWaveGenerator) and the namespaces WaveDampingFunctions and
+    WaveGenerationFunctions have all been added to IBAMR for simulating waves.
+    <br>
+    (Amneet Bhalla, 2019/12/18)
+  </li>
+  <li>
+    New: Added a new class FESurfaceDistanceEvaluator which calculates distances
+    from Eulerian cells to a finite element mesh.
+    <br>
+    (Amneet Bhalla, 2019/12/18)
+  </li>
+  <li>
+    New: Added a new class IBInterpolantHierarchyIntegrator which works with
+    IBLevelSetMethod based FSI models.
+    <br>
+    (Amneet Bhalla, 2019/12/18)
+  </li>
+</ol>
+
+<h2>Minor Changes</h2>
+<ol>
+  <li>
+    New: Added a script <code>make_visit_file.py</code> for combining visit dump
+    and lag data (i.e., the script ensures that <code>dumps.visit</code> and
+    <code>lag_data.visit</code> contain everything) accumulated over multiple
+    restart runs into a single file for each category.
+    <br>
+    (Aaron Barrett and David Wells, 2019/10/02)
+  </li>
+  <li>
+    Fixed: AdvDiffSemiImplicitHierarchyIntegrator will no longer perform a KSP
+    solve when the diffusion coefficient is not present or zero.
+    <br>
+    (Aaron Barrett, 2019/07/30)
+  </li>
+  <li>
+    Improved: The bundled copy of muParser has been updated to version 2.2.6.
+    <br>
+    (David Wells, 2019/08/12)
+  </li>
+  <li>
+    Improved: IBStandardInitializer and LMarkerUtilities will now abort (via
+    <code>TBOX_ASSERT</code>) if they need to open a file that, for some reason,
+    cannot be opened.
+    <br>
+    (David Wells, 2019/09/09)
+  </li>
+  <li>
+    Improved: IBStandardInitializer will now log a message explaining what happened
+    when optional input files (e.g., rod input files) are not available.
+    <br>
+    (David Wells, 2019/09/20)
+  </li>
+  <li>
+    Fixed: IBFEMethod::resetHierarchyConfiguration() now sets the starting patch
+    level on its FEDataManager objects to the finest level number instead of 0.
+    This fixes a bug where an FEDataManager could have its coarsest level set to
+    something other than its finest level (supporting multiple grid levels is
+    presently not supported).
+    <br>
+    (David Wells, 2019/11/04)
+  </li>
+  <li>
+    Fixed: Multiple body force functions can be registered with INS integrators.
+    Previously, the integrator would overwrite the previous forcing function,
+    despite claiming that functions would be evaluted in the order they are
+    registered.
+    <br>
+    (Aaron Barrett, 2019/11/12)
+  </li>
+  <li>
+    Fixed: Allows IBAMR to be built with the bundled boost when libMesh is
+    configured without boost support.
+    <br>
+    (Aaron Barrett, 2019/11/19)
+  </li>
+  <li>
+    Improved: Improved Jacobian calculation and caching by creating
+    JacobianCalculator and JacobianCalculatorCache classes for use by
+    FEDataManager.
+    <br>
+    (Jordan Brown, 2019/11/22)
+  </li>
+  <li>
+    Fixed: IBFESurfaceMethod now sets up restart data correctly in parallel.
+    <br>
+    (David Wells, 2019/12/19)
+  </li>
+  <li>
+    Fixed: The IBFE examples now all save the IBFEMethod restart data correctly
+    and can be initiated using restart data.
+    <br>
+    (Marshall Davey, 2019/12/19)
+  </li>
+</ol>

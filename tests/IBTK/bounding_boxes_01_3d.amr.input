@@ -1,0 +1,7 @@
+
+use_amr = TRUE
+
+Main {
+   log_file_name               = "dont_use_me"
+   log_all_nodes               = FALSE
+}

@@ -1,52 +1,25 @@
-// Filename: IBFEInstrumentPanel.cpp
-// Created on 12 April 2018 by Charles Puelz
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2018, Charles Puelz and Boyce Griffith
+// Copyright (c) 2018 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
-
+#include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBFEInstrumentPanel.h"
 #include "ibamr/IBFEMethod.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/FEDataManager.h"
-#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/LData.h"
-#include "ibtk/LDataManager.h"
-#include "ibtk/LMesh.h"
-#include "ibtk/LNode.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchLevel.h"
@@ -63,33 +36,41 @@
 #include "PatchLevel.h"
 #include "SideData.h"
 #include "SideIndex.h"
+#include "tbox/Array.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Timer.h"
-#include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
 #include "libmesh/boundary_info.h"
-#include "libmesh/dense_vector.h"
+#include "libmesh/dense_matrix.h"
+#include "libmesh/dof_map.h"
+#include "libmesh/elem.h"
+#include "libmesh/enum_fe_family.h"
+#include "libmesh/enum_order.h"
+#include "libmesh/enum_parallel_type.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/face_tri3.h"
+#include "libmesh/fe_base.h"
+#include "libmesh/fe_type.h"
+#include "libmesh/fem_context.h"
+#include "libmesh/id_types.h"
+#include "libmesh/libmesh_common.h"
+#include "libmesh/libmesh_version.h"
 #include "libmesh/linear_implicit_system.h"
-#include "libmesh/mesh.h"
-#include "libmesh/mesh_function.h"
+#include "libmesh/mesh_base.h"
+#include "libmesh/node.h"
 #include "libmesh/numeric_vector.h"
 #include "libmesh/point.h"
-#include "libmesh/quadrature_grid.h"
+#include "libmesh/quadrature.h"
+#include "libmesh/quadrature_gauss.h"
 #include "libmesh/serial_mesh.h"
 #include "libmesh/string_to_enum.h"
+#include "libmesh/system.h"
+#include "libmesh/type_vector.h"
+#include "libmesh/variant_filter_iterator.h"
 
-#include "petscvec.h"
-
-IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
-IBTK_ENABLE_EXTRA_WARNINGS
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Geometry" // IWYU pragma: keep
@@ -101,12 +82,21 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <fstream>
 #include <limits>
 #include <map>
-#include <sstream>
+#include <memory>
+#include <set>
 #include <string>
+#include <tuple>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
-using namespace libMesh;
+namespace libMesh
+{
+namespace Parallel
+{
+class Communicator;
+} // namespace Parallel
+} // namespace libMesh
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -118,11 +108,11 @@ namespace
 {
 double
 linear_interp(const Vector& X,
-              const Index<NDIM>& i_cell,
+              const hier::Index<NDIM>& i_cell,
               const Vector& X_cell,
               const CellData<NDIM, double>& v,
-              const Index<NDIM>& /*patch_lower*/,
-              const Index<NDIM>& /*patch_upper*/,
+              const hier::Index<NDIM>& /*patch_lower*/,
+              const hier::Index<NDIM>& /*patch_upper*/,
               const double* const /*x_lower*/,
               const double* const /*x_upper*/,
               const double* const dx)
@@ -155,11 +145,11 @@ linear_interp(const Vector& X,
                      * ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
 #endif
                     );
-                const Index<NDIM> i(i_shift0 + i_cell(0),
-                                    i_shift1 + i_cell(1)
+                const hier::Index<NDIM> i(i_shift0 + i_cell(0),
+                                          i_shift1 + i_cell(1)
 #if (NDIM == 3)
-                                        ,
-                                    i_shift2 + i_cell(2)
+                                              ,
+                                          i_shift2 + i_cell(2)
 #endif
                 );
                 const CellIndex<NDIM> i_c(i);
@@ -175,11 +165,11 @@ linear_interp(const Vector& X,
 template <int N>
 Eigen::Matrix<double, N, 1>
 linear_interp(const Vector& X,
-              const Index<NDIM>& i_cell,
+              const hier::Index<NDIM>& i_cell,
               const Vector& X_cell,
               const CellData<NDIM, double>& v,
-              const Index<NDIM>& /*patch_lower*/,
-              const Index<NDIM>& /*patch_upper*/,
+              const hier::Index<NDIM>& /*patch_lower*/,
+              const hier::Index<NDIM>& /*patch_upper*/,
               const double* const /*x_lower*/,
               const double* const /*x_upper*/,
               const double* const dx)
@@ -215,11 +205,11 @@ linear_interp(const Vector& X,
                      * ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
 #endif
                     );
-                const Index<NDIM> i(i_shift0 + i_cell(0),
-                                    i_shift1 + i_cell(1)
+                const hier::Index<NDIM> i(i_shift0 + i_cell(0),
+                                          i_shift1 + i_cell(1)
 #if (NDIM == 3)
-                                        ,
-                                    i_shift2 + i_cell(2)
+                                              ,
+                                          i_shift2 + i_cell(2)
 #endif
                 );
                 const CellIndex<NDIM> i_c(i);
@@ -237,11 +227,11 @@ linear_interp(const Vector& X,
 
 Vector
 linear_interp(const Vector& X,
-              const Index<NDIM>& i_cell,
+              const hier::Index<NDIM>& i_cell,
               const Vector& X_cell,
               const SideData<NDIM, double>& v,
-              const Index<NDIM>& /*patch_lower*/,
-              const Index<NDIM>& /*patch_upper*/,
+              const hier::Index<NDIM>& /*patch_lower*/,
+              const hier::Index<NDIM>& /*patch_upper*/,
               const double* const /*x_lower*/,
               const double* const /*x_upper*/,
               const double* const dx)
@@ -286,11 +276,11 @@ linear_interp(const Vector& X,
                          * ((X[2] < X_side[2] ? X[2] - (X_side[2] - dx[2]) : (X_side[2] + dx[2]) - X[2]) / dx[2])
 #endif
                         );
-                    const Index<NDIM> i(i_shift0 + i_cell(0),
-                                        i_shift1 + i_cell(1)
+                    const hier::Index<NDIM> i(i_shift0 + i_cell(0),
+                                              i_shift1 + i_cell(1)
 #if (NDIM == 3)
-                                            ,
-                                        i_shift2 + i_cell(2)
+                                                  ,
+                                              i_shift2 + i_cell(2)
 #endif
                     );
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
@@ -341,15 +331,15 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     std::vector<std::vector<libMesh::Point> > temp_nodes;
     std::vector<libMesh::Point> meter_centroids;
     // new API in 1.4.0
-#if 1 <= LIBMESH_MAJOR_VERSION && 4 <= LIBMESH_MINOR_VERSION
+#if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
+    boundary_info.build_node_list(nodes, bcs);
+#else
     const std::vector<std::tuple<dof_id_type, boundary_id_type> > node_list = boundary_info.build_node_list();
     for (const std::tuple<dof_id_type, boundary_id_type>& pair : node_list)
     {
         nodes.push_back(std::get<0>(pair));
         bcs.push_back(std::get<1>(pair));
     }
-#else
-    boundary_info.build_node_list(nodes, bcs);
 #endif
 
     // check to make sure there are node sets to work with
@@ -411,7 +401,6 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
         double max_dist = std::numeric_limits<double>::max();
         d_nodes[jj].push_back(temp_nodes[jj][0]);
         d_node_dof_IDs[jj].push_back(temp_node_dof_IDs[jj][0]);
-        max_dist = std::numeric_limits<double>::max();
         for (unsigned int kk = 1; kk < temp_nodes[jj].size(); ++kk)
         {
             for (unsigned int ll = 0; ll < temp_nodes[jj].size(); ++ll)
@@ -589,8 +578,8 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
         const IntVector<NDIM>& ratio = level->getRatio();
         const Box<NDIM> domain_box_level = Box<NDIM>::refine(domain_box, ratio);
-        const Index<NDIM>& domain_box_level_lower = domain_box_level.lower();
-        const Index<NDIM>& domain_box_level_upper = domain_box_level.upper();
+        const hier::Index<NDIM>& domain_box_level_lower = domain_box_level.lower();
+        const hier::Index<NDIM>& domain_box_level_upper = domain_box_level.upper();
         std::array<double, NDIM> dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -601,8 +590,8 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
             (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel<NDIM> >(nullptr));
         const IntVector<NDIM>& finer_ratio = (ln < finest_ln ? finer_level->getRatio() : IntVector<NDIM>(1));
         const Box<NDIM> finer_domain_box_level = Box<NDIM>::refine(domain_box, finer_ratio);
-        const Index<NDIM>& finer_domain_box_level_lower = finer_domain_box_level.lower();
-        const Index<NDIM>& finer_domain_box_level_upper = finer_domain_box_level.upper();
+        const hier::Index<NDIM>& finer_domain_box_level_lower = finer_domain_box_level.lower();
+        const hier::Index<NDIM>& finer_domain_box_level_upper = finer_domain_box_level.upper();
         std::array<double, NDIM> finer_dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -659,10 +648,9 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
                 for (unsigned int qp = 0; qp < qp_points.size(); ++qp)
                 {
                     Vector qp_temp;
-                    double disp_comp = 0.0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        disp_comp = 0.0;
+                        double disp_comp = 0.0;
                         for (unsigned int nn = 0; nn < phi.size(); ++nn)
                         {
                             disp_comp += disp_coords(d, nn) * phi[nn][qp];
@@ -671,19 +659,19 @@ IBFEInstrumentPanel::initializeHierarchyDependentData(IBFEMethod* ib_method_ops,
                         qp_temp[d] = qp_points[qp](d) + disp_comp;
                     }
 
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(&qp_temp[0],
-                                                                       domainXLower,
-                                                                       domainXUpper,
-                                                                       dx.data(),
-                                                                       domain_box_level_lower,
-                                                                       domain_box_level_upper);
-
-                    const Index<NDIM> finer_i = IndexUtilities::getCellIndex(&qp_temp[0],
+                    const hier::Index<NDIM> i = IndexUtilities::getCellIndex(&qp_temp[0],
                                                                              domainXLower,
                                                                              domainXUpper,
-                                                                             finer_dx.data(),
-                                                                             finer_domain_box_level_lower,
-                                                                             finer_domain_box_level_upper);
+                                                                             dx.data(),
+                                                                             domain_box_level_lower,
+                                                                             domain_box_level_upper);
+
+                    const hier::Index<NDIM> finer_i = IndexUtilities::getCellIndex(&qp_temp[0],
+                                                                                   domainXLower,
+                                                                                   domainXUpper,
+                                                                                   finer_dx.data(),
+                                                                                   finer_domain_box_level_lower,
+                                                                                   finer_domain_box_level_upper);
 
                     if (level->getBoxes().contains(i) &&
                         (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
@@ -732,8 +720,8 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            const Index<NDIM>& patch_lower = patch_box.lower();
-            const Index<NDIM>& patch_upper = patch_box.upper();
+            const hier::Index<NDIM>& patch_lower = patch_box.lower();
+            const hier::Index<NDIM>& patch_upper = patch_box.upper();
 
             Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
             const double* const x_lower = pgeom->getXLower();
@@ -746,7 +734,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
 
             for (Box<NDIM>::Iterator b(patch_box); b; b++)
             {
-                const Index<NDIM>& i = b();
+                const hier::Index<NDIM>& i = b();
                 std::pair<QuadPointMap::const_iterator, QuadPointMap::const_iterator> qp_range =
                     d_quad_point_map[ln].equal_range(i);
                 if (qp_range.first != qp_range.second)
@@ -805,7 +793,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
 
     // check to make sure we don't double count quadrature points because
     // of overlapping patches or something else.
-    const int count_qp_3 = SAMRAI_MPI::sumReduction(count_qp_2);
+    const int count_qp_3 = IBTK_MPI::sumReduction(count_qp_2);
     if (count_qp_1 != count_qp_3)
     {
         TBOX_WARNING("IBFEInstrumentPanel::readInstrumentData :"
@@ -816,9 +804,9 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     }
 
     // Synchronize the values across all processes.
-    SAMRAI_MPI::sumReduction(&d_flow_values[0], d_num_meters);
-    SAMRAI_MPI::sumReduction(&d_mean_pressure_values[0], d_num_meters);
-    SAMRAI_MPI::sumReduction(&A[0], d_num_meters);
+    IBTK_MPI::sumReduction(&d_flow_values[0], d_num_meters);
+    IBTK_MPI::sumReduction(&d_mean_pressure_values[0], d_num_meters);
+    IBTK_MPI::sumReduction(&A[0], d_num_meters);
 
     // Normalize the mean pressure.
     for (unsigned int jj = 0; jj < d_num_meters; ++jj)
@@ -890,7 +878,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
             }
         }
 
-        const double total_correction = SAMRAI_MPI::sumReduction(flux_correction);
+        const double total_correction = IBTK_MPI::sumReduction(flux_correction);
         d_flow_values[jj] -= total_correction;
 
     } // loop over meters
@@ -1065,8 +1053,6 @@ IBFEInstrumentPanel::initializeSystemDependentData(IBFEMethod* ib_method_ops, co
     {
         // get node on meter mesh
         const Node* node = &d_meter_meshes[meter_mesh_number]->node_ref(ii);
-        // get the centroid
-        const Node* centroid_node = &d_meter_meshes[meter_mesh_number]->node_ref(d_num_nodes[meter_mesh_number]);
 
         std::vector<double> node_disp(NDIM, 0.0);
         std::vector<double> centroid_disp(NDIM, 0.0);
@@ -1102,7 +1088,7 @@ void
 IBFEInstrumentPanel::outputData(const double data_time)
 {
     static const int mpi_root = 0;
-    if (SAMRAI_MPI::getRank() == mpi_root)
+    if (IBTK_MPI::getRank() == mpi_root)
     {
         d_mean_pressure_stream.open(d_plot_directory_name + "/mean_pressure.dat", std::ofstream::app);
         d_flux_stream.open(d_plot_directory_name + "/flux.dat", std::ofstream::app);

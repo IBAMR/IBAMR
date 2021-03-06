@@ -1,34 +1,15 @@
-// Filename: MobilityFunctions.cpp
-// Created on 17 Feb 2016 by Bakytzhan Kallemov and Amneet Bhalla
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Amneet Bhalla and Boyce Griffith.
+// Copyright (c) 2016 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -37,7 +18,6 @@
 #include "tbox/Utilities.h"
 
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -359,26 +339,25 @@ InterpolateConstants(KERNEL_TYPES MOB_FIT_current, const double beta)
 
 #endif
 
-    int cnt;
 #if (NDIM == 3)
     //********3D case
     // setting coeficients for steady stokes fitting
-    for (cnt = 0; cnt < 7; cnt++) F_s[cnt] = F_stokes_coeff[cnt][MOB_FIT_current];
-    for (cnt = 0; cnt < 2; cnt++) G_s[cnt] = G_stokes_coeff[cnt][MOB_FIT_current];
+    for (int cnt = 0; cnt < 7; cnt++) F_s[cnt] = F_stokes_coeff[cnt][MOB_FIT_current];
+    for (int cnt = 0; cnt < 2; cnt++) G_s[cnt] = G_stokes_coeff[cnt][MOB_FIT_current];
 
     // setting coeficients for time dependent fitting (curently only for IB6 kernel)
-    for (cnt = 0; cnt < 4; cnt++) Z_b[cnt] = F_beta_zero[cnt];
-    for (cnt = 0; cnt < 10; cnt++) F_b[cnt] = InterpolateLinear(M_betas, F_beta_coeff[cnt], num_cases, beta);
-    for (cnt = 0; cnt < 6; cnt++) G_b[cnt] = InterpolateLinear(M_betas, G_beta_coeff[cnt], num_cases, beta);
+    for (int cnt = 0; cnt < 4; cnt++) Z_b[cnt] = F_beta_zero[cnt];
+    for (int cnt = 0; cnt < 10; cnt++) F_b[cnt] = InterpolateLinear(M_betas, F_beta_coeff[cnt], num_cases, beta);
+    for (int cnt = 0; cnt < 6; cnt++) G_b[cnt] = InterpolateLinear(M_betas, G_beta_coeff[cnt], num_cases, beta);
 
 #elif (NDIM == 2)
-    for (cnt = 0; cnt < 5; cnt++) Z_b[cnt] = F_beta_zero[MOB_FIT_current][cnt];
-    for (cnt = 0; cnt < 3; cnt++) Z_s[cnt] = F_stokes_zero[MOB_FIT_current][cnt];
-    for (cnt = 0; cnt < 5; cnt++) F_s[cnt] = F_stokes_coeff[MOB_FIT_current][cnt];
-    for (cnt = 0; cnt < 4; cnt++) G_s[cnt] = G_stokes_coeff[MOB_FIT_current][cnt];
-    for (cnt = 0; cnt < 8; cnt++)
+    for (int cnt = 0; cnt < 5; cnt++) Z_b[cnt] = F_beta_zero[MOB_FIT_current][cnt];
+    for (int cnt = 0; cnt < 3; cnt++) Z_s[cnt] = F_stokes_zero[MOB_FIT_current][cnt];
+    for (int cnt = 0; cnt < 5; cnt++) F_s[cnt] = F_stokes_coeff[MOB_FIT_current][cnt];
+    for (int cnt = 0; cnt < 4; cnt++) G_s[cnt] = G_stokes_coeff[MOB_FIT_current][cnt];
+    for (int cnt = 0; cnt < 8; cnt++)
         F_b[cnt] = InterpolateLinear(M_betas, F_beta_coeff[MOB_FIT_current][cnt], num_cases, beta);
-    for (cnt = 0; cnt < 4; cnt++)
+    for (int cnt = 0; cnt < 4; cnt++)
         G_b[cnt] = InterpolateLinear(M_betas, G_beta_coeff[MOB_FIT_current][cnt], num_cases, beta);
 #endif
     return;

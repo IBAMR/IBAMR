@@ -1,34 +1,15 @@
-// Filename: LMarkerRefine.cpp
-// Created on 04 Oct 2007 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -38,21 +19,22 @@
 #include "ibtk/LMarkerSet.h"
 #include "ibtk/LMarkerSetData.h"
 #include "ibtk/LMarkerSetVariable.h"
-#include "ibtk/LSet.h"
 #include "ibtk/LSetData.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
+#include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 
+#include <algorithm>
 #include <array>
 #include <string>
-#include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {
@@ -117,8 +99,8 @@ LMarkerRefine::refine(Patch<NDIM>& fine,
 
     const Box<NDIM>& fine_patch_box = fine.getBox();
     const Pointer<CartesianPatchGeometry<NDIM> > fine_patch_geom = fine.getPatchGeometry();
-    const Index<NDIM>& fine_patch_lower = fine_patch_box.lower();
-    const Index<NDIM>& fine_patch_upper = fine_patch_box.upper();
+    const hier::Index<NDIM>& fine_patch_lower = fine_patch_box.lower();
+    const hier::Index<NDIM>& fine_patch_upper = fine_patch_box.upper();
     const double* const fine_patchXLower = fine_patch_geom->getXLower();
     const double* const fine_patchXUpper = fine_patch_geom->getXUpper();
 
@@ -128,7 +110,7 @@ LMarkerRefine::refine(Patch<NDIM>& fine,
     const Box<NDIM> coarse_box = Box<NDIM>::coarsen(fine_box, ratio);
     for (LMarkerSetData::SetIterator it(*src_mark_data); it; it++)
     {
-        const Index<NDIM>& coarse_i = it.getIndex();
+        const hier::Index<NDIM>& coarse_i = it.getIndex();
         if (coarse_box.contains(coarse_i))
         {
             const LMarkerSet& coarse_mark_set = it();
@@ -141,7 +123,7 @@ LMarkerRefine::refine(Patch<NDIM>& fine,
                 {
                     X_shifted[d] = X[d] + static_cast<double>(offset(d)) * coarse_patchDx[d];
                 }
-                Index<NDIM> fine_i = IndexUtilities::getCellIndex(X_shifted, fine_patch_geom, fine_patch_box);
+                hier::Index<NDIM> fine_i = IndexUtilities::getCellIndex(X_shifted, fine_patch_geom, fine_patch_box);
 
                 // Catch edge cases in which roundoff error can cause problems.
                 //

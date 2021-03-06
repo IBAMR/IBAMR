@@ -1,36 +1,17 @@
-// Copyright (c) 2002-2014, Boyce Griffith
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2017 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 // Config files
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
-
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -57,6 +38,8 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -129,18 +112,14 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *                                                                             *
  *******************************************************************************/
 
-bool
-run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<double>& p_err)
+int
+main(int argc, char* argv[])
 {
     // Initialize libMesh, PETSc, MPI, and SAMRAI.
     LibMeshInit init(argc, argv);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
-
-    // resize u_err and p_err to hold error data
-    u_err.resize(3);
-    p_err.resize(3);
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -169,6 +148,8 @@ run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<doubl
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
         const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
+        const string restart_read_dirname = app_initializer->getRestartReadDirectory();
+        const int restart_restore_num = app_initializer->getRestartRestoreNumber();
 
         const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
         const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
@@ -236,8 +217,8 @@ run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<doubl
                            &mesh,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
                            /*register_for_restart*/ true,
-                           app_initializer->getRestartDumpDirectory(),
-                           app_initializer->getRestartRestoreNumber());
+                           restart_read_dirname,
+                           restart_restore_num);
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
@@ -288,7 +269,8 @@ run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<doubl
                                                     /*use_adaptive_quadrature*/ false,
                                                     /*point_density*/ 2.0,
                                                     /*use_consistent_mass_matrix*/ true,
-                                                    /*use_nodal_quadrature*/ false);
+                                                    /*use_nodal_quadrature*/ false,
+                                                    /*allow_rules_with_negative_weights*/ false);
             ib_post_processor->registerInterpolatedScalarEulerianVariable(
                 "p_f", LAGRANGE, FIRST, p_var, p_current_ctx, p_ghostfill, p_interp_spec);
         }
@@ -344,7 +326,21 @@ run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<doubl
         }
         std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
+        // Check to see if this is a restarted run to append current exodus files
+        if (uses_exodus)
+        {
+            const bool from_restart = RestartManager::getManager()->isFromRestart();
+            exodus_io->append(from_restart);
+        }
+
         // Initialize hierarchy configuration and data on all patches.
+        //
+        // libMesh enforces periodic boundary conditions by adding constraints
+        // to each DofMap. Therefore, in order for this to work, we have to
+        // have set up all libMesh systems by this point (i.e., we have to
+        // have added everything we want to the postprocessor and also
+        // registered everything finite element based, like stress
+        // normalization parts, with IBFEMethod).
         EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
         for (unsigned int k = 0; k < equation_systems->n_systems(); ++k)
         {
@@ -406,7 +402,7 @@ run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<doubl
 
         // Open streams to save volume of structure.
         ofstream volume_stream;
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             volume_stream.open("volume.curve", ios_base::out | ios_base::trunc);
         }
@@ -511,10 +507,6 @@ run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<doubl
                      << "\n"
                      << "  L2-norm:  " << hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx) << "\n"
                      << "  max-norm: " << hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx) << "\n";
-
-                u_err[0] = hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx);
-                u_err[1] = hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx);
-                u_err[2] = hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx);
             }
 
             Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
@@ -527,10 +519,6 @@ run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<doubl
                      << "\n"
                      << "  L2-norm:  " << hier_sc_data_ops.L2Norm(u_cloned_idx, wgt_sc_idx) << "\n"
                      << "  max-norm: " << hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx) << "\n";
-
-                u_err[0] = hier_sc_data_ops.L1Norm(u_cloned_idx, wgt_sc_idx);
-                u_err[1] = hier_sc_data_ops.L2Norm(u_cloned_idx, wgt_sc_idx);
-                u_err[2] = hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx);
             }
 
             HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
@@ -545,16 +533,12 @@ run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<doubl
                  << "  max-norm: " << hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx) << "\n"
                  << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 
-            p_err[0] = hier_cc_data_ops.L1Norm(p_cloned_idx, wgt_cc_idx);
-            p_err[1] = hier_cc_data_ops.L2Norm(p_cloned_idx, wgt_cc_idx);
-            p_err[2] = hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx);
-
             // Compute the volume of the structure.
             double J_integral = 0.0;
             System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
             NumericVector<double>* X_vec = X_system.solution.get();
             NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
-            X_vec->localize(*X_ghost_vec);
+            copy_and_synch(*X_vec, *X_ghost_vec);
             DofMap& X_dof_map = X_system.get_dof_map();
             std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
             std::unique_ptr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
@@ -582,8 +566,8 @@ run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<doubl
                     J_integral += abs(FF.det()) * JxW[qp];
                 }
             }
-            J_integral = SAMRAI_MPI::sumReduction(J_integral);
-            if (SAMRAI_MPI::getRank() == 0)
+            J_integral = IBTK_MPI::sumReduction(J_integral);
+            if (IBTK_MPI::getRank() == 0)
             {
                 volume_stream.precision(12);
                 volume_stream.setf(ios::fixed, ios::floatfield);
@@ -592,7 +576,7 @@ run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<doubl
         }
 
         // Close the logging streams.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             volume_stream.close();
         }
@@ -604,7 +588,6 @@ run_example(int argc, char** argv, std::vector<double>& u_err, std::vector<doubl
     } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
-    return true;
 }
 
 void
@@ -622,7 +605,7 @@ output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     // Write Cartesian data.
     string file_name = data_dump_dirname + "/" + "hier_data.";
     char temp_buf[128];
-    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
+    sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, IBTK_MPI::getRank());
     file_name += temp_buf;
     Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
     hier_db->create(file_name);

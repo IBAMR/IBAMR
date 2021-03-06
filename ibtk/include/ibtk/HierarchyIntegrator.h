@@ -1,39 +1,24 @@
-// Filename: HierarchyIntegrator.h
-// Created on 10 Aug 2011 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
+
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBTK_HierarchyIntegrator
 #define included_IBTK_HierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyMathOps.h"
@@ -42,6 +27,7 @@
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
 #include "CoarsenAlgorithm.h"
+#include "CoarsenPatchStrategy.h"
 #include "CoarsenSchedule.h"
 #include "ComponentSelector.h"
 #include "GriddingAlgorithm.h"
@@ -49,6 +35,7 @@
 #include "LoadBalancer.h"
 #include "PatchHierarchy.h"
 #include "RefineAlgorithm.h"
+#include "RefinePatchStrategy.h"
 #include "RefineSchedule.h"
 #include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
@@ -61,6 +48,7 @@
 #include <limits>
 #include <list>
 #include <map>
+#include <memory>
 #include <ostream>
 #include <set>
 #include <string>
@@ -77,13 +65,6 @@ namespace tbox
 {
 class Database;
 } // namespace tbox
-namespace xfer
-{
-template <int DIM>
-class CoarsenPatchStrategy;
-template <int DIM>
-class RefinePatchStrategy;
-} // namespace xfer
 } // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -449,6 +430,9 @@ public:
      *
      * A default implementation is provided that resets the current values of
      * num_cycles and the time step size.
+     *
+     * @note Inheriting classes should call their base class versions of this
+     * method.
      */
     virtual void postprocessIntegrateHierarchy(double current_time,
                                                double new_time,
@@ -515,6 +499,24 @@ public:
      * applyGradientDetector().
      */
     void registerApplyGradientDetectorCallback(ApplyGradientDetectorCallbackFcnPtr callback, void* ctx = nullptr);
+
+    /*!
+     * Callback function specification to enable further specialization of regridHierarchy().
+     */
+    using RegridHierarchyCallbackFcnPtr =
+        void (*)(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                 double data_time,
+                 bool initial_time,
+                 void* ctx);
+
+    /*!
+     * Register a callback function to enable further specialization of regridHierarchy().
+     *
+     * \note This function will be called after all data owned by the hierarchy is initialized and set, but before the
+     * data is synchronized. If data owned by the integrator is used in this function, it should be synchronized prior
+     * to use by an appropriate coarsening operation.
+     */
+    void registerRegridHierarchyCallback(RegridHierarchyCallbackFcnPtr, void* ctx = nullptr);
 
     /*!
      * Perform data initialization after the entire hierarchy has been constructed.
@@ -704,7 +706,8 @@ protected:
 
     /*!
      * Virtual method to compute an implementation-specific minimum stable time
-     * step size.
+     * step size. Implementations should ensure that the returned time step is
+     * consistent across all processors.
      *
      * A default implementation is provided that returns
      * min(dt_max,dt_growth_factor*dt_current).  The growth condition prevents
@@ -714,7 +717,8 @@ protected:
 
     /*!
      * Virtual method to compute an implementation-specific maximum stable time
-     * step size.
+     * step size. Implementations should ensure that the returned time step is
+     * consistent across all processors.
      *
      * A default implementation is provided that returns
      * min(dt_max,dt_growth_factor*dt_current).  The growth condition prevents
@@ -870,25 +874,36 @@ protected:
                                              bool uses_richardson_extrapolation_too);
 
     /*!
+     * Execute any user-specified regridHierarchy callback functions.
+     */
+    virtual void
+    executeRegridHierarchyCallbackFcns(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                       double data_time,
+                                       bool initial_time);
+
+    /*!
      * Register a ghost cell-filling refine algorithm.
      */
-    void registerGhostfillRefineAlgorithm(const std::string& name,
-                                          SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > ghostfill_alg,
-                                          SAMRAI::xfer::RefinePatchStrategy<NDIM>* ghostfill_patch_strategy = NULL);
+    void registerGhostfillRefineAlgorithm(
+        const std::string& name,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > ghostfill_alg,
+        std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM> > ghostfill_patch_strategy = nullptr);
 
     /*!
      * Register a data-prolonging refine algorithm.
      */
-    void registerProlongRefineAlgorithm(const std::string& name,
-                                        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > prolong_alg,
-                                        SAMRAI::xfer::RefinePatchStrategy<NDIM>* prolong_patch_strategy = NULL);
+    void registerProlongRefineAlgorithm(
+        const std::string& name,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > prolong_alg,
+        std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM> > prolong_patch_strategy = nullptr);
 
     /*!
      * Register a coarsen algorithm.
      */
-    void registerCoarsenAlgorithm(const std::string& name,
-                                  SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > coarsen_alg,
-                                  SAMRAI::xfer::CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy = NULL);
+    void registerCoarsenAlgorithm(
+        const std::string& name,
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > coarsen_alg,
+        std::unique_ptr<SAMRAI::xfer::CoarsenPatchStrategy<NDIM> > coarsen_patch_strategy = nullptr);
 
     /*!
      * Get ghost cell-filling refine algorithm.
@@ -1135,7 +1150,7 @@ protected:
      */
     SAMRAI::hier::ComponentSelector d_fill_after_regrid_bc_idxs;
     SAMRAI::xfer::RefineAlgorithm<NDIM> d_fill_after_regrid_prolong_alg;
-    SAMRAI::xfer::RefinePatchStrategy<NDIM>* d_fill_after_regrid_phys_bdry_bc_op;
+    std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_fill_after_regrid_phys_bdry_bc_op;
 
     /*!
      * Callback functions and callback function contexts.
@@ -1148,6 +1163,8 @@ protected:
     std::vector<void*> d_postprocess_integrate_hierarchy_callback_ctxs;
     std::vector<ApplyGradientDetectorCallbackFcnPtr> d_apply_gradient_detector_callbacks;
     std::vector<void*> d_apply_gradient_detector_callback_ctxs;
+    std::vector<RegridHierarchyCallbackFcnPtr> d_regrid_hierarchy_callbacks;
+    std::vector<void*> d_regrid_hierarchy_callback_ctxs;
 
 private:
     /*!

@@ -36,6 +36,15 @@ APPLY_MASS_CONSTRAINT = FALSE
 // In this case it will tag less than thresh
 LS_TAG_THRESH = 2.0*L/N
 
+// Level set initial conditions
+LevelSetInitialConditions {
+  radius = R
+  xcom = XCOM
+  ycom = YCOM
+  zcom = ZCOM
+  function = "sqrt((X_0 - xcom)^2 + (X_1 - ycom)^2 + (X_2 - zcom)^2) - radius" 
+}
+
 // Note: Velocity initial conditions are set
 // via CartGridFunction
 
@@ -199,7 +208,7 @@ CONVECTIVE_TS_TYPE                  = "MIDPOINT_RULE"    // convective time step
 NORMALIZE_PRESSURE                  = TRUE     
 VORTICITY_TAGGING                   = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                          = 2                          // size of tag buffer used by grid generation algorithm
-DT_MAX                              = 0.032/NFINEST/2
+DT_MAX                              = 0.032/NFINEST
 OUTPUT_U                            = TRUE
 OUTPUT_P                            = TRUE
 OUTPUT_F                            = TRUE

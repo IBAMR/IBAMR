@@ -1,79 +1,72 @@
-// Filename: PETScMatUtilities.cpp
-// Created on 24 Aug 2010 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/PETScMatUtilities.h"
-#include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/PoissonUtilities.h"
-#include "ibtk/SideSynchCopyFillPattern.h"
+#include "ibtk/ibtk_enums.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
+#include "BoundaryBox.h"
 #include "Box.h"
-#include "BoxArray.h"
 #include "BoxTree.h"
 #include "CartesianGridGeometry.h"
+#include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellGeometry.h"
 #include "CellIndex.h"
+#include "CellVariable.h"
 #include "CoarseFineBoundary.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchLevel.h"
 #include "PoissonSpecifications.h"
-#include "RefineAlgorithm.h"
+#include "ProcessorMapping.h"
 #include "SideData.h"
 #include "SideGeometry.h"
 #include "SideIndex.h"
+#include "SideVariable.h"
+#include "Variable.h"
+#include "VariableDatabase.h"
 #include "tbox/Array.h"
+#include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
+#include "petscao.h"
+#include "petscis.h"
+#include "petscistypes.h"
 #include "petscmat.h"
 #include "petscsys.h"
 #include "petscvec.h"
+#include <petsclog.h>
 
-#include <algorithm>
 #include <array>
-#include <map>
+#include <iterator>
+#include <limits>
+#include <memory>
 #include <numeric>
 #include <ostream>
 #include <set>
+#include <string>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {
@@ -93,7 +86,7 @@ namespace IBTK
 
 namespace
 {
-bool inline is_cf_bdry_idx(const Index<NDIM>& idx, const std::vector<Box<NDIM> >& cf_bdry_boxes)
+bool inline is_cf_bdry_idx(const hier::Index<NDIM>& idx, const std::vector<Box<NDIM> >& cf_bdry_boxes)
 {
     bool contains_idx = false;
     int n_cf_bdry_boxes = static_cast<int>(cf_bdry_boxes.size());
@@ -104,7 +97,7 @@ bool inline is_cf_bdry_idx(const Index<NDIM>& idx, const std::vector<Box<NDIM> >
     return contains_idx;
 } // is_cf_bdry_idx
 
-inline Index<NDIM>
+inline hier::Index<NDIM>
 get_shift(int dir, int shift)
 {
     SAMRAI::hier::Index<NDIM> iv(0);
@@ -162,7 +155,7 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
 
     // Setup the finite difference stencil.
     static const int stencil_sz = 2 * NDIM + 1;
-    std::vector<Index<NDIM> > stencil(stencil_sz, Index<NDIM>(0));
+    std::vector<hier::Index<NDIM> > stencil(stencil_sz, hier::Index<NDIM>(0));
     for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++stencil_index)
@@ -172,7 +165,7 @@ PETScMatUtilities::constructPatchLevelCCLaplaceOp(Mat& mat,
     }
 
     // Determine the index ranges.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int n_local = num_dofs_per_proc[mpi_rank];
     const int i_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int i_upper = i_lower + n_local;
@@ -312,7 +305,7 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
 
     // Setup the finite difference stencil.
     static const int stencil_sz = 2 * NDIM + 1;
-    std::vector<Index<NDIM> > stencil(stencil_sz, Index<NDIM>(0));
+    std::vector<hier::Index<NDIM> > stencil(stencil_sz, hier::Index<NDIM>(0));
     for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++stencil_index)
@@ -322,7 +315,7 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
     }
 
     // Determine the index ranges.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int n_local = num_dofs_per_proc[mpi_rank];
     const int i_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int i_upper = i_lower + n_local;
@@ -460,7 +453,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
     }
 
     // Determine the index ranges.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int n_local = num_dofs_per_proc[mpi_rank];
     const int proc_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int proc_upper = proc_lower + n_local;
@@ -480,7 +473,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
         {
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
             {
-                const Index<NDIM>& cc = b();
+                const hier::Index<NDIM>& cc = b();
                 const SideIndex<NDIM> i(cc, axis, SideIndex<NDIM>::Lower);
                 const int i_dof_index = (*dof_index_data)(i);
                 if (proc_lower <= i_dof_index && i_dof_index < proc_upper)
@@ -493,7 +486,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                     {
                         if (d == axis)
                         {
-                            Index<NDIM> shift_axis = get_shift(axis, 1);
+                            hier::Index<NDIM> shift_axis = get_shift(axis, 1);
 
                             const int i_dof_hi = (*dof_index_data)(i + shift_axis);
                             if (i_dof_hi >= proc_lower && i_dof_hi < proc_upper)
@@ -516,9 +509,9 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                         }
                         else
                         {
-                            Index<NDIM> shift_d_plus = get_shift(d, 1);
-                            Index<NDIM> shift_d_minus = get_shift(d, -1);
-                            Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+                            hier::Index<NDIM> shift_d_plus = get_shift(d, 1);
+                            hier::Index<NDIM> shift_d_minus = get_shift(d, -1);
+                            hier::Index<NDIM> shift_axis_minus = get_shift(axis, -1);
 
                             const int i_dof_hi = (*dof_index_data)(i + shift_d_plus);
                             if (i_dof_hi >= proc_lower && i_dof_hi < proc_upper)
@@ -605,10 +598,10 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                         &mat);
     IBTK_CHKERRQ(ierr);
 
-    using StencilMapType = std::map<Index<NDIM>, int, IndexFortranOrder>;
+    using StencilMapType = std::map<hier::Index<NDIM>, int, IndexFortranOrder>;
     static std::vector<StencilMapType> stencil_map_vec;
     static const int stencil_sz = (2 * NDIM + 1) + 4 * (NDIM - 1);
-    static const Index<NDIM> ORIGIN(0);
+    static const hier::Index<NDIM> ORIGIN(0);
 
 #if (NDIM == 2)
     // Create stencil dictionary.
@@ -707,7 +700,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
 #endif
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
             {
-                const Index<NDIM>& cc = b();
+                const hier::Index<NDIM>& cc = b();
                 const SideIndex<NDIM> i(b(), axis, SideIndex<NDIM>::Lower);
                 const int dof_index = (*dof_index_data)(i);
                 if (proc_lower <= dof_index && dof_index < proc_upper)
@@ -720,8 +713,8 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                     {
                         if (d == axis)
                         {
-                            const Index<NDIM> shift_axis_plus = get_shift(axis, 1);
-                            const Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+                            const hier::Index<NDIM> shift_axis_plus = get_shift(axis, 1);
+                            const hier::Index<NDIM> shift_axis_minus = get_shift(axis, -1);
 
                             idx += 1;
                             mat_vals[idx] = matrix_coefs(i, stencil_map[shift_axis_plus]);
@@ -733,10 +726,10 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
                         }
                         else
                         {
-                            const Index<NDIM> shift_d_plus = get_shift(d, 1);
-                            const Index<NDIM> shift_d_minus = get_shift(d, -1);
-                            const Index<NDIM> shift_axis_plus = get_shift(axis, 1);
-                            const Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+                            const hier::Index<NDIM> shift_d_plus = get_shift(d, 1);
+                            const hier::Index<NDIM> shift_d_minus = get_shift(d, -1);
+                            const hier::Index<NDIM> shift_axis_plus = get_shift(axis, 1);
+                            const hier::Index<NDIM> shift_axis_minus = get_shift(axis, -1);
 
                             idx += 1;
                             mat_vals[idx] = matrix_coefs(i, stencil_map[shift_d_plus]);
@@ -818,7 +811,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
 #if !defined(NDEBUG)
     TBOX_ASSERT(domain_boxes.size() == 1);
 #endif
-    const Index<NDIM>& domain_lower = domain_boxes[0].lower();
+    const hier::Index<NDIM>& domain_lower = domain_boxes[0].lower();
 
     // The processor mapping determines which patches are assigned to which processors.
     const ProcessorMapping& proc_mapping = patch_level->getProcessorMapping();
@@ -831,7 +824,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     ierr = VecGetOwnershipRange(X_vec, &i_lower, &i_upper);
     IBTK_CHKERRQ(ierr);
 
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int n_local = num_dofs_per_proc[mpi_rank];
     const int j_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int j_upper = j_lower + n_local;
@@ -851,7 +844,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
     for (int k = 0; k < n_local_points; ++k)
     {
         const double* const X = &X_arr[NDIM * k];
-        const Index<NDIM> X_idx = IndexUtilities::getCellIndex(X, grid_geom, ratio);
+        const hier::Index<NDIM> X_idx = IndexUtilities::getCellIndex(X, grid_geom, ratio);
 
 // Determine the position of the center of the Cartesian grid cell
 // containing the IB point.
@@ -904,8 +897,8 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
                     "sizes not currently implemented\n");
             }
             Box<NDIM>& stencil_box_axis = stencil_box[k][axis];
-            Index<NDIM>& stencil_box_lower = stencil_box_axis.lower();
-            Index<NDIM>& stencil_box_upper = stencil_box_axis.upper();
+            hier::Index<NDIM>& stencil_box_lower = stencil_box_axis.lower();
+            hier::Index<NDIM>& stencil_box_upper = stencil_box_axis.upper();
             for (int d = 0; d < NDIM; ++d)
             {
                 if (d == axis)
@@ -981,7 +974,7 @@ PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,
         {
             // Look-up the stencil box.
             const Box<NDIM>& stencil_box_axis = stencil_box[k][axis];
-            const Index<NDIM>& stencil_box_lower = stencil_box_axis.lower();
+            const hier::Index<NDIM>& stencil_box_lower = stencil_box_axis.lower();
 
             // Compute the weights of the 1-dimensional delta functions.
             for (int d = 0; d < NDIM; ++d)
@@ -1251,9 +1244,9 @@ PETScMatUtilities::constructConservativeProlongationOp_cell(Mat& mat,
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarse_domain_boxes.size() == 1);
 #endif
-    const Index<NDIM>& coarse_domain_lower = coarse_domain_boxes[0].lower();
-    const Index<NDIM>& coarse_domain_upper = coarse_domain_boxes[0].upper();
-    Index<NDIM> coarse_num_cells = 1;
+    const hier::Index<NDIM>& coarse_domain_lower = coarse_domain_boxes[0].lower();
+    const hier::Index<NDIM>& coarse_domain_upper = coarse_domain_boxes[0].upper();
+    hier::Index<NDIM> coarse_num_cells = 1;
     coarse_num_cells += coarse_domain_upper - coarse_domain_lower;
 
     // Ratio between fine and coarse levels.
@@ -1262,7 +1255,7 @@ PETScMatUtilities::constructConservativeProlongationOp_cell(Mat& mat,
     const IntVector<NDIM> fine_coarse_ratio = fine_ratio / coarse_ratio;
 
     // Determine the matrix dimensions and index ranges.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int m_local = num_fine_dofs_per_proc[mpi_rank];
     const int n_local = num_coarse_dofs_per_proc[mpi_rank];
     const int i_fine_lower =
@@ -1393,8 +1386,8 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarse_domain_boxes.size() == 1);
 #endif
-    const Index<NDIM>& coarse_domain_lower = coarse_domain_boxes[0].lower();
-    const Index<NDIM>& coarse_domain_upper = coarse_domain_boxes[0].upper();
+    const hier::Index<NDIM>& coarse_domain_lower = coarse_domain_boxes[0].lower();
+    const hier::Index<NDIM>& coarse_domain_upper = coarse_domain_boxes[0].upper();
     Box<NDIM> coarse_domain_side_boxes[NDIM];
     for (int axis = 0; axis < NDIM; ++axis)
     {
@@ -1402,10 +1395,10 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
     }
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = coarse_patch_level->getGridGeometry();
     IntVector<NDIM> coarse_periodic_shift = grid_geom->getPeriodicShift(coarse_patch_level->getRatio());
-    std::array<Index<NDIM>, NDIM> coarse_num_cells;
+    std::array<hier::Index<NDIM>, NDIM> coarse_num_cells;
     for (unsigned d = 0; d < NDIM; ++d)
     {
-        Index<NDIM> offset = 1;
+        hier::Index<NDIM> offset = 1;
         offset(d) = coarse_periodic_shift(d) ? 1 : 2;
         coarse_num_cells[d] = coarse_domain_upper - coarse_domain_lower + offset;
     }
@@ -1416,7 +1409,7 @@ PETScMatUtilities::constructRT0ProlongationOp_side(Mat& mat,
     const IntVector<NDIM> fine_coarse_ratio = fine_ratio / coarse_ratio;
 
     // Determine the matrix dimensions and index ranges.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int m_local = num_fine_dofs_per_proc[mpi_rank];
     const int n_local = num_coarse_dofs_per_proc[mpi_rank];
     const int i_fine_lower =
@@ -1669,8 +1662,8 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarse_domain_boxes.size() == 1);
 #endif
-    const Index<NDIM>& coarse_domain_lower = coarse_domain_boxes[0].lower();
-    const Index<NDIM>& coarse_domain_upper = coarse_domain_boxes[0].upper();
+    const hier::Index<NDIM>& coarse_domain_lower = coarse_domain_boxes[0].lower();
+    const hier::Index<NDIM>& coarse_domain_upper = coarse_domain_boxes[0].upper();
     Box<NDIM> coarse_domain_side_boxes[NDIM];
     for (int axis = 0; axis < NDIM; ++axis)
     {
@@ -1678,10 +1671,10 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
     }
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = coarse_patch_level->getGridGeometry();
     IntVector<NDIM> coarse_periodic_shift = grid_geom->getPeriodicShift(coarse_patch_level->getRatio());
-    std::array<Index<NDIM>, NDIM> coarse_num_cells;
+    std::array<hier::Index<NDIM>, NDIM> coarse_num_cells;
     for (unsigned d = 0; d < NDIM; ++d)
     {
-        Index<NDIM> offset = 1;
+        hier::Index<NDIM> offset = 1;
         offset(d) = coarse_periodic_shift(d) ? 1 : 2;
         coarse_num_cells[d] = coarse_domain_upper - coarse_domain_lower + offset;
     }
@@ -1692,7 +1685,7 @@ PETScMatUtilities::constructLinearProlongationOp_side(Mat& mat,
     const IntVector<NDIM> fine_coarse_ratio = fine_ratio / coarse_ratio;
 
     // Determine the matrix dimensions and index ranges.
-    const int mpi_rank = SAMRAI_MPI::getRank();
+    const int mpi_rank = IBTK_MPI::getRank();
     const int m_local = num_fine_dofs_per_proc[mpi_rank];
     const int n_local = num_coarse_dofs_per_proc[mpi_rank];
     const int i_fine_lower =

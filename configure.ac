@@ -1,3 +1,16 @@
+## ---------------------------------------------------------------------
+##
+## Copyright (c) 2006 - 2021 by the IBAMR developers
+## All rights reserved.
+##
+## This file is part of IBAMR.
+##
+## IBAMR is free software and is distributed under the 3-clause BSD
+## license. The full text of the license can be found in the file
+## COPYRIGHT at the top level directory of IBAMR.
+##
+## ---------------------------------------------------------------------
+
 ###########################################################################
 # Prelude.
 ###########################################################################
@@ -7,6 +20,8 @@ AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADER([config/IBAMR_config.h.tmp])
 AX_PREFIX_CONFIG_H([config/IBAMR_config.h],[IBAMR],[config/IBAMR_config.h.tmp])
+# Also copy our own CMake compatibility shim header:
+AC_CONFIG_LINKS([config/ibamr/config.h:$srcdir/config/config.h.tmp])
 AM_INIT_AUTOMAKE([1.12 -Wall -Werror dist-bzip2 foreign -Wno-extra-portability subdir-objects])
 AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([disable])
@@ -70,8 +85,8 @@ AC_DEFINE_UNQUOTED(VERSION_SUBMINOR, $ibamr_version_subminor, [Subminor version 
 
 dnl We have to use a funny name for the key to guarantee that it comes after
 dnl all constant definitions.
-AH_VERBATIM(Z_INCLUDE_MACRO_HEADER, [/* Define IBAMR-specific macros. */
-#include <ibamr/ibamr_macros.h>])
+AH_VERBATIM(Z_INCLUDE_MACRO_HEADER, [/* Include the new configuration file. */
+#include <ibamr/config.h>])
 
 ###########################################################################
 # Checks for optional and required third-party libraries.
@@ -96,7 +111,6 @@ CONFIGURE_PETSC
 CONFIGURE_BOOST("$ABSOLUTE_SRCDIR/ibtk/contrib/boost","\$(abs_top_builddir)/ibtk/contrib/boost")
 CONFIGURE_EIGEN("$ABSOLUTE_SRCDIR/ibtk/contrib/eigen","\$(abs_top_builddir)/ibtk/contrib/eigen")
 CONFIGURE_GSL
-CONFIGURE_GTEST
 CONFIGURE_HDF5
 CONFIGURE_HYPRE
 CONFIGURE_MUPARSER("$ABSOLUTE_SRCDIR/ibtk/contrib/muparser","\$(abs_top_builddir)/ibtk/contrib/muparser")
@@ -141,15 +155,11 @@ AC_CONFIG_FILES([
   examples/CIB/ex2/Makefile
   examples/CIB/ex3/Makefile
   examples/CIB/ex4/Makefile
-  examples/CIBFE/Makefile
-  examples/CIBFE/ex0/Makefile
-  examples/CIBFE/ex1/Makefile
   examples/ConstraintIB/Makefile
   examples/ConstraintIB/eel2d/Makefile
   examples/ConstraintIB/eel3d/Makefile
   examples/ConstraintIB/falling_sphere/Makefile
   examples/ConstraintIB/flow_past_cylinder/Makefile
-  examples/ConstraintIB/flow_past_cylinder_HF/Makefile
   examples/ConstraintIB/impulsively_started_cylinder/Makefile
   examples/ConstraintIB/knifefish/Makefile
   examples/ConstraintIB/moving_plate/Makefile
@@ -178,6 +188,8 @@ AC_CONFIG_FILES([
   examples/IBFE/explicit/ex9/Makefile
   examples/IBFE/explicit/ex10/Makefile
   examples/IBFE/explicit/ex11/Makefile
+  examples/IBLevelSet/Makefile
+  examples/IBLevelSet/ex0/Makefile
   examples/IMP/Makefile
   examples/IMP/explicit/Makefile
   examples/IMP/explicit/ex0/Makefile
@@ -185,7 +197,20 @@ AC_CONFIG_FILES([
   examples/adv_diff/ex0/Makefile
   examples/adv_diff/ex1/Makefile
   examples/adv_diff/ex2/Makefile
+  examples/adv_diff/ex3/Makefile
+  examples/adv_diff/ex4/Makefile
+  examples/adv_diff/ex5/Makefile
+  examples/adv_diff/ex6/Makefile
+  examples/adv_diff/ex7/Makefile
   examples/advect/Makefile
+  examples/complex_fluids/Makefile
+  examples/complex_fluids/ex0/Makefile
+  examples/complex_fluids/ex1/Makefile
+  examples/complex_fluids/ex2/Makefile
+  examples/complex_fluids/ex3/Makefile
+  examples/complex_fluids/ex4/Makefile
+  examples/fe_mechanics/Makefile
+  examples/fe_mechanics/ex0/Makefile
   examples/level_set/Makefile
   examples/level_set/ex0/Makefile
   examples/level_set/ex1/Makefile
@@ -216,6 +241,9 @@ AC_CONFIG_FILES([
   examples/vc_navier_stokes/ex0/Makefile
   examples/vc_navier_stokes/ex1/Makefile
   examples/vc_navier_stokes/ex2/Makefile
+  examples/wave_tank/Makefile
+  examples/wave_tank/ex0/Makefile
+  examples/wave_tank/ex1/Makefile
   lib/Makefile
   src/Makefile
   src/fortran/Makefile
@@ -224,24 +252,54 @@ AC_CONFIG_FILES([
   src/adv_diff/fortran/Makefile
   src/advect/Makefile
   src/advect/fortran/Makefile
+  src/complex_fluids/Makefile
+  src/complex_fluids/fortran/Makefile
   src/level_set/Makefile
   src/level_set/fortran/Makefile
   src/navier_stokes/Makefile
   src/navier_stokes/fortran/Makefile
   src/utilities/Makefile
-  src/tools/Makefile
+  src/wave_generation/Makefile
   tests/Makefile
   tests/adv_diff/Makefile
   tests/advect/Makefile
+  tests/coarsen/Makefile
+  tests/complex_fluids/Makefile
+  tests/CIB/Makefile
+  tests/fe_mechanics/Makefile
   tests/IB/Makefile
   tests/IBFE/Makefile
   tests/IBTK/Makefile
+  tests/interpolate/Makefile
+  tests/level_set/Makefile
   tests/multiphase_flow/Makefile
+  tests/navier_stokes/Makefile
   tests/physical_boundary/Makefile
   tests/refine/Makefile
   tests/spread/Makefile
+  tests/vc_navier_stokes/Makefile
+  tests/wave_tank/Makefile
 ])
 AC_CONFIG_SUBDIRS([ibtk])
+
+ibamr_version_string=$(cat "$srcdir/VERSION")
+AC_MSG_NOTICE([Configured version of IBAMR is $ibamr_version_string])
+# check if git is available:
+which git>/dev/null
+FOUND_GIT=$?
+if test "$FOUND_GIT" -eq 0 # 0 indicates 'which git' succeeded
+then
+# and we have a git repository:
+    if test -f $srcdir/.git/HEAD
+    then
+        AC_MSG_NOTICE([IBAMR configured with git commit $(git rev-parse HEAD)])
+    else
+        AC_MSG_NOTICE([Current source directory is not a git repository. Skipping git version info.])
+    fi
+else
+    AC_MSG_NOTICE([Current source directory is not a git repository. Skipping git version info.])
+fi
+
 AC_OUTPUT
 echo
 echo "===================================================================="

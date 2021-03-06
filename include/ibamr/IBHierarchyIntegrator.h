@@ -1,39 +1,24 @@
-// Filename: IBHierarchyIntegrator.h
-// Created on 12 Jul 2004 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2006 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
+
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBAMR_IBHierarchyIntegrator
 #define included_IBAMR_IBHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/IBStrategy.h"
 #include "ibamr/INSHierarchyIntegrator.h"
@@ -83,6 +68,8 @@ namespace mesh
 {
 template <int DIM>
 class GriddingAlgorithm;
+template <int DIM>
+class LoadBalancer;
 } // namespace mesh
 namespace tbox
 {
@@ -99,6 +86,47 @@ namespace IBAMR
  * integrator for various versions of the immersed boundary method on an AMR
  * grid hierarchy, along with basic data management for variables defined on
  * that hierarchy.
+ *
+ * <h2>Options Controlling Regridding</h2>
+ *
+ * Most IBAMR applications involve structure meshes defined on the finest level
+ * of the patch hierarchy. These structures move: in particular, they can
+ * potentially move off the finest grid level, causing the interaction routines
+ * to no longer work.
+ *
+ * This class offers two different strategies for calculating how much the
+ * structure has moved (which it then uses to specify that a regrid is
+ * required):
+ *
+ * <ol>
+ *   <li><em>Estimation based on the fluid</em>: The structure is assumed to
+ *     move at the maximum velocity of the fluid at each time step. This class
+ *     will regrid once a single fluid point has moved at least
+ *     <code>regrid_fluid_cfl_interval</code> cell widths since the last
+ *     regrid.</li>
+ *
+ *   <li><em>Estimation based on the structure</em>: The structure's
+ *     displacement is calculated directly from its position vector and that
+ *     value is used to determine the number of cell widths the structure has
+ *     moved. In this case we will regrid once a point on the structure has
+ *     moved at least <code>regrid_structure_cfl_interval</code> cell widths
+ *     since the last regrid.</li>
+ * </ol>
+ *
+ * Both <code>regrid_fluid_cfl_interval</code> and
+ * <code>regrid_structure_cfl_interval</code> can be specified in the input
+ * database. For backwards compatibility the value
+ * <code>regrid_cfl_interval</code> is equivalent to
+ * <code>regrid_fluid_cfl_interval</code>. <em>At the present time
+ * <code>regrid_structure_cfl_interval</code> is not implemented for all
+ * IBStrategy classes.</em>
+ *
+ * Alternatively, one can request that the solver (regardless of any computed
+ * displacement or velocity) regrid every time a fixed number of timesteps have
+ * occurred by specifying <code>regrid_interval</code> in the input database.
+ * <em>If either <code>regrid_structure_cfl_interval</code> or
+ * <code>regrid_fluid_cfl_interval</code> are provided in the input database
+ * then <code>regrid_interval</code> is ignored.</em>
  */
 class IBHierarchyIntegrator : public IBTK::HierarchyIntegrator
 {
@@ -110,6 +138,11 @@ public:
      * object with the restart manager when the object is so registered.
      */
     ~IBHierarchyIntegrator() = default;
+
+    /*!
+     * Return the time stepping scheme.
+     */
+    TimeSteppingType getTimeSteppingType() const;
 
     /*!
      * Return a pointer to the IBStrategy object registered with this
@@ -160,6 +193,14 @@ public:
      * has changed.
      */
     void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
+
+    /*!
+     * Clean up data following call(s) to integrateHierarchy().
+     */
+    void postprocessIntegrateHierarchy(double current_time,
+                                       double new_time,
+                                       bool skip_synchronize_new_state_data,
+                                       int num_cycles = 1) override;
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -299,15 +340,37 @@ protected:
      */
     SAMRAI::tbox::Pointer<INSHierarchyIntegrator> d_ins_hier_integrator;
 
+    /**
+     * The regrid CFL interval indicates the number of meshwidths a particle may
+     * move in any coordinate direction between invocations of the regridding
+     * process.
+     *
+     * @note Currently, when the CFL-based regrid interval is specified, it is
+     * always used instead of the fixed-step regrid interval.
+     */
+    double d_regrid_fluid_cfl_interval = -1.0;
+
     /*
      * The regrid CFL interval indicates the number of meshwidths a particle may
      * move in any coordinate direction between invocations of the regridding
      * process.
      *
-     * NOTE: Currently, when the CFL-based regrid interval is specified, it is
+     * @note Currently, when the CFL-based regrid interval is specified, it is
      * always used instead of the fixed-step regrid interval.
      */
-    double d_regrid_cfl_interval = 0.0, d_regrid_cfl_estimate = 0.0;
+    double d_regrid_structure_cfl_interval = -1.0;
+
+    /**
+     * Estimation on the maximum fraction of fluid cells the structure has
+     * moved based on the maximum fluid velocity.
+     */
+    double d_regrid_fluid_cfl_estimate = 0.0;
+
+    /**
+     * Estimation on the maximum fraction of fluid cells the structure has
+     * moved based on the infinity norm of the structure's displacement.
+     */
+    double d_regrid_structure_cfl_estimate = 0.0;
 
     /*
      * IB method implementation object.
@@ -330,6 +393,8 @@ protected:
 
     /*
      * Refine and coarsen algorithm data.
+     * The base class, HierarchyIntegrator, is responsible for the d_u_phys_bdry_op and d_p_phys_bdry_op
+     * objects as they are passed into d_ghostfill_strategies.
      */
     IBTK::RobinPhysBdryPatchStrategy *d_u_phys_bdry_op, *d_p_phys_bdry_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_u_ghostfill_alg, d_f_prolong_alg, d_p_ghostfill_alg,

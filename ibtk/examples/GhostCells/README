@@ -1,0 +1,16 @@
+This example program demonstrates how to fill in ghost cells, both by using the
+IBAMR provided HierarchyGhostCellInterpolation and by creating a new SAMRAI
+CoarsenOperator and RefineOperator. Note that this example does not treat
+physical boundary conditions.
+
+In this example, we assume we have a cell centered variable that represents the
+total amount of stuff inside a cell. We wish to linearly interpolate this
+variable to the cell nodes. To do this, we must first fill in a layer of ghost
+cells in the AMR grid so we have enough data for our stencil. Typical
+applications in IBAMR and SAMRAI involve computing a concentration of stuff
+inside a cell, and hence the pre-written ghost filling operations must act on
+the concentration of stuff, not the total amount of stuff. We will show two
+different ways to proceed. First, we could compute the total amount of stuff to
+a concentration, then use IBAMR and SAMRAI's ghost filling operations, then
+finally convert back to total amount of stuff. Alternatively, we could write a
+new CoarsenOperator and RefineOperator to fill in ghost cells directly.

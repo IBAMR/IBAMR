@@ -1,51 +1,29 @@
-// Filename: IBInstrumentPanel.cpp
-// Created on 12 May 2007 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include "IBAMR_config.h"
 
 #include "ibamr/IBInstrumentPanel.h"
 #include "ibamr/IBInstrumentationSpec.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LMesh.h"
 #include "ibtk/LNode.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchLevel.h"
@@ -67,15 +45,16 @@
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
 #include "petscvec.h"
 
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 IBTK_DISABLE_EXTRA_WARNINGS
@@ -87,7 +66,6 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <cmath>
 #include <fstream>
 #include <limits>
-#include <map>
 #include <string>
 #include <utility>
 #include <vector>
@@ -122,10 +100,11 @@ static const std::string SILO_SUMMARY_FILE_POSTFIX = ".summary.silo";
 static const std::string SILO_PROCESSOR_FILE_PREFIX = "meter_data.proc_";
 static const std::string SILO_PROCESSOR_FILE_POSTFIX = ".silo";
 
-void init_meter_elements(boost::multi_array<Point, 2>& X_web,
-                         boost::multi_array<Vector, 2>& dA_web,
-                         const boost::multi_array<Point, 1>& X_perimeter,
-                         const Point& X_centroid)
+void
+init_meter_elements(boost::multi_array<Point, 2>& X_web,
+                    boost::multi_array<Vector, 2>& dA_web,
+                    const boost::multi_array<Point, 1>& X_perimeter,
+                    const Point& X_centroid)
 {
 #if (NDIM == 2)
     TBOX_ERROR("no support for 2D flow meters at this time!\n");
@@ -325,11 +304,11 @@ build_meter_web(DBfile* dbfile,
 
 double
 linear_interp(const Point& X,
-              const Index<NDIM>& i_cell,
+              const hier::Index<NDIM>& i_cell,
               const Point& X_cell,
               const CellData<NDIM, double>& v,
-              const Index<NDIM>& /*patch_lower*/,
-              const Index<NDIM>& /*patch_upper*/,
+              const hier::Index<NDIM>& /*patch_lower*/,
+              const hier::Index<NDIM>& /*patch_upper*/,
               const double* const /*x_lower*/,
               const double* const /*x_upper*/,
               const double* const dx)
@@ -362,11 +341,11 @@ linear_interp(const Point& X,
                      * ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
 #endif
                     );
-                const Index<NDIM> i(i_shift0 + i_cell(0),
-                                    i_shift1 + i_cell(1)
+                const hier::Index<NDIM> i(i_shift0 + i_cell(0),
+                                          i_shift1 + i_cell(1)
 #if (NDIM == 3)
-                                        ,
-                                    i_shift2 + i_cell(2)
+                                              ,
+                                          i_shift2 + i_cell(2)
 #endif
                 );
                 const CellIndex<NDIM> i_c(i);
@@ -382,11 +361,11 @@ linear_interp(const Point& X,
 template <int N>
 Eigen::Matrix<double, N, 1>
 linear_interp(const Point& X,
-              const Index<NDIM>& i_cell,
+              const hier::Index<NDIM>& i_cell,
               const Point& X_cell,
               const CellData<NDIM, double>& v,
-              const Index<NDIM>& /*patch_lower*/,
-              const Index<NDIM>& /*patch_upper*/,
+              const hier::Index<NDIM>& /*patch_lower*/,
+              const hier::Index<NDIM>& /*patch_upper*/,
               const double* const /*x_lower*/,
               const double* const /*x_upper*/,
               const double* const dx)
@@ -422,11 +401,11 @@ linear_interp(const Point& X,
                      * ((X[2] < X_center[2] ? X[2] - (X_center[2] - dx[2]) : (X_center[2] + dx[2]) - X[2]) / dx[2])
 #endif
                     );
-                const Index<NDIM> i(i_shift0 + i_cell(0),
-                                    i_shift1 + i_cell(1)
+                const hier::Index<NDIM> i(i_shift0 + i_cell(0),
+                                          i_shift1 + i_cell(1)
 #if (NDIM == 3)
-                                        ,
-                                    i_shift2 + i_cell(2)
+                                              ,
+                                          i_shift2 + i_cell(2)
 #endif
                 );
                 const CellIndex<NDIM> i_c(i);
@@ -444,11 +423,11 @@ linear_interp(const Point& X,
 
 Vector
 linear_interp(const Point& X,
-              const Index<NDIM>& i_cell,
+              const hier::Index<NDIM>& i_cell,
               const Point& X_cell,
               const SideData<NDIM, double>& v,
-              const Index<NDIM>& /*patch_lower*/,
-              const Index<NDIM>& /*patch_upper*/,
+              const hier::Index<NDIM>& /*patch_lower*/,
+              const hier::Index<NDIM>& /*patch_upper*/,
               const double* const /*x_lower*/,
               const double* const /*x_upper*/,
               const double* const dx)
@@ -493,11 +472,11 @@ linear_interp(const Point& X,
                          * ((X[2] < X_side[2] ? X[2] - (X_side[2] - dx[2]) : (X_side[2] + dx[2]) - X[2]) / dx[2])
 #endif
                         );
-                    const Index<NDIM> i(i_shift0 + i_cell(0),
-                                        i_shift1 + i_cell(1)
+                    const hier::Index<NDIM> i(i_shift0 + i_cell(0),
+                                              i_shift1 + i_cell(1)
 #if (NDIM == 3)
-                                            ,
-                                        i_shift2 + i_cell(2)
+                                                  ,
+                                              i_shift2 + i_cell(2)
 #endif
                     );
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
@@ -542,7 +521,7 @@ IBInstrumentPanel::IBInstrumentPanel(std::string object_name, Pointer<Database> 
 IBInstrumentPanel::~IBInstrumentPanel()
 {
     // Close the log file stream.
-    if (SAMRAI_MPI::getRank() == 0)
+    if (IBTK_MPI::getRank() == 0)
     {
         d_log_file_stream.close();
     }
@@ -627,7 +606,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarc
     }
 
     // Communicate local data to all processes.
-    d_num_meters = SAMRAI_MPI::maxReduction(max_meter_index) + 1;
+    d_num_meters = IBTK_MPI::maxReduction(max_meter_index) + 1;
     max_node_index.resize(d_num_meters, -1);
     d_num_perimeter_nodes.clear();
     d_num_perimeter_nodes.resize(d_num_meters, -1);
@@ -635,7 +614,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarc
     {
         d_num_perimeter_nodes[m] = max_node_index[m] + 1;
     }
-    SAMRAI_MPI::maxReduction(d_num_meters > 0 ? &d_num_perimeter_nodes[0] : nullptr, d_num_meters);
+    IBTK_MPI::maxReduction(d_num_meters > 0 ? &d_num_perimeter_nodes[0] : nullptr, d_num_meters);
 #if !defined(NDEBUG)
     for (unsigned int m = 0; m < d_num_meters; ++m)
     {
@@ -677,7 +656,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarc
             std::max(d_max_instrument_name_len, static_cast<int>(d_instrument_names[m].length()));
     }
 
-    if (d_output_log_file && SAMRAI_MPI::getRank() == 0 && !d_log_file_stream.is_open())
+    if (d_output_log_file && IBTK_MPI::getRank() == 0 && !d_log_file_stream.is_open())
     {
         const bool from_restart = RestartManager::getManager()->isFromRestart();
         if (from_restart)
@@ -780,7 +759,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
                 X_perimeter_flattened.end(), d_X_perimeter[m][n].data(), d_X_perimeter[m][n].data() + NDIM);
         }
     }
-    SAMRAI_MPI::sumReduction(&X_perimeter_flattened[0], static_cast<int>(X_perimeter_flattened.size()));
+    IBTK_MPI::sumReduction(&X_perimeter_flattened[0], static_cast<int>(X_perimeter_flattened.size()));
     for (unsigned int m = 0, k = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n, ++k)
@@ -861,8 +840,8 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
         const IntVector<NDIM>& ratio = level->getRatio();
         const Box<NDIM> domain_box_level = Box<NDIM>::refine(domain_box, ratio);
-        const Index<NDIM>& domain_box_level_lower = domain_box_level.lower();
-        const Index<NDIM>& domain_box_level_upper = domain_box_level.upper();
+        const hier::Index<NDIM>& domain_box_level_lower = domain_box_level.lower();
+        const hier::Index<NDIM>& domain_box_level_upper = domain_box_level.upper();
         std::array<double, NDIM> dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -873,8 +852,8 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
             (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel<NDIM> >(nullptr));
         const IntVector<NDIM>& finer_ratio = (ln < finest_ln ? finer_level->getRatio() : IntVector<NDIM>(1));
         const Box<NDIM> finer_domain_box_level = Box<NDIM>::refine(domain_box, finer_ratio);
-        const Index<NDIM>& finer_domain_box_level_lower = finer_domain_box_level.lower();
-        const Index<NDIM>& finer_domain_box_level_upper = finer_domain_box_level.upper();
+        const hier::Index<NDIM>& finer_domain_box_level_lower = finer_domain_box_level.lower();
+        const hier::Index<NDIM>& finer_domain_box_level_upper = finer_domain_box_level.upper();
         std::array<double, NDIM> finer_dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -889,14 +868,14 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
                 for (unsigned int n = 0; n < d_X_web[l].shape()[1]; ++n)
                 {
                     const Point& X = d_X_web[l][m][n];
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(
+                    const hier::Index<NDIM> i = IndexUtilities::getCellIndex(
                         X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower, domain_box_level_upper);
-                    const Index<NDIM> finer_i = IndexUtilities::getCellIndex(X,
-                                                                             domainXLower,
-                                                                             domainXUpper,
-                                                                             finer_dx.data(),
-                                                                             finer_domain_box_level_lower,
-                                                                             finer_domain_box_level_upper);
+                    const hier::Index<NDIM> finer_i = IndexUtilities::getCellIndex(X,
+                                                                                   domainXLower,
+                                                                                   domainXUpper,
+                                                                                   finer_dx.data(),
+                                                                                   finer_domain_box_level_lower,
+                                                                                   finer_domain_box_level_upper);
                     if (level->getBoxes().contains(i) &&
                         (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
                     {
@@ -911,14 +890,14 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
 
             // Setup the web centroid mapping.
             const Point& X = d_X_centroid[l];
-            const Index<NDIM> i = IndexUtilities::getCellIndex(
+            const hier::Index<NDIM> i = IndexUtilities::getCellIndex(
                 X, domainXLower, domainXUpper, dx.data(), domain_box_level_lower, domain_box_level_upper);
-            const Index<NDIM> finer_i = IndexUtilities::getCellIndex(X,
-                                                                     domainXLower,
-                                                                     domainXUpper,
-                                                                     finer_dx.data(),
-                                                                     finer_domain_box_level_lower,
-                                                                     finer_domain_box_level_upper);
+            const hier::Index<NDIM> finer_i = IndexUtilities::getCellIndex(X,
+                                                                           domainXLower,
+                                                                           domainXUpper,
+                                                                           finer_dx.data(),
+                                                                           finer_domain_box_level_lower,
+                                                                           finer_domain_box_level_upper);
             if (level->getBoxes().contains(i) && (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
             {
                 WebCentroid c;
@@ -980,8 +959,8 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            const Index<NDIM>& patch_lower = patch_box.lower();
-            const Index<NDIM>& patch_upper = patch_box.upper();
+            const hier::Index<NDIM>& patch_lower = patch_box.lower();
+            const hier::Index<NDIM>& patch_upper = patch_box.upper();
 
             const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
             const double* const x_lower = pgeom->getXLower();
@@ -994,7 +973,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
 
             for (Box<NDIM>::Iterator b(patch_box); b; b++)
             {
-                const Index<NDIM>& i = b();
+                const hier::Index<NDIM>& i = b();
                 std::pair<WebPatchMap::const_iterator, WebPatchMap::const_iterator> patch_range =
                     d_web_patch_map[ln].equal_range(i);
                 if (patch_range.first != patch_range.second)
@@ -1073,10 +1052,10 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     }
 
     // Synchronize the values across all processes.
-    SAMRAI_MPI::sumReduction(&d_flow_values[0], d_num_meters);
-    SAMRAI_MPI::sumReduction(&d_mean_pres_values[0], d_num_meters);
-    SAMRAI_MPI::sumReduction(&d_point_pres_values[0], d_num_meters);
-    SAMRAI_MPI::sumReduction(&A[0], d_num_meters);
+    IBTK_MPI::sumReduction(&d_flow_values[0], d_num_meters);
+    IBTK_MPI::sumReduction(&d_mean_pres_values[0], d_num_meters);
+    IBTK_MPI::sumReduction(&d_point_pres_values[0], d_num_meters);
+    IBTK_MPI::sumReduction(&A[0], d_num_meters);
 
     // Normalize the mean pressure.
     for (unsigned int m = 0; m < d_num_meters; ++m)
@@ -1138,7 +1117,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                 U_perimeter_flattened.end(), U_perimeter[m][n].data(), U_perimeter[m][n].data() + NDIM);
         }
     }
-    SAMRAI_MPI::sumReduction(&U_perimeter_flattened[0], static_cast<int>(U_perimeter_flattened.size()));
+    IBTK_MPI::sumReduction(&U_perimeter_flattened[0], static_cast<int>(U_perimeter_flattened.size()));
     for (unsigned int m = 0, k = 0; m < d_num_meters; ++m)
     {
         for (int n = 0; n < d_num_perimeter_nodes[m]; ++n, ++k)
@@ -1181,7 +1160,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     if (d_flow_units != "" || d_pres_units != "") plog << "\n";
     plog << std::string(d_max_instrument_name_len + 94, '*') << "\n";
 
-    if (d_output_log_file && SAMRAI_MPI::getRank() == 0)
+    if (d_output_log_file && IBTK_MPI::getRank() == 0)
     {
         outputLogData(d_log_file_stream);
         d_log_file_stream.flush();
@@ -1226,8 +1205,8 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
     char temp_buf[SILO_NAME_BUFSIZE];
     std::string current_file_name;
     DBfile* dbfile;
-    const unsigned int mpi_rank = SAMRAI_MPI::getRank();
-    const unsigned int mpi_nodes = SAMRAI_MPI::getNodes();
+    const int mpi_rank = IBTK_MPI::getRank();
+    const int mpi_nodes = IBTK_MPI::getNodes();
 
     // Create the working directory.
     sprintf(temp_buf, "%06d", d_instrument_read_timestep_num);
@@ -1251,7 +1230,7 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
     // Output the web data on the available MPI processes.
     for (unsigned int meter = 0; meter < d_num_meters; ++meter)
     {
-        if (meter % mpi_nodes == mpi_rank)
+        if (static_cast<int>(meter) % mpi_nodes == mpi_rank)
         {
             std::string dirname = d_instrument_names[meter];
             if (DBMkDir(dbfile, dirname.c_str()) == -1)

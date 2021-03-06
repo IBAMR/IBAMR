@@ -1,0 +1,48 @@
+MAX_LEVELS = 4
+N = 8
+REF_RATIO = 4
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+
+// visualization dump parameters
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2d"
+   visit_number_procs_per_file = 1
+
+}
+
+CartesianGeometry {
+   domain_boxes       = [(0, 0), (N - 1, N - 1)]
+   x_lo               = -1, -1
+   x_up               = 1, 1
+   periodic_dimension = 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+
+   ratio_to_coarser {level_1 = REF_RATIO, REF_RATIO}
+
+   largest_patch_size {level_0 = 512, 512}
+
+   smallest_patch_size {level_0 =   4,   4}
+
+   efficiency_tolerance = 0.70e0
+   combine_efficiency   = 0.85e0
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+   RefineBoxes {}
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
+
+FEDataManager
+{
+}

@@ -1,39 +1,20 @@
-// Filename: IBFEPostProcessor.cpp
-// Created on 4 Dec 2013 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBFEPostProcessor.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/FEDataManager.h"
 #include "ibtk/LEInteractor.h"
@@ -42,9 +23,6 @@
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
-#include "RefineAlgorithm.h"
-#include "RefineOperator.h"
-#include "RefineSchedule.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
@@ -57,12 +35,14 @@
 #include "libmesh/equation_systems.h"
 #include "libmesh/system.h"
 
+#include <algorithm>
 #include <memory>
-#include <ostream>
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace libMesh
 {
@@ -241,9 +221,8 @@ void
 IBFEPostProcessor::interpolateVariables(const double data_time)
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = d_fe_data_manager->getPatchHierarchy();
-    const std::pair<int, int> patch_level_range = d_fe_data_manager->getPatchLevels();
-    const int coarsest_ln = patch_level_range.first;
-    const int finest_ln = patch_level_range.second - 1;
+    const int coarsest_ln = d_fe_data_manager->getCoarsestPatchLevelNumber();
+    const int finest_ln = d_fe_data_manager->getFinestPatchLevelNumber();
 
     const size_t num_eulerian_vars = d_scalar_interp_var_systems.size();
 
@@ -285,7 +264,9 @@ IBFEPostProcessor::interpolateVariables(const double data_time)
     ghost_fill_op.fillData(data_time);
 
     // Interpolate variables.
-    NumericVector<double>* X_ghost_vec = d_fe_data_manager->buildGhostedCoordsVector(/*localize_data*/ true);
+    std::unique_ptr<libMesh::PetscVector<double> > X_ghost_vec =
+        d_fe_data_manager->buildIBGhostedVector(IBFEMethod::COORDS_SYSTEM_NAME);
+    copy_and_synch(*d_fe_data_manager->getSolutionVector(IBFEMethod::COORDS_SYSTEM_NAME), *X_ghost_vec);
     for (unsigned int k = 0; k < num_eulerian_vars; ++k)
     {
         System* system = d_scalar_interp_var_systems[k];

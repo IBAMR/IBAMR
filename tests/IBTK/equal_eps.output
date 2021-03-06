@@ -1,0 +1,168 @@
+Relative test:
+Testing a = 2.2250738585072014e-308 and b = 0
+NOT EQUAL!
+
+Absolute test:
+Testing a = 2.2250738585072014e-308 and b = 0
+EQUAL!
+
+SAMRAI test:
+Testing a = 2.2250738585072014e-308 and b = 0
+EQUAL!
+
+Relative test:
+Testing a = 0 and b = 0
+EQUAL!
+
+Absolute test:
+Testing a = 0 and b = 0
+EQUAL!
+
+SAMRAI test:
+Testing a = 0 and b = 0
+EQUAL!
+
+Relative test:
+Testing a = 2.2204460492503131e-16 and b = 0
+NOT EQUAL!
+
+Absolute test:
+Testing a = 2.2204460492503131e-16 and b = 0
+EQUAL!
+
+SAMRAI test:
+Testing a = 2.2204460492503131e-16 and b = 0
+NOT EQUAL!
+
+Relative test:
+Testing a = 2.2204460492503131e-16 and b = 2.2250738585072014e-308
+NOT EQUAL!
+
+Absolute test:
+Testing a = 2.2204460492503131e-16 and b = 2.2250738585072014e-308
+EQUAL!
+
+SAMRAI test:
+Testing a = 2.2204460492503131e-16 and b = 2.2250738585072014e-308
+NOT EQUAL!
+
+Relative test:
+Testing a = 1e-08 and b = 2.2250738585072014e-308
+NOT EQUAL!
+
+Absolute test:
+Testing a = 1e-08 and b = 2.2250738585072014e-308
+EQUAL!
+
+SAMRAI test:
+Testing a = 1e-08 and b = 2.2250738585072014e-308
+NOT EQUAL!
+
+Relative test:
+Testing a = 1e-08 and b = 0
+NOT EQUAL!
+
+Absolute test:
+Testing a = 1e-08 and b = 0
+EQUAL!
+
+SAMRAI test:
+Testing a = 1e-08 and b = 0
+NOT EQUAL!
+
+Relative test:
+Testing a = 1e-08 and b = 2.2204460492503131e-16
+NOT EQUAL!
+
+Absolute test:
+Testing a = 1e-08 and b = 2.2204460492503131e-16
+EQUAL!
+
+SAMRAI test:
+Testing a = 1e-08 and b = 2.2204460492503131e-16
+NOT EQUAL!
+
+Relative test:
+Testing a = 1 and b = 1
+EQUAL!
+
+Absolute test:
+Testing a = 1 and b = 1
+EQUAL!
+
+SAMRAI test:
+Testing a = 1 and b = 1
+EQUAL!
+
+Relative test:
+Testing a = 1 and b = 1
+EQUAL!
+
+Absolute test:
+Testing a = 1 and b = 1
+EQUAL!
+
+SAMRAI test:
+Testing a = 1 and b = 1
+EQUAL!
+
+Relative test:
+Testing a = 1.0000000000000002 and b = 1
+EQUAL!
+
+Absolute test:
+Testing a = 1.0000000000000002 and b = 1
+EQUAL!
+
+SAMRAI test:
+Testing a = 1.0000000000000002 and b = 1
+EQUAL!
+
+Relative test:
+Testing a = 1.0000000000000002 and b = 1
+EQUAL!
+
+Absolute test:
+Testing a = 1.0000000000000002 and b = 1
+EQUAL!
+
+SAMRAI test:
+Testing a = 1.0000000000000002 and b = 1
+EQUAL!
+
+Relative test:
+Testing a = 1.0000000099999999 and b = 1
+EQUAL!
+
+Absolute test:
+Testing a = 1.0000000099999999 and b = 1
+EQUAL!
+
+SAMRAI test:
+Testing a = 1.0000000099999999 and b = 1
+EQUAL!
+
+Relative test:
+Testing a = 1.0000000099999999 and b = 1
+EQUAL!
+
+Absolute test:
+Testing a = 1.0000000099999999 and b = 1
+EQUAL!
+
+SAMRAI test:
+Testing a = 1.0000000099999999 and b = 1
+EQUAL!
+
+Relative test:
+Testing a = 1.0000000099999999 and b = 1.0000000000000002
+EQUAL!
+
+Absolute test:
+Testing a = 1.0000000099999999 and b = 1.0000000000000002
+EQUAL!
+
+SAMRAI test:
+Testing a = 1.0000000099999999 and b = 1.0000000000000002
+EQUAL!
+

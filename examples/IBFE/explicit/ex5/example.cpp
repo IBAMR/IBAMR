@@ -1,36 +1,17 @@
-// Copyright (c) 2002-2014, Boyce Griffith
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2017 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 // Config files
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
-
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -64,6 +45,8 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
@@ -171,14 +154,12 @@ void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
-bool
-run_example(int argc, char** argv)
+int
+main(int argc, char* argv[])
 {
-    // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    const LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -198,6 +179,8 @@ run_example(int argc, char** argv)
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
         const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
+        const string restart_read_dirname = app_initializer->getRestartReadDirectory();
+        const int restart_restore_num = app_initializer->getRestartRestoreNumber();
 
         const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
         const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();
@@ -257,11 +240,15 @@ run_example(int argc, char** argv)
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        Pointer<IBFESurfaceMethod> ib_method_ops =
-            new IBFESurfaceMethod("IBFESurfaceMethod",
-                                  app_initializer->getComponentDatabase("IBFESurfaceMethod"),
-                                  &mesh,
-                                  app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+	Pointer<IBStrategy> ib_ops;
+	ib_ops = new IBFESurfaceMethod(
+                "IBFESurfaceMethod",
+                app_initializer->getComponentDatabase("IBFESurfaceMethod"),
+                &mesh,
+                app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+                /*register_for_restart*/ true,
+                restart_read_dirname,
+                restart_restore_num);
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
@@ -369,6 +356,13 @@ run_example(int argc, char** argv)
         }
         std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
+        // Check to see if this is a restarted run to append current exodus files
+        if (uses_exodus)
+        {
+            const bool from_restart = RestartManager::getManager()->isFromRestart();
+            exodus_io->append(from_restart);
+        }
+
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
@@ -403,7 +397,7 @@ run_example(int argc, char** argv)
 
         // Open streams to save lift and drag coefficients and the norms of the
         // velocity.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             //~ c1_force_stream.open("C1_3D_force_mfac_" + std::to_string(int(mfac)) +"_N_" + std::to_string(int(N))
             //+"_Q1_kappa_" + std::to_string(int(kappa_s)) +"_eta_" + std::to_string(int(eta_s))
@@ -485,6 +479,13 @@ run_example(int argc, char** argv)
                         exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
                 }
             }
+            if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
+            {
+                pout << "\nWriting restart files...\n\n";
+                RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
+                dynamic_cast<IBFESurfaceMethod&>(*ib_ops).writeFEDataToRestartFile(restart_dump_dirname,
+                                                                                   iteration_num);
+            }
             if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
             {
                 pout << "\nWriting timer data...\n\n";
@@ -503,7 +504,7 @@ run_example(int argc, char** argv)
         }
 
         // Close the logging streams.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             c1_force_stream.close();
             c2_force_stream.close();
@@ -522,10 +523,7 @@ run_example(int argc, char** argv)
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
-    return true;
-} // run_example
+} // main
 
 void
 assemble_df_dt(EquationSystems& es, const std::string& /*system_name*/)
@@ -694,15 +692,15 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
     for (unsigned int d = 0; d < NDIM; ++d) T_integral[d] = 0.0;
 
-    System& x_system = equation_systems->get_system(IBFESurfaceMethod::COORDS_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system(IBFESurfaceMethod::COORDS_SYSTEM_NAME);
     System& U_system = equation_systems->get_system(IBFESurfaceMethod::VELOCITY_SYSTEM_NAME);
-    NumericVector<double>* x_vec = x_system.solution.get();
-    NumericVector<double>* x_ghost_vec = x_system.current_local_solution.get();
-    x_vec->localize(*x_ghost_vec);
+    NumericVector<double>* X_vec = X_system.solution.get();
+    NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
+    copy_and_synch(*X_vec, *X_ghost_vec);
     NumericVector<double>* U_vec = U_system.solution.get();
     NumericVector<double>* U_ghost_vec = U_system.current_local_solution.get();
-    U_vec->localize(*U_ghost_vec);
-    const DofMap& dof_map = x_system.get_dof_map();
+    copy_and_synch(*U_vec, *U_ghost_vec);
+    const DofMap& dof_map = X_system.get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
 
     NumericVector<double>& X0_vec = x_system.get_vector("INITIAL_COORDINATES");
@@ -727,9 +725,9 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     std::vector<const std::vector<libMesh::VectorValue<double> >*> grad_var_data;
     void* force_fcn_ctx = NULL;
 
-    TensorValue<double> FF_qp;
-    boost::multi_array<double, 2> x_node, U_node, TAU_node, X0_node;
-    VectorValue<double> F_qp, U_qp, x_qp, TAU_qp, n, N, X;
+    TensorValue<double> FF, FF_inv_trans;
+    boost::multi_array<double, 2> X_node, U_node, TAU_node, X0_node;
+    VectorValue<double> X, F, N, U, n, x, TAU_qp;
 
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
@@ -741,38 +739,64 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         {
             dof_map.dof_indices(elem, dof_indices[d], d);
         }
-        get_values_for_interpolation(x_node, *x_ghost_vec, dof_indices);
-        get_values_for_interpolation(TAU_node, *TAU_ghost_vec, dof_indices);
+        get_values_for_interpolation(X_node, *X_ghost_vec, dof_indices);
+	get_values_for_interpolation(TAU_node, *TAU_ghost_vec, dof_indices);
         get_values_for_interpolation(U_node, *U_ghost_vec, dof_indices);
         get_values_for_interpolation(X0_node, X0_vec, dof_indices);
 
         const unsigned int n_qp = qrule->n_points();
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
-            interpolate(X, qp, X0_node, phi);
-            interpolate(x_qp, qp, x_node, phi);
-            jacobian(FF_qp, qp, x_node, dphi);
-            interpolate(U_qp, qp, U_node, phi);
-            interpolate(TAU_qp, qp, TAU_node, phi);
+	    interpolate(X, qp, X0_node, phi);
+            interpolate(x, qp, X_node, phi);
+            jacobian(FF, qp, X_node, dphi);
+            interpolate(U, qp, U_node, phi);
+	    interpolate(TAU_qp, qp, TAU_node, phi);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 U_qp_vec[d] = U_qp(d);
             }
             tether_force_function(
-                F_qp, n, N, FF_qp, x_qp, X, elem, 0, var_data, grad_var_data, loop_time, force_fcn_ctx);
+                F, n, N, FF, x, X, elem, 0, var_data, grad_var_data, loop_time, force_fcn_ctx);
             for (int d = 0; d < NDIM; ++d)
             {
-                F_integral[d] += F_qp(d) * JxW[qp];
-                T_integral[d] += TAU_qp(d) * JxW[qp];
+                F_integral[d] += F(d) * JxW[qp];
+		T_integral[d] += TAU_qp(d) * JxW[qp];
+            }
+        }
+        for (unsigned short int side = 0; side < elem->n_sides(); ++side)
+        {
+            if (elem->neighbor_ptr(side)) continue;
+            fe_face->reinit(elem, side);
+            const unsigned int n_qp_face = qrule_face->n_points();
+            for (unsigned int qp = 0; qp < n_qp_face; ++qp)
+            {
+                interpolate(x, qp, X_node, phi_face);
+                jacobian(FF, qp, X_node, dphi_face);
+                interpolate(U, qp, U_node, phi_face);
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    U_qp_vec[d] = U(d);
+                }
+                N = normal_face[qp];
+                tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
+                n = (FF_inv_trans * N).unit();
+
+                tether_force_function(
+                    F, n, N, FF, x, q_point_face[qp], elem, side, var_data, grad_var_data, loop_time, tether_data_ptr);
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    F_integral[d] += F(d) * JxW_face[qp];
+                }
             }
         }
     }
-    SAMRAI_MPI::sumReduction(F_integral, NDIM);
-    SAMRAI_MPI::sumReduction(T_integral, NDIM);
+    IBTK_MPI::sumReduction(F_integral, NDIM);
+    IBTK_MPI::sumReduction(T_integral, NDIM);
     static const double rho = 1.0;
     static const double U_max = 1.0;
     static const double D = 1.0;
-    if (SAMRAI_MPI::getRank() == 0)
+    if (IBTK_MPI::getRank() == 0)
     {
         c1_force_stream << loop_time << " " << 2.0 * -F_integral[0] / (0.25 * D * D * M_PI) << endl;
         c2_force_stream << loop_time << " " << 2.0 * -F_integral[1] / (0.25 * D * D * M_PI) << endl;

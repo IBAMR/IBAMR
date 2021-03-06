@@ -1,0 +1,100 @@
+Number of elements: 648
+
+IBFEMethod: mesh part 0 is using FIRST order LAGRANGE finite elements.
+
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+locally owned range on 0: [0, 198)
+total length on 0: 216
+global index ranges on 0:
+[0, 198)
+[201, 204)
+[207, 213)
+[216, 219)
+[225, 228)
+[231, 234)
+locally owned range on 1: [198, 249)
+total length on 1: 315
+global index ranges on 1:
+[198, 249)
+[0, 141)
+[249, 336)
+[372, 408)
+locally owned range on 2: [249, 372)
+total length on 2: 282
+global index ranges on 2:
+[249, 372)
+[21, 27)
+[30, 36)
+[39, 42)
+[54, 57)
+[60, 63)
+[75, 78)
+[81, 198)
+[207, 210)
+[216, 219)
+[225, 228)
+[231, 234)
+[240, 243)
+[246, 249)
+locally owned range on 3: [372, 423)
+total length on 3: 315
+global index ranges on 3:
+[372, 423)
+[21, 27)
+[30, 36)
+[39, 42)
+[54, 57)
+[60, 63)
+[75, 78)
+[81, 198)
+[207, 210)
+[216, 249)
+[264, 267)
+[270, 276)
+[285, 288)
+[297, 372)
+locally owned range on 4: [423, 546)
+total length on 4: 318
+global index ranges on 4:
+[423, 546)
+[12, 18)
+[21, 24)
+[33, 36)
+[90, 93)
+[102, 105)
+[201, 204)
+[207, 213)
+[216, 219)
+[225, 228)
+[231, 234)
+[249, 336)
+[372, 408)
+[546, 582)
+locally owned range on 5: [546, 597)
+total length on 5: 297
+global index ranges on 5:
+[546, 597)
+[21, 24)
+[33, 36)
+[90, 93)
+[102, 105)
+[147, 150)
+[159, 162)
+[207, 210)
+[216, 219)
+[225, 228)
+[231, 234)
+[240, 243)
+[246, 249)
+[264, 267)
+[270, 276)
+[285, 288)
+[297, 372)
+[381, 384)
+[390, 423)
+[438, 441)
+[444, 450)
+[459, 462)
+[471, 546)

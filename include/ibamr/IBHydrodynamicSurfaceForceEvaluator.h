@@ -1,52 +1,46 @@
-// Filename: IBHydrodynamicSurfaceForceEvaluator.h
-// Created on 11 May 2018 by Nishant Nangia
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2018, Nishant Nangia and Amneet Bhalla
+// Copyright (c) 2018 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
+
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBHydrodynamicSurfaceForceEvaluator
 #define included_IBHydrodynamicSurfaceForceEvaluator
 
-#include "ibtk/ibtk_macros.h"
+/////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
+
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/INSHierarchyIntegrator.h"
+
 #include "ibtk/ibtk_utilities.h"
 
 #include "Box.h"
 #include "CellVariable.h"
 #include "RobinBcCoefStrategy.h"
 #include "tbox/DescribedClass.h"
+#include "tbox/Pointer.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Core"
 #include "Eigen/Geometry"
 IBTK_ENABLE_EXTRA_WARNINGS
 
+#include <iosfwd>
+#include <limits>
 #include <map>
+#include <memory>
+#include <string>
 #include <vector>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -66,6 +60,7 @@ namespace tbox
 {
 template <class TYPE>
 class Pointer;
+class Database;
 } // namespace tbox
 namespace solv
 {
@@ -141,6 +136,11 @@ public:
      * \f$.
      */
     virtual void setSurfaceContourLevel(double s = 0);
+
+    /*!
+     * \brief Indicate if the force and torque results need to be written on a file.
+     */
+    void writeToFile(bool write_to_file = true);
 
 private:
     /*!
@@ -225,6 +225,27 @@ private:
      * \brief The contour level that describes the surface of the solid object.
      */
     double d_surface_contour_value = 0.0;
+
+    /*!
+     * \brief Whether to write results on a text file.
+     */
+    bool d_write_to_file = false;
+
+    /*!
+     * \brief File streams associated for the output of hydrodynamic force.
+     *
+     * \note Columns 1-3 represent sum of -p.n dA. Columns 4-6 represent sum of n.(grad U + grad U^T) dA.
+     *
+     */
+    std::unique_ptr<std::ofstream> d_hydro_force_stream = nullptr;
+
+    /*!
+     * \brief File streams associated for the output of hydrodynamic torque.
+     *
+     * \note Columns 1-3 represent sum of r X -p.n dA. Columns 4-6 represent sum of r x n.(grad U + grad U^T) dA.
+     *
+     */
+    std::unique_ptr<std::ofstream> d_hydro_torque_stream = nullptr;
 };
 } // namespace IBAMR
 

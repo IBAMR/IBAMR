@@ -1,38 +1,17 @@
-// Filename: SCPoissonPointRelaxationFACOperator.cpp
-// Created on 13 Nov 2008 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include "IBTK_config.h"
 
 #include "ibtk/CartSideDoubleCubicCoarsen.h"
 #include "ibtk/CartSideDoubleQuadraticCFInterpolation.h"
@@ -50,7 +29,6 @@
 #include "ibtk/SideSynchCopyFillPattern.h"
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
 #include "Box.h"
@@ -59,7 +37,6 @@
 #include "CartesianPatchGeometry.h"
 #include "CoarsenOperator.h"
 #include "HierarchySideDataOpsReal.h"
-#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchDescriptor.h"
@@ -86,44 +63,48 @@
 #include "tbox/Utilities.h"
 
 #include <algorithm>
+#include <array>
 #include <map>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "ibtk/namespaces.h" // IWYU pragma: keep
+
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define GS_SMOOTH_FC IBTK_FC_FUNC(gssmooth2d, GSSMOOTH2D)
+#define SMOOTH_GS_CONST_DC_FC IBTK_FC_FUNC(smooth_gs_const_dc_2d, SMOOTH_GS_CONST_DC_2D)
+#define SMOOTH_GS_RB_CONST_DC_FC IBTK_FC_FUNC(smooth_gs_rb_const_dc_2d, SMOOTH_GS_RB_CONST_DC_2D)
 #define GS_SMOOTH_MASK_FC IBTK_FC_FUNC(gssmoothmask2d, GSSMOOTHMASK2D)
-#define RB_GS_SMOOTH_FC IBTK_FC_FUNC(rbgssmooth2d, RBGSSMOOTH2D)
 #define RB_GS_SMOOTH_MASK_FC IBTK_FC_FUNC(rbgssmoothmask2d, RBGSSMOOTHMASK2D)
 #endif
 #if (NDIM == 3)
-#define GS_SMOOTH_FC IBTK_FC_FUNC(gssmooth3d, GSSMOOTH3D)
+#define SMOOTH_GS_CONST_DC_FC IBTK_FC_FUNC(smooth_gs_const_dc_3d, SMOOTH_GS_CONST_DC_3D)
+#define SMOOTH_GS_RB_CONST_DC_FC IBTK_FC_FUNC(smooth_gs_rb_const_dc_3d, SMOOTH_GS_RB_CONST_DC_3D)
 #define GS_SMOOTH_MASK_FC IBTK_FC_FUNC(gssmoothmask3d, GSSMOOTHMASK3D)
-#define RB_GS_SMOOTH_FC IBTK_FC_FUNC(rbgssmooth3d, RBGSSMOOTH3D)
 #define RB_GS_SMOOTH_MASK_FC IBTK_FC_FUNC(rbgssmoothmask3d, RBGSSMOOTHMASK3D)
 #endif
 
 // Function interfaces
 extern "C"
 {
-    void GS_SMOOTH_FC(double* U,
-                      const int& U_gcw,
-                      const double& alpha,
-                      const double& beta,
-                      const double* F,
-                      const int& F_gcw,
-                      const int& ilower0,
-                      const int& iupper0,
-                      const int& ilower1,
-                      const int& iupper1,
+    void SMOOTH_GS_CONST_DC_FC(double* U,
+                               const int& U_gcw,
+                               const double& D,
+                               const double& C,
+                               const double* F,
+                               const int& F_gcw,
+                               const int& ilower0,
+                               const int& iupper0,
+                               const int& ilower1,
+                               const int& iupper1,
 #if (NDIM == 3)
-                      const int& ilower2,
-                      const int& iupper2,
+                               const int& ilower2,
+                               const int& iupper2,
 #endif
-                      const double* dx);
+                               const double* dx);
 
     void GS_SMOOTH_MASK_FC(double* U,
                            const int& U_gcw,
@@ -143,22 +124,22 @@ extern "C"
 #endif
                            const double* dx);
 
-    void RB_GS_SMOOTH_FC(double* U,
-                         const int& U_gcw,
-                         const double& alpha,
-                         const double& beta,
-                         const double* F,
-                         const int& F_gcw,
-                         const int& ilower0,
-                         const int& iupper0,
-                         const int& ilower1,
-                         const int& iupper1,
+    void SMOOTH_GS_RB_CONST_DC_FC(double* U,
+                                  const int& U_gcw,
+                                  const double& D,
+                                  const double& C,
+                                  const double* F,
+                                  const int& F_gcw,
+                                  const int& ilower0,
+                                  const int& iupper0,
+                                  const int& ilower1,
+                                  const int& iupper1,
 #if (NDIM == 3)
-                         const int& ilower2,
-                         const int& iupper2,
+                                  const int& ilower2,
+                                  const int& iupper2,
 #endif
-                         const double* dx,
-                         const int& red_or_black);
+                                  const double* dx,
+                                  const int& red_or_black);
 
     void RB_GS_SMOOTH_MASK_FC(double* U,
                               const int& U_gcw,
@@ -527,8 +508,8 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
             }
 
             // Smooth the error using Gauss-Seidel.
-            const double& alpha = d_poisson_spec.getDConstant();
-            const double& beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
+            const double& D = d_poisson_spec.getDConstant();
+            const double& C = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 const Box<NDIM> side_patch_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
@@ -547,8 +528,8 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                             int red_or_black = isweep % 2; // "red" = 0, "black" = 1
                             RB_GS_SMOOTH_MASK_FC(U,
                                                  U_ghosts,
-                                                 alpha,
-                                                 beta,
+                                                 D,
+                                                 C,
                                                  F,
                                                  F_ghosts,
                                                  mask,
@@ -568,8 +549,8 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                         {
                             GS_SMOOTH_MASK_FC(U,
                                               U_ghosts,
-                                              alpha,
-                                              beta,
+                                              D,
+                                              C,
                                               F,
                                               F_ghosts,
                                               mask,
@@ -590,40 +571,40 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                         if (red_black_ordering)
                         {
                             int red_or_black = isweep % 2; // "red" = 0, "black" = 1
-                            RB_GS_SMOOTH_FC(U,
-                                            U_ghosts,
-                                            alpha,
-                                            beta,
-                                            F,
-                                            F_ghosts,
-                                            side_patch_box.lower(0),
-                                            side_patch_box.upper(0),
-                                            side_patch_box.lower(1),
-                                            side_patch_box.upper(1),
+                            SMOOTH_GS_RB_CONST_DC_FC(U,
+                                                     U_ghosts,
+                                                     D,
+                                                     C,
+                                                     F,
+                                                     F_ghosts,
+                                                     side_patch_box.lower(0),
+                                                     side_patch_box.upper(0),
+                                                     side_patch_box.lower(1),
+                                                     side_patch_box.upper(1),
 #if (NDIM == 3)
-                                            side_patch_box.lower(2),
-                                            side_patch_box.upper(2),
+                                                     side_patch_box.lower(2),
+                                                     side_patch_box.upper(2),
 #endif
-                                            dx,
-                                            red_or_black);
+                                                     dx,
+                                                     red_or_black);
                         }
                         else
                         {
-                            GS_SMOOTH_FC(U,
-                                         U_ghosts,
-                                         alpha,
-                                         beta,
-                                         F,
-                                         F_ghosts,
-                                         side_patch_box.lower(0),
-                                         side_patch_box.upper(0),
-                                         side_patch_box.lower(1),
-                                         side_patch_box.upper(1),
+                            SMOOTH_GS_CONST_DC_FC(U,
+                                                  U_ghosts,
+                                                  D,
+                                                  C,
+                                                  F,
+                                                  F_ghosts,
+                                                  side_patch_box.lower(0),
+                                                  side_patch_box.upper(0),
+                                                  side_patch_box.lower(1),
+                                                  side_patch_box.upper(1),
 #if (NDIM == 3)
-                                         side_patch_box.lower(2),
-                                         side_patch_box.upper(2),
+                                                  side_patch_box.lower(2),
+                                                  side_patch_box.upper(2),
 #endif
-                                         dx);
+                                                  dx);
                         }
                     }
                 }
@@ -686,7 +667,6 @@ SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
 
     const Pointer<SideVariable<NDIM, double> > res_var = residual.getComponentVariable(0);
     const Pointer<SideVariable<NDIM, double> > sol_var = solution.getComponentVariable(0);
-    const Pointer<SideVariable<NDIM, double> > rhs_var = rhs.getComponentVariable(0);
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;

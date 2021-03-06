@@ -1,48 +1,26 @@
-// Filename: ParallelEdgeMap.cpp
-// Created on 28 Jun 2010 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/ParallelEdgeMap.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
-
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
 
 #include <algorithm>
 #include <map>
-#include <ostream>
-#include <utility>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -83,13 +61,13 @@ ParallelEdgeMap::removeEdge(const std::pair<int, int>& link, int mastr_idx)
 void
 ParallelEdgeMap::communicateData()
 {
-    const int size = SAMRAI_MPI::getNodes();
-    const int rank = SAMRAI_MPI::getRank();
+    const int size = IBTK_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
 
     std::vector<int> num_additions_and_removals(2 * size, 0);
     num_additions_and_removals[2 * rank] = static_cast<int>(d_pending_additions.size());
     num_additions_and_removals[2 * rank + 1] = static_cast<int>(d_pending_removals.size());
-    SAMRAI_MPI::sumReduction(&num_additions_and_removals[0], 2 * size);
+    IBTK_MPI::sumReduction(&num_additions_and_removals[0], 2 * size);
 
     int num_transactions = 0, offset = 0;
     for (int k = 0; k < size; ++k)
@@ -118,7 +96,7 @@ ParallelEdgeMap::communicateData()
         transactions[SIZE * offset + 1] = cit->second.first;
         transactions[SIZE * offset + 2] = cit->second.second;
     }
-    SAMRAI_MPI::sumReduction(&transactions[0], SIZE * num_transactions);
+    IBTK_MPI::sumReduction(&transactions[0], SIZE * num_transactions);
 
     offset = 0;
     for (int k = 0; k < size; ++k)

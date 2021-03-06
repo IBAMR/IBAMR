@@ -1,71 +1,31 @@
+## ---------------------------------------------------------------------
+##
+## Copyright (c) 2009 - 2020 by the IBAMR developers
+## All rights reserved.
+##
+## This file is part of IBAMR.
+##
+## IBAMR is free software and is distributed under the 3-clause BSD
+## license. The full text of the license can be found in the file
+## COPYRIGHT at the top level directory of IBAMR.
+##
+## ---------------------------------------------------------------------
+
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = IB IBFE IMP adv_diff advect navier_stokes ConstraintIB CIB CIBFE level_set multiphase_flow vc_navier_stokes
+SUBDIRS = CIB ConstraintIB IB IBFE IBLevelSet IMP adv_diff advect fe_mechanics navier_stokes level_set multiphase_flow vc_navier_stokes wave_tank
 
 all:
 	if test "$(CONFIGURATION_BUILD_DIR)" != ""; then \
 	  $(MAKE) examples ; \
 	fi ;
 
-COMPLETE_EXAMPLES = IB IBFE adv_diff advect navier_stokes ConstraintIB CIB level_set multiphase_flow vc_navier_stokes
+COMPLETE_EXAMPLES = CIB ConstraintIB IB IBFE IBLevelSet adv_diff advect fe_mechanics navier_stokes level_set multiphase_flow vc_navier_stokes wave_tank
 # Not all examples can be compiled at the present time
-INCOMPLETE_EXAMPLES = IMP CIBFE
+INCOMPLETE_EXAMPLES = IMP
 .PHONY: examples $(COMPLETE_EXAMPLES)
 examples: $(COMPLETE_EXAMPLES)
 
 $(COMPLETE_EXAMPLES):
 	cd $@ && $(MAKE) $(AM_MAKEFLAGS) examples
 
-if GTEST_ENABLED
-gtest:
-	@(cd IB               && make gtest) || exit 1;
-	@(cd IBFE             && make gtest) || exit 1;
-##      @(cd IMP              && make gtest) || exit 1;
-	@(cd adv_diff         && make gtest) || exit 1;
-	@(cd advect           && make gtest) || exit 1;
-	@(cd navier_stokes    && make gtest) || exit 1;
-	@(cd ConstraintIB     && make gtest) || exit 1;
-	@(cd CIB              && make gtest) || exit 1;
-##	@(cd CIBFE            && make gtest) || exit 1;
-	@(cd level_set        && make gtest) || exit 1;
-	@(cd multiphase_flow  && make gtest) || exit 1;
-	@(cd vc_navier_stokes && make gtest) || exit 1;
-
-gtest-long:
-	@(cd IB               && make gtest-long) || exit 1;
-	@(cd IBFE             && make gtest-long) || exit 1;
-##      @(cd IMP              && make gtest-long) || exit 1;
-	@(cd adv_diff         && make gtest-long) || exit 1;
-	@(cd advect           && make gtest-long) || exit 1;
-	@(cd navier_stokes    && make gtest-long) || exit 1;
-	@(cd ConstraintIB     && make gtest-long) || exit 1;
-	@(cd CIB              && make gtest-long) || exit 1;
-##	@(cd CIBFE            && make gtest-long) || exit 1;
-	@(cd level_set        && make gtest-long) || exit 1;
-	@(cd multiphase_flow  && make gtest-long) || exit 1;
-	@(cd vc_navier_stokes && make gtest-long) || exit 1;
-
-gtest-all:
-	@(cd IB               && make gtest-all) || exit 1;
-	@(cd IBFE             && make gtest-all) || exit 1;
-##      @(cd IMP              && make gtest-all) || exit 1;
-	@(cd adv_diff         && make gtest-all) || exit 1;
-	@(cd advect           && make gtest-all) || exit 1;
-	@(cd navier_stokes    && make gtest-all) || exit 1;
-	@(cd ConstraintIB     && make gtest-all) || exit 1;
-	@(cd CIB              && make gtest-all) || exit 1;
-##	@(cd CIBFE            && make gtest-all) || exit 1;
-	@(cd level_set        && make gtest-all) || exit 1;
-	@(cd multiphase_flow  && make gtest-all) || exit 1;
-	@(cd vc_navier_stokes && make gtest-all) || exit 1;
-
-else
-gtest:
-	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-	@echo " To run tests, Google Test Framework must be enabled.                "
-	@echo " Configure IBAMR with additional options:                            "
-	@echo "                      --enable-gtest --with-gtest=path               "
-	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-gtest-long:
-	make gtest
-endif

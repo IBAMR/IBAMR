@@ -1,39 +1,16 @@
+c ---------------------------------------------------------------------
 c
-c     Copyright (c) 2002-2017, Boyce Griffith
-c     All rights reserved.
+c Copyright (c) 2014 - 2020 by the IBAMR developers
+c All rights reserved.
 c
-c     Redistribution and use in source and binary forms, with or without
-c     modification, are permitted provided that the following conditions
-c     are met:
+c This file is part of IBAMR.
 c
-c        * Redistributions of source code must retain the above
-c          copyright notice, this list of conditions and the following
-c          disclaimer.
+c IBAMR is free software and is distributed under the 3-clause BSD
+c license. The full text of the license can be found in the file
+c COPYRIGHT at the top level directory of IBAMR.
 c
-c        * Redistributions in binary form must reproduce the above
-c          copyright notice, this list of conditions and the following
-c          disclaimer in the documentation and/or other materials
-c          provided with the distribution.
-c
-c        * Neither the name of The University of North Carolina nor the
-c          names of its contributors may be used to endorse or promote
-c          products derived from this software without specific prior
-c          written permission.
-c
-c     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
-c     CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
-c     INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-c     MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-c     DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS
-c     BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-c     EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
-c     TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-c     DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-c     ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
-c     TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
-c     THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-c     SUCH DAMAGE.
-c
+c ---------------------------------------------------------------------
+
 dnl Process this file with m4 to produce FORTRAN source code
 define(REAL,`double precision')dnl
 define(INTEGER,`integer')dnl
@@ -122,37 +99,6 @@ c
          minmod2 = dmax1(a,b)
       else
          minmod2 = 0.d0
-      endif
-c
-      return
-      end
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c     The minmod function of three arguments.
-c
-c     The minmod function is a function of two or more arguments that
-c     takes the value of the argument with the smallest modulus if all
-c     arguments have the same sign.  Otherwise it takes the value zero.
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      REAL function minmod3(a,b,c)
-c
-      implicit none
-c
-c     Input.
-c
-      REAL a,b,c
-c
-c     minmod(a,b,c)
-c
-      if     ( (a.ge.0.0d0).and.(b.ge.0.0d0).and.(c.ge.0.0d0) ) then
-         minmod3 = dmin1(a,b,c)
-      elseif ( (a.le.0.0d0).and.(b.le.0.0d0).and.(c.le.0.0d0) ) then
-         minmod3 = dmax1(a,b,c)
-      else
-         minmod3 = 0.d0
       endif
 c
       return

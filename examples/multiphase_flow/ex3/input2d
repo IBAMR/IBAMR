@@ -35,6 +35,14 @@ APPLY_MASS_CONSTRAINT = FALSE
 // In this case it will tag less than thresh
 LS_TAG_THRESH = 2.0*L/N
 
+// Level set initial conditions
+LevelSetInitialConditions {
+  radius = R
+  xcom = XCOM
+  ycom = YCOM
+  function = "sqrt((X_0 - xcom)^2 + (X_1 - ycom)^2) - radius" 
+}
+
 // Note: Velocity initial conditions are set
 // via CartGridFunction
 

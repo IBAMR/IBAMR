@@ -1,0 +1,16 @@
+These directories contain scripts that may be helpful during development, setting up simulations, or post processing.
+
+code_updates:
+  -- Contains scripts used to do simple fixes that could change many lines.
+
+formatting:
+  -- Contains scripts to format code.
+
+IB:
+  -- Contains scripts to verify and update standard input files for IB simulations
+
+project_templates:
+  -- Contains project templates for various GUI's used by IBAMR developers
+
+restarts:
+  -- Contains scripts used for automatically restarting simulations and combining visualization files.

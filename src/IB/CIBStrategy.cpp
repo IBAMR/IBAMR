@@ -1,46 +1,36 @@
-// Filename: CIBStrategy.cpp
-// Created on 9 Nov 2014 by Amneet Bhalla
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Amneet Bhalla and Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/CIBStrategy.h"
-#include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h"
 
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "tbox/MathUtilities.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+
+#include "petscis.h"
+#include "petscistypes.h"
+#include <petsclog.h>
+#include <petscsys.h>
+
+#include "Eigen/Core"
+
+#include <algorithm>
+#include <memory>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -313,7 +303,8 @@ CIBStrategy::computeNetRigidGeneralizedForce(Vec L,
 {
     // Here we use the fact that all vector enteries of F are on
     // a single processor, and we can set values directly in the array
-    // rather than using the costly VecSetValues() followed by VecAssemblyBegin/End().
+    // rather than using the costly VecSetValues() followed by
+    // VecAssemblyBegin/End().
     PetscScalar* F_array = nullptr;
     VecGetArray(F, &F_array);
 
@@ -580,7 +571,7 @@ CIBStrategy::copyFreeDOFsVecToArray(Vec b, double* array, const std::vector<unsi
 #endif
 
     // Wrap the raw data in a PETSc Vec.
-    int rank = SAMRAI_MPI::getRank();
+    int rank = IBTK_MPI::getRank();
     PetscInt array_size = num_structs * s_max_free_dofs;
     PetscInt array_local_size = 0;
     if (rank == array_rank) array_local_size = array_size;
@@ -663,7 +654,7 @@ CIBStrategy::copyFreeDOFsArrayToVec(Vec b, double* array, const std::vector<unsi
 #endif
 
     // Wrap the raw data in a PETSc Vec.
-    int rank = SAMRAI_MPI::getRank();
+    int rank = IBTK_MPI::getRank();
     PetscInt array_size = num_structs * s_max_free_dofs;
     PetscInt array_local_size = 0;
     if (rank == array_rank) array_local_size = array_size;
@@ -714,7 +705,7 @@ CIBStrategy::vecToRDV(Vec U, RigidDOFVector& Ur)
         Ur.setZero();
     }
 
-    SAMRAI_MPI::sumReduction(&Ur[0], s);
+    IBTK_MPI::sumReduction(&Ur[0], s);
     VecRestoreArray(U, &a);
     return;
 } // vecToRDV
@@ -725,7 +716,7 @@ CIBStrategy::rdvToVec(const RigidDOFVector& Ur, Vec& U)
     if (U == nullptr)
     {
         PetscInt n = 0, N = s_max_free_dofs;
-        if (!SAMRAI_MPI::getRank()) n = N;
+        if (!IBTK_MPI::getRank()) n = N;
         VecCreateMPI(PETSC_COMM_WORLD, n, N, &U);
     }
 

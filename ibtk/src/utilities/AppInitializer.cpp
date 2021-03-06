@@ -1,41 +1,21 @@
-// Filename: AppInitializer.cpp
-// Created on 19 Aug 2011 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/AppInitializer.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LSiloDataWriter.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "VisItDataWriter.h"
 #include "tbox/Array.h"
@@ -46,13 +26,17 @@
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
+
+#include <petsclog.h>
+#include <petscsys.h>
 
 #include <ostream>
 #include <string>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -75,8 +59,8 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     if (argc >= 4)
     {
         // Check whether this appears to be a restarted run.
-        FILE* fstream = (SAMRAI_MPI::getRank() == 0 ? fopen(argv[2], "r") : nullptr);
-        if (SAMRAI_MPI::bcast(fstream ? 1 : 0, 0) == 1)
+        FILE* fstream = (IBTK_MPI::getRank() == 0 ? fopen(argv[2], "r") : nullptr);
+        if (IBTK_MPI::bcast(fstream ? 1 : 0, 0) == 1)
         {
             d_restart_read_dirname = argv[2];
             d_restart_restore_num = atoi(argv[3]);
@@ -92,7 +76,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     if (d_is_from_restart)
     {
         RestartManager::getManager()->openRestartFile(
-            d_restart_read_dirname, d_restart_restore_num, SAMRAI_MPI::getNodes());
+            d_restart_read_dirname, d_restart_restore_num, IBTK_MPI::getNodes());
     }
 
     // Create input database and parse all data in input file.
@@ -128,6 +112,37 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
         {
             PIO::logOnlyNodeZero(log_file_name);
         }
+    }
+
+    // Configure timer options.
+    std::string timer_dump_interval_key_name;
+    if (main_db->keyExists("timer_interval"))
+    {
+        timer_dump_interval_key_name = "timer_interval";
+    }
+    else if (main_db->keyExists("timer_dump_interval"))
+    {
+        timer_dump_interval_key_name = "timer_dump_interval";
+    }
+    else if (main_db->keyExists("timer_write_interval"))
+    {
+        timer_dump_interval_key_name = "timer_write_interval";
+    }
+
+    if (!timer_dump_interval_key_name.empty())
+    {
+        d_timer_dump_interval = main_db->getInteger(timer_dump_interval_key_name);
+    }
+
+    // Avoid some warnings by unconditionally creating the timer database, even if
+    // we never use it:
+    {
+        Pointer<Database> timer_manager_db;
+        if (d_input_db->isDatabase("TimerManager"))
+        {
+            timer_manager_db = d_input_db->getDatabase("TimerManager");
+        }
+        TimerManager::createManager(timer_manager_db);
     }
 
     // Configure visualization options.
@@ -338,41 +353,6 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
             pout << "WARNING: AppInitializer::AppInitializer(): " << data_dump_interval_key_name
                  << " > 0, but `data_dump_dirname' is not specified in input file\n";
         }
-    }
-
-    // Configure timer options.
-    std::string timer_dump_interval_key_name;
-    if (main_db->keyExists("timer_interval"))
-    {
-        timer_dump_interval_key_name = "timer_interval";
-    }
-    else if (main_db->keyExists("timer_dump_interval"))
-    {
-        timer_dump_interval_key_name = "timer_dump_interval";
-    }
-    else if (main_db->keyExists("timer_write_interval"))
-    {
-        timer_dump_interval_key_name = "timer_write_interval";
-    }
-
-    if (!timer_dump_interval_key_name.empty())
-    {
-        d_timer_dump_interval = main_db->getInteger(timer_dump_interval_key_name);
-    }
-
-    if (d_timer_dump_interval > 0)
-    {
-        Pointer<Database> timer_manager_db = new NullDatabase();
-        if (d_input_db->isDatabase("TimerManager"))
-        {
-            timer_manager_db = d_input_db->getDatabase("TimerManager");
-        }
-        else
-        {
-            pout << "WARNING: AppInitializer::AppInitializer(): " << timer_dump_interval_key_name
-                 << " > 0, but `TimerManager' input entries not specifed in input file\n";
-        }
-        TimerManager::createManager(timer_manager_db);
     }
     return;
 } // AppInitializer

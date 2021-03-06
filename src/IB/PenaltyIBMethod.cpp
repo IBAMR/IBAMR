@@ -1,66 +1,54 @@
-// Filename: PenaltyIBMethod.cpp
-// Created on 28 Sep 2011 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/IBMethod.h"
 #include "ibamr/PenaltyIBMethod.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
 
+#include "BasePatchHierarchy.h"
+#include "BasePatchLevel.h"
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "tbox/Database.h"
 #include "tbox/MathUtilities.h"
+#include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
 
 #include "petscvec.h"
 
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
+#include <algorithm>
+#include <cmath>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace SAMRAI
@@ -300,12 +288,10 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
             const double* const X = d_X_current_data[ln]->getLocalFormVecArray()->data();
             const double* const Y = d_Y_current_data[ln]->getLocalFormVecArray()->data();
             const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
-            unsigned int i, d;
-            double dX;
-            for (i = 0; i < n_local; ++i)
+            for (unsigned int i = 0; i < n_local; ++i)
             {
-                dX = 0.0;
-                for (d = 0; d < NDIM; ++d)
+                double dX = 0.0;
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     F[NDIM * i + d] += K[i] * (Y[NDIM * i + d] - X[NDIM * i + d]);
                     dX += (Y[NDIM * i + d] - X[NDIM * i + d]) * (Y[NDIM * i + d] - X[NDIM * i + d]);
@@ -328,15 +314,13 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
             const double* const X_new = d_X_new_data[ln]->getLocalFormVecArray()->data();
             const double* const Y_new = d_Y_new_data[ln]->getLocalFormVecArray()->data();
             const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
-            unsigned int i, d;
-            double X_half, Y_half, dX;
-            for (i = 0; i < n_local; ++i)
+            for (unsigned int i = 0; i < n_local; ++i)
             {
-                dX = 0.0;
-                for (d = 0; d < NDIM; ++d)
+                double dX = 0.0;
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    X_half = 0.5 * (X[NDIM * i + d] + X_new[NDIM * i + d]);
-                    Y_half = 0.5 * (Y[NDIM * i + d] + Y_new[NDIM * i + d]);
+                    const double X_half = 0.5 * (X[NDIM * i + d] + X_new[NDIM * i + d]);
+                    const double Y_half = 0.5 * (Y[NDIM * i + d] + Y_new[NDIM * i + d]);
                     F[NDIM * i + d] += K[i] * (Y_half - X_half);
                     dX += (Y_half - X_half) * (Y_half - X_half);
                 }
@@ -356,12 +340,10 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
             const double* const X = d_X_new_data[ln]->getLocalFormVecArray()->data();
             const double* const Y = d_Y_new_data[ln]->getLocalFormVecArray()->data();
             const unsigned int n_local = d_X_current_data[ln]->getLocalNodeCount();
-            unsigned int i, d;
-            double dX;
-            for (i = 0; i < n_local; ++i)
+            for (unsigned int i = 0; i < n_local; ++i)
             {
-                dX = 0.0;
-                for (d = 0; d < NDIM; ++d)
+                double dX = 0.0;
+                for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     F[NDIM * i + d] += K[i] * (Y[NDIM * i + d] - X[NDIM * i + d]);
                     dX += (Y[NDIM * i + d] - X[NDIM * i + d]) * (Y[NDIM * i + d] - X[NDIM * i + d]);
@@ -375,7 +357,7 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
 
     if (d_do_log)
     {
-        max_displacement = SAMRAI_MPI::maxReduction(max_displacement);
+        max_displacement = IBTK_MPI::maxReduction(max_displacement);
         plog << d_object_name << "::computeLagrangianForce(): maximum point displacement: " << max_displacement << "\n";
     }
     return;

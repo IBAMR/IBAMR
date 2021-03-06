@@ -1,5 +1,16 @@
-# -------------------------------------------------------------
-# -------------------------------------------------------------
+## ---------------------------------------------------------------------
+##
+## Copyright (c) 2014 - 2020 by the IBAMR developers
+## All rights reserved.
+##
+## This file is part of IBAMR.
+##
+## IBAMR is free software and is distributed under the 3-clause BSD
+## license. The full text of the license can be found in the file
+## COPYRIGHT at the top level directory of IBAMR.
+##
+## ---------------------------------------------------------------------
+
 AC_DEFUN([CONFIGURE_LIBMESH],[
 echo
 echo "===================================="
@@ -139,9 +150,6 @@ dnl
   LIBMESH_CONFIG="env METHOD=$METHOD $LIBMESH_CONFIG"
 
   LIBMESH_CPPFLAGS="`$LIBMESH_CONFIG --include` `$LIBMESH_CONFIG --cppflags`"
-  LIBMESH_CXXFLAGS="`$LIBMESH_CONFIG --cxxflags`"
-  LIBMESH_CFLAGS="`$LIBMESH_CONFIG --cflags`"
-  LIBMESH_FCFLAGS="`$LIBMESH_CONFIG --fflags`"
   LIBMESH_LIBS="`$LIBMESH_CONFIG --libs`"
 
 dnl
@@ -170,14 +178,31 @@ dnl
     with_eigen="$LIBMESH_DIR"
   fi
 
-  if test -e "$LIBMESH_DIR/include/boost" ; then
-    AC_MSG_ERROR([libMesh appears to be configured to use a bundled Boost library, but when IBAMR is also configured to use libMesh, IBAMR and libMesh both must use the same (external) Boost library])
+dnl try to see if libMesh has boost:
+  AC_MSG_CHECKING([for libMesh with boost])
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <libmesh/libmesh_config.h>
+
+#ifdef LIBMESH_HAVE_BOOST
+// ok
+#else
+#error
+#endif ]])], [LIBMESH_HAVE_BOOST=yes], [LIBMESH_HAVE_BOOST=no])
+  AC_MSG_RESULT([${LIBMESH_HAVE_BOOST}])
+
+dnl: "''
+dnl Older versions of libMesh do not define LIBMESH_HAVE_EXTERNAL_BOOST so we check manually
+dnl to see if a sufficient version of boost is bundled or not
+  if test -e "$LIBMESH_DIR/include/boost/"; then
+      if test -e "$LIBMESH_DIR/include/boost/multi_array.hpp"; then
+          # ok: perhaps libMesh is installed in /usr/
+          :
+      else
+        AC_MSG_ERROR([The directory $LIBMESH_DIR/include/boost exists and contains a boost installation that does not provide all the headers that IBAMR needs. This can happen when either libMesh is installed with its own bundled version of boost (which is not compatible with IBAMR) or when libMesh is installed into a directory which happens to contain a copy of boost (e.g., when libMesh is recompiled without boost and installed into the same location as a previous copy of libMesh). If you want to use libMesh with boost then both libMesh and IBAMR must use the same external copy of boost. The best way to fix this problem is to delete $LIBMESH_DIR and reinstall libMesh with either no boost support or an external boost library.])
+      fi
   fi
 
   CPPFLAGS_PREPEND($LIBMESH_CPPFLAGS)
-  CXXFLAGS_PREPEND($LIBMESH_CXXFLAGS)
-  CFLAGS_PREPEND($LIBMESH_CFLAGS)
-  FCFLAGS_PREPEND($LIBMESH_FCFLAGS)
   LIBS_PREPEND($LIBMESH_LIBS)
 
   case "$METHOD" in

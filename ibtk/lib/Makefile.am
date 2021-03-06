@@ -1,3 +1,16 @@
+## ---------------------------------------------------------------------
+##
+## Copyright (c) 2011 - 2020 by the IBAMR developers
+## All rights reserved.
+##
+## This file is part of IBAMR.
+##
+## IBAMR is free software and is distributed under the 3-clause BSD
+## license. The full text of the license can be found in the file
+## COPYRIGHT at the top level directory of IBAMR.
+##
+## ---------------------------------------------------------------------
+
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
 
@@ -20,8 +33,20 @@ clean-local:
 	rm -f $(PWD)/../src/libIBTK3d.a
 
 ## Dimension-independent library
-libIBTK_a_SOURCES = \
-$(top_builddir)/src/lagrangian/fortran/lagrangian_delta.f
+libIBTK_a_SOURCES = ../src/dummy.cpp
+
+if USING_BUNDLED_MUPARSER
+libIBTK_a_SOURCES += \
+../contrib/muparser/src/muParserDLL.cpp \
+../contrib/muparser/src/muParserTokenReader.cpp \
+../contrib/muparser/src/muParserError.cpp \
+../contrib/muparser/src/muParserCallback.cpp \
+../contrib/muparser/src/muParserBytecode.cpp \
+../contrib/muparser/src/muParserBase.cpp \
+../contrib/muparser/src/muParserInt.cpp \
+../contrib/muparser/src/muParserTest.cpp \
+../contrib/muparser/src/muParser.cpp
+endif
 
 pkg_include_HEADERS = \
 ../include/ibtk/IBTK_CHKERRQ.h \
@@ -32,7 +57,7 @@ pkg_include_HEADERS = \
 ../include/ibtk/namespaces.h
 
 ## Dimension-dependent libraries
-DIM_INDEPENDENT_SOURCES = \
+DIM_DEPENDENT_SOURCES = \
 ../src/boundary/HierarchyGhostCellInterpolation.cpp \
 ../src/boundary/cf_interface/CartCellDoubleLinearCFInterpolation.cpp \
 ../src/boundary/cf_interface/CartCellDoubleQuadraticCFInterpolation.cpp \
@@ -72,6 +97,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/math/PETScVecUtilities.cpp \
 ../src/math/PatchMathOps.cpp \
 ../src/math/PoissonUtilities.cpp \
+../src/math/SAMRAIGhostDataAccumulator.cpp \
 ../src/refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp \
 ../src/refine_ops/CartCellDoubleQuadraticRefine.cpp \
 ../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp \
@@ -136,8 +162,10 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/utilities/FixedSizedStream.cpp \
 ../src/utilities/HierarchyIntegrator.cpp \
 ../src/utilities/IBTK_MPI.cpp \
+../src/utilities/IBTKInit.cpp \
 ../src/utilities/IndexUtilities.cpp \
 ../src/utilities/LMarkerUtilities.cpp \
+../src/utilities/MergingLoadBalancer.cpp \
 ../src/utilities/NodeDataSynchronization.cpp \
 ../src/utilities/NodeSynchCopyFillPattern.cpp \
 ../src/utilities/NormOps.cpp \
@@ -153,27 +181,23 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/utilities/StandardTagAndInitStrategySet.cpp \
 ../src/utilities/Streamable.cpp \
 ../src/utilities/StreamableManager.cpp \
+../src/utilities/box_utilities.cpp \
+../src/utilities/ibtk_utilities.cpp \
 ../src/utilities/muParserCartGridFunction.cpp
 
 if LIBMESH_ENABLED
-DIM_INDEPENDENT_SOURCES += \
+DIM_DEPENDENT_SOURCES += \
 ../src/lagrangian/BoxPartitioner.cpp \
+../src/lagrangian/StableCentroidPartitioner.cpp \
 ../src/lagrangian/FEDataInterpolation.cpp \
 ../src/lagrangian/FEDataManager.cpp \
+../src/lagrangian/FEMapping.cpp \
+../src/lagrangian/FEProjector.cpp \
+../src/lagrangian/FEValues.cpp \
+../src/lagrangian/FischerGuess.cpp \
+../src/utilities/LibMeshSystemIBVectors.cpp \
+../src/utilities/LibMeshSystemVectors.cpp \
 ../src/utilities/libmesh_utilities.cpp
-endif
-
-if USING_BUNDLED_MUPARSER
-DIM_INDEPENDENT_SOURCES += \
-../contrib/muparser/src/muParserDLL.cpp \
-../contrib/muparser/src/muParserTokenReader.cpp \
-../contrib/muparser/src/muParserError.cpp \
-../contrib/muparser/src/muParserCallback.cpp \
-../contrib/muparser/src/muParserBytecode.cpp \
-../contrib/muparser/src/muParserBase.cpp \
-../contrib/muparser/src/muParserInt.cpp \
-../contrib/muparser/src/muParserTest.cpp \
-../contrib/muparser/src/muParser.cpp
 endif
 
 pkg_include_HEADERS += \
@@ -223,6 +247,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/HierarchyIntegrator.h \
 ../include/ibtk/HierarchyMathOps.h \
 ../include/ibtk/IBTK_MPI.h \
+../include/ibtk/IBTKInit.h \
 ../include/ibtk/IndexUtilities.h \
 ../include/ibtk/JacobianOperator.h \
 ../include/ibtk/KrylovLinearSolver.h \
@@ -297,6 +322,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/PoissonFACPreconditionerStrategy.h \
 ../include/ibtk/PoissonSolver.h \
 ../include/ibtk/PoissonUtilities.h \
+../include/ibtk/SAMRAIGhostDataAccumulator.h \
 ../include/ibtk/RefinePatchStrategySet.h \
 ../include/ibtk/RobinPhysBdryPatchStrategy.h \
 ../include/ibtk/SAMRAIDataCache.h \
@@ -316,6 +342,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/VCSCViscousOpPointRelaxationFACOperator.h \
 ../include/ibtk/VCSCViscousOperator.h \
 ../include/ibtk/VCSCViscousPETScLevelSolver.h \
+../include/ibtk/box_utilities.h \
 ../include/ibtk/muParserCartGridFunction.h \
 ../include/ibtk/muParserRobinBcCoefs.h \
 ../include/ibtk/private/FixedSizedStream-inl.h \
@@ -334,15 +361,22 @@ pkg_include_HEADERS += \
 ../include/ibtk/private/StreamableManager-inl.h
 
 if LIBMESH_ENABLED
-DIM_INDEPENDENT_SOURCES += \
+DIM_DEPENDENT_SOURCES += \
 ../include/lagrangian/BoxPartitioner.h \
+../include/lagrangian/StableCentroidPartitioner.h \
+../include/lagrangian/FEMapping.h \
+../include/lagrangian/FEMappingCache.h \
 ../include/ibtk/FEDataInterpolation.h \
 ../include/ibtk/FEDataManager.h \
+../include/ibtk/FEProjector.h \
+../include/ibtk/FEValues.h \
+../include/ibtk/LibMeshSystemIBVectors.h \
+../include/ibtk/LibMeshSystemVectors.h \
 ../include/ibtk/libmesh_utilities.h
 endif
 
 libIBTK2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-libIBTK2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+libIBTK2d_a_SOURCES = $(DIM_DEPENDENT_SOURCES) \
 $(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation2d.f \
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f \
 $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop2d.f \
@@ -365,7 +399,7 @@ $(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
 $(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
 
 libIBTK3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-libIBTK3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+libIBTK3d_a_SOURCES = $(DIM_DEPENDENT_SOURCES) \
 $(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation3d.f \
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.f \
 $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.f \

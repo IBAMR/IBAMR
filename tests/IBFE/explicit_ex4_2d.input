@@ -1,3 +1,6 @@
+// additional test parameters
+mesh_file = "explicit_ex4_2d.grid-1.xdr"
+
 // physical parameters
 MU  = 0.01
 RHO = 1.0
@@ -106,6 +109,7 @@ IBFEMethod {
    use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
    IB_point_density           = IB_POINT_DENSITY
    enable_logging             = TRUE
+   skip_initial_workload_log  = TRUE
    libmesh_partitioner_type   = "LIBMESH_DEFAULT"
    workload_quad_point_weight = 0.0
 }

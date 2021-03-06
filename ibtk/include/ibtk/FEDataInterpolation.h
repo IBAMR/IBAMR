@@ -1,75 +1,80 @@
-// Filename: FEDataInterpolation.h
-// Created on 9 Oct 2015 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2015 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
+
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_FEDataInterpolation
 #define included_FEDataInterpolation
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/config.h>
+
 #include "ibtk/FEDataManager.h"
-#include "ibtk/ibtk_macros.h"
+#include "ibtk/FEValues.h"
 #include "ibtk/libmesh_utilities.h"
 
+#include "tbox/Utilities.h"
+
 #include "libmesh/equation_systems.h"
+#include "libmesh/fe_base.h"
+#include "libmesh/fe_type.h"
+#include "libmesh/fem_context.h"
+#include "libmesh/libmesh_common.h"
+#include "libmesh/vector_value.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <limits>
+#include <memory>
+#include <vector>
+
+namespace IBTK
+{
+struct SystemData;
+} // namespace IBTK
+
+namespace libMesh
+{
+class Elem;
+class EquationSystems;
+class Point;
+class QBase;
+class System;
+template <typename T>
+class NumericVector;
+} // namespace libMesh
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
 {
 /*!
- * \brief Class FEDataInterpolation manages data requred to evaluate one or more FE field variables at a collection of
+ * \brief Class FEDataInterpolation manages data required to evaluate one or more FE field variables at a collection of
  * points, possibly (not not necessarily) corresponding to the points of a quadrature rule.
  */
 class FEDataInterpolation
 {
 public:
-    FEDataInterpolation(unsigned int dim, FEDataManager* const fe_data_manager);
+    FEDataInterpolation(unsigned int dim, std::shared_ptr<FEData> fe_data);
 
     ~FEDataInterpolation() = default;
 
     inline void attachQuadratureRule(libMesh::QBase* qrule)
     {
         d_qrule = qrule;
-        for (auto& fe : d_fe)
-        {
-            if (fe)
-            {
-                fe->attach_quadrature_rule(d_qrule);
-            }
-        }
         return;
     }
 
@@ -225,7 +230,7 @@ public:
     size_t registerInterpolatedSystem(const libMesh::System& system,
                                       const std::vector<int>& vars = std::vector<int>(1, 0),
                                       const std::vector<int>& grad_vars = std::vector<int>(),
-                                      libMesh::NumericVector<double>* system_data = nullptr);
+                                      libMesh::NumericVector<double>* system_vec = nullptr);
 
     /*!
      * \brief Get the variable data for all of the systems.
@@ -264,11 +269,11 @@ public:
                                      const unsigned int qp);
 
     /*!
-     * \brief Initialize all of the data structures requred to evaluate the FE shape functions, quadrature rules, etc.
+     * \brief Initialize all of the data structures required to evaluate the FE shape functions, quadrature rules, etc.
      *
      * NOTE: This method must be called before reinitializing data on individual elements.
      */
-    void init(bool use_IB_ghosted_vecs);
+    void init();
 
     /*!
      * \brief Reinitialize the FE shape functions, quadrature rules, etc. for the specified element.
@@ -280,7 +285,7 @@ public:
                 const std::vector<double>* weights = nullptr);
 
     /*!
-     * \brief Reinitialize the FE shape functions, quadrature rules, etc. for the specified side of the specificed
+     * \brief Reinitialize the FE shape functions, quadrature rules, etc. for the specified side of the specified
      * element.
      *
      * NOTE: Nodal values are set by calling collectDataForInterpolation().
@@ -328,7 +333,7 @@ private:
                       const std::vector<const std::vector<std::vector<libMesh::VectorValue<double> > >*>& dphi_data);
 
     const unsigned int d_dim;
-    FEDataManager* const d_fe_data_manager;
+    std::shared_ptr<FEData> d_fe_data;
     bool d_initialized = false;
     bool d_eval_q_point = false, d_eval_JxW = false, d_eval_q_point_face = false, d_eval_JxW_face = false,
          d_eval_normal_face = false;
@@ -342,7 +347,7 @@ private:
     std::vector<FEDataManager::SystemDofMapCache*> d_system_dof_map_caches;
     std::vector<std::vector<int> > d_system_all_vars, d_system_vars, d_system_grad_vars;
     std::vector<std::vector<size_t> > d_system_var_idx, d_system_grad_var_idx;
-    std::vector<libMesh::NumericVector<double>*> d_system_data;
+    std::vector<libMesh::NumericVector<double>*> d_system_vecs;
     std::vector<std::vector<size_t> > d_system_var_fe_type_idx, d_system_grad_var_fe_type_idx;
     std::vector<std::vector<std::vector<double> > > d_system_var_data;
     std::vector<std::vector<std::vector<libMesh::VectorValue<double> > > > d_system_grad_var_data;
@@ -352,16 +357,17 @@ private:
 
     // Data associated with FETypes.
     std::vector<libMesh::FEType> d_fe_types;
-    std::vector<std::unique_ptr<libMesh::FEBase> > d_fe, d_fe_face;
+    std::vector<std::unique_ptr<IBTK::FEValuesBase> > d_fe;
+    std::vector<std::unique_ptr<libMesh::FEBase> > d_fe_face;
     std::vector<bool> d_eval_phi, d_eval_dphi;
     std::vector<const std::vector<std::vector<double> >*> d_phi, d_phi_face;
     std::vector<const std::vector<std::vector<libMesh::VectorValue<double> > >*> d_dphi, d_dphi_face;
 
     // Data associated with the current element.
     const libMesh::Elem* d_current_elem = nullptr;
-    unsigned int d_current_side;
+    unsigned int d_current_side = std::numeric_limits<unsigned int>::max();
     std::vector<boost::multi_array<double, 2> > d_system_elem_data;
-    unsigned int d_n_qp;
+    unsigned int d_n_qp = std::numeric_limits<unsigned int>::max();
 };
 } // namespace IBTK
 

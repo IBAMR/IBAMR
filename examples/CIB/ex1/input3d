@@ -85,6 +85,7 @@ IBHierarchyIntegrator {
 
 num_structures = 2
 CIBMethod {
+   use_steady_stokes     = (RHO == 0.0)
    delta_fcn             = DELTA_FUNCTION
    enable_logging        = ENABLE_LOGGING
    lambda_dirname        = "./Lambda"

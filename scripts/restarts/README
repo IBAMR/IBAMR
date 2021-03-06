@@ -1,0 +1,14 @@
+This folder contains scripts that are useful for restarting simulations
+
+autostarter.pl
+  -- Perl script that can automatically restart simulations.
+  -- A simple restart input file is required for the script.
+  -- The directory 'modules' is a required dependency for this script
+
+make_visit_file.py
+  -- Python script that can regenerate the visit_dumps and lag_dumps file.
+  -- Useful if you need all files written to the visit_dumps or lag_dumps file.
+
+regen_viz_input_files.pl
+  -- Perl script that regenerates all visualization files.
+  -- Useful if the files are written out at consistent time intervals.

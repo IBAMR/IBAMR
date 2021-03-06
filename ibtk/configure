@@ -726,12 +726,6 @@ LIBMUPARSER_PREFIX
 LTLIBMUPARSER
 LIBMUPARSER
 HAVE_LIBMUPARSER
-LIBGTEST_PREFIX
-LTLIBGTEST
-LIBGTEST
-HAVE_LIBGTEST
-GTEST_ENABLED_FALSE
-GTEST_ENABLED_TRUE
 PACKAGE_LIBS
 PACKAGE_LDFLAGS
 LIBGSL_PREFIX
@@ -943,8 +937,6 @@ with_hdf5
 with_hypre
 enable_gsl
 with_gsl
-enable_gtest
-with_gtest
 with_muparser
 enable_silo
 with_zlib
@@ -1612,8 +1604,6 @@ Optional Features:
   --disable-rpath         do not hardcode runtime library paths
   --enable-gsl            enable support for the optional GSL library
                           [default=yes]
-  --enable-gtest          enable support for the optional GTEST library
-                          [default=no]
   --enable-silo           enable support for the optional Silo library
                           [default=yes]
   --enable-samrai-2d      enable optional support for two-dimensional SAMRAI
@@ -1647,7 +1637,6 @@ Optional Packages:
   --with-hdf5=PATH        location of required HDF5 installation
   --with-hypre=PATH       location of required hypre installation
   --with-gsl=PATH         location of optional GSL installation
-  --with-gtest=PATH       location of optional GTEST installation
   --with-muparser=PATH    location of required muParser installation
   --with-zlib=PATH        location of libz (a Silo dependency)
   --with-silo=PATH        location of optional Silo installation
@@ -2748,6 +2737,9 @@ ac_config_headers="$ac_config_headers config/IBTK_config.h.tmp"
 
 
 ac_config_commands="$ac_config_commands config/IBTK_config.h"
+
+# Also copy our own CMake compatibility shim header:
+ac_config_links="$ac_config_links config/ibtk/config.h:$srcdir/config/config.h.tmp"
 
 am__api_version='1.16'
 
@@ -24186,9 +24178,6 @@ fi
   LIBMESH_CONFIG="env METHOD=$METHOD $LIBMESH_CONFIG"
 
   LIBMESH_CPPFLAGS="`$LIBMESH_CONFIG --include` `$LIBMESH_CONFIG --cppflags`"
-  LIBMESH_CXXFLAGS="`$LIBMESH_CONFIG --cxxflags`"
-  LIBMESH_CFLAGS="`$LIBMESH_CONFIG --cflags`"
-  LIBMESH_FCFLAGS="`$LIBMESH_CONFIG --fflags`"
   LIBMESH_LIBS="`$LIBMESH_CONFIG --libs`"
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for a usable libMesh UniquePtr/unique_ptr configuration" >&5
@@ -24236,17 +24225,53 @@ $as_echo "$as_me: using Eigen library bundled with libMesh" >&6;}
     with_eigen="$LIBMESH_DIR"
   fi
 
-  if test -e "$LIBMESH_DIR/include/boost" ; then
-    as_fn_error $? "libMesh appears to be configured to use a bundled Boost library, but when IBAMR is also configured to use libMesh, IBAMR and libMesh both must use the same (external) Boost library" "$LINENO" 5
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libMesh with boost" >&5
+$as_echo_n "checking for libMesh with boost... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <libmesh/libmesh_config.h>
+
+#ifdef LIBMESH_HAVE_BOOST
+// ok
+#else
+#error
+#endif
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
+#endif
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+  LIBMESH_HAVE_BOOST=yes
+else
+  LIBMESH_HAVE_BOOST=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${LIBMESH_HAVE_BOOST}" >&5
+$as_echo "${LIBMESH_HAVE_BOOST}" >&6; }
+
+  if test -e "$LIBMESH_DIR/include/boost/"; then
+      if test -e "$LIBMESH_DIR/include/boost/multi_array.hpp"; then
+          # ok: perhaps libMesh is installed in /usr/
+          :
+      else
+        as_fn_error $? "The directory $LIBMESH_DIR/include/boost exists and contains a boost installation that does not provide all the headers that IBAMR needs. This can happen when either libMesh is installed with its own bundled version of boost (which is not compatible with IBAMR) or when libMesh is installed into a directory which happens to contain a copy of boost (e.g., when libMesh is recompiled without boost and installed into the same location as a previous copy of libMesh). If you want to use libMesh with boost then both libMesh and IBAMR must use the same external copy of boost. The best way to fix this problem is to delete $LIBMESH_DIR and reinstall libMesh with either no boost support or an external boost library." "$LINENO" 5
+      fi
   fi
 
   CPPFLAGS="$LIBMESH_CPPFLAGS $CPPFLAGS"
-
-  CXXFLAGS="$LIBMESH_CXXFLAGS $CXXFLAGS"
-
-  CFLAGS="$LIBMESH_CFLAGS $CFLAGS"
-
-  FCFLAGS="$LIBMESH_FCFLAGS $FCFLAGS"
 
   LIBS="$LIBMESH_LIBS $LIBS"
 
@@ -27225,9 +27250,6 @@ CONTRIB_SRCDIR="$ABSOLUTE_SRCDIR/contrib/boost"
 #$as_unset boost_cv_version
 #BOOST_REQUIRE([1.57.0],[AC_MSG_WARN([could not find system Boost library, using bundled Boost library])])
 if test x"$USING_BUNDLED_BOOST" = xyes ; then
-  if test "$LIBMESH_ENABLED" = yes ; then
-    as_fn_error $? "IBAMR is configured to use a bundled Boost library, but when IBAMR is also configured to use libMesh, IBAMR and libMesh both must use the same (external) Boost library" "$LINENO" 5
-  fi
   { $as_echo "$as_me:${as_lineno-$LINENO}: configuring bundled Boost library" >&5
 $as_echo "$as_me: configuring bundled Boost library" >&6;}
   BOOST_CPPFLAGS="-I$CONTRIB_SRCDIR"
@@ -27244,6 +27266,30 @@ if test "x$ac_cv_header_boost_multi_array_hpp" = xyes; then :
 
 else
   as_fn_error $? "cannot find working boost/multi_array.hpp" "$LINENO" 5
+fi
+
+
+ac_fn_cxx_check_header_mongrel "$LINENO" "boost/math/special_functions/round.hpp" "ac_cv_header_boost_math_special_functions_round_hpp" "$ac_includes_default"
+if test "x$ac_cv_header_boost_math_special_functions_round_hpp" = xyes; then :
+
+else
+  as_fn_error $? "cannot find working boost/math/special_functions/round.hpp" "$LINENO" 5
+fi
+
+
+ac_fn_cxx_check_header_mongrel "$LINENO" "boost/math/tools/roots.hpp" "ac_cv_header_boost_math_tools_roots_hpp" "$ac_includes_default"
+if test "x$ac_cv_header_boost_math_tools_roots_hpp" = xyes; then :
+
+else
+  as_fn_error $? "cannot find working boost/math/tools/roots.hpp" "$LINENO" 5
+fi
+
+
+ac_fn_cxx_check_header_mongrel "$LINENO" "boost/cstdint.hpp" "ac_cv_header_boost_cstdint_hpp" "$ac_includes_default"
+if test "x$ac_cv_header_boost_cstdint_hpp" = xyes; then :
+
+else
+  as_fn_error $? "cannot find working boost/cstdint.h" "$LINENO" 5
 fi
 
 
@@ -27415,8 +27461,8 @@ else
 fi
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Eigen version >= 3.1.0" >&5
-$as_echo_n "checking for Eigen version >= 3.1.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Eigen version >= 3.2.5" >&5
+$as_echo_n "checking for Eigen version >= 3.2.5... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -27434,7 +27480,7 @@ int
 main ()
 {
 
-#if EIGEN_VERSION_AT_LEAST(3,1,0)
+#if EIGEN_VERSION_AT_LEAST(3,2,5)
 #else
 asdf
 #endif
@@ -27452,7 +27498,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${EIGEN_VERSION_VALID}" >&5
 $as_echo "${EIGEN_VERSION_VALID}" >&6; }
 if test "$EIGEN_VERSION_VALID" = no; then
-  as_fn_error $? "invalid Eigen version detected: please use Eigen 3.1.0 or later" "$LINENO" 5
+  as_fn_error $? "invalid Eigen version detected: please use Eigen 3.2.5 or later" "$LINENO" 5
 fi
 
 PACKAGE_CPPFLAGS="$EIGEN_CPPFLAGS $PACKAGE_CPPFLAGS"
@@ -27570,61 +27616,6 @@ else
   as_fn_error $? "could not find working libhdf5" "$LINENO" 5
 fi
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for H5LTfind_dataset in -lhdf5_hl" >&5
-$as_echo_n "checking for H5LTfind_dataset in -lhdf5_hl... " >&6; }
-if ${ac_cv_lib_hdf5_hl_H5LTfind_dataset+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lhdf5_hl  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char H5LTfind_dataset ();
-#ifdef FC_DUMMY_MAIN
-#ifndef FC_DUMMY_MAIN_EQ_F77
-#  ifdef __cplusplus
-     extern "C"
-#  endif
-   int FC_DUMMY_MAIN() { return 1; }
-#endif
-#endif
-int
-main ()
-{
-return H5LTfind_dataset ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_hdf5_hl_H5LTfind_dataset=yes
-else
-  ac_cv_lib_hdf5_hl_H5LTfind_dataset=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_hdf5_hl_H5LTfind_dataset" >&5
-$as_echo "$ac_cv_lib_hdf5_hl_H5LTfind_dataset" >&6; }
-if test "x$ac_cv_lib_hdf5_hl_H5LTfind_dataset" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBHDF5_HL 1
-_ACEOF
-
-  LIBS="-lhdf5_hl $LIBS"
-
-else
-  as_fn_error $? "could not find working libhdf5_hl" "$LINENO" 5
-fi
-
   # set up rpath
 
 
@@ -27724,9 +27715,9 @@ fi
 
   LDFLAGS="$HYPRE_LDFLAGS $LDFLAGS"
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for BoomerAMGCreate in -lHYPRE" >&5
-$as_echo_n "checking for BoomerAMGCreate in -lHYPRE... " >&6; }
-if ${ac_cv_lib_HYPRE_BoomerAMGCreate+:} false; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for HYPRE_BoomerAMGCreate in -lHYPRE" >&5
+$as_echo_n "checking for HYPRE_BoomerAMGCreate in -lHYPRE... " >&6; }
+if ${ac_cv_lib_HYPRE_HYPRE_BoomerAMGCreate+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -27740,7 +27731,7 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char BoomerAMGCreate ();
+char HYPRE_BoomerAMGCreate ();
 #ifdef FC_DUMMY_MAIN
 #ifndef FC_DUMMY_MAIN_EQ_F77
 #  ifdef __cplusplus
@@ -27752,23 +27743,23 @@ char BoomerAMGCreate ();
 int
 main ()
 {
-return BoomerAMGCreate ();
+return HYPRE_BoomerAMGCreate ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_HYPRE_BoomerAMGCreate=yes
+  ac_cv_lib_HYPRE_HYPRE_BoomerAMGCreate=yes
 else
-  ac_cv_lib_HYPRE_BoomerAMGCreate=no
+  ac_cv_lib_HYPRE_HYPRE_BoomerAMGCreate=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_HYPRE_BoomerAMGCreate" >&5
-$as_echo "$ac_cv_lib_HYPRE_BoomerAMGCreate" >&6; }
-if test "x$ac_cv_lib_HYPRE_BoomerAMGCreate" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_HYPRE_HYPRE_BoomerAMGCreate" >&5
+$as_echo "$ac_cv_lib_HYPRE_HYPRE_BoomerAMGCreate" >&6; }
+if test "x$ac_cv_lib_HYPRE_HYPRE_BoomerAMGCreate" = xyes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_LIBHYPRE 1
 _ACEOF
@@ -29002,761 +28993,6 @@ $as_echo "$LIBGSL" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: Optional package GNU Scientific Library is DISABLED" >&5
 $as_echo "$as_me: Optional package GNU Scientific Library is DISABLED" >&6;}
-fi
-
-
-CFLAGS=$PACKAGE_save_CFLAGS
-CPPFLAGS=$PACKAGE_save_CPPFLAGS
-CXXFLAGS=$PACKAGE_save_CXXFLAGS
-FCFLAGS=$PACKAGE_save_FCFLAGS
-LDFLAGS=$PACKAGE_save_LDFLAGS
-LIBS=$PACKAGE_save_LIBS
-FCLIBS=$PACKAGE_save_FCLIBS
-CONTRIB_LIBS=$PACKAGE_save_CONTRIB_LIBS
-
-
-
-
-echo
-echo "=================================================="
-echo "Configuring optional package Google Test Framework"
-echo "=================================================="
-
-
-PACKAGE_save_CFLAGS=$CFLAGS
-PACKAGE_save_CPPFLAGS=$CPPFLAGS
-PACKAGE_save_CXXFLAGS=$CXXFLAGS
-PACKAGE_save_FCFLAGS=$FCFLAGS
-PACKAGE_save_LDFLAGS=$LDFLAGS
-PACKAGE_save_LIBS=$LIBS
-PACKAGE_save_FCLIBS=$FCLIBS
-PACKAGE_save_CONTRIB_LIBS=$CONTRIB_LIBS
-CFLAGS="$PACKAGE_CFLAGS $CFLAGS"
-CPPFLAGS="$PACKAGE_CPPFLAGS $CPPFLAGS"
-CXXFLAGS="$PACKAGE_CXXFLAGS $CXXFLAGS"
-FCFLAGS="$PACKAGE_FCFLAGS $FCFLAGS"
-LDFLAGS="$PACKAGE_LDFLAGS $LDFLAGS"
-LIBS="$PACKAGE_LIBS $LIBS"
-FCLIBS="$PACKAGE_FCLIBS $FCLIBS"
-CONTRIB_LIBS="$PACKAGE_CONTRIB_LIBS $CONTRIB_LIBS"
-
-
-# Check whether --enable-gtest was given.
-if test "${enable_gtest+set}" = set; then :
-  enableval=$enable_gtest; case "$enableval" in
-                    yes)  GTEST_ENABLED=yes ;;
-                    no)   GTEST_ENABLED=no ;;
-                    *)    as_fn_error $? "--enable-gtest=$enableval is invalid; choices are \"yes\" and \"no\"" "$LINENO" 5 ;;
-                  esac
-else
-  GTEST_ENABLED=no
-fi
-
-
- if test "$GTEST_ENABLED" = yes; then
-  GTEST_ENABLED_TRUE=
-  GTEST_ENABLED_FALSE='#'
-else
-  GTEST_ENABLED_TRUE='#'
-  GTEST_ENABLED_FALSE=
-fi
-
-
-
-# Check whether --with-gtest was given.
-if test "${with_gtest+set}" = set; then :
-  withval=$with_gtest; if test "$GTEST_ENABLED" = no ; then
-     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: --with-gtest is specified, but support for gtest is disabled" >&5
-$as_echo "$as_me: WARNING: --with-gtest is specified, but support for gtest is disabled" >&2;}
-   else
-     if test ! -d "$withval" ; then
-       as_fn_error $? "it is necessary to specify an existing directory when using --with-gtest=PATH" "$LINENO" 5
-     fi
-     GTEST_DIR=$withval
-   fi
-fi
-
-
-if test "$GTEST_ENABLED" = yes; then
-  if test x$GTEST_DIR != x ; then
-    if test -d "${GTEST_DIR}/include" ; then
-      GTEST_CPPFLAGS="-I${GTEST_DIR}/include"
-    fi
-    if test -d "${GTEST_DIR}/lib" ; then
-      GTEST_LDFLAGS="-L${GTEST_DIR}/lib"
-    fi
-  fi
-  if test x$GTEST_DIR = x ; then
-      as_fn_error $? "
-
-      !!!! Google Test is enabled, but no path specified !!!!
-
-      --enable-gtest was passed, but GTEST_DIR was not specified
-      with --with-gtest=GTEST_DIR
-
-  Google Test may be built using Cmake in following manner:
-  =============================================================
-  git clone https://github.com/google/googletest.git googletest
-  cd googletest
-
-  cmake CMakeLists.txt  -DCMAKE_INSTALL_PREFIX=GTEST_DIR
-    -DCMAKE_CXX_COMPILER=MPI_DIR/bin/mpicxx
-    -DCMAKE_CXX_FLAGS=IBAMR_CXX_FLAGS
-    -DCMAKE_C_COMPILER=MPI_DIR/bin/mpicc
-    -DCMAKE_C_FLAGS=IBAMR_C_FLAGS -Dgtest_build_tests=ON
-    -Dgmock_build_tests=ON -Dgtest_build_samples=ON
-    -DBUILD_GMOCK=ON -DBUILD_GTEST=OFF
-
-    make
-    make test
-    make install
-  ===============================================================
-
-  (replace GTEST_DIR, IBAMR_CXX_FLAGS, etc. with actual values)
-
-  See IBAMR_TESTING_GUIDE.md in root IBAMR directory for more details.
-  " "$LINENO" 5
- fi
-
-  CPPFLAGS="$GTEST_CPPFLAGS $CPPFLAGS"
-
-  as_ac_Header=`$as_echo "ac_cv_header_${GTEST_DIR}/include/gtest/gtest.h" | $as_tr_sh`
-ac_fn_cxx_check_header_mongrel "$LINENO" "${GTEST_DIR}/include/gtest/gtest.h" "$as_ac_Header" "$ac_includes_default"
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
-
-else
-  as_fn_error $? "
-
-  !!!! Configure could not find header file gtest.h !!!!
-  Please provide to --with-gtest=GTEST_DIR the directory that contains:
-
-  GTEST_DIR
-  |-include/
-    |-gtest/
-      +-gtest.h
-  |-lib/
-    +-libgtest.a
-
-  Google Test may be built using Cmake in following manner:
-  =============================================================
-  git clone https://github.com/google/googletest.git googletest
-  cd googletest
-
-  cmake CMakeLists.txt  -DCMAKE_INSTALL_PREFIX=GTEST_DIR
-    -DCMAKE_CXX_COMPILER=MPI_DIR/bin/mpicxx
-    -DCMAKE_CXX_FLAGS=IBAMR_CXX_FLAGS
-    -DCMAKE_C_COMPILER=MPI_DIR/bin/mpicc
-    -DCMAKE_C_FLAGS=IBAMR_C_FLAGS -Dgtest_build_tests=ON
-    -Dgmock_build_tests=ON -Dgtest_build_samples=ON
-    -DBUILD_GMOCK=ON -DBUILD_GTEST=OFF
-
-    make
-    make test
-    make install
-  ===============================================================
-
-  See IBAMR_TESTING_GUIDE.md in root IBAMR directory for more details.
-  " "$LINENO" 5
-fi
-
-
-
-  LDFLAGS="$GTEST_LDFLAGS $LDFLAGS"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    use_additional=yes
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-
-    eval additional_includedir=\"$includedir\"
-    eval additional_libdir=\"$libdir\"
-
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-## begin removed by BEG
-##  AC_ARG_WITH(P_A_C_K[-prefix],
-##[[  --with-]]P_A_C_K[[-prefix[=DIR]  search for ]PACKLIBS[ in DIR/include and DIR/lib
-##  --without-]]P_A_C_K[[-prefix     don't search for ]PACKLIBS[ in includedir and libdir]],
-##[
-##    if test "X$withval" = "Xno"; then
-##      use_additional=no
-##    else
-##      if test "X$withval" = "X"; then
-##        AC_LIB_WITH_FINAL_PREFIX([
-##          eval additional_includedir=\"$includedir\"
-##          eval additional_libdir=\"$libdir\"
-##        ])
-##      else
-##        additional_includedir="$withval/include"
-##        additional_libdir="$withval/$acl_libdirstem"
-##        if test "$acl_libdirstem2" != "$acl_libdirstem" \
-##           && ! test -d "$withval/$acl_libdirstem"; then
-##          additional_libdir="$withval/$acl_libdirstem2"
-##        fi
-##      fi
-##    fi
-##])
-## end removed by BEG
-      LIBGTEST=
-  LTLIBGTEST=
-  INCGTEST=
-  LIBGTEST_PREFIX=
-      HAVE_LIBGTEST=
-  rpathdirs=
-  ltrpathdirs=
-  names_already_handled=
-  names_next_round='gtest '
-  while test -n "$names_next_round"; do
-    names_this_round="$names_next_round"
-    names_next_round=
-    for name in $names_this_round; do
-      already_handled=
-      for n in $names_already_handled; do
-        if test "$n" = "$name"; then
-          already_handled=yes
-          break
-        fi
-      done
-      if test -z "$already_handled"; then
-        names_already_handled="$names_already_handled $name"
-                        uppername=`echo "$name" | sed -e 'y|abcdefghijklmnopqrstuvwxyz./+-|ABCDEFGHIJKLMNOPQRSTUVWXYZ____|'`
-        eval value=\"\$HAVE_LIB$uppername\"
-        if test -n "$value"; then
-          if test "$value" = yes; then
-            eval value=\"\$LIB$uppername\"
-            test -z "$value" || LIBGTEST="${LIBGTEST}${LIBGTEST:+ }$value"
-            eval value=\"\$LTLIB$uppername\"
-            test -z "$value" || LTLIBGTEST="${LTLIBGTEST}${LTLIBGTEST:+ }$value"
-          else
-                                    :
-          fi
-        else
-                              found_dir=
-          found_la=
-          found_so=
-          found_a=
-          eval libname=\"$acl_libname_spec\"    # typically: libname=lib$name
-          if test -n "$acl_shlibext"; then
-            shrext=".$acl_shlibext"             # typically: shrext=.so
-          else
-            shrext=
-          fi
-          if test $use_additional = yes; then
-            dir="$additional_libdir"
-                                    if test -n "$acl_shlibext"; then
-              if test -f "$dir/$libname$shrext"; then
-                found_dir="$dir"
-                found_so="$dir/$libname$shrext"
-              else
-                if test "$acl_library_names_spec" = '$libname$shrext$versuffix'; then
-                  ver=`(cd "$dir" && \
-                        for f in "$libname$shrext".*; do echo "$f"; done \
-                        | sed -e "s,^$libname$shrext\\\\.,," \
-                        | sort -t '.' -n -r -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 \
-                        | sed 1q ) 2>/dev/null`
-                  if test -n "$ver" && test -f "$dir/$libname$shrext.$ver"; then
-                    found_dir="$dir"
-                    found_so="$dir/$libname$shrext.$ver"
-                  fi
-                else
-                  eval library_names=\"$acl_library_names_spec\"
-                  for f in $library_names; do
-                    if test -f "$dir/$f"; then
-                      found_dir="$dir"
-                      found_so="$dir/$f"
-                      break
-                    fi
-                  done
-                fi
-              fi
-            fi
-                        if test "X$found_dir" = "X"; then
-              if test -f "$dir/$libname.$acl_libext"; then
-                found_dir="$dir"
-                found_a="$dir/$libname.$acl_libext"
-              fi
-            fi
-            if test "X$found_dir" != "X"; then
-              if test -f "$dir/$libname.la"; then
-                found_la="$dir/$libname.la"
-              fi
-            fi
-          fi
-          if test "X$found_dir" = "X"; then
-            for x in $LDFLAGS $LTLIBGTEST; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-              case "$x" in
-                -L*)
-                  dir=`echo "X$x" | sed -e 's/^X-L//'`
-                                    if test -n "$acl_shlibext"; then
-                    if test -f "$dir/$libname$shrext"; then
-                      found_dir="$dir"
-                      found_so="$dir/$libname$shrext"
-                    else
-                      if test "$acl_library_names_spec" = '$libname$shrext$versuffix'; then
-                        ver=`(cd "$dir" && \
-                              for f in "$libname$shrext".*; do echo "$f"; done \
-                              | sed -e "s,^$libname$shrext\\\\.,," \
-                              | sort -t '.' -n -r -k1,1 -k2,2 -k3,3 -k4,4 -k5,5 \
-                              | sed 1q ) 2>/dev/null`
-                        if test -n "$ver" && test -f "$dir/$libname$shrext.$ver"; then
-                          found_dir="$dir"
-                          found_so="$dir/$libname$shrext.$ver"
-                        fi
-                      else
-                        eval library_names=\"$acl_library_names_spec\"
-                        for f in $library_names; do
-                          if test -f "$dir/$f"; then
-                            found_dir="$dir"
-                            found_so="$dir/$f"
-                            break
-                          fi
-                        done
-                      fi
-                    fi
-                  fi
-                                    if test "X$found_dir" = "X"; then
-                    if test -f "$dir/$libname.$acl_libext"; then
-                      found_dir="$dir"
-                      found_a="$dir/$libname.$acl_libext"
-                    fi
-                  fi
-                  if test "X$found_dir" != "X"; then
-                    if test -f "$dir/$libname.la"; then
-                      found_la="$dir/$libname.la"
-                    fi
-                  fi
-                  ;;
-              esac
-              if test "X$found_dir" != "X"; then
-                break
-              fi
-            done
-          fi
-          if test "X$found_dir" != "X"; then
-                        LTLIBGTEST="${LTLIBGTEST}${LTLIBGTEST:+ }-L$found_dir -l$name"
-            if test "X$found_so" != "X"; then
-                                                        if test "$enable_rpath" = no \
-                 || test "X$found_dir" = "X/usr/$acl_libdirstem" \
-                 || test "X$found_dir" = "X/usr/$acl_libdirstem2"; then
-                                LIBGTEST="${LIBGTEST}${LIBGTEST:+ }$found_so"
-              else
-                                                                                haveit=
-                for x in $ltrpathdirs; do
-                  if test "X$x" = "X$found_dir"; then
-                    haveit=yes
-                    break
-                  fi
-                done
-                if test -z "$haveit"; then
-                  ltrpathdirs="$ltrpathdirs $found_dir"
-                fi
-                                if test "$acl_hardcode_direct" = yes; then
-                                                      LIBGTEST="${LIBGTEST}${LIBGTEST:+ }$found_so"
-                else
-                  if test -n "$acl_hardcode_libdir_flag_spec" && test "$acl_hardcode_minus_L" = no; then
-                                                            LIBGTEST="${LIBGTEST}${LIBGTEST:+ }$found_so"
-                                                            haveit=
-                    for x in $rpathdirs; do
-                      if test "X$x" = "X$found_dir"; then
-                        haveit=yes
-                        break
-                      fi
-                    done
-                    if test -z "$haveit"; then
-                      rpathdirs="$rpathdirs $found_dir"
-                    fi
-                  else
-                                                                                haveit=
-                    for x in $LDFLAGS $LIBGTEST; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-                      if test "X$x" = "X-L$found_dir"; then
-                        haveit=yes
-                        break
-                      fi
-                    done
-                    if test -z "$haveit"; then
-                      LIBGTEST="${LIBGTEST}${LIBGTEST:+ }-L$found_dir"
-                    fi
-                    if test "$acl_hardcode_minus_L" != no; then
-                                                                                        LIBGTEST="${LIBGTEST}${LIBGTEST:+ }$found_so"
-                    else
-                                                                                                                                                                                LIBGTEST="${LIBGTEST}${LIBGTEST:+ }-l$name"
-                    fi
-                  fi
-                fi
-              fi
-            else
-              if test "X$found_a" != "X"; then
-                                LIBGTEST="${LIBGTEST}${LIBGTEST:+ }$found_a"
-              else
-                                                LIBGTEST="${LIBGTEST}${LIBGTEST:+ }-L$found_dir -l$name"
-              fi
-            fi
-                        additional_includedir=
-            case "$found_dir" in
-              */$acl_libdirstem | */$acl_libdirstem/)
-                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem/"'*$,,'`
-                if test "$name" = 'gtest'; then
-                  LIBGTEST_PREFIX="$basedir"
-                fi
-                additional_includedir="$basedir/include"
-                ;;
-              */$acl_libdirstem2 | */$acl_libdirstem2/)
-                basedir=`echo "X$found_dir" | sed -e 's,^X,,' -e "s,/$acl_libdirstem2/"'*$,,'`
-                if test "$name" = 'gtest'; then
-                  LIBGTEST_PREFIX="$basedir"
-                fi
-                additional_includedir="$basedir/include"
-                ;;
-            esac
-            if test "X$additional_includedir" != "X"; then
-                                                                                                                if test "X$additional_includedir" != "X/usr/include"; then
-                haveit=
-                if test "X$additional_includedir" = "X/usr/local/include"; then
-                  if test -n "$GCC"; then
-                    case $host_os in
-                      linux* | gnu* | k*bsd*-gnu) haveit=yes;;
-                    esac
-                  fi
-                fi
-                if test -z "$haveit"; then
-                  for x in $CPPFLAGS $INCGTEST; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-                    if test "X$x" = "X-I$additional_includedir"; then
-                      haveit=yes
-                      break
-                    fi
-                  done
-                  if test -z "$haveit"; then
-                    if test -d "$additional_includedir"; then
-                                            INCGTEST="${INCGTEST}${INCGTEST:+ }-I$additional_includedir"
-                    fi
-                  fi
-                fi
-              fi
-            fi
-                        if test -n "$found_la"; then
-                                                        save_libdir="$libdir"
-              case "$found_la" in
-                */* | *\\*) . "$found_la" ;;
-                *) . "./$found_la" ;;
-              esac
-              libdir="$save_libdir"
-                            for dep in $dependency_libs; do
-                case "$dep" in
-                  -L*)
-                    additional_libdir=`echo "X$dep" | sed -e 's/^X-L//'`
-                                                                                                                                                                if test "X$additional_libdir" != "X/usr/$acl_libdirstem" \
-                       && test "X$additional_libdir" != "X/usr/$acl_libdirstem2"; then
-                      haveit=
-                      if test "X$additional_libdir" = "X/usr/local/$acl_libdirstem" \
-                         || test "X$additional_libdir" = "X/usr/local/$acl_libdirstem2"; then
-                        if test -n "$GCC"; then
-                          case $host_os in
-                            linux* | gnu* | k*bsd*-gnu) haveit=yes;;
-                          esac
-                        fi
-                      fi
-                      if test -z "$haveit"; then
-                        haveit=
-                        for x in $LDFLAGS $LIBGTEST; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-                          if test "X$x" = "X-L$additional_libdir"; then
-                            haveit=yes
-                            break
-                          fi
-                        done
-                        if test -z "$haveit"; then
-                          if test -d "$additional_libdir"; then
-                                                        LIBGTEST="${LIBGTEST}${LIBGTEST:+ }-L$additional_libdir"
-                          fi
-                        fi
-                        haveit=
-                        for x in $LDFLAGS $LTLIBGTEST; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-                          if test "X$x" = "X-L$additional_libdir"; then
-                            haveit=yes
-                            break
-                          fi
-                        done
-                        if test -z "$haveit"; then
-                          if test -d "$additional_libdir"; then
-                                                        LTLIBGTEST="${LTLIBGTEST}${LTLIBGTEST:+ }-L$additional_libdir"
-                          fi
-                        fi
-                      fi
-                    fi
-                    ;;
-                  -R*)
-                    dir=`echo "X$dep" | sed -e 's/^X-R//'`
-                    if test "$enable_rpath" != no; then
-                                                                  haveit=
-                      for x in $rpathdirs; do
-                        if test "X$x" = "X$dir"; then
-                          haveit=yes
-                          break
-                        fi
-                      done
-                      if test -z "$haveit"; then
-                        rpathdirs="$rpathdirs $dir"
-                      fi
-                                                                  haveit=
-                      for x in $ltrpathdirs; do
-                        if test "X$x" = "X$dir"; then
-                          haveit=yes
-                          break
-                        fi
-                      done
-                      if test -z "$haveit"; then
-                        ltrpathdirs="$ltrpathdirs $dir"
-                      fi
-                    fi
-                    ;;
-                  -l*)
-                                        names_next_round="$names_next_round "`echo "X$dep" | sed -e 's/^X-l//'`
-                    ;;
-                  *.la)
-                                                                                names_next_round="$names_next_round "`echo "X$dep" | sed -e 's,^X.*/,,' -e 's,^lib,,' -e 's,\.la$,,'`
-                    ;;
-                  *)
-                                        LIBGTEST="${LIBGTEST}${LIBGTEST:+ }$dep"
-                    LTLIBGTEST="${LTLIBGTEST}${LTLIBGTEST:+ }$dep"
-                    ;;
-                esac
-              done
-            fi
-          else
-                                                            LIBGTEST="${LIBGTEST}${LIBGTEST:+ }-l$name"
-            LTLIBGTEST="${LTLIBGTEST}${LTLIBGTEST:+ }-l$name"
-          fi
-        fi
-      fi
-    done
-  done
-  if test "X$rpathdirs" != "X"; then
-    if test -n "$acl_hardcode_libdir_separator"; then
-                        alldirs=
-      for found_dir in $rpathdirs; do
-        alldirs="${alldirs}${alldirs:+$acl_hardcode_libdir_separator}$found_dir"
-      done
-            acl_save_libdir="$libdir"
-      libdir="$alldirs"
-      eval flag=\"$acl_hardcode_libdir_flag_spec\"
-      libdir="$acl_save_libdir"
-      LIBGTEST="${LIBGTEST}${LIBGTEST:+ }$flag"
-    else
-            for found_dir in $rpathdirs; do
-        acl_save_libdir="$libdir"
-        libdir="$found_dir"
-        eval flag=\"$acl_hardcode_libdir_flag_spec\"
-        libdir="$acl_save_libdir"
-        LIBGTEST="${LIBGTEST}${LIBGTEST:+ }$flag"
-      done
-    fi
-  fi
-  if test "X$ltrpathdirs" != "X"; then
-            for found_dir in $ltrpathdirs; do
-      LTLIBGTEST="${LTLIBGTEST}${LTLIBGTEST:+ }-R$found_dir"
-    done
-  fi
-
-
-
-
-
-
-
-        ac_save_CPPFLAGS="$CPPFLAGS"
-
-  for element in $INCGTEST; do
-    haveit=
-    for x in $CPPFLAGS; do
-
-  acl_save_prefix="$prefix"
-  prefix="$acl_final_prefix"
-  acl_save_exec_prefix="$exec_prefix"
-  exec_prefix="$acl_final_exec_prefix"
-  eval x=\"$x\"
-  exec_prefix="$acl_save_exec_prefix"
-  prefix="$acl_save_prefix"
-
-      if test "X$x" = "X$element"; then
-        haveit=yes
-        break
-      fi
-    done
-    if test -z "$haveit"; then
-      CPPFLAGS="${CPPFLAGS}${CPPFLAGS:+ }$element"
-    fi
-  done
-
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libgtest" >&5
-$as_echo_n "checking for libgtest... " >&6; }
-if ${ac_cv_libgtest+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-    ac_save_LIBS="$LIBS"
-                                case " $LIBGTEST" in
-      *" -l"*) LIBS="$LIBS $LIBGTEST" ;;
-      *)       LIBS="$LIBGTEST $LIBS" ;;
-    esac
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#ifdef FC_DUMMY_MAIN
-#ifndef FC_DUMMY_MAIN_EQ_F77
-#  ifdef __cplusplus
-     extern "C"
-#  endif
-   int FC_DUMMY_MAIN() { return 1; }
-#endif
-#endif
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_libgtest=yes
-else
-  ac_cv_libgtest='no'
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-    LIBS="$ac_save_LIBS"
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_libgtest" >&5
-$as_echo "$ac_cv_libgtest" >&6; }
-  if test "$ac_cv_libgtest" = yes; then
-    HAVE_LIBGTEST=yes
-
-$as_echo "#define HAVE_LIBGTEST 1" >>confdefs.h
-
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking how to link with libgtest" >&5
-$as_echo_n "checking how to link with libgtest... " >&6; }
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBGTEST" >&5
-$as_echo "$LIBGTEST" >&6; }
-  else
-    HAVE_LIBGTEST=no
-            CPPFLAGS="$ac_save_CPPFLAGS"
-    LIBGTEST=
-    LTLIBGTEST=
-    LIBGTEST_PREFIX=
-  fi
-
-
-
-
-
-
-
-  if test "$HAVE_LIBGTEST" = no ; then
-    as_fn_error $? "
-    !!! Could not find working libgtest.a !!!
-  Please provide to --with-gtest=GTEST_DIR the directory that contains:
-
-  GTEST_DIR
-  |-include/
-    |-gtest/
-      +-gtest.h
-  |-lib/
-    +-libgtest.a
-
-  Google Test may be built using Cmake in following manner:
-  =============================================================
-  git clone https://github.com/google/googletest.git googletest
-  cd googletest
-
-  cmake CMakeLists.txt  -DCMAKE_INSTALL_PREFIX=GTEST_DIR
-    -DCMAKE_CXX_COMPILER=MPI_DIR/bin/mpicxx
-    -DCMAKE_CXX_FLAGS=IBAMR_CXX_FLAGS
-    -DCMAKE_C_COMPILER=MPI_DIR/bin/mpicc
-    -DCMAKE_C_FLAGS=IBAMR_C_FLAGS -Dgtest_build_tests=ON
-    -Dgmock_build_tests=ON -Dgtest_build_samples=ON
-    -DBUILD_GMOCK=ON -DBUILD_GTEST=OFF
-
-    make
-    make test
-    make install
-  ===============================================================
-
-  See IBAMR_TESTING_GUIDE.md in root IBAMR directory for more details.
-    " "$LINENO" 5
-  fi
-
-  PACKAGE_CPPFLAGS="$GTEST_CPPFLAGS $PACKAGE_CPPFLAGS"
-
-  PACKAGE_LDFLAGS="$GTEST_LDFLAGS $PACKAGE_LDFLAGS"
-
-  PACKAGE_LIBS=""$LIBGTEST" $PACKAGE_LIBS"
-
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: Optional package Google Test Framework is DISABLED" >&5
-$as_echo "$as_me: Optional package Google Test Framework is DISABLED" >&6;}
 fi
 
 
@@ -31091,15 +30327,27 @@ if test "$SILO_ENABLED" = yes; then
   fi
 
   # handle silo's dependencies:
-  LDFLAGS="$ZLIB_DIR $LDFLAGS"
+  if test "x$ZLIB_DIR" = "x" ; then
+      :
+  else
+      LDFLAGS="-L$ZLIB_DIR/lib $LDFLAGS"
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for compress2 in -lz" >&5
-$as_echo_n "checking for compress2 in -lz... " >&6; }
-if ${ac_cv_lib_z_compress2+:} false; then :
+
+
+  if test "$enable_rpath" = yes; then
+    libdir=${ZLIB_DIR}/lib
+    rpath_path=$(eval echo "$acl_cv_hardcode_libdir_flag_spec")
+    LDFLAGS=""$rpath_path" $LDFLAGS"
+
+  fi
+
+  fi
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing compress2" >&5
+$as_echo_n "checking for library containing compress2... " >&6; }
+if ${ac_cv_search_compress2+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lz  $LIBS"
+  ac_func_search_save_LIBS=$LIBS
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -31126,23 +30374,35 @@ return compress2 ();
   return 0;
 }
 _ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_z_compress2=yes
-else
-  ac_cv_lib_z_compress2=no
+for ac_lib in '' z; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_cxx_try_link "$LINENO"; then :
+  ac_cv_search_compress2=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+    conftest$ac_exeext
+  if ${ac_cv_search_compress2+:} false; then :
+  break
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_z_compress2" >&5
-$as_echo "$ac_cv_lib_z_compress2" >&6; }
-if test "x$ac_cv_lib_z_compress2" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBZ 1
-_ACEOF
+done
+if ${ac_cv_search_compress2+:} false; then :
 
-  LIBS="-lz $LIBS"
+else
+  ac_cv_search_compress2=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_compress2" >&5
+$as_echo "$ac_cv_search_compress2" >&6; }
+ac_res=$ac_cv_search_compress2
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
 else
   as_fn_error $? "Unable to locate a valid zlib installation, which is a dependency of Silo. Since Silo is usually statically linked this must be provided to IBAMR. If zlib is not installed in a standard location then a path to it must be provided via --with-zlib=PATH." "$LINENO" 5
@@ -42058,7 +41318,7 @@ echo "================"
 echo "Outputting files"
 echo "================"
 
-ac_config_files="$ac_config_files Makefile examples/Makefile examples/CCLaplace/Makefile examples/CCPoisson/Makefile examples/PETScOps/Makefile examples/PETScOps/ProlongationMat/Makefile examples/PhysBdryOps/Makefile examples/SCLaplace/Makefile examples/SCPoisson/Makefile examples/VCLaplace/Makefile examples/VCViscousSolver/Makefile lib/Makefile scripts/Makefile src/Makefile src/boundary/Makefile src/boundary/cf_interface/Makefile src/boundary/cf_interface/fortran/Makefile src/boundary/physical_boundary/Makefile src/boundary/physical_boundary/fortran/Makefile src/coarsen_ops/Makefile src/coarsen_ops/fortran/Makefile src/fortran/Makefile src/lagrangian/Makefile src/lagrangian/fortran/Makefile src/math/Makefile src/math/fortran/Makefile src/refine_ops/Makefile src/refine_ops/fortran/Makefile src/solvers/Makefile src/solvers/impls/Makefile src/solvers/impls/fortran/Makefile src/solvers/interfaces/Makefile src/solvers/wrappers/Makefile src/utilities/Makefile contrib/Makefile contrib/muparser/Makefile contrib/muparser/src/Makefile"
+ac_config_files="$ac_config_files Makefile examples/Makefile examples/CCLaplace/Makefile examples/CCPoisson/Makefile examples/GhostCells/Makefile examples/PETScOps/Makefile examples/PETScOps/ProlongationMat/Makefile examples/PhysBdryOps/Makefile examples/SCLaplace/Makefile examples/SCPoisson/Makefile examples/VCLaplace/Makefile examples/VCViscousSolver/Makefile lib/Makefile scripts/Makefile src/Makefile src/boundary/Makefile src/boundary/cf_interface/Makefile src/boundary/cf_interface/fortran/Makefile src/boundary/physical_boundary/Makefile src/boundary/physical_boundary/fortran/Makefile src/coarsen_ops/Makefile src/coarsen_ops/fortran/Makefile src/fortran/Makefile src/lagrangian/Makefile src/lagrangian/fortran/Makefile src/math/Makefile src/math/fortran/Makefile src/refine_ops/Makefile src/refine_ops/fortran/Makefile src/solvers/Makefile src/solvers/impls/Makefile src/solvers/impls/fortran/Makefile src/solvers/interfaces/Makefile src/solvers/wrappers/Makefile src/utilities/Makefile contrib/Makefile contrib/muparser/Makefile contrib/muparser/src/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -42224,10 +41484,6 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${GSL_ENABLED_TRUE}" && test -z "${GSL_ENABLED_FALSE}"; then
   as_fn_error $? "conditional \"GSL_ENABLED\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${GTEST_ENABLED_TRUE}" && test -z "${GTEST_ENABLED_FALSE}"; then
-  as_fn_error $? "conditional \"GTEST_ENABLED\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${USING_BUNDLED_MUPARSER_TRUE}" && test -z "${USING_BUNDLED_MUPARSER_FALSE}"; then
@@ -42670,6 +41926,7 @@ cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
 # Files that config.status was made for.
 config_files="$ac_config_files"
 config_headers="$ac_config_headers"
+config_links="$ac_config_links"
 config_commands="$ac_config_commands"
 
 _ACEOF
@@ -42699,6 +41956,9 @@ $config_files
 
 Configuration headers:
 $config_headers
+
+Configuration links:
+$config_links
 
 Configuration commands:
 $config_commands
@@ -43309,12 +42569,14 @@ do
   case $ac_config_target in
     "config/IBTK_config.h.tmp") CONFIG_HEADERS="$CONFIG_HEADERS config/IBTK_config.h.tmp" ;;
     "config/IBTK_config.h") CONFIG_COMMANDS="$CONFIG_COMMANDS config/IBTK_config.h" ;;
+    "config/ibtk/config.h") CONFIG_LINKS="$CONFIG_LINKS config/ibtk/config.h:$srcdir/config/config.h.tmp" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "examples/Makefile") CONFIG_FILES="$CONFIG_FILES examples/Makefile" ;;
     "examples/CCLaplace/Makefile") CONFIG_FILES="$CONFIG_FILES examples/CCLaplace/Makefile" ;;
     "examples/CCPoisson/Makefile") CONFIG_FILES="$CONFIG_FILES examples/CCPoisson/Makefile" ;;
+    "examples/GhostCells/Makefile") CONFIG_FILES="$CONFIG_FILES examples/GhostCells/Makefile" ;;
     "examples/PETScOps/Makefile") CONFIG_FILES="$CONFIG_FILES examples/PETScOps/Makefile" ;;
     "examples/PETScOps/ProlongationMat/Makefile") CONFIG_FILES="$CONFIG_FILES examples/PETScOps/ProlongationMat/Makefile" ;;
     "examples/PhysBdryOps/Makefile") CONFIG_FILES="$CONFIG_FILES examples/PhysBdryOps/Makefile" ;;
@@ -43361,6 +42623,7 @@ done
 if $ac_need_defaults; then
   test "${CONFIG_FILES+set}" = set || CONFIG_FILES=$config_files
   test "${CONFIG_HEADERS+set}" = set || CONFIG_HEADERS=$config_headers
+  test "${CONFIG_LINKS+set}" = set || CONFIG_LINKS=$config_links
   test "${CONFIG_COMMANDS+set}" = set || CONFIG_COMMANDS=$config_commands
 fi
 
@@ -43658,7 +42921,7 @@ cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 fi # test -n "$CONFIG_HEADERS"
 
 
-eval set X "  :F $CONFIG_FILES  :H $CONFIG_HEADERS    :C $CONFIG_COMMANDS"
+eval set X "  :F $CONFIG_FILES  :H $CONFIG_HEADERS  :L $CONFIG_LINKS  :C $CONFIG_COMMANDS"
 shift
 for ac_tag
 do
@@ -43935,7 +43198,38 @@ $as_echo X"$_am_arg" |
 	  }
 	  s/.*/./; q'`/stamp-h$_am_stamp_count
  ;;
+  :L)
+  #
+  # CONFIG_LINK
+  #
 
+  if test "$ac_source" = "$ac_file" && test "$srcdir" = '.'; then
+    :
+  else
+    # Prefer the file from the source tree if names are identical.
+    if test "$ac_source" = "$ac_file" || test ! -r "$ac_source"; then
+      ac_source=$srcdir/$ac_source
+    fi
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: linking $ac_source to $ac_file" >&5
+$as_echo "$as_me: linking $ac_source to $ac_file" >&6;}
+
+    if test ! -r "$ac_source"; then
+      as_fn_error $? "$ac_source: file not found" "$LINENO" 5
+    fi
+    rm -f "$ac_file"
+
+    # Try a relative symlink, then a hard link, then a copy.
+    case $ac_source in
+    [\\/$]* | ?:[\\/]* ) ac_rel_source=$ac_source ;;
+	*) ac_rel_source=$ac_top_build_prefix$ac_source ;;
+    esac
+    ln -s "$ac_rel_source" "$ac_file" 2>/dev/null ||
+      ln "$ac_source" "$ac_file" 2>/dev/null ||
+      cp -p "$ac_source" "$ac_file" ||
+      as_fn_error $? "cannot link or copy $ac_source to $ac_file" "$LINENO" 5
+  fi
+ ;;
   :C)  { $as_echo "$as_me:${as_lineno-$LINENO}: executing $ac_file commands" >&5
 $as_echo "$as_me: executing $ac_file commands" >&6;}
  ;;

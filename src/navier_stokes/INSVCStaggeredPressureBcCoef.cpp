@@ -1,34 +1,15 @@
-// Filename: INSVCStaggeredPressureBcCoef.cpp
-// Created on 25 Sep 2017 by Nishant Nangia
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2014, Nishant Nangia and Amneet Bhalla
+// Copyright (c) 2018 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -37,14 +18,15 @@
 #include "ibamr/StokesBcCoefStrategy.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
+#include "ibtk/ibtk_enums.h"
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
+#include "CellData.h"
 #include "Index.h"
 #include "IntVector.h"
 #include "Patch.h"
@@ -53,6 +35,7 @@
 #include "SideIndex.h"
 #include "Variable.h"
 #include "VariableContext.h"
+#include "tbox/Array.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
@@ -62,6 +45,8 @@
 #include <ostream>
 #include <string>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -270,11 +255,10 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     Array<double> A_scale = d_fluid_solver->getScalingFactor();
     const double p_scale = A_scale[patch.getPatchLevelNumber()];
     double mu = d_fluid_solver->muIsConstant() ? d_problem_coefs->getMu() : -1;
-    int mu_idx = -1;
     Pointer<CellData<NDIM, double> > mu_data;
     if (!d_fluid_solver->muIsConstant())
     {
-        mu_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
+        const int mu_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 #if !defined(NDEBUG)
         TBOX_ASSERT(mu_idx >= 0);
 #endif
@@ -285,8 +269,8 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     const double* const dx = pgeom->getDx();
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
-        const Index<NDIM>& i = it();
-        double dummy_val;
+        const hier::Index<NDIM>& i = it();
+        double dummy_val = std::numeric_limits<double>::quiet_NaN();
         double& alpha = acoef_data ? (*acoef_data)(i, 0) : dummy_val;
         double& beta = bcoef_data ? (*bcoef_data)(i, 0) : dummy_val;
         double& gamma = gcoef_data ? (*gcoef_data)(i, 0) : dummy_val;
@@ -315,7 +299,7 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
 #endif
                 // Place i_i in the interior cell abutting the boundary, and
                 // place i_g in the ghost cell abutting the boundary.
-                Index<NDIM> i_i(i), i_g(i);
+                hier::Index<NDIM> i_i(i), i_g(i);
                 if (is_lower)
                 {
                     i_g(bdry_normal_axis) -= 1;
@@ -326,14 +310,15 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                 }
                 if (!d_fluid_solver->muIsConstant())
                 {
-                    // Average mu onto side centers
-                    // In certain use cases with traction boundary conditions, this class will attempt to fill
-                    // Robin BC coefficient values along an extended physical boundary outside of the physical domain
-                    // that will never be used. However, viscosity values will not be available at those locations, so
-                    // we
-                    // need to ensure we don't access those unallocated data. The unphysical value should result in bad
-                    // stuff if
-                    // it gets used for whatever reason.
+                    // Average mu onto side centers In certain use cases with
+                    // traction boundary conditions, this class will attempt
+                    // to fill Robin BC coefficient values along an extended
+                    // physical boundary outside of the physical domain that
+                    // will never be used. However, viscosity values will not
+                    // be available at those locations, so we need to ensure
+                    // we don't access those unallocated data. The unphysical
+                    // value should result in bad stuff if it gets used for
+                    // whatever reason.
                     const bool mu_contains_cells =
                         (mu_data->getGhostBox().contains(i_g) && mu_data->getGhostBox().contains(i_i));
                     if (d_mu_interp_type == VC_AVERAGE_INTERP)
@@ -387,7 +372,8 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
             default:
             {
                 TBOX_ERROR(
-                    "INSVCStaggeredPressureBcCoef::setBcCoefs(): unrecognized or unsupported "
+                    "INSVCStaggeredPressureBcCoef::setBcCoefs(): unrecognized "
+                    "or unsupported "
                     "traction boundary condition type: "
                     << enum_to_string<TractionBcType>(d_traction_bc_type) << "\n");
             }

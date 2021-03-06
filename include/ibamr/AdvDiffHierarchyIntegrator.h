@@ -1,39 +1,24 @@
-// Filename: AdvDiffHierarchyIntegrator.h
-// Created on 21 May 2012 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith, Amneet Bhalla and Nishant Nangia
+// Copyright (c) 2006 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
+
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBAMR_AdvDiffHierarchyIntegrator
 #define included_IBAMR_AdvDiffHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
 
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
@@ -360,6 +345,8 @@ public:
     /*!
      * Set an object to provide boundary conditions for a scalar-valued quantity
      * that has been registered with the hierarchy integrator.
+     *
+     * \see IBTK::muParserRobinBcCoefs
      */
     void setPhysicalBcCoef(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* Q_bc_coef);
@@ -367,6 +354,8 @@ public:
     /*!
      * Set objects to provide boundary conditions for a vector-valued quantity
      * that has been registered with the hierarchy integrator.
+     *
+     * \see IBTK::muParserRobinBcCoefs
      */
     void setPhysicalBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
                             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coef);
@@ -468,10 +457,10 @@ public:
                                ResetPropertiesFcnPtr callback,
                                void* ctx);
 
-    /*
+    /*!
      * \brief Set a reset priority for a particular variable.
      *
-     * \note Variables will be reset sequentially accordint to their priority, from lowest to highest.
+     * \note Variables will be reset sequentially according to their priority, from lowest to highest.
      * The reset functions registered to each variable will be called according to the order in which they were
      * registered. If no priority is set for a variable, its reset functions will be called after those with priority,
      * in no particular order.

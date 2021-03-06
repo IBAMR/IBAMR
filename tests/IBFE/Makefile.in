@@ -87,11 +87,13 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = interpolate_velocity_01_2d$(EXEEXT) \
-	interpolate_velocity_01_3d$(EXEEXT) \
-	interpolate_velocity_02$(EXEEXT) explicit_ex0_2d$(EXEEXT) \
-	explicit_ex4_2d$(EXEEXT) explicit_ex4_3d$(EXEEXT) \
-	explicit_ex8_2d$(EXEEXT)
+EXTRA_PROGRAMS = $(am__EXEEXT_1)
+@LIBMESH_ENABLED_TRUE@am__append_1 = interpolate_velocity_01_2d interpolate_velocity_01_3d \
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_02 explicit_ex0_2d explicit_ex1_2d explicit_ex2_3d explicit_ex4_2d \
+@LIBMESH_ENABLED_TRUE@explicit_ex4_3d explicit_ex5_2d explicit_ex5_3d explicit_ex8_2d \
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_2d ib_partitioning_01_3d ib_partitioning_02_2d \
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_3d zero_exterior_values_2d zero_exterior_values_3d
+
 subdir = tests/IBFE
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -103,7 +105,6 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
 	$(top_srcdir)/m4/configure_boost.m4 \
 	$(top_srcdir)/m4/configure_eigen.m4 \
 	$(top_srcdir)/m4/configure_gsl.m4 \
-	$(top_srcdir)/m4/configure_gtest.m4 \
 	$(top_srcdir)/m4/configure_hdf5.m4 \
 	$(top_srcdir)/m4/configure_hypre.m4 \
 	$(top_srcdir)/m4/configure_libmesh.m4 \
@@ -124,9 +125,30 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am_explicit_ex0_2d_OBJECTS = explicit_ex0_2d-explicit_ex0.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@am__EXEEXT_1 =  \
+@LIBMESH_ENABLED_TRUE@	interpolate_velocity_01_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	interpolate_velocity_01_3d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	interpolate_velocity_02$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	explicit_ex0_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	explicit_ex1_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	explicit_ex2_3d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	explicit_ex4_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	explicit_ex4_3d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	explicit_ex5_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	explicit_ex5_3d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	explicit_ex8_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	ib_partitioning_01_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	ib_partitioning_01_3d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	ib_partitioning_02_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	ib_partitioning_02_3d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	zero_exterior_values_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	zero_exterior_values_3d$(EXEEXT)
+am__explicit_ex0_2d_SOURCES_DIST = explicit_ex0.cpp
+@LIBMESH_ENABLED_TRUE@am_explicit_ex0_2d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	explicit_ex0_2d-explicit_ex0.$(OBJEXT)
 explicit_ex0_2d_OBJECTS = $(am_explicit_ex0_2d_OBJECTS)
-explicit_ex0_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex0_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -135,55 +157,164 @@ explicit_ex0_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(explicit_ex0_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_explicit_ex4_2d_OBJECTS = explicit_ex4_2d-explicit_ex4.$(OBJEXT)
+am__explicit_ex1_2d_SOURCES_DIST = explicit_ex1.cpp
+@LIBMESH_ENABLED_TRUE@am_explicit_ex1_2d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	explicit_ex1_2d-explicit_ex1.$(OBJEXT)
+explicit_ex1_2d_OBJECTS = $(am_explicit_ex1_2d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@explicit_ex1_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
+explicit_ex1_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(explicit_ex1_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__explicit_ex2_3d_SOURCES_DIST = explicit_ex2.cpp
+@LIBMESH_ENABLED_TRUE@am_explicit_ex2_3d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	explicit_ex2_3d-explicit_ex2.$(OBJEXT)
+explicit_ex2_3d_OBJECTS = $(am_explicit_ex2_3d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@explicit_ex2_3d_DEPENDENCIES = $(IBAMR3d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
+explicit_ex2_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(explicit_ex2_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__explicit_ex4_2d_SOURCES_DIST = explicit_ex4.cpp
+@LIBMESH_ENABLED_TRUE@am_explicit_ex4_2d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	explicit_ex4_2d-explicit_ex4.$(OBJEXT)
 explicit_ex4_2d_OBJECTS = $(am_explicit_ex4_2d_OBJECTS)
-explicit_ex4_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex4_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 explicit_ex4_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(explicit_ex4_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_explicit_ex4_3d_OBJECTS = explicit_ex4_3d-explicit_ex4.$(OBJEXT)
+am__explicit_ex4_3d_SOURCES_DIST = explicit_ex4.cpp
+@LIBMESH_ENABLED_TRUE@am_explicit_ex4_3d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	explicit_ex4_3d-explicit_ex4.$(OBJEXT)
 explicit_ex4_3d_OBJECTS = $(am_explicit_ex4_3d_OBJECTS)
-explicit_ex4_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex4_3d_DEPENDENCIES = $(IBAMR3d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 explicit_ex4_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(explicit_ex4_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_explicit_ex8_2d_OBJECTS = explicit_ex8_2d-explicit_ex8.$(OBJEXT)
+am__explicit_ex5_2d_SOURCES_DIST = explicit_ex5.cpp
+@LIBMESH_ENABLED_TRUE@am_explicit_ex5_2d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	explicit_ex5_2d-explicit_ex5.$(OBJEXT)
+explicit_ex5_2d_OBJECTS = $(am_explicit_ex5_2d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@explicit_ex5_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
+explicit_ex5_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(explicit_ex5_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__explicit_ex5_3d_SOURCES_DIST = explicit_ex5.cpp
+@LIBMESH_ENABLED_TRUE@am_explicit_ex5_3d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	explicit_ex5_3d-explicit_ex5.$(OBJEXT)
+explicit_ex5_3d_OBJECTS = $(am_explicit_ex5_3d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@explicit_ex5_3d_DEPENDENCIES = $(IBAMR3d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
+explicit_ex5_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(explicit_ex5_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__explicit_ex8_2d_SOURCES_DIST = explicit_ex8.cpp
+@LIBMESH_ENABLED_TRUE@am_explicit_ex8_2d_OBJECTS =  \
+@LIBMESH_ENABLED_TRUE@	explicit_ex8_2d-explicit_ex8.$(OBJEXT)
 explicit_ex8_2d_OBJECTS = $(am_explicit_ex8_2d_OBJECTS)
-explicit_ex8_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex8_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
 explicit_ex8_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(explicit_ex8_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_interpolate_velocity_01_2d_OBJECTS =  \
-	interpolate_velocity_01_2d-interpolate_velocity_01.$(OBJEXT)
+am__ib_partitioning_01_2d_SOURCES_DIST = ib_partitioning_01.cpp
+@LIBMESH_ENABLED_TRUE@am_ib_partitioning_01_2d_OBJECTS = ib_partitioning_01_2d-ib_partitioning_01.$(OBJEXT)
+ib_partitioning_01_2d_OBJECTS = $(am_ib_partitioning_01_2d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_2d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
+ib_partitioning_01_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(ib_partitioning_01_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__ib_partitioning_01_3d_SOURCES_DIST = ib_partitioning_01.cpp
+@LIBMESH_ENABLED_TRUE@am_ib_partitioning_01_3d_OBJECTS = ib_partitioning_01_3d-ib_partitioning_01.$(OBJEXT)
+ib_partitioning_01_3d_OBJECTS = $(am_ib_partitioning_01_3d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_3d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
+ib_partitioning_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(ib_partitioning_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__ib_partitioning_02_2d_SOURCES_DIST = ib_partitioning_02.cpp
+@LIBMESH_ENABLED_TRUE@am_ib_partitioning_02_2d_OBJECTS = ib_partitioning_02_2d-ib_partitioning_02.$(OBJEXT)
+ib_partitioning_02_2d_OBJECTS = $(am_ib_partitioning_02_2d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_2d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
+ib_partitioning_02_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(ib_partitioning_02_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__ib_partitioning_02_3d_SOURCES_DIST = ib_partitioning_02.cpp
+@LIBMESH_ENABLED_TRUE@am_ib_partitioning_02_3d_OBJECTS = ib_partitioning_02_3d-ib_partitioning_02.$(OBJEXT)
+ib_partitioning_02_3d_OBJECTS = $(am_ib_partitioning_02_3d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_3d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
+ib_partitioning_02_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(ib_partitioning_02_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__interpolate_velocity_01_2d_SOURCES_DIST =  \
+	interpolate_velocity_01.cpp
+@LIBMESH_ENABLED_TRUE@am_interpolate_velocity_01_2d_OBJECTS = interpolate_velocity_01_2d-interpolate_velocity_01.$(OBJEXT)
 interpolate_velocity_01_2d_OBJECTS =  \
 	$(am_interpolate_velocity_01_2d_OBJECTS)
-interpolate_velocity_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
-	$(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_01_2d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
 interpolate_velocity_01_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(interpolate_velocity_01_2d_CXXFLAGS) $(CXXFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_interpolate_velocity_01_3d_OBJECTS =  \
-	interpolate_velocity_01_3d-interpolate_velocity_01.$(OBJEXT)
+am__interpolate_velocity_01_3d_SOURCES_DIST =  \
+	interpolate_velocity_01.cpp
+@LIBMESH_ENABLED_TRUE@am_interpolate_velocity_01_3d_OBJECTS = interpolate_velocity_01_3d-interpolate_velocity_01.$(OBJEXT)
 interpolate_velocity_01_3d_OBJECTS =  \
 	$(am_interpolate_velocity_01_3d_OBJECTS)
-interpolate_velocity_01_3d_DEPENDENCIES = $(IBAMR3d_LIBS) \
-	$(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_01_3d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
 interpolate_velocity_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(interpolate_velocity_01_3d_CXXFLAGS) $(CXXFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_interpolate_velocity_02_OBJECTS =  \
-	interpolate_velocity_02-interpolate_velocity_02.$(OBJEXT)
+am__interpolate_velocity_02_SOURCES_DIST =  \
+	interpolate_velocity_02.cpp
+@LIBMESH_ENABLED_TRUE@am_interpolate_velocity_02_OBJECTS = interpolate_velocity_02-interpolate_velocity_02.$(OBJEXT)
 interpolate_velocity_02_OBJECTS =  \
 	$(am_interpolate_velocity_02_OBJECTS)
-interpolate_velocity_02_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_02_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
 interpolate_velocity_02_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(interpolate_velocity_02_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__zero_exterior_values_2d_SOURCES_DIST = zero_exterior_values.cpp
+@LIBMESH_ENABLED_TRUE@am_zero_exterior_values_2d_OBJECTS = zero_exterior_values_2d-zero_exterior_values.$(OBJEXT)
+zero_exterior_values_2d_OBJECTS =  \
+	$(am_zero_exterior_values_2d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@zero_exterior_values_2d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
+zero_exterior_values_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(zero_exterior_values_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__zero_exterior_values_3d_SOURCES_DIST = zero_exterior_values.cpp
+@LIBMESH_ENABLED_TRUE@am_zero_exterior_values_3d_OBJECTS = zero_exterior_values_3d-zero_exterior_values.$(OBJEXT)
+zero_exterior_values_3d_OBJECTS =  \
+	$(am_zero_exterior_values_3d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@zero_exterior_values_3d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
+zero_exterior_values_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(zero_exterior_values_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -201,12 +332,22 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/explicit_ex0_2d-explicit_ex0.Po \
+	./$(DEPDIR)/explicit_ex1_2d-explicit_ex1.Po \
+	./$(DEPDIR)/explicit_ex2_3d-explicit_ex2.Po \
 	./$(DEPDIR)/explicit_ex4_2d-explicit_ex4.Po \
 	./$(DEPDIR)/explicit_ex4_3d-explicit_ex4.Po \
+	./$(DEPDIR)/explicit_ex5_2d-explicit_ex5.Po \
+	./$(DEPDIR)/explicit_ex5_3d-explicit_ex5.Po \
 	./$(DEPDIR)/explicit_ex8_2d-explicit_ex8.Po \
+	./$(DEPDIR)/ib_partitioning_01_2d-ib_partitioning_01.Po \
+	./$(DEPDIR)/ib_partitioning_01_3d-ib_partitioning_01.Po \
+	./$(DEPDIR)/ib_partitioning_02_2d-ib_partitioning_02.Po \
+	./$(DEPDIR)/ib_partitioning_02_3d-ib_partitioning_02.Po \
 	./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po \
 	./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po \
-	./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po
+	./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po \
+	./$(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Po \
+	./$(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -226,16 +367,36 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(explicit_ex0_2d_SOURCES) $(explicit_ex4_2d_SOURCES) \
-	$(explicit_ex4_3d_SOURCES) $(explicit_ex8_2d_SOURCES) \
+SOURCES = $(explicit_ex0_2d_SOURCES) $(explicit_ex1_2d_SOURCES) \
+	$(explicit_ex2_3d_SOURCES) $(explicit_ex4_2d_SOURCES) \
+	$(explicit_ex4_3d_SOURCES) $(explicit_ex5_2d_SOURCES) \
+	$(explicit_ex5_3d_SOURCES) $(explicit_ex8_2d_SOURCES) \
+	$(ib_partitioning_01_2d_SOURCES) \
+	$(ib_partitioning_01_3d_SOURCES) \
+	$(ib_partitioning_02_2d_SOURCES) \
+	$(ib_partitioning_02_3d_SOURCES) \
 	$(interpolate_velocity_01_2d_SOURCES) \
 	$(interpolate_velocity_01_3d_SOURCES) \
-	$(interpolate_velocity_02_SOURCES)
-DIST_SOURCES = $(explicit_ex0_2d_SOURCES) $(explicit_ex4_2d_SOURCES) \
-	$(explicit_ex4_3d_SOURCES) $(explicit_ex8_2d_SOURCES) \
-	$(interpolate_velocity_01_2d_SOURCES) \
-	$(interpolate_velocity_01_3d_SOURCES) \
-	$(interpolate_velocity_02_SOURCES)
+	$(interpolate_velocity_02_SOURCES) \
+	$(zero_exterior_values_2d_SOURCES) \
+	$(zero_exterior_values_3d_SOURCES)
+DIST_SOURCES = $(am__explicit_ex0_2d_SOURCES_DIST) \
+	$(am__explicit_ex1_2d_SOURCES_DIST) \
+	$(am__explicit_ex2_3d_SOURCES_DIST) \
+	$(am__explicit_ex4_2d_SOURCES_DIST) \
+	$(am__explicit_ex4_3d_SOURCES_DIST) \
+	$(am__explicit_ex5_2d_SOURCES_DIST) \
+	$(am__explicit_ex5_3d_SOURCES_DIST) \
+	$(am__explicit_ex8_2d_SOURCES_DIST) \
+	$(am__ib_partitioning_01_2d_SOURCES_DIST) \
+	$(am__ib_partitioning_01_3d_SOURCES_DIST) \
+	$(am__ib_partitioning_02_2d_SOURCES_DIST) \
+	$(am__ib_partitioning_02_3d_SOURCES_DIST) \
+	$(am__interpolate_velocity_01_2d_SOURCES_DIST) \
+	$(am__interpolate_velocity_01_3d_SOURCES_DIST) \
+	$(am__interpolate_velocity_02_SOURCES_DIST) \
+	$(am__zero_exterior_values_2d_SOURCES_DIST) \
+	$(am__zero_exterior_values_3d_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -306,7 +467,6 @@ GREP = @GREP@
 HAVE_CXX11 = @HAVE_CXX11@
 HAVE_LIBGSL = @HAVE_LIBGSL@
 HAVE_LIBGSLCBLAS = @HAVE_LIBGSLCBLAS@
-HAVE_LIBGTEST = @HAVE_LIBGTEST@
 HAVE_LIBMESH_DBG = @HAVE_LIBMESH_DBG@
 HAVE_LIBMESH_DEVEL = @HAVE_LIBMESH_DEVEL@
 HAVE_LIBMESH_OPROF = @HAVE_LIBMESH_OPROF@
@@ -343,8 +503,6 @@ LIBGSL = @LIBGSL@
 LIBGSLCBLAS = @LIBGSLCBLAS@
 LIBGSLCBLAS_PREFIX = @LIBGSLCBLAS_PREFIX@
 LIBGSL_PREFIX = @LIBGSL_PREFIX@
-LIBGTEST = @LIBGTEST@
-LIBGTEST_PREFIX = @LIBGTEST_PREFIX@
 LIBMESH_CONFIG = @LIBMESH_CONFIG@
 LIBMESH_DBG = @LIBMESH_DBG@
 LIBMESH_DBG_PREFIX = @LIBMESH_DBG_PREFIX@
@@ -403,7 +561,6 @@ LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBGSL = @LTLIBGSL@
 LTLIBGSLCBLAS = @LTLIBGSLCBLAS@
-LTLIBGTEST = @LTLIBGTEST@
 LTLIBMESH_DBG = @LTLIBMESH_DBG@
 LTLIBMESH_DEVEL = @LTLIBMESH_DEVEL@
 LTLIBMESH_OPROF = @LTLIBMESH_OPROF@
@@ -531,27 +688,61 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-interpolate_velocity_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-interpolate_velocity_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-interpolate_velocity_01_2d_SOURCES = interpolate_velocity_01.cpp
-interpolate_velocity_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-interpolate_velocity_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-interpolate_velocity_01_3d_SOURCES = interpolate_velocity_01.cpp
-interpolate_velocity_02_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-interpolate_velocity_02_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-interpolate_velocity_02_SOURCES = interpolate_velocity_02.cpp
-explicit_ex0_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-explicit_ex0_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-explicit_ex0_2d_SOURCES = explicit_ex0.cpp
-explicit_ex4_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-explicit_ex4_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-explicit_ex4_2d_SOURCES = explicit_ex4.cpp
-explicit_ex4_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-explicit_ex4_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-explicit_ex4_3d_SOURCES = explicit_ex4.cpp
-explicit_ex8_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-explicit_ex8_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-explicit_ex8_2d_SOURCES = explicit_ex8.cpp
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_01_2d_SOURCES = interpolate_velocity_01.cpp
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_01_3d_SOURCES = interpolate_velocity_01.cpp
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_02_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_02_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@interpolate_velocity_02_SOURCES = interpolate_velocity_02.cpp
+@LIBMESH_ENABLED_TRUE@explicit_ex0_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@explicit_ex0_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex0_2d_SOURCES = explicit_ex0.cpp
+@LIBMESH_ENABLED_TRUE@explicit_ex1_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@explicit_ex1_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex1_2d_SOURCES = explicit_ex1.cpp
+@LIBMESH_ENABLED_TRUE@explicit_ex2_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@explicit_ex2_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex2_3d_SOURCES = explicit_ex2.cpp
+
+# this test needs some extra input files, so make SOURCE_DIR available:
+@LIBMESH_ENABLED_TRUE@explicit_ex4_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
+@LIBMESH_ENABLED_TRUE@explicit_ex4_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex4_2d_SOURCES = explicit_ex4.cpp
+
+# add it here too, even though we don't use it directly in 3D:
+@LIBMESH_ENABLED_TRUE@explicit_ex4_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3 -DSOURCE_DIR=\"$(abs_srcdir)\"
+@LIBMESH_ENABLED_TRUE@explicit_ex4_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex4_3d_SOURCES = explicit_ex4.cpp
+@LIBMESH_ENABLED_TRUE@explicit_ex5_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@explicit_ex5_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex5_2d_SOURCES = explicit_ex5.cpp
+@LIBMESH_ENABLED_TRUE@explicit_ex5_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@explicit_ex5_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex5_3d_SOURCES = explicit_ex5.cpp
+@LIBMESH_ENABLED_TRUE@explicit_ex8_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@explicit_ex8_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@explicit_ex8_2d_SOURCES = explicit_ex8.cpp
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_2d_SOURCES = ib_partitioning_01.cpp
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@ib_partitioning_01_3d_SOURCES = ib_partitioning_01.cpp
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_2d_SOURCES = ib_partitioning_02.cpp
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@ib_partitioning_02_3d_SOURCES = ib_partitioning_02.cpp
+@LIBMESH_ENABLED_TRUE@zero_exterior_values_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@zero_exterior_values_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@zero_exterior_values_2d_SOURCES = zero_exterior_values.cpp
+@LIBMESH_ENABLED_TRUE@zero_exterior_values_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@zero_exterior_values_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@zero_exterior_values_3d_SOURCES = zero_exterior_values.cpp
 all: all-am
 
 .SUFFIXES:
@@ -591,6 +782,14 @@ explicit_ex0_2d$(EXEEXT): $(explicit_ex0_2d_OBJECTS) $(explicit_ex0_2d_DEPENDENC
 	@rm -f explicit_ex0_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(explicit_ex0_2d_LINK) $(explicit_ex0_2d_OBJECTS) $(explicit_ex0_2d_LDADD) $(LIBS)
 
+explicit_ex1_2d$(EXEEXT): $(explicit_ex1_2d_OBJECTS) $(explicit_ex1_2d_DEPENDENCIES) $(EXTRA_explicit_ex1_2d_DEPENDENCIES) 
+	@rm -f explicit_ex1_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(explicit_ex1_2d_LINK) $(explicit_ex1_2d_OBJECTS) $(explicit_ex1_2d_LDADD) $(LIBS)
+
+explicit_ex2_3d$(EXEEXT): $(explicit_ex2_3d_OBJECTS) $(explicit_ex2_3d_DEPENDENCIES) $(EXTRA_explicit_ex2_3d_DEPENDENCIES) 
+	@rm -f explicit_ex2_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(explicit_ex2_3d_LINK) $(explicit_ex2_3d_OBJECTS) $(explicit_ex2_3d_LDADD) $(LIBS)
+
 explicit_ex4_2d$(EXEEXT): $(explicit_ex4_2d_OBJECTS) $(explicit_ex4_2d_DEPENDENCIES) $(EXTRA_explicit_ex4_2d_DEPENDENCIES) 
 	@rm -f explicit_ex4_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(explicit_ex4_2d_LINK) $(explicit_ex4_2d_OBJECTS) $(explicit_ex4_2d_LDADD) $(LIBS)
@@ -599,9 +798,33 @@ explicit_ex4_3d$(EXEEXT): $(explicit_ex4_3d_OBJECTS) $(explicit_ex4_3d_DEPENDENC
 	@rm -f explicit_ex4_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(explicit_ex4_3d_LINK) $(explicit_ex4_3d_OBJECTS) $(explicit_ex4_3d_LDADD) $(LIBS)
 
+explicit_ex5_2d$(EXEEXT): $(explicit_ex5_2d_OBJECTS) $(explicit_ex5_2d_DEPENDENCIES) $(EXTRA_explicit_ex5_2d_DEPENDENCIES) 
+	@rm -f explicit_ex5_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(explicit_ex5_2d_LINK) $(explicit_ex5_2d_OBJECTS) $(explicit_ex5_2d_LDADD) $(LIBS)
+
+explicit_ex5_3d$(EXEEXT): $(explicit_ex5_3d_OBJECTS) $(explicit_ex5_3d_DEPENDENCIES) $(EXTRA_explicit_ex5_3d_DEPENDENCIES) 
+	@rm -f explicit_ex5_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(explicit_ex5_3d_LINK) $(explicit_ex5_3d_OBJECTS) $(explicit_ex5_3d_LDADD) $(LIBS)
+
 explicit_ex8_2d$(EXEEXT): $(explicit_ex8_2d_OBJECTS) $(explicit_ex8_2d_DEPENDENCIES) $(EXTRA_explicit_ex8_2d_DEPENDENCIES) 
 	@rm -f explicit_ex8_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(explicit_ex8_2d_LINK) $(explicit_ex8_2d_OBJECTS) $(explicit_ex8_2d_LDADD) $(LIBS)
+
+ib_partitioning_01_2d$(EXEEXT): $(ib_partitioning_01_2d_OBJECTS) $(ib_partitioning_01_2d_DEPENDENCIES) $(EXTRA_ib_partitioning_01_2d_DEPENDENCIES) 
+	@rm -f ib_partitioning_01_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(ib_partitioning_01_2d_LINK) $(ib_partitioning_01_2d_OBJECTS) $(ib_partitioning_01_2d_LDADD) $(LIBS)
+
+ib_partitioning_01_3d$(EXEEXT): $(ib_partitioning_01_3d_OBJECTS) $(ib_partitioning_01_3d_DEPENDENCIES) $(EXTRA_ib_partitioning_01_3d_DEPENDENCIES) 
+	@rm -f ib_partitioning_01_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(ib_partitioning_01_3d_LINK) $(ib_partitioning_01_3d_OBJECTS) $(ib_partitioning_01_3d_LDADD) $(LIBS)
+
+ib_partitioning_02_2d$(EXEEXT): $(ib_partitioning_02_2d_OBJECTS) $(ib_partitioning_02_2d_DEPENDENCIES) $(EXTRA_ib_partitioning_02_2d_DEPENDENCIES) 
+	@rm -f ib_partitioning_02_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(ib_partitioning_02_2d_LINK) $(ib_partitioning_02_2d_OBJECTS) $(ib_partitioning_02_2d_LDADD) $(LIBS)
+
+ib_partitioning_02_3d$(EXEEXT): $(ib_partitioning_02_3d_OBJECTS) $(ib_partitioning_02_3d_DEPENDENCIES) $(EXTRA_ib_partitioning_02_3d_DEPENDENCIES) 
+	@rm -f ib_partitioning_02_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(ib_partitioning_02_3d_LINK) $(ib_partitioning_02_3d_OBJECTS) $(ib_partitioning_02_3d_LDADD) $(LIBS)
 
 interpolate_velocity_01_2d$(EXEEXT): $(interpolate_velocity_01_2d_OBJECTS) $(interpolate_velocity_01_2d_DEPENDENCIES) $(EXTRA_interpolate_velocity_01_2d_DEPENDENCIES) 
 	@rm -f interpolate_velocity_01_2d$(EXEEXT)
@@ -615,6 +838,14 @@ interpolate_velocity_02$(EXEEXT): $(interpolate_velocity_02_OBJECTS) $(interpola
 	@rm -f interpolate_velocity_02$(EXEEXT)
 	$(AM_V_CXXLD)$(interpolate_velocity_02_LINK) $(interpolate_velocity_02_OBJECTS) $(interpolate_velocity_02_LDADD) $(LIBS)
 
+zero_exterior_values_2d$(EXEEXT): $(zero_exterior_values_2d_OBJECTS) $(zero_exterior_values_2d_DEPENDENCIES) $(EXTRA_zero_exterior_values_2d_DEPENDENCIES) 
+	@rm -f zero_exterior_values_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(zero_exterior_values_2d_LINK) $(zero_exterior_values_2d_OBJECTS) $(zero_exterior_values_2d_LDADD) $(LIBS)
+
+zero_exterior_values_3d$(EXEEXT): $(zero_exterior_values_3d_OBJECTS) $(zero_exterior_values_3d_DEPENDENCIES) $(EXTRA_zero_exterior_values_3d_DEPENDENCIES) 
+	@rm -f zero_exterior_values_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(zero_exterior_values_3d_LINK) $(zero_exterior_values_3d_OBJECTS) $(zero_exterior_values_3d_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -622,12 +853,22 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex0_2d-explicit_ex0.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex1_2d-explicit_ex1.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex2_3d-explicit_ex2.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex4_2d-explicit_ex4.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex4_3d-explicit_ex4.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex5_2d-explicit_ex5.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex5_3d-explicit_ex5.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/explicit_ex8_2d-explicit_ex8.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ib_partitioning_01_2d-ib_partitioning_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ib_partitioning_01_3d-ib_partitioning_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ib_partitioning_02_2d-ib_partitioning_02.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ib_partitioning_02_3d-ib_partitioning_02.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -673,6 +914,34 @@ explicit_ex0_2d-explicit_ex0.obj: explicit_ex0.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex0_2d_CXXFLAGS) $(CXXFLAGS) -c -o explicit_ex0_2d-explicit_ex0.obj `if test -f 'explicit_ex0.cpp'; then $(CYGPATH_W) 'explicit_ex0.cpp'; else $(CYGPATH_W) '$(srcdir)/explicit_ex0.cpp'; fi`
 
+explicit_ex1_2d-explicit_ex1.o: explicit_ex1.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex1_2d_CXXFLAGS) $(CXXFLAGS) -MT explicit_ex1_2d-explicit_ex1.o -MD -MP -MF $(DEPDIR)/explicit_ex1_2d-explicit_ex1.Tpo -c -o explicit_ex1_2d-explicit_ex1.o `test -f 'explicit_ex1.cpp' || echo '$(srcdir)/'`explicit_ex1.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/explicit_ex1_2d-explicit_ex1.Tpo $(DEPDIR)/explicit_ex1_2d-explicit_ex1.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='explicit_ex1.cpp' object='explicit_ex1_2d-explicit_ex1.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex1_2d_CXXFLAGS) $(CXXFLAGS) -c -o explicit_ex1_2d-explicit_ex1.o `test -f 'explicit_ex1.cpp' || echo '$(srcdir)/'`explicit_ex1.cpp
+
+explicit_ex1_2d-explicit_ex1.obj: explicit_ex1.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex1_2d_CXXFLAGS) $(CXXFLAGS) -MT explicit_ex1_2d-explicit_ex1.obj -MD -MP -MF $(DEPDIR)/explicit_ex1_2d-explicit_ex1.Tpo -c -o explicit_ex1_2d-explicit_ex1.obj `if test -f 'explicit_ex1.cpp'; then $(CYGPATH_W) 'explicit_ex1.cpp'; else $(CYGPATH_W) '$(srcdir)/explicit_ex1.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/explicit_ex1_2d-explicit_ex1.Tpo $(DEPDIR)/explicit_ex1_2d-explicit_ex1.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='explicit_ex1.cpp' object='explicit_ex1_2d-explicit_ex1.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex1_2d_CXXFLAGS) $(CXXFLAGS) -c -o explicit_ex1_2d-explicit_ex1.obj `if test -f 'explicit_ex1.cpp'; then $(CYGPATH_W) 'explicit_ex1.cpp'; else $(CYGPATH_W) '$(srcdir)/explicit_ex1.cpp'; fi`
+
+explicit_ex2_3d-explicit_ex2.o: explicit_ex2.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex2_3d_CXXFLAGS) $(CXXFLAGS) -MT explicit_ex2_3d-explicit_ex2.o -MD -MP -MF $(DEPDIR)/explicit_ex2_3d-explicit_ex2.Tpo -c -o explicit_ex2_3d-explicit_ex2.o `test -f 'explicit_ex2.cpp' || echo '$(srcdir)/'`explicit_ex2.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/explicit_ex2_3d-explicit_ex2.Tpo $(DEPDIR)/explicit_ex2_3d-explicit_ex2.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='explicit_ex2.cpp' object='explicit_ex2_3d-explicit_ex2.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex2_3d_CXXFLAGS) $(CXXFLAGS) -c -o explicit_ex2_3d-explicit_ex2.o `test -f 'explicit_ex2.cpp' || echo '$(srcdir)/'`explicit_ex2.cpp
+
+explicit_ex2_3d-explicit_ex2.obj: explicit_ex2.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex2_3d_CXXFLAGS) $(CXXFLAGS) -MT explicit_ex2_3d-explicit_ex2.obj -MD -MP -MF $(DEPDIR)/explicit_ex2_3d-explicit_ex2.Tpo -c -o explicit_ex2_3d-explicit_ex2.obj `if test -f 'explicit_ex2.cpp'; then $(CYGPATH_W) 'explicit_ex2.cpp'; else $(CYGPATH_W) '$(srcdir)/explicit_ex2.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/explicit_ex2_3d-explicit_ex2.Tpo $(DEPDIR)/explicit_ex2_3d-explicit_ex2.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='explicit_ex2.cpp' object='explicit_ex2_3d-explicit_ex2.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex2_3d_CXXFLAGS) $(CXXFLAGS) -c -o explicit_ex2_3d-explicit_ex2.obj `if test -f 'explicit_ex2.cpp'; then $(CYGPATH_W) 'explicit_ex2.cpp'; else $(CYGPATH_W) '$(srcdir)/explicit_ex2.cpp'; fi`
+
 explicit_ex4_2d-explicit_ex4.o: explicit_ex4.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex4_2d_CXXFLAGS) $(CXXFLAGS) -MT explicit_ex4_2d-explicit_ex4.o -MD -MP -MF $(DEPDIR)/explicit_ex4_2d-explicit_ex4.Tpo -c -o explicit_ex4_2d-explicit_ex4.o `test -f 'explicit_ex4.cpp' || echo '$(srcdir)/'`explicit_ex4.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/explicit_ex4_2d-explicit_ex4.Tpo $(DEPDIR)/explicit_ex4_2d-explicit_ex4.Po
@@ -701,6 +970,34 @@ explicit_ex4_3d-explicit_ex4.obj: explicit_ex4.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex4_3d_CXXFLAGS) $(CXXFLAGS) -c -o explicit_ex4_3d-explicit_ex4.obj `if test -f 'explicit_ex4.cpp'; then $(CYGPATH_W) 'explicit_ex4.cpp'; else $(CYGPATH_W) '$(srcdir)/explicit_ex4.cpp'; fi`
 
+explicit_ex5_2d-explicit_ex5.o: explicit_ex5.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex5_2d_CXXFLAGS) $(CXXFLAGS) -MT explicit_ex5_2d-explicit_ex5.o -MD -MP -MF $(DEPDIR)/explicit_ex5_2d-explicit_ex5.Tpo -c -o explicit_ex5_2d-explicit_ex5.o `test -f 'explicit_ex5.cpp' || echo '$(srcdir)/'`explicit_ex5.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/explicit_ex5_2d-explicit_ex5.Tpo $(DEPDIR)/explicit_ex5_2d-explicit_ex5.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='explicit_ex5.cpp' object='explicit_ex5_2d-explicit_ex5.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex5_2d_CXXFLAGS) $(CXXFLAGS) -c -o explicit_ex5_2d-explicit_ex5.o `test -f 'explicit_ex5.cpp' || echo '$(srcdir)/'`explicit_ex5.cpp
+
+explicit_ex5_2d-explicit_ex5.obj: explicit_ex5.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex5_2d_CXXFLAGS) $(CXXFLAGS) -MT explicit_ex5_2d-explicit_ex5.obj -MD -MP -MF $(DEPDIR)/explicit_ex5_2d-explicit_ex5.Tpo -c -o explicit_ex5_2d-explicit_ex5.obj `if test -f 'explicit_ex5.cpp'; then $(CYGPATH_W) 'explicit_ex5.cpp'; else $(CYGPATH_W) '$(srcdir)/explicit_ex5.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/explicit_ex5_2d-explicit_ex5.Tpo $(DEPDIR)/explicit_ex5_2d-explicit_ex5.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='explicit_ex5.cpp' object='explicit_ex5_2d-explicit_ex5.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex5_2d_CXXFLAGS) $(CXXFLAGS) -c -o explicit_ex5_2d-explicit_ex5.obj `if test -f 'explicit_ex5.cpp'; then $(CYGPATH_W) 'explicit_ex5.cpp'; else $(CYGPATH_W) '$(srcdir)/explicit_ex5.cpp'; fi`
+
+explicit_ex5_3d-explicit_ex5.o: explicit_ex5.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex5_3d_CXXFLAGS) $(CXXFLAGS) -MT explicit_ex5_3d-explicit_ex5.o -MD -MP -MF $(DEPDIR)/explicit_ex5_3d-explicit_ex5.Tpo -c -o explicit_ex5_3d-explicit_ex5.o `test -f 'explicit_ex5.cpp' || echo '$(srcdir)/'`explicit_ex5.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/explicit_ex5_3d-explicit_ex5.Tpo $(DEPDIR)/explicit_ex5_3d-explicit_ex5.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='explicit_ex5.cpp' object='explicit_ex5_3d-explicit_ex5.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex5_3d_CXXFLAGS) $(CXXFLAGS) -c -o explicit_ex5_3d-explicit_ex5.o `test -f 'explicit_ex5.cpp' || echo '$(srcdir)/'`explicit_ex5.cpp
+
+explicit_ex5_3d-explicit_ex5.obj: explicit_ex5.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex5_3d_CXXFLAGS) $(CXXFLAGS) -MT explicit_ex5_3d-explicit_ex5.obj -MD -MP -MF $(DEPDIR)/explicit_ex5_3d-explicit_ex5.Tpo -c -o explicit_ex5_3d-explicit_ex5.obj `if test -f 'explicit_ex5.cpp'; then $(CYGPATH_W) 'explicit_ex5.cpp'; else $(CYGPATH_W) '$(srcdir)/explicit_ex5.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/explicit_ex5_3d-explicit_ex5.Tpo $(DEPDIR)/explicit_ex5_3d-explicit_ex5.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='explicit_ex5.cpp' object='explicit_ex5_3d-explicit_ex5.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex5_3d_CXXFLAGS) $(CXXFLAGS) -c -o explicit_ex5_3d-explicit_ex5.obj `if test -f 'explicit_ex5.cpp'; then $(CYGPATH_W) 'explicit_ex5.cpp'; else $(CYGPATH_W) '$(srcdir)/explicit_ex5.cpp'; fi`
+
 explicit_ex8_2d-explicit_ex8.o: explicit_ex8.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex8_2d_CXXFLAGS) $(CXXFLAGS) -MT explicit_ex8_2d-explicit_ex8.o -MD -MP -MF $(DEPDIR)/explicit_ex8_2d-explicit_ex8.Tpo -c -o explicit_ex8_2d-explicit_ex8.o `test -f 'explicit_ex8.cpp' || echo '$(srcdir)/'`explicit_ex8.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/explicit_ex8_2d-explicit_ex8.Tpo $(DEPDIR)/explicit_ex8_2d-explicit_ex8.Po
@@ -714,6 +1011,62 @@ explicit_ex8_2d-explicit_ex8.obj: explicit_ex8.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='explicit_ex8.cpp' object='explicit_ex8_2d-explicit_ex8.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(explicit_ex8_2d_CXXFLAGS) $(CXXFLAGS) -c -o explicit_ex8_2d-explicit_ex8.obj `if test -f 'explicit_ex8.cpp'; then $(CYGPATH_W) 'explicit_ex8.cpp'; else $(CYGPATH_W) '$(srcdir)/explicit_ex8.cpp'; fi`
+
+ib_partitioning_01_2d-ib_partitioning_01.o: ib_partitioning_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ib_partitioning_01_2d_CXXFLAGS) $(CXXFLAGS) -MT ib_partitioning_01_2d-ib_partitioning_01.o -MD -MP -MF $(DEPDIR)/ib_partitioning_01_2d-ib_partitioning_01.Tpo -c -o ib_partitioning_01_2d-ib_partitioning_01.o `test -f 'ib_partitioning_01.cpp' || echo '$(srcdir)/'`ib_partitioning_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ib_partitioning_01_2d-ib_partitioning_01.Tpo $(DEPDIR)/ib_partitioning_01_2d-ib_partitioning_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ib_partitioning_01.cpp' object='ib_partitioning_01_2d-ib_partitioning_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ib_partitioning_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o ib_partitioning_01_2d-ib_partitioning_01.o `test -f 'ib_partitioning_01.cpp' || echo '$(srcdir)/'`ib_partitioning_01.cpp
+
+ib_partitioning_01_2d-ib_partitioning_01.obj: ib_partitioning_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ib_partitioning_01_2d_CXXFLAGS) $(CXXFLAGS) -MT ib_partitioning_01_2d-ib_partitioning_01.obj -MD -MP -MF $(DEPDIR)/ib_partitioning_01_2d-ib_partitioning_01.Tpo -c -o ib_partitioning_01_2d-ib_partitioning_01.obj `if test -f 'ib_partitioning_01.cpp'; then $(CYGPATH_W) 'ib_partitioning_01.cpp'; else $(CYGPATH_W) '$(srcdir)/ib_partitioning_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ib_partitioning_01_2d-ib_partitioning_01.Tpo $(DEPDIR)/ib_partitioning_01_2d-ib_partitioning_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ib_partitioning_01.cpp' object='ib_partitioning_01_2d-ib_partitioning_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ib_partitioning_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o ib_partitioning_01_2d-ib_partitioning_01.obj `if test -f 'ib_partitioning_01.cpp'; then $(CYGPATH_W) 'ib_partitioning_01.cpp'; else $(CYGPATH_W) '$(srcdir)/ib_partitioning_01.cpp'; fi`
+
+ib_partitioning_01_3d-ib_partitioning_01.o: ib_partitioning_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ib_partitioning_01_3d_CXXFLAGS) $(CXXFLAGS) -MT ib_partitioning_01_3d-ib_partitioning_01.o -MD -MP -MF $(DEPDIR)/ib_partitioning_01_3d-ib_partitioning_01.Tpo -c -o ib_partitioning_01_3d-ib_partitioning_01.o `test -f 'ib_partitioning_01.cpp' || echo '$(srcdir)/'`ib_partitioning_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ib_partitioning_01_3d-ib_partitioning_01.Tpo $(DEPDIR)/ib_partitioning_01_3d-ib_partitioning_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ib_partitioning_01.cpp' object='ib_partitioning_01_3d-ib_partitioning_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ib_partitioning_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o ib_partitioning_01_3d-ib_partitioning_01.o `test -f 'ib_partitioning_01.cpp' || echo '$(srcdir)/'`ib_partitioning_01.cpp
+
+ib_partitioning_01_3d-ib_partitioning_01.obj: ib_partitioning_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ib_partitioning_01_3d_CXXFLAGS) $(CXXFLAGS) -MT ib_partitioning_01_3d-ib_partitioning_01.obj -MD -MP -MF $(DEPDIR)/ib_partitioning_01_3d-ib_partitioning_01.Tpo -c -o ib_partitioning_01_3d-ib_partitioning_01.obj `if test -f 'ib_partitioning_01.cpp'; then $(CYGPATH_W) 'ib_partitioning_01.cpp'; else $(CYGPATH_W) '$(srcdir)/ib_partitioning_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ib_partitioning_01_3d-ib_partitioning_01.Tpo $(DEPDIR)/ib_partitioning_01_3d-ib_partitioning_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ib_partitioning_01.cpp' object='ib_partitioning_01_3d-ib_partitioning_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ib_partitioning_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o ib_partitioning_01_3d-ib_partitioning_01.obj `if test -f 'ib_partitioning_01.cpp'; then $(CYGPATH_W) 'ib_partitioning_01.cpp'; else $(CYGPATH_W) '$(srcdir)/ib_partitioning_01.cpp'; fi`
+
+ib_partitioning_02_2d-ib_partitioning_02.o: ib_partitioning_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ib_partitioning_02_2d_CXXFLAGS) $(CXXFLAGS) -MT ib_partitioning_02_2d-ib_partitioning_02.o -MD -MP -MF $(DEPDIR)/ib_partitioning_02_2d-ib_partitioning_02.Tpo -c -o ib_partitioning_02_2d-ib_partitioning_02.o `test -f 'ib_partitioning_02.cpp' || echo '$(srcdir)/'`ib_partitioning_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ib_partitioning_02_2d-ib_partitioning_02.Tpo $(DEPDIR)/ib_partitioning_02_2d-ib_partitioning_02.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ib_partitioning_02.cpp' object='ib_partitioning_02_2d-ib_partitioning_02.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ib_partitioning_02_2d_CXXFLAGS) $(CXXFLAGS) -c -o ib_partitioning_02_2d-ib_partitioning_02.o `test -f 'ib_partitioning_02.cpp' || echo '$(srcdir)/'`ib_partitioning_02.cpp
+
+ib_partitioning_02_2d-ib_partitioning_02.obj: ib_partitioning_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ib_partitioning_02_2d_CXXFLAGS) $(CXXFLAGS) -MT ib_partitioning_02_2d-ib_partitioning_02.obj -MD -MP -MF $(DEPDIR)/ib_partitioning_02_2d-ib_partitioning_02.Tpo -c -o ib_partitioning_02_2d-ib_partitioning_02.obj `if test -f 'ib_partitioning_02.cpp'; then $(CYGPATH_W) 'ib_partitioning_02.cpp'; else $(CYGPATH_W) '$(srcdir)/ib_partitioning_02.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ib_partitioning_02_2d-ib_partitioning_02.Tpo $(DEPDIR)/ib_partitioning_02_2d-ib_partitioning_02.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ib_partitioning_02.cpp' object='ib_partitioning_02_2d-ib_partitioning_02.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ib_partitioning_02_2d_CXXFLAGS) $(CXXFLAGS) -c -o ib_partitioning_02_2d-ib_partitioning_02.obj `if test -f 'ib_partitioning_02.cpp'; then $(CYGPATH_W) 'ib_partitioning_02.cpp'; else $(CYGPATH_W) '$(srcdir)/ib_partitioning_02.cpp'; fi`
+
+ib_partitioning_02_3d-ib_partitioning_02.o: ib_partitioning_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ib_partitioning_02_3d_CXXFLAGS) $(CXXFLAGS) -MT ib_partitioning_02_3d-ib_partitioning_02.o -MD -MP -MF $(DEPDIR)/ib_partitioning_02_3d-ib_partitioning_02.Tpo -c -o ib_partitioning_02_3d-ib_partitioning_02.o `test -f 'ib_partitioning_02.cpp' || echo '$(srcdir)/'`ib_partitioning_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ib_partitioning_02_3d-ib_partitioning_02.Tpo $(DEPDIR)/ib_partitioning_02_3d-ib_partitioning_02.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ib_partitioning_02.cpp' object='ib_partitioning_02_3d-ib_partitioning_02.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ib_partitioning_02_3d_CXXFLAGS) $(CXXFLAGS) -c -o ib_partitioning_02_3d-ib_partitioning_02.o `test -f 'ib_partitioning_02.cpp' || echo '$(srcdir)/'`ib_partitioning_02.cpp
+
+ib_partitioning_02_3d-ib_partitioning_02.obj: ib_partitioning_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ib_partitioning_02_3d_CXXFLAGS) $(CXXFLAGS) -MT ib_partitioning_02_3d-ib_partitioning_02.obj -MD -MP -MF $(DEPDIR)/ib_partitioning_02_3d-ib_partitioning_02.Tpo -c -o ib_partitioning_02_3d-ib_partitioning_02.obj `if test -f 'ib_partitioning_02.cpp'; then $(CYGPATH_W) 'ib_partitioning_02.cpp'; else $(CYGPATH_W) '$(srcdir)/ib_partitioning_02.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ib_partitioning_02_3d-ib_partitioning_02.Tpo $(DEPDIR)/ib_partitioning_02_3d-ib_partitioning_02.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ib_partitioning_02.cpp' object='ib_partitioning_02_3d-ib_partitioning_02.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ib_partitioning_02_3d_CXXFLAGS) $(CXXFLAGS) -c -o ib_partitioning_02_3d-ib_partitioning_02.obj `if test -f 'ib_partitioning_02.cpp'; then $(CYGPATH_W) 'ib_partitioning_02.cpp'; else $(CYGPATH_W) '$(srcdir)/ib_partitioning_02.cpp'; fi`
 
 interpolate_velocity_01_2d-interpolate_velocity_01.o: interpolate_velocity_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolate_velocity_01_2d_CXXFLAGS) $(CXXFLAGS) -MT interpolate_velocity_01_2d-interpolate_velocity_01.o -MD -MP -MF $(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Tpo -c -o interpolate_velocity_01_2d-interpolate_velocity_01.o `test -f 'interpolate_velocity_01.cpp' || echo '$(srcdir)/'`interpolate_velocity_01.cpp
@@ -756,6 +1109,34 @@ interpolate_velocity_02-interpolate_velocity_02.obj: interpolate_velocity_02.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='interpolate_velocity_02.cpp' object='interpolate_velocity_02-interpolate_velocity_02.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolate_velocity_02_CXXFLAGS) $(CXXFLAGS) -c -o interpolate_velocity_02-interpolate_velocity_02.obj `if test -f 'interpolate_velocity_02.cpp'; then $(CYGPATH_W) 'interpolate_velocity_02.cpp'; else $(CYGPATH_W) '$(srcdir)/interpolate_velocity_02.cpp'; fi`
+
+zero_exterior_values_2d-zero_exterior_values.o: zero_exterior_values.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(zero_exterior_values_2d_CXXFLAGS) $(CXXFLAGS) -MT zero_exterior_values_2d-zero_exterior_values.o -MD -MP -MF $(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Tpo -c -o zero_exterior_values_2d-zero_exterior_values.o `test -f 'zero_exterior_values.cpp' || echo '$(srcdir)/'`zero_exterior_values.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Tpo $(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='zero_exterior_values.cpp' object='zero_exterior_values_2d-zero_exterior_values.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(zero_exterior_values_2d_CXXFLAGS) $(CXXFLAGS) -c -o zero_exterior_values_2d-zero_exterior_values.o `test -f 'zero_exterior_values.cpp' || echo '$(srcdir)/'`zero_exterior_values.cpp
+
+zero_exterior_values_2d-zero_exterior_values.obj: zero_exterior_values.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(zero_exterior_values_2d_CXXFLAGS) $(CXXFLAGS) -MT zero_exterior_values_2d-zero_exterior_values.obj -MD -MP -MF $(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Tpo -c -o zero_exterior_values_2d-zero_exterior_values.obj `if test -f 'zero_exterior_values.cpp'; then $(CYGPATH_W) 'zero_exterior_values.cpp'; else $(CYGPATH_W) '$(srcdir)/zero_exterior_values.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Tpo $(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='zero_exterior_values.cpp' object='zero_exterior_values_2d-zero_exterior_values.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(zero_exterior_values_2d_CXXFLAGS) $(CXXFLAGS) -c -o zero_exterior_values_2d-zero_exterior_values.obj `if test -f 'zero_exterior_values.cpp'; then $(CYGPATH_W) 'zero_exterior_values.cpp'; else $(CYGPATH_W) '$(srcdir)/zero_exterior_values.cpp'; fi`
+
+zero_exterior_values_3d-zero_exterior_values.o: zero_exterior_values.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(zero_exterior_values_3d_CXXFLAGS) $(CXXFLAGS) -MT zero_exterior_values_3d-zero_exterior_values.o -MD -MP -MF $(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Tpo -c -o zero_exterior_values_3d-zero_exterior_values.o `test -f 'zero_exterior_values.cpp' || echo '$(srcdir)/'`zero_exterior_values.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Tpo $(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='zero_exterior_values.cpp' object='zero_exterior_values_3d-zero_exterior_values.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(zero_exterior_values_3d_CXXFLAGS) $(CXXFLAGS) -c -o zero_exterior_values_3d-zero_exterior_values.o `test -f 'zero_exterior_values.cpp' || echo '$(srcdir)/'`zero_exterior_values.cpp
+
+zero_exterior_values_3d-zero_exterior_values.obj: zero_exterior_values.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(zero_exterior_values_3d_CXXFLAGS) $(CXXFLAGS) -MT zero_exterior_values_3d-zero_exterior_values.obj -MD -MP -MF $(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Tpo -c -o zero_exterior_values_3d-zero_exterior_values.obj `if test -f 'zero_exterior_values.cpp'; then $(CYGPATH_W) 'zero_exterior_values.cpp'; else $(CYGPATH_W) '$(srcdir)/zero_exterior_values.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Tpo $(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='zero_exterior_values.cpp' object='zero_exterior_values_3d-zero_exterior_values.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(zero_exterior_values_3d_CXXFLAGS) $(CXXFLAGS) -c -o zero_exterior_values_3d-zero_exterior_values.obj `if test -f 'zero_exterior_values.cpp'; then $(CYGPATH_W) 'zero_exterior_values.cpp'; else $(CYGPATH_W) '$(srcdir)/zero_exterior_values.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -889,12 +1270,22 @@ clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/explicit_ex0_2d-explicit_ex0.Po
+	-rm -f ./$(DEPDIR)/explicit_ex1_2d-explicit_ex1.Po
+	-rm -f ./$(DEPDIR)/explicit_ex2_3d-explicit_ex2.Po
 	-rm -f ./$(DEPDIR)/explicit_ex4_2d-explicit_ex4.Po
 	-rm -f ./$(DEPDIR)/explicit_ex4_3d-explicit_ex4.Po
+	-rm -f ./$(DEPDIR)/explicit_ex5_2d-explicit_ex5.Po
+	-rm -f ./$(DEPDIR)/explicit_ex5_3d-explicit_ex5.Po
 	-rm -f ./$(DEPDIR)/explicit_ex8_2d-explicit_ex8.Po
+	-rm -f ./$(DEPDIR)/ib_partitioning_01_2d-ib_partitioning_01.Po
+	-rm -f ./$(DEPDIR)/ib_partitioning_01_3d-ib_partitioning_01.Po
+	-rm -f ./$(DEPDIR)/ib_partitioning_02_2d-ib_partitioning_02.Po
+	-rm -f ./$(DEPDIR)/ib_partitioning_02_3d-ib_partitioning_02.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po
+	-rm -f ./$(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Po
+	-rm -f ./$(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -941,12 +1332,22 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/explicit_ex0_2d-explicit_ex0.Po
+	-rm -f ./$(DEPDIR)/explicit_ex1_2d-explicit_ex1.Po
+	-rm -f ./$(DEPDIR)/explicit_ex2_3d-explicit_ex2.Po
 	-rm -f ./$(DEPDIR)/explicit_ex4_2d-explicit_ex4.Po
 	-rm -f ./$(DEPDIR)/explicit_ex4_3d-explicit_ex4.Po
+	-rm -f ./$(DEPDIR)/explicit_ex5_2d-explicit_ex5.Po
+	-rm -f ./$(DEPDIR)/explicit_ex5_3d-explicit_ex5.Po
 	-rm -f ./$(DEPDIR)/explicit_ex8_2d-explicit_ex8.Po
+	-rm -f ./$(DEPDIR)/ib_partitioning_01_2d-ib_partitioning_01.Po
+	-rm -f ./$(DEPDIR)/ib_partitioning_01_3d-ib_partitioning_01.Po
+	-rm -f ./$(DEPDIR)/ib_partitioning_02_2d-ib_partitioning_02.Po
+	-rm -f ./$(DEPDIR)/ib_partitioning_02_3d-ib_partitioning_02.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po
+	-rm -f ./$(DEPDIR)/zero_exterior_values_2d-zero_exterior_values.Po
+	-rm -f ./$(DEPDIR)/zero_exterior_values_3d-zero_exterior_values.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -984,7 +1385,8 @@ uninstall-am:
 .PRECIOUS: Makefile
 
 .f.m4.f:
-	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
+	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DCURRENT_SRCDIR=$(srcdir) \
+		-DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \

@@ -1,35 +1,17 @@
-// Copyright (c) 2002-2014, Boyce Griffith
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2019 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 // Config files
-#include <IBAMR_config.h>
-// #include <IBTK_config.h>
 #include <SAMRAI_config.h>
 
 // Headers for basic PETSc functions
@@ -47,9 +29,9 @@
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
 #include <libmesh/equation_systems.h>
-#include <libmesh/linear_partitioner.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
+#include <libmesh/mesh_refinement.h>
 #include <libmesh/mesh_triangle_interface.h>
 
 // Headers for application-specific algorithm/data structure objects
@@ -59,7 +41,10 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
-#include <ibtk/BoxPartitioner.h>
+#include <ibtk/FEProjector.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
+#include <ibtk/StableCentroidPartitioner.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -151,14 +136,16 @@ coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*
 int
 main(int argc, char** argv)
 {
-    // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    const LibMeshInit& init = ibtk_init.getLibMeshInit();
 
-    PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-16");
-    PetscOptionsSetValue(nullptr, "-ksp_atol", "1e-16");
+    // set up options for the linear solver to not depend on the parallel partitioning
+    PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-14");
+    PetscOptionsSetValue(nullptr, "-ksp_atol", "1e-12");
+    PetscOptionsSetValue(nullptr, "-ksp_type", "cg");
+    PetscOptionsSetValue(nullptr, "-pc_type", "jacobi");
+    PetscOptionsSetValue(nullptr, "-pc_jacobi_type", "diagonal");
 
     // prevent a warning about timer initializations
     TimerManager::createManager(nullptr);
@@ -178,13 +165,56 @@ main(int argc, char** argv)
 
         // we want R/2^n_refinements = dx so that we have roughly equal spacing for both elements and cells
         const int n_refinements = int(std::log2(R / dx));
-        MeshTools::Generation::build_sphere(mesh, R, n_refinements, Utility::string_to_enum<ElemType>(elem_type), 10);
+        if (elem_type == "TET4" || elem_type == "TET10")
+        {
+            const int n_cells = std::ceil(R / dx);
+            MeshTools::Generation::build_cube(
+                mesh, n_cells, n_cells, n_cells, -R, R, -R, R, -R, R, Utility::string_to_enum<ElemType>(elem_type));
+        }
+        else
+        {
+            MeshTools::Generation::build_sphere(
+                mesh, R, n_refinements, Utility::string_to_enum<ElemType>(elem_type), 10);
+        }
         mesh.prepare_for_use();
+
+        // Set up subdomain ids (which are only used in the multilevel test versions):
+        {
+            for (auto elem_iter = mesh.active_elements_begin(); elem_iter != mesh.active_elements_end(); ++elem_iter)
+            {
+                Elem* elem = *elem_iter;
+                const auto centroid = elem->centroid();
+#if NDIM == 2
+                if (centroid(1) > 0.0)
+                    elem->subdomain_id() = 1;
+                else
+                    elem->subdomain_id() = 2;
+#else
+                if (centroid(1) > 0.0 && centroid(2) > 0.0)
+                    elem->subdomain_id() = 1;
+                else
+                    elem->subdomain_id() = 2;
+#endif
+            }
+        }
+
+        MeshRefinement mesh_refinement(mesh);
+        if (input_db->getBoolWithDefault("use_amr", false))
+        {
+            std::size_t i = 0;
+            for (auto elem_iter = mesh.active_elements_begin(); elem_iter != mesh.active_elements_end();
+                 ++elem_iter, ++i)
+            {
+                if (i % 8 == 0) (*elem_iter)->set_refinement_flag(Elem::REFINE);
+            }
+            mesh_refinement.refine_and_coarsen_elements();
+        }
+
         // metis does a good job partitioning, but the partitioning relies on
         // random numbers: the seed changed in libMesh commit
         // 98cede90ca8837688ee13aac5e299a3765f083da (between 1.3.1 and
         // 1.4.0). Hence, to achieve consistent partitioning, use a simpler partitioning scheme:
-        LinearPartitioner partitioner;
+        IBTK::StableCentroidPartitioner partitioner;
         partitioner.partition(mesh);
 
         plog << "Number of elements: " << mesh.n_active_elem() << std::endl;
@@ -388,15 +418,27 @@ main(int argc, char** argv)
                 }
             }
 
-            plog << "max vertex distance: " << SAMRAI_MPI::maxReduction(max_vertex_distance) << std::endl;
+            plog << "max vertex distance: " << IBTK_MPI::maxReduction(max_vertex_distance) << std::endl;
             plog << "max norm errors: ";
+            for (double& max_error : max_norm_errors) max_error = IBTK_MPI::maxReduction(max_error);
+            plog << std::setprecision(20);
             for (unsigned int i = 0; i < n_vars - 1; ++i)
             {
-                plog << std::setprecision(20) << max_norm_errors[i] << "   ";
+                plog << max_norm_errors[i] << "   ";
             }
             plog << max_norm_errors[n_vars - 1] << std::endl;
+
+            // For testing purposes its sometimes useful to look at the diagonal
+            // mass matrix
+            if (input_db->getBoolWithDefault("print_diagonal_mass_matrix", false))
+            {
+                Pointer<Database> db(new InputDatabase("database"));
+                db->putBool("enable_logging", true);
+
+                FEProjector fe_projector(equation_systems, db);
+                PetscVector<double>& diagonal_mass = *fe_projector.buildDiagonalL2MassMatrix(velocity_system.name());
+                diagonal_mass.print_global(plog);
+            }
         }
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
 } // main

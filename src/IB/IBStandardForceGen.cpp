@@ -1,64 +1,53 @@
-// Filename: IBStandardForceGen.cpp
-// Created on 03 May 2005 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/IBBeamForceSpec.h"
+#include "ibamr/IBSpringForceFunctions.h"
 #include "ibamr/IBSpringForceSpec.h"
 #include "ibamr/IBStandardForceGen.h"
 #include "ibamr/IBTargetPointForceSpec.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LMesh.h"
 #include "ibtk/LNode.h"
 #include "ibtk/compiler_hints.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/private/LData-inl.h"
+#include "ibtk/private/LDataManager-inl.h"
+#include "ibtk/private/LMesh-inl.h"
+#include "ibtk/private/LNode-inl.h"
+#include "ibtk/private/LNodeIndex-inl.h"
 
 #include "IntVector.h"
 #include "PatchHierarchy.h"
-#include "PatchLevel.h"
+#include "tbox/Database.h"
+#include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 #include "petscmat.h"
-#include "petscsys.h"
 #include "petscvec.h"
+#include <petsclog.h>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
@@ -67,8 +56,10 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <iterator>
 #include <limits>
 #include <map>
+#include <memory>
 #include <ostream>
 #include <set>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -167,8 +158,6 @@ IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hie
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-
     // Resize the vectors corresponding to data individually maintained for
     // separate levels of the patch hierarchy.
     const int new_size = std::max(level_number + 1, static_cast<int>(d_is_initialized.size()));
@@ -238,56 +227,22 @@ IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hie
 
     // Transform all of the cached indices to correspond to a data depth of
     // NDIM.
-    std::transform(d_spring_data[level_number].petsc_mastr_node_idxs.begin(),
-                   d_spring_data[level_number].petsc_mastr_node_idxs.end(),
-                   d_spring_data[level_number].petsc_mastr_node_idxs.begin(),
-                   std::bind2nd(std::multiplies<int>(), NDIM));
-    std::transform(d_spring_data[level_number].petsc_slave_node_idxs.begin(),
-                   d_spring_data[level_number].petsc_slave_node_idxs.end(),
-                   d_spring_data[level_number].petsc_slave_node_idxs.begin(),
-                   std::bind2nd(std::multiplies<int>(), NDIM));
-    std::transform(d_spring_data[level_number].petsc_global_mastr_node_idxs.begin(),
-                   d_spring_data[level_number].petsc_global_mastr_node_idxs.end(),
-                   d_spring_data[level_number].petsc_global_mastr_node_idxs.begin(),
-                   std::bind2nd(std::multiplies<int>(), NDIM));
-    std::transform(d_spring_data[level_number].petsc_global_slave_node_idxs.begin(),
-                   d_spring_data[level_number].petsc_global_slave_node_idxs.end(),
-                   d_spring_data[level_number].petsc_global_slave_node_idxs.begin(),
-                   std::bind2nd(std::multiplies<int>(), NDIM));
-
-    std::transform(d_beam_data[level_number].petsc_mastr_node_idxs.begin(),
-                   d_beam_data[level_number].petsc_mastr_node_idxs.end(),
-                   d_beam_data[level_number].petsc_mastr_node_idxs.begin(),
-                   std::bind2nd(std::multiplies<int>(), NDIM));
-    std::transform(d_beam_data[level_number].petsc_next_node_idxs.begin(),
-                   d_beam_data[level_number].petsc_next_node_idxs.end(),
-                   d_beam_data[level_number].petsc_next_node_idxs.begin(),
-                   std::bind2nd(std::multiplies<int>(), NDIM));
-    std::transform(d_beam_data[level_number].petsc_prev_node_idxs.begin(),
-                   d_beam_data[level_number].petsc_prev_node_idxs.end(),
-                   d_beam_data[level_number].petsc_prev_node_idxs.begin(),
-                   std::bind2nd(std::multiplies<int>(), NDIM));
-    std::transform(d_beam_data[level_number].petsc_global_mastr_node_idxs.begin(),
-                   d_beam_data[level_number].petsc_global_mastr_node_idxs.end(),
-                   d_beam_data[level_number].petsc_global_mastr_node_idxs.begin(),
-                   std::bind2nd(std::multiplies<int>(), NDIM));
-    std::transform(d_beam_data[level_number].petsc_global_next_node_idxs.begin(),
-                   d_beam_data[level_number].petsc_global_next_node_idxs.end(),
-                   d_beam_data[level_number].petsc_global_next_node_idxs.begin(),
-                   std::bind2nd(std::multiplies<int>(), NDIM));
-    std::transform(d_beam_data[level_number].petsc_global_prev_node_idxs.begin(),
-                   d_beam_data[level_number].petsc_global_prev_node_idxs.end(),
-                   d_beam_data[level_number].petsc_global_prev_node_idxs.begin(),
-                   std::bind2nd(std::multiplies<int>(), NDIM));
-
-    std::transform(d_target_point_data[level_number].petsc_node_idxs.begin(),
-                   d_target_point_data[level_number].petsc_node_idxs.end(),
-                   d_target_point_data[level_number].petsc_node_idxs.begin(),
-                   std::bind2nd(std::multiplies<int>(), NDIM));
-    std::transform(d_target_point_data[level_number].petsc_global_node_idxs.begin(),
-                   d_target_point_data[level_number].petsc_global_node_idxs.end(),
-                   d_target_point_data[level_number].petsc_global_node_idxs.begin(),
-                   std::bind2nd(std::multiplies<int>(), NDIM));
+    std::vector<std::vector<int>*> idx_vecs = { &d_spring_data[level_number].petsc_mastr_node_idxs,
+                                                &d_spring_data[level_number].petsc_slave_node_idxs,
+                                                &d_spring_data[level_number].petsc_global_mastr_node_idxs,
+                                                &d_spring_data[level_number].petsc_global_slave_node_idxs,
+                                                &d_beam_data[level_number].petsc_mastr_node_idxs,
+                                                &d_beam_data[level_number].petsc_next_node_idxs,
+                                                &d_beam_data[level_number].petsc_prev_node_idxs,
+                                                &d_beam_data[level_number].petsc_global_mastr_node_idxs,
+                                                &d_beam_data[level_number].petsc_global_next_node_idxs,
+                                                &d_beam_data[level_number].petsc_global_prev_node_idxs,
+                                                &d_target_point_data[level_number].petsc_node_idxs,
+                                                &d_target_point_data[level_number].petsc_global_node_idxs };
+    for (auto v_ptr : idx_vecs)
+    {
+        std::for_each(v_ptr->begin(), v_ptr->end(), [](int& i) { i *= NDIM; });
+    }
 
     // Indicate that the level data has been initialized.
     d_is_initialized[level_number] = true;
@@ -570,7 +525,7 @@ IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
         const double* const X_node = X_ghost_data->getGhostedLocalFormVecArray()->data();
         MatrixNd dF_dX;
         Vector D;
-        double R, T, dT_dR, eps;
+        double dT_dR;
         for (unsigned int k = 0; k < petsc_mastr_node_idxs.size(); ++k)
         {
             // Compute the Jacobian of the force applied by the spring to the
@@ -588,12 +543,12 @@ IBStandardForceGen::computeLagrangianForceJacobian(Mat& J_mat,
             {
                 D(i) = X_node[petsc_slave_idx + i] - X_node[petsc_mastr_idx + i];
             }
-            R = D.norm();
-            T = force_fcn(R, params, lag_mastr_idx, lag_slave_idx);
+            const double R = D.norm();
+            const double T = force_fcn(R, params, lag_mastr_idx, lag_slave_idx);
             if (!force_deriv_fcn)
             {
                 // Use finite differences to approximate dT/dR.
-                eps = std::max(R, 1.0) * std::pow(std::numeric_limits<double>::epsilon(), 1.0 / 3.0);
+                const double eps = std::max(R, 1.0) * std::pow(std::numeric_limits<double>::epsilon(), 1.0 / 3.0);
                 dT_dR = (force_fcn(R + eps, params, lag_mastr_idx, lag_slave_idx) -
                          force_fcn(R - eps, params, lag_mastr_idx, lag_slave_idx)) /
                         (2.0 * eps);
@@ -778,23 +733,23 @@ IBStandardForceGen::initializeSpringLevelData(std::set<int>& nonlocal_petsc_idx_
     const int num_local_nodes = static_cast<int>(local_nodes.size());
 
     // Determine how many springs are associated with the present MPI process.
-    unsigned int num_springs = 0;
+    unsigned int total_num_springs = 0;
     for (const auto& node_idx : local_nodes)
     {
         const IBSpringForceSpec* const force_spec = node_idx->getNodeDataItem<IBSpringForceSpec>();
-        if (force_spec) num_springs += force_spec->getNumberOfSprings();
+        if (force_spec) total_num_springs += force_spec->getNumberOfSprings();
     }
 
     // Resize arrays for storing cached values used to compute spring forces.
-    lag_mastr_node_idxs.resize(num_springs);
-    lag_slave_node_idxs.resize(num_springs);
-    petsc_mastr_node_idxs.resize(num_springs);
-    petsc_slave_node_idxs.resize(num_springs);
-    petsc_global_mastr_node_idxs.resize(num_springs);
-    petsc_global_slave_node_idxs.resize(num_springs);
-    force_fcns.resize(num_springs);
-    force_deriv_fcns.resize(num_springs);
-    parameters.resize(num_springs);
+    lag_mastr_node_idxs.resize(total_num_springs);
+    lag_slave_node_idxs.resize(total_num_springs);
+    petsc_mastr_node_idxs.resize(total_num_springs);
+    petsc_slave_node_idxs.resize(total_num_springs);
+    petsc_global_mastr_node_idxs.resize(total_num_springs);
+    petsc_global_slave_node_idxs.resize(total_num_springs);
+    force_fcns.resize(total_num_springs);
+    force_deriv_fcns.resize(total_num_springs);
+    parameters.resize(total_num_springs);
 
     // Setup the data structures used to compute spring forces.
     int current_spring = 0;
@@ -995,20 +950,20 @@ IBStandardForceGen::initializeBeamLevelData(std::set<int>& nonlocal_petsc_idx_se
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Determine how many beams are associated with the present MPI process.
-    unsigned int num_beams = 0;
+    unsigned int total_num_beams = 0;
     for (const auto& node_idx : local_nodes)
     {
         const IBBeamForceSpec* const force_spec = node_idx->getNodeDataItem<IBBeamForceSpec>();
-        if (force_spec) num_beams += force_spec->getNumberOfBeams();
+        if (force_spec) total_num_beams += force_spec->getNumberOfBeams();
     }
-    petsc_mastr_node_idxs.resize(num_beams);
-    petsc_next_node_idxs.resize(num_beams);
-    petsc_prev_node_idxs.resize(num_beams);
-    petsc_global_mastr_node_idxs.resize(num_beams);
-    petsc_global_next_node_idxs.resize(num_beams);
-    petsc_global_prev_node_idxs.resize(num_beams);
-    rigidities.resize(num_beams);
-    curvatures.resize(num_beams);
+    petsc_mastr_node_idxs.resize(total_num_beams);
+    petsc_next_node_idxs.resize(total_num_beams);
+    petsc_prev_node_idxs.resize(total_num_beams);
+    petsc_global_mastr_node_idxs.resize(total_num_beams);
+    petsc_global_next_node_idxs.resize(total_num_beams);
+    petsc_global_prev_node_idxs.resize(total_num_beams);
+    rigidities.resize(total_num_beams);
+    curvatures.resize(total_num_beams);
 
     // Setup the data structures used to compute beam forces.
     int current_beam = 0;
@@ -1209,20 +1164,20 @@ IBStandardForceGen::initializeTargetPointLevelData(std::set<int>& /*nonlocal_pet
 
     // Determine how many target points are associated with the present MPI
     // process.
-    unsigned int num_target_points = 0;
+    unsigned int total_num_target_points = 0;
     for (const auto& node_idx : local_nodes)
     {
         const IBTargetPointForceSpec* const force_spec = node_idx->getNodeDataItem<IBTargetPointForceSpec>();
-        if (force_spec) num_target_points += 1;
+        if (force_spec) total_num_target_points += 1;
     }
 
     // Resize arrays for storing cached values used to compute target point
     // forces.
-    petsc_node_idxs.resize(num_target_points);
-    petsc_global_node_idxs.resize(num_target_points);
-    kappa.resize(num_target_points);
-    eta.resize(num_target_points);
-    X0.resize(num_target_points);
+    petsc_node_idxs.resize(total_num_target_points);
+    petsc_global_node_idxs.resize(total_num_target_points);
+    kappa.resize(total_num_target_points);
+    eta.resize(total_num_target_points);
+    X0.resize(total_num_target_points);
 
     // Setup the data structures used to compute target point forces.
     int current_target_point = 0;
@@ -1331,7 +1286,7 @@ IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
 
     if (d_log_target_point_displacements)
     {
-        max_displacement = SAMRAI_MPI::maxReduction(max_displacement);
+        max_displacement = IBTK_MPI::maxReduction(max_displacement);
         plog << "IBStandardForceGen: maximum target point displacement: " << max_displacement << "\n";
     }
 

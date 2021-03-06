@@ -1,5 +1,16 @@
-# -------------------------------------------------------------
-# -------------------------------------------------------------
+## ---------------------------------------------------------------------
+##
+## Copyright (c) 2014 - 2020 by the IBAMR developers
+## All rights reserved.
+##
+## This file is part of IBAMR.
+##
+## IBAMR is free software and is distributed under the 3-clause BSD
+## license. The full text of the license can be found in the file
+## COPYRIGHT at the top level directory of IBAMR.
+##
+## ---------------------------------------------------------------------
+
 AC_DEFUN([CONFIGURE_HYPRE],[
 echo
 echo "=================================="
@@ -32,7 +43,7 @@ else
   AC_CHECK_HEADER([HYPRE.h],,AC_MSG_ERROR([could not find header file HYPRE.h]))
 
   LDFLAGS_PREPEND($HYPRE_LDFLAGS)
-  AC_CHECK_LIB([HYPRE], BoomerAMGCreate, [],
+  AC_CHECK_LIB([HYPRE], HYPRE_BoomerAMGCreate, [],
                [AC_MSG_ERROR([could not find working libHYPRE])])
   ADD_RPATH_LDFLAG(${HYPRE_DIR}/lib)
 fi

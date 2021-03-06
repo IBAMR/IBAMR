@@ -1,65 +1,98 @@
-// Filename: ConstraintIBMethod.cpp
-// Created on 1 Dec 2011 by Amneet Bhalla
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Amneet Bhalla and Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibamr/ConstraintIBKinematics.h"
 #include "ibamr/ConstraintIBMethod.h"
+#include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/IBStrategy.h"
+#include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibamr/namespaces.h"
+#include "ibamr/StokesSpecifications.h"
 
 #include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/FACPreconditioner.h"
+#include "ibtk/FACPreconditionerStrategy.h"
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
+#include "ibtk/LData.h"
+#include "ibtk/LDataManager.h"
+#include "ibtk/LIndexSetData.h"
+#include "ibtk/LMesh.h"
+#include "ibtk/LNode.h"
 #include "ibtk/LNodeSetData.h"
-#include "ibtk/PETScKrylovLinearSolver.h"
+#include "ibtk/LSet.h"
+#include "ibtk/LSetData.h"
+#include "ibtk/LSetDataIterator.h"
+#include "ibtk/LinearOperator.h"
+#include "ibtk/LinearSolver.h"
 #include "ibtk/SideDataSynchronization.h"
 #include "ibtk/ibtk_utilities.h"
 
+#include "ArrayData.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
+#include "CellData.h"
+#include "CellIndex.h"
+#include "CellIterator.h"
+#include "ComponentSelector.h"
 #include "HierarchyDataOpsManager.h"
+#include "HierarchyDataOpsReal.h"
+#include "Patch.h"
 #include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "PoissonSpecifications.h"
+#include "SAMRAIVectorReal.h"
+#include "SideData.h"
 #include "VariableDatabase.h"
-#include "tbox/SAMRAI_MPI.h"
+#include "VariableFillPattern.h"
+#include "tbox/Array.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/PIO.h"
+#include "tbox/RestartManager.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
+#include "petscvec.h"
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include <boost/multi_array.hpp>
+IBTK_ENABLE_EXTRA_WARNINGS
+
 #include <algorithm>
-#include <cmath>
 #include <limits>
-#include <sstream>
 #include <utility>
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Box;
+} // namespace hier
+namespace solv
+{
+template <int DIM>
+class RobinBcCoefStrategy;
+} // namespace solv
+} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -83,7 +116,6 @@ static Pointer<Timer> t_midpointStep;
 
 // Number of ghost cells used for each variable quantity.
 static const int CELLG = 1;
-static const int SIDEG = 1;
 
 // Type of coarsening to perform prior to setting coarse-fine boundary and
 // physical boundary ghost cell values.
@@ -194,7 +226,8 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
       d_tagged_pt_position(d_no_structures, std::vector<double>(3, 0.0)),
       d_rho_solid(d_no_structures, std::numeric_limits<double>::quiet_NaN())
 {
-    // NOTE: Parent class constructor registers class with the restart manager, sets object name.
+    // NOTE: Parent class constructor registers class with the restart manager,
+    // sets object name.
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -229,7 +262,8 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
         if (d_velcorrection_projection_fac_pc_db.isNull())
         {
             TBOX_WARNING(d_object_name << "::ConstraintIBMethod():\n"
-                                       << " ConstraintIBMethodProjection:: Poisson FAC PC solver database is null."
+                                       << " ConstraintIBMethodProjection:: Poisson "
+                                          "FAC PC solver database is null."
                                        << std::endl);
         }
 
@@ -265,7 +299,7 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
     }
 
     // Do printing operation for processor 0 only.
-    if (!SAMRAI_MPI::getRank() && d_print_output)
+    if (!IBTK_MPI::getRank() && d_print_output)
     {
         d_trans_vel_stream.resize(d_no_structures);
         d_rot_vel_stream.resize(d_no_structures);
@@ -502,7 +536,7 @@ ConstraintIBMethod::calculateEulerianMomentum()
         wgt_sc_active->freeVectorComponents();
     }
 
-    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_eul_mom && (d_timestep_counter % d_output_interval) == 0)
+    if (!IBTK_MPI::getRank() && d_print_output && d_output_eul_mom && (d_timestep_counter % d_output_interval) == 0)
     {
         d_eulerian_mom_stream << d_FuRMoRP_new_time << '\t' << momentum[0] << '\t' << momentum[1] << '\t' << momentum[2]
                               << '\t' << std::endl;
@@ -532,7 +566,6 @@ ConstraintIBMethod::registerEulerianVariables()
         d_Div_u_var = new CellVariable<NDIM, double>(d_object_name + "::Div_u");
         d_phi_var = new CellVariable<NDIM, double>(d_object_name + "::phi");
         const IntVector<NDIM> cell_ghosts = CELLG;
-        const IntVector<NDIM> side_ghosts = SIDEG;
         d_phi_idx = var_db->registerVariableAndContext(d_phi_var, d_scratch_context, cell_ghosts);
         d_Div_u_scratch_idx = var_db->registerVariableAndContext(d_Div_u_var, d_scratch_context, cell_ghosts);
     }
@@ -613,9 +646,11 @@ ConstraintIBMethod::registerConstraintIBKinematics(const std::vector<Pointer<Con
 {
     if (ib_kinematics.size() != static_cast<unsigned int>(d_no_structures))
     {
-        TBOX_ERROR("ConstraintIBMethod::registerConstraintIBKinematics(). No of structures "
-                   << ib_kinematics.size() << " in vector passed to this method is not equal to no. of structures "
-                   << d_no_structures << " registered with this class" << std::endl);
+        TBOX_ERROR(
+            "ConstraintIBMethod::registerConstraintIBKinematics(). No of "
+            "structures "
+            << ib_kinematics.size() << " in vector passed to this method is not equal to no. of structures "
+            << d_no_structures << " registered with this class" << std::endl);
     }
     else
     {
@@ -700,7 +735,8 @@ ConstraintIBMethod::preprocessIntegrateData(double current_time, double new_time
         d_l_data_U_current[ln] = d_l_data_manager->createLData(d_object_name + "current_lag_vel", ln, NDIM, false);
     }
 
-    // Compue the current Lagrangian velocity according to constraint for the predictor Euler step.
+    // Compue the current Lagrangian velocity according to constraint for the
+    // predictor Euler step.
     calculateCurrentLagrangianVelocity();
     return;
 
@@ -763,7 +799,8 @@ ConstraintIBMethod::getFromInput(Pointer<Database> input_db, const bool from_res
     // Sanity check.
     if (d_output_eul_mom && !d_needs_div_free_projection)
         TBOX_WARNING(
-            "WARNING ConstraintIBMethod::getFromInput() Eulerian momentum is calculated but divergence free projection "
+            "WARNING ConstraintIBMethod::getFromInput() Eulerian momentum "
+            "is calculated but divergence free projection "
             "is not active"
             << std::endl);
 
@@ -875,7 +912,8 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-        // Get LData corresponding to the present and new position of the structures.
+        // Get LData corresponding to the present and new position of the
+        // structures.
         Pointer<LData> ptr_x_lag_data_current(nullptr), ptr_x_lag_data_new(nullptr);
         ptr_x_lag_data_current = d_l_data_manager->getLData("X", ln);
         if (tbox::MathUtilities<double>::equalEps(d_FuRMoRP_current_time, 0.0))
@@ -940,9 +978,8 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
         const StructureParameters& struct_param = d_ib_kinematics[struct_no]->getStructureParameters();
         const int total_nodes = struct_param.getTotalNodes();
 
-        SAMRAI_MPI::sumReduction(d_center_of_mass_current[struct_no].data(),
-                                 d_center_of_mass_current[struct_no].size());
-        SAMRAI_MPI::sumReduction(d_center_of_mass_new[struct_no].data(), d_center_of_mass_new[struct_no].size());
+        IBTK_MPI::sumReduction(d_center_of_mass_current[struct_no].data(), d_center_of_mass_current[struct_no].size());
+        IBTK_MPI::sumReduction(d_center_of_mass_new[struct_no].data(), d_center_of_mass_new[struct_no].size());
 
         for (int i = 0; i < 3; ++i)
         {
@@ -953,7 +990,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        SAMRAI_MPI::sumReduction(&tagged_position[struct_no][0], 3);
+        IBTK_MPI::sumReduction(&tagged_position[struct_no][0], 3);
         d_tagged_pt_position[struct_no] = tagged_position[struct_no];
     }
 
@@ -1060,8 +1097,8 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
         const StructureParameters& struct_param = d_ib_kinematics[struct_no]->getStructureParameters();
         if (struct_param.getStructureIsSelfRotating())
         {
-            SAMRAI_MPI::sumReduction(&d_moment_of_inertia_current[struct_no](0, 0), 9);
-            SAMRAI_MPI::sumReduction(&d_moment_of_inertia_new[struct_no](0, 0), 9);
+            IBTK_MPI::sumReduction(&d_moment_of_inertia_current[struct_no](0, 0), 9);
+            IBTK_MPI::sumReduction(&d_moment_of_inertia_new[struct_no](0, 0), 9);
         }
     }
 
@@ -1078,7 +1115,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
     }
 
     // write the COM and MOI to the output file
-    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_COM_coordinates &&
+    if (!IBTK_MPI::getRank() && d_print_output && d_output_COM_coordinates &&
         (d_timestep_counter % d_output_interval) == 0 && !MathUtilities<double>::equalEps(d_FuRMoRP_current_time, 0.0))
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
@@ -1090,7 +1127,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
         }
     }
 
-    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_MOI && (d_timestep_counter % d_output_interval) == 0 &&
+    if (!IBTK_MPI::getRank() && d_print_output && d_output_MOI && (d_timestep_counter % d_output_interval) == 0 &&
         !MathUtilities<double>::equalEps(d_FuRMoRP_current_time, 0.0))
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
@@ -1142,8 +1179,8 @@ ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_han
     using StructureParameters = ConstraintIBKinematics::StructureParameters;
     Pointer<ConstraintIBKinematics> ptr_ib_kinematics = d_ib_kinematics[position_handle];
     const StructureParameters& struct_param = ptr_ib_kinematics->getStructureParameters();
-    Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
-    Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
+    tbox::Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
+    tbox::Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
     const int coarsest_ln = struct_param.getCoarsestLevelNumber();
     const int finest_ln = struct_param.getFinestLevelNumber();
     const std::vector<std::pair<int, int> >& range = struct_param.getLagIdxRange();
@@ -1185,7 +1222,7 @@ ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_han
             d_vel_com_def_new[position_handle][d] += U_com_def[d];
         }
     }
-    SAMRAI_MPI::sumReduction(d_vel_com_def_new[position_handle].data(), d_vel_com_def_new[position_handle].size());
+    IBTK_MPI::sumReduction(d_vel_com_def_new[position_handle].data(), d_vel_com_def_new[position_handle].size());
 
     for (int d = 0; d < 3; ++d)
     {
@@ -1261,7 +1298,7 @@ ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_han
             }
             ptr_x_lag_data->restoreArrays();
         } // all levels
-        SAMRAI_MPI::sumReduction(&d_omega_com_def_new[position_handle][0], 3);
+        IBTK_MPI::sumReduction(&d_omega_com_def_new[position_handle][0], 3);
 
 // Find angular velocity of deformational velocity.
 #if (NDIM == 2)
@@ -1283,7 +1320,8 @@ ConstraintIBMethod::calculateVolumeElement()
 {
     using StructureParameters = ConstraintIBKinematics::StructureParameters;
 
-    // Initialize variables and variable contexts associated with Eulerian tracking of the Lagrangian points.
+    // Initialize variables and variable contexts associated with Eulerian
+    // tracking of the Lagrangian points.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const IntVector<NDIM> cell_ghosts = 0;
     Pointer<CellVariable<NDIM, int> > vol_cc_var = new CellVariable<NDIM, int>(d_object_name + "::vol_cc_var");
@@ -1318,7 +1356,8 @@ ConstraintIBMethod::calculateVolumeElement()
         const size_t structs_on_this_ln = structIDs.size();
         for (size_t struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
-            // If the volume element has already been set, then skip the volume computation
+            // If the volume element has already been set, then skip the volume
+            // computation
             if (d_vol_element_is_set[struct_no])
             {
                 tbox::plog << "Skipping volume element computation for structure no. " << struct_no << std::endl;
@@ -1376,7 +1415,7 @@ ConstraintIBMethod::calculateVolumeElement()
         }     // all structs
         d_l_data_manager->getLData("X", ln)->restoreArrays();
     } // all levels
-    SAMRAI_MPI::sumReduction(&d_structure_vol[0], d_no_structures);
+    IBTK_MPI::sumReduction(&d_structure_vol[0], d_no_structures);
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
@@ -1398,14 +1437,16 @@ ConstraintIBMethod::calculateVolumeElement()
                    << " STRUCTURE NO. " << struct_no << "  ++++++++++++++++++++++++++ \n\n\n"
                    << " VOLUME OF THE MATERIAL ELEMENT           = " << d_vol_element[struct_no] << "\n"
                    << " VOLUME OF THE STRUCTURE                  = " << d_structure_vol[struct_no] << "\n"
-                   << " ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+                   << " +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+                      "+++++++\n"
                    << std::endl;
 
         tbox::pout << " ++++++++++++++++ "
                    << " STRUCTURE NO. " << struct_no << "  ++++++++++++++++++++++++++ \n\n\n"
                    << " VOLUME OF THE MATERIAL ELEMENT           = " << d_vol_element[struct_no] << "\n"
                    << " VOLUME OF THE STRUCTURE                  = " << d_structure_vol[struct_no] << "\n"
-                   << " ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+                   << " +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+                      "+++++++\n"
                    << std::endl;
     }
 
@@ -1484,8 +1525,8 @@ ConstraintIBMethod::calculateRigidTranslationalMomentum()
         const StructureParameters& struct_param = d_ib_kinematics[struct_no]->getStructureParameters();
         if (struct_param.getStructureIsSelfTranslating())
         {
-            SAMRAI_MPI::sumReduction(d_rigid_trans_vel_new[struct_no].data(), d_rigid_trans_vel_new[struct_no].size());
-            Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
+            IBTK_MPI::sumReduction(d_rigid_trans_vel_new[struct_no].data(), d_rigid_trans_vel_new[struct_no].size());
+            tbox::Array<int> calculate_trans_mom = struct_param.getCalculateTranslationalMomentum();
             for (int d = 0; d < NDIM; ++d)
             {
                 if (calculate_trans_mom[d])
@@ -1496,7 +1537,7 @@ ConstraintIBMethod::calculateRigidTranslationalMomentum()
         }
     }
 
-    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_trans_vel && (d_timestep_counter % d_output_interval) == 0)
+    if (!IBTK_MPI::getRank() && d_print_output && d_output_trans_vel && (d_timestep_counter % d_output_interval) == 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -1588,14 +1629,14 @@ ConstraintIBMethod::calculateRigidRotationalMomentum()
         const StructureParameters& struct_param = d_ib_kinematics[struct_no]->getStructureParameters();
         if (struct_param.getStructureIsSelfRotating())
         {
-            SAMRAI_MPI::sumReduction(&d_rigid_rot_vel_new[struct_no][0], 3);
+            IBTK_MPI::sumReduction(&d_rigid_rot_vel_new[struct_no][0], 3);
 #if (NDIM == 2)
             d_rigid_rot_vel_new[struct_no][2] /= d_moment_of_inertia_new[struct_no](2, 2);
 #endif
 
 #if (NDIM == 3)
             solveSystemOfEqns(d_rigid_rot_vel_new[struct_no], d_moment_of_inertia_new[struct_no]);
-            Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
+            tbox::Array<int> calculate_rot_mom = struct_param.getCalculateRotationalMomentum();
             for (int d = 0; d < NDIM; ++d)
             {
                 if (!calculate_rot_mom[d]) d_rigid_rot_vel_new[struct_no][d] = 0.0;
@@ -1604,7 +1645,7 @@ ConstraintIBMethod::calculateRigidRotationalMomentum()
         }
     }
 
-    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_rot_vel && (d_timestep_counter % d_output_interval) == 0)
+    if (!IBTK_MPI::getRank() && d_print_output && d_output_rot_vel && (d_timestep_counter % d_output_interval) == 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -2084,9 +2125,10 @@ ConstraintIBMethod::updateStructurePositionEulerStep()
                     else
                     {
                         TBOX_ERROR(
-                            "ConstraintIBMethod::updateStructurePositionEulerStep():: Unknown position update method "
-                            "encountered"
-                            << "Supported methods are : CONSTRAINT_VELOCITY, CONSTRAINT_POSITION AND "
+                            "ConstraintIBMethod::updateStructurePositionEulerStep():"
+                            ": Unknown position update method encountered\n"
+                            << "Supported methods are : CONSTRAINT_VELOCITY, "
+                               "CONSTRAINT_POSITION AND "
                                "CONSTRAINT_EXPT_POSITION "
                             << std::endl);
                     }
@@ -2190,9 +2232,11 @@ ConstraintIBMethod::updateStructurePositionMidPointStep()
                     else
                     {
                         TBOX_ERROR(
-                            "ConstraintIBMethod::updateStructurePositionMidPointStep():: Unknown position update "
-                            "method encountered"
-                            << "Supported methods are : CONSTRAINT_VELOCITY, CONSTRAINT_POSITION AND "
+                            "ConstraintIBMethod::"
+                            "updateStructurePositionMidPointStep():: Unknown "
+                            "position update method encountered\n"
+                            << "Supported methods are : CONSTRAINT_VELOCITY, "
+                               "CONSTRAINT_POSITION AND "
                                "CONSTRAINT_EXPT_POSITION "
                             << std::endl);
                     }
@@ -2284,7 +2328,9 @@ ConstraintIBMethod::copyDensityVariable(int copy_from_idx, int copy_to_idx)
         if (!level->checkAllocated(copy_to_idx)) level->allocatePatchData(copy_to_idx);
     }
 
-    d_hier_sc_data_ops->copyData(copy_to_idx, copy_from_idx, /*interior_only*/ true);
+    d_hier_sc_data_ops->copyData(copy_to_idx,
+                                 copy_from_idx,
+                                 /*interior_only*/ true);
 
     return;
 } // copyDensityVariable
@@ -2326,9 +2372,10 @@ ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
         X_data[ln] = d_l_data_X_half_Euler[ln];
     }
 
-    // Since we do not want to mess up the boundary values of u_ins, we zero-out the scratch variable,
-    // spread to it and then add the correction to u_ins. This assumes that the structure is away from
-    // the physical domain.
+    // Since we do not want to mess up the boundary values of u_ins, we
+    // zero-out the scratch variable, spread to it and then add the correction
+    // to u_ins. This assumes that the structure is away from the physical
+    // domain.
     SAMRAIVectorReal<NDIM, double> u_cib(d_object_name + "cib", d_hierarchy, coarsest_ln, finest_ln);
     SAMRAIVectorReal<NDIM, double> u_ins(d_object_name + "ins", d_hierarchy, coarsest_ln, finest_ln);
 
@@ -2424,8 +2471,8 @@ ConstraintIBMethod::calculateDrag()
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        SAMRAI_MPI::sumReduction(&inertia_force[struct_no][0], 3);
-        SAMRAI_MPI::sumReduction(&constraint_force[struct_no][0], 3);
+        IBTK_MPI::sumReduction(&inertia_force[struct_no][0], 3);
+        IBTK_MPI::sumReduction(&constraint_force[struct_no][0], 3);
         for (int d = 0; d < NDIM; ++d)
         {
             inertia_force[struct_no][d] *= (d_rho_solid[struct_no] / dt) * d_vol_element[struct_no];
@@ -2433,7 +2480,7 @@ ConstraintIBMethod::calculateDrag()
         }
     }
 
-    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_drag && (d_timestep_counter % d_output_interval) == 0)
+    if (!IBTK_MPI::getRank() && d_print_output && d_output_drag && (d_timestep_counter % d_output_interval) == 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -2534,8 +2581,8 @@ ConstraintIBMethod::calculateTorque()
     }
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        SAMRAI_MPI::sumReduction(&inertia_torque[struct_no][0], 3);
-        SAMRAI_MPI::sumReduction(&constraint_torque[struct_no][0], 3);
+        IBTK_MPI::sumReduction(&inertia_torque[struct_no][0], 3);
+        IBTK_MPI::sumReduction(&constraint_torque[struct_no][0], 3);
         for (int d = 0; d < 3; ++d)
         {
             inertia_torque[struct_no][d] *= (d_rho_solid[struct_no] / dt) * d_vol_element[struct_no];
@@ -2543,7 +2590,7 @@ ConstraintIBMethod::calculateTorque()
         }
     }
 
-    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_torque && (d_timestep_counter % d_output_interval) == 0)
+    if (!IBTK_MPI::getRank() && d_print_output && d_output_torque && (d_timestep_counter % d_output_interval) == 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -2616,8 +2663,8 @@ ConstraintIBMethod::calculatePower()
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        SAMRAI_MPI::sumReduction(&inertia_power[struct_no][0], 3);
-        SAMRAI_MPI::sumReduction(&constraint_power[struct_no][0], 3);
+        IBTK_MPI::sumReduction(&inertia_power[struct_no][0], 3);
+        IBTK_MPI::sumReduction(&constraint_power[struct_no][0], 3);
         for (int d = 0; d < NDIM; ++d)
         {
             inertia_power[struct_no][d] *= (d_rho_solid[struct_no] / dt) * d_vol_element[struct_no];
@@ -2625,7 +2672,7 @@ ConstraintIBMethod::calculatePower()
         }
     }
 
-    if (!SAMRAI_MPI::getRank() && d_print_output && d_output_drag && (d_timestep_counter % d_output_interval) == 0)
+    if (!IBTK_MPI::getRank() && d_print_output && d_output_drag && (d_timestep_counter % d_output_interval) == 0)
     {
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
@@ -2686,7 +2733,7 @@ ConstraintIBMethod::calculateStructureMomentum()
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        SAMRAI_MPI::sumReduction(&d_structure_mom[struct_no][0], 3);
+        IBTK_MPI::sumReduction(&d_structure_mom[struct_no][0], 3);
         for (int d = 0; d < NDIM; ++d)
         {
             d_structure_mom[struct_no][d] *= d_rho_solid[struct_no] * d_vol_element[struct_no];
@@ -2765,7 +2812,7 @@ ConstraintIBMethod::calculateStructureRotationalMomentum()
     }
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
-        SAMRAI_MPI::sumReduction(&d_structure_rotational_mom[struct_no][0], 3);
+        IBTK_MPI::sumReduction(&d_structure_rotational_mom[struct_no][0], 3);
         for (int d = 0; d < 3; ++d)
         {
             d_structure_rotational_mom[struct_no][d] *= d_rho_solid[struct_no] * d_vol_element[struct_no];

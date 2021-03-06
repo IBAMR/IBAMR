@@ -1,39 +1,20 @@
-// Filename: NormOps.cpp
-// Created on 08 Dec 2008 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/NormOps.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "CellData.h"
 #include "CellVariable.h"
@@ -48,13 +29,15 @@
 #include "SideData.h"
 #include "SideVariable.h"
 #include "tbox/Pointer.h"
-#include "tbox/SAMRAI_MPI.h"
 
 #include <algorithm>
 #include <cmath>
 #include <functional>
 #include <numeric>
+#include <string>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {
@@ -102,9 +85,9 @@ NormOps::L1Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, const
     const double L1_norm_local = L1Norm_local(samrai_vector);
     if (local_only) return L1_norm_local;
 
-    const int nprocs = SAMRAI_MPI::getNodes();
+    const int nprocs = IBTK_MPI::getNodes();
     std::vector<double> L1_norm_proc(nprocs, 0.0);
-    SAMRAI_MPI::allGather(L1_norm_local, &L1_norm_proc[0]);
+    IBTK_MPI::allGather(L1_norm_local, &L1_norm_proc[0]);
     const double ret_val = accurate_sum(L1_norm_proc);
     return ret_val;
 } // L1Norm
@@ -115,9 +98,9 @@ NormOps::L2Norm(const SAMRAIVectorReal<NDIM, double>* const samrai_vector, const
     const double L2_norm_local = L2Norm_local(samrai_vector);
     if (local_only) return L2_norm_local;
 
-    const int nprocs = SAMRAI_MPI::getNodes();
+    const int nprocs = IBTK_MPI::getNodes();
     std::vector<double> L2_norm_proc(nprocs, 0.0);
-    SAMRAI_MPI::allGather(L2_norm_local, &L2_norm_proc[0]);
+    IBTK_MPI::allGather(L2_norm_local, &L2_norm_proc[0]);
     const double ret_val = std::sqrt(accurate_sum_of_squares(L2_norm_proc));
     return ret_val;
 } // L2Norm

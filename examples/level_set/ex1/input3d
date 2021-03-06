@@ -68,18 +68,18 @@ TimeRefinementIntegrator {
 
 Main {
 // log file parameters
-   log_file_name               = "advect2d.log"
+   log_file_name               = "advect3d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = 2
-   viz_dump_dirname            = "viz_advect2d"
+   viz_dump_dirname            = "viz_advect3d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
    restart_dump_interval      = 0
-   restart_dump_dirname       = "restart_advect2d"
+   restart_dump_dirname       = "restart_advect3d"
 
 // application parameters
    timestepping               = "REFINED"

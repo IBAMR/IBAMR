@@ -1,34 +1,15 @@
-// Filename: AdvDiffStochasticForcing.cpp
-// Created on 29 Apr 2011 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -36,7 +17,6 @@
 #include "ibamr/AdvDiffStochasticForcing.h"
 #include "ibamr/RNG.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
@@ -48,7 +28,6 @@
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellDataFactory.h"
-#include "CellIndex.h"
 #include "CellVariable.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
@@ -73,12 +52,15 @@
 
 #include "muParser.h"
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 #include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -246,7 +228,8 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             TBOX_ERROR(d_object_name << "::setDataOnPatchHierarchy():\n"
                                      << "  unsupported default convective time stepping type: "
                                      << enum_to_string<TimeSteppingType>(convective_time_stepping_type) << " \n"
-                                     << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+                                     << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE, "
+                                        "TRAPEZOIDAL_RULE\n");
         }
 
         // Generate random components.
@@ -332,7 +315,7 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                             acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box, data_time);
                         for (Box<NDIM>::Iterator it(bc_coef_box * side_boxes[bdry_normal_axis]); it; it++)
                         {
-                            const Index<NDIM>& i = it();
+                            const hier::Index<NDIM>& i = it();
                             const double& alpha = (*acoef_data)(i, 0);
                             const double& beta = (*bcoef_data)(i, 0);
                             const bool dirichlet_bc = (alpha != 0.0 && beta == 0.0);
@@ -405,8 +388,8 @@ AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
         {
             for (BoxIterator<NDIM> i(SideGeometry<NDIM>::toSideBox(patch_box, axis)); i; i++)
             {
-                const Index<NDIM>& ic = i();
-                Index<NDIM> ic_lower(ic);
+                const hier::Index<NDIM>& ic = i();
+                hier::Index<NDIM> ic_lower(ic);
                 ic_lower(axis) -= 1;
                 SideIndex<NDIM> is(ic, axis, SideIndex<NDIM>::Lower);
                 double f;
@@ -452,7 +435,7 @@ AdvDiffStochasticForcing::setDataOnPatch(const int data_idx,
             }
             for (BoxIterator<NDIM> i(patch_box); i; i++)
             {
-                const Index<NDIM>& ic = i();
+                const hier::Index<NDIM>& ic = i();
                 SideIndex<NDIM> is_lower(ic, axis, SideIndex<NDIM>::Lower);
                 SideIndex<NDIM> is_upper(ic, axis, SideIndex<NDIM>::Upper);
                 const double scale_lower = f_scale_sc_data(is_lower, d);

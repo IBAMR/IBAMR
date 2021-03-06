@@ -1,45 +1,91 @@
-// Filename: CIBMethod.cpp
-// Created on 21 Apr 2015 by Amneet Bhalla
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Amneet Bhalla and Boyce Griffith.
+// Copyright (c) 2015 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/CIBMethod.h"
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/MobilityFunctions.h"
-#include "ibamr/StokesSpecifications.h"
-#include "ibamr/namespaces.h"
 
+#include "ibtk/HierarchyMathOps.h"
+#include "ibtk/IBTK_MPI.h"
+#include "ibtk/LData.h"
+#include "ibtk/LDataManager.h"
+#include "ibtk/LMesh.h"
+#include "ibtk/LNode.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/ibtk_utilities.h"
+
+#include "BasePatchHierarchy.h"
+#include "BasePatchLevel.h"
+#include "CartesianGridGeometry.h"
+#include "CellData.h"
+#include "CellVariable.h"
+#include "GriddingAlgorithm.h"
+#include "IntVector.h"
+#include "MultiblockDataTranslator.h"
+#include "Patch.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "RefineAlgorithm.h"
+#include "RefineOperator.h"
+#include "SideData.h"
+#include "SideIterator.h"
+#include "VariableContext.h"
+#include "tbox/Array.h"
+#include "tbox/Database.h"
+#include "tbox/MathUtilities.h"
+#include "tbox/RestartManager.h"
+#include "tbox/Utilities.h"
+
+#include "petscis.h"
+#include "petscistypes.h"
+#include <petsclog.h>
+#include <petscsys.h>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include <boost/multi_array.hpp>
+IBTK_ENABLE_EXTRA_WARNINGS
+
+IBTK_DISABLE_EXTRA_WARNINGS
+#include <Eigen/Dense>
+IBTK_ENABLE_EXTRA_WARNINGS
+
+#include <algorithm>
+#include <istream>
+#include <memory>
+
+namespace IBTK
+{
+class RobinPhysBdryPatchStrategy;
+} // namespace IBTK
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Box;
+} // namespace hier
+namespace xfer
+{
+template <int DIM>
+class CoarsenSchedule;
+template <int DIM>
+class RefineSchedule;
+} // namespace xfer
+} // namespace SAMRAI
 
 namespace IBAMR
 {
@@ -254,7 +300,7 @@ CIBMethod::preprocessIntegrateData(double current_time, double new_time, int num
                 }
             }
 #endif
-            if (MathUtilities<double>::equalEps(d_rho, 0))
+            if (d_use_steady_stokes)
             {
                 d_trans_vel_half[part] = d_trans_vel_current[part];
                 d_rot_vel_half[part] = d_rot_vel_current[part];
@@ -262,7 +308,7 @@ CIBMethod::preprocessIntegrateData(double current_time, double new_time, int num
         }
 
         // Set data for free bodies.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             if (num_free_dofs)
             {
@@ -301,7 +347,7 @@ CIBMethod::preprocessIntegrateData(double current_time, double new_time, int num
 
     // Create PETSc Vecs for free DOFs.
     const int n = free_dofs_counter;
-    const int N = SAMRAI_MPI::sumReduction(free_dofs_counter);
+    const int N = IBTK_MPI::sumReduction(free_dofs_counter);
     VecCreateMPI(PETSC_COMM_WORLD, n, N, &d_U);
     VecCreateMPI(PETSC_COMM_WORLD, n, N, &d_F);
 
@@ -338,7 +384,6 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
     // Dump Lagrange multiplier data.
     if (d_lambda_dump_interval && ((d_ib_solver->getIntegratorStep() + 1) % d_lambda_dump_interval == 0))
     {
-        Pointer<LData> ptr_lagmultpr = d_l_data_manager->getLData("lambda", finest_ln);
         Vec lambda_petsc_vec_parallel = ptr_lagmultpr->getVec();
         Vec lambda_lag_vec_parallel = nullptr;
         Vec lambda_lag_vec_seq = nullptr;
@@ -347,7 +392,7 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
         d_l_data_manager->scatterPETScToLagrangian(lambda_petsc_vec_parallel, lambda_lag_vec_parallel, finest_ln);
         d_l_data_manager->scatterToZero(lambda_lag_vec_parallel, lambda_lag_vec_seq);
 
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             const PetscScalar* L;
             VecGetArrayRead(lambda_lag_vec_seq, &L);
@@ -443,7 +488,8 @@ CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
                                                                             /*manage_data*/ true);
 
         // Initialize the Lagrange multiplier to zero.
-        // Specific value of lambda will be assigned from structure specific input file.
+        // Specific value of lambda will be assigned from structure specific input
+        // file.
         VecSet(lag_mul_data->getVec(), 0.0);
 
         // Create unshifted initial position of the structure.
@@ -548,7 +594,7 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
         for (const auto& node_idx : local_nodes)
         {
             const int local_idx = node_idx->getLocalPETScIndex();
-            const Vector& displacement_0 = node_idx->getInitialPeriodicDisplacement();
+            const IBTK::Vector& displacement_0 = node_idx->getInitialPeriodicDisplacement();
             double* const X0_unshifted = &X0_unshifted_data_array[local_idx][0];
             const double* const X0 = &X0_data_array[local_idx][0];
 
@@ -636,7 +682,7 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double dt = MathUtilities<double>::equalEps(d_rho, 0.0) ? 0.0 : (new_time - current_time);
+    const double dt = d_use_steady_stokes ? 0.0 : (new_time - current_time);
 
     // Fill the rotation matrix of structures with rotation angle 0.5*(W^n)*dt.
     IBTK::EigenAlignedVector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
@@ -681,7 +727,6 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
             double* const X_half = &X_half_array[local_idx][0];
             const double* const X0 = &X0_array[local_idx][0];
             Eigen::Vector3d dr = Eigen::Vector3d::Zero();
-            Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
 
             int struct_handle = 0;
             if (structs_on_this_ln > 1) struct_handle = getStructureHandle(lag_idx);
@@ -693,7 +738,7 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
             }
 
             // Rotate dr vector using the rotation matrix.
-            R_dr = rotation_mat[struct_handle] * dr;
+            const Eigen::Vector3d R_dr = rotation_mat[struct_handle] * dr;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_half[d] = d_center_of_mass_current[struct_handle][d] + R_dr[d] +
@@ -745,7 +790,8 @@ void
 CIBMethod::backwardEulerStep(double /*current_time*/, double /*new_time*/)
 {
     TBOX_ERROR(
-        "CIBMethod::backwardEulerStep() not implemented. The time integrator uses mid-point timestepping with "
+        "CIBMethod::backwardEulerStep() not implemented. The time "
+        "integrator uses mid-point timestepping with "
         "CIBMethod::forwardEulerStep() as predictor. \n");
     return;
 
@@ -756,12 +802,11 @@ CIBMethod::midpointStep(double current_time, double new_time)
 {
     const double dt = new_time - current_time;
     int flag_regrid = 0;
-    const bool is_steady_stokes = MathUtilities<double>::equalEps(d_rho, 0.0);
 
     // Fill the rotation matrix of structures with rotation angle (W^n+1)*dt.
     IBTK::EigenAlignedVector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
     setRotationMatrix(
-        is_steady_stokes ? d_rot_vel_new : d_rot_vel_half, d_quaternion_current, d_quaternion_new, rotation_mat, dt);
+        d_use_steady_stokes ? d_rot_vel_new : d_rot_vel_half, d_quaternion_current, d_quaternion_new, rotation_mat, dt);
 
     // Get the grid extents.
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
@@ -802,7 +847,6 @@ CIBMethod::midpointStep(double current_time, double new_time)
             double* const X_new = &X_new_array[local_idx][0];
             const double* const X0 = &X0_array[local_idx][0];
             Eigen::Vector3d dr = Eigen::Vector3d::Zero();
-            Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
 
             int struct_handle = 0;
             if (structs_on_this_ln > 1) struct_handle = getStructureHandle(lag_idx);
@@ -814,12 +858,12 @@ CIBMethod::midpointStep(double current_time, double new_time)
             }
 
             // Rotate dr vector using the rotation matrix.
-            R_dr = rotation_mat[struct_handle] * dr;
+            const Eigen::Vector3d R_dr = rotation_mat[struct_handle] * dr;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_new[d] =
                     d_center_of_mass_current[struct_handle][d] + R_dr[d] +
-                    dt * (is_steady_stokes ? d_trans_vel_new[struct_handle][d] : d_trans_vel_half[struct_handle][d]);
+                    dt * (d_use_steady_stokes ? d_trans_vel_new[struct_handle][d] : d_trans_vel_half[struct_handle][d]);
 
                 if (periodic_shift[d])
                 {
@@ -849,7 +893,7 @@ CIBMethod::midpointStep(double current_time, double new_time)
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             new_com[d] = current_com[d] +
-                         dt * (is_steady_stokes ? d_trans_vel_new[struct_no][d] : d_trans_vel_half[struct_no][d]);
+                         dt * (d_use_steady_stokes ? d_trans_vel_new[struct_no][d] : d_trans_vel_half[struct_no][d]);
 
             if (periodic_shift[d])
             {
@@ -867,7 +911,7 @@ CIBMethod::midpointStep(double current_time, double new_time)
     d_center_of_mass_half = d_center_of_mass_new;
     d_quaternion_half = d_quaternion_new;
 
-    flag_regrid = SAMRAI_MPI::sumReduction(flag_regrid);
+    flag_regrid = IBTK_MPI::sumReduction(flag_regrid);
     if (flag_regrid)
     {
         d_time_integrator_needs_regrid = true;
@@ -879,8 +923,10 @@ CIBMethod::midpointStep(double current_time, double new_time)
 void
 CIBMethod::trapezoidalStep(double /*current_time*/, double /*new_time*/)
 {
-    TBOX_ERROR("CIBMethod does not support trapezoidal time-stepping rule for position update."
-               << " Only mid-point rule is supported." << std::endl);
+    TBOX_ERROR(
+        "CIBMethod does not support trapezoidal time-stepping rule for "
+        "position update. Only mid-point rule is supported."
+        << std::endl);
 
     return;
 } // trapezoidalStep
@@ -1004,7 +1050,7 @@ CIBMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double scale
             F[d] += L_array[k * NDIM + d];
         }
     }
-    SAMRAI_MPI::sumReduction(F, NDIM);
+    IBTK_MPI::sumReduction(F, NDIM);
 
     // Subtract the mean from Eulerian body force
     const int coarsest_ln = 0;
@@ -1205,7 +1251,7 @@ CIBMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rigid
         F[5] += P[1] * R_dr[0] - P[0] * R_dr[1];
 #endif
     }
-    SAMRAI_MPI::sumReduction(&F[0], s_max_free_dofs);
+    IBTK_MPI::sumReduction(&F[0], s_max_free_dofs);
     p_data.restoreArrays();
     d_l_data_manager->getLData("X0_unshifted", struct_ln)->restoreArrays();
 
@@ -1246,7 +1292,7 @@ CIBMethod::copyVecToArray(Vec b,
 
     // Wrap the raw data in a PETSc Vec
     PetscInt size = total_nodes * data_depth;
-    int rank = SAMRAI_MPI::getRank();
+    int rank = IBTK_MPI::getRank();
     PetscInt array_local_size = 0;
     if (rank == array_rank) array_local_size = size;
     Vec array_vec;
@@ -1319,7 +1365,7 @@ CIBMethod::copyArrayToVec(Vec b,
 
     // Wrap the array in a PETSc Vec
     PetscInt size = total_nodes * data_depth;
-    int rank = SAMRAI_MPI::getRank();
+    int rank = IBTK_MPI::getRank();
     PetscInt array_local_size = 0;
     if (rank == array_rank) array_local_size = size;
     Vec array_vec;
@@ -1375,7 +1421,7 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
     const double dt = d_new_time - d_current_time;
     const int struct_ln = getStructuresLevelNumber();
     const char* ib_kernel = d_l_data_manager->getDefaultInterpKernelFunction().c_str();
-    const int rank = SAMRAI_MPI::getRank();
+    const int rank = IBTK_MPI::getRank();
 
     // Get the size of matrix.
     unsigned num_nodes = 0;
@@ -1439,7 +1485,10 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
         }
         else
         {
-            TBOX_ERROR("CIBMethod::generateMobilityMatrix(): Invalid type of a mobility matrix." << std::endl);
+            TBOX_ERROR(
+                "CIBMethod::generateMobilityMatrix(): Invalid type of a "
+                "mobility matrix."
+                << std::endl);
         }
     }
 
@@ -1473,7 +1522,7 @@ CIBMethod::constructGeometricMatrix(const std::string& /*mat_name*/,
                                     const int managing_rank)
 {
     const int struct_ln = getStructuresLevelNumber();
-    const int rank = SAMRAI_MPI::getRank();
+    const int rank = IBTK_MPI::getRank();
 
     // Get the size of matrix
     unsigned num_nodes = 0;
@@ -1523,31 +1572,51 @@ CIBMethod::constructGeometricMatrix(const std::string& /*mat_name*/,
                 R_dr = rotation_mat * dr;
 
                 // Here we are doing column major format.
-                geometric_mat_data[/*col*/ (i * block_size) * row_size + /*row*/ q * NDIM] = 1.0;     //(1,1)
-                geometric_mat_data[/*col*/ (i * block_size) * row_size + /*row*/ q * NDIM + 1] = 0.0; //(2,1)
+                geometric_mat_data[/*col*/ (i * block_size) * row_size +
+                                   /*row*/ q * NDIM] = 1.0; //(1,1)
+                geometric_mat_data[/*col*/ (i * block_size) * row_size +
+                                   /*row*/ q * NDIM + 1] = 0.0; //(2,1)
 
-                geometric_mat_data[/*col*/ (i * block_size + 1) * row_size + /*row*/ q * NDIM] = 0.0;     //(1,2)
-                geometric_mat_data[/*col*/ (i * block_size + 1) * row_size + /*row*/ q * NDIM + 1] = 1.0; //(2,2)
+                geometric_mat_data[/*col*/ (i * block_size + 1) * row_size +
+                                   /*row*/ q * NDIM] = 0.0; //(1,2)
+                geometric_mat_data[/*col*/ (i * block_size + 1) * row_size +
+                                   /*row*/ q * NDIM + 1] = 1.0; //(2,2)
 #if (NDIM == 2)
-                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM] = -R_dr[1];    //(1,3)
-                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM + 1] = R_dr[0]; //(2,3)
+                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size +
+                                   /*row*/ q * NDIM] = -R_dr[1]; //(1,3)
+                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size +
+                                   /*row*/ q * NDIM + 1] = R_dr[0]; //(2,3)
 #elif (NDIM == 3)
-                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM] = 0.0;      //(1,3)
-                geometric_mat_data[/*col*/ (i * block_size + 3) * row_size + /*row*/ q * NDIM] = 0.0;      //(1,4)
-                geometric_mat_data[/*col*/ (i * block_size + 4) * row_size + /*row*/ q * NDIM] = R_dr[2];  //(1,5)
-                geometric_mat_data[/*col*/ (i * block_size + 5) * row_size + /*row*/ q * NDIM] = -R_dr[1]; //(1,6)
+                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size +
+                                   /*row*/ q * NDIM] = 0.0; //(1,3)
+                geometric_mat_data[/*col*/ (i * block_size + 3) * row_size +
+                                   /*row*/ q * NDIM] = 0.0; //(1,4)
+                geometric_mat_data[/*col*/ (i * block_size + 4) * row_size +
+                                   /*row*/ q * NDIM] = R_dr[2]; //(1,5)
+                geometric_mat_data[/*col*/ (i * block_size + 5) * row_size +
+                                   /*row*/ q * NDIM] = -R_dr[1]; //(1,6)
 
-                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM + 1] = 0.0;      //(2,3)
-                geometric_mat_data[/*col*/ (i * block_size + 3) * row_size + /*row*/ q * NDIM + 1] = -R_dr[2]; //(2,4)
-                geometric_mat_data[/*col*/ (i * block_size + 4) * row_size + /*row*/ q * NDIM + 1] = 0.0;      //(2,5)
-                geometric_mat_data[/*col*/ (i * block_size + 5) * row_size + /*row*/ q * NDIM + 1] = R_dr[0];  //(2,6)
+                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size +
+                                   /*row*/ q * NDIM + 1] = 0.0; //(2,3)
+                geometric_mat_data[/*col*/ (i * block_size + 3) * row_size +
+                                   /*row*/ q * NDIM + 1] = -R_dr[2]; //(2,4)
+                geometric_mat_data[/*col*/ (i * block_size + 4) * row_size +
+                                   /*row*/ q * NDIM + 1] = 0.0; //(2,5)
+                geometric_mat_data[/*col*/ (i * block_size + 5) * row_size +
+                                   /*row*/ q * NDIM + 1] = R_dr[0]; //(2,6)
 
-                geometric_mat_data[/*col*/ (i * block_size) * row_size + /*row*/ q * NDIM + 2] = 0.0;          //(3,1)
-                geometric_mat_data[/*col*/ (i * block_size + 1) * row_size + /*row*/ q * NDIM + 2] = 0.0;      //(3,2)
-                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size + /*row*/ q * NDIM + 2] = 1.0;      //(3,3)
-                geometric_mat_data[/*col*/ (i * block_size + 3) * row_size + /*row*/ q * NDIM + 2] = R_dr[1];  //(3,4)
-                geometric_mat_data[/*col*/ (i * block_size + 4) * row_size + /*row*/ q * NDIM + 2] = -R_dr[0]; //(3,5)
-                geometric_mat_data[/*col*/ (i * block_size + 5) * row_size + /*row*/ q * NDIM + 2] = 0.0;      //(3,6)
+                geometric_mat_data[/*col*/ (i * block_size) * row_size +
+                                   /*row*/ q * NDIM + 2] = 0.0; //(3,1)
+                geometric_mat_data[/*col*/ (i * block_size + 1) * row_size +
+                                   /*row*/ q * NDIM + 2] = 0.0; //(3,2)
+                geometric_mat_data[/*col*/ (i * block_size + 2) * row_size +
+                                   /*row*/ q * NDIM + 2] = 1.0; //(3,3)
+                geometric_mat_data[/*col*/ (i * block_size + 3) * row_size +
+                                   /*row*/ q * NDIM + 2] = R_dr[1]; //(3,4)
+                geometric_mat_data[/*col*/ (i * block_size + 4) * row_size +
+                                   /*row*/ q * NDIM + 2] = -R_dr[0]; //(3,5)
+                geometric_mat_data[/*col*/ (i * block_size + 5) * row_size +
+                                   /*row*/ q * NDIM + 2] = 0.0; //(3,6)
 #endif
             }
         }
@@ -1569,13 +1638,14 @@ CIBMethod::rotateArray(double* array,
 #if !defined(NDEBUG)
     if (!(depth == NDIM || depth == s_max_free_dofs))
     {
-        TBOX_ERROR("CIBMethod::rotateArray(). Data depth of the array to be rotated should either be "
-                   << NDIM << " (type nodal velocity) or " << s_max_free_dofs << " (type body free DOFs)."
-                   << std::endl);
+        TBOX_ERROR(
+            "CIBMethod::rotateArray(). Data depth of the array to be "
+            "rotated should either be "
+            << NDIM << " (type nodal velocity) or " << s_max_free_dofs << " (type body free DOFs)." << std::endl);
     }
 #endif
 
-    if (SAMRAI_MPI::getRank() == managing_proc)
+    if (IBTK_MPI::getRank() == managing_proc)
     {
         const bool position_system = (depth % NDIM == 0);
         const bool force_system = (depth % s_max_free_dofs == 0);
@@ -1618,8 +1688,10 @@ CIBMethod::rotateArray(double* array,
             }
             else
             {
-                TBOX_ERROR("CIBMethod::rotateArray(). Rotation of only force and position/velocity data is supported."
-                           << std::endl);
+                TBOX_ERROR(
+                    "CIBMethod::rotateArray(). Rotation of only force and "
+                    "position/velocity data is supported."
+                    << std::endl);
             }
         }
     }
@@ -1644,6 +1716,7 @@ CIBMethod::flagRegrid() const
 void
 CIBMethod::getFromInput(Pointer<Database> input_db)
 {
+    d_use_steady_stokes = input_db->getBoolWithDefault("use_steady_stokes", d_use_steady_stokes);
     d_output_eul_lambda = input_db->getBoolWithDefault("output_eul_lambda", d_output_eul_lambda);
     d_lambda_dump_interval = input_db->getIntegerWithDefault("lambda_dump_interval", d_lambda_dump_interval);
     if (d_lambda_dump_interval)
@@ -1652,7 +1725,7 @@ CIBMethod::getFromInput(Pointer<Database> input_db)
         std::string dir_name = input_db->getStringWithDefault("lambda_dirname", "./lambda");
         if (!from_restart) Utilities::recursiveMkdir(dir_name);
 
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             std::string filename = dir_name + "/" + "lambda";
             if (from_restart)
@@ -1766,7 +1839,7 @@ CIBMethod::computeCOMOfStructures(IBTK::EigenAlignedVector<Eigen::Vector3d>& cen
 
         for (unsigned struct_no = 0; struct_no < structs_on_this_ln; ++struct_no)
         {
-            SAMRAI_MPI::sumReduction(center_of_mass[struct_no].data(), center_of_mass[struct_no].size());
+            IBTK_MPI::sumReduction(center_of_mass[struct_no].data(), center_of_mass[struct_no].size());
             const int total_nodes = getNumberOfNodes(struct_no);
             center_of_mass[struct_no] /= total_nodes;
         }
@@ -1838,15 +1911,19 @@ CIBMethod::setRegularizationWeight(const int level_number)
             iss >> lag_pts;
             if (lag_pts != (lag_idx_range.second - lag_idx_range.first))
             {
-                TBOX_ERROR("CIBMethod::setRegularizationWeight() Total no. of Lagrangian points in the weight file "
-                           << d_reg_filename[struct_no] << " not equal to corresponding vertex file." << std::endl);
+                TBOX_ERROR(
+                    "CIBMethod::setRegularizationWeight() Total no. of "
+                    "Lagrangian points in the weight file "
+                    << d_reg_filename[struct_no] << " not equal to corresponding vertex file." << std::endl);
             }
         }
         else
         {
-            TBOX_ERROR("CIBMethod::setRegularizationWeight() Error in the input regularization file "
-                       << d_reg_filename[struct_no] << " at line number 0. Total number of Lagrangian  points required."
-                       << std::endl);
+            TBOX_ERROR(
+                "CIBMethod::setRegularizationWeight() Error in the input "
+                "regularization file "
+                << d_reg_filename[struct_no] << " at line number 0. Total number of Lagrangian  points required."
+                << std::endl);
         }
 
         std::vector<double> reg_weight(lag_pts);
@@ -1859,8 +1936,10 @@ CIBMethod::setRegularizationWeight(const int level_number)
             }
             else
             {
-                TBOX_ERROR("CIBMethod::setRegularizationWeight() Error in the input regularization file "
-                           << d_reg_filename[struct_no] << " at line number " << k + 1 << std::endl);
+                TBOX_ERROR(
+                    "CIBMethod::setRegularizationWeight() Error in the input "
+                    "regularization file "
+                    << d_reg_filename[struct_no] << " at line number " << k + 1 << std::endl);
             }
         }
 
@@ -1932,8 +2011,10 @@ CIBMethod::setInitialLambda(const int level_number)
 
             if (lag_pts != (lag_idx_range.second - lag_idx_range.first))
             {
-                TBOX_ERROR("CIBMethod::setInitialLambda() Total no. of Lagrangian points in the lambda file "
-                           << d_lambda_filename[struct_no] << " not equal to corresponding vertex file." << std::endl);
+                TBOX_ERROR(
+                    "CIBMethod::setInitialLambda() Total no. of Lagrangian "
+                    "points in the lambda file "
+                    << d_lambda_filename[struct_no] << " not equal to corresponding vertex file." << std::endl);
             }
         }
         else

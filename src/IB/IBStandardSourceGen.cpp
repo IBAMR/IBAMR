@@ -1,60 +1,47 @@
-// Filename: IBStandardSourceGen.cpp
-// Created on 28 Apr 2011 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/IBSourceSpec.h"
 #include "ibamr/IBStandardSourceGen.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
 #include "ibtk/LMesh.h"
 #include "ibtk/LNode.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/private/LData-inl.h"
+#include "ibtk/private/LDataManager-inl.h"
+#include "ibtk/private/LMesh-inl.h"
+#include "ibtk/private/LNode-inl.h"
+#include "ibtk/private/LNodeIndex-inl.h"
 
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <limits>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -184,8 +171,8 @@ IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*
         const int source_idx = spec->getSourceIndex();
         ++d_num_perimeter_nodes[level_number][source_idx];
     }
-    SAMRAI_MPI::sumReduction(&d_num_perimeter_nodes[level_number][0],
-                             static_cast<int>(d_num_perimeter_nodes[level_number].size()));
+    IBTK_MPI::sumReduction(&d_num_perimeter_nodes[level_number][0],
+                           static_cast<int>(d_num_perimeter_nodes[level_number].size()));
     return;
 } // initializeLevelData
 
@@ -247,7 +234,7 @@ IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
             X_src_flattened[NDIM * k + d] = X_src[k][d];
         }
     }
-    SAMRAI_MPI::sumReduction(&X_src_flattened[0], static_cast<int>(X_src_flattened.size()));
+    IBTK_MPI::sumReduction(&X_src_flattened[0], static_cast<int>(X_src_flattened.size()));
     for (unsigned int k = 0; k < X_src.size(); ++k)
     {
         for (unsigned int d = 0; d < NDIM; ++d)

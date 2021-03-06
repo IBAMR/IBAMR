@@ -1,54 +1,29 @@
-// Filename: CartSideDoubleRT0Coarsen.cpp
-// Created on 16 May 2015 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2015 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBTK_config.h"
-
 #include "ibtk/CartSideDoubleRT0Coarsen.h"
-#include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "ibtk/PhysicalBoundaryUtilities.h"
 
 #include "Box.h"
-#include "Index.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "SideData.h"
 #include "SideVariable.h"
 #include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
-#include <ostream>
 #include <string>
+#include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {
@@ -62,9 +37,11 @@ class Variable;
 // FORTRAN ROUTINES
 #if (NDIM == 2)
 #define SC_RT0_COARSEN_FC IBTK_FC_FUNC(scrt0coarsen2d, SCRT0COARSEN2D)
+#define SC_RT0_COARSEN_BDRY_FC IBTK_FC_FUNC(scrt0coarsenbdry2d, SCRT0COARSENBDRY2D)
 #endif
 #if (NDIM == 3)
 #define SC_RT0_COARSEN_FC IBTK_FC_FUNC(scrt0coarsen3d, SCRT0COARSEN3D)
+#define SC_RT0_COARSEN_BDRY_FC IBTK_FC_FUNC(scrt0coarsenbdry3d, SCRT0COARSENBDRY3D)
 #endif
 
 // Function interfaces
@@ -101,6 +78,48 @@ extern "C"
                            const int* ratio_to_coarser,
                            const int* fblower,
                            const int* fbupper);
+
+    void SC_RT0_COARSEN_BDRY_FC(double* U_coarse0,
+                                double* U_coarse1,
+#if (NDIM == 3)
+                                double* U_coarse2,
+#endif
+                                const int& U_crse_gcw,
+                                const double* U_fine0,
+                                const double* U_fine1,
+#if (NDIM == 3)
+                                const double* U_fine2,
+#endif
+                                const int& U_fine_gcw,
+                                const int& ilowerc0,
+                                const int& iupperc0,
+                                const int& ilowerc1,
+                                const int& iupperc1,
+#if (NDIM == 3)
+                                const int& ilowerc2,
+                                const int& iupperc2,
+#endif
+                                const int& ilowerf0,
+                                const int& iupperf0,
+                                const int& ilowerf1,
+                                const int& iupperf1,
+#if (NDIM == 3)
+                                const int& ilowerf2,
+                                const int& iupperf2,
+#endif
+                                const int* ratio_to_coarser,
+                                const int* fblower,
+                                const int* fbupper,
+                                const int& bbox_ilower0,
+                                const int& bbox_iupper0,
+                                const int& bbox_ilower1,
+                                const int& bbox_iupper1,
+#if (NDIM == 3)
+                                const int& bbox_ilower2,
+                                const int& bbox_iupper2,
+#endif
+                                const int& bdry_normal_axis,
+                                const int& bdry_lower_side);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -189,6 +208,7 @@ CartSideDoubleRT0Coarsen::coarsen(Patch<NDIM>& coarse,
 #endif
     const Box<NDIM>& patch_box_fine = fine.getBox();
     const Box<NDIM>& patch_box_crse = coarse.getBox();
+    Array<BoundaryBox<NDIM> > bboxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(fine);
     for (int depth = 0; depth < data_depth; ++depth)
     {
         double* const U_crse0 = cdata->getPointer(0, depth);
@@ -232,6 +252,58 @@ CartSideDoubleRT0Coarsen::coarsen(Patch<NDIM>& coarse,
                           ratio,
                           coarse_box.lower(),
                           coarse_box.upper());
+
+        for (int k = 0; k < bboxes.getSize(); ++k)
+        {
+            const auto& bbox = bboxes[k];
+            const unsigned int location_index = bbox.getLocationIndex();
+            const int bdry_normal_axis = location_index / 2;
+            const int bdry_lower_side = (location_index % 2) == 0 ? 0 : 1;
+            const Box<NDIM>& side_bdry_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(bbox);
+            TBOX_ASSERT(side_bdry_box.lower(bdry_normal_axis) == side_bdry_box.upper(bdry_normal_axis));
+
+            SC_RT0_COARSEN_BDRY_FC(U_crse0,
+                                   U_crse1,
+#if (NDIM == 3)
+                                   U_crse2,
+#endif
+                                   U_crse_ghosts,
+                                   U_fine0,
+                                   U_fine1,
+#if (NDIM == 3)
+                                   U_fine2,
+#endif
+                                   U_fine_ghosts,
+                                   patch_box_crse.lower(0),
+                                   patch_box_crse.upper(0),
+                                   patch_box_crse.lower(1),
+                                   patch_box_crse.upper(1),
+#if (NDIM == 3)
+                                   patch_box_crse.lower(2),
+                                   patch_box_crse.upper(2),
+#endif
+                                   patch_box_fine.lower(0),
+                                   patch_box_fine.upper(0),
+                                   patch_box_fine.lower(1),
+                                   patch_box_fine.upper(1),
+#if (NDIM == 3)
+                                   patch_box_fine.lower(2),
+                                   patch_box_fine.upper(2),
+#endif
+                                   ratio,
+                                   coarse_box.lower(),
+                                   coarse_box.upper(),
+                                   side_bdry_box.lower(0),
+                                   side_bdry_box.upper(0),
+                                   side_bdry_box.lower(1),
+                                   side_bdry_box.upper(1),
+#if (NDIM == 3)
+                                   side_bdry_box.lower(2),
+                                   side_bdry_box.upper(2),
+#endif
+                                   bdry_normal_axis,
+                                   bdry_lower_side);
+        }
     }
     return;
 } // coarsen

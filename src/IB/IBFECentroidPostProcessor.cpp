@@ -1,45 +1,25 @@
-// Filename: IBFEPostProcessor.cpp
-// Created on 4 Dec 2013 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/IBFECentroidPostProcessor.h"
+#include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBFEMethod.h"
 #include "ibamr/IBFEPostProcessor.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/libmesh_utilities.h"
 
 #include "tbox/Utilities.h"
@@ -49,8 +29,7 @@
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
-#include "libmesh/fe_type.h"
-#include "libmesh/fem_context.h"
+#include "libmesh/libmesh_config.h"
 #include "libmesh/mesh_base.h"
 #include "libmesh/numeric_vector.h"
 #include "libmesh/point.h"
@@ -62,22 +41,21 @@
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
 
+#include "ibamr/namespaces.h" // IWYU pragma: keep
+
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <memory>
-#include <ostream>
-#include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace libMesh
 {
 class Elem;
 } // namespace libMesh
-
-using namespace libMesh;
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -176,14 +154,13 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
     std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, NDIM, CONSTANT);
 
     // Set up all system data required to evaluate the mesh functions.
-    FEDataInterpolation fe(dim, d_fe_data_manager);
+    FEDataInterpolation fe(dim, d_fe_data_manager->getFEData());
     fe.attachQuadratureRule(qrule.get());
     fe.evalQuadraturePoints();
 
     auto& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
-    X_system.solution->localize(*X_system.current_local_solution);
     NumericVector<double>& X_data = *(X_system.current_local_solution);
-    X_data.close();
+    copy_and_synch(*X_system.solution, X_data);
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
     const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_data);
@@ -225,7 +202,7 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
             tensor_var_fcn_system_idxs[k], d_tensor_var_system_data[k], equation_systems);
     }
 
-    fe.init(/*use_IB_ghosted_vecs*/ false);
+    fe.init();
 
     const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
 

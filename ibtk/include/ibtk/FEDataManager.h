@@ -1,53 +1,34 @@
-// Filename: FEDataManager.h
-// Created on 19 Apr 2010 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2011 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
+
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBTK_FEDataManager
 #define included_IBTK_FEDataManager
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/config.h>
+
 #include "ibtk/QuadratureCache.h"
 #include "ibtk/SAMRAIDataCache.h"
-#include "ibtk/ibtk_macros.h"
+#include "ibtk/ibtk_enums.h"
 #include "ibtk/ibtk_utilities.h"
 
-#include "BasePatchLevel.h"
 #include "CellVariable.h"
 #include "IntVector.h"
-#include "LoadBalancer.h"
 #include "PatchHierarchy.h"
 #include "RefineSchedule.h"
-#include "SideVariable.h"
-#include "StandardTagAndInitStrategy.h"
 #include "VariableContext.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
@@ -66,10 +47,11 @@
 #include "libmesh/system.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <map>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -78,11 +60,17 @@ IBTK_ENABLE_EXTRA_WARNINGS
 namespace IBTK
 {
 class FEDataManager;
+class FEProjector;
 class RobinPhysBdryPatchStrategy;
 } // namespace IBTK
 
 namespace SAMRAI
 {
+namespace geom
+{
+template <int DIM>
+class CartesianPatchGeometry;
+} // namespace geom
 namespace hier
 {
 template <int DIM>
@@ -132,7 +120,8 @@ public:
         inline void
         dof_indices(const libMesh::Elem* const elem, std::vector<unsigned int>& dof_indices, const unsigned int var = 0)
         {
-            dof_indices = this->dof_indices(elem)[var];
+            const boost::multi_array<libMesh::dof_id_type, 2>& elem_dof_indices = d_dof_cache[elem->id()];
+            copy_dof_ids_to_vector(var, elem_dof_indices, dof_indices);
             return;
         }
 
@@ -140,15 +129,32 @@ public:
          * Alternative indexing operation: retrieve all dof indices of all
          * variables in the given system at once by reference.
          */
-        inline const std::vector<std::vector<libMesh::dof_id_type> >& dof_indices(const libMesh::Elem* const elem)
+        inline const boost::multi_array<libMesh::dof_id_type, 2>& dof_indices(const libMesh::Elem* const elem)
         {
-            std::vector<std::vector<libMesh::dof_id_type> >& elem_dof_indices = d_dof_cache[elem->id()];
-            if (elem_dof_indices.empty())
+            boost::multi_array<libMesh::dof_id_type, 2>& elem_dof_indices = d_dof_cache[elem->id()];
+            if (elem_dof_indices.shape()[0] == 0)
             {
-                elem_dof_indices.resize(d_dof_map.n_variables());
+                d_scratch_dofs.resize(d_dof_map.n_variables());
+                // we have to be careful - different elements may have different
+                // numbers of dofs, so grab all of them first:
                 for (unsigned int var_n = 0; var_n < d_dof_map.n_variables(); ++var_n)
                 {
-                    d_dof_map.dof_indices(elem, elem_dof_indices[var_n], var_n);
+                    d_scratch_dofs[var_n].clear();
+                    d_dof_map.dof_indices(elem, d_scratch_dofs[var_n], var_n);
+                }
+                // We assume in a lot of other places that all variables in a
+                // system have the same finite element (i.e., dofs per element)
+                // so assert that here too
+                for (unsigned int var_n = 0; var_n < d_dof_map.n_variables(); ++var_n)
+                {
+                    TBOX_ASSERT(d_scratch_dofs[var_n].size() == d_scratch_dofs[0].size());
+                }
+
+                boost::multi_array<libMesh::dof_id_type, 2>::extent_gen extents;
+                elem_dof_indices.resize(extents[d_scratch_dofs.size()][d_scratch_dofs[0].size()]);
+                for (unsigned int var_n = 0; var_n < d_dof_map.n_variables(); ++var_n)
+                {
+                    std::copy(d_scratch_dofs[var_n].begin(), d_scratch_dofs[var_n].end(), &elem_dof_indices[var_n][0]);
                 }
             }
             return elem_dof_indices;
@@ -156,14 +162,15 @@ public:
 
     private:
         libMesh::DofMap& d_dof_map;
-        std::unordered_map<libMesh::dof_id_type, std::vector<std::vector<unsigned int> > > d_dof_cache;
+        std::unordered_map<libMesh::dof_id_type, boost::multi_array<libMesh::dof_id_type, 2> > d_dof_cache;
+        std::vector<std::vector<libMesh::dof_id_type> > d_scratch_dofs;
     };
 
     /*!
      * Constructor. Registers the object with the restart database: i.e.,
      * inheriting classes should not also register themselves.
      */
-    FEData(std::string object_name, const bool register_for_restart);
+    FEData(std::string object_name, libMesh::EquationSystems& equation_systems, const bool register_for_restart);
 
     /*!
      * Destructor.
@@ -186,8 +193,9 @@ public:
 
     /*!
      * \brief Set the equations systems object that is associated with the
-     * FEData object. Currently, each set of equation systems must be assigned
-     * to a particular level of the AMR grid.
+     * FEData object.
+     *
+     * @deprecated The equation systems object should be set by the constructor.
      */
     void setEquationSystems(libMesh::EquationSystems* equation_systems, int level_number);
 
@@ -209,12 +217,12 @@ public:
 
     /*!
      * Clear all cached (i.e., computed at first request and then stored for
-     * future calls) data.
+     * future calls) data that depends on the Eulerian data partitioning.
      */
-    void clearCached();
+    void clearPatchHierarchyDependentData();
 
 protected:
-    /*
+    /*!
      * The object name is used as a handle to databases stored in restart files
      * and for error reporting purposes.  The boolean is used to control restart
      * file writing operations.
@@ -231,39 +239,118 @@ protected:
      */
     std::string d_coordinates_system_name = "coordinates system";
 
-    /*
+    /*!
      * FE equation system associated with this data manager object.
      */
     libMesh::EquationSystems* d_es = nullptr;
 
-    /*
+    /*!
      * Cache of libMesh quadrature objects. Defaults to being an NDIM cache
      * but is overwritten once a libMesh::EquationSystems object is attached.
      */
     QuadratureCache d_quadrature_cache;
 
     /*!
-     * Number of the level on which the equation systems live.
-     */
-    int d_level_number = IBTK::invalid_level_number;
-
-    /*!
      * Mapping between system numbers and SystemDofMapCache objects.
      */
-    std::map<unsigned int, std::unique_ptr<SystemDofMapCache> > d_system_dof_map_cache;
-
-    /*
-     * Linear solvers and related data for performing interpolation in the IB-FE
-     * framework.
-     */
-    std::map<std::string, std::unique_ptr<libMesh::LinearSolver<double> > > d_L2_proj_solver;
-    std::map<std::string, std::unique_ptr<libMesh::SparseMatrix<double> > > d_L2_proj_matrix;
-    std::map<std::string, std::unique_ptr<libMesh::NumericVector<double> > > d_L2_proj_matrix_diag;
+    std::map<std::pair<unsigned int, libMesh::FEType>, std::unique_ptr<SystemDofMapCache> > d_system_dof_map_cache;
 
     /**
      * Permit FEDataManager to directly examine the internals of this class.
      */
     friend class FEDataManager;
+};
+
+/*!
+ * Class that can translate libMesh subdomain IDs into patch level numbers.
+ *
+ * The primary use of this class is multilevel IBFE - i.e., enabling a finite
+ * element mesh to interact with multiple patch levels.
+ */
+class SubdomainToPatchLevelTranslation
+{
+public:
+    /*!
+     * Constructor. Takes as argument the maximum level number in the Cartesian
+     * grid patch hierarchy, a set of all subdomain ids (including those not on
+     * the current processor), and an input database enumerating the
+     * level-to-subdomain mapping, e.g.,
+     * @code
+     * {
+     *   level_1 = 1, 2
+     *   level_2 = 3
+     * }
+     * @endcode
+     * Any unspecified subdomain ids will be assigned to the finest patch level.
+     * Duplicated assignments are not permitted.
+     */
+    SubdomainToPatchLevelTranslation(const int max_level_number,
+                                     const std::set<libMesh::subdomain_id_type>& subdomain_ids,
+                                     const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
+
+    /*!
+     * Given a libMesh subdomain id, return the patch level of the Cartesian
+     * grid hierarchy on which that subdomain id interacts.
+     */
+    const int& operator[](const libMesh::subdomain_id_type id) const
+    {
+        if (id < fixed_array_size) return d_fixed[id];
+        const auto it = d_map.find(id);
+        if (it == d_map.end()) return d_max_level_number;
+        return it->second;
+    }
+
+    /*!
+     * Return whether or not there are any elements on a given patch level.
+     */
+    bool levelHasElements(const int level_number) const
+    {
+        const auto array_it = std::find(d_fixed.begin(), d_fixed.end(), level_number);
+        if (array_it != d_fixed.end())
+        {
+            return true;
+        }
+        else
+        {
+            return d_map.count(level_number) != 0;
+        }
+    }
+
+private:
+    /*!
+     * like operator[], but returns a mutable reference. Used to set up the object.
+     */
+    int& get(const libMesh::subdomain_id_type id)
+    {
+        if (id < d_fixed.size()) return d_fixed[id];
+        return d_map[id];
+    }
+
+    /*!
+     * Maximum level number.
+     */
+    int d_max_level_number = IBTK::invalid_level_number;
+
+    /*!
+     * Size of the fixed-size array.
+     */
+    static constexpr int fixed_array_size = 256;
+
+    /*!
+     * The overwhelming majority of subdomain IDs used with IBAMR come from
+     * block IDs set by ExodusII - these are numbered sequentially from zero.
+     * However, in principle, a subdomain ID could be any signed 64-bit integer
+     * so we cannot use a small fixed length array.
+     *
+     * Since we look up element levels a lot optimize for the common case by
+     * using a fixed-length array and a map for everything else.
+     */
+    std::array<int, fixed_array_size> d_fixed;
+
+    /*!
+     * The map used for everything else.
+     */
+    std::map<libMesh::subdomain_id_type, int> d_map;
 };
 
 /*!
@@ -273,7 +360,43 @@ protected:
  * element data while this class stores additional data dependent on the
  * Eulerian grid.
  *
- * <h3>Parameters effecting workload estimate calculations</h3>
+ * <h2>Parameters read from the input database</h2>
+ *
+ * <code>node_outside_patch_check</code>: parameter controlling how this class
+ * responds to mesh nodes outside the finest patch level. In all cases, for
+ * backwards compatibility, nodes that are outside the computational domain are
+ * permitted and are ignored by this check. Possible values are:
+ * <ol>
+ *   <li><code>node_outside_permit</code>: Permit nodes to be outside the finest
+ *   patch level.</li>
+ *   <li><code>node_outside_warn</code>: Permit nodes to be outside the finest
+ *   patch level, but log a warning whenever this is detected.
+ *   <li><code>node_outside_error</code>: Abort the program when nodes are detected
+ *   outside the finest patch level.
+ * </ol>
+ * The default value is <code>node_outside_error</code>.
+ *
+ * <code>subdomain_ids_on_levels</code>: a database correlating libMesh subdomain
+ * IDs to patch levels. A possible value for this is
+ * @code
+ * subdomain_ids_on_levels
+ * {
+ *   level_1 = 4
+ *   level_3 = 10, 12, 14
+ *   level_5 = 1000, 1003, 1006, 1009
+ * }
+ * @endcode
+ * This particular input will associate all elements with subdomain id 4 with
+ * patch level 1, all elements with subdomain ids 10, 12, or 14 with patch level
+ * 3, etc. All unspecified subdomain ids will be associated with the finest
+ * patch level. All inputs in this database for levels finer than the finest
+ * level are ignored (e.g., if the maximum patch level number is 4, then the
+ * values given in the example for level 5 ultimately end up on level 4).
+ * <em>This feature is experimental</em>: at the current time it is known that
+ * it produces some artifacts at the coarse-fine interface, but that these
+ * generally don't effect the overall solution quality.
+ *
+ * <h2>Parameters effecting workload estimate calculations</h2>
  * FEDataManager can estimate the amount of work done in IBFE calculations
  * (such as FEDataManager::spread). Since most calculations use a variable
  * number of quadrature points on each libMesh element this estimate can vary
@@ -310,14 +433,16 @@ public:
                    bool use_adaptive_quadrature,
                    double point_density,
                    bool use_consistent_mass_matrix,
-                   bool use_nodal_quadrature)
+                   bool use_nodal_quadrature,
+                   bool allow_rules_with_negative_weights = true)
             : kernel_fcn(kernel_fcn),
               quad_type(quad_type),
               quad_order(quad_order),
               use_adaptive_quadrature(use_adaptive_quadrature),
               point_density(point_density),
               use_consistent_mass_matrix(use_consistent_mass_matrix),
-              use_nodal_quadrature(use_nodal_quadrature)
+              use_nodal_quadrature(use_nodal_quadrature),
+              allow_rules_with_negative_weights(allow_rules_with_negative_weights)
         {
         }
 
@@ -328,6 +453,7 @@ public:
         double point_density;
         bool use_consistent_mass_matrix;
         bool use_nodal_quadrature;
+        bool allow_rules_with_negative_weights;
     };
 
     /*!
@@ -344,13 +470,15 @@ public:
                    const libMesh::Order& quad_order,
                    bool use_adaptive_quadrature,
                    double point_density,
-                   bool use_nodal_quadrature)
+                   bool use_nodal_quadrature,
+                   bool allow_rules_with_negative_weights = true)
             : kernel_fcn(kernel_fcn),
               quad_type(quad_type),
               quad_order(quad_order),
               use_adaptive_quadrature(use_adaptive_quadrature),
               point_density(point_density),
-              use_nodal_quadrature(use_nodal_quadrature)
+              use_nodal_quadrature(use_nodal_quadrature),
+              allow_rules_with_negative_weights(allow_rules_with_negative_weights)
         {
         }
 
@@ -360,6 +488,7 @@ public:
         bool use_adaptive_quadrature;
         double point_density;
         bool use_nodal_quadrature;
+        bool allow_rules_with_negative_weights;
     };
 
     /*!
@@ -369,8 +498,31 @@ public:
      */
     struct WorkloadSpec
     {
-        /// The multiplier applied to each quadrature point.
+        /// The multiplier applied to each quadrature point. This value accounts
+        /// for work done at each IB point (e.g., the work done inside the
+        /// Fortran spreading and interpolation kernels).
+        ///
+        /// If nodal quadrature is used then this value simply corresponds to
+        /// counting the nodes since those are the quadrature points.
         double q_point_weight = 1.0;
+
+        /// The multiplier applied to the nodes of elements. This value accounts
+        /// for the work done for each element regardless of the number of
+        /// quadrature points (e.g. calculating the size of the element
+        /// in the deformed configuration).
+        ///
+        /// These work values are calculated in an unusual way in the sense that
+        /// if a node is attached to N elements, then we count that node N
+        /// times. This accounts for the fact that work is done on an element
+        /// level but elements may exist on multiple patches at once: i.e., it
+        /// makes more sense to compute the work associated with an element by
+        /// assigning work to its nodes rather than the element centroid.
+        ///
+        /// This value should not be set to anything but zero when doing nodal
+        /// quadrature.
+        ///
+        /// A good value for this is 0.8.
+        double duplicated_node_weight = 0.0;
     };
 
 protected:
@@ -381,6 +533,16 @@ protected:
      * usually combined with different hierarchies.
      */
     std::shared_ptr<FEData> d_fe_data;
+
+    /*!
+     * FEProjector object that handles L2 projection functionality.
+     */
+    std::shared_ptr<FEProjector> d_fe_projector;
+
+    /*!
+     * IB ghosted diagonal mass matrix representations.
+     */
+    std::map<std::string, std::unique_ptr<libMesh::PetscVector<double> > > d_L2_proj_matrix_diag_ghost;
 
 public:
     /*!
@@ -408,7 +570,7 @@ public:
      * corresponding to the specified name.  Access to FEDataManager objects is
      * mediated by the getManager() function.
      *
-     * Note that when a manager is accessed for the first time, the
+     * @note When a manager is accessed for the first time, the
      * FEDataManager::freeAllManagers() static method is registered with the
      * SAMRAI::tbox::ShutdownRegistry class. Consequently, all allocated
      * managers are freed at program completion. Thus, users of this class do
@@ -417,53 +579,22 @@ public:
      * \return A pointer to the data manager instance.
      */
     static FEDataManager*
-    getManager(const std::string& name,
-               const InterpSpec& default_interp_spec,
-               const SpreadSpec& default_spread_spec,
-               const WorkloadSpec& default_workload_spec,
-               const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
-               std::shared_ptr<SAMRAIDataCache> eulerian_data_cache = nullptr,
-               bool register_for_restart = true);
-
-    /*!
-     * Return a pointer to the instance of the Lagrangian data manager
-     * corresponding to the specified name.  Access to FEDataManager objects is
-     * mediated by the getManager() function.
-     *
-     * This is the same as the other methods except for the first argument:
-     * here the FEData object owned by the new FEDataManager will, in most
-     * cases, be co-owned by another FEDataManager object.
-     *
-     * \return A pointer to the data manager instance.
-     */
-    static FEDataManager*
     getManager(std::shared_ptr<FEData> fe_data,
                const std::string& name,
+               const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+               const int max_levels,
                const InterpSpec& default_interp_spec,
                const SpreadSpec& default_spread_spec,
                const WorkloadSpec& default_workload_spec,
                const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
                std::shared_ptr<SAMRAIDataCache> eulerian_data_cache = nullptr,
-               bool register_for_restart = true);
-
-    /*!
-     * Same as the last function, but uses a default workload specification
-     * for compatibility.
-     *
-     * \return A pointer to the data manager instance.
-     */
-    static FEDataManager*
-    getManager(const std::string& name,
-               const InterpSpec& default_interp_spec,
-               const SpreadSpec& default_spread_spec,
-               const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
                bool register_for_restart = true);
 
     /*!
      * Deallocate all of the FEDataManager instances.
      *
      * It is not necessary to call this function at program termination since it
-     * is automatically called by the ShutdownRegistry class.
+     * is automatically called by the SAMRAI::tbox::ShutdownRegistry class.
      */
     static void freeAllManagers();
 
@@ -471,6 +602,9 @@ public:
      * \brief Set the equations systems object that is associated with the
      * FEData object. Currently, each set of equation systems must be assigned
      * to a particular level of the AMR grid.
+     *
+     * @deprecated This function is deprecated since the FEData constructor now
+     * requires an EquationSystems argument.
      */
     void setEquationSystems(libMesh::EquationSystems* equation_systems, int level_number);
 
@@ -504,15 +638,6 @@ public:
     bool getLoggingEnabled() const;
 
     /*!
-     * \brief Register a load balancer for non-uniform load balancing.
-     *
-     * @deprecated Since the correct workload index is passed in via
-     * addWorkloadEstimate this function is no longer necessary.
-     */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
-                              int workload_data_idx);
-
-    /*!
      * \name Methods to set and get the patch hierarchy and range of patch
      * levels associated with this manager class.
      */
@@ -520,6 +645,11 @@ public:
 
     /*!
      * \brief Reset patch hierarchy over which operations occur.
+     *
+     * The patch hierarchy must be fully set up (i.e., contain all the levels it
+     * is expected to have) at the point this function is called. If you need to
+     * tag cells for refinement to create the initial hierarchy then use
+     * applyGradientDetector, which does not use the stored patch hierarchy.
      */
     void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
@@ -529,27 +659,14 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getPatchHierarchy() const;
 
     /*!
-     * \brief Reset range of patch levels over which operations occur.
-     *
-     * The levels must exist in the hierarchy or an assertion failure will
-     * result.
+     * Get the coarsest patch level number on which elements are assigned.
      */
-    void setPatchLevels(int coarsest_ln, int finest_ln);
+    int getCoarsestPatchLevelNumber() const;
 
     /*!
-     * \brief Get the range of patch levels used by this object.
-     *
-     * \note Returns [coarsest_ln,finest_ln+1).
+     * Get the finest patch level number on which elements are assigned.
      */
-    std::pair<int, int> getPatchLevels() const;
-
-    //\}
-
-    /*!
-     * \return The level number to which the equations system object managed by
-     * the FEDataManager is assigned.
-     */
-    int getLevelNumber() const;
+    int getFinestPatchLevelNumber() const;
 
     /*!
      * \return The ghost cell width used for quantities that are to be
@@ -578,6 +695,8 @@ public:
     /*!
      * \return A const reference to the map from local patch number to local
      * active nodes.
+     *
+     * \note The local active nodes are the nodes of the local active elements.
      */
     const std::vector<std::vector<libMesh::Node*> >& getActivePatchNodeMap() const;
 
@@ -611,7 +730,7 @@ public:
      * \return A pointer to a vector, with ghost entries corresponding to
      * relevant IB data, associated with the specified system.
      */
-    std::unique_ptr<libMesh::PetscVector<double> > buildIBGhostedVector(const std::string& system_name) const;
+    std::unique_ptr<libMesh::PetscVector<double> > buildIBGhostedVector(const std::string& system_name);
 
     /*!
      * \return A pointer to the unghosted coordinates (nodal position) vector.
@@ -638,6 +757,51 @@ public:
     /*!
      * \brief Spread a density from the FE mesh to the Cartesian grid using the
      * default spreading spec.
+     *
+     * @note This function may spread forces from points near the physical
+     * boundary into ghost cells outside the physical domain. To account for
+     * these forces one should usually call
+     * IBTK::RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData()
+     * after this function to move said force values into the physical domain.
+     */
+    void spread(int f_data_idx,
+                libMesh::NumericVector<double>& F,
+                libMesh::NumericVector<double>& X,
+                const std::string& system_name);
+
+    /*!
+     * \brief Spread a density from the FE mesh to the Cartesian grid.
+     *
+     * @param[in] f_data_idx SAMRAI index into the
+     * SAMRAI::hier::PatchHierarchy object owned by this class. The spread
+     * force values will be added into this index.
+     * @param[in] F Finite element solution vector containing the field which
+     * will be spread onto the Eulerian grid.
+     * @param[in] X Finite element solution vector containing the current
+     * position of the mesh.
+     * @param[in] system_name name of the system corresponding to @p F.
+     *
+     * Both @p X and @p F should contain ghost values corresponding to the IB
+     * partitioning of the Lagrangian data, i.e., vectors returned from
+     * buildIBGhostedVector.
+     *
+     * @note This function may spread forces from points near the physical
+     * boundary into ghost cells outside the physical domain. To account for
+     * these forces one should usually call
+     * IBTK::RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData()
+     * after this function to move said force values into the physical domain.
+     */
+    void spread(int f_data_idx,
+                libMesh::NumericVector<double>& F,
+                libMesh::NumericVector<double>& X,
+                const std::string& system_name,
+                const SpreadSpec& spread_spec);
+
+    /*!
+     * \brief Spread a density from the FE mesh to the Cartesian grid using
+     * the default spreading spec. This is a convenience overload of spread
+     * where @p f_phys_bdry_op is used to correctly accumulate force values
+     * spread outside the physical domain into it.
      */
     void spread(int f_data_idx,
                 libMesh::NumericVector<double>& F,
@@ -650,7 +814,9 @@ public:
 
     /*!
      * \brief Spread a density from the FE mesh to the Cartesian grid using a
-     * specified spreading spec.
+     * specified spreading spec. This is a convenience overload of spread
+     * where @p f_phys_bdry_op is used to correctly accumulate force values
+     * spread outside the physical domain into it.
      */
     void spread(int f_data_idx,
                 libMesh::NumericVector<double>& F,
@@ -721,6 +887,13 @@ public:
      * vector @p F which is the right-hand side of an L2 projection
      * problem. Callers will still need to solve the resulting linear
      * system. The result, therefore, is projected, not interpolated.
+     *
+     * @note The vector set up by this function is set up without applying any
+     * constraints (e.g., hanging node or periodicity constraints) during
+     * assembly. This is because we do not store the constraints on the IB
+     * data partitioning, only on libMesh's own data partitioning. For more
+     * information on how to assemble RHS vectors in this case, see the
+     * documentation of the function apply_transposed_constraint_matrix().
      */
     void
     interpWeighted(int f_data_idx,
@@ -802,6 +975,11 @@ public:
     libMesh::NumericVector<double>* buildDiagonalL2MassMatrix(const std::string& system_name);
 
     /*!
+     * \return Pointer to IB ghosted vector representation of diagonal L2 mass matrix.
+     */
+    libMesh::PetscVector<double>* buildIBGhostedDiagonalL2MassMatrix(const std::string& system_name);
+
+    /*!
      * \brief Set U to be the L2 projection of F.
      */
     bool computeL2Projection(libMesh::NumericVector<double>& U,
@@ -814,7 +992,7 @@ public:
                              unsigned int max_its = 100);
 
     /*!
-     * Update the quarature rule for the current element.  If the provided
+     * Update the quadrature rule for the current element.  If the provided
      * qrule is already configured appropriately, it is not modified.
      *
      * \return true if the quadrature rule is updated or otherwise requires
@@ -826,6 +1004,7 @@ public:
                                      libMesh::Order quad_order,
                                      bool use_adaptive_quadrature,
                                      double point_density,
+                                     bool allow_rules_with_negative_weights,
                                      const libMesh::Elem* elem,
                                      const boost::multi_array<double, 2>& X_node,
                                      double dx_min);
@@ -889,8 +1068,8 @@ public:
      * existing level in the hierarchy.
      *
      * @note This function is analogous to
-     * StandardTagAndInitStrategy::applyGradientDetector and is only meant to
-     * be called from IBFEMethod::applyGradientDetector.
+     * SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector() and is
+     * only meant to be called from IBAMR::IBFEMethod::applyGradientDetector().
      */
     void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                int level_number,
@@ -906,29 +1085,45 @@ public:
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
-protected:
     /*!
-     * \brief Constructor.
+     * \brief Zero the values corresponding to points on the given patch
+     * (described by @p patch_geometry) that might be duplicated on another
+     * patch.
+     *
+     * In the process of computing either forces on the Lagrangian mesh to
+     * spread to the Eulerian grid or interpolating values from the Eulerian
+     * grid to use in the Lagrangian structure we may, under extraordinary
+     * circumstances, double-count a point that lies on the boundary between
+     * two patches. Note that due to the CFL condition assumed by this class
+     * and the width of the tag buffer used by IBAMR::IBFEMethod we can assume
+     * that no IB point will ever lie on the boundary of the finest grid
+     * level: hence, if a point lies on the boundary of a patch, it must also
+     * lie on the boundary of a neighboring patch.
+     *
+     * Hence, to establish uniqueness, we zero data that lies on the 'upper'
+     * face (corresponding to the unit normal vector pointing towards
+     * infinity) since we are guaranteed, by the previous assumptions, that
+     * that data must also lie on the lower face of a neighboring patch.
      */
-    FEDataManager(std::string object_name,
-                  InterpSpec default_interp_spec,
-                  SpreadSpec default_spread_spec,
-                  WorkloadSpec default_workload_spec,
-                  SAMRAI::hier::IntVector<NDIM> ghost_width,
-                  std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
-                  bool register_for_restart = true);
+    static void zeroExteriorValues(const SAMRAI::geom::CartesianPatchGeometry<NDIM>& patch_geom,
+                                   const std::vector<double>& X_qp,
+                                   std::vector<double>& F_qp,
+                                   int n_vars);
 
+protected:
     /*!
      * \brief Constructor, where the FEData object owned by this class may be
      * co-owned by other objects.
      */
-    FEDataManager(std::shared_ptr<FEData> fe_data,
-                  std::string object_name,
+    FEDataManager(std::string object_name,
+                  const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+                  const int max_levels,
                   InterpSpec default_interp_spec,
                   SpreadSpec default_spread_spec,
                   WorkloadSpec default_workload_spec,
                   SAMRAI::hier::IntVector<NDIM> ghost_width,
                   std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
+                  std::shared_ptr<FEData> fe_data,
                   bool register_for_restart = true);
 
     /*!
@@ -972,26 +1167,35 @@ private:
     void updateQuadPointCountData(int coarsest_ln, int finest_ln);
 
     /*!
-     * Compute the bounding boxes of all active elements.
-     *
-     * \note For inactive elements, the lower and upper bound values will be
-     * identically zero.
-     *
-     * @deprecated Use the non member function
-     * IBTK::get_global_active_element_bounding_boxes instead.
-     */
-    std::vector<std::pair<Point, Point> >* computeActiveElementBoundingBoxes();
-
-    /*!
      * Collect all of the active elements which are located within a local
-     * Cartesian grid patch grown by the specified ghost cell width.
+     * Cartesian grid patch grown by a ghost width of 1 (like
+     * IBTK::LEInteractor::getMinimumGhostWidth(), we assume that IB points
+     * are allowed to move no more than one cell width between regridding
+     * operations).
+     *
+     * The parameters refer to the levels of different objects:
+     * <ol>
+     *   <li>@p level_number - the level number in the patch hierarchy on which
+     *     we are identifying intersections.</li>
+     *   <li>@p coarsest_elem_ln - The minimum level number of elements we should
+     *     consider (see the main documentation of this class for an explanation
+     *     on how elements are assigned to particular levels)</li>
+     *   <li>@p finest_elem_ln - The maximum level number of elements we should
+     *     consider.</li>
+     * </ol>
+     *
+     * All three parameters are necessary because we use this function both to
+     * tag cells for refinement (i.e., we want to refine cells containing
+     * elements on levels higher than the present level) and to do IB
+     * calculations (where all three numbers will be the same).
      *
      * In this method, the determination as to whether an element is local or
      * not is based on the position of the bounding box of the element.
      */
     void collectActivePatchElements(std::vector<std::vector<libMesh::Elem*> >& active_patch_elems,
                                     int level_number,
-                                    const SAMRAI::hier::IntVector<NDIM>& ghost_width);
+                                    int coarsest_elem_ln,
+                                    int finest_elem_ln);
 
     /*!
      * Collect all of the nodes of the active elements that are located within a
@@ -1001,11 +1205,26 @@ private:
                                  const std::vector<std::vector<libMesh::Elem*> >& active_patch_elems);
 
     /*!
+     * Store the association between subdomain ids and patch levels.
+     */
+    SubdomainToPatchLevelTranslation d_level_lookup;
+
+    /*!
+     * Get the patch level on which an element lives.
+     */
+    int getPatchLevel(const libMesh::Elem* elem) const;
+
+    /*!
      * Collect all ghost DOF indices for the specified collection of elements.
      */
     void collectGhostDOFIndices(std::vector<unsigned int>& ghost_dofs,
                                 const std::vector<libMesh::Elem*>& active_elems,
                                 const std::string& system_name);
+
+    /*!
+     * Reinitialize IB ghosted DOF data structures for the specified system.
+     */
+    void reinitializeIBGhostedDOFs(const std::string& system_name);
 
     /*!
      * Read object state from the restart file and initialize class data
@@ -1030,7 +1249,7 @@ private:
     static bool s_registered_callback;
     static unsigned char s_shutdown_priority;
 
-    /*
+    /*!
      * The object name is used as a handle to databases stored in restart files
      * and for error reporting purposes.  The boolean is used to control restart
      * file writing operations.
@@ -1038,7 +1257,7 @@ private:
     std::string d_object_name;
     bool d_registered_for_restart;
 
-    /*
+    /*!
      * Whether or not to log data to the screen: see
      * FEDataManager::setLoggingEnabled() and
      * FEDataManager::getLoggingEnabled().
@@ -1048,31 +1267,27 @@ private:
      */
     bool d_enable_logging = false;
 
-    /*
-     * We cache a pointer to the load balancer.
-     *
-     * @deprecated This pointer is never used and will be removed in the
-     * future.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
-
-    /*
+    /*!
      * Grid hierarchy information.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
-    /*
+    /*!
+     * Maximum possible level number in the patch hierarchy.
+     */
+    int d_max_level_number = IBTK::invalid_level_number;
+
+    /*!
      * Cached Eulerian data to reduce the number of allocations/deallocations.
      */
     std::shared_ptr<SAMRAIDataCache> d_eulerian_data_cache;
 
-    /*
+    /*!
      * SAMRAI::hier::VariableContext object used for data management.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
 
-    /*
+    /*!
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
      * cell variable used to keep track of the count of the quadrature points in
      * each cell.
@@ -1080,56 +1295,59 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_qp_count_var;
     int d_qp_count_idx;
 
-    /*
-     * SAMRAI::xfer::RefineAlgorithm pointer to fill the ghost cell region of
-     * SAMRAI variables.
-     */
-    SAMRAI::xfer::RefineAlgorithm<NDIM> d_ghost_fill_alg;
-
-    /*
-     * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
-     * cell variable used to determine the workload for nonuniform load
-     * balancing.
-     *
-     * @deprecated d_workload_var and d_workload_idx will not be stored in a
-     * future release since the correct workload index will be provided as an
-     * argument to addWorkloadEstimate.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_workload_var;
-    int d_workload_idx = IBTK::invalid_index;
-
-    /*
+    /*!
      * The default parameters used during workload calculations.
      */
     const WorkloadSpec d_default_workload_spec;
 
-    /*
+    /*!
      * The default kernel functions and quadrature rule used to mediate
      * Lagrangian-Eulerian interaction.
      */
     const InterpSpec d_default_interp_spec;
     const SpreadSpec d_default_spread_spec;
 
-    /*
-     * SAMRAI::hier::IntVector object which determines the ghost cell width used
-     * to determine elements that are associated with each Cartesian grid patch.
+    /*!
+     * after reassociating patches with elements a node may still lie
+     * outside all patches on the finest level in unusual circumstances
+     * (like when the parent integrator class does not regrid sufficiently
+     * frequently and has more than one patch level). This enum controls
+     * what we do when this problem is detected.
+     */
+    NodeOutsidePatchCheckType d_node_patch_check = NODE_OUTSIDE_ERROR;
+
+    /*!
+     * SAMRAI::hier::IntVector object which determines the required ghost cell
+     * width of this class.
      */
     const SAMRAI::hier::IntVector<NDIM> d_ghost_width;
 
-    /*
+    /*!
+     * SAMRAI::hier::IntVector object which determines how many ghost cells we
+     * should enlarge a patch by when associating an element with a patch. An
+     * element is associated with a patch when its bounding box (defined as
+     * the bounding box of both its nodes and quadrature points) intersects
+     * the bounding box (including ghost cells) of that patch.
+     *
+     * @note At the present time this is always 1, which matches the
+     * assumption made by IBTK::LEInteractor::getMinimumGhostWidth().
+     */
+    const SAMRAI::hier::IntVector<NDIM> d_associated_elem_ghost_width = SAMRAI::hier::IntVector<NDIM>(1);
+
+    /*!
      * Data to manage mappings between mesh elements and grid patches.
      */
-    std::vector<std::vector<libMesh::Elem*> > d_active_patch_elem_map;
-    std::vector<std::vector<libMesh::Node*> > d_active_patch_node_map;
+    std::vector<std::vector<std::vector<libMesh::Elem*> > > d_active_patch_elem_map;
+    std::vector<std::vector<std::vector<libMesh::Node*> > > d_active_patch_node_map;
     std::map<std::string, std::vector<unsigned int> > d_active_patch_ghost_dofs;
-    std::vector<std::pair<Point, Point> > d_active_elem_bboxes;
+    std::vector<libMesh::Elem*> d_active_elems;
 
-    /*
+    /*!
      * Ghost vectors for the various equation systems.
      */
     std::map<std::string, std::unique_ptr<libMesh::NumericVector<double> > > d_system_ghost_vec;
 
-    /*
+    /*!
      * Exemplar relevant IB-ghosted vectors for the various equation
      * systems. These vectors are cloned for fast initialization in
      * buildIBGhostedVector.

@@ -53,9 +53,15 @@ UseTab: Never
 
 IncludeBlocks: Regroup
 IncludeCategories:
-# first our config files:
-  - Regex: "(IBTK|IBAMR)_config.h"
+# our config files are first:
+  - Regex: "(ibtk|ibamr)/config.h"
     Priority: -1
+# app_namespaces.h is always last:
+  - Regex: "(ibtk|ibamr)/app_namespaces.h"
+    Priority: 9999
+# so is namespaces.h:
+  - Regex: "(ibtk|ibamr)/namespaces.h"
+    Priority: 10000
 # then the library:
   - Regex: "ibamr/.*\\.h.$"
     Priority: 10
@@ -70,6 +76,9 @@ IncludeCategories:
 # PETSc:
   - Regex: "[<\"]petsc[a-z]*\\.h[>\"]$"
     Priority: 300
+# HYPRE:
+  - Regex: "[<\"]HYPRE[a-z_]*\\.h[>\"]$"
+    Priority: 350
 # other standardized headers:
   - Regex: "<[A-Za-z_]*\\.h>"
     Priority: 1000

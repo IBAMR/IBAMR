@@ -1,61 +1,39 @@
-// Filename: PatchMathOps.cpp
-// Created on 23 Jul 2002 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBTK_config.h"
-
+#include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/PatchMathOps.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "EdgeData.h" // IWYU pragma: keep
-#include "FaceData.h"
+#include "FaceData.h" // IWYU pragma: keep
 #include "FaceGeometry.h"
-#include "IntVector.h"
 #include "NodeData.h"
 #include "NodeGeometry.h"
-#include "Patch.h"
-#include "PatchFaceDataOpsReal.h"
-#include "PatchSideDataOpsReal.h"
-#include "SideData.h"
+#include "SideData.h" // IWYU pragma: keep
 #include "SideGeometry.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 #include <array>
 #include <ostream>
+#include <string>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -1499,9 +1477,10 @@ PatchMathOps::curl(Pointer<CellData<NDIM, double> > dst,
     if (
 #if (NDIM == 2)
         (W_depth != 1)
-#endif
-#if (NDIM == 3)
-            (W_depth != NDIM)
+#elif (NDIM == 3)
+        (W_depth != NDIM)
+#else
+        false
 #endif
     )
     {

@@ -1,5 +1,16 @@
-# -------------------------------------------------------------
-# -------------------------------------------------------------
+## ---------------------------------------------------------------------
+##
+## Copyright (c) 2014 - 2020 by the IBAMR developers
+## All rights reserved.
+##
+## This file is part of IBAMR.
+##
+## IBAMR is free software and is distributed under the 3-clause BSD
+## license. The full text of the license can be found in the file
+## COPYRIGHT at the top level directory of IBAMR.
+##
+## ---------------------------------------------------------------------
+
 AC_DEFUN([CONFIGURE_HDF5],[
 echo
 echo "================================="
@@ -36,8 +47,6 @@ else
   LDFLAGS_PREPEND($HDF5_LDFLAGS)
   AC_CHECK_LIB([hdf5], H5open, [],
                [AC_MSG_ERROR([could not find working libhdf5])])
-  AC_CHECK_LIB([hdf5_hl], H5LTfind_dataset, [],
-               [AC_MSG_ERROR([could not find working libhdf5_hl])])
   # set up rpath
   ADD_RPATH_LDFLAG(${HDF5_DIR}/lib)
 fi

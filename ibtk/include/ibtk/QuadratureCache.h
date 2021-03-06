@@ -1,39 +1,26 @@
-// Filename: QuadratureCache.h
-// Created on 30 Jan 2019 by David Wells
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2019, Boyce Griffith
+// Copyright (c) 2019 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
+
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBTK_QuadratureCache
 #define included_IBTK_QuadratureCache
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
+
+#include <ibtk/libmesh_utilities.h>
 
 #include <libmesh/enum_elem_type.h>
 #include <libmesh/enum_order.h>
@@ -65,7 +52,7 @@ public:
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
+    using key_type = quadrature_key_type;
 
     /**
      * Type of values stored by this class that are accessible through
@@ -76,9 +63,10 @@ public:
     /**
      * Constructor. Sets up a cache of Quadrature objects.
      *
-     * @param dim The dimension of the Quadrature object.
+     * @param dim The topological dimension of the relevant libMesh::Mesh: see
+     * libMesh::MeshBase::mesh_dimension() for more information.
      */
-    QuadratureCache(const unsigned int dim);
+    QuadratureCache(unsigned int dim);
 
     /**
      * Return a reference to a Quadrature object that matches the specified
@@ -94,36 +82,40 @@ public:
      */
     void clear()
     {
-        quadratures.clear();
+        d_quadratures.clear();
     }
 
 protected:
     /**
-     * Dimension of the FE mesh.
+     * Topological dimension of the FE mesh.
      */
-    unsigned int dim;
+    unsigned int d_dim;
 
     /**
      * Managed libMesh::Quadrature objects.
      */
-    std::map<key_type, std::unique_ptr<libMesh::QBase> > quadratures;
+    std::map<key_type, std::unique_ptr<libMesh::QBase> > d_quadratures;
 };
 
-inline QuadratureCache::QuadratureCache(const unsigned int dim) : dim(dim)
+inline QuadratureCache::QuadratureCache(const unsigned int dim) : d_dim(dim)
 {
 }
 
-inline QuadratureCache::value_type& QuadratureCache::operator[](const QuadratureCache::key_type& quad_key)
+inline QuadratureCache::value_type&
+QuadratureCache::operator[](const QuadratureCache::key_type& quad_key)
 {
-    auto it = quadratures.find(quad_key);
-    if (it == quadratures.end())
+    TBOX_ASSERT(static_cast<unsigned int>(get_dim(std::get<0>(quad_key))) == d_dim);
+    auto it = d_quadratures.find(quad_key);
+    if (it == d_quadratures.end())
     {
         const libMesh::ElemType elem_type = std::get<0>(quad_key);
         const libMesh::QuadratureType quad_type = std::get<1>(quad_key);
         const libMesh::Order order = std::get<2>(quad_key);
+        const bool allow_rules_with_negative_weights = std::get<3>(quad_key);
 
         libMesh::QBase& new_quad =
-            *(*quadratures.emplace(quad_key, libMesh::QBase::build(quad_type, dim, order)).first).second;
+            *(*d_quadratures.emplace(quad_key, libMesh::QBase::build(quad_type, d_dim, order)).first).second;
+        new_quad.allow_rules_with_negative_weights = allow_rules_with_negative_weights;
         new_quad.init(elem_type);
         return new_quad;
     }
@@ -132,6 +124,7 @@ inline QuadratureCache::value_type& QuadratureCache::operator[](const Quadrature
         return *(it->second);
     }
 }
+
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

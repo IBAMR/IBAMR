@@ -1,7 +1,0 @@
-New: IBFEMethod can now partition data internally based on the number of IB
-(i.e., quadrature) points used in spreading and velocity interpolation. This
-feature greatly improves parallel scalability of this class since, in general,
-the number of IB points on a processor is only weakly correlated with the number
-of cells on that processor.
-<br>
-(David Wells, 2019/10/31)

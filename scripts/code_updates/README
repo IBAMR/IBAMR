@@ -1,0 +1,10 @@
+This folder contains files useful to make simple code changes that may change many lines in a project
+
+misc_cpp11_updates.pl
+  -- Perl script that can perform miscellaneous C++11 updates including:
+     -- replacing UniquePtr and AutoPtr with std::unique_ptr
+     -- replacing libMesh headers with <memory> system header
+     -- replacing boost objects with corresponding std:: objects
+
+update_mpi_calls.pl
+  -- Perl script to replace SAMRAI_MPI calls with IBTK_MPI calls.

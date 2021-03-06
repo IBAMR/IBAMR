@@ -1,3 +1,16 @@
+## ---------------------------------------------------------------------
+##
+## Copyright (c) 2011 - 2020 by the IBAMR developers
+## All rights reserved.
+##
+## This file is part of IBAMR.
+##
+## IBAMR is free software and is distributed under the 3-clause BSD
+## license. The full text of the license can be found in the file
+## COPYRIGHT at the top level directory of IBAMR.
+##
+## ---------------------------------------------------------------------
+
 ###########################################################################
 # Prelude.
 ###########################################################################
@@ -7,6 +20,8 @@ AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADER([config/IBTK_config.h.tmp])
 AX_PREFIX_CONFIG_H([config/IBTK_config.h],[IBTK],[config/IBTK_config.h.tmp])
+# Also copy our own CMake compatibility shim header:
+AC_CONFIG_LINKS([config/ibtk/config.h:$srcdir/config/config.h.tmp])
 AM_INIT_AUTOMAKE([1.12 -Wall -Werror dist-bzip2 foreign -Wno-extra-portability subdir-objects])
 AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([disable])
@@ -84,7 +99,6 @@ CONFIGURE_EIGEN("$ABSOLUTE_SRCDIR/contrib/eigen","\$(abs_top_builddir)/contrib/e
 CONFIGURE_HDF5
 CONFIGURE_HYPRE
 CONFIGURE_GSL
-CONFIGURE_GTEST
 CONFIGURE_MUPARSER("$ABSOLUTE_SRCDIR/contrib/muparser","\$(abs_top_builddir)/contrib/muparser")
 # configure dependencies of dependencies:
 CONFIGURE_SILO
@@ -113,8 +127,8 @@ fi
 ###########################################################################
 dnl We have to use a funny name for the key to guarantee that it comes after
 dnl all constant definitions.
-AH_VERBATIM(Z_INCLUDE_MACRO_HEADER, [/* Define IBTK-specific macros. */
-#include <ibtk/ibtk_macros.h>])
+AH_VERBATIM(Z_INCLUDE_MACRO_HEADER, [/* Include the new configuration file. */
+#include <ibtk/config.h>])
 
 ###########################################################################
 # Output files.
@@ -129,6 +143,7 @@ Makefile
 examples/Makefile
 examples/CCLaplace/Makefile
 examples/CCPoisson/Makefile
+examples/GhostCells/Makefile
 examples/PETScOps/Makefile
 examples/PETScOps/ProlongationMat/Makefile
 examples/PhysBdryOps/Makefile

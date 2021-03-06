@@ -1,45 +1,23 @@
-// Filename: FACPreconditioner.cpp
-// Created on 25 Aug 2010 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/FACPreconditioner.h"
 #include "ibtk/FACPreconditionerStrategy.h"
-#include "ibtk/GeneralSolver.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/ibtk_enums.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
-#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "PatchHierarchy.h"
 #include "SAMRAIVectorReal.h"
@@ -49,6 +27,9 @@
 
 #include <ostream>
 #include <string>
+#include <utility>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -119,9 +100,6 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorRe
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(u, f);
 
-    // Allocate scratch data.
-    d_fac_strategy->allocateScratchData();
-
     // Set the initial guess to equal zero.
     u.setToScalar(0.0, /*interior_only*/ false);
 
@@ -143,8 +121,6 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorRe
         TBOX_ASSERT(d_f);
         TBOX_ASSERT(d_r);
 #endif
-        d_f->allocateVectorData();
-        d_r->allocateVectorData();
         d_f->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&f, false), false);
         d_r->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&f, false), false);
         switch (d_cycle_type)
@@ -166,12 +142,7 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorRe
                                      << "  unsupported FAC cycle type: " << enum_to_string<MGCycleType>(d_cycle_type)
                                      << "." << std::endl);
         }
-        d_f->deallocateVectorData();
-        d_r->deallocateVectorData();
     }
-
-    // Deallocate scratch data.
-    d_fac_strategy->deallocateScratchData();
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -205,7 +176,12 @@ FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& s
     {
         d_f = rhs.cloneVector("");
         d_r = rhs.cloneVector("");
+        d_f->allocateVectorData();
+        d_r->allocateVectorData();
     }
+
+    // Allocate scratch data.
+    d_fac_strategy->allocateScratchData();
 
     // Indicate the operator is initialized.
     d_is_initialized = true;
@@ -217,15 +193,20 @@ FACPreconditioner::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
+    // Deallocate scratch data.
+    d_fac_strategy->deallocateScratchData();
+
     // Destroy temporary vectors.
     if (d_f)
     {
+        d_f->deallocateVectorData();
         d_f->freeVectorComponents();
         d_f.setNull();
     }
 
     if (d_r)
     {
+        d_r->deallocateVectorData();
         d_r->freeVectorComponents();
         d_r.setNull();
     }

@@ -1,34 +1,15 @@
-// Filename: INSVCStaggeredVelocityBcCoef.cpp
-// Created on 25 Sep 2017 by Nishant Nangia
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2014, Nishant Nangia and Amneet Bhalla
+// Copyright (c) 2018 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -37,7 +18,6 @@
 #include "ibamr/StokesBcCoefStrategy.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/ExtendedRobinBcCoefStrategy.h"
 
@@ -62,6 +42,8 @@
 #include <ostream>
 #include <string>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {
@@ -279,7 +261,6 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     const double* const dx = pgeom->getDx();
 
     double mu = d_fluid_solver->muIsConstant() ? d_problem_coefs->getMu() : -1;
-    int mu_idx = -1;
 #if (NDIM == 2)
     Pointer<NodeData<NDIM, double> > mu_data;
 #elif (NDIM == 3)
@@ -287,7 +268,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
 #endif
     if (!d_fluid_solver->muIsConstant())
     {
-        mu_idx = d_fluid_solver->getInterpolatedLinearOperatorMuPatchDataIndex();
+        const int mu_idx = d_fluid_solver->getInterpolatedLinearOperatorMuPatchDataIndex();
 
 #if !defined(NDEBUG)
         TBOX_ASSERT(mu_idx >= 0);
@@ -296,7 +277,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     }
     for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
     {
-        const Index<NDIM>& i = it();
+        const hier::Index<NDIM>& i = it();
         double& alpha = (*acoef_data)(i, 0);
         double& beta = (*bcoef_data)(i, 0);
         double& gamma = (*gcoef_data)(i, 0);
@@ -334,7 +315,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                 {
                     // Compute the tangential derivative of the normal
                     // component of the velocity at the boundary.
-                    Index<NDIM> i_lower(i), i_upper(i);
+                    hier::Index<NDIM> i_lower(i), i_upper(i);
                     i_lower(d_comp_idx) = std::max(ghost_box.lower()(d_comp_idx), i(d_comp_idx) - 1);
                     i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
                     const SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis, SideIndex<NDIM>::Lower);
@@ -344,14 +325,15 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
 
                     if (!d_fluid_solver->muIsConstant())
                     {
-                        // In certain use cases with traction boundary conditions, this class will attempt to fill
-                        // Robin BC coefficient values along an extended physical boundary outside of the physical
-                        // domain
-                        // that will never be used. However, viscosity values will not be available at those locations,
-                        // so we
-                        // need to ensure we don't access those unallocated data. The unphysical value should result in
-                        // bad stuff if
-                        // it gets used for whatever reason.
+                        // In certain use cases with traction boundary
+                        // conditions, this class will attempt to fill Robin
+                        // BC coefficient values along an extended physical
+                        // boundary outside of the physical domain that will
+                        // never be used. However, viscosity values will not
+                        // be available at those locations, so we need to
+                        // ensure we don't access those unallocated data. The
+                        // unphysical value should result in bad stuff if it
+                        // gets used for whatever reason.
                         if (mu_data_exists)
                         {
 #if (NDIM == 2)
@@ -380,17 +362,18 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                 {
                     if (!d_fluid_solver->muIsConstant())
                     {
-                        Index<NDIM> i_upper(i);
+                        hier::Index<NDIM> i_upper(i);
                         i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
 
-                        // In certain use cases with traction boundary conditions, this class will attempt to fill
-                        // Robin BC coefficient values along an extended physical boundary outside of the physical
-                        // domain
-                        // that will never be used. However, viscosity values will not be available at those locations,
-                        // so we
-                        // need to ensure we don't access those unallocated data. The unphysical value should result in
-                        // bad stuff if
-                        // it gets used for whatever reason.
+                        // In certain use cases with traction boundary
+                        // conditions, this class will attempt to fill Robin
+                        // BC coefficient values along an extended physical
+                        // boundary outside of the physical domain that will
+                        // never be used. However, viscosity values will not
+                        // be available at those locations, so we need to
+                        // ensure we don't access those unallocated data. The
+                        // unphysical value should result in bad stuff if it
+                        // gets used for whatever reason.
                         if (mu_data_exists)
                         {
 #if (NDIM == 2)

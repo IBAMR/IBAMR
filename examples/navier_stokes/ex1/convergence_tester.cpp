@@ -1,35 +1,17 @@
-// Copyright (c) 2002-2014, Boyce Griffith
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 // GENERAL CONFIGURATION
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
 
 #include <petscsys.h>
 
@@ -42,6 +24,8 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartExtrapPhysBdryOp.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 
 /*******************************************************************************
  * For each run, the input filename must be given on the command line.  In all *
@@ -53,11 +37,8 @@
 int
 main(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     // Parse command line options, set some standard options from the input
     // file, and enable file logging.
@@ -141,17 +122,17 @@ main(int argc, char* argv[])
     {
         char temp_buf[128];
 
-        sprintf(temp_buf, "%05d.samrai.%05d", coarse_iteration_num, SAMRAI_MPI::getRank());
+        sprintf(temp_buf, "%05d.samrai.%05d", coarse_iteration_num, IBTK_MPI::getRank());
         string coarse_file_name = coarse_hier_dump_dirname + "/" + "hier_data.";
         coarse_file_name += temp_buf;
 
-        sprintf(temp_buf, "%05d.samrai.%05d", fine_iteration_num, SAMRAI_MPI::getRank());
+        sprintf(temp_buf, "%05d.samrai.%05d", fine_iteration_num, IBTK_MPI::getRank());
         string fine_file_name = fine_hier_dump_dirname + "/" + "hier_data.";
         fine_file_name += temp_buf;
 
-        for (int rank = 0; rank < SAMRAI_MPI::getNodes(); ++rank)
+        for (int rank = 0; rank < IBTK_MPI::getNodes(); ++rank)
         {
-            if (rank == SAMRAI_MPI::getRank())
+            if (rank == IBTK_MPI::getRank())
             {
                 fstream coarse_fin, fine_fin;
                 coarse_fin.open(coarse_file_name.c_str(), ios::in);
@@ -163,7 +144,7 @@ main(int argc, char* argv[])
                 coarse_fin.close();
                 fine_fin.close();
             }
-            SAMRAI_MPI::barrier();
+            IBTK_MPI::barrier();
         }
 
         if (!files_exist) break;
@@ -360,8 +341,5 @@ main(int argc, char* argv[])
         pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
         pout << endl;
     }
-
-    SAMRAIManager::shutdown();
-    SAMRAI_MPI::finalize();
     return 0;
 } // main

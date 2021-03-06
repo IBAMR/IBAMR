@@ -1,0 +1,31 @@
+AdvDiffSemiImplicitHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+Executing gradient detector callback
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 0
+Simulation time is 0
+AdvDiffSemiImplicitHierarchyIntegrator::advanceHierarchy(): time interval = [0,0.003125], dt = 0.003125
+AdvDiffSemiImplicitHierarchyIntegrator::advanceHierarchy(): regridding prior to timestep 0
+Executing gradient detector callback
+Executing regrid hierarchy callback
+AdvDiffSemiImplicitHierarchyIntegrator: Initializing Helmholtz RHS operator for variable number 0
+AdvDiffSemiImplicitHierarchyIntegrator: Initializing Helmholtz solvers for variable number 0
+Executing preprocess callback
+AdvDiffSemiImplicitHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+AdvDiffSemiImplicitHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
+AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(): diffusion solve number of iterations = 0
+AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(): diffusion solve residual norm        = 0
+Executing integrate hierarchy callback
+AdvDiffSemiImplicitHierarchyIntegrator::advanceHierarchy(): executing cycle 2 of 2
+AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(): diffusion solve number of iterations = 0
+AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(): diffusion solve residual norm        = 0
+Executing integrate hierarchy callback
+AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.2
+Executing postprocess callback
+AdvDiffSemiImplicitHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+AdvDiffSemiImplicitHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 0
+Simulation time is 0.003125
++++++++++++++++++++++++++++++++++++++++++++++++++++
+

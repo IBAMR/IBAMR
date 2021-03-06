@@ -1,36 +1,15 @@
-// Filename: KrylovFreeBodyMobilitySolver.cpp
-// Created on 16 Aug 2015 by Amneet Bhalla and Bakytzhan Kallemov.
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Amneet Bhalla, Bakytzhan Kallemov, and
-// Boyce Griffith.
-//
+// Copyright (c) 2016 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -40,14 +19,27 @@
 #include "ibamr/KrylovFreeBodyMobilitySolver.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h"
 
-#include "ibtk/ibtk_utilities.h"
-
-#include "petsc/private/petscimpl.h"
+#include "tbox/Database.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
+#include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
+#include "tbox/Utilities.h"
 
-#include <limits>
+#include "petscksp.h"
+#include "petscmat.h"
+#include "petscpc.h"
+#include "petscpctypes.h"
+#include "petscvec.h"
+#include <petsclog.h>
+#include <petscsys.h>
+
+#include <ostream>
+#include <string>
+#include <utility>
+
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 namespace IBAMR
 {
@@ -263,11 +255,13 @@ KrylovFreeBodyMobilitySolver::reportKSPConvergedReason(const KSPConvergedReason&
     {
     case KSP_CONVERGED_RTOL:
         os << d_object_name
-           << ": converged: |Ax-b| <= rtol*|b| --- residual norm is less than specified relative tolerance.\n";
+           << ": converged: |Ax-b| <= rtol*|b| --- residual norm "
+              "is less than specified relative tolerance.\n";
         break;
     case KSP_CONVERGED_ATOL:
         os << d_object_name
-           << ": converged: |Ax-b| <= atol --- residual norm is less than specified absolute tolerance.\n";
+           << ": converged: |Ax-b| <= atol --- residual norm is "
+              "less than specified absolute tolerance.\n";
         break;
     case KSP_CONVERGED_ITS:
         os << d_object_name << ": converged: maximum number of iterations reached.\n";
@@ -280,11 +274,13 @@ KrylovFreeBodyMobilitySolver::reportKSPConvergedReason(const KSPConvergedReason&
         break;
     case KSP_DIVERGED_ITS:
         os << d_object_name
-           << ": diverged: reached maximum number of iterations before any convergence criteria were satisfied.\n";
+           << ": diverged: reached maximum number of iterations "
+              "before any convergence criteria were satisfied.\n";
         break;
     case KSP_DIVERGED_DTOL:
         os << d_object_name
-           << ": diverged: |Ax-b| >= dtol*|b| --- residual is greater than specified divergence tolerance.\n";
+           << ": diverged: |Ax-b| >= dtol*|b| --- residual is "
+              "greater than specified divergence tolerance.\n";
         break;
     case KSP_DIVERGED_BREAKDOWN:
         os << d_object_name << ": diverged: breakdown in the Krylov method.\n";
@@ -294,13 +290,16 @@ KrylovFreeBodyMobilitySolver::reportKSPConvergedReason(const KSPConvergedReason&
         break;
     case KSP_DIVERGED_NONSYMMETRIC:
         os << d_object_name
-           << ": diverged: it appears the operator or preconditioner is not symmetric, but this "
+           << ": diverged: it appears the operator or preconditioner is not "
+              "symmetric, but this "
               "Krylov method (KSPCG, KSPMINRES, KSPCR) requires symmetry\n";
         break;
     case KSP_DIVERGED_INDEFINITE_PC:
         os << d_object_name
-           << ": diverged: it appears the preconditioner is indefinite (has both positive and "
-              "negative eigenvalues), but this Krylov method (KSPCG) requires it to be positive "
+           << ": diverged: it appears the preconditioner is "
+              "indefinite (has both positive and "
+              "negative eigenvalues), but this Krylov method "
+              "(KSPCG) requires it to be positive "
               "definite.\n";
         break;
     case KSP_CONVERGED_ITERATING:
@@ -451,7 +450,8 @@ KrylovFreeBodyMobilitySolver::MatVecMult_KFBMSolver(Mat A, Vec x, Vec y)
     TBOX_ASSERT(solver);
 #endif
     // a) Set rigid body velocity
-    VecSet(solver->d_petsc_temp_v, 0.0); // so that lambda for specified-kinematics part is zero.
+    VecSet(solver->d_petsc_temp_v,
+           0.0); // so that lambda for specified-kinematics part is zero.
     solver->d_cib_strategy->setRigidBodyVelocity(x,
                                                  solver->d_petsc_temp_v,
                                                  /*only_free_dofs*/ true,

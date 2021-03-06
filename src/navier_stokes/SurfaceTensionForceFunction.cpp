@@ -1,73 +1,60 @@
-// Filename: SurfaceTensionForceFunction.cpp
-// Created on 16 Dec 2017 by Amneet Bhalla
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Amneet Bhalla
+// Copyright (c) 2017 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBAMR_config.h"
-
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/SurfaceTensionForceFunction.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibamr/ibamr_enums.h"
 
 #include "ibtk/CartGridFunction.h"
-#include "ibtk/ibtk_utilities.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 
+#include "BasePatchLevel.h"
 #include "Box.h"
-#include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
 #include "CellIndex.h"
+#include "CellVariable.h"
+#include "HierarchyCellDataOpsReal.h"
 #include "IntVector.h"
 #include "Patch.h"
 #include "PatchData.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
 #include "SideData.h"
 #include "Variable.h"
 #include "VariableContext.h"
+#include "VariableDatabase.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
+#include <algorithm>
 #include <cmath>
-#include <iosfwd>
 #include <ostream>
 #include <string>
+#include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {
-namespace hier
+namespace solv
 {
 template <int DIM>
-class PatchLevel;
-} // namespace hier
+class RobinBcCoefStrategy;
+} // namespace solv
 } // namespace SAMRAI
 
 // FORTRAN ROUTINES
@@ -289,21 +276,31 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
     if (d_ts_type == MIDPOINT_RULE)
     {
-        hier_cc_data_ops.linearSum(
-            d_phi_idx, 0.5, phi_adv_diff_new_idx, 0.5, phi_adv_diff_current_idx, /*interior_only*/ true);
+        hier_cc_data_ops.linearSum(d_phi_idx,
+                                   0.5,
+                                   phi_adv_diff_new_idx,
+                                   0.5,
+                                   phi_adv_diff_current_idx,
+                                   /*interior_only*/ true);
     }
     else if (d_ts_type == BACKWARD_EULER)
     {
-        hier_cc_data_ops.copyData(d_phi_idx, phi_adv_diff_new_idx, /*interior_only*/ true);
+        hier_cc_data_ops.copyData(d_phi_idx,
+                                  phi_adv_diff_new_idx,
+                                  /*interior_only*/ true);
     }
     else if (d_ts_type == FORWARD_EULER)
     {
-        hier_cc_data_ops.copyData(d_phi_idx, phi_adv_diff_current_idx, /*interior_only*/ true);
+        hier_cc_data_ops.copyData(d_phi_idx,
+                                  phi_adv_diff_current_idx,
+                                  /*interior_only*/ true);
     }
     else
     {
         TBOX_ERROR("SurfaceTensionForceFunction::setDataOnPatchHierarchy : "
-                   << "The class only supports BACKWARD_EULER, FORWARD_EULER, and MIDPOINT_RULE" << std::endl);
+                   << "The class only supports BACKWARD_EULER, FORWARD_EULER, and "
+                      "MIDPOINT_RULE"
+                   << std::endl);
     }
     hier_cc_data_ops.copyData(d_C_idx, d_phi_idx, /*interior_only*/ true);
 
@@ -483,7 +480,8 @@ SurfaceTensionForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double> >
                                                 Pointer<PatchLevel<NDIM> > /*level*/)
 {
     TBOX_ERROR(
-        "SurfaceTensionForceFunction::setDataOnPatchCell() Cell centered surface force tension is not implemented yet."
+        "SurfaceTensionForceFunction::setDataOnPatchCell() Cell centered "
+        "surface force tension is not implemented yet."
         << std::endl);
 
     return;
@@ -502,7 +500,9 @@ SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> >
 
     // First find normal in terms of gradient of phi.
     // N = grad(phi)
-    SideData<NDIM, double> N(patch_box, /*depth*/ NDIM, /*gcw*/ IntVector<NDIM>(2));
+    SideData<NDIM, double> N(patch_box,
+                             /*depth*/ NDIM,
+                             /*gcw*/ IntVector<NDIM>(2));
     Pointer<CellData<NDIM, double> > Phi = patch->getPatchData(d_phi_idx);
 
     SC_NORMAL_FC(N.getPointer(0, 0),

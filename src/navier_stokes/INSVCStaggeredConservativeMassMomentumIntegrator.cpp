@@ -1,50 +1,32 @@
-// Filename: INSVCStaggeredConservativeMassMomentumIntegrator.cpp
-// Created on 01 April 2018 by Nishant Nangia and Amneet Bhalla
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2018, Nishant Nangia and Amneet Bhalla
+// Copyright (c) 2018 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include "IBAMR_config.h"
 
 #include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
+#include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/HierarchyMathOps.h"
 
+#include "BasePatchHierarchy.h"
+#include "BoundaryBox.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
+#include "CoarseFineBoundary.h"
 #include "FaceData.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchySideDataOpsReal.h"
@@ -54,22 +36,30 @@
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
-#include "SAMRAIVectorReal.h"
 #include "SideData.h"
 #include "SideGeometry.h"
+#include "SideIndex.h"
 #include "SideVariable.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
+#include "tbox/Array.h"
+#include "tbox/Database.h"
+#include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
 #include <array>
 #include <limits>
+#include <memory>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {
@@ -949,8 +939,8 @@ namespace IBAMR
 
 namespace
 {
-// NOTE: The number of ghost cells required by the convection scheme depends on the chosen
-// convective limiter, which will be set via input file
+// NOTE: The number of ghost cells required by the convection scheme depends
+// on the chosen convective limiter, which will be set via input file
 static const int GUPWINDG = 2;
 static const int GCUIG = 3;
 static const int GFBICSG = 3;
@@ -958,7 +948,8 @@ static const int GMGAMMAG = 3;
 static const int GPPMG = 4;
 static const int NOGHOSTS = 0;
 
-// Number of ghost cells to fill at coarse fine interface to enforce divergence free condition
+// Number of ghost cells to fill at coarse fine interface to enforce divergence
+// free condition
 static const int CF_GHOST_WIDTH = 1;
 
 // Timers.
@@ -1038,7 +1029,8 @@ INSVCStaggeredConservativeMassMomentumIntegrator::INSVCStaggeredConservativeMass
         break;
     default:
         TBOX_ERROR(
-            "INSVCStaggeredConservativeMassMomentumIntegrator::INSVCStaggeredConservativeMassMomentumIntegrator():\n"
+            "INSVCStaggeredConservativeMassMomentumIntegrator::"
+            "INSVCStaggeredConservativeMassMomentumIntegrator():\n"
             << "  unsupported velocity convective limiter: "
             << IBAMR::enum_to_string<LimiterType>(d_velocity_convective_limiter) << " \n"
             << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
@@ -1063,7 +1055,8 @@ INSVCStaggeredConservativeMassMomentumIntegrator::INSVCStaggeredConservativeMass
         break;
     default:
         TBOX_ERROR(
-            "INSVCStaggeredConservativeMassMomentumIntegrator::INSVCStaggeredConservativeMassMomentumIntegrator():\n"
+            "INSVCStaggeredConservativeMassMomentumIntegrator::"
+            "INSVCStaggeredConservativeMassMomentumIntegrator():\n"
             << "  unsupported density convective limiter: "
             << IBAMR::enum_to_string<LimiterType>(d_density_convective_limiter) << " \n"
             << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
@@ -1082,7 +1075,8 @@ INSVCStaggeredConservativeMassMomentumIntegrator::INSVCStaggeredConservativeMass
         break;
     default:
         TBOX_ERROR(
-            "INSVCStaggeredConservativeMassMomentumIntegrator::INSVCStaggeredConservativeMassMomentumIntegrator():\n"
+            "INSVCStaggeredConservativeMassMomentumIntegrator::"
+            "INSVCStaggeredConservativeMassMomentumIntegrator():\n"
             << "  unsupported density time stepping type: "
             << IBAMR::enum_to_string<TimeSteppingType>(d_density_time_stepping_type) << " \n"
             << "  valid choices are: FORWARD_EULER, SSPRK2, SSPRK3\n");
@@ -1151,14 +1145,18 @@ INSVCStaggeredConservativeMassMomentumIntegrator::INSVCStaggeredConservativeMass
 #endif
 
     // Setup Timers.
-    IBAMR_DO_ONCE(t_apply_convective_operator = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSVCStaggeredConservativeMassMomentumIntegrator::applyConvectiveOperator()");
+    IBAMR_DO_ONCE(t_apply_convective_operator =
+                      TimerManager::getManager()->getTimer("IBAMR::INSVCStaggeredConservativeMassMomentumIntegrator::"
+                                                           "applyConvectiveOperator()");
                   t_integrate = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSVCStaggeredConservativeMassMomentumIntegrator::integrate()");
-                  t_initialize_integrator = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSVCStaggeredConservativeMassMomentumIntegrator::initializeTimeIntegrator()");
-                  t_deallocate_integrator = TimerManager::getManager()->getTimer(
-                      "IBAMR::INSVCStaggeredConservativeMassMomentumIntegrator::deallocateTimeIntegrator()"););
+                      "IBAMR::INSVCStaggeredConservativeMassMomentumIntegrator::integrate("
+                      ")");
+                  t_initialize_integrator =
+                      TimerManager::getManager()->getTimer("IBAMR::INSVCStaggeredConservativeMassMomentumIntegrator::"
+                                                           "initializeTimeIntegrator()");
+                  t_deallocate_integrator =
+                      TimerManager::getManager()->getTimer("IBAMR::INSVCStaggeredConservativeMassMomentumIntegrator::"
+                                                           "deallocateTimeIntegrator()"););
     return;
 } // INSVCStaggeredConservativeMassMomentumIntegrator
 
@@ -1181,7 +1179,8 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
     if (!d_is_initialized)
     {
         TBOX_ERROR("INSVCStaggeredConservativeMassMomentumIntegrator::integrate():\n"
-                   << "  time integrator must be initialized prior to call to integrate()\n");
+                   << "  time integrator must be initialized prior to call to "
+                      "integrate()\n");
     }
 
     TBOX_ASSERT(d_rho_sc_current_idx >= 0);
@@ -1244,8 +1243,11 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
     d_hier_rho_bdry_fill->resetTransactionComponents(d_rho_transaction_comps);
 
     // Fill ghost cells for the velocity used to compute the density update
-    // Note, enforce divergence free condition on all physical boundaries to ensure boundedness of density update
-    d_hier_sc_data_ops->copyData(d_V_composite_idx, d_V_current_idx, /*interior_only*/ true);
+    // Note, enforce divergence free condition on all physical boundaries to
+    // ensure boundedness of density update
+    d_hier_sc_data_ops->copyData(d_V_composite_idx,
+                                 d_V_current_idx,
+                                 /*interior_only*/ true);
     std::vector<InterpolationTransactionComponent> v_transaction_comps(1);
     v_transaction_comps[0] = InterpolationTransactionComponent(d_V_scratch_idx,
                                                                d_V_composite_idx,
@@ -1271,8 +1273,9 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
     const double old_mass = d_hier_sc_data_ops->integral(d_rho_sc_current_idx, wgt_sc_idx);
     if (d_enable_logging)
     {
-        plog << "INSVCStaggeredConservativeMassMomentumIntegrator::integrate(): old mass in the domain = " << old_mass
-             << "\n";
+        plog << "INSVCStaggeredConservativeMassMomentumIntegrator::integrate(): "
+                "old mass in the domain = "
+             << old_mass << "\n";
     }
 
     // Compute the convective derivative.
@@ -1334,9 +1337,9 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
             d_hier_rho_bdry_fill->fillData(eval_time);
             d_hier_rho_bdry_fill->resetTransactionComponents(d_rho_transaction_comps);
 
-            // Compute an approximation to velocity at eval_time
-            // Note, enforce divergence free condition on all physical boundaries to ensure boundedness of density
-            // update
+            // Compute an approximation to velocity at eval_time Note, enforce
+            // divergence free condition on all physical boundaries to ensure
+            // boundedness of density update
             d_hier_sc_data_ops->linearSum(
                 d_V_composite_idx, w0, d_V_old_idx, w1, d_V_current_idx, /*interior_only*/ true);
             d_hier_sc_data_ops->axpy(d_V_composite_idx, w2, d_V_new_idx, d_V_composite_idx, /*interior_only*/ true);
@@ -1392,8 +1395,9 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
                 Pointer<SideData<NDIM, double> > R_new_data = patch->getPatchData(d_rho_sc_new_idx);
                 Pointer<SideData<NDIM, double> > R_src_data = patch->getPatchData(d_S_scratch_idx);
 
-                // Define variables that live on the "faces" of control volumes centered about side-centered staggered
-                // velocity components
+                // Define variables that live on the "faces" of control
+                // volumes centered about side-centered staggered velocity
+                // components
                 const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
                 std::array<Box<NDIM>, NDIM> side_boxes;
                 std::array<Pointer<FaceData<NDIM, double> >, NDIM> V_adv_data;
@@ -1420,7 +1424,8 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
                                         side_boxes,
                                         d_density_convective_limiter);
 
-                // Compute the convective derivative with the penultimate density and velocity, if necessary
+                // Compute the convective derivative with the penultimate density and
+                // velocity, if necessary
                 if ((d_density_time_stepping_type == FORWARD_EULER && step == 0) ||
                     (d_density_time_stepping_type == SSPRK2 && step == 1) ||
                     (d_density_time_stepping_type == SSPRK3 && step == 2))
@@ -1458,11 +1463,16 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
                         a2 = 0.5;
                         break;
                     }
-                    if (d_density_time_stepping_type == SSPRK3)
+                    else if (d_density_time_stepping_type == SSPRK3)
                     {
                         a0 = 0.75;
                         a1 = 0.25;
                         a2 = 0.25;
+                        break;
+                    }
+                    else
+                    {
+                        TBOX_ERROR("This statement should not be reached");
                         break;
                     }
                 case 2:
@@ -1505,15 +1515,19 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
     d_hier_rho_bdry_fill->fillData(new_time);
     d_hier_rho_bdry_fill->resetTransactionComponents(d_rho_transaction_comps);
 
-    d_hier_sc_data_ops->copyData(d_rho_sc_new_idx, d_rho_sc_scratch_idx, /*interior_only*/ true);
+    d_hier_sc_data_ops->copyData(d_rho_sc_new_idx,
+                                 d_rho_sc_scratch_idx,
+                                 /*interior_only*/ true);
 
     // Compute the new mass
     const double new_mass = d_hier_sc_data_ops->integral(d_rho_sc_new_idx, wgt_sc_idx);
     if (d_enable_logging)
     {
-        plog << "INSVCStaggeredConservativeMassMomentumIntegrator::integrate(): new mass in the domain = " << new_mass
-             << "\n";
-        plog << "INSVCStaggeredConservativeMassMomentumIntegrator::integrate(): change in mass = "
+        plog << "INSVCStaggeredConservativeMassMomentumIntegrator::integrate(): "
+                "new mass in the domain = "
+             << new_mass << "\n";
+        plog << "INSVCStaggeredConservativeMassMomentumIntegrator::integrate(): "
+                "change in mass = "
              << new_mass - old_mass << "\n";
     }
 
@@ -2361,10 +2375,11 @@ INSVCStaggeredConservativeMassMomentumIntegrator::interpolateSideQuantity(
         }
         break;
     default:
-        TBOX_ERROR("INSVCStaggeredConservativeMassMomentumIntegrator::interpolateSideQuantity():\n"
-                   << "  unsupported convective limiter: " << IBAMR::enum_to_string<LimiterType>(convective_limiter)
-                   << " \n"
-                   << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
+        TBOX_ERROR(
+            "INSVCStaggeredConservativeMassMomentumIntegrator::"
+            "interpolateSideQuantity():\n"
+            << "  unsupported convective limiter: " << IBAMR::enum_to_string<LimiterType>(convective_limiter) << " \n"
+            << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
     }
 } // interpolateSideQuantity
 
@@ -2661,7 +2676,7 @@ INSVCStaggeredConservativeMassMomentumIntegrator::enforceDivergenceFreeCondition
                 for (Box<NDIM>::Iterator b(bc_fill_box); b; b++)
                 {
                     // Place i_s on the c-f interface.
-                    Index<NDIM> i_s = b();
+                    hier::Index<NDIM> i_s = b();
 
                     // Work out from the coarse-fine interface to fill the ghost cell
                     // values so that the velocity field satisfies the discrete

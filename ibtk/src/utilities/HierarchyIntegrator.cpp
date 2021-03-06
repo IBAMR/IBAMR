@@ -1,34 +1,15 @@
-// Filename: HierarchyIntegrator.cpp
-// Created on 10 Aug 2011 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -38,13 +19,13 @@
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/RefinePatchStrategySet.h"
 #include "ibtk/ibtk_enums.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include "ibtk/ibtk_utilities.h"
 
 #include "BasePatchHierarchy.h"
-#include "BasePatchLevel.h"
 #include "Box.h"
 #include "CartesianGridGeometry.h"
 #include "CellData.h"
+#include "CellVariable.h"
 #include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
 #include "CoarsenPatchStrategy.h"
@@ -53,7 +34,9 @@
 #include "EdgeData.h"
 #include "FaceData.h"
 #include "GriddingAlgorithm.h"
-#include "IntVector.h"
+#include "HierarchyCellDataOpsReal.h"
+#include "LoadBalancer.h"
+#include "MultiblockDataTranslator.h"
 #include "NodeData.h"
 #include "Patch.h"
 #include "PatchData.h"
@@ -82,11 +65,14 @@
 #include <limits>
 #include <list>
 #include <map>
+#include <memory>
 #include <ostream>
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -139,7 +125,6 @@ HierarchyIntegrator::HierarchyIntegrator(std::string object_name, Pointer<Databa
     // Create default communications algorithms.
     d_coarsen_algs[SYNCH_CURRENT_DATA_ALG] = new CoarsenAlgorithm<NDIM>();
     d_coarsen_algs[SYNCH_NEW_DATA_ALG] = new CoarsenAlgorithm<NDIM>();
-    d_fill_after_regrid_phys_bdry_bc_op = nullptr;
     return;
 } // HierarchyIntegrator
 
@@ -459,6 +444,9 @@ HierarchyIntegrator::regridHierarchy()
     const bool initial_time = false;
     initializeCompositeHierarchyData(d_integrator_time, initial_time);
 
+    // execute any registered callbacks
+    executeRegridHierarchyCallbackFcns(d_hierarchy, d_integrator_time, initial_time);
+
     // Synchronize the state data on the patch hierarchy.
     synchronizeHierarchyData(CURRENT_DATA);
     return;
@@ -717,6 +705,13 @@ HierarchyIntegrator::registerApplyGradientDetectorCallback(ApplyGradientDetector
 } // registerApplyGradientDetectorCallback
 
 void
+HierarchyIntegrator::registerRegridHierarchyCallback(RegridHierarchyCallbackFcnPtr callback, void* ctx)
+{
+    d_regrid_hierarchy_callbacks.push_back(callback);
+    d_regrid_hierarchy_callback_ctxs.push_back(ctx);
+}
+
+void
 HierarchyIntegrator::initializeCompositeHierarchyData(double init_data_time, bool initial_time)
 {
     // Perform specialized data initialization.
@@ -774,7 +769,7 @@ HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> 
         fill_after_regrid_prolong_patch_strategies.push_back(&fill_after_regrid_extrap_bc_op);
         if (d_fill_after_regrid_phys_bdry_bc_op)
         {
-            fill_after_regrid_prolong_patch_strategies.push_back(d_fill_after_regrid_phys_bdry_bc_op);
+            fill_after_regrid_prolong_patch_strategies.push_back(d_fill_after_regrid_phys_bdry_bc_op.get());
         }
         RefinePatchStrategySet fill_after_regrid_patch_strategy_set(fill_after_regrid_prolong_patch_strategies.begin(),
                                                                     fill_after_regrid_prolong_patch_strategies.end(),
@@ -1431,43 +1426,54 @@ HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const Pointer<Base
     return;
 } // executeApplyGradientDetectorCallbackFcns
 
-// TODO: Should ghostfill_patch_strategy be a unique_ptr?
 void
-HierarchyIntegrator::registerGhostfillRefineAlgorithm(const std::string& name,
-                                                      Pointer<RefineAlgorithm<NDIM> > ghostfill_alg,
-                                                      RefinePatchStrategy<NDIM>* ghostfill_patch_strategy)
+HierarchyIntegrator::executeRegridHierarchyCallbackFcns(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                                        const double data_time,
+                                                        const bool initial_time)
+{
+    std::vector<RegridHierarchyCallbackFcnPtr>& callbacks = d_regrid_hierarchy_callbacks;
+    std::vector<void*>& ctxs = d_regrid_hierarchy_callback_ctxs;
+    for (unsigned int k = 0; k < callbacks.size(); ++k)
+    {
+        (*callbacks[k])(hierarchy, data_time, initial_time, ctxs[k]);
+    }
+}
+
+void
+HierarchyIntegrator::registerGhostfillRefineAlgorithm(
+    const std::string& name,
+    Pointer<RefineAlgorithm<NDIM> > ghostfill_alg,
+    std::unique_ptr<RefinePatchStrategy<NDIM> > ghostfill_patch_strategy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_ghostfill_algs.find(name) == d_ghostfill_algs.end());
 #endif
     d_ghostfill_algs[name] = ghostfill_alg;
-    d_ghostfill_strategies[name].reset(ghostfill_patch_strategy);
+    d_ghostfill_strategies[name] = std::move(ghostfill_patch_strategy);
 } // registerGhostfillRefineAlgorithm
 
-// TODO: Should prolong_patch_strategy be a unique_ptr?
 void
 HierarchyIntegrator::registerProlongRefineAlgorithm(const std::string& name,
                                                     Pointer<RefineAlgorithm<NDIM> > prolong_alg,
-                                                    RefinePatchStrategy<NDIM>* prolong_patch_strategy)
+                                                    std::unique_ptr<RefinePatchStrategy<NDIM> > prolong_patch_strategy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_prolong_algs.find(name) == d_prolong_algs.end());
 #endif
     d_prolong_algs[name] = prolong_alg;
-    d_prolong_strategies[name].reset(prolong_patch_strategy);
+    d_prolong_strategies[name] = std::move(prolong_patch_strategy);
 } // registerProlongRefineAlgorithm
 
-// TODO: Should coarsen_patch_strategy be a unique_ptr?
 void
 HierarchyIntegrator::registerCoarsenAlgorithm(const std::string& name,
                                               Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg,
-                                              CoarsenPatchStrategy<NDIM>* coarsen_patch_strategy)
+                                              std::unique_ptr<CoarsenPatchStrategy<NDIM> > coarsen_patch_strategy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_coarsen_algs.find(name) == d_coarsen_algs.end());
 #endif
     d_coarsen_algs[name] = coarsen_alg;
-    d_coarsen_strategies[name].reset(coarsen_patch_strategy);
+    d_coarsen_strategies[name] = std::move(coarsen_patch_strategy);
 } // registerCoarsenAlgorithm
 
 Pointer<RefineAlgorithm<NDIM> >

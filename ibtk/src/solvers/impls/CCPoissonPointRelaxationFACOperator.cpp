@@ -1,38 +1,17 @@
-// Filename: CCPoissonPointRelaxationFACOperator.cpp
-// Created on 10 Feb 2005 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include "IBTK_config.h"
 
 #include "ibtk/CCPoissonPointRelaxationFACOperator.h"
 #include "ibtk/CCPoissonSolverManager.h"
@@ -43,27 +22,19 @@
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
-#include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
 #include "Box.h"
-#include "BoxList.h"
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
-#include "CellDataFactory.h"
-#include "CellIndex.h"
-#include "CellVariable.h"
 #include "CoarsenOperator.h"
 #include "HierarchyCellDataOpsReal.h"
-#include "Index.h"
-#include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "Patch.h"
 #include "PatchDescriptor.h"
@@ -71,9 +42,7 @@
 #include "PatchLevel.h"
 #include "PoissonSpecifications.h"
 #include "ProcessorMapping.h"
-#include "SAMRAIVectorReal.h"
 #include "SideData.h"
-#include "SideIndex.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "VariableFillPattern.h"
@@ -86,110 +55,195 @@
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
-#include "petscmat.h"
-#include "petscsys.h"
-#include "petscvec.h"
-
-#include <algorithm>
-#include <functional>
 #include <map>
+#include <memory>
 #include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "ibtk/namespaces.h" // IWYU pragma: keep
+
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define GS_SMOOTH_FC IBTK_FC_FUNC(gssmooth2d, GSSMOOTH2D)
-#define RB_GS_SMOOTH_FC IBTK_FC_FUNC(rbgssmooth2d, RBGSSMOOTH2D)
-#define VC_CELL_GS_SMOOTH_FC IBTK_FC_FUNC(vccellgssmooth2d, VCCELLGSSMOOTH2D)
-#define VC_CELL_RB_GS_SMOOTH_FC IBTK_FC_FUNC(vccellrbgssmooth2d, VCCELLRBGSSMOOTH2D)
+#define SMOOTH_GS_CONST_DC_FC IBTK_FC_FUNC(smooth_gs_const_dc_2d, SMOOTH_GS_CONST_DC_2D)
+#define SMOOTH_GS_RB_CONST_DC_FC IBTK_FC_FUNC(smooth_gs_rb_const_dc_2d, SMOOTH_GS_RB_CONST_DC_2D)
+#define SMOOTH_GS_VAR_D_CONST_C_FC IBTK_FC_FUNC(smooth_gs_var_d_const_c_2d, SMOOTH_GS_VAR_D_CONST_C_2D)
+#define SMOOTH_GS_RB_VAR_D_CONST_C_FC IBTK_FC_FUNC(smooth_gs_rb_var_d_const_c_2d, SMOOTH_GS_RB_VAR_D_CONST_C_2D)
+#define SMOOTH_GS_CONST_D_VAR_C_FC IBTK_FC_FUNC(smooth_gs_const_d_var_c_2d, SMOOTH_GS_CONST_D_VAR_C_2D)
+#define SMOOTH_GS_RB_CONST_D_VAR_C_FC IBTK_FC_FUNC(smooth_gs_rb_const_d_var_c_2d, SMOOTH_GS_rb_CONST_D_VAR_C_2D)
+#define SMOOTH_GS_VAR_DC_FC IBTK_FC_FUNC(smooth_gs_var_dc_2d, SMOOTH_GS_VAR_DC_2D)
+#define SMOOTH_GS_RB_VAR_DC_FC IBTK_FC_FUNC(smooth_gs_rb_var_dc_2d, SMOOTH_GS_RB_VAR_DC_2D)
 #endif
 #if (NDIM == 3)
-#define GS_SMOOTH_FC IBTK_FC_FUNC(gssmooth3d, GSSMOOTH3D)
-#define RB_GS_SMOOTH_FC IBTK_FC_FUNC(rbgssmooth3d, RBGSSMOOTH3D)
-#define VC_CELL_GS_SMOOTH_FC IBTK_FC_FUNC(vccellgssmooth3d, VCCELLGSSMOOTH3D)
-#define VC_CELL_RB_GS_SMOOTH_FC IBTK_FC_FUNC(vccellrbgssmooth3d, VCCELLRBGSSMOOTH3D)
+#define SMOOTH_GS_CONST_DC_FC IBTK_FC_FUNC(smooth_gs_const_dc_3d, SMOOTH_GS_CONST_DC_3D)
+#define SMOOTH_GS_RB_CONST_DC_FC IBTK_FC_FUNC(smooth_gs_rb_const_dc_3d, SMOOTH_GS_RB_CONST_DC_3D)
+#define SMOOTH_GS_VAR_D_CONST_C_FC IBTK_FC_FUNC(smooth_gs_var_d_const_c_3d, SMOOTH_GS_VAR_D_CONST_C_3D)
+#define SMOOTH_GS_RB_VAR_D_CONST_C_FC IBTK_FC_FUNC(smooth_gs_rb_var_d_const_c_3d, SMOOTH_GS_RB_VAR_D_CONST_C_3D)
+#define SMOOTH_GS_CONST_D_VAR_C_FC IBTK_FC_FUNC(smooth_gs_const_d_var_c_3d, SMOOTH_GS_CONST_D_VAR_C_3D)
+#define SMOOTH_GS_RB_CONST_D_VAR_C_FC IBTK_FC_FUNC(smooth_gs_rb_const_d_var_c_3d, SMOOTH_GS_rb_CONST_D_VAR_C_3D)
+#define SMOOTH_GS_VAR_DC_FC IBTK_FC_FUNC(smooth_gs_var_dc_3d, SMOOTH_GS_VAR_DC_3D)
+#define SMOOTH_GS_RB_VAR_DC_FC IBTK_FC_FUNC(smooth_gs_rb_var_dc_3d, SMOOTH_GS_RB_VAR_DC_3D)
 #endif
 
 // Function interfaces
 extern "C"
 {
-    void GS_SMOOTH_FC(double* U,
-                      const int& U_gcw,
-                      const double& alpha,
-                      const double& beta,
-                      const double* F,
-                      const int& F_gcw,
-                      const int& ilower0,
-                      const int& iupper0,
-                      const int& ilower1,
-                      const int& iupper1,
+    void SMOOTH_GS_CONST_DC_FC(double* U,
+                               const int& U_gcw,
+                               const double& D,
+                               const double& C,
+                               const double* F,
+                               const int& F_gcw,
+                               const int& ilower0,
+                               const int& iupper0,
+                               const int& ilower1,
+                               const int& iupper1,
 #if (NDIM == 3)
-                      const int& ilower2,
-                      const int& iupper2,
+                               const int& ilower2,
+                               const int& iupper2,
 #endif
-                      const double* dx);
+                               const double* dx);
 
-    void RB_GS_SMOOTH_FC(double* U,
-                         const int& U_gcw,
-                         const double& alpha,
-                         const double& beta,
-                         const double* F,
-                         const int& F_gcw,
-                         const int& ilower0,
-                         const int& iupper0,
-                         const int& ilower1,
-                         const int& iupper1,
+    void SMOOTH_GS_RB_CONST_DC_FC(double* U,
+                                  const int& U_gcw,
+                                  const double& D,
+                                  const double& C,
+                                  const double* F,
+                                  const int& F_gcw,
+                                  const int& ilower0,
+                                  const int& iupper0,
+                                  const int& ilower1,
+                                  const int& iupper1,
 #if (NDIM == 3)
-                         const int& ilower2,
-                         const int& iupper2,
+                                  const int& ilower2,
+                                  const int& iupper2,
 #endif
-                         const double* dx,
-                         const int& red_or_black);
+                                  const double* dx,
+                                  const int& red_or_black);
 
-    void VC_CELL_GS_SMOOTH_FC(double* U,
-                              const int& U_gcw,
-                              const double* alpha0,
-                              const double* alpha1,
+    void SMOOTH_GS_VAR_D_CONST_C_FC(double* U,
+                                    const int& U_gcw,
+                                    const double* D0,
+                                    const double* D1,
 #if (NDIM == 3)
-                              const double* alpha2,
+                                    const double* D2,
 #endif
-                              const int& alpha_gcw,
-                              const double& beta,
-                              const double* F,
-                              const int& F_gcw,
-                              const int& ilower0,
-                              const int& iupper0,
-                              const int& ilower1,
-                              const int& iupper1,
+                                    const int& D_gcw,
+                                    const double& C,
+                                    const double* F,
+                                    const int& F_gcw,
+                                    const int& ilower0,
+                                    const int& iupper0,
+                                    const int& ilower1,
+                                    const int& iupper1,
 #if (NDIM == 3)
-                              const int& ilower2,
-                              const int& iupper2,
+                                    const int& ilower2,
+                                    const int& iupper2,
 #endif
-                              const double* dx);
+                                    const double* dx);
 
-    void VC_CELL_RB_GS_SMOOTH_FC(double* U,
-                                 const int& U_gcw,
-                                 const double* alpha0,
-                                 const double* alpha1,
+    void SMOOTH_GS_RB_VAR_D_CONST_C_FC(double* U,
+                                       const int& U_gcw,
+                                       const double* D0,
+                                       const double* D1,
 #if (NDIM == 3)
-                                 const double* alpha2,
+                                       const double* D2,
 #endif
-                                 const int& alpha_gcw,
-                                 const double& beta,
-                                 const double* F,
-                                 const int& F_gcw,
-                                 const int& ilower0,
-                                 const int& iupper0,
-                                 const int& ilower1,
-                                 const int& iupper1,
+                                       const int& D_gcw,
+                                       const double& C,
+                                       const double* F,
+                                       const int& F_gcw,
+                                       const int& ilower0,
+                                       const int& iupper0,
+                                       const int& ilower1,
+                                       const int& iupper1,
 #if (NDIM == 3)
-                                 const int& ilower2,
-                                 const int& iupper2,
+                                       const int& ilower2,
+                                       const int& iupper2,
 #endif
-                                 const double* dx,
-                                 const int& red_or_black);
+                                       const double* dx,
+                                       const int& red_or_black);
+
+    void SMOOTH_GS_CONST_D_VAR_C_FC(double* U,
+                                    const int& U_gcw,
+                                    const double& D,
+                                    const double* C,
+                                    const int& C_gcw,
+                                    const double* F,
+                                    const int& F_gcw,
+                                    const int& ilower0,
+                                    const int& iupper0,
+                                    const int& ilower1,
+                                    const int& iupper1,
+#if (NDIM == 3)
+                                    const int& ilower2,
+                                    const int& iupper2,
+#endif
+                                    const double* dx);
+
+    void SMOOTH_GS_RB_CONST_D_VAR_C_FC(double* U,
+                                       const int& U_gcw,
+                                       const double& D,
+                                       const double* C,
+                                       const int& C_gcw,
+                                       const double* F,
+                                       const int& F_gcw,
+                                       const int& ilower0,
+                                       const int& iupper0,
+                                       const int& ilower1,
+                                       const int& iupper1,
+#if (NDIM == 3)
+                                       const int& ilower2,
+                                       const int& iupper2,
+#endif
+                                       const double* dx,
+                                       const int& red_or_black);
+
+    void SMOOTH_GS_VAR_DC_FC(double* U,
+                             const int& U_gcw,
+                             const double* D0,
+                             const double* D1,
+#if (NDIM == 3)
+                             const double* D2,
+#endif
+                             const int& D_gcw,
+                             const double* C,
+                             const int& C_gcw,
+                             const double* F,
+                             const int& F_gcw,
+                             const int& ilower0,
+                             const int& iupper0,
+                             const int& ilower1,
+                             const int& iupper1,
+#if (NDIM == 3)
+                             const int& ilower2,
+                             const int& iupper2,
+#endif
+                             const double* dx);
+
+    void SMOOTH_GS_RB_VAR_DC_FC(double* U,
+                                const int& U_gcw,
+                                const double* D0,
+                                const double* D1,
+#if (NDIM == 3)
+                                const double* D2,
+#endif
+                                const int& D_gcw,
+                                const double* C,
+                                const int& C_gcw,
+                                const double* F,
+                                const int& F_gcw,
+                                const int& ilower0,
+                                const int& iupper0,
+                                const int& ilower1,
+                                const int& iupper1,
+#if (NDIM == 3)
+                                const int& ilower2,
+                                const int& iupper2,
+#endif
+                                const double* dx,
+                                const int& red_or_black);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -224,21 +278,6 @@ static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
 // Whether to enforce consistent interpolated values at Type 2 coarse-fine
 // interface ghost cells; used only to evaluate composite grid residuals.
 static const bool CONSISTENT_TYPE_2_BDRY = false;
-
-struct IndexComp
-{
-    inline bool operator()(const Index<NDIM>& lhs, const Index<NDIM>& rhs) const
-    {
-        return ((lhs(0) < rhs(0))
-#if (NDIM > 1)
-                || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
-#if (NDIM > 2)
-                || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
-#endif
-#endif
-        );
-    } // operator()
-};
 
 enum SmootherType
 {
@@ -531,116 +570,235 @@ CCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
             // imposed on different components of the vector-valued solution
             // data.
             const bool D_is_constant = d_poisson_spec.dIsConstant();
-            const double& alpha = D_is_constant ? d_poisson_spec.getDConstant() : 0.0;
-            Pointer<SideData<NDIM, double> > alpha_data = nullptr;
-            if (!D_is_constant) alpha_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
+            const double& D = D_is_constant ? d_poisson_spec.getDConstant() : 0.0;
+            Pointer<SideData<NDIM, double> > D_data = nullptr;
+            if (!D_is_constant)
+            {
+                D_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
 #if !defined(NDEBUG)
-            if (!D_is_constant) TBOX_ASSERT(alpha_data);
+                TBOX_ASSERT(D_data);
 #endif
+            }
 
-            const double& beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
+            const bool C_is_var = d_poisson_spec.cIsVariable(); // false if it is constant.
+            double C = 0.0;
+            if (!C_is_var)
+            {
+                C = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
+            }
+            Pointer<CellData<NDIM, double> > C_data = nullptr;
+            if (C_is_var)
+            {
+                C_data = patch->getPatchData(d_poisson_spec.getCPatchDataId());
+#if !defined(NDEBUG)
+                TBOX_ASSERT(C_data);
+#endif
+            }
+
             for (int depth = 0; depth < error_data->getDepth(); ++depth)
             {
                 double* const U = error_data->getPointer(depth);
                 const int U_ghosts = (error_data->getGhostCellWidth()).max();
                 const double* const F = residual_data->getPointer(depth);
                 const int F_ghosts = (residual_data->getGhostCellWidth()).max();
-                if (D_is_constant)
+                if (D_is_constant && !C_is_var)
                 {
                     if (red_black_ordering)
                     {
                         int red_or_black = isweep % 2; // "red" = 0, "black" = 1
-                        RB_GS_SMOOTH_FC(U,
-                                        U_ghosts,
-                                        alpha,
-                                        beta,
-                                        F,
-                                        F_ghosts,
-                                        patch_box.lower(0),
-                                        patch_box.upper(0),
-                                        patch_box.lower(1),
-                                        patch_box.upper(1),
+                        SMOOTH_GS_RB_CONST_DC_FC(U,
+                                                 U_ghosts,
+                                                 D,
+                                                 C,
+                                                 F,
+                                                 F_ghosts,
+                                                 patch_box.lower(0),
+                                                 patch_box.upper(0),
+                                                 patch_box.lower(1),
+                                                 patch_box.upper(1),
 #if (NDIM == 3)
-                                        patch_box.lower(2),
-                                        patch_box.upper(2),
+                                                 patch_box.lower(2),
+                                                 patch_box.upper(2),
 #endif
-                                        dx,
-                                        red_or_black);
+                                                 dx,
+                                                 red_or_black);
                     }
                     else
                     {
-                        GS_SMOOTH_FC(U,
-                                     U_ghosts,
-                                     alpha,
-                                     beta,
-                                     F,
-                                     F_ghosts,
-                                     patch_box.lower(0),
-                                     patch_box.upper(0),
-                                     patch_box.lower(1),
-                                     patch_box.upper(1),
+                        SMOOTH_GS_CONST_DC_FC(U,
+                                              U_ghosts,
+                                              D,
+                                              C,
+                                              F,
+                                              F_ghosts,
+                                              patch_box.lower(0),
+                                              patch_box.upper(0),
+                                              patch_box.lower(1),
+                                              patch_box.upper(1),
 #if (NDIM == 3)
-                                     patch_box.lower(2),
-                                     patch_box.upper(2),
+                                              patch_box.lower(2),
+                                              patch_box.upper(2),
 #endif
-                                     dx);
+                                              dx);
                     }
                 }
-                else
+                else if (!D_is_constant && !C_is_var)
                 {
-                    const double* const alpha0 = alpha_data->getPointer(0, depth);
-                    const double* const alpha1 = alpha_data->getPointer(1, depth);
+                    const double* const D0 = D_data->getPointer(0, depth);
+                    const double* const D1 = D_data->getPointer(1, depth);
 #if (NDIM == 3)
-                    const double* const alpha2 = alpha_data->getPointer(2, depth);
+                    const double* const D2 = D_data->getPointer(2, depth);
 #endif
-                    const int alpha_ghosts = (alpha_data->getGhostCellWidth()).max();
+                    const int D_ghosts = (D_data->getGhostCellWidth()).max();
                     if (red_black_ordering)
                     {
                         int red_or_black = isweep % 2; // "red" = 0, "black" = 1
-                        VC_CELL_RB_GS_SMOOTH_FC(U,
-                                                U_ghosts,
-                                                alpha0,
-                                                alpha1,
+                        SMOOTH_GS_RB_VAR_D_CONST_C_FC(U,
+                                                      U_ghosts,
+                                                      D0,
+                                                      D1,
 #if (NDIM == 3)
-                                                alpha2,
+                                                      D2,
 #endif
-                                                alpha_ghosts,
-                                                beta,
-                                                F,
-                                                F_ghosts,
-                                                patch_box.lower(0),
-                                                patch_box.upper(0),
-                                                patch_box.lower(1),
-                                                patch_box.upper(1),
+                                                      D_ghosts,
+                                                      C,
+                                                      F,
+                                                      F_ghosts,
+                                                      patch_box.lower(0),
+                                                      patch_box.upper(0),
+                                                      patch_box.lower(1),
+                                                      patch_box.upper(1),
 #if (NDIM == 3)
-                                                patch_box.lower(2),
-                                                patch_box.upper(2),
+                                                      patch_box.lower(2),
+                                                      patch_box.upper(2),
 #endif
-                                                dx,
-                                                red_or_black);
+                                                      dx,
+                                                      red_or_black);
                     }
                     else
                     {
-                        VC_CELL_GS_SMOOTH_FC(U,
-                                             U_ghosts,
-                                             alpha0,
-                                             alpha1,
+                        SMOOTH_GS_VAR_D_CONST_C_FC(U,
+                                                   U_ghosts,
+                                                   D0,
+                                                   D1,
 #if (NDIM == 3)
-                                             alpha2,
+                                                   D2,
 #endif
-                                             alpha_ghosts,
-                                             beta,
-                                             F,
-                                             F_ghosts,
-                                             patch_box.lower(0),
-                                             patch_box.upper(0),
-                                             patch_box.lower(1),
-                                             patch_box.upper(1),
+                                                   D_ghosts,
+                                                   C,
+                                                   F,
+                                                   F_ghosts,
+                                                   patch_box.lower(0),
+                                                   patch_box.upper(0),
+                                                   patch_box.lower(1),
+                                                   patch_box.upper(1),
 #if (NDIM == 3)
-                                             patch_box.lower(2),
-                                             patch_box.upper(2),
+                                                   patch_box.lower(2),
+                                                   patch_box.upper(2),
 #endif
-                                             dx);
+                                                   dx);
+                    }
+                }
+                else if (D_is_constant && C_is_var)
+                {
+                    if (red_black_ordering)
+                    {
+                        int red_or_black = isweep % 2; // "red" = 0, "black" = 1
+                        SMOOTH_GS_RB_CONST_D_VAR_C_FC(U,
+                                                      U_ghosts,
+                                                      D,
+                                                      C_data->getPointer(),
+                                                      C_data->getGhostCellWidth().max(),
+                                                      F,
+                                                      F_ghosts,
+                                                      patch_box.lower(0),
+                                                      patch_box.upper(0),
+                                                      patch_box.lower(1),
+                                                      patch_box.upper(1),
+#if (NDIM == 3)
+                                                      patch_box.lower(2),
+                                                      patch_box.upper(2),
+#endif
+                                                      dx,
+                                                      red_or_black);
+                    }
+                    else
+                    {
+                        SMOOTH_GS_CONST_D_VAR_C_FC(U,
+                                                   U_ghosts,
+                                                   D,
+                                                   C_data->getPointer(),
+                                                   C_data->getGhostCellWidth().max(),
+                                                   F,
+                                                   F_ghosts,
+                                                   patch_box.lower(0),
+                                                   patch_box.upper(0),
+                                                   patch_box.lower(1),
+                                                   patch_box.upper(1),
+#if (NDIM == 3)
+                                                   patch_box.lower(2),
+                                                   patch_box.upper(2),
+#endif
+                                                   dx);
+                    }
+                }
+                else if (!D_is_constant && C_is_var)
+                {
+                    const double* const D0 = D_data->getPointer(0, depth);
+                    const double* const D1 = D_data->getPointer(1, depth);
+#if (NDIM == 3)
+                    const double* const D2 = D_data->getPointer(2, depth);
+#endif
+                    const int D_ghosts = (D_data->getGhostCellWidth()).max();
+                    if (red_black_ordering)
+                    {
+                        int red_or_black = isweep % 2; // "red" = 0, "black" = 1
+                        SMOOTH_GS_RB_VAR_DC_FC(U,
+                                               U_ghosts,
+                                               D0,
+                                               D1,
+#if (NDIM == 3)
+                                               D2,
+#endif
+                                               D_ghosts,
+                                               C_data->getPointer(),
+                                               C_data->getGhostCellWidth().max(),
+                                               F,
+                                               F_ghosts,
+                                               patch_box.lower(0),
+                                               patch_box.upper(0),
+                                               patch_box.lower(1),
+                                               patch_box.upper(1),
+#if (NDIM == 3)
+                                               patch_box.lower(2),
+                                               patch_box.upper(2),
+#endif
+                                               dx,
+                                               red_or_black);
+                    }
+                    else
+                    {
+                        SMOOTH_GS_VAR_DC_FC(U,
+                                            U_ghosts,
+                                            D0,
+                                            D1,
+#if (NDIM == 3)
+                                            D2,
+#endif
+                                            D_ghosts,
+                                            C_data->getPointer(),
+                                            C_data->getGhostCellWidth().max(),
+                                            F,
+                                            F_ghosts,
+                                            patch_box.lower(0),
+                                            patch_box.upper(0),
+                                            patch_box.lower(1),
+                                            patch_box.upper(1),
+#if (NDIM == 3)
+                                            patch_box.lower(2),
+                                            patch_box.upper(2),
+#endif
+                                            dx);
                     }
                 }
             }
@@ -697,7 +855,6 @@ CCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
 
     const Pointer<CellVariable<NDIM, double> > res_var = residual.getComponentVariable(0);
     const Pointer<CellVariable<NDIM, double> > sol_var = solution.getComponentVariable(0);
-    const Pointer<CellVariable<NDIM, double> > rhs_var = rhs.getComponentVariable(0);
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -778,13 +935,6 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
                    << "  solution and rhs vectors must have the same data depths\n"
                    << "  solution data depth = " << solution_pdat_fac->getDefaultDepth() << "\n"
                    << "  rhs      data depth = " << rhs_pdat_fac->getDefaultDepth() << std::endl);
-    }
-
-    const bool constant_coefficients = (d_poisson_spec.cIsZero() || d_poisson_spec.cIsConstant());
-    if (!constant_coefficients)
-    {
-        TBOX_ERROR(d_object_name << "::initializeOperatorState():\n"
-                                 << "  requires constant C" << std::endl);
     }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();

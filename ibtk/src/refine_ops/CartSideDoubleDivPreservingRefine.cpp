@@ -1,48 +1,22 @@
-// Filename: CartSideDoubleDivPreservingRefine.cpp
-// Created on 09 Nov 2008 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "IBTK_config.h"
-
 #include "ibtk/CartSideDoubleDivPreservingRefine.h"
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
-#include "CartesianPatchGeometry.h"
-#include "CoarsenOperator.h"
-#include "Index.h"
-#include "IntVector.h"
 #include "Patch.h"
 #include "PatchDescriptor.h"
 #include "PatchGeometry.h"
@@ -52,13 +26,12 @@
 #include "SideGeometry.h"
 #include "SideIndex.h"
 #include "tbox/Array.h"
-#include "tbox/MathUtilities.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
 
 #include <cmath>
 #include <limits>
-#include <ostream>
+#include <string>
+
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -131,6 +104,8 @@ CartSideDoubleDivPreservingRefine::setPhysicalBoundaryConditions(Patch<NDIM>& pa
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(fill_time, d_fill_time));
+#else
+    NULL_USE(d_fill_time);
 #endif
     if (d_phys_bdry_op) d_phys_bdry_op->setPhysicalBoundaryConditions(patch, fill_time, ghost_width_to_fill);
     return;
@@ -213,7 +188,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(Patch<NDIM>& fine,
             {
                 for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_box, axis)); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const hier::Index<NDIM>& i = b();
                     const SideIndex<NDIM> i_s(i, axis, 0);
                     if (std::abs((*indicator_data)(i_s)-1.0) < 1.0e-12)
                     {
@@ -236,17 +211,17 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(Patch<NDIM>& fine,
             {
                 for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(fine_box, axis)); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const hier::Index<NDIM>& i = b();
                     const SideIndex<NDIM> i_s(i, axis, 0);
                     if (!(std::abs((*indicator_data)(i_s)-1.0) < 1.0e-12))
                     {
-                        const Index<NDIM> i_coarse_lower = IndexUtilities::coarsen(i, ratio);
-                        const Index<NDIM> i_lower = IndexUtilities::refine(i_coarse_lower, ratio);
+                        const hier::Index<NDIM> i_coarse_lower = IndexUtilities::coarsen(i, ratio);
+                        const hier::Index<NDIM> i_lower = IndexUtilities::refine(i_coarse_lower, ratio);
                         if (i(axis) == i_lower(axis)) continue;
 
-                        Index<NDIM> i_coarse_upper = i_coarse_lower;
+                        hier::Index<NDIM> i_coarse_upper = i_coarse_lower;
                         i_coarse_upper(axis) += 1;
-                        const Index<NDIM> i_upper = IndexUtilities::refine(i_coarse_upper, ratio);
+                        const hier::Index<NDIM> i_upper = IndexUtilities::refine(i_coarse_upper, ratio);
 
                         const double w1 =
                             static_cast<double>(i(axis) - i_lower(axis)) / static_cast<double>(ratio(axis));

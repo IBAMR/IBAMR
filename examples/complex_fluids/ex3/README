@@ -1,0 +1,3 @@
+This example sets up a lid driven cavity flow. The horizontal velocity profile
+at the top of the box follows a quartic polynomial that goes to zero at the
+corners of the box.

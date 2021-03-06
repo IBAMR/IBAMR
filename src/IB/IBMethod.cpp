@@ -1,34 +1,15 @@
-// Filename: IBMethod.cpp
-// Created on 21 Sep 2011 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2014 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -40,10 +21,11 @@
 #include "ibamr/IBLagrangianSourceStrategy.h"
 #include "ibamr/IBMethod.h"
 #include "ibamr/IBMethodPostProcessStrategy.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibamr/ibamr_utilities.h"
 
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
@@ -53,8 +35,13 @@
 #include "ibtk/LNode.h"
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/PETScMatUtilities.h"
-#include "ibtk/ibtk_macros.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/private/IndexUtilities-inl.h"
+#include "ibtk/private/LData-inl.h"
+#include "ibtk/private/LDataManager-inl.h"
+#include "ibtk/private/LMesh-inl.h"
+#include "ibtk/private/LNode-inl.h"
+#include "ibtk/private/LNodeIndex-inl.h"
 
 #include "BasePatchHierarchy.h"
 #include "BasePatchLevel.h"
@@ -64,7 +51,6 @@
 #include "CartesianGridGeometry.h"
 #include "CartesianPatchGeometry.h"
 #include "CellData.h"
-#include "CellIndex.h"
 #include "GriddingAlgorithm.h"
 #include "HierarchyDataOpsReal.h"
 #include "Index.h"
@@ -84,15 +70,17 @@
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
 #include "tbox/Utilities.h"
 
 #include "petscmat.h"
 #include "petscsys.h"
 #include "petscvec.h"
+#include <petsclog.h>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "boost/multi_array.hpp"
+#include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
@@ -101,10 +89,12 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <cstring>
 #include <functional>
 #include <limits>
+#include <memory>
 #include <numeric>
 #include <ostream>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace IBTK
@@ -306,6 +296,32 @@ IBMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM>
     }
     return;
 } // setupTagBuffer
+
+void
+IBMethod::inactivateLagrangianStructure(int structure_number, int level_number)
+{
+    if (level_number == std::numeric_limits<int>::max()) level_number = d_hierarchy->getFinestLevelNumber();
+    TBOX_ASSERT(d_l_data_manager);
+    d_l_data_manager->inactivateLagrangianStructures({ structure_number }, level_number);
+    return;
+} // inactivateLagrangianStructures
+
+void
+IBMethod::activateLagrangianStructure(int structure_number, int level_number)
+{
+    if (level_number == std::numeric_limits<int>::max()) level_number = d_hierarchy->getFinestLevelNumber();
+    TBOX_ASSERT(d_l_data_manager);
+    d_l_data_manager->activateLagrangianStructures({ structure_number }, level_number);
+    return;
+} // activateLagrangianStructures
+
+bool
+IBMethod::getLagrangianStructureIsActivated(int structure_number, int level_number) const
+{
+    if (level_number == std::numeric_limits<int>::max()) level_number = d_hierarchy->getFinestLevelNumber();
+    TBOX_ASSERT(d_l_data_manager);
+    return d_l_data_manager->getLagrangianStructureIsActivated(structure_number, level_number);
+} // activateLagrangianStructures
 
 void
 IBMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
@@ -517,9 +533,10 @@ IBMethod::setUpdatedPosition(Vec& X_new_vec)
     d_X_new_needs_ghost_fill = true;
 
     std::vector<Pointer<LData> >* X_half_data;
-    bool* X_half_needs_ghost_fill;
+    bool* X_half_needs_ghost_fill = nullptr;
     getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
     reinitMidpointData(d_X_current_data, d_X_new_data, *X_half_data);
+    TBOX_ASSERT(X_half_needs_ghost_fill);
     *X_half_needs_ghost_fill = true;
 
     return;
@@ -715,10 +732,12 @@ IBMethod::forwardEulerStep(const double current_time, const double new_time)
     }
     d_X_new_needs_ghost_fill = true;
 
-    std::vector<Pointer<LData> >* X_half_data;
-    bool* X_half_needs_ghost_fill;
+    std::vector<Pointer<LData> >* X_half_data = nullptr;
+    bool* X_half_needs_ghost_fill = nullptr;
     getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
+    TBOX_ASSERT(X_half_data);
     reinitMidpointData(d_X_current_data, d_X_new_data, *X_half_data);
+    TBOX_ASSERT(X_half_needs_ghost_fill);
     *X_half_needs_ghost_fill = true;
 
     return;
@@ -741,10 +760,12 @@ IBMethod::backwardEulerStep(const double current_time, const double new_time)
     }
     d_X_new_needs_ghost_fill = true;
 
-    std::vector<Pointer<LData> >* X_half_data;
-    bool* X_half_needs_ghost_fill;
+    std::vector<Pointer<LData> >* X_half_data = nullptr;
+    bool* X_half_needs_ghost_fill = nullptr;
     getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
+    TBOX_ASSERT(X_half_data);
     reinitMidpointData(d_X_current_data, d_X_new_data, *X_half_data);
+    TBOX_ASSERT(X_half_needs_ghost_fill);
     *X_half_needs_ghost_fill = true;
 
     return;
@@ -767,10 +788,12 @@ IBMethod::midpointStep(const double current_time, const double new_time)
     }
     d_X_new_needs_ghost_fill = true;
 
-    std::vector<Pointer<LData> >* X_half_data;
-    bool* X_half_needs_ghost_fill;
+    std::vector<Pointer<LData> >* X_half_data = nullptr;
+    bool* X_half_needs_ghost_fill = nullptr;
     getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
+    TBOX_ASSERT(X_half_data);
     reinitMidpointData(d_X_current_data, d_X_new_data, *X_half_data);
+    TBOX_ASSERT(X_half_needs_ghost_fill);
     *X_half_needs_ghost_fill = true;
 
     return;
@@ -1010,10 +1033,9 @@ IBMethod::constructInterpOp(Mat& J,
                             const int dof_index_idx,
                             const double data_time)
 {
-    int ierr;
     if (J)
     {
-        ierr = MatDestroy(&J);
+        int ierr = MatDestroy(&J);
         IBTK_CHKERRQ(ierr);
     }
 
@@ -1084,7 +1106,7 @@ IBMethod::spreadFluidSource(const int q_data_idx,
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            const Index<NDIM>& patch_lower = patch_box.lower();
+            const hier::Index<NDIM>& patch_lower = patch_box.lower();
             const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
             const double* const xLower = pgeom->getXLower();
             const double* const dx = pgeom->getDx();
@@ -1100,7 +1122,7 @@ IBMethod::spreadFluidSource(const int q_data_idx,
                 }
 
                 // Determine the approximate source stencil box.
-                const Index<NDIM> i_center = IndexUtilities::getCellIndex(d_X_src[ln][n], grid_geom, ratio);
+                const hier::Index<NDIM> i_center = IndexUtilities::getCellIndex(d_X_src[ln][n], grid_geom, ratio);
                 Box<NDIM> stencil_box(i_center, i_center);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
@@ -1110,7 +1132,7 @@ IBMethod::spreadFluidSource(const int q_data_idx,
                 // Spread the source strength onto the Cartesian grid.
                 for (Box<NDIM>::Iterator b(patch_box * stencil_box); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const hier::Index<NDIM>& i = b();
                     double wgt = 1.0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -1254,15 +1276,15 @@ IBMethod::interpolatePressure(int p_data_idx,
                 {
                     for (Box<NDIM>::Iterator b(blist() * patch_box); b; b++)
                     {
-                        const Index<NDIM>& i = b();
+                        const hier::Index<NDIM>& i = b();
                         p_norm += (*p_data)(i) * (*wgt_data)(i);
                         vol += (*wgt_data)(i);
                     }
                 }
             }
         }
-        SAMRAI_MPI::sumReduction(&p_norm, 1);
-        SAMRAI_MPI::sumReduction(&vol, 1);
+        IBTK_MPI::sumReduction(&p_norm, 1);
+        IBTK_MPI::sumReduction(&vol, 1);
         p_norm /= vol;
     }
 
@@ -1284,7 +1306,7 @@ IBMethod::interpolatePressure(int p_data_idx,
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            const Index<NDIM>& patch_lower = patch_box.lower();
+            const hier::Index<NDIM>& patch_lower = patch_box.lower();
             const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
             const double* const xLower = pgeom->getXLower();
             const double* const dx = pgeom->getDx();
@@ -1300,7 +1322,7 @@ IBMethod::interpolatePressure(int p_data_idx,
                 }
 
                 // Determine the approximate source stencil box.
-                const Index<NDIM> i_center = IndexUtilities::getCellIndex(d_X_src[ln][n], grid_geom, ratio);
+                const hier::Index<NDIM> i_center = IndexUtilities::getCellIndex(d_X_src[ln][n], grid_geom, ratio);
                 Box<NDIM> stencil_box(i_center, i_center);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
@@ -1310,7 +1332,7 @@ IBMethod::interpolatePressure(int p_data_idx,
                 // Interpolate the pressure from the Cartesian grid.
                 for (Box<NDIM>::Iterator b(patch_box * stencil_box); b; b++)
                 {
-                    const Index<NDIM>& i = b();
+                    const hier::Index<NDIM>& i = b();
                     double wgt = 1.0;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -1321,9 +1343,8 @@ IBMethod::interpolatePressure(int p_data_idx,
                 }
             }
         }
-        SAMRAI_MPI::sumReduction(&d_P_src[ln][0], static_cast<int>(d_P_src[ln].size()));
-        std::transform(
-            d_P_src[ln].begin(), d_P_src[ln].end(), d_P_src[ln].begin(), std::bind2nd(std::plus<double>(), -p_norm));
+        IBTK_MPI::sumReduction(&d_P_src[ln][0], static_cast<int>(d_P_src[ln].size()));
+        std::for_each(d_P_src[ln].begin(), d_P_src[ln].end(), [=](double& P) { P -= p_norm; });
 
         // Update the pressures stored by the Lagrangian source strategy.
         d_ib_source_fcn->setSourcePressures(d_P_src[ln], d_hierarchy, ln, data_time, d_l_data_manager);
@@ -1553,7 +1574,7 @@ IBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
         hierarchy, level_number, init_data_time, can_be_refined, initial_time, old_level, allocate_data);
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
-        Pointer<LData> F_data = d_l_data_manager->createLData("F", level_number, NDIM, /*manage_data*/ true);
+        d_l_data_manager->createLData("F", level_number, NDIM, /*manage_data*/ true);
     }
     return;
 } // initializeLevelData
@@ -1628,7 +1649,7 @@ IBMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarch
             }
 
             // Determine the approximate source stencil box.
-            const Index<NDIM> i_center =
+            const hier::Index<NDIM> i_center =
                 IndexUtilities::getCellIndex(d_X_src[finer_level_number][n], grid_geom, finer_ratio);
             Box<NDIM> stencil_box(i_center, i_center);
             for (unsigned int d = 0; d < NDIM; ++d)

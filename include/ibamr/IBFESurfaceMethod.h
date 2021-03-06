@@ -1,55 +1,47 @@
-// Filename: IBFESurfaceMethod.h
-// Created on 19 May 2018 by Boyce Griffith
+// ---------------------------------------------------------------------
 //
-// Copyright (c) 2002-2017, Boyce Griffith
+// Copyright (c) 2018 - 2020 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
+
+/////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
 #ifndef included_IBAMR_IBFESurfaceMethod
 #define included_IBAMR_IBFESurfaceMethod
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/config.h>
+
 #include "ibamr/IBStrategy.h"
 
 #include "ibtk/FEDataManager.h"
+#include "ibtk/LibMeshSystemIBVectors.h"
+#include "ibtk/SAMRAIGhostDataAccumulator.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/libmesh_utilities.h"
 
 #include "GriddingAlgorithm.h"
 #include "IntVector.h"
 #include "LoadBalancer.h"
 #include "PatchHierarchy.h"
+#include "SideIndex.h"
 #include "tbox/Pointer.h"
 
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
+#include "libmesh/vector_value.h"
 
+#include <limits>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -57,6 +49,7 @@
 namespace IBTK
 {
 class RobinPhysBdryPatchStrategy;
+class SAMRAIDataCache;
 } // namespace IBTK
 namespace SAMRAI
 {
@@ -91,6 +84,7 @@ template <typename T>
 class NumericVector;
 template <typename T>
 class PetscVector;
+class MeshBase;
 } // namespace libMesh
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -101,17 +95,33 @@ namespace IBAMR
  * \brief Class IBFESurfaceMethod is an implementation of the abstract base
  * class IBStrategy that provides functionality required by the IB method with
  * a finite element representation of a surface mesh.
+ *
+ * Coupling schemes include both IB formulations (integral operations with
+ * regularized delta function kernels) and an immersed interface method (IIM)
+ * scheme (E. M. Kolahdouz, A. P. S. Bhalla, B. A. Craven, and B. E. Griffith.
+ * An immersed interface method for discrete surfaces. J Comput Phys,
+ * 400:108854 (37 pages), 2020).
+ *
+ * \note When using the IIM implementation, it is recommended that users set
+ * all linear solvers to use tight relative tolerances (1e-10).
  */
 class IBFESurfaceMethod : public IBStrategy
 {
 public:
-    static const std::string COORDS_SYSTEM_NAME;
     static const std::string COORD_MAPPING_SYSTEM_NAME;
+    static const std::string COORDS_SYSTEM_NAME;
     static const std::string FORCE_SYSTEM_NAME;
     static const std::string NORMAL_VELOCITY_SYSTEM_NAME;
+    static const std::string PRESSURE_IN_SYSTEM_NAME;
     static const std::string PRESSURE_JUMP_SYSTEM_NAME;
+    static const std::string PRESSURE_OUT_SYSTEM_NAME;
     static const std::string TANGENTIAL_VELOCITY_SYSTEM_NAME;
+    static const std::string TAU_IN_SYSTEM_NAME;
+    static const std::string TAU_OUT_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
+    static const std::string WSS_IN_SYSTEM_NAME;
+    static const std::string WSS_OUT_SYSTEM_NAME;
+    static const std::array<std::string, NDIM> VELOCITY_JUMP_SYSTEM_NAME;
 
     /*!
      * \brief Constructor.
@@ -119,7 +129,7 @@ public:
     IBFESurfaceMethod(const std::string& object_name,
                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                       libMesh::MeshBase* mesh,
-                      int max_level_number,
+                      int max_levels,
                       bool register_for_restart = true,
                       const std::string& restart_read_dirname = "",
                       unsigned int restart_restore_number = 0);
@@ -130,7 +140,7 @@ public:
     IBFESurfaceMethod(const std::string& object_name,
                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                       const std::vector<libMesh::MeshBase*>& meshes,
-                      int max_level_number,
+                      int max_levels,
                       bool register_for_restart = true,
                       const std::string& restart_read_dirname = "",
                       unsigned int restart_restore_number = 0);
@@ -472,13 +482,39 @@ public:
 
 protected:
     /*!
-     * Impose (pressure) jump conditions.
+     * Impose the jump conditions.
      */
     void imposeJumpConditions(const int f_data_idx,
                               libMesh::PetscVector<double>& DP_ghost_vec,
                               libMesh::PetscVector<double>& X_ghost_vec,
                               const double data_time,
                               const unsigned int part);
+
+    /*!
+     * Get the coarsest patch level number on which elements (including all
+     * parts) are assigned.
+     */
+    int getCoarsestPatchLevelNumber() const;
+
+    /*!
+     * Get the finest patch level number on which elements (including all parts) are assigned.
+     */
+    int getFinestPatchLevelNumber() const;
+
+    /*!
+     * \brief Helper function for checking possible double-counting
+     *  intesection points
+     */
+    bool checkDoubleCountingIntersection(int axis,
+                                         const double* dx,
+                                         const libMesh::VectorValue<double>& n,
+                                         const libMesh::Point& x,
+                                         const libMesh::Point& xi,
+                                         const SAMRAI::pdat::SideIndex<NDIM>& i_s,
+                                         const SAMRAI::pdat::SideIndex<NDIM>& i_s_prime,
+                                         const std::vector<libMesh::Point>& candidate_coords,
+                                         const std::vector<libMesh::Point>& candidate_ref_coords,
+                                         const std::vector<libMesh::VectorValue<double> >& candidate_normals);
 
     /*!
      * \brief Initialize the physical coordinates using the supplied coordinate
@@ -528,21 +564,78 @@ protected:
      * FE data associated with this object.
      */
     std::vector<libMesh::MeshBase*> d_meshes;
-    int d_max_level_number;
+    int d_max_level_number = IBTK::invalid_level_number;
     std::vector<libMesh::EquationSystems*> d_equation_systems;
+
+    /// FEData objects provide key FE data management.
+    std::vector<std::shared_ptr<IBTK::FEData> > d_fe_data;
 
     const unsigned int d_num_parts = 1;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
+
+    // Pointer to object used to accumulate forces during spreading.
+    std::unique_ptr<IBTK::SAMRAIGhostDataAccumulator> d_ghost_data_accumulator;
+
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_DP_systems;
-    std::vector<libMesh::LinearImplicitSystem*> d_F_systems;
-    std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
-        d_X_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_DP_half_vecs, d_DP_IB_ghost_vecs;
+
+    std::vector<libMesh::System*> d_U_systems;
+
+    /*!
+     * Object managing access to libMesh system vectors for the position system.
+     *
+     * @note Unlike IBAMR::IBFEMethod, this class does not inherit from
+     * FEMechanicsBase and therefore both normal and IB vectors are handled by
+     * d_X_vecs.
+     */
+    std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_X_vecs;
+
+    /*!
+     * Object managing access to libMesh system vectors for the velocity system.
+     *
+     * @note Unlike IBAMR::IBFEMethod, this class does not inherit from
+     * FEMechanicsBase and therefore both normal and IB vectors are handled by
+     * d_U_vecs.
+     */
+    std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_U_vecs;
+
+    /*!
+     * Object managing access to libMesh system vectors for the normal velocity
+     * system.
+     *
+     * @note Unlike IBAMR::IBFEMethod, this class does not inherit from
+     * FEMechanicsBase and therefore both normal and IB vectors are handled by
+     * d_U_n_vecs.
+     */
+    std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_U_n_vecs;
+
+    /*!
+     * Object managing access to libMesh system vectors for the tangential
+     * velocity system.
+     *
+     * @note Unlike IBAMR::IBFEMethod, this class does not inherit from
+     * FEMechanicsBase and therefore both normal and IB vectors are handled by
+     * d_U_t_vecs.
+     */
+    std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_U_t_vecs;
+
+    /*!
+     * Object managing access to libMesh system vectors for the force system.
+     *
+     * @note Unlike IBAMR::IBFEMethod, this class does not inherit from
+     * FEMechanicsBase and therefore both normal and IB vectors are handled by
+     * d_F_vecs.
+     */
+    std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_F_vecs;
+
+    /*!
+     * Object managing access to libMesh system vectors for the pressure jump
+     * system.
+     *
+     * @note Unlike IBAMR::IBFEMethod, this class does not inherit from
+     * FEMechanicsBase and therefore both normal and IB vectors are handled by
+     * d_DP_vecs.
+     */
+    std::unique_ptr<IBTK::LibMeshSystemIBVectors> d_DP_vecs;
 
     bool d_fe_equation_systems_initialized = false, d_fe_data_initialized = false;
 
@@ -555,7 +648,13 @@ protected:
     IBTK::FEDataManager::WorkloadSpec d_default_workload_spec;
     std::vector<IBTK::FEDataManager::InterpSpec> d_interp_spec;
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
-    bool d_use_jump_conditions = false;
+    bool d_use_pressure_jump_conditions = false;
+    libMesh::FEFamily d_pressure_jump_fe_family = libMesh::LAGRANGE;
+    bool d_use_velocity_jump_conditions = false;
+    libMesh::FEFamily d_velocity_jump_fe_family = libMesh::LAGRANGE;
+    bool d_compute_fluid_traction = false;
+    libMesh::FEFamily d_wss_fe_family = libMesh::LAGRANGE;
+    libMesh::FEFamily d_tau_fe_family = libMesh::LAGRANGE;
     bool d_perturb_fe_mesh_nodes = true;
     bool d_normalize_pressure_jump = false;
     std::vector<libMesh::FEFamily> d_fe_family;
@@ -564,6 +663,8 @@ protected:
     std::vector<libMesh::Order> d_default_quad_order;
     bool d_use_consistent_mass_matrix = true;
     bool d_use_direct_forcing = false;
+    double d_wss_calc_width = 0.0;
+    double d_p_calc_width = 0.0;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
@@ -609,7 +710,7 @@ protected:
     /*
      * Restart file type for libMesh equation systems (e.g. xda or xdr).
      */
-    std::string d_libmesh_restart_file_extension;
+    std::string d_libmesh_restart_file_extension = "xdr";
 
 private:
     /*!
@@ -640,12 +741,19 @@ private:
     IBFESurfaceMethod& operator=(const IBFESurfaceMethod& that) = delete;
 
     /*!
+     * The input database. This is explicitly stored (and used outside the
+     * constructor) since the FEDataManager instances created by this class
+     * will also read part of it.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_input_db;
+
+    /*!
      * Implementation of class constructor.
      */
     void commonConstructor(const std::string& object_name,
                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                            const std::vector<libMesh::MeshBase*>& meshes,
-                           int max_level_number,
+                           int max_levels,
                            bool register_for_restart,
                            const std::string& restart_read_dirname,
                            unsigned int restart_restore_number);

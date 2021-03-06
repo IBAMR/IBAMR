@@ -1,0 +1,3 @@
+This example sets up a four roll mill geometry where the rollers are modelled
+with a background periodic force. As the Weissenberg number increases,
+singularities in the trace form at extensional points.

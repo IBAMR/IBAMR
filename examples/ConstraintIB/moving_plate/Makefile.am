@@ -1,31 +1,36 @@
+## ---------------------------------------------------------------------
+##
+## Copyright (c) 2016 - 2019 by the IBAMR developers
+## All rights reserved.
+##
+## This file is part of IBAMR.
+##
+## IBAMR is free software and is distributed under the 3-clause BSD
+## license. The full text of the license can be found in the file
+## COPYRIGHT at the top level directory of IBAMR.
+##
+## ---------------------------------------------------------------------
+
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-EXAMPLE_DRIVER = RigidBodyKinematics.cpp ex_main.cpp
-GTEST_DRIVER = RigidBodyKinematics.cpp test_main.cpp
-EXTRA_DIST  = input2d input2d.test
+EXAMPLE_DRIVER = RigidBodyKinematics.cpp example.cpp
+EXTRA_DIST  = input2d
 EXTRA_DIST += DragCoeff.m generate_plate2d.m
 
 
 EXTRA_PROGRAMS =
-GTESTS =
 EXAMPLES =
 if SAMRAI2D_ENABLED
 EXAMPLES += main2d
-if GTEST_ENABLED
-GTESTS += test2d
-endif
-EXTRA_PROGRAMS += $(GTESTS) $(EXAMPLES)
+EXTRA_PROGRAMS += $(EXAMPLES)
 endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = $(EXAMPLE_DRIVER)
 
-test2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-test2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-test2d_SOURCES = $(GTEST_DRIVER)
 
 
 examples: $(EXAMPLES)
@@ -34,27 +39,6 @@ examples: $(EXAMPLES)
 	  cp -f $(srcdir)/plate2d.vertex $(PWD) ; \
 	fi ;
 
-if GTEST_ENABLED
-gtest: $(GTESTS)
-	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input2d.test $(PWD) ; \
-	  cp -f $(srcdir)/plate2d.vertex $(PWD) ; \
-	fi ;
-	./test2d input2d.test
-
-gtest-long:
-	make gtest
-
-else
-gtest:
-	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-	@echo " To run tests, Google Test Framework must be enabled.                "
-	@echo " Configure IBAMR with additional options:                            "
-	@echo "                      --enable-gtest --with-gtest=path               "
-	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-gtest-long:
-	make gtest
-endif
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)

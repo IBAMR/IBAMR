@@ -1,35 +1,17 @@
-// Copyright (c) 2002-2014, Boyce Griffith
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2019 - 2021 by the IBAMR developers
 // All rights reserved.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
+// This file is part of IBAMR.
 //
-//    * Redistributions of source code must retain the above copyright notice,
-//      this list of conditions and the following disclaimer.
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
 //
-//    * Redistributions in binary form must reproduce the above copyright
-//      notice, this list of conditions and the following disclaimer in the
-//      documentation and/or other materials provided with the distribution.
-//
-//    * Neither the name of The University of North Carolina nor the names of
-//      its contributors may be used to endorse or promote products derived from
-//      this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
+// ---------------------------------------------------------------------
 
 // Config files
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
 
 #include <SAMRAI_config.h>
 
@@ -45,10 +27,10 @@
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
 #include <libmesh/equation_systems.h>
-#include <libmesh/linear_partitioner.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
-#include <libmesh/mesh_triangle_interface.h>
+#include <libmesh/mesh_refinement.h>
+#include <libmesh/xdr_io.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
@@ -58,6 +40,9 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
+#include <ibtk/StableCentroidPartitioner.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -75,7 +60,9 @@
  * 1. Basic reproducibility of the IBFE stack (IBExplicitHierarchyIntegrator,
  *    INSStaggeredHierarchyIntegrator, and IBFEMethod)
  * 2. IBFE restart code
- * 3. IBFECentroidPostProcessor
+ * 3. IBFE part inactivation
+ * 4. IBFECentroidPostProcessor
+ * 5. IBTK::MergingLoadBalancer
  */
 
 // Elasticity model data.
@@ -113,6 +100,21 @@ PK1_dev_stress_function(TensorValue<double>& PP,
 } // PK1_dev_stress_function
 
 void
+PK1_dev_inactive_stress_function(TensorValue<double>& PP,
+                                 const TensorValue<double>& FF,
+                                 const libMesh::Point& /*X*/,
+                                 const libMesh::Point& /*s*/,
+                                 Elem* const /*elem*/,
+                                 const vector<const vector<double>*>& /*var_data*/,
+                                 const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
+                                 double /*time*/,
+                                 void* /*ctx*/)
+{
+    PP = 1e3 * c1_s * FF;
+    return;
+} // PK1_dev_inactive_stress_function
+
+void
 PK1_dil_stress_function(TensorValue<double>& PP,
                         const TensorValue<double>& FF,
                         const libMesh::Point& /*X*/,
@@ -126,6 +128,22 @@ PK1_dil_stress_function(TensorValue<double>& PP,
     PP = 2.0 * (-p0_s + beta_s * log(FF.det())) * tensor_inverse_transpose(FF, NDIM);
     return;
 } // PK1_dil_stress_function
+
+static double uniform_body_source_strength = 0.0;
+void
+lag_body_source_function(double& Q,
+                         const TensorValue<double>& /*FF*/,
+                         const libMesh::Point& /*X*/,
+                         const libMesh::Point& /*s*/,
+                         Elem* /*elem*/,
+                         const std::vector<const std::vector<double>*>& /*system_var_data*/,
+                         const std::vector<const std::vector<VectorValue<double> >*>& /*system_grad_var_data*/,
+                         double /*data_time*/,
+                         void* /*ctx*/)
+{
+    Q = uniform_body_source_strength;
+    return;
+} // lag_body_source_function
 } // namespace ModelData
 using namespace ModelData;
 
@@ -144,11 +162,13 @@ using namespace ModelData;
 int
 main(int argc, char** argv)
 {
-    // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    const LibMeshInit& init = ibtk_init.getLibMeshInit();
+
+    // suppress warnings caused by using a refinement ratio of 4 and not
+    // setting up coarsening correctly
+    SAMRAI::tbox::Logger::getInstance()->setWarning(false);
 
     PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-16");
     PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-16");
@@ -182,62 +202,99 @@ main(int argc, char** argv)
 
         // Create a simple FE mesh.
         ReplicatedMesh mesh(init.comm(), NDIM);
-        const double dx = input_db->getDouble("DX");
-        const double ds = input_db->getDouble("MFAC") * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
         const double R = 0.2;
         if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
         {
-#ifdef LIBMESH_HAVE_TRIANGLE
-            const int num_circum_nodes = ceil(2.0 * M_PI * R / ds);
-            for (int k = 0; k < num_circum_nodes; ++k)
-            {
-                const double theta = 2.0 * M_PI * static_cast<double>(k) / static_cast<double>(num_circum_nodes);
-                mesh.add_point(libMesh::Point(R * cos(theta), R * sin(theta)));
-            }
-            TriangleInterface triangle(mesh);
-            triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
-            triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
-            triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
-            triangle.insert_extra_points() = true;
-            triangle.smooth_after_generating() = true;
-            triangle.triangulate();
-#else
-            TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
-                       << "       but Triangle is required for TRI3 or TRI6 elements.\n");
-#endif
+            XdrIO io_in(mesh);
+            io_in.read(std::string(SOURCE_DIR) + "/" + input_db->getString("mesh_file"));
+            if (elem_type == "TRI6") mesh.all_second_order();
         }
         else
         {
             MeshTools::Generation::build_sphere(mesh, 0.01, 1, Utility::string_to_enum<ElemType>(elem_type));
         }
+        mesh.prepare_for_use();
 
-        // Ensure nodes on the surface are on the analytic boundary.
-#if NDIM == 2
-        MeshBase::element_iterator el_end = mesh.elements_end();
-        for (MeshBase::element_iterator el = mesh.elements_begin(); el != el_end; ++el)
+        // Possibly assign boundary elements to a finer patch level (depending
+        // on what is in the input file)
         {
-            Elem* const elem = *el;
-            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            const MeshBase::element_iterator el_end = mesh.active_elements_end();
+            for (MeshBase::element_iterator el = mesh.active_elements_begin(); el != el_end; ++el)
             {
-                const bool at_mesh_bdry = !elem->neighbor_ptr(side);
-                if (!at_mesh_bdry) continue;
-                for (unsigned int k = 0; k < elem->n_nodes(); ++k)
+                const auto centroid = (*el)->centroid();
+
+                if (centroid.norm() > 0.75 * R)
                 {
-                    if (!elem->is_node_on_side(k, side)) continue;
-                    Node& n = elem->node_ref(k);
-                    n = R * n.unit();
+                    (*el)->subdomain_id() = 2;
+                }
+                else
+                {
+                    (*el)->subdomain_id() = 1;
                 }
             }
         }
+
+        const bool use_amr = input_db->getBoolWithDefault("use_amr", false);
+        if (use_amr)
+        {
+            const MeshBase::element_iterator el_end = mesh.elements_end();
+            for (MeshBase::element_iterator el = mesh.elements_begin(); el != el_end; ++el)
+            {
+                Elem* elem = *el;
+                const auto centroid = elem->centroid();
+
+                if (centroid(1) > 0.0) elem->set_refinement_flag(Elem::REFINE);
+            }
+            MeshRefinement mesh_refinement(mesh);
+            mesh_refinement.refine_and_coarsen_elements();
+        }
+
+        // Ensure nodes on the surface are on the analytic boundary.
+#if NDIM == 2
+        {
+            const MeshBase::element_iterator el_end = mesh.elements_end();
+            for (MeshBase::element_iterator el = mesh.elements_begin(); el != el_end; ++el)
+            {
+                Elem* const elem = *el;
+                for (unsigned int side = 0; side < elem->n_sides(); ++side)
+                {
+                    const bool at_mesh_bdry = !elem->neighbor_ptr(side);
+                    if (!at_mesh_bdry) continue;
+                    for (unsigned int k = 0; k < elem->n_nodes(); ++k)
+                    {
+                        if (!elem->is_node_on_side(k, side)) continue;
+                        Node& n = elem->node_ref(k);
+                        n = R * n.unit();
+                    }
+                }
+            }
+        }
+#else
+        NULL_USE(R);
 #endif
-        mesh.prepare_for_use();
+
+        ReplicatedMesh mesh_2(init.comm(), NDIM);
+        // extra parameter controlling whether or not to add an inactive mesh
+        // to test our ability to turn structures off and on
+        const bool use_inactive_mesh = input_db->getBoolWithDefault("use_inactive_mesh", false);
+        if (use_inactive_mesh)
+        {
+            // Add a substantial mesh near the top of the domain
+#if NDIM == 2
+            MeshTools::Generation::build_square(mesh_2, 10, 12, 0.0, 1.0, 0.15, 0.95, libMesh::QUAD9);
+#else
+            MeshTools::Generation::build_cube(mesh_2, 5, 6, 7, 0.0, 1.0, 0.0, 1.0, 0.15, 0.95, libMesh::HEX27);
+#endif
+        }
+
         // metis does a good job partitioning, but the partitioning relies on
         // random numbers: the seed changed in libMesh commit
         // 98cede90ca8837688ee13aac5e299a3765f083da (between 1.3.1 and
         // 1.4.0). Hence, to achieve consistent partitioning, use a simpler partitioning scheme:
-        LinearPartitioner partitioner;
+        IBTK::StableCentroidPartitioner partitioner;
         partitioner.partition(mesh);
+        if (use_inactive_mesh) partitioner.partition(mesh_2);
 
         c1_s = input_db->getDouble("C1_S");
         p0_s = input_db->getDouble("P0_S");
@@ -272,10 +329,13 @@ main(int argc, char** argv)
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
+        std::vector<libMesh::MeshBase*> meshes;
+        meshes.push_back(&mesh);
+        if (use_inactive_mesh) meshes.push_back(&mesh_2);
         Pointer<IBFEMethod> ib_method_ops =
             new IBFEMethod("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
-                           &mesh,
+                           meshes,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
                            /*register_for_restart*/ true,
                            restart_read_dirname,
@@ -308,11 +368,23 @@ main(int argc, char** argv)
             Utility::string_to_enum<libMesh::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER", "FIRST"));
         ib_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
         ib_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
+
+        IBFEMethod::PK1StressFcnData PK1_dev_inactive_stress_data(PK1_dev_inactive_stress_function);
+        PK1_dev_inactive_stress_data.quad_order = PK1_dev_stress_data.quad_order;
+        if (use_inactive_mesh)
+        {
+            ib_method_ops->registerPK1StressFunction(PK1_dev_inactive_stress_data, 1);
+        }
         if (input_db->getBoolWithDefault("ELIMINATE_PRESSURE_JUMPS", false))
         {
             ib_method_ops->registerStressNormalizationPart();
         }
         ib_method_ops->initializeFEEquationSystems();
+        if (input_db->isDouble("BODY_SOURCE_STRENGTH"))
+        {
+            uniform_body_source_strength = input_db->getDouble("BODY_SOURCE_STRENGTH");
+            ib_method_ops->registerLagBodySourceFunction(lag_body_source_function);
+        }
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Create Eulerian initial condition specification objects.
@@ -365,13 +437,16 @@ main(int argc, char** argv)
         const bool use_separate_fe_data_manager = input_db->getBoolWithDefault("use_separate_fe_data_manager", false);
         if (use_separate_fe_data_manager)
         {
-            FEDataManager::WorkloadSpec spec;
-            other_manager = FEDataManager::getManager(fe_data_manager->getFEData(),
-                                                      "cloned_fe_data_manager",
-                                                      fe_data_manager->getDefaultInterpSpec(),
-                                                      fe_data_manager->getDefaultSpreadSpec(),
-                                                      spec);
-            other_manager->setPatchHierarchy(patch_hierarchy);
+            FEDataManager::WorkloadSpec workload_spec;
+            Pointer<Database> fe_data_manager_db(new InputDatabase("fe_data_manager_db"));
+            other_manager = FEDataManager::getManager(
+                fe_data_manager->getFEData(),
+                "cloned_fe_data_manager",
+                fe_data_manager_db,
+                app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+                fe_data_manager->getDefaultInterpSpec(),
+                fe_data_manager->getDefaultSpreadSpec(),
+                workload_spec);
             // Check that we have the same Lagrangian data.
             TBOX_ASSERT(fe_data_manager->getFEData() == other_manager->getFEData());
             TBOX_ASSERT(fe_data_manager->getEquationSystems() == other_manager->getEquationSystems());
@@ -416,7 +491,8 @@ main(int argc, char** argv)
                                                 /*use_adaptive_quadrature*/ false,
                                                 /*point_density*/ 2.0,
                                                 /*use_consistent_mass_matrix*/ true,
-                                                /*use_nodal_quadrature*/ false);
+                                                /*use_nodal_quadrature*/ false,
+                                                /*allow_rules_with_negative_weights*/ false);
         ib_post_processor->registerInterpolatedScalarEulerianVariable(
             "p_f", LAGRANGE, FIRST, p_var, p_current_ctx, p_ghostfill, p_interp_spec);
 
@@ -434,16 +510,12 @@ main(int argc, char** argv)
 
         if (ib_post_processor)
         {
-            if (other_manager != fe_data_manager)
-            {
-                other_manager->setPatchLevels(fe_data_manager->getPatchLevels().first,
-                                              fe_data_manager->getPatchLevels().second - 1);
-            }
             ib_post_processor->initializeFEData();
         }
-
-        // Deallocate initialization objects.
-        app_initializer.setNull();
+        if (use_separate_fe_data_manager)
+        {
+            other_manager->setPatchHierarchy(patch_hierarchy);
+        }
 
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
@@ -459,6 +531,10 @@ main(int argc, char** argv)
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
+
+            if (use_inactive_mesh)
+                if (input_db->getIntegerWithDefault("inactivate_timestep", 0) == iteration_num)
+                    ib_method_ops->inactivateLagrangianStructure(1);
 
             pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
@@ -513,7 +589,7 @@ main(int argc, char** argv)
             System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
             NumericVector<double>* X_vec = X_system.solution.get();
             NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
-            X_vec->localize(*X_ghost_vec);
+            copy_and_synch(*X_vec, *X_ghost_vec);
             DofMap& X_dof_map = X_system.get_dof_map();
             vector<vector<unsigned int> > X_dof_indices(NDIM);
             std::unique_ptr<FEBase> fe(FEBase::build(NDIM, X_dof_map.variable_type(0)));
@@ -541,11 +617,21 @@ main(int argc, char** argv)
                     J_integral += abs(FF.det()) * JxW[qp];
                 }
             }
-            J_integral = SAMRAI_MPI::sumReduction(J_integral);
-            if (SAMRAI_MPI::getRank() == 0)
+            J_integral = IBTK_MPI::sumReduction(J_integral);
+            if (IBTK_MPI::getRank() == 0)
             {
                 plog << std::setprecision(12) << std::fixed << loop_time << " " << J_integral << std::endl;
             }
+        }
+
+        if (input_db->getBoolWithDefault("log_scratch_partitioning", false))
+        {
+            Pointer<PatchHierarchy<NDIM> > scratch_hier = ib_method_ops->getScratchHierarchy();
+            TBOX_ASSERT(scratch_hier);
+            Pointer<PatchLevel<NDIM> > patch_level = scratch_hier->getPatchLevel(scratch_hier->getFinestLevelNumber());
+            const BoxArray<NDIM> boxes = patch_level->getBoxes();
+            plog << "Scratch hierarchy boxes:\n";
+            for (int i = 0; i < boxes.size(); ++i) plog << boxes[i] << '\n';
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
@@ -553,6 +639,4 @@ main(int argc, char** argv)
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
 } // main

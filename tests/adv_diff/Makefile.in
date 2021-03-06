@@ -87,9 +87,11 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = adv_diff_01_2d$(EXEEXT) adv_diff_01_3d$(EXEEXT) \
-	adv_diff_02_2d$(EXEEXT) adv_diff_02_3d$(EXEEXT) \
-	adv_diff_03_2d$(EXEEXT)
+EXTRA_PROGRAMS = adv_diff_01_3d$(EXEEXT) adv_diff_02_2d$(EXEEXT) \
+	adv_diff_02_3d$(EXEEXT) adv_diff_03_2d$(EXEEXT) \
+	adv_diff_convec_opers_2d$(EXEEXT) \
+	adv_diff_convec_opers_3d$(EXEEXT) bp_adv_diff_01_2d$(EXEEXT) \
+	bp_adv_diff_02_2d$(EXEEXT)
 subdir = tests/adv_diff
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -101,7 +103,6 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
 	$(top_srcdir)/m4/configure_boost.m4 \
 	$(top_srcdir)/m4/configure_eigen.m4 \
 	$(top_srcdir)/m4/configure_gsl.m4 \
-	$(top_srcdir)/m4/configure_gtest.m4 \
 	$(top_srcdir)/m4/configure_hdf5.m4 \
 	$(top_srcdir)/m4/configure_hypre.m4 \
 	$(top_srcdir)/m4/configure_libmesh.m4 \
@@ -122,20 +123,13 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am_adv_diff_01_2d_OBJECTS = adv_diff_01_2d-adv_diff_01.$(OBJEXT)
-adv_diff_01_2d_OBJECTS = $(am_adv_diff_01_2d_OBJECTS)
-adv_diff_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+am_adv_diff_01_3d_OBJECTS = adv_diff_01_3d-adv_diff_01.$(OBJEXT)
+adv_diff_01_3d_OBJECTS = $(am_adv_diff_01_3d_OBJECTS)
+adv_diff_01_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-adv_diff_01_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
-	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
-	$(adv_diff_01_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
-am_adv_diff_01_3d_OBJECTS = adv_diff_01_3d-adv_diff_01.$(OBJEXT)
-adv_diff_01_3d_OBJECTS = $(am_adv_diff_01_3d_OBJECTS)
-adv_diff_01_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 adv_diff_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(adv_diff_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
@@ -161,6 +155,40 @@ adv_diff_03_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(adv_diff_03_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_adv_diff_convec_opers_2d_OBJECTS =  \
+	adv_diff_convec_opers_2d-adv_diff_convec_opers.$(OBJEXT)
+adv_diff_convec_opers_2d_OBJECTS =  \
+	$(am_adv_diff_convec_opers_2d_OBJECTS)
+adv_diff_convec_opers_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+adv_diff_convec_opers_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(adv_diff_convec_opers_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_adv_diff_convec_opers_3d_OBJECTS =  \
+	adv_diff_convec_opers_3d-adv_diff_convec_opers.$(OBJEXT)
+adv_diff_convec_opers_3d_OBJECTS =  \
+	$(am_adv_diff_convec_opers_3d_OBJECTS)
+adv_diff_convec_opers_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+adv_diff_convec_opers_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(adv_diff_convec_opers_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_bp_adv_diff_01_2d_OBJECTS =  \
+	bp_adv_diff_01_2d-bp_adv_diff_01.$(OBJEXT)
+bp_adv_diff_01_2d_OBJECTS = $(am_bp_adv_diff_01_2d_OBJECTS)
+bp_adv_diff_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+bp_adv_diff_01_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(bp_adv_diff_01_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_bp_adv_diff_02_2d_OBJECTS =  \
+	bp_adv_diff_02_2d-bp_adv_diff_02.$(OBJEXT)
+bp_adv_diff_02_2d_OBJECTS = $(am_bp_adv_diff_02_2d_OBJECTS)
+bp_adv_diff_02_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+bp_adv_diff_02_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(bp_adv_diff_02_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -176,11 +204,14 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/adv_diff_01_2d-adv_diff_01.Po \
-	./$(DEPDIR)/adv_diff_01_3d-adv_diff_01.Po \
+am__depfiles_remade = ./$(DEPDIR)/adv_diff_01_3d-adv_diff_01.Po \
 	./$(DEPDIR)/adv_diff_02_2d-adv_diff_02.Po \
 	./$(DEPDIR)/adv_diff_02_3d-adv_diff_02.Po \
-	./$(DEPDIR)/adv_diff_03_2d-adv_diff_03.Po
+	./$(DEPDIR)/adv_diff_03_2d-adv_diff_03.Po \
+	./$(DEPDIR)/adv_diff_convec_opers_2d-adv_diff_convec_opers.Po \
+	./$(DEPDIR)/adv_diff_convec_opers_3d-adv_diff_convec_opers.Po \
+	./$(DEPDIR)/bp_adv_diff_01_2d-bp_adv_diff_01.Po \
+	./$(DEPDIR)/bp_adv_diff_02_2d-bp_adv_diff_02.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -200,12 +231,16 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(adv_diff_01_2d_SOURCES) $(adv_diff_01_3d_SOURCES) \
-	$(adv_diff_02_2d_SOURCES) $(adv_diff_02_3d_SOURCES) \
-	$(adv_diff_03_2d_SOURCES)
-DIST_SOURCES = $(adv_diff_01_2d_SOURCES) $(adv_diff_01_3d_SOURCES) \
-	$(adv_diff_02_2d_SOURCES) $(adv_diff_02_3d_SOURCES) \
-	$(adv_diff_03_2d_SOURCES)
+SOURCES = $(adv_diff_01_3d_SOURCES) $(adv_diff_02_2d_SOURCES) \
+	$(adv_diff_02_3d_SOURCES) $(adv_diff_03_2d_SOURCES) \
+	$(adv_diff_convec_opers_2d_SOURCES) \
+	$(adv_diff_convec_opers_3d_SOURCES) \
+	$(bp_adv_diff_01_2d_SOURCES) $(bp_adv_diff_02_2d_SOURCES)
+DIST_SOURCES = $(adv_diff_01_3d_SOURCES) $(adv_diff_02_2d_SOURCES) \
+	$(adv_diff_02_3d_SOURCES) $(adv_diff_03_2d_SOURCES) \
+	$(adv_diff_convec_opers_2d_SOURCES) \
+	$(adv_diff_convec_opers_3d_SOURCES) \
+	$(bp_adv_diff_01_2d_SOURCES) $(bp_adv_diff_02_2d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -276,7 +311,6 @@ GREP = @GREP@
 HAVE_CXX11 = @HAVE_CXX11@
 HAVE_LIBGSL = @HAVE_LIBGSL@
 HAVE_LIBGSLCBLAS = @HAVE_LIBGSLCBLAS@
-HAVE_LIBGTEST = @HAVE_LIBGTEST@
 HAVE_LIBMESH_DBG = @HAVE_LIBMESH_DBG@
 HAVE_LIBMESH_DEVEL = @HAVE_LIBMESH_DEVEL@
 HAVE_LIBMESH_OPROF = @HAVE_LIBMESH_OPROF@
@@ -313,8 +347,6 @@ LIBGSL = @LIBGSL@
 LIBGSLCBLAS = @LIBGSLCBLAS@
 LIBGSLCBLAS_PREFIX = @LIBGSLCBLAS_PREFIX@
 LIBGSL_PREFIX = @LIBGSL_PREFIX@
-LIBGTEST = @LIBGTEST@
-LIBGTEST_PREFIX = @LIBGTEST_PREFIX@
 LIBMESH_CONFIG = @LIBMESH_CONFIG@
 LIBMESH_DBG = @LIBMESH_DBG@
 LIBMESH_DBG_PREFIX = @LIBMESH_DBG_PREFIX@
@@ -373,7 +405,6 @@ LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBGSL = @LTLIBGSL@
 LTLIBGSLCBLAS = @LTLIBGSLCBLAS@
-LTLIBGTEST = @LTLIBGTEST@
 LTLIBMESH_DBG = @LTLIBMESH_DBG@
 LTLIBMESH_DEVEL = @LTLIBMESH_DEVEL@
 LTLIBMESH_OPROF = @LTLIBMESH_OPROF@
@@ -501,9 +532,6 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-adv_diff_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-adv_diff_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-adv_diff_01_2d_SOURCES = adv_diff_01.cpp
 adv_diff_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 adv_diff_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 adv_diff_01_3d_SOURCES = adv_diff_01.cpp
@@ -516,6 +544,18 @@ adv_diff_02_3d_SOURCES = adv_diff_02.cpp
 adv_diff_03_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 adv_diff_03_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 adv_diff_03_2d_SOURCES = adv_diff_03.cpp
+adv_diff_convec_opers_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+adv_diff_convec_opers_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+adv_diff_convec_opers_2d_SOURCES = adv_diff_convec_opers.cpp
+adv_diff_convec_opers_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+adv_diff_convec_opers_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+adv_diff_convec_opers_3d_SOURCES = adv_diff_convec_opers.cpp
+bp_adv_diff_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+bp_adv_diff_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+bp_adv_diff_01_2d_SOURCES = bp_adv_diff_01.cpp
+bp_adv_diff_02_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+bp_adv_diff_02_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+bp_adv_diff_02_2d_SOURCES = bp_adv_diff_02.cpp
 all: all-am
 
 .SUFFIXES:
@@ -551,10 +591,6 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
-adv_diff_01_2d$(EXEEXT): $(adv_diff_01_2d_OBJECTS) $(adv_diff_01_2d_DEPENDENCIES) $(EXTRA_adv_diff_01_2d_DEPENDENCIES) 
-	@rm -f adv_diff_01_2d$(EXEEXT)
-	$(AM_V_CXXLD)$(adv_diff_01_2d_LINK) $(adv_diff_01_2d_OBJECTS) $(adv_diff_01_2d_LDADD) $(LIBS)
-
 adv_diff_01_3d$(EXEEXT): $(adv_diff_01_3d_OBJECTS) $(adv_diff_01_3d_DEPENDENCIES) $(EXTRA_adv_diff_01_3d_DEPENDENCIES) 
 	@rm -f adv_diff_01_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(adv_diff_01_3d_LINK) $(adv_diff_01_3d_OBJECTS) $(adv_diff_01_3d_LDADD) $(LIBS)
@@ -571,17 +607,36 @@ adv_diff_03_2d$(EXEEXT): $(adv_diff_03_2d_OBJECTS) $(adv_diff_03_2d_DEPENDENCIES
 	@rm -f adv_diff_03_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(adv_diff_03_2d_LINK) $(adv_diff_03_2d_OBJECTS) $(adv_diff_03_2d_LDADD) $(LIBS)
 
+adv_diff_convec_opers_2d$(EXEEXT): $(adv_diff_convec_opers_2d_OBJECTS) $(adv_diff_convec_opers_2d_DEPENDENCIES) $(EXTRA_adv_diff_convec_opers_2d_DEPENDENCIES) 
+	@rm -f adv_diff_convec_opers_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(adv_diff_convec_opers_2d_LINK) $(adv_diff_convec_opers_2d_OBJECTS) $(adv_diff_convec_opers_2d_LDADD) $(LIBS)
+
+adv_diff_convec_opers_3d$(EXEEXT): $(adv_diff_convec_opers_3d_OBJECTS) $(adv_diff_convec_opers_3d_DEPENDENCIES) $(EXTRA_adv_diff_convec_opers_3d_DEPENDENCIES) 
+	@rm -f adv_diff_convec_opers_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(adv_diff_convec_opers_3d_LINK) $(adv_diff_convec_opers_3d_OBJECTS) $(adv_diff_convec_opers_3d_LDADD) $(LIBS)
+
+bp_adv_diff_01_2d$(EXEEXT): $(bp_adv_diff_01_2d_OBJECTS) $(bp_adv_diff_01_2d_DEPENDENCIES) $(EXTRA_bp_adv_diff_01_2d_DEPENDENCIES) 
+	@rm -f bp_adv_diff_01_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(bp_adv_diff_01_2d_LINK) $(bp_adv_diff_01_2d_OBJECTS) $(bp_adv_diff_01_2d_LDADD) $(LIBS)
+
+bp_adv_diff_02_2d$(EXEEXT): $(bp_adv_diff_02_2d_OBJECTS) $(bp_adv_diff_02_2d_DEPENDENCIES) $(EXTRA_bp_adv_diff_02_2d_DEPENDENCIES) 
+	@rm -f bp_adv_diff_02_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(bp_adv_diff_02_2d_LINK) $(bp_adv_diff_02_2d_OBJECTS) $(bp_adv_diff_02_2d_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adv_diff_01_2d-adv_diff_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adv_diff_01_3d-adv_diff_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adv_diff_02_2d-adv_diff_02.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adv_diff_02_3d-adv_diff_02.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adv_diff_03_2d-adv_diff_03.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adv_diff_convec_opers_2d-adv_diff_convec_opers.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adv_diff_convec_opers_3d-adv_diff_convec_opers.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bp_adv_diff_01_2d-bp_adv_diff_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bp_adv_diff_02_2d-bp_adv_diff_02.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -612,20 +667,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
-
-adv_diff_01_2d-adv_diff_01.o: adv_diff_01.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_01_2d_CXXFLAGS) $(CXXFLAGS) -MT adv_diff_01_2d-adv_diff_01.o -MD -MP -MF $(DEPDIR)/adv_diff_01_2d-adv_diff_01.Tpo -c -o adv_diff_01_2d-adv_diff_01.o `test -f 'adv_diff_01.cpp' || echo '$(srcdir)/'`adv_diff_01.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/adv_diff_01_2d-adv_diff_01.Tpo $(DEPDIR)/adv_diff_01_2d-adv_diff_01.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='adv_diff_01.cpp' object='adv_diff_01_2d-adv_diff_01.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o adv_diff_01_2d-adv_diff_01.o `test -f 'adv_diff_01.cpp' || echo '$(srcdir)/'`adv_diff_01.cpp
-
-adv_diff_01_2d-adv_diff_01.obj: adv_diff_01.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_01_2d_CXXFLAGS) $(CXXFLAGS) -MT adv_diff_01_2d-adv_diff_01.obj -MD -MP -MF $(DEPDIR)/adv_diff_01_2d-adv_diff_01.Tpo -c -o adv_diff_01_2d-adv_diff_01.obj `if test -f 'adv_diff_01.cpp'; then $(CYGPATH_W) 'adv_diff_01.cpp'; else $(CYGPATH_W) '$(srcdir)/adv_diff_01.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/adv_diff_01_2d-adv_diff_01.Tpo $(DEPDIR)/adv_diff_01_2d-adv_diff_01.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='adv_diff_01.cpp' object='adv_diff_01_2d-adv_diff_01.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o adv_diff_01_2d-adv_diff_01.obj `if test -f 'adv_diff_01.cpp'; then $(CYGPATH_W) 'adv_diff_01.cpp'; else $(CYGPATH_W) '$(srcdir)/adv_diff_01.cpp'; fi`
 
 adv_diff_01_3d-adv_diff_01.o: adv_diff_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_01_3d_CXXFLAGS) $(CXXFLAGS) -MT adv_diff_01_3d-adv_diff_01.o -MD -MP -MF $(DEPDIR)/adv_diff_01_3d-adv_diff_01.Tpo -c -o adv_diff_01_3d-adv_diff_01.o `test -f 'adv_diff_01.cpp' || echo '$(srcdir)/'`adv_diff_01.cpp
@@ -682,6 +723,62 @@ adv_diff_03_2d-adv_diff_03.obj: adv_diff_03.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='adv_diff_03.cpp' object='adv_diff_03_2d-adv_diff_03.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_03_2d_CXXFLAGS) $(CXXFLAGS) -c -o adv_diff_03_2d-adv_diff_03.obj `if test -f 'adv_diff_03.cpp'; then $(CYGPATH_W) 'adv_diff_03.cpp'; else $(CYGPATH_W) '$(srcdir)/adv_diff_03.cpp'; fi`
+
+adv_diff_convec_opers_2d-adv_diff_convec_opers.o: adv_diff_convec_opers.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_convec_opers_2d_CXXFLAGS) $(CXXFLAGS) -MT adv_diff_convec_opers_2d-adv_diff_convec_opers.o -MD -MP -MF $(DEPDIR)/adv_diff_convec_opers_2d-adv_diff_convec_opers.Tpo -c -o adv_diff_convec_opers_2d-adv_diff_convec_opers.o `test -f 'adv_diff_convec_opers.cpp' || echo '$(srcdir)/'`adv_diff_convec_opers.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/adv_diff_convec_opers_2d-adv_diff_convec_opers.Tpo $(DEPDIR)/adv_diff_convec_opers_2d-adv_diff_convec_opers.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='adv_diff_convec_opers.cpp' object='adv_diff_convec_opers_2d-adv_diff_convec_opers.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_convec_opers_2d_CXXFLAGS) $(CXXFLAGS) -c -o adv_diff_convec_opers_2d-adv_diff_convec_opers.o `test -f 'adv_diff_convec_opers.cpp' || echo '$(srcdir)/'`adv_diff_convec_opers.cpp
+
+adv_diff_convec_opers_2d-adv_diff_convec_opers.obj: adv_diff_convec_opers.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_convec_opers_2d_CXXFLAGS) $(CXXFLAGS) -MT adv_diff_convec_opers_2d-adv_diff_convec_opers.obj -MD -MP -MF $(DEPDIR)/adv_diff_convec_opers_2d-adv_diff_convec_opers.Tpo -c -o adv_diff_convec_opers_2d-adv_diff_convec_opers.obj `if test -f 'adv_diff_convec_opers.cpp'; then $(CYGPATH_W) 'adv_diff_convec_opers.cpp'; else $(CYGPATH_W) '$(srcdir)/adv_diff_convec_opers.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/adv_diff_convec_opers_2d-adv_diff_convec_opers.Tpo $(DEPDIR)/adv_diff_convec_opers_2d-adv_diff_convec_opers.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='adv_diff_convec_opers.cpp' object='adv_diff_convec_opers_2d-adv_diff_convec_opers.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_convec_opers_2d_CXXFLAGS) $(CXXFLAGS) -c -o adv_diff_convec_opers_2d-adv_diff_convec_opers.obj `if test -f 'adv_diff_convec_opers.cpp'; then $(CYGPATH_W) 'adv_diff_convec_opers.cpp'; else $(CYGPATH_W) '$(srcdir)/adv_diff_convec_opers.cpp'; fi`
+
+adv_diff_convec_opers_3d-adv_diff_convec_opers.o: adv_diff_convec_opers.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_convec_opers_3d_CXXFLAGS) $(CXXFLAGS) -MT adv_diff_convec_opers_3d-adv_diff_convec_opers.o -MD -MP -MF $(DEPDIR)/adv_diff_convec_opers_3d-adv_diff_convec_opers.Tpo -c -o adv_diff_convec_opers_3d-adv_diff_convec_opers.o `test -f 'adv_diff_convec_opers.cpp' || echo '$(srcdir)/'`adv_diff_convec_opers.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/adv_diff_convec_opers_3d-adv_diff_convec_opers.Tpo $(DEPDIR)/adv_diff_convec_opers_3d-adv_diff_convec_opers.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='adv_diff_convec_opers.cpp' object='adv_diff_convec_opers_3d-adv_diff_convec_opers.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_convec_opers_3d_CXXFLAGS) $(CXXFLAGS) -c -o adv_diff_convec_opers_3d-adv_diff_convec_opers.o `test -f 'adv_diff_convec_opers.cpp' || echo '$(srcdir)/'`adv_diff_convec_opers.cpp
+
+adv_diff_convec_opers_3d-adv_diff_convec_opers.obj: adv_diff_convec_opers.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_convec_opers_3d_CXXFLAGS) $(CXXFLAGS) -MT adv_diff_convec_opers_3d-adv_diff_convec_opers.obj -MD -MP -MF $(DEPDIR)/adv_diff_convec_opers_3d-adv_diff_convec_opers.Tpo -c -o adv_diff_convec_opers_3d-adv_diff_convec_opers.obj `if test -f 'adv_diff_convec_opers.cpp'; then $(CYGPATH_W) 'adv_diff_convec_opers.cpp'; else $(CYGPATH_W) '$(srcdir)/adv_diff_convec_opers.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/adv_diff_convec_opers_3d-adv_diff_convec_opers.Tpo $(DEPDIR)/adv_diff_convec_opers_3d-adv_diff_convec_opers.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='adv_diff_convec_opers.cpp' object='adv_diff_convec_opers_3d-adv_diff_convec_opers.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_convec_opers_3d_CXXFLAGS) $(CXXFLAGS) -c -o adv_diff_convec_opers_3d-adv_diff_convec_opers.obj `if test -f 'adv_diff_convec_opers.cpp'; then $(CYGPATH_W) 'adv_diff_convec_opers.cpp'; else $(CYGPATH_W) '$(srcdir)/adv_diff_convec_opers.cpp'; fi`
+
+bp_adv_diff_01_2d-bp_adv_diff_01.o: bp_adv_diff_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bp_adv_diff_01_2d_CXXFLAGS) $(CXXFLAGS) -MT bp_adv_diff_01_2d-bp_adv_diff_01.o -MD -MP -MF $(DEPDIR)/bp_adv_diff_01_2d-bp_adv_diff_01.Tpo -c -o bp_adv_diff_01_2d-bp_adv_diff_01.o `test -f 'bp_adv_diff_01.cpp' || echo '$(srcdir)/'`bp_adv_diff_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bp_adv_diff_01_2d-bp_adv_diff_01.Tpo $(DEPDIR)/bp_adv_diff_01_2d-bp_adv_diff_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='bp_adv_diff_01.cpp' object='bp_adv_diff_01_2d-bp_adv_diff_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bp_adv_diff_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o bp_adv_diff_01_2d-bp_adv_diff_01.o `test -f 'bp_adv_diff_01.cpp' || echo '$(srcdir)/'`bp_adv_diff_01.cpp
+
+bp_adv_diff_01_2d-bp_adv_diff_01.obj: bp_adv_diff_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bp_adv_diff_01_2d_CXXFLAGS) $(CXXFLAGS) -MT bp_adv_diff_01_2d-bp_adv_diff_01.obj -MD -MP -MF $(DEPDIR)/bp_adv_diff_01_2d-bp_adv_diff_01.Tpo -c -o bp_adv_diff_01_2d-bp_adv_diff_01.obj `if test -f 'bp_adv_diff_01.cpp'; then $(CYGPATH_W) 'bp_adv_diff_01.cpp'; else $(CYGPATH_W) '$(srcdir)/bp_adv_diff_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bp_adv_diff_01_2d-bp_adv_diff_01.Tpo $(DEPDIR)/bp_adv_diff_01_2d-bp_adv_diff_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='bp_adv_diff_01.cpp' object='bp_adv_diff_01_2d-bp_adv_diff_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bp_adv_diff_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o bp_adv_diff_01_2d-bp_adv_diff_01.obj `if test -f 'bp_adv_diff_01.cpp'; then $(CYGPATH_W) 'bp_adv_diff_01.cpp'; else $(CYGPATH_W) '$(srcdir)/bp_adv_diff_01.cpp'; fi`
+
+bp_adv_diff_02_2d-bp_adv_diff_02.o: bp_adv_diff_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bp_adv_diff_02_2d_CXXFLAGS) $(CXXFLAGS) -MT bp_adv_diff_02_2d-bp_adv_diff_02.o -MD -MP -MF $(DEPDIR)/bp_adv_diff_02_2d-bp_adv_diff_02.Tpo -c -o bp_adv_diff_02_2d-bp_adv_diff_02.o `test -f 'bp_adv_diff_02.cpp' || echo '$(srcdir)/'`bp_adv_diff_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bp_adv_diff_02_2d-bp_adv_diff_02.Tpo $(DEPDIR)/bp_adv_diff_02_2d-bp_adv_diff_02.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='bp_adv_diff_02.cpp' object='bp_adv_diff_02_2d-bp_adv_diff_02.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bp_adv_diff_02_2d_CXXFLAGS) $(CXXFLAGS) -c -o bp_adv_diff_02_2d-bp_adv_diff_02.o `test -f 'bp_adv_diff_02.cpp' || echo '$(srcdir)/'`bp_adv_diff_02.cpp
+
+bp_adv_diff_02_2d-bp_adv_diff_02.obj: bp_adv_diff_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bp_adv_diff_02_2d_CXXFLAGS) $(CXXFLAGS) -MT bp_adv_diff_02_2d-bp_adv_diff_02.obj -MD -MP -MF $(DEPDIR)/bp_adv_diff_02_2d-bp_adv_diff_02.Tpo -c -o bp_adv_diff_02_2d-bp_adv_diff_02.obj `if test -f 'bp_adv_diff_02.cpp'; then $(CYGPATH_W) 'bp_adv_diff_02.cpp'; else $(CYGPATH_W) '$(srcdir)/bp_adv_diff_02.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/bp_adv_diff_02_2d-bp_adv_diff_02.Tpo $(DEPDIR)/bp_adv_diff_02_2d-bp_adv_diff_02.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='bp_adv_diff_02.cpp' object='bp_adv_diff_02_2d-bp_adv_diff_02.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bp_adv_diff_02_2d_CXXFLAGS) $(CXXFLAGS) -c -o bp_adv_diff_02_2d-bp_adv_diff_02.obj `if test -f 'bp_adv_diff_02.cpp'; then $(CYGPATH_W) 'bp_adv_diff_02.cpp'; else $(CYGPATH_W) '$(srcdir)/bp_adv_diff_02.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -814,11 +911,14 @@ clean: clean-am
 clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/adv_diff_01_2d-adv_diff_01.Po
-	-rm -f ./$(DEPDIR)/adv_diff_01_3d-adv_diff_01.Po
+		-rm -f ./$(DEPDIR)/adv_diff_01_3d-adv_diff_01.Po
 	-rm -f ./$(DEPDIR)/adv_diff_02_2d-adv_diff_02.Po
 	-rm -f ./$(DEPDIR)/adv_diff_02_3d-adv_diff_02.Po
 	-rm -f ./$(DEPDIR)/adv_diff_03_2d-adv_diff_03.Po
+	-rm -f ./$(DEPDIR)/adv_diff_convec_opers_2d-adv_diff_convec_opers.Po
+	-rm -f ./$(DEPDIR)/adv_diff_convec_opers_3d-adv_diff_convec_opers.Po
+	-rm -f ./$(DEPDIR)/bp_adv_diff_01_2d-bp_adv_diff_01.Po
+	-rm -f ./$(DEPDIR)/bp_adv_diff_02_2d-bp_adv_diff_02.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -864,11 +964,14 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/adv_diff_01_2d-adv_diff_01.Po
-	-rm -f ./$(DEPDIR)/adv_diff_01_3d-adv_diff_01.Po
+		-rm -f ./$(DEPDIR)/adv_diff_01_3d-adv_diff_01.Po
 	-rm -f ./$(DEPDIR)/adv_diff_02_2d-adv_diff_02.Po
 	-rm -f ./$(DEPDIR)/adv_diff_02_3d-adv_diff_02.Po
 	-rm -f ./$(DEPDIR)/adv_diff_03_2d-adv_diff_03.Po
+	-rm -f ./$(DEPDIR)/adv_diff_convec_opers_2d-adv_diff_convec_opers.Po
+	-rm -f ./$(DEPDIR)/adv_diff_convec_opers_3d-adv_diff_convec_opers.Po
+	-rm -f ./$(DEPDIR)/bp_adv_diff_01_2d-bp_adv_diff_01.Po
+	-rm -f ./$(DEPDIR)/bp_adv_diff_02_2d-bp_adv_diff_02.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -906,7 +1009,8 @@ uninstall-am:
 .PRECIOUS: Makefile
 
 .f.m4.f:
-	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
+	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DCURRENT_SRCDIR=$(srcdir) \
+		-DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
