@@ -41,9 +41,6 @@ callSetFluidSolidDensityCallbackFunction(int rho_idx,
 } // callSetFluidSolidDensityCallBackFunction
 
 // Various options to setting side-centered densities
-static int SMOOTH_SC_RHO = 0;
-static int DESJARDINS_SC_RHO = 0;
-static int HARMONIC_CC_TO_SC_RHO = 1;
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
 
@@ -192,7 +189,7 @@ SetFluidSolidDensity::setDensityPatchData(int rho_idx,
                         const double phi_solid_upper = (*ls_solid_data)(si.toCell(1));
 
                         // SETTING 3: Simple average of phi onto side centers and set rho_sc directly
-                        double h_solid, h_gas;
+                        double h_solid;
                         const double* const patch_dx = patch_geom->getDx();
                         const double alpha = d_num_solid_interface_cells * patch_dx[0];
                         const double phi_solid = 0.5 * (phi_solid_lower + phi_solid_upper);

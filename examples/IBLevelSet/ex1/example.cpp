@@ -43,9 +43,6 @@
 #include "SetFluidSolidViscosity.h"
 #include "TagLSRefinementCells.h"
 
-int coarsest_ln, max_finest_ln;
-double dx, ds;
-
 // Struct to maintain the properties of the circular interface
 struct CircularInterface
 {
@@ -403,9 +400,7 @@ main(int argc, char* argv[])
         Pointer<IBRedundantInitializer> ib_initializer = new IBRedundantInitializer(
             "IBRedundantInitializer", app_initializer->getComponentDatabase("IBRedundantInitializer"));
         std::vector<std::string> struct_list_vec(1, "InterpolationMesh");
-        coarsest_ln = 0;
-        max_finest_ln = input_db->getInteger("MAX_LEVELS") - 1;
-        ib_initializer->setStructureNamesOnLevel(max_finest_ln, struct_list_vec);
+        ib_initializer->setStructureNamesOnLevel(input_db->getInteger("MAX_LEVELS") - 1, struct_list_vec);
         ib_initializer->registerInitStructureFunction(generate_interp_mesh);
         ib_interpolant_method_ops->registerLInitStrategy(ib_initializer);
         ib_interpolant_method_ops->registerVariableAndHierarchyIntegrator(
