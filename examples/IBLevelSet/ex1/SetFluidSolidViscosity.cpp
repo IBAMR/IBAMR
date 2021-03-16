@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2019 by the IBAMR developers
+// Copyright (c) 2021 - 2021 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -74,7 +74,7 @@ SetFluidSolidViscosity::setViscosityPatchData(int mu_idx,
 {
     // Get the current level set information
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int ls_solid_idx = -1, ls_gas_idx = -1;
+    int ls_solid_idx = -1;
 
     if (MathUtilities<double>::equalEps(time, current_time))
     {

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2019 by the IBAMR developers
+// Copyright (c) 2021 - 2021 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -76,7 +76,7 @@ callTagSolidLSRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy<N
                                               const int level_number,
                                               const double /*error_data_time*/,
                                               const int tag_index,
-                                              const bool initial_time,
+                                              const bool /*initial_time*/,
                                               const bool /*uses_richardson_extrapolation_too*/,
                                               void* ctx)
 {

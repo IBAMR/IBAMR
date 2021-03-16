@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2019 by the IBAMR developers
+// Copyright (c) 2021 - 2021 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -10,14 +10,6 @@
 // COPYRIGHT at the top level directory of IBAMR.
 //
 // ---------------------------------------------------------------------
-
-// Config files
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
-#include <SAMRAI_config.h>
-
-// Headers for basic PETSc functions
-#include <petscsys.h>
 
 // Headers for basic SAMRAI objects
 #include <BergerRigoutsos.h>
@@ -40,6 +32,7 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBTKInit.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
@@ -49,9 +42,6 @@
 #include "SetFluidSolidDensity.h"
 #include "SetFluidSolidViscosity.h"
 #include "TagLSRefinementCells.h"
-
-int coarsest_ln, max_finest_ln;
-double dx, ds;
 
 // Struct to maintain the properties of the circular interface
 struct CircularInterface
@@ -174,11 +164,8 @@ external_force_torque(double /*data_time*/, int /*cycle_num*/, Eigen::Vector3d& 
 int
 main(int argc, char* argv[])
 {
-    // Initialize libMesh, PETSc, MPI, and SAMRAI.
-    LibMeshInit init(argc, argv);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize PETSc, MPI, and SAMRAI.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
     // Increase maximum patch data component indices
     SAMRAIManager::setMaxNumberPatchDataEntries(2500);
@@ -413,9 +400,7 @@ main(int argc, char* argv[])
         Pointer<IBRedundantInitializer> ib_initializer = new IBRedundantInitializer(
             "IBRedundantInitializer", app_initializer->getComponentDatabase("IBRedundantInitializer"));
         std::vector<std::string> struct_list_vec(1, "InterpolationMesh");
-        coarsest_ln = 0;
-        max_finest_ln = input_db->getInteger("MAX_LEVELS") - 1;
-        ib_initializer->setStructureNamesOnLevel(max_finest_ln, struct_list_vec);
+        ib_initializer->setStructureNamesOnLevel(input_db->getInteger("MAX_LEVELS") - 1, struct_list_vec);
         ib_initializer->registerInitStructureFunction(generate_interp_mesh);
         ib_interpolant_method_ops->registerLInitStrategy(ib_initializer);
         ib_interpolant_method_ops->registerVariableAndHierarchyIntegrator(
