@@ -279,7 +279,7 @@ FEProjector::buildL2ProjectionSolver(const std::string& system_name)
                     FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID
                 };
                 std::vector<boundary_id_type> bdry_ids;
-                mesh.boundary_info->boundary_ids(elem, side, bdry_ids);
+                mesh.get_boundary_info().boundary_ids(elem, side, bdry_ids);
                 const boundary_id_type dirichlet_bdry_ids = get_dirichlet_bdry_ids(bdry_ids);
                 if (!dirichlet_bdry_ids) continue;
                 fe->reinit(elem);
@@ -528,7 +528,7 @@ FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, c
                     FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID
                 };
                 std::vector<boundary_id_type> bdry_ids;
-                mesh.boundary_info->boundary_ids(elem, side, bdry_ids);
+                mesh.get_boundary_info().boundary_ids(elem, side, bdry_ids);
                 const boundary_id_type dirichlet_bdry_ids = get_dirichlet_bdry_ids(bdry_ids);
                 if (!dirichlet_bdry_ids) continue;
                 fe->reinit(elem);

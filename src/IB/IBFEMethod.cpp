@@ -265,7 +265,7 @@ void
 assemble_poisson(EquationSystems& es, const std::string& /*system_name*/)
 {
     const MeshBase& mesh = es.get_mesh();
-    const BoundaryInfo& boundary_info = *mesh.boundary_info;
+    const BoundaryInfo& boundary_info = mesh.get_boundary_info();
     const unsigned int dim = mesh.mesh_dimension();
     auto& system = es.get_system<LinearImplicitSystem>(IBFEMethod::PRESSURE_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
@@ -1842,7 +1842,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     // Extract the mesh.
     EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems.get_mesh();
-    const BoundaryInfo& boundary_info = *mesh.boundary_info;
+    const BoundaryInfo& boundary_info = mesh.get_boundary_info();
     const unsigned int dim = mesh.mesh_dimension();
 
     // Setup extra data needed to compute stresses/forces.
@@ -2073,7 +2073,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     // Extract the mesh.
     EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems.get_mesh();
-    const BoundaryInfo& boundary_info = *mesh.boundary_info;
+    const BoundaryInfo& boundary_info = mesh.get_boundary_info();
     const unsigned int dim = mesh.mesh_dimension();
 
     // Extract the FE systems and DOF maps, and setup the FE object.
@@ -2361,7 +2361,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     // Extract the mesh.
     EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems.get_mesh();
-    const BoundaryInfo& boundary_info = *mesh.boundary_info;
+    const BoundaryInfo& boundary_info = mesh.get_boundary_info();
     const unsigned int dim = mesh.mesh_dimension();
     TBOX_ASSERT(dim == NDIM);
 
