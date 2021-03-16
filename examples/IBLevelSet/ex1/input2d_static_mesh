@@ -1,0 +1,411 @@
+// physical parameters
+R  = 0.5
+Re = 100.0
+MU = 2.0*R/Re
+RHO = 1.0
+UINF = 1.0
+FREQ = 0.2
+RHO_F = RHO
+RHO_S = RHO
+MU_F  = MU
+SET_MU_S = TRUE
+MU_S  = MU
+
+// Solid and gas level set parameters
+XCOM        = 0.0
+YCOM        = 0.0
+
+// grid spacing parameters
+MAX_LEVELS = 5        // maximum number of levels in locally refined grid
+REF_RATIO  = 4        // refinement ratio between levels
+REF_RATIO_FINEST = 4  // refinement ratio for the finest level.
+
+LENGTH = 16.0
+HEIGHT = 8.0
+Nx = 62                                  // coarsest grid spacing
+Ny = 31
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx // finest   grid spacing
+H_COARSEST       = LENGTH/Nx
+
+NUM_SOLID_INTERFACE_CELLS = 2.0
+
+// Level set option parameters
+LS_REINIT_INTERVAL    = 1
+LS_TAG_VALUE          = 0.0
+LS_TAG_ABS_THRESH     = 2*H_COARSEST
+
+VelocityInitialConditions {
+   function_0 = "0.0"
+   function_1 = "0.0"
+}
+
+SolidLevelSetInitialCondition {
+   xcom = XCOM
+   ycom = YCOM
+   r    = R
+   function = "sqrt((X_0 - xcom)^2 + (X_1 - ycom)^2) - r"
+}
+
+VelocityBcCoefs_0 {
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+VelocityBcCoefs_1 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+DensityBcCoefs {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+ViscosityBcCoefs {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+PhiBcCoefs {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+// Simulation Parameters
+START_TIME           = 0.0e0
+END_TIME             = 26.0e0
+GROW_DT              = 2.0e0
+MAX_INTEGRATOR_STEPS = 10000000000
+CFL_MAX              = 0.3
+NUM_INS_CYCLES       = 1
+CONVECTIVE_FORM      = "CONSERVATIVE"
+NORMALIZE_PRESSURE   = TRUE
+VORTICITY_TAGGING    = TRUE
+TAG_BUFFER           = 2
+REGRID_INTERVAL      = 10
+DT_MAX               = 0.0005
+OUTPUT_U             = TRUE
+OUTPUT_P             = TRUE
+OUTPUT_F             = TRUE
+OUTPUT_OMEGA         = TRUE
+OUTPUT_DIV_U         = TRUE
+OUTPUT_RHO           = TRUE
+OUTPUT_MU            = TRUE
+RHO_IS_CONST         = FALSE
+MU_IS_CONST          = FALSE
+ERROR_ON_DT_CHANGE   = FALSE
+
+// Application
+CHI = RHO_S/DT_MAX
+PRECOND_REINIT_INTERVAL      = 1
+VC_INTERPOLATION_TYPE        = "VC_HARMONIC_INTERP"
+DENSITY_CONVECTIVE_LIMITER   = "CUI"
+VELOCITY_CONVECTIVE_LIMITER  = "CUI"
+DENSITY_TS                   = "SSPRK3"
+OPERATOR_SCALE_FACTORS       = 1.0
+EXPLICITLY_REMOVE_NULLSPACE  = FALSE
+ENABLE_LOGGING               = TRUE
+
+// AdvDiff solver parameters
+ADV_DIFF_NUM_CYCLES         = 1
+ADV_DIFF_CONVECTIVE_TS_TYPE = "ADAMS_BASHFORTH"
+ADV_DIFF_CONVECTIVE_OP_TYPE = "PPM"
+ADV_DIFF_CONVECTIVE_FORM    = "CONSERVATIVE"
+
+IBInterpolantHierarchyIntegrator {
+   start_time            = START_TIME
+   end_time              = END_TIME
+   grow_dt               = GROW_DT
+   max_integrator_steps  = MAX_INTEGRATOR_STEPS
+   regrid_interval       = REGRID_INTERVAL
+
+   dt_max             = DT_MAX
+   num_cycles         = NUM_INS_CYCLES
+   enable_logging     = ENABLE_LOGGING
+   error_on_dt_change = ERROR_ON_DT_CHANGE
+}
+
+IBInterpolantMethod {
+    enable_logging = ENABLE_LOGGING
+}
+
+IBRedundantInitializer {
+    max_levels      = MAX_LEVELS
+}
+
+BrinkmanPenalization {
+    chi = CHI
+}
+
+INSVCStaggeredConservativeHierarchyIntegrator {
+   start_time                 = START_TIME
+   end_time                   = END_TIME
+   grow_dt                    = GROW_DT
+   convective_difference_form = CONVECTIVE_FORM
+   normalize_pressure         = NORMALIZE_PRESSURE
+   cfl                        = CFL_MAX
+   dt_max                     = DT_MAX
+   using_vorticity_tagging    = VORTICITY_TAGGING
+   vorticity_rel_thresh       = 0.25
+   tag_buffer                 = TAG_BUFFER
+   regrid_interval            = REGRID_INTERVAL
+   output_U                   = OUTPUT_U
+   output_P                   = OUTPUT_P
+   output_F                   = OUTPUT_F
+   output_Omega               = OUTPUT_OMEGA
+   output_Div_U               = OUTPUT_DIV_U
+   output_rho                 = OUTPUT_RHO
+   output_mu                  = OUTPUT_MU
+   rho_is_const               = RHO_IS_CONST
+   mu_is_const                = MU_IS_CONST
+   precond_reinit_interval    = PRECOND_REINIT_INTERVAL
+   operator_scale_factors     = OPERATOR_SCALE_FACTORS
+   vc_interpolation_type      = VC_INTERPOLATION_TYPE
+   enable_logging             = ENABLE_LOGGING
+   max_integrator_steps       = MAX_INTEGRATOR_STEPS
+   explicitly_remove_nullspace= EXPLICITLY_REMOVE_NULLSPACE
+   num_cycles                 = NUM_INS_CYCLES
+
+   // Solver parameters
+   velocity_solver_type = "VC_VELOCITY_PETSC_KRYLOV_SOLVER"
+   velocity_precond_type = "VC_VELOCITY_POINT_RELAXATION_FAC_PRECONDITIONER"
+   velocity_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 1
+      rel_residual_tol = 1.0e-1
+   }
+   velocity_precond_db {
+      num_pre_sweeps = 0
+      num_post_sweeps = 3
+      prolongation_method = "CONSERVATIVE_LINEAR_REFINE"
+      restriction_method = "CONSERVATIVE_COARSEN"
+      coarse_solver_type = "VC_VELOCITY_PETSC_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 100
+      coarse_solver_db {
+         ksp_type = "gmres"
+         pc_type = "jacobi"
+      }
+   }
+    pressure_solver_type = "PETSC_KRYLOV_SOLVER"
+    pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+    pressure_solver_db
+    {
+      ksp_type = "richardson"
+      max_iterations = 1
+      rel_residual_tol = 1.0e-1
+    }
+
+    pressure_precond_db {
+      num_pre_sweeps  = 0
+      num_post_sweeps = 3
+      prolongation_method = "LINEAR_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      coarse_solver_type = "PETSC_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 100
+      coarse_solver_db {
+         ksp_type = "gmres"
+         pc_type = "jacobi"
+      }
+    }
+    mass_momentum_integrator_db {
+      density_time_stepping_type = DENSITY_TS
+      velocity_convective_limiter = VELOCITY_CONVECTIVE_LIMITER
+      density_convective_limiter = DENSITY_CONVECTIVE_LIMITER
+    }
+
+}
+
+AdvDiffSemiImplicitHierarchyIntegrator {
+   start_time                    = START_TIME
+   end_time                      = END_TIME
+   grow_dt                       = GROW_DT
+   num_cycles                    = ADV_DIFF_NUM_CYCLES
+   convective_time_stepping_type = ADV_DIFF_CONVECTIVE_TS_TYPE
+   convective_op_type            = ADV_DIFF_CONVECTIVE_OP_TYPE
+   convective_difference_form    = ADV_DIFF_CONVECTIVE_FORM
+   cfl                           = CFL_MAX
+   dt_max                        = DT_MAX
+   tag_buffer                    = TAG_BUFFER
+   enable_logging                = ENABLE_LOGGING
+}
+
+Main {
+
+// log file parameters
+   log_file_name    = "IBLevelSet_OscillatingCylinder2d.log"
+   log_all_nodes    = FALSE
+
+// visualization dump parameters
+   viz_writer            = "VisIt","Silo"
+   viz_dump_interval       = 2500            //zero to turn off
+   viz_dump_dirname      = "viz_cylinder2d"
+   visit_number_procs_per_file = 1
+
+// restart dump parameters
+   restart_interval      = 0                 // zero to turn off
+   restart_write_dirname = "restart_IB2d"
+
+// hierarchy data dump parameters
+   hier_dump_interval = 0                    // zero to turn off
+   hier_dump_dirname  = "hier_data_IB2d"
+
+// timer dump parameters
+   timer_dump_interval   = 0                 // zero to turn off
+
+// post processor parameters
+   postprocess_interval = 0                  // zero to turn off
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0) , (Nx - 1 , Ny - 1) ]
+   x_lo         = -LENGTH, -HEIGHT         // lower end of computational domain.
+   x_up         =  LENGTH, HEIGHT          // upper end of computational domain.
+   periodic_dimension = 1, 1
+}
+
+GriddingAlgorithm {
+   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
+   coalesce_boxes = TRUE
+
+   max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
+   ratio_to_coarser {
+      level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
+      level_2 = REF_RATIO, REF_RATIO
+      level_3 = REF_RATIO_FINEST,REF_RATIO_FINEST
+      level_4 = REF_RATIO_FINEST,REF_RATIO_FINEST
+      level_5 = REF_RATIO_FINEST,REF_RATIO_FINEST
+   }
+
+   largest_patch_size {
+      level_0 =512,512  // largest patch allowed in hierarchy
+                        // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 = 8, 8 // smallest patch allowed in hierarchy
+                     // all finer levels will use same values as level_0...
+   }
+
+   efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level
+   combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller
+                                      // boxes < efficiency * vol of large box
+}
+
+Nx_lower1 = int( (LENGTH/2 - 3.6)/H_COARSEST )
+Ny_lower1 = int( (HEIGHT/2 - 2.5)/H_COARSEST )
+
+Nx_upper1 = int( (LENGTH/2 + 3.4)/H_COARSEST )
+Ny_upper1 = int( (HEIGHT/2 + 2.5)/H_COARSEST )
+
+Nx_lower2 = int( (LENGTH/2 - 2.8)/H_COARSEST )
+Ny_lower2 = int( (HEIGHT/2 - 1.7)/H_COARSEST )
+
+Nx_upper2 = int( (LENGTH/2 + 2.7)/H_COARSEST )
+Ny_upper2 = int( (HEIGHT/2 + 1.7)/H_COARSEST )
+
+Nx_lower3 = int( (LENGTH/2 - 2.3)/H_COARSEST )
+Ny_lower3 = int( (HEIGHT/2 - 1.4)/H_COARSEST )
+
+Nx_upper3 = int( (LENGTH/2 + 2.3)/H_COARSEST )
+Ny_upper3 = int( (HEIGHT/2 + 1.4)/H_COARSEST )
+
+Nx_lower4 = int( (LENGTH/2 - 1.8)/H_COARSEST )
+Ny_lower4 = int( (HEIGHT/2 - 1.0)/H_COARSEST )
+
+Nx_upper4 = int( (LENGTH/2 + 1.8)/H_COARSEST )
+Ny_upper4 = int( (HEIGHT/2 + 1.0)/H_COARSEST )
+
+Nx_lower5 = int( (LENGTH/2 - 1.2)/H_COARSEST )
+Ny_lower5 = int( (HEIGHT/2 - 0.6)/H_COARSEST )
+
+Nx_upper5 = int( (LENGTH/2 + 1.2)/H_COARSEST )
+Ny_upper5 = int( (HEIGHT/2 + 0.5)/H_COARSEST )
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [( Nx_lower1 , Ny_lower1 ),( Nx_upper1 , Ny_upper1 )]
+      level_1 = [( REF_RATIO*Nx_lower2 , REF_RATIO*Ny_lower2 ),( REF_RATIO*Nx_upper2 , REF_RATIO*Ny_upper2 )]
+      level_2 = [( REF_RATIO^2*Nx_lower3 , REF_RATIO^2*Ny_lower3 ),( REF_RATIO^2*Nx_upper3 , REF_RATIO^2*Ny_upper3 )]
+      level_3 = [( REF_RATIO^3*Nx_lower4 , REF_RATIO^3*Ny_lower4 ),( REF_RATIO^3*Nx_upper4 , REF_RATIO^3*Ny_upper4 )]
+      level_4 = [( REF_RATIO^4*Nx_lower5 , REF_RATIO^4*Ny_lower5 ),( REF_RATIO^4*Nx_upper5 , REF_RATIO^4*Ny_upper5 )]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 0.1
+
+   timer_list = "IBAMR::*::*" , "IBTK::*::*" , "*::*::*"
+}
