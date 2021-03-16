@@ -334,7 +334,8 @@ main(int argc, char* argv[])
         solid_mesh.prepare_for_use();
 
         BoundaryMesh boundary_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension() - 1);
-        solid_mesh.boundary_info->sync(boundary_mesh);
+        BoundaryInfo& boundary_info = solid_mesh.get_boundary_info();
+        boundary_info.sync(boundary_mesh);
         boundary_mesh.prepare_for_use();
 
         bool use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);

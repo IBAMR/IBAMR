@@ -95,7 +95,8 @@ test(LibMeshInit& init, const MeshType mesh_type = MeshType::libmesh)
 
     // set up boundary mesh:
     BoundaryMesh boundary_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension() - 1);
-    solid_mesh.boundary_info->sync(boundary_mesh);
+    BoundaryInfo& boundary_info = solid_mesh.get_boundary_info();
+    boundary_info.sync(boundary_mesh);
     boundary_mesh.prepare_for_use();
     Mesh& mesh = boundary_mesh;
     // the rest is the same as fe_values_01 (with the small exception of using

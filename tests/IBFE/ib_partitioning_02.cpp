@@ -16,7 +16,6 @@
 #include <ibamr/IBFESurfaceMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
-#include <ibamr/app_namespaces.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
@@ -50,6 +49,8 @@
 
 #include <string>
 #include <vector>
+
+#include <ibamr/app_namespaces.h>
 
 // This file is the main driver for parallel IB element partitioning for surface meshes.
 
@@ -130,7 +131,8 @@ main(int argc, char** argv)
         }
 
         BoundaryMesh boundary_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension() - 1);
-        solid_mesh.boundary_info->sync(boundary_mesh);
+        BoundaryInfo& boundary_info = solid_mesh.get_boundary_info();
+        boundary_info.sync(boundary_mesh);
         boundary_mesh.prepare_for_use();
 
         bool use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);

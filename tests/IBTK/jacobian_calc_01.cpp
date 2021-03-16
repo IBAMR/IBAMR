@@ -93,7 +93,8 @@ test_cube(LibMeshInit& init,
     // also test the surface mesh:
     {
         BoundaryMesh boundary_mesh(mesh.comm(), mesh.mesh_dimension() - 1);
-        mesh.boundary_info->sync(boundary_mesh);
+        BoundaryInfo& boundary_info = mesh.get_boundary_info();
+        boundary_info.sync(boundary_mesh);
         boundary_mesh.prepare_for_use();
         TBOX_ASSERT(boundary_mesh.spatial_dimension() == mesh.mesh_dimension());
         TBOX_ASSERT(boundary_mesh.mesh_dimension() == mesh.mesh_dimension() - 1);
@@ -193,7 +194,8 @@ test_circle(LibMeshInit& init,
     // also test the surface mesh:
     {
         BoundaryMesh boundary_mesh(mesh.comm(), mesh.mesh_dimension() - 1);
-        mesh.boundary_info->sync(boundary_mesh);
+        BoundaryInfo& boundary_info = mesh.get_boundary_info();
+        boundary_info.sync(boundary_mesh);
         boundary_mesh.prepare_for_use();
         TBOX_ASSERT(boundary_mesh.spatial_dimension() == mesh.mesh_dimension());
         TBOX_ASSERT(boundary_mesh.mesh_dimension() == mesh.mesh_dimension() - 1);

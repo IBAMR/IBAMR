@@ -579,7 +579,7 @@ FEMechanicsBase::doInitializeFEData(const bool use_present_data)
         // Set up boundary conditions.  Specifically, add appropriate boundary
         // IDs to the BoundaryInfo object associated with the mesh, and add DOF
         // constraints for the nodal forces and velocities.
-        const MeshBase& mesh = equation_systems.get_mesh();
+        MeshBase& mesh = equation_systems.get_mesh();
 
         DofMap& F_dof_map = F_system.get_dof_map();
         DofMap& U_dof_map = U_system.get_dof_map();
@@ -601,7 +601,7 @@ FEMechanicsBase::doInitializeFEData(const bool use_present_data)
                     FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID
                 };
                 std::vector<boundary_id_type> bdry_ids;
-                mesh.boundary_info->boundary_ids(elem, side, bdry_ids);
+                mesh.get_boundary_info().boundary_ids(elem, side, bdry_ids);
                 const boundary_id_type dirichlet_bdry_ids = get_dirichlet_bdry_ids(bdry_ids);
                 if (!dirichlet_bdry_ids) continue;
 
@@ -610,7 +610,8 @@ FEMechanicsBase::doInitializeFEData(const bool use_present_data)
                     if (!elem->is_node_on_side(n, side)) continue;
 
                     const Node* const node = elem->node_ptr(n);
-                    mesh.boundary_info->add_node(node, dirichlet_bdry_ids);
+                    BoundaryInfo& boundary_info = mesh.get_boundary_info();
+                    boundary_info.add_node(node, dirichlet_bdry_ids);
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[d])) continue;
@@ -862,7 +863,7 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
     // Extract the mesh.
     EquationSystems& equation_systems = *d_equation_systems[part];
     const MeshBase& mesh = equation_systems.get_mesh();
-    const BoundaryInfo& boundary_info = *mesh.boundary_info;
+    const BoundaryInfo& boundary_info = mesh.get_boundary_info();
     const unsigned int dim = mesh.mesh_dimension();
 
     // Setup global and elemental right-hand-side vectors.
