@@ -116,6 +116,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/adv_diff/AdvDiffStochasticForcing.cpp \
 ../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp \
 ../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp \
+../src/adv_diff/IEPSemiImplicitHierarchyIntegrator.cpp \
 ../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 ../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 ../src/complex_fluids/CFUpperConvectiveOperator.cpp \
@@ -267,6 +268,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/IBStrategy.h \
 ../include/ibamr/IBStrategySet.h \
 ../include/ibamr/IBTargetPointForceSpec.h \
+../include/ibamr/IEPSemiImplicitHierarchyIntegrator.h \
 ../include/ibamr/INSCollocatedCenteredConvectiveOperator.h \
 ../include/ibamr/INSCollocatedConvectiveOperatorManager.h \
 ../include/ibamr/INSCollocatedHierarchyIntegrator.h \
