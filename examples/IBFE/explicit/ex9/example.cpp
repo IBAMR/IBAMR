@@ -212,9 +212,10 @@ main(int argc, char* argv[])
         }
         solid_mesh.prepare_for_use();
 
-        BoundaryMesh bndry_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension() - 1);
-        solid_mesh.boundary_info->sync(bndry_mesh);
-        bndry_mesh.prepare_for_use();
+        BoundaryMesh boundary_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension() - 1);
+        BoundaryInfo& boundary_info = solid_mesh.get_boundary_info();
+        boundary_info.sync(boundary_mesh);
+        boundary_mesh.prepare_for_use();
 
         kappa_s = input_db->getDouble("KAPPA_S");
         eta_s = input_db->getDouble("ETA_S");
@@ -244,7 +245,7 @@ main(int argc, char* argv[])
         Pointer<IBFEMethod> ib_method_ops =
             new IBFEMethod("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
-                           &bndry_mesh,
+                           &boundary_mesh,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
                            /*register_for_restart*/ true,
                            restart_read_dirname,
@@ -384,7 +385,7 @@ main(int argc, char* argv[])
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
         std::unique_ptr<ExodusII_IO> exodus_solid_io(uses_exodus ? new ExodusII_IO(solid_mesh) : NULL);
-        std::unique_ptr<ExodusII_IO> exodus_bndry_io(uses_exodus ? new ExodusII_IO(bndry_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_bndry_io(uses_exodus ? new ExodusII_IO(boundary_mesh) : NULL);
 
         // Check to see if this is a restarted run to append current exodus files
         if (uses_exodus)
