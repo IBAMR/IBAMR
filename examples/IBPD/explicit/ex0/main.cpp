@@ -49,12 +49,12 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 
 static const int nx = 101; 
 static const int ny = 51;
-
 #if (NDIM == 3)
+    static const int nz = 3;
     static const int left_begin = 0;
-    static const int left_end = ny*3 - 1;
-    static const int right_begin = ny * 3 * nx - ny*3;
-    static const int right_end = ny * 3 * nx - 1;
+    static const int left_end = ny*nz - 1;
+    static const int right_begin = ny * nz * nx - ny*3;
+    static const int right_end = ny * nz * nx - 1;
 #endif
 #if (NDIM == 2)
     static const int left_begin = 0;
@@ -147,10 +147,12 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
     Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> F0;
     F0 << FF(0), FF(1), 0.0, FF(3), FF(4), 0.0, 0.0, 0.0, 1.0;
     // F0 << FF(0), FF(1), FF(2), FF(3), FF(4), FF(5), FF(6), FF(7), FF(8);
-    mat_type e = 0.5 * (FF.transpose() + FF) - II;
+    mat_type e = 0.5 * (F0.transpose() + F0) - II;
+    std::cout << "FF =" << F0 << "\n"; 
     #endif
     #if (NDIM == 2)
     mat_type e = 0.5 * (FF.transpose() + FF) - II;
+    std::cout << "FF =" << FF << "\n";
     #endif
 
     const double tr_e = e.trace();
@@ -209,6 +211,8 @@ my_force_damage_fcn(const double /*horizon*/,
     // #if (NDIM == 3)
     //     trac(2) = 0.0;
     // #endif
+    std::cout << "B_master = " << B_mastr << "\n";
+    std::cout << "B_slave = " << B_slave << "\n";
     F_mastr += vol_frac * vol_slave * trac + pen_trac;
     F_slave += -vol_frac * vol_mastr * trac - pen_trac;
 
@@ -487,13 +491,13 @@ public:
                       }
                     }
                 }
-                #if (NDIM == 3)
-                std::cout << "F_PD =" << F_half[0] << "," << F_half[1] << "," << F_half[2]  << "\n";
-                #endif
-                #if (NDIM == 2)
-                std::cout << "F_PD =" << F_half[0] << "," << F_half[1] << "\n";
-                #endif
-                
+                // #if (NDIM == 3)
+                // std::cout << "F_PD =" << F_half[0] << "," << F_half[1] << "," << F_half[2]  << "\n";
+                // #endif
+                // #if (NDIM == 2)
+                // std::cout << "F_PD =" << F_half[0] << "," << F_half[1] << "\n";
+                // #endif
+
                 // if (lag_idx == 3 * 51 * 25 + 51 + 26)
                 // {
                 //     d_ss_stream << new_time << "\t" << X_0[0] << "\t" << X_0[1] << "\t" << X_new[0] << "\t" << X_new[1]
