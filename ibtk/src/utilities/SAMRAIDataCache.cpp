@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2020 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -15,6 +15,7 @@
 
 #include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "CellDataFactory.h"
 #include "CellVariable.h"
@@ -41,8 +42,6 @@
 #include "tbox/Utilities.h"
 
 #include <utility>
-
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

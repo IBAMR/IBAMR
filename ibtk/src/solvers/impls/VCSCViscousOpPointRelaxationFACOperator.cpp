@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2017 - 2020 by the IBAMR developers
+// Copyright (c) 2017 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -21,6 +21,7 @@
 #include "ibtk/VCSCViscousOpPointRelaxationFACOperator.h"
 #include "ibtk/ibtk_enums.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
 #include "Box.h"
@@ -42,8 +43,6 @@
 
 #include <map>
 #include <memory>
-
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

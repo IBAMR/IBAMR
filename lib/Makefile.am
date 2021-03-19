@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2009 - 2021 by the IBAMR developers
+## Copyright (c) 2009 - 2019 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -47,7 +47,6 @@ endif
 
 ## Dimension-dependent libraries
 DIM_INDEPENDENT_SOURCES = \
-../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 ../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 ../src/IB/BrinkmanPenalizationStrategy.cpp \
 ../src/IB/CIBMethod.cpp \
@@ -81,6 +80,8 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/IBLagrangianSourceStrategy.cpp \
 ../src/IB/IBLevelSetMethod.cpp \
 ../src/IB/IBMethod.cpp \
+../src/IB/IBPDForceGen.cpp \
+../src/IB/IBPDMethod.cpp \
 ../src/IB/IBRedundantInitializer.cpp \
 ../src/IB/IBRodForceSpec.cpp \
 ../src/IB/IBRodForceSpecFactory.cpp \
@@ -115,7 +116,6 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.cpp \
 ../src/adv_diff/AdvDiffStochasticForcing.cpp \
 ../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp \
-../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp \
 ../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 ../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 ../src/complex_fluids/CFUpperConvectiveOperator.cpp \
@@ -192,7 +192,6 @@ DIM_INDEPENDENT_SOURCES = \
 if LIBMESH_ENABLED
   DIM_INDEPENDENT_SOURCES += \
   ../src/IB/FEMechanicsBase.cpp \
-  ../src/IB/FEMechanicsExplicitIntegrator.cpp \
   ../src/IB/IBFECentroidPostProcessor.cpp \
   ../src/IB/IBFEDirectForcingKinematics.cpp \
   ../src/IB/IBFEInstrumentPanel.cpp \
@@ -219,8 +218,6 @@ pkg_include_HEADERS += \
 ../include/ibamr/AdvDiffStochasticForcing.h \
 ../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 ../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
-../include/ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h \
-../include/ibamr/BrinkmanAdvDiffBcHelper.h \
 ../include/ibamr/BrinkmanPenalizationStrategy.h \
 ../include/ibamr/BrinkmanPenalizationRigidBodyDynamics.h \
 ../include/ibamr/CIBMethod.h \
@@ -255,6 +252,8 @@ pkg_include_HEADERS += \
 ../include/ibamr/IBLevelSetMethod.h \
 ../include/ibamr/IBMethod.h \
 ../include/ibamr/IBMethodPostProcessStrategy.h \
+../include/ibamr/IBPDForceGen.h \
+../include/ibamr/IBPDMethod.h \
 ../include/ibamr/IBRedundantInitializer.h \
 ../include/ibamr/IBRodForceSpec.h \
 ../include/ibamr/IBHydrodynamicSurfaceForceEvaluator.h \
@@ -338,7 +337,6 @@ pkg_include_HEADERS += \
 if LIBMESH_ENABLED
   pkg_include_HEADERS += \
   ../include/ibamr/FEMechanicsBase.h \
-  ../include/ibamr/FEMechanicsExplicitIntegrator.h \
   ../include/ibamr/FESurfaceDistanceEvaluator.h \
   ../include/ibamr/IBFECentroidPostProcessor.h \
   ../include/ibamr/IBFEDirectForcingKinematics.h \

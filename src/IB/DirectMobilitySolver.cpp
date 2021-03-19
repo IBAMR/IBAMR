@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2015 - 2021 by the IBAMR developers
+// Copyright (c) 2015 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -16,6 +16,7 @@
 #include "ibamr/CIBStrategy.h"
 #include "ibamr/DirectMobilitySolver.h"
 #include "ibamr/StokesSpecifications.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 
@@ -48,8 +49,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 extern "C"
 {
@@ -681,8 +680,8 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
     else if (inv_type == LAPACK_SVD)
     {
         // Locals.
-        int il = 0, iu = 0, m = 0, lwork, liwork, iwkopt = 0;
-        double abstol, vl = 0.0, vu = 0.0, wkopt = 0.0;
+        int il, iu, m, lwork, liwork, iwkopt;
+        double abstol, vl, vu, wkopt;
 
         // Local arrays.
         std::vector<int> isuppz(2 * mat_size);

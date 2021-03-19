@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2020 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -25,6 +25,7 @@
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PETScKrylovPoissonSolver.h"
 #include "ibtk/PoissonSolver.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "tbox/Database.h"
 #include "tbox/PIO.h"
@@ -36,8 +37,6 @@
 #include <ostream>
 #include <string>
 #include <utility>
-
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

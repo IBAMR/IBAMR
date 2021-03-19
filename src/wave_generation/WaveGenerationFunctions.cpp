@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2020 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -18,6 +18,7 @@
 #include "ibamr/StokesWaveGeneratorStrategy.h"
 #include "ibamr/WaveGenerationFunctions.h"
 #include "ibamr/WaveUtilities.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
@@ -39,8 +40,6 @@
 
 #include <cmath>
 #include <string>
-
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 namespace IBAMR
 {

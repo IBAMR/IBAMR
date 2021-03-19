@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2008 - 2020 by the IBAMR developers
+## Copyright (c) 2008 - 2008 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.

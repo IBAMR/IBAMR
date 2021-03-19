@@ -1,0 +1,4 @@
+Fix: The internal PatchHierarchy optionally created by IBFEMethod (i.e., the
+scratch hierarchy) is now correctly deallocated during regridding.
+<br>
+(David Wells, 2020/10/16)

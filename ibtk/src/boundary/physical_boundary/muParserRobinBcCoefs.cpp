@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2020 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -15,6 +15,7 @@
 
 #include "ibtk/ibtk_utilities.h"
 #include "ibtk/muParserRobinBcCoefs.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -39,8 +40,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {
@@ -301,10 +300,9 @@ muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
     // Loop over the boundary box and set the coefficients.
     const unsigned int location_index = bdry_box.getLocationIndex();
     const unsigned int bdry_normal_axis = location_index / 2;
-    const Box<NDIM>& bc_coef_box = (acoef_data ? acoef_data->getBox() :
-                                    bcoef_data ? bcoef_data->getBox() :
-                                    gcoef_data ? gcoef_data->getBox() :
-                                                 Box<NDIM>());
+    const Box<NDIM>& bc_coef_box =
+        (acoef_data ? acoef_data->getBox() :
+                      bcoef_data ? bcoef_data->getBox() : gcoef_data ? gcoef_data->getBox() : Box<NDIM>());
 #if !defined(NDEBUG)
     TBOX_ASSERT(!acoef_data || bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(!bcoef_data || bc_coef_box == bcoef_data->getBox());

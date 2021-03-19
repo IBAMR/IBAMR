@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-#include <ibtk/config.h>
+#include "ibtk/ibtk_macros.h"
 
 #include "InterpolationUtilities.h"
 #include "tbox/MathUtilities.h"

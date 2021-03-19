@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -48,12 +48,12 @@ public:
     /*!
      * Get surface elevation at a specified horizontal position and time.
      */
-    double getSurfaceElevation(double x, double time) const override;
+    double getSurfaceElevation(double x, double time) const;
 
     /*!
      * Get velocity component at a specified position and time.
      */
-    double getVelocity(double x, double z_plus_d, double time, int comp_idx) const override;
+    double getVelocity(double x, double z_plus_d, double time, int comp_idx) const;
 
 private:
     /*!

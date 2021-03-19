@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/StokesFirstOrderWaveBcCoef.h"
+#include "ibamr/namespaces.h"
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -27,8 +28,6 @@
 
 #include <cmath>
 #include <utility>
-
-#include "ibamr/namespaces.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -100,10 +99,9 @@ StokesFirstOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
     else
     {
         const unsigned int bdry_normal_axis = location_index / 2;
-        const Box<NDIM>& bc_coef_box = (acoef_data ? acoef_data->getBox() :
-                                        bcoef_data ? bcoef_data->getBox() :
-                                        gcoef_data ? gcoef_data->getBox() :
-                                                     Box<NDIM>());
+        const Box<NDIM>& bc_coef_box =
+            (acoef_data ? acoef_data->getBox() :
+                          bcoef_data ? bcoef_data->getBox() : gcoef_data ? gcoef_data->getBox() : Box<NDIM>());
 #if !defined(NDEBUG)
         TBOX_ASSERT(!acoef_data || bc_coef_box == acoef_data->getBox());
         TBOX_ASSERT(!bcoef_data || bc_coef_box == bcoef_data->getBox());

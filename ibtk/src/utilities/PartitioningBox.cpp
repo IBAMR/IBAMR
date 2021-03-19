@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2020 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include <ibtk/PartitioningBox.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 #include "IntVector.h"
 #include "Patch.h"
@@ -29,8 +30,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 namespace IBTK

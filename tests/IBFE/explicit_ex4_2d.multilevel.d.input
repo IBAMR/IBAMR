@@ -1,5 +1,4 @@
-// Next multilevel case: interact with coarsest level, but allow a finer fluid
-// level that doesn't have a structure on it.
+// Next multilevel case: interact on multiple levels but not the finest level.
 
 // additional test parameters
 mesh_file = "explicit_ex4_2d.grid-2.xdr"
@@ -10,7 +9,7 @@ RHO = 1.0
 L   = 1.0
 
 // grid spacing parameters
-MAX_LEVELS = 2                                      // maximum number of levels in locally refined grid
+MAX_LEVELS = 3                                      // maximum number of levels in locally refined grid
 REF_RATIO  = 4                                      // refinement ratio between levels
 N = 10                                              // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N            // effective number of grid cells on finest   grid level
@@ -228,12 +227,11 @@ GriddingAlgorithm {
 StandardTagAndInitialize {
    tagging_method = "REFINE_BOXES"
    RefineBoxes {
-      level_0 = [(N/4, N/4), (N/2 - 1, N/2 - 1)],
+      level_0 = [(N/4 ,N/4), (N/2 - 1, N/2 - 1)],
                 [(N/2, N/4), (N - 1,   N/2 - 1)],
                 [(N/4, N/2), (N/2 - 1, 3*N/4 - 1)]
-      // TODO - this produces slightly inconsistent output across machines in
-      // the CFL number, but not the structure volume - I'm not sure why.
-      // level_1 = [( 5*N/4 , 5*N/4 ), (15*N/4 - 1, 7*N/4 - 1 )]
+      level_1 = [( 5*N/4 , 5*N/4 ), (15*N/4 - 1, 7*N/4 - 1 )]
+
    }
 }
 

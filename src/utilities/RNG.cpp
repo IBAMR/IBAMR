@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2021 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/RNG.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "tbox/PIO.h"
 #include "tbox/Utilities.h"
@@ -26,8 +27,6 @@
 #include <iostream>
 #include <set>
 #include <vector>
-
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -75,7 +74,7 @@ namespace IBAMR
 /* Period parameters */
 #define N 624
 #define M 397
-#define MATRIX_A 0x9908b0df /* constant vector a */
+#define MATRIX_A 0x9908b0df   /* constant vector a */
 #define UPPER_MASK 0x80000000 /* most significant w-r bits */
 #define LOWER_MASK 0x7fffffff /* least significant r bits */
 

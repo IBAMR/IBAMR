@@ -289,8 +289,7 @@ main(int argc, char* argv[])
 
         // Create boundary mesh
         BoundaryMesh boundary_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension() - 1);
-        BoundaryInfo& boundary_info = solid_mesh.get_boundary_info();
-        boundary_info.sync(boundary_mesh);
+        solid_mesh.boundary_info->sync(boundary_mesh);
         boundary_mesh.prepare_for_use();
 #if (NDIM == 3)
         // Convert the QUAD4 at the boundaries to TRI3

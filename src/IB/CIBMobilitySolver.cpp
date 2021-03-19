@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2015 - 2020 by the IBAMR developers
+// Copyright (c) 2015 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -20,6 +20,7 @@
 #include "ibamr/KrylovFreeBodyMobilitySolver.h"
 #include "ibamr/KrylovMobilitySolver.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 #include "ibamr/ibamr_utilities.h"
 
 #include "PoissonSpecifications.h"
@@ -27,8 +28,6 @@
 #include "tbox/Timer.h"
 #include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
-
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 namespace IBAMR
 {

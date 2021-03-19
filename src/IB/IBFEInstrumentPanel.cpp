@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2018 - 2020 by the IBAMR developers
+// Copyright (c) 2018 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -16,6 +16,7 @@
 #include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBFEInstrumentPanel.h"
 #include "ibamr/IBFEMethod.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/FEDataManager.h"
 #include "ibtk/IBTK_MPI.h"
@@ -69,8 +70,6 @@
 #include "libmesh/system.h"
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
-
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include "Eigen/Geometry" // IWYU pragma: keep
@@ -313,9 +312,9 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     // get relevant things for corresponding part
     const FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager(d_part);
     const EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
-    const MeshBase& mesh = equation_systems->get_mesh();
-    const BoundaryInfo& boundary_info = mesh.get_boundary_info();
-    const libMesh::Parallel::Communicator& comm_in = mesh.comm();
+    const MeshBase* mesh = &equation_systems->get_mesh();
+    const BoundaryInfo& boundary_info = *mesh->boundary_info;
+    const libMesh::Parallel::Communicator& comm_in = mesh->comm();
 
     // get equation systems from the mesh we will need.
     const System& dX_system = equation_systems->get_system(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
@@ -384,7 +383,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
         for (const auto& node_id : temp_node_dof_ID_sets[jj])
         {
             temp_node_dof_IDs[jj].push_back(node_id);
-            const Node* node = &mesh.node_ref(node_id);
+            const Node* node = &mesh->node_ref(node_id);
             temp_nodes[jj].push_back(*node);
             meter_centroids[jj] += *node;
         }
@@ -495,7 +494,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     {
         for (unsigned int ii = 0; ii < d_num_nodes[jj]; ++ii)
         {
-            const Node* node = &mesh.node_ref(d_node_dof_IDs[jj][ii]);
+            const Node* node = &mesh->node_ref(d_node_dof_IDs[jj][ii]);
             std::vector<dof_id_type> dX_dof_index;
             std::vector<dof_id_type> U_dof_index;
             for (unsigned int d = 0; d < NDIM; ++d)

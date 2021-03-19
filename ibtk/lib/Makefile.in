@@ -110,7 +110,6 @@ host_triplet = @host@
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/FEMapping.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/FEProjector.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/FEValues.cpp \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/FischerGuess.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/LibMeshSystemIBVectors.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/LibMeshSystemVectors.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libmesh_utilities.cpp \
@@ -347,7 +346,6 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/lagrangian/FEMapping.cpp \
 	../src/lagrangian/FEProjector.cpp \
 	../src/lagrangian/FEValues.cpp \
-	../src/lagrangian/FischerGuess.cpp \
 	../src/utilities/LibMeshSystemIBVectors.cpp \
 	../src/utilities/LibMeshSystemVectors.cpp \
 	../src/utilities/libmesh_utilities.cpp \
@@ -388,7 +386,6 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-FEMapping.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-FEProjector.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-FEValues.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-FischerGuess.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK2d_a-LibMeshSystemVectors.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK2d_a-libmesh_utilities.$(OBJEXT)
@@ -671,7 +668,6 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/lagrangian/FEMapping.cpp \
 	../src/lagrangian/FEProjector.cpp \
 	../src/lagrangian/FEValues.cpp \
-	../src/lagrangian/FischerGuess.cpp \
 	../src/utilities/LibMeshSystemIBVectors.cpp \
 	../src/utilities/LibMeshSystemVectors.cpp \
 	../src/utilities/libmesh_utilities.cpp \
@@ -712,7 +708,6 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-FEMapping.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-FEProjector.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-FEValues.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-FischerGuess.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK3d_a-LibMeshSystemVectors.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK3d_a-libmesh_utilities.$(OBJEXT)
@@ -928,7 +923,6 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEMapping.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEProjector.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEValues.Po \
-	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FischerGuess.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LData.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LDataManager.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LEInteractor.Po \
@@ -954,7 +948,6 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEMapping.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEProjector.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEValues.Po \
-	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FischerGuess.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LData.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LDataManager.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LEInteractor.Po \
@@ -2415,9 +2408,6 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/lagrangian/libIBTK2d_a-FEValues.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
-../src/lagrangian/libIBTK2d_a-FischerGuess.$(OBJEXT):  \
-	../src/lagrangian/$(am__dirstamp) \
-	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -2930,9 +2920,6 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/lagrangian/libIBTK3d_a-FEValues.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
-../src/lagrangian/libIBTK3d_a-FischerGuess.$(OBJEXT):  \
-	../src/lagrangian/$(am__dirstamp) \
-	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -3079,7 +3066,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEMapping.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEProjector.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEValues.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FischerGuess.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LData.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LDataManager.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LEInteractor.Po@am__quote@ # am--include-marker
@@ -3105,7 +3091,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEMapping.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEProjector.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEValues.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FischerGuess.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LData.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LDataManager.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LEInteractor.Po@am__quote@ # am--include-marker
@@ -5208,20 +5193,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-FEValues.obj `if test -f '../src/lagrangian/FEValues.cpp'; then $(CYGPATH_W) '../src/lagrangian/FEValues.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/FEValues.cpp'; fi`
 
-../src/lagrangian/libIBTK2d_a-FischerGuess.o: ../src/lagrangian/FischerGuess.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-FischerGuess.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FischerGuess.Tpo -c -o ../src/lagrangian/libIBTK2d_a-FischerGuess.o `test -f '../src/lagrangian/FischerGuess.cpp' || echo '$(srcdir)/'`../src/lagrangian/FischerGuess.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FischerGuess.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FischerGuess.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/FischerGuess.cpp' object='../src/lagrangian/libIBTK2d_a-FischerGuess.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-FischerGuess.o `test -f '../src/lagrangian/FischerGuess.cpp' || echo '$(srcdir)/'`../src/lagrangian/FischerGuess.cpp
-
-../src/lagrangian/libIBTK2d_a-FischerGuess.obj: ../src/lagrangian/FischerGuess.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-FischerGuess.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FischerGuess.Tpo -c -o ../src/lagrangian/libIBTK2d_a-FischerGuess.obj `if test -f '../src/lagrangian/FischerGuess.cpp'; then $(CYGPATH_W) '../src/lagrangian/FischerGuess.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/FischerGuess.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FischerGuess.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FischerGuess.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/FischerGuess.cpp' object='../src/lagrangian/libIBTK2d_a-FischerGuess.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-FischerGuess.obj `if test -f '../src/lagrangian/FischerGuess.cpp'; then $(CYGPATH_W) '../src/lagrangian/FischerGuess.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/FischerGuess.cpp'; fi`
-
 ../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.o: ../src/utilities/LibMeshSystemIBVectors.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Tpo -c -o ../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.o `test -f '../src/utilities/LibMeshSystemIBVectors.cpp' || echo '$(srcdir)/'`../src/utilities/LibMeshSystemIBVectors.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Po
@@ -7126,20 +7097,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-FEValues.obj `if test -f '../src/lagrangian/FEValues.cpp'; then $(CYGPATH_W) '../src/lagrangian/FEValues.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/FEValues.cpp'; fi`
 
-../src/lagrangian/libIBTK3d_a-FischerGuess.o: ../src/lagrangian/FischerGuess.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-FischerGuess.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FischerGuess.Tpo -c -o ../src/lagrangian/libIBTK3d_a-FischerGuess.o `test -f '../src/lagrangian/FischerGuess.cpp' || echo '$(srcdir)/'`../src/lagrangian/FischerGuess.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FischerGuess.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FischerGuess.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/FischerGuess.cpp' object='../src/lagrangian/libIBTK3d_a-FischerGuess.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-FischerGuess.o `test -f '../src/lagrangian/FischerGuess.cpp' || echo '$(srcdir)/'`../src/lagrangian/FischerGuess.cpp
-
-../src/lagrangian/libIBTK3d_a-FischerGuess.obj: ../src/lagrangian/FischerGuess.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-FischerGuess.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FischerGuess.Tpo -c -o ../src/lagrangian/libIBTK3d_a-FischerGuess.obj `if test -f '../src/lagrangian/FischerGuess.cpp'; then $(CYGPATH_W) '../src/lagrangian/FischerGuess.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/FischerGuess.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FischerGuess.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FischerGuess.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/FischerGuess.cpp' object='../src/lagrangian/libIBTK3d_a-FischerGuess.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-FischerGuess.obj `if test -f '../src/lagrangian/FischerGuess.cpp'; then $(CYGPATH_W) '../src/lagrangian/FischerGuess.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/FischerGuess.cpp'; fi`
-
 ../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.o: ../src/utilities/LibMeshSystemIBVectors.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Tpo -c -o ../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.o `test -f '../src/utilities/LibMeshSystemIBVectors.cpp' || echo '$(srcdir)/'`../src/utilities/LibMeshSystemIBVectors.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Po
@@ -7435,7 +7392,6 @@ distclean: distclean-am
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEMapping.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEProjector.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEValues.Po
-	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FischerGuess.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LData.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LDataManager.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LEInteractor.Po
@@ -7461,7 +7417,6 @@ distclean: distclean-am
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEMapping.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEProjector.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEValues.Po
-	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FischerGuess.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LData.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LDataManager.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LEInteractor.Po
@@ -7764,7 +7719,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEMapping.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEProjector.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEValues.Po
-	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FischerGuess.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LData.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LDataManager.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LEInteractor.Po
@@ -7790,7 +7744,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEMapping.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEProjector.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FEValues.Po
-	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-FischerGuess.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LData.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LDataManager.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LEInteractor.Po

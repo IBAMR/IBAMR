@@ -1,7 +1,7 @@
 #! /usr/bin/perl
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2019 - 2020 by the IBAMR developers
+## Copyright (c) 2019 - 2019 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.

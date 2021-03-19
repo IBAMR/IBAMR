@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2011 - 2021 by the IBAMR developers
+// Copyright (c) 2011 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -86,90 +86,7 @@ namespace IBTK
  * for all inter-processor communications.  All access to instantiated
  * LDataManager objects is via the static method getManager().
  *
- * Each Lagrangian point is associated with an LNode object which provides an interface between the Lagrangian and PETSc
- * ordering as well as the data storage for force specification objects and other objects associated with the point.
- * From each LNode object, we can retrieve the Lagrangian index as well as any associated node data. The LNode objects
- * for each processor are contained in an LMesh object. The LMesh object contains two vectors of LNodes: one containing
- * just the local LNode objects, and another containing 'ghost' LNodes. The 'ghost' LNodes are Lagrangian points
- * assigned to other processors but have data needed for calculations. Interacting with Lagrangian data is mediated
- * through the static LDataManager object. From this class, we can get the local LMesh object for each level of the
- * Cartesian grid, and then loop through all associated Lagrangian nodes.
- *
- * As an example, suppose we have a circle of Lagrangian points that are tethered to target points, and we wish to
- * specify the motion of the target points, and hence the circle, to move in a straight line. We can do this by looping
- * through all the nodes, pull out the IBAMR::IBTargetPointForceSpec, and then update the target point location. In
- * parallel, we also need to update the target point locations of the ghost data.
- *
- * \code{.cpp}
- * void
- * update_target_points(Pointer<PatchHierarchy<NDIM>> hierarchy,
- *                      LDataManager* const l_data_manager,
- *                      const double current_time,
- *                      const double dt)
- * {
- *     const int finest_ln = hierarchy->getFinestLevelNumber();
- *     // Note we assume the circle is the 0th structure and on the finest level.
- *     const std::pair<int, int>& circle_lag_idxs = l_data_manager->getLagrangianStructureIndexRange(0, finest_ln);
- *     Pointer<LMesh> mesh = l_data_manager->getLMesh(finest_ln);
- *     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
- *     const std::vector<LNode*>& ghost_nodes = mesh->getGhostNodes();
- *     std::vector<LNode*> nodes = local_nodes;
- *     nodes.insert(nodes.end(), ghost_nodes.begin(), ghost_nodes.end());
- *     for (auto& node : nodes)
- *     {
- *         auto force_spec = node->getNodeDataItem<IBTargetPointForceSpec>();
- *         if (force_spec == nullptr) continue;
- *         const int lag_idx = node->getLagrangianIndex();
- *         Point& X_target = force_spec->getTargetPointPosition();
- *         if (circle_lag_idxs.first <= lag_idx && lag_idx < circle_lag_idxs.second)
- *         {
- *             X_target[0] += 0.1 * dt; // Move point to the right with speed 0.1
- *         }
- *     }
- *     return;
- * }
- * \endcode
- *
- * For some applications, it might be useful to get the Eulerian data of the Lagrangian points. To do this, it is
- * important to understand the Lagrangian and PETSc index ordering. The Lagrangian ordering is fixed at the beginning of
- * the simulation and is set by the reading of the vertices, whether through an input file or programmatically. The
- * PETSc ordering, however, will change over the course of the simulation. Whenever a regridding operation is triggered,
- * the PETSc indexing is changed to ensure efficient memory usage. The Eulerian data is stored in PETSc ordering, so in
- * order to access that data, we need to map Lagrangian indices to their corresponding PETSc indices. We can then access
- * the corresponding components of the PETSc data vector which is wrapped in an LData object. As an example, here we
- * loop over and print out the physical coordinates of all the Lagrangian points on the finest level.
- *
- * \code{.cpp}
- * void
- * print_eul_data(Pointer<PatchHierarchy<NDIM>> hierarchy,
- *                LDataManager* const l_data_manager)
- * {
- *     const int finest_ln = hierarchy->getFinestLevelNumber();
- *     Pointer<LData> X_data = l_data_manager->getLData("X", finest_ln);
- *     Vec X_vec = X_data->getVec();
- *     double* x_vals;
- *     int ierr = VecGetArray(X_vec, &x_vals);
- *     IBTK_CHKERRQ(ierr);
- *
- *     Pointer<LMesh> mesh = l_data_manager->getLMesh(finest_ln);
- *     const std::vector<LNode*>& nodes = mesh->getLocalNodes();
- *     for (const auto& node : nodes)
- *     {
- *         const int lag_idx = node->getLagrangianIndex();
- *         // Note we use the local index instead of the global index.
- *         // The global index is the local index plust the total indices on all processors of lower rank.
- *         const int petsc_idx = node->getLocalPETScIndex();
- *         Eigen::Map<VectorNd> X(&x_vals[petsc_idx * NDIM]);
- *         pout << "Euerian location of node " << lag_idx << ":\n"
- *              << X << "\n";
- *     }
- *     return;
- * }
- * \endcode
- *
  * \note Multiple LDataManager objects may be instantiated simultaneously.
- *
- * \see LMesh, LNode, LData
  */
 class LDataManager : public SAMRAI::tbox::Serializable, public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
 {

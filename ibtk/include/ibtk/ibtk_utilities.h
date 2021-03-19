@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2011 - 2021 by the IBAMR developers
+// Copyright (c) 2011 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -144,30 +144,6 @@ get_data_time_str(const double data_time, const double current_time, const doubl
  */
 double get_min_patch_dx(const SAMRAI::hier::PatchLevel<NDIM>& patch_level);
 
-/*!
- * Check whether the relative difference between a and b are within the threshold eps.
- *
- * \note This function should be used with caution to check numbers close to zero. In this case, consider using the
- * abs_equal_eps function.
- */
-inline bool
-rel_equal_eps(double a, double b, double eps = std::sqrt(std::numeric_limits<double>::epsilon()))
-{
-    return (a == b) || (std::abs(a - b) / std::max(std::abs(a), std::abs(b))) < eps;
-}
-
-/*!
- * \brief Check whether the absolute difference between a and b are within the threshold eps.
- *
- * \note This function should be used with caution to check numbers that have large magnitudes. In these cases, consider
- * using the rel_equal_eps function.
- */
-inline bool
-abs_equal_eps(double a, double b, double eps = std::sqrt(std::numeric_limits<double>::epsilon()))
-{
-    return std::abs(a - b) < eps;
-}
-
 template <class T, unsigned N>
 inline std::array<T, N>
 array_constant(const T& v)
@@ -230,42 +206,6 @@ tensor_idx_to_voigt(const std::pair<int, int>& idx)
         return idx.first;
     else
         return 3 * NDIM - 3 - idx.first - idx.second;
-}
-
-/*!
- * Smooth heaviside function.
- */
-inline double
-smooth_heaviside(const double& phi, const double& alpha)
-{
-    double Hphi = 1.0;
-    if (phi < -alpha)
-    {
-        Hphi = 0.0;
-    }
-    else if (std::abs(phi) <= alpha)
-    {
-        Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
-    }
-    return Hphi;
-}
-
-/*!
- * Discontinuous heaviside function.
- */
-inline double
-discontinuous_heaviside(const double& phi)
-{
-    double Hphi = 1.0;
-    if (phi < 0.0)
-    {
-        Hphi = 0.0;
-    }
-    else if (phi == 0.0)
-    {
-        Hphi = 0.5;
-    }
-    return Hphi;
 }
 
 /*!

@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2010 - 2019 by the IBAMR developers
+## Copyright (c) 2010 - 2017 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.

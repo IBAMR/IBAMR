@@ -18,9 +18,9 @@ ADD_CUSTOM_TARGET(tests)
 #    only compiles the IBFE tests.
 # 2. all input and output files in these source directories are symlinked into
 #    their corresponding build directories.
-SET(TEST_DIRECTORIES CIB ConstraintIB IB IBFE IBTK adv_diff advect coarsen
-  complex_fluids fe_mechanics interpolate level_set multiphase_flow
-  navier_stokes physical_boundary refine spread vc_navier_stokes wave_tank)
+SET(TEST_DIRECTORIES CIB IB IBFE IBTK adv_diff advect complex_fluids interpolate
+  level_set multiphase_flow navier_stokes physical_boundary refine spread
+  vc_navier_stokes wave_tank)
 
 FOREACH(_dir ${TEST_DIRECTORIES})
   ADD_CUSTOM_TARGET("tests-${_dir}")
@@ -93,8 +93,6 @@ ENDMACRO()
 SETUP_2D(adv_diff adv_diff_02.cpp)
 SETUP_2D(adv_diff adv_diff_03.cpp)
 SETUP_2D(adv_diff adv_diff_convec_opers.cpp)
-SETUP_2D(adv_diff bp_adv_diff_01.cpp)
-SETUP_2D(adv_diff bp_adv_diff_02.cpp)
 
 SETUP_3D(adv_diff adv_diff_01.cpp)
 SETUP_3D(adv_diff adv_diff_02.cpp)
@@ -104,10 +102,6 @@ SETUP_3D(adv_diff adv_diff_convec_opers.cpp)
 SETUP_2D(advect advect_01.cpp)
 SETUP_3D(advect advect_01.cpp)
 
-#coarsen:
-SETUP_2D(coarsen rt0_coarsen_01.cpp)
-SETUP_3D(coarsen rt0_coarsen_01.cpp)
-
 # complex_fluids:
 SETUP(complex_fluids cf_four_roll_mill.cpp IBAMR2d)
 SETUP_2D(complex_fluids cf_relaxation_op_01.cpp)
@@ -115,12 +109,6 @@ SETUP_2D(complex_fluids cf_forcing_op_01.cpp)
 
 SETUP_3D(complex_fluids cf_relaxation_op_01.cpp)
 SETUP_3D(complex_fluids cf_forcing_op_01.cpp)
-
-# fe_mechanics:
-IF(IBAMR_HAVE_LIBMESH)
-  SETUP_2D(fe_mechanics fe_mechanics_ex0.cpp)
-  SETUP_3D(fe_mechanics fe_mechanics_ex0.cpp)
-ENDIF()
 
 # interpolate:
 SETUP_2D(interpolate interpolate_01.cpp)
@@ -169,9 +157,6 @@ SETUP(wave_tank nwt.cpp IBAMR2d)
 SETUP(CIB cib_plate.cpp IBAMR2d)
 SETUP(CIB cib_double_shell.cpp IBAMR3d)
 
-# ConstraintIB:
-SETUP(ConstraintIB oscillating_rigid_cylinder.cpp IBAMR2d)
-
 # IB:
 SETUP(IB explicit_ex0 IBAMR2d)
 SETUP(IB explicit_ex1 IBAMR2d)
@@ -200,7 +185,6 @@ IF(IBAMR_HAVE_LIBMESH)
 ENDIF()
 
 # IBTK:
-SETUP(IBTK equal_eps IBAMR2d)
 SETUP(IBTK hierarchy_callbacks IBAMR2d)
 SETUP(IBTK ibtk_init.cpp IBAMR2d)
 SETUP(IBTK ibtk_mpi.cpp IBAMR2d)
@@ -212,7 +196,6 @@ IF(IBAMR_HAVE_LIBMESH)
   SETUP(IBTK elem_hmax_02.cpp IBAMR3d)
   SETUP(IBTK fe_values_01.cpp IBAMR2d)
   SETUP(IBTK fe_values_02.cpp IBAMR2d)
-  SETUP(IBTK fischer_guess_01.cpp IBAMR2d)
   SETUP(IBTK jacobian_calc_01.cpp IBAMR2d)
   SETUP(IBTK mapping_01.cpp IBAMR2d)
   SETUP(IBTK subdomain_level_translation_01.cpp IBAMR2d)
@@ -231,7 +214,6 @@ SETUP_2D(IBTK poisson_01.cpp)
 SETUP_2D(IBTK prolongation_mat.cpp)
 SETUP_2D(IBTK samraidatacache_01.cpp)
 SETUP_2D(IBTK vc_viscous_solver.cpp)
-SETUP_2D(IBTK helmholtz.cpp)
 
 IF(IBAMR_HAVE_LIBMESH)
   SETUP_3D(IBTK bounding_boxes_01.cpp)
@@ -248,7 +230,6 @@ SETUP_3D(IBTK poisson_01.cpp)
 SETUP_3D(IBTK prolongation_mat.cpp)
 SETUP_3D(IBTK samraidatacache_01.cpp)
 SETUP_3D(IBTK vc_viscous_solver.cpp)
-SETUP_3D(IBTK helmholtz.cpp)
 
 ADD_CUSTOM_COMMAND(TARGET tests
   POST_BUILD
@@ -258,6 +239,10 @@ ADD_CUSTOM_COMMAND(TARGET tests
 # really used by the build system we use a shell script to find them every time
 # 'make test' is run rather than evaluating the glob when cmake generates the
 # build system.
+SET(TEST_DIRECTORIES CIB IB IBFE IBTK adv_diff advect complex_fluids interpolate
+  level_set multiphase_flow navier_stokes physical_boundary refine spread
+  vc_navier_stokes wave_tank)
+
 FOREACH(_dir ${TEST_DIRECTORIES})
   ADD_CUSTOM_COMMAND(TARGET "tests-${_dir}"
     POST_BUILD

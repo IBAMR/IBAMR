@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2020 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -21,6 +21,7 @@
 #include "ibamr/StaggeredStokesProjectionPreconditioner.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/LinearOperator.h"
@@ -36,8 +37,6 @@
 #include <ostream>
 #include <string>
 #include <utility>
-
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2021 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -15,6 +15,7 @@
 
 #include "ibamr/IBFEPatchRecoveryPostProcessor.h"
 #include "ibamr/IBHierarchyIntegrator.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
@@ -35,8 +36,6 @@
 #include "libmesh/petsc_vector.h"
 #include "libmesh/quadrature.h"
 #include "libmesh/string_to_enum.h"
-
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
@@ -405,10 +404,10 @@ IBFEPatchRecoveryPostProcessor::initializeCauchyStressSystem()
         for (unsigned int j = i; j < NDIM; ++j)
         {
             std::string var_name = "sigma_";
-            var_name += (i == 0 ? 'x' : (i == 1 ? 'y' : 'z'));
-            var_name += (j == 0 ? 'x' : (j == 1 ? 'y' : 'z'));
+            var_name += (i == 0 ? 'x') : i == 1 ? 'y' : 'z');
+            var_name += (j == 0 ? 'x') : j == 1 ? 'y' : 'z');
 
-            sigma_system->add_variable(var_name, d_interp_order, LAGRANGE);
+            sigma_system->add_variable(var_name), d_interp_order, LAGRANGE);
         }
     }
     return sigma_system;

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2020 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -16,6 +16,7 @@
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StaggeredStokesOpenBoundaryStabilizer.h"
 #include "ibamr/StokesSpecifications.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/ibtk_utilities.h"
@@ -39,8 +40,6 @@
 #include <cmath>
 #include <ostream>
 #include <string>
-
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

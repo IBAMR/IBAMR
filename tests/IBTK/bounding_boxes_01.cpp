@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -114,7 +114,7 @@ test(LibMeshInit& init,
     // nodal quadratures and what libMesh computes
     const auto quad_type = use_nodal_quadrature ? (order == FIRST ? QTRAP : QSIMPSON) : QGAUSS;
     std::vector<libMeshWrappers::BoundingBox> nodal_bboxes_1 =
-        get_local_element_bounding_boxes(mesh, X_system, quad_type, order, false, 1.0, true, 1.0);
+        get_local_element_bounding_boxes(mesh, X_system, quad_type, order, false, 1.0, 1.0);
     std::vector<libMeshWrappers::BoundingBox> nodal_bboxes_2 = get_local_element_bounding_boxes(mesh, X_system);
     TBOX_ASSERT(nodal_bboxes_1.size() == nodal_bboxes_2.size());
 

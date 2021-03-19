@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -19,6 +19,7 @@
 #include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/ibtk_utilities.h"
@@ -53,8 +54,6 @@
 #include <cmath>
 #include <string>
 #include <utility>
-
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -273,14 +272,7 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     {
         if (!d_solve_rigid_vel(s))
         {
-            if (NDIM == 2)
-            {
-                d_rot_vel_new(s) = W_imposed(s);
-            }
-            else if (NDIM == 3)
-            {
-                d_rot_vel_new(s - NDIM) = W_imposed(s - NDIM);
-            }
+            d_rot_vel_new(s) = W_imposed(s);
         }
     }
 
@@ -296,20 +288,13 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
     Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    HierarchyCellDataOpsReal<NDIM, double> hier_cc_ops(patch_hierarchy);
+    hier_cc_ops.copyData(ls_scratch_idx, ls_solid_idx);
 
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> phi_transaction_comps(1);
-    phi_transaction_comps[0] = InterpolationTransactionComponent(ls_scratch_idx,
-                                                                 ls_solid_idx,
-                                                                 "CONSERVATIVE_LINEAR_REFINE",
-                                                                 false,
-                                                                 "CONSERVATIVE_COARSEN",
-                                                                 "LINEAR",
-                                                                 false,
-                                                                 d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var));
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
-    hier_bdry_fill->fillData(time);
+    Pointer<RefineAlgorithm<NDIM> > ghost_fill_alg = new RefineAlgorithm<NDIM>();
+    Pointer<RefineOperator<NDIM> > refine_op = NULL;
+    ghost_fill_alg->registerRefine(ls_scratch_idx, ls_scratch_idx, ls_scratch_idx, refine_op);
+    ghost_fill_alg->createSchedule(finest_level)->fillData(time);
 
     // Set the rigid body velocity in u_idx
     for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
@@ -318,9 +303,7 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
         const Box<NDIM>& patch_box = patch->getBox();
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* patch_dx = patch_geom->getDx();
-        double vol_cell = 1.0;
-        for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-        const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+        const double alpha = 2.0 * patch_dx[0];
 
         Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
         Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
@@ -336,7 +319,19 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
                 const double phi_lower = (*ls_solid_data)(s_i.toCell(0));
                 const double phi_upper = (*ls_solid_data)(s_i.toCell(1));
                 const double phi = 0.5 * (phi_lower + phi_upper);
-                const double Hphi = IBTK::smooth_heaviside(phi, alpha);
+                double Hphi;
+                if (phi < -alpha)
+                {
+                    Hphi = 0.0;
+                }
+                else if (std::abs(phi) <= alpha)
+                {
+                    Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
+                }
+                else
+                {
+                    Hphi = 1.0;
+                }
                 if (phi <= alpha)
                 {
                     const Eigen::Vector3d r = IBTK::IndexUtilities::getSideCenter<Eigen::Vector3d>(*patch, s_i);
@@ -381,9 +376,7 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
         const Box<NDIM>& patch_box = patch->getBox();
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* patch_dx = patch_geom->getDx();
-        double vol_cell = 1.0;
-        for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-        const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+        const double alpha = 2.0 * patch_dx[0];
 
         Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
         Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
@@ -398,7 +391,20 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
                 const double phi_lower = (*ls_solid_data)(s_i.toCell(0));
                 const double phi_upper = (*ls_solid_data)(s_i.toCell(1));
                 const double phi = 0.5 * (phi_lower + phi_upper);
-                const double Hphi = IBTK::smooth_heaviside(phi, alpha);
+                double Hphi;
+                if (phi < -alpha)
+                {
+                    Hphi = 0.0;
+                }
+                else if (std::abs(phi) <= alpha)
+                {
+                    Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
+                }
+                else
+                {
+                    Hphi = 1.0;
+                }
+
                 if (phi <= alpha)
                 {
                     const double penalty = (*rho_data)(s_i) / dt;
@@ -473,11 +479,6 @@ BrinkmanPenalizationRigidBodyDynamics::getFromInput(Pointer<Database> input_db, 
     if (input_db->keyExists("contour_level"))
     {
         d_contour_level = input_db->getDouble("contour_level");
-    }
-
-    if (input_db->keyExists("num_interface_cells"))
-    {
-        d_num_interface_cells = input_db->getDouble("num_interface_cells");
     }
 
     return;

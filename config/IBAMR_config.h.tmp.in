@@ -127,6 +127,9 @@
 /* Define if you have the libSAMRAI3d_xfer library. */
 #undef HAVE_LIBSAMRAI3D_XFER
 
+/* Define to 1 if you have the `z' library (-lz). */
+#undef HAVE_LIBZ
+
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 

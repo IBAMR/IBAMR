@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2020 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -18,6 +18,7 @@
 #include "ibamr/CFRoliePolyRelaxation.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSHierarchyIntegrator.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/IBTK_MPI.h"
@@ -58,8 +59,6 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <cmath>
 #include <ostream>
 #include <utility>
-
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 extern "C"
 {

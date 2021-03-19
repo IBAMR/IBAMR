@@ -73,6 +73,10 @@ exact_forcing(const IBTK::Point&)
     return result;
 }
 
+static constexpr double R = 0.2;
+static constexpr double w = 0.0625;
+static constexpr double dx0 = 1.0 / 64.0;
+
 int
 main(int argc, char** argv)
 {

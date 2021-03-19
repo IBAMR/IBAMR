@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2018 - 2020 by the IBAMR developers
+// Copyright (c) 2018 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -26,6 +26,7 @@
 #include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartGridFunction.h"
@@ -82,8 +83,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

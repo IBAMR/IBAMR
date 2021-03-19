@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2020 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -20,6 +20,7 @@
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
@@ -49,8 +50,6 @@
 #include <ostream>
 #include <string>
 #include <vector>
-
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

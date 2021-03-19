@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -151,6 +151,11 @@ private:
      * Viscosity of the fluid.
      */
     double d_mu_outside, d_mu_inside;
+
+    /*!
+     * Level set reinitialization interval
+     */
+    int d_ls_reinit_interval;
 
     /*!
      * Number of interface cells over which to smooth the material properties

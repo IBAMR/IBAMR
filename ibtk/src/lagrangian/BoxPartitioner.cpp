@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2020 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -16,6 +16,7 @@
 #include "ibtk/ibtk_utilities.h"
 #include <ibtk/BoxPartitioner.h>
 #include <ibtk/PartitioningBox.h>
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 #include "tbox/Utilities.h"
 #include <tbox/PIO.h>
@@ -37,8 +38,6 @@
 #include <algorithm>
 #include <cstdio>
 #include <sstream>
-
-#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

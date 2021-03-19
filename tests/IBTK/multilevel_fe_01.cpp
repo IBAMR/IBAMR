@@ -155,7 +155,7 @@ public:
                                const double error_data_time,
                                const int tag_index,
                                const bool initial_time,
-                               const bool uses_richardson_extrapolation_too) override
+                               const bool uses_richardson_extrapolation_too)
     {
         d_fe_data_manager->setPatchHierarchy(hierarchy);
         d_fe_data_manager->applyGradientDetector(

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -13,6 +13,7 @@
 
 #include "ibtk/FEMapping.h"
 #include "ibtk/libmesh_utilities.h"
+#include "ibtk/namespaces.h"
 
 #include "tbox/Utilities.h"
 
@@ -32,8 +33,6 @@
 #include <algorithm>
 #include <cmath>
 #include <memory>
-
-#include "ibtk/namespaces.h"
 
 namespace IBTK
 {
@@ -85,7 +84,7 @@ PointMap<dim, spacedim, n_nodes>::getMappedQuadraturePoints(const libMesh::Point
     if (n_nodes != -1) TBOX_ASSERT(nodes_end - nodes == n_nodes);
     const int n_nodes_ = n_nodes == -1 ? nodes_end - nodes : n_nodes;
     TBOX_ASSERT(d_reference_q_points.size() == physical_q_points.size());
-    TBOX_ASSERT(n_nodes_ == d_phi.rows());
+    TBOX_ASSERT(static_cast<std::size_t>(n_nodes_) == d_phi.m());
     // assumes same node ordering in the input node array as is stored in d_phi
     for (unsigned int q = 0; q < d_reference_q_points.size(); ++q)
     {
@@ -137,7 +136,7 @@ FEMapping<2, 2>::build(const key_type key, const FEUpdateFlags update_flags)
     case libMesh::ElemType::QUAD9:
         return std::unique_ptr<FEMapping<2, 2> >(new Quad9Mapping(key, update_flags));
     default:
-        return std::unique_ptr<FEMapping<2, 2> >(new FELagrangeMapping<2, 2>(key, std::get<0>(key), update_flags));
+        return std::unique_ptr<FEMapping<2, 2> >(new FELagrangeMapping<2, 2>(key, update_flags));
     }
 
     return {};
@@ -154,12 +153,11 @@ FEMapping<3, 3>::build(const key_type key, const FEUpdateFlags update_flags)
     case libMesh::ElemType::TET10:
         return std::unique_ptr<FEMapping<3, 3> >(new Tet10Mapping(key, update_flags));
     case libMesh::ElemType::HEX8:
-        return std::unique_ptr<FEMapping<3, 3> >(
-            new FELagrangeMapping<3, 3, 8>(key, libMesh::ElemType::HEX8, update_flags));
+        return std::unique_ptr<FEMapping<3, 3> >(new FELagrangeMapping<3, 3, 8>(key, update_flags));
     case libMesh::ElemType::HEX27:
         return std::unique_ptr<FEMapping<3, 3> >(new Hex27Mapping(key, update_flags));
     default:
-        return std::unique_ptr<FEMapping<3, 3> >(new FELagrangeMapping<3, 3>(key, std::get<0>(key), update_flags));
+        return std::unique_ptr<FEMapping<3, 3> >(new FELagrangeMapping<3, 3>(key, update_flags));
     }
 
     return {};
@@ -169,8 +167,7 @@ template <int dim, int spacedim>
 std::unique_ptr<FEMapping<dim, spacedim> >
 FEMapping<dim, spacedim>::build(const key_type key, const FEUpdateFlags update_flags)
 {
-    return std::unique_ptr<FEMapping<dim, spacedim> >(
-        new FELagrangeMapping<dim, spacedim>(key, std::get<0>(key), update_flags));
+    return std::unique_ptr<FEMapping<dim, spacedim> >(new FELagrangeMapping<dim, spacedim>(key, update_flags));
 }
 
 //
@@ -180,9 +177,8 @@ FEMapping<dim, spacedim>::build(const key_type key, const FEUpdateFlags update_f
 template <int dim, int spacedim, int n_nodes>
 FENodalMapping<dim, spacedim, n_nodes>::FENodalMapping(
     const typename FENodalMapping<dim, spacedim, n_nodes>::key_type quad_key,
-    const libMesh::ElemType element_mapping_type,
     const FEUpdateFlags update_flags)
-    : d_quadrature_data(quad_key), d_point_map(element_mapping_type, d_quadrature_data.d_points)
+    : d_quadrature_data(quad_key), d_point_map(std::get<0>(quad_key), d_quadrature_data.d_points)
 {
     d_update_flags = update_flags;
 
@@ -284,9 +280,8 @@ FENodalMapping<dim, spacedim, n_nodes>::fillQuadraturePoints(const libMesh::Elem
 template <int dim, int spacedim, int n_nodes>
 FELagrangeMapping<dim, spacedim, n_nodes>::FELagrangeMapping(
     const typename FELagrangeMapping<dim, spacedim, n_nodes>::key_type quad_key,
-    const libMesh::ElemType element_mapping_type,
     const FEUpdateFlags update_flags)
-    : FENodalMapping<dim, spacedim, n_nodes>(quad_key, element_mapping_type, update_flags),
+    : FENodalMapping<dim, spacedim, n_nodes>(quad_key, update_flags),
       d_n_nodes(n_nodes == -1 ? get_n_nodes(std::get<0>(quad_key)) : n_nodes)
 {
     if (n_nodes != -1) TBOX_ASSERT(d_n_nodes == n_nodes);
@@ -295,6 +290,8 @@ FELagrangeMapping<dim, spacedim, n_nodes>::FELagrangeMapping(
 #else
     TBOX_ASSERT(d_n_nodes <= static_cast<int>(libMesh::Elem::max_n_nodes));
 #endif
+    const libMesh::ElemType elem_type = std::get<0>(this->d_quadrature_data.d_key);
+
     typename decltype(d_dphi)::extent_gen extents;
     d_dphi.resize(extents[d_n_nodes][this->d_quadrature_data.size()]);
 
@@ -303,12 +300,8 @@ FELagrangeMapping<dim, spacedim, n_nodes>::FELagrangeMapping(
         for (unsigned int q = 0; q < this->d_quadrature_data.size(); ++q)
         {
             for (unsigned int d = 0; d < dim; ++d)
-                d_dphi[node_n][q][d] =
-                    libMesh::FE<dim, libMesh::LAGRANGE>::shape_deriv(element_mapping_type,
-                                                                     get_default_order(element_mapping_type),
-                                                                     node_n,
-                                                                     d,
-                                                                     this->d_quadrature_data.d_points[q]);
+                d_dphi[node_n][q][d] = libMesh::FE<dim, libMesh::LAGRANGE>::shape_deriv(
+                    elem_type, get_default_order(elem_type), node_n, d, this->d_quadrature_data.d_points[q]);
         }
     }
 }
@@ -365,12 +358,6 @@ FELagrangeMapping<dim, spacedim, n_nodes>::fillTransforms(const libMesh::Elem* e
 // Tri3Mapping
 //
 
-Tri3Mapping::Tri3Mapping(const key_type quad_key, const FEUpdateFlags update_flags)
-
-    : FENodalMapping<2, 2, 3>(quad_key, libMesh::TRI3, update_flags)
-{
-}
-
 void
 Tri3Mapping::fillTransforms(const libMesh::Elem* elem)
 {
@@ -410,7 +397,8 @@ Tri3Mapping::isAffine() const
 //
 
 Tri6Mapping::Tri6Mapping(const key_type quad_key, const FEUpdateFlags update_flags)
-    : FELagrangeMapping<2, 2, 6>(quad_key, libMesh::ElemType::TRI6, update_flags), tri3_mapping(quad_key, update_flags)
+    : FELagrangeMapping<2, 2, 6>(quad_key, update_flags),
+      tri3_mapping(std::make_tuple(libMesh::TRI3, std::get<1>(quad_key), std::get<2>(quad_key)), update_flags)
 {
 }
 
@@ -455,12 +443,6 @@ Tri6Mapping::elem_is_affine(const libMesh::Elem* elem)
 //
 // Quad4Mapping
 //
-
-Quad4Mapping::Quad4Mapping(const key_type quad_key, const FEUpdateFlags update_flags)
-
-    : FENodalMapping<2, 2, 4>(quad_key, libMesh::QUAD4, update_flags)
-{
-}
 
 void
 Quad4Mapping::fillTransforms(const libMesh::Elem* elem)
@@ -511,7 +493,7 @@ Quad4Mapping::fillTransforms(const libMesh::Elem* elem)
 //
 
 Quad9Mapping::Quad9Mapping(const Quad9Mapping::key_type quad_key, FEUpdateFlags update_flags)
-    : FENodalMapping<2, 2, 9>(quad_key, std::get<0>(quad_key), update_flags)
+    : FENodalMapping<2, 2, 9>(quad_key, update_flags)
 {
     // This code utilizes an implementation detail of
     // QBase::tensor_product_quad where the x coordinate increases fastest to
@@ -633,12 +615,6 @@ Quad9Mapping::fillTransforms(const libMesh::Elem* elem)
 // Tet4Mapping
 //
 
-Tet4Mapping::Tet4Mapping(const key_type quad_key, const FEUpdateFlags update_flags)
-
-    : FENodalMapping<3, 3, 4>(quad_key, libMesh::TET4, update_flags)
-{
-}
-
 void
 Tet4Mapping::fillTransforms(const libMesh::Elem* elem)
 {
@@ -685,8 +661,8 @@ Tet4Mapping::isAffine() const
 //
 
 Tet10Mapping::Tet10Mapping(const key_type quad_key, const FEUpdateFlags update_flags)
-    : FELagrangeMapping<3, 3, 10>(quad_key, libMesh::ElemType::TET10, update_flags),
-      tet4_mapping(quad_key, update_flags)
+    : FELagrangeMapping<3, 3, 10>(quad_key, update_flags),
+      tet4_mapping(std::make_tuple(libMesh::TET4, std::get<1>(quad_key), std::get<2>(quad_key)), update_flags)
 {
 }
 
@@ -736,8 +712,8 @@ Tet10Mapping::elem_is_affine(const libMesh::Elem* elem)
 //
 
 Hex27Mapping::Hex27Mapping(const key_type quad_key, const FEUpdateFlags update_flags)
-    : FELagrangeMapping<3, 3, 27>(quad_key, libMesh::HEX27, update_flags),
-      hex8_mapping(quad_key, libMesh::HEX8, update_flags)
+    : FELagrangeMapping<3, 3, 27>(quad_key, update_flags),
+      hex8_mapping(std::make_tuple(libMesh::HEX8, std::get<1>(quad_key), std::get<2>(quad_key)), update_flags)
 {
 }
 

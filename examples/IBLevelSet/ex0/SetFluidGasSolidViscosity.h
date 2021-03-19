@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -121,6 +121,11 @@ private:
      * Density of the fluid and solid.
      */
     double d_mu_fluid, d_mu_gas, d_mu_solid;
+
+    /*!
+     * Level set reinitialization interval
+     */
+    int d_ls_reinit_interval;
 
     /*!
      * Number of cells over which to transition between values

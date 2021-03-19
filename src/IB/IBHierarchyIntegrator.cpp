@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2020 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -17,6 +17,7 @@
 #include "ibamr/IBStrategy.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CartCellRobinPhysBdryOp.h"
 #include "ibtk/CartExtrapPhysBdryOp.h"
@@ -68,8 +69,6 @@
 #include <ostream>
 #include <string>
 #include <utility>
-
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -723,7 +722,7 @@ IBHierarchyIntegrator::getFromInput(Pointer<Database> db, bool /*is_from_restart
     if (db->keyExists("regrid_fluid_cfl_interval"))
         d_regrid_fluid_cfl_interval = db->getDouble("regrid_fluid_cfl_interval");
     if (db->keyExists("regrid_structure_cfl_interval"))
-        d_regrid_structure_cfl_interval = db->getDouble("regrid_structure_cfl_interval");
+        d_regrid_structure_cfl_interval = db->getDouble("regrid_cfl_interval");
     if (db->keyExists("error_on_dt_change"))
         d_error_on_dt_change = db->getBool("error_on_dt_change");
     else if (db->keyExists("error_on_timestep_change"))

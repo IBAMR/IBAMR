@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -25,6 +25,7 @@
 
 #include "tbox/Utilities.h"
 
+#include <libmesh/dense_matrix.h>
 #include <libmesh/elem.h>
 #include <libmesh/enum_elem_type.h>
 #include <libmesh/enum_order.h>
@@ -34,10 +35,6 @@
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
-IBTK_ENABLE_EXTRA_WARNINGS
-
-IBTK_DISABLE_EXTRA_WARNINGS
-#include <Eigen/Core>
 IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <array>
@@ -91,7 +88,7 @@ protected:
      * Table containing the values of 1D shape functions (which, with a tensor
      * product, define the mapping) at reference quadrature points.
      */
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> d_phi;
+    libMesh::DenseMatrix<double> d_phi;
 };
 
 /*!
@@ -130,7 +127,7 @@ public:
      * Standard 'quadrature key' alias - all the information to completely
      * define a libMesh quadrature rule.
      */
-    using key_type = quadrature_key_type;
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
 
     /*!
      * Return a pointer to the correct mapping for a given quadrature key and
@@ -173,7 +170,7 @@ struct QuadratureData
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = quadrature_key_type;
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
 
     /*!
      * Constructor.
@@ -219,23 +216,12 @@ public:
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = quadrature_key_type;
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
 
     /*!
      * Constructor.
-     *
-     * @param[in] quad_key The quadrature key (i.e., a complete description of
-     * the quadrature rule).
-     * @param[in] mapping_element_type The element type used to compute the
-     * mapping from the reference element to the physical element. This may be
-     * different from the element type in the quadrature rule - for example,
-     * one could provide TRI6 in the quadrature rule and TRI3 here.
-     * @param[in] update_flags An enum describing which values need to be
-     * computed on each element.
      */
-    FENodalMapping(const key_type quad_key,
-                   const libMesh::ElemType mapping_element_type,
-                   const FEUpdateFlags update_flags);
+    FENodalMapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
     /*!
      * Recalculate relevant quantities for the provided element.
@@ -356,23 +342,12 @@ public:
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = quadrature_key_type;
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
 
-    /*!
+    /**
      * Constructor.
-     *
-     * @param[in] quad_key The quadrature key (i.e., a complete description of
-     * the quadrature rule).
-     * @param[in] mapping_element_type The element type used to compute the
-     * mapping from the reference element to the physical element. This may be
-     * different from the element type in the quadrature rule - for example,
-     * one could provide TRI6 in the quadrature rule and TRI3 here.
-     * @param[in] update_flags An enum describing which values need to be
-     * computed on each element.
      */
-    FELagrangeMapping(const key_type quad_key,
-                      const libMesh::ElemType mapping_element_type,
-                      const FEUpdateFlags update_flags);
+    FELagrangeMapping(const key_type quad_key, const FEUpdateFlags update_flags);
 
 protected:
     virtual void fillTransforms(const libMesh::Elem* elem) override;
@@ -397,16 +372,11 @@ protected:
 class Tri3Mapping : public FENodalMapping<2, 2, 3>
 {
 public:
-    /*!
-     * Key type. Completely describes (excepting p-refinement) a libMesh
-     * quadrature rule.
+    /**
+     * Explicitly use the base class' constructor (this class does not require
+     * any additional setup).
      */
-    using key_type = quadrature_key_type;
-
-    /*!
-     * Constructor.
-     */
-    Tri3Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
+    using FENodalMapping<2, 2, 3>::FENodalMapping;
 
 protected:
     virtual void fillTransforms(const libMesh::Elem* elem) override;
@@ -422,16 +392,11 @@ protected:
 class Quad4Mapping : public FENodalMapping<2, 2, 4>
 {
 public:
-    /*!
-     * Key type. Completely describes (excepting p-refinement) a libMesh
-     * quadrature rule.
+    /**
+     * Explicitly use the base class' constructor (this class does not require
+     * any additional setup).
      */
-    using key_type = quadrature_key_type;
-
-    /*!
-     * Constructor.
-     */
-    Quad4Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
+    using FENodalMapping<2, 2, 4>::FENodalMapping;
 
 protected:
     virtual void fillTransforms(const libMesh::Elem* elem) override;
@@ -447,7 +412,7 @@ public:
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = quadrature_key_type;
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
 
     /**
      * Constructor.
@@ -467,13 +432,13 @@ protected:
      * Table containing the values of 1D shape functions (which, with a tensor
      * product, define the mapping) at reference quadrature points.
      */
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> d_phi;
+    libMesh::DenseMatrix<double> d_phi;
 
     /**
      * Table containing the derivatives of 1D shape functions (which, with a
      * tensor product, define the mapping) at reference quadrature points.
      */
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> d_dphi;
+    libMesh::DenseMatrix<double> d_dphi;
 };
 
 /*!
@@ -486,7 +451,7 @@ public:
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = quadrature_key_type;
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
 
     /*!
      * Constructor.
@@ -514,16 +479,11 @@ protected:
 class Tet4Mapping : public FENodalMapping<3, 3, 4>
 {
 public:
-    /*!
-     * Key type. Completely describes (excepting p-refinement) a libMesh
-     * quadrature rule.
-     */
-    using key_type = quadrature_key_type;
-
     /**
-     * Constructor.
+     * Explicitly use the base class' constructor (this class does not require
+     * any additional setup).
      */
-    Tet4Mapping(const key_type quad_key, const FEUpdateFlags update_flags);
+    using FENodalMapping<3, 3, 4>::FENodalMapping;
 
 protected:
     virtual void fillTransforms(const libMesh::Elem* elem) override;
@@ -545,7 +505,7 @@ public:
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = quadrature_key_type;
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
 
     /*!
      * Constructor.
@@ -579,7 +539,7 @@ public:
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = quadrature_key_type;
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
 
     /*!
      * Constructor.

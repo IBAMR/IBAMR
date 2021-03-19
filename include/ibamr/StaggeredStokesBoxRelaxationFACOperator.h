@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2021 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -98,7 +98,7 @@ public:
                      int level_num,
                      int num_sweeps,
                      bool performing_pre_sweeps,
-                     bool performing_post_sweeps) override;
+                     bool performing_post_sweeps);
 
     //\}
 
@@ -109,12 +109,12 @@ protected:
     void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
                                             const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
                                             int coarsest_reset_ln,
-                                            int finest_reset_ln) override;
+                                            int finest_reset_ln);
 
     /*!
      * \brief Remove implementation-specific hierarchy-dependent data.
      */
-    void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln) override;
+    void deallocateOperatorStateSpecialized(int coarsest_reset_ln, int finest_reset_ln);
 
 private:
     /*!

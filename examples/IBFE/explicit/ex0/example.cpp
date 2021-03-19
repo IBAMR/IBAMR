@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2017 - 2021 by the IBAMR developers
+// Copyright (c) 2017 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -269,8 +269,7 @@ main(int argc, char* argv[])
                                                     /*use_adaptive_quadrature*/ false,
                                                     /*point_density*/ 2.0,
                                                     /*use_consistent_mass_matrix*/ true,
-                                                    /*use_nodal_quadrature*/ false,
-                                                    /*allow_rules_with_negative_weights*/ false);
+                                                    /*use_nodal_quadrature*/ false);
             ib_post_processor->registerInterpolatedScalarEulerianVariable(
                 "p_f", LAGRANGE, FIRST, p_var, p_current_ctx, p_ghostfill, p_interp_spec);
         }

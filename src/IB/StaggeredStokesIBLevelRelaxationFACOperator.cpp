@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2015 - 2020 by the IBAMR developers
+// Copyright (c) 2015 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -20,6 +20,7 @@
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -62,8 +63,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

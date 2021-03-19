@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2017 - 2020 by the IBAMR developers
+// Copyright (c) 2017 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -14,13 +14,12 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/LSInitStrategy.h"
+#include "ibamr/namespaces.h"
 
 #include "tbox/Database.h"
 #include "tbox/RestartManager.h"
 
 #include <utility>
-
-#include "ibamr/namespaces.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

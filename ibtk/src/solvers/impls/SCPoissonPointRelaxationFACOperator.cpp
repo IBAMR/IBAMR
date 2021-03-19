@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2021 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -29,6 +29,7 @@
 #include "ibtk/SideSynchCopyFillPattern.h"
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "ArrayData.h"
 #include "Box.h"
@@ -71,40 +72,38 @@
 #include <utility>
 #include <vector>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
-
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define SMOOTH_GS_CONST_DC_FC IBTK_FC_FUNC(smooth_gs_const_dc_2d, SMOOTH_GS_CONST_DC_2D)
-#define SMOOTH_GS_RB_CONST_DC_FC IBTK_FC_FUNC(smooth_gs_rb_const_dc_2d, SMOOTH_GS_RB_CONST_DC_2D)
+#define GS_SMOOTH_FC IBTK_FC_FUNC(gssmooth2d, GSSMOOTH2D)
 #define GS_SMOOTH_MASK_FC IBTK_FC_FUNC(gssmoothmask2d, GSSMOOTHMASK2D)
+#define RB_GS_SMOOTH_FC IBTK_FC_FUNC(rbgssmooth2d, RBGSSMOOTH2D)
 #define RB_GS_SMOOTH_MASK_FC IBTK_FC_FUNC(rbgssmoothmask2d, RBGSSMOOTHMASK2D)
 #endif
 #if (NDIM == 3)
-#define SMOOTH_GS_CONST_DC_FC IBTK_FC_FUNC(smooth_gs_const_dc_3d, SMOOTH_GS_CONST_DC_3D)
-#define SMOOTH_GS_RB_CONST_DC_FC IBTK_FC_FUNC(smooth_gs_rb_const_dc_3d, SMOOTH_GS_RB_CONST_DC_3D)
+#define GS_SMOOTH_FC IBTK_FC_FUNC(gssmooth3d, GSSMOOTH3D)
 #define GS_SMOOTH_MASK_FC IBTK_FC_FUNC(gssmoothmask3d, GSSMOOTHMASK3D)
+#define RB_GS_SMOOTH_FC IBTK_FC_FUNC(rbgssmooth3d, RBGSSMOOTH3D)
 #define RB_GS_SMOOTH_MASK_FC IBTK_FC_FUNC(rbgssmoothmask3d, RBGSSMOOTHMASK3D)
 #endif
 
 // Function interfaces
 extern "C"
 {
-    void SMOOTH_GS_CONST_DC_FC(double* U,
-                               const int& U_gcw,
-                               const double& D,
-                               const double& C,
-                               const double* F,
-                               const int& F_gcw,
-                               const int& ilower0,
-                               const int& iupper0,
-                               const int& ilower1,
-                               const int& iupper1,
+    void GS_SMOOTH_FC(double* U,
+                      const int& U_gcw,
+                      const double& alpha,
+                      const double& beta,
+                      const double* F,
+                      const int& F_gcw,
+                      const int& ilower0,
+                      const int& iupper0,
+                      const int& ilower1,
+                      const int& iupper1,
 #if (NDIM == 3)
-                               const int& ilower2,
-                               const int& iupper2,
+                      const int& ilower2,
+                      const int& iupper2,
 #endif
-                               const double* dx);
+                      const double* dx);
 
     void GS_SMOOTH_MASK_FC(double* U,
                            const int& U_gcw,
@@ -124,22 +123,22 @@ extern "C"
 #endif
                            const double* dx);
 
-    void SMOOTH_GS_RB_CONST_DC_FC(double* U,
-                                  const int& U_gcw,
-                                  const double& D,
-                                  const double& C,
-                                  const double* F,
-                                  const int& F_gcw,
-                                  const int& ilower0,
-                                  const int& iupper0,
-                                  const int& ilower1,
-                                  const int& iupper1,
+    void RB_GS_SMOOTH_FC(double* U,
+                         const int& U_gcw,
+                         const double& alpha,
+                         const double& beta,
+                         const double* F,
+                         const int& F_gcw,
+                         const int& ilower0,
+                         const int& iupper0,
+                         const int& ilower1,
+                         const int& iupper1,
 #if (NDIM == 3)
-                                  const int& ilower2,
-                                  const int& iupper2,
+                         const int& ilower2,
+                         const int& iupper2,
 #endif
-                                  const double* dx,
-                                  const int& red_or_black);
+                         const double* dx,
+                         const int& red_or_black);
 
     void RB_GS_SMOOTH_MASK_FC(double* U,
                               const int& U_gcw,
@@ -508,8 +507,8 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
             }
 
             // Smooth the error using Gauss-Seidel.
-            const double& D = d_poisson_spec.getDConstant();
-            const double& C = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
+            const double& alpha = d_poisson_spec.getDConstant();
+            const double& beta = d_poisson_spec.cIsZero() ? 0.0 : d_poisson_spec.getCConstant();
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 const Box<NDIM> side_patch_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
@@ -528,8 +527,8 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                             int red_or_black = isweep % 2; // "red" = 0, "black" = 1
                             RB_GS_SMOOTH_MASK_FC(U,
                                                  U_ghosts,
-                                                 D,
-                                                 C,
+                                                 alpha,
+                                                 beta,
                                                  F,
                                                  F_ghosts,
                                                  mask,
@@ -549,8 +548,8 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                         {
                             GS_SMOOTH_MASK_FC(U,
                                               U_ghosts,
-                                              D,
-                                              C,
+                                              alpha,
+                                              beta,
                                               F,
                                               F_ghosts,
                                               mask,
@@ -571,40 +570,40 @@ SCPoissonPointRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, double>&
                         if (red_black_ordering)
                         {
                             int red_or_black = isweep % 2; // "red" = 0, "black" = 1
-                            SMOOTH_GS_RB_CONST_DC_FC(U,
-                                                     U_ghosts,
-                                                     D,
-                                                     C,
-                                                     F,
-                                                     F_ghosts,
-                                                     side_patch_box.lower(0),
-                                                     side_patch_box.upper(0),
-                                                     side_patch_box.lower(1),
-                                                     side_patch_box.upper(1),
+                            RB_GS_SMOOTH_FC(U,
+                                            U_ghosts,
+                                            alpha,
+                                            beta,
+                                            F,
+                                            F_ghosts,
+                                            side_patch_box.lower(0),
+                                            side_patch_box.upper(0),
+                                            side_patch_box.lower(1),
+                                            side_patch_box.upper(1),
 #if (NDIM == 3)
-                                                     side_patch_box.lower(2),
-                                                     side_patch_box.upper(2),
+                                            side_patch_box.lower(2),
+                                            side_patch_box.upper(2),
 #endif
-                                                     dx,
-                                                     red_or_black);
+                                            dx,
+                                            red_or_black);
                         }
                         else
                         {
-                            SMOOTH_GS_CONST_DC_FC(U,
-                                                  U_ghosts,
-                                                  D,
-                                                  C,
-                                                  F,
-                                                  F_ghosts,
-                                                  side_patch_box.lower(0),
-                                                  side_patch_box.upper(0),
-                                                  side_patch_box.lower(1),
-                                                  side_patch_box.upper(1),
+                            GS_SMOOTH_FC(U,
+                                         U_ghosts,
+                                         alpha,
+                                         beta,
+                                         F,
+                                         F_ghosts,
+                                         side_patch_box.lower(0),
+                                         side_patch_box.upper(0),
+                                         side_patch_box.lower(1),
+                                         side_patch_box.upper(1),
 #if (NDIM == 3)
-                                                  side_patch_box.lower(2),
-                                                  side_patch_box.upper(2),
+                                         side_patch_box.lower(2),
+                                         side_patch_box.upper(2),
 #endif
-                                                  dx);
+                                         dx);
                         }
                     }
                 }

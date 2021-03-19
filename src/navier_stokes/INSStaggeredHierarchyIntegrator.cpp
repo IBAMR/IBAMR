@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2021 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -30,6 +30,7 @@
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartCellDoubleBoundsPreservingConservativeLinearRefine.h"
@@ -111,8 +112,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
@@ -1055,12 +1054,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
             {
                 for (unsigned int j = 0; j < NDIM; ++j)
                 {
-                    const std::string suffix = std::string(i == 0 ? "x" :
-                                                           i == 1 ? "y" :
-                                                                    "z") +
-                                               std::string(j == 0 ? "x" :
-                                                           j == 1 ? "y" :
-                                                                    "z");
+                    const std::string suffix =
+                        std::string(i == 0 ? "x" : i == 1 ? "y" : "z") + std::string(j == 0 ? "x" : j == 1 ? "y" : "z");
                     d_visit_writer->registerPlotQuantity(
                         "UU_mean_" + suffix, "SCALAR", d_UU_mean_current_idx, i * NDIM + j, std::pow(d_U_scale, 2));
                 }
@@ -1075,12 +1070,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
             {
                 for (unsigned int j = 0; j < NDIM; ++j)
                 {
-                    const std::string suffix = std::string(i == 0 ? "x" :
-                                                           i == 1 ? "y" :
-                                                                    "z") +
-                                               std::string(j == 0 ? "x" :
-                                                           j == 1 ? "y" :
-                                                                    "z");
+                    const std::string suffix =
+                        std::string(i == 0 ? "x" : i == 1 ? "y" : "z") + std::string(j == 0 ? "x" : j == 1 ? "y" : "z");
                     d_visit_writer->registerPlotQuantity(
                         "UU_fluct_" + suffix, "SCALAR", d_UU_fluct_current_idx, i * NDIM + j, std::pow(d_U_scale, 2));
                 }

@@ -208,7 +208,6 @@ IF(IBAMR_HAVE_LIBMESH)
     lagrangian/FEMapping.cpp
     lagrangian/FEProjector.cpp
     lagrangian/FEValues.cpp
-    lagrangian/FischerGuess.cpp
     lagrangian/StableCentroidPartitioner.cpp
 
     # utilities

@@ -1,0 +1,4 @@
+Bug fix: AppInitializer now creates the TimerManager correctly using the
+database provided from the input file.
+<br>
+(Aaron Barret, 2020/06/26)

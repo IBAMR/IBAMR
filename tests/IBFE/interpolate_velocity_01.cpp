@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2020 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -432,10 +432,7 @@ main(int argc, char** argv)
             // mass matrix
             if (input_db->getBoolWithDefault("print_diagonal_mass_matrix", false))
             {
-                Pointer<Database> db(new InputDatabase("database"));
-                db->putBool("enable_logging", true);
-
-                FEProjector fe_projector(equation_systems, db);
+                FEProjector fe_projector(equation_systems);
                 PetscVector<double>& diagonal_mass = *fe_projector.buildDiagonalL2MassMatrix(velocity_system.name());
                 diagonal_mass.print_global(plog);
             }

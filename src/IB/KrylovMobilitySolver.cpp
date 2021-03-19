@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2015 - 2020 by the IBAMR developers
+// Copyright (c) 2015 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -22,6 +22,7 @@
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/StokesSpecifications.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
@@ -73,8 +74,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2021 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -18,6 +18,7 @@
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 
@@ -51,8 +52,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {
@@ -524,9 +523,8 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
                         const double u_ADV = (*U_adv_data[axis])(i);
                         const double U_lower = U_array_data(i.toCell(0), 0);
                         const double U_upper = U_array_data(i.toCell(1), 0);
-                        (*U_half_data[axis])(i) = (u_ADV > 1.0e-8) ? U_lower :
-                                                  (u_ADV < 1.0e-8) ? U_upper :
-                                                                     0.5 * (U_lower + U_upper);
+                        (*U_half_data[axis])(i) =
+                            (u_ADV > 1.0e-8) ? U_lower : (u_ADV < 1.0e-8) ? U_upper : 0.5 * (U_lower + U_upper);
                     }
                 }
             }

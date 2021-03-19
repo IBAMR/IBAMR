@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/FESurfaceDistanceEvaluator.h"
+#include "ibamr/app_namespaces.h"
 
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
@@ -67,8 +68,6 @@
 #include <utility>
 #include <vector>
 
-#include "ibamr/app_namespaces.h"
-
 namespace libMesh
 {
 class Node;
@@ -108,6 +107,17 @@ namespace
 // Timers.
 static Pointer<Timer> t_collectNeighboringPatchElements;
 static Pointer<Timer> t_buildIntersectionMap;
+
+inline double
+line_equation(const IBTK::Vector3d& coord, const libMesh::Point& n0, const libMesh::Point& n1)
+{
+    const double x0 = n0(0);
+    const double y0 = n0(1);
+    const double x1 = n1(0);
+    const double y1 = n1(1);
+
+    return (y1 - y0) * coord(0) + (x0 - x1) * coord(1) + (x1 * y0 - x0 * y1);
+} // line_equation
 
 template <class T1, class T2>
 inline T1
@@ -672,15 +682,6 @@ FESurfaceDistanceEvaluator::checkIntersection2D(const IBTK::Vector3d& box_bl,
     {
         return true;
     }
-
-    auto line_equation = [](const IBTK::Vector3d& coord, const libMesh::Point& n0, const libMesh::Point& n1) {
-        const double x0 = n0(0);
-        const double y0 = n0(1);
-        const double x1 = n1(0);
-        const double y1 = n1(1);
-
-        return (y1 - y0) * coord(0) + (x0 - x1) * coord(1) + (x1 * y0 - x0 * y1);
-    }; // line_equation
 
     const double F_br = line_equation(box_br, n0, n1);
     const double F_bl = line_equation(box_bl, n0, n1);

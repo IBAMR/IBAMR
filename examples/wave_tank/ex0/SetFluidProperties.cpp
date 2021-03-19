@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -12,13 +12,13 @@
 // ---------------------------------------------------------------------
 
 // APPLICATION INCLUDES
+#include <ibamr/app_namespaces.h>
+
 #include <ibtk/HierarchyMathOps.h>
 
 #include "SetFluidProperties.h"
 
 #include <CartesianGridGeometry.h>
-
-#include <ibamr/app_namespaces.h>
 
 // C++ INCLUDES
 
@@ -75,7 +75,7 @@ SetFluidProperties::SetFluidProperties(const std::string& object_name,
                                        const double rho_inside,
                                        const double mu_outside,
                                        const double mu_inside,
-                                       const int /*ls_reinit_interval*/,
+                                       const int ls_reinit_interval,
                                        const double num_interface_cells)
     : d_object_name(object_name),
       d_adv_diff_solver(adv_diff_solver),
@@ -84,6 +84,7 @@ SetFluidProperties::SetFluidProperties(const std::string& object_name,
       d_rho_inside(rho_inside),
       d_mu_outside(mu_outside),
       d_mu_inside(mu_inside),
+      d_ls_reinit_interval(ls_reinit_interval),
       d_num_interface_cells(num_interface_cells)
 {
     // intentionally left blank

@@ -13,8 +13,8 @@
 
 ADD_CUSTOM_TARGET(examples)
 
-SET(EXAMPLE_DIRECTORIES CIB ConstraintIB IB IBFE IBLevelSet IMP adv_diff
-  advect complex_fluids fe_mechanics level_set multiphase_flow navier_stokes
+SET(EXAMPLE_DIRECTORIES CIB ConstraintIB IB IBPD IBFE IBLevelSet IMP
+  adv_diff advect complex_fluids level_set multiphase_flow navier_stokes
   vc_navier_stokes wave_tank)
 
 #
@@ -74,10 +74,7 @@ MACRO(IBAMR_ADD_EXAMPLE)
       "${EX_OUTPUT_NAME}")
     TARGET_INCLUDE_DIRECTORIES("${EX_TARGET_NAME}" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 
-    IF("${EX_LINK_TARGETS}" STREQUAL "")
-      # If we have no target link libraries we need to set up the C++ standard ourselves
-      TARGET_COMPILE_FEATURES("${EX_TARGET_NAME}" PUBLIC cxx_std_11)
-    ELSE()
+    IF(NOT "${EX_LINK_TARGETS}" STREQUAL "")
       TARGET_LINK_LIBRARIES("${EX_TARGET_NAME}" PRIVATE ${EX_LINK_TARGETS})
     ENDIF()
     ADD_DEPENDENCIES("${EX_EXAMPLE_GROUP}" "${EX_TARGET_NAME}")

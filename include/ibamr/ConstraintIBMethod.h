@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2020 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -517,10 +517,6 @@ private:
      */
     std::vector<std::vector<double> > d_center_of_mass_current, d_center_of_mass_new;
 
-    /*!
-     * unshifted center of mass
-     */
-    std::vector<std::vector<double> > d_center_of_mass_unshifted_current, d_center_of_mass_unshifted_new;
     /*!
      * Moment of inertia of the structures.
      */

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2020 - 2021 by the IBAMR developers
+// Copyright (c) 2020 - 2020 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -118,7 +118,7 @@ public:
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = quadrature_key_type;
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
 
     /**
      * Type of values stored by this class that are accessible through

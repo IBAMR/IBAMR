@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2017 - 2020 by the IBAMR developers
+// Copyright (c) 2017 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -16,6 +16,7 @@
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/SurfaceTensionForceFunction.h"
 #include "ibamr/ibamr_enums.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
@@ -45,8 +46,6 @@
 #include <ostream>
 #include <string>
 #include <vector>
-
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

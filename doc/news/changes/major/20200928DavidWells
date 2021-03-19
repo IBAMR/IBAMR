@@ -1,0 +1,4 @@
+New: IBAMR::IBFEMethod can now be set up to have a single structure interact
+with multiple patch levels.
+<br>
+(David Wells, 2020/09/28)

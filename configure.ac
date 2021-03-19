@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2006 - 2021 by the IBAMR developers
+## Copyright (c) 2006 - 2019 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -190,7 +190,11 @@ AC_CONFIG_FILES([
   examples/IBFE/explicit/ex11/Makefile
   examples/IBLevelSet/Makefile
   examples/IBLevelSet/ex0/Makefile
-  examples/IBLevelSet/ex1/Makefile
+  examples/IBPD/Makefile
+  examples/IBPD/explicit/Makefile
+  examples/IBPD/explicit/ex0/Makefile
+  examples/IBPD/explicit/ex1/Makefile
+  examples/IBPD/explicit/ex2/Makefile
   examples/IMP/Makefile
   examples/IMP/explicit/Makefile
   examples/IMP/explicit/ex0/Makefile
@@ -198,11 +202,6 @@ AC_CONFIG_FILES([
   examples/adv_diff/ex0/Makefile
   examples/adv_diff/ex1/Makefile
   examples/adv_diff/ex2/Makefile
-  examples/adv_diff/ex3/Makefile
-  examples/adv_diff/ex4/Makefile
-  examples/adv_diff/ex5/Makefile
-  examples/adv_diff/ex6/Makefile
-  examples/adv_diff/ex7/Makefile
   examples/advect/Makefile
   examples/complex_fluids/Makefile
   examples/complex_fluids/ex0/Makefile
@@ -210,8 +209,6 @@ AC_CONFIG_FILES([
   examples/complex_fluids/ex2/Makefile
   examples/complex_fluids/ex3/Makefile
   examples/complex_fluids/ex4/Makefile
-  examples/fe_mechanics/Makefile
-  examples/fe_mechanics/ex0/Makefile
   examples/level_set/Makefile
   examples/level_set/ex0/Makefile
   examples/level_set/ex1/Makefile
@@ -264,11 +261,8 @@ AC_CONFIG_FILES([
   tests/Makefile
   tests/adv_diff/Makefile
   tests/advect/Makefile
-  tests/coarsen/Makefile
   tests/complex_fluids/Makefile
   tests/CIB/Makefile
-  tests/ConstraintIB/Makefile
-  tests/fe_mechanics/Makefile
   tests/IB/Makefile
   tests/IBFE/Makefile
   tests/IBTK/Makefile

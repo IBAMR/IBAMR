@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -102,12 +102,12 @@ public:
     // Destructor
     ~CFUpperConvectiveOperator();
 
-    void applyConvectiveOperator(int Q_idx, int Y_idx) override;
+    void applyConvectiveOperator(int Q_idx, int Y_idx);
 
     void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
 
-    void deallocateOperatorState() override;
+    void deallocateOperatorState();
 
     /*!
      * \brief: Registers a source function with the convective operator. Note that this source function is given the

@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/app_namespaces.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include <CartesianPatchGeometry.h>
@@ -21,8 +22,6 @@
 
 #include <algorithm>
 #include <cmath>
-
-#include <ibtk/app_namespaces.h>
 
 namespace IBTK
 {

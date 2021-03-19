@@ -16,6 +16,7 @@
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/MergingLoadBalancer.h"
 #include "ibtk/box_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "PatchHierarchy.h"
@@ -25,8 +26,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

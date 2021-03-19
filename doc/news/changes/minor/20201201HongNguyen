@@ -1,3 +1,0 @@
-Bug fix: Correct the calculations of COM, MOI and associated quantities in the constraintIB method in the presence of periodic boundary
-<br>
-(Hong Nguyen, 2020/12/01)

@@ -18,6 +18,7 @@
 #include <ibtk/PETScVecUtilities.h>
 #include <ibtk/SAMRAIGhostDataAccumulator.h>
 #include <ibtk/ibtk_utilities.h>
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 #include <tbox/Pointer.h>
 #include <tbox/Utilities.h>
@@ -50,8 +51,6 @@
 #include <string>
 #include <type_traits>
 #include <vector>
-
-#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

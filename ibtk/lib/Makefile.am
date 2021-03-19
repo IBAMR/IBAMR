@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2011 - 2020 by the IBAMR developers
+## Copyright (c) 2011 - 2019 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -194,7 +194,6 @@ DIM_DEPENDENT_SOURCES += \
 ../src/lagrangian/FEMapping.cpp \
 ../src/lagrangian/FEProjector.cpp \
 ../src/lagrangian/FEValues.cpp \
-../src/lagrangian/FischerGuess.cpp \
 ../src/utilities/LibMeshSystemIBVectors.cpp \
 ../src/utilities/LibMeshSystemVectors.cpp \
 ../src/utilities/libmesh_utilities.cpp

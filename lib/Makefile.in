@@ -94,7 +94,6 @@ host_triplet = @host@
 @LIBMESH_ENABLED_TRUE@am__append_3 = 
 @LIBMESH_ENABLED_TRUE@am__append_4 = \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/FEMechanicsBase.cpp \
-@LIBMESH_ENABLED_TRUE@  ../src/IB/FEMechanicsExplicitIntegrator.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFECentroidPostProcessor.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFEDirectForcingKinematics.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFEInstrumentPanel.cpp \
@@ -109,7 +108,6 @@ host_triplet = @host@
 
 @LIBMESH_ENABLED_TRUE@am__append_5 = \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/FEMechanicsBase.h \
-@LIBMESH_ENABLED_TRUE@  ../include/ibamr/FEMechanicsExplicitIntegrator.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/FESurfaceDistanceEvaluator.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFECentroidPostProcessor.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEDirectForcingKinematics.h \
@@ -195,7 +193,7 @@ am_libIBAMR_a_OBJECTS = ../src/dummy.$(OBJEXT)
 libIBAMR_a_OBJECTS = $(am_libIBAMR_a_OBJECTS)
 libIBAMR2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR2d_a_LIBADD =
-am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
+am__libIBAMR2d_a_SOURCES_DIST =  \
 	../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 	../src/IB/BrinkmanPenalizationStrategy.cpp \
 	../src/IB/CIBMethod.cpp ../src/IB/CIBMobilitySolver.cpp \
@@ -226,6 +224,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/IBLagrangianForceStrategySet.cpp \
 	../src/IB/IBLagrangianSourceStrategy.cpp \
 	../src/IB/IBLevelSetMethod.cpp ../src/IB/IBMethod.cpp \
+	../src/IB/IBPDForceGen.cpp ../src/IB/IBPDMethod.cpp \
 	../src/IB/IBRedundantInitializer.cpp \
 	../src/IB/IBRodForceSpec.cpp \
 	../src/IB/IBRodForceSpecFactory.cpp \
@@ -256,7 +255,6 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.cpp \
 	../src/adv_diff/AdvDiffStochasticForcing.cpp \
 	../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp \
-	../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp \
 	../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 	../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 	../src/complex_fluids/CFUpperConvectiveOperator.cpp \
@@ -329,7 +327,6 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/wave_generation/WaveDampingFunctions.cpp \
 	../src/wave_generation/WaveGenerationFunctions.cpp \
 	../src/utilities/RNG.cpp ../src/IB/FEMechanicsBase.cpp \
-	../src/IB/FEMechanicsExplicitIntegrator.cpp \
 	../src/IB/IBFECentroidPostProcessor.cpp \
 	../src/IB/IBFEDirectForcingKinematics.cpp \
 	../src/IB/IBFEInstrumentPanel.cpp ../src/IB/IBFEMethod.cpp \
@@ -359,7 +356,6 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing2d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_surface_tension_forcing2d.f
 @LIBMESH_ENABLED_TRUE@am__objects_1 = ../src/IB/libIBAMR2d_a-FEMechanicsBase.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFEDirectForcingKinematics.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFEInstrumentPanel.$(OBJEXT) \
@@ -371,9 +367,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-MaterialPointSpec.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-MaterialPointSpecFactory.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/level_set/libIBAMR2d_a-FESurfaceDistanceEvaluator.$(OBJEXT)
-am__objects_2 =  \
-	../src/IB/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.$(OBJEXT) \
-	../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT) \
+am__objects_2 = ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBMobilitySolver.$(OBJEXT) \
@@ -406,6 +400,8 @@ am__objects_2 =  \
 	../src/IB/libIBAMR2d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBLevelSetMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBMethod.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-IBPDForceGen.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-IBPDMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBRedundantInitializer.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBRodForceSpec.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-IBRodForceSpecFactory.$(OBJEXT) \
@@ -440,7 +436,6 @@ am__objects_2 =  \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffStochasticForcing.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffWavePropConvectiveOperator.$(OBJEXT) \
-	../src/adv_diff/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.$(OBJEXT) \
 	../src/advect/libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.$(OBJEXT) \
 	../src/advect/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.$(OBJEXT) \
 	../src/complex_fluids/libIBAMR2d_a-CFUpperConvectiveOperator.$(OBJEXT) \
@@ -537,7 +532,7 @@ am_libIBAMR2d_a_OBJECTS = $(am__objects_2) \
 libIBAMR2d_a_OBJECTS = $(am_libIBAMR2d_a_OBJECTS)
 libIBAMR3d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR3d_a_LIBADD =
-am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
+am__libIBAMR3d_a_SOURCES_DIST =  \
 	../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 	../src/IB/BrinkmanPenalizationStrategy.cpp \
 	../src/IB/CIBMethod.cpp ../src/IB/CIBMobilitySolver.cpp \
@@ -568,6 +563,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/IBLagrangianForceStrategySet.cpp \
 	../src/IB/IBLagrangianSourceStrategy.cpp \
 	../src/IB/IBLevelSetMethod.cpp ../src/IB/IBMethod.cpp \
+	../src/IB/IBPDForceGen.cpp ../src/IB/IBPDMethod.cpp \
 	../src/IB/IBRedundantInitializer.cpp \
 	../src/IB/IBRodForceSpec.cpp \
 	../src/IB/IBRodForceSpecFactory.cpp \
@@ -598,7 +594,6 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.cpp \
 	../src/adv_diff/AdvDiffStochasticForcing.cpp \
 	../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp \
-	../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp \
 	../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 	../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 	../src/complex_fluids/CFUpperConvectiveOperator.cpp \
@@ -671,7 +666,6 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/wave_generation/WaveDampingFunctions.cpp \
 	../src/wave_generation/WaveGenerationFunctions.cpp \
 	../src/utilities/RNG.cpp ../src/IB/FEMechanicsBase.cpp \
-	../src/IB/FEMechanicsExplicitIntegrator.cpp \
 	../src/IB/IBFECentroidPostProcessor.cpp \
 	../src/IB/IBFEDirectForcingKinematics.cpp \
 	../src/IB/IBFEInstrumentPanel.cpp ../src/IB/IBFEMethod.cpp \
@@ -701,7 +695,6 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_stochastic_forcing3d.f \
 	$(top_builddir)/src/navier_stokes/fortran/navier_stokes_surface_tension_forcing3d.f
 @LIBMESH_ENABLED_TRUE@am__objects_3 = ../src/IB/libIBAMR3d_a-FEMechanicsBase.$(OBJEXT) \
-@LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFEDirectForcingKinematics.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFEInstrumentPanel.$(OBJEXT) \
@@ -713,9 +706,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-MaterialPointSpec.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-MaterialPointSpecFactory.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/level_set/libIBAMR3d_a-FESurfaceDistanceEvaluator.$(OBJEXT)
-am__objects_4 =  \
-	../src/IB/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.$(OBJEXT) \
-	../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT) \
+am__objects_4 = ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBMobilitySolver.$(OBJEXT) \
@@ -748,6 +739,8 @@ am__objects_4 =  \
 	../src/IB/libIBAMR3d_a-IBLagrangianSourceStrategy.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBLevelSetMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBMethod.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-IBPDForceGen.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-IBPDMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBRedundantInitializer.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBRodForceSpec.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-IBRodForceSpecFactory.$(OBJEXT) \
@@ -782,7 +775,6 @@ am__objects_4 =  \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffSemiImplicitHierarchyIntegrator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffStochasticForcing.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffWavePropConvectiveOperator.$(OBJEXT) \
-	../src/adv_diff/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.$(OBJEXT) \
 	../src/advect/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.$(OBJEXT) \
 	../src/advect/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.$(OBJEXT) \
 	../src/complex_fluids/libIBAMR3d_a-CFUpperConvectiveOperator.$(OBJEXT) \
@@ -893,7 +885,6 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
-	../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationStrategy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMethod.Po \
@@ -906,7 +897,6 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-DirectMobilitySolver.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsBase.Po \
-	../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpec.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpecFactory.Po \
@@ -936,6 +926,8 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianSourceStrategy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLevelSetMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethod.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDForceGen.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpecFactory.Po \
@@ -962,7 +954,6 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-Wall.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-WallForceEvaluator.Po \
-	../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationStrategy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMethod.Po \
@@ -975,7 +966,6 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-DirectMobilitySolver.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsBase.Po \
-	../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpec.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpecFactory.Po \
@@ -1005,6 +995,8 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianSourceStrategy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLevelSetMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethod.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDForceGen.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpecFactory.Po \
@@ -1042,7 +1034,6 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffWavePropConvectiveOperator.Po \
-	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Po \
@@ -1054,7 +1045,6 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffSemiImplicitHierarchyIntegrator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffStochasticForcing.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffWavePropConvectiveOperator.Po \
-	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po \
 	../src/advect/$(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.Po \
 	../src/advect/$(DEPDIR)/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po \
 	../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Po \
@@ -1282,8 +1272,6 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/AdvDiffStochasticForcing.h \
 	../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 	../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
-	../include/ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h \
-	../include/ibamr/BrinkmanAdvDiffBcHelper.h \
 	../include/ibamr/BrinkmanPenalizationStrategy.h \
 	../include/ibamr/BrinkmanPenalizationRigidBodyDynamics.h \
 	../include/ibamr/CIBMethod.h \
@@ -1318,6 +1306,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/IBLevelSetMethod.h \
 	../include/ibamr/IBMethod.h \
 	../include/ibamr/IBMethodPostProcessStrategy.h \
+	../include/ibamr/IBPDForceGen.h ../include/ibamr/IBPDMethod.h \
 	../include/ibamr/IBRedundantInitializer.h \
 	../include/ibamr/IBRodForceSpec.h \
 	../include/ibamr/IBHydrodynamicSurfaceForceEvaluator.h \
@@ -1394,7 +1383,6 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/WaveDampingFunctions.h \
 	../include/ibamr/WaveGenerationFunctions.h \
 	../include/ibamr/RNG.h ../include/ibamr/FEMechanicsBase.h \
-	../include/ibamr/FEMechanicsExplicitIntegrator.h \
 	../include/ibamr/FESurfaceDistanceEvaluator.h \
 	../include/ibamr/IBFECentroidPostProcessor.h \
 	../include/ibamr/IBFEDirectForcingKinematics.h \
@@ -1710,8 +1698,6 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/AdvDiffStochasticForcing.h \
 	../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 	../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
-	../include/ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h \
-	../include/ibamr/BrinkmanAdvDiffBcHelper.h \
 	../include/ibamr/BrinkmanPenalizationStrategy.h \
 	../include/ibamr/BrinkmanPenalizationRigidBodyDynamics.h \
 	../include/ibamr/CIBMethod.h \
@@ -1746,6 +1732,7 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/IBLevelSetMethod.h \
 	../include/ibamr/IBMethod.h \
 	../include/ibamr/IBMethodPostProcessStrategy.h \
+	../include/ibamr/IBPDForceGen.h ../include/ibamr/IBPDMethod.h \
 	../include/ibamr/IBRedundantInitializer.h \
 	../include/ibamr/IBRodForceSpec.h \
 	../include/ibamr/IBHydrodynamicSurfaceForceEvaluator.h \
@@ -1823,7 +1810,7 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/WaveDampingFunctions.h \
 	../include/ibamr/WaveGenerationFunctions.h \
 	../include/ibamr/RNG.h $(am__append_5)
-DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
+DIM_INDEPENDENT_SOURCES =  \
 	../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 	../src/IB/BrinkmanPenalizationStrategy.cpp \
 	../src/IB/CIBMethod.cpp ../src/IB/CIBMobilitySolver.cpp \
@@ -1854,6 +1841,7 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/IBLagrangianForceStrategySet.cpp \
 	../src/IB/IBLagrangianSourceStrategy.cpp \
 	../src/IB/IBLevelSetMethod.cpp ../src/IB/IBMethod.cpp \
+	../src/IB/IBPDForceGen.cpp ../src/IB/IBPDMethod.cpp \
 	../src/IB/IBRedundantInitializer.cpp \
 	../src/IB/IBRodForceSpec.cpp \
 	../src/IB/IBRodForceSpecFactory.cpp \
@@ -1884,7 +1872,6 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.cpp \
 	../src/adv_diff/AdvDiffStochasticForcing.cpp \
 	../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp \
-	../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp \
 	../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 	../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 	../src/complex_fluids/CFUpperConvectiveOperator.cpp \
@@ -2089,8 +2076,6 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/IB/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ../src/IB/$(DEPDIR)
 	@: > ../src/IB/$(DEPDIR)/$(am__dirstamp)
-../src/IB/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.$(OBJEXT):  \
-	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.$(OBJEXT):  \
@@ -2157,6 +2142,10 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-IBPDForceGen.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-IBPDMethod.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBRedundantInitializer.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBRodForceSpec.$(OBJEXT):  \
@@ -2240,9 +2229,6 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/adv_diff/$(am__dirstamp) \
 	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
 ../src/adv_diff/libIBAMR2d_a-AdvDiffWavePropConvectiveOperator.$(OBJEXT):  \
-	../src/adv_diff/$(am__dirstamp) \
-	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
-../src/adv_diff/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.$(OBJEXT):  \
 	../src/adv_diff/$(am__dirstamp) \
 	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
 ../src/advect/$(am__dirstamp):
@@ -2499,8 +2485,6 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-FEMechanicsBase.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
-../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.$(OBJEXT):  \
-	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBFEDirectForcingKinematics.$(OBJEXT):  \
@@ -2619,8 +2603,6 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	$(AM_V_at)-rm -f libIBAMR2d.a
 	$(AM_V_AR)$(libIBAMR2d_a_AR) libIBAMR2d.a $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_LIBADD)
 	$(AM_V_at)$(RANLIB) libIBAMR2d.a
-../src/IB/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.$(OBJEXT):  \
-	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.$(OBJEXT):  \
@@ -2687,6 +2669,10 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-IBPDForceGen.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-IBPDMethod.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBRedundantInitializer.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBRodForceSpec.$(OBJEXT):  \
@@ -2764,9 +2750,6 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/adv_diff/$(am__dirstamp) \
 	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
 ../src/adv_diff/libIBAMR3d_a-AdvDiffWavePropConvectiveOperator.$(OBJEXT):  \
-	../src/adv_diff/$(am__dirstamp) \
-	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
-../src/adv_diff/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.$(OBJEXT):  \
 	../src/adv_diff/$(am__dirstamp) \
 	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
 ../src/advect/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.$(OBJEXT):  \
@@ -2987,8 +2970,6 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-FEMechanicsBase.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
-../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.$(OBJEXT):  \
-	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBFEDirectForcingKinematics.$(OBJEXT):  \
@@ -3099,7 +3080,6 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/dummy.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMethod.Po@am__quote@ # am--include-marker
@@ -3112,7 +3092,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-DirectMobilitySolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsBase.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpec.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpecFactory.Po@am__quote@ # am--include-marker
@@ -3142,6 +3121,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianSourceStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLevelSetMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethod.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDForceGen.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpecFactory.Po@am__quote@ # am--include-marker
@@ -3168,7 +3149,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-Wall.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-WallForceEvaluator.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMethod.Po@am__quote@ # am--include-marker
@@ -3181,7 +3161,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-DirectMobilitySolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsBase.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpec.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpecFactory.Po@am__quote@ # am--include-marker
@@ -3211,6 +3190,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianSourceStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLevelSetMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethod.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDForceGen.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpecFactory.Po@am__quote@ # am--include-marker
@@ -3248,7 +3229,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffWavePropConvectiveOperator.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Po@am__quote@ # am--include-marker
@@ -3260,7 +3240,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffSemiImplicitHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffStochasticForcing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffWavePropConvectiveOperator.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/advect/$(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/advect/$(DEPDIR)/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Po@am__quote@ # am--include-marker
@@ -3437,20 +3416,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
-
-../src/IB/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.o: ../src/IB/BrinkmanAdvDiffBcHelper.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.Tpo -c -o ../src/IB/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.o `test -f '../src/IB/BrinkmanAdvDiffBcHelper.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanAdvDiffBcHelper.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanAdvDiffBcHelper.cpp' object='../src/IB/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.o `test -f '../src/IB/BrinkmanAdvDiffBcHelper.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanAdvDiffBcHelper.cpp
-
-../src/IB/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.obj: ../src/IB/BrinkmanAdvDiffBcHelper.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.Tpo -c -o ../src/IB/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.obj `if test -f '../src/IB/BrinkmanAdvDiffBcHelper.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanAdvDiffBcHelper.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanAdvDiffBcHelper.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanAdvDiffBcHelper.cpp' object='../src/IB/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.obj `if test -f '../src/IB/BrinkmanAdvDiffBcHelper.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanAdvDiffBcHelper.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanAdvDiffBcHelper.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.o: ../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Tpo -c -o ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.o `test -f '../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp
@@ -3913,6 +3878,34 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBMethod.cpp' object='../src/IB/libIBAMR2d_a-IBMethod.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBMethod.obj `if test -f '../src/IB/IBMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBMethod.cpp'; fi`
+
+../src/IB/libIBAMR2d_a-IBPDForceGen.o: ../src/IB/IBPDForceGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBPDForceGen.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDForceGen.Tpo -c -o ../src/IB/libIBAMR2d_a-IBPDForceGen.o `test -f '../src/IB/IBPDForceGen.cpp' || echo '$(srcdir)/'`../src/IB/IBPDForceGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDForceGen.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDForceGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBPDForceGen.cpp' object='../src/IB/libIBAMR2d_a-IBPDForceGen.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBPDForceGen.o `test -f '../src/IB/IBPDForceGen.cpp' || echo '$(srcdir)/'`../src/IB/IBPDForceGen.cpp
+
+../src/IB/libIBAMR2d_a-IBPDForceGen.obj: ../src/IB/IBPDForceGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBPDForceGen.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDForceGen.Tpo -c -o ../src/IB/libIBAMR2d_a-IBPDForceGen.obj `if test -f '../src/IB/IBPDForceGen.cpp'; then $(CYGPATH_W) '../src/IB/IBPDForceGen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBPDForceGen.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDForceGen.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDForceGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBPDForceGen.cpp' object='../src/IB/libIBAMR2d_a-IBPDForceGen.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBPDForceGen.obj `if test -f '../src/IB/IBPDForceGen.cpp'; then $(CYGPATH_W) '../src/IB/IBPDForceGen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBPDForceGen.cpp'; fi`
+
+../src/IB/libIBAMR2d_a-IBPDMethod.o: ../src/IB/IBPDMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBPDMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-IBPDMethod.o `test -f '../src/IB/IBPDMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBPDMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBPDMethod.cpp' object='../src/IB/libIBAMR2d_a-IBPDMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBPDMethod.o `test -f '../src/IB/IBPDMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBPDMethod.cpp
+
+../src/IB/libIBAMR2d_a-IBPDMethod.obj: ../src/IB/IBPDMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBPDMethod.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-IBPDMethod.obj `if test -f '../src/IB/IBPDMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBPDMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBPDMethod.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBPDMethod.cpp' object='../src/IB/libIBAMR2d_a-IBPDMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBPDMethod.obj `if test -f '../src/IB/IBPDMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBPDMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBPDMethod.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-IBRedundantInitializer.o: ../src/IB/IBRedundantInitializer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBRedundantInitializer.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Tpo -c -o ../src/IB/libIBAMR2d_a-IBRedundantInitializer.o `test -f '../src/IB/IBRedundantInitializer.cpp' || echo '$(srcdir)/'`../src/IB/IBRedundantInitializer.cpp
@@ -4389,20 +4382,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp' object='../src/adv_diff/libIBAMR2d_a-AdvDiffWavePropConvectiveOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffWavePropConvectiveOperator.obj `if test -f '../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp'; fi`
-
-../src/adv_diff/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.o: ../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Tpo -c -o ../src/adv_diff/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.o `test -f '../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp' object='../src/adv_diff/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.o `test -f '../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp
-
-../src/adv_diff/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.obj: ../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.obj -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Tpo -c -o ../src/adv_diff/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.obj `if test -f '../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp' object='../src/adv_diff/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.obj `if test -f '../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp'; fi`
 
 ../src/advect/libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.o: ../src/advect/AdvectorExplicitPredictorPatchOps.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/advect/libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.o -MD -MP -MF ../src/advect/$(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.Tpo -c -o ../src/advect/libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.o `test -f '../src/advect/AdvectorExplicitPredictorPatchOps.cpp' || echo '$(srcdir)/'`../src/advect/AdvectorExplicitPredictorPatchOps.cpp
@@ -5426,20 +5405,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-FEMechanicsBase.obj `if test -f '../src/IB/FEMechanicsBase.cpp'; then $(CYGPATH_W) '../src/IB/FEMechanicsBase.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/FEMechanicsBase.cpp'; fi`
 
-../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.o: ../src/IB/FEMechanicsExplicitIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Tpo -c -o ../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.o `test -f '../src/IB/FEMechanicsExplicitIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/FEMechanicsExplicitIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/FEMechanicsExplicitIntegrator.cpp' object='../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.o `test -f '../src/IB/FEMechanicsExplicitIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/FEMechanicsExplicitIntegrator.cpp
-
-../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.obj: ../src/IB/FEMechanicsExplicitIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Tpo -c -o ../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.obj `if test -f '../src/IB/FEMechanicsExplicitIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/FEMechanicsExplicitIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/FEMechanicsExplicitIntegrator.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/FEMechanicsExplicitIntegrator.cpp' object='../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.obj `if test -f '../src/IB/FEMechanicsExplicitIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/FEMechanicsExplicitIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/FEMechanicsExplicitIntegrator.cpp'; fi`
-
 ../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.o: ../src/IB/IBFECentroidPostProcessor.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Tpo -c -o ../src/IB/libIBAMR2d_a-IBFECentroidPostProcessor.o `test -f '../src/IB/IBFECentroidPostProcessor.cpp' || echo '$(srcdir)/'`../src/IB/IBFECentroidPostProcessor.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBFECentroidPostProcessor.Po
@@ -5593,20 +5558,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/FESurfaceDistanceEvaluator.cpp' object='../src/level_set/libIBAMR2d_a-FESurfaceDistanceEvaluator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR2d_a-FESurfaceDistanceEvaluator.obj `if test -f '../src/level_set/FESurfaceDistanceEvaluator.cpp'; then $(CYGPATH_W) '../src/level_set/FESurfaceDistanceEvaluator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/FESurfaceDistanceEvaluator.cpp'; fi`
-
-../src/IB/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.o: ../src/IB/BrinkmanAdvDiffBcHelper.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.Tpo -c -o ../src/IB/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.o `test -f '../src/IB/BrinkmanAdvDiffBcHelper.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanAdvDiffBcHelper.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanAdvDiffBcHelper.cpp' object='../src/IB/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.o `test -f '../src/IB/BrinkmanAdvDiffBcHelper.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanAdvDiffBcHelper.cpp
-
-../src/IB/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.obj: ../src/IB/BrinkmanAdvDiffBcHelper.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.Tpo -c -o ../src/IB/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.obj `if test -f '../src/IB/BrinkmanAdvDiffBcHelper.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanAdvDiffBcHelper.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanAdvDiffBcHelper.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanAdvDiffBcHelper.cpp' object='../src/IB/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.obj `if test -f '../src/IB/BrinkmanAdvDiffBcHelper.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanAdvDiffBcHelper.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanAdvDiffBcHelper.cpp'; fi`
 
 ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.o: ../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Tpo -c -o ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.o `test -f '../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp
@@ -6069,6 +6020,34 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBMethod.cpp' object='../src/IB/libIBAMR3d_a-IBMethod.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBMethod.obj `if test -f '../src/IB/IBMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBMethod.cpp'; fi`
+
+../src/IB/libIBAMR3d_a-IBPDForceGen.o: ../src/IB/IBPDForceGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBPDForceGen.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDForceGen.Tpo -c -o ../src/IB/libIBAMR3d_a-IBPDForceGen.o `test -f '../src/IB/IBPDForceGen.cpp' || echo '$(srcdir)/'`../src/IB/IBPDForceGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDForceGen.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDForceGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBPDForceGen.cpp' object='../src/IB/libIBAMR3d_a-IBPDForceGen.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBPDForceGen.o `test -f '../src/IB/IBPDForceGen.cpp' || echo '$(srcdir)/'`../src/IB/IBPDForceGen.cpp
+
+../src/IB/libIBAMR3d_a-IBPDForceGen.obj: ../src/IB/IBPDForceGen.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBPDForceGen.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDForceGen.Tpo -c -o ../src/IB/libIBAMR3d_a-IBPDForceGen.obj `if test -f '../src/IB/IBPDForceGen.cpp'; then $(CYGPATH_W) '../src/IB/IBPDForceGen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBPDForceGen.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDForceGen.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDForceGen.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBPDForceGen.cpp' object='../src/IB/libIBAMR3d_a-IBPDForceGen.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBPDForceGen.obj `if test -f '../src/IB/IBPDForceGen.cpp'; then $(CYGPATH_W) '../src/IB/IBPDForceGen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBPDForceGen.cpp'; fi`
+
+../src/IB/libIBAMR3d_a-IBPDMethod.o: ../src/IB/IBPDMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBPDMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-IBPDMethod.o `test -f '../src/IB/IBPDMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBPDMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBPDMethod.cpp' object='../src/IB/libIBAMR3d_a-IBPDMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBPDMethod.o `test -f '../src/IB/IBPDMethod.cpp' || echo '$(srcdir)/'`../src/IB/IBPDMethod.cpp
+
+../src/IB/libIBAMR3d_a-IBPDMethod.obj: ../src/IB/IBPDMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBPDMethod.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-IBPDMethod.obj `if test -f '../src/IB/IBPDMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBPDMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBPDMethod.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IBPDMethod.cpp' object='../src/IB/libIBAMR3d_a-IBPDMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBPDMethod.obj `if test -f '../src/IB/IBPDMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBPDMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBPDMethod.cpp'; fi`
 
 ../src/IB/libIBAMR3d_a-IBRedundantInitializer.o: ../src/IB/IBRedundantInitializer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBRedundantInitializer.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Tpo -c -o ../src/IB/libIBAMR3d_a-IBRedundantInitializer.o `test -f '../src/IB/IBRedundantInitializer.cpp' || echo '$(srcdir)/'`../src/IB/IBRedundantInitializer.cpp
@@ -6545,20 +6524,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp' object='../src/adv_diff/libIBAMR3d_a-AdvDiffWavePropConvectiveOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffWavePropConvectiveOperator.obj `if test -f '../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp'; fi`
-
-../src/adv_diff/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.o: ../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Tpo -c -o ../src/adv_diff/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.o `test -f '../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp' object='../src/adv_diff/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.o `test -f '../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp
-
-../src/adv_diff/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.obj: ../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.obj -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Tpo -c -o ../src/adv_diff/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.obj `if test -f '../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp' object='../src/adv_diff/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.obj `if test -f '../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp'; fi`
 
 ../src/advect/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.o: ../src/advect/AdvectorExplicitPredictorPatchOps.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/advect/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.o -MD -MP -MF ../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Tpo -c -o ../src/advect/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.o `test -f '../src/advect/AdvectorExplicitPredictorPatchOps.cpp' || echo '$(srcdir)/'`../src/advect/AdvectorExplicitPredictorPatchOps.cpp
@@ -7582,20 +7547,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-FEMechanicsBase.obj `if test -f '../src/IB/FEMechanicsBase.cpp'; then $(CYGPATH_W) '../src/IB/FEMechanicsBase.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/FEMechanicsBase.cpp'; fi`
 
-../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.o: ../src/IB/FEMechanicsExplicitIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Tpo -c -o ../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.o `test -f '../src/IB/FEMechanicsExplicitIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/FEMechanicsExplicitIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/FEMechanicsExplicitIntegrator.cpp' object='../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.o `test -f '../src/IB/FEMechanicsExplicitIntegrator.cpp' || echo '$(srcdir)/'`../src/IB/FEMechanicsExplicitIntegrator.cpp
-
-../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.obj: ../src/IB/FEMechanicsExplicitIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Tpo -c -o ../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.obj `if test -f '../src/IB/FEMechanicsExplicitIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/FEMechanicsExplicitIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/FEMechanicsExplicitIntegrator.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/FEMechanicsExplicitIntegrator.cpp' object='../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.obj `if test -f '../src/IB/FEMechanicsExplicitIntegrator.cpp'; then $(CYGPATH_W) '../src/IB/FEMechanicsExplicitIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/FEMechanicsExplicitIntegrator.cpp'; fi`
-
 ../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.o: ../src/IB/IBFECentroidPostProcessor.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Tpo -c -o ../src/IB/libIBAMR3d_a-IBFECentroidPostProcessor.o `test -f '../src/IB/IBFECentroidPostProcessor.cpp' || echo '$(srcdir)/'`../src/IB/IBFECentroidPostProcessor.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBFECentroidPostProcessor.Po
@@ -7944,7 +7895,6 @@ clean-am: clean-generic clean-libLIBRARIES clean-libtool clean-local \
 
 distclean: distclean-am
 		-rm -f ../src/$(DEPDIR)/dummy.Po
-	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMethod.Po
@@ -7957,7 +7907,6 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-DirectMobilitySolver.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsBase.Po
-	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpecFactory.Po
@@ -7987,6 +7936,8 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianSourceStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLevelSetMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethod.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDForceGen.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpecFactory.Po
@@ -8013,7 +7964,6 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-Wall.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-WallForceEvaluator.Po
-	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMethod.Po
@@ -8026,7 +7976,6 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-DirectMobilitySolver.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsBase.Po
-	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpecFactory.Po
@@ -8056,6 +8005,8 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianSourceStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLevelSetMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethod.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDForceGen.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpecFactory.Po
@@ -8093,7 +8044,6 @@ distclean: distclean-am
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffWavePropConvectiveOperator.Po
-	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Po
@@ -8105,7 +8055,6 @@ distclean: distclean-am
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffSemiImplicitHierarchyIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffStochasticForcing.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffWavePropConvectiveOperator.Po
-	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.Po
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Po
@@ -8298,7 +8247,6 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ../src/$(DEPDIR)/dummy.Po
-	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMethod.Po
@@ -8311,7 +8259,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-DirectMobilitySolver.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsBase.Po
-	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsExplicitIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-GeneralizedIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBAnchorPointSpecFactory.Po
@@ -8341,6 +8288,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLagrangianSourceStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBLevelSetMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBMethod.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDForceGen.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBPDMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRedundantInitializer.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBRodForceSpecFactory.Po
@@ -8367,7 +8316,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-Wall.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-WallForceEvaluator.Po
-	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMethod.Po
@@ -8380,7 +8328,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-DirectMobilitySolver.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsBase.Po
-	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsExplicitIntegrator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-GeneralizedIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBAnchorPointSpecFactory.Po
@@ -8410,6 +8357,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLagrangianSourceStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBLevelSetMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBMethod.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDForceGen.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBPDMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRedundantInitializer.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBRodForceSpecFactory.Po
@@ -8447,7 +8396,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffSemiImplicitHierarchyIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffWavePropConvectiveOperator.Po
-	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Po
@@ -8459,7 +8407,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffSemiImplicitHierarchyIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffStochasticForcing.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffWavePropConvectiveOperator.Po
-	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.Po
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Po

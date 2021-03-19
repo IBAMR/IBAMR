@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2017 - 2020 by the IBAMR developers
+// Copyright (c) 2017 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -15,6 +15,7 @@
 
 #include "ibamr/LSInitStrategy.h"
 #include "ibamr/RelaxationLSMethod.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 #include "ibamr/ibamr_enums.h"
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
@@ -44,8 +45,6 @@
 #include <ostream>
 #include <string>
 #include <vector>
-
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

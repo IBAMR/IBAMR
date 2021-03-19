@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2015 - 2020 by the IBAMR developers
+// Copyright (c) 2015 - 2018 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/WallForceEvaluator.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/LData.h"
 #include "ibtk/LDataManager.h"
@@ -38,8 +39,6 @@
 
 #include <sstream>
 #include <string>
-
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

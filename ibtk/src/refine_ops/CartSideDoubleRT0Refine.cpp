@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2020 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -14,14 +14,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/CartSideDoubleRT0Refine.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "SideVariable.h"
 #include "tbox/Pointer.h"
 
 #include <string>
-
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

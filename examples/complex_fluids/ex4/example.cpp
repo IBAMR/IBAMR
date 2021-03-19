@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -404,6 +404,8 @@ main(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
+
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
         // Create Eulerian body force function specification objects.
         Pointer<CFINSForcing> polymericStressForcing;

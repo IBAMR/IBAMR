@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2020 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -85,6 +85,7 @@ coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*
 
 static constexpr double R = 0.2;
 static constexpr double w = 0.0625;
+static constexpr double dx0 = 1.0 / 64.0;
 
 // alternative mapping function for periodic domains.
 void

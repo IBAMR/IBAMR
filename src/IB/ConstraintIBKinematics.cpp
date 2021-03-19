@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2020 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/ConstraintIBKinematics.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/LDataManager.h"
 
@@ -23,8 +24,6 @@
 #include "tbox/Utilities.h"
 
 #include <string>
-
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 namespace IBAMR
 {

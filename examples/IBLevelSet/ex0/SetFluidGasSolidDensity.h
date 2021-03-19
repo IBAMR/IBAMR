@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -120,6 +120,11 @@ private:
      * Density of the fluid and solid.
      */
     double d_rho_fluid, d_rho_gas, d_rho_solid;
+
+    /*!
+     * Level set reinitialization interval
+     */
+    int d_ls_reinit_interval;
 
     /*!
      * Number of interface cells

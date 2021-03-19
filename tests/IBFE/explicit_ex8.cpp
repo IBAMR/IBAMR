@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2020 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -11,6 +11,27 @@
 //
 // ---------------------------------------------------------------------
 
+// Config files
+
+#include <SAMRAI_config.h>
+
+// Headers for basic PETSc functions
+#include <petscsys.h>
+
+// Headers for basic SAMRAI objects
+#include <BergerRigoutsos.h>
+#include <CartesianGridGeometry.h>
+#include <LoadBalancer.h>
+#include <StandardTagAndInitialize.h>
+
+// Headers for basic libMesh objects
+#include <libmesh/boundary_info.h>
+#include <libmesh/equation_systems.h>
+#include <libmesh/exodusII_io.h>
+#include <libmesh/mesh.h>
+#include <libmesh/mesh_generation.h>
+
+// Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
@@ -24,21 +45,7 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
-#include <libmesh/boundary_info.h>
-#include <libmesh/equation_systems.h>
-#include <libmesh/exodusII_io.h>
-#include <libmesh/mesh.h>
-#include <libmesh/mesh_generation.h>
-
-#include <petscsys.h>
-
 #include <boost/multi_array.hpp>
-
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <SAMRAI_config.h>
-#include <StandardTagAndInitialize.h>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>

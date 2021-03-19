@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2017 - 2020 by the IBAMR developers
+// Copyright (c) 2017 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -20,6 +20,7 @@
 #include "ibtk/VCSCViscousOperator.h"
 #include "ibtk/ibtk_enums.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "EdgeVariable.h"
@@ -35,8 +36,6 @@
 #include <algorithm>
 #include <string>
 #include <utility>
-
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2020 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/IBTK_MPI.h"
+#include "ibtk/app_namespaces.h" // IWYU pragma: keep
 
 #include "SAMRAI_config.h"
 #include "tbox/SAMRAI_MPI.h"
@@ -22,8 +23,6 @@
 #include <ostream>
 #include <string>
 #include <vector>
-
-#include "ibtk/app_namespaces.h" // IWYU pragma: keep
 
 namespace IBTK
 {

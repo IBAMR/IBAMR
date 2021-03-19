@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2020 - 2021 by the IBAMR developers
+// Copyright (c) 2020 - 2020 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -17,6 +17,7 @@
 #include <ibtk/FECache.h>
 #include <ibtk/FEMapping.h>
 #include <ibtk/FEValues.h>
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 #include <tbox/PIO.h>
 #include <tbox/Utilities.h>
@@ -32,8 +33,6 @@
 
 #include <map>
 #include <vector>
-
-#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -168,9 +167,9 @@ FEValues<dim, spacedim>::reinit(const libMesh::Elem* elem)
     {
         typename decltype(d_mappings)::value_type new_entry{ elem_type, nullptr };
         map_iter = d_mappings.insert(map_iter, std::move(new_entry));
-        const quadrature_key_type key{
-            elem_type, d_qrule->type(), d_qrule->get_order(), d_qrule->allow_rules_with_negative_weights
-        };
+        const std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order> key{ elem_type,
+                                                                                          d_qrule->type(),
+                                                                                          d_qrule->get_order() };
         map_iter->second = FEMapping<dim, spacedim>::build(key, d_update_flags);
     }
     FEMapping<dim, spacedim>& mapping = *map_iter->second;

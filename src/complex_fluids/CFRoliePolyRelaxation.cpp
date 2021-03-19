@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2020 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -12,6 +12,7 @@
 // ---------------------------------------------------------------------
 
 #include "ibamr/CFRoliePolyRelaxation.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/ibtk_utilities.h"
 
@@ -22,8 +23,6 @@
 #include "tbox/Database.h"
 
 #include <cmath>
-
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

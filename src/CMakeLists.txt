@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2020 - 2021 by the IBAMR developers
+## Copyright (c) 2020 - 2020 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -66,7 +66,6 @@ SET(CXX_SRC
   adv_diff/AdvDiffWavePropConvectiveOperator.cpp
   adv_diff/AdvDiffStochasticForcing.cpp
   adv_diff/AdvDiffPPMConvectiveOperator.cpp
-  adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp
 
   # wave generation
   wave_generation/StokesFirstOrderWaveBcCoef.cpp
@@ -134,7 +133,6 @@ SET(CXX_SRC
   # IB
   IB/IBInstrumentPanel.cpp
   IB/BrinkmanPenalizationStrategy.cpp
-  IB/BrinkmanAdvDiffBcHelper.cpp
   IB/PenaltyIBMethod.cpp
   IB/GeneralizedIBMethod.cpp
   IB/IBLagrangianForceStrategy.cpp
@@ -158,6 +156,8 @@ SET(CXX_SRC
   # This file is not yet finished
   # IB/IBFEPatchRecoveryPostProcessor.cpp
   IB/IBFEPostProcessor.cpp
+  IB/IBPDMethod.cpp
+  IB/IBPDForceGen.cpp
   IB/BrinkmanPenalizationRigidBodyDynamics.cpp
   IB/CIBMobilitySolver.cpp
   IB/IBStrategy.cpp
@@ -190,7 +190,6 @@ SET(CXX_SRC
   IB/IBLagrangianForceStrategySet.cpp
   IB/IBRodForceSpec.cpp
   IB/FEMechanicsBase.cpp
-  IB/FEMechanicsExplicitIntegrator.cpp
   IB/IBSourceSpec.cpp
   IB/IBSourceSpecFactory.cpp
   IB/CIBSaddlePointSolver.cpp
@@ -232,14 +231,9 @@ TARGET_SOURCES(IBAMR3d PRIVATE ${FORTRAN_GENERATED_SRC3D} ${CXX_SRC})
 TARGET_LINK_LIBRARIES(IBAMR2d PUBLIC IBAMRHeaders IBTKHeaders)
 TARGET_LINK_LIBRARIES(IBAMR3d PUBLIC IBAMRHeaders IBTKHeaders)
 
-# Since libIBAMR and libIBTK have the same dependencies (and libIBAMR always
-# depends on libIBTK), satisfy the dependencies (and NDIM definition) for
-# libIBAMR by linking against libIBTK.
-#
-# The order we resolve libIBAMR's dependencies in is important since SAMRAI is
-# usually staticly linked - if we do SAMRAI then IBTK we will end up with
-# duplicate symbols, so it has to be the other way around (so that we pick up
-# any SAMRAI symbols in libIBTK rather than adding them to libIBAMR).
+IBAMR_SETUP_TARGET_LIBRARY(IBAMR2d)
+IBAMR_SETUP_TARGET_LIBRARY(IBAMR3d)
+
 TARGET_LINK_LIBRARIES(IBAMR2d PUBLIC IBTK2d)
 TARGET_LINK_LIBRARIES(IBAMR3d PUBLIC IBTK3d)
 

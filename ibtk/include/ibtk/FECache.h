@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -154,7 +154,7 @@ public:
      * Key type. Completely describes (excepting p-refinement) a libMesh
      * quadrature rule.
      */
-    using key_type = quadrature_key_type;
+    using key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
 
     /**
      * Type of values stored by this class that are accessible through
@@ -174,7 +174,7 @@ public:
      * @param flags FEUpdateFlags indicating which values should be calculated
      * by each libMesh::FEBase object.
      */
-    FECache(unsigned int dim, const libMesh::FEType& fe_type, FEUpdateFlags flags);
+    FECache(const unsigned int dim, const libMesh::FEType& fe_type, const FEUpdateFlags flags);
 
     /**
      * Return a reference to an FE object that matches the specified

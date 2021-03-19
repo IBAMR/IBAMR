@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2021 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -19,12 +19,12 @@
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/BoxPartitioner.h"
 #include "ibtk/CartSideDoubleRT0Refine.h"
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
-#include "ibtk/FEProjector.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
@@ -122,8 +122,6 @@
 #include "petscvec.h"
 #include <petsclog.h>
 #include <petscsys.h>
-
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
@@ -265,7 +263,7 @@ void
 assemble_poisson(EquationSystems& es, const std::string& /*system_name*/)
 {
     const MeshBase& mesh = es.get_mesh();
-    const BoundaryInfo& boundary_info = mesh.get_boundary_info();
+    const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
     auto& system = es.get_system<LinearImplicitSystem>(IBFEMethod::PRESSURE_SYSTEM_NAME);
     const DofMap& dof_map = system.get_dof_map();
@@ -369,7 +367,12 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        unsigned int restart_restore_number)
     : FEMechanicsBase(object_name, input_db, mesh, register_for_restart, restart_read_dirname, restart_restore_number)
 {
-    commonConstructor(input_db, max_levels);
+    commonConstructor(object_name,
+                      input_db,
+                      std::vector<MeshBase*>(1, mesh),
+                      max_levels,
+                      restart_read_dirname,
+                      restart_restore_number);
     return;
 } // IBFEMethod
 
@@ -382,7 +385,7 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        unsigned int restart_restore_number)
     : FEMechanicsBase(object_name, input_db, meshes, register_for_restart, restart_read_dirname, restart_restore_number)
 {
-    commonConstructor(input_db, max_levels);
+    commonConstructor(object_name, input_db, meshes, max_levels, restart_read_dirname, restart_restore_number);
     return;
 } // IBFEMethod
 
@@ -404,8 +407,7 @@ IBFEMethod::registerStaticPressurePart(PressureProjectionType projection_type,
     // The same part can either have a pressure or can use stress normalization, but not both.
     if (d_has_stress_normalization_parts) TBOX_ASSERT(!d_stress_normalization_part[part]);
     FEMechanicsBase::registerStaticPressurePart(projection_type, U_prime, part);
-    return;
-} // registerStaticPressurePart
+}
 
 void
 IBFEMethod::registerStressNormalizationPart(unsigned int part)
@@ -575,7 +577,7 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
         {
             plog << d_object_name << "::preprocessIntegrateData(): "
                  << "Maximum structure node displacement is " << max_distance
-                 << " - reinitializing element to patch mappings\n";
+                 << ". Reinitializing element to patch mappings.\n";
             do_reinit_element_mappings = true;
             break;
         }
@@ -1102,7 +1104,6 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
 
         FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]->getFEData());
         std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, FIFTH);
-        qrule->allow_rules_with_negative_weights = d_allow_rules_with_negative_weights;
         fe.attachQuadratureRule(qrule.get());
         fe.evalQuadraturePoints();
         fe.evalQuadratureWeights();
@@ -1700,14 +1701,71 @@ IBFEMethod::getScratchHierarchy()
 void
 IBFEMethod::doInitializeFEEquationSystems()
 {
-    FEMechanicsBase::doInitializeFEEquationSystems();
-
     const bool from_restart = RestartManager::getManager()->isFromRestart();
 
-    // Setup system vectors.
+    // Create the FE data managers that manage mappings between the FE mesh
+    // parts and the Cartesian grid.
+    d_equation_systems.resize(d_meshes.size());
+    d_primary_fe_data_managers.resize(d_meshes.size());
+    d_scratch_fe_data_managers.resize(d_meshes.size());
+    d_active_fe_data_managers.resize(d_meshes.size());
+    d_fe_data.resize(d_meshes.size());
+    IntVector<NDIM> min_ghost_width(0);
+    if (!d_primary_eulerian_data_cache) d_primary_eulerian_data_cache = std::make_shared<SAMRAIDataCache>();
+    d_active_eulerian_data_cache = d_primary_eulerian_data_cache;
+
+    Pointer<Database> fe_data_manager_db(new InputDatabase("fe_data_manager_db"));
+    if (d_input_db->keyExists("FEDataManager")) fe_data_manager_db = d_input_db->getDatabase("FEDataManager");
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
+        // Create FE equation systems objects and corresponding variables.
+        d_equation_systems[part] = std::unique_ptr<EquationSystems>(new EquationSystems(*d_meshes[part]));
         EquationSystems& equation_systems = *d_equation_systems[part];
+
+        if (from_restart)
+        {
+            const std::string& file_name = libmesh_restart_file_name(
+                d_libmesh_restart_read_dir, d_libmesh_restart_restore_number, part, d_libmesh_restart_file_extension);
+            const XdrMODE xdr_mode = (d_libmesh_restart_file_extension == "xdr" ? DECODE : READ);
+            const int read_mode =
+                EquationSystems::READ_HEADER | EquationSystems::READ_DATA | EquationSystems::READ_ADDITIONAL_DATA;
+            equation_systems.read(file_name,
+                                  xdr_mode,
+                                  read_mode,
+                                  /*partition_agnostic*/ true);
+        }
+        else
+        {
+            auto& X_system = equation_systems.add_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                X_system.add_variable("X_" + std::to_string(d), d_fe_order_position[part], d_fe_family_position[part]);
+            }
+            X_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
+
+            auto& dX_system = equation_systems.add_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                dX_system.add_variable(
+                    "dX_" + std::to_string(d), d_fe_order_position[part], d_fe_family_position[part]);
+            }
+            dX_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
+
+            auto& U_system = equation_systems.add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                U_system.add_variable("U_" + std::to_string(d), d_fe_order_position[part], d_fe_family_position[part]);
+            }
+            U_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
+
+            auto& F_system = equation_systems.add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                F_system.add_variable("F_" + std::to_string(d), d_fe_order_force[part], d_fe_family_force[part]);
+            }
+            F_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
+        }
+
         IBTK::setup_system_vectors(
             &equation_systems, { VELOCITY_SYSTEM_NAME }, { "current", "half", "new" }, from_restart);
         IBTK::setup_system_vectors(&equation_systems,
@@ -1724,22 +1782,14 @@ IBFEMethod::doInitializeFEEquationSystems()
             F_vector_names = { "current", "half", "new", "tmp", "RHS Vector" };
         }
         IBTK::setup_system_vectors(&equation_systems, { FORCE_SYSTEM_NAME }, F_vector_names, from_restart);
-    }
 
-    // Create the FE data managers that manage mappings between the FE mesh
-    // parts and the Cartesian grid.
-    d_primary_fe_data_managers.resize(d_meshes.size());
-    d_scratch_fe_data_managers.resize(d_meshes.size());
-    d_active_fe_data_managers.resize(d_meshes.size());
-    IntVector<NDIM> min_ghost_width(0);
-    if (!d_primary_eulerian_data_cache) d_primary_eulerian_data_cache = std::make_shared<SAMRAIDataCache>();
-    d_active_eulerian_data_cache = d_primary_eulerian_data_cache;
-    for (unsigned int part = 0; part < d_meshes.size(); ++part)
-    {
+        // Create FE data managers.
         const std::string manager_name = "IBFEMethod FEDataManager::" + std::to_string(part);
+        d_fe_data[part] =
+            std::make_shared<FEData>(manager_name + "::fe_data", equation_systems, /*register_for_restart*/ true);
         d_primary_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
                                                                      manager_name,
-                                                                     d_fe_data_manager_db,
+                                                                     fe_data_manager_db,
                                                                      d_max_level_number + 1,
                                                                      d_interp_spec[part],
                                                                      d_spread_spec[part],
@@ -1751,7 +1801,7 @@ IBFEMethod::doInitializeFEEquationSystems()
             if (!d_scratch_eulerian_data_cache) d_scratch_eulerian_data_cache = std::make_shared<SAMRAIDataCache>();
             d_scratch_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
                                                                          manager_name + "::scratch",
-                                                                         d_fe_data_manager_db,
+                                                                         fe_data_manager_db,
                                                                          d_max_level_number + 1,
                                                                          d_interp_spec[part],
                                                                          d_spread_spec[part],
@@ -1778,10 +1828,8 @@ IBFEMethod::doInitializeFEEquationSystems()
 } // doInitializeFEEquationSystems
 
 void
-IBFEMethod::doInitializeFESystemVectors()
+IBFEMethod::doInitializeFEData(const bool use_present_data)
 {
-    FEMechanicsBase::doInitializeFESystemVectors();
-
     // The choice of FEDataManager set is important here since it determines the
     // IB ghost regions.
     d_X_vecs.reset(new LibMeshSystemIBVectors(d_active_fe_data_managers, COORDS_SYSTEM_NAME));
@@ -1807,27 +1855,106 @@ IBFEMethod::doInitializeFESystemVectors()
         d_Q_IB_vecs.reset(
             new LibMeshSystemIBVectors(d_active_fe_data_managers, d_lag_body_source_part, SOURCE_SYSTEM_NAME));
     }
-    return;
-} // doInitializeFESystemVectors
-
-void
-IBFEMethod::doInitializeFEData(const bool use_present_data)
-{
-    FEMechanicsBase::doInitializeFEData(use_present_data);
-
-    // Initialize FE equation systems.
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
+        // Initialize FE equation systems.
         EquationSystems& equation_systems = *d_equation_systems[part];
+        if (use_present_data)
+        {
+            equation_systems.reinit();
+        }
+        else
+        {
+            equation_systems.init();
+            initializeCoordinates(part);
+            initializeVelocity(part);
+        }
+        updateCoordinateMapping(part);
+
+        // Assemble systems.
+        auto& X_system = equation_systems.get_system<System>(COORDS_SYSTEM_NAME);
+        auto& dX_system = equation_systems.get_system<System>(COORD_MAPPING_SYSTEM_NAME);
+        auto& U_system = equation_systems.get_system<System>(VELOCITY_SYSTEM_NAME);
+        auto& F_system = equation_systems.get_system<System>(FORCE_SYSTEM_NAME);
+
+        X_system.assemble_before_solve = false;
+        X_system.assemble();
+
+        dX_system.assemble_before_solve = false;
+        dX_system.assemble();
+
+        U_system.assemble_before_solve = false;
+        U_system.assemble();
+
+        F_system.assemble_before_solve = false;
+        F_system.assemble();
+
         if (d_stress_normalization_part[part])
         {
             auto& Phi_system = equation_systems.get_system<LinearImplicitSystem>(PRESSURE_SYSTEM_NAME);
             Phi_system.assemble_before_solve = false;
             Phi_system.assemble();
         }
+
         if (d_direct_forcing_kinematics_data[part])
         {
             d_direct_forcing_kinematics_data[part]->initializeKinematicsData(!use_present_data);
+        }
+
+        // Set up boundary conditions.  Specifically, add appropriate boundary
+        // IDs to the BoundaryInfo object associated with the mesh, and add DOF
+        // constraints for the nodal forces and velocities.
+        const MeshBase& mesh = equation_systems.get_mesh();
+
+        DofMap& F_dof_map = F_system.get_dof_map();
+        DofMap& U_dof_map = U_system.get_dof_map();
+        const unsigned int F_sys_num = F_system.number();
+        const unsigned int U_sys_num = U_system.number();
+        MeshBase::const_element_iterator el_it = mesh.elements_begin();
+        const MeshBase::const_element_iterator el_end = mesh.elements_end();
+        for (; el_it != el_end; ++el_it)
+        {
+            Elem* const elem = *el_it;
+            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            {
+                const bool at_mesh_bdry = !elem->neighbor_ptr(side);
+                if (!at_mesh_bdry) continue;
+
+                static const std::array<boundary_id_type, 3> dirichlet_bdry_id_set{
+                    FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID,
+                    FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID,
+                    FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID
+                };
+                std::vector<boundary_id_type> bdry_ids;
+                mesh.boundary_info->boundary_ids(elem, side, bdry_ids);
+                const boundary_id_type dirichlet_bdry_ids = get_dirichlet_bdry_ids(bdry_ids);
+                if (!dirichlet_bdry_ids) continue;
+
+                for (unsigned int n = 0; n < elem->n_nodes(); ++n)
+                {
+                    if (!elem->is_node_on_side(n, side)) continue;
+
+                    const Node* const node = elem->node_ptr(n);
+                    mesh.boundary_info->add_node(node, dirichlet_bdry_ids);
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[d])) continue;
+                        if (node->n_dofs(F_sys_num))
+                        {
+                            const int F_dof_index = node->dof_number(F_sys_num, d, 0);
+                            // NOTE: The diagonal entry is automatically constrained.
+                            F_dof_map.add_constraint_row(F_dof_index, {}, 0.0, false);
+                        }
+                        if (node->n_dofs(U_sys_num))
+                        {
+                            const int U_dof_index = node->dof_number(U_sys_num, d, 0);
+                            DofConstraintRow U_constraint_row;
+                            // NOTE: The diagonal entry is automatically constrained.
+                            U_dof_map.add_constraint_row(U_dof_index, {}, 0.0, false);
+                        }
+                    }
+                }
+            }
         }
     }
     return;
@@ -1842,7 +1969,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     // Extract the mesh.
     EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems.get_mesh();
-    const BoundaryInfo& boundary_info = mesh.get_boundary_info();
+    const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
 
     // Setup extra data needed to compute stresses/forces.
@@ -1861,7 +1988,6 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
 
     FEDataInterpolation fe(dim, d_primary_fe_data_managers[part]->getFEData());
     std::unique_ptr<QBase> qrule_face = QBase::build(QGAUSS, dim - 1, FIFTH);
-    qrule_face->allow_rules_with_negative_weights = d_allow_rules_with_negative_weights;
     fe.attachQuadratureRuleFace(qrule_face.get());
     fe.evalNormalsFace();
     fe.evalQuadraturePointsFace();
@@ -2073,7 +2199,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     // Extract the mesh.
     EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems.get_mesh();
-    const BoundaryInfo& boundary_info = mesh.get_boundary_info();
+    const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
 
     // Extract the FE systems and DOF maps, and setup the FE object.
@@ -2096,7 +2222,6 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     Order default_quad_order = (d_spread_spec[part].quad_order != INVALID_ORDER) ? d_spread_spec[part].quad_order :
                                                                                    d_default_quad_order_stress[part];
     std::unique_ptr<QBase> default_qrule_face = QBase::build(default_quad_type, dim - 1, default_quad_order);
-    default_qrule_face->allow_rules_with_negative_weights = d_allow_rules_with_negative_weights;
     fe.attachQuadratureRuleFace(default_qrule_face.get());
     fe.evalNormalsFace();
     fe.evalQuadraturePointsFace();
@@ -2193,24 +2318,21 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
 
             // Set the length scale for each side (and, therefore, the quadrature
             // rule) to be the same as the length scale for the element.
-            using quad_key_type = quadrature_key_type;
+            using quad_key_type = std::tuple<libMesh::ElemType, libMesh::QuadratureType, libMesh::Order>;
             // This duplicates the logic in updateSpreadQuadratureRule so that
             // we can get the key here
             const quad_key_type elem_quad_key = getQuadratureKey(d_spread_spec[part].quad_type,
                                                                  d_spread_spec[part].quad_order,
                                                                  d_spread_spec[part].use_adaptive_quadrature,
                                                                  d_spread_spec[part].point_density,
-                                                                 d_spread_spec[part].allow_rules_with_negative_weights,
                                                                  elem,
                                                                  X_node,
                                                                  patch_dx_min);
             // TODO: surely there is a better way to get the type of a side
             // than this!
             std::unique_ptr<Elem> side_ptr = elem->build_side_ptr(0);
-            const quad_key_type side_quad_key = std::make_tuple(side_ptr->type(),
-                                                                d_spread_spec[part].quad_type,
-                                                                std::get<2>(elem_quad_key),
-                                                                std::get<3>(elem_quad_key));
+            const quad_key_type side_quad_key =
+                std::make_tuple(side_ptr->type(), d_spread_spec[part].quad_type, std::get<2>(elem_quad_key));
             libMesh::QBase& side_quadrature = side_quad_cache[side_quad_key];
 
             // Loop over the element boundaries.
@@ -2361,7 +2483,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     // Extract the mesh.
     EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
     const MeshBase& mesh = equation_systems.get_mesh();
-    const BoundaryInfo& boundary_info = mesh.get_boundary_info();
+    const BoundaryInfo& boundary_info = *mesh.boundary_info;
     const unsigned int dim = mesh.mesh_dimension();
     TBOX_ASSERT(dim == NDIM);
 
@@ -2842,17 +2964,28 @@ IBFEMethod::getProlongationSchedule(const int level_number, const int coarse_dat
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IBFEMethod::commonConstructor(const Pointer<Database>& input_db, int max_levels)
+IBFEMethod::commonConstructor(const std::string& object_name,
+                              const Pointer<Database>& input_db,
+                              const std::vector<libMesh::MeshBase*>& meshes,
+                              int max_levels,
+                              const std::string& restart_read_dirname,
+                              unsigned int restart_restore_number)
 {
-    // Keep track of the maximum possible level number.
+    // Set the object name and register it with the restart manager.
+    d_object_name = object_name;
+    d_registered_for_restart = false;
+    d_libmesh_restart_read_dir = restart_read_dirname;
+    d_libmesh_restart_restore_number = restart_restore_number;
+
+    // Store the mesh pointers.
+    d_meshes = meshes;
+    const auto n_parts = d_meshes.size();
     d_max_level_number = max_levels - 1;
 
     // Indicate that all parts are active.
-    const auto n_parts = d_meshes.size();
     d_part_is_active.resize(n_parts, true);
 
     // Set some default values.
-    const bool allow_rules_with_negative_weights = true;
     const bool use_adaptive_quadrature = true;
     const int point_density = 2.0;
     const bool use_nodal_quadrature = false;
@@ -2863,17 +2996,17 @@ IBFEMethod::commonConstructor(const Pointer<Database>& input_db, int max_levels)
                                                       use_adaptive_quadrature,
                                                       point_density,
                                                       interp_use_consistent_mass_matrix,
-                                                      use_nodal_quadrature,
-                                                      allow_rules_with_negative_weights);
-    d_default_spread_spec = FEDataManager::SpreadSpec("IB_4",
-                                                      QGAUSS,
-                                                      INVALID_ORDER,
-                                                      use_adaptive_quadrature,
-                                                      point_density,
-                                                      use_nodal_quadrature,
-                                                      allow_rules_with_negative_weights);
+                                                      use_nodal_quadrature);
+    d_default_spread_spec = FEDataManager::SpreadSpec(
+        "IB_4", QGAUSS, INVALID_ORDER, use_adaptive_quadrature, point_density, use_nodal_quadrature);
 
     // Initialize function data to NULL.
+    d_coordinate_mapping_fcn_data.resize(n_parts);
+    d_initial_velocity_fcn_data.resize(n_parts);
+    d_PK1_stress_fcn_data.resize(n_parts);
+    d_lag_body_force_fcn_data.resize(n_parts);
+    d_lag_surface_pressure_fcn_data.resize(n_parts);
+    d_lag_surface_force_fcn_data.resize(n_parts);
     d_lag_body_source_part.resize(n_parts, false);
     d_lag_body_source_fcn_data.resize(n_parts);
     d_direct_forcing_kinematics_data.resize(n_parts, Pointer<IBFEDirectForcingKinematics>(nullptr));
@@ -2881,21 +3014,76 @@ IBFEMethod::commonConstructor(const Pointer<Database>& input_db, int max_levels)
     // Indicate that all of the parts do NOT use stress normalization by default.
     d_stress_normalization_part.resize(n_parts, false);
 
+    // Indicate that all of the parts do NOT use static pressures by default.
+    d_static_pressure_part.resize(n_parts, false);
+    d_static_pressure_proj_type.resize(n_parts, UNKNOWN_PRESSURE_TYPE);
+    d_static_pressure_vol_energy_deriv_fcn.resize(n_parts, nullptr);
+
+    // Determine whether we should use first-order or second-order shape
+    // functions for each part of the structure.
+    for (unsigned int part = 0; part < n_parts; ++part)
+    {
+        const MeshBase& mesh = *meshes[part];
+        bool mesh_has_first_order_elems = false;
+        bool mesh_has_second_order_elems = false;
+        MeshBase::const_element_iterator el_it = mesh.elements_begin();
+        const MeshBase::const_element_iterator el_end = mesh.elements_end();
+        for (; el_it != el_end; ++el_it)
+        {
+            const Elem* const elem = *el_it;
+            mesh_has_first_order_elems = mesh_has_first_order_elems || elem->default_order() == FIRST;
+            mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
+        }
+        mesh_has_first_order_elems = IBTK_MPI::maxReduction(static_cast<int>(mesh_has_first_order_elems));
+        mesh_has_second_order_elems = IBTK_MPI::maxReduction(static_cast<int>(mesh_has_second_order_elems));
+        if ((mesh_has_first_order_elems && mesh_has_second_order_elems) ||
+            (!mesh_has_first_order_elems && !mesh_has_second_order_elems))
+        {
+            TBOX_ERROR(d_object_name << "::IBFEMethod():\n"
+                                     << "  each FE mesh part must contain only FIRST "
+                                        "order elements or only SECOND order elements"
+                                     << std::endl);
+        }
+        FEFamily default_fe_family = LAGRANGE;
+        d_fe_family_position[part] = default_fe_family;
+        d_fe_family_force[part] = default_fe_family;
+        d_fe_family_pressure[part] = default_fe_family;
+        QuadratureType default_quad_type = QGAUSS;
+        d_default_quad_type_stress[part] = default_quad_type;
+        d_default_quad_type_force[part] = default_quad_type;
+        Order default_fe_order = INVALID_ORDER, default_quad_order = INVALID_ORDER;
+        if (mesh_has_first_order_elems)
+        {
+            default_fe_order = FIRST;
+            default_quad_order = THIRD;
+        }
+        else if (mesh_has_second_order_elems)
+        {
+            default_fe_order = SECOND;
+            default_quad_order = FIFTH;
+        }
+        d_fe_order_position[part] = default_fe_order;
+        d_fe_order_force[part] = default_fe_order;
+        d_fe_order_pressure[part] = default_fe_order;
+        d_default_quad_order_stress[part] = default_quad_order;
+        d_default_quad_order_force[part] = default_quad_order;
+    }
+
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
     if (input_db) getFromInput(input_db, from_restart);
+
+    // Set up the interaction spec objects.
+    d_interp_spec.resize(n_parts, d_default_interp_spec);
+    d_spread_spec.resize(n_parts, d_default_spread_spec);
+    d_workload_spec.resize(n_parts, d_default_workload_spec);
 
     // Determine how to compute weak forms.
     d_include_normal_stress_in_weak_form = d_split_normal_force;
     d_include_tangential_stress_in_weak_form = d_split_tangential_force;
     d_include_normal_surface_forces_in_weak_form = !d_split_normal_force;
     d_include_tangential_surface_forces_in_weak_form = !d_split_tangential_force;
-
-    // Set up the interaction spec objects.
-    d_interp_spec.resize(n_parts, d_default_interp_spec);
-    d_spread_spec.resize(n_parts, d_default_spread_spec);
-    d_workload_spec.resize(n_parts, d_default_workload_spec);
 
     // If needed, set up the scratch hierarchy regridding objects.
     if (d_use_scratch_hierarchy)
@@ -2925,6 +3113,9 @@ IBFEMethod::commonConstructor(const Pointer<Database>& input_db, int max_levels)
                                         d_scratch_load_balancer,
                                         /*due to a bug in SAMRAI this *has* to be true*/ true);
     }
+
+    // Store the input database since FEDataManager will need it too
+    d_input_db = input_db;
 
     // Setup timers.
     auto set_timer = [&](const char* name) { return TimerManager::getManager()->getTimer(name); };
@@ -2966,7 +3157,6 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
         d_default_interp_spec.quad_order = FIRST;
         d_default_interp_spec.use_adaptive_quadrature = false;
         d_default_interp_spec.use_consistent_mass_matrix = false;
-        d_default_interp_spec.allow_rules_with_negative_weights = false;
         // we default to using a lumped mass matrix, but allow users to choose to use a consistent mass matrix (even
         // though it seems like a bad idea)
     }
@@ -2996,12 +3186,6 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
     else if (db->isBool("IB_use_consistent_mass_matrix"))
         d_default_interp_spec.use_consistent_mass_matrix = db->getBool("IB_use_consistent_mass_matrix");
 
-    if (db->isBool("interp_allow_rules_with_negative_weights"))
-        d_default_interp_spec.allow_rules_with_negative_weights =
-            db->getBool("interp_allow_rules_with_negative_weights");
-    else if (db->isBool("IB_allow_rules_with_negative_weights"))
-        d_default_interp_spec.allow_rules_with_negative_weights = db->getBool("IB_allow_rules_with_negative_weights");
-
     // Spreading settings.
     if (db->isString("spread_delta_fcn"))
         d_default_spread_spec.kernel_fcn = db->getString("spread_delta_fcn");
@@ -3021,7 +3205,6 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
         d_default_spread_spec.quad_type = QTRAP;
         d_default_spread_spec.quad_order = FIRST;
         d_default_spread_spec.use_adaptive_quadrature = false;
-        d_default_spread_spec.allow_rules_with_negative_weights = false;
     }
 
     if (db->isString("spread_quad_type"))
@@ -3044,12 +3227,6 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
     else if (db->isDouble("IB_point_density"))
         d_default_spread_spec.point_density = db->getDouble("IB_point_density");
 
-    if (db->isBool("spread_allow_rules_with_negative_weights"))
-        d_default_spread_spec.allow_rules_with_negative_weights =
-            db->getBool("spread_allow_rules_with_negative_weights");
-    else if (db->isBool("IB_allow_rules_with_negative_weights"))
-        d_default_spread_spec.allow_rules_with_negative_weights = db->getBool("IB_allow_rules_with_negative_weights");
-
     // Force computation settings.
     if (db->isBool("split_normal_force"))
         d_split_normal_force = db->getBool("split_normal_force");
@@ -3060,29 +3237,17 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
     else if (db->isBool("split_forces"))
         d_split_tangential_force = db->getBool("split_forces");
     if (db->isBool("use_jump_conditions")) d_use_jump_conditions = db->getBool("use_jump_conditions");
+    if (db->isBool("use_consistent_mass_matrix"))
+        d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
 
-    // FEDataManager settings.
-    if (db->keyExists("FEDataManager"))
+    // Restart settings.
+    if (db->isString("libmesh_restart_file_extension"))
     {
-        d_fe_data_manager_db = db->getDatabase("FEDataManager");
+        d_libmesh_restart_file_extension = db->getString("libmesh_restart_file_extension");
     }
     else
     {
-        d_fe_data_manager_db = new InputDatabase("FEDataManager");
-    }
-
-    // Workaround: support passing FEProjector to FEDataManager as an
-    // undocumented feature until FEDataManager loses its copy of FEProjector.
-    if (!d_fe_data_manager_db->keyExists("FEProjector"))
-    {
-        auto db = d_fe_data_manager_db->putDatabase("FEProjector");
-        // Technically we should copy every key, but the only key we actually
-        // use is num_fischer_vectors, so do that until we remove this
-        // workaround
-        if (d_fe_projector_db->keyExists("num_fischer_vectors"))
-        {
-            db->putInteger("num_fischer_vectors", d_fe_projector_db->getInteger("num_fischer_vectors"));
-        }
+        d_libmesh_restart_file_extension = "xdr";
     }
 
     // Other settings.

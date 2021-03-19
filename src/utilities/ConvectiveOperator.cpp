@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2020 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -14,12 +14,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/ConvectiveOperator.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "SAMRAIVectorReal.h"
 
 #include <utility>
-
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

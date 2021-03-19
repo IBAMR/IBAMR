@@ -1,0 +1,4 @@
+Changed: The overloads of IBTK::FEDataManager::getManager() have been
+consolidated into a single function.
+<br>
+(David Wells, 2020/09/10)

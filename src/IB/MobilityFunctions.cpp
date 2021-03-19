@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2016 - 2021 by the IBAMR developers
+// Copyright (c) 2016 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -339,25 +339,26 @@ InterpolateConstants(KERNEL_TYPES MOB_FIT_current, const double beta)
 
 #endif
 
+    int cnt;
 #if (NDIM == 3)
     //********3D case
     // setting coeficients for steady stokes fitting
-    for (int cnt = 0; cnt < 7; cnt++) F_s[cnt] = F_stokes_coeff[cnt][MOB_FIT_current];
-    for (int cnt = 0; cnt < 2; cnt++) G_s[cnt] = G_stokes_coeff[cnt][MOB_FIT_current];
+    for (cnt = 0; cnt < 7; cnt++) F_s[cnt] = F_stokes_coeff[cnt][MOB_FIT_current];
+    for (cnt = 0; cnt < 2; cnt++) G_s[cnt] = G_stokes_coeff[cnt][MOB_FIT_current];
 
     // setting coeficients for time dependent fitting (curently only for IB6 kernel)
-    for (int cnt = 0; cnt < 4; cnt++) Z_b[cnt] = F_beta_zero[cnt];
-    for (int cnt = 0; cnt < 10; cnt++) F_b[cnt] = InterpolateLinear(M_betas, F_beta_coeff[cnt], num_cases, beta);
-    for (int cnt = 0; cnt < 6; cnt++) G_b[cnt] = InterpolateLinear(M_betas, G_beta_coeff[cnt], num_cases, beta);
+    for (cnt = 0; cnt < 4; cnt++) Z_b[cnt] = F_beta_zero[cnt];
+    for (cnt = 0; cnt < 10; cnt++) F_b[cnt] = InterpolateLinear(M_betas, F_beta_coeff[cnt], num_cases, beta);
+    for (cnt = 0; cnt < 6; cnt++) G_b[cnt] = InterpolateLinear(M_betas, G_beta_coeff[cnt], num_cases, beta);
 
 #elif (NDIM == 2)
-    for (int cnt = 0; cnt < 5; cnt++) Z_b[cnt] = F_beta_zero[MOB_FIT_current][cnt];
-    for (int cnt = 0; cnt < 3; cnt++) Z_s[cnt] = F_stokes_zero[MOB_FIT_current][cnt];
-    for (int cnt = 0; cnt < 5; cnt++) F_s[cnt] = F_stokes_coeff[MOB_FIT_current][cnt];
-    for (int cnt = 0; cnt < 4; cnt++) G_s[cnt] = G_stokes_coeff[MOB_FIT_current][cnt];
-    for (int cnt = 0; cnt < 8; cnt++)
+    for (cnt = 0; cnt < 5; cnt++) Z_b[cnt] = F_beta_zero[MOB_FIT_current][cnt];
+    for (cnt = 0; cnt < 3; cnt++) Z_s[cnt] = F_stokes_zero[MOB_FIT_current][cnt];
+    for (cnt = 0; cnt < 5; cnt++) F_s[cnt] = F_stokes_coeff[MOB_FIT_current][cnt];
+    for (cnt = 0; cnt < 4; cnt++) G_s[cnt] = G_stokes_coeff[MOB_FIT_current][cnt];
+    for (cnt = 0; cnt < 8; cnt++)
         F_b[cnt] = InterpolateLinear(M_betas, F_beta_coeff[MOB_FIT_current][cnt], num_cases, beta);
-    for (int cnt = 0; cnt < 4; cnt++)
+    for (cnt = 0; cnt < 4; cnt++)
         G_b[cnt] = InterpolateLinear(M_betas, G_beta_coeff[MOB_FIT_current][cnt], num_cases, beta);
 #endif
     return;

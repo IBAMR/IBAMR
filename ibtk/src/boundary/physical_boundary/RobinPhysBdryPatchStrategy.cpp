@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2020 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -14,14 +14,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
+#include "ibtk/app_namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "ComponentSelector.h"
 
 #include <set>
 #include <vector>
-
-#include "ibtk/app_namespaces.h" // IWYU pragma: keep
 
 namespace SAMRAI
 {

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2020 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -16,6 +16,7 @@
 #include "ibtk/DebuggingUtilities.h"
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/LData.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "Box.h"
 #include "CellData.h"
@@ -37,8 +38,6 @@
 #include "SideIndex.h"
 #include "tbox/PIO.h"
 #include "tbox/Pointer.h"
-
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>

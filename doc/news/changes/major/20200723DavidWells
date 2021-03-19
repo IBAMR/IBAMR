@@ -1,0 +1,5 @@
+Improved: IBTK::FEProjector now uses a much better algorithm for solving L2
+projections (Jacobi preconditioner based on the lumped mass matrix and MINRES)
+which is about twice as fast for large tetrahedral meshes.
+<br>
+(David Wells, 2020/07/23)

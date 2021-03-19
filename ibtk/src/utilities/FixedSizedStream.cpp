@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2020 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -14,11 +14,10 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/FixedSizedStream.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include <cstring>
 #include <vector>
-
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

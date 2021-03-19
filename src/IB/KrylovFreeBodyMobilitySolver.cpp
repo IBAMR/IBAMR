@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2016 - 2020 by the IBAMR developers
+// Copyright (c) 2016 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -18,6 +18,7 @@
 #include "ibamr/DirectMobilitySolver.h"
 #include "ibamr/KrylovFreeBodyMobilitySolver.h"
 #include "ibamr/StokesSpecifications.h"
+#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 #include "ibamr/ibamr_utilities.h"
 
 #include "tbox/Database.h"
@@ -38,8 +39,6 @@
 #include <ostream>
 #include <string>
 #include <utility>
-
-#include "ibamr/app_namespaces.h" // IWYU pragma: keep
 
 namespace IBAMR
 {

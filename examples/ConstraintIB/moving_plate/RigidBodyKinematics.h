@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2016 - 2021 by the IBAMR developers
+// Copyright (c) 2016 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -16,6 +16,8 @@
 
 ///////////////////////////// INCLUDES ///////////////////////////////////////
 #include "ibamr/ConstraintIBKinematics.h"
+
+#include "ibtk/ibtk_macros.h"
 
 #include "PatchHierarchy.h"
 #include "tbox/Array.h"

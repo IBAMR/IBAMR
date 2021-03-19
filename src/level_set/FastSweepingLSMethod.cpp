@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2017 - 2020 by the IBAMR developers
+// Copyright (c) 2017 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -16,6 +16,7 @@
 #include "ibamr/FastSweepingLSMethod.h"
 #include "ibamr/LSInitStrategy.h"
 #include "ibamr/ibamr_enums.h"
+#include "ibamr/namespaces.h"
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
@@ -44,8 +45,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include "ibamr/namespaces.h"
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)

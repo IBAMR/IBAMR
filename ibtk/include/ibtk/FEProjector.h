@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2020 - 2021 by the IBAMR developers
+// Copyright (c) 2020 - 2020 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -19,8 +19,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibtk/config.h>
-
-#include <ibtk/FischerGuess.h>
 
 #include <libmesh/equation_systems.h>
 #include <libmesh/petsc_linear_solver.h>
@@ -42,27 +40,15 @@ namespace IBTK
 /*!
  * \brief Class FEProjector coordinates data structures for projecting
  * fields in FE models.
- *
- * <h2>Parameters read from the input database</h2>
- * <ol>
- *   <li>num_fischer_vectors: Number of previous solution and RHS pairs stored for
- *   use in computing the initial guess to each linear system. Defaults to five.
- *   Using more vectors will require additional computational work when computing
- *   the initial guess (roughly N*N dot products, where N is the number of stored
- *   vector pairs) but will decrease the number of solver iterations. The default
- *   value lowers the number of solver iterations to, typically, no more than two
- *   or three, so its usually the right value.</li>
- * </ol>
  */
 class FEProjector
 {
 public:
     /// Constructor.
-    FEProjector(libMesh::EquationSystems* equation_systems,
-                const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
+    FEProjector(libMesh::EquationSystems* equation_systems, bool enable_logging = true);
 
     /// Alternative constructor that takes in a shared pointer to an FEData object.
-    FEProjector(std::shared_ptr<FEData> fe_data, const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
+    FEProjector(std::shared_ptr<FEData> fe_data, bool enable_logging = true);
 
     /// Deleted default constructor.
     FEProjector() = delete;
@@ -91,7 +77,9 @@ public:
      * is that this function assembles the mass matrix while imposing
      * constraints.
      *
-     * This mass matrix is constructed using nodal quadrature.
+     * For more information on the algorithm used to generate the (nearly)
+     * diagonal matrix see 'A note on mass lumping and related processes in the
+     * finite element method', Hinton, 1976.
      */
     std::pair<libMesh::PetscLinearSolver<double>*, libMesh::PetscMatrix<double>*>
     buildLumpedL2ProjectionSolver(const std::string& system_name);
@@ -115,7 +103,9 @@ public:
      * Unlike buildLumpedL2ProjectionSolver this matrix is always diagonal and
      * is always assembled without applying constraints.
      *
-     * This mass matrix is constructed using nodal quadrature.
+     * For more information on the algorithm used to generate the diagonal
+     * matrix see 'A note on mass lumping and related processes in the finite
+     * element method', Hinton, 1976.
      */
     libMesh::PetscVector<double>* buildDiagonalL2MassMatrix(const std::string& system_name);
 
@@ -191,8 +181,6 @@ protected:
     std::map<std::string, std::map<double, std::unique_ptr<libMesh::PetscLinearSolver<double> > > >
         d_stab_L2_proj_solver;
 
-    std::map<std::string, FischerGuess> d_initial_guesses;
-
 private:
     /*!
      * Whether or not to log data to the screen: see
@@ -200,11 +188,6 @@ private:
      * FEProjector::getLoggingEnabled().
      */
     bool d_enable_logging = false;
-
-    /*!
-     * Number of vectors to use in the FischerGuess objects.
-     */
-    int d_num_fischer_vectors = 5;
 };
 } // namespace IBTK
 

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2017 - 2020 by the IBAMR developers
+// Copyright (c) 2017 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -16,6 +16,7 @@
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
 #include "ibamr/ibamr_utilities.h"
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/CellNoCornersFillPattern.h"
 #include "ibtk/GeneralSolver.h"
@@ -46,8 +47,6 @@
 
 #include <ostream>
 #include <string>
-
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

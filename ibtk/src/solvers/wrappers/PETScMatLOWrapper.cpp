@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2020 by the IBAMR developers
+// Copyright (c) 2014 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -18,6 +18,7 @@
 #include "ibtk/LinearOperator.h"
 #include "ibtk/PETScMatLOWrapper.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -29,8 +30,6 @@
 
 #include <string>
 #include <utility>
-
-#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

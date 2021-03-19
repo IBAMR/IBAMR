@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2017 - 2020 by the IBAMR developers
+// Copyright (c) 2017 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -224,17 +224,18 @@ main(int argc, char* argv[])
                 const bool at_mesh_bdry = !elem->neighbor_ptr(side);
                 if (at_mesh_bdry)
                 {
-                    BoundaryInfo& boundary_info = mesh.get_boundary_info();
+                    BoundaryInfo* boundary_info = mesh.boundary_info.get();
 #if (NDIM == 2)
-                    if (boundary_info.has_boundary_id(elem, side, 0) || boundary_info.has_boundary_id(elem, side, 2))
+                    if (boundary_info->has_boundary_id(elem, side, 0) || boundary_info->has_boundary_id(elem, side, 2))
                     {
-                        boundary_info.add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
+                        boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
                     }
 #endif
 #if (NDIM == 3)
-                    if (!(boundary_info.has_boundary_id(elem, side, 2) || boundary_info.has_boundary_id(elem, side, 4)))
+                    if (!(boundary_info->has_boundary_id(elem, side, 2) ||
+                          boundary_info->has_boundary_id(elem, side, 4)))
                     {
-                        boundary_info.add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID);
+                        boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID);
                     }
 #endif
                 }
