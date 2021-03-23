@@ -557,7 +557,9 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
         const int local_idx = node->getLocalPETScIndex();
         double* B = &B_ghost_data_array[local_idx][0];
         Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B(B);
-
+        // #if (NDIM == 3)
+        // eig_B << eig_B(0),eig_B(1),eig_B(2),eig_B(3),eig_B(4),eig_B(5),eig_B(6),eig_B(7),1.0;
+        // #endif
         // Scale the matrix.
         const double scale = eig_B.norm();
         if (!MathUtilities<double>::equalEps(scale, 0.0))
@@ -566,6 +568,7 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
         }
 
         // Invert the scaled matrix.
+        #if (NDIM == 3)
         bool invertible;
         eig_B.computeInverseWithCheck(eig_B, invertible);
         if (!invertible)
@@ -578,6 +581,25 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
                          << "\n");
             eig_B.setZero();
         }
+        #endif
+        #if (NDIM == 2)
+        bool invertible;
+        Eigen::Matrix<double, NDIM+1, NDIM+1, Eigen::RowMajor> B0;
+        Eigen::Matrix<double, NDIM+1, NDIM+1, Eigen::RowMajor> B0_inv;
+        B0 << eig_B(0),eig_B(1),0.0,eig_B(2),eig_B(3),0.0,0.0,0.0,1.0;
+        B0.computeInverseWithCheck(B0_inv, invertible);
+        eig_B << B0_inv(0), B0_inv(1), B0_inv(3), B0_inv(4);
+        if (!invertible)
+        {
+            TBOX_WARNING("IBPDForceGen::computeLagrangianForceAndDamage() : Matrix inversion failed.\n"
+                         << " Lagrangian index = " << lag_idx << "\nScaled B tensor is \n"
+                         << eig_B << "\n"
+                         << " Scaling factor  = " << scale << "\n"
+                         << "Setting inverse of B tensor to zero"
+                         << "\n");
+            eig_B.setZero();
+        }
+        #endif
 
         // Scale back the inverse-matrix.
         if (!MathUtilities<double>::equalEps(scale, 0.0))
@@ -615,11 +637,19 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
         for (const auto& node : local_nodes)
         {
             const int local_idx = node->getLocalPETScIndex();
-            const double* B = &B_ghost_data_array[local_idx][0];
+            double* B = &B_ghost_data_array[local_idx][0];
             double* FF = &FF_ghost_data_array[local_idx][0];
-            Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B(B);
+            Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B(B);
             Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_FF(FF);
+            // #if (NDIM == 3)
+            // eig_B << eig_B(0),eig_B(1),eig_B(2),eig_B(3),eig_B(4),eig_B(5),eig_B(6),eig_B(7),1.0;
+            // #endif
+            // #if (NDIM == 3)
+            // eig_FF << eig_FF(0),eig_FF(1),eig_FF(2),eig_FF(3),eig_FF(4),eig_FF(5),eig_FF(6),eig_FF(7),1.0;
+            // #endif
+            
             eig_FF = eig_FF * eig_B;
+
         }
         ierr = VecGhostUpdateBegin(FF_ghost_data->getVec(), INSERT_VALUES, SCATTER_FORWARD);
         IBTK_CHKERRQ(ierr);

@@ -51,7 +51,7 @@ main(int /*argc*/, char** /*argv*/)
     const int ndivx = 101; // num points in x direction.
     const int ndivy = 51;  // num points in y direction.
     const int nbnd = 0;
-    const int ndivz = 3; // num layers in z direction.
+    const int ndivz = 1; // num layers in z direction.
     const int totnode = (ndivx + 2 * nbnd) * (ndivy + 2 * nbnd) * ndivz;
 
     const double length = 1.0;              // total length of the plate (m)

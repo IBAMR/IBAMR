@@ -50,10 +50,10 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 static const int nx = 101; 
 static const int ny = 51;
 #if (NDIM == 3)
-    static const int nz = 3;
+    static const int nz = 1;
     static const int left_begin = 0;
     static const int left_end = ny*nz - 1;
-    static const int right_begin = ny * nz * nx - ny*3;
+    static const int right_begin = ny * nz * nx - ny*nz;
     static const int right_end = ny * nz * nx - 1;
 #endif
 #if (NDIM == 2)
@@ -71,6 +71,15 @@ static const double L = E * P / ((1. + P) * (1. - 2. * P));
 static const double M = E / (2. * (1. + P));
 // static const double K = L + 2.*M/3.;
 static const double appres = 1.0e3;
+
+// static const double dens = 0.0;
+// static const double DX = 1.0 / 10.0;
+// static const double E = 0.0;
+// static const double P = 0.0;
+// static const double L = E * P / ((1. + P) * (1. - 2. * P));
+// static const double M = E / (2. * (1. + P));
+// // static const double K = L + 2.*M/3.;
+// static const double appres = 0.0;
 
 // static const double dens = 7850.0;
 // static const double DX = 1.0 / 75.0;
@@ -148,11 +157,11 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
     F0 << FF(0), FF(1), 0.0, FF(3), FF(4), 0.0, 0.0, 0.0, 1.0;
     // F0 << FF(0), FF(1), FF(2), FF(3), FF(4), FF(5), FF(6), FF(7), FF(8);
     mat_type e = 0.5 * (F0.transpose() + F0) - II;
-    std::cout << "FF =" << F0 << "\n"; 
+    // std::cout << "FF =" << F0 << "\n"; 
     #endif
     #if (NDIM == 2)
     mat_type e = 0.5 * (FF.transpose() + FF) - II;
-    std::cout << "FF =" << FF << "\n";
+    // std::cout << "FF =" << FF << "\n";
     #endif
 
     const double tr_e = e.trace();
@@ -201,6 +210,15 @@ my_force_damage_fcn(const double /*horizon*/,
     using mat_type = Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>;
     mat_type PK1_mastr, PK1_slave;
 
+    // std::cout << "F_master = " << FF_mastr << "\n";
+    // std::cout << "B_master = " << B_mastr << "\n";
+    // std::cout << "X0_master = " << X0_mastr << "\n";
+    // std::cout << "X_master = " << X_mastr << "\n";
+    // std::cout << "F_slave = " << FF_slave << "\n";
+    // std::cout << "B_slave = " << B_slave << "\n";
+    // std::cout << "X0_slave = " << X0_slave << "\n";
+    // std::cout << "X_slave = " << X_slave << "\n";
+
     my_PK1_fcn(PK1_mastr, FF_mastr, X0_mastr, lag_mastr_node_idx);
     my_PK1_fcn(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
     // Compute PD force.
@@ -211,8 +229,6 @@ my_force_damage_fcn(const double /*horizon*/,
     // #if (NDIM == 3)
     //     trac(2) = 0.0;
     // #endif
-    std::cout << "B_master = " << B_mastr << "\n";
-    std::cout << "B_slave = " << B_slave << "\n";
     F_mastr += vol_frac * vol_slave * trac + pen_trac;
     F_slave += -vol_frac * vol_mastr * trac - pen_trac;
 

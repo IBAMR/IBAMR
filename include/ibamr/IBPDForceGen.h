@@ -182,7 +182,7 @@ private:
     /*!
      * \name Horizon and Lagrangian point spacing w.r.t Eulerian mesh spacing.
      */
-    double d_horizon = 3.0, d_ds = 1.0;
+    double d_horizon = 2.015, d_ds = 0.1;
 
     /*!
      * \name Data maintained separately for each level of the patch hierarchy.

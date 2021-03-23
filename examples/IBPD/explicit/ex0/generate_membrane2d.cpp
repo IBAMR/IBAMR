@@ -67,6 +67,7 @@ main(int /*argc*/, char** /*argv*/)
 
     // Initialize vertices
     double coord[totnode][2];
+    // double coord[totnode][3];
     int nnum = -1;
 
     // Material points of the plate region
@@ -78,6 +79,8 @@ main(int /*argc*/, char** /*argv*/)
                 // 3d plane sheet
                 coord[nnum][0] = i * dx;
                 coord[nnum][1] = j * dy;
+                // coord[nnum][2] = 0.0;
+
 
                 //3d Cook's membreane
                 // coord[nnum][0] = i * dx;
