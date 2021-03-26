@@ -878,6 +878,8 @@ examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input3d $(PWD) ; \
 	  cp -f $(srcdir)/generate_sheet3d.cpp $(PWD) ; \
+	  cp -f $(srcdir)/input2d $(PWD) ; \
+	  cp -f $(srcdir)/generate_sheet2d.cpp $(PWD) ; \
 	fi ;
 
 clean-local:
@@ -885,6 +887,8 @@ clean-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input3d ; \
 	  rm -f $(builddir)/generate_sheet3d.cpp ; \
+	  rm -f $(builddir)/input2d ; \
+	  rm -f $(builddir)/generate_sheet2d.cpp ; \
 	fi ;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
