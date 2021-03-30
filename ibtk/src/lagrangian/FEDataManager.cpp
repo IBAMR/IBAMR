@@ -2378,12 +2378,6 @@ FEDataManager::restrictData(const int f_data_idx,
     return;
 } // restrictData
 
-std::pair<LinearSolver<double>*, SparseMatrix<double>*>
-FEDataManager::buildL2ProjectionSolver(const std::string& system_name)
-{
-    return d_fe_projector->buildL2ProjectionSolver(system_name);
-} // buildL2ProjectionSolver
-
 NumericVector<double>*
 FEDataManager::buildDiagonalL2MassMatrix(const std::string& system_name)
 {
