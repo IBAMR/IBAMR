@@ -47,7 +47,7 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const double loop_time,
                  const string& data_dump_dirname);
 
-static const int nx = 101; 
+static const int nx = 102; 
 static const int ny = 51;
 #if (NDIM == 3)
     static const int nz = 1;
@@ -69,8 +69,8 @@ static const double E = 1.0e6;
 static const double P = 0.4;
 static const double L = E * P / ((1. + P) * (1. - 2. * P));
 static const double M = E / (2. * (1. + P));
-// static const double K = L + 2.*M/3.;
-static const double appres = 1.0e3;
+static const double K = L + 2.*M/3.;
+static const double appres = 4.0e5;
 
 // static const double dens = 0.0;
 // static const double DX = 1.0 / 10.0;
@@ -160,21 +160,23 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
     // std::cout << "FF =" << F0 << "\n"; 
     #endif
     #if (NDIM == 2)
+    Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> F0;
+    F0 << FF(0), FF(1), FF(2), FF(3);
     mat_type e = 0.5 * (FF.transpose() + FF) - II;
     // std::cout << "FF =" << FF << "\n";
     #endif
 
-    const double tr_e = e.trace();
-    PK1 = L * tr_e * II + 2.0 * M * e;
+    // const double tr_e = e.trace();
+    // PK1 = L * tr_e * II + 2.0 * M * e;
 
-    // mat_type CC = F0.transpose()*F0;
-    // mat_type FF_trans = F0.transpose();
-    // mat_type FF_inv_trans = FF_trans.inverse();
-    // // tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
-    // const double tr_cc = CC.trace();
-    // const double J = std::abs(F0.determinant());
-    // const double Jsquare = pow(J,2.0);
-    // PK1 = M*(F0 - tr_cc*FF_inv_trans/2.)/J + K*(Jsquare - 1./Jsquare)*FF_inv_trans/4.;
+    mat_type CC = F0.transpose()*F0;
+    mat_type FF_trans = F0.transpose();
+    mat_type FF_inv_trans = FF_trans.inverse();
+    // tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
+    const double tr_cc = CC.trace();
+    const double J = std::abs(F0.determinant());
+    const double Jsquare = pow(J,2.0);
+    PK1 = M*(F0 - tr_cc*FF_inv_trans/2.)/J + K*(Jsquare - 1./Jsquare)*FF_inv_trans/4.;
 
     return;
 
@@ -201,9 +203,19 @@ my_force_damage_fcn(const double /*horizon*/,
 {
     // Bond parameters
     // 0 --> Kappa, 1 --> R0, 2--> user defined
+    const double& R0 = parameters[1];
     const double& vol_mastr = parameters[2];
     const double& vol_slave = parameters[3];
     double& fail = parameters[4];
+    const double& critical_stretch = parameters[5];
+
+    // Estimate failure.
+    const double R = (X_slave - X_mastr).norm();
+    const double stretch = (R - R0) / R0;
+    if (!MathUtilities<double>::equalEps(fail, 0.0) && stretch > critical_stretch)
+    {
+        fail = 0.0;
+    }
 
     // PK1 stress tensor
     using vec_type = IBTK::Vector;
@@ -229,8 +241,8 @@ my_force_damage_fcn(const double /*horizon*/,
     // #if (NDIM == 3)
     //     trac(2) = 0.0;
     // #endif
-    F_mastr += vol_frac * vol_slave * trac + pen_trac;
-    F_slave += -vol_frac * vol_mastr * trac - pen_trac;
+    F_mastr += fail * vol_frac * vol_slave * trac + pen_trac;
+    F_slave += -fail * vol_frac * vol_mastr * trac - pen_trac;
 
     // Compute damage.
     Eigen::Vector4d D;
@@ -457,20 +469,20 @@ public:
 
                 if (lag_idx >= left_begin && lag_idx <= left_end)
                 {
-                    double bforce[NDIM] = { 0.0 };
-                    bforce[0] = - appres / DX;
+                    // double bforce[NDIM] = { 0.0 };
+                    // bforce[0] = - appres / DX;
                     for (int d = 0; d < NDIM; ++d)
                     {
-                      if (d == 2)
-                      {
+                    //   if (d == 2)
+                    //   {
                         U_new[d] = 0.0;
                         X_new[d] = X_current[d];
-                      }
-                      else
-                      {
-                        U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * (F_half[d] + bforce[d]);
-                        X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
-                      }
+                    //   }
+                    //   else
+                    //   {
+                    //     U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * (F_half[d] + bforce[d]);
+                    //     X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
+                    //   }
                     }
                 }
                 else if (lag_idx >= right_begin && lag_idx <= right_end)
@@ -480,6 +492,11 @@ public:
                     for (int d = 0; d < NDIM; ++d)
                     {
                       if (d == 2)
+                      {
+                        U_new[d] = 0.0;
+                        X_new[d] = X_current[d];
+                      }
+                      else if (d == 1)
                       {
                         U_new[d] = 0.0;
                         X_new[d] = X_current[d];
@@ -495,7 +512,7 @@ public:
                 {
                     for (int d = 0; d < NDIM; ++d)
                     {
-                      if (d == 2)
+                      if (d == 1)
                       {
                         U_new[d] = 0.0;
                         X_new[d] = X_current[d];
