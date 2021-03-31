@@ -88,7 +88,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 EXTRA_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2)
-@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d membrane2d_generator
+@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d membrane2d_generator failed_membrane2d_generator
 @SAMRAI3D_ENABLED_TRUE@am__append_2 = main3d membrane3d_generator
 subdir = examples/IBPD/explicit/ex0
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -122,16 +122,26 @@ CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 @SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT) \
-@SAMRAI2D_ENABLED_TRUE@	membrane2d_generator$(EXEEXT)
+@SAMRAI2D_ENABLED_TRUE@	membrane2d_generator$(EXEEXT) \
+@SAMRAI2D_ENABLED_TRUE@	failed_membrane2d_generator$(EXEEXT)
 @SAMRAI3D_ENABLED_TRUE@am__EXEEXT_2 = main3d$(EXEEXT) \
 @SAMRAI3D_ENABLED_TRUE@	membrane3d_generator$(EXEEXT)
-am_main2d_OBJECTS = main2d-main.$(OBJEXT)
-main2d_OBJECTS = $(am_main2d_OBJECTS)
-main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+am_failed_membrane2d_generator_OBJECTS = failed_membrane2d_generator-generate_membrane2d_failure.$(OBJEXT)
+failed_membrane2d_generator_OBJECTS =  \
+	$(am_failed_membrane2d_generator_OBJECTS)
+failed_membrane2d_generator_DEPENDENCIES = $(IBAMR2d_LIBS) \
+	$(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+failed_membrane2d_generator_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(failed_membrane2d_generator_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_main2d_OBJECTS = main2d-main.$(OBJEXT)
+main2d_OBJECTS = $(am_main2d_OBJECTS)
+main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
@@ -172,8 +182,8 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/main2d-main.Po \
-	./$(DEPDIR)/main3d-main.Po \
+am__depfiles_remade = ./$(DEPDIR)/failed_membrane2d_generator-generate_membrane2d_failure.Po \
+	./$(DEPDIR)/main2d-main.Po ./$(DEPDIR)/main3d-main.Po \
 	./$(DEPDIR)/membrane2d_generator-generate_membrane2d.Po \
 	./$(DEPDIR)/membrane3d_generator-generate_membrane3d.Po
 am__mv = mv -f
@@ -195,7 +205,8 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-DIST_SOURCES = $(main2d_SOURCES) $(main3d_SOURCES) \
+DIST_SOURCES = $(failed_membrane2d_generator_SOURCES) \
+	$(main2d_SOURCES) $(main3d_SOURCES) \
 	$(membrane2d_generator_SOURCES) \
 	$(membrane3d_generator_SOURCES)
 am__can_run_installinfo = \
@@ -489,9 +500,10 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SOURCES = main.cpp generate_membrane2d.cpp generate_membrane3d.cpp
-EXTRA_DIST = input2d input3d read_file_ibamr2d.m read_file_ibamr3d.m \
-	generate_membrane2d.cpp generate_membrane3d.cpp
+SOURCES = main.cpp generate_membrane2d.cpp generate_membrane2d_failure.cpp generate_membrane3d.cpp
+EXTRA_DIST = input2d input2d_failure input3d read_file_ibamr2d.m \
+	read_file_ibamr3d.m generate_membrane2d.cpp \
+	generate_membrane2d_failure.cpp generate_membrane3d.cpp
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = main.cpp
@@ -501,6 +513,9 @@ main3d_SOURCES = main.cpp
 membrane2d_generator_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 membrane2d_generator_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 membrane2d_generator_SOURCES = generate_membrane2d.cpp
+failed_membrane2d_generator_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+failed_membrane2d_generator_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+failed_membrane2d_generator_SOURCES = generate_membrane2d_failure.cpp
 membrane3d_generator_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 membrane3d_generator_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 membrane3d_generator_SOURCES = generate_membrane3d.cpp
@@ -539,6 +554,10 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
+failed_membrane2d_generator$(EXEEXT): $(failed_membrane2d_generator_OBJECTS) $(failed_membrane2d_generator_DEPENDENCIES) $(EXTRA_failed_membrane2d_generator_DEPENDENCIES) 
+	@rm -f failed_membrane2d_generator$(EXEEXT)
+	$(AM_V_CXXLD)$(failed_membrane2d_generator_LINK) $(failed_membrane2d_generator_OBJECTS) $(failed_membrane2d_generator_LDADD) $(LIBS)
+
 main2d$(EXEEXT): $(main2d_OBJECTS) $(main2d_DEPENDENCIES) $(EXTRA_main2d_DEPENDENCIES) 
 	@rm -f main2d$(EXEEXT)
 	$(AM_V_CXXLD)$(main2d_LINK) $(main2d_OBJECTS) $(main2d_LDADD) $(LIBS)
@@ -561,6 +580,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/failed_membrane2d_generator-generate_membrane2d_failure.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/membrane2d_generator-generate_membrane2d.Po@am__quote@ # am--include-marker
@@ -595,6 +615,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
+
+failed_membrane2d_generator-generate_membrane2d_failure.o: generate_membrane2d_failure.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(failed_membrane2d_generator_CXXFLAGS) $(CXXFLAGS) -MT failed_membrane2d_generator-generate_membrane2d_failure.o -MD -MP -MF $(DEPDIR)/failed_membrane2d_generator-generate_membrane2d_failure.Tpo -c -o failed_membrane2d_generator-generate_membrane2d_failure.o `test -f 'generate_membrane2d_failure.cpp' || echo '$(srcdir)/'`generate_membrane2d_failure.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/failed_membrane2d_generator-generate_membrane2d_failure.Tpo $(DEPDIR)/failed_membrane2d_generator-generate_membrane2d_failure.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='generate_membrane2d_failure.cpp' object='failed_membrane2d_generator-generate_membrane2d_failure.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(failed_membrane2d_generator_CXXFLAGS) $(CXXFLAGS) -c -o failed_membrane2d_generator-generate_membrane2d_failure.o `test -f 'generate_membrane2d_failure.cpp' || echo '$(srcdir)/'`generate_membrane2d_failure.cpp
+
+failed_membrane2d_generator-generate_membrane2d_failure.obj: generate_membrane2d_failure.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(failed_membrane2d_generator_CXXFLAGS) $(CXXFLAGS) -MT failed_membrane2d_generator-generate_membrane2d_failure.obj -MD -MP -MF $(DEPDIR)/failed_membrane2d_generator-generate_membrane2d_failure.Tpo -c -o failed_membrane2d_generator-generate_membrane2d_failure.obj `if test -f 'generate_membrane2d_failure.cpp'; then $(CYGPATH_W) 'generate_membrane2d_failure.cpp'; else $(CYGPATH_W) '$(srcdir)/generate_membrane2d_failure.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/failed_membrane2d_generator-generate_membrane2d_failure.Tpo $(DEPDIR)/failed_membrane2d_generator-generate_membrane2d_failure.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='generate_membrane2d_failure.cpp' object='failed_membrane2d_generator-generate_membrane2d_failure.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(failed_membrane2d_generator_CXXFLAGS) $(CXXFLAGS) -c -o failed_membrane2d_generator-generate_membrane2d_failure.obj `if test -f 'generate_membrane2d_failure.cpp'; then $(CYGPATH_W) 'generate_membrane2d_failure.cpp'; else $(CYGPATH_W) '$(srcdir)/generate_membrane2d_failure.cpp'; fi`
 
 main2d-main.o: main.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-main.o -MD -MP -MF $(DEPDIR)/main2d-main.Tpo -c -o main2d-main.o `test -f 'main.cpp' || echo '$(srcdir)/'`main.cpp
@@ -783,7 +817,8 @@ clean: clean-am
 clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/main2d-main.Po
+		-rm -f ./$(DEPDIR)/failed_membrane2d_generator-generate_membrane2d_failure.Po
+	-rm -f ./$(DEPDIR)/main2d-main.Po
 	-rm -f ./$(DEPDIR)/main3d-main.Po
 	-rm -f ./$(DEPDIR)/membrane2d_generator-generate_membrane2d.Po
 	-rm -f ./$(DEPDIR)/membrane3d_generator-generate_membrane3d.Po
@@ -832,7 +867,8 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/main2d-main.Po
+		-rm -f ./$(DEPDIR)/failed_membrane2d_generator-generate_membrane2d_failure.Po
+	-rm -f ./$(DEPDIR)/main2d-main.Po
 	-rm -f ./$(DEPDIR)/main3d-main.Po
 	-rm -f ./$(DEPDIR)/membrane2d_generator-generate_membrane2d.Po
 	-rm -f ./$(DEPDIR)/membrane3d_generator-generate_membrane3d.Po
@@ -879,7 +915,9 @@ uninstall-am:
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input2d $(PWD) ; \
+	  cp -f $(srcdir)/input2d_failure $(PWD) ; \
 	  cp -f $(srcdir)/generate_membrane2d.cpp $(PWD) ; \
+	  cp -f $(srcdir)/generate_membrane2d_failure.cpp $(PWD) ; \
 	  cp -f $(srcdir)/read_file_ibamr2d.m $(PWD) ; \
 	  cp -f $(srcdir)/input3d $(PWD) ; \
 	  cp -f $(srcdir)/generate_membrane3d.cpp $(PWD) ; \
@@ -890,7 +928,9 @@ clean-local:./
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input2d ; \
+	  rm -f $(builddir)/input2d_failure ; \
 	  rm -f $(builddir)/generate_membrane2d.cpp ; \
+	  rm -f $(builddir)/generate_membrane2d_failure.cpp ; \
 	  rm -f $(builddir)/read_file_ibamr2d.m ; \
 	  rm -f $(builddir)/input3d ; \
 	  rm -f $(builddir)/generate_membrane3d.cpp ; \
