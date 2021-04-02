@@ -75,8 +75,12 @@ double
 my_inf_fcn(double R0, double /*delta*/)
 {
     static const double A = 2;
+    #if (NDIM == 3)
     static const double C = 24.0 / (2.0 * M_PI * A * A * A);
-
+    #endif
+    #if (NDIM == 2)
+    static const double C = 60.0 / (7.0 * M_PI * A * A);
+    #endif
     double W;
 
     double r = R0 / ds;
@@ -98,8 +102,10 @@ my_inf_fcn(double R0, double /*delta*/)
 } // my_inf_fcn
 
 double
-my_vol_frac_fcn(double R0, double horizon, double delta)
+my_vol_frac_fcn(double R0, double /*horizon*/, double /*delta*/)
 {
+    double horizon = 2.015 * ds;
+    double delta = ds;
     double vol_frac;
     if (R0 <= (horizon - delta))
     {
@@ -174,7 +180,9 @@ my_force_damage_fcn(const double /*horizon*/,
 
     // Compute PD force.
     vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
+    #if (NDIM == 3)
     trac(2) = 0.0;
+    #endif
     F_mastr += fail * (vol_frac * vol_slave) * trac * (vol_frac * vol_slave);
     F_slave += -fail * (vol_frac * vol_mastr) * trac * (vol_frac * vol_mastr);
 
@@ -221,7 +229,9 @@ public:
                 const int local_idx = node->getLocalPETScIndex();
 
                 double* U_current = &U_current_data_array[local_idx][0];
+                #if (NDIM == 3)
                 U_current[2] = 0.0;
+                #endif
             }
         }
 
@@ -255,9 +265,10 @@ public:
                 double* U_new = &U_new_data_array[local_idx][0];
                 const double* X_0 = &X_0_data_array[local_idx][0];
                 double* X_new = &X_new_data_array[local_idx][0];
-
+                #if (NDIM == 3)
                 U_new[2] = 0.0;
                 X_new[2] = X_0[2];
+                #endif
             }
 
             X_0_data->restoreArrays();
