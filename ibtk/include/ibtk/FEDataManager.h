@@ -962,13 +962,6 @@ public:
                       bool close_X = true);
 
     /*!
-     * \return Pointers to a linear solver and sparse matrix corresponding to a
-     * L2 projection operator.
-     */
-    std::pair<libMesh::LinearSolver<double>*, libMesh::SparseMatrix<double>*>
-    buildL2ProjectionSolver(const std::string& system_name);
-
-    /*!
      * \return Pointer to vector representation of diagonal L2 mass matrix.
      */
     libMesh::NumericVector<double>* buildDiagonalL2MassMatrix(const std::string& system_name);
