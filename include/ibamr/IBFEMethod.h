@@ -966,13 +966,6 @@ protected:
      */
     std::shared_ptr<IBTK::SAMRAIDataCache> d_active_eulerian_data_cache;
 
-    /*!
-     * Pointer to the scratch patch hierarchy (which is only used for the
-     * evaluation of IB terms, i.e., in IBFEMethod::interpolateVelocity(),
-     * IBFEMethod::spreadForce(), and IBFEMethod::spreadFluidSource()).
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_scratch_hierarchy;
-
     int d_lagrangian_workload_current_idx = IBTK::invalid_index;
     int d_lagrangian_workload_new_idx = IBTK::invalid_index;
     int d_lagrangian_workload_scratch_idx = IBTK::invalid_index;
@@ -980,28 +973,6 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_lagrangian_workload_var;
     const std::string d_lagrangian_workload_coarsen_type = "CONSERVATIVE_COARSEN";
     const std::string d_lagrangian_workload_refine_type = "CONSERVATIVE_LINEAR_REFINE";
-
-    /*!
-     * Refinement schedules for transferring data from d_hierarchy to
-     * d_scratch_hierarchy. The key type is the level number and a pair of
-     * indices (the primary and scratch, in that order).
-     *
-     * @note this function assumes that only data on the finest level needs to
-     * be transferred.
-     */
-    std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
-        d_scratch_transfer_forward_schedules;
-
-    /*!
-     * Refinement schedules for transferring data from d_scratch_hierarchy to
-     * d_hierarchy. The key type is the level number and a pair of indices
-     * (the primary and scratch, in that order).
-     *
-     * @note this function assumes that only data on the finest level needs to
-     * be transferred.
-     */
-    std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
-        d_scratch_transfer_backward_schedules;
 
     /*!
      * Maximum level number in the patch hierarchy.
@@ -1132,49 +1103,96 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
     int d_workload_idx = IBTK::invalid_index;
 
-    /*!
-     * database for the GriddingAlgorithm used with the scratch hierarchy.
+    /**
+     * Secondary hierarchy. This is an intermediate patch - things are
+     * collected here that will ultimately be moved to IBTK::SecondaryHierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_scratch_gridding_algorithm_db;
+    struct SecondaryHierarchy
+    {
+        /*!
+         * Refinement schedules for transferring data from the primary hierarchy to
+         * the secondary (i.e., this) hierarchy. The key type is the level number
+         * and a pair of indices (the primary and scratch, in that order).
+         *
+         * @note this function assumes that only data on the finest level needs to
+         * be transferred.
+         */
+        std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
+            d_transfer_forward_schedules;
 
-    /*!
-     * database for the LoadBalancer used with the scratch hierarchy.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_scratch_load_balancer_db;
+        /*!
+         * Refinement schedules for transferring data from the secondary hierarchy
+         * (i.e., the one managed by this object) to the primary hierarchy. The key
+         * type is the level number and a pair of indices (the primary and scratch,
+         * in that order).
+         *
+         * @note this function assumes that only data on the finest level needs to
+         * be transferred.
+         */
+        std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
+            d_transfer_backward_schedules;
+
+        /*!
+         * database for the GriddingAlgorithm.
+         */
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_gridding_algorithm_db;
+
+        /*!
+         * database for the LoadBalancer.
+         */
+        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_load_balancer_db;
+
+        /**
+         * Error detector.
+         *
+         * @note this object has to be persistent since d_gridding_alg
+         * requires it: see the note for that member object.
+         */
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::TagAndInitializeStrategy<NDIM> > d_error_detector;
+
+        /**
+         * Box generator.
+         *
+         * @note this object has to be persistent since d_gridding_alg
+         * requires it: see the note for that member object.
+         */
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::BoxGeneratorStrategy<NDIM> > d_box_generator;
+
+        /**
+         * Load balancer.
+         *
+         * @note this object has to be persistent since d_scratch_gridding_alg
+         * requires it: see the note for that member object.
+         */
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
+
+        /**
+         * Gridding algorithm.
+         *
+         * @note this object has to be persistent because, due to a bug in SAMRAI,
+         * it is impossible to create a SAMRAI::mesh::GriddingAlgorithm object in
+         * a restarted simulation without a corresponding entry in the restart
+         * database.
+         */
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_algorithm;
+
+        /*!
+         * Pointer to the primary patch hierarchy (i.e., the one not by this class).
+         */
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_primary_hierarchy;
+
+        /*!
+         * Pointer to the secondary patch hierarchy (i.e., the one managed by this class).
+         */
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_secondary_hierarchy;
+    };
 
     /**
-     * Error detector used with the scratch hierarchy.
-     *
-     * @note this object has to be persistent since d_scratch_gridding_alg
-     * requires it: see the note for that member object.
+     * (which is only used for the evaluation of IB terms, i.e., in
+     * IBFEMethod::interpolateVelocity(), IBFEMethod::spreadForce(), and
+     * IBFEMethod::spreadFluidSource())
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::TagAndInitializeStrategy<NDIM> > d_scratch_error_detector;
-
-    /**
-     * Box generator used with the scratch hierarchy.
-     *
-     * @note this object has to be persistent since d_scratch_gridding_alg
-     * requires it: see the note for that member object.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::BoxGeneratorStrategy<NDIM> > d_scratch_box_generator;
-
-    /**
-     * Load balancer used with the scratch hierarchy.
-     *
-     * @note this object has to be persistent since d_scratch_gridding_alg
-     * requires it: see the note for that member object.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_scratch_load_balancer;
-
-    /**
-     * Gridding algorithm used with the scratch hierarchy.
-     *
-     * @note this object has to be persistent because, due to a bug in SAMRAI,
-     * it is impossible to create a SAMRAI::mesh::GriddingAlgorithm object in
-     * a restarted simulation without a corresponding entry in the restart
-     * database.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_scratch_gridding_algorithm;
+    SecondaryHierarchy d_secondary_hierarchy;
 
 private:
     /*!
