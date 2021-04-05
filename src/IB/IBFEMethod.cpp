@@ -667,7 +667,8 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     {
         for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
         {
-            getPrimaryToScratchSchedule(ln, u_data_idx, u_data_idx, d_ib_solver->getVelocityPhysBdryOp())
+            d_secondary_hierarchy
+                .getPrimaryToScratchSchedule(ln, u_data_idx, u_data_idx, d_ib_solver->getVelocityPhysBdryOp())
                 .fillData(data_time);
         }
     }
@@ -1057,7 +1058,8 @@ IBFEMethod::spreadForce(const int f_data_idx,
             f_primary_data_ops->setToScalar(f_primary_scratch_data_idx,
                                             0.0,
                                             /*interior_only*/ false);
-            getScratchToPrimarySchedule(ln, f_primary_scratch_data_idx, f_scratch_data_idx).fillData(data_time);
+            d_secondary_hierarchy.getScratchToPrimarySchedule(ln, f_primary_scratch_data_idx, f_scratch_data_idx)
+                .fillData(data_time);
             f_primary_data_ops->add(f_data_idx, f_data_idx, f_primary_scratch_data_idx);
         }
     }
@@ -1195,7 +1197,8 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
     if (d_use_scratch_hierarchy)
     {
         assertStructureOnFinestLevel();
-        getPrimaryToScratchSchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx).fillData(data_time);
+        d_secondary_hierarchy.getPrimaryToScratchSchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx)
+            .fillData(data_time);
     }
 
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
@@ -1215,7 +1218,8 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
     if (d_use_scratch_hierarchy)
     {
         assertStructureOnFinestLevel();
-        getScratchToPrimarySchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx).fillData(data_time);
+        d_secondary_hierarchy.getScratchToPrimarySchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx)
+            .fillData(data_time);
     }
 
     IBAMR_TIMER_STOP(t_spread_fluid_source);
@@ -2767,46 +2771,46 @@ IBFEMethod::getFinestPatchLevelNumber() const
 } // getFinestPatchLevelNumber
 
 SAMRAI::xfer::RefineSchedule<NDIM>&
-IBFEMethod::getPrimaryToScratchSchedule(const int level_number,
-                                        const int primary_data_idx,
-                                        const int scratch_data_idx,
-                                        SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy)
+IBFEMethod::SecondaryHierarchy::getPrimaryToScratchSchedule(const int level_number,
+                                                            const int primary_data_idx,
+                                                            const int scratch_data_idx,
+                                                            SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy)
 {
-    TBOX_ASSERT(d_secondary_hierarchy.d_secondary_hierarchy);
+    TBOX_ASSERT(d_secondary_hierarchy);
     const auto key = std::make_pair(level_number, std::make_pair(primary_data_idx, scratch_data_idx));
-    if (d_secondary_hierarchy.d_transfer_forward_schedules.count(key) == 0)
+    if (d_transfer_forward_schedules.count(key) == 0)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
-        Pointer<PatchLevel<NDIM> > scratch_level = d_secondary_hierarchy.d_secondary_hierarchy->getPatchLevel(level_number);
+        Pointer<PatchLevel<NDIM> > level = d_primary_hierarchy->getPatchLevel(level_number);
+        Pointer<PatchLevel<NDIM> > scratch_level = d_secondary_hierarchy->getPatchLevel(level_number);
         if (!scratch_level->checkAllocated(scratch_data_idx)) scratch_level->allocatePatchData(scratch_data_idx, 0.0);
         Pointer<RefineAlgorithm<NDIM> > refine_algorithm = new RefineAlgorithm<NDIM>();
         Pointer<RefineOperator<NDIM> > refine_op_f = nullptr;
         refine_algorithm->registerRefine(scratch_data_idx, primary_data_idx, scratch_data_idx, refine_op_f);
-        d_secondary_hierarchy.d_transfer_forward_schedules[key] =
+        d_transfer_forward_schedules[key] =
             refine_algorithm->createSchedule("DEFAULT_FILL", scratch_level, level, patch_strategy, false, nullptr);
     }
-    return *d_secondary_hierarchy.d_transfer_forward_schedules[key];
+    return *d_transfer_forward_schedules[key];
 } // getPrimaryToScratchSchedule
 
 SAMRAI::xfer::RefineSchedule<NDIM>&
-IBFEMethod::getScratchToPrimarySchedule(const int level_number,
-                                        const int primary_data_idx,
-                                        const int scratch_data_idx,
-                                        SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy)
+IBFEMethod::SecondaryHierarchy::getScratchToPrimarySchedule(const int level_number,
+                                                            const int primary_data_idx,
+                                                            const int scratch_data_idx,
+                                                            SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy)
 {
-    TBOX_ASSERT(d_secondary_hierarchy.d_secondary_hierarchy);
+    TBOX_ASSERT(d_secondary_hierarchy);
     const auto key = std::make_pair(level_number, std::make_pair(primary_data_idx, scratch_data_idx));
-    if (d_secondary_hierarchy.d_transfer_backward_schedules.count(key) == 0)
+    if (d_transfer_backward_schedules.count(key) == 0)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
-        Pointer<PatchLevel<NDIM> > scratch_level = d_secondary_hierarchy.d_secondary_hierarchy->getPatchLevel(level_number);
+        Pointer<PatchLevel<NDIM> > level = d_primary_hierarchy->getPatchLevel(level_number);
+        Pointer<PatchLevel<NDIM> > scratch_level = d_secondary_hierarchy->getPatchLevel(level_number);
         Pointer<RefineAlgorithm<NDIM> > refine_algorithm = new RefineAlgorithm<NDIM>();
         Pointer<RefineOperator<NDIM> > refine_op_b = nullptr;
         refine_algorithm->registerRefine(primary_data_idx, scratch_data_idx, primary_data_idx, refine_op_b);
-        d_secondary_hierarchy.d_transfer_backward_schedules[key] =
+        d_transfer_backward_schedules[key] =
             refine_algorithm->createSchedule("DEFAULT_FILL", level, scratch_level, patch_strategy, false, nullptr);
     }
-    return *d_secondary_hierarchy.d_transfer_backward_schedules[key];
+    return *d_transfer_backward_schedules[key];
 } // getScratchToPrimarySchedule
 
 SAMRAI::xfer::RefineSchedule<NDIM>&
