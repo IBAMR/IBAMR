@@ -47,6 +47,7 @@ IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <memory>
+#include <numeric>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -64,6 +65,16 @@ static Timer* t_solve_system;
 static Timer* t_solve_system_hypre;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
+
+// HYPRE can use 64bit indices, but SAMRAI IntVectors are always 32 - add
+// a helper conversion function
+std::array<HYPRE_Int, NDIM>
+hypre_array(const Index<NDIM>& index)
+{
+    std::array<HYPRE_Int, NDIM> result;
+    for (unsigned int d = 0; d < NDIM; ++d) result[d] = index[d];
+    return result;
+}
 
 // hypre solver options.
 enum HypreSStructRelaxType
@@ -308,12 +319,12 @@ SCPoissonHypreLevelSolver::allocateHypreData()
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
         const Box<NDIM>& patch_box = d_level->getPatch(p())->getBox();
-        hier::Index<NDIM> lower = patch_box.lower();
-        hier::Index<NDIM> upper = patch_box.upper();
-        HYPRE_SStructGridSetExtents(d_grid, PART, lower, upper);
+        auto lower = hypre_array(patch_box.lower());
+        auto upper = hypre_array(patch_box.upper());
+        HYPRE_SStructGridSetExtents(d_grid, PART, lower.data(), upper.data());
     }
 
-    int hypre_periodic_shift[3];
+    std::array<HYPRE_Int, 3> hypre_periodic_shift;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         hypre_periodic_shift[d] = periodic_shift(d);
@@ -322,7 +333,7 @@ SCPoissonHypreLevelSolver::allocateHypreData()
     {
         hypre_periodic_shift[d] = 0;
     }
-    HYPRE_SStructGridSetPeriodic(d_grid, PART, hypre_periodic_shift);
+    HYPRE_SStructGridSetPeriodic(d_grid, PART, hypre_periodic_shift.data());
 
 #if (NDIM == 2)
     HYPRE_SStructVariable vartypes[NVARS] = { HYPRE_SSTRUCT_VARIABLE_XFACE, HYPRE_SSTRUCT_VARIABLE_YFACE };
@@ -352,7 +363,9 @@ SCPoissonHypreLevelSolver::allocateHypreData()
         HYPRE_SStructStencilCreate(NDIM, stencil_sz, &d_stencil[var]);
         for (int s = 0; s < stencil_sz; ++s)
         {
-            HYPRE_SStructStencilSetEntry(d_stencil[var], s, d_stencil_offsets[s], var);
+            auto stencil_offset = hypre_array(d_stencil_offsets[s]);
+            HYPRE_SStructStencilSetEntry(d_stencil[var], s, stencil_offset.data(), var);
+            std::copy(stencil_offset.begin(), stencil_offset.end(), static_cast<int*>(d_stencil_offsets[s]));
         }
     }
 
@@ -384,34 +397,40 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients()
     {
         Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const int stencil_sz = static_cast<int>(d_stencil_offsets.size());
-        SideData<NDIM, double> matrix_coefs(patch_box, stencil_sz, IntVector<NDIM>(0));
+        const auto stencil_size = d_stencil_offsets.size();
+        SideData<NDIM, double> matrix_coefs(patch_box, stencil_size, IntVector<NDIM>(0));
         PoissonUtilities::computeMatrixCoefficients(
             matrix_coefs, patch, d_stencil_offsets, d_poisson_spec, d_bc_coefs, d_solution_time);
 
         // Copy matrix entries to the hypre matrix structure.
-        std::vector<int> stencil_indices(stencil_sz);
-        for (int i = 0; i < stencil_sz; ++i)
-        {
-            stencil_indices[i] = i;
-        }
-        std::vector<double> mat_vals(stencil_sz, 0.0);
+        std::vector<HYPRE_Int> stencil_indices(stencil_size);
+        std::iota(stencil_indices.begin(), stencil_indices.end(), HYPRE_Int(0));
+        std::vector<double> mat_vals(stencil_size, 0.0);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
             Box<NDIM> side_box = SideGeometry<NDIM>::toSideBox(patch_box, axis);
             for (Box<NDIM>::Iterator b(side_box); b; b++)
             {
                 SideIndex<NDIM> i(b(), axis, SideIndex<NDIM>::Lower);
-                for (int k = 0; k < stencil_sz; ++k)
+                for (unsigned int k = 0; k < stencil_size; ++k)
                 {
                     mat_vals[k] = matrix_coefs(i, k);
                 }
                 // NOTE: In SAMRAI, face-centered values are associated with the
                 // cell index located on the "upper" side of the face, but in
                 // hypre, face-centered values are associated with the cell
-                // index located on the "lower" side of the face.
+                // index located on the "lower" side of the face. Similarly,
+                // in SAMRAI the index stores its axis, but here hypre expects
+                // that to be a second argument (so slicing i is okay).
                 i(axis) -= 1;
-                HYPRE_SStructMatrixSetValues(d_matrix, PART, i, axis, stencil_sz, &stencil_indices[0], &mat_vals[0]);
+                auto hypre_i = hypre_array(i);
+                HYPRE_SStructMatrixSetValues(d_matrix,
+                                             PART,
+                                             hypre_i.data(),
+                                             axis,
+                                             stencil_indices.size(),
+                                             stencil_indices.data(),
+                                             mat_vals.data());
             }
         }
     }
@@ -704,6 +723,8 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     IBTK_TIMER_START(t_solve_system_hypre);
 
     d_current_iterations = 0;
+    // HYPRE_INT may be either long or int
+    HYPRE_Int current_iterations = d_current_iterations;
     d_current_residual_norm = 0.0;
 
     if (d_solver_type == "SysPFMG")
@@ -719,7 +740,7 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
             HYPRE_SStructSysPFMGSetZeroGuess(d_solver);
         }
         HYPRE_SStructSysPFMGSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_SStructSysPFMGGetNumIterations(d_solver, &d_current_iterations);
+        HYPRE_SStructSysPFMGGetNumIterations(d_solver, &current_iterations);
         HYPRE_SStructSysPFMGGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
     else if (d_solver_type == "Split")
@@ -735,7 +756,7 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
             HYPRE_SStructSplitSetZeroGuess(d_solver);
         }
         HYPRE_SStructSplitSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_SStructSplitGetNumIterations(d_solver, &d_current_iterations);
+        HYPRE_SStructSplitGetNumIterations(d_solver, &current_iterations);
         HYPRE_SStructSplitGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
     else if (d_solver_type == "PCG")
@@ -744,7 +765,7 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         HYPRE_SStructPCGSetTol(d_solver, d_rel_residual_tol);
         HYPRE_SStructPCGSetAbsoluteTol(d_solver, d_abs_residual_tol);
         HYPRE_SStructPCGSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_SStructPCGGetNumIterations(d_solver, &d_current_iterations);
+        HYPRE_SStructPCGGetNumIterations(d_solver, &current_iterations);
         HYPRE_SStructPCGGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
     else if (d_solver_type == "GMRES")
@@ -753,7 +774,7 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         HYPRE_SStructGMRESSetTol(d_solver, d_rel_residual_tol);
         HYPRE_SStructGMRESSetAbsoluteTol(d_solver, d_abs_residual_tol);
         HYPRE_SStructGMRESSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_SStructGMRESGetNumIterations(d_solver, &d_current_iterations);
+        HYPRE_SStructGMRESGetNumIterations(d_solver, &current_iterations);
         HYPRE_SStructGMRESGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
     else if (d_solver_type == "FlexGMRES")
@@ -762,7 +783,7 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         HYPRE_SStructFlexGMRESSetTol(d_solver, d_rel_residual_tol);
         HYPRE_SStructFlexGMRESSetAbsoluteTol(d_solver, d_abs_residual_tol);
         HYPRE_SStructFlexGMRESSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_SStructFlexGMRESGetNumIterations(d_solver, &d_current_iterations);
+        HYPRE_SStructFlexGMRESGetNumIterations(d_solver, &current_iterations);
         HYPRE_SStructFlexGMRESGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
     else if (d_solver_type == "LGMRES")
@@ -771,7 +792,7 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         HYPRE_SStructLGMRESSetTol(d_solver, d_rel_residual_tol);
         HYPRE_SStructLGMRESSetAbsoluteTol(d_solver, d_abs_residual_tol);
         HYPRE_SStructLGMRESSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_SStructLGMRESGetNumIterations(d_solver, &d_current_iterations);
+        HYPRE_SStructLGMRESGetNumIterations(d_solver, &current_iterations);
         HYPRE_SStructLGMRESGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
     else if (d_solver_type == "BiCGSTAB")
@@ -780,10 +801,11 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
         HYPRE_SStructBiCGSTABSetTol(d_solver, d_rel_residual_tol);
         HYPRE_SStructBiCGSTABSetAbsoluteTol(d_solver, d_abs_residual_tol);
         HYPRE_SStructBiCGSTABSolve(d_solver, d_matrix, d_rhs_vec, d_sol_vec);
-        HYPRE_SStructBiCGSTABGetNumIterations(d_solver, &d_current_iterations);
+        HYPRE_SStructBiCGSTABGetNumIterations(d_solver, &current_iterations);
         HYPRE_SStructBiCGSTABGetFinalRelativeResidualNorm(d_solver, &d_current_residual_norm);
     }
 
+    d_current_iterations = current_iterations;
     IBTK_TIMER_STOP(t_solve_system_hypre);
 
     // Pull the solution vector out of the hypre structures.
@@ -816,10 +838,10 @@ SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
     for (int var = 0; var < NVARS; ++var)
     {
         const unsigned int axis = var;
-        hier::Index<NDIM> lower = box.lower();
-        lower(axis) -= 1;
-        hier::Index<NDIM> upper = box.upper();
-        HYPRE_SStructVectorSetBoxValues(vector, PART, lower, upper, var, hypre_data.getPointer(axis));
+        auto lower = hypre_array(box.lower());
+        lower[axis] -= 1;
+        auto upper = hypre_array(box.upper());
+        HYPRE_SStructVectorSetBoxValues(vector, PART, lower.data(), upper.data(), var, hypre_data.getPointer(axis));
     }
     return;
 } // copyToHypre
@@ -835,10 +857,10 @@ SCPoissonHypreLevelSolver::copyFromHypre(SideData<NDIM, double>& dst_data,
     for (int var = 0; var < NVARS; ++var)
     {
         const unsigned int axis = var;
-        hier::Index<NDIM> lower = box.lower();
-        lower(axis) -= 1;
-        hier::Index<NDIM> upper = box.upper();
-        HYPRE_SStructVectorGetBoxValues(vector, PART, lower, upper, var, hypre_data.getPointer(axis));
+        auto lower = hypre_array(box.lower());
+        lower[axis] -= 1;
+        auto upper = hypre_array(box.upper());
+        HYPRE_SStructVectorGetBoxValues(vector, PART, lower.data(), upper.data(), var, hypre_data.getPointer(axis));
     }
     if (copy_data)
     {
