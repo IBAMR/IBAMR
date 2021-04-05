@@ -878,34 +878,6 @@ protected:
     int getFinestPatchLevelNumber() const;
 
     /*!
-     * Get the transfer schedule from the primary hierarchy to the scratch
-     * hierarchy associated with the given level and index. If necessary the
-     * schedule is created and stored in a map.
-     *
-     * If needed, a SAMRAI::xfer::RefinePatchStrategy object can be provided
-     * for filling ghost data at physical boundaries.
-     */
-    SAMRAI::xfer::RefineSchedule<NDIM>&
-    getPrimaryToScratchSchedule(int level_number,
-                                int primary_data_idx,
-                                int scratch_data_idx,
-                                SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
-
-    /*!
-     * Get the transfer schedule from the scratch hierarchy to the primary
-     * hierarchy associated with the given level and index. If necessary the
-     * schedule is created and stored in a map.
-     *
-     * If needed, a SAMRAI::xfer::RefinePatchStrategy object can be provided
-     * for filling ghost data at physical boundaries.
-     */
-    SAMRAI::xfer::RefineSchedule<NDIM>&
-    getScratchToPrimarySchedule(int level_number,
-                                int primary_data_idx,
-                                int scratch_data_idx,
-                                SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
-
-    /*!
      * Get the schedule used to prolong force values. Data is read from @p
      * coarse_data_idx on level @p level_number and written into fine_data_idx
      * on level level_number + 1.
@@ -1109,6 +1081,33 @@ protected:
      */
     struct SecondaryHierarchy
     {
+        /*!
+         * Get the transfer schedule from the primary hierarchy to the scratch
+         * hierarchy associated with the given level and index. If necessary the
+         * schedule is created and stored in a map.
+         *
+         * If needed, a SAMRAI::xfer::RefinePatchStrategy object can be provided
+         * for filling ghost data at physical boundaries.
+         */
+        SAMRAI::xfer::RefineSchedule<NDIM>&
+        getPrimaryToScratchSchedule(int level_number,
+                                    int primary_data_idx,
+                                    int scratch_data_idx,
+                                    SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
+
+        /*!
+         * Get the transfer schedule from the scratch hierarchy to the primary
+         * hierarchy associated with the given level and index. If necessary the
+         * schedule is created and stored in a map.
+         *
+         * If needed, a SAMRAI::xfer::RefinePatchStrategy object can be provided
+         * for filling ghost data at physical boundaries.
+         */
+        SAMRAI::xfer::RefineSchedule<NDIM>&
+        getScratchToPrimarySchedule(int level_number,
+                                    int primary_data_idx,
+                                    int scratch_data_idx,
+                                    SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
         /*!
          * Refinement schedules for transferring data from the primary hierarchy to
          * the secondary (i.e., this) hierarchy. The key type is the level number
