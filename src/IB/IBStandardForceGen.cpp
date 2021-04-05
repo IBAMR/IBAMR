@@ -1313,26 +1313,19 @@ IBStandardForceGen::computeLagrangianBodyForce(Pointer<LData> F_data,
 {
     if (d_uniform_body_force_data[level_number].empty()) return;
 
-    int ierr;
     double* const F_node = F_data->getLocalFormVecArray()->data();
     SAMRAI::tbox::Pointer<LMesh> l_mesh = l_data_manager->getLMesh(level_number);
-    for (const auto& force_map : d_uniform_body_force_data[level_number])
+    for (const auto& n : l_mesh->getLocalNodes())
     {
-        const int structure_id = force_map.first;
-        const IBTK::Vector& F = force_map.second;
-        std::vector<int> local_petsc_idxs;
-        const std::pair<int, int>& lag_index_range =
-            l_data_manager->getLagrangianStructureIndexRange(structure_id, level_number);
-        for (const auto& n : l_mesh->getLocalNodes())
+        const auto lag_idx = n->getLagrangianIndex();
+        const auto structure_id = l_data_manager->getLagrangianStructureID(lag_idx, level_number);
+        if (d_uniform_body_force_data[level_number].count(structure_id))
         {
-            const int lag_idx = n->getLagrangianIndex();
-            if (lag_index_range.first <= lag_idx && lag_idx < lag_index_range.second)
+            const IBTK::Vector& F = d_uniform_body_force_data[level_number][structure_id];
+            const int local_petsc_idx = n->getLocalPETScIndex();
+            for (int d = 0; d < NDIM; ++d)
             {
-                const int petsc_idx = n->getLocalPETScIndex();
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    F_node[NDIM * petsc_idx + d] += F(d);
-                }
+                F_node[NDIM * local_petsc_idx + d] += F(d);
             }
         }
     }
