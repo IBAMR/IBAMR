@@ -1225,7 +1225,7 @@ protected:
      * IBFEMethod::interpolateVelocity(), IBFEMethod::spreadForce(), and
      * IBFEMethod::spreadFluidSource())
      */
-    SecondaryHierarchy d_secondary_hierarchy;
+    std::unique_ptr<SecondaryHierarchy> d_secondary_hierarchy;
 
 private:
     /*!
