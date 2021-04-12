@@ -1081,6 +1081,21 @@ protected:
      */
     struct SecondaryHierarchy
     {
+        /**
+         * Constructor - requires that the object be reinitialized. At the
+         * present time this object still requires manual setup of the various
+         * gridding classes.
+         */
+        SecondaryHierarchy(std::string name);
+
+        /**
+         * Reinitialize the secondary hierarchy based on a new patch hierarchy.
+         */
+        void reinit(int coarsest_patch_level_number,
+                    int finest_patch_level_number,
+                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                    const SAMRAI::tbox::Array<int>& tag_buffer);
+
         /*!
          * Get the transfer schedule from the primary hierarchy to the scratch
          * hierarchy associated with the given level and index. If necessary the
@@ -1108,28 +1123,6 @@ protected:
                                     int primary_data_idx,
                                     int scratch_data_idx,
                                     SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
-        /*!
-         * Refinement schedules for transferring data from the primary hierarchy to
-         * the secondary (i.e., this) hierarchy. The key type is the level number
-         * and a pair of indices (the primary and scratch, in that order).
-         *
-         * @note this function assumes that only data on the finest level needs to
-         * be transferred.
-         */
-        std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
-            d_transfer_forward_schedules;
-
-        /*!
-         * Refinement schedules for transferring data from the secondary hierarchy
-         * (i.e., the one managed by this object) to the primary hierarchy. The key
-         * type is the level number and a pair of indices (the primary and scratch,
-         * in that order).
-         *
-         * @note this function assumes that only data on the finest level needs to
-         * be transferred.
-         */
-        std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
-            d_transfer_backward_schedules;
 
         /*!
          * database for the GriddingAlgorithm.
@@ -1184,6 +1177,47 @@ protected:
          * Pointer to the secondary patch hierarchy (i.e., the one managed by this class).
          */
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_secondary_hierarchy;
+
+    protected:
+        /**
+         * Object name.
+         */
+        std::string d_object_name;
+
+        /**
+         * Coarsest level on which there are patches with elements (i.e.,
+         * patches which should be considered by this object).
+         */
+        int d_coarsest_patch_level_number;
+
+        /**
+         * Finest level on which there are patches with elements (i.e.,
+         * patches which should be considered by this object).
+         */
+        int d_finest_patch_level_number;
+
+        /*!
+         * Refinement schedules for transferring data from the primary hierarchy to
+         * the secondary (i.e., this) hierarchy. The key type is the level number
+         * and a pair of indices (the primary and scratch, in that order).
+         *
+         * @note this function assumes that only data on the finest level needs to
+         * be transferred.
+         */
+        std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
+            d_transfer_forward_schedules;
+
+        /*!
+         * Refinement schedules for transferring data from the secondary hierarchy
+         * (i.e., the one managed by this object) to the primary hierarchy. The key
+         * type is the level number and a pair of indices (the primary and scratch,
+         * in that order).
+         *
+         * @note this function assumes that only data on the finest level needs to
+         * be transferred.
+         */
+        std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
+            d_transfer_backward_schedules;
     };
 
     /**
