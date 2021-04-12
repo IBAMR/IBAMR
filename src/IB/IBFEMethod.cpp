@@ -367,7 +367,8 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        bool register_for_restart,
                        const std::string& restart_read_dirname,
                        unsigned int restart_restore_number)
-    : FEMechanicsBase(object_name, input_db, mesh, register_for_restart, restart_read_dirname, restart_restore_number)
+    : FEMechanicsBase(object_name, input_db, mesh, register_for_restart, restart_read_dirname, restart_restore_number),
+      d_secondary_hierarchy(d_object_name + "::scratch_hierarchy")
 {
     commonConstructor(input_db, max_levels);
     return;
@@ -380,7 +381,13 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        bool register_for_restart,
                        const std::string& restart_read_dirname,
                        unsigned int restart_restore_number)
-    : FEMechanicsBase(object_name, input_db, meshes, register_for_restart, restart_read_dirname, restart_restore_number)
+    : FEMechanicsBase(object_name,
+                      input_db,
+                      meshes,
+                      register_for_restart,
+                      restart_read_dirname,
+                      restart_restore_number),
+      d_secondary_hierarchy(d_object_name + "::scratch_hierarchy")
 {
     commonConstructor(input_db, max_levels);
     return;
@@ -1515,44 +1522,10 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             // Use this class' buffer requirements when regridding
             Array<int> tag_buffer;
             setupTagBuffer(tag_buffer, d_secondary_hierarchy.d_gridding_algorithm);
+            d_secondary_hierarchy.reinit(
+                getCoarsestPatchLevelNumber(), getFinestPatchLevelNumber(), d_hierarchy, tag_buffer);
 
-            // TODO: d_current_time is actually nan here. Since we don't do
-            // any sort of tagging based on the current time I think we can
-            // just put in a bogus (nonnegative) value.
-            //
-            // Handle the case where everything is on the coarsest level:
-            if (getFinestPatchLevelNumber() == 0)
-            {
-                d_secondary_hierarchy.d_gridding_algorithm->makeCoarsestLevel(
-                    d_secondary_hierarchy.d_secondary_hierarchy, 0.0 /*d_current_time*/);
-            }
-            else
-            // Handle every other case:
-            {
-                if (getCoarsestPatchLevelNumber() == 0)
-                {
-                    d_secondary_hierarchy.d_gridding_algorithm->makeCoarsestLevel(
-                        d_secondary_hierarchy.d_secondary_hierarchy, 0.0 /*d_current_time*/);
-                }
-                d_secondary_hierarchy.d_gridding_algorithm->regridAllFinerLevels(
-                    d_secondary_hierarchy.d_secondary_hierarchy,
-                    std::max(getCoarsestPatchLevelNumber() - 1, 0),
-                    0.0 /*d_current_time*/,
-                    tag_buffer);
-            }
             if (d_do_log) plog << "IBFEMethod: finished scratch hierarchy regrid" << std::endl;
-
-            // FEDataManager needs
-            // 1. velocity
-            // 2. force
-            // 3. workload or some quadrature point per cell count
-            // 4. tagging
-            //
-            // patch data in the scratch hierarchy. However, the data index is not
-            // known until the call to interpolateVelocity or spreadForce, so
-            // clear existing data but do not allocate yet.
-            d_secondary_hierarchy.d_transfer_forward_schedules.clear();
-            d_secondary_hierarchy.d_transfer_backward_schedules.clear();
         }
 
         // At this point in the code SAMRAI has already redistributed the
@@ -2769,6 +2742,40 @@ IBFEMethod::getFinestPatchLevelNumber() const
     TBOX_ASSERT(level_number != std::numeric_limits<int>::min());
     return level_number;
 } // getFinestPatchLevelNumber
+
+IBFEMethod::SecondaryHierarchy::SecondaryHierarchy(std::string name)
+    : d_object_name(name), d_coarsest_patch_level_number(-1), d_finest_patch_level_number(-1)
+{
+}
+
+void
+IBFEMethod::SecondaryHierarchy::reinit(int coarsest_patch_level_number,
+                                       int finest_patch_level_number,
+                                       Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                                       const Array<int>& tag_buffer)
+{
+    d_coarsest_patch_level_number = coarsest_patch_level_number;
+    d_finest_patch_level_number = finest_patch_level_number;
+    d_primary_hierarchy = patch_hierarchy;
+
+    d_transfer_forward_schedules.clear();
+    d_transfer_backward_schedules.clear();
+
+    // case where everything is on the coarsest level:
+    if (d_finest_patch_level_number == 0)
+    {
+        d_gridding_algorithm->makeCoarsestLevel(d_secondary_hierarchy, 0.0 /*d_current_time*/);
+    }
+    else
+    {
+        if (d_coarsest_patch_level_number == 0)
+        {
+            d_gridding_algorithm->makeCoarsestLevel(d_secondary_hierarchy, 0.0 /*d_current_time*/);
+        }
+        d_gridding_algorithm->regridAllFinerLevels(
+            d_secondary_hierarchy, std::max(d_coarsest_patch_level_number - 1, 0), 0.0 /*d_current_time*/, tag_buffer);
+    }
+}
 
 SAMRAI::xfer::RefineSchedule<NDIM>&
 IBFEMethod::SecondaryHierarchy::getPrimaryToScratchSchedule(const int level_number,
