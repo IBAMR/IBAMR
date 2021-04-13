@@ -1086,7 +1086,10 @@ protected:
          * present time this object still requires manual setup of the various
          * gridding classes.
          */
-        SecondaryHierarchy(std::string name);
+        SecondaryHierarchy(std::string name,
+                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> gridding_algorithm_db,
+                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> load_balancer_db,
+                           SAMRAI::mesh::StandardTagAndInitStrategy<NDIM> *tag_strategy);
 
         /**
          * Reinitialize the secondary hierarchy based on a new patch hierarchy.
@@ -1123,16 +1126,6 @@ protected:
                                     int primary_data_idx,
                                     int scratch_data_idx,
                                     SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
-
-        /*!
-         * database for the GriddingAlgorithm.
-         */
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_gridding_algorithm_db;
-
-        /*!
-         * database for the LoadBalancer.
-         */
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_load_balancer_db;
 
         /**
          * Error detector.
