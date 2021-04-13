@@ -4178,7 +4178,7 @@ IIMethod::commonConstructor(const std::string& object_name,
 
     // Store the mesh pointers.
     d_meshes = meshes;
-    d_max_level_number = max_level_number;
+    d_max_level_number = max_level_number - 1;
 
     // Set some default values.
     const bool use_adaptive_quadrature = true;
