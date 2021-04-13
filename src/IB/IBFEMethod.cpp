@@ -1517,7 +1517,7 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
 
             // Use this class' buffer requirements when regridding
             Array<int> tag_buffer;
-            setupTagBuffer(tag_buffer, d_secondary_hierarchy->d_gridding_algorithm);
+            setupTagBuffer(tag_buffer, d_secondary_hierarchy->getGriddingAlgorithm());
             d_secondary_hierarchy->reinit(
                 getCoarsestPatchLevelNumber(), getFinestPatchLevelNumber(), d_hierarchy, tag_buffer);
 
@@ -2840,6 +2840,12 @@ IBFEMethod::SecondaryHierarchy::getScratchToPrimarySchedule(const int level_numb
     }
     return *d_transfer_backward_schedules[key];
 } // getScratchToPrimarySchedule
+
+SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
+IBFEMethod::SecondaryHierarchy::getGriddingAlgorithm()
+{
+    return d_gridding_algorithm;
+}
 
 SAMRAI::xfer::RefineSchedule<NDIM>&
 IBFEMethod::getProlongationSchedule(const int level_number, const int coarse_data_idx, const int fine_data_idx)

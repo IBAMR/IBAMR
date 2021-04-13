@@ -1127,21 +1127,8 @@ protected:
                                     int scratch_data_idx,
                                     SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
 
-        /**
-         * Error detector.
-         *
-         * @note this object has to be persistent since d_gridding_alg
-         * requires it: see the note for that member object.
-         */
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::TagAndInitializeStrategy<NDIM> > d_error_detector;
-
-        /**
-         * Box generator.
-         *
-         * @note this object has to be persistent since d_gridding_alg
-         * requires it: see the note for that member object.
-         */
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::BoxGeneratorStrategy<NDIM> > d_box_generator;
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
+        getGriddingAlgorithm();
 
         /**
          * Load balancer.
@@ -1150,16 +1137,6 @@ protected:
          * requires it: see the note for that member object.
          */
         SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
-
-        /**
-         * Gridding algorithm.
-         *
-         * @note this object has to be persistent because, due to a bug in SAMRAI,
-         * it is impossible to create a SAMRAI::mesh::GriddingAlgorithm object in
-         * a restarted simulation without a corresponding entry in the restart
-         * database.
-         */
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_algorithm;
 
         /*!
          * Pointer to the primary patch hierarchy (i.e., the one not by this class).
@@ -1188,6 +1165,32 @@ protected:
          * patches which should be considered by this object).
          */
         int d_finest_patch_level_number;
+
+        /**
+         * Error detector.
+         *
+         * @note this object has to be persistent since d_gridding_alg
+         * requires it: see the note for that member object.
+         */
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::TagAndInitializeStrategy<NDIM> > d_error_detector;
+
+        /**
+         * Box generator.
+         *
+         * @note this object has to be persistent since d_gridding_alg
+         * requires it: see the note for that member object.
+         */
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::BoxGeneratorStrategy<NDIM> > d_box_generator;
+
+        /**
+         * Gridding algorithm.
+         *
+         * @note this object has to be persistent because, due to a bug in SAMRAI,
+         * it is impossible to create a SAMRAI::mesh::GriddingAlgorithm object in
+         * a restarted simulation without a corresponding entry in the restart
+         * database.
+         */
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_algorithm;
 
         /*!
          * Refinement schedules for transferring data from the primary hierarchy to
