@@ -947,9 +947,13 @@ IBFEMethod::spreadForce(const int f_data_idx,
     // set up a new data index for computing forces on the active hierarchy.
     Pointer<PatchHierarchy<NDIM> > hierarchy =
         d_use_scratch_hierarchy ? d_secondary_hierarchy->d_secondary_hierarchy : d_hierarchy;
+    // get the data cache that is associated with whatever hierarchy we are
+    // actually performing spreading operations on.
+    std::shared_ptr<SAMRAIDataCache> data_cache =
+        d_use_scratch_hierarchy ? d_secondary_hierarchy->getSAMRAIDataCache() : d_eulerian_data_cache;
     const int ln = hierarchy->getFinestLevelNumber();
-    const auto f_scratch_data_idx = d_active_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
-    const auto f_prolong_scratch_data_idx = d_active_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
+    const auto f_scratch_data_idx = data_cache->getCachedPatchDataIndex(f_data_idx);
+    const auto f_prolong_scratch_data_idx = data_cache->getCachedPatchDataIndex(f_data_idx);
     // zero data.
     Pointer<hier::Variable<NDIM> > f_var;
     VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(f_data_idx, f_var);
@@ -1052,7 +1056,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
         for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
         {
             f_primary_data_ops->resetLevels(ln, ln);
-            const auto f_primary_scratch_data_idx = d_primary_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
+            const auto f_primary_scratch_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
             // we have to zero everything here since the scratch to primary
             // communication does not touch ghost cells, which may have junk
             f_primary_data_ops->setToScalar(f_primary_scratch_data_idx,
@@ -1308,24 +1312,15 @@ IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     // null (which greatly simplifies control flow below)
     if (d_use_scratch_hierarchy)
     {
-        d_secondary_hierarchy->d_primary_hierarchy = d_hierarchy;
-        d_secondary_hierarchy->d_secondary_hierarchy =
-            d_hierarchy->makeRefinedPatchHierarchy(d_object_name + "::scratch_hierarchy",
-                                                   IntVector<NDIM>(1),
-                                                   /*register_for_restart*/ false);
+        d_secondary_hierarchy->reinit(getCoarsestPatchLevelNumber(), getFinestPatchLevelNumber(), d_hierarchy);
     }
 
     // Initialize the FE data managers.
     reinitElementMappings();
 
-    // The patch hierarchies are finally available so set them up:
-    d_primary_eulerian_data_cache->setPatchHierarchy(hierarchy);
-    d_primary_eulerian_data_cache->resetLevels(0, getFinestPatchLevelNumber());
-    if (d_use_scratch_hierarchy)
-    {
-        d_scratch_eulerian_data_cache->setPatchHierarchy(d_secondary_hierarchy->d_secondary_hierarchy);
-        d_scratch_eulerian_data_cache->resetLevels(0, getFinestPatchLevelNumber());
-    }
+    // The patch hierarchies are finally available so set up the scratch patch data cache:
+    d_eulerian_data_cache->setPatchHierarchy(hierarchy);
+    d_eulerian_data_cache->resetLevels(0, getFinestPatchLevelNumber());
 
     d_is_initialized = true;
     return;
@@ -1715,8 +1710,7 @@ IBFEMethod::doInitializeFEEquationSystems()
     d_scratch_fe_data_managers.resize(d_meshes.size());
     d_active_fe_data_managers.resize(d_meshes.size());
     IntVector<NDIM> min_ghost_width(0);
-    if (!d_primary_eulerian_data_cache) d_primary_eulerian_data_cache = std::make_shared<SAMRAIDataCache>();
-    d_active_eulerian_data_cache = d_primary_eulerian_data_cache;
+    if (!d_eulerian_data_cache) d_eulerian_data_cache = std::make_shared<SAMRAIDataCache>();
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         const std::string manager_name = "IBFEMethod FEDataManager::" + std::to_string(part);
@@ -1728,10 +1722,9 @@ IBFEMethod::doInitializeFEEquationSystems()
                                                                      d_spread_spec[part],
                                                                      d_workload_spec[part],
                                                                      min_ghost_width,
-                                                                     d_primary_eulerian_data_cache);
+                                                                     d_eulerian_data_cache);
         if (d_use_scratch_hierarchy)
         {
-            if (!d_scratch_eulerian_data_cache) d_scratch_eulerian_data_cache = std::make_shared<SAMRAIDataCache>();
             d_scratch_fe_data_managers[part] = FEDataManager::getManager(d_fe_data[part],
                                                                          manager_name + "::scratch",
                                                                          d_fe_data_manager_db,
@@ -1740,9 +1733,8 @@ IBFEMethod::doInitializeFEEquationSystems()
                                                                          d_spread_spec[part],
                                                                          d_workload_spec[part],
                                                                          min_ghost_width,
-                                                                         d_scratch_eulerian_data_cache);
+                                                                         d_secondary_hierarchy->getSAMRAIDataCache());
             d_active_fe_data_managers[part] = d_scratch_fe_data_managers[part];
-            d_active_eulerian_data_cache = d_scratch_eulerian_data_cache;
         }
         else
         {
@@ -2738,7 +2730,10 @@ IBFEMethod::SecondaryHierarchy::SecondaryHierarchy(std::string name,
                                                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> gridding_algorithm_db,
                                                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> load_balancer_db,
                                                    SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>* tag_strategy)
-    : d_object_name(name), d_coarsest_patch_level_number(-1), d_finest_patch_level_number(-1)
+    : d_object_name(name),
+      d_coarsest_patch_level_number(-1),
+      d_finest_patch_level_number(-1),
+      d_eulerian_data_cache(std::make_shared<SAMRAIDataCache>())
 {
     // IBFEMethod implements applyGradientDetector so we have to turn that on
     Pointer<InputDatabase> database(new InputDatabase(d_object_name + ":: tag_db"));
@@ -2760,6 +2755,25 @@ IBFEMethod::SecondaryHierarchy::SecondaryHierarchy(std::string name,
                                                        d_box_generator,
                                                        d_load_balancer,
                                                        /*due to a bug in SAMRAI this *has* to be true*/ true);
+}
+
+void
+IBFEMethod::SecondaryHierarchy::reinit(int coarsest_patch_level_number,
+                                       int finest_patch_level_number,
+                                       Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+{
+    d_coarsest_patch_level_number = coarsest_patch_level_number;
+    d_finest_patch_level_number = finest_patch_level_number;
+    d_primary_hierarchy = patch_hierarchy;
+
+    d_transfer_forward_schedules.clear();
+    d_transfer_backward_schedules.clear();
+
+    d_secondary_hierarchy = d_primary_hierarchy->makeRefinedPatchHierarchy(d_object_name + "::secondary_hierarchy",
+                                                                           IntVector<NDIM>(1),
+                                                                           /*register_for_restart*/ false);
+    d_eulerian_data_cache->setPatchHierarchy(d_secondary_hierarchy);
+    d_eulerian_data_cache->resetLevels(0, finest_patch_level_number);
 }
 
 void
@@ -2789,6 +2803,9 @@ IBFEMethod::SecondaryHierarchy::reinit(int coarsest_patch_level_number,
         d_gridding_algorithm->regridAllFinerLevels(
             d_secondary_hierarchy, std::max(d_coarsest_patch_level_number - 1, 0), 0.0 /*d_current_time*/, tag_buffer);
     }
+
+    d_eulerian_data_cache->setPatchHierarchy(d_secondary_hierarchy);
+    d_eulerian_data_cache->resetLevels(0, finest_patch_level_number);
 }
 
 SAMRAI::xfer::RefineSchedule<NDIM>&
@@ -2838,6 +2855,12 @@ SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
 IBFEMethod::SecondaryHierarchy::getGriddingAlgorithm()
 {
     return d_gridding_algorithm;
+}
+
+std::shared_ptr<IBTK::SAMRAIDataCache>
+IBFEMethod::SecondaryHierarchy::getSAMRAIDataCache()
+{
+    return d_eulerian_data_cache;
 }
 
 SAMRAI::xfer::RefineSchedule<NDIM>&
