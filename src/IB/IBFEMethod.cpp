@@ -380,12 +380,7 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        bool register_for_restart,
                        const std::string& restart_read_dirname,
                        unsigned int restart_restore_number)
-    : FEMechanicsBase(object_name,
-                      input_db,
-                      meshes,
-                      register_for_restart,
-                      restart_read_dirname,
-                      restart_restore_number)
+    : FEMechanicsBase(object_name, input_db, meshes, register_for_restart, restart_read_dirname, restart_restore_number)
 {
     commonConstructor(input_db, max_levels);
     return;
@@ -2739,34 +2734,32 @@ IBFEMethod::getFinestPatchLevelNumber() const
     return level_number;
 } // getFinestPatchLevelNumber
 
-IBFEMethod::SecondaryHierarchy::SecondaryHierarchy(
-    std::string name,
-                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> gridding_algorithm_db,
-                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> load_balancer_db,
-                           SAMRAI::mesh::StandardTagAndInitStrategy<NDIM> *tag_strategy)
+IBFEMethod::SecondaryHierarchy::SecondaryHierarchy(std::string name,
+                                                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> gridding_algorithm_db,
+                                                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> load_balancer_db,
+                                                   SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>* tag_strategy)
     : d_object_name(name), d_coarsest_patch_level_number(-1), d_finest_patch_level_number(-1)
 {
-        // IBFEMethod implements applyGradientDetector so we have to turn that on
-        Pointer<InputDatabase> database(new InputDatabase(d_object_name + ":: tag_db"));
-        database->putString("tagging_method", "GRADIENT_DETECTOR");
-        d_error_detector = new StandardTagAndInitialize<NDIM>(d_object_name + "::tag", tag_strategy, database);
-        d_box_generator = new BergerRigoutsos<NDIM>();
-        const std::string load_balancer_type = load_balancer_db->getStringWithDefault("type", "MERGING");
-        if (load_balancer_type == "DEFAULT")
-            d_load_balancer = new LoadBalancer<NDIM>(load_balancer_db);
-        else if (load_balancer_type == "MERGING")
-            d_load_balancer = new MergingLoadBalancer(load_balancer_db);
-        else
-            TBOX_ERROR(d_object_name << "::SecondaryHierarchy():\n"
-                                     << "unimplemented load balancer type " << load_balancer_type << std::endl);
+    // IBFEMethod implements applyGradientDetector so we have to turn that on
+    Pointer<InputDatabase> database(new InputDatabase(d_object_name + ":: tag_db"));
+    database->putString("tagging_method", "GRADIENT_DETECTOR");
+    d_error_detector = new StandardTagAndInitialize<NDIM>(d_object_name + "::tag", tag_strategy, database);
+    d_box_generator = new BergerRigoutsos<NDIM>();
+    const std::string load_balancer_type = load_balancer_db->getStringWithDefault("type", "MERGING");
+    if (load_balancer_type == "DEFAULT")
+        d_load_balancer = new LoadBalancer<NDIM>(load_balancer_db);
+    else if (load_balancer_type == "MERGING")
+        d_load_balancer = new MergingLoadBalancer(load_balancer_db);
+    else
+        TBOX_ERROR(d_object_name << "::SecondaryHierarchy():\n"
+                                 << "unimplemented load balancer type " << load_balancer_type << std::endl);
 
-        d_gridding_algorithm =
-            new GriddingAlgorithm<NDIM>(d_object_name + "::gridding_alg",
-                                        gridding_algorithm_db,
-                                        d_error_detector,
-                                        d_box_generator,
-                                        d_load_balancer,
-                                        /*due to a bug in SAMRAI this *has* to be true*/ true);
+    d_gridding_algorithm = new GriddingAlgorithm<NDIM>(d_object_name + "::gridding_alg",
+                                                       gridding_algorithm_db,
+                                                       d_error_detector,
+                                                       d_box_generator,
+                                                       d_load_balancer,
+                                                       /*due to a bug in SAMRAI this *has* to be true*/ true);
 }
 
 void
@@ -3151,11 +3144,11 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
                                      << std::endl);
         }
 
-        d_secondary_hierarchy = std::unique_ptr<SecondaryHierarchy>(
-            new SecondaryHierarchy(d_object_name + "::scratch_hierarchy",
-                                   db->getDatabase("GriddingAlgorithm"),
-                                   db->getDatabase("LoadBalancer"),
-                                   this));
+        d_secondary_hierarchy =
+            std::unique_ptr<SecondaryHierarchy>(new SecondaryHierarchy(d_object_name + "::scratch_hierarchy",
+                                                                       db->getDatabase("GriddingAlgorithm"),
+                                                                       db->getDatabase("LoadBalancer"),
+                                                                       this));
     }
 
     d_patch_association_cfl = db->getDoubleWithDefault("patch_association_cfl", d_patch_association_cfl);
