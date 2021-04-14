@@ -920,23 +920,11 @@ protected:
     bool d_is_initialized = false;
 
     /*!
-     * Scratch data caching objects.
-     *
-     * These are shared by all of the FEDataManagers associated with this class.
-     *
-     * Note that SAMRAIDataCache objects are associated with only a single
-     * PatchHierarchy object, and so different scratch data caching objects are
-     * needed for the regular and scratch patch hierarchies.
+     * Scratch data caching object. Used both by this class and the
+     * FEDataManager objects responsible for working on the primary
+     * partitioning.
      */
-    std::shared_ptr<IBTK::SAMRAIDataCache> d_primary_eulerian_data_cache, d_scratch_eulerian_data_cache;
-
-    /*!
-     * Pointer to one of the above data caches, named in the same way as
-     * d_active_fe_data_managers - i.e., this object points to
-     * d_scratch_eulerian_data_cache if we are using the scratch hierarchy and
-     * otherwise points to d_primary_eulerian_data_cache.
-     */
-    std::shared_ptr<IBTK::SAMRAIDataCache> d_active_eulerian_data_cache;
+    std::shared_ptr<IBTK::SAMRAIDataCache> d_eulerian_data_cache;
 
     int d_lagrangian_workload_current_idx = IBTK::invalid_index;
     int d_lagrangian_workload_new_idx = IBTK::invalid_index;
@@ -1092,6 +1080,16 @@ protected:
                            SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>* tag_strategy);
 
         /**
+         * Reinitialize the secondary hierarchy by performing a copy of the
+         * input hierarchy. This is useful during staggered initialization when
+         * we may not yet want to actually perform hierarchy-specific load
+         * balancing.
+         */
+        void reinit(int coarsest_patch_level_number,
+                    int finest_patch_level_number,
+                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+
+        /**
          * Reinitialize the secondary hierarchy based on a new patch hierarchy.
          */
         void reinit(int coarsest_patch_level_number,
@@ -1128,6 +1126,11 @@ protected:
                                     SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
 
         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > getGriddingAlgorithm();
+
+        /*!
+         * Get a copy of the pointer to the scratch patch object.
+         */
+        std::shared_ptr<IBTK::SAMRAIDataCache> getSAMRAIDataCache();
 
         /**
          * Load balancer.
@@ -1213,6 +1216,11 @@ protected:
          */
         std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >
             d_transfer_backward_schedules;
+
+        /**
+         * Scratch index data object for the patch hierarchy managed by this class.
+         */
+        std::shared_ptr<IBTK::SAMRAIDataCache> d_eulerian_data_cache;
     };
 
     /**
