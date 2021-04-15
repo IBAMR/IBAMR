@@ -194,6 +194,7 @@ SET(CXX_SRC
   utilities/CartGridFunction.cpp
   utilities/NormOps.cpp
   utilities/EdgeSynchCopyFillPattern.cpp
+  utilities/SecondaryHierarchy.cpp
   utilities/StreamableManager.cpp
   utilities/LMarkerUtilities.cpp
   utilities/PartitioningBox.cpp
