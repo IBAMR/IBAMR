@@ -164,6 +164,12 @@ IEPSemiImplicitHierarchyIntegrator::IEPSemiImplicitHierarchyIntegrator(const std
 
     getFromInput(input_db, from_restart);
 
+    // Initialize conservative mass and transported quantity integrator.
+    if (d_solve_mass_conservation)
+        d_rho_p_integrator = new AdvDiffConservativeMassTransportQuantityIntegrator(
+            "AdvDiffConservativeMassTransportQuantityIntegrator::MassMomentumIntegrator",
+            input_db->getDatabase("mass_transport_integrator_db"));
+
     return;
 } // IEPSemiImplicitHierarchyIntegrator
 
@@ -283,16 +289,6 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
     const IntVector<NDIM> face_ghosts = FACEG;
     const IntVector<NDIM> no_ghosts = NOGHOSTS;
 
-    if (d_ls_var)
-        registerVariable(d_ls_current_idx,
-                         d_ls_new_idx,
-                         d_ls_scratch_idx,
-                         d_ls_var,
-                         cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE",
-                         d_ls_init);
-
     if (d_lf_var)
         registerVariable(d_lf_current_idx,
                          d_lf_new_idx,
@@ -353,16 +349,44 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE");
 
+    int lf_u_current_idx, lf_u_scratch_idx, lf_u_new_idx;
+    if (d_lf_u_var)
+        registerVariable(lf_u_current_idx,
+                         lf_u_new_idx,
+                         lf_u_scratch_idx,
+                         d_lf_u_var,
+                         face_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE");
+
+    int T_u_current_idx, T_u_scratch_idx, T_u_new_idx;
+    if (d_T_u_var)
+        registerVariable(T_u_current_idx,
+                         T_u_new_idx,
+                         T_u_scratch_idx,
+                         d_T_u_var,
+                         face_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE");
+
     int lf_diffusion_coef_rhs_scratch_idx, T_diffusion_coef_rhs_scratch_idx;
-    d_lf_diffusion_coef_rhs_var = new SideVariable<NDIM, double>("lf_diff_var");
+    d_lf_diffusion_coef_rhs_var = new SideVariable<NDIM, double>(d_lf_var->getName() + "::Diff");
     registerVariable(lf_diffusion_coef_rhs_scratch_idx, d_lf_diffusion_coef_rhs_var, cell_ghosts, getScratchContext());
 
-    d_T_diffusion_coef_rhs_var = new SideVariable<NDIM, double>("T_diff_var");
+    d_T_diffusion_coef_rhs_var = new SideVariable<NDIM, double>(d_T_var->getName() + "::Diff");
     registerVariable(T_diffusion_coef_rhs_scratch_idx, d_T_diffusion_coef_rhs_var, cell_ghosts, getScratchContext());
 
     int lf_rhs_scratch_idx, T_rhs_scratch_idx;
     registerVariable(lf_rhs_scratch_idx, d_lf_rhs_var, cell_ghosts, getScratchContext());
     registerVariable(T_rhs_scratch_idx, d_T_rhs_var, cell_ghosts, getScratchContext());
+
+    int lf_H_scratch_idx;
+    d_lf_H_var = new CellVariable<NDIM, double>(d_object_name + "::lf_H");
+    registerVariable(lf_H_scratch_idx, d_lf_H_var, cell_ghosts, getScratchContext());
+
+    int div_u_scratch_idx;
+    d_div_u_var = new CellVariable<NDIM, double>(d_object_name + "::div_u");
+    registerVariable(div_u_scratch_idx, d_div_u_var, no_ghosts, getScratchContext());
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_lf_C_var = new CellVariable<NDIM, double>(d_lf_var->getName() + "::C");
@@ -376,6 +400,34 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
 
     d_T_temp_rhs_var = new CellVariable<NDIM, double>(d_T_var->getName() + "::temp_rhs");
     d_T_temp_rhs_idx = var_db->registerVariableAndContext(d_T_temp_rhs_var, getCurrentContext(), no_ghosts);
+
+    d_lf_N_var = new CellVariable<NDIM, double>(d_lf_var->getName() + "::N");
+    int lf_N_scratch_idx;
+    registerVariable(lf_N_scratch_idx, d_lf_N_var, cell_ghosts, getScratchContext());
+
+    d_T_N_var = new CellVariable<NDIM, double>(d_T_var->getName() + "::N");
+    int T_N_scratch_idx;
+    registerVariable(T_N_scratch_idx, d_T_N_var, cell_ghosts, getScratchContext());
+
+    d_lf_N_old_var = new CellVariable<NDIM, double>(d_lf_var->getName() + "::lf_N_old");
+    int lf_N_old_current_idx, lf_N_old_new_idx, lf_N_old_scratch_idx;
+    registerVariable(lf_N_old_current_idx,
+                     lf_N_old_new_idx,
+                     lf_N_old_scratch_idx,
+                     d_lf_N_old_var,
+                     cell_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE");
+
+    d_T_N_old_var = new CellVariable<NDIM, double>(d_T_var->getName() + "::T_N_old");
+    int T_N_old_current_idx, T_N_old_new_idx, T_N_old_scratch_idx;
+    registerVariable(T_N_old_current_idx,
+                     T_N_old_new_idx,
+                     T_N_old_scratch_idx,
+                     d_T_N_old_var,
+                     cell_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE");
 
     int rho_current_idx, rho_new_idx, rho_scratch_idx;
     registerVariable(rho_current_idx,
@@ -421,14 +473,14 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
 
-    d_H_var = new CellVariable<NDIM, double>("H_var");
-    registerVariable(d_H_current_idx,
-                     d_H_new_idx,
-                     d_H_scratch_idx,
-                     d_H_var,
-                     cell_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE");
+    if (d_H_var)
+        registerVariable(d_H_current_idx,
+                         d_H_new_idx,
+                         d_H_scratch_idx,
+                         d_H_var,
+                         cell_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE");
 
     d_g_firstder_var = new CellVariable<NDIM, double>("g_firstder_var");
     d_g_firstder_idx = var_db->registerVariableAndContext(d_g_firstder_var, getCurrentContext());
@@ -447,26 +499,69 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
                      cell_ghosts,
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
+
+    d_chemical_potential_var = new CellVariable<NDIM, double>("chemical_potential_var");
+    d_chemical_potential_idx =
+        var_db->registerVariableAndContext(d_chemical_potential_var, getCurrentContext(), cell_ghosts);
+
+    d_grad_lf_var = new SideVariable<NDIM, double>(d_object_name + "::grad_lf");
+    d_grad_lf_idx =
+        var_db->registerVariableAndContext(d_grad_lf_var, var_db->getContext(d_object_name + "grad_lf::SCRATCH"));
+
+    d_H_sc_idx = var_db->registerVariableAndContext(d_grad_lf_var, var_db->getContext(d_object_name + "H_sc::SCRATCH"));
+
     if (d_visit_writer) d_visit_writer->registerPlotQuantity(d_D_cc_var->getName(), "SCALAR", d_D_cc_current_idx);
+
+    // Setup the convective operator.
+    d_lf_convective_op = getConvectiveOperatorLiquidFractionEquation(d_lf_var);
+    d_T_convective_op = getConvectiveOperatorTemperatureEquation(d_T_var);
+
+    d_U_old_var = new FaceVariable<NDIM, double>(d_object_name + "::U_old");
+    registerVariable(d_U_old_current_idx,
+                     d_U_old_new_idx,
+                     d_U_old_scratch_idx,
+                     d_U_old_var,
+                     face_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE");
+
+    d_cp_old_var = new CellVariable<NDIM, double>(d_object_name + "::cp_old");
+    registerVariable(d_cp_old_current_idx,
+                     d_cp_old_new_idx,
+                     d_cp_old_scratch_idx,
+                     d_cp_old_var,
+                     cell_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE");
+
+    d_T_old_var = new CellVariable<NDIM, double>(d_object_name + "::T_old");
+    registerVariable(d_T_old_current_idx,
+                     d_T_old_new_idx,
+                     d_T_old_scratch_idx,
+                     d_T_old_var,
+                     cell_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE");
 
     // Register variables for plotting.
     if (d_visit_writer)
     {
-        if (d_output_ls)
-        {
-            d_visit_writer->registerPlotQuantity("level_set", "SCALAR", d_ls_current_idx, 0);
-        }
 
         if (d_output_lf)
-        {
             d_visit_writer->registerPlotQuantity("liquid_fraction", "SCALAR", d_lf_current_idx, 0);
-        }
 
         if (d_output_T)
-        {
             d_visit_writer->registerPlotQuantity("Temperature", "SCALAR", d_T_current_idx, 0);
-        }
-        d_visit_writer->registerPlotQuantity("Heaviside", "SCALAR", d_H_current_idx, 0);
+
+        if (d_output_H) d_visit_writer->registerPlotQuantity("Heaviside", "SCALAR", d_H_current_idx, 0);
+    }
+    if (d_solve_mass_conservation)
+    {
+        // Set various objects with conservative time integrator.
+        d_rho_p_integrator->setCellCenteredDensityBoundaryConditions(d_rho_bc_coef);
+        d_rho_p_integrator->setCellCenteredSpecificHeatBoundaryConditions(d_rho_bc_coef);
+        d_rho_p_integrator->setCellCenteredTemperatureBoundaryConditions(d_T_bc_coef);
+        if (d_S_fcn) d_rho_p_integrator->setMassDensitySourceTerm(d_S_fcn);
     }
 
     // Perform hierarchy initialization operations common to all implementations
@@ -517,51 +612,31 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
             level->allocatePatchData(d_g_firstder_idx, current_time); // should this be new time?
         if (!level->checkAllocated(d_g_secondder_idx)) level->allocatePatchData(d_g_secondder_idx, current_time);
         if (!level->checkAllocated(d_p_firstder_idx)) level->allocatePatchData(d_p_firstder_idx, current_time);
+        if (!level->checkAllocated(d_chemical_potential_idx))
+            level->allocatePatchData(d_chemical_potential_idx, current_time);
+        if (!level->checkAllocated(d_grad_lf_idx)) level->allocatePatchData(d_grad_lf_idx, current_time);
+        if (!level->checkAllocated(d_H_sc_idx)) level->allocatePatchData(d_H_sc_idx, current_time);
     }
 
-    int ls_current_idx;
-    for (auto Q_var : d_Q_var)
+    if (d_lf_u_var)
     {
-        ls_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
+        // Update the advection velocity.
+        const int lf_u_current_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getCurrentContext());
+        const int lf_u_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getScratchContext());
+        const int lf_u_new_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getNewContext());
+
+        if (d_lf_u_fcn)
+        {
+            d_lf_u_fcn->setDataOnPatchHierarchy(lf_u_current_idx, d_lf_u_var, d_hierarchy, current_time);
+            d_lf_u_fcn->setDataOnPatchHierarchy(lf_u_new_idx, d_lf_u_var, d_hierarchy, new_time);
+        }
+        else
+        {
+            d_hier_fc_data_ops->copyData(lf_u_new_idx, lf_u_current_idx);
+        }
+        d_hier_fc_data_ops->linearSum(lf_u_scratch_idx, 0.5, lf_u_current_idx, 0.5, lf_u_new_idx);
     }
-    computeHeavisideFunction(d_H_current_idx, ls_current_idx);
-    d_hier_cc_data_ops->copyData(d_H_new_idx, d_H_current_idx);
-
-    // Set the initial guess for liquid fraction, temperature and density.
-    d_hier_cc_data_ops->copyData(d_lf_new_idx, d_lf_current_idx);
-    d_hier_cc_data_ops->copyData(d_T_new_idx, d_T_current_idx);
-
-    int rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getCurrentContext());
-    int rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getNewContext());
-    d_hier_cc_data_ops->copyData(rho_new_idx, rho_current_idx);
-
-    // Execute any registered callbacks.
-    executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
-    return;
-} // preprocessIntegrateHierarchy
-
-void
-IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                       const double new_time,
-                                                       const int cycle_num)
-{
-    AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
-    const double dt = new_time - current_time;
-    const double half_time = current_time + 0.5 * dt;
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-
-    // Check to make sure that the number of cycles is what we expect it to be.
-    const int expected_num_cycles = getNumberOfCycles();
-    if (d_current_num_cycles != expected_num_cycles)
-    {
-        IBAMR_DO_ONCE({
-            pout << "IEPSemiImplicitHierarchyIntegrator::integrateHierarchy():\n"
-                 << "  WARNING: num_cycles = " << d_current_num_cycles
-                 << " but expected num_cycles = " << expected_num_cycles << ".\n";
-        });
-    }
-
-    // Perform a single step of fixed point iteration.
+    // Setup the operators and solvers and compute the right-hand-side terms.
     const int lf_current_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getCurrentContext());
     const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getScratchContext());
     const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getNewContext());
@@ -573,8 +648,9 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         (var_db->mapVariableAndContextToIndex(d_lf_diffusion_coef_var, getScratchContext()));
     const int lf_diff_coef_rhs_scratch_idx =
         (var_db->mapVariableAndContextToIndex(d_lf_diffusion_coef_rhs_var, getScratchContext()));
+    const int lf_N_scratch_idx = (var_db->mapVariableAndContextToIndex(d_lf_N_var, getScratchContext()));
 
-    // setting k equation diffusion timestepping type
+    // setting lf equation diffusion timestepping type
     double alpha = 0.0;
     switch (d_lf_diffusion_time_stepping_type)
     {
@@ -597,60 +673,41 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
     PoissonSpecifications lf_rhs_op_spec(d_object_name + "::rhs_op_spec::" + d_lf_var->getName());
 
     // set C coefficients.
-    // compute heaviside based on phi^n+1.
-    int ls_new_idx, ls_scratch_idx;
+    // compute heaviside based on phi^n.
+    int ls_current_idx;
     for (auto Q_var : d_Q_var)
     {
-        ls_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
-        ls_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
+        ls_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
     }
-    computeHeavisideFunction(d_H_new_idx, ls_new_idx);
-    computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, d_lf_new_idx);
+    computeHeavisideFunction(d_H_current_idx, ls_current_idx);
+    computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, d_lf_current_idx);
 
-    d_hier_cc_data_ops->scale(d_lf_C_idx, 1.0 / dt, d_H_new_idx);
-    d_hier_cc_data_ops->multiply(d_C_rhs_scratch_idx, d_g_secondder_idx, d_H_new_idx);
+    d_hier_cc_data_ops->scale(d_lf_C_idx, 1.0 / dt, d_H_current_idx);
+    d_hier_cc_data_ops->multiply(d_C_rhs_scratch_idx, d_g_secondder_idx, d_H_current_idx);
     d_hier_cc_data_ops->scale(d_C_rhs_scratch_idx, d_M_lf * d_lambda_lf / std::pow(d_eta_lf, 2.0), d_C_rhs_scratch_idx);
     d_hier_cc_data_ops->add(d_lf_C_idx, d_C_rhs_scratch_idx, d_lf_C_idx);
     lf_solver_spec.setCPatchDataId(d_lf_C_idx);
 
     d_hier_cc_data_ops->scale(d_lf_temp_rhs_idx, 1.0 / dt, d_H_current_idx);
     lf_rhs_op_spec.setCPatchDataId(d_lf_temp_rhs_idx);
-
+    std::cout << "L2 norm of d_lf_temp_rhs_idx\t" << d_hier_cc_data_ops->L2Norm(d_lf_temp_rhs_idx) << std::endl;
     // set D coefficients.
     // Interpolate the cell-centered Heaviside to side-centered.
-    d_hier_cc_data_ops->copyData(d_H_scratch_idx, d_H_new_idx);
-    d_H_bdry_bc_fill_op->fillData(new_time);
-
-    interpolateCCHeaviside(lf_diff_coef_new_idx, d_H_scratch_idx);
-    //    d_hier_math_ops->interp(lf_diff_coef_new_idx,
-    //                            d_lf_diffusion_coef_var,
-    //                            true,
-    //                            d_H_scratch_idx,
-    //                            d_H_var,
-    //                            d_no_fill_op,
-    //                            d_integrator_time);
-
-    d_hier_sc_data_ops->scale(lf_diff_coef_new_idx, d_M_lf * d_lambda_lf, lf_diff_coef_new_idx);
-    d_hier_sc_data_ops->scale(lf_diff_coef_scratch_idx, -alpha, lf_diff_coef_new_idx);
-    lf_solver_spec.setDPatchDataId(lf_diff_coef_scratch_idx);
-
     d_hier_cc_data_ops->copyData(d_H_scratch_idx, d_H_current_idx);
     d_H_bdry_bc_fill_op->fillData(current_time);
 
     interpolateCCHeaviside(lf_diff_coef_current_idx, d_H_scratch_idx);
-    //    d_hier_math_ops->interp(lf_diff_coef_current_idx,
-    //                            d_lf_diffusion_coef_var,
-    //                            true,
-    //                            d_H_scratch_idx,
-    //                            d_H_var,
-    //                            d_no_fill_op,
-    //                            d_integrator_time);
 
     d_hier_sc_data_ops->scale(lf_diff_coef_current_idx, d_M_lf * d_lambda_lf, lf_diff_coef_current_idx);
+
+    d_hier_sc_data_ops->scale(lf_diff_coef_scratch_idx, -alpha, lf_diff_coef_current_idx);
+    lf_solver_spec.setDPatchDataId(lf_diff_coef_scratch_idx);
+
     d_hier_sc_data_ops->scale(lf_diff_coef_rhs_scratch_idx, (1.0 - alpha), lf_diff_coef_current_idx);
     lf_rhs_op_spec.setDPatchDataId(lf_diff_coef_rhs_scratch_idx);
-
-    // Initialize the RHS operator and compute the RHS vector for k equation.
+    std::cout << "L2 norm of lf_diff_coef_rhs_scratch_idx\t" << d_hier_sc_data_ops->L2Norm(lf_diff_coef_rhs_scratch_idx)
+              << std::endl;
+    // Initialize the RHS operator and compute the RHS vector for lf equation.
     Pointer<LaplaceOperator> lf_rhs_op = d_lf_rhs_op;
     lf_rhs_op->setPoissonSpecifications(lf_rhs_op_spec);
     lf_rhs_op->setPhysicalBcCoef(d_lf_bc_coef);
@@ -688,70 +745,81 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         d_lf_solver_needs_init = false;
     }
 
-    // Account for forcing terms.
-    const int lf_F_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_F_var, getScratchContext());
-    const int lf_F_new_idx = var_db->mapVariableAndContextToIndex(d_lf_F_var, getNewContext());
+    if (d_lf_u_var)
+    {
+        if (getIntegratorStep() == 0 && is_multistep_time_stepping_type(d_lf_convective_time_stepping_type))
+        {
+            d_lf_convective_time_stepping_type = d_lf_init_convective_time_stepping_type;
+        }
+        if ((num_cycles == 1) && (d_lf_convective_time_stepping_type == MIDPOINT_RULE ||
+                                  d_lf_convective_time_stepping_type == TRAPEZOIDAL_RULE))
+        {
+            TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
+                                     << "  time stepping type: "
+                                     << enum_to_string<TimeSteppingType>(d_lf_convective_time_stepping_type)
+                                     << " requires num_cycles > 1.\n"
+                                     << "  at current time step, num_cycles = " << num_cycles << "\n");
+        }
+        if (d_lf_convective_op_needs_init)
+        {
+            d_lf_convective_op->initializeOperatorState(*d_lf_sol, *d_lf_rhs);
+            d_lf_convective_op_needs_init = false;
+        }
+        const int lf_u_current_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getCurrentContext());
+        d_lf_convective_op->setAdvectionVelocity(lf_u_current_idx);
+        const int lf_H_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_H_var, getScratchContext());
+        /// d_hier_cc_data_ops->copyData(lf_scratch_idx, lf_current_idx);
+        d_hier_cc_data_ops->multiply(lf_H_scratch_idx, lf_current_idx, d_H_current_idx);
+        d_lf_convective_op->setSolutionTime(current_time);
+        d_lf_convective_op->applyConvectiveOperator(lf_H_scratch_idx, lf_N_scratch_idx);
 
-    if (d_lf_F_var)
-    {
-        computeInterpolationFunction(d_p_firstder_idx, d_lf_new_idx, d_T_new_idx);
-        computeLiquidFractionSourceTerm(lf_F_scratch_idx);
-        d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, +1.0, lf_F_scratch_idx, lf_rhs_scratch_idx);
-        std::cout << "L2 norm of lf_rhs_scratch_idx\t" << d_hier_cc_data_ops->L2Norm(lf_rhs_scratch_idx) << std::endl;
+        const int lf_N_old_new_idx = var_db->mapVariableAndContextToIndex(d_lf_N_old_var, getNewContext());
+        d_hier_cc_data_ops->copyData(lf_N_old_new_idx, lf_N_scratch_idx);
+
+        const int lf_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_rhs_var, getScratchContext());
+        if (d_lf_convective_time_stepping_type == FORWARD_EULER)
+        {
+            d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, -1.0, lf_N_scratch_idx, lf_rhs_scratch_idx);
+        }
+        else if (d_lf_convective_time_stepping_type == TRAPEZOIDAL_RULE)
+        {
+            d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, -0.5, lf_N_scratch_idx, lf_rhs_scratch_idx);
+        }
     }
 
-    // Solve for lf(n+1).
-    lf_solver->solveSystem(*d_lf_sol, *d_lf_rhs);
-    d_hier_cc_data_ops->copyData(lf_new_idx, lf_scratch_idx);
-    if (d_enable_logging && d_enable_logging_solver_iterations)
-        plog << d_object_name << ":" << d_lf_var->getName()
-             << "::integrateHierarchy():diffusion solve number of iterations = " << lf_solver->getNumIterations()
-             << "\n";
-    if (d_enable_logging)
-        plog << d_object_name << ":" << d_lf_var->getName()
-             << "::integrateHierarchy():diffusion solve residual norm        = " << lf_solver->getResidualNorm()
-             << "\n";
-    if (lf_solver->getNumIterations() == lf_solver->getMaxIterations())
-    {
-        pout << d_object_name << ":" << d_lf_var->getName()
-             << "::integrateHierarchy():WARNING: linear solver iterations == max iterations\n";
-    }
-    // Reset the right-hand side vector.
-    //    if (d_k_u_var)
-    //    {
-    //        const int k_N_scratch_idx = var_db->mapVariableAndContextToIndex(d_k_N_var, getScratchContext());
-    //        if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
-    //        {
-    //            d_hier_cc_data_ops->axpy(k_rhs_scratch_idx, +1.0, k_N_scratch_idx, k_rhs_scratch_idx);
-    //        }
-    //        else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
-    //        {
-    //            d_hier_cc_data_ops->axpy(k_rhs_scratch_idx, +0.5, k_N_scratch_idx, k_rhs_scratch_idx);
-    //        }
-    //    }
-    if (d_lf_F_var)
-    {
-        d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, -1.0, lf_F_scratch_idx, lf_rhs_scratch_idx);
-        d_hier_cc_data_ops->copyData(lf_F_new_idx, lf_F_scratch_idx);
-    }
+    // Set the initial guess for liquid fraction and heaviside.
+    d_hier_cc_data_ops->copyData(lf_new_idx, lf_current_idx);
+    d_hier_cc_data_ops->copyData(d_H_new_idx, d_H_current_idx);
+    if (d_T_var) d_hier_cc_data_ops->copyData(d_T_new_idx, d_T_current_idx);
 
     if (d_solve_energy)
     {
-        // Stuff related to temperature equation.
-        int rho_new_idx, rho_scratch_idx, rho_current_idx;
-        rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getNewContext());
-        rho_scratch_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getScratchContext());
-        rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getCurrentContext());
+        const int rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getCurrentContext());
+        const int rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getNewContext());
 
-        int Cp_new_idx, Cp_scratch_idx, Cp_current_idx;
-        Cp_new_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getNewContext());
-        Cp_scratch_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getScratchContext());
-        Cp_current_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getCurrentContext());
+        // Note that we always reset current context of state variables here, if
+        // necessary.
+        const double apply_time = current_time;
+        for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
+        {
+            d_reset_rho_fcns[k](rho_current_idx,
+                                d_rho_var,
+                                d_hier_math_ops,
+                                -1 /*cycle_num*/,
+                                apply_time,
+                                current_time,
+                                new_time,
+                                d_reset_rho_fcns_ctx[k]);
+        }
 
-        double apply_time = new_time;
+        const int Cp_current_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getCurrentContext());
+        const int Cp_scratch_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getScratchContext());
+        const int Cp_new_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getNewContext());
+        // std::cout << "L2 norm of Cp_current_idx at cycle 0\t" << d_hier_cc_data_ops->L2Norm(Cp_current_idx) <<
+        // std::endl;
         for (unsigned k = 0; k < d_reset_Cp_fcns.size(); ++k)
         {
-            d_reset_Cp_fcns[k](Cp_new_idx,
+            d_reset_Cp_fcns[k](Cp_current_idx,
                                d_Cp_var,
                                d_hier_math_ops,
                                -1 /*cycle_num*/,
@@ -773,6 +841,60 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         const int T_diff_coef_rhs_scratch_idx =
             (var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_rhs_var, getScratchContext()));
 
+        if (d_solve_mass_conservation)
+        {
+            const int lf_u_current_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getCurrentContext());
+
+            // Keep track of the time-lagged velocity, specific heat and temperature.
+            d_hier_fc_data_ops->copyData(d_U_old_new_idx, lf_u_current_idx);
+            d_hier_cc_data_ops->copyData(d_cp_old_new_idx, Cp_current_idx);
+            d_hier_cc_data_ops->copyData(d_T_old_new_idx, T_current_idx);
+
+            d_rho_p_integrator->setSolutionTime(current_time);
+            d_rho_p_integrator->setTimeInterval(current_time, new_time);
+
+            // For conservative discretization, an approximation to rho^{n+1}
+            // will be computed from rho^{n}, which requires additional options to be
+            // set.
+
+            // Set the rho^{n} density
+            d_rho_p_integrator->setCellCenteredDensityPatchDataIndex(rho_current_idx);
+            // d_rho_p_integrator->setCellCenteredSpecificHeatPatchDataIndex(Cp_current_idx);
+            // d_rho_p_integrator->setCellCenteredTemperaturePatchDataIndex(T_current_idx);
+
+            // Set the convective derivative patch data index.
+            const int T_N_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_N_var, getScratchContext());
+            d_rho_p_integrator->setCellCenteredConvectiveDerivativePatchDataIndex(T_N_scratch_idx);
+
+            // Data for the conservative time integrator is for cycle 0
+            const int cycle_num = 0;
+            d_rho_p_integrator->setCycleNumber(cycle_num);
+
+            // Set the velocities used to update the density and the previous time step
+            // size
+            if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
+            {
+                d_rho_p_integrator->setFluidVelocityPatchDataIndices(
+                    /*old*/ -1, /*current*/ lf_u_current_idx, /*new*/ -1);
+                d_rho_p_integrator->setSpecificHeatPatchDataIndices(
+                    /*old*/ -1, /*current*/ Cp_current_idx, /*new*/ -1);
+                d_rho_p_integrator->setTemperaturePatchDataIndices(
+                    /*old*/ -1, /*current*/ T_current_idx, /*new*/ -1);
+            }
+            else
+            {
+                d_rho_p_integrator->setFluidVelocityPatchDataIndices(
+                    /*old*/ d_U_old_current_idx, /*current*/ lf_u_current_idx, /*new*/ -1);
+                d_rho_p_integrator->setSpecificHeatPatchDataIndices(
+                    /*old*/ d_cp_old_current_idx, /*current*/ Cp_current_idx, /*new*/ -1);
+                d_rho_p_integrator->setTemperaturePatchDataIndices(
+                    /*old*/ d_T_old_current_idx, /*current*/ T_current_idx, /*new*/ -1);
+                d_rho_p_integrator->setPreviousTimeStepSize(d_dt_previous[0]);
+            }
+
+            // Integrate density and convective term of energy equation.
+            d_rho_p_integrator->integrate(dt);
+        }
         // Setup the problem coefficients for the linear solve
         switch (d_T_diffusion_time_stepping_type)
         {
@@ -797,43 +919,28 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
 
         // set rho*Cp/dt + K*lambda.
         const double lambda = 0.0;
-        d_hier_cc_data_ops->multiply(d_C_new_idx, rho_new_idx, Cp_new_idx);
-        d_hier_cc_data_ops->scale(d_C_new_idx, 1.0 / dt, d_C_new_idx);
-        d_hier_cc_data_ops->copyData(d_T_C_idx, d_C_new_idx);
+        d_hier_cc_data_ops->multiply(d_C_current_idx, rho_current_idx, Cp_current_idx);
+        d_hier_cc_data_ops->scale(d_C_current_idx, 1.0 / dt, d_C_current_idx);
+        d_hier_cc_data_ops->copyData(d_T_C_idx, d_C_current_idx);
         T_solver_spec.setCPatchDataId(d_T_C_idx);
 
-        apply_time = current_time;
-        for (unsigned k = 0; k < d_reset_Cp_fcns.size(); ++k)
-        {
-            d_reset_Cp_fcns[k](Cp_current_idx,
-                               d_Cp_var,
-                               d_hier_math_ops,
-                               -1 /*cycle_num*/,
-                               apply_time,
-                               current_time,
-                               new_time,
-                               d_reset_Cp_fcns_ctx[k]);
-        }
+        //    for (unsigned k = 0; k < d_reset_Cp_fcns.size(); ++k)
+        //    {
+        //        d_reset_Cp_fcns[k](Cp_current_idx,
+        //                           d_Cp_var,
+        //                           d_hier_math_ops,
+        //                           -1 /*cycle_num*/,
+        //                           apply_time,
+        //                           current_time,
+        //                           new_time,
+        //                           d_reset_Cp_fcns_ctx[k]);
+        //    }
 
         d_hier_cc_data_ops->multiply(d_C_current_idx, rho_current_idx, Cp_current_idx);
         d_hier_cc_data_ops->scale(d_C_current_idx, 1.0 / dt, d_C_current_idx);
         d_hier_cc_data_ops->copyData(d_T_temp_rhs_idx, d_C_current_idx);
         T_rhs_op_spec.setCPatchDataId(d_T_temp_rhs_idx);
-
-        apply_time = new_time;
-        for (unsigned k = 0; k < d_reset_kappa_fcns.size(); ++k)
-        {
-            d_reset_kappa_fcns[k](T_diff_coef_new_idx,
-                                  d_T_diffusion_coef_var,
-                                  d_hier_math_ops,
-                                  -1 /*cycle_num*/,
-                                  apply_time,
-                                  current_time,
-                                  new_time,
-                                  d_reset_kappa_fcns_ctx[k]);
-        }
-
-        apply_time = current_time;
+        //    std::cout << "L2 norm of d_T_temp_rhs_idx\t" << d_hier_cc_data_ops->L2Norm(d_T_temp_rhs_idx) << std::endl;
         for (unsigned k = 0; k < d_reset_kappa_fcns.size(); ++k)
         {
             d_reset_kappa_fcns[k](T_diff_coef_current_idx,
@@ -845,22 +952,24 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
                                   new_time,
                                   d_reset_kappa_fcns_ctx[k]);
 
+            // for plotting purpose.
             static const bool synch_cf_interface = true;
-            d_hier_math_ops->interp(d_D_cc_new_idx,
+            d_hier_math_ops->interp(d_D_cc_current_idx,
                                     d_D_cc_var,
-                                    T_diff_coef_new_idx,
+                                    T_diff_coef_current_idx,
                                     d_T_diffusion_coef_var,
                                     d_no_fill_op,
                                     d_integrator_time,
                                     synch_cf_interface);
         }
 
-        d_hier_sc_data_ops->scale(T_diff_coef_scratch_idx, -alpha, T_diff_coef_new_idx);
+        d_hier_sc_data_ops->scale(T_diff_coef_scratch_idx, -alpha, T_diff_coef_current_idx);
         T_solver_spec.setDPatchDataId(T_diff_coef_scratch_idx);
 
         d_hier_sc_data_ops->scale(T_diff_coef_rhs_scratch_idx, (1.0 - alpha), T_diff_coef_current_idx);
         T_rhs_op_spec.setDPatchDataId(T_diff_coef_rhs_scratch_idx);
-
+        //    std::cout << "L2 norm of T_diff_coef_rhs_scratch_idx\t" <<
+        //    d_hier_sc_data_ops->L2Norm(T_diff_coef_rhs_scratch_idx) << std::endl;
         // Initialize the RHS operator and compute the RHS vector for k equation.
         Pointer<LaplaceOperator> T_rhs_op = d_T_rhs_op;
         T_rhs_op->setPoissonSpecifications(T_rhs_op_spec);
@@ -899,20 +1008,468 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
             d_T_solver_needs_init = false;
         }
 
+        if (d_T_convective_op_needs_init)
+        {
+            d_T_convective_op->initializeOperatorState(*d_T_sol, *d_T_rhs);
+            d_T_convective_op_needs_init = false;
+        }
+
+        d_hier_cc_data_ops->copyData(rho_new_idx, rho_current_idx);
+        d_hier_cc_data_ops->copyData(Cp_new_idx, Cp_current_idx);
+        d_hier_cc_data_ops->copyData(T_new_idx, T_current_idx);
+
+        // Add div (u H lf).
+        if (d_lf_convective_time_stepping_type == FORWARD_EULER)
+        {
+            d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, lf_N_scratch_idx, T_rhs_scratch_idx);
+            std::cout << "L2 norm of lf_N_scratch_idx\t" << d_hier_cc_data_ops->L2Norm(lf_N_scratch_idx) << std::endl;
+        }
+        else if (d_lf_convective_time_stepping_type == TRAPEZOIDAL_RULE)
+        {
+            d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -0.5, lf_N_scratch_idx, T_rhs_scratch_idx);
+        }
+    }
+    // Execute any registered callbacks.
+    executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
+    return;
+} // preprocessIntegrateHierarchy
+
+void
+IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time,
+                                                       const double new_time,
+                                                       const int cycle_num)
+{
+    AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
+    const double dt = new_time - current_time;
+    const double half_time = current_time + 0.5 * dt;
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    // Check to make sure that the number of cycles is what we expect it to be.
+    const int expected_num_cycles = getNumberOfCycles();
+    if (d_current_num_cycles != expected_num_cycles)
+    {
+        IBAMR_DO_ONCE({
+            pout << "IEPSemiImplicitHierarchyIntegrator::integrateHierarchy():\n"
+                 << "  WARNING: num_cycles = " << d_current_num_cycles
+                 << " but expected num_cycles = " << expected_num_cycles << ".\n";
+        });
+    }
+
+    // Perform a single step of fixed point iteration.
+    const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getScratchContext());
+    const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getNewContext());
+    const int lf_current_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getCurrentContext());
+    const int lf_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_rhs_var, getScratchContext());
+    const int lf_diff_coef_new_idx = (var_db->mapVariableAndContextToIndex(d_lf_diffusion_coef_var, getNewContext()));
+    const int lf_diff_coef_scratch_idx =
+        (var_db->mapVariableAndContextToIndex(d_lf_diffusion_coef_var, getScratchContext()));
+    const int lf_diff_coef_rhs_scratch_idx =
+        (var_db->mapVariableAndContextToIndex(d_lf_diffusion_coef_rhs_var, getScratchContext()));
+    const int lf_N_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_N_var, getScratchContext());
+
+    // compute heaviside based on phi^n+1.
+    int ls_new_idx;
+    for (auto Q_var : d_Q_var)
+    {
+        ls_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
+    }
+    computeHeavisideFunction(d_H_new_idx, ls_new_idx);
+
+    // update C coefficients.
+    if (cycle_num > 0) computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, d_lf_new_idx);
+
+    d_hier_cc_data_ops->scale(d_lf_C_idx, 1.0 / dt, d_H_new_idx);
+    d_hier_cc_data_ops->multiply(d_C_rhs_scratch_idx, d_g_secondder_idx, d_H_new_idx);
+    d_hier_cc_data_ops->scale(d_C_rhs_scratch_idx, d_M_lf * d_lambda_lf / std::pow(d_eta_lf, 2.0), d_C_rhs_scratch_idx);
+    d_hier_cc_data_ops->add(d_lf_C_idx, d_C_rhs_scratch_idx, d_lf_C_idx);
+    std::cout << "L2 norm of d_lf_C_idx\t" << d_hier_cc_data_ops->L2Norm(d_lf_C_idx) << std::endl;
+    // update D coefficients.
+    // setting lf equation diffusion timestepping type
+    double alpha = 0.0;
+    switch (d_lf_diffusion_time_stepping_type)
+    {
+    case BACKWARD_EULER:
+        alpha = 1.0;
+        break;
+    case FORWARD_EULER:
+        alpha = 0.0;
+        break;
+    case TRAPEZOIDAL_RULE:
+        alpha = 0.5;
+        break;
+    default:
+        TBOX_ERROR(d_object_name << "::preprocessintegrateHierarchy():\n"
+                                 << "  unsupported diffusion time stepping type: "
+                                 << enum_to_string<TimeSteppingType>(d_lf_diffusion_time_stepping_type) << " \n"
+                                 << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+    }
+
+    // Interpolate the cell-centered Heaviside to side-centered.
+    d_hier_cc_data_ops->copyData(d_H_scratch_idx, d_H_new_idx);
+    d_H_bdry_bc_fill_op->fillData(new_time);
+
+    interpolateCCHeaviside(lf_diff_coef_new_idx, d_H_scratch_idx);
+    d_hier_sc_data_ops->copyData(d_H_sc_idx, lf_diff_coef_new_idx);
+    //    d_hier_math_ops->interp(lf_diff_coef_new_idx,
+    //                            d_lf_diffusion_coef_var,
+    //                            true,
+    //                            d_H_scratch_idx,
+    //                            d_H_var,
+    //                            d_no_fill_op,
+    //                            d_integrator_time);
+
+    d_hier_sc_data_ops->scale(lf_diff_coef_new_idx, d_M_lf * d_lambda_lf, lf_diff_coef_new_idx);
+    d_hier_sc_data_ops->scale(lf_diff_coef_scratch_idx, -alpha, lf_diff_coef_new_idx);
+    std::cout << "L2 norm of lf_diff_coef_scratch_idx\t" << d_hier_sc_data_ops->L2Norm(lf_diff_coef_scratch_idx)
+              << std::endl;
+    if (cycle_num > 0)
+    {
+        // Update the advection velocity for lf.
+        const int lf_u_current_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getCurrentContext());
+        const int lf_u_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getScratchContext());
+        const int lf_u_new_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getNewContext());
+        if (d_lf_u_fcn)
+        {
+            d_lf_u_fcn->setDataOnPatchHierarchy(lf_u_new_idx, d_lf_u_var, d_hierarchy, new_time);
+        }
+        d_hier_fc_data_ops->linearSum(lf_u_scratch_idx, 0.5, lf_u_current_idx, 0.5, lf_u_new_idx);
+    }
+    std::cout << "L2 norm of lf_rhs_scratch_idx before convective term\t"
+              << d_hier_cc_data_ops->L2Norm(lf_rhs_scratch_idx) << std::endl;
+
+    // Account for the convective difference term.
+    const int lf_H_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_H_var, getScratchContext());
+    TimeSteppingType convective_time_stepping_type = UNKNOWN_TIME_STEPPING_TYPE;
+    if (d_lf_u_var)
+    {
+        convective_time_stepping_type = d_lf_convective_time_stepping_type;
+        if (is_multistep_time_stepping_type(convective_time_stepping_type))
+        {
+#if !defined(NDEBUG)
+            TBOX_ASSERT(convective_time_stepping_type == ADAMS_BASHFORTH);
+#endif
+            if (getIntegratorStep() == 0)
+            {
+                convective_time_stepping_type = d_lf_init_convective_time_stepping_type;
+            }
+            else if (cycle_num > 0)
+            {
+                convective_time_stepping_type = MIDPOINT_RULE;
+                IBAMR_DO_ONCE({
+                    pout << "IEPSemiImplicitHierarchyIntegrator::"
+                            "integrateHierarchy():"
+                            "\n"
+                         << "  WARNING: convective_time_stepping_type = "
+                         << enum_to_string<TimeSteppingType>(d_lf_convective_time_stepping_type)
+                         << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
+                         << "           using " << enum_to_string<TimeSteppingType>(d_lf_convective_time_stepping_type)
+                         << " only for the first cycle in each time step;\n"
+                         << "           using " << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
+                         << " for subsequent cycles.\n";
+                });
+            }
+        }
+
+        if (cycle_num > 0)
+        {
+            if (convective_time_stepping_type == MIDPOINT_RULE)
+            {
+                const int lf_u_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getScratchContext());
+                d_lf_convective_op->setAdvectionVelocity(lf_u_scratch_idx);
+                d_hier_cc_data_ops->linearSum(lf_scratch_idx, 0.5, lf_current_idx, 0.5, lf_new_idx);
+                d_hier_cc_data_ops->linearSum(d_H_scratch_idx, 0.5, d_H_current_idx, 0.5, d_H_new_idx);
+                d_hier_cc_data_ops->multiply(lf_H_scratch_idx, d_H_scratch_idx, lf_scratch_idx);
+                d_lf_convective_op->setSolutionTime(half_time);
+                d_lf_convective_op->applyConvectiveOperator(lf_H_scratch_idx, lf_N_scratch_idx);
+            }
+            else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
+            {
+                const int lf_u_new_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getNewContext());
+                d_lf_convective_op->setAdvectionVelocity(lf_u_new_idx);
+                // d_hier_cc_data_ops->copyData(lf_scratch_idx, lf_new_idx);
+                d_hier_cc_data_ops->multiply(lf_H_scratch_idx, lf_new_idx, d_H_new_idx);
+                d_lf_convective_op->setSolutionTime(new_time);
+                d_lf_convective_op->applyConvectiveOperator(lf_H_scratch_idx, lf_N_scratch_idx);
+            }
+        }
+        if (convective_time_stepping_type == ADAMS_BASHFORTH)
+        {
+#if !defined(NDEBUG)
+            TBOX_ASSERT(cycle_num == 0);
+#endif
+            const int lf_N_old_current_idx = var_db->mapVariableAndContextToIndex(d_lf_N_old_var, getCurrentContext());
+            const double omega = dt / d_dt_previous[0];
+            d_hier_cc_data_ops->linearSum(
+                lf_N_scratch_idx, 1.0 + 0.5 * omega, lf_N_scratch_idx, -0.5 * omega, lf_N_old_current_idx);
+        }
+
+        if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
+        {
+            d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, -1.0, lf_N_scratch_idx, lf_rhs_scratch_idx);
+        }
+        else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
+        {
+            d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, -0.5, lf_N_scratch_idx, lf_rhs_scratch_idx);
+        }
+        std::cout << "L2 norm of lf_N_scratch_idx after convection term\t"
+                  << d_hier_cc_data_ops->L2Norm(lf_rhs_scratch_idx) << std::endl;
+    }
+
+    // Account for forcing terms.
+    const int lf_F_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_F_var, getScratchContext());
+    const int lf_F_new_idx = var_db->mapVariableAndContextToIndex(d_lf_F_var, getNewContext());
+
+    if (d_lf_F_var)
+    {
+        computeInterpolationFunction(d_p_firstder_idx, d_lf_new_idx, d_T_new_idx);
+        computeLiquidFractionSourceTerm(lf_F_scratch_idx);
+
+        if (d_lf_u_var)
+        {
+            int div_u_scratch_idx = var_db->mapVariableAndContextToIndex(d_div_u_var, getScratchContext());
+            const int lf_u_new_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getNewContext());
+            d_hier_math_ops->div(div_u_scratch_idx,
+                                 d_div_u_var,
+                                 1.0,
+                                 lf_u_new_idx,
+                                 d_lf_u_var,
+                                 d_no_fill_op,
+                                 d_integrator_time,
+                                 /*synch_cf_bdry*/ false);
+
+            d_hier_cc_data_ops->multiply(lf_H_scratch_idx, lf_new_idx, d_H_new_idx);
+            d_hier_cc_data_ops->multiply(div_u_scratch_idx, lf_H_scratch_idx, div_u_scratch_idx);
+            d_hier_cc_data_ops->axpy(lf_F_scratch_idx, +1.0, div_u_scratch_idx, lf_F_scratch_idx);
+        }
+        std::cout << "L2 norm of lf_F_scratch_idx\t" << d_hier_cc_data_ops->L2Norm(lf_F_scratch_idx) << std::endl;
+        d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, +1.0, lf_F_scratch_idx, lf_rhs_scratch_idx);
+        std::cout << "L2 norm of lf_rhs_scratch_idx after all contribution\t"
+                  << d_hier_cc_data_ops->L2Norm(lf_rhs_scratch_idx) << std::endl;
+    }
+
+    // Solve for lf(n+1).
+    Pointer<PoissonSolver> lf_solver = d_lf_solver;
+    lf_solver->solveSystem(*d_lf_sol, *d_lf_rhs);
+    d_hier_cc_data_ops->copyData(lf_new_idx, lf_scratch_idx);
+    if (d_enable_logging && d_enable_logging_solver_iterations)
+        plog << d_object_name << ":" << d_lf_var->getName()
+             << "::integrateHierarchy():diffusion solve number of iterations = " << lf_solver->getNumIterations()
+             << "\n";
+    if (d_enable_logging)
+        plog << d_object_name << ":" << d_lf_var->getName()
+             << "::integrateHierarchy():diffusion solve residual norm        = " << lf_solver->getResidualNorm()
+             << "\n";
+    if (lf_solver->getNumIterations() == lf_solver->getMaxIterations())
+    {
+        pout << d_object_name << ":" << d_lf_var->getName()
+             << "::integrateHierarchy():WARNING: linear solver iterations == max iterations\n";
+    }
+
+    // Reset the right-hand side vector.
+    if (d_lf_u_var)
+    {
+        if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
+        {
+            d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, +1.0, lf_N_scratch_idx, lf_rhs_scratch_idx);
+        }
+        else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
+        {
+            d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, +0.5, lf_N_scratch_idx, lf_rhs_scratch_idx);
+        }
+    }
+
+    if (d_lf_F_var)
+    {
+        d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, -1.0, lf_F_scratch_idx, lf_rhs_scratch_idx);
+        d_hier_cc_data_ops->copyData(lf_F_new_idx, lf_F_scratch_idx);
+    }
+
+    // Compute chemical potential using lf^n+1.
+    computeChemicalPotential(d_chemical_potential_idx, d_H_sc_idx, new_time);
+
+    if (d_solve_energy)
+    {
+        int rho_new_idx, rho_scratch_idx, rho_current_idx;
+        rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getNewContext());
+        rho_scratch_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getScratchContext());
+        rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getCurrentContext());
+
+        int Cp_new_idx, Cp_scratch_idx, Cp_current_idx;
+        Cp_new_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getNewContext());
+        Cp_scratch_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getScratchContext());
+        Cp_current_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getCurrentContext());
+
+        const int T_current_idx = var_db->mapVariableAndContextToIndex(d_T_var, getCurrentContext());
+        const int T_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_var, getScratchContext());
+        const int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, getNewContext());
+        const int T_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_rhs_var, getScratchContext());
+        const int T_diff_coef_new_idx = (var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_var, getNewContext()));
+        const int T_diff_coef_current_idx =
+            (var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_var, getCurrentContext()));
+        const int T_diff_coef_scratch_idx =
+            (var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_var, getScratchContext()));
+        const int T_diff_coef_rhs_scratch_idx =
+            (var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_rhs_var, getScratchContext()));
+
+        // In the special case of a conservative discretization form, the updated
+        // density is calculated by application of the mass and convective
+        // momentum integrator.
+        const int T_N_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_N_var, getScratchContext());
+        // Update N_idx if necessary
+        if (cycle_num > 0)
+        {
+            const double dt = new_time - current_time;
+            const double half_time = current_time + 0.5 * dt;
+            d_rho_p_integrator->setSolutionTime(half_time);
+
+            // Set the cycle number
+            d_rho_p_integrator->setCycleNumber(cycle_num);
+
+            // Set the patch data index for convective derivative.
+            d_rho_p_integrator->setCellCenteredConvectiveDerivativePatchDataIndex(T_N_scratch_idx);
+
+            // Always set to current because we want to update rho^{n} to rho^{n+1}
+            d_rho_p_integrator->setCellCenteredDensityPatchDataIndex(rho_current_idx);
+
+            const int lf_u_current_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getCurrentContext());
+            const int lf_u_new_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getNewContext());
+
+            // Set the velocities used to update the density
+            if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
+            {
+                d_rho_p_integrator->setFluidVelocityPatchDataIndices(
+                    /*old*/ -1, /*current*/ lf_u_current_idx, /*new*/ lf_u_new_idx);
+                d_rho_p_integrator->setSpecificHeatPatchDataIndices(
+                    /*old*/ -1, /*current*/ Cp_current_idx, /*new*/ Cp_new_idx);
+                d_rho_p_integrator->setTemperaturePatchDataIndices(
+                    /*old*/ -1, /*current*/ T_current_idx, /*new*/ T_new_idx);
+            }
+            else
+            {
+                d_rho_p_integrator->setFluidVelocityPatchDataIndices(
+                    /*old*/ d_U_old_current_idx,
+                    /*current*/ lf_u_current_idx,
+                    /*new*/ lf_u_new_idx);
+                d_rho_p_integrator->setSpecificHeatPatchDataIndices(
+                    /*old*/ d_cp_old_current_idx,
+                    /*current*/ Cp_current_idx,
+                    /*new*/ Cp_new_idx);
+                d_rho_p_integrator->setTemperaturePatchDataIndices(
+                    /*old*/ d_T_old_current_idx,
+                    /*current*/ T_current_idx,
+                    /*new*/ T_new_idx);
+
+                d_rho_p_integrator->setPreviousTimeStepSize(d_dt_previous[0]);
+            }
+
+            d_rho_p_integrator->integrate(dt);
+        }
+
+        const int rho_cc_new_idx = d_rho_p_integrator->getUpdatedCellCenteredDensityPatchDataIndex();
+        d_hier_cc_data_ops->copyData(rho_new_idx,
+                                     rho_cc_new_idx,
+                                     /*interior_only*/ true);
+
+        double apply_time = new_time;
+        for (unsigned k = 0; k < d_reset_Cp_fcns.size(); ++k)
+        {
+            d_reset_Cp_fcns[k](Cp_new_idx,
+                               d_Cp_var,
+                               d_hier_math_ops,
+                               -1 /*cycle_num*/,
+                               apply_time,
+                               current_time,
+                               new_time,
+                               d_reset_Cp_fcns_ctx[k]);
+        }
+
+        // set rho*Cp/dt + K*lambda.
+        const double lambda = 0.0;
+        d_hier_cc_data_ops->multiply(d_C_new_idx, rho_new_idx, Cp_new_idx);
+        d_hier_cc_data_ops->scale(d_C_new_idx, 1.0 / dt, d_C_new_idx);
+        d_hier_cc_data_ops->copyData(d_T_C_idx, d_C_new_idx);
+        //       std::cout << "L2 norm of d_T_C_idx\t" << d_hier_cc_data_ops->L2Norm(d_T_C_idx) << std::endl;
+
+        if (cycle_num > 0)
+        {
+            // Setup the problem coefficients for the linear solve
+            switch (d_T_diffusion_time_stepping_type)
+            {
+            case BACKWARD_EULER:
+                alpha = 1.0;
+                break;
+            case FORWARD_EULER:
+                alpha = 0.0;
+                break;
+            case TRAPEZOIDAL_RULE:
+                alpha = 0.5;
+                break;
+            default:
+                TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                                         << "  unsupported diffusion time stepping type: "
+                                         << enum_to_string<TimeSteppingType>(d_T_diffusion_time_stepping_type) << " \n"
+                                         << "  valid choices are: BACKWARD_EULER, "
+                                            "FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+            }
+
+            apply_time = new_time;
+            for (unsigned k = 0; k < d_reset_kappa_fcns.size(); ++k)
+            {
+                d_reset_kappa_fcns[k](T_diff_coef_new_idx,
+                                      d_T_diffusion_coef_var,
+                                      d_hier_math_ops,
+                                      -1 /*cycle_num*/,
+                                      apply_time,
+                                      current_time,
+                                      new_time,
+                                      d_reset_kappa_fcns_ctx[k]);
+
+                // for plotting purpose.
+                static const bool synch_cf_interface = true;
+                d_hier_math_ops->interp(d_D_cc_new_idx,
+                                        d_D_cc_var,
+                                        T_diff_coef_new_idx,
+                                        d_T_diffusion_coef_var,
+                                        d_no_fill_op,
+                                        d_integrator_time,
+                                        synch_cf_interface);
+            }
+
+            d_hier_sc_data_ops->scale(T_diff_coef_scratch_idx, -alpha, T_diff_coef_new_idx);
+            //            std::cout << "L2 norm of T_diff_coef_scratch_idx\t" <<
+            //            d_hier_sc_data_ops->L2Norm(T_diff_coef_scratch_idx) << std::endl;
+        }
+
+        //        std::cout << "L2 norm of T_rhs_scratch_idx\t" << d_hier_cc_data_ops->L2Norm(T_rhs_scratch_idx) <<
+        //        std::endl; std::cout << "L2 norm of T_N_scratch_idx\t" << d_hier_cc_data_ops->L2Norm(T_N_scratch_idx)
+        //        << std::endl;
+        // Account for the convective acceleration term N_full.
+        d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, T_N_scratch_idx, T_rhs_scratch_idx);
+
+        // Add div (u H lf).
+        if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
+        {
+            d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, lf_N_scratch_idx, T_rhs_scratch_idx);
+        }
+        else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
+        {
+            d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -0.5, lf_N_scratch_idx, T_rhs_scratch_idx);
+        }
+
         // Account for forcing terms.
         const int T_F_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_F_var, getScratchContext());
         const int T_F_new_idx = var_db->mapVariableAndContextToIndex(d_T_F_var, getNewContext());
 
         if (d_T_F_var)
         {
-            std::cout << "L2 norm of T_rhs_scratch_idx\t" << d_hier_cc_data_ops->L2Norm(T_rhs_scratch_idx) << std::endl;
             computeTemperatureSourceTerm(T_F_scratch_idx, dt);
             d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +1.0, T_F_scratch_idx, T_rhs_scratch_idx);
             std::cout << "L2 norm of T_rhs_scratch_idx after F\t" << d_hier_cc_data_ops->L2Norm(T_rhs_scratch_idx)
                       << std::endl;
         }
 
-        // Solve for lf(n+1).
+        // Solve for T(n+1).
+        Pointer<PoissonSolver> T_solver = d_T_solver;
         T_solver->solveSystem(*d_T_sol, *d_T_rhs);
         d_hier_cc_data_ops->copyData(T_new_idx, T_scratch_idx);
         if (d_enable_logging && d_enable_logging_solver_iterations)
@@ -928,20 +1485,20 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
             pout << d_object_name << ":" << d_T_var->getName()
                  << "::integrateHierarchy():WARNING: linear solver iterations == max iterations\n";
         }
+
         // Reset the right-hand side vector.
-        //    if (d_k_u_var)
-        //    {
-        //        const int k_N_scratch_idx = var_db->mapVariableAndContextToIndex(d_k_N_var, getScratchContext());
-        //        if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type ==
-        //        MIDPOINT_RULE)
-        //        {
-        //            d_hier_cc_data_ops->axpy(k_rhs_scratch_idx, +1.0, k_N_scratch_idx, k_rhs_scratch_idx);
-        //        }
-        //        else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
-        //        {
-        //            d_hier_cc_data_ops->axpy(k_rhs_scratch_idx, +0.5, k_N_scratch_idx, k_rhs_scratch_idx);
-        //        }
-        //    }
+        d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +1.0, T_N_scratch_idx, T_rhs_scratch_idx);
+
+        if (d_lf_convective_time_stepping_type == ADAMS_BASHFORTH ||
+            d_lf_convective_time_stepping_type == MIDPOINT_RULE)
+        {
+            d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +1.0, lf_N_scratch_idx, T_rhs_scratch_idx);
+        }
+        else if (d_lf_convective_time_stepping_type == TRAPEZOIDAL_RULE)
+        {
+            d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +0.5, lf_N_scratch_idx, T_rhs_scratch_idx);
+        }
+
         if (d_T_F_var)
         {
             d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, T_F_scratch_idx, T_rhs_scratch_idx);
@@ -972,6 +1529,8 @@ IEPSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
         level->deallocatePatchData(d_T_C_idx);
         level->deallocatePatchData(d_lf_temp_rhs_idx);
         level->deallocatePatchData(d_T_temp_rhs_idx);
+        level->deallocatePatchData(d_chemical_potential_idx);
+        level->deallocatePatchData(d_grad_lf_idx);
     }
 
     AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
@@ -1041,19 +1600,15 @@ IEPSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_lf_solver_needs_init = true;
     d_T_solver_needs_init = true;
 
-    //   d_lf_convective_op_needs_init = true;
-    //    d_T_convective_op_needs_init = true;
+    d_lf_convective_op_needs_init = true;
+    d_T_convective_op_needs_init = true;
+    if (d_solve_mass_conservation)
+    {
+        d_rho_p_integrator->setHierarchyMathOps(d_hier_math_ops);
+        d_rho_p_integrator->initializeTimeIntegrator(base_hierarchy);
+    }
     return;
 }
-
-void
-IEPSemiImplicitHierarchyIntegrator::registerLevelSetVariable(Pointer<CellVariable<NDIM, double> > ls_var,
-                                                             const bool output_ls_var)
-{
-    d_ls_var = ls_var;
-    d_output_ls = output_ls_var;
-    return;
-} // registerLevelSetVariable
 
 void
 IEPSemiImplicitHierarchyIntegrator::registerLiquidFractionVariable(Pointer<CellVariable<NDIM, double> > lf_var,
@@ -1072,19 +1627,30 @@ IEPSemiImplicitHierarchyIntegrator::registerLiquidFractionVariable(Pointer<CellV
         new SideVariable<NDIM, double>(lf_var->getName() + "::diff_coef", lf_depth);
 
     // Set default values.
-    // d_k_u_var = nullptr;
+    d_lf_u_var = nullptr;
     d_lf_F_var = lf_F_var;
     d_lf_rhs_var = lf_rhs_var;
     d_lf_diffusion_time_stepping_type = d_default_diffusion_time_stepping_type;
-    // d_lf_convective_difference_form = d_default_convective_difference_form;
-    // if(!d_k_convective_time_stepping_type) d_k_convective_time_stepping_type =
-    // d_default_convective_time_stepping_type;
+    d_lf_convective_difference_form = d_default_convective_difference_form;
+    if (!d_lf_convective_time_stepping_type)
+        d_lf_convective_time_stepping_type = d_default_convective_time_stepping_type;
+    d_lf_convective_op_type = d_default_convective_op_type;
+    d_lf_convective_op_input_db = d_default_convective_op_input_db;
     d_lf_diffusion_coef_var = lf_diff_coef_var;
     d_lf_init = nullptr;
     d_lf_F_fcn = nullptr;
     d_lf_bc_coef = nullptr;
     return;
 } // registerLiquidFractionVariable
+
+void
+IEPSemiImplicitHierarchyIntegrator::registerHeavisideVariable(Pointer<CellVariable<NDIM, double> > H_var,
+                                                              const bool output_H_var)
+{
+    d_H_var = H_var;
+    d_output_H = output_H_var;
+    return;
+} // registerHeavisideVariable
 
 void
 IEPSemiImplicitHierarchyIntegrator::registerTemperatureVariable(Pointer<CellVariable<NDIM, double> > T_var,
@@ -1103,13 +1669,14 @@ IEPSemiImplicitHierarchyIntegrator::registerTemperatureVariable(Pointer<CellVari
         new SideVariable<NDIM, double>(T_var->getName() + "::diff_coef", T_depth);
 
     // Set default values.
-    // d_k_u_var = nullptr;
+    d_T_u_var = nullptr;
     d_T_F_var = T_F_var;
     d_T_rhs_var = T_rhs_var;
     d_T_diffusion_time_stepping_type = d_default_diffusion_time_stepping_type;
-    // d_T_convective_difference_form = d_default_convective_difference_form;
-    // if(!d_k_convective_time_stepping_type) d_k_convective_time_stepping_type =
-    // d_default_convective_time_stepping_type;
+    d_T_convective_difference_form = d_default_convective_difference_form;
+    if (!d_T_convective_time_stepping_type) d_T_convective_time_stepping_type = d_default_convective_time_stepping_type;
+    d_T_convective_op_type = d_default_convective_op_type;
+    d_T_convective_op_input_db = d_default_convective_op_input_db;
     d_T_diffusion_coef_var = T_diff_coef_var;
     d_T_init = nullptr;
     d_T_F_fcn = nullptr;
@@ -1264,6 +1831,109 @@ IEPSemiImplicitHierarchyIntegrator::getPhysicalBcCoefTemperatureEquation()
     return d_T_bc_coef;
 } // getPhysicalBcCoefTemperatureEquation
 
+Pointer<ConvectiveOperator>
+IEPSemiImplicitHierarchyIntegrator::getConvectiveOperatorLiquidFractionEquation(
+    Pointer<CellVariable<NDIM, double> > lf_var)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_lf_var);
+#endif
+    if (!d_lf_convective_op)
+    {
+        std::vector<RobinBcCoefStrategy<NDIM>*> lf_bc_coefs(1, d_lf_bc_coef);
+        AdvDiffConvectiveOperatorManager* lf_convective_op_manager = AdvDiffConvectiveOperatorManager::getManager();
+        d_lf_convective_op = lf_convective_op_manager->allocateOperator(d_lf_convective_op_type,
+                                                                        d_object_name + "::lfConvectiveOperator",
+                                                                        d_lf_var,
+                                                                        d_lf_convective_op_input_db,
+                                                                        d_lf_convective_difference_form,
+                                                                        lf_bc_coefs);
+        d_lf_convective_op_needs_init = true;
+    }
+    return d_lf_convective_op;
+} // getConvectiveOperatorLiquidFractionEquation
+
+Pointer<ConvectiveOperator>
+IEPSemiImplicitHierarchyIntegrator::getConvectiveOperatorTemperatureEquation(Pointer<CellVariable<NDIM, double> > T_var)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_T_var);
+#endif
+    if (!d_T_convective_op)
+    {
+        std::vector<RobinBcCoefStrategy<NDIM>*> T_bc_coefs(1, d_T_bc_coef);
+        AdvDiffConvectiveOperatorManager* T_convective_op_manager = AdvDiffConvectiveOperatorManager::getManager();
+        d_T_convective_op = T_convective_op_manager->allocateOperator(d_T_convective_op_type,
+                                                                      d_object_name + "::WConvectiveOperator",
+                                                                      d_T_var,
+                                                                      d_T_convective_op_input_db,
+                                                                      d_T_convective_difference_form,
+                                                                      T_bc_coefs);
+        d_T_convective_op_needs_init = true;
+    }
+    return d_T_convective_op;
+} // getConvectiveOperatorTemperatureEquation
+
+int
+IEPSemiImplicitHierarchyIntegrator::getChemicalPotentialIndex()
+{
+    return d_chemical_potential_idx;
+} // getChemicalPotentialIndex
+
+void
+IEPSemiImplicitHierarchyIntegrator::registerMassDensityBoundaryConditions(RobinBcCoefStrategy<NDIM>*& rho_bc_coef)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    d_rho_bc_coef = rho_bc_coef;
+    return;
+} // registerMassDensityBoundaryConditions
+
+void
+IEPSemiImplicitHierarchyIntegrator::registerMassDensitySourceTerm(Pointer<CartGridFunction> S_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    if (!d_S_fcn)
+    {
+        d_S_fcn = S_fcn;
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << "::IEPSemiImplicitHierarchyIntegrator():\n"
+                                 << " present implementation allows for only one mass density source\n"
+                                 << " term to be set. Consider combining source terms into single "
+                                    "CartGridFunction.\n");
+    }
+    return;
+} // registerMassDensitySourceTerm
+
+void
+IEPSemiImplicitHierarchyIntegrator::setAdvectionVelocityLiquidFractionEquation(
+    Pointer<CellVariable<NDIM, double> > lf_var,
+    Pointer<FaceVariable<NDIM, double> > u_var)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_lf_var);
+#endif
+    d_lf_u_var = u_var;
+
+    return;
+} // setAdvectionVelocityLiquidFractionEquation
+void
+IEPSemiImplicitHierarchyIntegrator::setAdvectionVelocityTemperatureEquation(Pointer<CellVariable<NDIM, double> > T_var,
+                                                                            Pointer<FaceVariable<NDIM, double> > u_var)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_T_var);
+#endif
+    d_T_u_var = u_var;
+
+    return;
+} // setAdvectionVelocityTemperatureEquation
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
@@ -1328,8 +1998,6 @@ IEPSemiImplicitHierarchyIntegrator::computeDoubleWellPotential(int g_firstder_id
             }
         }
     }
-    pout << "L2 norm of g'\t" << d_hier_cc_data_ops->L2Norm(g_firstder_idx) << "\n";
-    pout << "L2 norm of g''\t" << d_hier_cc_data_ops->L2Norm(g_secondder_idx) << "\n";
     return;
 } //  computeDoubleWellPotential
 
@@ -1370,13 +2038,11 @@ IEPSemiImplicitHierarchyIntegrator::computeInterpolationFunction(int p_firstder_
                 else
                 {
                     (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
-                    // (*p_firstder_data)(ci) = 6.0*lf - 6.0*lf*lf;
                 }
                 // std::cout << "p' value is\t" << (*p_firstder_data)(ci) <<  std::endl;
             }
         }
     }
-    pout << "L2 norm of p'\t" << d_hier_cc_data_ops->L2Norm(p_firstder_idx) << "\n";
     return;
 } // computeInterpolationFunction
 
@@ -1442,6 +2108,7 @@ IEPSemiImplicitHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratc
             Pointer<CellData<NDIM, double> > F_data = patch->getPatchData(F_scratch_idx);
             Pointer<CellData<NDIM, double> > g_firstder_data = patch->getPatchData(d_g_firstder_idx);
             Pointer<CellData<NDIM, double> > g_secondder_data = patch->getPatchData(d_g_secondder_idx);
+
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
@@ -1450,10 +2117,6 @@ IEPSemiImplicitHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratc
                            (d_T_ref - (*T_data)(ci)) / d_T_ref;
                 (*F_data)(ci) = F - (d_M_lf * d_lambda_lf * (*H_data)(ci) / std::pow(d_eta_lf, 2.0) *
                                      ((*g_firstder_data)(ci) - ((*g_secondder_data)(ci) * (*lf_data)(ci))));
-
-                // g' is evaluated at previous cycle.
-                // (*F_data)(ci) = F - (d_M_lf * d_lambda_lf * (*H_data)(ci) / std::pow(d_eta_lf, 2.0) *
-                // (*g_firstder_data)(ci));
             }
         }
     }
@@ -1491,6 +2154,79 @@ IEPSemiImplicitHierarchyIntegrator::computeTemperatureSourceTerm(int F_scratch_i
     }
     return;
 } // computeTemperatureSourceTerm
+
+void
+IEPSemiImplicitHierarchyIntegrator::computeChemicalPotential(int chemical_potential_idx,
+                                                             const int H_sc_idx,
+                                                             const double new_time)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getNewContext());
+    int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getScratchContext());
+    int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, getNewContext());
+    int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
+
+    // Filling ghost cells for liquid fraction.
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> lf_transaction_comps(1);
+    lf_transaction_comps[0] = InterpolationTransactionComponent(lf_scratch_idx,
+                                                                lf_new_idx,
+                                                                "CONSERVATIVE_LINEAR_REFINE",
+                                                                false,
+                                                                "CONSERVATIVE_COARSEN",
+                                                                "LINEAR",
+                                                                false,
+                                                                d_lf_bc_coef);
+    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    hier_bdry_fill->initializeOperatorState(lf_transaction_comps, d_hierarchy);
+    hier_bdry_fill->fillData(new_time);
+
+    // perform gradient of liquid fraction.
+    d_hier_math_ops->grad(d_grad_lf_idx, d_grad_lf_var, true, 1.0, lf_scratch_idx, d_lf_var, nullptr, new_time);
+
+    // compute H*grad_lf.
+    d_hier_sc_data_ops->multiply(d_grad_lf_idx, d_grad_lf_idx, H_sc_idx);
+
+    // compute div(H*grad_lf).
+    d_hier_math_ops->div(
+        chemical_potential_idx, d_chemical_potential_var, 1.0, d_grad_lf_idx, d_grad_lf_var, nullptr, new_time, false);
+
+    // update p' and g'.
+    computeInterpolationFunction(d_p_firstder_idx, lf_new_idx, T_new_idx);
+    computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, lf_new_idx);
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_new_idx);
+            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_new_idx);
+            Pointer<CellData<NDIM, double> > p_firstder_data = patch->getPatchData(d_p_firstder_idx);
+            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_new_idx);
+            Pointer<CellData<NDIM, double> > g_firstder_data = patch->getPatchData(d_g_firstder_idx);
+            Pointer<CellData<NDIM, double> > chemical_potential_data = patch->getPatchData(chemical_potential_idx);
+
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                CellIndex<NDIM> ci(it());
+
+                double F = d_rho_liquid * d_latent_heat * (*H_data)(ci) * (*p_firstder_data)(ci) *
+                           (d_T_ref - (*T_data)(ci)) / d_T_ref;
+                (*chemical_potential_data)(ci) =
+                    -d_lambda_lf * (*chemical_potential_data)(ci) +
+                    (d_lambda_lf * (*H_data)(ci) / std::pow(d_eta_lf, 2.0) * (*g_firstder_data)(ci)) + F;
+            }
+        }
+    }
+
+    return;
+} // computeChemicalPotential
 
 void
 IEPSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_from_restart)
@@ -1534,7 +2270,6 @@ IEPSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> input_db, boo
         if (!d_T_precond_db) d_T_precond_db = new MemoryDatabase("T_precond_db");
 
         if (input_db->keyExists("latent_heat")) d_latent_heat = input_db->getDouble("latent_heat");
-        if (input_db->keyExists("phase_change")) d_phase_change = input_db->getBool("phase_change");
         if (input_db->keyExists("rho_liquid")) d_rho_liquid = input_db->getDouble("rho_liquid");
         if (input_db->keyExists("T_ref")) d_T_ref = input_db->getDouble("T_ref");
 
@@ -1545,69 +2280,67 @@ IEPSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> input_db, boo
         if (input_db->keyExists("lambda_lf")) d_lambda_lf = input_db->getDouble("lambda_lf");
         if (input_db->keyExists("eta_lf")) d_eta_lf = input_db->getDouble("eta_lf");
         if (input_db->keyExists("solve_energy")) d_solve_energy = input_db->getBool("solve_energy");
+        if (input_db->keyExists("solve_mass_conservation"))
+            d_solve_mass_conservation = input_db->getBool("solve_mass_conservation");
 
-        /*if (input_db->keyExists("k_convective_difference_form"))
-            d_k_convective_difference_form =
-                string_to_enum<ConvectiveDifferencingType>(input_db->getString("k_convective_difference_form"));
-        else if (input_db->keyExists("k_convective_difference_type"))
-            d_k_convective_difference_form =
-                string_to_enum<ConvectiveDifferencingType>(input_db->getString("k_convective_difference_type"));
-        else if (input_db->keyExists("default_k_convective_difference_form"))
-            d_k_convective_difference_form =
-                string_to_enum<ConvectiveDifferencingType>(input_db->getString("default_k_convective_difference_form"));
-        else if (input_db->keyExists("default_k_convective_difference_type"))
-            d_k_convective_difference_form =
-                string_to_enum<ConvectiveDifferencingType>(input_db->getString("default_k_convective_difference_type"));
-        if (input_db->keyExists("k_convective_op_type"))
-            d_k_convective_op_type = input_db->getString("k_convective_op_type");
-        else if (input_db->keyExists("k_convective_operator_type"))
-            d_k_convective_op_type = input_db->getString("k_convective_operator_type");
-        else if (input_db->keyExists("default_k_convective_op_type"))
-            d_k_convective_op_type = input_db->getString("default_k_convective_op_type");
-        else if (input_db->keyExists("default_k_convective_operator_type"))
-            d_k_convective_op_type = input_db->getString("default_k_convective_operator_type");
+        if (input_db->keyExists("lf_convective_difference_form"))
+            d_lf_convective_difference_form =
+                string_to_enum<ConvectiveDifferencingType>(input_db->getString("lf_convective_difference_form"));
+        else if (input_db->keyExists("lf_convective_difference_type"))
+            d_lf_convective_difference_form =
+                string_to_enum<ConvectiveDifferencingType>(input_db->getString("lf_convective_difference_type"));
+        else if (input_db->keyExists("default_lf_convective_difference_form"))
+            d_lf_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(
+                input_db->getString("default_lf_convective_difference_form"));
+        else if (input_db->keyExists("default_lf_convective_difference_type"))
+            d_lf_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(
+                input_db->getString("default_lf_convective_difference_type"));
+        if (input_db->keyExists("lf_convective_op_type"))
+            d_lf_convective_op_type = input_db->getString("lf_convective_op_type");
+        else if (input_db->keyExists("lf_convective_operator_type"))
+            d_lf_convective_op_type = input_db->getString("lf_convective_operator_type");
+        else if (input_db->keyExists("default_lf_convective_op_type"))
+            d_lf_convective_op_type = input_db->getString("default_lf_convective_op_type");
+        else if (input_db->keyExists("default_lf_convective_operator_type"))
+            d_lf_convective_op_type = input_db->getString("default_lf_convective_operator_type");
 
-        if (input_db->keyExists("k_convective_op_db"))
-            d_k_convective_op_input_db = input_db->getDatabase("k_convective_op_db");
-        else if (input_db->keyExists("default_k_convective_op_db"))
-            d_k_convective_op_input_db = input_db->getDatabase("default_k_convective_op_db");
+        if (input_db->keyExists("lf_convective_op_db"))
+            d_lf_convective_op_input_db = input_db->getDatabase("lf_convective_op_db");
+        else if (input_db->keyExists("default_lf_convective_op_db"))
+            d_lf_convective_op_input_db = input_db->getDatabase("default_lf_convective_op_db");
 
-        if (input_db->keyExists("w_convective_op_type"))
-            d_w_convective_op_type = input_db->getString("w_convective_op_type");
-        else if (input_db->keyExists("w_convective_operator_type"))
-            d_w_convective_op_type = input_db->getString("w_convective_operator_type");
-        else if (input_db->keyExists("default_w_convective_op_type"))
-            d_w_convective_op_type = input_db->getString("default_w_convective_op_type");
-        else if (input_db->keyExists("default_w_convective_operator_type"))
-            d_w_convective_op_type = input_db->getString("default_w_convective_operator_type");
+        if (input_db->keyExists("T_convective_op_type"))
+            d_T_convective_op_type = input_db->getString("T_convective_op_type");
+        else if (input_db->keyExists("T_convective_operator_type"))
+            d_T_convective_op_type = input_db->getString("T_convective_operator_type");
+        else if (input_db->keyExists("default_T_convective_op_type"))
+            d_T_convective_op_type = input_db->getString("default_T_convective_op_type");
+        else if (input_db->keyExists("default_T_convective_operator_type"))
+            d_T_convective_op_type = input_db->getString("default_T_convective_operator_type");
 
-        if (input_db->keyExists("w_convective_op_db"))
-            d_w_convective_op_input_db = input_db->getDatabase("w_convective_op_db");
-        else if (input_db->keyExists("default_w_convective_op_db"))
-            d_w_convective_op_input_db = input_db->getDatabase("default_w_convective_op_db");
+        if (input_db->keyExists("T_convective_op_db"))
+            d_T_convective_op_input_db = input_db->getDatabase("T_convective_op_db");
+        else if (input_db->keyExists("default_T_convective_op_db"))
+            d_T_convective_op_input_db = input_db->getDatabase("default_T_convective_op_db");
 
-        if (input_db->keyExists("w_convective_difference_form"))
-            d_w_convective_difference_form =
-                string_to_enum<ConvectiveDifferencingType>(input_db->getString("w_convective_difference_form"));
-        else if (input_db->keyExists("w_convective_difference_type"))
-            d_w_convective_difference_form =
-                string_to_enum<ConvectiveDifferencingType>(input_db->getString("w_convective_difference_type"));
-        else if (input_db->keyExists("default_w_convective_difference_form"))
-            d_w_convective_difference_form =
-                string_to_enum<ConvectiveDifferencingType>(input_db->getString("default_w_convective_difference_form"));
-        else if (input_db->keyExists("default_w_convective_difference_type"))
-            d_w_convective_difference_form =
-                string_to_enum<ConvectiveDifferencingType>(input_db->getString("default_w_convective_difference_type"));
-        if (input_db->keyExists("k_convective_time_stepping_type"))
-            d_k_convective_time_stepping_type =
-                string_to_enum<TimeSteppingType>(input_db->getString("k_convective_time_stepping_type"));
-        if (input_db->keyExists("w_convective_time_stepping_type"))
-            d_w_convective_time_stepping_type =
-                string_to_enum<TimeSteppingType>(input_db->getString("w_convective_time_stepping_type"));
-        if (input_db->keyExists("rho_coarsen_type")) d_rho_coarsen_type = input_db->getString("rho_coarsen_type");
-        if (input_db->keyExists("rho_refine_type")) d_rho_refine_type = input_db->getString("rho_refine_type");
-        if (input_db->keyExists("rho_bdry_extrap_type"))
-            d_rho_bdry_extrap_type = input_db->getString("rho_bdry_extrap_type");*/
+        if (input_db->keyExists("T_convective_difference_form"))
+            d_T_convective_difference_form =
+                string_to_enum<ConvectiveDifferencingType>(input_db->getString("T_convective_difference_form"));
+        else if (input_db->keyExists("T_convective_difference_type"))
+            d_T_convective_difference_form =
+                string_to_enum<ConvectiveDifferencingType>(input_db->getString("T_convective_difference_type"));
+        else if (input_db->keyExists("default_T_convective_difference_form"))
+            d_T_convective_difference_form =
+                string_to_enum<ConvectiveDifferencingType>(input_db->getString("default_T_convective_difference_form"));
+        else if (input_db->keyExists("default_T_convective_difference_type"))
+            d_T_convective_difference_form =
+                string_to_enum<ConvectiveDifferencingType>(input_db->getString("default_T_convective_difference_type"));
+        if (input_db->keyExists("lf_convective_time_stepping_type"))
+            d_lf_convective_time_stepping_type =
+                string_to_enum<TimeSteppingType>(input_db->getString("lf_convective_time_stepping_type"));
+        if (input_db->keyExists("T_convective_time_stepping_type"))
+            d_T_convective_time_stepping_type =
+                string_to_enum<TimeSteppingType>(input_db->getString("T_convective_time_stepping_type"));
     }
 }
 

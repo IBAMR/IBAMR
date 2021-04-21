@@ -276,6 +276,11 @@ public:
     void registerResetFluidViscosityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
 
     /*!
+     * \brief Register function to compute continuity equation source term.
+     */
+    void registerContinuitySourceFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
+
+    /*!
      * \brief Register BrinkmanPenalizationStrategy objects to add Brinkman penalization term
      * in the momentum equation.
      */
@@ -571,6 +576,7 @@ protected:
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Omega_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Div_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Div_U_F_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Omega_Norm_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_regrid_var;
@@ -625,6 +631,12 @@ protected:
     std::vector<void*> d_reset_rho_fcns_ctx, d_reset_mu_fcns_ctx;
 
     /*!
+     * Functions to compute continuity equation RHS if they are maintained by this integrator.
+     */
+    std::vector<ResetFluidPropertiesFcnPtr> d_compute_continuity_source_fcns;
+    std::vector<void*> d_compute_continuity_source_fcns_ctx;
+
+    /*!
      * Brinkman force strategy objects registered with this integrator.
      */
     std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> > d_brinkman_force;
@@ -657,7 +669,7 @@ protected:
      *
      * Plot variables have one context: current.
      */
-    int d_U_cc_idx, d_F_cc_idx, d_Omega_idx, d_Div_U_idx, d_EE_idx;
+    int d_U_cc_idx, d_F_cc_idx, d_Omega_idx, d_Div_U_idx, d_Div_U_F_idx, d_EE_idx;
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the

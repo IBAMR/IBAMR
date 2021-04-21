@@ -20,6 +20,7 @@
 
 #include <ibamr/config.h>
 
+#include "ibamr/AdvDiffConservativeMassTransportQuantityIntegrator.h"
 #include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
@@ -217,16 +218,16 @@ public:
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getLiquidFractionBoundaryConditions() const;
 
     /*!
-     * \brief Register levelset variable.
-     */
-    void registerLevelSetVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
-                                  const bool output_ls_var);
-
-    /*!
      * \brief Register liquid fraction variable.
      */
     void registerLiquidFractionVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
                                         const bool output_lf_var = true);
+
+    /*!
+     * \brief Register liquid fraction variable.
+     */
+    void registerHeavisideVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var,
+                                   const bool output_H_var = true);
 
     /*!
      * \brief Register Temperature variable.
@@ -286,6 +287,61 @@ public:
      * Return a \f$ \omega \f$ boundary condition object.
      */
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getPhysicalBcCoefTemperatureEquation();
+
+    /*!
+     * Get the convective operator being used by this solver class for \f$ lf \f$ variable.
+     *
+     * If the convective operator has not already been constructed, then this
+     * function will initialize a default convective operator.
+     */
+    SAMRAI::tbox::Pointer<ConvectiveOperator> getConvectiveOperatorLiquidFractionEquation(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var);
+
+    /*!
+     * Get the convective operator being used by this solver class for \f$ T \f$ variable.
+     *
+     * If the convective operator has not already been constructed, then this
+     * function will initialize a default convective operator.
+     */
+    SAMRAI::tbox::Pointer<ConvectiveOperator>
+    getConvectiveOperatorTemperatureEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var);
+
+    /*!
+     * Get the chemical potential patch data index.
+     */
+    int getChemicalPotentialIndex();
+
+    /*
+     * \brief Supply boundary conditions for the cell-centered density field, which is maintained by this integrator
+     */
+    void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& rho_cc_bc_coefs);
+
+    /*!
+     * \brief Supply a source term for the mass update equation.
+     *
+     * \note Current implementation is used only to check order of accuracy via a manufactured solution.
+     */
+    void registerMassDensitySourceTerm(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> S_fcn);
+
+    /*!
+     * Set the face-centered advection velocity to be used with a cell-centered liquid fraction variable.
+     *
+     * \note The specified advection velocity must have been already registered
+     * with the hierarchy integrator.
+     */
+    void
+    setAdvectionVelocityLiquidFractionEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
+                                               SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var);
+    /*!
+     * Set the face-centered advection velocity to be used with a cell-centered \f$ \omega \f$.
+     * variable.
+     *
+     * \note The specified advection velocity must have been already registered
+     * with the hierarchy integrator.
+     */
+    void
+    setAdvectionVelocityTemperatureEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var,
+                                            SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var);
 
 private:
     /*!
@@ -377,6 +433,12 @@ private:
     getHelmholtzRHSOperatorTemperatureEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var);
 
     /*!
+     * Compute the chemical potential of the Allen-Cahn equation using updated liquid fraction value at
+     * the cell-centers.
+     */
+    void computeChemicalPotential(int chemical_potential_idx, const int H_new_idx, const double new_time);
+
+    /*!
      * Additional variables required.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
@@ -403,12 +465,29 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_lf_diffusion_coef_var,
         d_lf_diffusion_coef_rhs_var, d_T_diffusion_coef_var, d_T_diffusion_coef_rhs_var;
 
-    bool d_output_ls = false, d_output_lf = false, d_output_T = false;
+    bool d_output_ls = false, d_output_H = false, d_output_lf = false, d_output_T = false;
 
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_lf_F_init, d_T_F_init;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_lf_bc_coef = nullptr;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_T_bc_coef = nullptr;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_H_bdry_bc_fill_op;
+
+    /*!
+     * Advection velocity variables.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_div_u_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_H_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_lf_u_var, d_T_u_var;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_lf_u_fcn, d_T_u_fcn;
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_N_var, d_T_N_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_N_old_var, d_T_N_old_var;
+
+    ConvectiveDifferencingType d_lf_convective_difference_form, d_T_convective_difference_form;
+    std::string d_lf_convective_op_type, d_T_convective_op_type;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_lf_convective_op_input_db, d_T_convective_op_input_db;
+    SAMRAI::tbox::Pointer<ConvectiveOperator> d_lf_convective_op, d_T_convective_op;
+    bool d_lf_convective_op_needs_init, d_T_convective_op_needs_init;
 
     /*!
      * Solvers and related data.
@@ -451,6 +530,8 @@ private:
 
     double d_rho_liquid, d_T_ref, d_latent_heat;
 
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_bc_coef;
+
     /*!
      * Additional variables for phase change.
      */
@@ -473,7 +554,31 @@ private:
     // Number of interface cells to compute the Heaviside function
     double d_num_interface_cells = 2.0;
 
-    bool d_solve_energy = false;
+    bool d_solve_energy = false, d_solve_mass_conservation = true;
+
+    // Variables for chemical potential.
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_chemical_potential_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_lf_var;
+    int d_chemical_potential_idx, d_grad_lf_idx, d_H_sc_idx;
+
+    /*
+     * Conservative density and transport quantity integrator.
+     */
+    SAMRAI::tbox::Pointer<IBAMR::AdvDiffConservativeMassTransportQuantityIntegrator> d_rho_p_integrator;
+
+    /*
+     * Source term function for the mass density update
+     */
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_U_old_var;
+    int d_U_old_current_idx, d_U_old_new_idx, d_U_old_scratch_idx;
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_cp_old_var;
+    int d_cp_old_current_idx, d_cp_old_new_idx, d_cp_old_scratch_idx;
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_old_var;
+    int d_T_old_current_idx, d_T_old_new_idx, d_T_old_scratch_idx;
 };
 } // namespace IBAMR
 

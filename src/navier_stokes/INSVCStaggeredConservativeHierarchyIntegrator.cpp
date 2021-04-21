@@ -1427,6 +1427,22 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }
 
+    // Account for continuity equation source term.
+    const double apply_time = new_time;
+    for (unsigned k = 0; k < d_compute_continuity_source_fcns.size(); ++k)
+    {
+        d_compute_continuity_source_fcns[k](d_Div_U_F_idx,
+                                            d_Div_U_F_var,
+                                            d_hier_math_ops,
+                                            -1 /*cycle_num*/,
+                                            apply_time,
+                                            current_time,
+                                            new_time,
+                                            d_compute_continuity_source_fcns_ctx[k]);
+    }
+    d_hier_cc_data_ops->add(
+        rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Div_U_F_idx);
+
     // Add Brinkman penalized velocity term.
     d_hier_sc_data_ops->add(
         rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
@@ -1528,6 +1544,10 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
     }
     d_hier_sc_data_ops->subtract(
         rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
+
+    // Reset the right-hand side vector of continuity equation.
+    d_hier_cc_data_ops->subtract(
+        rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Div_U_F_idx);
 
     if (d_Q_fcn)
     {

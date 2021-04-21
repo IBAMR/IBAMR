@@ -518,6 +518,7 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string
     d_Omega_var = new CellVariable<NDIM, double>(d_object_name + "::Omega", NDIM);
 #endif
     d_Div_U_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U");
+    d_Div_U_F_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U_F");
 
 #if (NDIM == 3)
     d_Omega_Norm_var = new CellVariable<NDIM, double>(d_object_name + "::|Omega|_2");
@@ -929,6 +930,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     }
     registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getCurrentContext());
     registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
+    registerVariable(d_Div_U_F_idx, d_Div_U_F_var, no_ghosts, getCurrentContext());
 
 // Register scratch variables that are maintained by the
 // INSVCStaggeredHierarchyIntegrator.
@@ -1409,6 +1411,14 @@ INSVCStaggeredHierarchyIntegrator::registerResetFluidViscosityFcn(ResetFluidProp
     d_reset_mu_fcns_ctx.push_back(ctx);
     return;
 } // registerResetFluidViscosityFcn
+
+void
+INSVCStaggeredHierarchyIntegrator::registerContinuitySourceFcn(ResetFluidPropertiesFcnPtr callback, void* ctx)
+{
+    d_compute_continuity_source_fcns.push_back(callback);
+    d_compute_continuity_source_fcns_ctx.push_back(ctx);
+    return;
+} // registerContinuitySourceFcn
 
 void
 INSVCStaggeredHierarchyIntegrator::registerBrinkmanPenalizationStrategy(
