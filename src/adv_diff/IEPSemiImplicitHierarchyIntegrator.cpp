@@ -603,7 +603,7 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(d_C_rhs_scratch_idx, current_time);
+        if (!level->checkAllocated(d_C_rhs_scratch_idx)) level->allocatePatchData(d_C_rhs_scratch_idx, current_time);
         if (!level->checkAllocated(d_lf_C_idx)) level->allocatePatchData(d_lf_C_idx, current_time);
         if (!level->checkAllocated(d_T_C_idx)) level->allocatePatchData(d_T_C_idx, current_time);
         if (!level->checkAllocated(d_lf_temp_rhs_idx)) level->allocatePatchData(d_lf_temp_rhs_idx, current_time);
@@ -777,6 +777,7 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
         d_hier_cc_data_ops->copyData(lf_N_old_new_idx, lf_N_scratch_idx);
 
         const int lf_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_rhs_var, getScratchContext());
+
         if (d_lf_convective_time_stepping_type == FORWARD_EULER)
         {
             d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, -1.0, lf_N_scratch_idx, lf_rhs_scratch_idx);
@@ -936,8 +937,6 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
         //                           d_reset_Cp_fcns_ctx[k]);
         //    }
 
-        d_hier_cc_data_ops->multiply(d_C_current_idx, rho_current_idx, Cp_current_idx);
-        d_hier_cc_data_ops->scale(d_C_current_idx, 1.0 / dt, d_C_current_idx);
         d_hier_cc_data_ops->copyData(d_T_temp_rhs_idx, d_C_current_idx);
         T_rhs_op_spec.setCPatchDataId(d_T_temp_rhs_idx);
         //    std::cout << "L2 norm of d_T_temp_rhs_idx\t" << d_hier_cc_data_ops->L2Norm(d_T_temp_rhs_idx) << std::endl;
@@ -1019,6 +1018,7 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
         d_hier_cc_data_ops->copyData(T_new_idx, T_current_idx);
 
         // Add div (u H lf).
+        d_hier_cc_data_ops->scale(lf_N_scratch_idx, d_rho_liquid * d_latent_heat, lf_N_scratch_idx);
         if (d_lf_convective_time_stepping_type == FORWARD_EULER)
         {
             d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, lf_N_scratch_idx, T_rhs_scratch_idx);
@@ -1311,6 +1311,20 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         const int T_diff_coef_rhs_scratch_idx =
             (var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_rhs_var, getScratchContext()));
 
+        // update specific heat.
+        double apply_time = new_time;
+        for (unsigned k = 0; k < d_reset_Cp_fcns.size(); ++k)
+        {
+            d_reset_Cp_fcns[k](Cp_new_idx,
+                               d_Cp_var,
+                               d_hier_math_ops,
+                               -1 /*cycle_num*/,
+                               apply_time,
+                               current_time,
+                               new_time,
+                               d_reset_Cp_fcns_ctx[k]);
+        }
+
         // In the special case of a conservative discretization form, the updated
         // density is calculated by application of the mass and convective
         // momentum integrator.
@@ -1369,19 +1383,6 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         d_hier_cc_data_ops->copyData(rho_new_idx,
                                      rho_cc_new_idx,
                                      /*interior_only*/ true);
-
-        double apply_time = new_time;
-        for (unsigned k = 0; k < d_reset_Cp_fcns.size(); ++k)
-        {
-            d_reset_Cp_fcns[k](Cp_new_idx,
-                               d_Cp_var,
-                               d_hier_math_ops,
-                               -1 /*cycle_num*/,
-                               apply_time,
-                               current_time,
-                               new_time,
-                               d_reset_Cp_fcns_ctx[k]);
-        }
 
         // set rho*Cp/dt + K*lambda.
         const double lambda = 0.0;
@@ -1447,6 +1448,7 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, T_N_scratch_idx, T_rhs_scratch_idx);
 
         // Add div (u H lf).
+        d_hier_cc_data_ops->scale(lf_N_scratch_idx, d_rho_liquid * d_latent_heat, lf_N_scratch_idx);
         if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
         {
             d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, lf_N_scratch_idx, T_rhs_scratch_idx);
@@ -1529,8 +1531,12 @@ IEPSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
         level->deallocatePatchData(d_T_C_idx);
         level->deallocatePatchData(d_lf_temp_rhs_idx);
         level->deallocatePatchData(d_T_temp_rhs_idx);
+        level->deallocatePatchData(d_g_firstder_idx);
+        level->deallocatePatchData(d_g_secondder_idx);
+        level->deallocatePatchData(d_p_firstder_idx);
         level->deallocatePatchData(d_chemical_potential_idx);
         level->deallocatePatchData(d_grad_lf_idx);
+        level->deallocatePatchData(d_H_sc_idx);
     }
 
     AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
