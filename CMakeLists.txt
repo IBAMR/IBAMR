@@ -403,9 +403,13 @@ CMake.")
 
     SET(CMAKE_REQUIRED_INCLUDES "${LIBMESH_INCLUDE_DIRS}")
     SET(CMAKE_REQUIRED_FLAGS "${_libmesh_cxxflags}")
+
+    # figure out which version of C++ libMesh wants to use:
+    SET(LIBMESH_CXX_VERSION 11) # we require C++11 anyway so use it as the default
     CHECK_CXX_SOURCE_COMPILES(
       "
       #include <libmesh/libmesh_config.h>
+      // older versions do not define LIBMESH_HAVE_CXX14
       #ifdef LIBMESH_HAVE_CXX14_MAKE_UNIQUE
       // OK
       #else
@@ -415,6 +419,24 @@ CMake.")
       "
       LIBMESH_WITH_CXX14
       )
+    CHECK_CXX_SOURCE_COMPILES(
+      "
+      #include <libmesh/libmesh_config.h>
+      #ifdef LIBMESH_HAVE_CXX17
+      // OK
+      #else
+      #error
+      #endif
+      int main() {}
+      "
+      LIBMESH_WITH_CXX17
+      )
+
+    IF(${LIBMESH_WITH_CXX17})
+      SET(LIBMESH_CXX_VERSION 17)
+    ELSEIF(${LIBMESH_WITH_CXX14})
+      SET(LIBMESH_CXX_VERSION 14)
+    ENDIF()
     CHECK_CXX_SOURCE_COMPILES(
       "
       #include <libmesh/libmesh_config.h>
@@ -647,9 +669,9 @@ IBAMR_CHECK_COMPILATION_WITH_MPI(LIBMESH
       "\
 #include <mpi.h>
 #include <petscsys.h>
-// This test is a little different: since libMesh may use C++11 or C++14 but we
-// have not yet configured that flag yet, we instead use libMesh's petsc dependency
-// to check that we have the same MPI version.
+// This test is a little different: since libMesh may use C++11 C++14, or C++17,
+// but we but have not yet configured that flag yet, we instead use libMesh's
+// petsc dependency to check that we have the same MPI version.
 int main(int argc, char **argv)
 {
     PetscInitialize(&argc, &argv, NULL, NULL);
@@ -764,14 +786,16 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
 
   MESSAGE(STATUS "Adding flag -DNDIM=${_d} to target ${target_library}")
   TARGET_COMPILE_OPTIONS(${target_library} PUBLIC -DNDIM=${_d})
-  IF(${IBAMR_HAVE_LIBMESH} AND "${LIBMESH_WITH_CXX14}")
-    MESSAGE(STATUS "libMesh expects C++14, so ${target_library} will be built with C++14 as a requirement.")
-    SET_PROPERTY(TARGET ${target_library} PROPERTY CXX_STANDARD 14)
-    TARGET_COMPILE_FEATURES(${target_library} PUBLIC cxx_std_14)
+
+  IF(${IBAMR_HAVE_LIBMESH})
+    MESSAGE(STATUS "libMesh expects C++${LIBMESH_CXX_VERSION}, so ${target_library} will be built with C++${LIBMESH_CXX_VERSION} as a requirement.")
+    SET_PROPERTY(TARGET ${target_library} PROPERTY CXX_STANDARD ${LIBMESH_CXX_VERSION})
+    TARGET_COMPILE_FEATURES(${target_library} PUBLIC "cxx_std_${LIBMESH_CXX_VERSION}")
   ELSE()
     SET_PROPERTY(TARGET ${target_library} PROPERTY CXX_STANDARD 11)
-    TARGET_COMPILE_FEATURES(${target_library} PUBLIC cxx_std_11)
+    TARGET_COMPILE_FEATURES(${target_library} PUBLIC "cxx_std_11")
   ENDIF()
+
   # we and our users will use these MPI functions so make the interface public:
   TARGET_LINK_LIBRARIES(${target_library} PUBLIC MPI::MPI_C)
   # libMesh is underlinked and needs MPI's C++ library
