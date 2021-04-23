@@ -437,6 +437,62 @@ CMake.")
     ELSEIF(${LIBMESH_WITH_CXX14})
       SET(LIBMESH_CXX_VERSION 14)
     ENDIF()
+
+    # We are not compatible with libMesh's bundled version of boost, so make
+    # sure that doesn't happen:
+    IF(EXISTS ${LIBMESH_ROOT}/include/boost/)
+      IF(EXISTS ${LIBMESH_ROOT}/include/boost/multi_array.hpp)
+        # this is OK: perhaps libMesh was installed in /usr/
+      ELSE()
+        MESSAGE(FATAL_ERROR "\
+The directory ${LIBMESH_ROOT}/include/boost/ exists and contains a boost \
+installation that does not provide all the headers that IBAMR needs. This can \
+happen when either libMesh is installed with its own bundled version of boost \
+(which is not compatible with IBAMR) or when libMesh is installed into a \
+directory which happens to contain a copy of boost (e.g., when libMesh is \
+recompiled without boost and installed into the same location as a previous \
+copy of libMesh). If you want to use libMesh with boost then both libMesh and \
+IBAMR must use the same external copy of boost. The best way to fix this \
+problem is to delete ${LIBMESH_ROOT} and reinstall libMesh with either no \
+boost support or an external boost library.")
+      ENDIF()
+    ENDIF()
+
+    IF(EXISTS ${LIBMESH_ROOT}/include/Eigen)
+      IF("${Eigen3_ROOT}" STREQUAL "${LIBMESH_ROOT}/include/Eigen")
+        # OK
+      ELSE()
+        # If this happens then the provided version of Eigen appears to not
+        # match the one libMesh has: we don't support this. Verify it's not an
+        # odd coincidence before bailing out.
+        CHECK_CXX_SOURCE_COMPILES(
+          "
+          #include <libmesh/libmesh_config.h>
+          #ifdef LIBMESH_HAVE_EIGEN
+          // OK
+          #else
+          #error
+          #endif
+          int main() {}
+          "
+          LIBMESH_WITH_EIGEN
+          )
+        IF(${LIBMESH_WITH_EIGEN})
+          MESSAGE(FATAL_ERROR "\
+libMesh appears to have been compiled with a bundled copy of Eigen3 (i.e., the \
+directory ${LIBMESH_ROOT}/include/Eigen exists) and this version of Eigen is \
+different from the one provided via via Eigen3_ROOT = ${Eigen3_ROOT}: i.e., \
+there are two versions of Eigen3 in the configuration path, which is not \
+supported. To fix this, delete the current libMesh installation, recompile \
+libMesh without Eigen, and reinstall libMesh. If you aren't sure what to do, \
+the best option is to ensure that libMesh is compiled without support for \
+Eigen and then let IBAMR either detect an Eigen installation or use its own \
+bundled copy.")
+        ENDIF()
+      ENDIF()
+    ENDIF()
+
+    # Verify that libMesh uses the same PETSc that we do:
     CHECK_CXX_SOURCE_COMPILES(
       "
       #include <libmesh/libmesh_config.h>
