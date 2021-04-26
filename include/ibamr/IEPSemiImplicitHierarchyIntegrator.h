@@ -439,6 +439,17 @@ private:
     void computeChemicalPotential(int chemical_potential_idx, const int H_new_idx, const double new_time);
 
     /*!
+     * Compute LHS of AC equation.
+     */
+    void computeLHSOfLiquidFractionEquation(int lf_lhs_idx,
+                                            const int lf_N_scratch_idx,
+                                            const double dt,
+                                            const int cycle_num,
+                                            const double new_time,
+                                            const double current_time,
+                                            const double half_time);
+
+    /*!
      * Additional variables required.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
@@ -579,6 +590,12 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_old_var;
     int d_T_old_current_idx, d_T_old_new_idx, d_T_old_scratch_idx;
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_lhs_var, d_lf_lhs_N_var;
+    int d_lf_lhs_idx, d_lf_lhs_N_scratch_idx;
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_lf_N_var;
+    int d_T_lf_N_scratch_idx;
 };
 } // namespace IBAMR
 
