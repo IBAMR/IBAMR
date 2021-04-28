@@ -160,6 +160,7 @@ dnl
   AC_MSG_CHECKING([for a usable libMesh UniquePtr/unique_ptr configuration])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <libmesh/auto_ptr.h>
+#include <libmesh/libmesh_version.h>
 
 #include <type_traits>
 
