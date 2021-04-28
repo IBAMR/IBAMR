@@ -230,6 +230,7 @@ SETUP_2D(IBTK phys_boundary_ops.cpp)
 SETUP_2D(IBTK poisson_01.cpp)
 SETUP_2D(IBTK prolongation_mat.cpp)
 SETUP_2D(IBTK samraidatacache_01.cpp)
+SETUP_2D(IBTK secondary_hierarchy_01.cpp)
 SETUP_2D(IBTK vc_viscous_solver.cpp)
 SETUP_2D(IBTK helmholtz.cpp)
 
