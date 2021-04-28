@@ -374,7 +374,7 @@ main(int argc, char* argv[])
             time_integrator->registerBodyForceFunction(polymericStressForcing);
         }
 
-        libMesh::UniquePtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
@@ -550,16 +550,16 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     const DofMap& dof_map = x_system.get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
 
-    libMesh::UniquePtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
-    libMesh::UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
+    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
     fe->attach_quadrature_rule(qrule.get());
     const vector<double>& JxW = fe->get_JxW();
     const vector<libMesh::Point>& q_point = fe->get_xyz();
     const vector<vector<double> >& phi = fe->get_phi();
     const vector<vector<VectorValue<double> > >& dphi = fe->get_dphi();
 
-    libMesh::UniquePtr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
-    libMesh::UniquePtr<QBase> qrule_face(QBase::build(QGAUSS, dim - 1, SEVENTH));
+    std::unique_ptr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
+    std::unique_ptr<QBase> qrule_face(QBase::build(QGAUSS, dim - 1, SEVENTH));
     fe_face->attach_quadrature_rule(qrule_face.get());
     const vector<double>& JxW_face = fe_face->get_JxW();
     const vector<libMesh::Point>& q_point_face = fe_face->get_xyz();

@@ -49,7 +49,6 @@
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
-#include <ibamr/app_namespaces.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
@@ -58,6 +57,8 @@
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+#include <ibamr/app_namespaces.h>
 
 // Application specific includes.
 #include "FlowGravityForcing.h"
@@ -808,7 +809,7 @@ main(int argc, char* argv[])
             time_integrator->registerVisItDataWriter(visit_data_writer);
             ib_interpolant_method_ops->registerLSiloDataWriter(silo_data_writer);
         }
-        libMesh::UniquePtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         if (ibfe_method_ops)

@@ -24022,11 +24022,18 @@ $as_echo_n "checking for a usable libMesh UniquePtr/unique_ptr configuration... 
 /* end confdefs.h.  */
 
 #include <libmesh/auto_ptr.h>
+#include <libmesh/libmesh_version.h>
 
 #include <type_traits>
 
+// This check is not necessary for newer versions which completely remove
+// UniquePtr
+#if LIBMESH_VERSION_LESS_THAN(1, 7, 0)
 static_assert(std::is_same<libMesh::UniquePtr<int>, std::unique_ptr<int>>::value,
               "libMesh should use std::unique_ptr");
+#else
+// OK
+#endif
 
 #ifdef FC_DUMMY_MAIN
 #ifndef FC_DUMMY_MAIN_EQ_F77

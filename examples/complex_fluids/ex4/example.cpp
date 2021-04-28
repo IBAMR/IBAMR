@@ -424,10 +424,10 @@ main(int argc, char* argv[])
             time_integrator->registerBodyForceFunction(polymericStressForcing);
         }
 
-        libMesh::UniquePtr<ExodusII_IO> exodus_io_0(uses_exodus ? new ExodusII_IO(*(meshes[0])) : NULL);
-        libMesh::UniquePtr<ExodusII_IO> exodus_io_1(uses_exodus ? new ExodusII_IO(*(meshes[1])) : NULL);
-        libMesh::UniquePtr<ExodusII_IO> exodus_io_2(uses_exodus ? new ExodusII_IO(*(meshes[2])) : NULL);
-        libMesh::UniquePtr<ExodusII_IO> exodus_io_3(uses_exodus ? new ExodusII_IO(*(meshes[3])) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io_0(uses_exodus ? new ExodusII_IO(*(meshes[0])) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io_1(uses_exodus ? new ExodusII_IO(*(meshes[1])) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io_2(uses_exodus ? new ExodusII_IO(*(meshes[2])) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io_3(uses_exodus ? new ExodusII_IO(*(meshes[3])) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
