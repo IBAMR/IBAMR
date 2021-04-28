@@ -163,8 +163,14 @@ dnl
 
 #include <type_traits>
 
+// This check is not necessary for newer versions which completely remove
+// UniquePtr
+#if LIBMESH_VERSION_LESS_THAN(1, 7, 0)
 static_assert(std::is_same<libMesh::UniquePtr<int>, std::unique_ptr<int>>::value,
               "libMesh should use std::unique_ptr");
+#else
+// OK
+#endif
   ]])],[LIBMESH_UNIQUE_PTR_OK=yes],[LIBMESH_UNIQUE_PTR_OK=no])
   AC_MSG_RESULT([${LIBMESH_UNIQUE_PTR_OK}])
   if test "$LIBMESH_UNIQUE_PTR_OK" = no; then
