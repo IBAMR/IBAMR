@@ -173,8 +173,8 @@ SETUP(CIB cib_double_shell.cpp IBAMR3d)
 SETUP(ConstraintIB oscillating_rigid_cylinder.cpp IBAMR2d)
 
 # IB:
-SETUP(IB explicit_ex0 IBAMR2d)
-SETUP(IB explicit_ex1 IBAMR2d)
+SETUP(IB explicit_ex0.cpp IBAMR2d)
+SETUP(IB explicit_ex1.cpp IBAMR2d)
 
 # IBFE:
 IF(IBAMR_HAVE_LIBMESH)
@@ -200,8 +200,8 @@ IF(IBAMR_HAVE_LIBMESH)
 ENDIF()
 
 # IBTK:
-SETUP(IBTK equal_eps IBAMR2d)
-SETUP(IBTK hierarchy_callbacks IBAMR2d)
+SETUP(IBTK equal_eps.cpp IBAMR2d)
+SETUP(IBTK hierarchy_callbacks.cpp IBAMR2d)
 SETUP(IBTK ibtk_init.cpp IBAMR2d)
 SETUP(IBTK ibtk_mpi.cpp IBAMR2d)
 SETUP(IBTK ldata_01.cpp IBAMR2d)
