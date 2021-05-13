@@ -1485,8 +1485,6 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
 
             // At this point the primary hierarchy has been regridded but the
             // scratch hierarchy has not.
-            d_secondary_hierarchy->d_load_balancer->setWorkloadPatchDataIndex(d_lagrangian_workload_current_idx);
-
             for (int ln = 0; ln <= d_secondary_hierarchy->d_secondary_hierarchy->getFinestLevelNumber(); ++ln)
             {
                 Pointer<PatchLevel<NDIM> > scratch_level =
@@ -1506,8 +1504,11 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             // Use this class' buffer requirements when regridding
             Array<int> tag_buffer;
             setupTagBuffer(tag_buffer, d_secondary_hierarchy->getGriddingAlgorithm());
-            d_secondary_hierarchy->reinit(
-                getCoarsestPatchLevelNumber(), getFinestPatchLevelNumber(), d_hierarchy, tag_buffer);
+            d_secondary_hierarchy->reinit(getCoarsestPatchLevelNumber(),
+                                          getFinestPatchLevelNumber(),
+                                          d_hierarchy,
+                                          tag_buffer,
+                                          d_lagrangian_workload_current_idx);
 
             if (d_do_log) plog << "IBFEMethod: finished scratch hierarchy regrid" << std::endl;
         }

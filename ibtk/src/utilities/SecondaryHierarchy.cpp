@@ -94,7 +94,8 @@ void
 SecondaryHierarchy::reinit(int coarsest_patch_level_number,
                            int finest_patch_level_number,
                            Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                           const tbox::Array<int>& tag_buffer)
+                           const tbox::Array<int>& tag_buffer,
+                           int workload_idx)
 {
     d_coarsest_patch_level_number = coarsest_patch_level_number;
     d_finest_patch_level_number = finest_patch_level_number;
@@ -103,6 +104,7 @@ SecondaryHierarchy::reinit(int coarsest_patch_level_number,
     d_transfer_forward_schedules.clear();
     d_transfer_backward_schedules.clear();
 
+    d_load_balancer->setWorkloadPatchDataIndex(workload_idx);
     // case where everything is on the coarsest level:
     if (d_finest_patch_level_number == 0)
     {

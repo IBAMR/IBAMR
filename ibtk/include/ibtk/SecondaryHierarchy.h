@@ -75,7 +75,8 @@ public:
     void reinit(int coarsest_patch_level_number,
                 int finest_patch_level_number,
                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
-                const SAMRAI::tbox::Array<int>& tag_buffer);
+                const SAMRAI::tbox::Array<int>& tag_buffer,
+                int workload_idx);
 
     /*!
      * Get the transfer schedule from the primary hierarchy to the scratch
@@ -111,14 +112,6 @@ public:
      * Get a copy of the pointer to the scratch patch object.
      */
     std::shared_ptr<IBTK::SAMRAIDataCache> getSAMRAIDataCache();
-
-    /**
-     * Load balancer.
-     *
-     * @note this object has to be persistent since d_scratch_gridding_alg
-     * requires it: see the note for that member object.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
 
     /*!
      * Pointer to the primary patch hierarchy (i.e., the one not by this class).
@@ -163,6 +156,14 @@ protected:
      * requires it: see the note for that member object.
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::BoxGeneratorStrategy<NDIM> > d_box_generator;
+
+    /**
+     * Load balancer.
+     *
+     * @note this object has to be persistent since d_scratch_gridding_alg
+     * requires it: see the note for that member object.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
 
     /**
      * Gridding algorithm.
