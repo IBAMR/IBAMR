@@ -214,6 +214,24 @@ public:
      */
     void removeNullSpace(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec);
 
+    /*!
+     * \brief Function to reset fluid density or viscosity if they are
+     * maintained by this integrator.
+     */
+    using ResetContinuitySourceFcnPtr = void (*)(int Div_U_F_idx,
+                                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > Div_U_F_var,
+                                                 SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                 int cycle_num,
+                                                 double time,
+                                                 double current_time,
+                                                 double new_time,
+                                                 void* ctx);
+
+    /*!
+     * \brief Register function to compute continuity equation source term.
+     */
+    void registerContinuitySourceFcn(ResetContinuitySourceFcnPtr callback, void* ctx);
+
 protected:
     /*!
      * L1 norm of the discrete divergence of the fluid velocity before regridding.
@@ -479,6 +497,15 @@ private:
     int d_UU_fluct_current_idx = IBTK::invalid_index, d_UU_fluct_new_idx = IBTK::invalid_index,
         d_UU_fluct_scratch_idx = IBTK::invalid_index;
     int d_k_current_idx = IBTK::invalid_index, d_k_new_idx = IBTK::invalid_index, d_k_scratch_idx = IBTK::invalid_index;
+
+    /*!
+     * Functions to compute continuity equation RHS if they are maintained by this integrator.
+     */
+    std::vector<ResetContinuitySourceFcnPtr> d_compute_continuity_source_fcns;
+    std::vector<void*> d_compute_continuity_source_fcns_ctx;
+
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Div_U_F_var;
+    int d_Div_U_F_idx;
 };
 } // namespace IBAMR
 

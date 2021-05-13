@@ -587,6 +587,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     d_F_cc_var = new CellVariable<NDIM, double>(d_object_name + "::F_cc", NDIM);
     d_Omega_var = new CellVariable<NDIM, double>(d_object_name + "::Omega", (NDIM == 2) ? 1 : NDIM);
     d_Div_U_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U");
+    d_Div_U_F_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U_F");
 
     d_Omega_Norm_var = (NDIM == 2) ? nullptr : new CellVariable<NDIM, double>(d_object_name + "::|Omega|_2");
     d_U_regrid_var = new SideVariable<NDIM, double>(d_object_name + "::U_regrid");
@@ -920,6 +921,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     }
     registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getCurrentContext());
     registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
+    registerVariable(d_Div_U_F_idx, d_Div_U_F_var, no_ghosts, getCurrentContext());
 
     // Register scratch variables that are maintained by the
     // INSStaggeredHierarchyIntegrator.
@@ -1765,6 +1767,26 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }
 
+    // Account for continuity equation source term.
+    if (d_compute_continuity_source_fcns.size() > 0)
+    {
+        const double apply_time = new_time;
+        for (unsigned k = 0; k < d_compute_continuity_source_fcns.size(); ++k)
+        {
+            d_compute_continuity_source_fcns[k](d_Div_U_F_idx,
+                                                d_Div_U_F_var,
+                                                d_hier_math_ops,
+                                                -1 /*cycle_num*/,
+                                                apply_time,
+                                                current_time,
+                                                new_time,
+                                                d_compute_continuity_source_fcns_ctx[k]);
+        }
+
+        d_hier_cc_data_ops->add(
+            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Div_U_F_idx);
+    }
+
     // Account for internal source/sink distributions.
     if (d_Q_fcn)
     {
@@ -1868,6 +1890,12 @@ INSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVectorRe
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
         d_hier_sc_data_ops->copyData(d_F_new_idx, d_F_scratch_idx);
     }
+
+    // Reset the right-hand side vector of continuity equation.
+    if (d_compute_continuity_source_fcns.size() > 0)
+        d_hier_cc_data_ops->subtract(
+            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Div_U_F_idx);
+
     if (d_Q_fcn)
     {
         d_hier_sc_data_ops->axpy(
@@ -1991,7 +2019,7 @@ INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(con
     {
         plog << d_object_name << "::initializeCompositeHierarchyData():\n"
              << "  projecting the interpolated velocity field\n";
-        regridProjection();
+        // regridProjection();
         d_do_regrid_projection = false;
     }
     return;
@@ -2512,6 +2540,13 @@ INSStaggeredHierarchyIntegrator::regridProjection()
     return;
 } // regridProjection
 
+void
+INSStaggeredHierarchyIntegrator::registerContinuitySourceFcn(ResetContinuitySourceFcnPtr callback, void* ctx)
+{
+    d_compute_continuity_source_fcns.push_back(callback);
+    d_compute_continuity_source_fcns_ctx.push_back(ctx);
+    return;
+} // registerContinuitySourceFcn
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
