@@ -139,7 +139,7 @@ beam_PK1_dil_stress_function(TensorValue<double>& PP,
 
 struct node_x_comp : std::binary_function<const libMesh::Node*, const libMesh::Node*, bool>
 {
-    inline bool operator()(const libMesh::Node* const a, const libMesh::Node* const b)
+    inline bool operator()(const libMesh::Node* const a, const libMesh::Node* const b) const
     {
         return (*a)(0) < (*b)(0);
     }
