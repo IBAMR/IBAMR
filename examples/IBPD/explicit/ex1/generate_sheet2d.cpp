@@ -46,44 +46,80 @@ sort_edge(Edge& e)
 int
 main(int /*argc*/, char** /*argv*/)
 {
-    // Problem parameters
-    const double R = 0.3;
-    const double w = 0.3;
-    const double x_c = 0.2;
-    const double y_c = 0.2;
+    // // Problem parameters
+    // const double R = 0.3;
+    // const double w = 0.3;
+    // const double x_c = 0.2;
+    // const double y_c = 0.2;
 
-    const int N = 128;
-    const double dx = 1.0 / (double)N;
-    const double MFAC = 1.0;
-    const double ds = MFAC * dx;
+    // const int N = 128;
+    // const double dx = 1.0 / (double)N;
+    // const double MFAC = 1.0;
+    // const double ds = MFAC * dx;
 
-    const int n_x = ceil(R / ds);
-    const int n_y = ceil(w / ds);
-    const int totnode = n_x * n_y;
+    // const int n_x = ceil(R / ds);
+    // const int n_y = ceil(w / ds);
+    // const int totnode = n_x * n_y;
 
-    const double area = ds * ds;  // cross-sectional area
-    const double vol = area * ds; // volume of a material point
-    const double delta = 2.015 * ds;
-    const double scr0 = 50 * ds; // critical stretch.
+    // const double area = ds * ds;  // cross-sectional area
+    // const double vol = area * ds; // volume of a material point
+    // const double delta = 2.015 * ds;
+    // const double scr0 = 50 * ds; // critical stretch.
+
+    // compressed block
+    const int ndivx = 33; // num points in x direction.
+    const int ndivy = 17;  // num points in y direction.
+    const int nbnd = 0;
+    const int totnode = (ndivx + 2 * nbnd) * (ndivy + 2 * nbnd);
+
+    const double length = 20.0;              // total length of the plate (m)
+    const double width = 10.0;               // total width of the plate (m)
+
+    const double dx = length / (ndivx - 1); // spacing between material points in x direction
+    const double dy = width / (ndivy - 1);  // spacing between material points in y direction
+    const double delta = 2.015 * dx; // 3.015 * dx;      // horizon
+    const double thick = dx;         // thickness of the plate
+    const double area = dx * dx;     // cross-sectional area
+    const double vol = area * thick; // volume of a material point
+
+    const double scr0 = 30.0; // critical stretch
 
     // Initialize vertices
     std::vector<std::vector<double> > coord(totnode, std::vector<double>(2));
     int nnum = -1;
-    double x, y;
+    // double x, y;
+    // // Material points in the region.
+
+    //     for (int j = 0; j <= (n_y - 1); ++j)
+    //     {
+    //         for (int i = 0; i <= (n_x - 1); ++i)
+    //         {
+    //             nnum += 1;
+    //             x = i * ds;
+    //             y = j * ds;
+
+    //             coord[nnum][0] = x + x_c; // shift in x-direction
+    //             coord[nnum][1] = y + y_c; // shift in y-direction
+    //         }
+    //     }
+
     // Material points in the region.
 
-        for (int j = 0; j <= (n_y - 1); ++j)
+        for (int j = 0; j <= (ndivy - 1); ++j)
         {
-            for (int i = 0; i <= (n_x - 1); ++i)
+            for (int i = 0; i <= (ndivx - 1); ++i)
             {
                 nnum += 1;
-                x = i * ds;
-                y = j * ds;
-
-                coord[nnum][0] = x + x_c; // shift in x-direction
-                coord[nnum][1] = y + y_c; // shift in y-direction
+                coord[nnum][0] = i * dx + 10.0; // shift in x-direction
+                coord[nnum][1] = j * dy + 15.0; // shift in y-direction
             }
         }
+
+    std::cout << "\n~~~~~~~~~~~~~~~~~~~~~~~~~\n";
+    std::cout << "total number of nodes = " << totnode << std::endl;
+    std::cout << "total number of nodes in x = " << ndivx << std::endl;
+    std::cout << "total number of nodes in y = " << ndivy << std::endl;
+    std::cout << "\n~~~~~~~~~~~~~~~~~~~~~~~~~\n";
 
     // Initialize springs
     // Determination of material points inside the horizon of each material point
