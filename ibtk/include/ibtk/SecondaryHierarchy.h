@@ -46,7 +46,7 @@ namespace IBTK
  * is an equivalent (same index space) hierarchy to a given PatchHierarchy,
  * but is partitioned in parallel in a different way.
  */
-struct SecondaryHierarchy
+class SecondaryHierarchy
 {
 public:
     /**
