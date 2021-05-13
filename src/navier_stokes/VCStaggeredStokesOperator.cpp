@@ -130,7 +130,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
-    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(U_scratch_idx);
+    //    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(U_scratch_idx);
 
     // Compute the action of the operator:
     //

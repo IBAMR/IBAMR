@@ -208,6 +208,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     d_rho_p_integrator->setSideCenteredVelocityBoundaryConditions(d_U_bc_coefs);
     d_rho_p_integrator->setSideCenteredDensityBoundaryConditions(d_rho_sc_bc_coefs);
     if (d_S_fcn) d_rho_p_integrator->setMassDensitySourceTerm(d_S_fcn);
+    if (d_rho_fcn) d_rho_p_integrator->setAnalyticalDensityFunc(d_rho_fcn);
 
     return;
 } // initializeHierarchyIntegrator
@@ -409,7 +410,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     d_U_bdry_bc_fill_op->fillData(current_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
                                                               /*P_bc_coef*/ nullptr);
-    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
+    //    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
     // RHS^n = (C_rhs*I + L(D_rhs))*U^n
     d_hier_math_ops->vc_laplace(U_rhs_idx,
                                 U_rhs_var,
@@ -664,7 +665,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
 
             d_rho_p_integrator->integrate(dt);
         }
-
+        d_hier_sc_data_ops->scale(N_idx, 0.0, N_idx);
         // Set the full convective term depending on the time stepping type
         d_hier_sc_data_ops->copyData(d_N_full_idx, N_idx, /*interior_only*/ true);
     }
@@ -893,6 +894,26 @@ INSVCStaggeredConservativeHierarchyIntegrator::registerMassDensitySourceTerm(Poi
     }
     return;
 } // registerMassDensitySourceTerm
+
+void
+INSVCStaggeredConservativeHierarchyIntegrator::registerAnalyticalDensityFunction(Pointer<CartGridFunction> rho_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    if (!d_rho_fcn)
+    {
+        d_rho_fcn = rho_fcn;
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << "::INSVCStaggeredConservativeHierarchyIntegrator():\n"
+                                 << " present implementation allows for only one mass density\n"
+                                 << " term to be set. Consider combining source terms into single "
+                                    "CartGridFunction.\n");
+    }
+    return;
+} // registerAnalyticalDensityFunction
 
 int
 INSVCStaggeredConservativeHierarchyIntegrator::getNumberOfCycles() const
@@ -1422,26 +1443,31 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
     // Account for body forcing terms.
     if (d_F_fcn)
     {
-        d_F_fcn->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, half_time);
+        // d_F_fcn->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, half_time);
+        d_F_fcn->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, new_time);
         d_hier_sc_data_ops->add(
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }
 
     // Account for continuity equation source term.
-    const double apply_time = new_time;
-    for (unsigned k = 0; k < d_compute_continuity_source_fcns.size(); ++k)
+    if (d_compute_continuity_source_fcns.size() > 0)
     {
-        d_compute_continuity_source_fcns[k](d_Div_U_F_idx,
-                                            d_Div_U_F_var,
-                                            d_hier_math_ops,
-                                            -1 /*cycle_num*/,
-                                            apply_time,
-                                            current_time,
-                                            new_time,
-                                            d_compute_continuity_source_fcns_ctx[k]);
+        const double apply_time = new_time;
+        for (unsigned k = 0; k < d_compute_continuity_source_fcns.size(); ++k)
+        {
+            d_compute_continuity_source_fcns[k](d_Div_U_F_idx,
+                                                d_Div_U_F_var,
+                                                d_hier_math_ops,
+                                                -1 /*cycle_num*/,
+                                                apply_time,
+                                                current_time,
+                                                new_time,
+                                                d_compute_continuity_source_fcns_ctx[k]);
+        }
+
+        d_hier_cc_data_ops->add(
+            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Div_U_F_idx);
     }
-    d_hier_cc_data_ops->add(
-        rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Div_U_F_idx);
 
     // Add Brinkman penalized velocity term.
     d_hier_sc_data_ops->add(
@@ -1546,8 +1572,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
         rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
 
     // Reset the right-hand side vector of continuity equation.
-    d_hier_cc_data_ops->subtract(
-        rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Div_U_F_idx);
+    if (d_compute_continuity_source_fcns.size() > 0)
+        d_hier_cc_data_ops->subtract(
+            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Div_U_F_idx);
 
     if (d_Q_fcn)
     {

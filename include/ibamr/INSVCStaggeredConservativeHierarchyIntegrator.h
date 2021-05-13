@@ -151,6 +151,13 @@ public:
     void registerMassDensitySourceTerm(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> S_fcn);
 
     /*!
+     * \brief Supply a source term for the mass update equation.
+     *
+     * \note Current implementation is used only to check order of accuracy via a manufactured solution.
+     */
+    void registerAnalyticalDensityFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> rho_fcn);
+
+    /*!
      * Returns the number of cycles to perform for the present time step.
      */
     int getNumberOfCycles() const override;
@@ -288,6 +295,7 @@ private:
      * Source term function for the mass density update
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_rho_fcn;
 
     /*
      * Conservative density and momentum integrator.

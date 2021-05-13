@@ -118,6 +118,8 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp \
 ../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp \
 ../src/adv_diff/IEPSemiImplicitHierarchyIntegrator.cpp \
+../src/adv_diff/MassConservationHierarchyIntegrator.cpp \
+../src/adv_diff/MassIntegrator.cpp \
 ../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 ../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 ../src/complex_fluids/CFUpperConvectiveOperator.cpp \
@@ -301,6 +303,8 @@ pkg_include_HEADERS += \
 ../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 ../include/ibamr/KrylovMobilitySolver.h \
 ../include/ibamr/LSInitStrategy.h \
+../include/ibamr/MassConservationHierarchyIntegrator.h \
+../include/ibamr/MassIntegrator.h \
 ../include/ibamr/MobilityFunctions.h \
 ../include/ibamr/NonbondedForceEvaluator.h \
 ../include/ibamr/PETScKrylovStaggeredStokesSolver.h \

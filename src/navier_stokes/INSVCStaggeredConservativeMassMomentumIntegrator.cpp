@@ -21,6 +21,7 @@
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/IndexUtilities.h"
 
 #include "BasePatchHierarchy.h"
 #include "BoundaryBox.h"
@@ -1262,9 +1263,9 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
         d_u_sc_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
     d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_v_bdry_fill->fillData(d_current_time);
-    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
-        d_V_scratch_idx, d_coarsest_ln, d_finest_ln, StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
-    enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
+    //    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
+    //        d_V_scratch_idx, d_coarsest_ln, d_finest_ln, StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
+    //    enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_sc_bc_coefs, nullptr);
     d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
 
@@ -1357,9 +1358,10 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
                 d_u_sc_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
             d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
             d_hier_v_bdry_fill->fillData(eval_time);
-            d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
-                d_V_scratch_idx, d_coarsest_ln, d_finest_ln, StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
-            enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
+            //            d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
+            //                d_V_scratch_idx, d_coarsest_ln, d_finest_ln,
+            //                StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
+            //            enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
             StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_sc_bc_coefs, nullptr);
             d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
         }
@@ -1373,6 +1375,8 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
         {
             d_hier_sc_data_ops->setToScalar(d_S_scratch_idx, 0.0);
         }
+
+        // d_rho_fcn->setDataOnPatchHierarchy(d_rho_sc_scratch_idx, d_rho_sc_var, d_hierarchy, d_new_time);
 
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {
@@ -1441,7 +1445,7 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
                     IBAMR_TIMER_START(t_apply_convective_operator);
 
                     computeConvectiveDerivative(
-                        N_data, P_half_data, V_adv_data, R_half_data, V_half_data, side_boxes, dx);
+                        N_data, P_half_data, V_adv_data, R_half_data, V_half_data, side_boxes, dx, patch);
 
                     IBAMR_TIMER_STOP(t_apply_convective_operator);
                 }
@@ -1514,6 +1518,8 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
     d_hier_rho_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_rho_bdry_fill->fillData(new_time);
     d_hier_rho_bdry_fill->resetTransactionComponents(d_rho_transaction_comps);
+
+    d_rho_fcn->setDataOnPatchHierarchy(d_rho_sc_scratch_idx, d_rho_sc_var, d_hierarchy, d_new_time);
 
     d_hier_sc_data_ops->copyData(d_rho_sc_new_idx,
                                  d_rho_sc_scratch_idx,
@@ -1722,6 +1728,16 @@ INSVCStaggeredConservativeMassMomentumIntegrator::setMassDensitySourceTerm(const
     d_S_fcn = S_fcn;
     return;
 } // setMassDensitySourceTerm
+
+void
+INSVCStaggeredConservativeMassMomentumIntegrator::setAnalyticalDensityFunc(const Pointer<CartGridFunction> rho_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(rho_fcn);
+#endif
+    d_rho_fcn = rho_fcn;
+    return;
+} // setAnalyticalDensityFunc
 
 void
 INSVCStaggeredConservativeMassMomentumIntegrator::setFluidVelocityPatchDataIndices(int V_old_idx,
@@ -2391,8 +2407,25 @@ INSVCStaggeredConservativeMassMomentumIntegrator::computeConvectiveDerivative(
     const std::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
     const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_data,
     const std::array<Box<NDIM>, NDIM>& side_boxes,
-    const double* const dx)
+    const double* const dx,
+    const Pointer<Patch<NDIM> >& patch)
 {
+//            for (unsigned int axis = 0; axis < NDIM; ++axis)
+//            {
+//                const Box<NDIM>& ghost_box = R_half_data[axis]->getGhostBox();
+//                Pointer<FaceData<NDIM, double>> fc_data = R_half_data[axis];
+//                for (FaceIterator<NDIM> ic(ghost_box, axis); ic; ic++)
+//                {
+//                    const FaceIndex<NDIM>& i = ic();
+//
+//                    (*fc_data)(i) = 100.0 + cos(d_new_time);
+//                }
+//                std::ofstream rho_data;
+//                rho_data.open("rho_data_"+std::to_string(axis));
+//                fc_data->print(ghost_box, rho_data);
+//                rho_data.close();
+//            }
+
 // Compute the upwinded momentum P_half = R_half * U_half
 #if (NDIM == 2)
     VC_NAVIER_STOKES_COMPUTE_MOMENTUM_FC(side_boxes[0].lower(0),
@@ -2549,6 +2582,25 @@ INSVCStaggeredConservativeMassMomentumIntegrator::computeConvectiveDerivative(
                               N_data->getPointer(axis));
 #endif
     }
+
+    //    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    //    {
+    //        const Box<NDIM>& patch_box = N_data->getBox();
+    //        Pointer<SideData<NDIM, double>> N_analytical_data = N_data;
+    //        for (SideIterator<NDIM> ic(patch_box, axis); ic; ic++)
+    //        {
+    //            const SideIndex<NDIM>& si = ic();
+    //             IBTK::Vector coord = IndexUtilities::getSideCenter(*patch, si);
+    //
+    //            if (axis == 0)
+    //                (*N_analytical_data)(si) = -coord[0]*cos(d_new_time)*(100.0+cos(d_new_time))*sin(d_new_time) +
+    //                2*coord[0]*(100.0+cos(d_new_time))*sin(d_new_time)*sin(d_new_time);
+    //            else if (axis == 1)
+    //                (*N_analytical_data)(si) = 2.0*coord[1]*cos(d_new_time)*cos(d_new_time)*(100.0+cos(d_new_time)) -
+    //                coord[1]*cos(d_new_time)*(100.0+cos(d_new_time))*sin(d_new_time);
+    //        }
+    //    }
+
 } // computeConvectiveDerivative
 
 void
