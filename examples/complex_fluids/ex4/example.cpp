@@ -243,7 +243,8 @@ main(int argc, char* argv[])
         solid_mesh.prepare_for_use();
 
         BoundaryMesh roller_tl(solid_mesh.comm(), solid_mesh.mesh_dimension() - 1);
-        solid_mesh.boundary_info->sync(roller_tl);
+        BoundaryInfo& boundary_info = solid_mesh.get_boundary_info();
+        boundary_info.sync(roller_tl);
 
         BoundaryMesh roller_tr = roller_tl;
         BoundaryMesh roller_br = roller_tl;
