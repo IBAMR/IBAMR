@@ -44,7 +44,12 @@ namespace IBTK
 {
 namespace
 {
-class NullTagAndInit : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+/**
+ * The secondary hierarchy is special in that we already know which cells it
+ * should contain - i.e., we don't want to tag anything different than what is
+ * already present. This class just tags cells that are already refined.
+ */
+class CopyRefinementTags : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
 {
     virtual void initializeLevelData(const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > /*hierarchy*/,
                                      const int /*level_number*/,
@@ -93,8 +98,7 @@ class NullTagAndInit : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
             auto coarsened_box = finer_box;
             coarsened_box.coarsen(finer_level->getRatioToCoarserLevel());
             {
-                // We need to satisfy the proper nesting condition for this to
-                // work, otherwise we won't tag exactly the same set of cells
+                // Sanity check that we really do have proper nesting
                 auto check_box = coarsened_box;
                 check_box.refine(finer_level->getRatioToCoarserLevel());
                 TBOX_ASSERT(check_box == finer_box);
@@ -125,7 +129,7 @@ SecondaryHierarchy::SecondaryHierarchy(std::string name,
     : d_object_name(name),
       d_coarsest_patch_level_number(-1),
       d_finest_patch_level_number(-1),
-      d_tag_strategy(std::unique_ptr<NullTagAndInit>(new NullTagAndInit())),
+      d_tag_strategy(std::unique_ptr<CopyRefinementTags>(new CopyRefinementTags())),
       d_eulerian_data_cache(std::make_shared<SAMRAIDataCache>())
 {
     // IBAMR consistently uses applyGradientDetector for everything so do that too
