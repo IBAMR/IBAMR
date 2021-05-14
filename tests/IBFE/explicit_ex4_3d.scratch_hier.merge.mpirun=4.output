@@ -20,6 +20,10 @@ IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
 IBFEMethod: starting scratch hierarchy regrid
 IBFEMethod: finished scratch hierarchy regrid
 IBFEMethod::scratch hierarchy workload
+workload estimate on processor 0 = 235
+workload estimate on processor 1 = 235
+workload estimate on processor 2 = 217
+workload estimate on processor 3 = 217
 IBFEMethod:: end scratch hierarchy workload
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver

@@ -19,6 +19,10 @@ IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
 IBFEMethod: starting scratch hierarchy regrid
 IBFEMethod: finished scratch hierarchy regrid
 IBFEMethod::scratch hierarchy workload
+workload estimate on processor 0 = 86
+workload estimate on processor 1 = 86
+workload estimate on processor 2 = 89
+workload estimate on processor 3 = 105
 IBFEMethod:: end scratch hierarchy workload
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
@@ -1167,6 +1171,19 @@ local active DoFs on processor 1 = 504
 local active DoFs on processor 2 = 504
 local active DoFs on processor 3 = 537
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
+FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
+quadrature points on processor 0 = 1251
+quadrature points on processor 1 = 1396
+quadrature points on processor 2 = 1265
+quadrature points on processor 3 = 1270
+workload estimate on processor 0 = 98
+workload estimate on processor 1 = 86
+workload estimate on processor 2 = 80
+workload estimate on processor 3 = 102
+local active DoFs on processor 0 = 594
+local active DoFs on processor 1 = 504
+local active DoFs on processor 2 = 504
+local active DoFs on processor 3 = 537
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
 FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
 quadrature points on processor 0 = 0
@@ -1175,38 +1192,12 @@ quadrature points on processor 2 = 1270
 quadrature points on processor 3 = 0
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
 IBFEMethod: starting scratch hierarchy regrid
-FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
-quadrature points on processor 0 = 529
-quadrature points on processor 1 = 2523
-quadrature points on processor 2 = 2130
-quadrature points on processor 3 = 0
-workload estimate on processor 0 = 42
-workload estimate on processor 1 = 170
-workload estimate on processor 2 = 154
-workload estimate on processor 3 = 0
-local active DoFs on processor 0 = 594
-local active DoFs on processor 1 = 504
-local active DoFs on processor 2 = 504
-local active DoFs on processor 3 = 537
-quadrature points on processor 0 = 529
-quadrature points on processor 1 = 2523
-quadrature points on processor 2 = 2130
-quadrature points on processor 3 = 0
 IBFEMethod: finished scratch hierarchy regrid
 IBFEMethod::scratch hierarchy workload
-FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
-quadrature points on processor 0 = 1251
-quadrature points on processor 1 = 1396
-quadrature points on processor 2 = 1265
-quadrature points on processor 3 = 1270
-workload estimate on processor 0 = 95
-workload estimate on processor 1 = 89
-workload estimate on processor 2 = 80
-workload estimate on processor 3 = 102
-local active DoFs on processor 0 = 594
-local active DoFs on processor 1 = 504
-local active DoFs on processor 2 = 504
-local active DoFs on processor 3 = 537
+workload estimate on processor 0 = 79
+workload estimate on processor 1 = 102
+workload estimate on processor 2 = 114
+workload estimate on processor 3 = 71
 IBFEMethod:: end scratch hierarchy workload
 workload estimate on processor 0 = 500
 workload estimate on processor 1 = 448
@@ -1288,9 +1279,10 @@ Simulation time is 0.0390625
 
 0.039062500000 0.124444114893
 Scratch hierarchy boxes:
-[(4,0),(23,19)]
-[(4,20),(15,39)]
-[(16,20),(23,27)]
-[(24,0),(39,19)]
-[(16,28),(39,39)]
-[(24,20),(39,27)]
+[(0,0),(11,39)]
+[(12,0),(27,11)]
+[(12,12),(19,27)]
+[(20,12),(27,19)]
+[(20,20),(27,27)]
+[(12,28),(27,39)]
+[(28,0),(39,39)]
