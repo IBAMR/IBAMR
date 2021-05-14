@@ -104,8 +104,6 @@ public:
                                 int scratch_data_idx,
                                 SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
 
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > getGriddingAlgorithm();
-
     /*!
      * Get a copy of the pointer to the scratch patch object.
      */

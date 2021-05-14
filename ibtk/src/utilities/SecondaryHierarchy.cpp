@@ -286,12 +286,6 @@ SecondaryHierarchy::getScratchToPrimarySchedule(const int level_number,
     return *d_transfer_backward_schedules[key];
 } // getScratchToPrimarySchedule
 
-SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
-SecondaryHierarchy::getGriddingAlgorithm()
-{
-    return d_gridding_algorithm;
-}
-
 std::shared_ptr<IBTK::SAMRAIDataCache>
 SecondaryHierarchy::getSAMRAIDataCache()
 {
