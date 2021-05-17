@@ -518,6 +518,9 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string
     d_Omega_var = new CellVariable<NDIM, double>(d_object_name + "::Omega", NDIM);
 #endif
     d_Div_U_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U");
+    d_Div_U_F_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U_F");
+    d_bulk_viscosity_cc_var = new CellVariable<NDIM, double>(d_object_name + "::bulk_viscosity_cc");
+    d_bulk_viscosity_sc_var = new SideVariable<NDIM, double>(d_object_name + "::bulk_viscosity_sc");
 
 #if (NDIM == 3)
     d_Omega_Norm_var = new CellVariable<NDIM, double>(d_object_name + "::|Omega|_2");
@@ -929,6 +932,9 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     }
     registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getCurrentContext());
     registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
+    registerVariable(d_Div_U_F_idx, d_Div_U_F_var, no_ghosts, getCurrentContext());
+    registerVariable(d_bulk_viscosity_cc_idx, d_bulk_viscosity_cc_var, cell_ghosts, getCurrentContext());
+    registerVariable(d_bulk_viscosity_sc_idx, d_bulk_viscosity_sc_var, no_ghosts, getCurrentContext());
 
 // Register scratch variables that are maintained by the
 // INSVCStaggeredHierarchyIntegrator.
@@ -1411,6 +1417,14 @@ INSVCStaggeredHierarchyIntegrator::registerResetFluidViscosityFcn(ResetFluidProp
 } // registerResetFluidViscosityFcn
 
 void
+INSVCStaggeredHierarchyIntegrator::registerContinuitySourceFcn(ResetFluidPropertiesFcnPtr callback, void* ctx)
+{
+    d_compute_continuity_source_fcns.push_back(callback);
+    d_compute_continuity_source_fcns_ctx.push_back(ctx);
+    return;
+} // registerContinuitySourceFcn
+
+void
 INSVCStaggeredHierarchyIntegrator::registerBrinkmanPenalizationStrategy(
     Pointer<BrinkmanPenalizationStrategy> brinkman_force)
 {
@@ -1565,7 +1579,7 @@ INSVCStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(c
     {
         plog << d_object_name << "::initializeCompositeHierarchyData():\n"
              << "  projecting the interpolated velocity field\n";
-        regridProjection();
+        // regridProjection();
         d_do_regrid_projection = false;
     }
     return;

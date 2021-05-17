@@ -208,6 +208,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     d_rho_p_integrator->setSideCenteredVelocityBoundaryConditions(d_U_bc_coefs);
     d_rho_p_integrator->setSideCenteredDensityBoundaryConditions(d_rho_sc_bc_coefs);
     if (d_S_fcn) d_rho_p_integrator->setMassDensitySourceTerm(d_S_fcn);
+    if (d_rho_fcn) d_rho_p_integrator->setAnalyticalDensityFunc(d_rho_fcn);
 
     return;
 } // initializeHierarchyIntegrator
@@ -666,7 +667,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
         }
 
         // Set the full convective term depending on the time stepping type
+
         d_hier_sc_data_ops->copyData(d_N_full_idx, N_idx, /*interior_only*/ true);
+        // d_hier_sc_data_ops->setToScalar(d_N_full_idx, 0.0);
     }
     const int rho_sc_new_idx = d_rho_p_integrator->getUpdatedSideCenteredDensityPatchDataIndex();
     d_hier_sc_data_ops->copyData(d_rho_sc_new_idx,
@@ -893,6 +896,26 @@ INSVCStaggeredConservativeHierarchyIntegrator::registerMassDensitySourceTerm(Poi
     }
     return;
 } // registerMassDensitySourceTerm
+
+void
+INSVCStaggeredConservativeHierarchyIntegrator::registerAnalyticalDensityFunction(Pointer<CartGridFunction> rho_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    if (!d_rho_fcn)
+    {
+        d_rho_fcn = rho_fcn;
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << "::INSVCStaggeredConservativeHierarchyIntegrator():\n"
+                                 << " present implementation allows for only one mass density\n"
+                                 << " term to be set. Consider combining source terms into single "
+                                    "CartGridFunction.\n");
+    }
+    return;
+} // registerAnalyticalDensityFunction
 
 int
 INSVCStaggeredConservativeHierarchyIntegrator::getNumberOfCycles() const
@@ -1427,6 +1450,60 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }
 
+    // Account for continuity equation source term.
+    if (d_compute_continuity_source_fcns.size() > 0)
+    {
+        const double apply_time = new_time;
+        for (unsigned k = 0; k < d_compute_continuity_source_fcns.size(); ++k)
+        {
+            d_compute_continuity_source_fcns[k](d_Div_U_F_idx,
+                                                d_Div_U_F_var,
+                                                d_hier_math_ops,
+                                                -1 /*cycle_num*/,
+                                                apply_time,
+                                                current_time,
+                                                new_time,
+                                                d_compute_continuity_source_fcns_ctx[k]);
+        }
+        d_hier_cc_data_ops->add(
+            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Div_U_F_idx);
+
+        // compute grad(-2/3 mu div u)
+        const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+        d_hier_cc_data_ops->multiply(d_bulk_viscosity_cc_idx, d_mu_new_idx, d_Div_U_F_idx);
+        d_hier_cc_data_ops->scale(d_bulk_viscosity_cc_idx, 2.0 / 3.0, d_bulk_viscosity_cc_idx);
+
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+        InterpolationTransactionComponent bulk_viscosity_bc_component(d_bulk_viscosity_cc_idx,
+                                                                      DATA_REFINE_TYPE,
+                                                                      USE_CF_INTERPOLATION,
+                                                                      DATA_COARSEN_TYPE,
+                                                                      d_bdry_extrap_type, // TODO: update variable name
+                                                                      CONSISTENT_TYPE_2_BDRY,
+                                                                      d_mu_bc_coef);
+
+        Pointer<HierarchyGhostCellInterpolation> bulk_visocsity_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+        bulk_visocsity_bdry_bc_fill_op->initializeOperatorState(bulk_viscosity_bc_component, d_hierarchy);
+        bulk_visocsity_bdry_bc_fill_op->setHomogeneousBc(true);
+        bulk_visocsity_bdry_bc_fill_op->fillData(new_time);
+
+        d_hier_math_ops->grad(d_bulk_viscosity_sc_idx,
+                              d_bulk_viscosity_sc_var,
+                              /* dst_cf_bdry_synch */ true,
+                              1.0,
+                              d_bulk_viscosity_cc_idx,
+                              d_bulk_viscosity_cc_var,
+                              nullptr,
+                              d_integrator_time);
+
+        const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
+        pout << "L2 norm of d_bulk_viscosity_sc_idx\t"
+             << d_hier_sc_data_ops->L2Norm(d_bulk_viscosity_sc_idx, wgt_sc_idx) << "\n";
+
+        d_hier_sc_data_ops->add(
+            rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_bulk_viscosity_sc_idx);
+    }
+
     // Add Brinkman penalized velocity term.
     d_hier_sc_data_ops->add(
         rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
@@ -1526,6 +1603,16 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
         d_hier_sc_data_ops->copyData(d_F_new_idx, d_F_scratch_idx);
     }
+
+    if (d_compute_continuity_source_fcns.size() > 0)
+    {
+        d_hier_cc_data_ops->subtract(
+            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Div_U_F_idx);
+
+        d_hier_sc_data_ops->subtract(
+            rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_bulk_viscosity_sc_idx);
+    }
+
     d_hier_sc_data_ops->subtract(
         rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
 

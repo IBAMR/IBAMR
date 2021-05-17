@@ -151,6 +151,11 @@ public:
     void registerMassDensitySourceTerm(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> S_fcn);
 
     /*!
+     * \brief Supply a cartgrid function to set the analytical density.
+     */
+    void registerAnalyticalDensityFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> rho_fcn);
+
+    /*!
      * Returns the number of cycles to perform for the present time step.
      */
     int getNumberOfCycles() const override;
@@ -285,9 +290,14 @@ private:
     int d_rho_interp_cc_idx;
 
     /*
-     * Source term function for the mass density update
+     * Source term function for the mass density update.
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
+
+    /*
+     * Cart grid function to set the analytical density.
+     */
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_rho_fcn;
 
     /*
      * Conservative density and momentum integrator.

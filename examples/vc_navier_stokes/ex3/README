@@ -1,0 +1,3 @@
+A test program to check that the variable-coefficient, incompressible
+Navier-Stokes solver yields the expected order of accuracy and convergence 
+rate. This specific example uses a conservative discretization.

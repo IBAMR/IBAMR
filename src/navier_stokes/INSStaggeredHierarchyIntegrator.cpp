@@ -2019,7 +2019,7 @@ INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(con
     {
         plog << d_object_name << "::initializeCompositeHierarchyData():\n"
              << "  projecting the interpolated velocity field\n";
-        // regridProjection();
+        regridProjection();
         d_do_regrid_projection = false;
     }
     return;

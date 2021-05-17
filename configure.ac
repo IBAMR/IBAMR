@@ -243,6 +243,7 @@ AC_CONFIG_FILES([
   examples/vc_navier_stokes/ex0/Makefile
   examples/vc_navier_stokes/ex1/Makefile
   examples/vc_navier_stokes/ex2/Makefile
+  examples/vc_navier_stokes/ex3/Makefile
   examples/wave_tank/Makefile
   examples/wave_tank/ex0/Makefile
   examples/wave_tank/ex1/Makefile

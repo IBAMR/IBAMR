@@ -1515,6 +1515,8 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
     d_hier_rho_bdry_fill->fillData(new_time);
     d_hier_rho_bdry_fill->resetTransactionComponents(d_rho_transaction_comps);
 
+    // d_rho_fcn->setDataOnPatchHierarchy(d_rho_sc_scratch_idx, d_rho_sc_var, d_hierarchy, d_new_time);
+
     d_hier_sc_data_ops->copyData(d_rho_sc_new_idx,
                                  d_rho_sc_scratch_idx,
                                  /*interior_only*/ true);
@@ -1722,6 +1724,16 @@ INSVCStaggeredConservativeMassMomentumIntegrator::setMassDensitySourceTerm(const
     d_S_fcn = S_fcn;
     return;
 } // setMassDensitySourceTerm
+
+void
+INSVCStaggeredConservativeMassMomentumIntegrator::setAnalyticalDensityFunc(const Pointer<CartGridFunction> rho_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(rho_fcn);
+#endif
+    d_rho_fcn = rho_fcn;
+    return;
+} // setAnalyticalDensityFunc
 
 void
 INSVCStaggeredConservativeMassMomentumIntegrator::setFluidVelocityPatchDataIndices(int V_old_idx,

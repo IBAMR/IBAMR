@@ -220,6 +220,11 @@ public:
      */
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> getHierarchyMathOps() const;
 
+    /*!
+     * \brief Computing analytical density
+     */
+    void setAnalyticalDensityFunc(const SAMRAI::tbox::Pointer<IBTK::CartGridFunction> rho_fcn);
+
 private:
     /*!
      * \brief Default constructor.
@@ -369,6 +374,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_S_var;
     int d_S_scratch_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_rho_fcn;
 
     // Variable to indicate the cycle number.
     int d_cycle_num = -1;
