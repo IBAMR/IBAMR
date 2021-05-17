@@ -56,8 +56,7 @@ public:
      */
     SecondaryHierarchy(std::string name,
                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> gridding_algorithm_db,
-                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> load_balancer_db,
-                       SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>* tag_strategy);
+                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> load_balancer_db);
 
     /**
      * Reinitialize the secondary hierarchy by performing a copy of the
@@ -75,7 +74,6 @@ public:
     void reinit(int coarsest_patch_level_number,
                 int finest_patch_level_number,
                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
-                const SAMRAI::tbox::Array<int>& tag_buffer,
                 int workload_idx);
 
     /*!
@@ -140,6 +138,12 @@ protected:
      * patches which should be considered by this object).
      */
     int d_finest_patch_level_number;
+
+    /**
+     * Tag strategy. Always does nothing since this class only repartitions and
+     * does not refine or coarsen cells.
+     */
+    std::unique_ptr<SAMRAI::mesh::StandardTagAndInitStrategy<NDIM> > d_tag_strategy;
 
     /**
      * Error detector.

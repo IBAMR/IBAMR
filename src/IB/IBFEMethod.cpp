@@ -1444,6 +1444,41 @@ void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierar
     // clear some things that contain data specific to the current patch hierarchy
     d_ghost_data_accumulator.reset();
     d_prolongation_schedules.clear();
+
+    // If we are using the secondary hierarchy then communicate workload data
+    // back to the primary hierarchy (which we will use in endDataRedistribution
+    // to load balance the secondary hierarchy)
+    if (d_is_initialized && d_use_scratch_hierarchy)
+    {
+        {
+            for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > level = d_secondary_hierarchy->d_secondary_hierarchy->getPatchLevel(ln);
+                if (!level->checkAllocated(d_lagrangian_workload_current_idx))
+                    level->allocatePatchData(d_lagrangian_workload_current_idx);
+            }
+
+            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(
+                d_secondary_hierarchy->d_secondary_hierarchy,
+                0,
+                d_secondary_hierarchy->d_secondary_hierarchy->getFinestLevelNumber());
+            hier_cc_data_ops.setToScalar(d_lagrangian_workload_current_idx, 0.0);
+        }
+        addWorkloadEstimate(d_secondary_hierarchy->d_secondary_hierarchy, d_lagrangian_workload_current_idx);
+
+        {
+            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(
+                d_hierarchy, 0, d_hierarchy->getFinestLevelNumber());
+            hier_cc_data_ops.setToScalar(d_lagrangian_workload_current_idx, 0.0);
+        }
+        for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
+        {
+            d_secondary_hierarchy
+                ->getScratchToPrimarySchedule(ln, d_lagrangian_workload_current_idx, d_lagrangian_workload_current_idx)
+                .fillData(0.0);
+        }
+    }
+
     IBAMR_TIMER_STOP(t_begin_data_redistribution);
     return;
 } // beginDataRedistribution
@@ -1457,59 +1492,11 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
     {
         if (d_use_scratch_hierarchy)
         {
-            // TODO: we want to repartition the regridded primary hierarchy at
-            // this point. Hence, we do computations with that data
-            // partitioning which is not very efficient. A better approach would be:
-            //
-            // 1. Compute lagrangian workload on the scratch hierarchy.
-            // 2. Communicate that workload to the primary hierarchy.
-            // 3. Regrid the primary hierarchy.
-            // 4. Copy that data into the new freshly-copied scratch hierarchy.
-            //
-            // This way we wouldn't have to do computations on the primary
-            // FEDataManager. It would also be nice to propagate tag data in
-            // this way (so that the call to applyGradientDetector will be a
-            // no-op for the scratch hierarchy).
             if (d_do_log) plog << "IBFEMethod: starting scratch hierarchy regrid" << std::endl;
-            d_secondary_hierarchy->d_secondary_hierarchy =
-                d_hierarchy->makeRefinedPatchHierarchy(d_object_name + "::scratch_hierarchy",
-                                                       IntVector<NDIM>(1),
-                                                       /*register_for_restart*/ false);
-            // We need the scratch FEDataManagers for the scratch hierarchy
-            // regrid coming up in a moment
-            for (unsigned int part = 0; part < d_meshes.size(); ++part)
-            {
-                d_scratch_fe_data_managers[part]->setPatchHierarchy(d_secondary_hierarchy->d_secondary_hierarchy);
-                d_scratch_fe_data_managers[part]->reinitElementMappings();
-            }
-
-            // At this point the primary hierarchy has been regridded but the
-            // scratch hierarchy has not.
-            for (int ln = 0; ln <= d_secondary_hierarchy->d_secondary_hierarchy->getFinestLevelNumber(); ++ln)
-            {
-                Pointer<PatchLevel<NDIM> > scratch_level =
-                    d_secondary_hierarchy->d_secondary_hierarchy->getPatchLevel(ln);
-                // we also need workload
-                if (!scratch_level->checkAllocated(d_lagrangian_workload_current_idx))
-                    scratch_level->allocatePatchData(d_lagrangian_workload_current_idx);
-            }
-
-            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(
-                d_secondary_hierarchy->d_secondary_hierarchy,
-                0,
-                d_secondary_hierarchy->d_secondary_hierarchy->getFinestLevelNumber());
-            hier_cc_data_ops.setToScalar(d_lagrangian_workload_current_idx, 0.0);
-            addWorkloadEstimate(d_secondary_hierarchy->d_secondary_hierarchy, d_lagrangian_workload_current_idx);
-
-            // Use this class' buffer requirements when regridding
-            Array<int> tag_buffer;
-            setupTagBuffer(tag_buffer, d_secondary_hierarchy->getGriddingAlgorithm());
             d_secondary_hierarchy->reinit(getCoarsestPatchLevelNumber(),
                                           getFinestPatchLevelNumber(),
                                           d_hierarchy,
-                                          tag_buffer,
                                           d_lagrangian_workload_current_idx);
-
             if (d_do_log) plog << "IBFEMethod: finished scratch hierarchy regrid" << std::endl;
         }
 
@@ -1541,23 +1528,37 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
         d_F_IB_vecs->reinit();
         if (d_Q_IB_vecs) d_Q_IB_vecs->reinit();
 
-        if (d_use_scratch_hierarchy)
+        if (d_use_scratch_hierarchy && d_do_log)
         {
-            if (d_do_log) plog << "IBFEMethod::scratch hierarchy workload" << std::endl;
-            for (int ln = 0; ln <= d_secondary_hierarchy->d_secondary_hierarchy->getFinestLevelNumber(); ++ln)
-            {
-                Pointer<PatchLevel<NDIM> > scratch_level =
-                    d_secondary_hierarchy->d_secondary_hierarchy->getPatchLevel(ln);
-                if (!scratch_level->checkAllocated(d_lagrangian_workload_current_idx))
-                    scratch_level->allocatePatchData(d_lagrangian_workload_current_idx);
-            }
+            plog << "IBFEMethod::scratch hierarchy workload" << std::endl;
+            const int n_processes = IBTK_MPI::getNodes();
+            const int current_rank = IBTK_MPI::getRank();
+            const auto right_padding = std::size_t(std::log10(n_processes)) + 1;
+            std::vector<double> workload_per_processor(n_processes);
             HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(
                 d_secondary_hierarchy->d_secondary_hierarchy,
                 0,
                 d_secondary_hierarchy->d_secondary_hierarchy->getFinestLevelNumber());
-            hier_cc_data_ops.setToScalar(d_lagrangian_workload_current_idx, 0.0);
-            addWorkloadEstimate(d_secondary_hierarchy->d_secondary_hierarchy, d_lagrangian_workload_current_idx);
-            if (d_do_log) plog << "IBFEMethod:: end scratch hierarchy workload" << std::endl;
+            workload_per_processor[current_rank] =
+                hier_cc_data_ops.L1Norm(d_lagrangian_workload_current_idx, IBTK::invalid_index, true);
+
+            int ierr = MPI_Allreduce(MPI_IN_PLACE,
+                                     workload_per_processor.data(),
+                                     workload_per_processor.size(),
+                                     MPI_DOUBLE,
+                                     MPI_SUM,
+                                     IBTK_MPI::getCommunicator());
+            TBOX_ASSERT(ierr == 0);
+            if (current_rank == 0)
+            {
+                for (int rank = 0; rank < n_processes; ++rank)
+                {
+                    plog << "workload estimate on processor " << std::setw(right_padding) << std::left << rank << " = "
+                         << long(workload_per_processor[rank]) << '\n';
+                }
+            }
+
+            plog << "IBFEMethod:: end scratch hierarchy workload" << std::endl;
         }
     }
 
@@ -3032,8 +3033,7 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
         d_secondary_hierarchy =
             std::unique_ptr<SecondaryHierarchy>(new SecondaryHierarchy(d_object_name + "::scratch_hierarchy",
                                                                        db->getDatabase("GriddingAlgorithm"),
-                                                                       db->getDatabase("LoadBalancer"),
-                                                                       this));
+                                                                       db->getDatabase("LoadBalancer")));
     }
 
     d_patch_association_cfl = db->getDoubleWithDefault("patch_association_cfl", d_patch_association_cfl);
