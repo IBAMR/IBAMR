@@ -138,8 +138,10 @@ protected:
     int d_finest_patch_level_number;
 
     /**
-     * Tag strategy. Always does nothing since this class only repartitions and
-     * does not refine or coarsen cells.
+     * Tag strategy. Since this class does not have any notion of refinement or
+     * coarsening this object will simply tag cells in such a way that we end up
+     * with exactly the same refinement pattern on the secondary hierarchy as
+     * the primary hierarchy.
      */
     std::unique_ptr<SAMRAI::mesh::StandardTagAndInitStrategy<NDIM> > d_tag_strategy;
 
