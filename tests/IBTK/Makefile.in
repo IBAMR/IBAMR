@@ -102,7 +102,7 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	ghost_indices_01_3d$(EXEEXT) ibtk_init$(EXEEXT) \
 	hierarchy_callbacks$(EXEEXT) ibtk_mpi$(EXEEXT) \
 	equal_eps$(EXEEXT) helmholtz_2d$(EXEEXT) helmholtz_3d$(EXEEXT) \
-	$(am__EXEEXT_1)
+	secondary_hierarchy_01_2d$(EXEEXT) $(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@am__append_1 = elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
 @LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d mapping_01 fe_values_01 fe_values_02 \
 @LIBMESH_ENABLED_TRUE@multilevel_fe_01_2d multilevel_fe_01_3d subdomain_level_translation_01 \
@@ -460,6 +460,15 @@ samraidatacache_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(samraidatacache_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_secondary_hierarchy_01_2d_OBJECTS =  \
+	secondary_hierarchy_01_2d-secondary_hierarchy_01.$(OBJEXT)
+secondary_hierarchy_01_2d_OBJECTS =  \
+	$(am_secondary_hierarchy_01_2d_OBJECTS)
+secondary_hierarchy_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+secondary_hierarchy_01_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(secondary_hierarchy_01_2d_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__subdomain_level_translation_01_SOURCES_DIST =  \
 	subdomain_level_translation_01.cpp
 @LIBMESH_ENABLED_TRUE@am_subdomain_level_translation_01_OBJECTS = subdomain_level_translation_01-subdomain_level_translation_01.$(OBJEXT)
@@ -542,6 +551,7 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/prolongation_mat_3d-prolongation_mat.Po \
 	./$(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po \
 	./$(DEPDIR)/samraidatacache_01_3d-samraidatacache_01.Po \
+	./$(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Po \
 	./$(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Po \
 	./$(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po \
 	./$(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po
@@ -587,6 +597,7 @@ SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(prolongation_mat_3d_SOURCES) \
 	$(samraidatacache_01_2d_SOURCES) \
 	$(samraidatacache_01_3d_SOURCES) \
+	$(secondary_hierarchy_01_2d_SOURCES) \
 	$(subdomain_level_translation_01_SOURCES) \
 	$(vc_viscous_solver_2d_SOURCES) \
 	$(vc_viscous_solver_3d_SOURCES)
@@ -617,6 +628,7 @@ DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(prolongation_mat_3d_SOURCES) \
 	$(samraidatacache_01_2d_SOURCES) \
 	$(samraidatacache_01_3d_SOURCES) \
+	$(secondary_hierarchy_01_2d_SOURCES) \
 	$(am__subdomain_level_translation_01_SOURCES_DIST) \
 	$(vc_viscous_solver_2d_SOURCES) \
 	$(vc_viscous_solver_3d_SOURCES)
@@ -1041,6 +1053,9 @@ helmholtz_2d_SOURCES = helmholtz.cpp
 helmholtz_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 helmholtz_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 helmholtz_3d_SOURCES = helmholtz.cpp
+secondary_hierarchy_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+secondary_hierarchy_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+secondary_hierarchy_01_2d_SOURCES = secondary_hierarchy_01.cpp
 all: all-am
 
 .SUFFIXES:
@@ -1232,6 +1247,10 @@ samraidatacache_01_3d$(EXEEXT): $(samraidatacache_01_3d_OBJECTS) $(samraidatacac
 	@rm -f samraidatacache_01_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(samraidatacache_01_3d_LINK) $(samraidatacache_01_3d_OBJECTS) $(samraidatacache_01_3d_LDADD) $(LIBS)
 
+secondary_hierarchy_01_2d$(EXEEXT): $(secondary_hierarchy_01_2d_OBJECTS) $(secondary_hierarchy_01_2d_DEPENDENCIES) $(EXTRA_secondary_hierarchy_01_2d_DEPENDENCIES) 
+	@rm -f secondary_hierarchy_01_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(secondary_hierarchy_01_2d_LINK) $(secondary_hierarchy_01_2d_OBJECTS) $(secondary_hierarchy_01_2d_LDADD) $(LIBS)
+
 subdomain_level_translation_01$(EXEEXT): $(subdomain_level_translation_01_OBJECTS) $(subdomain_level_translation_01_DEPENDENCIES) $(EXTRA_subdomain_level_translation_01_DEPENDENCIES) 
 	@rm -f subdomain_level_translation_01$(EXEEXT)
 	$(AM_V_CXXLD)$(subdomain_level_translation_01_LINK) $(subdomain_level_translation_01_OBJECTS) $(subdomain_level_translation_01_LDADD) $(LIBS)
@@ -1289,6 +1308,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prolongation_mat_3d-prolongation_mat.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/samraidatacache_01_3d-samraidatacache_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po@am__quote@ # am--include-marker
@@ -1869,6 +1889,20 @@ samraidatacache_01_3d-samraidatacache_01.obj: samraidatacache_01.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(samraidatacache_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o samraidatacache_01_3d-samraidatacache_01.obj `if test -f 'samraidatacache_01.cpp'; then $(CYGPATH_W) 'samraidatacache_01.cpp'; else $(CYGPATH_W) '$(srcdir)/samraidatacache_01.cpp'; fi`
 
+secondary_hierarchy_01_2d-secondary_hierarchy_01.o: secondary_hierarchy_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(secondary_hierarchy_01_2d_CXXFLAGS) $(CXXFLAGS) -MT secondary_hierarchy_01_2d-secondary_hierarchy_01.o -MD -MP -MF $(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Tpo -c -o secondary_hierarchy_01_2d-secondary_hierarchy_01.o `test -f 'secondary_hierarchy_01.cpp' || echo '$(srcdir)/'`secondary_hierarchy_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Tpo $(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='secondary_hierarchy_01.cpp' object='secondary_hierarchy_01_2d-secondary_hierarchy_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(secondary_hierarchy_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o secondary_hierarchy_01_2d-secondary_hierarchy_01.o `test -f 'secondary_hierarchy_01.cpp' || echo '$(srcdir)/'`secondary_hierarchy_01.cpp
+
+secondary_hierarchy_01_2d-secondary_hierarchy_01.obj: secondary_hierarchy_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(secondary_hierarchy_01_2d_CXXFLAGS) $(CXXFLAGS) -MT secondary_hierarchy_01_2d-secondary_hierarchy_01.obj -MD -MP -MF $(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Tpo -c -o secondary_hierarchy_01_2d-secondary_hierarchy_01.obj `if test -f 'secondary_hierarchy_01.cpp'; then $(CYGPATH_W) 'secondary_hierarchy_01.cpp'; else $(CYGPATH_W) '$(srcdir)/secondary_hierarchy_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Tpo $(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='secondary_hierarchy_01.cpp' object='secondary_hierarchy_01_2d-secondary_hierarchy_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(secondary_hierarchy_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o secondary_hierarchy_01_2d-secondary_hierarchy_01.obj `if test -f 'secondary_hierarchy_01.cpp'; then $(CYGPATH_W) 'secondary_hierarchy_01.cpp'; else $(CYGPATH_W) '$(srcdir)/secondary_hierarchy_01.cpp'; fi`
+
 subdomain_level_translation_01-subdomain_level_translation_01.o: subdomain_level_translation_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(subdomain_level_translation_01_CXXFLAGS) $(CXXFLAGS) -MT subdomain_level_translation_01-subdomain_level_translation_01.o -MD -MP -MF $(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Tpo -c -o subdomain_level_translation_01-subdomain_level_translation_01.o `test -f 'subdomain_level_translation_01.cpp' || echo '$(srcdir)/'`subdomain_level_translation_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Tpo $(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Po
@@ -2081,6 +2115,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/prolongation_mat_3d-prolongation_mat.Po
 	-rm -f ./$(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po
 	-rm -f ./$(DEPDIR)/samraidatacache_01_3d-samraidatacache_01.Po
+	-rm -f ./$(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Po
 	-rm -f ./$(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Po
 	-rm -f ./$(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po
 	-rm -f ./$(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po
@@ -2168,6 +2203,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/prolongation_mat_3d-prolongation_mat.Po
 	-rm -f ./$(DEPDIR)/samraidatacache_01_2d-samraidatacache_01.Po
 	-rm -f ./$(DEPDIR)/samraidatacache_01_3d-samraidatacache_01.Po
+	-rm -f ./$(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Po
 	-rm -f ./$(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Po
 	-rm -f ./$(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po
 	-rm -f ./$(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po

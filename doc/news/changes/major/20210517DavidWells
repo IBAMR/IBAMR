@@ -1,0 +1,4 @@
+New: Added IBTK::SecondaryHierarchy, which manages a PatchHierarchy object which
+occupies the same index space with a different parallel partitioning. This is
+<br>
+(David Wells, 2021/05/17)

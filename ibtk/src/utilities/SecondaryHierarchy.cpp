@@ -21,6 +21,8 @@
 #include "BergerRigoutsos.h"
 #include "BoxGeneratorStrategy.h"
 #include "GriddingAlgorithm.h"
+#include "HierarchyCellDataOpsInteger.h"
+#include "HierarchyCellDataOpsReal.h"
 #include "IntVector.h"
 #include "LoadBalancer.h"
 #include "PatchHierarchy.h"
@@ -40,19 +42,100 @@
 
 namespace IBTK
 {
+namespace
+{
+/**
+ * The secondary hierarchy is special in that we already know which cells it
+ * should contain - i.e., we don't want to tag anything different than what is
+ * already present. This class just tags cells that are already refined.
+ */
+class CopyRefinementTags : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+{
+    virtual void initializeLevelData(const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > /*hierarchy*/,
+                                     const int /*level_number*/,
+                                     const double /*init_data_time*/,
+                                     const bool /*can_be_refined*/,
+                                     const bool /*initial_time*/,
+                                     const tbox::Pointer<hier::BasePatchLevel<NDIM> > /*old_level*/ = nullptr,
+                                     const bool /*allocate_data*/ = true) override
+    {
+    }
+
+    virtual void resetHierarchyConfiguration(const tbox::Pointer<hier::BasePatchHierarchy<NDIM> > /*hierarchy*/,
+                                             const int /*coarsest_level*/,
+                                             const int /*finest_level*/) override
+    {
+    }
+
+    virtual void applyGradientDetector(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                       const int level_number,
+                                       const double /*error_data_time*/,
+                                       const int tag_index,
+                                       const bool /*initial_time*/,
+                                       const bool /*uses_richardson_extrapolation_too*/) override
+    {
+        if (level_number == hierarchy->getFinestLevelNumber()) return;
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy = hierarchy;
+        TBOX_ASSERT(patch_hierarchy);
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+
+        if (!level->checkAllocated(tag_index)) level->allocatePatchData(tag_index, 0.0);
+        HierarchyCellDataOpsInteger<NDIM> hier_cc_data_ops(hierarchy, level_number, level_number);
+        // this is the only time we will tag things so set the tag values to zero
+        hier_cc_data_ops.setToScalar(tag_index, 0);
+
+        // OK - now we need to figure out which values need to be refined. Since
+        // the hierarchy already satisfies a proper nesting condition we only
+        // need to check the next finer level to figure out which cells should
+        // be tagged on this level, since we don't care about tagging in the
+        // secondary hierarchy - just load balancing (but samrai requires we do
+        // both simultaneously)
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > finer_level = hierarchy->getPatchLevel(level_number + 1);
+        const auto& boxes = finer_level->getBoxes();
+        for (int i = 0; i < boxes.getNumberOfBoxes(); ++i)
+        {
+            const SAMRAI::hier::Box<NDIM> finer_box = boxes[i];
+            auto coarsened_box = finer_box;
+            coarsened_box.coarsen(finer_level->getRatioToCoarserLevel());
+            {
+                // Sanity check that we really do have proper nesting
+                auto check_box = coarsened_box;
+                check_box.refine(finer_level->getRatioToCoarserLevel());
+                TBOX_ASSERT(check_box == finer_box);
+            }
+
+            for (SAMRAI::hier::PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                const Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Box<NDIM> box = patch->getBox();
+                Pointer<CellData<NDIM, int> > tag_data = patch->getPatchData(tag_index);
+
+                // SAMRAI's intersection code is wrong and returns nonsense
+                // answers when the intersection should be empty
+                if (box.intersects(coarsened_box))
+                {
+                    const auto intersection = box * coarsened_box;
+                    tag_data->fill(1, intersection);
+                }
+            }
+        }
+    }
+};
+} // namespace
+
 SecondaryHierarchy::SecondaryHierarchy(std::string name,
                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> gridding_algorithm_db,
-                                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> load_balancer_db,
-                                       SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>* tag_strategy)
+                                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> load_balancer_db)
     : d_object_name(name),
       d_coarsest_patch_level_number(-1),
       d_finest_patch_level_number(-1),
+      d_tag_strategy(std::unique_ptr<CopyRefinementTags>(new CopyRefinementTags())),
       d_eulerian_data_cache(std::make_shared<SAMRAIDataCache>())
 {
-    // IBFEMethod implements applyGradientDetector so we have to turn that on
+    // IBAMR consistently uses applyGradientDetector for everything so do that too
     Pointer<InputDatabase> database(new InputDatabase(d_object_name + ":: tag_db"));
     database->putString("tagging_method", "GRADIENT_DETECTOR");
-    d_error_detector = new StandardTagAndInitialize<NDIM>(d_object_name + "::tag", tag_strategy, database);
+    d_error_detector = new StandardTagAndInitialize<NDIM>(d_object_name + "::tag", d_tag_strategy.get(), database);
     d_box_generator = new BergerRigoutsos<NDIM>();
     const std::string load_balancer_type = load_balancer_db->getStringWithDefault("type", "MERGING");
     if (load_balancer_type == "DEFAULT")
@@ -94,7 +177,7 @@ void
 SecondaryHierarchy::reinit(int coarsest_patch_level_number,
                            int finest_patch_level_number,
                            Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                           const tbox::Array<int>& tag_buffer)
+                           int workload_idx)
 {
     d_coarsest_patch_level_number = coarsest_patch_level_number;
     d_finest_patch_level_number = finest_patch_level_number;
@@ -103,23 +186,65 @@ SecondaryHierarchy::reinit(int coarsest_patch_level_number,
     d_transfer_forward_schedules.clear();
     d_transfer_backward_schedules.clear();
 
+    d_load_balancer->setWorkloadPatchDataIndex(workload_idx);
+    auto new_secondary_hierarchy =
+        d_primary_hierarchy->makeRefinedPatchHierarchy(d_object_name + "::secondary_hierarchy",
+                                                       IntVector<NDIM>(1),
+                                                       /*register_for_restart*/ false);
+
+    // transfer workload data. Since we have cell-centered data we don't have to
+    // worry about boundary stuff
+    for (int ln = 0; ln <= d_finest_patch_level_number; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > old_level = patch_hierarchy->getPatchLevel(ln);
+        TBOX_ASSERT(old_level->checkAllocated(workload_idx));
+        Pointer<PatchLevel<NDIM> > new_level = new_secondary_hierarchy->getPatchLevel(ln);
+        new_level->allocatePatchData(workload_idx);
+
+        Pointer<RefineAlgorithm<NDIM> > refine_algorithm = new RefineAlgorithm<NDIM>();
+        Pointer<RefineOperator<NDIM> > refine_op = nullptr;
+        refine_algorithm->registerRefine(workload_idx, workload_idx, workload_idx, refine_op);
+        auto schedule = refine_algorithm->createSchedule("DEFAULT_FILL", new_level, old_level, nullptr, false, nullptr);
+
+        schedule->fillData(0.0);
+    }
+
     // case where everything is on the coarsest level:
     if (d_finest_patch_level_number == 0)
     {
-        d_gridding_algorithm->makeCoarsestLevel(d_secondary_hierarchy, 0.0 /*d_current_time*/);
+        d_gridding_algorithm->makeCoarsestLevel(new_secondary_hierarchy, 0.0 /*d_current_time*/);
     }
     else
     {
-        if (d_coarsest_patch_level_number == 0)
-        {
-            d_gridding_algorithm->makeCoarsestLevel(d_secondary_hierarchy, 0.0 /*d_current_time*/);
-        }
-        d_gridding_algorithm->regridAllFinerLevels(
-            d_secondary_hierarchy, std::max(d_coarsest_patch_level_number - 1, 0), 0.0 /*d_current_time*/, tag_buffer);
+        // We don't need to buffer the tagging since we are just copying the refinement levels
+        tbox::Array<int> tag_buffer(patch_hierarchy->getFinestLevelNumber() + 1);
+        std::fill(tag_buffer.getPointer(), tag_buffer.getPointer() + tag_buffer.getSize(), 0);
+        d_gridding_algorithm->regridAllFinerLevels(new_secondary_hierarchy,
+                                                   std::max(d_coarsest_patch_level_number - 1, 0),
+                                                   0.0 /*d_current_time*/,
+                                                   tag_buffer);
     }
 
-    d_eulerian_data_cache->setPatchHierarchy(d_secondary_hierarchy);
-    d_eulerian_data_cache->resetLevels(0, finest_patch_level_number);
+    d_secondary_hierarchy = new_secondary_hierarchy;
+    d_eulerian_data_cache->setPatchHierarchy(new_secondary_hierarchy);
+    d_eulerian_data_cache->resetLevels(0, d_finest_patch_level_number);
+
+    // for analysis purposes, also transfer the workload data to the new partitioning
+    for (int ln = 0; ln <= d_finest_patch_level_number; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > old_level = patch_hierarchy->getPatchLevel(ln);
+        TBOX_ASSERT(old_level->checkAllocated(workload_idx));
+        Pointer<PatchLevel<NDIM> > new_level = d_secondary_hierarchy->getPatchLevel(ln);
+        if (!new_level->checkAllocated(workload_idx)) new_level->allocatePatchData(workload_idx);
+        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_secondary_hierarchy, ln, ln);
+        hier_cc_data_ops.setToScalar(workload_idx, 0.0, false);
+
+        Pointer<RefineAlgorithm<NDIM> > refine_algorithm = new RefineAlgorithm<NDIM>();
+        Pointer<RefineOperator<NDIM> > refine_op = nullptr;
+        refine_algorithm->registerRefine(workload_idx, workload_idx, workload_idx, refine_op);
+        auto schedule = refine_algorithm->createSchedule("DEFAULT_FILL", new_level, old_level, nullptr, false, nullptr);
+        schedule->fillData(0.0);
+    }
 }
 
 SAMRAI::xfer::RefineSchedule<NDIM>&
@@ -164,12 +289,6 @@ SecondaryHierarchy::getScratchToPrimarySchedule(const int level_number,
     }
     return *d_transfer_backward_schedules[key];
 } // getScratchToPrimarySchedule
-
-SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> >
-SecondaryHierarchy::getGriddingAlgorithm()
-{
-    return d_gridding_algorithm;
-}
 
 std::shared_ptr<IBTK::SAMRAIDataCache>
 SecondaryHierarchy::getSAMRAIDataCache()

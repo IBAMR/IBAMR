@@ -19,6 +19,10 @@ IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
 IBFEMethod: starting scratch hierarchy regrid
 IBFEMethod: finished scratch hierarchy regrid
 IBFEMethod::scratch hierarchy workload
+workload estimate on processor 0 = 3565
+workload estimate on processor 1 = 2584
+workload estimate on processor 2 = 3985
+workload estimate on processor 3 = 3392
 IBFEMethod:: end scratch hierarchy workload
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
@@ -975,24 +979,6 @@ local active DoFs on processor 1 = 1323
 local active DoFs on processor 2 = 1305
 local active DoFs on processor 3 = 1299
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
-IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
-IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
-IBFEMethod: starting scratch hierarchy regrid
-FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
-quadrature points on processor 0 = 1311
-quadrature points on processor 1 = 1268
-quadrature points on processor 2 = 5552
-quadrature points on processor 3 = 5395
-workload estimate on processor 0 = 1311
-workload estimate on processor 1 = 1268
-workload estimate on processor 2 = 5552
-workload estimate on processor 3 = 5395
-local active DoFs on processor 0 = 1431
-local active DoFs on processor 1 = 1323
-local active DoFs on processor 2 = 1305
-local active DoFs on processor 3 = 1299
-IBFEMethod: finished scratch hierarchy regrid
-IBFEMethod::scratch hierarchy workload
 FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
 quadrature points on processor 0 = 3568
 quadrature points on processor 1 = 2586
@@ -1006,6 +992,15 @@ local active DoFs on processor 0 = 1431
 local active DoFs on processor 1 = 1323
 local active DoFs on processor 2 = 1305
 local active DoFs on processor 3 = 1299
+IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
+IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
+IBFEMethod: starting scratch hierarchy regrid
+IBFEMethod: finished scratch hierarchy regrid
+IBFEMethod::scratch hierarchy workload
+workload estimate on processor 0 = 3568
+workload estimate on processor 1 = 2586
+workload estimate on processor 2 = 3983
+workload estimate on processor 3 = 3389
 IBFEMethod:: end scratch hierarchy workload
 workload estimate on processor 0 = 1024
 workload estimate on processor 1 = 1024

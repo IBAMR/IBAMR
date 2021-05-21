@@ -46,7 +46,7 @@ namespace IBTK
  * is an equivalent (same index space) hierarchy to a given PatchHierarchy,
  * but is partitioned in parallel in a different way.
  */
-struct SecondaryHierarchy
+class SecondaryHierarchy
 {
 public:
     /**
@@ -56,8 +56,7 @@ public:
      */
     SecondaryHierarchy(std::string name,
                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> gridding_algorithm_db,
-                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> load_balancer_db,
-                       SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>* tag_strategy);
+                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> load_balancer_db);
 
     /**
      * Reinitialize the secondary hierarchy by performing a copy of the
@@ -75,7 +74,7 @@ public:
     void reinit(int coarsest_patch_level_number,
                 int finest_patch_level_number,
                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
-                const SAMRAI::tbox::Array<int>& tag_buffer);
+                int workload_idx);
 
     /*!
      * Get the transfer schedule from the primary hierarchy to the scratch
@@ -105,20 +104,10 @@ public:
                                 int scratch_data_idx,
                                 SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
 
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > getGriddingAlgorithm();
-
     /*!
      * Get a copy of the pointer to the scratch patch object.
      */
     std::shared_ptr<IBTK::SAMRAIDataCache> getSAMRAIDataCache();
-
-    /**
-     * Load balancer.
-     *
-     * @note this object has to be persistent since d_scratch_gridding_alg
-     * requires it: see the note for that member object.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
 
     /*!
      * Pointer to the primary patch hierarchy (i.e., the one not by this class).
@@ -149,6 +138,14 @@ protected:
     int d_finest_patch_level_number;
 
     /**
+     * Tag strategy. Since this class does not have any notion of refinement or
+     * coarsening this object will simply tag cells in such a way that we end up
+     * with exactly the same refinement pattern on the secondary hierarchy as
+     * the primary hierarchy.
+     */
+    std::unique_ptr<SAMRAI::mesh::StandardTagAndInitStrategy<NDIM> > d_tag_strategy;
+
+    /**
      * Error detector.
      *
      * @note this object has to be persistent since d_gridding_alg
@@ -163,6 +160,14 @@ protected:
      * requires it: see the note for that member object.
      */
     SAMRAI::tbox::Pointer<SAMRAI::mesh::BoxGeneratorStrategy<NDIM> > d_box_generator;
+
+    /**
+     * Load balancer.
+     *
+     * @note this object has to be persistent since d_scratch_gridding_alg
+     * requires it: see the note for that member object.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
 
     /**
      * Gridding algorithm.
