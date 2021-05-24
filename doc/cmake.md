@@ -29,6 +29,11 @@ A few things are now possible with CMake that were not possible before:
 
 ## How to use the CMake build system
 
+By default, IBAMR will compile itself with shared libraries. *This requires that
+SAMRAI be compiled with position-independent code: i.e., SAMRAI must be compiled
+with `-fPIC`*. If you do not compile SAMRAI this way then you must use static
+libraries (see the text below on static linkage).
+
 This is similar to how autotools is used with a separate build directory
 `build`. IBAMR's configuration scripts expect all dependencies to have their
 paths provided in the standard way for CMake (i.e., we pass in the root path of
