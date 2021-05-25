@@ -1519,7 +1519,7 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
     d_hier_rho_bdry_fill->fillData(new_time);
     d_hier_rho_bdry_fill->resetTransactionComponents(d_rho_transaction_comps);
 
-    d_rho_fcn->setDataOnPatchHierarchy(d_rho_sc_scratch_idx, d_rho_sc_var, d_hierarchy, d_new_time);
+    // d_rho_fcn->setDataOnPatchHierarchy(d_rho_sc_scratch_idx, d_rho_sc_var, d_hierarchy, d_new_time);
 
     d_hier_sc_data_ops->copyData(d_rho_sc_new_idx,
                                  d_rho_sc_scratch_idx,

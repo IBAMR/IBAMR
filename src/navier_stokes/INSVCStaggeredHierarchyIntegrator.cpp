@@ -824,16 +824,10 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         d_F_scratch_idx = -1;
     }
 
-    if (d_Q_fcn)
+    if (d_compute_continuity_source_fcns.size() > 0)
     {
-        registerVariable(d_Q_current_idx,
-                         d_Q_new_idx,
-                         d_Q_scratch_idx,
-                         d_Q_var,
-                         cell_ghosts,
-                         d_Q_coarsen_type,
-                         d_Q_refine_type,
-                         d_Q_fcn);
+        registerVariable(
+            d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx, d_Q_var, cell_ghosts, d_Q_coarsen_type, d_Q_refine_type);
     }
     else
     {
@@ -940,7 +934,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     registerVariable(d_U_regrid_idx, d_U_regrid_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
     registerVariable(d_U_src_idx, d_U_src_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
     registerVariable(d_indicator_idx, d_indicator_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
-    if (d_Q_fcn)
+    if (d_compute_continuity_source_fcns.size() > 0)
     {
         registerVariable(d_F_div_idx, d_F_div_var, no_ghosts);
     }
@@ -984,7 +978,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
             }
         }
 
-        if (d_Q_fcn && d_output_Q)
+        if (d_compute_continuity_source_fcns.size() > 0 && d_output_Q)
         {
             d_visit_writer->registerPlotQuantity("Q", "SCALAR", d_Q_current_idx, 0, d_Q_scale);
         }
@@ -1810,7 +1804,7 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_P_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy);
 
-    if (d_Q_fcn)
+    if (d_compute_continuity_source_fcns.size() > 0)
     {
         InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx,
                                                          DATA_REFINE_TYPE,
