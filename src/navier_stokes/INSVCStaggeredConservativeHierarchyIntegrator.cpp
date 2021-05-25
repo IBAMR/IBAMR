@@ -669,7 +669,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
         // Set the full convective term depending on the time stepping type
 
         d_hier_sc_data_ops->copyData(d_N_full_idx, N_idx, /*interior_only*/ true);
-        // d_hier_sc_data_ops->setToScalar(d_N_full_idx, 0.0);
+        d_hier_sc_data_ops->setToScalar(d_N_full_idx, 0.0);
     }
     const int rho_sc_new_idx = d_rho_p_integrator->getUpdatedSideCenteredDensityPatchDataIndex();
     d_hier_sc_data_ops->copyData(d_rho_sc_new_idx,
@@ -1086,6 +1086,24 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
         p_regrid_projection_solver->setNullspace(true);
     }
 
+    if (d_compute_continuity_source_fcns.size() > 0)
+    {
+        const double apply_time = d_integrator_time;
+        const double current_time = d_integrator_time;
+        const double new_time = d_integrator_time;
+        for (unsigned k = 0; k < d_compute_continuity_source_fcns.size(); ++k)
+        {
+            d_compute_continuity_source_fcns[k](d_Q_current_idx,
+                                                d_Q_var,
+                                                d_hier_math_ops,
+                                                -1 /*cycle_num*/,
+                                                apply_time,
+                                                current_time,
+                                                new_time,
+                                                d_compute_continuity_source_fcns_ctx[k]);
+        }
+    }
+
     // Setup the right-hand-side vector for the projection-Poisson solve.
     d_hier_math_ops->div(d_Div_U_idx,
                          d_Div_U_var,
@@ -1456,8 +1474,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
         const double apply_time = new_time;
         for (unsigned k = 0; k < d_compute_continuity_source_fcns.size(); ++k)
         {
-            d_compute_continuity_source_fcns[k](d_Div_U_F_idx,
-                                                d_Div_U_F_var,
+            d_compute_continuity_source_fcns[k](d_Q_new_idx,
+                                                d_Q_var,
                                                 d_hier_math_ops,
                                                 -1 /*cycle_num*/,
                                                 apply_time,
@@ -1466,11 +1484,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
                                                 d_compute_continuity_source_fcns_ctx[k]);
         }
         d_hier_cc_data_ops->add(
-            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Div_U_F_idx);
+            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
 
         // compute grad(-2/3 mu div u)
         const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-        d_hier_cc_data_ops->multiply(d_bulk_viscosity_cc_idx, d_mu_new_idx, d_Div_U_F_idx);
+        d_hier_cc_data_ops->multiply(d_bulk_viscosity_cc_idx, d_mu_new_idx, d_Q_new_idx);
         d_hier_cc_data_ops->scale(d_bulk_viscosity_cc_idx, 2.0 / 3.0, d_bulk_viscosity_cc_idx);
 
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -1500,8 +1518,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
         pout << "L2 norm of d_bulk_viscosity_sc_idx\t"
              << d_hier_sc_data_ops->L2Norm(d_bulk_viscosity_sc_idx, wgt_sc_idx) << "\n";
 
-        d_hier_sc_data_ops->add(
-            rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_bulk_viscosity_sc_idx);
+        //        d_hier_sc_data_ops->add(
+        //            rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0),
+        //            d_bulk_viscosity_sc_idx);
     }
 
     // Add Brinkman penalized velocity term.
@@ -1607,10 +1626,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
     if (d_compute_continuity_source_fcns.size() > 0)
     {
         d_hier_cc_data_ops->subtract(
-            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Div_U_F_idx);
+            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
 
-        d_hier_sc_data_ops->subtract(
-            rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_bulk_viscosity_sc_idx);
+        //        d_hier_sc_data_ops->subtract(
+        //            rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0),
+        //            d_bulk_viscosity_sc_idx);
     }
 
     d_hier_sc_data_ops->subtract(

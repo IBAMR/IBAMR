@@ -826,7 +826,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         d_F_scratch_idx = -1;
     }
 
-    if (d_Q_fcn)
+    if (d_compute_continuity_source_fcns.size() > 0)
     {
         registerVariable(d_Q_current_idx,
                          d_Q_new_idx,

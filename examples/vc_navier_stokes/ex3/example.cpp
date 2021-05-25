@@ -46,6 +46,12 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const double loop_time,
                  const string& data_dump_dirname);
 
+// Struct to specify the function required for inhomogeneous Neumann conditions for Brinkman penalization
+struct ContinuitySourceCtx
+{
+    Pointer<CartGridFunction> div_u_fcn;
+};
+
 void
 evaluate_div_u_F_callback_fcn(int div_U_F_idx,
                               Pointer<Variable<NDIM> > div_U_F_var,
@@ -61,7 +67,11 @@ evaluate_div_u_F_callback_fcn(int div_U_F_idx,
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-    hier_cc_data_ops.setToScalar(div_U_F_idx, -2.0 * cos(time));
+    // hier_cc_data_ops.setToScalar(div_U_F_idx, -2.0 * cos(time));
+
+    ContinuitySourceCtx* cs_ctx = static_cast<ContinuitySourceCtx*>(ctx);
+
+    cs_ctx->div_u_fcn->setDataOnPatchHierarchy(div_U_F_idx, div_U_F_var, patch_hierarchy, time);
 
     // for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     // {
@@ -188,6 +198,8 @@ main(int argc, char* argv[])
         time_integrator->registerVelocityInitialConditions(u_init);
         Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
             "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
+        Pointer<CartGridFunction> p_ex = new muParserCartGridFunction(
+            "p_ex", app_initializer->getComponentDatabase("PressureExactSolution"), grid_geometry);
         time_integrator->registerPressureInitialConditions(p_init);
 
         // Create boundary condition specification objects (when necessary).
@@ -292,7 +304,9 @@ main(int argc, char* argv[])
         Pointer<CartGridFunction> fc_fcn = new muParserCartGridFunction(
             "fc_fcn", app_initializer->getComponentDatabase("ContinuityForcingFunction"), grid_geometry);
 
-        time_integrator->registerContinuitySourceFcn(&evaluate_div_u_F_callback_fcn, nullptr);
+        ContinuitySourceCtx cs_ctx;
+        cs_ctx.div_u_fcn = fc_fcn;
+        time_integrator->registerContinuitySourceFcn(&evaluate_div_u_F_callback_fcn, static_cast<void*>(&cs_ctx));
 
         // Create mass density source function object for this manufactured solution
         if (input_db->keyExists("DensitySourceFunction"))
@@ -399,7 +413,7 @@ main(int argc, char* argv[])
                  << "Computing error norms.\n\n";
 
             u_init->setDataOnPatchHierarchy(u_cloned_idx, u_var, patch_hierarchy, loop_time);
-            p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time - 0.5 * dt);
+            p_ex->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time - 0.5 * dt);
             rho_fcn->setDataOnPatchHierarchy(r_cloned_idx, r_var, patch_hierarchy, loop_time);
             mu_fcn->setDataOnPatchHierarchy(mu_cloned_idx, p_var, patch_hierarchy, loop_time);
             fc_fcn->setDataOnPatchHierarchy(div_u_cloned_idx, p_var, patch_hierarchy, loop_time);
@@ -444,8 +458,7 @@ main(int argc, char* argv[])
             }
 
             HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-            hier_cc_data_ops.scale(mu_cloned_idx, 4.0 * cos(loop_time), mu_cloned_idx);
-            // hier_cc_data_ops.add(p_idx, p_idx, mu_cloned_idx);
+
             hier_cc_data_ops.subtract(p_err_cloned_idx, p_idx, p_cloned_idx);
             pout << "Error in p at time " << loop_time - 0.5 * dt << ":\n"
                  << "  L1-norm:  " << hier_cc_data_ops.L1Norm(p_err_cloned_idx, wgt_cc_idx) << "\n"
