@@ -456,10 +456,12 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_var;
 
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_pre_var;
+
     int d_ls_scratch_idx = IBTK::invalid_index, d_ls_current_idx = IBTK::invalid_index,
         d_ls_new_idx = IBTK::invalid_index;
     int d_lf_scratch_idx = IBTK::invalid_index, d_lf_current_idx = IBTK::invalid_index,
-        d_lf_new_idx = IBTK::invalid_index;
+        d_lf_new_idx = IBTK::invalid_index, d_lf_pre_idx = IBTK::invalid_index;
     int d_T_scratch_idx = IBTK::invalid_index, d_T_current_idx = IBTK::invalid_index, d_T_new_idx = IBTK::invalid_index;
 
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_ls_init, d_lf_init, d_T_init, d_rho_init;

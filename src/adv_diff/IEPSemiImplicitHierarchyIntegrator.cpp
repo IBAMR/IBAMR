@@ -507,6 +507,9 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
     d_chemical_potential_idx =
         var_db->registerVariableAndContext(d_chemical_potential_var, getCurrentContext(), cell_ghosts);
 
+    d_lf_pre_var = new CellVariable<NDIM, double>("lf_pre_var");
+    d_lf_pre_idx = var_db->registerVariableAndContext(d_lf_pre_var, getCurrentContext());
+
     d_grad_lf_var = new SideVariable<NDIM, double>(d_object_name + "::grad_lf");
     d_grad_lf_idx =
         var_db->registerVariableAndContext(d_grad_lf_var, var_db->getContext(d_object_name + "grad_lf::SCRATCH"));
@@ -624,6 +627,7 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
         if (!level->checkAllocated(d_p_firstder_idx)) level->allocatePatchData(d_p_firstder_idx, current_time);
         if (!level->checkAllocated(d_chemical_potential_idx))
             level->allocatePatchData(d_chemical_potential_idx, current_time);
+        if (!level->checkAllocated(d_lf_pre_idx)) level->allocatePatchData(d_lf_pre_idx, current_time);
         if (!level->checkAllocated(d_grad_lf_idx)) level->allocatePatchData(d_grad_lf_idx, current_time);
         if (!level->checkAllocated(d_H_sc_idx)) level->allocatePatchData(d_H_sc_idx, current_time);
         if (!level->checkAllocated(d_lf_lhs_idx)) level->allocatePatchData(d_lf_lhs_idx, current_time);
@@ -1261,6 +1265,9 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         //                  << d_hier_cc_data_ops->L2Norm(lf_rhs_scratch_idx) << std::endl;
     }
 
+    // This will be used while computing chemical potential.
+    d_hier_cc_data_ops->copyData(d_lf_pre_idx, lf_new_idx);
+
     // Solve for lf(n+1).
     Pointer<PoissonSolver> lf_solver = d_lf_solver;
     lf_solver->solveSystem(*d_lf_sol, *d_lf_rhs);
@@ -1554,6 +1561,7 @@ IEPSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
         level->deallocatePatchData(d_g_secondder_idx);
         level->deallocatePatchData(d_p_firstder_idx);
         level->deallocatePatchData(d_chemical_potential_idx);
+        level->deallocatePatchData(d_lf_pre_idx);
         level->deallocatePatchData(d_grad_lf_idx);
         level->deallocatePatchData(d_H_sc_idx);
         level->deallocatePatchData(d_lf_lhs_idx);
@@ -2221,8 +2229,9 @@ IEPSemiImplicitHierarchyIntegrator::computeChemicalPotential(int chemical_potent
         chemical_potential_idx, d_chemical_potential_var, 1.0, d_grad_lf_idx, d_grad_lf_var, nullptr, new_time, false);
 
     // update p' and g'.
-    computeInterpolationFunction(d_p_firstder_idx, lf_new_idx, T_new_idx);
-    computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, lf_new_idx);
+    // Directly using p' calculated using var_phi^n+1,m and g'.
+    // computeInterpolationFunction(d_p_firstder_idx, lf_new_idx, T_new_idx);
+    // computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, lf_new_idx);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -2232,10 +2241,12 @@ IEPSemiImplicitHierarchyIntegrator::computeChemicalPotential(int chemical_potent
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
             Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_new_idx);
+            Pointer<CellData<NDIM, double> > lf_pre_data = patch->getPatchData(d_lf_pre_idx);
             Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_new_idx);
             Pointer<CellData<NDIM, double> > p_firstder_data = patch->getPatchData(d_p_firstder_idx);
             Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_new_idx);
             Pointer<CellData<NDIM, double> > g_firstder_data = patch->getPatchData(d_g_firstder_idx);
+            Pointer<CellData<NDIM, double> > g_secondder_data = patch->getPatchData(d_g_secondder_idx);
             Pointer<CellData<NDIM, double> > chemical_potential_data = patch->getPatchData(chemical_potential_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
@@ -2244,9 +2255,13 @@ IEPSemiImplicitHierarchyIntegrator::computeChemicalPotential(int chemical_potent
 
                 double F = d_rho_liquid * d_latent_heat * (*H_data)(ci) * (*p_firstder_data)(ci) *
                            (d_T_ref - (*T_data)(ci)) / d_T_ref;
+
+                double g_first_der_linear =
+                    (*g_firstder_data)(ci) + (*g_secondder_data)(ci) * ((*lf_data)(ci) - (*lf_pre_data)(ci));
+
                 (*chemical_potential_data)(ci) =
                     -d_lambda_lf * (*chemical_potential_data)(ci) +
-                    (d_lambda_lf * (*H_data)(ci) / std::pow(d_eta_lf, 2.0) * (*g_firstder_data)(ci)) + F;
+                    (d_lambda_lf * (*H_data)(ci) / std::pow(d_eta_lf, 2.0) * g_first_der_linear) + F;
             }
         }
     }
