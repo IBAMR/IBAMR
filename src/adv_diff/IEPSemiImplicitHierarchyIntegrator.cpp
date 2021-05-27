@@ -516,7 +516,16 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
 
     d_H_sc_idx = var_db->registerVariableAndContext(d_grad_lf_var, var_db->getContext(d_object_name + "H_sc::SCRATCH"));
 
-    if (d_visit_writer) d_visit_writer->registerPlotQuantity(d_D_cc_var->getName(), "SCALAR", d_D_cc_current_idx);
+    if (d_visit_writer)
+    {
+        d_visit_writer->registerPlotQuantity("D", "VECTOR", d_D_cc_current_idx, 0);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            if (d == 0) d_visit_writer->registerPlotQuantity("D_x", "SCALAR", d_D_cc_current_idx, d);
+            if (d == 1) d_visit_writer->registerPlotQuantity("D_y", "SCALAR", d_D_cc_current_idx, d);
+            if (d == 2) d_visit_writer->registerPlotQuantity("D_z", "SCALAR", d_D_cc_current_idx, d);
+        }
+    }
 
     // Setup the convective operator.
     d_lf_convective_op = getConvectiveOperatorLiquidFractionEquation(d_lf_var);
