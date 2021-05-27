@@ -1,0 +1,72 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+DummyAdvDiff: initializeLevelDataSpecialized()
+DummyAdvDiff: resetHierarchyConfigurationSpecialized()
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
+DummyAdvDiff: synchronizeHierarchyDataSpecialized()
+DummyAdvDiff: initializeCompositeHierarchyDataSpecialized()
+DummyAdvDiff: synchronizeHierarchyDataSpecialized()
+
+
+Writing visualization files...
+
+DummyAdvDiff: setupPlotDataSpecialized()
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 0
+Simulation time is 0
+DummyAdvDiff: getMaximumTimeStepSizeSpecialized()
+DummyAdvDiff: getMinimumTimeStepSizeSpecialized()
+DummyAdvDiff: getMaximumTimeStepSizeSpecialized()
+DummyAdvDiff: regridHierarchyBeginSpecialized()
+DummyAdvDiff: regridHierarchyEndSpecialized()
+DummyAdvDiff: initializeCompositeHierarchyDataSpecialized()
+DummyAdvDiff: synchronizeHierarchyDataSpecialized()
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0
+DummyAdvDiff: synchronizeHierarchyDataSpecialized()
+DummyAdvDiff: resetTimeDependentHierarchyDataSpecialized()
+
+At end       of timestep # 0
+Simulation time is 0.00025
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing visualization files...
+
+DummyAdvDiff: setupPlotDataSpecialized()
+
+Writing restart files...
+
+DummyAdvDiff: putToDatabaseSpecialized()
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 1
+Simulation time is 0.00025
+DummyAdvDiff: getMaximumTimeStepSizeSpecialized()
+DummyAdvDiff: getMinimumTimeStepSizeSpecialized()
+DummyAdvDiff: getMaximumTimeStepSizeSpecialized()
+DummyAdvDiff: atRegridPointSpecialized()
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0
+DummyAdvDiff: synchronizeHierarchyDataSpecialized()
+DummyAdvDiff: resetTimeDependentHierarchyDataSpecialized()
+
+At end       of timestep # 1
+Simulation time is 0.0005
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing visualization files...
+
+DummyAdvDiff: setupPlotDataSpecialized()
+
+Writing restart files...
+
+DummyAdvDiff: putToDatabaseSpecialized()
+IBRedundantInitializer:  Deallocating initialization data.

@@ -102,7 +102,8 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	ghost_indices_01_3d$(EXEEXT) ibtk_init$(EXEEXT) \
 	hierarchy_callbacks$(EXEEXT) ibtk_mpi$(EXEEXT) \
 	equal_eps$(EXEEXT) helmholtz_2d$(EXEEXT) helmholtz_3d$(EXEEXT) \
-	secondary_hierarchy_01_2d$(EXEEXT) $(am__EXEEXT_1)
+	secondary_hierarchy_01_2d$(EXEEXT) \
+	child_integrators_2d$(EXEEXT) $(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@am__append_1 = elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
 @LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d mapping_01 fe_values_01 fe_values_02 \
 @LIBMESH_ENABLED_TRUE@multilevel_fe_01_2d multilevel_fe_01_3d subdomain_level_translation_01 \
@@ -188,6 +189,14 @@ box_utilities_01_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 box_utilities_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(box_utilities_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_child_integrators_2d_OBJECTS =  \
+	child_integrators_2d-child_integrators.$(OBJEXT)
+child_integrators_2d_OBJECTS = $(am_child_integrators_2d_OBJECTS)
+child_integrators_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+child_integrators_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(child_integrators_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
 am__elem_hmax_01_SOURCES_DIST = elem_hmax_01.cpp
 @LIBMESH_ENABLED_TRUE@am_elem_hmax_01_OBJECTS =  \
@@ -516,6 +525,7 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/bounding_boxes_01_3d-bounding_boxes_01.Po \
 	./$(DEPDIR)/box_utilities_01_2d-box_utilities_01.Po \
 	./$(DEPDIR)/box_utilities_01_3d-box_utilities_01.Po \
+	./$(DEPDIR)/child_integrators_2d-child_integrators.Po \
 	./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po \
 	./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po \
 	./$(DEPDIR)/equal_eps-equal_eps.Po \
@@ -576,10 +586,10 @@ am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(bounding_boxes_01_3d_SOURCES) $(box_utilities_01_2d_SOURCES) \
-	$(box_utilities_01_3d_SOURCES) $(elem_hmax_01_SOURCES) \
-	$(elem_hmax_02_SOURCES) $(equal_eps_SOURCES) \
-	$(fe_values_01_SOURCES) $(fe_values_02_SOURCES) \
-	$(fischer_guess_01_SOURCES) \
+	$(box_utilities_01_3d_SOURCES) $(child_integrators_2d_SOURCES) \
+	$(elem_hmax_01_SOURCES) $(elem_hmax_02_SOURCES) \
+	$(equal_eps_SOURCES) $(fe_values_01_SOURCES) \
+	$(fe_values_02_SOURCES) $(fischer_guess_01_SOURCES) \
 	$(ghost_accumulation_01_2d_SOURCES) \
 	$(ghost_accumulation_01_3d_SOURCES) \
 	$(ghost_indices_01_2d_SOURCES) $(ghost_indices_01_3d_SOURCES) \
@@ -604,6 +614,7 @@ SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(am__bounding_boxes_01_3d_SOURCES_DIST) \
 	$(box_utilities_01_2d_SOURCES) $(box_utilities_01_3d_SOURCES) \
+	$(child_integrators_2d_SOURCES) \
 	$(am__elem_hmax_01_SOURCES_DIST) \
 	$(am__elem_hmax_02_SOURCES_DIST) $(equal_eps_SOURCES) \
 	$(am__fe_values_01_SOURCES_DIST) \
@@ -1056,6 +1067,9 @@ helmholtz_3d_SOURCES = helmholtz.cpp
 secondary_hierarchy_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 secondary_hierarchy_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 secondary_hierarchy_01_2d_SOURCES = secondary_hierarchy_01.cpp
+child_integrators_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+child_integrators_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+child_integrators_2d_SOURCES = child_integrators.cpp
 all: all-am
 
 .SUFFIXES:
@@ -1106,6 +1120,10 @@ box_utilities_01_2d$(EXEEXT): $(box_utilities_01_2d_OBJECTS) $(box_utilities_01_
 box_utilities_01_3d$(EXEEXT): $(box_utilities_01_3d_OBJECTS) $(box_utilities_01_3d_DEPENDENCIES) $(EXTRA_box_utilities_01_3d_DEPENDENCIES) 
 	@rm -f box_utilities_01_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(box_utilities_01_3d_LINK) $(box_utilities_01_3d_OBJECTS) $(box_utilities_01_3d_LDADD) $(LIBS)
+
+child_integrators_2d$(EXEEXT): $(child_integrators_2d_OBJECTS) $(child_integrators_2d_DEPENDENCIES) $(EXTRA_child_integrators_2d_DEPENDENCIES) 
+	@rm -f child_integrators_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(child_integrators_2d_LINK) $(child_integrators_2d_OBJECTS) $(child_integrators_2d_LDADD) $(LIBS)
 
 elem_hmax_01$(EXEEXT): $(elem_hmax_01_OBJECTS) $(elem_hmax_01_DEPENDENCIES) $(EXTRA_elem_hmax_01_DEPENDENCIES) 
 	@rm -f elem_hmax_01$(EXEEXT)
@@ -1273,6 +1291,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bounding_boxes_01_3d-bounding_boxes_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/box_utilities_01_2d-box_utilities_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/box_utilities_01_3d-box_utilities_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/child_integrators_2d-child_integrators.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/equal_eps-equal_eps.Po@am__quote@ # am--include-marker
@@ -1398,6 +1417,20 @@ box_utilities_01_3d-box_utilities_01.obj: box_utilities_01.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='box_utilities_01.cpp' object='box_utilities_01_3d-box_utilities_01.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(box_utilities_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o box_utilities_01_3d-box_utilities_01.obj `if test -f 'box_utilities_01.cpp'; then $(CYGPATH_W) 'box_utilities_01.cpp'; else $(CYGPATH_W) '$(srcdir)/box_utilities_01.cpp'; fi`
+
+child_integrators_2d-child_integrators.o: child_integrators.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(child_integrators_2d_CXXFLAGS) $(CXXFLAGS) -MT child_integrators_2d-child_integrators.o -MD -MP -MF $(DEPDIR)/child_integrators_2d-child_integrators.Tpo -c -o child_integrators_2d-child_integrators.o `test -f 'child_integrators.cpp' || echo '$(srcdir)/'`child_integrators.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/child_integrators_2d-child_integrators.Tpo $(DEPDIR)/child_integrators_2d-child_integrators.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='child_integrators.cpp' object='child_integrators_2d-child_integrators.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(child_integrators_2d_CXXFLAGS) $(CXXFLAGS) -c -o child_integrators_2d-child_integrators.o `test -f 'child_integrators.cpp' || echo '$(srcdir)/'`child_integrators.cpp
+
+child_integrators_2d-child_integrators.obj: child_integrators.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(child_integrators_2d_CXXFLAGS) $(CXXFLAGS) -MT child_integrators_2d-child_integrators.obj -MD -MP -MF $(DEPDIR)/child_integrators_2d-child_integrators.Tpo -c -o child_integrators_2d-child_integrators.obj `if test -f 'child_integrators.cpp'; then $(CYGPATH_W) 'child_integrators.cpp'; else $(CYGPATH_W) '$(srcdir)/child_integrators.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/child_integrators_2d-child_integrators.Tpo $(DEPDIR)/child_integrators_2d-child_integrators.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='child_integrators.cpp' object='child_integrators_2d-child_integrators.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(child_integrators_2d_CXXFLAGS) $(CXXFLAGS) -c -o child_integrators_2d-child_integrators.obj `if test -f 'child_integrators.cpp'; then $(CYGPATH_W) 'child_integrators.cpp'; else $(CYGPATH_W) '$(srcdir)/child_integrators.cpp'; fi`
 
 elem_hmax_01-elem_hmax_01.o: elem_hmax_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(elem_hmax_01_CXXFLAGS) $(CXXFLAGS) -MT elem_hmax_01-elem_hmax_01.o -MD -MP -MF $(DEPDIR)/elem_hmax_01-elem_hmax_01.Tpo -c -o elem_hmax_01-elem_hmax_01.o `test -f 'elem_hmax_01.cpp' || echo '$(srcdir)/'`elem_hmax_01.cpp
@@ -2080,6 +2113,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/bounding_boxes_01_3d-bounding_boxes_01.Po
 	-rm -f ./$(DEPDIR)/box_utilities_01_2d-box_utilities_01.Po
 	-rm -f ./$(DEPDIR)/box_utilities_01_3d-box_utilities_01.Po
+	-rm -f ./$(DEPDIR)/child_integrators_2d-child_integrators.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
 	-rm -f ./$(DEPDIR)/equal_eps-equal_eps.Po
@@ -2168,6 +2202,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/bounding_boxes_01_3d-bounding_boxes_01.Po
 	-rm -f ./$(DEPDIR)/box_utilities_01_2d-box_utilities_01.Po
 	-rm -f ./$(DEPDIR)/box_utilities_01_3d-box_utilities_01.Po
+	-rm -f ./$(DEPDIR)/child_integrators_2d-child_integrators.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_01-elem_hmax_01.Po
 	-rm -f ./$(DEPDIR)/elem_hmax_02-elem_hmax_02.Po
 	-rm -f ./$(DEPDIR)/equal_eps-equal_eps.Po
