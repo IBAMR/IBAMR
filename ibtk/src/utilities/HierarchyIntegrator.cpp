@@ -398,10 +398,16 @@ HierarchyIntegrator::regridHierarchy()
     bool check_volume_change = !d_parent_integrator && d_hierarchy_is_initialized;
     const double old_volume = check_volume_change ? d_hier_math_ops->getVolumeOfPhysicalDomain() : 0.0;
 
-    regridHierarchyBeginSpecialized();
-    for (const auto& child_integrator : d_child_integrators)
+    // Build list of child integrators
+    std::deque<HierarchyIntegrator*> hier_integrators(1, this);
+    while (!hier_integrators.empty())
     {
-        child_integrator->regridHierarchyBeginSpecialized();
+        HierarchyIntegrator* integrator = hier_integrators.front();
+        integrator->regridHierarchyBeginSpecialized();
+        // Add child integrators to the end of the list
+        hier_integrators.pop_front();
+        hier_integrators.insert(
+            hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
     }
 
     // Regrid the hierarchy.
@@ -434,10 +440,16 @@ HierarchyIntegrator::regridHierarchy()
                           << "  this may indicate overlapping patches in the AMR grid hierarchy.");
     }
 
-    regridHierarchyEndSpecialized();
-    for (const auto& child_integrator : d_child_integrators)
+    // Build list of child integrators
+    hier_integrators.push_back(this);
+    while (!hier_integrators.empty())
     {
-        child_integrator->regridHierarchyEndSpecialized();
+        HierarchyIntegrator* integrator = hier_integrators.front();
+        integrator->regridHierarchyEndSpecialized();
+        // Add child integrators to the end of the list
+        hier_integrators.pop_front();
+        hier_integrators.insert(
+            hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
     }
 
     // Reinitialize composite grid data.
