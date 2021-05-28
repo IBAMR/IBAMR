@@ -1528,7 +1528,14 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
         d_F_IB_vecs->reinit();
         if (d_Q_IB_vecs) d_Q_IB_vecs->reinit();
 
-        if (d_use_scratch_hierarchy && d_do_log)
+        // This condition is complex - we only want to log the workload if we are
+        // - logging
+        // - using the scratch hierarchy
+        //
+        // but not before the first timestep should d_skip_initial_workload_log
+        // be true.
+        if (d_use_scratch_hierarchy && d_do_log &&
+            (d_started_time_integration || (!d_started_time_integration && !d_skip_initial_workload_log)))
         {
             plog << "IBFEMethod::scratch hierarchy workload" << std::endl;
             const int n_processes = IBTK_MPI::getNodes();
