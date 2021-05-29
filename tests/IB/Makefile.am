@@ -13,7 +13,7 @@
 
 include $(top_srcdir)/config/Make-rules
 
-EXTRA_PROGRAMS = explicit_ex0 explicit_ex1
+EXTRA_PROGRAMS = explicit_ex0 explicit_ex1 ib_body_force ib_body_force_kirchhoff
 
 explicit_ex0_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 explicit_ex0_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -22,6 +22,14 @@ explicit_ex0_SOURCES = explicit_ex0.cpp
 explicit_ex1_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
 explicit_ex1_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 explicit_ex1_SOURCES = explicit_ex1.cpp
+
+ib_body_force_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+ib_body_force_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+ib_body_force_SOURCES = ib_body_force.cpp
+
+ib_body_force_kirchhoff_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+ib_body_force_kirchhoff_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+ib_body_force_kirchhoff_SOURCES = ib_body_force_kirchhoff.cpp
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
