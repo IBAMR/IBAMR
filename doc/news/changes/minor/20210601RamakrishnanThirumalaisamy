@@ -1,0 +1,3 @@
+Bug Fix: Filling ghost cells for levelset in demarcateBrinkmanZone function in BrinkmanPenalizationRigidBodyDynamics class.
+<br>
+(Ramakrishnan Thirumalaisamy, 2021/06/01)
