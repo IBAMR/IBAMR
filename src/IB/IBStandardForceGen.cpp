@@ -147,6 +147,13 @@ IBStandardForceGen::registerSpringForceFunction(const int force_fcn_index,
 } // registerSpringForceFunction
 
 void
+IBStandardForceGen::setUniformBodyForce(IBTK::Vector F, int structure_id, int level_number)
+{
+    d_uniform_body_force_data[level_number][structure_id] = std::move(F);
+    return;
+} // setUniformBodyForce
+
+void
 IBStandardForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
                                         const int level_number,
                                         const double init_data_time,
@@ -286,6 +293,7 @@ IBStandardForceGen::computeLagrangianForce(Pointer<LData> F_data,
     computeLagrangianBeamForce(F_ghost_data, X_ghost_data, hierarchy, level_number, data_time, l_data_manager);
     computeLagrangianTargetPointForce(
         F_ghost_data, X_ghost_data, U_data, hierarchy, level_number, data_time, l_data_manager);
+    computeLagrangianBodyForce(F_ghost_data, hierarchy, level_number, data_time, l_data_manager);
 
     // Add the locally computed forces to the Lagrangian force vector.
     //
@@ -1295,6 +1303,35 @@ IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
     U_data->restoreArrays();
     return;
 } // computeLagrangianTargetPointForce
+
+void
+IBStandardForceGen::computeLagrangianBodyForce(Pointer<LData> F_data,
+                                               Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                               const int level_number,
+                                               const double /*data_time*/,
+                                               LDataManager* const l_data_manager)
+{
+    if (d_uniform_body_force_data[level_number].empty()) return;
+
+    double* const F_node = F_data->getLocalFormVecArray()->data();
+    SAMRAI::tbox::Pointer<LMesh> l_mesh = l_data_manager->getLMesh(level_number);
+    for (const auto& n : l_mesh->getLocalNodes())
+    {
+        const auto lag_idx = n->getLagrangianIndex();
+        const auto structure_id = l_data_manager->getLagrangianStructureID(lag_idx, level_number);
+        if (d_uniform_body_force_data[level_number].count(structure_id))
+        {
+            const IBTK::Vector& F = d_uniform_body_force_data[level_number][structure_id];
+            const int local_petsc_idx = n->getLocalPETScIndex();
+            for (int d = 0; d < NDIM; ++d)
+            {
+                F_node[NDIM * local_petsc_idx + d] += F(d);
+            }
+        }
+    }
+    F_data->restoreArrays();
+    return;
+} // computeLagrangianBodyForce
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

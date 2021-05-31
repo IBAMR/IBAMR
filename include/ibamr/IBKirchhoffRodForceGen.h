@@ -75,6 +75,12 @@ public:
     virtual ~IBKirchhoffRodForceGen();
 
     /*!
+     * \brief Set a uniform body force that is applied on each point in the
+     * structure with the given structure_id.
+     */
+    void setUniformBodyForce(IBTK::Vector F, int structure_id, int level_number);
+
+    /*!
      * \brief Setup the data needed to compute the beam forces on the specified
      * level of the patch hierarchy.
      */
@@ -129,12 +135,22 @@ private:
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /*!
+     * Constant body force routines.
+     */
+    void computeLagrangianBodyForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                    int level_number,
+                                    double data_time,
+                                    IBTK::LDataManager* l_data_manager);
+
+    /*!
      * \name Data maintained separately for each level of the patch hierarchy.
      */
     //\{
     std::vector<Mat> d_D_next_mats, d_X_next_mats;
     std::vector<std::vector<int> > d_petsc_curr_node_idxs, d_petsc_next_node_idxs;
     std::vector<std::vector<std::array<double, IBRodForceSpec::NUM_MATERIAL_PARAMS> > > d_material_params;
+    std::map<int, std::map<int, IBTK::Vector> > d_uniform_body_force_data;
     std::vector<bool> d_is_initialized;
     //\}
 };

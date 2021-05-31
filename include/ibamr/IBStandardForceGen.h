@@ -93,6 +93,12 @@ public:
                                      const SpringForceDerivFcnPtr spring_force_deriv_fcn_ptr = nullptr);
 
     /*!
+     * \brief Set a uniform body force that is applied on each point in the
+     * structure with the given structure_id.
+     */
+    void setUniformBodyForce(IBTK::Vector F, int structure_id, int level_number);
+
+    /*!
      * \brief Setup the data needed to compute the forces on the specified level
      * of the patch hierarchy.
      */
@@ -211,6 +217,8 @@ private:
     };
     std::vector<TargetPointData> d_target_point_data;
 
+    std::map<int, std::map<int, IBTK::Vector> > d_uniform_body_force_data;
+
     std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_ghost_data, d_F_ghost_data, d_dX_data;
     std::vector<bool> d_is_initialized;
     //\}
@@ -248,7 +256,7 @@ private:
                                     IBTK::LDataManager* l_data_manager);
 
     /*!
-     * TargetPoint force routines.
+     * Target point force routines.
      */
     void initializeTargetPointLevelData(std::set<int>& nonlocal_petsc_idx_set,
                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -263,6 +271,15 @@ private:
                                            int level_number,
                                            double data_time,
                                            IBTK::LDataManager* l_data_manager);
+
+    /*!
+     * Constant body force routines.
+     */
+    void computeLagrangianBodyForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                    int level_number,
+                                    double data_time,
+                                    IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Spring force functions.

@@ -1435,6 +1435,11 @@ IBRedundantInitializer::getVertexBdryMassSpec(const std::pair<int, int>& point_i
 const std::vector<double>&
 IBRedundantInitializer::getVertexDirectors(const std::pair<int, int>& point_index, const int level_number) const
 {
+    if (!d_init_director_and_rod_on_level_fcn)
+    {
+        static std::vector<double> II = { 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 };
+        return II;
+    }
     return d_directors[level_number][point_index.first][point_index.second];
 } // getVertexDirectors
 

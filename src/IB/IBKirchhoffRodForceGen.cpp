@@ -100,6 +100,13 @@ IBKirchhoffRodForceGen::~IBKirchhoffRodForceGen()
 } // ~IBKirchhoffRodForceGen
 
 void
+IBKirchhoffRodForceGen::setUniformBodyForce(IBTK::Vector F, int structure_id, int level_number)
+{
+    d_uniform_body_force_data[level_number][structure_id] = std::move(F);
+    return;
+} // setUniformBodyForce
+
+void
 IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > hierarchy,
                                             const int level_number,
                                             const double /*init_data_time*/,
@@ -313,9 +320,9 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(Pointer<LData> F_data,
                                                         Pointer<LData> N_data,
                                                         Pointer<LData> X_data,
                                                         Pointer<LData> D_data,
-                                                        const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                                        const Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                         const int level_number,
-                                                        const double /*data_time*/,
+                                                        const double data_time,
                                                         LDataManager* const l_data_manager)
 {
     if (!l_data_manager->levelContainsLagrangianData(level_number)) return;
@@ -508,6 +515,9 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(Pointer<LData> F_data,
     ierr = VecAssemblyEnd(N_vec);
     IBTK_CHKERRQ(ierr);
 
+    computeLagrangianBodyForce(F_data, hierarchy, level_number, data_time, l_data_manager);
+
+
     IBAMR_TIMER_STOP(t_compute_lagrangian_force_and_torque);
     return;
 } // computeLagrangianForceAndTorque
@@ -525,6 +535,35 @@ IBKirchhoffRodForceGen::getFromInput(Pointer<Database> db)
     }
     return;
 } // getFromInput
+
+void
+IBKirchhoffRodForceGen::computeLagrangianBodyForce(Pointer<LData> F_data,
+                                                   Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                                   const int level_number,
+                                                   const double /*data_time*/,
+                                                   LDataManager* const l_data_manager)
+{
+    if (d_uniform_body_force_data[level_number].empty()) return;
+
+    double* const F_node = F_data->getLocalFormVecArray()->data();
+    SAMRAI::tbox::Pointer<LMesh> l_mesh = l_data_manager->getLMesh(level_number);
+    for (const auto& n : l_mesh->getLocalNodes())
+    {
+        const auto lag_idx = n->getLagrangianIndex();
+        const auto structure_id = l_data_manager->getLagrangianStructureID(lag_idx, level_number);
+        if (d_uniform_body_force_data[level_number].count(structure_id))
+        {
+            const IBTK::Vector& F = d_uniform_body_force_data[level_number][structure_id];
+            const int local_petsc_idx = n->getLocalPETScIndex();
+            for (int d = 0; d < NDIM; ++d)
+            {
+                F_node[NDIM * local_petsc_idx + d] += F(d);
+            }
+        }
+    }
+    F_data->restoreArrays();
+    return;
+} // computeLagrangianBodyForce
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
