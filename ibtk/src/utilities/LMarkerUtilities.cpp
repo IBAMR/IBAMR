@@ -202,7 +202,7 @@ LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init_posns,
                     const double* const X = mark_init_posns[k].data();
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        if (MathUtilities<double>::equalEps(X[d], grid_xLower[d]))
+                        if (IBTK::rel_equal_eps(X[d], grid_xLower[d]))
                         {
                             TBOX_ERROR("LMarkerUtilities::readMarkerPositions():\n"
                                        << "  encountered marker intersecting lower physical "
@@ -221,7 +221,7 @@ LMarkerUtilities::readMarkerPositions(std::vector<Point>& mark_init_posns,
                                        << std::endl);
                         }
 
-                        if (MathUtilities<double>::equalEps(X[d], grid_xUpper[d]))
+                        if (IBTK::rel_equal_eps(X[d], grid_xUpper[d]))
                         {
                             TBOX_ERROR("LMarkerUtilities::readMarkerPositions():\n"
                                        << "  encountered marker intersecting upper physical "

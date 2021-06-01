@@ -2186,7 +2186,7 @@ HierarchyMathOps::laplace(const int dst_idx,
         }
 
         // Take the divergence of the flux.
-        if (MathUtilities<double>::equalEps(beta, 0.0) && MathUtilities<double>::equalEps(gamma, 0.0))
+        if (IBTK::abs_equal_eps(beta, 0.0) && IBTK::abs_equal_eps(gamma, 0.0))
         {
             div(dst_idx,
                 dst_var,
@@ -2201,7 +2201,7 @@ HierarchyMathOps::laplace(const int dst_idx,
                 Pointer<CellVariable<NDIM, double> >(nullptr),
                 dst_depth);
         }
-        else if (MathUtilities<double>::equalEps(beta, 0.0))
+        else if (IBTK::abs_equal_eps(beta, 0.0))
         {
             div(dst_idx,
                 dst_var,
@@ -2217,7 +2217,7 @@ HierarchyMathOps::laplace(const int dst_idx,
                 dst_depth,
                 src2_depth);
         }
-        else if (MathUtilities<double>::equalEps(gamma, 0.0))
+        else if (IBTK::abs_equal_eps(gamma, 0.0))
         {
             div(dst_idx,
                 dst_var,

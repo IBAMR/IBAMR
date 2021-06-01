@@ -336,7 +336,7 @@ public:
         const double* const X_rhs = &(*d_X_ghosted_local_form_array)[rhs.getLocalPETScIndex()][0];
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            if (!SAMRAI::tbox::MathUtilities<double>::equalEps(X_lhs[d], X_rhs[d])) return false;
+            if (!IBTK::rel_equal_eps(X_lhs[d], X_rhs[d])) return false;
         }
         return true;
     } // operator()

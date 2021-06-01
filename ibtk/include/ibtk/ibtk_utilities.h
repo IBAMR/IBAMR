@@ -119,34 +119,6 @@ static const bool ENABLE_TIMERS = true;
 
 namespace IBTK
 {
-inline std::string
-get_data_time_str(const double data_time, const double current_time, const double new_time)
-{
-    const double half_time = 0.5 * (current_time + new_time);
-    if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, current_time))
-    {
-        return "current";
-    }
-    else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, half_time))
-    {
-        return "half";
-    }
-    else if (SAMRAI::tbox::MathUtilities<double>::equalEps(data_time, new_time))
-    {
-        return "new";
-    }
-    else
-    {
-        return "unknown";
-    }
-}
-
-/*!
- * Get the smallest cell width on the specified level. This operation is
- * collective.
- */
-double get_min_patch_dx(const SAMRAI::hier::PatchLevel<NDIM>& patch_level);
-
 /*!
  * Check whether the relative difference between a and b are within the threshold eps.
  *
@@ -170,6 +142,34 @@ abs_equal_eps(double a, double b, double eps = std::sqrt(std::numeric_limits<dou
 {
     return std::abs(a - b) < eps;
 }
+
+inline std::string
+get_data_time_str(const double data_time, const double current_time, const double new_time)
+{
+    const double half_time = 0.5 * (current_time + new_time);
+    if (rel_equal_eps(data_time, current_time))
+    {
+        return "current";
+    }
+    else if (rel_equal_eps(data_time, half_time))
+    {
+        return "half";
+    }
+    else if (rel_equal_eps(data_time, new_time))
+    {
+        return "new";
+    }
+    else
+    {
+        return "unknown";
+    }
+}
+
+/*!
+ * Get the smallest cell width on the specified level. This operation is
+ * collective.
+ */
+double get_min_patch_dx(const SAMRAI::hier::PatchLevel<NDIM>& patch_level);
 
 template <class T, unsigned N>
 inline std::array<T, N>

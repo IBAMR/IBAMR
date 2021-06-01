@@ -134,12 +134,12 @@ LMarkerRefine::refine(Patch<NDIM>& fine,
                 // so this is not an issue that is unique to markers.)
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    if (MathUtilities<double>::equalEps(X_shifted[d], fine_patchXLower[d]))
+                    if (IBTK::rel_equal_eps(X_shifted[d], fine_patchXLower[d]))
                     {
                         X_shifted[d] = fine_patchXLower[d];
                         fine_i(d) = fine_patch_lower(d);
                     }
-                    else if (MathUtilities<double>::equalEps(X_shifted[d], fine_patchXUpper[d]))
+                    else if (IBTK::rel_equal_eps(X_shifted[d], fine_patchXUpper[d]))
                     {
                         X_shifted[d] = fine_patchXUpper[d];
                         fine_i(d) = fine_patch_upper(d) + 1;
