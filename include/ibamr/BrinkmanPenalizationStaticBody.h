@@ -190,7 +190,7 @@ private:
     /*!
      * Constant added to avoid zero division.
      */
-    const double d_ed = 1e-3;
+    double d_ed = 1e-3;
 };
 
 } // namespace IBAMR
