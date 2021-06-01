@@ -978,7 +978,7 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
 
             // for plotting purpose.
             static const bool synch_cf_interface = true;
-            d_hier_math_ops->interp(d_D_cc_current_idx,
+            d_hier_math_ops->interp(d_D_cc_new_idx,
                                     d_D_cc_var,
                                     T_diff_coef_current_idx,
                                     d_T_diffusion_coef_var,
