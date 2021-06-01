@@ -49,6 +49,7 @@ endif
 DIM_INDEPENDENT_SOURCES = \
 ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 ../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
+../src/IB/BrinkmanPenalizationStaticBody.cpp \
 ../src/IB/BrinkmanPenalizationStrategy.cpp \
 ../src/IB/CIBMethod.cpp \
 ../src/IB/CIBMobilitySolver.cpp \
@@ -228,6 +229,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/BrinkmanAdvDiffBcHelper.h \
 ../include/ibamr/BrinkmanPenalizationStrategy.h \
 ../include/ibamr/BrinkmanPenalizationRigidBodyDynamics.h \
+../include/ibamr/BrinkmanPenalizationStaticBody.h \
 ../include/ibamr/CIBMethod.h \
 ../include/ibamr/CIBMobilitySolver.h \
 ../include/ibamr/CIBSaddlePointSolver.h \

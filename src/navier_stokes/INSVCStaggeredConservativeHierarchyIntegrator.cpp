@@ -697,6 +697,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
     for (auto& brinkman_force : d_brinkman_force)
     {
         brinkman_force->demarcateBrinkmanZone(d_velocity_L_idx, new_time, cycle_num);
+        pout << "L2 norm of d_velocity_L_idx after demarcateBrinkmanZone\t"
+             << d_hier_sc_data_ops->L2Norm(d_velocity_L_idx) << std::endl;
     }
 
     // Synchronize Brinkman coefficients.
@@ -714,6 +716,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
     for (auto& brinkman_force : d_brinkman_force)
     {
         brinkman_force->computeBrinkmanVelocity(d_velocity_L_idx, new_time, cycle_num);
+        pout << "L2 norm of d_velocity_L_idx after computeBrinkmanVelocity\t"
+             << d_hier_sc_data_ops->L2Norm(d_velocity_L_idx) << std::endl;
     }
     d_side_synch_op->resetTransactionComponent(L_synch_transaction);
     d_side_synch_op->synchronizeData(d_integrator_time);
