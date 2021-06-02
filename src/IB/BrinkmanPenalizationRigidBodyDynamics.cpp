@@ -367,14 +367,29 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
     // Get the interpolated density variable
     const int rho_ins_idx = d_fluid_solver->getLinearOperatorRhoPatchDataIndex();
 
-    // Get the solid level set data. We have already copied new data into scratch
-    // data and have also filled its ghost cells on the finest level.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
     const int ls_scratch_idx =
         var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
     Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+
+    // Ghost fill the level set values.
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> phi_transaction_comps(1);
+    phi_transaction_comps[0] = InterpolationTransactionComponent(ls_scratch_idx,
+                                                                 ls_solid_idx,
+                                                                 "CONSERVATIVE_LINEAR_REFINE",
+                                                                 false,
+                                                                 "CONSERVATIVE_COARSEN",
+                                                                 "LINEAR",
+                                                                 false,
+                                                                 d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var));
+    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
+    hier_bdry_fill->fillData(time);
+
     for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
