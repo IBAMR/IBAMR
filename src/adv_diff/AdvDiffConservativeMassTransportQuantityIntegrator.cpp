@@ -1041,6 +1041,7 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
                     new FaceData<NDIM, double>(patch_box, 1, ghosts); // to store (rho*C*T)^n+half
 
                 std::vector<RobinBcCoefStrategy<NDIM>*> rho_cc_bc_coefs(1, d_rho_cc_bc_coefs);
+
                 // Enforce physical boundary conditions at inflow boundaries.
                 AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
                     R_pre_data,
@@ -1082,13 +1083,46 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
                         /*inflow_boundary_only*/ d_specific_heat_bdry_extrap_type != "NONE",
                         homogeneous_bc);
 
-                    interpolateCellQuantity(C_half_data,
-                                            V_adv_data,
-                                            C_pre_data,
-                                            patch_lower,
-                                            patch_upper,
-                                            patch_box,
-                                            d_specific_heat_convective_limiter);
+                    //                    interpolateCellQuantity(C_half_data,
+                    //                                            V_adv_data,
+                    //                                            C_pre_data,
+                    //                                            patch_lower,
+                    //                                            patch_upper,
+                    //                                            patch_box,
+                    //                                            d_specific_heat_convective_limiter);
+
+                    // Interpolate from cell centers to cell faces.
+                    const IntVector<NDIM>& C_half_data_gcw = C_half_data->getGhostCellWidth();
+                    const IntVector<NDIM>& C_pre_data_gcw = C_pre_data->getGhostCellWidth();
+
+                    // Interpolate from cell centers to cell faces.
+                    C_TO_F_CWISE_INTERP_2ND_FC(
+#if (NDIM == 2)
+                        C_half_data->getPointer(0),
+                        C_half_data->getPointer(1),
+                        C_half_data_gcw.min(),
+                        C_pre_data->getPointer(),
+                        C_pre_data_gcw.min(),
+                        patch_lower(0),
+                        patch_upper(0),
+                        patch_lower(1),
+                        patch_upper(1)
+#endif
+#if (NDIM == 3)
+                            C_half_data->getPointer(0),
+                        C_half_data->getPointer(1),
+                        C_half_data->getPointer(2),
+                        C_half_data_gcw.min(),
+                        C_pre_data->getPointer(),
+                        C_pre_data_gcw.min(),
+                        patch_lower(0),
+                        patch_upper(0),
+                        patch_lower(1),
+                        patch_upper(1),
+                        patch_lower(2),
+                        patch_upper(2)
+#endif
+                    );
 
                     std::vector<RobinBcCoefStrategy<NDIM>*> T_cc_bc_coefs(1, d_T_cc_bc_coefs);
 

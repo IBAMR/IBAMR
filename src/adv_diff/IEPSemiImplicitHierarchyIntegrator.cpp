@@ -504,8 +504,14 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
                      "CONSERVATIVE_LINEAR_REFINE");
 
     d_chemical_potential_var = new CellVariable<NDIM, double>("chemical_potential_var");
-    d_chemical_potential_idx =
-        var_db->registerVariableAndContext(d_chemical_potential_var, getCurrentContext(), cell_ghosts);
+    //    d_chemical_potential_idx =
+    //        var_db->registerVariableAndContext(d_chemical_potential_var, getCurrentContext(), cell_ghosts);
+    registerVariable(d_chemical_potential_idx, d_chemical_potential_var, no_ghosts, getCurrentContext());
+
+    if (d_visit_writer)
+    {
+        d_visit_writer->registerPlotQuantity("zeta", "SCALAR", d_chemical_potential_idx);
+    }
 
     d_lf_pre_var = new CellVariable<NDIM, double>("lf_pre_var");
     d_lf_pre_idx = var_db->registerVariableAndContext(d_lf_pre_var, getCurrentContext());
@@ -634,8 +640,8 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
             level->allocatePatchData(d_g_firstder_idx, current_time); // should this be new time?
         if (!level->checkAllocated(d_g_secondder_idx)) level->allocatePatchData(d_g_secondder_idx, current_time);
         if (!level->checkAllocated(d_p_firstder_idx)) level->allocatePatchData(d_p_firstder_idx, current_time);
-        if (!level->checkAllocated(d_chemical_potential_idx))
-            level->allocatePatchData(d_chemical_potential_idx, current_time);
+        //        if (!level->checkAllocated(d_chemical_potential_idx))
+        //            level->allocatePatchData(d_chemical_potential_idx, current_time);
         if (!level->checkAllocated(d_lf_pre_idx)) level->allocatePatchData(d_lf_pre_idx, current_time);
         if (!level->checkAllocated(d_grad_lf_idx)) level->allocatePatchData(d_grad_lf_idx, current_time);
         if (!level->checkAllocated(d_H_sc_idx)) level->allocatePatchData(d_H_sc_idx, current_time);
@@ -1413,9 +1419,9 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
             d_rho_p_integrator->integrate(dt);
         }
 
-        const int rho_cc_new_idx = d_rho_p_integrator->getUpdatedCellCenteredDensityPatchDataIndex();
+        d_updated_rho_cc_idx = d_rho_p_integrator->getUpdatedCellCenteredDensityPatchDataIndex();
         d_hier_cc_data_ops->copyData(rho_new_idx,
-                                     rho_cc_new_idx,
+                                     d_updated_rho_cc_idx,
                                      /*interior_only*/ true);
 
         // set rho*Cp/dt + K*lambda.
@@ -1569,7 +1575,7 @@ IEPSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
         level->deallocatePatchData(d_g_firstder_idx);
         level->deallocatePatchData(d_g_secondder_idx);
         level->deallocatePatchData(d_p_firstder_idx);
-        level->deallocatePatchData(d_chemical_potential_idx);
+        //        level->deallocatePatchData(d_chemical_potential_idx);
         level->deallocatePatchData(d_lf_pre_idx);
         level->deallocatePatchData(d_grad_lf_idx);
         level->deallocatePatchData(d_H_sc_idx);
@@ -1922,6 +1928,12 @@ IEPSemiImplicitHierarchyIntegrator::getChemicalPotentialIndex()
 {
     return d_chemical_potential_idx;
 } // getChemicalPotentialIndex
+
+int
+IEPSemiImplicitHierarchyIntegrator::getUpdatedDensityIndex()
+{
+    return d_updated_rho_cc_idx;
+} // getUpdatedDensityIndex
 
 void
 IEPSemiImplicitHierarchyIntegrator::registerMassDensityBoundaryConditions(RobinBcCoefStrategy<NDIM>*& rho_bc_coef)
@@ -2505,6 +2517,7 @@ IEPSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> input_db, boo
         else if (input_db->keyExists("default_lf_convective_difference_type"))
             d_lf_convective_difference_form = string_to_enum<ConvectiveDifferencingType>(
                 input_db->getString("default_lf_convective_difference_type"));
+
         if (input_db->keyExists("lf_convective_op_type"))
             d_lf_convective_op_type = input_db->getString("lf_convective_op_type");
         else if (input_db->keyExists("lf_convective_operator_type"))
@@ -2545,6 +2558,7 @@ IEPSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> input_db, boo
         else if (input_db->keyExists("default_T_convective_difference_type"))
             d_T_convective_difference_form =
                 string_to_enum<ConvectiveDifferencingType>(input_db->getString("default_T_convective_difference_type"));
+
         if (input_db->keyExists("lf_convective_time_stepping_type"))
             d_lf_convective_time_stepping_type =
                 string_to_enum<TimeSteppingType>(input_db->getString("lf_convective_time_stepping_type"));

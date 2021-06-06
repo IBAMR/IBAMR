@@ -177,8 +177,8 @@ BrinkmanPenalizationStaticBody::computeBrinkmanVelocity(int u_idx, double time, 
 
                 const double Hphi = IBTK::smooth_heaviside(phi, alpha);
                 const double alpha_s = Hphi * (1.0 - liquid_fraction);
-                const double penalty = 1.0;
-                d_ed = dt / (*rho_data)(s_i);
+                const double penalty = (*rho_data)(s_i) / dt;
+                d_ed = 1e-1;
                 const double solid_velocity = 0.0;
                 (*u_data)(s_i) = solid_velocity * penalty * alpha_s * alpha_s / (std::pow(1.0 - alpha_s, 3.0) + d_ed);
             }
@@ -274,8 +274,8 @@ BrinkmanPenalizationStaticBody::demarcateBrinkmanZone(int u_idx, double time, in
                 //                    std::cout << "value of alpha_s\t" << alpha_s << "\tat locations\t" << s_i
                 //                    <<std::endl;
 
-                const double penalty = 1.0;
-                d_ed = dt / (*rho_data)(s_i);
+                const double penalty = (*rho_data)(s_i) / dt;
+                d_ed = 1e-1;
                 (*u_data)(s_i) = penalty * alpha_s * alpha_s / (std::pow(1.0 - alpha_s, 3.0) + d_ed);
             }
         }

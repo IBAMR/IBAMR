@@ -311,6 +311,11 @@ public:
      */
     int getChemicalPotentialIndex();
 
+    /*!
+     * Get the updated density patch data index.
+     */
+    int getUpdatedDensityIndex();
+
     /*
      * \brief Supply boundary conditions for the cell-centered density field, which is maintained by this integrator
      */
@@ -573,6 +578,9 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_chemical_potential_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_lf_var;
     int d_chemical_potential_idx, d_grad_lf_idx, d_H_sc_idx;
+
+    // Patch data index to store updated density
+    int d_updated_rho_cc_idx = IBTK::invalid_index;
 
     /*
      * Conservative density and transport quantity integrator.
