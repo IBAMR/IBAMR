@@ -273,6 +273,13 @@ public:
                                             SAMRAI::solv::RobinBcCoefStrategy<NDIM>* lf_bc_coef);
 
     /*!
+     * Set an object to provide boundary conditions for  \f$ k \f$ variable,
+     * that has been registered with the hierarchy integrator.
+     */
+    void setPhysicalBcCoefHeavisideEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var,
+                                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* H_bc_coef);
+
+    /*!
      * Return a \f$ k \f$ boundary condition object.
      */
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getPhysicalBcCoefLiquidFractionEquation();
@@ -487,6 +494,7 @@ private:
 
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_lf_F_init, d_T_F_init;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_lf_bc_coef = nullptr;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_H_bc_coef = nullptr;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_T_bc_coef = nullptr;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_H_bdry_bc_fill_op;
 

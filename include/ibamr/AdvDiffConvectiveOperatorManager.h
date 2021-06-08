@@ -58,6 +58,7 @@ public:
      */
     static const std::string DEFAULT;
     static const std::string CENTERED;
+    static const std::string CONSERVATIVE_CUI;
     static const std::string CUI;
     static const std::string PPM;
     static const std::string WAVE_PROP;

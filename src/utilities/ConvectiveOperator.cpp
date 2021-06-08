@@ -56,6 +56,13 @@ ConvectiveOperator::getAdvectionVelocity() const
 } // getAdvectionVelocity
 
 void
+ConvectiveOperator::applyConvectiveOperator(int Q1_idx, int Q2_idx, int N_idx)
+{
+    applyConvectiveOperator(Q1_idx, N_idx);
+    return;
+} // applyConvectiveOperator
+
+void
 ConvectiveOperator::setConvectiveDifferencingType(const ConvectiveDifferencingType difference_form)
 {
     d_difference_form = difference_form;

@@ -15,6 +15,7 @@
 
 #include "ibamr/AdvDiffCUIConvectiveOperator.h"
 #include "ibamr/AdvDiffCenteredConvectiveOperator.h"
+#include "ibamr/AdvDiffConservativeCUIConvectiveOperator.h"
 #include "ibamr/AdvDiffConvectiveOperatorManager.h"
 #include "ibamr/AdvDiffPPMConvectiveOperator.h"
 #include "ibamr/AdvDiffWavePropConvectiveOperator.h"
@@ -54,6 +55,7 @@ namespace IBAMR
 const std::string AdvDiffConvectiveOperatorManager::DEFAULT = "DEFAULT";
 const std::string AdvDiffConvectiveOperatorManager::CENTERED = "CENTERED";
 const std::string AdvDiffConvectiveOperatorManager::CUI = "CUI";
+const std::string AdvDiffConvectiveOperatorManager::CONSERVATIVE_CUI = "CONSERVATIVE_CUI";
 const std::string AdvDiffConvectiveOperatorManager::PPM = "PPM";
 const std::string AdvDiffConvectiveOperatorManager::WAVE_PROP = "WAVE_PROP";
 
@@ -123,6 +125,7 @@ AdvDiffConvectiveOperatorManager::AdvDiffConvectiveOperatorManager() : d_operato
 {
     registerOperatorFactoryFunction(DEFAULT, AdvDiffPPMConvectiveOperator::allocate_operator);
     registerOperatorFactoryFunction(CENTERED, AdvDiffCenteredConvectiveOperator::allocate_operator);
+    registerOperatorFactoryFunction(CONSERVATIVE_CUI, AdvDiffConservativeCUIConvectiveOperator::allocate_operator);
     registerOperatorFactoryFunction(CUI, AdvDiffCUIConvectiveOperator::allocate_operator);
     registerOperatorFactoryFunction(PPM, AdvDiffPPMConvectiveOperator::allocate_operator);
     registerOperatorFactoryFunction(WAVE_PROP, AdvDiffWavePropConvectiveOperator::allocate_operator);
