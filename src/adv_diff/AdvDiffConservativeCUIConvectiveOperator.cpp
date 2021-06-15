@@ -452,9 +452,11 @@ AdvDiffConservativeCUIConvectiveOperator::applyConvectiveOperator(const int Q1_i
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
     Pointer<RefineOperator<NDIM> > refine_op1 = grid_geom->lookupRefineOperator(d_Q1_var, "CONSERVATIVE_LINEAR_REFINE");
-    Pointer<RefineOperator<NDIM> > refine_op2 = grid_geom->lookupRefineOperator(d_Q2_var, "CONSERVATIVE_LINEAR_REFINE");
     refine_alg->registerRefine(d_Q1_scratch_idx, Q1_idx, d_Q1_scratch_idx, refine_op1);
-    refine_alg->registerRefine(d_Q2_scratch_idx, Q2_idx, d_Q2_scratch_idx, refine_op2);
+
+    Pointer<RefineAlgorithm<NDIM> > refine_alg1 = new RefineAlgorithm<NDIM>();
+    Pointer<RefineOperator<NDIM> > refine_op2 = grid_geom->lookupRefineOperator(d_Q2_var, "CONSERVATIVE_LINEAR_REFINE");
+    refine_alg1->registerRefine(d_Q2_scratch_idx, Q2_idx, d_Q2_scratch_idx, refine_op2);
 
     // Extrapolate from cell centers to cell faces.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -462,6 +464,11 @@ AdvDiffConservativeCUIConvectiveOperator::applyConvectiveOperator(const int Q1_i
         refine_alg->resetSchedule(d_ghostfill_scheds[ln]);
         d_ghostfill_scheds[ln]->fillData(d_solution_time);
         d_ghostfill_alg->resetSchedule(d_ghostfill_scheds[ln]);
+
+        refine_alg1->resetSchedule(d_ghostfill_scheds1[ln]);
+        d_ghostfill_scheds1[ln]->fillData(d_solution_time);
+        d_ghostfill_alg1->resetSchedule(d_ghostfill_scheds1[ln]);
+
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -642,9 +649,6 @@ AdvDiffConservativeCUIConvectiveOperator::applyConvectiveOperator(const int Q1_i
     // Extrapolate from cell centers to cell faces.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        refine_alg->resetSchedule(d_ghostfill_scheds[ln]);
-        d_ghostfill_scheds[ln]->fillData(d_solution_time);
-        d_ghostfill_alg->resetSchedule(d_ghostfill_scheds[ln]);
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
@@ -793,8 +797,7 @@ AdvDiffConservativeCUIConvectiveOperator::applyConvectiveOperator(const int Q1_i
         level->deallocatePatchData(d_q_extrap_idx);
         level->deallocatePatchData(d_q1_extrap_idx);
         level->deallocatePatchData(d_q2_extrap_idx);
-        if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
-            level->deallocatePatchData(d_q_flux_idx);
+        if (d_difference_form == CONSERVATIVE) level->deallocatePatchData(d_q_flux_idx);
     }
 
     IBAMR_TIMER_STOP(t_apply_convective_operator);
@@ -845,21 +848,31 @@ AdvDiffConservativeCUIConvectiveOperator::initializeOperatorState(const SAMRAIVe
     }
 
     // Setup the refine algorithm, operator, patch strategy, and schedules.
-    Pointer<RefineOperator<NDIM> > refine_op1 = grid_geom->lookupRefineOperator(d_Q1_var, "CONSERVATIVE_LINEAR_REFINE");
     d_ghostfill_alg = new RefineAlgorithm<NDIM>();
+
+    Pointer<RefineOperator<NDIM> > refine_op1 = grid_geom->lookupRefineOperator(d_Q1_var, "CONSERVATIVE_LINEAR_REFINE");
     d_ghostfill_alg->registerRefine(d_Q1_scratch_idx, in.getComponentDescriptorIndex(0), d_Q1_scratch_idx, refine_op1);
     if (d_outflow_bdry_extrap_type != "NONE")
         d_ghostfill_strategy = new CartExtrapPhysBdryOp(d_Q1_scratch_idx, d_outflow_bdry_extrap_type);
 
-    Pointer<RefineOperator<NDIM> > refine_op2 = grid_geom->lookupRefineOperator(d_Q2_var, "CONSERVATIVE_LINEAR_REFINE");
-    d_ghostfill_alg->registerRefine(d_Q2_scratch_idx, in.getComponentDescriptorIndex(0), d_Q2_scratch_idx, refine_op2);
-    if (d_outflow_bdry_extrap_type != "NONE")
-        d_ghostfill_strategy = new CartExtrapPhysBdryOp(d_Q2_scratch_idx, d_outflow_bdry_extrap_type);
     d_ghostfill_scheds.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy);
+    }
+
+    d_ghostfill_alg1 = new RefineAlgorithm<NDIM>();
+    Pointer<RefineOperator<NDIM> > refine_op2 = grid_geom->lookupRefineOperator(d_Q2_var, "CONSERVATIVE_LINEAR_REFINE");
+    d_ghostfill_alg1->registerRefine(d_Q2_scratch_idx, in.getComponentDescriptorIndex(0), d_Q2_scratch_idx, refine_op2);
+    if (d_outflow_bdry_extrap_type != "NONE")
+        d_ghostfill_strategy1 = new CartExtrapPhysBdryOp(d_Q2_scratch_idx, d_outflow_bdry_extrap_type);
+
+    d_ghostfill_scheds1.resize(d_finest_ln + 1);
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        d_ghostfill_scheds1[ln] = d_ghostfill_alg1->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy1);
     }
 
     d_is_initialized = true;
