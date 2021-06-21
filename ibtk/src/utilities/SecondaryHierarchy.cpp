@@ -204,7 +204,7 @@ SecondaryHierarchy::reinit(int coarsest_patch_level_number,
         Pointer<RefineAlgorithm<NDIM> > refine_algorithm = new RefineAlgorithm<NDIM>();
         Pointer<RefineOperator<NDIM> > refine_op = nullptr;
         refine_algorithm->registerRefine(workload_idx, workload_idx, workload_idx, refine_op);
-        auto schedule = refine_algorithm->createSchedule("DEFAULT_FILL", new_level, old_level, nullptr, false, nullptr);
+        auto schedule = refine_algorithm->createSchedule("DEFAULT_FILL", new_level, old_level);
 
         schedule->fillData(0.0);
     }
@@ -242,7 +242,7 @@ SecondaryHierarchy::reinit(int coarsest_patch_level_number,
         Pointer<RefineAlgorithm<NDIM> > refine_algorithm = new RefineAlgorithm<NDIM>();
         Pointer<RefineOperator<NDIM> > refine_op = nullptr;
         refine_algorithm->registerRefine(workload_idx, workload_idx, workload_idx, refine_op);
-        auto schedule = refine_algorithm->createSchedule("DEFAULT_FILL", new_level, old_level, nullptr, false, nullptr);
+        auto schedule = refine_algorithm->createSchedule("DEFAULT_FILL", new_level, old_level);
         schedule->fillData(0.0);
     }
 }
@@ -264,7 +264,7 @@ SecondaryHierarchy::getPrimaryToScratchSchedule(const int level_number,
         Pointer<RefineOperator<NDIM> > refine_op_f = nullptr;
         refine_algorithm->registerRefine(scratch_data_idx, primary_data_idx, scratch_data_idx, refine_op_f);
         d_transfer_forward_schedules[key] =
-            refine_algorithm->createSchedule("DEFAULT_FILL", scratch_level, level, patch_strategy, false, nullptr);
+            refine_algorithm->createSchedule("DEFAULT_FILL", scratch_level, level, patch_strategy);
     }
     return *d_transfer_forward_schedules[key];
 } // getPrimaryToScratchSchedule
@@ -285,7 +285,7 @@ SecondaryHierarchy::getScratchToPrimarySchedule(const int level_number,
         Pointer<RefineOperator<NDIM> > refine_op_b = nullptr;
         refine_algorithm->registerRefine(primary_data_idx, scratch_data_idx, primary_data_idx, refine_op_b);
         d_transfer_backward_schedules[key] =
-            refine_algorithm->createSchedule("DEFAULT_FILL", level, scratch_level, patch_strategy, false, nullptr);
+            refine_algorithm->createSchedule("DEFAULT_FILL", level, scratch_level, patch_strategy);
     }
     return *d_transfer_backward_schedules[key];
 } // getScratchToPrimarySchedule

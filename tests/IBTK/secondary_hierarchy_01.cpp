@@ -39,8 +39,6 @@
 
 #include <ibtk/app_namespaces.h>
 
-// test showing orders of accuracy for a cell-centered Laplace solver.
-
 int
 main(int argc, char* argv[])
 {
