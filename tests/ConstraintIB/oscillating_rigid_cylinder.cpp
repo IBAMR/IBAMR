@@ -355,7 +355,7 @@ main(int argc, char* argv[])
                                                       "Cylinder_COM_coordinates_struct_no_0" };
 
         std::ofstream output("output");
-        for (const std::string file_name : file_names)
+        for (const std::string& file_name : file_names)
         {
             std::ifstream input(file_name);
 

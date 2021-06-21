@@ -43,7 +43,7 @@ public:
     }
     DummyAdvDiffIntegrator() = default;
     ~DummyAdvDiffIntegrator() = default;
-    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0) override
+    void integrateHierarchy(double /*current_time*/, double /*new_time*/, int /*cycle_num*/ = 0) override
     {
         return;
     }
