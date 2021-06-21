@@ -18,8 +18,10 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LevelSetInitialConditionEgg::LevelSetInitialConditionEgg(const std::string& object_name, const IBTK::VectorNd& origin)
-    : d_object_name(object_name), d_origin(origin)
+LevelSetInitialConditionEgg::LevelSetInitialConditionEgg(const std::string& object_name,
+                                                         const Pointer<CartesianGridGeometry<NDIM> > grid_geom,
+                                                         const IBTK::VectorNd& origin)
+    : d_object_name(object_name), d_grid_geom(grid_geom), d_origin(origin)
 {
     // intentionally blank
     return;
@@ -37,13 +39,21 @@ LevelSetInitialConditionEgg::setDataOnPatch(const int data_idx,
                                             Pointer<Patch<NDIM> > patch,
                                             const double /*data_time*/,
                                             const bool initial_time,
-                                            Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                                            Pointer<PatchLevel<NDIM> > patch_level)
 {
     // Set the level set function throughout the domain
     if (initial_time)
     {
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(data_idx);
+
+        Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* const patch_dx = patch_geom->getDx();
+        const double* const grid_x_lower = d_grid_geom->getXLower();
+        IntVector<NDIM> ratio = patch_level->getRatio();
+        const SAMRAI::hier::Box<NDIM> domain_box =
+            SAMRAI::hier::Box<NDIM>::refine(d_grid_geom->getPhysicalDomain()[0], ratio);
+        const hier::Index<NDIM>& grid_lower_idx = domain_box.lower();
 
         // Get physical coordinates
         IBTK::VectorNd coord = IBTK::Vector::Zero();
@@ -52,15 +62,10 @@ LevelSetInitialConditionEgg::setDataOnPatch(const int data_idx,
         for (Box<NDIM>::Iterator it(patch_box); it; it++)
         {
             CellIndex<NDIM> ci(it());
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* patch_X_lower = patch_geom->getXLower();
-            const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
-            const double* const patch_dx = patch_geom->getDx();
 
             for (int d = 0; d < NDIM; ++d)
-            {
-                coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
-            }
+                coord[d] = grid_x_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - grid_lower_idx(d)) + 0.5);
+
             p = coord - d_origin;
             const double k = std::sqrt(3.0);
             p[0] = std::abs(p[0]);

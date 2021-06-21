@@ -59,34 +59,32 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
 #endif
 
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    IntVector<NDIM> ratio = finest_level->getRatio();
+    for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        const Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_hierarchy->getGridGeometry();
+        Pointer<SideData<NDIM, double> > B_data = patch->getPatchData(B_idx);
+
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<SideData<NDIM, double> > B_data = patch->getPatchData(B_idx);
-
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
             {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-                {
-                    SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
+                SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
 
-                    // Get physical coordinates
-                    IBTK::Vector coord = IndexUtilities::getSideCenter(*patch, si);
-                    if (axis == 0)
-                    {
-                        (*B_data)(si) = cos(coord[0]) * sin(coord[1]);
-                    }
-                    else if (axis == 1)
-                    {
-                        (*B_data)(si) = sin(coord[0]) * cos(coord[1]);
-                    }
+                // Get physical coordinates
+                IBTK::Vector coord = IndexUtilities::getSideCenter(grid_geom, ratio, si);
+                if (axis == 0)
+                {
+                    (*B_data)(si) = cos(coord[0]) * sin(coord[1]);
+                }
+                else if (axis == 1)
+                {
+                    (*B_data)(si) = sin(coord[0]) * cos(coord[1]);
                 }
             }
         }
@@ -185,7 +183,7 @@ main(int argc, char* argv[])
         // Origin of the Hexagram.
         IBTK::Vector2d origin1(M_PI, M_PI);
         Pointer<CartGridFunction> phi_outer_solid_init =
-            new LevelSetInitialConditionHexagram("ls_outer_solid_init", origin1);
+            new LevelSetInitialConditionHexagram("ls_outer_solid_init", grid_geometry, origin1);
         time_integrator->setInitialConditions(phi_outer_solid_var, phi_outer_solid_init);
         std::vector<Pointer<CellVariable<NDIM, double> > > ls_vars;
         ls_vars.push_back(phi_outer_solid_var);
@@ -199,7 +197,7 @@ main(int argc, char* argv[])
         IBTK::Vector2d origin2(M_PI, M_PI);
         const double radius = input_db->getDouble("RADIUS");
         Pointer<CartGridFunction> phi_inner_solid_init =
-            new LevelSetInitialConditionCircle("ls_inner_solid_init", radius, origin2);
+            new LevelSetInitialConditionCircle("ls_inner_solid_init", grid_geometry, radius, origin2);
         time_integrator->setInitialConditions(phi_inner_solid_var, phi_inner_solid_init);
         ls_vars.push_back(phi_inner_solid_var);
 

@@ -34,6 +34,7 @@ public:
      * \brief Class constructor.
      */
     LevelSetInitialCondition(const std::string& object_name,
+                             const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
                              const IBTK::VectorNd& interface_loc,
                              const bool left_side = false);
 
@@ -80,6 +81,12 @@ private:
      * Name of this object.
      */
     std::string d_object_name;
+
+    /*!
+     * The Cartesian grid geometry object provides the extents of the
+     * computational domain.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
 
     /*!
      * Interface location.
