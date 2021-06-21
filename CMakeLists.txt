@@ -388,21 +388,21 @@ CMake.")
     EXECUTE_PROCESS(COMMAND "${_libmesh_config}" "--include" OUTPUT_VARIABLE _libmesh_raw_includes)
     STRING(REGEX REPLACE "\n$" "" _libmesh_raw_includes ${_libmesh_raw_includes})
     SEPARATE_ARGUMENTS(_libmesh_raw_includes)
-    MESSAGE(STATUS "LIBMESH_INCLUDES: ${LIBMESH_INCLUDES}")
     # Get rid of preceding -Is (CMake wants just directory names):
     SET(LIBMESH_INCLUDE_DIRS)
     FOREACH(_include ${_libmesh_raw_includes})
       STRING(REGEX REPLACE "^-I" "" _directory "${_include}")
       LIST(APPEND LIBMESH_INCLUDE_DIRS ${_directory})
     ENDFOREACH()
+    MESSAGE(STATUS "LIBMESH_INCLUDE_DIRS: ${LIBMESH_INCLUDE_DIRS}")
 
     # we won't use it directly but see if libMesh expects C++14 by checking its C++ flags:
     EXECUTE_PROCESS(COMMAND "${_libmesh_config}" "--cxxflags" OUTPUT_VARIABLE _libmesh_cxxflags)
-    STRING(REGEX REPLACE "\n$" "" _libmesh_cxxflags ${_libmesh_cxxflags})
+    STRING(REGEX REPLACE "\n$" " " _libmesh_cxxflags ${_libmesh_cxxflags})
     SEPARATE_ARGUMENTS(_libmesh_cxxflags)
-
-    SET(CMAKE_REQUIRED_INCLUDES "${LIBMESH_INCLUDE_DIRS}")
-    SET(CMAKE_REQUIRED_FLAGS "${_libmesh_cxxflags}")
+    ## CXX_FLAGS is not comma-separated so pull things out again
+    STRING(REPLACE ";" " " ${_libmesh_cxxflags} CMAKE_REQUIRED_FLAGS)
+    SET(CMAKE_REQUIRED_INCLUDES ${LIBMESH_INCLUDE_DIRS})
 
     # figure out which version of C++ libMesh wants to use:
     SET(LIBMESH_CXX_VERSION 11) # we require C++11 anyway so use it as the default
@@ -530,8 +530,8 @@ The version of PETSc detected by libMesh differs from the version of PETSc \
 detected by IBAMR. This is not allowed.")
     ENDIF()
 
-    SET(CMAKE_REQUIRED_INCLUDES "")
     SET(CMAKE_REQUIRED_FLAGS "")
+    SET(CMAKE_REQUIRED_INCLUDES "")
   ENDIF()
 ELSE()
   MESSAGE(STATUS "LIBMESH_ROOT was not specified so IBAMR will be configured without it.")
