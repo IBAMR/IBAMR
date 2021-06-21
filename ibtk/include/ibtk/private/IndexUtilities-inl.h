@@ -115,6 +115,52 @@ IndexUtilities::getSideCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMR
     return getSideCenter<VectorNd>(patch, side_idx);
 } // getSideCenter
 
+template <typename Vector>
+inline Vector
+IndexUtilities::getSideCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
+                              const SAMRAI::hier::IntVector<NDIM>& ratio,
+                              const SAMRAI::pdat::SideIndex<NDIM>& side_idx)
+{
+    const int axis = side_idx.getAxis();
+    const double* const dx0 = grid_geom->getDx();
+    double patch_dx[NDIM];
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        patch_dx[d] = dx0[d] / static_cast<double>(ratio(d));
+    }
+    const SAMRAI::hier::Box<NDIM> domain_box =
+        SAMRAI::hier::Box<NDIM>::refine(grid_geom->getPhysicalDomain()[0], ratio);
+    const double* const grid_x_lower = grid_geom->getXLower();
+    const SAMRAI::hier::Index<NDIM>& grid_lower_idx = domain_box.lower();
+
+    Vector side_coord;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        if (d == axis)
+        {
+            side_coord[d] = grid_x_lower[d] + patch_dx[d] * (static_cast<double>(side_idx(d) - grid_lower_idx(d)));
+        }
+        else
+        {
+            side_coord[d] =
+                grid_x_lower[d] + patch_dx[d] * (static_cast<double>(side_idx(d) - grid_lower_idx(d)) + 0.5);
+        }
+    }
+    for (int d = NDIM; d < side_coord.size(); ++d)
+    {
+        side_coord[d] = 0.0;
+    }
+    return side_coord;
+} // getSideCenter
+
+inline VectorNd
+IndexUtilities::getSideCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
+                              const SAMRAI::hier::IntVector<NDIM>& ratio,
+                              const SAMRAI::pdat::SideIndex<NDIM>& side_idx)
+{
+    return getSideCenter<VectorNd>(grid_geom, ratio, side_idx);
+} // getSideCenter
+
 template <class DoubleArray>
 inline SAMRAI::hier::Index<NDIM>
 IndexUtilities::getCellIndex(const DoubleArray& X,
