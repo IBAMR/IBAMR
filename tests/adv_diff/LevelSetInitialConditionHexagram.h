@@ -19,6 +19,8 @@
 // IBAMR INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
+#include "CartesianGridGeometry.h"
+
 #include <ibamr/app_namespaces.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
@@ -33,7 +35,9 @@ public:
     /*!
      * \brief Class constructor.
      */
-    LevelSetInitialConditionHexagram(const std::string& object_name, const IBTK::VectorNd& origin);
+    LevelSetInitialConditionHexagram(const std::string& object_name,
+                                     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
+                                     const IBTK::VectorNd& origin);
 
     /*!
      * \brief Empty destructor.
@@ -78,6 +82,12 @@ private:
      * Name of this object.
      */
     std::string d_object_name;
+
+    /*!
+     * The Cartesian grid geometry object provides the extents of the
+     * computational domain.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
 
     /*!
      * Origin of the geometry.

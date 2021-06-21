@@ -7,7 +7,7 @@ RADIUS = 1.5
 
 // grid spacing parameters
 MAX_LEVELS = 1                            // maximum number of levels in locally refined grid
-REF_RATIO  = 2                            // refinement ratio between levels
+REF_RATIO  = 1                            // refinement ratio between levels
 N = 256                                   // actual number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
 DX = 2*PI/NFINEST
@@ -105,6 +105,11 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator {
    enable_logging                = ENABLE_LOGGING
    max_integrator_steps          = MAX_INTEGRATOR_STEPS
    brinkman_time_independent     = BRINKMAN_TIME_INDEPENDENT
+   solver_type = "PETSC_KRYLOV_SOLVER"
+   solver_db
+   {
+      rel_residual_tol = 1.0e-12
+   }
 }
 
 Main {
