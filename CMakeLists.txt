@@ -15,16 +15,6 @@
 #            0: Set up some basic information about the environment            #
 # ---------------------------------------------------------------------------- #
 CMAKE_MINIMUM_REQUIRED(VERSION 3.15.0)
-FILE(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" _version LIMIT_COUNT 1)
-STRING(REGEX REPLACE "^([0-9]+)\\..*" "\\1" IBTK_VERSION_MAJOR "${_version}")
-
-STRING(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_MINOR "${_version}")
-STRING(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_SUBMINOR "${_version}")
-SET(IBTK_VERSION ${IBTK_VERSION_MAJOR}.${IBTK_VERSION_MINOR}.${IBTK_VERSION_SUBMINOR})
-SET(IBAMR_VERSION ${IBTK_VERSION})
-
-# Do we want dynamic or static linking?
-OPTION(BUILD_SHARED_LIBS "Whether or not to build shared libraries." ON)
 
 PROJECT(IBAMR
   DESCRIPTION "Software infrastructure for the IB method with adaptively-refined grids"
@@ -32,13 +22,25 @@ PROJECT(IBAMR
   HOMEPAGE_URL "https://ibamr.github.io"
   # include C so that we can link against C libraries (e.g., MPI::MPI_C) easily
   LANGUAGES C CXX Fortran)
-SET(IBAMR_DIMENSIONS "2" "3")
 
 MESSAGE(STATUS "This is CMake ${CMAKE_VERSION}")
 MESSAGE(STATUS "")
 INCLUDE(GNUInstallDirs)
 INCLUDE(CMakePackageConfigHelpers)
-LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules/)
+
+# Version info:
+FILE(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" _version LIMIT_COUNT 1)
+STRING(REGEX REPLACE "^([0-9]+)\\..*" "\\1" IBTK_VERSION_MAJOR "${_version}")
+STRING(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_MINOR "${_version}")
+STRING(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_SUBMINOR "${_version}")
+SET(IBTK_VERSION ${IBTK_VERSION_MAJOR}.${IBTK_VERSION_MINOR}.${IBTK_VERSION_SUBMINOR})
+SET(IBAMR_VERSION ${IBTK_VERSION})
+
+# Do we want dynamic or static linking?
+OPTION(BUILD_SHARED_LIBS "Whether or not to build shared libraries." ON)
+# Build the libraries in one place:
+SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/")
+SET(IBAMR_DIMENSIONS "2" "3")
 
 # determine some details about the current Fortran compiler:
 INCLUDE(FortranCInterface)
