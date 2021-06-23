@@ -35,12 +35,21 @@ STRING(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_MINOR "${_version
 STRING(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_SUBMINOR "${_version}")
 SET(IBTK_VERSION ${IBTK_VERSION_MAJOR}.${IBTK_VERSION_MINOR}.${IBTK_VERSION_SUBMINOR})
 SET(IBAMR_VERSION ${IBTK_VERSION})
+SET(IBAMR_DEPENDENCY_LINK_ARGUMENTS "")
 
 # Do we want dynamic or static linking?
 OPTION(BUILD_SHARED_LIBS "Whether or not to build shared libraries." ON)
 # Build the libraries in one place:
 SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/")
 SET(IBAMR_DIMENSIONS "2" "3")
+
+# Start building up RPATH:
+SET(CMAKE_MACOSX_RPATH 1)
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+SET(CMAKE_BUILD_WITH_INSTALL_NAME_DIR TRUE)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+SET(CMAKE_MACOSX_RPATH TRUE)
 
 # determine some details about the current Fortran compiler:
 INCLUDE(FortranCInterface)
@@ -831,6 +840,10 @@ ENDMACRO()
 # everything but the source files)
 FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   MESSAGE(STATUS "setting up target ${target_library}")
+
+  SET_TARGET_PROPERTIES(${target_library}
+	  PROPERTIES
+	  INSTALL_RPATH_USE_LINK_PATH TRUE)
 
   # Figure out if we are a 2D or a 3D library:
   SET(_2_location = -1)
