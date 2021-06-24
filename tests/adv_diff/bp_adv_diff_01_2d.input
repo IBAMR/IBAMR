@@ -104,6 +104,11 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator {
    enable_logging                = ENABLE_LOGGING
    max_integrator_steps          = MAX_INTEGRATOR_STEPS
    brinkman_time_independent     = BRINKMAN_TIME_INDEPENDENT
+   solver_type = "PETSC_KRYLOV_SOLVER"
+   solver_db
+   {
+      rel_residual_tol = 1.0e-12
+   }
 }
 
 Main {

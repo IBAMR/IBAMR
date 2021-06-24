@@ -34,6 +34,7 @@ public:
      * \brief Class constructor.
      */
     LevelSetInitialConditionTorus(const std::string& object_name,
+                                  const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
                                   const IBTK::VectorNd& origin,
                                   const IBTK::Vector2d& t);
 
@@ -91,6 +92,12 @@ private:
      * Name of this object.
      */
     std::string d_object_name;
+
+    /*!
+     * The Cartesian grid geometry object provides the extents of the
+     * computational domain.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
 
     /*!
      * Origin of torus.

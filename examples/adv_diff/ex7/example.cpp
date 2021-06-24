@@ -69,7 +69,6 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
 {
     BrinkmanPenalizationCtx* bp_ctx = static_cast<BrinkmanPenalizationCtx*>(ctx);
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -99,39 +98,43 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
     Pointer<SideVariable<NDIM, double> > grad_phi_sc_var = bp_ctx->grad_phi_sc_var;
     hier_math_ops->grad(grad_phi_sc_idx, grad_phi_sc_var, true, -1.0, phi_scratch_idx, ls_solid_var, nullptr, time);
 
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    IntVector<NDIM> ratio = finest_level->getRatio();
+
+    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_hierarchy->getGridGeometry();
+    const SAMRAI::hier::Box<NDIM> domain_box =
+        SAMRAI::hier::Box<NDIM>::refine(grid_geom->getPhysicalDomain()[0], ratio);
+
+    for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<SideData<NDIM, double> > grad_phi_sc_data = patch->getPatchData(grad_phi_sc_idx);
+        Pointer<SideData<NDIM, double> > B_data = patch->getPatchData(B_idx);
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<SideData<NDIM, double> > grad_phi_sc_data = patch->getPatchData(grad_phi_sc_idx);
-            Pointer<SideData<NDIM, double> > B_data = patch->getPatchData(B_idx);
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
             {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-                {
-                    SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
+                SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
 
-                    const double outer_radius = 3.0 * M_PI / 4.0;
-                    const double inner_radius = M_PI / 4.0;
+                const double outer_radius = 3.0 * M_PI / 4.0;
+                const double inner_radius = M_PI / 4.0;
 
-                    // g = qexact + \nabla qexact \cdot n.
-                    double g = 3.0 * M_PI / (4.0 * outer_radius) - 4.0 * sin(4.0 * outer_radius) +
-                               cos(4.0 * outer_radius) + 3.0 / 4.0 * M_PI * log(outer_radius) -
-                               3.0 / 32.0 * M_PI * (9.0 * log(3.0 / 4.0 * M_PI) - log(M_PI / 4.0) - 4.0);
+                // g = qexact + \nabla qexact \cdot n.
+                double g = 3.0 * M_PI / (4.0 * outer_radius) - 4.0 * sin(4.0 * outer_radius) + cos(4.0 * outer_radius) +
+                           3.0 / 4.0 * M_PI * log(outer_radius) -
+                           3.0 / 32.0 * M_PI * (9.0 * log(3.0 / 4.0 * M_PI) - log(M_PI / 4.0) - 4.0);
 
-                    if (ls_solid_var->getName() == "level_set_inner_solid")
-                        g = -3.0 * M_PI / (4.0 * inner_radius) - 4.0 * sin(4.0 * inner_radius) +
-                            cos(4.0 * inner_radius) + 3.0 / 4.0 * M_PI * log(inner_radius) -
-                            3.0 / 32.0 * M_PI * (9.0 * log(3.0 / 4.0 * M_PI) - log(M_PI / 4.0) - 4.0);
+                if (ls_solid_var->getName() == "level_set_inner_solid")
+                    g = -3.0 * M_PI / (4.0 * inner_radius) - 4.0 * sin(4.0 * inner_radius) + cos(4.0 * inner_radius) +
+                        3.0 / 4.0 * M_PI * log(inner_radius) -
+                        3.0 / 32.0 * M_PI * (9.0 * log(3.0 / 4.0 * M_PI) - log(M_PI / 4.0) - 4.0);
 
-                    (*B_data)(si) = g * (*grad_phi_sc_data)(si);
-                }
+                (*B_data)(si) = g * (*grad_phi_sc_data)(si);
             }
         }
     }
+
     hier_math_ops->interp(bp_ctx->beta_scratch_idx, bp_ctx->beta_var, B_idx, grad_phi_sc_var, nullptr, time, true);
 }
 
@@ -229,7 +232,7 @@ main(int argc, char* argv[])
         IBTK::Vector2d origin(M_PI, M_PI);
         const double outer_radius = input_db->getDouble("OUTER_RADIUS");
         Pointer<CartGridFunction> phi_outer_solid_init =
-            new LevelSetInitialCondition("ls_outer_solid_init", outer_radius, origin, true);
+            new LevelSetInitialCondition("ls_outer_solid_init", grid_geometry, outer_radius, origin, true);
         time_integrator->setInitialConditions(phi_outer_solid_var, phi_outer_solid_init);
         std::vector<Pointer<CellVariable<NDIM, double> > > ls_vars;
         ls_vars.push_back(phi_outer_solid_var);
@@ -242,7 +245,7 @@ main(int argc, char* argv[])
         // Inner circle parameters.
         const double inner_radius = input_db->getDouble("INNER_RADIUS");
         Pointer<CartGridFunction> phi_inner_solid_init =
-            new LevelSetInitialCondition("ls_inner_solid_init", inner_radius, origin, false);
+            new LevelSetInitialCondition("ls_inner_solid_init", grid_geometry, inner_radius, origin, false);
         time_integrator->setInitialConditions(phi_inner_solid_var, phi_inner_solid_init);
         ls_vars.push_back(phi_inner_solid_var);
 

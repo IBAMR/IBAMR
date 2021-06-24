@@ -59,34 +59,30 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
 
     BrinkmanPenalizationCtx* bp_ctx = static_cast<BrinkmanPenalizationCtx*>(ctx);
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<SideData<NDIM, double> > B_data = patch->getPatchData(B_idx);
+
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<SideData<NDIM, double> > B_data = patch->getPatchData(B_idx);
-
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
             {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
+
+                const double alpha = bp_ctx->alpha;
+
+                if (axis == 0)
                 {
-                    SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
-
-                    const double alpha = bp_ctx->alpha;
-
-                    if (axis == 0)
-                    {
-                        (*B_data)(si) = alpha;
-                    }
-                    else if (axis == 1)
-                    {
-                        (*B_data)(si) = 0.0;
-                    }
+                    (*B_data)(si) = alpha;
+                }
+                else if (axis == 1)
+                {
+                    (*B_data)(si) = 0.0;
                 }
             }
         }
@@ -184,7 +180,7 @@ main(int argc, char* argv[])
 
         IBTK::Vector2d interface_left(0.0, 0.0);
         Pointer<CartGridFunction> phi_left_solid_init =
-            new LevelSetInitialCondition("ls_left_solid_init", interface_left, true);
+            new LevelSetInitialCondition("ls_left_solid_init", grid_geometry, interface_left, true);
         time_integrator->setInitialConditions(phi_left_solid_var, phi_left_solid_init);
         std::vector<Pointer<CellVariable<NDIM, double> > > ls_vars;
         ls_vars.push_back(phi_left_solid_var);
@@ -197,7 +193,7 @@ main(int argc, char* argv[])
         // Origin of the circle1.
         IBTK::Vector2d interface_right(M_PI, M_PI);
         Pointer<CartGridFunction> phi_right_solid_init =
-            new LevelSetInitialCondition("ls_right_solid_init", interface_right);
+            new LevelSetInitialCondition("ls_right_solid_init", grid_geometry, interface_right);
         time_integrator->setInitialConditions(phi_right_solid_var, phi_right_solid_init);
         ls_vars.push_back(phi_right_solid_var);
 

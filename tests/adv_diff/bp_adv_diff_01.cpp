@@ -56,33 +56,31 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
 #endif
 
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    IntVector<NDIM> ratio = finest_level->getRatio();
+    for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        const Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_hierarchy->getGridGeometry();
+        Pointer<SideData<NDIM, double> > B_data = patch->getPatchData(B_idx);
+
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<SideData<NDIM, double> > B_data = patch->getPatchData(B_idx);
-
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
             {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-                {
-                    SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
-                    IBTK::Vector coord = IndexUtilities::getSideCenter(*patch, si);
+                SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
+                IBTK::Vector coord = IndexUtilities::getSideCenter(grid_geom, ratio, si);
 
-                    if (axis == 0)
-                    {
-                        (*B_data)(si) = cos(coord[0]) * sin(coord[1]);
-                    }
-                    else if (axis == 1)
-                    {
-                        (*B_data)(si) = sin(coord[0]) * cos(coord[1]);
-                    }
+                if (axis == 0)
+                {
+                    (*B_data)(si) = cos(coord[0]) * sin(coord[1]);
+                }
+                else if (axis == 1)
+                {
+                    (*B_data)(si) = sin(coord[0]) * cos(coord[1]);
                 }
             }
         }
@@ -170,7 +168,7 @@ main(int argc, char* argv[])
         IBTK::Vector2d origin(M_PI, M_PI);
         const bool fluid_is_interior_to_cylinder = input_db->getBool("FLUID_IS_INTERIOR_TO_CYLINDER");
         Pointer<CartGridFunction> phi_solid_init =
-            new LevelSetInitialCondition("ls_init", radius, origin, fluid_is_interior_to_cylinder);
+            new LevelSetInitialCondition("ls_init", grid_geometry, radius, origin, fluid_is_interior_to_cylinder);
         time_integrator->setInitialConditions(phi_solid_var, phi_solid_init);
 
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();

@@ -77,7 +77,6 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
 {
     BrinkmanPenalizationCtx* bp_ctx = static_cast<BrinkmanPenalizationCtx*>(ctx);
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -116,86 +115,87 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
     int interface_cell_patch_idx = bp_ctx->interface_cell_patch_idx;
     int prop_counter_idx = bp_ctx->prop_counter_idx;
 
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    IntVector<NDIM> ratio = finest_level->getRatio();
+
+    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_hierarchy->getGridGeometry();
+    const double* const grid_x_lower = grid_geom->getXLower();
+    const SAMRAI::hier::Box<NDIM> domain_box =
+        SAMRAI::hier::Box<NDIM>::refine(grid_geom->getPhysicalDomain()[0], ratio);
+    const hier::Index<NDIM>& grid_lower_idx = domain_box.lower();
+
+    for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* const patch_dx = patch_geom->getDx();
+
+        Pointer<CellData<NDIM, double> > grad_phi_cc_data = patch->getPatchData(grad_phi_cc_idx);
+        Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(phi_scratch_idx);
+        Pointer<CellData<NDIM, double> > g_cc_data = patch->getPatchData(g_cc_scratch_idx);
+        Pointer<CellData<NDIM, double> > interface_cell_data = patch->getPatchData(interface_cell_patch_idx);
+        for (Box<NDIM>::Iterator it(patch_box); it; it++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const patch_x_lower = patch_geom->getXLower();
-            const double* const patch_dx = patch_geom->getDx();
-            const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
-            Pointer<CellData<NDIM, double> > grad_phi_cc_data = patch->getPatchData(grad_phi_cc_idx);
-            Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(phi_scratch_idx);
-            Pointer<CellData<NDIM, double> > g_cc_data = patch->getPatchData(g_cc_scratch_idx);
-            Pointer<CellData<NDIM, double> > interface_cell_data = patch->getPatchData(interface_cell_patch_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            CellIndex<NDIM> ci(it());
+            CellIndex<NDIM> ci_e = ci;
+            CellIndex<NDIM> ci_w = ci;
+            CellIndex<NDIM> ci_n = ci;
+            CellIndex<NDIM> ci_s = ci;
+#if (NDIM == 3)
+            CellIndex<NDIM> ci_f = ci;
+            CellIndex<NDIM> ci_b = ci;
+#endif
+            ci_e(0) += 1;
+            ci_w(0) -= 1;
+            ci_n(1) += 1;
+            ci_s(1) -= 1;
+#if (NDIM == 3)
+            ci_f(2) += 1;
+            ci_b(2) -= 1;
+#endif
+            const double ls_c_value = (*ls_data)(ci);
+            const double ls_e_value = (*ls_data)(ci_e);
+            const double ls_w_value = (*ls_data)(ci_w);
+            const double ls_n_value = (*ls_data)(ci_n);
+            const double ls_s_value = (*ls_data)(ci_s);
+#if (NDIM == 3)
+            const double ls_f_value = (*ls_data)(ci_f);
+            const double ls_b_value = (*ls_data)(ci_b);
+#endif
+
+            // Finding interface cells.
+            if ((ls_c_value * ls_e_value <= 0.0) || (ls_c_value * ls_w_value <= 0.0) ||
+                (ls_c_value * ls_n_value <= 0.0) || (ls_c_value * ls_s_value <= 0.0)
+#if (NDIM == 3)
+                || (ls_c_value * ls_f_value <= 0.0) || (ls_c_value * ls_b_value <= 0.0)
+#endif
+            )
             {
-                CellIndex<NDIM> ci(it());
-                CellIndex<NDIM> ci_e = ci;
-                CellIndex<NDIM> ci_w = ci;
-                CellIndex<NDIM> ci_n = ci;
-                CellIndex<NDIM> ci_s = ci;
-#if (NDIM == 3)
-                CellIndex<NDIM> ci_f = ci;
-                CellIndex<NDIM> ci_b = ci;
-#endif
-                ci_e(0) += 1;
-                ci_w(0) -= 1;
-                ci_n(1) += 1;
-                ci_s(1) -= 1;
-#if (NDIM == 3)
-                ci_f(2) += 1;
-                ci_b(2) -= 1;
-#endif
-                const double ls_c_value = (*ls_data)(ci);
-                const double ls_e_value = (*ls_data)(ci_e);
-                const double ls_w_value = (*ls_data)(ci_w);
-                const double ls_n_value = (*ls_data)(ci_n);
-                const double ls_s_value = (*ls_data)(ci_s);
-#if (NDIM == 3)
-                const double ls_f_value = (*ls_data)(ci_f);
-                const double ls_b_value = (*ls_data)(ci_b);
-#endif
+                IBTK::VectorNd coord = IBTK::Vector::Zero();
+                IBTK::VectorNd interface_coord = IBTK::Vector::Zero();
+                for (int d = 0; d < NDIM; ++d)
+                    coord[d] = grid_x_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - grid_lower_idx(d)) + 0.5);
 
-                // Finding interface cells.
-                if ((ls_c_value * ls_e_value <= 0) || (ls_c_value * ls_w_value <= 0) ||
-                    (ls_c_value * ls_n_value <= 0) || (ls_c_value * ls_s_value <= 0)
-#if (NDIM == 3)
-                    || (ls_c_value * ls_f_value <= 0) || (ls_c_value * ls_b_value <= 0)
-#endif
-                )
+                // Compute g in the interface cell.
+                double g = 0.0;
+                for (int d = 0; d < NDIM; ++d)
                 {
-                    IBTK::VectorNd coord = IBTK::Vector::Zero();
-                    IBTK::VectorNd interface_coord = IBTK::Vector::Zero();
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        coord[d] =
-                            patch_x_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
-                    }
-
-                    // Compute g in the interface cell.
-                    double g = 0.0;
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                        interface_coord[d] = coord[d] + ls_c_value * (*grad_phi_cc_data)(ci, d);
-                    }
-#if (NDIM == 2)
-                    g = cos(interface_coord[0]) * sin(interface_coord[1]) * (*grad_phi_cc_data)(ci, 0) +
-                        sin(interface_coord[0]) * cos(interface_coord[1]) * (*grad_phi_cc_data)(ci, 1);
-#elif (NDIM == 3)
-                    g = cos(interface_coord[1]) * cos(interface_coord[2]) * sin(interface_coord[0]) *
-                            (*grad_phi_cc_data)(ci, 0) +
-                        cos(interface_coord[0]) * cos(interface_coord[2]) * sin(interface_coord[1]) *
-                            (*grad_phi_cc_data)(ci, 1) +
-                        cos(interface_coord[0]) * cos(interface_coord[1]) * sin(interface_coord[2]) *
-                            (*grad_phi_cc_data)(ci, 2);
-#endif
-                    (*g_cc_data)(ci) = g;
-                    (*interface_cell_data)(ci) = 1.0;
+                    interface_coord[d] = coord[d] + ls_c_value * (*grad_phi_cc_data)(ci, d);
                 }
+#if (NDIM == 2)
+                g = cos(interface_coord[0]) * sin(interface_coord[1]) * (*grad_phi_cc_data)(ci, 0) +
+                    sin(interface_coord[0]) * cos(interface_coord[1]) * (*grad_phi_cc_data)(ci, 1);
+#elif (NDIM == 3)
+                g = cos(interface_coord[1]) * cos(interface_coord[2]) * sin(interface_coord[0]) *
+                        (*grad_phi_cc_data)(ci, 0) +
+                    cos(interface_coord[0]) * cos(interface_coord[2]) * sin(interface_coord[1]) *
+                        (*grad_phi_cc_data)(ci, 1) +
+                    cos(interface_coord[0]) * cos(interface_coord[1]) * sin(interface_coord[2]) *
+                        (*grad_phi_cc_data)(ci, 2);
+#endif
+                (*g_cc_data)(ci) = g;
+                (*interface_cell_data)(ci) = 1.0;
             }
         }
     }
@@ -225,96 +225,85 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
     const int num_prop_cells = bp_ctx->num_prop_cells;
 
     // Propagate the interfacial g value to the neighboring cells along the normal direction.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
+        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* const patch_dx = patch_geom->getDx();
+        Pointer<CellData<NDIM, double> > g_cc_data = patch->getPatchData(g_cc_scratch_idx);
+        Pointer<CellData<NDIM, double> > interface_cell_data = patch->getPatchData(interface_cell_patch_idx);
+        Pointer<CellData<NDIM, double> > prop_counter_data = patch->getPatchData(prop_counter_idx);
+        Pointer<CellData<NDIM, double> > grad_phi_cc_data = patch->getPatchData(grad_phi_cc_idx);
+        const Box<NDIM>& ghost_box = g_cc_data->getGhostBox();
+        const hier::Index<NDIM>& ghost_lower_idx = ghost_box.lower();
+        const hier::Index<NDIM>& ghost_upper_idx = ghost_box.upper();
+
+        for (Box<NDIM>::Iterator it(ghost_box); it; it++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const patch_x_lower = patch_geom->getXLower();
-            const double* const patch_dx = patch_geom->getDx();
-            Pointer<CellData<NDIM, double> > g_cc_data = patch->getPatchData(g_cc_scratch_idx);
-            Pointer<CellData<NDIM, double> > interface_cell_data = patch->getPatchData(interface_cell_patch_idx);
-            Pointer<CellData<NDIM, double> > prop_counter_data = patch->getPatchData(prop_counter_idx);
-            Pointer<CellData<NDIM, double> > grad_phi_cc_data = patch->getPatchData(grad_phi_cc_idx);
-            const Box<NDIM>& ghost_box = g_cc_data->getGhostBox();
-            const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
-            const hier::Index<NDIM>& ghost_lower_idx = ghost_box.lower();
-            const hier::Index<NDIM>& ghost_upper_idx = ghost_box.upper();
+            CellIndex<NDIM> ci(it());
 
-            for (Box<NDIM>::Iterator it(ghost_box); it; it++)
+            if ((*interface_cell_data)(ci) > 0.0)
             {
-                CellIndex<NDIM> ci(it());
+                std::vector<CellIndex<NDIM> > nbr_cell_normal(num_prop_cells);     // vector stores cell index of
+                                                                                   // virtual cells in +n direction
+                std::vector<CellIndex<NDIM> > nbr_cell_neg_normal(num_prop_cells); // vector stores cell index of
+                                                                                   // virtual cells in -n direction
 
-                if ((*interface_cell_data)(ci) > 0.0)
+                // location of the interface cells.
+                IBTK::VectorNd coord = IBTK::Vector::Zero();
+                IBTK::VectorNd coord_nbr = IBTK::Vector::Zero();
+                const double g = (*g_cc_data)(ci);
+                for (int d = 0; d < NDIM; ++d)
+                    coord[d] = grid_x_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - grid_lower_idx(d)) + 0.5);
+
+                // propagating g in +n direction.
+                int counter = 0;
+                for (auto& nbr_cell : nbr_cell_normal)
                 {
-                    std::vector<CellIndex<NDIM> > nbr_cell_normal(num_prop_cells);     // vector stores cell index of
-                                                                                       // virtual cells in +n direction
-                    std::vector<CellIndex<NDIM> > nbr_cell_neg_normal(num_prop_cells); // vector stores cell index of
-                                                                                       // virtual cells in -n direction
-
-                    // location of the interface cells.
-                    IBTK::VectorNd coord = IBTK::Vector::Zero();
-                    IBTK::VectorNd coord_nbr = IBTK::Vector::Zero();
-                    const double g = (*g_cc_data)(ci);
+                    counter++;
                     for (int d = 0; d < NDIM; ++d)
                     {
-                        coord[d] =
-                            patch_x_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
+                        coord_nbr[d] = coord[d] + counter * patch_dx[d] * (*grad_phi_cc_data)(ci, d);
                     }
+                    nbr_cell = IndexUtilities::getCellIndex(&coord_nbr[0], grid_geom, ratio);
 
-                    // propagating g in +n direction.
-                    int counter = 0;
-                    for (auto& nbr_cell : nbr_cell_normal)
-                    {
-                        counter++;
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            coord_nbr[d] = coord[d] + counter * patch_dx[d] * (*grad_phi_cc_data)(ci, d);
-                        }
-
-                        nbr_cell = IndexUtilities::getCellIndex(&coord_nbr[0], patch_geom, patch_box);
-
-                        if (nbr_cell[0] >= ghost_lower_idx[0] && nbr_cell[0] <= ghost_upper_idx[0] &&
-                            nbr_cell[1] >= ghost_lower_idx[1] && nbr_cell[1] <= ghost_upper_idx[1]
+                    if (nbr_cell[0] >= ghost_lower_idx[0] && nbr_cell[0] <= ghost_upper_idx[0] &&
+                        nbr_cell[1] >= ghost_lower_idx[1] && nbr_cell[1] <= ghost_upper_idx[1]
 #if (NDIM == 3)
-                            && nbr_cell[2] >= ghost_lower_idx[2] && nbr_cell[2] <= ghost_upper_idx[2]
+                        && nbr_cell[2] >= ghost_lower_idx[2] && nbr_cell[2] <= ghost_upper_idx[2]
 #endif
-                        )
+                    )
+                    {
+                        (*prop_counter_data)(nbr_cell) = (*prop_counter_data)(nbr_cell) + 1.0;
+                        if (std::abs((*g_cc_data)(nbr_cell)) <= std::abs(g))
                         {
-                            (*prop_counter_data)(nbr_cell) = (*prop_counter_data)(nbr_cell) + 1.0;
-                            if (std::abs((*g_cc_data)(nbr_cell)) <= std::abs(g))
-                            {
-                                (*g_cc_data)(nbr_cell) = g;
-                            }
+                            (*g_cc_data)(nbr_cell) = g;
                         }
                     }
+                }
 
-                    // propagating g in -n direction.
-                    counter = 0;
-                    for (auto& nbr_cell : nbr_cell_neg_normal)
+                // propagating g in -n direction.
+                counter = 0;
+                for (auto& nbr_cell : nbr_cell_neg_normal)
+                {
+                    counter++;
+                    for (int d = 0; d < NDIM; ++d)
                     {
-                        counter++;
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            coord_nbr[d] = coord[d] - counter * patch_dx[d] * (*grad_phi_cc_data)(ci, d);
-                        }
-                        nbr_cell = IndexUtilities::getCellIndex(&coord_nbr[0], patch_geom, patch_box);
+                        coord_nbr[d] = coord[d] - counter * patch_dx[d] * (*grad_phi_cc_data)(ci, d);
+                    }
+                    nbr_cell = IndexUtilities::getCellIndex(&coord_nbr[0], grid_geom, ratio);
 
-                        if (nbr_cell[0] >= ghost_lower_idx[0] && nbr_cell[0] <= ghost_upper_idx[0] &&
-                            nbr_cell[1] >= ghost_lower_idx[1] && nbr_cell[1] <= ghost_upper_idx[1]
+                    if (nbr_cell[0] >= ghost_lower_idx[0] && nbr_cell[0] <= ghost_upper_idx[0] &&
+                        nbr_cell[1] >= ghost_lower_idx[1] && nbr_cell[1] <= ghost_upper_idx[1]
 #if (NDIM == 3)
-                            && nbr_cell[2] >= ghost_lower_idx[2] && nbr_cell[2] <= ghost_upper_idx[2]
+                        && nbr_cell[2] >= ghost_lower_idx[2] && nbr_cell[2] <= ghost_upper_idx[2]
 #endif
-                        )
+                    )
+                    {
+                        (*prop_counter_data)(nbr_cell) = (*prop_counter_data)(nbr_cell) + 1.0;
+                        if (std::abs((*g_cc_data)(nbr_cell)) <= std::abs(g))
                         {
-                            (*prop_counter_data)(nbr_cell) = (*prop_counter_data)(nbr_cell) + 1.0;
-                            if (std::abs((*g_cc_data)(nbr_cell)) <= std::abs(g))
-                            {
-                                (*g_cc_data)(nbr_cell) = g;
-                            }
+                            (*g_cc_data)(nbr_cell) = g;
                         }
                     }
                 }
@@ -322,25 +311,21 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
         }
     }
 
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<SideData<NDIM, double> > grad_phi_sc_data = patch->getPatchData(grad_phi_sc_idx);
+        Pointer<SideData<NDIM, double> > B_data = patch->getPatchData(B_idx);
+        Pointer<CellData<NDIM, double> > g_cc_data = patch->getPatchData(g_cc_scratch_idx);
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<SideData<NDIM, double> > grad_phi_sc_data = patch->getPatchData(grad_phi_sc_idx);
-            Pointer<SideData<NDIM, double> > B_data = patch->getPatchData(B_idx);
-            Pointer<CellData<NDIM, double> > g_cc_data = patch->getPatchData(g_cc_scratch_idx);
-            for (unsigned int axis = 0; axis < NDIM; ++axis)
+            for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
             {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-                {
-                    SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
-                    // Interpolating g from cell to side.
-                    const double g_sc = 0.5 * ((*g_cc_data)(si.toCell(0)) + (*g_cc_data)(si.toCell(1)));
-                    (*B_data)(si) = g_sc * (*grad_phi_sc_data)(si);
-                }
+                SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
+                // Interpolating g from cell to side.
+                const double g_sc = 0.5 * ((*g_cc_data)(si.toCell(0)) + (*g_cc_data)(si.toCell(1)));
+                (*B_data)(si) = g_sc * (*grad_phi_sc_data)(si);
             }
         }
     }
@@ -441,13 +426,14 @@ main(int argc, char* argv[])
 #if (NDIM == 2)
         origin << M_PI, M_PI;
         // ls initial condition for SimpleEgg
-        Pointer<CartGridFunction> phi_solid_init = new LevelSetInitialConditionEgg("ls_init", origin);
+        Pointer<CartGridFunction> phi_solid_init = new LevelSetInitialConditionEgg("ls_init", grid_geometry, origin);
 #elif (NDIM == 3)
         origin << M_PI, M_PI, M_PI;
 
         // ls initial condition for torus.
         IBTK::Vector2d t(1.5, 0.8);
-        Pointer<CartGridFunction> phi_solid_init = new LevelSetInitialConditionTorus("ls_init", origin, t);
+        Pointer<CartGridFunction> phi_solid_init =
+            new LevelSetInitialConditionTorus("ls_init", grid_geometry, origin, t);
 #endif
 
         time_integrator->setInitialConditions(phi_solid_var, phi_solid_init);

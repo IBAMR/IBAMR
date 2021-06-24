@@ -160,6 +160,34 @@ public:
                                         const SAMRAI::pdat::SideIndex<NDIM>& side_idx);
 
     /*!
+     * \return The spatial coordinate of the given side center.
+     *
+     * @param grid_geom The grid geometry provides the extents of the computational domain.
+     *
+     * @param ratio Refinement ratio.
+     *
+     * @param side_idx The SideIndex describing the current side.
+     */
+    template <typename Vector>
+    static Vector getSideCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
+                                const SAMRAI::hier::IntVector<NDIM>& ratio,
+                                const SAMRAI::pdat::SideIndex<NDIM>& side_idx);
+
+    /*!
+     * \return The spatial coordinate of the given side center.
+     *
+     * @param grid_geom The grid geometry provides the extents of the computational domain.
+     *
+     * @param ratio Refinement ratio.
+     *
+     * @param side_idx The SideIndex describing the current side.
+     */
+    static IBTK::VectorNd
+    getSideCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
+                  const SAMRAI::hier::IntVector<NDIM>& ratio,
+                  const SAMRAI::pdat::SideIndex<NDIM>& side_idx);
+
+    /*!
      * \brief Map (i,j,k,d) index for a DOF defined for a SAMRAI variable
      * on a particular patch level to a positive integer. Such a mapping can
      * be useful for creating an application ordering (AO) between SAMRAI and
