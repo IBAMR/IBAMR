@@ -666,7 +666,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
         {
             d_secondary_hierarchy
-                ->getPrimaryToScratchSchedule(ln, u_data_idx, u_data_idx, d_ib_solver->getVelocityPhysBdryOp())
+                ->getPrimaryToSecondarySchedule(ln, u_data_idx, u_data_idx, d_ib_solver->getVelocityPhysBdryOp())
                 .fillData(data_time);
         }
     }
@@ -1060,7 +1060,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
             f_primary_data_ops->setToScalar(f_primary_scratch_data_idx,
                                             0.0,
                                             /*interior_only*/ false);
-            d_secondary_hierarchy->getScratchToPrimarySchedule(ln, f_primary_scratch_data_idx, f_scratch_data_idx)
+            d_secondary_hierarchy->getSecondaryToPrimarySchedule(ln, f_primary_scratch_data_idx, f_scratch_data_idx)
                 .fillData(data_time);
             f_primary_data_ops->add(f_data_idx, f_data_idx, f_primary_scratch_data_idx);
         }
@@ -1199,7 +1199,8 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
     if (d_use_scratch_hierarchy)
     {
         assertStructureOnFinestLevel();
-        d_secondary_hierarchy->getPrimaryToScratchSchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx)
+        d_secondary_hierarchy
+            ->getPrimaryToSecondarySchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx)
             .fillData(data_time);
     }
 
@@ -1220,7 +1221,8 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
     if (d_use_scratch_hierarchy)
     {
         assertStructureOnFinestLevel();
-        d_secondary_hierarchy->getScratchToPrimarySchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx)
+        d_secondary_hierarchy
+            ->getSecondaryToPrimarySchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx)
             .fillData(data_time);
     }
 
@@ -1459,12 +1461,12 @@ void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierar
             }
 
             HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(
-                d_secondary_hierarchy->d_secondary_hierarchy,
+                d_secondary_hierarchy->getSecondaryHierarchy(),
                 0,
-                d_secondary_hierarchy->d_secondary_hierarchy->getFinestLevelNumber());
+                d_secondary_hierarchy->getSecondaryHierarchy()->getFinestLevelNumber());
             hier_cc_data_ops.setToScalar(d_lagrangian_workload_current_idx, 0.0);
         }
-        addWorkloadEstimate(d_secondary_hierarchy->d_secondary_hierarchy, d_lagrangian_workload_current_idx);
+        addWorkloadEstimate(d_secondary_hierarchy->getSecondaryHierarchy(), d_lagrangian_workload_current_idx);
 
         {
             HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(
@@ -1474,7 +1476,8 @@ void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierar
         for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
         {
             d_secondary_hierarchy
-                ->getScratchToPrimarySchedule(ln, d_lagrangian_workload_current_idx, d_lagrangian_workload_current_idx)
+                ->getSecondaryToPrimarySchedule(
+                    ln, d_lagrangian_workload_current_idx, d_lagrangian_workload_current_idx)
                 .fillData(0.0);
         }
     }
