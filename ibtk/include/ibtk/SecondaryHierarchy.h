@@ -110,6 +110,22 @@ public:
     std::shared_ptr<IBTK::SAMRAIDataCache> getSAMRAIDataCache();
 
     /*!
+     * Get a copy of the pointer to the primary hierarchy.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getPrimaryHierarchy();
+
+    /*!
+     * Get a copy of the pointer to the primary hierarchy.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getSecondaryHierarchy();
+
+protected:
+    /**
+     * Object name.
+     */
+    std::string d_object_name;
+
+    /*!
      * Pointer to the primary patch hierarchy (i.e., the one not by this class).
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_primary_hierarchy;
@@ -118,12 +134,6 @@ public:
      * Pointer to the secondary patch hierarchy (i.e., the one managed by this class).
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_secondary_hierarchy;
-
-protected:
-    /**
-     * Object name.
-     */
-    std::string d_object_name;
 
     /**
      * Coarsest level on which there are patches with elements (i.e.,

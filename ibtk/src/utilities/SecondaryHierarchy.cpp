@@ -296,4 +296,16 @@ SecondaryHierarchy::getSAMRAIDataCache()
     return d_eulerian_data_cache;
 }
 
+SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
+SecondaryHierarchy::getPrimaryHierarchy()
+{
+    return d_primary_hierarchy;
+}
+
+SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> >
+SecondaryHierarchy::getSecondaryHierarchy()
+{
+    return d_secondary_hierarchy;
+}
+
 } // namespace IBTK
