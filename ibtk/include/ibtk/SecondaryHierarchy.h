@@ -139,13 +139,13 @@ protected:
      * Coarsest level on which there are patches with elements (i.e.,
      * patches which should be considered by this object).
      */
-    int d_coarsest_patch_level_number;
+    int d_coarsest_patch_level_number = IBTK::invalid_level_number;
 
     /**
      * Finest level on which there are patches with elements (i.e.,
      * patches which should be considered by this object).
      */
-    int d_finest_patch_level_number;
+    int d_finest_patch_level_number = IBTK::invalid_level_number;
 
     /**
      * Tag strategy. Since this class does not have any notion of refinement or
