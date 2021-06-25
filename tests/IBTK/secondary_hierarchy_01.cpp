@@ -144,10 +144,10 @@ main(int argc, char* argv[])
 
         secondary_hierarchy.reinit(0, patch_hierarchy->getFinestLevelNumber(), patch_hierarchy, sh_work_cc_idx);
 
-        visit_data_writer->writePlotData(secondary_hierarchy.d_secondary_hierarchy, 1, 1.0);
+        visit_data_writer->writePlotData(secondary_hierarchy.getSecondaryHierarchy(), 1, 1.0);
 
         std::array<std::pair<Pointer<PatchHierarchy<NDIM> >, std::string>, 2> data{
-            { { patch_hierarchy, "primary" }, { secondary_hierarchy.d_secondary_hierarchy, "secondary" } }
+            { { patch_hierarchy, "primary" }, { secondary_hierarchy.getSecondaryHierarchy(), "secondary" } }
         };
 
         for (const auto& pair : data)

@@ -77,7 +77,7 @@ public:
                 int workload_idx);
 
     /*!
-     * Get the transfer schedule from the primary hierarchy to the scratch
+     * Get the transfer schedule from the primary hierarchy to the secondary
      * hierarchy associated with the given level and index. If necessary the
      * schedule is created and stored in a map.
      *
@@ -85,13 +85,13 @@ public:
      * for filling ghost data at physical boundaries.
      */
     SAMRAI::xfer::RefineSchedule<NDIM>&
-    getPrimaryToScratchSchedule(int level_number,
-                                int primary_data_idx,
-                                int scratch_data_idx,
-                                SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
+    getPrimaryToSecondarySchedule(int level_number,
+                                  int primary_data_idx,
+                                  int secondary_data_idx,
+                                  SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
 
     /*!
-     * Get the transfer schedule from the scratch hierarchy to the primary
+     * Get the transfer schedule from the secondary hierarchy to the primary
      * hierarchy associated with the given level and index. If necessary the
      * schedule is created and stored in a map.
      *
@@ -99,15 +99,31 @@ public:
      * for filling ghost data at physical boundaries.
      */
     SAMRAI::xfer::RefineSchedule<NDIM>&
-    getScratchToPrimarySchedule(int level_number,
-                                int primary_data_idx,
-                                int scratch_data_idx,
-                                SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
+    getSecondaryToPrimarySchedule(int level_number,
+                                  int primary_data_idx,
+                                  int secondary_data_idx,
+                                  SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
 
     /*!
-     * Get a copy of the pointer to the scratch patch object.
+     * Get a copy of the pointer to the secondary scratch object.
      */
     std::shared_ptr<IBTK::SAMRAIDataCache> getSAMRAIDataCache();
+
+    /*!
+     * Get a copy of the pointer to the primary hierarchy.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getPrimaryHierarchy();
+
+    /*!
+     * Get a copy of the pointer to the primary hierarchy.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getSecondaryHierarchy();
+
+protected:
+    /**
+     * Object name.
+     */
+    std::string d_object_name;
 
     /*!
      * Pointer to the primary patch hierarchy (i.e., the one not by this class).
@@ -119,23 +135,17 @@ public:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_secondary_hierarchy;
 
-protected:
-    /**
-     * Object name.
-     */
-    std::string d_object_name;
-
     /**
      * Coarsest level on which there are patches with elements (i.e.,
      * patches which should be considered by this object).
      */
-    int d_coarsest_patch_level_number;
+    int d_coarsest_patch_level_number = IBTK::invalid_level_number;
 
     /**
      * Finest level on which there are patches with elements (i.e.,
      * patches which should be considered by this object).
      */
-    int d_finest_patch_level_number;
+    int d_finest_patch_level_number = IBTK::invalid_level_number;
 
     /**
      * Tag strategy. Since this class does not have any notion of refinement or
