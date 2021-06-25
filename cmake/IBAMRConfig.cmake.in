@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2020 - 2020 by the IBAMR developers
+## Copyright (c) 2020 - 2021 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -19,20 +19,20 @@
 SET(MPI_ROOT "@MPI_ROOT@")
 FIND_PACKAGE(MPI REQUIRED)
 
-SET(Boost_FOUND "@Boost_FOUND@")
-SET(BOOST_ROOT "@BOOST_ROOT@")
-IF("${Boost_FOUND}")
+IF(NOT @IBAMR_USE_BUNDLED_Boost@)
+  SET(Boost_ROOT "@Boost_ROOT@")
   FIND_PACKAGE(Boost 1.57 REQUIRED)
 ENDIF()
 
-SET(Eigen3_FOUND "@Eigen3_FOUND@")
-SET(EIGEN_ROOT "@EIGEN_ROOT@")
-IF("${Eigen3_FOUND}")
+IF(NOT @IBAMR_USE_BUNDLED_Eigen@)
+  SET(Eigen3_ROOT "@Eigen3_ROOT@")
   FIND_PACKAGE(Eigen3 3.2.5 REQUIRED)
 ENDIF()
 
-SET(IBAMR_HAVE_SILO "@IBAMR_HAVE_SILO@")
-IF("${IBAMR_HAVE_SILO}")
+# non-bundled muParser is not handled as a package so we don't set it up again
+# here
+
+IF(@IBAMR_HAVE_SILO@)
   SET(ZLIB_ROOT "@ZLIB_ROOT@")
   FIND_PACKAGE(ZLIB REQUIRED)
 ENDIF()

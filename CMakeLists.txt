@@ -15,16 +15,6 @@
 #            0: Set up some basic information about the environment            #
 # ---------------------------------------------------------------------------- #
 CMAKE_MINIMUM_REQUIRED(VERSION 3.15.0)
-FILE(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" _version LIMIT_COUNT 1)
-STRING(REGEX REPLACE "^([0-9]+)\\..*" "\\1" IBTK_VERSION_MAJOR "${_version}")
-
-STRING(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_MINOR "${_version}")
-STRING(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_SUBMINOR "${_version}")
-SET(IBTK_VERSION ${IBTK_VERSION_MAJOR}.${IBTK_VERSION_MINOR}.${IBTK_VERSION_SUBMINOR})
-SET(IBAMR_VERSION ${IBTK_VERSION})
-
-# Do we want dynamic or static linking?
-OPTION(BUILD_SHARED_LIBS "Whether or not to build shared libraries." ON)
 
 PROJECT(IBAMR
   DESCRIPTION "Software infrastructure for the IB method with adaptively-refined grids"
@@ -32,13 +22,34 @@ PROJECT(IBAMR
   HOMEPAGE_URL "https://ibamr.github.io"
   # include C so that we can link against C libraries (e.g., MPI::MPI_C) easily
   LANGUAGES C CXX Fortran)
-SET(IBAMR_DIMENSIONS "2" "3")
 
 MESSAGE(STATUS "This is CMake ${CMAKE_VERSION}")
 MESSAGE(STATUS "")
 INCLUDE(GNUInstallDirs)
 INCLUDE(CMakePackageConfigHelpers)
-LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules/)
+
+# Version info:
+FILE(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" _version LIMIT_COUNT 1)
+STRING(REGEX REPLACE "^([0-9]+)\\..*" "\\1" IBTK_VERSION_MAJOR "${_version}")
+STRING(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_MINOR "${_version}")
+STRING(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_SUBMINOR "${_version}")
+SET(IBTK_VERSION ${IBTK_VERSION_MAJOR}.${IBTK_VERSION_MINOR}.${IBTK_VERSION_SUBMINOR})
+SET(IBAMR_VERSION ${IBTK_VERSION})
+SET(IBAMR_DEPENDENCY_LINK_ARGUMENTS "")
+
+# Do we want dynamic or static linking?
+OPTION(BUILD_SHARED_LIBS "Whether or not to build shared libraries." ON)
+# Build the libraries in one place:
+SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/")
+SET(IBAMR_DIMENSIONS "2" "3")
+
+# Start building up RPATH:
+SET(CMAKE_MACOSX_RPATH 1)
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+SET(CMAKE_BUILD_WITH_INSTALL_NAME_DIR TRUE)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+SET(CMAKE_MACOSX_RPATH TRUE)
 
 # determine some details about the current Fortran compiler:
 INCLUDE(FortranCInterface)
@@ -127,7 +138,7 @@ ELSE()
     BUNDLED_Boost
     INTERFACE $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/contrib/boost>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/contrib/boost>)
-  INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/boost DESTINATION include/contrib)
+  INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/boost DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib)
   INSTALL(TARGETS BUNDLED_Boost EXPORT IBAMRTargets)
 ENDIF()
 
@@ -148,8 +159,8 @@ ELSE()
     BUNDLED_Eigen
     INTERFACE $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/contrib/eigen>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/contrib/eigen>)
-  INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/eigen/Eigen DESTINATION include/contrib/eigen)
-  INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/eigen/unsupported DESTINATION include/contrib/eigen)
+  INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/eigen/Eigen DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib/eigen)
+  INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/eigen/unsupported DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib/eigen)
   INSTALL(TARGETS BUNDLED_Eigen EXPORT IBAMRTargets)
 ENDIF()
 
@@ -161,13 +172,14 @@ MESSAGE(STATUS "Setting up muParser")
 FIND_PATH(MUPARSER_INCLUDE_DIRS NAMES muParser.h HINTS ${MUPARSER_ROOT}/include /usr/include/)
 FIND_LIBRARY(MUPARSER_LIBRARIES NAMES muparser HINTS ${MUPARSER_ROOT}/lib /usr/lib)
 IF("${MUPARSER_INCLUDE_DIRS}" STREQUAL "MUPARSER_INCLUDE_DIRS-NOTFOUND" OR
-   "${MUPARSER_LIBRARIES}" STREQUAL "MUPARSER_LIBRARIES-NOTFOUND")
+    "${MUPARSER_LIBRARIES}" STREQUAL "MUPARSER_LIBRARIES-NOTFOUND")
   SET(IBAMR_USE_BUNDLED_muParser TRUE)
   MESSAGE(STATUS "Setting up muParser as a bundled dependency")
-  ADD_LIBRARY(BUNDLED_muParser SHARED)
+  ADD_LIBRARY(BUNDLED_muParser)
   TARGET_INCLUDE_DIRECTORIES(
     BUNDLED_muParser
-    PUBLIC $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/contrib/muparser/include>
+    PUBLIC
+    $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/contrib/muparser/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/contrib/muparser>)
   SET_PROPERTY(TARGET BUNDLED_muParser PROPERTY CXX_STANDARD 11)
   TARGET_COMPILE_FEATURES(BUNDLED_muParser PUBLIC cxx_std_11)
@@ -199,8 +211,9 @@ IF("${MUPARSER_INCLUDE_DIRS}" STREQUAL "MUPARSER_INCLUDE_DIRS-NOTFOUND" OR
     ${CMAKE_SOURCE_DIR}/ibtk/contrib/muparser/include/muParserTest.h
     ${CMAKE_SOURCE_DIR}/ibtk/contrib/muparser/include/muParserToken.h
     ${CMAKE_SOURCE_DIR}/ibtk/contrib/muparser/include/muParserTokenReader.h
-    DESTINATION include/contrib/muparser)
-  INSTALL(TARGETS BUNDLED_muParser EXPORT IBAMRTargets)
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib/muparser)
+
+  INSTALL(TARGETS BUNDLED_muParser EXPORT IBAMRTargets COMPONENT library)
 ELSE()
   SET(IBAMR_USE_BUNDLED_muParser FALSE)
   MESSAGE(STATUS "MUPARSER_INCLUDE_DIRS: ${MUPARSER_INCLUDE_DIRS}")
@@ -228,7 +241,7 @@ MESSAGE(STATUS "HYPRE_INCLUDE_DIRS: ${HYPRE_INCLUDE_DIRS}")
 FIND_LIBRARY(HYPRE_LIBRARIES REQUIRED NAMES HYPRE HINTS ${HYPRE_ROOT}/lib /usr/lib)
 MESSAGE(STATUS "HYPRE_LIBRARIES: ${HYPRE_LIBRARIES}")
 IF(${HYPRE_INCLUDE_DIRS} STREQUAL "HYPRE_INCLUDE_DIRS-NOTFOUND" OR
-   ${HYPRE_LIBRARIES} STREQUAL "HYPRE_LIBRARIES-NOTFOUND")
+    ${HYPRE_LIBRARIES} STREQUAL "HYPRE_LIBRARIES-NOTFOUND")
   MESSAGE(FATAL_ERROR "Unable to find a valid HYPRE installation.")
 ENDIF()
 
@@ -278,7 +291,7 @@ FOREACH(_d ${IBAMR_DIMENSIONS})
       HINTS "${SAMRAI_ROOT}/lib")
     IF("${${_lib_name}_path}" STREQUAL "${_lib_name}-NOTFOUND")
       MESSAGE(FATAL_ERROR
-"Unable to find required library ${_lib_name} in directory ${SAMRAI_ROOT}/lib")
+        "Unable to find required library ${_lib_name} in directory ${SAMRAI_ROOT}/lib")
     ENDIF()
 
     LIST(APPEND "SAMRAI${_d}d_LIBRARIES" "${${_lib_name}_path}")
@@ -297,7 +310,7 @@ ELSE()
   FILE(STRINGS ${PETSC_VARIABLES_FILE} _petsc_raw_includes REGEX "^PETSC_CC_INCLUDES =.*")
   IF ("${_petsc_raw_includes}" STREQUAL "")
     MESSAGE(FATAL_ERROR
-"The configuration script was unable to find the list of                       \
+      "The configuration script was unable to find the list of                       \
 PETSc include directories in the file ${PETSC_VARIABLES_FILE}. This usually    \
 indicates that PETSC_ROOT was set to PETSC_DIR when it should be set to        \
 PETSC_DIR/PETSC_ARCH (i.e., PETSC_ROOT must be set to the complete path to the \
@@ -339,9 +352,9 @@ PETSc installation).")
     "${PETSC_VERSION_MAJOR}.${PETSC_VERSION_MINOR}.${PETSC_VERSION_SUBMINOR}")
   IF(${PETSC_VERSION} VERSION_LESS 3.7.0)
     MESSAGE(FATAL_ERROR
-"IBAMR requires PETSc version 3.7.0 or newer but the version provided at
+      "IBAMR requires PETSc version 3.7.0 or newer but the version provided at
 ${PETSC_ROOT} is version ${PETSC_VERSION}")
-    ENDIF()
+  ENDIF()
 ENDIF()
 
 # ---------------------------------------------------------------------------- #
@@ -367,7 +380,7 @@ Please check the value of LIBMESH_ROOT and rerun CMake.")
     STRING(REGEX REPLACE "\n$" "" LIBMESH_VERSION ${LIBMESH_VERSION})
     IF(${LIBMESH_VERSION} VERSION_LESS 1.1.0)
       MESSAGE(FATAL_ERROR
-"IBAMR requires libMesh version 1.1.0 or newer but the version provided at
+        "IBAMR requires libMesh version 1.1.0 or newer but the version provided at
 ${LIBMESH_ROOT} is version ${LIBMESH_VERSION}")
     ENDIF()
 
@@ -539,7 +552,7 @@ ENDIF()
 
 MESSAGE(STATUS "")
 SET(IBAMR_HAVE_SILO FALSE)
-IF(NOT "${LIBMESH_ROOT}" STREQUAL "")
+IF(NOT "${SILO_ROOT}" STREQUAL "")
   MESSAGE(STATUS "Setting up Silo")
   FIND_PATH(SILO_INCLUDE_DIRS NAMES silo.h HINTS ${SILO_ROOT}/include /usr/include/)
   FIND_LIBRARY(SILO_LIBRARIES NAMES silo siloh5 HINTS ${SILO_ROOT}/lib /usr/lib)
@@ -653,6 +666,7 @@ ENDFUNCTION()
 
 #
 # PETSc:
+#
 IBAMR_CHECK_COMPILATION_WITH_MPI(PETSC
   "\
 #include <mpi.h>
@@ -722,7 +736,7 @@ int main(int argc, char **argv)
 # libMesh:
 #
 IBAMR_CHECK_COMPILATION_WITH_MPI(LIBMESH
-      "\
+  "\
 #include <mpi.h>
 #include <petscsys.h>
 // This test is a little different: since libMesh may use C++11 C++14, or C++17,
@@ -746,7 +760,7 @@ SET(IBTK_HAVE_SILO ${IBAMR_HAVE_SILO})
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/ibtk/include/ibtk/config.h.in
   ${CMAKE_BINARY_DIR}/ibtk/include/ibtk/config.h)
 INSTALL(FILES ${CMAKE_BINARY_DIR}/ibtk/include/ibtk/config.h
-  DESTINATION include/ibtk/)
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/ibtk/)
 
 INCLUDE(CMakeParseArguments)
 #
@@ -827,6 +841,10 @@ ENDMACRO()
 # everything but the source files)
 FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   MESSAGE(STATUS "setting up target ${target_library}")
+
+  SET_TARGET_PROPERTIES(${target_library}
+    PROPERTIES
+    INSTALL_RPATH_USE_LINK_PATH TRUE)
 
   # Figure out if we are a 2D or a 3D library:
   SET(_2_location = -1)
@@ -915,17 +933,21 @@ MESSAGE(STATUS "IBAMR dependencies have been successfully set up.")
 ADD_LIBRARY(IBTKHeaders INTERFACE)
 TARGET_INCLUDE_DIRECTORIES(
   IBTKHeaders
-  INTERFACE $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/include>
-            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/>)
+  INTERFACE
+  $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/>)
 
 ADD_LIBRARY(IBAMRHeaders INTERFACE)
 TARGET_INCLUDE_DIRECTORIES(
   IBAMRHeaders
-  INTERFACE $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/include>
-            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/>)
+  INTERFACE
+  $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/>)
 
-INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ibamr DESTINATION include)
-INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/include/ibtk DESTINATION include)
+INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ibamr
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/include/ibtk
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 INSTALL(TARGETS IBTKHeaders EXPORT IBAMRTargets)
 INSTALL(TARGETS IBAMRHeaders EXPORT IBAMRTargets)
