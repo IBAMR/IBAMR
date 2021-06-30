@@ -116,7 +116,28 @@ FischerGuess::guess(libMesh::NumericVector<double>& solution, const libMesh::Num
     // TODO - at some point in the future (if and when we require Eigen 3.3 or
     // newer) we can use the slightly better bcdSvd algorithm here. This isn't
     // worth worrying about yet since the SVD is O(n^3) and typically n = 5.
-    const Eigen::VectorXd coefs(d_correlation_matrix.jacobiSvd(ComputeThinU | ComputeThinV).solve(coef_rhs));
+    Eigen::VectorXd coefs(d_n_stored_vectors);
+    // Should the SVD fail for any reason just use the last solution as a guess.
+    try
+    {
+        // SVD doesn't make sense with invalid input - throw something and
+        // immediately catch it
+        if (!d_correlation_matrix.allFinite()) throw int();
+        if (!coef_rhs.allFinite()) throw int();
+        Eigen::JacobiSVD<decltype(d_correlation_matrix)> svd(d_correlation_matrix, ComputeThinU | ComputeThinV);
+        coefs = svd.solve(coef_rhs);
+    }
+    catch (...)
+    {
+        TBOX_WARNING(
+            "FischerGuess::guess()\n"
+            "  Unable to compute the SVD of the correlation matrix.\n"
+            "  This is not a fatal error, but usually indicates that\n"
+            "  the finite element solution vectors are not valid,\n"
+            "  e.g., they may contain infinities or NaNs.");
+        coefs.fill(0.0);
+        coefs(d_n_stored_vectors - 1) = 1.0;
+    }
 
     solution = 0.0;
     for (int i = 0; i < d_n_stored_vectors; ++i)
