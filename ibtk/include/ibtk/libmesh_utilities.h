@@ -196,6 +196,12 @@ struct SystemData
     std::string system_name;
     std::vector<int> vars, grad_vars;
     libMesh::NumericVector<double>* system_vec;
+
+    bool operator==(const SystemData& other) const
+    {
+        return system_name == other.system_name && vars == other.vars && grad_vars == other.grad_vars &&
+               system_vec == other.system_vec;
+    }
 };
 
 using ScalarMeshFcnPtr =
