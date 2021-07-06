@@ -575,13 +575,15 @@ ELSE()
 ENDIF()
 
 MESSAGE(STATUS "")
-MESSAGE(STATUS "Setting up GSL")
 SET(IBAMR_HAVE_GSL FALSE)
-# GSL has not yet been updated to the modern convention so help it
-SET(GSL_ROOT_DIR GSL_ROOT)
-FIND_PACKAGE(GSL)
-IF(GSL_FOUND)
-  SET(IBAMR_HAVE_GSL TRUE)
+IF(NOT "${GSL_ROOT}" STREQUAL "")
+  MESSAGE(STATUS "Setting up GSL")
+  # GSL has not yet been updated to the modern convention so help it
+  SET(GSL_ROOT_DIR GSL_ROOT)
+  FIND_PACKAGE(GSL)
+  IF(GSL_FOUND)
+    SET(IBAMR_HAVE_GSL TRUE)
+  ENDIF()
 ENDIF()
 
 # ---------------------------------------------------------------------------- #
