@@ -881,12 +881,28 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
     std::array<DenseVector<double>, NDIM> F_rhs_e;
     std::vector<libMesh::dof_id_type> dof_id_scratch;
 
-    // First handle the stress contributions.  These are handled separately
-    // because each stress function may use a different quadrature rule.
-    const size_t num_PK1_fcns = d_PK1_stress_fcn_data[part].size();
-    for (unsigned int k = 0; k < num_PK1_fcns; ++k)
+    // For efficiency, combine loops over PK1 functions corresponding to the
+    // same quadrature rules and systems.
+    const std::vector<PK1StressFcnData> all_pk1 = getPK1StressFunction(part);
+    std::vector<PK1StressFcnData> remaining_pk1;
+    std::copy_if(all_pk1.begin(),
+                 all_pk1.end(),
+                 std::back_inserter(remaining_pk1),
+                 [](const PK1StressFcnData& data) { return data.fcn != nullptr; });
+    while (remaining_pk1.size() > 0)
     {
-        if (!d_PK1_stress_fcn_data[part][k].fcn) continue;
+        const PK1StressFcnData exemplar_pk1 = remaining_pk1.front();
+        // Collect all PK1 functions that are sufficiently similar:
+        const auto next_group_start = std::partition(remaining_pk1.begin(),
+                                                     remaining_pk1.end(),
+                                                     [&](const PK1StressFcnData& pk1)
+                                                     {
+                                                         return pk1.system_data == exemplar_pk1.system_data &&
+                                                                pk1.quad_type == exemplar_pk1.quad_type &&
+                                                                pk1.quad_order == exemplar_pk1.quad_order;
+                                                     });
+        std::vector<PK1StressFcnData> current_pk1(remaining_pk1.begin(), next_group_start);
+        remaining_pk1.erase(remaining_pk1.begin(), next_group_start);
 
         // Extract the FE systems and DOF maps, and setup the FE object.
         const DofMap& F_dof_map = F_system.get_dof_map();
@@ -901,11 +917,9 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
         FEDataInterpolation fe(dim, d_fe_data[part]);
-        std::unique_ptr<QBase> qrule =
-            QBase::build(d_PK1_stress_fcn_data[part][k].quad_type, dim, d_PK1_stress_fcn_data[part][k].quad_order);
+        std::unique_ptr<QBase> qrule = QBase::build(exemplar_pk1.quad_type, dim, exemplar_pk1.quad_order);
         qrule->allow_rules_with_negative_weights = d_allow_rules_with_negative_weights;
-        std::unique_ptr<QBase> qrule_face =
-            QBase::build(d_PK1_stress_fcn_data[part][k].quad_type, dim - 1, d_PK1_stress_fcn_data[part][k].quad_order);
+        std::unique_ptr<QBase> qrule_face = QBase::build(exemplar_pk1.quad_type, dim - 1, exemplar_pk1.quad_order);
         qrule_face->allow_rules_with_negative_weights = d_allow_rules_with_negative_weights;
         fe.attachQuadratureRule(qrule.get());
         fe.attachQuadratureRuleFace(qrule_face.get());
@@ -917,8 +931,7 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
         fe.registerSystem(F_system, std::vector<int>(), vars); // compute dphi for the force system
         const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_vec);
         std::vector<size_t> PK1_fcn_system_idxs;
-        fe.setupInterpolatedSystemDataIndexes(
-            PK1_fcn_system_idxs, d_PK1_stress_fcn_data[part][k].system_data, &equation_systems);
+        fe.setupInterpolatedSystemDataIndexes(PK1_fcn_system_idxs, exemplar_pk1.system_data, &equation_systems);
         fe.init();
 
         const std::vector<libMesh::Point>& q_point = fe.getQuadraturePoints();
@@ -973,14 +986,16 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
                 // at the quadrature point and add the corresponding forces to
                 // the right-hand-side vector.
                 fe.setInterpolatedDataPointers(PK1_var_data, PK1_grad_var_data, PK1_fcn_system_idxs, elem, qp);
-                d_PK1_stress_fcn_data[part][k].fcn(
-                    PP, FF, x, X, elem, PK1_var_data, PK1_grad_var_data, data_time, d_PK1_stress_fcn_data[part][k].ctx);
-                for (unsigned int basis_n = 0; basis_n < n_basis; ++basis_n)
+                for (const PK1StressFcnData& pk1 : current_pk1)
                 {
-                    F_qp = -PP * dphi[basis_n][qp] * JxW[qp];
-                    for (unsigned int i = 0; i < NDIM; ++i)
+                    pk1.fcn(PP, FF, x, X, elem, PK1_var_data, PK1_grad_var_data, data_time, pk1.ctx);
+                    for (unsigned int basis_n = 0; basis_n < n_basis; ++basis_n)
                     {
-                        F_rhs_e[i](basis_n) += F_qp(i);
+                        F_qp = -PP * dphi[basis_n][qp] * JxW[qp];
+                        for (unsigned int i = 0; i < NDIM; ++i)
+                        {
+                            F_rhs_e[i](basis_n) += F_qp(i);
+                        }
                     }
                 }
             }
@@ -1018,18 +1033,10 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
                     // Compute the value of the first Piola-Kirchhoff stress
                     // tensor at the quadrature point and add the corresponding
                     // traction force to the right-hand-side vector.
-                    if (d_PK1_stress_fcn_data[part][k].fcn)
+                    fe.setInterpolatedDataPointers(PK1_var_data, PK1_grad_var_data, PK1_fcn_system_idxs, elem, qp);
+                    for (const PK1StressFcnData& pk1 : current_pk1)
                     {
-                        fe.setInterpolatedDataPointers(PK1_var_data, PK1_grad_var_data, PK1_fcn_system_idxs, elem, qp);
-                        d_PK1_stress_fcn_data[part][k].fcn(PP,
-                                                           FF,
-                                                           x,
-                                                           X,
-                                                           elem,
-                                                           PK1_var_data,
-                                                           PK1_grad_var_data,
-                                                           data_time,
-                                                           d_PK1_stress_fcn_data[part][k].ctx);
+                        pk1.fcn(PP, FF, x, X, elem, PK1_var_data, PK1_grad_var_data, data_time, pk1.ctx);
                         F += PP * normal_face[qp];
                     }
 
