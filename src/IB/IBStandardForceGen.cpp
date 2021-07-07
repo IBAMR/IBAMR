@@ -1248,7 +1248,7 @@ IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
 #if (NDIM == 3)
             F_node[idx + 2] += K * (X_target[2] - X_node[idx + 2]) - E * U_node[idx + 2];
 #endif
-            if (d_log_target_point_displacements)
+            if (d_log_target_point_displacements && (K > 0.0 || E > 0.0))
             {
                 dX = 0.0;
                 dX += (X_target[0] - X_node[idx + 0]) * (X_target[0] - X_node[idx + 0]);
@@ -1272,7 +1272,7 @@ IBStandardForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
 #if (NDIM == 3)
         F_node[idx + 2] += K * (X_target[2] - X_node[idx + 2]) - E * U_node[idx + 2];
 #endif
-        if (d_log_target_point_displacements)
+        if (d_log_target_point_displacements && (K > 0.0 || E > 0.0))
         {
             dX = 0.0;
             dX += (X_target[0] - X_node[idx + 0]) * (X_target[0] - X_node[idx + 0]);
