@@ -311,7 +311,10 @@ public:
         }
         else
         {
-            return d_map.count(level_number) != 0;
+            return std::find_if(d_map.begin(),
+                                d_map.end(),
+                                [&](const std::pair<libMesh::subdomain_id_type, int>& pair)
+                                { return pair.second == level_number; }) != d_map.end();
         }
     }
 
@@ -333,7 +336,7 @@ private:
     /*!
      * Size of the fixed-size array.
      */
-    static constexpr int fixed_array_size = 256;
+    static constexpr int fixed_array_size = 1024;
 
     /*!
      * The overwhelming majority of subdomain IDs used with IBAMR come from

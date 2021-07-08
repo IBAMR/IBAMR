@@ -219,18 +219,24 @@ main(int argc, char** argv)
         // Possibly assign boundary elements to a finer patch level (depending
         // on what is in the input file)
         {
+            libMesh::subdomain_id_type inner_id = 1;
+            libMesh::subdomain_id_type outer_id = 2;
+            if (input_db->getBoolWithDefault("use_huge_subdomains", false))
+            {
+                inner_id = std::numeric_limits<libMesh::subdomain_id_type>::max() - 3;
+                outer_id = std::numeric_limits<libMesh::subdomain_id_type>::max() - 1;
+            }
             const MeshBase::element_iterator el_end = mesh.active_elements_end();
             for (MeshBase::element_iterator el = mesh.active_elements_begin(); el != el_end; ++el)
             {
                 const auto centroid = (*el)->centroid();
-
                 if (centroid.norm() > 0.75 * R)
                 {
-                    (*el)->subdomain_id() = 2;
+                    (*el)->subdomain_id() = outer_id;
                 }
                 else
                 {
-                    (*el)->subdomain_id() = 1;
+                    (*el)->subdomain_id() = inner_id;
                 }
             }
         }
