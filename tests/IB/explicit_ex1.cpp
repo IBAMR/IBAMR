@@ -77,6 +77,11 @@ main(int argc, char* argv[])
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
+#ifndef IBTK_HAVE_SILO
+    // Suppress warnings caused by running without silo
+    SAMRAI::tbox::Logger::getInstance()->setWarning(false);
+#endif
+
     { // cleanup dynamically allocated objects prior to shutdown
         TimerManager::createManager(nullptr);
 
