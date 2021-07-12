@@ -1,0 +1,40 @@
+on:
+  # Trigger the workflow on push or pull request,
+  # but only when targeting the main branch
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build_ibamr:
+    runs-on: ubuntu-latest
+    name: Build IBAMR and run tests
+    container:
+      image: 'docker://dcthomp/ibamr:0.9-build-deps'
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v2
+        id: git
+      - name: Filesystem Prep
+        run: mkdir -p /sccache
+        id: fs
+      - name: Enable sccache
+        uses: actions/cache@v2
+        env:
+          cache-name: sccache
+        id: cache
+        with:
+          path: /sccache
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ github.ref }}-${{ hashFiles('include/ibamr/config.h','ibtk/include/ibtk/config.h.in') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-${{ github.ref }}-
+            ${{ runner.os }}-build-${{ env.cache-name }}-refs/heads/master-
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Build and Test IBAMR
+        run: ./.github/test-build
+        id: build

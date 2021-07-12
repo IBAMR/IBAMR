@@ -1,0 +1,57 @@
+#!/bin/sh
+
+# Remember where we started; this is where our source checkout lives.
+src=`pwd`
+
+# Load the module command and use it to load MPI.
+. /etc/profile.d/modules.sh
+module load mpi
+
+# Configure sccache to use a docker volume
+export SCCACHE_DIR=/sccache
+export SCCACHE_CACHE_SIZE="1G"
+echo "::group::Setup"
+echo "Cache size: "
+du -sh /sccache
+sccache -s
+echo "::endgroup::"
+
+# Create a directory to hold the build, then build and test IBAMR
+mkdir /bld
+cd /bld
+echo "::group::Configure"
+cmake \
+  -DCMAKE_C_COMPILER_LAUNCHER:STRING=sccache \
+  -DCMAKE_CXX_COMPILER_LAUNCHER:STRING=sccache \
+  -DCMAKE_Fortran_COMPILER_LAUNCHER:STRING=sccache \
+  -DCMAKE_C_FLAGS="-O3 -march=native" \
+  -DCMAKE_CXX_FLAGS="-O3 -march=native" \
+  -DCMAKE_Fortran_FLAGS="-O3 -march=native" \
+  -DCMAKE_INSTALL_PREFIX=/ibamr \
+  -DSAMRAI_ROOT=/samrai \
+  -DLIBMESH_ROOT=/libmesh \
+  -DLIBMESH_METHOD=OPT \
+  -DPETSC_ROOT=/petsc/x86_64 \
+  -DHYPRE_ROOT=/petsc/x86_64 \
+  -DNUMDIFF_ROOT=/numdiff \
+  ${src}
+echo "::endgroup::"
+echo "::group::Build"
+time make -j4
+sccache -s
+echo "::endgroup::"
+echo "::group::Test install"
+time make -j4 install
+echo "::endgroup::"
+echo "::group::Build tests"
+time (cd tests; make -j4 tests)
+sccache -s
+echo "::endgroup::"
+echo "::group::Run tests"
+echo "Tests disabled until hanging tests are fixed."
+time ${src}/attest \
+  --mpi-executable `which mpiexec` \
+  --numdiff-executable /numdiff/bin/numdiff \
+  --test-directory=/tests \
+  -j2
+echo "::endgroup::"
