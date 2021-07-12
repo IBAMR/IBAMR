@@ -70,6 +70,9 @@ class Parameters:
 
     keep_work_directories: whether or not work directories (usually in /tmp/)
     should be deleted after the test is run. Defaults to False.
+
+    test_timeout: maximum length, in seconds, to run a test. Tests that do not
+    finish in time are considered as failing.
     """
     def __init__(self, input_arguments):
         # TODO: finish implementing verbose mode
@@ -81,6 +84,7 @@ class Parameters:
         self.test_directory = os.getcwd() + input_arguments.test_directory
         self.include_regex = input_arguments.include_regex
         self.exclude_regex = input_arguments.exclude_regex
+        self.test_timeout = input_arguments.test_timeout
         self.verbose = False
 
         # These are the only two required inputs:
@@ -160,6 +164,7 @@ class TestResult(enum.Enum):
     passed = 0
     run_failed = 1
     diff_failed = 2
+    timeout = 3
 
 
 class TestOutput:
@@ -197,6 +202,8 @@ class TestOutput:
             status_string = "RUN FAILED"
         elif self.test_result == TestResult.diff_failed:
             status_string = "DIFF FAILED"
+        elif self.test_result == TestResult.timeout:
+            status_string = "TIMEOUT"
         else:
             status_string = "FAILED"
 
@@ -275,38 +282,48 @@ class Test:
                 run_args = [self._parameters.mpiexec, "-np", str(n_processors),
                             "--bind-to", "none"] + run_args
 
-            run_result = subprocess.run(run_args,
-                                        stderr=subprocess.PIPE,
-                                        stdout=subprocess.PIPE,
-                                        cwd=temporary_directory)
-            if self._expect_error:
-                run_succeeded = run_result.returncode != 0
-            else:
-                run_succeeded = run_result.returncode == 0
-            if run_succeeded:
-                # The first run succeeded: if we are testing restart code we need to run again
-                if self.do_restart():
-                    run_args += ["./restart/", str(self.restart_n())]
-                    run_result = subprocess.run(run_args,
-                                                stderr=subprocess.PIPE,
-                                                stdout=subprocess.PIPE,
-                                                cwd=temporary_directory)
+            try:
+                run_result = subprocess.run(run_args,
+                                            stderr=subprocess.PIPE,
+                                            stdout=subprocess.PIPE,
+                                            cwd=temporary_directory,
+                                            timeout=self._parameters.test_timeout)
+                if self._expect_error:
+                    run_succeeded = run_result.returncode != 0
+                else:
                     run_succeeded = run_result.returncode == 0
+                if run_succeeded:
+                    # The first run succeeded: if we are testing restart code we need to run again
+                    if self.do_restart():
+                        run_args += ["./restart/", str(self.restart_n())]
+                        run_result = subprocess.run(run_args,
+                                                    stderr=subprocess.PIPE,
+                                                    stdout=subprocess.PIPE,
+                                                    cwd=temporary_directory)
+                        run_succeeded = run_result.returncode == 0
+                test_timed_out = False
 
-            if run_succeeded:
-                # Nearly the same as deal.II: Configure numdiff with
-                #   - relative differences of 1e-6
-                #   - absolute differences of 1e-10 (i.e., ignore values near zero)
-                #   - [space][tab][newline]=,:;<>[](){}^ as separators between numbers
-                numdiff_flags = ["-r", "1e-6", "-a", "1e-10", "-s",
-                                 "' \\t\\n=,:;<>[](){}^'"]
-                diff_result = subprocess.run(
-                    [self._parameters.numdiff] + numdiff_flags +
-                    [self.output_file, temporary_directory + os.sep + "output"],
-                    stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-                diff_succeeded = diff_result.returncode == 0
-            else:
-                diff_succeeded = False
+                if run_succeeded:
+                    # Nearly the same as deal.II: Configure numdiff with
+                    #   - relative differences of 1e-6
+                    #   - absolute differences of 1e-10 (i.e., ignore values near zero)
+                    #   - [space][tab][newline]=,:;<>[](){}^ as separators between numbers
+                    numdiff_flags = ["-r", "1e-6", "-a", "1e-10", "-s",
+                                     "' \\t\\n=,:;<>[](){}^'"]
+                    diff_result = subprocess.run(
+                        [self._parameters.numdiff] + numdiff_flags +
+                        [self.output_file, temporary_directory + os.sep + "output"],
+                        stderr=subprocess.PIPE, stdout=subprocess.PIPE,
+                        # allow the test runner to crash if numdiff somehow times out
+                        timeout=self._parameters.test_timeout)
+                    diff_succeeded = diff_result.returncode == 0
+                else:
+                    diff_succeeded = False
+
+            except subprocess.TimeoutExpired as timeout_exception:
+                test_timed_out = True
+                run_result = timeout_exception
+
         finally:
             if not self._parameters.keep_work_directories:
                 shutil.rmtree(temporary_directory)
@@ -314,7 +331,11 @@ class Test:
         test_result = TestResult.passed
         error_message = ""
         if not run_succeeded:
-            test_result = TestResult.run_failed
+            if test_timed_out:
+                test_result = TestResult.timeout
+            else:
+                test_result = TestResult.run_failed
+            # TimeoutExpired and CompletedProcess both define stderr
             error_message = run_result.stderr.decode('utf-8')
         elif not diff_succeeded:
             test_result = TestResult.diff_failed
@@ -420,6 +441,10 @@ def main():
                         help="Regular expression for excluding test names. If a"
                         " test is in 'tests/dir/example.input', the regex will "
                         "be applied to 'dir/example.input'.")
+    parser.add_argument('--test-timeout', type=int,
+                        default=conf['test_timeout'],
+                        dest='test_timeout',
+                        help="The time limit, in seconds, for each test.")
     input_arguments = parser.parse_args()
     parameters = Parameters(input_arguments)
     include_pattern = re.compile(parameters.include_regex)
