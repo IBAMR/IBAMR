@@ -21,7 +21,6 @@
 #include "ibtk/PETScMatUtilities.h"
 #include "ibtk/PETScVecUtilities.h"
 #include "ibtk/PoissonUtilities.h"
-#include "ibtk/SAMRAIDataCache.h"
 
 #include "BoundaryBox.h"
 #include "CellData.h"

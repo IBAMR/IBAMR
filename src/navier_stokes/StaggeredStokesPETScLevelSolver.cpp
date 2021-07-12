@@ -24,7 +24,6 @@
 #include "ibtk/LinearSolver.h"
 #include "ibtk/PETScLevelSolver.h"
 #include "ibtk/PoissonUtilities.h"
-#include "ibtk/SAMRAIDataCache.h"
 
 #include "BoundaryBox.h"
 #include "CellData.h"
