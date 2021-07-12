@@ -16,7 +16,6 @@
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/PETScLevelSolver.h"
-#include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "CoarseFineBoundary.h"

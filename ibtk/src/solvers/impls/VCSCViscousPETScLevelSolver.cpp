@@ -18,7 +18,6 @@
 #include "ibtk/PETScMatUtilities.h"
 #include "ibtk/PETScVecUtilities.h"
 #include "ibtk/PoissonUtilities.h"
-#include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/SCPoissonPETScLevelSolver.h"
 #include "ibtk/VCSCViscousPETScLevelSolver.h"
 #include "ibtk/ibtk_enums.h"
