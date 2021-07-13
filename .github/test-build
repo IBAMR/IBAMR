@@ -48,7 +48,6 @@ time (cd tests; make -j4 tests)
 sccache -s
 echo "::endgroup::"
 echo "::group::Run tests"
-echo "Tests disabled until hanging tests are fixed."
 time ${src}/attest \
   --mpi-executable `which mpiexec` \
   --numdiff-executable /numdiff/bin/numdiff \
