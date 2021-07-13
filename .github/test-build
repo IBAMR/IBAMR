@@ -20,13 +20,20 @@ echo "::endgroup::"
 mkdir /bld
 cd /bld
 echo "::group::Configure"
+# In some basic profiling I measured that running the test suite with 4 cores
+# takes 18 minutes with -O3 -march=native and 19 minutes with O1. Hence compile
+# C++ with lower optimization. Fortran is orders of magnitude faster to compile
+# than C++ so keep it at O3.
+#
+# Since the environment is virtual we get a lot of illegal instruction errors
+# with -march=native so that must be disabled as well.
 cmake \
   -DCMAKE_C_COMPILER_LAUNCHER:STRING=sccache \
   -DCMAKE_CXX_COMPILER_LAUNCHER:STRING=sccache \
   -DCMAKE_Fortran_COMPILER_LAUNCHER:STRING=sccache \
-  -DCMAKE_C_FLAGS="-O3 -march=native" \
-  -DCMAKE_CXX_FLAGS="-O3 -march=native" \
-  -DCMAKE_Fortran_FLAGS="-O3 -march=native" \
+  -DCMAKE_C_FLAGS="-O1" \
+  -DCMAKE_CXX_FLAGS="-O1" \
+  -DCMAKE_Fortran_FLAGS="-O3" \
   -DCMAKE_INSTALL_PREFIX=/ibamr \
   -DSAMRAI_ROOT=/samrai \
   -DLIBMESH_ROOT=/libmesh \
