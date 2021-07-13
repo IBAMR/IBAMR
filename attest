@@ -465,7 +465,7 @@ def main():
                         "a test is in 'tests/dir/example.input', the regex "
                         "will be applied to 'dir/example.input'.")
     parser.add_argument('--test-timeout', type=int,
-                        default=conf['test_timeout'],
+                        default=conf['test_timeout'] if 'test_timeout' in conf else 1200,
                         dest='test_timeout',
                         help="The time limit, in seconds, for each test.")
     parser.add_argument('--verbose',

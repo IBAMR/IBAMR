@@ -1,3 +1,4 @@
+name: Pull/push
 on:
   # Trigger the workflow on push or pull request,
   # but only when targeting the main branch
@@ -14,6 +15,34 @@ jobs:
     name: Build IBAMR and run tests
     container:
       image: 'docker://dcthomp/ibamr:0.9-build-deps'
+    env:
+      # For now, hardwire the configuration since we have only one.
+      # This is used by ctest_configure.cmake to initialize the
+      # CMake cache by including
+      # `.github/cmake/configure_${CMAKE_CONFIGURATION}.cmake`
+      # so it is possible to run the same container with different
+      # values to build different configurations (e.g., release vs
+      # debug, with/without in situ processing, static analysis).
+      CMAKE_CONFIGURATION: fedora33
+
+      # If this variable is set, cause any build warnings to
+      # be treated as an error (causing the build to fail before
+      # testing and preventing merging).
+      CTEST_NO_WARNINGS_ALLOWED: true
+
+      # On some platforms, this is used to select a different toolset.
+      # For example, uncomment the line below on Centos 7 to use a
+      # newer GCC (assumes the proper toolset packages are installed).
+      #LAUNCHER: scl enable devtoolset-7 --
+
+      # Set the build type (this currently has no effect).
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html
+      # CMAKE_BUILD_TYPE: Release
+
+      # Set the cmake generator (build system) to use.
+      # See https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html
+      # CMAKE_GENERATOR: Ninja
+      CMAKE_GENERATOR: Unix Makefiles
     steps:
       - name: Checkout Source
         uses: actions/checkout@v2
@@ -21,7 +50,7 @@ jobs:
       - name: Filesystem Prep
         run: mkdir -p /sccache
         id: fs
-      - name: Enable sccache
+      - name: Populate sccache
         uses: actions/cache@v2
         env:
           cache-name: sccache
@@ -35,6 +64,18 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
-      - name: Build and Test IBAMR
-        run: ./.github/test-build
+      - name: Start sccache server
+        id: cache-server
+        run: sccache --start-server
+      - name: Configure IBAMR
+        id: configure
+        # run: ${{ LAUNCHER }} ctest -V -S .github/cmake/ctest_configure.cmake
+        run: bash -c "ctest -V -S .github/cmake/ctest_configure.cmake"
+      - name: Build IBAMR
         id: build
+        # run: ${{ LAUNCHER }} ctest -V -S .github/cmake/ctest_build.cmake
+        run: bash -c "ctest -V -S .github/cmake/ctest_build.cmake"
+      - name: Test IBAMR
+        id: test
+        # run: ${{ LAUNCHER }} ctest --output-on-failure -V -S .github/cmake/ctest_test.cmake
+        run: bash -c "ctest --output-on-failure -V -S .github/cmake/ctest_test.cmake"

@@ -11,7 +11,7 @@
 ##
 ## ---------------------------------------------------------------------
 
-ADD_CUSTOM_TARGET(tests)
+ADD_CUSTOM_TARGET(tests ALL)
 
 # We use the list of test directories in two ways:
 # 1. each test is added to a target tests-dir so that, e.g., 'make tests-IBFE'
@@ -287,3 +287,10 @@ ENDIF()
 # Set up the default attest configuration file:
 CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/tests/attest.conf.in
   ${CMAKE_BINARY_DIR}/attest.conf)
+
+# For the time being, run `attest` as if it were a single test.
+add_test(
+  NAME autotests
+  COMMAND "${CMAKE_SOURCE_DIR}/attest"
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
