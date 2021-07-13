@@ -6,5 +6,7 @@ mpiexec = @MPIEXEC_EXECUTABLE@
 numdiff = @NUMDIFF_EXECUTABLE@
 show_only = False
 test_directory = /tests/
+test_timeout = 600
 include_regex = .*
 exclude_regex = ^$
+verbose = False
