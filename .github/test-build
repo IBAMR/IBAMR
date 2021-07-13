@@ -52,14 +52,22 @@ echo "::group::Test install"
 time make -j4 install
 echo "::endgroup::"
 echo "::group::Build tests"
-time (cd tests; make -j4 tests)
+time make -j4 tests
 sccache -s
 echo "::endgroup::"
 echo "::group::Run tests"
-echo "Tests disabled until hanging tests are fixed."
-time ${src}/attest \
-  --mpi-executable `which mpiexec` \
-  --numdiff-executable /numdiff/bin/numdiff \
-  --test-directory=/tests \
-  -j2
+export PYTHONUNBUFFERED='yes'
+# due to limited computational resources we need to disable most parallel tests.
+# Also disable ones that are somewhat slow (take more than 30s on my 4-core
+# workstation with mpirun=8)
+disabled_tests="mpirun=[5-9]"
+disabled_tests="${disabled_tests}|explicit_ex1_2d.mpirun=4.input"
+disabled_tests="${disabled_tests}|explicit_ex4_3d.mpirun=4.input"
+disabled_tests="${disabled_tests}|explicit_ex8_2d.scratch_hier.input"
+disabled_tests="${disabled_tests}|explicit_ex5_3d.mpirun=2.input"
+disabled_tests="${disabled_tests}|explicit_ex2_3d.nodal_quadrature.input"
+disabled_tests="${disabled_tests}|explicit_ex8_2d.input"
+disabled_tests="${disabled_tests}|nwt_cylinder|rotating_barge|cib_double_shell"
+disabled_tests="${disabled_tests}|free_falling_cyl_cib|cib_plate"
+time ./attest -j4 --verbose --test-timeout=60 -E "${disabled_tests}"
 echo "::endgroup::"
