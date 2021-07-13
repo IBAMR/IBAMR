@@ -77,6 +77,11 @@ main(int argc, char* argv[])
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
+#ifndef IBTK_HAVE_SILO
+    // Suppress warnings caused by running without silo
+    SAMRAI::tbox::Logger::getInstance()->setWarning(false);
+#endif
+
     { // cleanup dynamically allocated objects prior to shutdown
 
         // Parse command line options, set some standard options from the input

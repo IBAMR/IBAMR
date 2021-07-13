@@ -42,9 +42,9 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 // Set up application namespace declarations
-#include <ibamr/app_namespaces.h>
-
 #include <array>
+
+#include <ibamr/app_namespaces.h>
 
 int finest_ln;
 std::array<int, NDIM> N;
@@ -227,6 +227,11 @@ main(int argc, char* argv[])
     SAMRAIManager::startup();
     std::array<double, 3> u_err;
     std::array<double, 3> p_err;
+
+#ifndef IBTK_HAVE_SILO
+    // Suppress warnings caused by running without silo
+    SAMRAI::tbox::Logger::getInstance()->setWarning(false);
+#endif
 
     { // cleanup dynamically allocated objects prior to shutdown
         // prevent a warning about timer initializations
