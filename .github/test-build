@@ -1,7 +1,8 @@
 #!/bin/sh
+set -eou pipefail
 
 # Remember where we started; this is where our source checkout lives.
-src=`pwd`
+src=$(pwd)
 
 # Load the module command and use it to load MPI.
 . /etc/profile.d/modules.sh
@@ -41,7 +42,7 @@ cmake \
   -DPETSC_ROOT=/petsc/x86_64 \
   -DHYPRE_ROOT=/petsc/x86_64 \
   -DNUMDIFF_ROOT=/numdiff \
-  ${src}
+  "${src}"
 echo "::endgroup::"
 echo "::group::Build"
 time make -j4
