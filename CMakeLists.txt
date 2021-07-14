@@ -553,6 +553,43 @@ The version of PETSc detected by libMesh differs from the version of PETSc \
 detected by IBAMR. This is not allowed.")
     ENDIF()
 
+    # Verify that libMesh uses MPI:
+    CHECK_CXX_SOURCE_COMPILES(
+      "
+      #include <libmesh/libmesh_config.h>
+      #ifdef LIBMESH_HAVE_MPI
+      // OK
+      #else
+      #error
+      #endif
+      int main() {}
+      "
+      LIBMESH_WITH_MPI
+      )
+    IF(NOT "${LIBMESH_WITH_MPI}")
+      MESSAGE(FATAL_ERROR "IBAMR requires that libMesh be compiled with MPI.")
+    ENDIF()
+
+    # Verify that libMesh uses XDR (we need it for restarts and the test suite):
+    CHECK_CXX_SOURCE_COMPILES(
+      "
+      #include <libmesh/libmesh_config.h>
+      #ifdef LIBMESH_HAVE_XDR
+      // OK
+      #else
+      #error
+      #endif
+      int main() {}
+      "
+      LIBMESH_WITH_XDR
+      )
+    IF(NOT "${LIBMESH_WITH_XDR}")
+      MESSAGE(FATAL_ERROR "IBAMR requires that libMesh be compiled with XDR.")
+    ENDIF()
+
+    # Note that we don't technically require ExodusII - even though we have
+    # AppInitializer::getExodusIIFilename() we never actually use ExodusII APIs.
+
     SET(CMAKE_REQUIRED_FLAGS "")
     SET(CMAKE_REQUIRED_INCLUDES "")
   ENDIF()
