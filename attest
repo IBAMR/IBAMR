@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-## ---------------------------------------------------------------------
-##
-## Copyright (c) 2019 - 2020 by the IBAMR developers
-## All rights reserved.
-##
-## This file is part of IBAMR.
-##
-## IBAMR is free software and is distributed under the 3-clause BSD
-## license. The full text of the license can be found in the file
-## COPYRIGHT at the top level directory of IBAMR.
-##
-## ---------------------------------------------------------------------
+# ---------------------------------------------------------------------
+#
+# Copyright (c) 2019 - 2020 by the IBAMR developers
+# All rights reserved.
+#
+# This file is part of IBAMR.
+#
+# IBAMR is free software and is distributed under the 3-clause BSD
+# license. The full text of the license can be found in the file
+# COPYRIGHT at the top level directory of IBAMR.
+#
+# ---------------------------------------------------------------------
 
 """Test runner for autotools-based tests.
 """
@@ -28,7 +28,6 @@ import subprocess
 import sys
 import tempfile
 import threading
-import time
 
 # We rely on subprocess.run, which is new in 3.5
 assert sys.version_info >= (3, 5)
@@ -43,6 +42,8 @@ def interrupt_handler(sig, frame):
     del sig, frame
     print("SIGINT caught. Exiting.")
     sys.exit(1)
+
+
 signal.signal(signal.SIGINT, interrupt_handler)
 
 
@@ -51,8 +52,8 @@ class Parameters:
 
     Parameters read from input arguments or the input file:
 
-    test_directory: relative path to the directory containing tests. Defaults to
-                    "/tests/".
+    test_directory: relative path to the directory containing tests. Defaults
+                    to "/tests/".
 
     mpiexec: program used to launch MPI applications. Defaults to "mpiexec".
 
@@ -73,9 +74,11 @@ class Parameters:
 
     test_timeout: maximum length, in seconds, to run a test. Tests that do not
     finish in time are considered as failing.
+
+    verbose: If verbose is True then, if a test fails, the first couple of
+    lines of stderr or the failing diff will be printed to stdout.
     """
     def __init__(self, input_arguments):
-        # TODO: finish implementing verbose mode
         self.keep_work_directories = input_arguments.keep_work_directories
         self.mpiexec = input_arguments.mpiexec
         self.numdiff = input_arguments.numdiff
@@ -85,23 +88,23 @@ class Parameters:
         self.include_regex = input_arguments.include_regex
         self.exclude_regex = input_arguments.exclude_regex
         self.test_timeout = input_arguments.test_timeout
-        self.verbose = False
+        self.verbose = input_arguments.verbose
 
         # These are the only two required inputs:
         if self.mpiexec == "":
             raise ValueError("attest requires that MPIEXEC be provided either"
-                             " to configure, stored in attest.conf, or explicitly"
-                             " provided as a command-line argument to attest"
-                             " itself.")
+                             " to configure, stored in attest.conf, or"
+                             " explicitly provided as a command-line argument"
+                             " to attest itself.")
         if not os.path.isfile(self.mpiexec):
             raise ValueError("The given path to mpiexec <" + self.mpiexec + ">"
                              " is not valid.")
 
         if self.numdiff == "":
             raise ValueError("attest requires that NUMDIFF be provided either"
-                             "to configure, stored in attest.conf, or explicitly"
-                             " provided as a command-line argument to attest"
-                             " itself.")
+                             " to configure, stored in attest.conf, or"
+                             " explicitly provided as a command-line argument"
+                             " to attest itself.")
         if not os.path.isfile(self.numdiff):
             raise ValueError("The given path to numdiff <" + self.numdiff + ">"
                              " is not valid.")
@@ -120,6 +123,7 @@ def n_mpi_processes(input_file):
 
     return 1
 
+
 def expect_error(input_file):
     """Determine if a test is expected to raise an error. Defaults to true.
     """
@@ -135,11 +139,10 @@ def expect_error(input_file):
         elif value == "false":
             return False
         else:
-            raise ValueError("Could not convert the given string <" + value + "> to "
-                            "a boolean.")
+            raise ValueError("Could not convert the given string <" + value
+                             + "> to a boolean.")
 
     return False
-
 
 
 def restart_n(input_file):
@@ -177,7 +180,8 @@ class TestOutput:
         self.error_message = error_message
         self._parameters = parameters
 
-        self._n_mpi_processes = n_mpi_processes(os.path.split(self.input_file)[-1])
+        self._n_mpi_processes = n_mpi_processes(
+            os.path.split(self.input_file)[-1])
         self._name = os.path.split(self.input_file)[-1][:-len(".input")]
         path_length = len(self._parameters.test_directory) - 1
         self._name = self.input_file[path_length + 1:]
@@ -208,7 +212,15 @@ class TestOutput:
             status_string = "FAILED"
 
         hyphen_length = 70 - len(relative_file_name) - len(status_string)
-        print(relative_file_name + " " + "-" * hyphen_length + " " + status_string)
+        print(relative_file_name + " " + "-" * hyphen_length + " "
+              + status_string)
+
+        if self._parameters.verbose:
+            if self.test_result in [TestResult.run_failed,
+                                    TestResult.diff_failed]:
+                print("test failed with output:")
+                for line in self.error_message.split('\n')[:50]:
+                    print("   ", line)
 
 
 class Test:
@@ -235,7 +247,8 @@ class Test:
                 os.path.splitext(self.output_file)[0])
 
         if (self.do_restart() and self._expect_error):
-            raise ValueError("Restarts and expected errors cannot be used together.")
+            raise ValueError("Restarts and expected errors cannot be used "
+                             + "together.")
 
     def name(self):
         """Name of the test. Determined by the input file.
@@ -243,12 +256,10 @@ class Test:
         path_length = len(self._parameters.test_directory) - 1
         return self.input_file[path_length + 1:]
 
-
     def n_mpi_processes(self):
         """Number of MPI processes required for the test. Returns an integer.
         """
         return self._n_mpi_processes
-
 
     def do_restart(self):
         """Whether or not we should, upon completion, run the test again in restart
@@ -256,12 +267,10 @@ class Test:
         """
         return self._restart_n != 0
 
-
     def restart_n(self):
         """The restart snapshot number to use in case we restart the test.
         """
         return self._restart_n
-
 
     def run(self):
         """Actually execute the test and compare the output results. Returns a
@@ -274,31 +283,31 @@ class Test:
             n_processors = self.n_mpi_processes()
             run_args = [self.executable, self.input_file]
             if 1 < n_processors:
-                # Permit running more processes than we have cores. Also disable
-                # binding processes to specific cores. We need to avoid binding
-                # since on clusters this results in multiple tests being
-                # assigned to the same core (since we have concurrent mpiexec
-                # calls).
+                # Permit running more processes than we have cores. Also
+                # disable binding processes to specific cores. We need to
+                # avoid binding since on clusters this results in multiple
+                # tests being assigned to the same core (since we have
+                # concurrent mpiexec calls).
                 run_args = [self._parameters.mpiexec, "-np", str(n_processors),
                             "--bind-to", "none"] + run_args
 
             try:
-                run_result = subprocess.run(run_args,
-                                            stderr=subprocess.PIPE,
-                                            stdout=subprocess.PIPE,
-                                            cwd=temporary_directory,
-                                            timeout=self._parameters.test_timeout)
+                run_result = subprocess.run(
+                    run_args,
+                    capture_output=True,
+                    cwd=temporary_directory,
+                    timeout=self._parameters.test_timeout)
                 if self._expect_error:
                     run_succeeded = run_result.returncode != 0
                 else:
                     run_succeeded = run_result.returncode == 0
                 if run_succeeded:
-                    # The first run succeeded: if we are testing restart code we need to run again
+                    # The first run succeeded: if we are testing restart code
+                    # we need to run again
                     if self.do_restart():
                         run_args += ["./restart/", str(self.restart_n())]
                         run_result = subprocess.run(run_args,
-                                                    stderr=subprocess.PIPE,
-                                                    stdout=subprocess.PIPE,
+                                                    capture_output=True,
                                                     cwd=temporary_directory)
                         run_succeeded = run_result.returncode == 0
                 test_timed_out = False
@@ -306,15 +315,19 @@ class Test:
                 if run_succeeded:
                     # Nearly the same as deal.II: Configure numdiff with
                     #   - relative differences of 1e-6
-                    #   - absolute differences of 1e-10 (i.e., ignore values near zero)
-                    #   - [space][tab][newline]=,:;<>[](){}^ as separators between numbers
+                    #   - absolute differences of 1e-10 (i.e., ignore values
+                    #     near zero)
+                    #   - [space][tab][newline]=,:;<>[](){}^ as separators
+                    #     between numbers
                     numdiff_flags = ["-r", "1e-6", "-a", "1e-10", "-s",
                                      "' \\t\\n=,:;<>[](){}^'"]
                     diff_result = subprocess.run(
                         [self._parameters.numdiff] + numdiff_flags +
-                        [self.output_file, temporary_directory + os.sep + "output"],
-                        stderr=subprocess.PIPE, stdout=subprocess.PIPE,
-                        # allow the test runner to crash if numdiff somehow times out
+                        [self.output_file, temporary_directory + os.sep
+                         + "output"],
+                        capture_output=True,
+                        # allow the test runner to crash if numdiff somehow
+                        # times out
                         timeout=self._parameters.test_timeout)
                     diff_succeeded = diff_result.returncode == 0
                 else:
@@ -330,16 +343,23 @@ class Test:
 
         test_result = TestResult.passed
         error_message = ""
+
+        def maybe_decode_error(result):
+            # TimeoutExpired and CompletedProcess both define stderr
+            try:
+                return result.decode('utf-8')
+            except:
+                return ""
+
         if not run_succeeded:
             if test_timed_out:
                 test_result = TestResult.timeout
             else:
                 test_result = TestResult.run_failed
-            # TimeoutExpired and CompletedProcess both define stderr
-            error_message = run_result.stderr.decode('utf-8')
+            error_message = maybe_decode_error(run_result.stderr)
         elif not diff_succeeded:
             test_result = TestResult.diff_failed
-            error_message = diff_result.stderr.decode('utf-8')
+            error_message = maybe_decode_error(diff_result.stdout)
 
         return TestOutput(self.input_file, test_result, error_message,
                           self._parameters)
@@ -377,7 +397,7 @@ def main():
                              'include_regex': INCLUDE_REGEX_DEFAULT,
                              'exclude_regex': EXCLUDE_REGEX_DEFAULT}
     config_file.read('attest.conf')
-    conf = config_file['attest'] # shorthand
+    conf = config_file['attest']  # shorthand
 
     for entry in sys.argv:
         # argparse doesn't support writing -j8 (i.e., with no space), so
@@ -394,22 +414,23 @@ def main():
     description = (
         "A simple test runner. attest is configured both with an input file "
         "(attest.conf, located in the top level test directory) and command "
-        "line arguments. Command line arguments will override settings found in"
-        " attest.conf. attest requires both numdiff and MPI execution program "
-        "(i.e., mpiexec) to work correctly. The best way to specify these "
-        "values is to provide them to configure, which will then use them to "
-        "write a default attest.conf file.")
+        "line arguments. Command line arguments will override settings found "
+        "in attest.conf. attest requires both numdiff and MPI execution "
+        "program (i.e., mpiexec) to work correctly. The best way to specify "
+        "these values is to provide them to configure, which will then use "
+        "them to write a default attest.conf file.")
 
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-j,--jobs', metavar='N', type=int,
                         default=conf['jobs'], dest='n_processors',
-                        help=("Total number of processors to use across all " +
-                              "concurrent MPI jobs: defaults to 1. If \"-j\" is "
-                              "given as an argument without a number then half "
-                              "of the the total cores (including virtual cores) "
-                              "will be used."))
+                        help=("Total number of processors to use across all "
+                              "concurrent MPI jobs: defaults to 1. If \"-j\" "
+                              "is given as an argument without a number then "
+                              "half of the the total cores (including virtual "
+                              "cores) will be used."))
     parser.add_argument('--keep-work-directories',
-                        default=bool(du.strtobool(conf['keep_work_directories'])),
+                        default=bool(
+                            du.strtobool(conf['keep_work_directories'])),
                         dest='keep_work_directories',
                         action='store_true',
                         help=("Whether or not to keep temporary work " +
@@ -431,20 +452,29 @@ def main():
                         help=("Directory in which all test files " +
                               "(executables, input files, and output files) " +
                               "are located."))
-    parser.add_argument('-R,--include-regex', type=str, default=conf['include_regex'],
+    parser.add_argument('-R,--include-regex', type=str,
+                        default=conf['include_regex'],
                         dest='include_regex',
-                        help="Regular expression for including test names; If a"
-                        " test is in 'tests/dir/example.input', the regex will "
-                        "be applied to 'dir/example.input'.")
-    parser.add_argument('-E,--exclude-regex', type=str, default=conf['exclude_regex'],
+                        help="Regular expression for including test names; If "
+                        "a test is in 'tests/dir/example.input', the regex "
+                        "will be applied to 'dir/example.input'.")
+    parser.add_argument('-E,--exclude-regex', type=str,
+                        default=conf['exclude_regex'],
                         dest='exclude_regex',
-                        help="Regular expression for excluding test names. If a"
-                        " test is in 'tests/dir/example.input', the regex will "
-                        "be applied to 'dir/example.input'.")
+                        help="Regular expression for excluding test names. If "
+                        "a test is in 'tests/dir/example.input', the regex "
+                        "will be applied to 'dir/example.input'.")
     parser.add_argument('--test-timeout', type=int,
                         default=conf['test_timeout'],
                         dest='test_timeout',
                         help="The time limit, in seconds, for each test.")
+    parser.add_argument('--verbose',
+                        default=bool(
+                            du.strtobool(conf['verbose'])),
+                        dest='verbose',
+                        action='store_true',
+                        help=("If true, print the stderr or failing diff for"
+                              " each failing test."))
     input_arguments = parser.parse_args()
     parameters = Parameters(input_arguments)
     include_pattern = re.compile(parameters.include_regex)
@@ -460,19 +490,22 @@ def main():
         regex_input = input_file[len(parameters.test_directory):]
 
         if (re.search(include_pattern, regex_input)
-            and not re.search(exclude_pattern, regex_input)):
+                and not re.search(exclude_pattern, regex_input)):
             output_file = os.path.splitext(input_file)[0] + ".output"
             base_name = input_file_name[:input_file_name.find('.')]
             executable = os.path.split(input_file)[0] + os.sep + base_name
-            if all((os.path.isfile(f) for f in [executable, input_file, output_file])):
-                unstarted_tests.append(Test(executable, input_file, output_file,
+            if all((os.path.isfile(f)
+                    for f in [executable, input_file, output_file])):
+                unstarted_tests.append(Test(executable, input_file,
+                                            output_file,
                                             parameters=parameters))
 
             # only warn about tests with invalid input or output files: i.e.,
             # skip checking executables here since we copy all input files
             # regardless of what actually compiled and some tests may not be
             # compiled if their dependencies are unavailable.
-            elif not all((os.path.isfile(f) for f in [input_file, output_file])):
+            elif not all((os.path.isfile(f)
+                          for f in [input_file, output_file])):
                 invalid_test_inputs.append(input_file_name)
 
     if invalid_test_inputs:
@@ -484,11 +517,11 @@ def main():
               "This usually means\nthat one of the files is a broken link. "
               "Broken links to test files occur when\na test exists in one "
               "revision of IBAMR but not another: for example, if a test\nhas "
-              "been removed then links to its input and output files may still "
-              "be present\nin the build directory. This is usually harmless. "
-              "A good way to get rid of this\nwarning is to delete all test "
-              "input and output files. To achieve this, execute\nthe following "
-              "commands in the build directory:\n"
+              "been removed then links to its input and output files may "
+              "still be present\nin the build directory. This is usually "
+              "harmless. A good way to get rid of this\nwarning is to delete "
+              "all test input and output files. To achieve this, execute\nthe "
+              "following commands in the build directory:\n"
               "\n"
               "    cd tests/\n"
               "    find ./ -name '*.input' -delete\n"
@@ -515,6 +548,7 @@ def main():
     worker_available = threading.Event()
 
     result_update_lock = threading.Lock()
+
     def deal_with_result(future):
         """Unpack a Future object provided by a finished test execution thread: use it
         to update the relevant counters and print the status to the screen.
@@ -524,19 +558,22 @@ def main():
             nonlocal processors_in_use
             nonlocal failed_test_outputs
             nonlocal n_finished_tests
-            test_output = future.result()
-            # pad the test result output
-            print(whitespace_pad, end='')
-            test_output.print()
-            test_passed = test_output.test_result == TestResult.passed
-            if test_passed:
-                n_passed_tests += 1
-            else:
-                failed_test_outputs.append(test_output)
-            processors_in_use -= test_output.n_mpi_processes()
-            n_finished_tests += 1
-
-            worker_available.set()
+            try:
+                test_output = future.result()
+                processors_in_use -= test_output.n_mpi_processes()
+                n_finished_tests += 1
+                if test_output.test_result == TestResult.passed:
+                    n_passed_tests += 1
+                else:
+                    failed_test_outputs.append(test_output)
+                # pad the test result output
+                print(whitespace_pad, end='')
+                test_output.print()
+            except Exception as e:
+                print("Unhandled exception in attest when printing a test:")
+                print(e)
+            finally:
+                worker_available.set()
 
     # allow some wiggle room for finished tests that are waiting for
     # result_update_lock by using lots of threads:
@@ -546,13 +583,15 @@ def main():
             # 2a. Start new tests:
             n_new_tests = 0
             index = len(unstarted_tests) - 1
-            while processors_in_use <= n_processors and len(unstarted_tests) != 0 and index != -1:
+            while (processors_in_use <= n_processors
+                   and len(unstarted_tests) != 0 and index != -1):
                 test = unstarted_tests[index]
                 # Its possible that some tests require more processors than
                 # we have available, so special case for that. Since we sort
                 # tests we will do all of those tests first:
-                if (test.n_mpi_processes() + processors_in_use <= n_processors or
-                        (processors_in_use == 0 and n_processors <= test.n_mpi_processes())):
+                if (test.n_mpi_processes() + processors_in_use <= n_processors
+                        or (processors_in_use == 0 and
+                            n_processors <= test.n_mpi_processes())):
                     test = unstarted_tests.pop(index)
                     test_n = n_tests - len(unstarted_tests)
                     print(fraction_template.format(test_n),
@@ -565,8 +604,8 @@ def main():
 
             # Set 'no workers available' if either:
             # 1. we have maxed out the number of processors
-            # 2. we cannot start any new tests (e.g., we have 6 processors and only
-            #    tests that require 4 processors remaining)
+            # 2. we cannot start any new tests (e.g., we have 6 processors and
+            #     only tests that require 4 processors remaining)
             with result_update_lock:
                 if n_processors <= processors_in_use or n_new_tests == 0:
                     worker_available.clear()
@@ -575,7 +614,9 @@ def main():
 
     if 0 < n_tests:
         print("\n{}/{} ({}%) tests passed\n".format(
-            n_passed_tests, n_tests, round(100*float(n_passed_tests)/n_tests, 2)))
+            n_passed_tests,
+            n_tests,
+            round(100*float(n_passed_tests)/n_tests, 2)))
     else:
         print("\n0/0 (100%) tests passed\n")
 
