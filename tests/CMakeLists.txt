@@ -289,8 +289,29 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/tests/attest.conf.in
   ${CMAKE_BINARY_DIR}/attest.conf)
 
 # For the time being, run `attest` as if it were a single test.
+set(disabled_tests)
+list(APPEND disabled_tests "mpirun=[3-9]")
+list(APPEND disabled_tests "explicit_ex1_2d.mpirun=4.input")
+list(APPEND disabled_tests "explicit_ex2_3d.nodal_quadrature.input")
+list(APPEND disabled_tests "explicit_ex4_3d.mpirun=4.input")
+list(APPEND disabled_tests "explicit_ex5_3d.mpirun=2.input")
+list(APPEND disabled_tests "explicit_ex8_2d.input")
+list(APPEND disabled_tests "explicit_ex8_2d.scratch_hier.input")
+list(APPEND disabled_tests "free_falling_cyl_cib|cib_plate")
+list(APPEND disabled_tests "nwt_cylinder|rotating_barge|cib_double_shell")
+list(JOIN disabled_tests "|" disabled_test_regex)
 add_test(
   NAME autotests
   COMMAND "${CMAKE_SOURCE_DIR}/attest"
+    "-j4"
+    "--verbose"
+    "--test-timeout=120"
+     -E
+     "${disabled_test_regex}"
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+set_tests_properties(autotests
+  PROPERTIES
+    ENVIRONMENT "PYTHONUNBUFFERED=yes"
+    TIMEOUT 1800
 )

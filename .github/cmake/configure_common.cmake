@@ -4,9 +4,9 @@ set(IBAMR_ENABLE_TESTING "ON" CACHE BOOL "")
 
 include("${CMAKE_CURRENT_LIST_DIR}/configure_sccache.cmake")
 
-set(CMAKE_C_FLAGS "-O3 -march=native" CACHE STRING "C flags")
-set(CMAKE_CXX_FLAGS "-O3 -march=native" CACHE STRING "C++ flags")
-set(CMAKE_Fortran_FLAGS "-O3 -march=native" CACHE STRING "Fortran flags")
+set(CMAKE_C_FLAGS "-O1" CACHE STRING "C flags")
+set(CMAKE_CXX_FLAGS "-O1" CACHE STRING "C++ flags")
+set(CMAKE_Fortran_FLAGS "-O3" CACHE STRING "Fortran flags")
 set(CMAKE_INSTALL_PREFIX "/ibamr" CACHE PATH "Install destination")
 set(SAMRAI_ROOT "/samrai" CACHE PATH "Location of SAMRAI")
 set(LIBMESH_ROOT "/libmesh" CACHE PATH "Location of libmesh")
