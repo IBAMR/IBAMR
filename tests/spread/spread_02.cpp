@@ -367,11 +367,13 @@ main(int argc, char** argv)
 
         visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);
 
+#ifdef LIBMESH_HAVE_EXODUS_API
         {
             std::unique_ptr<ExodusII_IO> exodus_io(new ExodusII_IO(*meshes[0]));
             EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
             exodus_io->write_timestep("out.ex2", *equation_systems, 1, 0.0);
         }
+#endif
 
         {
             const int ln = patch_hierarchy->getFinestLevelNumber();
