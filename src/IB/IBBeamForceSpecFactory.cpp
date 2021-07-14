@@ -68,7 +68,7 @@ IBBeamForceSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<N
     Pointer<IBBeamForceSpec> ret_val = new IBBeamForceSpec(num_beams);
     stream.unpack(&ret_val->d_master_idx, 1);
     std::vector<int> tmp_neighbor_idxs(2 * num_beams);
-    stream.unpack(&tmp_neighbor_idxs[0], 2 * num_beams);
+    stream.unpack(tmp_neighbor_idxs.data(), 2 * num_beams);
     for (int k = 0; k < num_beams; ++k)
     {
         ret_val->d_neighbor_idxs[k].first = tmp_neighbor_idxs[2 * k];

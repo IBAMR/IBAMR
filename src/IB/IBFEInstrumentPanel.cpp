@@ -804,9 +804,9 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     }
 
     // Synchronize the values across all processes.
-    IBTK_MPI::sumReduction(&d_flow_values[0], d_num_meters);
-    IBTK_MPI::sumReduction(&d_mean_pressure_values[0], d_num_meters);
-    IBTK_MPI::sumReduction(&A[0], d_num_meters);
+    IBTK_MPI::sumReduction(d_flow_values.data(), d_num_meters);
+    IBTK_MPI::sumReduction(d_mean_pressure_values.data(), d_num_meters);
+    IBTK_MPI::sumReduction(A.data(), d_num_meters);
 
     // Normalize the mean pressure.
     for (unsigned int jj = 0; jj < d_num_meters; ++jj)
