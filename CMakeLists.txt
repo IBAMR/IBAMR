@@ -27,6 +27,7 @@ MESSAGE(STATUS "This is CMake ${CMAKE_VERSION}")
 MESSAGE(STATUS "")
 INCLUDE(GNUInstallDirs)
 INCLUDE(CMakePackageConfigHelpers)
+include(CTest)
 
 # Version info:
 FILE(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" _version LIMIT_COUNT 1)
@@ -36,6 +37,9 @@ STRING(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_SUBMINOR
 SET(IBTK_VERSION ${IBTK_VERSION_MAJOR}.${IBTK_VERSION_MINOR}.${IBTK_VERSION_SUBMINOR})
 SET(IBAMR_VERSION ${IBTK_VERSION})
 SET(IBAMR_DEPENDENCY_LINK_ARGUMENTS "")
+
+# Build tests?
+option(IBAMR_ENABLE_TESTING "Should tests be compiled and configured to run with ctest?" ON)
 
 # Do we want dynamic or static linking?
 OPTION(BUILD_SHARED_LIBS "Whether or not to build shared libraries." ON)
@@ -1042,5 +1046,8 @@ INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/IBAMRConfig.cmake
 ADD_SUBDIRECTORY(ibtk)
 ADD_SUBDIRECTORY(src)
 
-ADD_SUBDIRECTORY(tests)
+if (IBAMR_ENABLE_TESTING)
+  enable_testing()
+  ADD_SUBDIRECTORY(tests)
+endif()
 ADD_SUBDIRECTORY(examples)
