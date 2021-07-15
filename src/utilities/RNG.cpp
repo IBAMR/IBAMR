@@ -75,7 +75,7 @@ namespace IBAMR
 /* Period parameters */
 #define N 624
 #define M 397
-#define MATRIX_A 0x9908b0df /* constant vector a */
+#define MATRIX_A 0x9908b0df   /* constant vector a */
 #define UPPER_MASK 0x80000000 /* most significant w-r bits */
 #define LOWER_MASK 0x7fffffff /* least significant r bits */
 
@@ -308,7 +308,7 @@ RNG::parallel_seed(int global_seed)
         }
 
         // Communicate the seeds.
-        MPI_Scatter(&seeds[0], 1, MPI_INT, &seed, 1, MPI_INT, mpi_root, MPI_COMM_WORLD);
+        MPI_Scatter(seeds.data(), 1, MPI_INT, &seed, 1, MPI_INT, mpi_root, MPI_COMM_WORLD);
     }
 
     // Output the local seed to the log file for debugging purposes.

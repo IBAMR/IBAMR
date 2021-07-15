@@ -1690,7 +1690,7 @@ IBRedundantInitializer::getFromInput(Pointer<Database> db)
     {
         const int num_strcts = db->getArraySize("structure_names");
         std::vector<std::string> structure_names(num_strcts);
-        db->getStringArray("structure_names", &structure_names[0], num_strcts);
+        db->getStringArray("structure_names", structure_names.data(), num_strcts);
         for (int n = 0; n < num_strcts; ++n)
         {
             const std::string& strct_name = structure_names[n];
@@ -1733,9 +1733,9 @@ IBRedundantInitializer::getFromInput(Pointer<Database> db)
     {
         const int num_levels = db->getArraySize("structure_levels");
         std::vector<int> strct_levels(num_levels);
-        db->getIntegerArray("structure_levels", &strct_levels[0], num_levels);
+        db->getIntegerArray("structure_levels", strct_levels.data(), num_levels);
         std::vector<int> num_strcts(num_levels);
-        db->getIntegerArray("num_structures_levels", &num_strcts[0], num_levels);
+        db->getIntegerArray("num_structures_levels", num_strcts.data(), num_levels);
 
         for (int k = 0; k < num_levels; ++k)
         {
