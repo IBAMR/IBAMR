@@ -11,9 +11,9 @@
 ##
 ## ---------------------------------------------------------------------
 
-include("${CMAKE_CURRENT_LIST_DIR}/github_ci.cmake")
+INCLUDE("${CMAKE_CURRENT_LIST_DIR}/github_ci.cmake")
 
-set(cmake_args
+SET(cmake_args
   -C "${CMAKE_CURRENT_LIST_DIR}/configure_$ENV{CMAKE_CONFIGURATION}.cmake"
 )
 
@@ -21,9 +21,9 @@ set(cmake_args
 ctest_start(Experimental TRACK "${ctest_track}")
 
 # Gather update information.
-find_package(Git)
-set(CTEST_UPDATE_VERSION_ONLY ON)
-set(CTEST_UPDATE_COMMAND "${GIT_EXECUTABLE}")
+FIND_PACKAGE(Git)
+SET(CTEST_UPDATE_VERSION_ONLY ON)
+SET(CTEST_UPDATE_COMMAND "${GIT_EXECUTABLE}")
 ctest_update()
 
 # Configure the project.
@@ -39,7 +39,6 @@ ctest_read_custom_files("${CTEST_BINARY_DIRECTORY}")
 ctest_submit(PARTS Update)
 ctest_submit(PARTS Configure)
 
-if (configure_result)
-  message(FATAL_ERROR
-    "Failed to configure ${configure_result}")
-endif ()
+IF(configure_result)
+  MESSAGE(FATAL_ERROR "Failed to configure ${configure_result}")
+ENDIF()

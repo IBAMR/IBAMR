@@ -11,9 +11,9 @@
 ##
 ## ---------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.8)
 
-include("${CMAKE_CURRENT_LIST_DIR}/github_ci.cmake")
+INCLUDE("${CMAKE_CURRENT_LIST_DIR}/github_ci.cmake")
 
 # Read the files from the build directory.
 ctest_read_custom_files("${CTEST_BINARY_DIRECTORY}")
@@ -24,10 +24,10 @@ ctest_read_custom_files("${CTEST_BINARY_DIRECTORY}")
 # Pick up from where the configure left off.
 ctest_start(APPEND)
 
-include(ProcessorCount)
+INCLUDE(ProcessorCount)
 ProcessorCount(nproc)
 
-include("${CMAKE_CURRENT_LIST_DIR}/ctest_exclusions.cmake")
+INCLUDE("${CMAKE_CURRENT_LIST_DIR}/ctest_exclusions.cmake")
 ctest_test(
   PARALLEL_LEVEL "${nproc}"
   RETURN_VALUE test_result
@@ -45,7 +45,6 @@ ctest_test(
 # ctest_submit_multi(PARTS Test)
 ctest_submit(PARTS Test)
 
-if (test_result)
-  message(FATAL_ERROR
-    "Failed to test")
-endif ()
+IF(test_result)
+  MESSAGE(FATAL_ERROR "Failed to test")
+ENDIF()
