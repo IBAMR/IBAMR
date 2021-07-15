@@ -11,8 +11,6 @@
 ##
 ## ---------------------------------------------------------------------
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.8)
-
 INCLUDE("${CMAKE_CURRENT_LIST_DIR}/github_ci.cmake")
 
 # Read the files from the build directory.
