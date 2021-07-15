@@ -1,0 +1,58 @@
+## ---------------------------------------------------------------------
+##
+## Copyright (c) 2021 - 2021 by the IBAMR developers
+## All rights reserved.
+##
+## This file is part of IBAMR.
+##
+## IBAMR is free software and is distributed under the 3-clause BSD
+## license. The full text of the license can be found in the file
+## COPYRIGHT at the top level directory of IBAMR.
+##
+## ---------------------------------------------------------------------
+
+name: PR dashboard links
+on:
+  # Trigger the workflow on pull request (with access to secrets).
+  pull_request_target:
+    branches:
+      - master
+
+jobs:
+  append_dashboard_link:
+    runs-on: ubuntu-latest
+    name: Dashboard links
+    steps:
+      - name: Compute SHORT_SHA
+        id: sha
+        run: |
+          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-6`" >> $GITHUB_ENV
+      - name: Find link comment
+        uses: peter-evans/find-comment@v1
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: Dashboard links
+      - name: Create comment
+        if: steps.fc.outputs.comment-id == ''
+        uses: peter-evans/create-or-update-comment@v1
+        id: title
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ### Dashboard links
+
+            sha | commit
+            ------ | ----
+            [&#x1F517; ${SHORT_SHA}](https://open.cdash.org/index.php?project=IBAMR&filtercount=1&showfilters=0&field1=revision&compare1=63&value1=${SHORT_SHA}) | ${{ github.event.pull_request.head.label }}
+      - name: Add/update link comment
+        if: steps.fc.outputs.comment-id != '' && ${{ github.event.pull_request.action == 'synchronize' }}
+        uses: peter-evans/create-or-update-comment@v1
+        id: dashboard_link
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            [&#x1F517; ${SHORT_SHA}](https://open.cdash.org/index.php?project=IBAMR&filtercount=1&showfilters=0&field1=revision&compare1=63&value1=${SHORT_SHA}) | ${{ github.event.pull_request.head.label }}
+          edit-mode: append
