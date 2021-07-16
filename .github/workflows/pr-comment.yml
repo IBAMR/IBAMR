@@ -23,10 +23,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Dashboard links
     steps:
-      - name: Compute SHORT_SHA
+      - name: Compute short SHA
         id: sha
         run: |
-          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-6`" >> $GITHUB_ENV
+          echo "::set-output name=sha::`echo ${GITHUB_SHA} | cut -c1-6`"
       - name: Find link comment
         uses: peter-evans/find-comment@v1
         id: fc
@@ -35,7 +35,7 @@ jobs:
           comment-author: 'github-actions[bot]'
           body-includes: Dashboard links
       - name: Create comment
-        if: steps.fc.outputs.comment-id == ''
+        if: steps.fc.outputs.comment-id == '' && ${{ github.event.pull_request.action == 'opened' }}
         uses: peter-evans/create-or-update-comment@v1
         id: title
         with:
@@ -45,7 +45,7 @@ jobs:
 
             sha | commit
             ------ | ----
-            [&#x1F517; ${SHORT_SHA}](https://open.cdash.org/index.php?project=IBAMR&filtercount=1&showfilters=0&field1=revision&compare1=63&value1=${SHORT_SHA}) | ${{ github.event.pull_request.head.label }}
+            [&#x1F517; ${{ steps.sha.outputs.sha }](https://open.cdash.org/index.php?project=IBAMR&filtercount=1&showfilters=0&field1=revision&compare1=63&value1=${{ steps.sha.outputs.sha }) | ${{ github.event.pull_request.head.label }}
       - name: Add/update link comment
         if: steps.fc.outputs.comment-id != '' && ${{ github.event.pull_request.action == 'synchronize' }}
         uses: peter-evans/create-or-update-comment@v1
@@ -54,5 +54,5 @@ jobs:
           comment-id: ${{ steps.fc.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            [&#x1F517; ${SHORT_SHA}](https://open.cdash.org/index.php?project=IBAMR&filtercount=1&showfilters=0&field1=revision&compare1=63&value1=${SHORT_SHA}) | ${{ github.event.pull_request.head.label }}
+            [&#x1F517; ${{ steps.sha.outputs.sha }](https://open.cdash.org/index.php?project=IBAMR&filtercount=1&showfilters=0&field1=revision&compare1=63&value1=${{ steps.sha.outputs.sha }) | ${{ github.event.pull_request.head.label }}
           edit-mode: append
