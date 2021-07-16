@@ -43,9 +43,7 @@ jobs:
           body: |
             ### Dashboard links
 
-            sha | commit
-            ------ | ----
-            [&#x1F517; ${{ steps.sha.outputs.sha }](https://open.cdash.org/index.php?project=IBAMR&filtercount=1&showfilters=0&field1=revision&compare1=63&value1=${{ steps.sha.outputs.sha }) | ${{ github.event.pull_request.head.label }}
+            + [&#x1F517; ${{ steps.sha.outputs.sha }}](https://open.cdash.org/index.php?project=IBAMR&filtercount=1&showfilters=0&field1=revision&compare1=63&value1=${{ steps.sha.outputs.sha }})
       - name: Add/update link comment
         if: steps.fc.outputs.comment-id != '' && ${{ github.event.pull_request.action == 'synchronize' }}
         uses: peter-evans/create-or-update-comment@v1
@@ -54,5 +52,5 @@ jobs:
           comment-id: ${{ steps.fc.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            [&#x1F517; ${{ steps.sha.outputs.sha }](https://open.cdash.org/index.php?project=IBAMR&filtercount=1&showfilters=0&field1=revision&compare1=63&value1=${{ steps.sha.outputs.sha }) | ${{ github.event.pull_request.head.label }}
+            + [&#x1F517; ${{ steps.sha.outputs.sha }}](https://open.cdash.org/index.php?project=IBAMR&filtercount=1&showfilters=0&field1=revision&compare1=63&value1=${{ steps.sha.outputs.sha }})
           edit-mode: append

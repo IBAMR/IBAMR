@@ -1,8 +1,6 @@
 IBAMR
 =====
 
-Stupid change.
-
 An adaptive and distributed-memory parallel implementation of the immersed boundary (IB) method
 
 What Is IBAMR?
