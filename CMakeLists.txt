@@ -190,17 +190,17 @@ ELSE()
   ENDIF()
 ENDIF()
 IF(NOT ${IBAMR_USE_BUNDLED_Eigen3})
-  MESSAGE(STATUS "Found external Eigen ${Eigen3_VERSION} at ${EIGEN3_INCLUDE_DIRS}")
+  MESSAGE(STATUS "Found external Eigen3 ${Eigen3_VERSION} at ${EIGEN3_INCLUDE_DIRS}")
 ELSE()
-  MESSAGE(STATUS "Setting up Eigen as a bundled dependency")
-  ADD_LIBRARY(BUNDLED_Eigen INTERFACE)
+  MESSAGE(STATUS "Setting up Eigen3 as a bundled dependency")
+  ADD_LIBRARY(BUNDLED_Eigen3 INTERFACE)
   TARGET_INCLUDE_DIRECTORIES(
-    BUNDLED_Eigen
+    BUNDLED_Eigen3
     INTERFACE $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/contrib/eigen>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/contrib/eigen>)
   INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/eigen/Eigen DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib/eigen)
   INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/eigen/unsupported DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib/eigen)
-  INSTALL(TARGETS BUNDLED_Eigen EXPORT IBAMRTargets)
+  INSTALL(TARGETS BUNDLED_Eigen3 EXPORT IBAMRTargets)
 ENDIF()
 
 #
@@ -522,7 +522,7 @@ boost support or an external boost library.")
       IF("${Eigen3_ROOT}" STREQUAL "${LIBMESH_ROOT}/include/Eigen")
         # OK
       ELSE()
-        # If this happens then the provided version of Eigen appears to not
+        # If this happens then the provided version of Eigen3 appears to not
         # match the one libMesh has: we don't support this. Verify it's not an
         # odd coincidence before bailing out.
         CHECK_CXX_SOURCE_COMPILES(
@@ -986,9 +986,9 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   ELSE()
     TARGET_LINK_LIBRARIES(${target_library} PUBLIC Boost::headers)
   ENDIF()
-  # Eigen:
-  IF(${IBAMR_USE_BUNDLED_Eigen})
-    TARGET_LINK_LIBRARIES(${target_library} PUBLIC BUNDLED_Eigen)
+  # Eigen3:
+  IF(${IBAMR_USE_BUNDLED_Eigen3})
+    TARGET_LINK_LIBRARIES(${target_library} PUBLIC BUNDLED_Eigen3)
   ELSE()
     TARGET_LINK_LIBRARIES(${target_library} PUBLIC Eigen3::Eigen)
   ENDIF()
