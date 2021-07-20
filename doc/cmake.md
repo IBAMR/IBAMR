@@ -66,7 +66,13 @@ IBAMR requires
 
 Of these, Boost, Eigen3, and muParser are also bundled with IBAMR and IBAMR will
 build its own copies of those libraries if it cannot find working externally
-available versions.
+available versions. If you wish to use the bundled version of one of these
+libraries instead of one found at either system or specified search locations,
+then you can specify that as well by passing any of
+- `-DIBAMR_FORCE_BUNDLED_Boost=ON`
+- `-DIBAMR_FORCE_BUNDLED_Eigen3=ON`
+- `-DIBAMR_FORCE_BUNDLED_MUPARSER=ON`
+as options to CMake.
 
 The CMake build system will attempt to find these with default search paths and
 also in the directory provided by `PKG_ROOT` (i.e., for Boost, the build system
