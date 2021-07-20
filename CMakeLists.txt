@@ -86,6 +86,8 @@ CHECK_CXX_SOURCE_COMPILES(
   "
   IBTK_HAVE_PRAGMA_KEYWORD)
 
+# other CMake configuration:
+SET(CMAKE_INSTALL_MESSAGE "LAZY")
 # we need this since SAMRAI is usually statically linked
 SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
