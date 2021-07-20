@@ -294,7 +294,8 @@ class Test:
             try:
                 run_result = subprocess.run(
                     run_args,
-                    capture_output=True,
+                    stderr=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
                     cwd=temporary_directory,
                     timeout=self._parameters.test_timeout)
                 if self._expect_error:
@@ -307,7 +308,8 @@ class Test:
                     if self.do_restart():
                         run_args += ["./restart/", str(self.restart_n())]
                         run_result = subprocess.run(run_args,
-                                                    capture_output=True,
+                                                    stderr=subprocess.PIPE,
+                                                    stdout=subprocess.PIPE,
                                                     cwd=temporary_directory)
                         run_succeeded = run_result.returncode == 0
                 test_timed_out = False
@@ -325,7 +327,8 @@ class Test:
                         [self._parameters.numdiff] + numdiff_flags +
                         [self.output_file, temporary_directory + os.sep
                          + "output"],
-                        capture_output=True,
+                        stderr=subprocess.PIPE,
+                        stdout=subprocess.PIPE,
                         # allow the test runner to crash if numdiff somehow
                         # times out
                         timeout=self._parameters.test_timeout)
