@@ -22,6 +22,16 @@ FIND_PACKAGE(MPI REQUIRED)
 IF(NOT @IBAMR_USE_BUNDLED_Boost@)
   SET(Boost_ROOT "@Boost_ROOT@")
   FIND_PACKAGE(Boost 1.57 REQUIRED)
+
+  # We do not want to set BOOST_ALL_NO_LIB in case IBAMR is linked to other
+  # libraries that *do* link against boost libraries
+  GET_TARGET_PROPERTY(_boost_definitions Boost::headers
+    INTERFACE_COMPILE_DEFINITIONS)
+  MESSAGE(STATUS "compile defs are ${_boost_definitions}")
+  LIST(REMOVE_ITEM _boost_definitions "BOOST_ALL_NO_LIB")
+  MESSAGE(STATUS "compile defs are ${_boost_definitions}")
+  SET_TARGET_PROPERTIES(Boost::headers PROPERTIES INTERFACE_COMPILE_DEFINITIONS
+    "${_boost_definitions}")
 ENDIF()
 
 IF(NOT @IBAMR_USE_BUNDLED_Eigen3@)
