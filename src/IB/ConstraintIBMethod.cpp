@@ -964,7 +964,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
                 if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
                 {
                     const int local_idx = node_idx->getLocalPETScIndex();
-                    const Vector& displacement = node_idx->getPeriodicDisplacement();
+                    const IBTK::Vector& displacement = node_idx->getPeriodicDisplacement();
                     const double* const X_current = &X_data_current[local_idx][0];
                     const double* const X_new = &X_data_new[local_idx][0];
                     for (unsigned int d = 0; d < NDIM; ++d)
@@ -1098,7 +1098,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
                 if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
                 {
                     const int local_idx = node_idx->getLocalPETScIndex();
-                    const Vector& displacement = node_idx->getPeriodicDisplacement();
+                    const IBTK::Vector& displacement = node_idx->getPeriodicDisplacement();
                     const double* const X_current = &X_data_current[local_idx][0];
                     const double* const X_new = &X_data_new[local_idx][0];
 #if (NDIM == 2)
@@ -1333,7 +1333,7 @@ ConstraintIBMethod::calculateMomentumOfKinematicsVelocity(const int position_han
                 {
                     const int local_idx = node_idx->getLocalPETScIndex();
                     const double* const X = &X_data[local_idx][0];
-                    const Vector& displacement = node_idx->getPeriodicDisplacement();
+                    const IBTK::Vector& displacement = node_idx->getPeriodicDisplacement();
 #if (NDIM == 2)
                     double x = displacement[0] + X[0] - d_center_of_mass_unshifted_new[position_handle][0];
                     double y = displacement[1] + X[1] - d_center_of_mass_unshifted_new[position_handle][1];
@@ -1662,7 +1662,7 @@ ConstraintIBMethod::calculateRigidRotationalMomentum()
                 if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
                 {
                     const int local_idx = node_idx->getLocalPETScIndex();
-                    const Vector& displacement = node_idx->getPeriodicDisplacement();
+                    const IBTK::Vector& displacement = node_idx->getPeriodicDisplacement();
                     const double* const U = &U_interp_data[local_idx][0];
                     const double* const X = &X_data[local_idx][0];
 #if (NDIM == 2)
@@ -1787,7 +1787,7 @@ ConstraintIBMethod::calculateCurrentLagrangianVelocity()
                     }
 
                     // Rotational velocity
-                    const Vector& displacement = node_idx->getPeriodicDisplacement();
+                    const IBTK::Vector& displacement = node_idx->getPeriodicDisplacement();
                     if (struct_param.getStructureIsSelfRotating())
                     {
                         for (int d = 0; d < NDIM; ++d)
@@ -1892,7 +1892,7 @@ ConstraintIBMethod::correctVelocityOnLagrangianMesh()
                     }
 
                     // Rotational velocity
-                    const Vector& displacement = node_idx->getPeriodicDisplacement();
+                    const IBTK::Vector& displacement = node_idx->getPeriodicDisplacement();
                     if (struct_param.getStructureIsSelfRotating())
                     {
                         for (int d = 0; d < NDIM; ++d)
@@ -2602,7 +2602,7 @@ ConstraintIBMethod::calculateTorque()
                 if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
                 {
                     const int local_idx = node_idx->getLocalPETScIndex();
-                    const Vector& displacement = node_idx->getPeriodicDisplacement();
+                    const IBTK::Vector& displacement = node_idx->getPeriodicDisplacement();
                     const double* const U_new = &U_new_data[local_idx][0];
                     const double* const U_current = &U_current_data[local_idx][0];
                     const double* const U_correction = &U_correction_data[local_idx][0];
@@ -2847,7 +2847,7 @@ ConstraintIBMethod::calculateStructureRotationalMomentum()
                 if (lag_idx_range.first <= lag_idx && lag_idx < lag_idx_range.second)
                 {
                     const int local_idx = node_idx->getLocalPETScIndex();
-                    const Vector& displacement = node_idx->getPeriodicDisplacement();
+                    const IBTK::Vector& displacement = node_idx->getPeriodicDisplacement();
                     const double* const U_new = &U_new_data[local_idx][0];
                     const double* const X = &X_data[local_idx][0];
 #if (NDIM == 2)
