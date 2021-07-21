@@ -28,6 +28,7 @@ MESSAGE(STATUS "")
 INCLUDE(GNUInstallDirs)
 INCLUDE(CMakePackageConfigHelpers)
 include(CTest)
+include(cmake/IBAMRTesting.cmake)
 
 # Version info:
 FILE(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" _version LIMIT_COUNT 1)

@@ -20,6 +20,17 @@ if ("$ENV{CMAKE_CONFIGURATION}" MATCHES "fedora")
   list(APPEND test_exclusions
     # Comment on why the test fails.
     # Regular expression matching test: "^RenderMesh$"
+    # MPI Tests >2 MPI ranks oversubscribes on Github Actions
+    "mpirun=[3-9]"
+    # Additional tests disabled for CI
+    "explicit_ex1_2d.mpirun=4.input"
+    "explicit_ex2_3d.nodal_quadrature.input"
+    "explicit_ex4_3d.mpirun=4.input"
+    "explicit_ex5_3d.mpirun=2.input"
+    "explicit_ex8_2d.input"
+    "explicit_ex8_2d.scratch_hier.input"
+    "free_falling_cyl_cib|cib_plate"
+    "nwt_cylinder|rotating_barge|cib_double_shell"
   )
 endif ()
 
