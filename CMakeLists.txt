@@ -352,19 +352,38 @@ ENDFOREACH()
 #
 MESSAGE(STATUS "")
 MESSAGE(STATUS "Setting up PETSc")
-FIND_FILE(PETSC_VARIABLES_FILE petscvariables HINTS ${PETSC_ROOT} PATH_SUFFIXES conf lib/petsc/conf)
+FIND_FILE(PETSC_VARIABLES_FILE petscvariables HINTS ${PETSC_ROOT}
+  PATH_SUFFIXES conf lib/petsc/conf)
 IF(${PETSC_VARIABLES_FILE} STREQUAL "PETSC_VARIABLES_FILE-NOTFOUND")
   MESSAGE(FATAL_ERROR "unable to find the petscvariables configuration file")
 ELSE()
   FILE(STRINGS ${PETSC_VARIABLES_FILE} _petsc_raw_includes REGEX "^PETSC_CC_INCLUDES =.*")
   IF ("${_petsc_raw_includes}" STREQUAL "")
     MESSAGE(FATAL_ERROR
-      "The configuration script was unable to find the list of                       \
+      "The configuration script was unable to find the list of                 \
 PETSc include directories in the file ${PETSC_VARIABLES_FILE}. This usually    \
 indicates that PETSC_ROOT was set to PETSC_DIR when it should be set to        \
 PETSC_DIR/PETSC_ARCH (i.e., PETSC_ROOT must be set to the complete path to the \
 PETSc installation).")
   ENDIF()
+
+  # We do not yet support PETSc with 64-bit integers
+  #
+  # TODO - we can use REQUIRED in FIND_FILE in CMake 3.18 and newer
+  FIND_FILE(PETSC_CONF_FILE petscconf.h HINTS ${PETSC_ROOT}
+    PATH_SUFFIXES petsc include include/petsc)
+  IF(${PETSC_VARIABLES_FILE} STREQUAL "PETSC_CONF_FILE-NOTFOUND")
+    MESSAGE(FATAL_ERROR "unable to find the petscconf.h configuration file")
+  ELSE()
+    FILE(STRINGS ${PETSC_CONF_FILE} _petsc_have_64bit_indices REGEX
+      "^ *# *define.*PETSC_USE_64BIT_INDICES *1")
+    IF(NOT ${_petsc_have_64bit_indices} STREQUAL "")
+      MESSAGE(FATAL_ERROR "IBAMR does not support using 64 bit indices with \
+PETSc at this time. Please recompile PETSc (and any dependencies, such as   \
+libMesh, it may have) to NOT use 64 bit indices.")
+    ENDIF()
+  ENDIF()
+
   STRING(REGEX REPLACE "^PETSC_CC_INCLUDES =(.*)" "\\1" _petsc_raw_includes ${_petsc_raw_includes})
   SEPARATE_ARGUMENTS(_petsc_raw_includes)
   # Get rid of preceding -Is (CMake wants just directory names):

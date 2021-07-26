@@ -27149,6 +27149,46 @@ if test "$PETSC_VERSION_VALID" = no; then
   as_fn_error $? "invalid PETSc version detected: please use PETSc 3.7 or newer" "$LINENO" 5
 fi
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for 64 bit PetscInt" >&5
+$as_echo_n "checking for 64 bit PetscInt... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <petscconf.h>
+#ifdef PETSC_USE_64BIT_INDICES
+/* OK */
+#else
+#error
+#endif
+
+#ifdef FC_DUMMY_MAIN
+#ifndef FC_DUMMY_MAIN_EQ_F77
+#  ifdef __cplusplus
+     extern "C"
+#  endif
+   int FC_DUMMY_MAIN() { return 1; }
+#endif
+#endif
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_compile "$LINENO"; then :
+  PETSC_HAVE_64BIT_INDICES=yes
+else
+  PETSC_HAVE_64BIT_INDICES=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: ${PETSC_HAVE_64BIT_INDICES}" >&5
+$as_echo "${PETSC_HAVE_64BIT_INDICES}" >&6; }
+if test "$PETSC_HAVE_64BIT_INDICES" = yes; then
+  as_fn_error $? "invalid PETSc version detected: IBAMR does not support 64bit indices in PETSc. Compile PETSc without 64bit indices (i.e., use --with-64-bit-indices=off)" "$LINENO" 5
+fi
+
 PETSC_LDFLAGS=""
 if test -d "${PETSC_DIR}/${PETSC_ARCH}/lib" ; then
   PETSC_LDFLAGS="-L${PETSC_DIR}/${PETSC_ARCH}/lib"
