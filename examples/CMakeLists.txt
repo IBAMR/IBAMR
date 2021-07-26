@@ -17,6 +17,8 @@ SET(EXAMPLE_DIRECTORIES CIB ConstraintIB IB IBFE IBLevelSet IMP adv_diff
   advect complex_fluids fe_mechanics level_set multiphase_flow navier_stokes
   vc_navier_stokes wave_tank)
 
+SET(CMAKE_INSTALL_EXAMPLEROOT "${CMAKE_INSTALL_DATAROOTDIR}/example")
+
 #
 # Helper macro for setting up an example. Call as, for example,
 #
@@ -89,6 +91,10 @@ MACRO(IBAMR_ADD_EXAMPLE)
     FOREACH(_extra_file ${EX_EXTRA_FILES})
       CONFIGURE_FILE("${_extra_file}" "${EX_OUTPUT_DIRECTORY}" COPYONLY)
     ENDFOREACH()
+    cmake_path(RELATIVE_PATH ${EX_OUTPUT_DIRECTORY} BASE_DIRECTORY "${CMAKE_BINARY_DIR}/examples" OUTPUT_VARIABLE example_dir)
+    INSTALL(TARGET
+      "${EX_TARGET_NAME}"
+      DESTINATION "${CMAKE_INSTALL_EXAMPLEDIR}/${example_dir}")
   ELSE()
     MESSAGE(WARNING "Example ${EX_TARGET_NAME} could not be set up since the "
       "required feature ${_failed_requirement} = FALSE")

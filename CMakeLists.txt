@@ -40,7 +40,7 @@ SET(IBAMR_DEPENDENCY_LINK_ARGUMENTS "")
 
 # Build tests?
 option(IBAMR_ENABLE_TESTING "Should tests be compiled and configured to run with ctest?" ON)
-
+option(IBAMR_ENABLE_EXAMPLES "Enable building examples" ON)
 # Do we want dynamic or static linking?
 OPTION(BUILD_SHARED_LIBS "Whether or not to build shared libraries." ON)
 # Build the libraries in one place:
@@ -1085,4 +1085,7 @@ if (IBAMR_ENABLE_TESTING)
   enable_testing()
   ADD_SUBDIRECTORY(tests)
 endif()
-ADD_SUBDIRECTORY(examples)
+
+if (IBAMR_ENABLE_EXAMPLES)
+  ADD_SUBDIRECTORY(examples)
+endif()
