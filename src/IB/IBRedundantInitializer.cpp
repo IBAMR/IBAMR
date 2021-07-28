@@ -586,7 +586,7 @@ IBRedundantInitializer::initializeDirectorAndRods()
                             D_norm_squared += d_directors[ln][j][k][3 * n + d] * d_directors[ln][j][k][3 * n + d];
                         }
                         const double D_norm = std::sqrt(D_norm_squared);
-                        if (!MathUtilities<double>::equalEps(D_norm, 1.0))
+                        if (!IBTK::rel_equal_eps(D_norm, 1.0))
                         {
                             TBOX_WARNING(d_object_name << ":\n  Director vector for index " << k << " of structure "
                                                        << j << " on level " << ln
@@ -1099,7 +1099,7 @@ IBRedundantInitializer::initializeMassDataOnPatchLevel(const unsigned int /*glob
             const double K = spec.stiffness;
 
             // Avoid division by zero at massless nodes.
-            if (MathUtilities<double>::equalEps(M, 0.0))
+            if (IBTK::abs_equal_eps(M, 0.0))
             {
                 M_array[local_petsc_idx] = std::numeric_limits<double>::epsilon();
                 K_array[local_petsc_idx] = 0.0;

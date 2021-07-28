@@ -2009,8 +2009,7 @@ INSVCStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double cu
     const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
 
     // Setup solver vectors.
-    const bool has_velocity_nullspace =
-        d_normalize_velocity && (d_rho_is_const && MathUtilities<double>::equalEps(rho, 0.0));
+    const bool has_velocity_nullspace = d_normalize_velocity && (d_rho_is_const && IBTK::abs_equal_eps(rho, 0.0));
     const bool has_pressure_nullspace = d_normalize_pressure;
     if (d_vectors_need_init)
     {

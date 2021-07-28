@@ -112,7 +112,7 @@ set_rotation_matrix(const EigenAlignedVector<Eigen::Vector3d>& rot_vel,
     for (unsigned struct_no = 0; struct_no < n_structs; ++struct_no)
     {
         const double norm = rot_vel[struct_no].norm();
-        if (!MathUtilities<double>::equalEps(norm, 0.0))
+        if (!IBTK::abs_equal_eps(norm, 0.0))
         {
             Eigen::Vector3d rot_axis = rot_vel[struct_no] / norm;
             Eigen::Quaterniond q(Eigen::AngleAxisd(norm * dt, rot_axis));
@@ -784,11 +784,11 @@ IBInterpolantMethod::putToDatabase(Pointer<Database> db)
 void
 IBInterpolantMethod::getPositionData(std::vector<Pointer<LData> >** X_data, double data_time)
 {
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         *X_data = &d_X_current_data;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (IBTK::rel_equal_eps(data_time, d_new_time))
     {
         *X_data = &d_X_new_data;
     }
@@ -810,11 +810,11 @@ IBInterpolantMethod::copyEulerianDataFromIntegrator(const std::string& var_name,
     Pointer<Variable<NDIM> > var = d_q_var[var_name];
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         q_hier_idx = var_db->mapVariableAndContextToIndex(var, hier_integrator->getCurrentContext());
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (IBTK::rel_equal_eps(data_time, d_new_time))
     {
         q_hier_idx = var_db->mapVariableAndContextToIndex(var, hier_integrator->getNewContext());
     }
@@ -874,11 +874,11 @@ IBInterpolantMethod::copyEulerianDataToIntegrator(const std::string& var_name, i
     Pointer<Variable<NDIM> > var = d_q_var[var_name];
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         q_hier_idx = var_db->mapVariableAndContextToIndex(var, hier_integrator->getCurrentContext());
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (IBTK::rel_equal_eps(data_time, d_new_time))
     {
         q_hier_idx = var_db->mapVariableAndContextToIndex(var, hier_integrator->getNewContext());
     }
@@ -910,11 +910,11 @@ IBInterpolantMethod::copyEulerianDataToIntegrator(const std::string& var_name, i
 void
 IBInterpolantMethod::getQData(const std::string& var_name, std::vector<Pointer<LData> >** Q_data, double data_time)
 {
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         *Q_data = &d_Q_current_data[var_name];
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (IBTK::rel_equal_eps(data_time, d_new_time))
     {
         *Q_data = &d_Q_new_data[var_name];
     }

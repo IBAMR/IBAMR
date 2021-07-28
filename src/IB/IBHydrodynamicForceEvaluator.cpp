@@ -144,7 +144,7 @@ IBHydrodynamicForceEvaluator::registerStructure(IBTK::Vector3d& box_X_lower,
             double num_cells_lower = (box_X_lower[d] - grid_X_lower[d]) / dx_coarsest[d];
             double num_cells_upper = (box_X_upper[d] - grid_X_lower[d]) / dx_coarsest[d];
 
-            if (!MathUtilities<double>::equalEps(num_cells_lower, floor(num_cells_lower)))
+            if (!IBTK::rel_equal_eps(num_cells_lower, floor(num_cells_lower)))
             {
                 TBOX_WARNING("Lower side of integration box is not aligned with sides on coarsest level in dimension "
                              << d << ". Modifying coordinate to nearest box side\n");
@@ -153,7 +153,7 @@ IBHydrodynamicForceEvaluator::registerStructure(IBTK::Vector3d& box_X_lower,
                 modified_box = true;
             }
 
-            if (!MathUtilities<double>::equalEps(num_cells_upper, floor(num_cells_upper)))
+            if (!IBTK::rel_equal_eps(num_cells_upper, floor(num_cells_upper)))
             {
                 TBOX_WARNING("Upper side of integration box is not aligned with sides on coarsest level in dimension "
                              << d << ". Modifying coordinate to nearest box side\n");
@@ -270,7 +270,7 @@ IBHydrodynamicForceEvaluator::updateStructureDomain(const IBTK::Vector3d& box_ve
 #endif
         ;
 
-    TBOX_ASSERT(MathUtilities<double>::equalEps(fobj.box_vol_current, fobj.box_vol_new));
+    TBOX_ASSERT(IBTK::rel_equal_eps(fobj.box_vol_current, fobj.box_vol_new));
 
     return;
 

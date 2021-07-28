@@ -1190,7 +1190,7 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
 #endif
 
 #if !defined(NDEBUG)
-    TBOX_ASSERT(MathUtilities<double>::equalEps(dt, getDt()));
+    TBOX_ASSERT(IBTK::rel_equal_eps(dt, getDt()));
 #endif
 
     if (d_V_old_idx == d_V_current_idx)

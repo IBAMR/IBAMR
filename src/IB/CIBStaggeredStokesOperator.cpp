@@ -233,7 +233,7 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
 
     VecScale(Vrigid, d_scale_interp);
     VecAYPX(V, -1.0, Vrigid);
-    if (!MathUtilities<double>::equalEps(d_reg_mob_factor, 0.0))
+    if (!IBTK::abs_equal_eps(d_reg_mob_factor, 0.0))
     {
         d_cib_strategy->computeMobilityRegularization(Vrigid, L);
         VecAXPY(V, -1.0 * d_scale_interp * d_reg_mob_factor, Vrigid);

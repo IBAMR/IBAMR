@@ -509,7 +509,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
 
         // Set the velocities used to update the density and the previous time step
         // size
-        if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
+        if (IBTK::rel_equal_eps(d_integrator_time, d_start_time))
         {
             d_rho_p_integrator->setFluidVelocityPatchDataIndices(
                 /*old*/ -1, /*current*/ d_U_current_idx, /*new*/ -1);
@@ -648,7 +648,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
             d_rho_p_integrator->setSideCenteredDensityPatchDataIndex(d_rho_sc_current_idx);
 
             // Set the velocities used to update the density
-            if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
+            if (IBTK::rel_equal_eps(d_integrator_time, d_start_time))
             {
                 d_rho_p_integrator->setFluidVelocityPatchDataIndices(
                     /*old*/ -1, /*current*/ d_U_current_idx, /*new*/ d_U_new_idx);
@@ -726,7 +726,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
     {
         d_hier_sc_data_ops->resetLevels(ln, ln);
         const double A_scale = d_A_scale[ln];
-        if (!MathUtilities<double>::equalEps(A_scale, 1.0))
+        if (!IBTK::rel_equal_eps(A_scale, 1.0))
         {
             d_hier_sc_data_ops->scale(d_rhs_vec->getComponentDescriptorIndex(0),
                                       A_scale,
@@ -744,7 +744,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
     {
         d_hier_sc_data_ops->resetLevels(ln, ln);
         const double A_scale = d_A_scale[ln];
-        if (!MathUtilities<double>::equalEps(A_scale, 1.0))
+        if (!IBTK::rel_equal_eps(A_scale, 1.0))
         {
             d_hier_sc_data_ops->scale(d_rhs_vec->getComponentDescriptorIndex(0),
                                       1.0 / A_scale,
@@ -1135,7 +1135,7 @@ void
 INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const double current_time,
                                                                          const double new_time)
 {
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
+    const bool initial_time = IBTK::rel_equal_eps(d_integrator_time, d_start_time);
     const double dt = new_time - current_time;
     const double half_time = current_time + 0.5 * dt;
     const double mu = d_mu_is_const ? d_problem_coefs.getMu() : -1.0;
@@ -1176,7 +1176,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
 
         // C_sc = (rho / dt) + K * lambda + L(x,t^n+1)
         d_hier_sc_data_ops->scale(d_velocity_C_idx, A_scale / dt, d_rho_sc_scratch_idx, /*interior_only*/ true);
-        if (!MathUtilities<double>::equalEps(lambda, 0.0))
+        if (!IBTK::abs_equal_eps(lambda, 0.0))
         {
             d_hier_sc_data_ops->addScalar(d_velocity_C_idx,
                                           d_velocity_C_idx,
@@ -1247,7 +1247,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     // Ensure that solver components are appropriately reinitialized at the
     // correct intervals or
     // when the time step size changes.
-    const bool dt_change = initial_time || !MathUtilities<double>::equalEps(dt, d_dt_previous[0]);
+    const bool dt_change = initial_time || !IBTK::rel_equal_eps(dt, d_dt_previous[0]);
     const bool precond_reinit = d_integrator_step % d_precond_reinit_interval == 0;
     if (precond_reinit)
     {
@@ -1447,7 +1447,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
     {
         d_hier_cc_data_ops->resetLevels(ln, ln);
         const double A_scale = d_A_scale[ln];
-        if (!MathUtilities<double>::equalEps(A_scale, 1.0))
+        if (!IBTK::rel_equal_eps(A_scale, 1.0))
         {
             d_hier_cc_data_ops->scale(sol_vec->getComponentDescriptorIndex(1),
                                       A_scale,
@@ -1503,7 +1503,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
     {
         d_hier_cc_data_ops->resetLevels(ln, ln);
         const double A_scale = d_A_scale[ln];
-        if (!MathUtilities<double>::equalEps(A_scale, 1.0))
+        if (!IBTK::rel_equal_eps(A_scale, 1.0))
         {
             d_hier_cc_data_ops->scale(d_P_new_idx,
                                       1.0 / A_scale,

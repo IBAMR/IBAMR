@@ -693,7 +693,7 @@ IBFESurfaceMethod::trapezoidalStep(const double current_time, const double new_t
 void
 IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 {
-    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_half_time));
     const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
     batch_vec_ghost_update(d_X_vecs->get(data_time_str), INSERT_VALUES, SCATTER_FORWARD);
     for (unsigned part = 0; part < d_num_parts; ++part)
@@ -981,7 +981,7 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
     f_active_data_ops->resetLevels(ln, ln);
     f_active_data_ops->setToScalar(f_scratch_data_idx, 0.0, /*interior_only*/ false);
 
-    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_half_time));
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         PetscVector<double>* X_ghost_vec = X_IB_ghost_vecs[part];

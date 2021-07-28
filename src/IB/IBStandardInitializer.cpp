@@ -456,7 +456,7 @@ IBStandardInitializer::readSpringFiles(const std::string& extension, const bool 
                     // Check to see if the spring constant is zero and, if so,
                     // emit a warning.
                     if (!warned && d_enable_springs[ln][j] &&
-                        (parameters[0] == 0.0 || MathUtilities<double>::equalEps(parameters[0], 0.0)))
+                        (parameters[0] == 0.0 || IBTK::abs_equal_eps(parameters[0], 0.0)))
                     {
                         TBOX_WARNING(d_object_name << ":\n  Spring with zero spring constant "
                                                       "encountered in ASCII input file named "
@@ -690,7 +690,7 @@ IBStandardInitializer::readXSpringFiles(const std::string& extension, const bool
                     // Check to see if the spring constant is zero and, if so,
                     // emit a warning.
                     if (!warned && d_enable_xsprings[ln][j] &&
-                        (parameters[0] == 0.0 || MathUtilities<double>::equalEps(parameters[0], 0.0)))
+                        (parameters[0] == 0.0 || IBTK::abs_equal_eps(parameters[0], 0.0)))
                     {
                         TBOX_WARNING(d_object_name << ":\n  Crosslink spring with zero spring "
                                                       "constant encountered in ASCII input file "
@@ -930,7 +930,7 @@ IBStandardInitializer::readBeamFiles(const std::string& extension, const bool in
 
                     // Check to see if the bending rigidity is zero and, if so,
                     // emit a warning.
-                    if (!warned && d_enable_beams[ln][j] && (bend == 0.0 || MathUtilities<double>::equalEps(bend, 0.0)))
+                    if (!warned && d_enable_beams[ln][j] && (bend == 0.0 || IBTK::abs_equal_eps(bend, 0.0)))
                     {
                         TBOX_WARNING(d_object_name << ":\n  Beam with zero bending rigidity "
                                                       "encountered in ASCII input file named "
@@ -1453,7 +1453,7 @@ IBStandardInitializer::readTargetPointFiles(const std::string& extension)
                             // if so, emit a warning.
                             const double kappa = d_target_spec_data[ln][j][n].stiffness;
                             if (!warned && d_enable_target_points[ln][j] &&
-                                (kappa == 0.0 || MathUtilities<double>::equalEps(kappa, 0.0)))
+                                (kappa == 0.0 || IBTK::abs_equal_eps(kappa, 0.0)))
                             {
                                 TBOX_WARNING(d_object_name << ":\n  Target point with zero penalty spring "
                                                               "constant encountered in ASCII input file "
@@ -1908,7 +1908,7 @@ IBStandardInitializer::readDirectorFiles(const std::string& extension)
                                 D_norm_squared += d_directors[ln][j][k][3 * n + d] * d_directors[ln][j][k][3 * n + d];
                             }
                             const double D_norm = std::sqrt(D_norm_squared);
-                            if (!MathUtilities<double>::equalEps(D_norm, 1.0))
+                            if (!IBTK::rel_equal_eps(D_norm, 1.0))
                             {
                                 TBOX_WARNING(d_object_name << ":\n  Director vector on line " << 3 * k + n + 2
                                                            << " of file " << directors_filename

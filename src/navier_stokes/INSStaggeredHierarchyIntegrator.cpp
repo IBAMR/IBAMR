@@ -1151,7 +1151,7 @@ INSStaggeredHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy
 {
     HierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
 
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
+    const bool initial_time = IBTK::abs_equal_eps(d_integrator_time, d_start_time);
 
     // Initialize mean quantities.
     if (d_flow_averaging_interval && initial_time)
@@ -2520,8 +2520,8 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     const double dt = new_time - current_time;
+    const bool initial_time = IBTK::rel_equal_eps(d_integrator_time, d_start_time);
     const double half_time = current_time + 0.5 * dt;
     const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
     const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
@@ -2552,7 +2552,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
 
     // Ensure that solver components are appropriately reinitialized when the
     // time step size changes.
-    const bool dt_change = initial_time || !MathUtilities<double>::equalEps(dt, d_dt_previous[0]);
+    const bool dt_change = initial_time || !IBTK::rel_equal_eps(dt, d_dt_previous[0]);
     if (dt_change)
     {
         d_velocity_solver_needs_init = true;
@@ -2560,7 +2560,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
     }
 
     // Setup solver vectors.
-    const bool has_velocity_nullspace = d_normalize_velocity && MathUtilities<double>::equalEps(rho, 0.0);
+    const bool has_velocity_nullspace = d_normalize_velocity && IBTK::abs_equal_eps(rho, 0.0);
     const bool has_pressure_nullspace = d_normalize_pressure;
     if (d_vectors_need_init)
     {

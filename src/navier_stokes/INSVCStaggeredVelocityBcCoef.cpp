@@ -281,8 +281,8 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
         double& alpha = (*acoef_data)(i, 0);
         double& beta = (*bcoef_data)(i, 0);
         double& gamma = (*gcoef_data)(i, 0);
-        const bool velocity_bc = MathUtilities<double>::equalEps(alpha, 1.0);
-        const bool traction_bc = MathUtilities<double>::equalEps(beta, 1.0);
+        const bool velocity_bc = IBTK::rel_equal_eps(alpha, 1.0);
+        const bool traction_bc = IBTK::rel_equal_eps(beta, 1.0);
 #if !defined(NDEBUG)
         TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
 #endif

@@ -384,8 +384,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     const hier::Index<NDIM>& i = bc();
                     const double& a = (*acoef_data)(i, 0);
                     const double& b = (*bcoef_data)(i, 0);
-                    const bool velocity_bc = (a == 1.0 || MathUtilities<double>::equalEps(a, 1.0));
-                    const bool traction_bc = (b == 1.0 || MathUtilities<double>::equalEps(b, 1.0));
+                    const bool velocity_bc = (a == 1.0 || IBTK::rel_equal_eps(a, 1.0));
+                    const bool traction_bc = (b == 1.0 || IBTK::rel_equal_eps(b, 1.0));
 #if !defined(NDEBUG)
                     TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
 #endif
@@ -485,8 +485,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                     const double& a = (*acoef_data)(i, 0);
                     const double& b = (*bcoef_data)(i, 0);
-                    const bool velocity_bc = (a == 1.0 || MathUtilities<double>::equalEps(a, 1.0));
-                    const bool traction_bc = (b == 1.0 || MathUtilities<double>::equalEps(b, 1.0));
+                    const bool velocity_bc = (a == 1.0 || IBTK::rel_equal_eps(a, 1.0));
+                    const bool traction_bc = (b == 1.0 || IBTK::rel_equal_eps(b, 1.0));
 #if !defined(NDEBUG)
                     TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
 #endif

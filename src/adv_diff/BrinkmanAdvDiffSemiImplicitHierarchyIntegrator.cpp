@@ -195,12 +195,12 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(con
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
+    const bool initial_time = IBTK::rel_equal_eps(d_integrator_time, d_start_time);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Indicate that all solvers need to be reinitialized if the current
     // timestep size is different from the previous one.
-    const bool dt_change = initial_time || !MathUtilities<double>::equalEps(dt, d_dt_previous[0]);
+    const bool dt_change = initial_time || !IBTK::abs_equal_eps(dt, d_dt_previous[0]);
     if (dt_change)
     {
         std::fill(d_helmholtz_solvers_need_init.begin(), d_helmholtz_solvers_need_init.end(), true);

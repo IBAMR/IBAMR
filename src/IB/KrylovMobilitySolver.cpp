@@ -593,7 +593,7 @@ KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
 
     // Set the nullspace of the LInv and subdomain solvers
     const double rho = d_ins_integrator->getStokesSpecifications()->getRho();
-    const bool has_velocity_nullspace = d_normalize_velocity && MathUtilities<double>::equalEps(rho, 0.0);
+    const bool has_velocity_nullspace = d_normalize_velocity && IBTK::abs_equal_eps(rho, 0.0);
     const bool has_pressure_nullspace = d_normalize_pressure;
 
     for (const auto& nul_vec : d_nul_vecs)
@@ -926,7 +926,7 @@ KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
     solver->d_cib_strategy->getInterpolatedVelocity(y, half_time, beta);
 
     // 4) Regularize mobility.
-    if (!MathUtilities<double>::equalEps(delta, 0.0))
+    if (!IBTK::abs_equal_eps(delta, 0.0))
     {
         Vec D;
         VecDuplicate(x, &D);

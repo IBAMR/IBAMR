@@ -862,7 +862,7 @@ CIBStrategy::setRotationMatrix(const IBTK::EigenAlignedVector<Eigen::Vector3d>& 
     for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
     {
         const double norm = rot_vel[struct_no].norm();
-        if (!MathUtilities<double>::equalEps(norm, 0.0))
+        if (!IBTK::abs_equal_eps(norm, 0.0))
         {
             Eigen::Vector3d rot_axis = rot_vel[struct_no] / norm;
             Eigen::Quaterniond q(Eigen::AngleAxisd(norm * dt, rot_axis));
