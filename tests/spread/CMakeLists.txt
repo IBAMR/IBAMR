@@ -1,0 +1,66 @@
+if(IBAMR_HAVE_LIBMESH)
+# 2-D Tests
+  ibamr_add_2d_tests(spread_01
+    CASES
+      "bspline_3"
+      "bspline_3.mpirun=4"
+      "bspline_4"
+      "bspline_5"
+      "bspline_6"
+      "default"
+      "discontinuous_linear"
+      "ib_3"
+      "ib_4"
+      "ib_4_w8"
+      "ib_5"
+      "ib_6"
+      "ib_6.mpirun=4"
+      "nodal_quadrature.a"
+      "nodal_quadrature.a.mpirun=4"
+      "nodal_quadrature"
+      "piecewise_constant"
+      "piecewise_cubic"
+      "piecewise_linear"
+      "square.b.bspline_3"
+      "square.bspline_3"
+      "square.c.bspline_4"
+      "square.c.bspline_4.mpirun=4"
+      "trapezoidal_quadrature"
+  )
+  ibamr_add_2d_tests(spread_02
+    CASES
+      "bspline_3"
+      "bspline_3.mpirun=4"
+      "bspline_3.scratch_hier"
+      "bspline_3.scratch_hier.mpirun=4"
+  )
+
+# 3-D Tests
+  ibamr_add_3d_tests(spread_01
+    CASES
+      "bspline_3"
+      "bspline_4"
+      "bspline_5"
+      "bspline_6"
+      "compositecube.bspline_4.mpirun=4"
+      "cube.b.bspline_4"
+      "cube.b.bspline_4.mpirun=4"
+      "cube.bspline_3.mpirun=4"
+      "default"
+      "discontinuous_linear"
+      "ib_3"
+      "ib_4"
+      "ib_4_w8"
+      "ib_5"
+      "ib_6"
+      "ib_6.mpirun=4"
+      "piecewise_constant"
+      "piecewise_cubic"
+      "piecewise_linear"
+      "piecewise_linear.mpirun=4"
+  )
+  ibamr_add_3d_tests(spread_02
+    CASES
+      "bspline_3"
+  )
+endif()

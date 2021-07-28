@@ -1,0 +1,50 @@
+# 2-D Tests
+ibamr_add_tests(cf_four_roll_mill
+  LIBRARIES IBAMR2d
+  CASES
+     "logarithm"
+     "square_root"
+     "standard"
+)
+ibamr_add_2d_tests(cf_relaxation_op_01
+  CASES
+    "giesekus.logarithm"
+    "giesekus.square_root"
+    "giesekus.standard"
+    "oldroydb.logarithm"
+    "oldroydb.square_root"
+    "oldroydb.standard"
+    "roliepoly.square_root"
+    "roliepoly.standard"
+)
+ibamr_add_2d_tests(cf_forcing_op_01
+  CASES
+    "cell.logarithm"
+    "cell.square_root"
+    "cell.standard"
+    "side.logarithm"
+    "side.square_root"
+    "side.standard"
+)
+
+# 3-D Tests
+ibamr_add_3d_tests(cf_relaxation_op_01
+  CASES
+    "giesekus.logarithm"
+    "giesekus.square_root"
+    "giesekus.standard"
+    "oldroydb.logarithm"
+    "oldroydb.square_root"
+    "oldroydb.standard"
+    "roliepoly.square_root"
+    "roliepoly.standard"
+)
+ibamr_add_3d_tests(cf_forcing_op_01
+  CASES
+    "cell.logarithm"
+    "cell.square_root"
+    "cell.standard"
+    "side.logarithm"
+    "side.square_root"
+    "side.standard"
+)
