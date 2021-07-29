@@ -205,7 +205,7 @@ main(int argc, char* argv[])
                     {
                         double relax_val = (*relax_data)(idx, d);
                         double exact_val = (*exact_data)(idx, d);
-                        if (!MathUtilities<double>::equalEps(exact_val, relax_val))
+                        if (!IBTK::rel_equal_eps(exact_val, relax_val))
                         {
                             pout << "Incorrect value found at patch index " << idx << " at depth " << d << "\n";
                             pout << "Found " << relax_val << ". Expected " << exact_val << "\n";

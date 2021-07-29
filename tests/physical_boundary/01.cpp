@@ -237,7 +237,7 @@ main(int argc, char* argv[])
                                 X[d] = x_lower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
                             }
                             double val = fcn_map[extrap_type](X);
-                            if (!MathUtilities<double>::equalEps(val, (*data)(i)))
+                            if (!IBTK::rel_equal_eps(val, (*data)(i)))
                             {
                                 warning = true;
                                 pout << "warning: value at location " << i << " is not correct\n";
@@ -287,7 +287,7 @@ main(int argc, char* argv[])
                                 }
                                 double val = fcn_map[extrap_type](X);
 
-                                if (!MathUtilities<double>::equalEps(val, (*data)(i)))
+                                if (!IBTK::rel_equal_eps(val, (*data)(i)))
                                 {
                                     warning = true;
                                     pout << "warning: value at location " << i << " is not correct\n";

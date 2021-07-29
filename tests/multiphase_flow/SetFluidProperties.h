@@ -96,11 +96,11 @@ public:
         // Get the current level set information
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         int ls_idx = -1;
-        if (MathUtilities<double>::equalEps(time, current_time))
+        if (IBTK::rel_equal_eps(time, current_time))
         {
             ls_idx = var_db->mapVariableAndContextToIndex(d_ls_var, d_adv_diff_solver->getCurrentContext());
         }
-        else if (MathUtilities<double>::equalEps(time, new_time))
+        else if (IBTK::rel_equal_eps(time, new_time))
         {
             ls_idx = var_db->mapVariableAndContextToIndex(d_ls_var, d_adv_diff_solver->getNewContext());
         }
@@ -275,11 +275,11 @@ public:
         // Get the current level set information
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         int ls_idx = -1;
-        if (MathUtilities<double>::equalEps(time, current_time))
+        if (IBTK::rel_equal_eps(time, current_time))
         {
             ls_idx = var_db->mapVariableAndContextToIndex(d_ls_var, d_adv_diff_solver->getCurrentContext());
         }
-        else if (MathUtilities<double>::equalEps(time, new_time))
+        else if (IBTK::rel_equal_eps(time, new_time))
         {
             ls_idx = var_db->mapVariableAndContextToIndex(d_ls_var, d_adv_diff_solver->getNewContext());
         }

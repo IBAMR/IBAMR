@@ -1024,7 +1024,7 @@ buildSAJCoarsestFromSAMRAIOperators(Mat& SAJ_coarse,
         nnz_indices.reserve(n_local_coarsest);
         for (int j = 0; j < n_local_coarsest; ++j)
         {
-            if (!MathUtilities<double>::equalEps(y_array[j], 0.0))
+            if (!IBTK::abs_equal_eps(y_array[j], 0.0))
             {
                 const int global_idx = i_lower_coarsest + j;
                 nnz_indices.push_back(global_idx);

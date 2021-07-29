@@ -541,7 +541,7 @@ main(int argc, char** argv)
         plog << std::setprecision(20);
         plog << "Total number of elems: " << mesh.n_elem() << std::endl;
         plog << "Total number of DoFs: " << equation_systems->n_dofs() << std::endl;
-        while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
+        while (!IBTK::rel_equal_eps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();

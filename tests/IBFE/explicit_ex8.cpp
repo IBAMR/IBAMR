@@ -129,7 +129,7 @@ beam_PK1_dil_stress_function(TensorValue<double>& PP,
     J_dil_min = std::min(J, J_dil_min);
     J_dil_max = std::max(J, J_dil_max);
     PP.zero();
-    if (!MathUtilities<double>::equalEps(beta_s, 0.0))
+    if (!IBTK::abs_equal_eps(beta_s, 0.0))
     {
         const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
         PP -= 2.0 * beta_s * log(FF.det()) * FF_inv_trans;
@@ -612,7 +612,7 @@ main(int argc, char** argv)
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
-        while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
+        while (!IBTK::rel_equal_eps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
