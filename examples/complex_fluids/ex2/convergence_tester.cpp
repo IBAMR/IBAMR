@@ -224,7 +224,7 @@ main(int argc, char* argv[])
 
         fine_hier_db->close();
 
-        TBOX_ASSERT(MathUtilities<double>::equalEps(coarse_loop_time, fine_loop_time));
+        TBOX_ASSERT(IBTK::rel_equal_eps(coarse_loop_time, fine_loop_time));
         loop_time = fine_loop_time;
         pout << "     loop time = " << loop_time << endl;
 
