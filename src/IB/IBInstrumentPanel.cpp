@@ -1321,6 +1321,8 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
         }
     }
 #else
+    NULL_USE(timestep_num);
+    NULL_USE(simulation_time);
     TBOX_WARNING("IBInstrumentPanel::writePlotData(): SILO is not installed; cannot write data." << std::endl);
 #endif // if defined(IBAMR_HAVE_SILO)
     IBAMR_TIMER_STOP(t_write_plot_data);

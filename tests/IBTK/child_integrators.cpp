@@ -72,7 +72,7 @@ protected:
     {
         plog << d_object_name << ": synchronizeHierarchyDataSpecialized()\n";
     }
-    void resetTimeDependentHierarchyDataSpecialized(const double new_time) override
+    void resetTimeDependentHierarchyDataSpecialized(const double /*new_time*/) override
     {
         plog << d_object_name << ": resetTimeDependentHierarchyDataSpecialized()\n";
     }
