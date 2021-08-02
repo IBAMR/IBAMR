@@ -12,14 +12,14 @@
 // ---------------------------------------------------------------------
 
 // APPLICATION INCLUDES
-#include <ibamr/app_namespaces.h>
-
 #include <ibtk/CartGridFunction.h>
 #include <ibtk/HierarchyMathOps.h>
 
 #include "SetFluidProperties.h"
 
 #include <CartesianGridGeometry.h>
+
+#include <ibamr/app_namespaces.h>
 
 // C++ INCLUDES
 

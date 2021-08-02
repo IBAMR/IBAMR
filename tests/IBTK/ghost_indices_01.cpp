@@ -16,7 +16,6 @@
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/PETScVecUtilities.h>
-#include <ibtk/app_namespaces.h>
 #include <ibtk/muParserCartGridFunction.h>
 
 #include <petscsys.h>
@@ -27,6 +26,8 @@
 #include <LoadBalancer.h>
 #include <SAMRAI_config.h>
 #include <StandardTagAndInitialize.h>
+
+#include <ibtk/app_namespaces.h>
 
 // test stuff
 #include "../tests.h"

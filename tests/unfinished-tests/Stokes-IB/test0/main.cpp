@@ -36,7 +36,6 @@
 #include <ibamr/StaggeredStokesOperator.h>
 #include <ibamr/StaggeredStokesPETScVecUtilities.h>
 #include <ibamr/StaggeredStokesSolver.h>
-#include <ibamr/app_namespaces.h>
 #include <ibamr/ibamr_utilities.h>
 
 #include <ibtk/AppInitializer.h>
@@ -52,6 +51,8 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 #include <petscksp.h>
+
+#include <ibamr/app_namespaces.h>
 
 // StokesIBSolver class solves linearized StokesIB equations.
 // The class can use two versions of Mat-Vec multiply routine,

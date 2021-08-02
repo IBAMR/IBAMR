@@ -23,6 +23,8 @@
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
 
+#include <ibtk/app_namespaces.h>
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 /*!

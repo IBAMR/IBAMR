@@ -29,8 +29,6 @@
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
-#include <ibamr/app_namespaces.h>
-#include <ibamr/namespaces.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
@@ -41,6 +39,10 @@
 
 #include <fstream>
 #include <iostream>
+
+#include <ibamr/app_namespaces.h>
+
+#include <ibamr/namespaces.h>
 
 int
 main(int argc, char* argv[])

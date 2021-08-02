@@ -35,9 +35,9 @@
 #include <ibtk/muParserCartGridFunction.h>
 
 // Set up application namespace declarations
-#include <ibtk/app_namespaces.h>
-
 #include <random>
+
+#include <ibtk/app_namespaces.h>
 
 // test stuff
 #include "../tests.h"

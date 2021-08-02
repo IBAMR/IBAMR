@@ -22,9 +22,9 @@
 #include <ibtk/LData.h>
 
 // Set up application namespace declarations
-#include <ibamr/app_namespaces.h>
-
 #include <boost/multi_array.hpp>
+
+#include <ibamr/app_namespaces.h>
 
 // Do some basic verification tests for LData to guarantee that we no longer
 // leak memory.

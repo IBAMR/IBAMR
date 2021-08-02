@@ -13,8 +13,6 @@
 
 //////////////////////////////////// INCLUDES ////////////////////////////////////////////
 
-#include "ibamr/namespaces.h"
-
 #include "ibtk/IBTK_MPI.h"
 
 #include "CartesianPatchGeometry.h"
@@ -30,6 +28,8 @@
 #include <cmath>
 #include <iostream>
 #include <sstream>
+
+#include "ibamr/namespaces.h"
 
 namespace IBAMR
 {

@@ -15,8 +15,6 @@
 
 ////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/namespaces.h"
-
 #include "CellData.h"
 #include "CellVariable.h"
 #include "SideData.h"
@@ -25,6 +23,8 @@
 #include "tbox/Utilities.h"
 
 #include <SAMRAI_config.h>
+
+#include "ibamr/namespaces.h"
 
 namespace IBTK
 {

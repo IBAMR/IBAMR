@@ -1016,8 +1016,8 @@ perform_mls(const int stencil_sz,
                 const hier::Index<NDIM> idx(ic0, ic1);
                 T[i1][i0] = D[0][i0] * D[1][i1] * mask_data(idx, /*depth*/ 0);
 #elif (NDIM == 3)
-                const hier::Index<NDIM> idx(ic0, ic1, ic2);
-                T[i2][i1][i0] = D[0][i0] * D[1][i1] * D[2][i2] * mask_data(idx, /*depth*/ 0);
+            const hier::Index<NDIM> idx(ic0, ic1, ic2);
+            T[i2][i1][i0] = D[0][i0] * D[1][i1] * D[2][i2] * mask_data(idx, /*depth*/ 0);
 #endif
             }
         }
@@ -1059,9 +1059,9 @@ perform_mls(const int stencil_sz,
                         p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : x[1]);
                         G(j, k) += p_j * p_k * T[i1][i0];
 #elif (NDIM == 3)
-                        p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
-                        p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : k == 2 ? x[1] : x[2]);
-                        G(j, k) += p_j * p_k * T[i2][i1][i0];
+                    p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
+                    p_k = k == 0 ? 1.0 : (k == 1 ? x[0] : k == 2 ? x[1] : x[2]);
+                    G(j, k) += p_j * p_k * T[i2][i1][i0];
 #endif
                     }
                 }
@@ -1096,12 +1096,12 @@ perform_mls(const int stencil_sz,
                 }
                 Psi[i1][i0] *= T[i1][i0];
 #elif (NDIM == 3)
-                for (int j = 0; j <= 3; ++j)
-                {
-                    p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
-                    Psi[i2][i1][i0] += L[j] * p_j;
-                }
-                Psi[i2][i1][i0] *= T[i2][i1][i0];
+            for (int j = 0; j <= 3; ++j)
+            {
+                p_j = j == 0 ? 1.0 : (j == 1 ? x[0] : j == 2 ? x[1] : x[2]);
+                Psi[i2][i1][i0] += L[j] * p_j;
+            }
+            Psi[i2][i1][i0] *= T[i2][i1][i0];
 #endif
             }
         }
@@ -1253,8 +1253,8 @@ interpolate_data(const int stencil_sz,
                 const hier::Index<NDIM> idx(ic0, ic1);
                 Q += q_data(idx, q_comp) * Psi[i1][i0];
 #elif (NDIM == 3)
-                const hier::Index<NDIM> idx(ic0, ic1, ic2);
-                Q += q_data(idx, q_comp) * Psi[i2][i1][i0];
+            const hier::Index<NDIM> idx(ic0, ic1, ic2);
+            Q += q_data(idx, q_comp) * Psi[i2][i1][i0];
 #endif
             }
         }
@@ -1302,8 +1302,8 @@ spread_data(const int stencil_sz,
                 const hier::Index<NDIM> idx(ic0, ic1);
                 q_data(idx, q_comp) += Q * Psi[i1][i0] * fac;
 #elif (NDIM == 3)
-                const hier::Index<NDIM> idx(ic0, ic1, ic2);
-                q_data(idx, q_comp) += Q * Psi[i2][i1][i0] * fac;
+            const hier::Index<NDIM> idx(ic0, ic1, ic2);
+            q_data(idx, q_comp) += Q * Psi[i2][i1][i0] * fac;
 #endif
             }
         }

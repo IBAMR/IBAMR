@@ -14,9 +14,10 @@
 #include <ibtk/AppInitializer.h>
 #include <ibtk/FEDataManager.h>
 #include <ibtk/IBTKInit.h>
-#include <ibtk/app_namespaces.h>
 
 #include <tbox/Logger.h>
+
+#include <ibtk/app_namespaces.h>
 
 #include "../tests.h"
 

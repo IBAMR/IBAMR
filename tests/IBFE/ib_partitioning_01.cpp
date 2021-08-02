@@ -15,7 +15,6 @@
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
-#include <ibamr/app_namespaces.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
@@ -46,6 +45,8 @@
 
 #include <string>
 #include <vector>
+
+#include <ibamr/app_namespaces.h>
 
 // This file is the main driver for parallel IB element partitioning.
 

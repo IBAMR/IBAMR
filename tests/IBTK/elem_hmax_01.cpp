@@ -25,9 +25,9 @@
 #include <ibtk/libmesh_utilities.h>
 
 // Set up application namespace declarations
-#include <ibamr/app_namespaces.h>
-
 #include <boost/multi_array.hpp>
+
+#include <ibamr/app_namespaces.h>
 
 // Verify that the new function, IBTK::get_max_edge_length, prints out the
 // same result as the old get_elem_hmax function (that was internal to

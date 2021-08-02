@@ -34,7 +34,6 @@
 #include "ibamr/CFOldroydBRelaxation.h"
 #include "ibamr/CFRoliePolyRelaxation.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h"
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartCellRobinPhysBdryOp.h>
@@ -46,6 +45,8 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 #include <tbox/Array.h>
+
+#include "ibamr/namespaces.h"
 
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>

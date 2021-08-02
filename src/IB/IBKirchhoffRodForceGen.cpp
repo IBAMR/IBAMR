@@ -517,7 +517,6 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(Pointer<LData> F_data,
 
     computeLagrangianBodyForce(F_data, hierarchy, level_number, data_time, l_data_manager);
 
-
     IBAMR_TIMER_STOP(t_compute_lagrangian_force_and_torque);
     return;
 } // computeLagrangianForceAndTorque

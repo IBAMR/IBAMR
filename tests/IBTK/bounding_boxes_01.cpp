@@ -30,10 +30,10 @@
 #include <SAMRAI_config.h>
 
 // Set up application namespace declarations
-#include <ibamr/app_namespaces.h>
-
 #include <fstream>
 #include <iostream>
+
+#include <ibamr/app_namespaces.h>
 
 System&
 setup_deformation_system(ReplicatedMesh& mesh, EquationSystems& equation_systems, const libMesh::Order order)
