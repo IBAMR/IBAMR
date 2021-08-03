@@ -47,7 +47,7 @@ SetFluidSolidViscosity::SetFluidSolidViscosity(const std::string& object_name,
                                                Pointer<CellVariable<NDIM, double> > ls_solid_var,
                                                const double mu_fluid,
                                                const double mu_solid,
-                                               const int ls_reinit_interval,
+                                               const int /*ls_reinit_interval*/,
                                                const double num_solid_interface_cells,
                                                const bool set_mu_solid)
     : d_object_name(object_name),
@@ -55,7 +55,6 @@ SetFluidSolidViscosity::SetFluidSolidViscosity(const std::string& object_name,
       d_ls_solid_var(ls_solid_var),
       d_mu_fluid(mu_fluid),
       d_mu_solid(mu_solid),
-      d_ls_reinit_interval(ls_reinit_interval),
       d_num_solid_interface_cells(num_solid_interface_cells),
       d_set_mu_solid(set_mu_solid)
 {

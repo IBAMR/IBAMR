@@ -118,11 +118,6 @@ private:
     double d_rho_fluid, d_rho_solid;
 
     /*!
-     * Level set reinitialization interval
-     */
-    int d_ls_reinit_interval;
-
-    /*!
      * Number of interface cells
      */
     double d_num_solid_interface_cells;

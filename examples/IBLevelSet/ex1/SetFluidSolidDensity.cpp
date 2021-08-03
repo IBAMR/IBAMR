@@ -49,14 +49,13 @@ SetFluidSolidDensity::SetFluidSolidDensity(const std::string& object_name,
                                            Pointer<CellVariable<NDIM, double> > ls_solid_var,
                                            const double rho_fluid,
                                            const double rho_solid,
-                                           const int ls_reinit_interval,
+                                           const int /*ls_reinit_interval*/,
                                            const double num_solid_interface_cells)
     : d_object_name(object_name),
       d_adv_diff_solver(adv_diff_solver),
       d_ls_solid_var(ls_solid_var),
       d_rho_fluid(rho_fluid),
       d_rho_solid(rho_solid),
-      d_ls_reinit_interval(ls_reinit_interval),
       d_num_solid_interface_cells(num_solid_interface_cells)
 {
     // intentionally left blank

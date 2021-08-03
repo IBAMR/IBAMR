@@ -90,10 +90,10 @@ main(int argc, char* argv[])
 
         std::vector<double> xs;
         std::vector<double> ys;
-        for (unsigned int i = 0; i < num_pts_x; ++i)
+        for (int i = 0; i < num_pts_x; ++i)
         {
             const double x = x_com + i * dx - radius;
-            for (unsigned int j = 0; j < num_pts_y; ++j)
+            for (int j = 0; j < num_pts_y; ++j)
             {
                 const double y = y_com + j * dy - radius;
                 if (std::pow(x - x_com, 2) + std::pow(y - y_com, 2) <= std::pow(radius, 2))
