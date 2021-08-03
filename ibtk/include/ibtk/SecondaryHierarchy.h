@@ -77,32 +77,30 @@ public:
                 int workload_idx);
 
     /*!
-     * Get the transfer schedule from the primary hierarchy to the secondary
-     * hierarchy associated with the given level and index. If necessary the
-     * schedule is created and stored in a map.
+     * Transfer data from the primary hierarchy to the secondary hierarchy.
      *
      * If needed, a SAMRAI::xfer::RefinePatchStrategy object can be provided
      * for filling ghost data at physical boundaries.
      */
-    SAMRAI::xfer::RefineSchedule<NDIM>&
-    getPrimaryToSecondarySchedule(int level_number,
-                                  int primary_data_idx,
-                                  int secondary_data_idx,
-                                  SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
+    void
+    transferPrimaryToSecondary(int level_number,
+                               int primary_data_idx,
+                               int secondary_data_idx,
+                               double data_time,
+                               SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
 
     /*!
-     * Get the transfer schedule from the secondary hierarchy to the primary
-     * hierarchy associated with the given level and index. If necessary the
-     * schedule is created and stored in a map.
+     * Transfer data from the secondary hierarchy to the primary hierarchy.
      *
      * If needed, a SAMRAI::xfer::RefinePatchStrategy object can be provided
      * for filling ghost data at physical boundaries.
      */
-    SAMRAI::xfer::RefineSchedule<NDIM>&
-    getSecondaryToPrimarySchedule(int level_number,
-                                  int primary_data_idx,
-                                  int secondary_data_idx,
-                                  SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
+    void
+    transferSecondaryToPrimary(int level_number,
+                               int primary_data_idx,
+                               int secondary_data_idx,
+                               double data_time,
+                               SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
 
     /*!
      * Get a copy of the pointer to the secondary scratch object.

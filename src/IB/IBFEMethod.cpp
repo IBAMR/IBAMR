@@ -666,8 +666,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
         {
             d_secondary_hierarchy
-                ->getPrimaryToSecondarySchedule(ln, u_data_idx, u_data_idx, d_ib_solver->getVelocityPhysBdryOp())
-                .fillData(data_time);
+                ->transferPrimaryToSecondary(ln, u_data_idx, u_data_idx, data_time, d_ib_solver->getVelocityPhysBdryOp());
         }
     }
     else
@@ -1060,8 +1059,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
             f_primary_data_ops->setToScalar(f_primary_scratch_data_idx,
                                             0.0,
                                             /*interior_only*/ false);
-            d_secondary_hierarchy->getSecondaryToPrimarySchedule(ln, f_primary_scratch_data_idx, f_scratch_data_idx)
-                .fillData(data_time);
+            d_secondary_hierarchy->transferSecondaryToPrimary(ln, f_primary_scratch_data_idx, f_scratch_data_idx, data_time);
             f_primary_data_ops->add(f_data_idx, f_data_idx, f_primary_scratch_data_idx);
         }
     }
@@ -1200,8 +1198,7 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
     {
         assertStructureOnFinestLevel();
         d_secondary_hierarchy
-            ->getPrimaryToSecondarySchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx)
-            .fillData(data_time);
+            ->transferPrimaryToSecondary(d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx, data_time);
     }
 
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
@@ -1222,8 +1219,7 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
     {
         assertStructureOnFinestLevel();
         d_secondary_hierarchy
-            ->getSecondaryToPrimarySchedule(d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx)
-            .fillData(data_time);
+            ->transferSecondaryToPrimary(d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx, data_time);
     }
 
     IBAMR_TIMER_STOP(t_spread_fluid_source);
@@ -1476,9 +1472,8 @@ void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierar
         for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
         {
             d_secondary_hierarchy
-                ->getSecondaryToPrimarySchedule(
-                    ln, d_lagrangian_workload_current_idx, d_lagrangian_workload_current_idx)
-                .fillData(0.0);
+                ->transferSecondaryToPrimary(
+                    ln, d_lagrangian_workload_current_idx, d_lagrangian_workload_current_idx, 0.0);
         }
     }
 

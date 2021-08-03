@@ -245,11 +245,12 @@ SecondaryHierarchy::reinit(int coarsest_patch_level_number,
     }
 }
 
-SAMRAI::xfer::RefineSchedule<NDIM>&
-SecondaryHierarchy::getPrimaryToSecondarySchedule(const int level_number,
-                                                  const int primary_data_idx,
-                                                  const int scratch_data_idx,
-                                                  SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy)
+void
+SecondaryHierarchy::transferPrimaryToSecondary(const int level_number,
+                                               const int primary_data_idx,
+                                               const int scratch_data_idx,
+                                               const double data_time,
+                                               SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy)
 {
     TBOX_ASSERT(d_secondary_hierarchy);
     const auto key = std::make_pair(level_number, std::make_pair(primary_data_idx, scratch_data_idx));
@@ -264,14 +265,15 @@ SecondaryHierarchy::getPrimaryToSecondarySchedule(const int level_number,
         d_transfer_forward_schedules[key] =
             refine_algorithm->createSchedule("DEFAULT_FILL", scratch_level, level, patch_strategy);
     }
-    return *d_transfer_forward_schedules[key];
+    d_transfer_forward_schedules[key]->fillData(data_time);
 } // getPrimaryToSecondarySchedule
 
-SAMRAI::xfer::RefineSchedule<NDIM>&
-SecondaryHierarchy::getSecondaryToPrimarySchedule(const int level_number,
-                                                  const int primary_data_idx,
-                                                  const int scratch_data_idx,
-                                                  SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy)
+void
+SecondaryHierarchy::transferSecondaryToPrimary(const int level_number,
+                                               const int primary_data_idx,
+                                               const int scratch_data_idx,
+                                               const double data_time,
+                                               SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy)
 {
     TBOX_ASSERT(d_secondary_hierarchy);
     const auto key = std::make_pair(level_number, std::make_pair(primary_data_idx, scratch_data_idx));
@@ -285,7 +287,7 @@ SecondaryHierarchy::getSecondaryToPrimarySchedule(const int level_number,
         d_transfer_backward_schedules[key] =
             refine_algorithm->createSchedule("DEFAULT_FILL", level, scratch_level, patch_strategy);
     }
-    return *d_transfer_backward_schedules[key];
+    d_transfer_backward_schedules[key]->fillData(data_time);
 } // getSecondaryToPrimarySchedule
 
 std::shared_ptr<IBTK::SAMRAIDataCache>
