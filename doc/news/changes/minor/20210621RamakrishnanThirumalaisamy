@@ -1,5 +1,0 @@
-Bug Fix: Computing cell-center locations and cell index using grid_lower_X rather than patch_lower_X in all Brinkman adv diff examples and tests to avoid processor dependent results.
-
-New: In IndexUtilities class, new rouine is added to get side-center coordinates using grid_lower_X.
-<br>
-(Ramakrishnan Thirumalaisamy, 2021/06/21)
