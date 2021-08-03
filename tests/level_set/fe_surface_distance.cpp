@@ -186,7 +186,6 @@ main(int argc, char* argv[])
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
-        const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
 #ifdef LIBMESH_HAVE_EXODUS_API
         const bool uses_exodus = dump_viz_data && !app_initializer->getExodusIIFilename().empty();
 #else
@@ -403,17 +402,21 @@ main(int argc, char* argv[])
                 << E_interface / volume_near_interface << std::endl;
             out << "Number of points used to compute the interface error = " << num_interface_pts << std::endl;
         }
-        // Output data for plotting.
-        if (dump_viz_data)
+        // Disable plotting by default in the test suite:
+        if (false)
         {
-            pout << "\n\nWriting visualization files...\n\n";
-            if (uses_visit)
+            const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
+            if (dump_viz_data)
             {
-                visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);
-            }
-            if (uses_exodus)
-            {
-                exodus_io->write(exodus_filename);
+                pout << "\n\nWriting visualization files...\n\n";
+                if (uses_visit)
+                {
+                    visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);
+                }
+                if (uses_exodus)
+                {
+                    exodus_io->write(exodus_filename);
+                }
             }
         }
     }

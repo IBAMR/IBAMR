@@ -41,8 +41,9 @@ public:
         : AdvDiffHierarchyIntegrator(std::move(object_name), input_db, true)
     {
     }
-    DummyAdvDiffIntegrator() = default;
+
     ~DummyAdvDiffIntegrator() = default;
+
     void integrateHierarchy(double current_time, double new_time, int cycle_num = 0) override
     {
         HierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
@@ -72,7 +73,7 @@ protected:
     {
         plog << d_object_name << ": synchronizeHierarchyDataSpecialized()\n";
     }
-    void resetTimeDependentHierarchyDataSpecialized(const double new_time) override
+    void resetTimeDependentHierarchyDataSpecialized(const double /*new_time*/) override
     {
         plog << d_object_name << ": resetTimeDependentHierarchyDataSpecialized()\n";
     }

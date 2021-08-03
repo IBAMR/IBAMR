@@ -309,11 +309,8 @@ RNG::parallel_seed(int global_seed)
 
         // Communicate the seeds.
         MPI_Scatter(seeds.data(), 1, MPI_INT, &seed, 1, MPI_INT, mpi_root, MPI_COMM_WORLD);
-    }
 
-    // Output the local seed to the log file for debugging purposes.
-    if (size > 1)
-    {
+        // Output the local seed to the log file for debugging purposes.
         plog << "Verifying parallel seed:\n";
         plog << "MPI process " << rank << ", seed = " << seed << "\n\n";
     }

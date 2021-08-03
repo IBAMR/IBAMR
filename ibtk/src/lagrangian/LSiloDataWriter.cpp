@@ -1959,6 +1959,8 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
     }
     IBTK_MPI::barrier();
 #else
+    NULL_USE(time_step_number);
+    NULL_USE(simulation_time);
     TBOX_WARNING("LSiloDataWriter::writePlotData(): SILO is not installed; cannot write data." << std::endl);
 #endif // if defined(IBTK_HAVE_SILO)
     return;
