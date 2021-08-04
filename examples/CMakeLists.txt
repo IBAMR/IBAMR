@@ -90,8 +90,7 @@ MACRO(IBAMR_ADD_EXAMPLE)
       CONFIGURE_FILE("${_extra_file}" "${EX_OUTPUT_DIRECTORY}" COPYONLY)
     ENDFOREACH()
   ELSE()
-    MESSAGE(WARNING "Example ${EX_TARGET_NAME} could not be set up since the "
-      "required feature ${_failed_requirement} = FALSE")
+    MESSAGE(STATUS "Example ${EX_TARGET_NAME} requires libMesh - skipping")
   ENDIF()
 ENDMACRO()
 
