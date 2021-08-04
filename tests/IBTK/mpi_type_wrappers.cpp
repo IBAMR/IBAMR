@@ -13,23 +13,20 @@
 
 // Config files
 
-#include "ibtk/IBTK_MPI.h"
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 
 #include <tbox/SAMRAIManager.h>
 
-#include <SAMRAI_config.h>
-
 // Set up application namespace declarations
-#include <ibamr/app_namespaces.h>
-
 #include <boost/core/demangle.hpp>
 
 #include <fstream>
 #include <iostream>
 #include <utility>
+
+#include <ibamr/app_namespaces.h>
 
 // Verify that the correspondence between MPI and C++ types in IBTK_MPI works.
 

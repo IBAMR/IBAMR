@@ -13,17 +13,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/IBTK_MPI.h"
+#include <ibtk/IBTK_MPI.h>
 
-#include "SAMRAI_config.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
+#include <tbox/SAMRAI_MPI.h>
+#include <tbox/Utilities.h>
 
 #include <ostream>
 #include <string>
 #include <vector>
-
-#include "ibtk/app_namespaces.h" // IWYU pragma: keep
 
 namespace IBTK
 {
@@ -45,9 +42,9 @@ IBTK_MPI::comm
 IBTK_MPI::getSAMRAIWorld()
 {
 #if SAMRAI_VERSION_MAJOR == 2
-    return SAMRAI_MPI::commWorld;
+    return SAMRAI::tbox::SAMRAI_MPI::commWorld;
 #else
-    return SAMRAI_MPI::getSAMRAIWorld()
+    return SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld()
 #endif
 }
 

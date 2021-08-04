@@ -13,10 +13,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/IBTKInit.h"
-#include "ibtk/IBTK_MPI.h"
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 
-#include "ibtk/app_namespaces.h"
+#include <tbox/SAMRAIManager.h>
+#include <tbox/SAMRAI_MPI.h>
+
+#include <petscsys.h>
+
+#include <ibtk/app_namespaces.h>
 
 namespace IBTK
 {

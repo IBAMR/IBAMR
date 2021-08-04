@@ -20,15 +20,14 @@
 
 #include <ibtk/config.h>
 
-#include "SAMRAI_config.h"
-#include "tbox/SAMRAIManager.h"
-#include "tbox/SAMRAI_MPI.h"
+#include <tbox/Utilities.h>
 
-#include <petscsys.h>
 #ifdef IBTK_HAVE_LIBMESH
-#include "libmesh/libmesh.h"
-#include "libmesh/reference_counter.h"
+#include <libmesh/libmesh.h>
+#include <libmesh/reference_counter.h>
 #endif
+
+#include <mpi.h>
 
 namespace IBTK
 {
