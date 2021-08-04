@@ -1,0 +1,83 @@
+There are dozens of changes in the update from SAMRAI 2* to SAMRAI 3. This file contains a partial list of updates pertinent to IBAMR to update to SAMRAI 3.11.* as well as a summary of the perl scripts we have provided to help implement the changes. A more complete list of changes can be seen in the directory SAMRAI/docs/releases. Unfortunately, there are some changes that will require human intervention. The script update_to_samrai_3 is a bash script that will run all perl scripts described below. It can be run using
+./update_to_samrai_3 <directory_to_change> <SAMRAI_source>
+
+All scripts can be run using the following command: perl <script name> <directory to change>
+
+The only exception is convertIncludePath.pl which requires knowledge of the SAMRAI source directory and must be run as:
+
+perl convertIncludePath.pl <SAMRAI dir> <directory to change>
+
+NOTE: These scripts require removeTemplateOnDim.pl to be run FIRST. Before using any of these scripts, please make sure to have a backup of your files. 
+
+(1) SAMRAI is no longer templated on the dimension. Certain classes require the dimension as an input in the constructor if they can not figure out from member variables.
+
+The script removeTemplateOnDim.pl will remove any templates that are templated using the variable NDIM. Currently, IBAMR determines the dimension at compile time, and as such, this script will add in a Dimension object constructred by variable NDIM to constructors that need it. NOTE: This change should be made FIRST as other scripts assume this is done.
+
+(2) SAMRAI Arrays are now deprecated and will be removed in the future. You should use the std::vector instead as it supplies the same functionality.
+
+The script changeArray.pl will replace any use of SAMRAI::Array<> with std::vector<>.
+
+(3) SAMRAI MPI calls are no longer static functions. To make an MPI call using the SAMRAI wrappers now requires an SAMRAI_MPI object.
+
+We have included a static MPI class called IBTK_MPI that functions essentially the same as SAMRAI2's MPI class. A script is provided that replaces all SAMRAI MPI calls with IBTK MPI calls.
+
+(4) Box and Patch Iterators have been changed to use the now common begin() and end() notation.
+
+The script updateIterators.pl searches for for() loops over Boxes and PatchLevels and attempts to update them to use the new begin() and end() notation. NOTE: This script is fragile so please double check this change to make sure the for loop is correct.
+
+(5) The SAMRAI Pointer class has been eliminated. Use std::shared_ptr instead.
+
+The script removePointer.pl will replace all SAMRAI::Pointer<> objects with std::shared_ptr<> calls. It also searches for initializations using the 'new' construction and replaces them with calls to std::make_shared<>. NOTE: The script will replace 'new' calls even if the object is not a std::shared_ptr. Please double check that this is correct.
+
+(6) Since the Pointer class was removed, implicit casting between PatchData and Cell|Node|Edge|Face|SideData types and PatchGeometry and CartesianPatchGeometry is no longer allowed.
+
+The script use_static_pointer_cast.pl will search for these implicit conversions and update them to use a static_pointer_cast<> call.
+
+(7) The VariableDatabase can no longer register variable and context pairs with no ghost cell width since the IntVector constructor now requires a Dimension argument.
+
+The script changeVariableDatabase.pl will search for registerVariableAndContext() calls and add in an IntVector() object with the required ghost cell width.
+
+(8) The BoxList and BoxTree classes have been merged into the single class BoxContainer.
+
+This change can not be done automatically as it could require multiple updates. The script make_list_of_box.pl will search for BoxList and BoxTree constructors and objects and write a descriptive message to a text file located in the base directory to aid in making this change.
+
+(9) The base files Base(PatchHierarchy|PatchLevel|GriddingAlgorithm) no longer exist.
+
+The script baseFiles.pl will replace Base* object declarations with * declarations.
+
+(10) LoadBalancer has been changed to ChopAndPackLoadBalancer.
+
+There are now multiple load balancers to choose from. For our current needs, we use ChopAndPackLoadBalancer. There is a script loadBalancer.pl to replace LoadBalancer with ChopAndPackLoadBalancer.
+
+(11) SAMRAI startup and shutdown interfaces have changed.
+
+To account for mulitiple SAMRAI problems per process, the interface of startup and shutdown has changed. The script change_init_and_shutdown.pl will add a call to tbox::SAMRAIManager::initialize() before every tbox::SAMRAIManager::startup() call and tbox::SAMRAIManager::finalize() before every tbox::SAMRAIManager:shutdown() call. Note if you make multiple calls to initialize() and shutdown(), this will change all those calls.
+
+(12) The interface for RefineOperator::refine() has changed.
+
+The Box argument "fine_box" in the refine() interface has changed to a BoxOverlap argument. You will ONLY have to make a change if you have written a custom RefineOperator.
+
+(13) SAMRAI include file locations have changed to prevent collisions.
+
+SAMRAI includes files now include the namespaces to prevent collisions with external applications. The script convertIncludePaths.pl will search for SAMRAI include files and add the appropriate namespace change. The script can be invoked by:
+
+perl convertIncludePaths.pl <directory_to_SAMRAI_src> <directory_to_change>
+
+IMPORTANT WARNING: This script looks for patterns of "#include
+<SAMRAI_header>" and replaces them.  If you have classes with the same
+name as SAMRAI classes this script will replace those includes as
+well.
+
+Note that if you are using the SAMRAI m4 file for fortran array defines, it has changed locations to SAMRAI/pdat/fortran/.
+
+(14) Certain GriddingAlgorithm characteristics pertaining to levels have been moved to the PatchHierarchy.
+
+Calls like getMaxNumberOfLevels() and other level specific function calls have been moved to the PatchHierarchy class. The script make_list_of_change_to_patchHierarchy.pl creates a text file of possible GriddingAlgorithm calls that no longer exist.
+
+(15) Input databases for GriddingAlgorithm, PatchHierarchy, and BergerRigoutsos have changed.
+
+Information about the patch levels in the input database for GriddingAlgorithm have moved to PatchHierarchy. Information about the box generation strategy such as efficiency tolerance have moved to BergerRigoutsos input database. Note that now PatchHierarchy and BergerRigoutsos now take input databases as an input in the constructor.
+
+(16) The REFINE_BOXES option in the StandardTagAndInitialize database has changed structure.
+
+See the input files in the examples section for details on how the option has changed.
