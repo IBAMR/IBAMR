@@ -20,6 +20,8 @@
 
 #include <ibamr/config.h>
 
+#ifdef IBAMR_HAVE_LIBMESH
+
 #include "ibamr/IBFEPostProcessor.h"
 
 #include "ibtk/libmesh_utilities.h"
@@ -133,4 +135,5 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
+#endif //#ifdef IBAMR_HAVE_LIBMESH
 #endif //#ifndef included_IBAMR_IBFECentroidPostProcessor

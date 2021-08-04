@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#ifdef IBTK_HAVE_LIBMESH
+
 #include <ibtk/FischerGuess.h>
 
 #include <libmesh/equation_systems.h>
@@ -210,4 +212,5 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
+#endif //#ifdef IBTK_HAVE_LIBMESH
 #endif //#ifndef included_IBTK_FEProjector

@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#ifdef IBTK_HAVE_LIBMESH
+
 #include <ibtk/PartitioningBox.h>
 
 #include <libmesh/mesh_base.h>
@@ -110,4 +112,5 @@ protected:
 };
 } // namespace IBTK
 //////////////////////////////////////////////////////////////////////////////
+#endif //#ifdef IBTK_HAVE_LIBMESH
 #endif //#ifndef included_IBTK_boxpartitioner

@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#ifdef IBTK_HAVE_LIBMESH
+
 #include "ibtk/QuadratureCache.h"
 #include "ibtk/SAMRAIDataCache.h"
 #include "ibtk/ibtk_enums.h"
@@ -1353,4 +1355,5 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
+#endif //#ifdef IBTK_HAVE_LIBMESH
 #endif //#ifndef included_IBTK_FEDataManager

@@ -20,6 +20,8 @@
 
 #include <ibamr/config.h>
 
+#ifdef IBAMR_HAVE_LIBMESH
+
 #include "ibamr/IBFEMethod.h"
 
 #include "ibtk/IndexUtilities.h"
@@ -233,4 +235,5 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
+#endif //#ifdef IBAMR_HAVE_LIBMESH
 #endif // #ifndef included_FESurfaceDistanceEvaluator

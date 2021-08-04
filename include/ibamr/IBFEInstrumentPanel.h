@@ -20,6 +20,8 @@
 
 #include <ibamr/config.h>
 
+#ifdef IBAMR_HAVE_LIBMESH
+
 #include "ibamr/IBFEMethod.h"
 
 #include "ibtk/FEDataManager.h"
@@ -286,4 +288,5 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
+#endif //#ifdef IBAMR_HAVE_LIBMESH
 #endif //#ifndef included_IBAMR_IBFEInstrumentPanel

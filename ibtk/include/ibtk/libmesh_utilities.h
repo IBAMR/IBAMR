@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#ifdef IBTK_HAVE_LIBMESH
+
 #include "ibtk/IBTK_CHKERRQ.h"
 
 #include "tbox/Utilities.h"
@@ -1624,4 +1626,5 @@ std::vector<libMeshWrappers::BoundingBox> get_global_element_bounding_boxes(cons
 
 //////////////////////////////////////////////////////////////////////////////
 
+#endif //#ifdef IBTK_HAVE_LIBMESH
 #endif //#ifndef included_IBTK_libmesh_utilities

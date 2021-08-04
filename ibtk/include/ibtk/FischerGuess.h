@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#ifdef IBTK_HAVE_LIBMESH
+
 #include <libmesh/numeric_vector.h>
 
 IBTK_DISABLE_EXTRA_WARNINGS
@@ -96,4 +98,5 @@ protected:
 };
 } // namespace IBTK
 
+#endif //#ifdef IBTK_HAVE_LIBMESH
 #endif

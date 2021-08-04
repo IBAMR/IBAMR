@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#ifdef IBTK_HAVE_LIBMESH
+
 #include <ibtk/libmesh_utilities.h>
 
 #include <libmesh/enum_elem_type.h>
@@ -129,4 +131,5 @@ QuadratureCache::operator[](const QuadratureCache::key_type& quad_key)
 
 //////////////////////////////////////////////////////////////////////////////
 
+#endif //#ifdef IBTK_HAVE_LIBMESH
 #endif //#ifndef included_IBTK_QuadratureCache

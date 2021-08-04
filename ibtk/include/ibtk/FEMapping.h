@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#ifdef IBTK_HAVE_LIBMESH
+
 #include <ibtk/FECache.h>
 #include <ibtk/ibtk_utilities.h>
 
@@ -611,4 +613,5 @@ std::unique_ptr<FEMapping<3, 3> > FEMapping<3, 3>::build(const key_type key, con
 
 } // namespace IBTK
 
+#endif //#ifdef IBTK_HAVE_LIBMESH
 #endif //#ifndef included_IBTK_FEMapping

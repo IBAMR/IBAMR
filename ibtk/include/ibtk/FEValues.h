@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#ifdef IBTK_HAVE_LIBMESH
+
 #include <ibtk/FECache.h>
 #include <ibtk/FEMapping.h>
 
@@ -151,4 +153,5 @@ protected:
 };
 } // namespace IBTK
 
+#endif //#ifdef IBTK_HAVE_LIBMESH
 #endif //#ifndef included_IBTK_FEValues

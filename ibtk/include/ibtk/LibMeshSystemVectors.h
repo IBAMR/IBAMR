@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#ifdef IBTK_HAVE_LIBMESH
+
 #include <libmesh/equation_systems.h>
 #include <libmesh/petsc_vector.h>
 #include <libmesh/system.h>
@@ -162,4 +164,5 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////////
 
+#endif //#ifdef IBTK_HAVE_LIBMESH
 #endif //#ifndef included_IBTK_AppInitializer
