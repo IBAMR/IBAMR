@@ -22,6 +22,8 @@ IBAMR_ADD_EXAMPLE(
     examples-fe_mechanics
   SOURCES
     example.cpp
+  REQUIRES
+    IBAMR_HAVE_LIBMESH
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES
@@ -39,6 +41,8 @@ IBAMR_ADD_EXAMPLE(
     examples-fe_mechanics
   SOURCES
     example.cpp
+  REQUIRES
+    IBAMR_HAVE_LIBMESH
   LINK_TARGETS
     IBAMR3d
   INPUT_FILES
