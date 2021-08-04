@@ -11,18 +11,14 @@
 //
 // ---------------------------------------------------------------------
 
-// Config files
-
-#include <SAMRAI_config.h>
+// Headers for application-specific algorithm/data structure objects
+#include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
 
 // Headers for basic PETSc objects
 #include <petscsys.h>
 
-// Headers for application-specific algorithm/data structure objects
-#include <ibtk/AppInitializer.h>
-
 // Set up application namespace declarations
-#include <ibtk/IBTKInit.h>
 #include <ibtk/app_namespaces.h>
 
 /*******************************************************************************

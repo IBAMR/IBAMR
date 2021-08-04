@@ -227,7 +227,7 @@ main(int argc, char* argv[])
 
         navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
 
-        Pointer<IBFEMethod> ibfe_method_ops = nullptr;
+        Pointer<IBStrategy> ibfe_method_ops = nullptr;
         Pointer<IBInterpolantMethod> ib_interpolant_method_ops = new IBInterpolantMethod(
             "IBInterpolantMethod", app_initializer->getComponentDatabase("IBInterpolantMethod"));
         Pointer<IBLevelSetMethod> ib_level_set_method_ops =

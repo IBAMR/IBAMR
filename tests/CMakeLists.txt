@@ -117,7 +117,7 @@ SETUP_3D(complex_fluids cf_relaxation_op_01.cpp)
 SETUP_3D(complex_fluids cf_forcing_op_01.cpp)
 
 # fe_mechanics:
-IF(IBAMR_HAVE_LIBMESH)
+IF(${IBAMR_HAVE_LIBMESH})
   SETUP_2D(fe_mechanics fe_mechanics_ex0.cpp)
   SETUP_3D(fe_mechanics fe_mechanics_ex0.cpp)
 ENDIF()
@@ -127,8 +127,10 @@ SETUP_2D(interpolate interpolate_01.cpp)
 SETUP_3D(interpolate interpolate_01.cpp)
 
 # level_set:
-SETUP_2D(level_set fe_surface_distance.cpp)
-SETUP_3D(level_set fe_surface_distance.cpp)
+IF(${IBAMR_HAVE_LIBMESH})
+  SETUP_2D(level_set fe_surface_distance.cpp)
+  SETUP_3D(level_set fe_surface_distance.cpp)
+ENDIF()
 
 # multiphase_flow:
 SETUP(multiphase_flow free_falling_cyl_cib.cpp IBAMR2d)
@@ -150,7 +152,7 @@ SETUP_2D(refine rt0_refine_01.cpp)
 SETUP_3D(refine rt0_refine_01.cpp)
 
 # spread:
-IF(IBAMR_HAVE_LIBMESH)
+IF(${IBAMR_HAVE_LIBMESH})
   SETUP_2D(spread spread_01.cpp)
   SETUP_3D(spread spread_01.cpp)
   SETUP_2D(spread spread_02.cpp)
@@ -162,8 +164,10 @@ SETUP_2D(vc_navier_stokes vc_navier_stokes_01.cpp)
 SETUP_3D(vc_navier_stokes vc_navier_stokes_01.cpp)
 
 # wave_tank:
-SETUP(wave_tank nwt_cylinder.cpp IBAMR2d)
-SETUP(wave_tank nwt.cpp IBAMR2d)
+IF(${IBAMR_HAVE_LIBMESH})
+  SETUP(wave_tank nwt_cylinder.cpp IBAMR2d)
+  SETUP(wave_tank nwt.cpp IBAMR2d)
+ENDIF()
 
 # CIB:
 SETUP(CIB cib_plate.cpp IBAMR2d)
@@ -179,7 +183,7 @@ SETUP(IB ib_body_force.cpp IBAMR2d)
 SETUP(IB ib_body_force_kirchhoff.cpp IBAMR3d)
 
 # IBFE:
-IF(IBAMR_HAVE_LIBMESH)
+IF(${IBAMR_HAVE_LIBMESH})
   SETUP(IBFE interpolate_velocity_02.cpp IBAMR2d)
 
   SETUP_2D(IBFE explicit_ex0.cpp)
@@ -210,7 +214,7 @@ SETUP(IBTK ldata_01.cpp IBAMR2d)
 SETUP(IBTK mpi_type_wrappers.cpp IBAMR2d)
 SETUP(IBTK child_integrators.cpp IBAMR2d)
 
-IF(IBAMR_HAVE_LIBMESH)
+IF(${IBAMR_HAVE_LIBMESH})
   SETUP(IBTK elem_hmax_01.cpp IBAMR2d)
   SETUP(IBTK elem_hmax_02.cpp IBAMR3d)
   SETUP(IBTK fe_values_01.cpp IBAMR2d)
@@ -237,7 +241,7 @@ SETUP_2D(IBTK secondary_hierarchy_01.cpp)
 SETUP_2D(IBTK vc_viscous_solver.cpp)
 SETUP_2D(IBTK helmholtz.cpp)
 
-IF(IBAMR_HAVE_LIBMESH)
+IF(${IBAMR_HAVE_LIBMESH})
   SETUP_3D(IBTK bounding_boxes_01.cpp)
   SETUP_3D(IBTK multilevel_fe_01.cpp)
 ENDIF()

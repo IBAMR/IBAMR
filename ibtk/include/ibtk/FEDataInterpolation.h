@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#ifdef IBTK_HAVE_LIBMESH
+
 #include "ibtk/FEDataManager.h"
 #include "ibtk/FEValues.h"
 #include "ibtk/libmesh_utilities.h"
@@ -373,4 +375,5 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
+#endif //#ifdef IBTK_HAVE_LIBMESH
 #endif //#ifndef included_FEDataInterpolation

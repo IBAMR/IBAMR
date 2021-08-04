@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2020 - 2020 by the IBAMR developers
+## Copyright (c) 2020 - 2021 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -22,6 +22,8 @@ IBAMR_ADD_EXAMPLE(
     examples-complex_fluids
   SOURCES
     example.cpp
+  REQUIRES
+    IBAMR_HAVE_LIBMESH
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES

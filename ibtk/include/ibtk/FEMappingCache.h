@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#ifdef IBTK_HAVE_LIBMESH
+
 #include <ibtk/FECache.h>
 #include <ibtk/FEMapping.h>
 #include <ibtk/libmesh_utilities.h>
@@ -136,4 +138,5 @@ FEMappingCache<dim, spacedim>::operator[](const FEMappingCache<dim, spacedim>::k
 
 //////////////////////////////////////////////////////////////////////////////
 
+#endif //#ifdef IBTK_HAVE_LIBMESH
 #endif //#ifndef included_IBTK_FEMappingCache

@@ -20,6 +20,8 @@
 
 #include <ibamr/config.h>
 
+#ifdef IBAMR_HAVE_LIBMESH
+
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
 
@@ -280,4 +282,5 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
+#endif //#ifdef IBAMR_HAVE_LIBMESH
 #endif //#ifndef included_IBAMR_IMPInitializer

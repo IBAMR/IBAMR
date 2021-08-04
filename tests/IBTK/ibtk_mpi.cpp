@@ -16,7 +16,9 @@
 // Set up application namespace declarations
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
-#include <ibtk/app_namespaces.h>
+
+#include <fstream>
+#include <limits>
 
 template <typename T>
 bool minReduction(T x, T exact, int proc);
@@ -50,48 +52,48 @@ int
 main(int argc, char* argv[])
 {
     // Initialize IBTK
-    IBTKInit ibtkInit(argc, argv, MPI_COMM_WORLD);
+    IBTK::IBTKInit ibtkInit(argc, argv, MPI_COMM_WORLD);
 
-    int num_nodes = IBTK_MPI::getNodes();
-    int rank = IBTK_MPI::getRank();
+    int num_nodes = IBTK::IBTK_MPI::getNodes();
+    int rank = IBTK::IBTK_MPI::getRank();
 
-    ofstream output_file;
+    std::ofstream output_file;
     if (!rank) output_file.open("output");
 
     // integers
-    int x = IBTK_MPI::getRank();
+    int x = IBTK::IBTK_MPI::getRank();
     bool passed = minReduction(x, 0, 0);
 
-    passed = IBTK_MPI::maxReduction(passed ? 1 : 0);
+    passed = IBTK::IBTK_MPI::maxReduction(passed ? 1 : 0);
     if (!rank) output_file << "Min test " << (passed ? "passed" : "failed") << ".\n";
 
-    passed = maxReduction(x, IBTK_MPI::getNodes() - 1, IBTK_MPI::getNodes() - 1);
+    passed = maxReduction(x, IBTK::IBTK_MPI::getNodes() - 1, IBTK::IBTK_MPI::getNodes() - 1);
 
-    passed = IBTK_MPI::maxReduction(passed ? 1 : 0);
+    passed = IBTK::IBTK_MPI::maxReduction(passed ? 1 : 0);
     if (!rank) output_file << "Max test " << (passed ? "passed" : "failed") << ".\n";
 
     passed = sumReduction(x, num_nodes * (num_nodes - 1) / 2);
 
-    passed = IBTK_MPI::maxReduction(passed ? 1 : 0);
+    passed = IBTK::IBTK_MPI::maxReduction(passed ? 1 : 0);
     if (!rank) output_file << "sumReduction test " << (passed ? "passed" : "failed") << ".\n";
 
     passed = allToOneSumReduction(x, num_nodes * (num_nodes - 1) / 2, 0);
 
-    passed = IBTK_MPI::maxReduction(passed ? 1 : 0);
+    passed = IBTK::IBTK_MPI::maxReduction(passed ? 1 : 0);
     if (!rank) output_file << "allToOneSum test " << (passed ? "passed" : "failed") << ".\n";
 
     passed = bcast(x, num_nodes - 1, num_nodes - 1);
 
-    passed = IBTK_MPI::maxReduction(passed ? 1 : 0);
+    passed = IBTK::IBTK_MPI::maxReduction(passed ? 1 : 0);
     if (!rank) output_file << "bcast test " << (passed ? "passed" : "failed") << ".\n";
 
     passed = sendAndRecv(x, (x - 1 + num_nodes) % num_nodes);
 
-    passed = IBTK_MPI::maxReduction(passed ? 1 : 0);
+    passed = IBTK::IBTK_MPI::maxReduction(passed ? 1 : 0);
     if (!rank) output_file << "send and recv test " << (passed ? "passed" : "failed") << ".\n";
     passed = allGather(x);
 
-    passed = IBTK_MPI::maxReduction(passed ? 1 : 0);
+    passed = IBTK::IBTK_MPI::maxReduction(passed ? 1 : 0);
     if (!rank) output_file << "all gather test " << (passed ? "passed" : "failed") << ".\n";
 
     if (!rank) output_file.close();
@@ -103,7 +105,7 @@ minReduction(T x, T exact, int proc)
 {
     int min_proc = std::numeric_limits<int>::max();
     // perform a min reduction
-    T val = IBTK_MPI::minReduction(x, &min_proc);
+    T val = IBTK::IBTK_MPI::minReduction(x, &min_proc);
     if (val == exact && proc == min_proc)
         return true;
     else
@@ -116,7 +118,7 @@ maxReduction(T x, T exact, int proc)
 {
     int max_proc = std::numeric_limits<int>::min();
     // perform a max reduction
-    T val = IBTK_MPI::maxReduction(x, &max_proc);
+    T val = IBTK::IBTK_MPI::maxReduction(x, &max_proc);
     if (val == exact && proc == max_proc)
         return true;
     else
@@ -127,7 +129,7 @@ template <typename T>
 bool
 sumReduction(T x, T exact)
 {
-    T val = IBTK_MPI::sumReduction(x);
+    T val = IBTK::IBTK_MPI::sumReduction(x);
     if (val == exact)
         return true;
     else
@@ -138,8 +140,8 @@ template <typename T>
 bool
 allToOneSumReduction(T x, T exact, int root)
 {
-    IBTK_MPI::allToOneSumReduction(&x, 1, root);
-    if (IBTK_MPI::getRank() == root)
+    IBTK::IBTK_MPI::allToOneSumReduction(&x, 1, root);
+    if (IBTK::IBTK_MPI::getRank() == root)
     {
         if (x == exact)
             return true;
@@ -156,7 +158,7 @@ template <typename T>
 bool
 bcast(T x, T exact, int root)
 {
-    T other = IBTK_MPI::bcast(x, root);
+    T other = IBTK::IBTK_MPI::bcast(x, root);
     if (other == exact)
         return true;
     else
@@ -168,10 +170,10 @@ bool
 sendAndRecv(T x, T exact)
 {
     T other;
-    int num_nodes = IBTK_MPI::getNodes();
+    int num_nodes = IBTK::IBTK_MPI::getNodes();
     int size = 1;
-    IBTK_MPI::send(&x, size, (IBTK_MPI::getRank() + 1) % num_nodes, false);
-    IBTK_MPI::recv(&other, size, (IBTK_MPI::getRank() - 1 + num_nodes) % num_nodes, false);
+    IBTK::IBTK_MPI::send(&x, size, (IBTK::IBTK_MPI::getRank() + 1) % num_nodes, false);
+    IBTK::IBTK_MPI::recv(&other, size, (IBTK::IBTK_MPI::getRank() - 1 + num_nodes) % num_nodes, false);
 
     if (other == exact)
         return true;
@@ -183,11 +185,11 @@ template <typename T>
 bool
 allGather(T x)
 {
-    std::vector<T> other(IBTK_MPI::getNodes());
-    IBTK_MPI::allGather(x, other.data());
+    std::vector<T> other(IBTK::IBTK_MPI::getNodes());
+    IBTK::IBTK_MPI::allGather(x, other.data());
 
     bool passed = true;
-    for (int i = 0; i < IBTK_MPI::getNodes(); ++i)
+    for (int i = 0; i < IBTK::IBTK_MPI::getNodes(); ++i)
         if (other[i] != i) passed = false;
     return passed;
 }

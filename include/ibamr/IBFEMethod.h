@@ -20,6 +20,8 @@
 
 #include <ibamr/config.h>
 
+#ifdef IBAMR_HAVE_LIBMESH
+
 #include "ibamr/FEMechanicsBase.h"
 #include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBStrategy.h"
@@ -1107,4 +1109,5 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
+#endif //#ifdef IBAMR_HAVE_LIBMESH
 #endif //#ifndef included_IBAMR_IBFEMethod

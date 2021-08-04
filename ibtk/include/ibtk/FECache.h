@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#ifdef IBTK_HAVE_LIBMESH
+
 #include <ibtk/QuadratureCache.h>
 
 #include <tbox/Utilities.h>
@@ -282,4 +284,5 @@ FECache::operator()(const FECache::key_type& quad_key, const libMesh::Elem* elem
 
 //////////////////////////////////////////////////////////////////////////////
 
+#endif //#ifdef IBTK_HAVE_LIBMESH
 #endif //#ifndef included_IBTK_FECache

@@ -979,8 +979,10 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
 
   # we and our users will use these MPI functions so make the interface public:
   TARGET_LINK_LIBRARIES(${target_library} PUBLIC MPI::MPI_C)
-  # libMesh is underlinked and needs MPI's C++ library
-  IF(${IBAMR_HAVE_LIBMESH})
+  # If openMPI is built with the old C++ bindings enabled then we need to link
+  # against them, since we don't consistently define OMPI_SKIP_MPICXX. We always
+  # need this with libMesh since libMesh is underlinked.
+  IF(${MPI_MPICXX_FOUND})
     TARGET_LINK_LIBRARIES(${target_library} PUBLIC MPI::MPI_CXX)
   ENDIF()
   # Silo is underlinked and depends on HDF5, so do it first:
