@@ -89,7 +89,7 @@ public:
     /*!
      * \brief Destructor.
      */
-    ~INSStaggeredVelocityBcCoef() = default;
+    ~INSStaggeredVelocityBcCoef() override = default;
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -267,7 +267,7 @@ private:
      * Component of the velocity which this boundary condition specification is
      * to operate on.
      */
-    const unsigned int d_comp_idx;
+    const int d_comp_idx;
 
     /*
      * The fluid solver.
