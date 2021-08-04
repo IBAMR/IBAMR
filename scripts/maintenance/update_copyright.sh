@@ -22,7 +22,7 @@ fi
 
 FILES="
   $(echo attest configure.ac ./ibtk/configure.ac CMakeLists.txt)
-  $(find -L ./include ./ibtk/include ./src ./ibtk/src | egrep '\.(m|py|pl|h|am|ac|m4|cpp|i|txt)$')
+  $(find -L ./include ./ibtk/include ./src ./ibtk/src ./cmake ./config ./.github | egrep '\.(m|py|pl|h|am|ac|m4|cpp|i|txt)$')
   $(find -L ./tests ./examples ./ibtk/examples ./scripts | egrep '\.(m|py|pl|h|am|ac|m4|cpp|i)$')
   $(find -L ./doc ./scripts ./m4 ./ibtk/m4 ./lib ./ibtk/lib | egrep '\.(m|py|pl|h|am|ac|m4|cpp|i|txt)$')
 "
