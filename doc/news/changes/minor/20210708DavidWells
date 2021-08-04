@@ -1,4 +1,0 @@
-Fixed: FEDataManager now works correctly if all the block ids in a mesh are
-greater than 256.
-<br>
-(David Wells, 2021/07/08)

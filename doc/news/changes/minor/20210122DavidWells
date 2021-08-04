@@ -1,4 +1,0 @@
-Fixed: IBTK::FEMapping (and, consequently, the rest of the IB stack) now works
-correctly with QNODAL.
-<br>
-(David Wells, 2021/01/22)

@@ -1,4 +1,0 @@
-Fixed: IBTK::HierarchyIntegrator now properly traverses child integrators
-during regridHierarchy().
-<br>
-(Aaron Barrett, 2021/05/27)

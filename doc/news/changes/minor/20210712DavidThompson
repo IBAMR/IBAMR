@@ -1,5 +1,0 @@
-New: GitHub actions are used to build each pull request and
-push referencing the master branch to verify that (at least
-on linux) the project builds.
-<br>
-(David Thompson, 2021/07/12)

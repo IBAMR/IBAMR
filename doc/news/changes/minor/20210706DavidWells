@@ -1,7 +1,0 @@
-Improved: FEMechanicsBase (and therefore IBFEMethod) will evaluate all PK1
-functions corresponding to the same registered libMesh systems and quadrature
-rules inside a single loop, rather than independently looping over each PK1
-function independently. This essentially eliminates the overhead of using
-multiple PK1 stress functions.
-<br>
-(David Wells, 2021/07/06)

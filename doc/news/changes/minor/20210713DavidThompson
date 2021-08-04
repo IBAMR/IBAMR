@@ -1,6 +1,0 @@
-New: Configure, build, and test stages are now separate
-steps in the Github action and submit data to a
-<a href="https://open.cdash.org/index.php?project=IBAMR">
-cdash dashboard</a>.
-<br>
-(David Thompson, 2021/07/13)

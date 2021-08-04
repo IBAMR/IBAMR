@@ -1,0 +1,111 @@
+<h2>Incompatibilities</h2>
+<ol>
+<li>
+Removed: IBTK::FEDataManager::buildL2ProjectionSolver() has been removed in
+favor of using the IBTK::FEProjector class directly.
+<br>
+(David Wells, 2021/03/30)
+</li>
+<li>
+Changed: The way IBAMR::IBFEMethod sets up its scratch hierarchy has been
+completely changed. As a result the exact distribution of work in parallel is
+now slightly different.
+<br>
+(David Wells, 2021/05/17)
+</li>
+</ol>
+
+<h2>Major Changes</h2>
+<ol>
+<li>
+New: Added an IBLevelSet example of an oscillating cylinder.
+<br>
+(Kaustubh Khedkar, 2021/03/04)
+</li>
+<li>
+New: Added IBTK::SecondaryHierarchy, which manages a PatchHierarchy object which
+occupies the same index space with a different parallel partitioning. Previously
+this functionality was hard-coded into the IBFEMethod class.
+<br>
+(David Wells, 2021/05/17)
+</li>
+<li>
+New: IBMethod and GeneralizedIBMethod now support structural body forces.
+<br>
+(Boyce Griffith, 2021/05/29)
+</li>
+</ol>
+
+<h2>Minor Changes</h2>
+<ol>
+<li>
+Fixed: Zero-displacement constraints added to the finite element matrices now
+work correctly again.
+<br>
+(David Wells, 2021/03/01)
+</li>
+<li>
+Bug fix: Correct the calculations of COM, MOI and associated quantities in the ConstraintIB method in the presence of periodic boundary.
+<br>
+(Hong Nguyen, 2020/12/01)
+</li>
+<li>
+Fixed: IBTK::FEMapping (and, consequently, the rest of the IB stack) now works
+correctly with QNODAL.
+<br>
+(David Wells, 2021/01/22)
+</li>
+<li>
+Fixed: IBTK::HierarchyIntegrator now properly traverses child integrators
+during regridHierarchy().
+<br>
+(Aaron Barrett, 2021/05/27)
+</li>
+<li>
+Bug Fix: Filling ghost cells for levelset in demarcateBrinkmanZone function in BrinkmanPenalizationRigidBodyDynamics class.
+<br>
+(Ramakrishnan Thirumalaisamy, 2021/06/01)
+</li>
+<li>
+Bug Fix: Computing cell-center locations and cell index using grid_lower_X rather than patch_lower_X in all Brinkman adv diff examples and tests to avoid processor dependent results.
+
+New: In IndexUtilities class, new rouine is added to get side-center coordinates using grid_lower_X.
+<br>
+(Ramakrishnan Thirumalaisamy, 2021/06/21)
+</li>
+<li>
+New: In IndexUtilities class, new rouine is added to get side-center coordinates using grid_lower_X.
+<br>
+(Ramakrishnan Thirumalaisamy, 2021/06/21)
+</li>
+<li>
+Improved: FEMechanicsBase (and therefore IBFEMethod) will evaluate all PK1
+functions corresponding to the same registered libMesh systems and quadrature
+rules inside a single loop, rather than independently looping over each PK1
+function independently. This essentially eliminates the overhead of using
+multiple PK1 stress functions.
+<br>
+(David Wells, 2021/07/06)
+</li>
+<li>
+Fixed: FEDataManager now works correctly if all the block ids in a mesh are
+greater than 256.
+<br>
+(David Wells, 2021/07/08)
+</li>
+<li>
+New: GitHub actions are used to build each pull request and
+push referencing the master branch to verify that (at least
+on linux) the project builds.
+<br>
+(David Thompson, 2021/07/12)
+</li>
+<li>
+New: Configure, build, and test stages are now separate
+steps in the Github action and submit data to a
+<a href="https://open.cdash.org/index.php?project=IBAMR">
+cdash dashboard</a>.
+<br>
+(David Thompson, 2021/07/13)
+</li>
+</ol>
