@@ -12,13 +12,13 @@
 // ---------------------------------------------------------------------
 
 // APPLICATION INCLUDES
-#include <ibamr/app_namespaces.h>
-
 #include <ibtk/HierarchyMathOps.h>
 
 #include "SetFluidGasSolidDensity.h"
 
 #include <CartesianGridGeometry.h>
+
+#include <ibamr/app_namespaces.h>
 
 // C++ INCLUDES
 

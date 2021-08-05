@@ -673,7 +673,8 @@ FESurfaceDistanceEvaluator::checkIntersection2D(const IBTK::Vector3d& box_bl,
         return true;
     }
 
-    auto line_equation = [](const IBTK::Vector3d& coord, const libMesh::Point& n0, const libMesh::Point& n1) {
+    auto line_equation = [](const IBTK::Vector3d& coord, const libMesh::Point& n0, const libMesh::Point& n1)
+    {
         const double x0 = n0(0);
         const double y0 = n0(1);
         const double x1 = n1(0);

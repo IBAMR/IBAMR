@@ -38,7 +38,6 @@
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredPressureBcCoef.h>
 #include <ibamr/KrylovMobilitySolver.h>
-#include <ibamr/app_namespaces.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
@@ -49,6 +48,8 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 #include <boost/multi_array.hpp>
+
+#include <ibamr/app_namespaces.h>
 
 //////////////////////////////////////////////////////////////////////////////
 

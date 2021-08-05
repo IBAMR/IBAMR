@@ -72,13 +72,12 @@ StableCentroidPartitioner::_do_partition(MeshBase& mesh, const unsigned int n)
 
         centroids.push_back(std::make_pair(rounded_centroid, *it));
     }
-    std::stable_sort(centroids.begin(),
-                     centroids.end(),
-                     [](const std::pair<std::array<float, LIBMESH_DIM>, libMesh::Elem*>& a,
-                        const std::pair<std::array<float, LIBMESH_DIM>, libMesh::Elem*>& b) {
-                         return std::lexicographical_compare(
-                             a.first.begin(), a.first.end(), b.first.begin(), b.first.end());
-                     });
+    std::stable_sort(
+        centroids.begin(),
+        centroids.end(),
+        [](const std::pair<std::array<float, LIBMESH_DIM>, libMesh::Elem*>& a,
+           const std::pair<std::array<float, LIBMESH_DIM>, libMesh::Elem*>& b)
+        { return std::lexicographical_compare(a.first.begin(), a.first.end(), b.first.begin(), b.first.end()); });
 
     // proceed as libMesh would with CentroidPartitioner:
     const auto target_size = std::size_t(centroids.size() / n);

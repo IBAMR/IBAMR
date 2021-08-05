@@ -11,13 +11,13 @@
 //
 // ---------------------------------------------------------------------
 
-#include <ibamr/app_namespaces.h>
-
 #include <ibtk/HierarchyMathOps.h>
 
 #include "LSLocateInterface.h"
 
 #include <CartesianGridGeometry.h>
+
+#include <ibamr/app_namespaces.h>
 
 // Initialize the neighborhood of a circular interface.
 void

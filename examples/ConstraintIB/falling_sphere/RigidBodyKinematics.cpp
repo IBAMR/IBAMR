@@ -13,8 +13,6 @@
 
 /////////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/namespaces.h"
-
 #include "ibtk/IBTK_MPI.h"
 
 #include "RigidBodyKinematics.h"
@@ -24,6 +22,8 @@
 #include "muParser.h"
 
 #include <string>
+
+#include "ibamr/namespaces.h"
 
 namespace IBAMR
 {

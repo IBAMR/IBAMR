@@ -36,10 +36,10 @@
 #include <TimeRefinementIntegrator.h>
 
 // Set up application namespace declarations
-#include <ibamr/app_namespaces.h>
-
 #include "QInit.h"
 #include "UFunction.h"
+
+#include <ibamr/app_namespaces.h>
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *

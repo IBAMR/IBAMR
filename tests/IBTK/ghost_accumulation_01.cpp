@@ -18,7 +18,6 @@
 #include <ibtk/LEInteractor.h>
 #include <ibtk/PETScVecUtilities.h>
 #include <ibtk/SAMRAIGhostDataAccumulator.h>
-#include <ibtk/app_namespaces.h>
 #include <ibtk/muParserCartGridFunction.h>
 
 #include <petscsys.h>
@@ -31,6 +30,8 @@
 #include <StandardTagAndInitialize.h>
 
 #include <random>
+
+#include <ibtk/app_namespaces.h>
 
 // test stuff
 #include "../tests.h"

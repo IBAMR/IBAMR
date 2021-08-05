@@ -36,12 +36,13 @@
 
 // Set up application namespace declarations
 #include "ibamr/AdvDiffConvectiveOperatorManager.h"
-#include <ibamr/app_namespaces.h>
 
 #include "ibtk/muParserCartGridFunction.h"
 #include "ibtk/muParserRobinBcCoefs.h"
 
 #include <SAMRAIVectorReal.h>
+
+#include <ibamr/app_namespaces.h>
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -168,7 +169,8 @@ main(int argc, char* argv[])
 #ifdef OUTPUT_VIZ_FILES
         int step = 0;
 #endif
-        auto do_test = [&](Pointer<ConvectiveOperator> convec_oper) {
+        auto do_test = [&](Pointer<ConvectiveOperator> convec_oper)
+        {
             convec_oper->initializeOperatorState(q_vec, q_vec);
             convec_oper->setAdvectionVelocity(u_idx);
             convec_oper->applyConvectiveOperator(q_idx, convec_idx);

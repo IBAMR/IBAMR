@@ -680,11 +680,12 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_
     const int expected_num_cycles = getNumberOfCycles();
     if (d_current_num_cycles != expected_num_cycles)
     {
-        IBAMR_DO_ONCE({
-            pout << "AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy():\n"
-                 << "  WARNING: num_cycles = " << d_current_num_cycles
-                 << " but expected num_cycles = " << expected_num_cycles << ".\n";
-        });
+        IBAMR_DO_ONCE(
+            {
+                pout << "AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy():\n"
+                     << "  WARNING: num_cycles = " << d_current_num_cycles
+                     << " but expected num_cycles = " << expected_num_cycles << ".\n";
+            });
     }
 
     // Perform a single step of fixed point iteration.
@@ -738,19 +739,21 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_
                 else if (cycle_num > 0)
                 {
                     convective_time_stepping_type = MIDPOINT_RULE;
-                    IBAMR_DO_ONCE({
-                        pout << "AdvDiffSemiImplicitHierarchyIntegrator::"
-                                "integrateHierarchy():"
-                                "\n"
-                             << "  WARNING: convective_time_stepping_type = "
-                             << enum_to_string<TimeSteppingType>(d_Q_convective_time_stepping_type[Q_var])
-                             << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
-                             << "           using "
-                             << enum_to_string<TimeSteppingType>(d_Q_convective_time_stepping_type[Q_var])
-                             << " only for the first cycle in each time step;\n"
-                             << "           using " << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
-                             << " for subsequent cycles.\n";
-                    });
+                    IBAMR_DO_ONCE(
+                        {
+                            pout << "AdvDiffSemiImplicitHierarchyIntegrator::"
+                                    "integrateHierarchy():"
+                                    "\n"
+                                 << "  WARNING: convective_time_stepping_type = "
+                                 << enum_to_string<TimeSteppingType>(d_Q_convective_time_stepping_type[Q_var])
+                                 << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
+                                 << "           using "
+                                 << enum_to_string<TimeSteppingType>(d_Q_convective_time_stepping_type[Q_var])
+                                 << " only for the first cycle in each time step;\n"
+                                 << "           using "
+                                 << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
+                                 << " for subsequent cycles.\n";
+                        });
                 }
             }
             const int N_scratch_idx = var_db->mapVariableAndContextToIndex(N_var, getScratchContext());

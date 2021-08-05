@@ -18,6 +18,7 @@
 
 // IBAMR INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
+
 #include <ibamr/app_namespaces.h>
 
 // Application includes

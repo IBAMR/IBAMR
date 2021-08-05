@@ -37,7 +37,6 @@
 #include <ibamr/StokesSecondOrderWaveBcCoef.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/WaveDampingFunctions.h>
-#include <ibamr/app_namespaces.h>
 
 #include "ibtk/IndexUtilities.h"
 #include <ibtk/AppInitializer.h>
@@ -47,6 +46,8 @@
 #include <ibtk/LData.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
+
+#include <ibamr/app_namespaces.h>
 
 // Application
 #include "FlowGravityForcing.h"

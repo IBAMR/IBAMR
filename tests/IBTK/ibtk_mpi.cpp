@@ -20,6 +20,8 @@
 #include <fstream>
 #include <limits>
 
+#include <ibtk/app_namespaces.h>
+
 template <typename T>
 bool minReduction(T x, T exact, int proc);
 

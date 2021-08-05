@@ -300,12 +300,13 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
     const int expected_num_cycles = getNumberOfCycles();
     if (d_current_num_cycles != expected_num_cycles)
     {
-        IBAMR_DO_ONCE({
-            pout << "AdvDiffPredictorCorrectorHierarchyIntegrator::"
-                    "integrateHierarchy():\n"
-                 << "  WARNING: num_cycles = " << d_current_num_cycles
-                 << " but expected num_cycles = " << expected_num_cycles << ".\n";
-        });
+        IBAMR_DO_ONCE(
+            {
+                pout << "AdvDiffPredictorCorrectorHierarchyIntegrator::"
+                        "integrateHierarchy():\n"
+                     << "  WARNING: num_cycles = " << d_current_num_cycles
+                     << " but expected num_cycles = " << expected_num_cycles << ".\n";
+            });
     }
 
     // Reset time-dependent data when necessary.

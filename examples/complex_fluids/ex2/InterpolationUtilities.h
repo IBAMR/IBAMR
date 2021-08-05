@@ -14,9 +14,6 @@
 #ifndef included_InterpolationUtilities
 #define included_InterpolationUtilities
 
-#include "ibamr/namespaces.h"
-#include <ibamr/app_namespaces.h>
-
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
@@ -35,6 +32,8 @@
 #include <PatchLevel.h>
 
 #include <vector>
+
+#include <ibamr/app_namespaces.h>
 
 namespace SAMRAI
 {

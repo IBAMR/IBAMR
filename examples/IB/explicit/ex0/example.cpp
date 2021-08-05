@@ -41,9 +41,9 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 // Set up application namespace declarations
-#include <ibamr/app_namespaces.h>
-
 #include <array>
+
+#include <ibamr/app_namespaces.h>
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,

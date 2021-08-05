@@ -19,6 +19,7 @@
 // IBAMR INCLUDES
 #include <ibamr/IBHierarchyIntegrator.h>
 #include <ibamr/IBMethod.h>
+
 #include <ibamr/app_namespaces.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
