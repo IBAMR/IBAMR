@@ -256,7 +256,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
         const bool velocity_bc = abs(b) < sqrt(std::numeric_limits<double>::epsilon());
         if (velocity_bc)
         {
-            TBOX_ASSERT(abs(b) > sqrt(std::numeric_limits<double>::epsilon());
+            TBOX_ASSERT(abs(a) > sqrt(std::numeric_limits<double>::epsilon()));
             g /= a;
             a = 1.0;
             b = 0.0;
