@@ -46,6 +46,7 @@ cmake -DCMAKE_C_FLAGS="-O3 -march=native"                     \
       -DCMAKE_CXX_FLAGS="-O3 -march=native"                   \
       -DCMAKE_Fortran_FLAGS="-O3 -march=native"               \
       -DCMAKE_INSTALL_PREFIX=$HOME/Applications/ibamr         \
+      -DIBAMR_ENABLE_TESTING=OFF                              \
       -DSAMRAI_ROOT=$HOME/Applications/samrai-2.4.4           \
       -DLIBMESH_ROOT=$HOME/Applications/libmesh-dev           \
       -DLIBMESH_METHOD=OPT                                    \
@@ -98,6 +99,8 @@ harmless - the subsequent initial configuration run will just take a few more
 seconds.
 
 ### Configuring the build
+- The example call to CMake above disables tests. If you wish to compile the
+  tests then pass `-DIBAMR_ENABLE_TESTING=ON` instead.
 - If you want to build IBAMR with static libraries then pass the argument
   `-DBUILD_SHARED_LIBS=OFF` to the initial call to `cmake`. IBAMR defaults to
   building shared libraries.
