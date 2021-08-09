@@ -394,6 +394,8 @@ libMesh, it may have) to NOT use 64 bit indices.")
 
   FILE(STRINGS ${PETSC_VARIABLES_FILE} PETSC_LIBRARIES REGEX "^PETSC_WITH_EXTERNAL_LIB =.*")
   STRING(REGEX REPLACE "^PETSC_WITH_EXTERNAL_LIB =(.*)" "\\1" PETSC_LIBRARIES ${PETSC_LIBRARIES})
+  # If PETSC is not installed then ${PETSC_DIR}/${PETSC_ARCH} may appear in the list
+  STRING(REGEX REPLACE "\\$.PETSC_DIR./\\$.PETSC_ARCH." "${PETSC_ROOT}" PETSC_LIBRARIES ${PETSC_LIBRARIES})
   SEPARATE_ARGUMENTS(PETSC_LIBRARIES)
   FIND_LIBRARY(PETSC_LIBRARY REQUIRED NAMES "petsc" HINTS ${PETSC_ROOT}/lib)
   LIST(PREPEND PETSC_LIBRARIES ${PETSC_LIBRARY})
@@ -441,6 +443,10 @@ Please check the value of LIBMESH_ROOT and rerun CMake.")
   ELSE()
     SET(IBAMR_HAVE_LIBMESH TRUE)
     # libMesh requires that we set an environment variable to query libmesh-config
+    IF("${LIBMESH_METHOD}" STREQUAL "")
+      MESSAGE(FATAL_ERROR "If LIBMESH_ROOT is provided to CMake then \
+LIBMESH_METHOD must also be provided to CMake.")
+    ENDIF()
     STRING(TOLOWER ${LIBMESH_METHOD} _lower_method)
     SET(ENV{METHOD} ${_lower_method})
     EXECUTE_PROCESS(COMMAND "${_libmesh_config}" "--version"
