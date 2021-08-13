@@ -51,6 +51,7 @@ cmake -DCMAKE_C_FLAGS="-O3 -march=native"                     \
       -DLIBMESH_ROOT=$HOME/Applications/libmesh-dev           \
       -DLIBMESH_METHOD=OPT                                    \
       -DPETSC_ROOT=$HOME/Applications/petsc-3.13.0/x86_64-opt \
+      -DmuParser_ROOT=$HOME/Applications/muParser-2.3.2/      \
       ../
 make -j6
 make -j6 install
@@ -72,7 +73,7 @@ libraries instead of one found at either system or specified search locations,
 then you can specify that as well by passing any of
 - `-DIBAMR_FORCE_BUNDLED_Boost=ON`
 - `-DIBAMR_FORCE_BUNDLED_Eigen3=ON`
-- `-DIBAMR_FORCE_BUNDLED_MUPARSER=ON`
+- `-DIBAMR_FORCE_BUNDLED_muParser=ON`
 as options to CMake.
 
 The CMake build system will attempt to find these with default search paths and
