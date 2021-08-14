@@ -269,7 +269,7 @@ private:
     /*!
      * Side-centered density variable required for conservative discretization
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var, d_M_sc_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the
@@ -277,7 +277,7 @@ private:
      *
      * State variables have three contexts: current, scratch, and new.
      */
-    int d_rho_sc_current_idx, d_rho_sc_scratch_idx, d_rho_sc_new_idx;
+    int d_rho_sc_current_idx, d_rho_sc_scratch_idx, d_rho_sc_new_idx, d_M_sc_idx;
 
     /*
      * Boundary condition object for the side-centered density variable maintained
@@ -288,8 +288,8 @@ private:
     /*
      * Variables for plotting cell-centered density
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_interp_cc_var;
-    int d_rho_interp_cc_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_interp_cc_var, d_M_interp_cc_var;
+    int d_rho_interp_cc_idx, d_M_interp_cc_idx;
 
     /*
      * Source term function for the mass density update

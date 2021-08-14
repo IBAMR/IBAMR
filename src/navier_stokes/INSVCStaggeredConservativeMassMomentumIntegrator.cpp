@@ -75,6 +75,7 @@ class RobinBcCoefStrategy;
 #if (NDIM == 2)
 #define CONVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(convect_derivative2d, CONVECT_DERIVATIVE2D)
 #define VC_UPDATE_DENSITY_FC IBAMR_FC_FUNC_(vc_update_density2d, VC_UPDATE_DENSITY2D)
+#define VC_MASS_CONSERVATION_MAGNITUDE_FC IBAMR_FC_FUNC_(vc_mass_conservation2d, VC_MASS_CONSERVATION_MAGNITUDE2D)
 #define NAVIER_STOKES_INTERP_COMPS_FC IBAMR_FC_FUNC_(navier_stokes_interp_comps2d, NAVIER_STOKES_INTERP_COMPS2D)
 #define VC_NAVIER_STOKES_UPWIND_QUANTITY_FC                                                                            \
     IBAMR_FC_FUNC_(vc_navier_stokes_upwind_quantity2d, VC_NAVIER_STOKES_UPWIND_QUANTITY2D)
@@ -92,6 +93,7 @@ class RobinBcCoefStrategy;
 #if (NDIM == 3)
 #define CONVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(convect_derivative3d, CONVECT_DERIVATIVE3D)
 #define VC_UPDATE_DENSITY_FC IBAMR_FC_FUNC_(vc_update_density3d, VC_UPDATE_DENSITY3D)
+#define VC_MASS_CONSERVATION_MAGNITUDE_FC IBAMR_FC_FUNC_(vc_mass_conservation3d, VC_MASS_CONSERVATION_MAGNITUDE3D)
 #define NAVIER_STOKES_INTERP_COMPS_FC IBAMR_FC_FUNC_(navier_stokes_interp_comps3d, NAVIER_STOKES_INTERP_COMPS3D)
 #define VC_NAVIER_STOKES_UPWIND_QUANTITY_FC                                                                            \
     IBAMR_FC_FUNC_(vc_navier_stokes_upwind_quantity3d, VC_NAVIER_STOKES_UPWIND_QUANTITY3D)
@@ -217,6 +219,65 @@ extern "C"
 
 #endif
                               double*);
+
+    void VC_MASS_CONSERVATION_MAGNITUDE_FC(const double*,
+                                           const double&,
+#if (NDIM == 2)
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const double*,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const double*,
+                                           const int&,
+                                           const int&,
+
+#endif
+#if (NDIM == 3)
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const double*,
+                                           const double*,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const double*,
+                                           const double*,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+
+#endif
+                                           double*);
 
     void VC_SSP_RK2_UPDATE_DENSITY_FC(const double*,
                                       const double&,
@@ -1398,6 +1459,7 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
                 Pointer<SideData<NDIM, double> > R_pre_data = patch->getPatchData(d_rho_sc_scratch_idx);
                 Pointer<SideData<NDIM, double> > R_new_data = patch->getPatchData(d_rho_sc_new_idx);
                 Pointer<SideData<NDIM, double> > R_src_data = patch->getPatchData(d_S_scratch_idx);
+                Pointer<SideData<NDIM, double> > M_data = patch->getPatchData(d_M_idx);
 
                 // Define variables that live on the "faces" of control
                 // volumes centered about side-centered staggered velocity
@@ -1499,6 +1561,25 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
                                      side_boxes,
                                      dt,
                                      dx);
+
+                Pointer<SideData<NDIM, double> > V_cur_data = patch->getPatchData(d_V_current_idx);
+                if ((d_density_time_stepping_type == FORWARD_EULER && step == 0) ||
+                    (d_density_time_stepping_type == SSPRK2 && step == 1) ||
+                    (d_density_time_stepping_type == SSPRK3 && step == 2))
+                {
+                    computeMassConservationMagnitude(
+                        M_data, R_new_data, R_cur_data, V_adv_data, R_half_data, side_boxes, dt, dx);
+
+                    for (unsigned int axis = 0; axis < NDIM; ++axis)
+                    {
+                        for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                        {
+                            SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
+
+                            (*N_data)(si) -= (*V_cur_data)(si) * (*M_data)(si);
+                        }
+                    }
+                }
             }
         }
     }
@@ -1687,6 +1768,15 @@ INSVCStaggeredConservativeMassMomentumIntegrator::setSideCenteredConvectiveDeriv
 #endif
     d_N_idx = N_sc_idx;
 } // setSideCenteredConvectiveDerivativePatchDataIndex
+
+void
+INSVCStaggeredConservativeMassMomentumIntegrator::setMassConservationPatchDataIndex(int M_idx)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(M_idx >= 0);
+#endif
+    d_M_idx = M_idx;
+} // setMassConservationPatchDataIndex
 
 void
 INSVCStaggeredConservativeMassMomentumIntegrator::setSideCenteredVelocityBoundaryConditions(
@@ -2694,6 +2784,81 @@ INSVCStaggeredConservativeMassMomentumIntegrator::computeDensityUpdate(
 #endif
     }
 } // computeDensityUpdate
+
+void
+INSVCStaggeredConservativeMassMomentumIntegrator::computeMassConservationMagnitude(
+    Pointer<SideData<NDIM, double> > R_data,
+    const Pointer<SideData<NDIM, double> > Rnew_data,
+    const Pointer<SideData<NDIM, double> > Rold_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data,
+    const std::array<Pointer<FaceData<NDIM, double> >, NDIM> R_half_data,
+    const std::array<Box<NDIM>, NDIM>& side_boxes,
+    const double& dt,
+    const double* const dx)
+{
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+#if (NDIM == 2)
+        VC_MASS_CONSERVATION_MAGNITUDE_FC(dx,
+                                          dt,
+                                          side_boxes[axis].lower(0),
+                                          side_boxes[axis].upper(0),
+                                          side_boxes[axis].lower(1),
+                                          side_boxes[axis].upper(1),
+                                          Rnew_data->getGhostCellWidth()(0),
+                                          Rnew_data->getGhostCellWidth()(1),
+                                          Rnew_data->getPointer(axis),
+                                          Rold_data->getGhostCellWidth()(0),
+                                          Rold_data->getGhostCellWidth()(1),
+                                          Rold_data->getPointer(axis),
+                                          U_adv_data[axis]->getGhostCellWidth()(0),
+                                          U_adv_data[axis]->getGhostCellWidth()(1),
+                                          U_adv_data[axis]->getPointer(0),
+                                          U_adv_data[axis]->getPointer(1),
+                                          R_half_data[axis]->getGhostCellWidth()(0),
+                                          R_half_data[axis]->getGhostCellWidth()(1),
+                                          R_half_data[axis]->getPointer(0),
+                                          R_half_data[axis]->getPointer(1),
+                                          R_data->getGhostCellWidth()(0),
+                                          R_data->getGhostCellWidth()(1),
+                                          R_data->getPointer(axis));
+#endif
+#if (NDIM == 3)
+        VC_MASS_CONSERVATION_MAGNITUDE_FC(dx,
+                                          dt,
+                                          side_boxes[axis].lower(0),
+                                          side_boxes[axis].upper(0),
+                                          side_boxes[axis].lower(1),
+                                          side_boxes[axis].upper(1),
+                                          side_boxes[axis].lower(2),
+                                          side_boxes[axis].upper(2),
+                                          Rnew_data->getGhostCellWidth()(0),
+                                          Rnew_data->getGhostCellWidth()(1),
+                                          Rnew_data->getGhostCellWidth()(2),
+                                          Rnew_data->getPointer(axis),
+                                          Rold_data->getGhostCellWidth()(0),
+                                          Rold_data->getGhostCellWidth()(1),
+                                          Rold_data->getGhostCellWidth()(2),
+                                          Rold_data->getPointer(axis),
+                                          U_adv_data[axis]->getGhostCellWidth()(0),
+                                          U_adv_data[axis]->getGhostCellWidth()(1),
+                                          U_adv_data[axis]->getGhostCellWidth()(2),
+                                          U_adv_data[axis]->getPointer(0),
+                                          U_adv_data[axis]->getPointer(1),
+                                          U_adv_data[axis]->getPointer(2),
+                                          R_half_data[axis]->getGhostCellWidth()(0),
+                                          R_half_data[axis]->getGhostCellWidth()(1),
+                                          R_half_data[axis]->getGhostCellWidth()(2),
+                                          R_half_data[axis]->getPointer(0),
+                                          R_half_data[axis]->getPointer(1),
+                                          R_half_data[axis]->getPointer(2),
+                                          R_data->getGhostCellWidth()(0),
+                                          R_data->getGhostCellWidth()(1),
+                                          R_data->getGhostCellWidth()(2),
+                                          R_data->getPointer(axis));
+#endif
+    }
+} // computeMassConservationMagnitude
 
 void
 INSVCStaggeredConservativeMassMomentumIntegrator::enforceDivergenceFreeConditionAtCoarseFineInterface(int U_idx)

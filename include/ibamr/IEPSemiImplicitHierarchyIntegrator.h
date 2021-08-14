@@ -386,7 +386,11 @@ private:
     /*!
      * \brief Compute and store the Heaviside function value on the cell-centers.
      */
-    void computeHeavisideFunction(int H_idx, const int phi_idx);
+    void computeHeavisideFunction(int H_idx,
+                                  const int phi_idx,
+                                  const double current_time,
+                                  const double new_time,
+                                  const double integrator_time);
 
     /*!
      * \brief Compute and store the double-well potential on the cell-centers based on the
@@ -587,9 +591,9 @@ private:
     bool d_solve_energy = false, d_solve_mass_conservation = true;
 
     // Variables for chemical potential.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_chemical_potential_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_chemical_potential_var, d_M_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_lf_var;
-    int d_chemical_potential_idx, d_grad_lf_idx, d_H_sc_idx;
+    int d_chemical_potential_idx, d_grad_lf_idx, d_H_sc_idx, d_M_idx;
 
     // Patch data index to store updated density
     int d_updated_rho_cc_idx = IBTK::invalid_index;

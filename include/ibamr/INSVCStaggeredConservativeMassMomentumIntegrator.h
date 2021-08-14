@@ -142,6 +142,11 @@ public:
      */
     void setSideCenteredConvectiveDerivativePatchDataIndex(int N_sc_idx);
 
+    /*!
+     * \brief Set the patch index to store mass conservation.
+     */
+    void setMassConservationPatchDataIndex(int M_idx);
+
     /*
      * \brief Set the boundary condition object for the side-centered velocity.
      */
@@ -308,6 +313,18 @@ private:
         const double* const dx);
 
     /*!
+     * \brief Compute the mass conservation pointwise.
+     */
+    void computeMassConservationMagnitude(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > R_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > Rnew_data,
+        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > Rold_data,
+        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
+        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> R_half_data,
+        const std::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes,
+        const double& dt,
+        const double* const dx);
+    /*!
      * \brief Enforce divergence free condition at the coarse-fine interface to ensure conservation of mass.
      */
     void enforceDivergenceFreeConditionAtCoarseFineInterface(const int U_idx);
@@ -388,6 +405,8 @@ private:
 
     // Coarse-fine boundary objects.
     std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
+
+    int d_M_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR
 

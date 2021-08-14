@@ -75,6 +75,7 @@ class RobinBcCoefStrategy;
 #if (NDIM == 2)
 #define CONVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(convect_derivative2d, CONVECT_DERIVATIVE2D)
 #define VC_UPDATE_DENSITY_FC IBAMR_FC_FUNC_(vc_update_density2d, VC_UPDATE_DENSITY2D)
+#define VC_MASS_CONSERVATION_MAGNITUDE_FC IBAMR_FC_FUNC_(vc_mass_conservation2d, VC_MASS_CONSERVATION_MAGNITUDE2D)
 #define CUI_EXTRAPOLATE_FC IBAMR_FC_FUNC_(cui_extrapolate2d, CUI_EXTRAPOLATE2D)
 #define C_TO_F_CWISE_INTERP_2ND_FC IBAMR_FC_FUNC_(ctofcwiseinterp2nd2d, CTOFINTERP2ND2D)
 #define GODUNOV_EXTRAPOLATE_FC IBAMR_FC_FUNC_(godunov_extrapolate2d, GODUNOV_EXTRAPOLATE2D)
@@ -84,6 +85,7 @@ class RobinBcCoefStrategy;
 #if (NDIM == 3)
 #define CONVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(convect_derivative3d, CONVECT_DERIVATIVE3D)
 #define VC_UPDATE_DENSITY_FC IBAMR_FC_FUNC_(vc_update_density3d, VC_UPDATE_DENSITY3D)
+#define VC_MASS_CONSERVATION_MAGNITUDE_FC IBAMR_FC_FUNC_(vc_mass_conservation3d, VC_MASS_CONSERVATION_MAGNITUDE3D)
 #define CUI_EXTRAPOLATE_FC IBAMR_FC_FUNC_(cui_extrapolate3d, CUI_EXTRAPOLATE3D)
 #define C_TO_F_CWISE_INTERP_2ND_FC IBAMR_FC_FUNC_(ctofcwiseinterp2nd3d, CTOFINTERP2ND3D)
 #define GODUNOV_EXTRAPOLATE_FC IBAMR_FC_FUNC_(godunov_extrapolate3d, GODUNOV_EXTRAPOLATE3D)
@@ -202,6 +204,65 @@ extern "C"
 
 #endif
                               double*);
+
+    void VC_MASS_CONSERVATION_MAGNITUDE_FC(const double*,
+                                           const double&,
+#if (NDIM == 2)
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const double*,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const double*,
+                                           const int&,
+                                           const int&,
+
+#endif
+#if (NDIM == 3)
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const double*,
+                                           const double*,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+                                           const double*,
+                                           const double*,
+                                           const double*,
+                                           const int&,
+                                           const int&,
+                                           const int&,
+
+#endif
+                                           double*);
 
     void VC_SSP_RK2_UPDATE_DENSITY_FC(const double*,
                                       const double&,
@@ -1022,13 +1083,15 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
 
                 // Pointer<CellData<NDIM, double> > C_cur_data = patch->getPatchData(d_cp_cc_current_idx);
                 Pointer<CellData<NDIM, double> > C_pre_data = patch->getPatchData(d_cp_cc_scratch_idx);
-                // Pointer<CellData<NDIM, double> > C_new_data = patch->getPatchData(d_cp_cc_new_idx);
+                Pointer<CellData<NDIM, double> > C_new_data = patch->getPatchData(d_cp_cc_new_idx);
 
                 // Pointer<CellData<NDIM, double> > T_cur_data = patch->getPatchData(d_T_cc_current_idx);
                 Pointer<CellData<NDIM, double> > T_pre_data = patch->getPatchData(d_T_cc_scratch_idx);
                 // Pointer<CellData<NDIM, double> > T_new_data = patch->getPatchData(d_T_cc_new_idx);
 
                 Pointer<CellData<NDIM, double> > R_src_data = patch->getPatchData(d_S_scratch_idx);
+
+                Pointer<CellData<NDIM, double> > M_data = patch->getPatchData(d_M_idx);
 
                 // Define variables that live on the "faces" of control
                 // volumes centered about side-centered staggered velocity
@@ -1083,46 +1146,46 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
                         /*inflow_boundary_only*/ d_specific_heat_bdry_extrap_type != "NONE",
                         homogeneous_bc);
 
-                    //                    interpolateCellQuantity(C_half_data,
-                    //                                            V_adv_data,
-                    //                                            C_pre_data,
-                    //                                            patch_lower,
-                    //                                            patch_upper,
-                    //                                            patch_box,
-                    //                                            d_specific_heat_convective_limiter);
+                    interpolateCellQuantity(C_half_data,
+                                            V_adv_data,
+                                            C_pre_data,
+                                            patch_lower,
+                                            patch_upper,
+                                            patch_box,
+                                            d_specific_heat_convective_limiter);
 
-                    // Interpolate from cell centers to cell faces.
-                    const IntVector<NDIM>& C_half_data_gcw = C_half_data->getGhostCellWidth();
-                    const IntVector<NDIM>& C_pre_data_gcw = C_pre_data->getGhostCellWidth();
-
-                    // Interpolate from cell centers to cell faces.
-                    C_TO_F_CWISE_INTERP_2ND_FC(
-#if (NDIM == 2)
-                        C_half_data->getPointer(0),
-                        C_half_data->getPointer(1),
-                        C_half_data_gcw.min(),
-                        C_pre_data->getPointer(),
-                        C_pre_data_gcw.min(),
-                        patch_lower(0),
-                        patch_upper(0),
-                        patch_lower(1),
-                        patch_upper(1)
-#endif
-#if (NDIM == 3)
-                            C_half_data->getPointer(0),
-                        C_half_data->getPointer(1),
-                        C_half_data->getPointer(2),
-                        C_half_data_gcw.min(),
-                        C_pre_data->getPointer(),
-                        C_pre_data_gcw.min(),
-                        patch_lower(0),
-                        patch_upper(0),
-                        patch_lower(1),
-                        patch_upper(1),
-                        patch_lower(2),
-                        patch_upper(2)
-#endif
-                    );
+                    //                    // Interpolate from cell centers to cell faces.
+                    //                    const IntVector<NDIM>& C_half_data_gcw = C_half_data->getGhostCellWidth();
+                    //                    const IntVector<NDIM>& C_pre_data_gcw = C_pre_data->getGhostCellWidth();
+                    //
+                    //                    // Interpolate from cell centers to cell faces.
+                    //                    C_TO_F_CWISE_INTERP_2ND_FC(
+                    //#if (NDIM == 2)
+                    //                        C_half_data->getPointer(0),
+                    //                        C_half_data->getPointer(1),
+                    //                        C_half_data_gcw.min(),
+                    //                        C_pre_data->getPointer(),
+                    //                        C_pre_data_gcw.min(),
+                    //                        patch_lower(0),
+                    //                        patch_upper(0),
+                    //                        patch_lower(1),
+                    //                        patch_upper(1)
+                    //#endif
+                    //#if (NDIM == 3)
+                    //                            C_half_data->getPointer(0),
+                    //                        C_half_data->getPointer(1),
+                    //                        C_half_data->getPointer(2),
+                    //                        C_half_data_gcw.min(),
+                    //                        C_pre_data->getPointer(),
+                    //                        C_pre_data_gcw.min(),
+                    //                        patch_lower(0),
+                    //                        patch_upper(0),
+                    //                        patch_lower(1),
+                    //                        patch_upper(1),
+                    //                        patch_lower(2),
+                    //                        patch_upper(2)
+                    //#endif
+                    //                    );
 
                     std::vector<RobinBcCoefStrategy<NDIM>*> T_cc_bc_coefs(1, d_T_cc_bc_coefs);
 
@@ -1205,30 +1268,21 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
                                      patch_box,
                                      dt,
                                      dx);
-                //             std::ofstream rho_pre;
-                //             rho_pre.open("rho_pre.txt");
-                //             R_pre_data->print(patch_box, rho_pre);
-                //             rho_pre.close();
-                //
-                //             std::ofstream rho_cur;
-                //             rho_cur.open("rho_cur.txt");
-                //             R_cur_data->print(patch_box, rho_cur);
-                //             rho_cur.close();
-                //
-                //            std::ofstream rho_new;
-                //            rho_new.open("rho_new.txt");
-                //            R_new_data->print(patch_box, rho_new);
-                //            rho_new.close();
-                //
-                //             std::ofstream rho_src;
-                //             rho_src.open("rho_src.txt");
-                //             R_src_data->print(patch_box, rho_src);
-                //             rho_src.close();
-                //
-                //             std::ofstream v_adv;
-                //             v_adv.open("v_adv.txt");
-                //             V_adv_data->print(patch_box, v_adv);
-                //             v_adv.close();
+
+                if ((d_density_time_stepping_type == FORWARD_EULER && step == 0) ||
+                    (d_density_time_stepping_type == SSPRK2 && step == 1) ||
+                    (d_density_time_stepping_type == SSPRK3 && step == 2))
+                {
+                    computeMassConservationMagnitude(
+                        M_data, R_new_data, R_pre_data, V_adv_data, R_half_data, patch_box, dt, dx);
+
+                    for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                    {
+                        CellIndex<NDIM> ci(it());
+
+                        (*N_data)(ci) -= (*C_new_data)(ci) * (*T_pre_data)(ci) * (*M_data)(ci);
+                    }
+                }
             }
         }
     }
@@ -1467,6 +1521,15 @@ AdvDiffConservativeMassTransportQuantityIntegrator::setCellCenteredConvectiveDer
 #endif
     d_N_idx = N_cc_idx;
 } // setCellCenteredConvectiveDerivativePatchDataIndex
+
+void
+AdvDiffConservativeMassTransportQuantityIntegrator::setMassConservationPatchDataIndex(int M_idx)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(M_idx >= 0);
+#endif
+    d_M_idx = M_idx;
+} // setMassConservationPatchDataIndex
 
 // void
 // AdvDiffConservativeMassTransportQuantityIntegrator::setSideCenteredVelocityBoundaryConditions(
@@ -2087,6 +2150,84 @@ AdvDiffConservativeMassTransportQuantityIntegrator::computeDensityUpdate(
                          R_data_gcw(1),
                          R_data_gcw(2),
                          R_data->getPointer(0));
+#endif
+} // computeDensityUpdate
+
+void
+AdvDiffConservativeMassTransportQuantityIntegrator::computeMassConservationMagnitude(
+    Pointer<CellData<NDIM, double> > R_data,
+    const Pointer<CellData<NDIM, double> > Rnew_data,
+    const Pointer<CellData<NDIM, double> > Rold_data,
+    const Pointer<FaceData<NDIM, double> > U_adv_data,
+    const Pointer<FaceData<NDIM, double> > R_half_data,
+    const Box<NDIM>& patch_box,
+    const double& dt,
+    const double* const dx)
+{
+    const IntVector<NDIM>& R_data_gcw = R_data->getGhostCellWidth();
+    const IntVector<NDIM>& Rnew_data_gcw = Rnew_data->getGhostCellWidth();
+    const IntVector<NDIM>& Rold_data_gcw = Rold_data->getGhostCellWidth();
+    const IntVector<NDIM>& U_adv_data_gcw = U_adv_data->getGhostCellWidth();
+    const IntVector<NDIM>& R_half_data_gcw = R_half_data->getGhostCellWidth();
+
+#if (NDIM == 2)
+    VC_MASS_CONSERVATION_MAGNITUDE_FC(dx,
+                                      dt,
+                                      patch_box.lower(0),
+                                      patch_box.upper(0),
+                                      patch_box.lower(1),
+                                      patch_box.upper(1),
+                                      Rnew_data_gcw(0),
+                                      Rnew_data_gcw(1),
+                                      Rnew_data->getPointer(0),
+                                      Rold_data_gcw(0),
+                                      Rold_data_gcw(1),
+                                      Rold_data->getPointer(0),
+                                      U_adv_data_gcw(0),
+                                      U_adv_data_gcw(1),
+                                      U_adv_data->getPointer(0),
+                                      U_adv_data->getPointer(1),
+                                      R_half_data_gcw(0),
+                                      R_half_data_gcw(1),
+                                      R_half_data->getPointer(0),
+                                      R_half_data->getPointer(1),
+                                      R_data_gcw(0),
+                                      R_data_gcw(1),
+                                      R_data->getPointer(0));
+#endif
+#if (NDIM == 3)
+    VC_MASS_CONSERVATION_MAGNITUDE_FC(dx,
+                                      dt,
+                                      patch_box.lower(0),
+                                      patch_box.upper(0),
+                                      patch_box.lower(1),
+                                      patch_box.upper(1),
+                                      patch_box.lower(2),
+                                      patch_box.upper(2),
+                                      Rnew_data_gcw(0),
+                                      Rnew_data_gcw(1),
+                                      Rnew_data_gcw(2),
+                                      Rnew_data->getPointer(0),
+                                      Rold_data_gcw(0),
+                                      Rold_data_gcw(1),
+                                      Rold_data_gcw(2),
+                                      Rold_data->getPointer(0),
+                                      U_adv_data_gcw(0),
+                                      U_adv_data_gcw(1),
+                                      U_adv_data_gcw(2),
+                                      U_adv_data->getPointer(0),
+                                      U_adv_data->getPointer(1),
+                                      U_adv_data->getPointer(2),
+                                      R_half_data_gcw(0),
+                                      R_half_data_gcw(1),
+                                      R_half_data_gcw(2),
+                                      R_half_data->getPointer(0),
+                                      R_half_data->getPointer(1),
+                                      R_half_data->getPointer(2),
+                                      R_data_gcw(0),
+                                      R_data_gcw(1),
+                                      R_data_gcw(2),
+                                      R_data->getPointer(0));
 #endif
 } // computeDensityUpdate
 

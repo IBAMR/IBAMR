@@ -93,6 +93,7 @@ namespace IBAMR
 
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
+static const int NOGHOSTS = 0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -422,6 +423,11 @@ AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Pa
                          cell_ghosts,
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE");
+
+        int div_u_scratch_idx;
+        const IntVector<NDIM> no_ghosts = NOGHOSTS;
+        d_div_u_var = new CellVariable<NDIM, double>(Q_var->getName() + "::div_u");
+        registerVariable(div_u_scratch_idx, d_div_u_var, no_ghosts, getScratchContext());
     }
 
     // Perform hierarchy initialization operations common to all implementations
@@ -805,6 +811,26 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_
         if (d_F_fcn[F_var])
         {
             d_F_fcn[F_var]->setDataOnPatchHierarchy(F_scratch_idx, F_var, d_hierarchy, half_time);
+
+            // Add div u * H
+            if (u_var && Q_var->getName() == "heaviside_var")
+            {
+                int div_u_scratch_idx = var_db->mapVariableAndContextToIndex(d_div_u_var, getScratchContext());
+                const int u_new_idx = var_db->mapVariableAndContextToIndex(u_var, getNewContext());
+
+                d_hier_math_ops->div(div_u_scratch_idx,
+                                     d_div_u_var,
+                                     1.0,
+                                     u_new_idx,
+                                     u_var,
+                                     d_no_fill_op,
+                                     d_integrator_time,
+                                     /*synch_cf_bdry*/ false);
+
+                d_hier_cc_data_ops->multiply(div_u_scratch_idx, Q_new_idx, div_u_scratch_idx);
+                d_hier_cc_data_ops->axpy(F_scratch_idx, +1.0, div_u_scratch_idx, F_scratch_idx);
+            }
+
             d_hier_cc_data_ops->axpy(Q_rhs_scratch_idx, 1.0, F_scratch_idx, Q_rhs_scratch_idx);
         }
 

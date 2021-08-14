@@ -151,6 +151,11 @@ public:
      */
     void setCellCenteredConvectiveDerivativePatchDataIndex(int N_cc_idx);
 
+    /*!
+     * \brief Set the patch index to store mass conservation.
+     */
+    void setMassConservationPatchDataIndex(int M_idx);
+
     //    /*
     //     * \brief Set the boundary condition object for the side-centered velocity.
     //     */
@@ -330,6 +335,19 @@ private:
                               const double* const dx);
 
     /*!
+     * \brief Compute the density update rho = a0*rho^0 + a1*rho^1 + a2*dt*(-div[u_adv*rho_half]) + a2*dt*S
+     */
+    void
+    computeMassConservationMagnitude(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > R_data,
+                                     const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > Rnew_data,
+                                     const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > Rold_data,
+                                     const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > U_adv_data,
+                                     const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > R_half_data,
+                                     const SAMRAI::hier::Box<NDIM>& patch_box,
+                                     const double& dt,
+                                     const double* const dx);
+
+    /*!
      * \brief Enforce divergence free condition at the coarse-fine interface to ensure conservation of mass.
      */
     void enforceDivergenceFreeConditionAtCoarseFineInterface(const int U_idx);
@@ -370,7 +388,8 @@ private:
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_V_var;
     int d_V_scratch_idx = IBTK::invalid_index, d_V_old_idx = IBTK::invalid_index, d_V_current_idx = IBTK::invalid_index,
-        d_V_new_idx = IBTK::invalid_index, d_V_composite_idx, d_N_idx = IBTK::invalid_index;
+        d_V_new_idx = IBTK::invalid_index, d_V_composite_idx, d_N_idx = IBTK::invalid_index,
+        d_M_idx = IBTK::invalid_index;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_cc_var;
     int d_rho_cc_current_idx = IBTK::invalid_index, d_rho_cc_scratch_idx = IBTK::invalid_index,

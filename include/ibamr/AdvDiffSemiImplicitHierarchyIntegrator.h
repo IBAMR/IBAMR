@@ -345,6 +345,8 @@ protected:
         d_Q_convective_op;
     std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, bool> d_Q_convective_op_needs_init;
 
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_div_u_var;
+
 private:
     /*!
      * \brief Default constructor.

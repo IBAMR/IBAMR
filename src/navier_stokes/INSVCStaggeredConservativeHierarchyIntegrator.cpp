@@ -204,6 +204,24 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
         }
     }
 
+    d_M_sc_var = new SideVariable<NDIM, double>(d_object_name + "::mass_conservation_sc");
+    registerVariable(d_M_sc_idx, d_M_sc_var, no_ghosts, getCurrentContext());
+
+    d_M_interp_cc_var = new CellVariable<NDIM, double>(d_object_name + "::mass_conservation_interp_cc", NDIM);
+
+    registerVariable(d_M_interp_cc_idx, d_M_interp_cc_var, no_ghosts, getCurrentContext());
+
+    //    d_visit_writer->registerPlotQuantity("mass_conser_cc", "VECTOR", d_M_interp_cc_idx, 0);
+    //    for (unsigned int d = 0; d < NDIM; ++d)
+    //    {
+    //        if (d == 0)
+    //            d_visit_writer->registerPlotQuantity("mass_conser_x", "SCALAR", d_M_interp_cc_idx, d);
+    //        if (d == 1)
+    //            d_visit_writer->registerPlotQuantity("mass_conser_y", "SCALAR", d_M_interp_cc_idx, d);
+    //        if (d == 2)
+    //            d_visit_writer->registerPlotQuantity("mass_conser_z", "SCALAR", d_M_interp_cc_idx, d);
+    //    }
+
     // Set various objects with conservative time integrator.
     d_rho_p_integrator->setSideCenteredVelocityBoundaryConditions(d_U_bc_coefs);
     d_rho_p_integrator->setSideCenteredDensityBoundaryConditions(d_rho_sc_bc_coefs);
@@ -499,6 +517,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
 
         // Set the rho^{n} density
         d_rho_p_integrator->setSideCenteredDensityPatchDataIndex(d_rho_sc_current_idx);
+        d_rho_p_integrator->setMassConservationPatchDataIndex(d_M_sc_idx);
 
         // Set the convective derivative patch data index.
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
@@ -524,6 +543,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
 
         // Integrate density and convective momentum.
         d_rho_p_integrator->integrate(dt);
+        const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
+        std::cout << "max norm of d_M_sc_idx \t" << d_hier_sc_data_ops->maxNorm(d_M_sc_idx, wgt_sc_idx) << std::endl;
     }
 
     // Execute any registered callbacks.
@@ -1001,6 +1022,14 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupPlotDataSpecialized()
                                 synch_cf_interface);
     }
 
+    d_hier_math_ops->interp(d_M_interp_cc_idx,
+                            d_M_interp_cc_var,
+                            d_M_sc_idx,
+                            d_M_sc_var,
+                            d_no_fill_op,
+                            d_integrator_time,
+                            synch_cf_interface);
+
     return;
 } // setupPlotDataSpecialized
 
@@ -1115,7 +1144,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
                          d_no_fill_op,
                          d_integrator_time,
                          /*synch_cf_bdry*/ false,
-                         +1.0,
+                         -1.0,
                          d_Q_current_idx,
                          d_Q_var);
     const double Div_U_mean = (1.0 / volume) * d_hier_cc_data_ops->integral(d_Div_U_idx, wgt_cc_idx);
@@ -1474,7 +1503,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
     // Account for continuity equation source term.
     if (d_compute_continuity_source_fcns.size() > 0)
     {
-        const double apply_time = new_time;
+        const double apply_time = current_time;
         for (unsigned k = 0; k < d_compute_continuity_source_fcns.size(); ++k)
         {
             d_compute_continuity_source_fcns[k](d_Q_new_idx,
