@@ -20,7 +20,7 @@ prolongation_mat_2d prolongation_mat_3d phys_boundary_ops_2d phys_boundary_ops_3
 vc_viscous_solver_2d vc_viscous_solver_3d box_utilities_01_2d box_utilities_01_3d \
 ghost_accumulation_01_2d ghost_accumulation_01_3d ghost_indices_01_2d \
 ghost_indices_01_3d ibtk_init hierarchy_callbacks ibtk_mpi equal_eps helmholtz_2d \
-helmholtz_3d secondary_hierarchy_01_2d child_integrators_2d
+helmholtz_3d secondary_hierarchy_01_2d child_integrators_2d version_macros
 
 if LIBMESH_ENABLED
 EXTRA_PROGRAMS += elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
@@ -227,6 +227,10 @@ secondary_hierarchy_01_2d_SOURCES = secondary_hierarchy_01.cpp
 child_integrators_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 child_integrators_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 child_integrators_2d_SOURCES = child_integrators.cpp
+
+version_macros_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+version_macros_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+version_macros_SOURCES = version_macros.cpp
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \

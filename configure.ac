@@ -76,9 +76,9 @@ CHECK_BUILTIN_PREFETCH
 ###########################################################################
 dnl Since this is an M4 script we must use the quadrigraphs @<:@ and @:>@ for
 dnl brackets, i.e., for [ and ]
-ibamr_version_major=$($SED "s/^\(@<:@0-9@:>@\+\)\..*/\1/" "$srcdir/VERSION")
-ibamr_version_minor=$($SED "s/^@<:@^.@:>@\+\.\(@<:@0-9@:>@\+\)\.@<:@0-9@:>@\+.*/\1/" "$srcdir/VERSION")
-ibamr_version_subminor=$($SED "s/^@<:@^.@:>@\+\.@<:@^.@:>@\+\.\(@<:@0-9@:>@\+\).*/\1/" "$srcdir/VERSION")
+ibamr_version_major=$($SED -E "s/^(@<:@0-9@:>@+)\..*/\1/" "$srcdir/VERSION")
+ibamr_version_minor=$($SED -E "s/^@<:@^.@:>@+\.(@<:@0-9@:>@+)\.@<:@0-9@:>@+.*/\1/" "$srcdir/VERSION")
+ibamr_version_subminor=$($SED -E "s/^@<:@^.@:>@+\.@<:@^.@:>@+\.(@<:@0-9@:>@+).*/\1/" "$srcdir/VERSION")
 AC_DEFINE_UNQUOTED(VERSION_MAJOR, $ibamr_version_major, [Major version of IBAMR.])
 AC_DEFINE_UNQUOTED(VERSION_MINOR, $ibamr_version_minor, [Minor version of IBAMR.])
 AC_DEFINE_UNQUOTED(VERSION_SUBMINOR, $ibamr_version_subminor, [Subminor version of IBAMR.])

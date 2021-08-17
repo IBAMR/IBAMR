@@ -1008,8 +1008,10 @@ attest.conf:
 	@printf "numdiff = ${NUMDIFF}\n" >> attest.conf-tmp
 	@printf "show_only = False\n" >> attest.conf-tmp
 	@printf "test_directory = /tests/\n" >> attest.conf-tmp
+	@printf "test_timeout = 600\n" >> attest.conf-tmp
 	@printf "include_regex = .*\n" >> attest.conf-tmp
 	@printf "exclude_regex = ^$$\n" >> attest.conf-tmp
+	@printf "verbose = False\n" >> attest.conf-tmp
 	@mv attest.conf-tmp attest.conf
 
 tests: lib attest.conf

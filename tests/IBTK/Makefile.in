@@ -103,7 +103,8 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	hierarchy_callbacks$(EXEEXT) ibtk_mpi$(EXEEXT) \
 	equal_eps$(EXEEXT) helmholtz_2d$(EXEEXT) helmholtz_3d$(EXEEXT) \
 	secondary_hierarchy_01_2d$(EXEEXT) \
-	child_integrators_2d$(EXEEXT) $(am__EXEEXT_1)
+	child_integrators_2d$(EXEEXT) version_macros$(EXEEXT) \
+	$(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@am__append_1 = elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
 @LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d mapping_01 fe_values_01 fe_values_02 \
 @LIBMESH_ENABLED_TRUE@multilevel_fe_01_2d multilevel_fe_01_3d subdomain_level_translation_01 \
@@ -505,6 +506,13 @@ vc_viscous_solver_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(vc_viscous_solver_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_version_macros_OBJECTS = version_macros-version_macros.$(OBJEXT)
+version_macros_OBJECTS = $(am_version_macros_OBJECTS)
+version_macros_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+version_macros_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(version_macros_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -564,7 +572,8 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/secondary_hierarchy_01_2d-secondary_hierarchy_01.Po \
 	./$(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Po \
 	./$(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po \
-	./$(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po
+	./$(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po \
+	./$(DEPDIR)/version_macros-version_macros.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -610,7 +619,7 @@ SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(secondary_hierarchy_01_2d_SOURCES) \
 	$(subdomain_level_translation_01_SOURCES) \
 	$(vc_viscous_solver_2d_SOURCES) \
-	$(vc_viscous_solver_3d_SOURCES)
+	$(vc_viscous_solver_3d_SOURCES) $(version_macros_SOURCES)
 DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(am__bounding_boxes_01_3d_SOURCES_DIST) \
 	$(box_utilities_01_2d_SOURCES) $(box_utilities_01_3d_SOURCES) \
@@ -642,7 +651,7 @@ DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(secondary_hierarchy_01_2d_SOURCES) \
 	$(am__subdomain_level_translation_01_SOURCES_DIST) \
 	$(vc_viscous_solver_2d_SOURCES) \
-	$(vc_viscous_solver_3d_SOURCES)
+	$(vc_viscous_solver_3d_SOURCES) $(version_macros_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -1070,6 +1079,9 @@ secondary_hierarchy_01_2d_SOURCES = secondary_hierarchy_01.cpp
 child_integrators_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 child_integrators_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 child_integrators_2d_SOURCES = child_integrators.cpp
+version_macros_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+version_macros_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+version_macros_SOURCES = version_macros.cpp
 all: all-am
 
 .SUFFIXES:
@@ -1281,6 +1293,10 @@ vc_viscous_solver_3d$(EXEEXT): $(vc_viscous_solver_3d_OBJECTS) $(vc_viscous_solv
 	@rm -f vc_viscous_solver_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(vc_viscous_solver_3d_LINK) $(vc_viscous_solver_3d_OBJECTS) $(vc_viscous_solver_3d_LDADD) $(LIBS)
 
+version_macros$(EXEEXT): $(version_macros_OBJECTS) $(version_macros_DEPENDENCIES) $(EXTRA_version_macros_DEPENDENCIES) 
+	@rm -f version_macros$(EXEEXT)
+	$(AM_V_CXXLD)$(version_macros_LINK) $(version_macros_OBJECTS) $(version_macros_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -1331,6 +1347,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/version_macros-version_macros.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -1978,6 +1995,20 @@ vc_viscous_solver_3d-vc_viscous_solver.obj: vc_viscous_solver.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(vc_viscous_solver_3d_CXXFLAGS) $(CXXFLAGS) -c -o vc_viscous_solver_3d-vc_viscous_solver.obj `if test -f 'vc_viscous_solver.cpp'; then $(CYGPATH_W) 'vc_viscous_solver.cpp'; else $(CYGPATH_W) '$(srcdir)/vc_viscous_solver.cpp'; fi`
 
+version_macros-version_macros.o: version_macros.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(version_macros_CXXFLAGS) $(CXXFLAGS) -MT version_macros-version_macros.o -MD -MP -MF $(DEPDIR)/version_macros-version_macros.Tpo -c -o version_macros-version_macros.o `test -f 'version_macros.cpp' || echo '$(srcdir)/'`version_macros.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/version_macros-version_macros.Tpo $(DEPDIR)/version_macros-version_macros.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='version_macros.cpp' object='version_macros-version_macros.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(version_macros_CXXFLAGS) $(CXXFLAGS) -c -o version_macros-version_macros.o `test -f 'version_macros.cpp' || echo '$(srcdir)/'`version_macros.cpp
+
+version_macros-version_macros.obj: version_macros.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(version_macros_CXXFLAGS) $(CXXFLAGS) -MT version_macros-version_macros.obj -MD -MP -MF $(DEPDIR)/version_macros-version_macros.Tpo -c -o version_macros-version_macros.obj `if test -f 'version_macros.cpp'; then $(CYGPATH_W) 'version_macros.cpp'; else $(CYGPATH_W) '$(srcdir)/version_macros.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/version_macros-version_macros.Tpo $(DEPDIR)/version_macros-version_macros.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='version_macros.cpp' object='version_macros-version_macros.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(version_macros_CXXFLAGS) $(CXXFLAGS) -c -o version_macros-version_macros.obj `if test -f 'version_macros.cpp'; then $(CYGPATH_W) 'version_macros.cpp'; else $(CYGPATH_W) '$(srcdir)/version_macros.cpp'; fi`
+
 mostlyclean-libtool:
 	-rm -f *.lo
 
@@ -2153,6 +2184,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Po
 	-rm -f ./$(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po
 	-rm -f ./$(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po
+	-rm -f ./$(DEPDIR)/version_macros-version_macros.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -2242,6 +2274,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/subdomain_level_translation_01-subdomain_level_translation_01.Po
 	-rm -f ./$(DEPDIR)/vc_viscous_solver_2d-vc_viscous_solver.Po
 	-rm -f ./$(DEPDIR)/vc_viscous_solver_3d-vc_viscous_solver.Po
+	-rm -f ./$(DEPDIR)/version_macros-version_macros.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
