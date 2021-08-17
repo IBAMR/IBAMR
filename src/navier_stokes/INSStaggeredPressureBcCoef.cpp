@@ -216,22 +216,26 @@ INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
     if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);
 
     // Get the target velocity data.
-    Pointer<SideData<NDIM, double> > u_target_data;
-    if (d_u_target_data_idx >= 0)
-        u_target_data = patch.getPatchData(d_u_target_data_idx);
-    else if (d_target_data_idx >= 0)
-        u_target_data = patch.getPatchData(d_target_data_idx);
-    TBOX_ASSERT(u_target_data);
-    Pointer<SideData<NDIM, double> > u_current_data =
-        patch.getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-    TBOX_ASSERT(u_current_data);
-    const Box<NDIM> ghost_box = u_target_data->getGhostBox() * u_current_data->getGhostBox();
-    for (int d = 0; d < NDIM; ++d)
+    Pointer<SideData<NDIM, double> > u_current_data, u_target_data;
+    if (gcoef_data)
     {
-        if (d != bdry_normal_axis)
+        u_current_data = patch.getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
+        TBOX_ASSERT(u_current_data);
+
+        if (d_u_target_data_idx >= 0)
+            u_target_data = patch.getPatchData(d_u_target_data_idx);
+        else if (d_target_data_idx >= 0)
+            u_target_data = patch.getPatchData(d_target_data_idx);
+        TBOX_ASSERT(u_target_data);
+
+        const Box<NDIM> ghost_box = u_current_data->getGhostBox() * u_target_data->getGhostBox();
+        for (int d = 0; d < NDIM; ++d)
         {
-            bc_coef_box.lower(d) = std::max(bc_coef_box.lower(d), ghost_box.lower(d));
-            bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), ghost_box.upper(d));
+            if (d != bdry_normal_axis)
+            {
+                bc_coef_box.lower(d) = std::max(bc_coef_box.lower(d), ghost_box.lower(d));
+                bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), ghost_box.upper(d));
+            }
         }
     }
 
@@ -272,8 +276,8 @@ INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
             SideIndex<NDIM> i_s(i_i, bdry_normal_axis, at_lower_bdry ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
             for (int k = 0; k < NVALS; ++k, i_s(bdry_normal_axis) += (at_lower_bdry ? 1 : -1))
             {
-                u_current[k] = (*u_current_data)(i_s);
-                u_new[k] = (*u_target_data)(i_s);
+                u_current[k] = u_current_data ? 0.0 : (*u_current_data)(i_s);
+                u_new[k] = u_target_data ? 0.0 : (*u_target_data)(i_s);
             }
 
             const double u_norm_current = (at_lower_bdry ? -1.0 : +1.0) * u_current[0];

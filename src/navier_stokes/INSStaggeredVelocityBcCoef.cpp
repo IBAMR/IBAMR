@@ -223,11 +223,14 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
 
     // Get the target velocity data.
     Pointer<SideData<NDIM, double> > u_target_data;
-    if (d_u_target_data_idx >= 0)
-        u_target_data = patch.getPatchData(d_u_target_data_idx);
-    else if (d_target_data_idx >= 0)
-        u_target_data = patch.getPatchData(d_target_data_idx);
-    TBOX_ASSERT(u_target_data);
+    if (gcoef_data)
+    {
+        if (d_u_target_data_idx >= 0)
+            u_target_data = patch.getPatchData(d_u_target_data_idx);
+        else if (d_target_data_idx >= 0)
+            u_target_data = patch.getPatchData(d_target_data_idx);
+        TBOX_ASSERT(u_target_data);
+    }
 
     // Update the boundary condition coefficients.
     //
@@ -242,7 +245,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
     const int location_index = bdry_box.getLocationIndex();
     const int bdry_normal_axis = location_index / 2;
     const bool at_lower_bdry = location_index % 2 == 0;
-    const Box<NDIM>& ghost_box = u_target_data->getGhostBox();
+    const Box<NDIM>* const ghost_box = gcoef_data ? &u_target_data->getGhostBox() : nullptr;
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double mu = d_problem_coefs->getMu();
@@ -290,13 +293,16 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
                 {
                     // Compute the tangential derivative of the normal
                     // component of the velocity at the boundary.
-                    hier::Index<NDIM> i_lower(i), i_upper(i);
-                    i_lower(d_comp_idx) = std::max(ghost_box.lower()(d_comp_idx), i(d_comp_idx) - 1);
-                    i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
-                    const SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                    const SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                    const double du_norm_dx_tan =
-                        ((*u_target_data)(i_s_upper) - (*u_target_data)(i_s_lower)) / dx[d_comp_idx];
+                    double du_norm_dx_tan = 0.0;
+                    if (gcoef_data)
+                    {
+                        hier::Index<NDIM> i_lower(i), i_upper(i);
+                        i_lower(d_comp_idx) = std::max(ghost_box->lower(d_comp_idx), i(d_comp_idx) - 1);
+                        i_upper(d_comp_idx) = std::min(ghost_box->upper(d_comp_idx), i(d_comp_idx));
+                        const SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis, SideIndex<NDIM>::Lower);
+                        const SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis, SideIndex<NDIM>::Lower);
+                        du_norm_dx_tan = ((*u_target_data)(i_s_upper) - (*u_target_data)(i_s_lower)) / dx[d_comp_idx];
+                    }
 
                     // Correct the boundary condition value.
                     a_new = (a / mu) / b;
