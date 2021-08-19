@@ -91,12 +91,31 @@ SET(CMAKE_INSTALL_MESSAGE "LAZY")
 # we need this since SAMRAI is usually statically linked
 SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# Permit some names to have lower-case letters (e.g., should users write PETSc
+# or PETSC?), but for use in this script convert everything to upper case
+SET(_lower_args "Boost_ROOT" "Eigen3_ROOT" "muParser_ROOT" "libMesh_ROOT"
+  "PETSc_ROOT" "libMesh_METHOD" "IBAMR_FORCE_BUNDLED_Boost"
+  "IBAMR_FORCE_BUNDLED_Eigen3" "IBAMR_FORCE_BUNDLED_muParser")
+FOREACH(_lower_arg ${_lower_args})
+  STRING(TOUPPER "${_lower_arg}" _upper_arg)
+  IF((NOT "${${_lower_arg}}" STREQUAL "") AND (NOT "${${_upper_arg}}" STREQUAL ""))
+    MESSAGE(FATAL_ERROR "Both ${_lower_arg} and ${_upper_arg} cannot be set. \
+Their values are
+      ${_lower_arg} = ${${_lower_arg}}
+      ${_upper_arg} = ${${_upper_arg}}")
+  ENDIF()
+  IF(NOT "${${_lower_arg}}" STREQUAL "")
+    MESSAGE(STATUS "Setting ${_upper_arg} = ${_lower_arg} = ${${_lower_arg}}")
+    SET(${_upper_arg} "${${_lower_arg}}")
+  ENDIF()
+ENDFOREACH()
+
 # print out the relevant command line arguments to make debugging easier
 #
 # With modern CMake, each find module uses the environment variable ending in
 # _ROOT to look for an installation.
-SET(_required_roots "Boost_ROOT" "Eigen3_ROOT" "HDF5_ROOT" "HYPRE_ROOT"
-  "muParser_ROOT" "MPI_ROOT" "PETSC_ROOT" "SAMRAI_ROOT")
+SET(_required_roots "BOOST_ROOT" "EIGEN3_ROOT" "HDF5_ROOT" "HYPRE_ROOT"
+  "MUPARSER_ROOT" "MPI_ROOT" "PETSC_ROOT" "SAMRAI_ROOT")
 FOREACH(_root ${_required_roots})
   IF("${${_root}}" STREQUAL "")
     MESSAGE(STATUS "${_root} was not provided to CMake: default search paths will be used.")
@@ -117,14 +136,14 @@ ENDFOREACH()
 
 
 # Make sure that other possible command line arguments have values set
-IF("${IBAMR_FORCE_BUNDLED_Boost}" STREQUAL "")
-  SET(IBAMR_FORCE_BUNDLED_Boost "OFF")
+IF("${IBAMR_FORCE_BUNDLED_BOOST}" STREQUAL "")
+  SET(IBAMR_FORCE_BUNDLED_BOOST "OFF")
 ENDIF()
-IF("${IBAMR_FORCE_BUNDLED_Eigen3}" STREQUAL "")
-  SET(IBAMR_FORCE_BUNDLED_Eigen3 "OFF")
+IF("${IBAMR_FORCE_BUNDLED_EIGEN3}" STREQUAL "")
+  SET(IBAMR_FORCE_BUNDLED_EIGEN3 "OFF")
 ENDIF()
-IF("${IBAMR_FORCE_BUNDLED_muParser}" STREQUAL "")
-  SET(IBAMR_FORCE_BUNDLED_muParser "OFF")
+IF("${IBAMR_FORCE_BUNDLED_MUPARSER}" STREQUAL "")
+  SET(IBAMR_FORCE_BUNDLED_MUPARSER "OFF")
 ENDIF()
 
 # ---------------------------------------------------------------------------- #
@@ -153,27 +172,29 @@ MESSAGE(STATUS "MPI_C_LIBRARIES: ${MPI_C_LIBRARIES}")
 #
 MESSAGE(STATUS "")
 MESSAGE(STATUS "Setting up Boost")
-IF(${IBAMR_FORCE_BUNDLED_Boost})
-  SET(IBAMR_USE_BUNDLED_Boost TRUE)
+IF(${IBAMR_FORCE_BUNDLED_BOOST})
+  SET(IBAMR_USE_BUNDLED_BOOST TRUE)
 ELSE()
+  # set up the root with the proper package name too
+  SET(Boost_ROOT ${BOOST_ROOT})
   FIND_PACKAGE(Boost 1.57 QUIET)
   IF(${Boost_FOUND})
-    SET(IBAMR_USE_BUNDLED_Boost FALSE)
+    SET(IBAMR_USE_BUNDLED_BOOST FALSE)
   ELSE()
-    SET(IBAMR_USE_BUNDLED_Boost TRUE)
+    SET(IBAMR_USE_BUNDLED_BOOST TRUE)
   ENDIF()
 ENDIF()
-IF(NOT ${IBAMR_USE_BUNDLED_Boost})
+IF(NOT ${IBAMR_USE_BUNDLED_BOOST})
   MESSAGE(STATUS "Found external boost ${Boost_VERSION} at ${Boost_INCLUDE_DIRS}")
 ELSE()
   MESSAGE(STATUS "Setting up boost as a bundled dependency")
-  ADD_LIBRARY(BUNDLED_Boost INTERFACE)
+  ADD_LIBRARY(BUNDLED_BOOST INTERFACE)
   TARGET_INCLUDE_DIRECTORIES(
-    BUNDLED_Boost
+    BUNDLED_BOOST
     INTERFACE $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/contrib/boost>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/contrib/boost>)
   INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/boost DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib)
-  INSTALL(TARGETS BUNDLED_Boost EXPORT IBAMRTargets)
+  INSTALL(TARGETS BUNDLED_BOOST EXPORT IBAMRTargets)
 ENDIF()
 
 #
@@ -181,28 +202,30 @@ ENDIF()
 #
 MESSAGE(STATUS "")
 MESSAGE(STATUS "Setting up Eigen3")
-IF (${IBAMR_FORCE_BUNDLED_Eigen3})
-  SET(IBAMR_USE_BUNDLED_Eigen3 TRUE)
+IF (${IBAMR_FORCE_BUNDLED_EIGEN3})
+  SET(IBAMR_USE_BUNDLED_EIGEN3 TRUE)
 ELSE()
+  # set up the root with the proper package name too
+  SET(Eigen3_ROOT ${EIGEN3_ROOT})
   FIND_PACKAGE(Eigen3 3.2.5 QUIET)
   IF(${Eigen3_FOUND})
-    SET(IBAMR_USE_BUNDLED_Eigen3 FALSE)
+    SET(IBAMR_USE_BUNDLED_EIGEN3 FALSE)
   ELSE()
-    SET(IBAMR_USE_BUNDLED_Eigen3 TRUE)
+    SET(IBAMR_USE_BUNDLED_EIGEN3 TRUE)
   ENDIF()
 ENDIF()
-IF(NOT ${IBAMR_USE_BUNDLED_Eigen3})
+IF(NOT ${IBAMR_USE_BUNDLED_EIGEN3})
   MESSAGE(STATUS "Found external Eigen3 ${Eigen3_VERSION} at ${EIGEN3_INCLUDE_DIRS}")
 ELSE()
   MESSAGE(STATUS "Setting up Eigen3 as a bundled dependency")
-  ADD_LIBRARY(BUNDLED_Eigen3 INTERFACE)
+  ADD_LIBRARY(BUNDLED_EIGEN3 INTERFACE)
   TARGET_INCLUDE_DIRECTORIES(
-    BUNDLED_Eigen3
+    BUNDLED_EIGEN3
     INTERFACE $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/contrib/eigen>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/contrib/eigen>)
   INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/eigen/Eigen DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib/eigen)
   INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/eigen/unsupported DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib/eigen)
-  INSTALL(TARGETS BUNDLED_Eigen3 EXPORT IBAMRTargets)
+  INSTALL(TARGETS BUNDLED_EIGEN3 EXPORT IBAMRTargets)
 ENDIF()
 
 #
@@ -210,30 +233,30 @@ ENDIF()
 #
 MESSAGE(STATUS "")
 MESSAGE(STATUS "Setting up muParser")
-IF(${IBAMR_FORCE_BUNDLED_muParser})
-  SET(IBAMR_USE_BUNDLED_muParser TRUE)
+IF(${IBAMR_FORCE_BUNDLED_MUPARSER})
+  SET(IBAMR_USE_BUNDLED_MUPARSER TRUE)
 ELSE()
-  FIND_PATH(muParser_INCLUDE_DIRS NAMES muParser.h HINTS ${muParser_ROOT}/include /usr/include/)
-  FIND_LIBRARY(muParser_LIBRARIES NAMES muparser HINTS ${muParser_ROOT}/lib /usr/lib)
-  IF("${muParser_INCLUDE_DIRS}" STREQUAL "muParser_INCLUDE_DIRS-NOTFOUND" OR
-      "${muParser_LIBRARIES}" STREQUAL "muParser_LIBRARIES-NOTFOUND")
-    SET(IBAMR_USE_BUNDLED_muParser TRUE)
+  FIND_PATH(MUPARSER_INCLUDE_DIRS NAMES muParser.h HINTS ${MUPARSER_ROOT}/include /usr/include/)
+  FIND_LIBRARY(MUPARSER_LIBRARIES NAMES muparser HINTS ${MUPARSER_ROOT}/lib /usr/lib)
+  IF("${MUPARSER_INCLUDE_DIRS}" STREQUAL "MUPARSER_INCLUDE_DIRS-NOTFOUND" OR
+      "${MUPARSER_LIBRARIES}" STREQUAL "MUPARSER_LIBRARIES-NOTFOUND")
+    SET(IBAMR_USE_BUNDLED_MUPARSER TRUE)
   ELSE()
-    SET(IBAMR_USE_BUNDLED_muParser FALSE)
+    SET(IBAMR_USE_BUNDLED_MUPARSER FALSE)
   ENDIF()
 ENDIF()
-IF(${IBAMR_USE_BUNDLED_muParser})
+IF(${IBAMR_USE_BUNDLED_MUPARSER})
   MESSAGE(STATUS "Setting up muParser as a bundled dependency")
-  ADD_LIBRARY(BUNDLED_muParser)
+  ADD_LIBRARY(BUNDLED_MUPARSER)
   TARGET_INCLUDE_DIRECTORIES(
-    BUNDLED_muParser
+    BUNDLED_MUPARSER
     PUBLIC
     $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/contrib/muparser/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/contrib/muparser>)
-  SET_PROPERTY(TARGET BUNDLED_muParser PROPERTY CXX_STANDARD 11)
-  TARGET_COMPILE_FEATURES(BUNDLED_muParser PUBLIC cxx_std_11)
+  SET_PROPERTY(TARGET BUNDLED_MUPARSER PROPERTY CXX_STANDARD 11)
+  TARGET_COMPILE_FEATURES(BUNDLED_MUPARSER PUBLIC cxx_std_11)
 
-  TARGET_SOURCES(BUNDLED_muParser
+  TARGET_SOURCES(BUNDLED_MUPARSER
     PRIVATE
     ${CMAKE_SOURCE_DIR}/ibtk/contrib/muparser/src/muParser.cpp
     ${CMAKE_SOURCE_DIR}/ibtk/contrib/muparser/src/muParserBase.cpp
@@ -262,11 +285,11 @@ IF(${IBAMR_USE_BUNDLED_muParser})
     ${CMAKE_SOURCE_DIR}/ibtk/contrib/muparser/include/muParserTokenReader.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib/muparser)
 
-  INSTALL(TARGETS BUNDLED_muParser EXPORT IBAMRTargets COMPONENT library)
+  INSTALL(TARGETS BUNDLED_MUPARSER EXPORT IBAMRTargets COMPONENT library)
 ELSE()
   MESSAGE(STATUS "Found external muParser")
-  MESSAGE(STATUS "muParser_INCLUDE_DIRS: ${muParser_INCLUDE_DIRS}")
-  MESSAGE(STATUS "muParser_LIBRARIES: ${muParser_LIBRARIES}")
+  MESSAGE(STATUS "MUPARSER_INCLUDE_DIRS: ${MUPARSER_INCLUDE_DIRS}")
+  MESSAGE(STATUS "MUPARSER_LIBRARIES: ${MUPARSER_LIBRARIES}")
 ENDIF()
 
 #
@@ -546,7 +569,7 @@ boost support or an external boost library.")
     ENDIF()
 
     IF(EXISTS ${LIBMESH_ROOT}/include/Eigen)
-      IF("${Eigen3_ROOT}" STREQUAL "${LIBMESH_ROOT}/include/Eigen")
+      IF("${EIGEN3_ROOT}" STREQUAL "${LIBMESH_ROOT}/include/Eigen")
         # OK
       ELSE()
         # If this happens then the provided version of Eigen3 appears to not
@@ -568,7 +591,7 @@ boost support or an external boost library.")
           MESSAGE(FATAL_ERROR "\
 libMesh appears to have been compiled with a bundled copy of Eigen3 (i.e., the \
 directory ${LIBMESH_ROOT}/include/Eigen exists) and this version of Eigen is \
-different from the one provided via via Eigen3_ROOT = ${Eigen3_ROOT}: i.e., \
+different from the one provided via via EIGEN3_ROOT = ${EIGEN3_ROOT}: i.e., \
 there are two versions of Eigen3 in the configuration path, which is not \
 supported. To fix this, delete the current libMesh installation, recompile \
 libMesh without Eigen, and reinstall libMesh. If you aren't sure what to do, \
@@ -1010,23 +1033,23 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${HYPRE_LIBRARIES}")
   TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${HYPRE_INCLUDE_DIRS}")
   # Boost (we only need headers):
-  IF(${IBAMR_USE_BUNDLED_Boost})
-    TARGET_LINK_LIBRARIES(${target_library} PUBLIC BUNDLED_Boost)
+  IF(${IBAMR_USE_BUNDLED_BOOST})
+    TARGET_LINK_LIBRARIES(${target_library} PUBLIC BUNDLED_BOOST)
   ELSE()
     TARGET_LINK_LIBRARIES(${target_library} PUBLIC Boost::headers)
   ENDIF()
   # Eigen3:
-  IF(${IBAMR_USE_BUNDLED_Eigen3})
-    TARGET_LINK_LIBRARIES(${target_library} PUBLIC BUNDLED_Eigen3)
+  IF(${IBAMR_USE_BUNDLED_EIGEN3})
+    TARGET_LINK_LIBRARIES(${target_library} PUBLIC BUNDLED_EIGEN3)
   ELSE()
     TARGET_LINK_LIBRARIES(${target_library} PUBLIC Eigen3::Eigen)
   ENDIF()
   # muParser:
-  IF(${IBAMR_USE_BUNDLED_muParser})
-    TARGET_LINK_LIBRARIES(${target_library} PUBLIC BUNDLED_muParser)
+  IF(${IBAMR_USE_BUNDLED_MUPARSER})
+    TARGET_LINK_LIBRARIES(${target_library} PUBLIC BUNDLED_MUPARSER)
   ELSE()
-    TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${muParser_LIBRARIES}")
-    TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${muParser_INCLUDE_DIRS}")
+    TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${MUPARSER_LIBRARIES}")
+    TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${MUPARSER_INCLUDE_DIRS}")
   ENDIF()
   # PETSc:
   TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${PETSC_LIBRARIES}")
