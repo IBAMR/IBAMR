@@ -24,17 +24,9 @@
 #include "IntVector.h"
 #include "tbox/Pointer.h"
 
-#include <iosfwd>
+#include <array>
 #include <string>
 #include <vector>
-
-namespace boost
-{
-template <class T, std::size_t N>
-class array;
-template <class T, std::size_t N, class Allocator>
-class multi_array;
-} // namespace boost
 
 namespace IBTK
 {
