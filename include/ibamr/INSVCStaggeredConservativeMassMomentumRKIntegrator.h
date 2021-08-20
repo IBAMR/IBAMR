@@ -13,8 +13,8 @@
 
 /////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
-#ifndef included_IBAMR_INSVCStaggeredConservativeMassMomentumIntegrator
-#define included_IBAMR_INSVCStaggeredConservativeMassMomentumIntegrator
+#ifndef included_IBAMR_INSVCStaggeredConservativeMassMomentumRKIntegrator
+#define included_IBAMR_INSVCStaggeredConservativeMassMomentumRKIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -62,7 +62,7 @@ class BasePatchHierarchy;
 namespace IBAMR
 {
 /*!
- * \brief Class INSVCStaggeredConservativeMassMomentumIntegrator integrates
+ * \brief Class INSVCStaggeredConservativeMassMomentumRKIntegrator integrates
  * the staggered density field
  *
  *  \f$ \frac{\partial \rho}{\partial t} + \nabla \cdot (\rho u) = S(x,t) \f$
@@ -70,7 +70,7 @@ namespace IBAMR
  * and computes the conservative form of the convective operator
  * \f$ \nabla \cdot (\rho u u)\f$.
  *
- * Class INSVCStaggeredConservativeMassMomentumIntegrator computes the convective
+ * Class INSVCStaggeredConservativeMassMomentumRKIntegrator computes the convective
  * derivative of a side-centered velocity field using various bounded-limiters
  * described by Patel and Natarajan.
  *
@@ -90,19 +90,19 @@ namespace IBAMR
  *
  * \see INSVCStaggeredHierarchyIntegrator
  */
-class INSVCStaggeredConservativeMassMomentumIntegrator : public virtual SAMRAI::tbox::DescribedClass
+class INSVCStaggeredConservativeMassMomentumRKIntegrator : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * \brief Class constructor.
      */
-    INSVCStaggeredConservativeMassMomentumIntegrator(std::string object_name,
-                                                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    INSVCStaggeredConservativeMassMomentumRKIntegrator(std::string object_name,
+                                                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Destructor.
      */
-    virtual ~INSVCStaggeredConservativeMassMomentumIntegrator();
+    virtual ~INSVCStaggeredConservativeMassMomentumRKIntegrator();
 
     /*!
      * \brief Integrate density and momentum field.
@@ -236,7 +236,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSVCStaggeredConservativeMassMomentumIntegrator() = delete;
+    INSVCStaggeredConservativeMassMomentumRKIntegrator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -245,7 +245,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSVCStaggeredConservativeMassMomentumIntegrator(const INSVCStaggeredConservativeMassMomentumIntegrator& from) =
+    INSVCStaggeredConservativeMassMomentumRKIntegrator(const INSVCStaggeredConservativeMassMomentumRKIntegrator& from) =
         delete;
 
     /*!
@@ -257,8 +257,8 @@ private:
      *
      * \return A reference to this object.
      */
-    INSVCStaggeredConservativeMassMomentumIntegrator&
-    operator=(const INSVCStaggeredConservativeMassMomentumIntegrator& that) = delete;
+    INSVCStaggeredConservativeMassMomentumRKIntegrator&
+    operator=(const INSVCStaggeredConservativeMassMomentumRKIntegrator& that) = delete;
 
     /*!
      * \brief Compute the advection velocity using simple averages
@@ -412,4 +412,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_INSVCStaggeredConservativeMassMomentumIntegrator
+#endif //#ifndef included_IBAMR_INSVCStaggeredConservativeMassMomentumRKIntegrator

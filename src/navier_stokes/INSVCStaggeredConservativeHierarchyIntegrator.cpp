@@ -17,7 +17,7 @@
 #include "ibamr/BrinkmanPenalizationStrategy.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
+#include "ibamr/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
@@ -133,9 +133,14 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
     }
 
     // Initialize conservative mass and momentum integrator.
-    d_rho_p_integrator = new INSVCStaggeredConservativeMassMomentumIntegrator(
-        "INSVCStaggeredConservativeHierarchyIntegrator::MassMomentumIntegrator",
-        input_db->getDatabase("mass_momentum_integrator_db"));
+    if (input_db->getDatabase("mass_momentum_integrator_db")->keyExists("density_time_stepping_type"))
+    {
+        if (input_db->getDatabase("mass_momentum_integrator_db")->getString("density_time_stepping_type") == "SSPRK3" ||
+            input_db->getDatabase("mass_momentum_integrator_db")->getString("density_time_stepping_type") == "SSPRK2")
+            d_rho_p_integrator = new INSVCStaggeredConservativeMassMomentumSSPRKIntegrator(
+                "INSVCStaggeredConservativeHierarchyIntegrator::MassMomentumIntegrator",
+                input_db->getDatabase("mass_momentum_integrator_db"));
+    }
     d_convective_op_type = "NONE";
 
     // Side centered state variable for density and interpolated density variable

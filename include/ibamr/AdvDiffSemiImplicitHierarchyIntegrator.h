@@ -376,6 +376,11 @@ private:
     AdvDiffSemiImplicitHierarchyIntegrator& operator=(const AdvDiffSemiImplicitHierarchyIntegrator& that) = delete;
 
     /*!
+     * compute heaviside.
+     */
+    void computeHeaviside(int H_current_idx, const int ls_current_idx);
+
+    /*!
      * Read input values from a given database.
      */
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);

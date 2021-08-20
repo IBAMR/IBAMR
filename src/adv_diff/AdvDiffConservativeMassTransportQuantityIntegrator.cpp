@@ -883,20 +883,21 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
                                                                false,
                                                                T_cc_bc_coefs);
 
+    double eval_time = d_current_time;
     d_hier_rho_bdry_fill->resetTransactionComponents(rho_transaction_comps);
     d_hier_rho_bdry_fill->setHomogeneousBc(homogeneous_bc); // seems like this is not used. Because setHomogeneouBc is
                                                             // called only in initializeOperatorState.
-    d_hier_rho_bdry_fill->fillData(d_current_time);
+    d_hier_rho_bdry_fill->fillData(eval_time);
     d_hier_rho_bdry_fill->resetTransactionComponents(d_rho_transaction_comps);
 
     d_hier_cp_bdry_fill->resetTransactionComponents(cp_transaction_comps);
     d_hier_cp_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    d_hier_cp_bdry_fill->fillData(d_current_time);
+    d_hier_cp_bdry_fill->fillData(eval_time);
     d_hier_cp_bdry_fill->resetTransactionComponents(d_cp_transaction_comps);
 
     d_hier_T_bdry_fill->resetTransactionComponents(T_transaction_comps);
     d_hier_T_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    d_hier_T_bdry_fill->fillData(d_current_time);
+    d_hier_T_bdry_fill->fillData(eval_time);
     d_hier_T_bdry_fill->resetTransactionComponents(d_T_transaction_comps);
 
     // Fill ghost cells for the velocity used to compute the density update
@@ -921,129 +922,63 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
     }
 
     // Compute the convective derivative.
-    for (int step = 0; step < d_num_steps; ++step)
-    {
-        double eval_time = std::numeric_limits<double>::quiet_NaN();
-        double w0 = std::numeric_limits<double>::quiet_NaN();
-        double w1 = std::numeric_limits<double>::quiet_NaN();
-        double w2 = std::numeric_limits<double>::quiet_NaN();
-        const double omega = dt / d_dt_prev;
-        const double sum_dt = dt + d_dt_prev;
-
-        switch (step)
-        {
-        case 0:
-            eval_time = d_current_time;
-            break;
-        case 1:
-            eval_time = d_current_time + dt;
-            if (d_cycle_num > 0)
-            {
-                w0 = 0.0, w1 = 0.0, w2 = 1.0;
-            }
-            else
-            {
-                w0 = -1.0 * omega, w1 = 1.0 + omega, w2 = 0.0;
-            }
-            break;
-        case 2:
-            eval_time = d_current_time + dt / 2.0;
-            if (d_cycle_num > 0)
-            {
-                w0 = -0.25 * dt * dt / (d_dt_prev * sum_dt);
-                w1 = 0.25 * (2.0 + omega);
-                w2 = 0.25 * (dt + 2.0 * d_dt_prev) / sum_dt;
-            }
-            else
-            {
-                w0 = -0.5 * omega, w1 = 1.0 + 0.5 * omega, w2 = 0.0;
-            }
-            break;
-        default:
-            TBOX_ERROR("This statement should not be reached");
-        }
         // Fill ghost cells for new density specific heat and temperature, if needed
-        if (step > 0)
-        {
-            std::vector<InterpolationTransactionComponent> update_rho_transaction_comps(1);
-            update_rho_transaction_comps[0] = InterpolationTransactionComponent(d_rho_cc_scratch_idx,
-                                                                                d_rho_cc_new_idx,
-                                                                                "CONSERVATIVE_LINEAR_REFINE",
-                                                                                false,
-                                                                                "CONSERVATIVE_COARSEN",
-                                                                                d_density_bdry_extrap_type,
-                                                                                false,
-                                                                                rho_cc_bc_coefs);
+    if (d_cycle_num > 0)
+    {
+        eval_time = d_current_time + dt / 2.0;
+        // compute rho^n+1/2
+        d_hier_cc_data_ops->linearSum(
+            d_rho_cc_scratch_idx, 0.5, d_rho_cc_new_idx, 0.5, d_rho_cc_current_idx, /*interior_only*/ true);
+        std::vector<InterpolationTransactionComponent> update_rho_transaction_comps(1);
+        update_rho_transaction_comps[0] = InterpolationTransactionComponent(d_rho_cc_scratch_idx,
+                                                                            "CONSERVATIVE_LINEAR_REFINE",
+                                                                            false,
+                                                                            "CONSERVATIVE_COARSEN",
+                                                                            d_density_bdry_extrap_type,
+                                                                            false,
+                                                                            rho_cc_bc_coefs);
 
-            d_hier_cc_data_ops->linearSum(
-                d_cp_cc_composite_idx, w0, d_cp_cc_old_idx, w1, d_cp_cc_current_idx, /*interior_only*/ true);
-            d_hier_cc_data_ops->axpy(
-                d_cp_cc_composite_idx, w2, d_cp_cc_new_idx, d_cp_cc_composite_idx, /*interior_only*/ true);
-            std::vector<InterpolationTransactionComponent> update_cp_transaction_comps(1);
-            update_cp_transaction_comps[0] = InterpolationTransactionComponent(d_cp_cc_scratch_idx,
-                                                                               d_cp_cc_composite_idx,
-                                                                               "CONSERVATIVE_LINEAR_REFINE",
-                                                                               false,
-                                                                               "CONSERVATIVE_COARSEN",
-                                                                               d_density_bdry_extrap_type,
-                                                                               false,
-                                                                               cp_cc_bc_coefs);
+        d_hier_cc_data_ops->linearSum(
+            d_cp_cc_scratch_idx, 0.5, d_cp_cc_new_idx, 0.5, d_cp_cc_current_idx, /*interior_only*/ true);
+        std::vector<InterpolationTransactionComponent> update_cp_transaction_comps(1);
+        update_cp_transaction_comps[0] = InterpolationTransactionComponent(d_cp_cc_scratch_idx,
+                                                                           "CONSERVATIVE_LINEAR_REFINE",
+                                                                           false,
+                                                                           "CONSERVATIVE_COARSEN",
+                                                                           d_density_bdry_extrap_type,
+                                                                           false,
+                                                                           cp_cc_bc_coefs);
 
-            d_hier_cc_data_ops->linearSum(
-                d_T_cc_composite_idx, w0, d_T_cc_old_idx, w1, d_T_cc_current_idx, /*interior_only*/ true);
-            d_hier_cc_data_ops->axpy(
-                d_T_cc_composite_idx, w2, d_T_cc_new_idx, d_T_cc_composite_idx, /*interior_only*/ true);
-            std::vector<InterpolationTransactionComponent> update_T_transaction_comps(1);
-            update_T_transaction_comps[0] = InterpolationTransactionComponent(d_T_cc_scratch_idx,
-                                                                              d_T_cc_composite_idx,
-                                                                              "CONSERVATIVE_LINEAR_REFINE",
-                                                                              false,
-                                                                              "CONSERVATIVE_COARSEN",
-                                                                              d_density_bdry_extrap_type,
-                                                                              false,
-                                                                              T_cc_bc_coefs);
-            //
-            d_hier_rho_bdry_fill->resetTransactionComponents(rho_transaction_comps);
-            d_hier_rho_bdry_fill->setHomogeneousBc(homogeneous_bc);
-            d_hier_rho_bdry_fill->fillData(eval_time);
-            d_hier_rho_bdry_fill->resetTransactionComponents(d_rho_transaction_comps);
+        d_hier_cc_data_ops->linearSum(
+            d_T_cc_scratch_idx, 0.5, d_T_cc_new_idx, 0.5, d_T_cc_current_idx, /*interior_only*/ true);
+        std::vector<InterpolationTransactionComponent> update_T_transaction_comps(1);
+        update_T_transaction_comps[0] = InterpolationTransactionComponent(d_T_cc_scratch_idx,
+                                                                          "CONSERVATIVE_LINEAR_REFINE",
+                                                                          false,
+                                                                          "CONSERVATIVE_COARSEN",
+                                                                          d_density_bdry_extrap_type,
+                                                                          false,
+                                                                          T_cc_bc_coefs);
+        //
+        d_hier_rho_bdry_fill->resetTransactionComponents(rho_transaction_comps);
+        d_hier_rho_bdry_fill->setHomogeneousBc(homogeneous_bc);
+        d_hier_rho_bdry_fill->fillData(eval_time);
+        d_hier_rho_bdry_fill->resetTransactionComponents(d_rho_transaction_comps);
 
-            d_hier_cp_bdry_fill->resetTransactionComponents(cp_transaction_comps);
-            d_hier_cp_bdry_fill->setHomogeneousBc(homogeneous_bc);
-            d_hier_cp_bdry_fill->fillData(eval_time);
-            d_hier_cp_bdry_fill->resetTransactionComponents(d_cp_transaction_comps);
+        d_hier_cp_bdry_fill->resetTransactionComponents(cp_transaction_comps);
+        d_hier_cp_bdry_fill->setHomogeneousBc(homogeneous_bc);
+        d_hier_cp_bdry_fill->fillData(eval_time);
+        d_hier_cp_bdry_fill->resetTransactionComponents(d_cp_transaction_comps);
 
-            d_hier_T_bdry_fill->resetTransactionComponents(T_transaction_comps);
-            d_hier_T_bdry_fill->setHomogeneousBc(homogeneous_bc);
-            d_hier_T_bdry_fill->fillData(eval_time);
-            d_hier_T_bdry_fill->resetTransactionComponents(d_T_transaction_comps);
+        d_hier_T_bdry_fill->resetTransactionComponents(T_transaction_comps);
+        d_hier_T_bdry_fill->setHomogeneousBc(homogeneous_bc);
+        d_hier_T_bdry_fill->fillData(eval_time);
+        d_hier_T_bdry_fill->resetTransactionComponents(d_T_transaction_comps);
 
-            // Compute an approximation to velocity at eval_time.
-            d_hier_fc_data_ops->linearSum(
-                d_V_composite_idx, w0, d_V_old_idx, w1, d_V_current_idx, /*interior_only*/ true);
-            d_hier_fc_data_ops->axpy(d_V_composite_idx, w2, d_V_new_idx, d_V_composite_idx, /*interior_only*/ true);
-
-            //            std::vector<InterpolationTransactionComponent> v_update_transaction_comps(1);
-            //            v_update_transaction_comps[0] = InterpolationTransactionComponent(d_V_scratch_idx,
-            //                                                                              d_V_composite_idx,
-            //                                                                              "CONSERVATIVE_LINEAR_REFINE",
-            //                                                                              false,
-            //                                                                              "CONSERVATIVE_COARSEN",
-            //                                                                              d_velocity_bdry_extrap_type,
-            //                                                                              false,
-            //                                                                              d_u_sc_bc_coefs);
-            //            d_hier_v_bdry_fill->resetTransactionComponents(v_transaction_comps);
-            //            StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-            //                d_u_sc_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
-            //            d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
-            //            d_hier_v_bdry_fill->fillData(eval_time);
-            //            d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
-            //                d_V_scratch_idx, d_coarsest_ln, d_finest_ln,
-            //                StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
-            //            enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
-            //            StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_sc_bc_coefs, nullptr);
-            //            d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
-        }
+        // Compute an approximation to velocity at eval_time.
+        d_hier_fc_data_ops->linearSum(
+            d_V_composite_idx, 0.5, d_V_new_idx, 0.5, d_V_current_idx, /*interior_only*/ true);
+    }
 
         // Compute the source term
         if (d_S_fcn)
@@ -1084,7 +1019,6 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
                 // Pointer<CellData<NDIM, double> > C_cur_data = patch->getPatchData(d_cp_cc_current_idx);
                 Pointer<CellData<NDIM, double> > C_pre_data = patch->getPatchData(d_cp_cc_scratch_idx);
                 Pointer<CellData<NDIM, double> > C_new_data = patch->getPatchData(d_cp_cc_new_idx);
-
                 // Pointer<CellData<NDIM, double> > T_cur_data = patch->getPatchData(d_T_cc_current_idx);
                 Pointer<CellData<NDIM, double> > T_pre_data = patch->getPatchData(d_T_cc_scratch_idx);
                 // Pointer<CellData<NDIM, double> > T_new_data = patch->getPatchData(d_T_cc_new_idx);
@@ -1123,17 +1057,9 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
                                         patch_upper,
                                         patch_box,
                                         d_density_convective_limiter);
-                //                std::ofstream rho_lim;
-                //                rho_lim.open("rho_lim.txt");
-                //                R_half_data->print(patch_box, rho_lim);
-                //                rho_lim.close();
 
                 // Compute the convective derivative with the penultimate density and
                 // velocity, if necessary
-                if ((d_density_time_stepping_type == FORWARD_EULER && step == 0) ||
-                    (d_density_time_stepping_type == SSPRK2 && step == 1) ||
-                    (d_density_time_stepping_type == SSPRK3 && step == 2))
-                {
                     std::vector<RobinBcCoefStrategy<NDIM>*> cp_cc_bc_coefs(1, d_cp_cc_bc_coefs);
 
                     // Enforce physical boundary conditions at inflow boundaries.
@@ -1217,75 +1143,35 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
                     N_data->print(patch_box, conv_data);
                     conv_data.close();
                     IBAMR_TIMER_STOP(t_apply_convective_operator);
-                }
 
-                // Compute the updated density
-                double a0, a1, a2;
-                switch (step)
-                {
-                case 0:
-                    a0 = 0.5;
-                    a1 = 0.5;
-                    a2 = 1.0;
-                    break;
-                case 1:
-                    if (d_density_time_stepping_type == SSPRK2)
-                    {
-                        a0 = 0.5;
-                        a1 = 0.5;
-                        a2 = 0.5;
-                        break;
-                    }
-                    else if (d_density_time_stepping_type == SSPRK3)
-                    {
-                        a0 = 0.75;
-                        a1 = 0.25;
-                        a2 = 0.25;
-                        break;
-                    }
-                    else
-                    {
-                        TBOX_ERROR("This statement should not be reached");
-                        break;
-                    }
-                case 2:
-                    a0 = 1.0 / 3.0;
-                    a1 = 2.0 / 3.0;
-                    a2 = 2.0 / 3.0;
-                    break;
-                default:
-                    TBOX_ERROR("This statement should not be reached");
-                }
-                computeDensityUpdate(R_new_data,
-                                     a0,
-                                     R_cur_data,
-                                     a1,
-                                     R_pre_data,
-                                     a2,
-                                     V_adv_data,
-                                     R_half_data,
-                                     R_src_data,
-                                     patch_box,
-                                     dt,
-                                     dx);
+                    // Compute the updated density rho_new = a0*rho_cur + a1*rho_pre - a2*dt*R(rho_lim, u_adv)
+                    const double a0 = 1.0;
+                    const double a1 = 0.0;
+                    const double a2 = 1.0;
+                    computeDensityUpdate(R_new_data,
+                                         a0,
+                                         R_cur_data,
+                                         a1,
+                                         R_pre_data,
+                                         a2,
+                                         V_adv_data,
+                                         R_half_data,
+                                         R_src_data,
+                                         patch_box,
+                                         dt,
+                                         dx);
 
-                if ((d_density_time_stepping_type == FORWARD_EULER && step == 0) ||
-                    (d_density_time_stepping_type == SSPRK2 && step == 1) ||
-                    (d_density_time_stepping_type == SSPRK3 && step == 2))
-                {
                     computeMassConservationMagnitude(
-                        M_data, R_new_data, R_pre_data, V_adv_data, R_half_data, patch_box, dt, dx);
+                        M_data, R_new_data, R_cur_data, V_adv_data, R_half_data, patch_box, dt, dx);
 
                     for (Box<NDIM>::Iterator it(patch_box); it; it++)
                     {
                         CellIndex<NDIM> ci(it());
 
-                        (*N_data)(ci) -= (*C_new_data)(ci) * (*T_pre_data)(ci) * (*M_data)(ci);
+                        (*N_data)(ci) -= (*C_pre_data)(ci) * (*T_pre_data)(ci) * (*M_data)(ci);
                     }
-                }
             }
         }
-    }
 
     // Refill boundary values of newest density
     const double new_time = d_current_time + dt;

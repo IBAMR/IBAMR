@@ -387,6 +387,7 @@ private:
      * \brief Compute and store the Heaviside function value on the cell-centers.
      */
     void computeHeavisideFunction(int H_idx,
+                                  SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
                                   const int phi_idx,
                                   const double current_time,
                                   const double new_time,

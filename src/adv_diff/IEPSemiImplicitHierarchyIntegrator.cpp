@@ -650,8 +650,6 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
             level->allocatePatchData(d_g_firstder_idx, current_time); // should this be new time?
         if (!level->checkAllocated(d_g_secondder_idx)) level->allocatePatchData(d_g_secondder_idx, current_time);
         if (!level->checkAllocated(d_p_firstder_idx)) level->allocatePatchData(d_p_firstder_idx, current_time);
-        //        if (!level->checkAllocated(d_chemical_potential_idx))
-        //            level->allocatePatchData(d_chemical_potential_idx, current_time);
         if (!level->checkAllocated(d_lf_pre_idx)) level->allocatePatchData(d_lf_pre_idx, current_time);
         if (!level->checkAllocated(d_grad_lf_idx)) level->allocatePatchData(d_grad_lf_idx, current_time);
         if (!level->checkAllocated(d_H_sc_idx)) level->allocatePatchData(d_H_sc_idx, current_time);
@@ -718,9 +716,9 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     for (auto Q_var : d_Q_var)
     {
         ls_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
+        const double integrator_time = current_time;
+        computeHeavisideFunction(d_H_current_idx, Q_var, ls_current_idx, current_time, new_time, integrator_time);
     }
-    d_integrator_time = current_time;
-    computeHeavisideFunction(d_H_current_idx, ls_current_idx, current_time, new_time, d_integrator_time);
     computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, d_lf_current_idx);
 
     //    d_hier_cc_data_ops->scale(d_lf_C_idx, 1.0 / dt, d_H_current_idx);
@@ -1128,9 +1126,9 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
     for (auto Q_var : d_Q_var)
     {
         ls_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
+        const double integrator_time = new_time;
+        computeHeavisideFunction(d_H_new_idx, Q_var, ls_new_idx, current_time, new_time, integrator_time);
     }
-    d_integrator_time = new_time;
-    computeHeavisideFunction(d_H_new_idx, ls_new_idx, current_time, new_time, d_integrator_time);
 
     // update C coefficients.
     if (cycle_num > 0) computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, d_lf_new_idx);
@@ -1328,7 +1326,6 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         pout << d_object_name << ":" << d_lf_var->getName()
              << "::integrateHierarchy():WARNING: linear solver iterations == max iterations\n";
     }
-    // boundLiquidFraction(lf_new_idx);
 
     // Reset the right-hand side vector.
     if (d_lf_u_var)
@@ -1350,8 +1347,8 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
     }
 
     // compute LHS of AC equation using lf^n+1,m+1
-    computeLHSOfLiquidFractionEquation(
-        d_lf_lhs_idx, lf_N_scratch_idx, dt, cycle_num, new_time, current_time, half_time);
+    //     computeLHSOfLiquidFractionEquation(
+    //        d_lf_lhs_idx, lf_N_scratch_idx, dt, cycle_num, new_time, current_time, half_time);
     // Compute chemical potential using lf^n+1.
     computeChemicalPotential(d_chemical_potential_idx, d_H_sc_idx, new_time);
 
@@ -1445,6 +1442,9 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
             }
 
             d_rho_p_integrator->integrate(dt);
+            const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+            std::cout << "max norm of d_M_idx \t" << d_hier_cc_data_ops->maxNorm(d_M_idx, wgt_cc_idx) << "\tat cycle\t"
+                      << cycle_num << std::endl;
         }
 
         d_updated_rho_cc_idx =
@@ -1460,55 +1460,52 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         d_hier_cc_data_ops->copyData(d_T_C_idx, d_C_new_idx);
         std::cout << "L2 norm of d_T_C_idx\t" << d_hier_cc_data_ops->L2Norm(d_T_C_idx) << std::endl;
 
-        if (cycle_num > 0)
+        // Setup the problem coefficients for the linear solve
+        switch (d_T_diffusion_time_stepping_type)
         {
-            // Setup the problem coefficients for the linear solve
-            switch (d_T_diffusion_time_stepping_type)
-            {
-            case BACKWARD_EULER:
-                alpha = 1.0;
-                break;
-            case FORWARD_EULER:
-                alpha = 0.0;
-                break;
-            case TRAPEZOIDAL_RULE:
-                alpha = 0.5;
-                break;
-            default:
-                TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                                         << "  unsupported diffusion time stepping type: "
-                                         << enum_to_string<TimeSteppingType>(d_T_diffusion_time_stepping_type) << " \n"
-                                         << "  valid choices are: BACKWARD_EULER, "
-                                            "FORWARD_EULER, TRAPEZOIDAL_RULE\n");
-            }
-
-            apply_time = new_time;
-            for (unsigned k = 0; k < d_reset_kappa_fcns.size(); ++k)
-            {
-                d_reset_kappa_fcns[k](T_diff_coef_new_idx,
-                                      d_T_diffusion_coef_var,
-                                      d_hier_math_ops,
-                                      -1 /*cycle_num*/,
-                                      apply_time,
-                                      current_time,
-                                      new_time,
-                                      d_reset_kappa_fcns_ctx[k]);
-
-                // for plotting purpose.
-                static const bool synch_cf_interface = true;
-                d_hier_math_ops->interp(d_D_cc_new_idx,
-                                        d_D_cc_var,
-                                        T_diff_coef_new_idx,
-                                        d_T_diffusion_coef_var,
-                                        d_no_fill_op,
-                                        d_integrator_time,
-                                        synch_cf_interface);
-            }
-
-            d_hier_sc_data_ops->scale(T_diff_coef_scratch_idx, -alpha, T_diff_coef_new_idx);
-            std::cout << "L2 norm of T_diff_coef_scratch_idx\t" << d_hier_sc_data_ops->L2Norm(T_diff_coef_scratch_idx)
-                      << std::endl;
+        case BACKWARD_EULER:
+            alpha = 1.0;
+            break;
+        case FORWARD_EULER:
+            alpha = 0.0;
+            break;
+        case TRAPEZOIDAL_RULE:
+            alpha = 0.5;
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                                     << "  unsupported diffusion time stepping type: "
+                                     << enum_to_string<TimeSteppingType>(d_T_diffusion_time_stepping_type) << " \n"
+                                     << "  valid choices are: BACKWARD_EULER, "
+                                        "FORWARD_EULER, TRAPEZOIDAL_RULE\n");
         }
+
+        apply_time = new_time;
+        for (unsigned k = 0; k < d_reset_kappa_fcns.size(); ++k)
+        {
+            d_reset_kappa_fcns[k](T_diff_coef_new_idx,
+                                  d_T_diffusion_coef_var,
+                                  d_hier_math_ops,
+                                  -1 /*cycle_num*/,
+                                  apply_time,
+                                  current_time,
+                                  new_time,
+                                  d_reset_kappa_fcns_ctx[k]);
+
+            // for plotting purpose.
+            static const bool synch_cf_interface = true;
+            d_hier_math_ops->interp(d_D_cc_new_idx,
+                                    d_D_cc_var,
+                                    T_diff_coef_new_idx,
+                                    d_T_diffusion_coef_var,
+                                    d_no_fill_op,
+                                    d_integrator_time,
+                                    synch_cf_interface);
+        }
+
+        d_hier_sc_data_ops->scale(T_diff_coef_scratch_idx, -alpha, T_diff_coef_new_idx);
+        std::cout << "L2 norm of T_diff_coef_scratch_idx\t" << d_hier_sc_data_ops->L2Norm(T_diff_coef_scratch_idx)
+                  << std::endl;
 
         //        std::cout << "L2 norm of T_rhs_scratch_idx\t" << d_hier_cc_data_ops->L2Norm(T_rhs_scratch_idx) <<
         //        std::endl; std::cout << "L2 norm of T_N_scratch_idx\t" << d_hier_cc_data_ops->L2Norm(T_N_scratch_idx)
@@ -2039,6 +2036,7 @@ IEPSemiImplicitHierarchyIntegrator::setAdvectionVelocityTemperatureEquation(Poin
 
 void
 IEPSemiImplicitHierarchyIntegrator::computeHeavisideFunction(int H_idx,
+                                                             Pointer<CellVariable<NDIM, double> > Q_var,
                                                              const int phi_idx,
                                                              const double current_time,
                                                              const double new_time,
@@ -2067,7 +2065,7 @@ IEPSemiImplicitHierarchyIntegrator::computeHeavisideFunction(int H_idx,
                 CellIndex<NDIM> ci(it());
                 const double phi = (*phi_data)(ci);
 
-                if (MathUtilities<double>::equalEps(integrator_time, current_time))
+                if (MathUtilities<double>::equalEps(integrator_time, current_time) && Q_var->getName() == "ls_var")
                     (*H_data)(ci) = IBTK::smooth_heaviside(phi, alpha);
                 else
                     (*H_data)(ci) = phi;

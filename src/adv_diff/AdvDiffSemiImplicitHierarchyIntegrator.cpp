@@ -519,6 +519,20 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
         }
     }
 
+    // shynchronize H with levelset
+    //    int ls_current_idx = -1, H_current_idx = -1;
+    //    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
+    //    {
+    //        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
+    //        if (Q_var->getName() == "ls_var") ls_current_idx = var_db->mapVariableAndContextToIndex(Q_var,
+    //        getCurrentContext()); if (Q_var->getName() == "heaviside_var")
+    //        {
+    //            H_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
+    //            computeHeaviside(H_current_idx, ls_current_idx);
+    //        }
+    //
+    //    }
+
     // Setup the operators and solvers and compute the right-hand-side terms.
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
@@ -964,6 +978,46 @@ AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Databas
 } // putToDatabaseSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
+void
+AdvDiffSemiImplicitHierarchyIntegrator::computeHeaviside(int H_current_idx, const int ls_current_idx)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+    std::cout << "max norm of ls \t " << d_hier_cc_data_ops->maxNorm(ls_current_idx, wgt_cc_idx) << "max norm of H \t "
+              << d_hier_cc_data_ops->maxNorm(H_current_idx, wgt_cc_idx) << std::endl;
+    for (const auto& Q_var : d_Q_var)
+    {
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                const Box<NDIM>& patch_box = patch->getBox();
+                const double* patch_dx = patch_geom->getDx();
+                double vol_cell = 1.0;
+                for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
+                const int num_interface_cells = 2.0;
+                const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+
+                Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(ls_current_idx);
+                Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_current_idx);
+                for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                {
+                    CellIndex<NDIM> ci(it());
+                    const double phi = (*phi_data)(ci);
+
+                    (*H_data)(ci) = IBTK::smooth_heaviside(phi, alpha);
+                }
+            }
+        }
+    }
+
+    return;
+}
 
 void
 AdvDiffSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> db, bool is_from_restart)
