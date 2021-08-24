@@ -562,18 +562,6 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     if (input_db->keyExists("U_mean_coarsen_type")) d_U_mean_coarsen_type = input_db->getString("U_mean_coarsen_type");
     if (input_db->keyExists("U_mean_refine_type")) d_U_mean_refine_type = input_db->getString("U_mean_refine_type");
 
-    if (input_db->keyExists("UU_mean_coarsen_type"))
-        d_UU_mean_coarsen_type = input_db->getString("UU_mean_coarsen_type");
-    if (input_db->keyExists("UU_mean_refine_type")) d_UU_mean_refine_type = input_db->getString("UU_mean_refine_type");
-
-    if (input_db->keyExists("UU_fluct_coarsen_type"))
-        d_UU_fluct_coarsen_type = input_db->getString("UU_fluct_coarsen_type");
-    if (input_db->keyExists("UU_fluct_refine_type"))
-        d_UU_fluct_refine_type = input_db->getString("UU_fluct_refine_type");
-
-    if (input_db->keyExists("k_coarsen_type")) d_k_coarsen_type = input_db->getString("k_coarsen_type");
-    if (input_db->keyExists("k_refine_type")) d_k_refine_type = input_db->getString("k_refine_type");
-
     // Initialize all variables.  The velocity, pressure, body force, and fluid
     // source variables were created above in the constructor for the
     // INSHierarchyIntegrator base class.
@@ -597,10 +585,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
 
     if (d_flow_averaging_interval)
     {
-        d_U_mean_var = new CellVariable<NDIM, double>(d_object_name + "::U_mean_cc", NDIM);
-        d_UU_mean_var = new CellVariable<NDIM, double>(d_object_name + "::UU_mean_cc", NDIM * NDIM);
-        d_UU_fluct_var = new CellVariable<NDIM, double>(d_object_name + "::UU_fluct_cc", NDIM * NDIM);
-        d_k_var = new CellVariable<NDIM, double>(d_object_name + "::k_cc");
+        d_U_mean_var = new SideVariable<NDIM, double>(d_object_name + "::U_mean");
     }
     return;
 } // INSStaggeredHierarchyIntegrator
@@ -947,37 +932,9 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
                          d_U_mean_new_idx,
                          d_U_mean_scratch_idx,
                          d_U_mean_var,
-                         cell_ghosts,
+                         side_ghosts,
                          d_U_mean_coarsen_type,
                          d_U_mean_refine_type);
-    }
-
-    if (d_UU_mean_var)
-    {
-        registerVariable(d_UU_mean_current_idx,
-                         d_UU_mean_new_idx,
-                         d_UU_mean_scratch_idx,
-                         d_UU_mean_var,
-                         cell_ghosts,
-                         d_UU_mean_coarsen_type,
-                         d_UU_mean_refine_type);
-    }
-
-    if (d_UU_fluct_var)
-    {
-        registerVariable(d_UU_fluct_current_idx,
-                         d_UU_fluct_new_idx,
-                         d_UU_fluct_scratch_idx,
-                         d_UU_fluct_var,
-                         cell_ghosts,
-                         d_UU_fluct_coarsen_type,
-                         d_UU_fluct_refine_type);
-    }
-
-    if (d_k_var)
-    {
-        registerVariable(
-            d_k_current_idx, d_k_new_idx, d_k_scratch_idx, d_k_var, cell_ghosts, d_k_coarsen_type, d_k_refine_type);
     }
 
     // Register variables for plotting.
@@ -1036,60 +993,6 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
         {
             registerVariable(d_EE_idx, d_EE_var, no_ghosts, getCurrentContext());
             d_visit_writer->registerPlotQuantity("EE", "TENSOR", d_EE_idx);
-        }
-
-        if (d_U_mean_var)
-        {
-            d_visit_writer->registerPlotQuantity("U_mean", "VECTOR", d_U_mean_current_idx, 0, d_U_scale);
-            for (unsigned int i = 0; i < NDIM; ++i)
-            {
-                const std::string suffix = (i == 0 ? "x" : i == 1 ? "y" : "z");
-                d_visit_writer->registerPlotQuantity("U_mean_" + suffix, "SCALAR", d_U_mean_current_idx, i, d_U_scale);
-            }
-        }
-
-        if (d_UU_mean_var)
-        {
-            d_visit_writer->registerPlotQuantity("UU_mean", "TENSOR", d_UU_mean_current_idx, 0, std::pow(d_U_scale, 2));
-            for (unsigned int i = 0; i < NDIM; ++i)
-            {
-                for (unsigned int j = 0; j < NDIM; ++j)
-                {
-                    const std::string suffix = std::string(i == 0 ? "x" :
-                                                           i == 1 ? "y" :
-                                                                    "z") +
-                                               std::string(j == 0 ? "x" :
-                                                           j == 1 ? "y" :
-                                                                    "z");
-                    d_visit_writer->registerPlotQuantity(
-                        "UU_mean_" + suffix, "SCALAR", d_UU_mean_current_idx, i * NDIM + j, std::pow(d_U_scale, 2));
-                }
-            }
-        }
-
-        if (d_UU_fluct_var)
-        {
-            d_visit_writer->registerPlotQuantity(
-                "UU_fluct", "TENSOR", d_UU_fluct_current_idx, 0, std::pow(d_U_scale, 2));
-            for (unsigned int i = 0; i < NDIM; ++i)
-            {
-                for (unsigned int j = 0; j < NDIM; ++j)
-                {
-                    const std::string suffix = std::string(i == 0 ? "x" :
-                                                           i == 1 ? "y" :
-                                                                    "z") +
-                                               std::string(j == 0 ? "x" :
-                                                           j == 1 ? "y" :
-                                                                    "z");
-                    d_visit_writer->registerPlotQuantity(
-                        "UU_fluct_" + suffix, "SCALAR", d_UU_fluct_current_idx, i * NDIM + j, std::pow(d_U_scale, 2));
-                }
-            }
-        }
-
-        if (d_k_var)
-        {
-            d_visit_writer->registerPlotQuantity("k", "SCALAR", d_k_current_idx);
         }
     }
 
@@ -1156,40 +1059,7 @@ INSStaggeredHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy
     // Initialize mean quantities.
     if (d_flow_averaging_interval && initial_time)
     {
-        for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_current_idx);
-                Pointer<CellData<NDIM, double> > U_mean_data = patch->getPatchData(d_U_mean_current_idx);
-                Pointer<CellData<NDIM, double> > UU_mean_data = patch->getPatchData(d_UU_mean_current_idx);
-                Pointer<CellData<NDIM, double> > UU_fluct_data = patch->getPatchData(d_UU_fluct_current_idx);
-                Pointer<CellData<NDIM, double> > k_data = patch->getPatchData(d_k_current_idx);
-                const Box<NDIM>& patch_box = patch->getBox();
-                for (Box<NDIM>::Iterator it(patch_box); it; it++)
-                {
-                    const hier::Index<NDIM>& ic = it();
-                    VectorNd U;
-                    for (unsigned int i = 0; i < NDIM; ++i)
-                    {
-                        U(i) = 0.5 * ((*U_data)(SideIndex<NDIM>(ic, i, SideIndex<NDIM>::Upper)) +
-                                      (*U_data)(SideIndex<NDIM>(ic, i, SideIndex<NDIM>::Lower)));
-                    }
-                    for (unsigned int i = 0; i < NDIM; ++i)
-                    {
-                        (*U_mean_data)(ic, i) = U(i);
-                        for (unsigned int j = 0; j < NDIM; ++j)
-                        {
-                            (*UU_mean_data)(ic, NDIM * i + j) = U(i) * U(j);
-                            (*UU_fluct_data)(ic, NDIM * i + j) = 0.0;
-                        }
-                    }
-                    (*k_data)(ic) = 0.0;
-                }
-            }
-        }
+        d_hier_sc_data_ops->copyData(d_U_mean_current_idx, d_U_current_idx);
     }
 
     // When necessary, initialize the value of the advection velocity registered
@@ -1388,9 +1258,6 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
     if (d_flow_averaging_interval)
     {
         d_hier_cc_data_ops->copyData(d_U_mean_new_idx, d_U_mean_current_idx);
-        d_hier_cc_data_ops->copyData(d_UU_mean_new_idx, d_UU_mean_current_idx);
-        d_hier_cc_data_ops->copyData(d_UU_fluct_new_idx, d_UU_fluct_current_idx);
-        d_hier_cc_data_ops->copyData(d_k_new_idx, d_k_current_idx);
     }
 
     // Execute any registered callbacks.
@@ -1576,100 +1443,12 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
     {
         // N is the number of samples.  Currently we always capture the value
         // at the initial time, which is why N is shifted by 1.
-        const double N = 1 + new_time_step / d_flow_averaging_interval;
-        const double weight = ((N - 1.0) / N);
+        const int N = 1 + new_time_step / d_flow_averaging_interval;
 
-        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-                Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_new_idx);
-                Pointer<CellData<NDIM, double> > U_mean_data = patch->getPatchData(d_U_mean_new_idx);
-                Pointer<CellData<NDIM, double> > UU_mean_data = patch->getPatchData(d_UU_mean_new_idx);
-                Pointer<CellData<NDIM, double> > UU_fluct_data = patch->getPatchData(d_UU_fluct_new_idx);
-                Pointer<CellData<NDIM, double> > k_data = patch->getPatchData(d_k_new_idx);
-                for (Box<NDIM>::Iterator it(patch_box); it; it++)
-                {
-                    const hier::Index<NDIM>& ic = it();
-
-                    // To simplifiy notation in this comment, define U = mean(u).
-                    //
-                    // We decompose u as u = U + u', so u' = u - U, and we
-                    // track the mean values of u(i), u(i)*u(j), and
-                    // u'(i)*u'(j).  These values are needed to determine the
-                    // turbulent kinetic energy and Reynolds stresses.
-                    //
-                    // Turbulent kinetic energy is k = 0.5*(mean(u'^2) +
-                    // mean(v'^2) + mean(w'^2)).
-                    //
-                    // Reynolds stresses are rho * mean(u'(i) * u'(j)).
-                    //
-                    // TODO: These tensors are all symmetric, so we could use
-                    // Voigt notation to cut down on redundant data storage.
-                    //
-                    // TODO: Consider adding a helper function to translate
-                    // between tensor indices and data depth.
-
-                    // Evaluate the current velocity at the cell center at the
-                    // end of the current time interval:
-                    VectorNd u;
-                    for (unsigned int i = 0; i < NDIM; ++i)
-                    {
-                        u(i) = 0.5 * ((*U_data)(SideIndex<NDIM>(ic, i, SideIndex<NDIM>::Upper)) +
-                                      (*U_data)(SideIndex<NDIM>(ic, i, SideIndex<NDIM>::Lower)));
-                    }
-
-                    // Compute the mean values of u(i), u'(i), and u(i)*u(j)
-                    // at the end of the current time interval:
-                    VectorNd u_mean, u_fluct;
-                    MatrixNd uu_mean;
-                    for (unsigned int i = 0; i < NDIM; ++i)
-                    {
-                        u_mean(i) = weight * (*U_mean_data)(ic, i) + (1.0 - weight) * u(i);
-                        u_fluct(i) = u(i) - u_mean(i);
-                        for (unsigned int j = 0; j < NDIM; ++j)
-                        {
-                            uu_mean(i, j) = weight * (*UU_mean_data)(ic, NDIM * i + j) + (1.0 - weight) * u(i) * u(j);
-                        }
-                    }
-
-                    // Compute the mean values of u'(i)*u'(j) at the end of
-                    // the current time interval:
-                    MatrixNd uu_fluct;
-                    for (unsigned int i = 0; i < NDIM; ++i)
-                    {
-                        for (unsigned int j = 0; j < NDIM; ++j)
-                        {
-                            uu_fluct(i, j) =
-                                weight * (*UU_fluct_data)(ic, NDIM * i + j) + (1.0 - weight) * u_fluct(i) * u_fluct(j);
-                        }
-                    }
-
-                    // Evaluate the turbulent kinetic energy at the end of the
-                    // current time interval:
-                    double k = 0.0;
-                    for (unsigned int i = 0; i < NDIM; ++i)
-                    {
-                        k += 0.5 * uu_fluct(i, i);
-                    }
-
-                    // Store the values:
-                    (*k_data)(ic) = k;
-                    for (unsigned int i = 0; i < NDIM; ++i)
-                    {
-                        (*U_mean_data)(ic, i) = u_mean(i);
-                        for (unsigned int j = 0; j < NDIM; ++j)
-                        {
-                            (*UU_mean_data)(ic, NDIM * i + j) = uu_mean(i, j);
-                            (*UU_fluct_data)(ic, NDIM * i + j) = uu_fluct(i, j);
-                        }
-                    }
-                }
-            }
-        }
+        // u_mean := ((N-1) / N) u_mean + (1/N) u
+        const double alpha = (N - 1.0) / N;
+        const double beta = 1.0 / N;
+        d_hier_sc_data_ops->linearSum(d_U_mean_new_idx, alpha, d_U_mean_current_idx, beta, d_U_new_idx);
     }
 
     // Execute any registered callbacks.
