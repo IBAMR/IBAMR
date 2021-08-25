@@ -281,7 +281,7 @@ protected:
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_rho_fcn;
 
-    int d_M_idx = IBTK::invalid_index;
+    int d_M_idx = IBTK::invalid_index, d_rho_composite_idx = IBTK::invalid_index;
 
 private:
     /*!

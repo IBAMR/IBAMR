@@ -1114,6 +1114,8 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::INSVCStaggeredConservativeMa
         d_rho_var = new SideVariable<NDIM, double>(rho_sc_name);
         d_rho_scratch_idx = var_db->registerVariableAndContext(
             d_rho_var, var_db->getContext(rho_sc_name + "::SCRATCH"), IntVector<NDIM>(d_density_limiter_gcw));
+        d_rho_composite_idx = var_db->registerVariableAndContext(
+            d_rho_var, var_db->getContext(rho_sc_name + "::COMPOSITE"), IntVector<NDIM>(NOGHOSTS));
         d_rho_new_idx = var_db->registerVariableAndContext(
             d_rho_var, var_db->getContext(rho_sc_name + "::NEW"), IntVector<NDIM>(NOGHOSTS));
     }
@@ -1280,8 +1282,9 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
 
         // Fill ghost cells for new density and velocity, if needed
         std::vector<InterpolationTransactionComponent> update_transaction_comps(1);
-        d_hier_sc_data_ops->linearSum(d_rho_scratch_idx, 0.5, d_rho_current_idx, 0.5, d_rho_new_idx);
+        d_hier_sc_data_ops->linearSum(d_rho_composite_idx, 0.5, d_rho_current_idx, 0.5, d_rho_new_idx);
         update_transaction_comps[0] = InterpolationTransactionComponent(d_rho_scratch_idx,
+                                                                        d_rho_composite_idx,
                                                                         "CONSERVATIVE_LINEAR_REFINE",
                                                                         false,
                                                                         "CONSERVATIVE_COARSEN",
@@ -1537,6 +1540,7 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::initializeTimeIntegrator(
         if (!level->checkAllocated(d_V_composite_idx)) level->allocatePatchData(d_V_composite_idx);
         if (!level->checkAllocated(d_rho_scratch_idx)) level->allocatePatchData(d_rho_scratch_idx);
         if (!level->checkAllocated(d_rho_new_idx)) level->allocatePatchData(d_rho_new_idx);
+        if (!level->checkAllocated(d_rho_composite_idx)) level->allocatePatchData(d_rho_composite_idx);
         if (!level->checkAllocated(d_S_scratch_idx)) level->allocatePatchData(d_S_scratch_idx);
     }
 
@@ -1580,6 +1584,7 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::deallocateTimeIntegrator()
         if (level->checkAllocated(d_V_composite_idx)) level->deallocatePatchData(d_V_composite_idx);
         if (level->checkAllocated(d_rho_scratch_idx)) level->deallocatePatchData(d_rho_scratch_idx);
         if (level->checkAllocated(d_rho_new_idx)) level->deallocatePatchData(d_rho_new_idx);
+        if (level->checkAllocated(d_rho_composite_idx)) level->deallocatePatchData(d_rho_composite_idx);
         if (level->checkAllocated(d_S_scratch_idx)) level->deallocatePatchData(d_S_scratch_idx);
     }
 

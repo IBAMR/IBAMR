@@ -1451,8 +1451,7 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
                       << cycle_num << std::endl;
         }
 
-        d_updated_rho_cc_idx =
-            d_rho_p_integrator ? rho_p_cc_integrator->getUpdatedCellCenteredDensityPatchDataIndex() : rho_new_idx;
+        d_updated_rho_cc_idx = d_rho_p_integrator ? d_rho_p_integrator->getUpdatedDensityPatchDataIndex() : rho_new_idx;
         d_hier_cc_data_ops->copyData(rho_new_idx,
                                      d_updated_rho_cc_idx,
                                      /*interior_only*/ true);
