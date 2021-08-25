@@ -20,6 +20,7 @@
 
 #include <ibamr/config.h>
 
+#include "ibamr/INSVCStaggeredConservativeMassMomentumRKIntegrator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_enums.h"
 
@@ -90,7 +91,7 @@ namespace IBAMR
  *
  * \see INSVCStaggeredHierarchyIntegrator
  */
-class INSVCStaggeredConservativeMassMomentumSSPRKIntegrator : public virtual SAMRAI::tbox::DescribedClass
+class INSVCStaggeredConservativeMassMomentumSSPRKIntegrator : public INSVCStaggeredConservativeMassMomentumRKIntegrator
 {
 public:
     /*!
@@ -102,133 +103,36 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~INSVCStaggeredConservativeMassMomentumSSPRKIntegrator();
+    ~INSVCStaggeredConservativeMassMomentumSSPRKIntegrator();
 
     /*!
      * \brief Integrate density and momentum field.
      */
-    void integrate(double dt);
+    void integrate(double dt) override;
 
-    /*!
-     * \name General operator functionality.
-     */
-    //\{
-
-    /*!
-     * \brief Compute hierarchy dependent data required for time integrating variables.
-     */
-    void initializeTimeIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > base_hierarchy);
-
-    /*!
-     * \brief Remove all hierarchy dependent data allocated by
-     * initializeTimeIntegrator().
-     *
-     * \note It is safe to call deallocateTimeIntegrator() when the time integrator
-     * is already deallocated.
-     *
-     * \see initializeTimeIntegrator
-     */
-    void deallocateTimeIntegrator();
+    //    /*!
+    //     * \name General operator functionality.
+    //     */
+    //    //\{
+    //
+    //    /*!
+    //     * \brief Compute hierarchy dependent data required for time integrating variables.
+    //     */
+    //    void initializeTimeIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > base_hierarchy)
+    //    override;
+    //
+    //    /*!
+    //     * \brief Remove all hierarchy dependent data allocated by
+    //     * initializeTimeIntegrator().
+    //     *
+    //     * \note It is safe to call deallocateTimeIntegrator() when the time integrator
+    //     * is already deallocated.
+    //     *
+    //     * \see initializeTimeIntegrator
+    //     */
+    //    void deallocateTimeIntegrator() override;
 
     //\}
-
-    /*!
-     * \brief Set the current side-centered density patch data index.
-     */
-    void setSideCenteredDensityPatchDataIndex(int rho_sc_idx);
-
-    /*!
-     * \brief Set the new side-centered convective derivative patch data index.
-     */
-    void setSideCenteredConvectiveDerivativePatchDataIndex(int N_sc_idx);
-
-    /*!
-     * \brief Set the patch index to store mass conservation.
-     */
-    void setMassConservationPatchDataIndex(int M_idx);
-
-    /*
-     * \brief Set the boundary condition object for the side-centered velocity.
-     */
-    void setSideCenteredVelocityBoundaryConditions(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_sc_bc_coefs);
-
-    /*
-     * \brief Set the boundary condition object for the side-centered density.
-     */
-    void setSideCenteredDensityBoundaryConditions(
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& rho_sc_bc_coefs);
-
-    /*!
-     * \brief Get the newly constructed side-centered density patch data index.
-     *
-     * \note This data is produced as a part of the apply() routine and should be used
-     * in the linear operator for the INSVC solver.
-     */
-    int getUpdatedSideCenteredDensityPatchDataIndex();
-
-    /*!
-     * \brief Set an optional mass density source term.
-     */
-    void setMassDensitySourceTerm(const SAMRAI::tbox::Pointer<IBTK::CartGridFunction> S_fcn);
-
-    /*!
-     * \brief Set the patch data indices corresponding to the velocity at the previous time step
-     * to be used when computing the density update
-     *
-     * \note This velocities will be used to compute an approximation to velocities required for SSPRK updates
-     * V_old_idx = n-1, V_current_idx = n, V_new_idx = n+1,k (after an INS cycle)
-     * If V_old_idx or V_new_idx are not set, then they will degenerate to V_current automatically, for the very first
-     * simulation time step and cases where an INS cycle has not been executed, respectively.
-     */
-    void setFluidVelocityPatchDataIndices(int V_old_idx, int V_current_idx, int V_new_idx);
-
-    /*!
-     * \brief Set the cycle number currently being executed by the INS integrator. This will determine the rho advection
-     * velocity.
-     */
-    void setCycleNumber(int cycle_num);
-
-    /*!
-     * \brief Set solution time.
-     */
-    void setSolutionTime(double solution_time);
-
-    /*!
-     * \brief Set the current time interval.
-     */
-    void setTimeInterval(double current_time, double new_time);
-
-    /*!
-     * \brief Get the current time interval.
-     */
-    std::pair<double, double> getTimeInterval() const;
-
-    /*!
-     * \brief Get the current time step size.
-     */
-    double getDt() const;
-
-    /*!
-     * \brief Set the previous time step value between times n - 1 (old) and n (current). This is used during velocity
-     * extrapolation.
-     */
-    void setPreviousTimeStepSize(double dt_prev);
-
-    /*!
-     * \brief Set the HierarchyMathOps object used by the operator.
-     */
-    void setHierarchyMathOps(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops);
-
-    /*!
-     * \brief Get the HierarchyMathOps object used by the operator.
-     */
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> getHierarchyMathOps() const;
-
-    /*!
-     * \brief Computing analytical density
-     */
-    void setAnalyticalDensityFunc(const SAMRAI::tbox::Pointer<IBTK::CartGridFunction> rho_fcn);
 
 private:
     /*!
@@ -260,153 +164,6 @@ private:
     INSVCStaggeredConservativeMassMomentumSSPRKIntegrator&
     operator=(const INSVCStaggeredConservativeMassMomentumSSPRKIntegrator& that) = delete;
 
-    /*!
-     * \brief Compute the advection velocity using simple averages
-     */
-    void
-    computeAdvectionVelocity(std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
-                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > U_data,
-                             const SAMRAI::hier::IntVector<NDIM>& patch_lower,
-                             const SAMRAI::hier::IntVector<NDIM>& patch_upper,
-                             const std::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes);
-
-    /*!
-     * \brief Compute the interpolation of a quantity Q onto Q_half, faces of the velocity DOF centered control volumes
-     */
-    void interpolateSideQuantity(
-        std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> Q_half_data,
-        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > Q_data,
-        const SAMRAI::hier::IntVector<NDIM>& patch_lower,
-        const SAMRAI::hier::IntVector<NDIM>& patch_upper,
-        const std::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes,
-        const LimiterType& convective_limiter);
-
-    /*!
-     * \brief Compute div[rho_half*u_half*u_adv]
-     */
-    void computeConvectiveDerivative(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > N_data,
-        std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> P_half_data,
-        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
-        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> R_half_data,
-        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_half_data,
-        const std::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes,
-        const double* const dx,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch);
-
-    /*!
-     * \brief Compute the density update rho = a0*rho^0 + a1*rho^1 + a2*dt*(-div[u_adv*rho_half]) + a2*dt*S
-     */
-    void computeDensityUpdate(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > R_data,
-        const double& a0,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > R0_data,
-        const double& a1,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > R1_data,
-        const double& a2,
-        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
-        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> R_half_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > S_data,
-        const std::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes,
-        const double& dt,
-        const double* const dx);
-
-    /*!
-     * \brief Compute the mass conservation pointwise.
-     */
-    void computeMassConservationMagnitude(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > R_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > Rnew_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > Rold_data,
-        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> U_adv_data,
-        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> >, NDIM> R_half_data,
-        const std::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes,
-        const double& dt,
-        const double* const dx);
-    /*!
-     * \brief Enforce divergence free condition at the coarse-fine interface to ensure conservation of mass.
-     */
-    void enforceDivergenceFreeConditionAtCoarseFineInterface(const int U_idx);
-
-    // Book keeping
-    std::string d_object_name;
-
-    // Boundary condition helper object.
-    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
-
-    // Cached communications operators.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
-    std::string d_velocity_bdry_extrap_type = "CONSTANT", d_density_bdry_extrap_type = "CONSTANT";
-    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_rho_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_rho_bdry_fill;
-    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_v_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_v_bdry_fill;
-
-    // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
-
-    // Number of RK steps to take.
-    int d_num_steps = 1;
-
-    // Boundary condition object for side-centered velocity field.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_sc_bc_coefs;
-
-    // Boundary condition object for side-centered density field.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_rho_sc_bc_coefs;
-
-    // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_V_var;
-    int d_V_scratch_idx = IBTK::invalid_index, d_V_old_idx = IBTK::invalid_index, d_V_current_idx = IBTK::invalid_index,
-        d_V_new_idx = IBTK::invalid_index, d_V_composite_idx, d_N_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_sc_var;
-    int d_rho_sc_current_idx = IBTK::invalid_index, d_rho_sc_scratch_idx = IBTK::invalid_index,
-        d_rho_sc_new_idx = IBTK::invalid_index;
-
-    // Hierarchy operation objects.
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
-
-    // Mathematical operators.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
-    bool d_hier_math_ops_external = false;
-
-    // Boolean value to indicate whether the integrator is presently
-    // initialized.
-    bool d_is_initialized = false;
-
-    // Logging configuration.
-    bool d_enable_logging = false;
-
-    // The limiter type for interpolation onto faces.
-    LimiterType d_velocity_convective_limiter = UPWIND;
-    LimiterType d_density_convective_limiter = UPWIND;
-
-    // The required number of ghost cells for the chosen interpolation.
-    int d_velocity_limiter_gcw = 1, d_density_limiter_gcw = 1;
-
-    // Variable to indicate the density update time-stepping type.
-    TimeSteppingType d_density_time_stepping_type = FORWARD_EULER;
-
-    // Source term variable and function for the mass density update.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_S_var;
-    int d_S_scratch_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_rho_fcn;
-
-    // Variable to indicate the cycle number.
-    int d_cycle_num = -1;
-
-    // Variable to indicate time and time step size.
-    double d_current_time = std::numeric_limits<double>::quiet_NaN(),
-           d_new_time = std::numeric_limits<double>::quiet_NaN(),
-           d_solution_time = std::numeric_limits<double>::quiet_NaN(), d_dt = std::numeric_limits<double>::quiet_NaN(),
-           d_dt_prev = -1.0;
-
-    // Coarse-fine boundary objects.
-    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
-
-    int d_M_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR
 

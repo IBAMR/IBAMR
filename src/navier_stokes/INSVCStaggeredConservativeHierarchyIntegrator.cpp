@@ -138,7 +138,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
         if (input_db->getDatabase("mass_momentum_integrator_db")->getString("density_time_stepping_type") == "SSPRK3" ||
             input_db->getDatabase("mass_momentum_integrator_db")->getString("density_time_stepping_type") == "SSPRK2")
             d_rho_p_integrator = new INSVCStaggeredConservativeMassMomentumSSPRKIntegrator(
-                "INSVCStaggeredConservativeHierarchyIntegrator::MassMomentumIntegrator",
+                "INSVCStaggeredConservativeHierarchyIntegrator::MassMomentumSSPRKIntegrator",
+                input_db->getDatabase("mass_momentum_integrator_db"));
+        else
+            d_rho_p_integrator = new INSVCStaggeredConservativeMassMomentumRKIntegrator(
+                "INSVCStaggeredConservativeHierarchyIntegrator::MassMomentumRKIntegrator",
                 input_db->getDatabase("mass_momentum_integrator_db"));
     }
     d_convective_op_type = "NONE";
@@ -228,10 +232,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     //    }
 
     // Set various objects with conservative time integrator.
-    d_rho_p_integrator->setSideCenteredVelocityBoundaryConditions(d_U_bc_coefs);
-    d_rho_p_integrator->setSideCenteredDensityBoundaryConditions(d_rho_sc_bc_coefs);
-    if (d_S_fcn) d_rho_p_integrator->setMassDensitySourceTerm(d_S_fcn);
-    if (d_rho_fcn) d_rho_p_integrator->setAnalyticalDensityFunc(d_rho_fcn);
+    Pointer<INSVCStaggeredConservativeMassMomentumRKIntegrator> rho_p_rk_integrator = d_rho_p_integrator;
+    rho_p_rk_integrator->setSideCenteredVelocityBoundaryConditions(d_U_bc_coefs);
+    d_rho_p_integrator->setDensityBoundaryConditions(d_rho_sc_bc_coefs);
+    if (d_S_fcn) rho_p_rk_integrator->setMassDensitySourceTerm(d_S_fcn);
+    //    if (d_rho_fcn) rho_p_rk_integrator->setAnalyticalDensityFunc(d_rho_fcn);
 
     return;
 } // initializeHierarchyIntegrator
@@ -433,7 +438,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
     d_U_bdry_bc_fill_op->fillData(current_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
                                                               /*P_bc_coef*/ nullptr);
-    //    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
+    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(d_U_scratch_idx);
     // RHS^n = (C_rhs*I + L(D_rhs))*U^n
     d_hier_math_ops->vc_laplace(U_rhs_idx,
                                 U_rhs_var,
@@ -521,12 +526,13 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
         // set.
 
         // Set the rho^{n} density
-        d_rho_p_integrator->setSideCenteredDensityPatchDataIndex(d_rho_sc_current_idx);
-        d_rho_p_integrator->setMassConservationPatchDataIndex(d_M_sc_idx);
+        d_rho_p_integrator->setDensityPatchDataIndex(d_rho_sc_current_idx);
+        Pointer<INSVCStaggeredConservativeMassMomentumRKIntegrator> rho_p_rk_integrator = d_rho_p_integrator;
+        rho_p_rk_integrator->setMassConservationPatchDataIndex(d_M_sc_idx);
 
         // Set the convective derivative patch data index.
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
-        d_rho_p_integrator->setSideCenteredConvectiveDerivativePatchDataIndex(N_idx);
+        d_rho_p_integrator->setConvectiveDerivativePatchDataIndex(N_idx);
 
         // Data for the conservative time integrator is for cycle 0
         const int ins_cycle_num = 0;
@@ -669,10 +675,10 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
             d_rho_p_integrator->setCycleNumber(cycle_num);
 
             // Set the patch data index for convective derivative.
-            d_rho_p_integrator->setSideCenteredConvectiveDerivativePatchDataIndex(N_idx);
+            d_rho_p_integrator->setConvectiveDerivativePatchDataIndex(N_idx);
 
             // Always set to current because we want to update rho^{n} to rho^{n+1}
-            d_rho_p_integrator->setSideCenteredDensityPatchDataIndex(d_rho_sc_current_idx);
+            d_rho_p_integrator->setDensityPatchDataIndex(d_rho_sc_current_idx);
 
             // Set the velocities used to update the density
             if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
@@ -695,7 +701,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
         // Set the full convective term depending on the time stepping type
         d_hier_sc_data_ops->copyData(d_N_full_idx, N_idx, /*interior_only*/ true);
     }
-    const int rho_sc_new_idx = d_rho_p_integrator->getUpdatedSideCenteredDensityPatchDataIndex();
+    const int rho_sc_new_idx = d_rho_p_integrator->getUpdatedDensityPatchDataIndex();
     d_hier_sc_data_ops->copyData(d_rho_sc_new_idx,
                                  rho_sc_new_idx,
                                  /*interior_only*/ true);
@@ -1499,8 +1505,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
     // Account for body forcing terms.
     if (d_F_fcn)
     {
-        // d_F_fcn->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, half_time);
-        d_F_fcn->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, new_time);
+        d_F_fcn->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, half_time);
+        //        d_F_fcn->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, new_time);
         d_hier_sc_data_ops->add(
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }

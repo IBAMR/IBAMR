@@ -20,6 +20,7 @@
 
 #include <ibamr/config.h>
 
+#include "ibamr/MassIntegrator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_enums.h"
 
@@ -68,7 +69,7 @@ namespace IBAMR
  *  \f$ \frac{\partial \rho}{\partial t} + \nabla \cdot (\rho u) = S(x,t) \f$
  *
  * and computes the conservative form of the convective operator
- * \f$ \nabla \cdot (\rho u T)\f$.
+ * \f$ \nabla \cdot (\rho C_p u T)\f$.
  *
  * Class AdvDiffConservativeMassTransportQuantityIntegrator computes the convective
  * derivative of a cell-centered temperature field using various bounded-limiters
@@ -76,20 +77,18 @@ namespace IBAMR
  *
  * A cell-centered density update is provided by this class, which is used in the
  * conservative discretization of the incompressible energy equation.
- * There is an optional mass density source term \f$ S(x,t) \f$ that can be set to check the order
- * of accuracy via manufactured solutions.
  *
  * References
  * Patel, JK. and Natarajan, G., <A HREF="https://www.sciencedirect.com/science/article/pii/S0045793014004009">
  * A generic framework for design of interface capturing schemes for multi-fluid flows</A>
  *
  * \note This class is specialized in that it computes a conservative discretization of the form
- * \f$N = \nabla \cdot (u \rho T)\f$, where the density \f$\rho\f$ can vary in space and time.
+ * \f$N = \nabla \cdot (u \rho C_p T)\f$, where the density \f$\rho\f$ can vary in space and time.
  * This operator is to be used in conjuction with the conservative form of the variable coefficient
  * energy equations.
  *
  */
-class AdvDiffConservativeMassTransportQuantityIntegrator : public virtual SAMRAI::tbox::DescribedClass
+class AdvDiffConservativeMassTransportQuantityIntegrator : public MassIntegrator
 {
 public:
     /*!
@@ -101,12 +100,12 @@ public:
     /*!
      * \brief Destructor.
      */
-    virtual ~AdvDiffConservativeMassTransportQuantityIntegrator();
+    ~AdvDiffConservativeMassTransportQuantityIntegrator();
 
     /*!
      * \brief Integrate density and momentum field.
      */
-    void integrate(double dt);
+    void integrate(double dt) override;
 
     /*!
      * \name General operator functionality.
@@ -116,7 +115,8 @@ public:
     /*!
      * \brief Compute hierarchy dependent data required for time integrating variables.
      */
-    void initializeTimeIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > base_hierarchy);
+    void
+    initializeTimeIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > base_hierarchy) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -127,29 +127,24 @@ public:
      *
      * \see initializeTimeIntegrator
      */
-    void deallocateTimeIntegrator();
+    void deallocateTimeIntegrator() override;
 
     //\}
 
     /*!
      * \brief Set the current cell-centered density patch data index.
      */
-    void setCellCenteredDensityPatchDataIndex(int rho_cc_idx);
+    //    void setCellCenteredDensityPatchDataIndex(int rho_cc_idx);
 
     /*!
-     * \brief Set the current cell-centered density patch data index.
+     * \brief Set the current cell-centered specific heat patch data index.
      */
     void setCellCenteredSpecificHeatPatchDataIndex(int cp_cc_idx);
 
     /*!
-     * \brief Set the current cell-centered density patch data index.
+     * \brief Set the current cell-centered temperature patch data index.
      */
     void setCellCenteredTemperaturePatchDataIndex(int T_cc_idx);
-
-    /*!
-     * \brief Set the new cell-centered convective derivative patch data index.
-     */
-    void setCellCenteredConvectiveDerivativePatchDataIndex(int N_cc_idx);
 
     /*!
      * \brief Set the patch index to store mass conservation.
@@ -186,11 +181,6 @@ public:
     int getUpdatedCellCenteredDensityPatchDataIndex();
 
     /*!
-     * \brief Set an optional mass density source term.
-     */
-    void setMassDensitySourceTerm(const SAMRAI::tbox::Pointer<IBTK::CartGridFunction> S_fcn);
-
-    /*!
      * \brief Set the patch data indices corresponding to the velocity at the previous time step
      * to be used when computing the density update
      *
@@ -199,7 +189,7 @@ public:
      * If V_old_idx or V_new_idx are not set, then they will degenerate to V_current automatically, for the very first
      * simulation time step and cases where an INS cycle has not been executed, respectively.
      */
-    void setFluidVelocityPatchDataIndices(int V_old_idx, int V_current_idx, int V_new_idx);
+    //    void setFluidVelocityPatchDataIndices(int V_old_idx, int V_current_idx, int V_new_idx);
 
     /*!
      * \brief Set the patch data indices corresponding to the specific heat at the previous time step
@@ -222,48 +212,6 @@ public:
      * simulation time step and cases where an INS cycle has not been executed, respectively.
      */
     void setTemperaturePatchDataIndices(int T_old_idx, int T_current_idx, int T_new_idx);
-
-    /*!
-     * \brief Set the cycle number currently being executed by the INS integrator. This will determine the rho advection
-     * velocity.
-     */
-    void setCycleNumber(int cycle_num);
-
-    /*!
-     * \brief Set solution time.
-     */
-    void setSolutionTime(double solution_time);
-
-    /*!
-     * \brief Set the current time interval.
-     */
-    void setTimeInterval(double current_time, double new_time);
-
-    /*!
-     * \brief Get the current time interval.
-     */
-    std::pair<double, double> getTimeInterval() const;
-
-    /*!
-     * \brief Get the current time step size.
-     */
-    double getDt() const;
-
-    /*!
-     * \brief Set the previous time step value between times n - 1 (old) and n (current). This is used during velocity
-     * extrapolation.
-     */
-    void setPreviousTimeStepSize(double dt_prev);
-
-    /*!
-     * \brief Set the HierarchyMathOps object used by the operator.
-     */
-    void setHierarchyMathOps(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops);
-
-    /*!
-     * \brief Get the HierarchyMathOps object used by the operator.
-     */
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> getHierarchyMathOps() const;
 
 private:
     /*!
@@ -355,41 +303,24 @@ private:
     // Book keeping
     std::string d_object_name;
 
-    // Boundary condition helper object.
-    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
-
     // Cached communications operators.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
-    std::string d_temperature_bdry_extrap_type = "CONSTANT", d_density_bdry_extrap_type = "CONSTANT",
-                d_specific_heat_bdry_extrap_type = "CONSTANT";
-    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_rho_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_rho_bdry_fill;
+    std::string d_temperature_bdry_extrap_type = "CONSTANT", d_specific_heat_bdry_extrap_type = "CONSTANT";
+
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_cp_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_cp_bdry_fill;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_T_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_T_bdry_fill;
 
-    // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
-
-    // Number of RK steps to take.
-    int d_num_steps = 1;
-
-    // Boundary condition object for face-centered velocity field.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_sc_bc_coefs;
-
-    // Boundary condition object for side-centered density field.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_rho_sc_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_cc_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_cp_cc_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_T_cc_bc_coefs;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_V_var;
-    int d_V_scratch_idx = IBTK::invalid_index, d_V_old_idx = IBTK::invalid_index, d_V_current_idx = IBTK::invalid_index,
-        d_V_new_idx = IBTK::invalid_index, d_V_composite_idx, d_N_idx = IBTK::invalid_index,
-        d_M_idx = IBTK::invalid_index;
+    //    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_V_var;
+    //    int d_V_scratch_idx = IBTK::invalid_index, d_V_old_idx = IBTK::invalid_index, d_V_current_idx =
+    //    IBTK::invalid_index,
+    //        d_V_new_idx = IBTK::invalid_index, d_V_composite_idx, d_N_idx = IBTK::invalid_index,
+    int d_M_idx = IBTK::invalid_index;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_cc_var;
     int d_rho_cc_current_idx = IBTK::invalid_index, d_rho_cc_scratch_idx = IBTK::invalid_index,
@@ -403,48 +334,17 @@ private:
     int d_T_cc_current_idx = IBTK::invalid_index, d_T_cc_scratch_idx = IBTK::invalid_index,
         d_T_cc_new_idx = IBTK::invalid_index, d_T_cc_composite_idx, d_T_cc_old_idx = IBTK::invalid_index;
 
-    // Hierarchy operation objects.
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM, double> > d_hier_fc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;
-
-    // Mathematical operators.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
-    bool d_hier_math_ops_external = false;
-
-    // Boolean value to indicate whether the integrator is presently
-    // initialized.
-    bool d_is_initialized = false;
-
-    // Logging configuration.
-    bool d_enable_logging = false;
-
     // The limiter type for interpolation onto faces.
     LimiterType d_temperature_convective_limiter = CUI;
-    LimiterType d_density_convective_limiter = CUI;
     LimiterType d_specific_heat_convective_limiter = CUI;
 
     // The required number of ghost cells for the chosen interpolation.
-    int d_temperature_limiter_gcw = 1, d_density_limiter_gcw = 1, d_specific_heat_limiter_gcw = 1;
-
-    // Variable to indicate the density update time-stepping type.
-    TimeSteppingType d_density_time_stepping_type = FORWARD_EULER;
+    int d_temperature_limiter_gcw = 1, d_specific_heat_limiter_gcw = 1;
 
     // Source term variable and function for the mass density update.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_S_var;
     int d_S_scratch_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
-
-    // Variable to indicate the cycle number.
-    int d_cycle_num = -1;
-
-    // Variable to indicate time and time step size.
-    double d_current_time = std::numeric_limits<double>::quiet_NaN(),
-           d_new_time = std::numeric_limits<double>::quiet_NaN(),
-           d_solution_time = std::numeric_limits<double>::quiet_NaN(), d_dt = std::numeric_limits<double>::quiet_NaN(),
-           d_dt_prev = -1.0;
-
-    // Coarse-fine boundary objects.
-    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
 };
 } // namespace IBAMR
 

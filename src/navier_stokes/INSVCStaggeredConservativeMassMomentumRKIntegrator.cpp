@@ -1026,49 +1026,27 @@ static Timer* t_deallocate_integrator;
 INSVCStaggeredConservativeMassMomentumRKIntegrator::INSVCStaggeredConservativeMassMomentumRKIntegrator(
     std::string object_name,
     Pointer<Database> input_db)
-    : d_object_name(std::move(object_name)), d_u_sc_bc_coefs(NDIM), d_rho_sc_bc_coefs(NDIM)
+    : MassIntegrator(object_name, input_db)
 {
     if (input_db)
     {
         if (input_db->keyExists("bdry_extrap_type"))
         {
             d_velocity_bdry_extrap_type = input_db->getString("bdry_extrap_type");
-            d_density_bdry_extrap_type = input_db->getString("bdry_extrap_type");
         }
         if (input_db->keyExists("velocity_bdry_extrap_type"))
         {
             d_velocity_bdry_extrap_type = input_db->getString("velocity_bdry_extrap_type");
         }
-        if (input_db->keyExists("density_bdry_extrap_type"))
-        {
-            d_density_bdry_extrap_type = input_db->getString("density_bdry_extrap_type");
-        }
         if (input_db->keyExists("convective_limiter"))
         {
             d_velocity_convective_limiter =
-                IBAMR::string_to_enum<LimiterType>(input_db->getString("convective_limiter"));
-            d_density_convective_limiter =
                 IBAMR::string_to_enum<LimiterType>(input_db->getString("convective_limiter"));
         }
         if (input_db->keyExists("velocity_convective_limiter"))
         {
             d_velocity_convective_limiter =
                 IBAMR::string_to_enum<LimiterType>(input_db->getString("velocity_convective_limiter"));
-        }
-        if (input_db->keyExists("density_convective_limiter"))
-        {
-            d_density_convective_limiter =
-                IBAMR::string_to_enum<LimiterType>(input_db->getString("density_convective_limiter"));
-        }
-
-        if (input_db->keyExists("density_time_stepping_type"))
-        {
-            d_density_time_stepping_type =
-                IBAMR::string_to_enum<TimeSteppingType>(input_db->getString("density_time_stepping_type"));
-        }
-        if (input_db->keyExists("enable_logging"))
-        {
-            d_enable_logging = input_db->getBool("enable_logging");
         }
     }
 
@@ -1098,49 +1076,6 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::INSVCStaggeredConservativeMa
             << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
     }
 
-    switch (d_density_convective_limiter)
-    {
-    case UPWIND:
-        d_density_limiter_gcw = GUPWINDG;
-        break;
-    case CUI:
-        d_density_limiter_gcw = GCUIG;
-        break;
-    case FBICS:
-        d_density_limiter_gcw = GFBICSG;
-        break;
-    case MGAMMA:
-        d_density_limiter_gcw = GMGAMMAG;
-        break;
-    case PPM:
-        d_density_limiter_gcw = GPPMG;
-        break;
-    default:
-        TBOX_ERROR(
-            "INSVCStaggeredConservativeMassMomentumRKIntegrator::"
-            "INSVCStaggeredConservativeMassMomentumRKIntegrator():\n"
-            << "  unsupported density convective limiter: "
-            << IBAMR::enum_to_string<LimiterType>(d_density_convective_limiter) << " \n"
-            << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
-    }
-
-    switch (d_density_time_stepping_type)
-    {
-    case FORWARD_EULER:
-        d_num_steps = 1;
-        break;
-    case MIDPOINT_RULE:
-        d_num_steps = 2;
-        break;
-    default:
-        TBOX_ERROR(
-            "INSVCStaggeredConservativeMassMomentumRKIntegrator::"
-            "INSVCStaggeredConservativeMassMomentumRKIntegrator():\n"
-            << "  unsupported density time stepping type: "
-            << IBAMR::enum_to_string<TimeSteppingType>(d_density_time_stepping_type) << " \n"
-            << "  valid choices are: FORWARD_EULER, MIDPOINT_RULE\n");
-    }
-
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> context =
         var_db->getContext("INSVCStaggeredConservativeMassMomentumRKIntegrator::CONTEXT");
@@ -1167,25 +1102,24 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::INSVCStaggeredConservativeMa
 #endif
 
     const std::string rho_sc_name = "INSVCStaggeredConservativeMassMomentumRKIntegrator::RHO_SIDE_CENTERED";
-    d_rho_sc_var = var_db->getVariable(rho_sc_name);
-    if (d_rho_sc_var)
+    d_rho_var = var_db->getVariable(rho_sc_name);
+    if (d_rho_var)
     {
-        d_rho_sc_scratch_idx =
-            var_db->mapVariableAndContextToIndex(d_rho_sc_var, var_db->getContext(rho_sc_name + "::SCRATCH"));
-        d_rho_sc_new_idx =
-            var_db->mapVariableAndContextToIndex(d_rho_sc_var, var_db->getContext(rho_sc_name + "::NEW"));
+        d_rho_scratch_idx =
+            var_db->mapVariableAndContextToIndex(d_rho_var, var_db->getContext(rho_sc_name + "::SCRATCH"));
+        d_rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_var, var_db->getContext(rho_sc_name + "::NEW"));
     }
     else
     {
-        d_rho_sc_var = new SideVariable<NDIM, double>(rho_sc_name);
-        d_rho_sc_scratch_idx = var_db->registerVariableAndContext(
-            d_rho_sc_var, var_db->getContext(rho_sc_name + "::SCRATCH"), IntVector<NDIM>(d_density_limiter_gcw));
-        d_rho_sc_new_idx = var_db->registerVariableAndContext(
-            d_rho_sc_var, var_db->getContext(rho_sc_name + "::NEW"), IntVector<NDIM>(NOGHOSTS));
+        d_rho_var = new SideVariable<NDIM, double>(rho_sc_name);
+        d_rho_scratch_idx = var_db->registerVariableAndContext(
+            d_rho_var, var_db->getContext(rho_sc_name + "::SCRATCH"), IntVector<NDIM>(d_density_limiter_gcw));
+        d_rho_new_idx = var_db->registerVariableAndContext(
+            d_rho_var, var_db->getContext(rho_sc_name + "::NEW"), IntVector<NDIM>(NOGHOSTS));
     }
 #if !defined(NDEBUG)
-    TBOX_ASSERT(d_rho_sc_scratch_idx >= 0);
-    TBOX_ASSERT(d_rho_sc_new_idx >= 0);
+    TBOX_ASSERT(d_rho_scratch_idx >= 0);
+    TBOX_ASSERT(d_rho_new_idx >= 0);
 #endif
 
     const std::string S_var_name = "INSVCStaggeredConservativeMassMomentumRKIntegrator::S";
@@ -1243,7 +1177,7 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
                       "integrate()\n");
     }
 
-    TBOX_ASSERT(d_rho_sc_current_idx >= 0);
+    TBOX_ASSERT(d_rho_current_idx >= 0);
     TBOX_ASSERT(d_V_old_idx >= 0);
     TBOX_ASSERT(d_V_current_idx >= 0);
     TBOX_ASSERT(d_V_new_idx >= 0);
@@ -1289,14 +1223,14 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
 
     // Fill ghost cells for current density
     std::vector<InterpolationTransactionComponent> rho_transaction_comps(1);
-    rho_transaction_comps[0] = InterpolationTransactionComponent(d_rho_sc_scratch_idx,
-                                                                 d_rho_sc_current_idx,
+    rho_transaction_comps[0] = InterpolationTransactionComponent(d_rho_scratch_idx,
+                                                                 d_rho_current_idx,
                                                                  "CONSERVATIVE_LINEAR_REFINE",
                                                                  false,
                                                                  "CONSERVATIVE_COARSEN",
                                                                  d_density_bdry_extrap_type,
                                                                  false,
-                                                                 d_rho_sc_bc_coefs);
+                                                                 d_rho_bc_coefs);
     d_hier_rho_bdry_fill->resetTransactionComponents(rho_transaction_comps);
     d_hier_rho_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_rho_bdry_fill->fillData(d_current_time);
@@ -1316,21 +1250,21 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
                                                                "CONSERVATIVE_COARSEN",
                                                                d_velocity_bdry_extrap_type,
                                                                false,
-                                                               d_u_sc_bc_coefs);
+                                                               d_u_bc_coefs);
     d_hier_v_bdry_fill->resetTransactionComponents(v_transaction_comps);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-        d_u_sc_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
+        d_u_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
     d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_v_bdry_fill->fillData(d_current_time);
-    //    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
-    //        d_V_scratch_idx, d_coarsest_ln, d_finest_ln, StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
-    //    enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
-    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_sc_bc_coefs, nullptr);
+    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
+        d_V_scratch_idx, d_coarsest_ln, d_finest_ln, StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
+    enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
+    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_bc_coefs, nullptr);
     d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
 
     // Compute the old mass
     const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
-    const double old_mass = d_hier_sc_data_ops->integral(d_rho_sc_current_idx, wgt_sc_idx);
+    const double old_mass = d_hier_sc_data_ops->integral(d_rho_current_idx, wgt_sc_idx);
     if (d_enable_logging)
     {
         plog << "INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(): "
@@ -1346,14 +1280,14 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
 
         // Fill ghost cells for new density and velocity, if needed
         std::vector<InterpolationTransactionComponent> update_transaction_comps(1);
-        d_hier_sc_data_ops->linearSum(d_rho_sc_scratch_idx, 0.5, d_rho_sc_current_idx, 0.5, d_rho_sc_new_idx);
-        update_transaction_comps[0] = InterpolationTransactionComponent(d_rho_sc_scratch_idx,
+        d_hier_sc_data_ops->linearSum(d_rho_scratch_idx, 0.5, d_rho_current_idx, 0.5, d_rho_new_idx);
+        update_transaction_comps[0] = InterpolationTransactionComponent(d_rho_scratch_idx,
                                                                         "CONSERVATIVE_LINEAR_REFINE",
                                                                         false,
                                                                         "CONSERVATIVE_COARSEN",
                                                                         d_density_bdry_extrap_type,
                                                                         false,
-                                                                        d_rho_sc_bc_coefs);
+                                                                        d_rho_bc_coefs);
         d_hier_rho_bdry_fill->resetTransactionComponents(update_transaction_comps);
         d_hier_rho_bdry_fill->setHomogeneousBc(homogeneous_bc);
         d_hier_rho_bdry_fill->fillData(eval_time);
@@ -1373,17 +1307,16 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
                                                                           "CONSERVATIVE_COARSEN",
                                                                           d_velocity_bdry_extrap_type,
                                                                           false,
-                                                                          d_u_sc_bc_coefs);
+                                                                          d_u_bc_coefs);
         d_hier_v_bdry_fill->resetTransactionComponents(v_transaction_comps);
         StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-            d_u_sc_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
+            d_u_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
         d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
         d_hier_v_bdry_fill->fillData(eval_time);
-        //            d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
-        //                d_V_scratch_idx, d_coarsest_ln, d_finest_ln,
-        //                StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
-        //            enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
-        StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_sc_bc_coefs, nullptr);
+        d_bc_helper->enforceDivergenceFreeConditionAtBoundary(
+            d_V_scratch_idx, d_coarsest_ln, d_finest_ln, StaggeredStokesPhysicalBoundaryHelper::ALL_BDRY);
+        enforceDivergenceFreeConditionAtCoarseFineInterface(d_V_scratch_idx);
+        StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_bc_coefs, nullptr);
         d_hier_v_bdry_fill->resetTransactionComponents(d_v_transaction_comps);
     }
 
@@ -1415,9 +1348,9 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
 
             Pointer<SideData<NDIM, double> > N_data = patch->getPatchData(d_N_idx);
             Pointer<SideData<NDIM, double> > V_data = patch->getPatchData(d_V_scratch_idx);
-            Pointer<SideData<NDIM, double> > R_cur_data = patch->getPatchData(d_rho_sc_current_idx);
-            Pointer<SideData<NDIM, double> > R_pre_data = patch->getPatchData(d_rho_sc_scratch_idx);
-            Pointer<SideData<NDIM, double> > R_new_data = patch->getPatchData(d_rho_sc_new_idx);
+            Pointer<SideData<NDIM, double> > R_cur_data = patch->getPatchData(d_rho_current_idx);
+            Pointer<SideData<NDIM, double> > R_pre_data = patch->getPatchData(d_rho_scratch_idx);
+            Pointer<SideData<NDIM, double> > R_new_data = patch->getPatchData(d_rho_new_idx);
             Pointer<SideData<NDIM, double> > R_src_data = patch->getPatchData(d_S_scratch_idx);
             Pointer<SideData<NDIM, double> > M_data = patch->getPatchData(d_M_idx);
 
@@ -1498,14 +1431,14 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
     // Refill boundary values of newest density
     const double new_time = d_current_time + dt;
     std::vector<InterpolationTransactionComponent> new_transaction_comps(1);
-    new_transaction_comps[0] = InterpolationTransactionComponent(d_rho_sc_scratch_idx,
-                                                                 d_rho_sc_new_idx,
+    new_transaction_comps[0] = InterpolationTransactionComponent(d_rho_scratch_idx,
+                                                                 d_rho_new_idx,
                                                                  "CONSERVATIVE_LINEAR_REFINE",
                                                                  false,
                                                                  "CONSERVATIVE_COARSEN",
                                                                  d_density_bdry_extrap_type,
                                                                  false,
-                                                                 d_rho_sc_bc_coefs);
+                                                                 d_rho_bc_coefs);
     d_hier_rho_bdry_fill->resetTransactionComponents(new_transaction_comps);
     d_hier_rho_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_rho_bdry_fill->fillData(new_time);
@@ -1513,12 +1446,12 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
 
     // d_rho_fcn->setDataOnPatchHierarchy(d_rho_sc_scratch_idx, d_rho_sc_var, d_hierarchy, d_new_time);
 
-    d_hier_sc_data_ops->copyData(d_rho_sc_new_idx,
-                                 d_rho_sc_scratch_idx,
+    d_hier_sc_data_ops->copyData(d_rho_new_idx,
+                                 d_rho_scratch_idx,
                                  /*interior_only*/ true);
 
     // Compute the new mass
-    const double new_mass = d_hier_sc_data_ops->integral(d_rho_sc_new_idx, wgt_sc_idx);
+    const double new_mass = d_hier_sc_data_ops->integral(d_rho_new_idx, wgt_sc_idx);
     if (d_enable_logging)
     {
         plog << "INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(): "
@@ -1531,7 +1464,7 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
 
     // Reset select options
     d_N_idx = -1;
-    d_rho_sc_current_idx = -1;
+    d_rho_current_idx = -1;
     d_V_old_idx = -1;
     d_V_current_idx = -1;
     d_V_new_idx = -1;
@@ -1559,14 +1492,14 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::initializeTimeIntegrator(
     // Setup the interpolation transaction information.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_rho_transaction_comps.resize(1);
-    d_rho_transaction_comps[0] = InterpolationTransactionComponent(d_rho_sc_scratch_idx,
-                                                                   d_rho_sc_new_idx,
+    d_rho_transaction_comps[0] = InterpolationTransactionComponent(d_rho_scratch_idx,
+                                                                   d_rho_new_idx,
                                                                    "CONSERVATIVE_LINEAR_REFINE",
                                                                    false,
                                                                    "CONSERVATIVE_COARSEN",
                                                                    d_density_bdry_extrap_type,
                                                                    false,
-                                                                   d_rho_sc_bc_coefs);
+                                                                   d_rho_bc_coefs);
 
     d_v_transaction_comps.resize(1);
     d_v_transaction_comps[0] = InterpolationTransactionComponent(d_V_scratch_idx,
@@ -1576,7 +1509,7 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::initializeTimeIntegrator(
                                                                  "CONSERVATIVE_COARSEN",
                                                                  d_velocity_bdry_extrap_type,
                                                                  false,
-                                                                 d_u_sc_bc_coefs);
+                                                                 d_u_bc_coefs);
 
     // Initialize the interpolation operators.
     d_hier_rho_bdry_fill = new HierarchyGhostCellInterpolation();
@@ -1586,7 +1519,7 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::initializeTimeIntegrator(
 
     // Initialize the BC helper.
     d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
-    d_bc_helper->cacheBcCoefData(d_u_sc_bc_coefs, d_solution_time, d_hierarchy);
+    d_bc_helper->cacheBcCoefData(d_u_bc_coefs, d_solution_time, d_hierarchy);
 
     // Create the coarse-fine boundary boxes.
     d_cf_boundary.resize(d_finest_ln + 1);
@@ -1602,8 +1535,8 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::initializeTimeIntegrator(
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_V_scratch_idx)) level->allocatePatchData(d_V_scratch_idx);
         if (!level->checkAllocated(d_V_composite_idx)) level->allocatePatchData(d_V_composite_idx);
-        if (!level->checkAllocated(d_rho_sc_scratch_idx)) level->allocatePatchData(d_rho_sc_scratch_idx);
-        if (!level->checkAllocated(d_rho_sc_new_idx)) level->allocatePatchData(d_rho_sc_new_idx);
+        if (!level->checkAllocated(d_rho_scratch_idx)) level->allocatePatchData(d_rho_scratch_idx);
+        if (!level->checkAllocated(d_rho_new_idx)) level->allocatePatchData(d_rho_new_idx);
         if (!level->checkAllocated(d_S_scratch_idx)) level->allocatePatchData(d_S_scratch_idx);
     }
 
@@ -1645,8 +1578,8 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::deallocateTimeIntegrator()
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_V_scratch_idx)) level->deallocatePatchData(d_V_scratch_idx);
         if (level->checkAllocated(d_V_composite_idx)) level->deallocatePatchData(d_V_composite_idx);
-        if (level->checkAllocated(d_rho_sc_scratch_idx)) level->deallocatePatchData(d_rho_sc_scratch_idx);
-        if (level->checkAllocated(d_rho_sc_new_idx)) level->deallocatePatchData(d_rho_sc_new_idx);
+        if (level->checkAllocated(d_rho_scratch_idx)) level->deallocatePatchData(d_rho_scratch_idx);
+        if (level->checkAllocated(d_rho_new_idx)) level->deallocatePatchData(d_rho_new_idx);
         if (level->checkAllocated(d_S_scratch_idx)) level->deallocatePatchData(d_S_scratch_idx);
     }
 
@@ -1662,23 +1595,14 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::deallocateTimeIntegrator()
     return;
 } // deallocateOperatorState
 
-void
-INSVCStaggeredConservativeMassMomentumRKIntegrator::setSideCenteredDensityPatchDataIndex(int rho_sc_idx)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(rho_sc_idx >= 0);
-#endif
-    d_rho_sc_current_idx = rho_sc_idx;
-} // setSideCenteredDensityPatchDataIndex
-
-void
-INSVCStaggeredConservativeMassMomentumRKIntegrator::setSideCenteredConvectiveDerivativePatchDataIndex(int N_sc_idx)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(N_sc_idx >= 0);
-#endif
-    d_N_idx = N_sc_idx;
-} // setSideCenteredConvectiveDerivativePatchDataIndex
+// void
+// INSVCStaggeredConservativeMassMomentumRKIntegrator::setSideCenteredDensityPatchDataIndex(int rho_sc_idx)
+//{
+//#if !defined(NDEBUG)
+//    TBOX_ASSERT(rho_sc_idx >= 0);
+//#endif
+//    d_rho_sc_current_idx = rho_sc_idx;
+//} // setSideCenteredDensityPatchDataIndex
 
 void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::setMassConservationPatchDataIndex(int M_idx)
@@ -1691,33 +1615,33 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::setMassConservationPatchData
 
 void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::setSideCenteredVelocityBoundaryConditions(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_sc_bc_coefs)
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(u_sc_bc_coefs.size() == NDIM);
+    TBOX_ASSERT(u_bc_coefs.size() == NDIM);
 #endif
-    d_u_sc_bc_coefs = u_sc_bc_coefs;
+    d_u_bc_coefs = u_bc_coefs;
     return;
 } // setSideCenteredVelocityBoundaryConditions
 
-void
-INSVCStaggeredConservativeMassMomentumRKIntegrator::setSideCenteredDensityBoundaryConditions(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& rho_sc_bc_coefs)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(rho_sc_bc_coefs.size() == NDIM);
-#endif
-    d_rho_sc_bc_coefs = rho_sc_bc_coefs;
-    return;
-} // setSideCenteredDensityBoundaryConditions
+// void
+// INSVCStaggeredConservativeMassMomentumRKIntegrator::setSideCenteredDensityBoundaryConditions(
+//    const std::vector<RobinBcCoefStrategy<NDIM>*>& rho_sc_bc_coefs)
+//{
+//#if !defined(NDEBUG)
+//    TBOX_ASSERT(rho_sc_bc_coefs.size() == NDIM);
+//#endif
+//    d_rho_sc_bc_coefs = rho_sc_bc_coefs;
+//    return;
+//} // setSideCenteredDensityBoundaryConditions
 
 int
 INSVCStaggeredConservativeMassMomentumRKIntegrator::getUpdatedSideCenteredDensityPatchDataIndex()
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(d_rho_sc_new_idx >= 0);
+    TBOX_ASSERT(d_rho_new_idx >= 0);
 #endif
-    return d_rho_sc_new_idx;
+    return d_rho_new_idx;
 } // getUpdatedSideCenteredDensityPatchDataIndex
 
 void
@@ -1740,103 +1664,41 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::setAnalyticalDensityFunc(con
     return;
 } // setAnalyticalDensityFunc
 
-void
-INSVCStaggeredConservativeMassMomentumRKIntegrator::setFluidVelocityPatchDataIndices(int V_old_idx,
-                                                                                     int V_current_idx,
-                                                                                     int V_new_idx)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(V_current_idx >= 0);
-#endif
-
-    // Set the old velocity if it has been set, otherwise set to current.
-    if (V_old_idx >= 0)
-    {
-        d_V_old_idx = V_old_idx;
-    }
-    else
-    {
-        d_V_old_idx = V_current_idx;
-    }
-
-    // Set the current velocity
-    d_V_current_idx = V_current_idx;
-
-    // Set the new velocity if it has been set, otherwise set to current.
-    if (V_new_idx >= 0)
-    {
-        d_V_new_idx = V_new_idx;
-    }
-    else
-    {
-        d_V_new_idx = V_current_idx;
-    }
-    return;
-} // setFluidVelocityPatchDataIndices
-
-void
-INSVCStaggeredConservativeMassMomentumRKIntegrator::setCycleNumber(int cycle_num)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(cycle_num >= 0);
-#endif
-    d_cycle_num = cycle_num;
-    return;
-} // setCycleNumber
-
-void
-INSVCStaggeredConservativeMassMomentumRKIntegrator::setSolutionTime(double solution_time)
-{
-    d_solution_time = solution_time;
-} // setSolutionTime
-
-void
-INSVCStaggeredConservativeMassMomentumRKIntegrator::setTimeInterval(double current_time, double new_time)
-{
-    d_current_time = current_time;
-    d_new_time = new_time;
-    return;
-} // setTimeInterval
-
-std::pair<double, double>
-INSVCStaggeredConservativeMassMomentumRKIntegrator::getTimeInterval() const
-{
-    return std::make_pair(d_current_time, d_new_time);
-} // getTimeInterval
-
-double
-INSVCStaggeredConservativeMassMomentumRKIntegrator::getDt() const
-{
-    return d_new_time - d_current_time;
-} // getDt
-
-void
-INSVCStaggeredConservativeMassMomentumRKIntegrator::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
-{
-    d_hier_math_ops = hier_math_ops;
-    d_hier_math_ops_external = d_hier_math_ops;
-    return;
-} // setHierarchyMathOps
-
-Pointer<HierarchyMathOps>
-INSVCStaggeredConservativeMassMomentumRKIntegrator::getHierarchyMathOps() const
-{
-    return d_hier_math_ops;
-} // getHierarchyMathOps
-
-void
-INSVCStaggeredConservativeMassMomentumRKIntegrator::setPreviousTimeStepSize(double dt_prev)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(dt_prev > 0.0);
-#endif
-    d_dt_prev = dt_prev;
-    return;
-} // setPreviousTimeStepSize
+// void
+// INSVCStaggeredConservativeMassMomentumRKIntegrator::setFluidVelocityPatchDataIndices(int V_old_idx,
+//                                                                                     int V_current_idx,
+//                                                                                     int V_new_idx)
+//{
+//#if !defined(NDEBUG)
+//    TBOX_ASSERT(V_current_idx >= 0);
+//#endif
+//
+//    // Set the old velocity if it has been set, otherwise set to current.
+//    if (V_old_idx >= 0)
+//    {
+//        d_V_old_idx = V_old_idx;
+//    }
+//    else
+//    {
+//        d_V_old_idx = V_current_idx;
+//    }
+//
+//    // Set the current velocity
+//    d_V_current_idx = V_current_idx;
+//
+//    // Set the new velocity if it has been set, otherwise set to current.
+//    if (V_new_idx >= 0)
+//    {
+//        d_V_new_idx = V_new_idx;
+//    }
+//    else
+//    {
+//        d_V_new_idx = V_current_idx;
+//    }
+//    return;
+//} // setFluidVelocityPatchDataIndices
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
-
-/////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
 INSVCStaggeredConservativeMassMomentumRKIntegrator::computeAdvectionVelocity(
@@ -2799,6 +2661,8 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::enforceDivergenceFreeConditi
     }
     return;
 } // enforceDivergenceFreeConditionAtCoarseFineInterface
+
+/////////////////////////////// PRIVATE //////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////////
 

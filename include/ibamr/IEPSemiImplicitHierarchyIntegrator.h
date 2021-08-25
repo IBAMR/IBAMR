@@ -20,13 +20,14 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/AdvDiffConservativeMassTransportQuantityIntegrator.h"
 #include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
+#include "ibamr/MassIntegrator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 
 #include "ibtk/LaplaceOperator.h"
 
+#include "AdvDiffConservativeMassTransportQuantityIntegrator.h"
 #include "HierarchyFaceDataOpsReal.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -602,7 +603,7 @@ private:
     /*
      * Conservative density and transport quantity integrator.
      */
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffConservativeMassTransportQuantityIntegrator> d_rho_p_integrator;
+    SAMRAI::tbox::Pointer<IBAMR::MassIntegrator> d_rho_p_integrator;
 
     /*
      * Source term function for the mass density update

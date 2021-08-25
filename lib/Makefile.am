@@ -120,8 +120,6 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp \
 ../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp \
 ../src/adv_diff/IEPSemiImplicitHierarchyIntegrator.cpp \
-../src/adv_diff/MassConservationHierarchyIntegrator.cpp \
-../src/adv_diff/MassIntegrator.cpp \
 ../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 ../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 ../src/complex_fluids/CFUpperConvectiveOperator.cpp \
@@ -184,6 +182,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 ../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
 ../src/utilities/ConvectiveOperator.cpp \
+../src/utilities/MassIntegrator.cpp \
 ../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
 ../src/wave_generation/FirstOrderStokesWaveGenerator.cpp \
 ../src/wave_generation/IrregularWaveBcCoef.cpp \
@@ -309,7 +308,6 @@ pkg_include_HEADERS += \
 ../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 ../include/ibamr/KrylovMobilitySolver.h \
 ../include/ibamr/LSInitStrategy.h \
-../include/ibamr/MassConservationHierarchyIntegrator.h \
 ../include/ibamr/MassIntegrator.h \
 ../include/ibamr/MobilityFunctions.h \
 ../include/ibamr/NonbondedForceEvaluator.h \
