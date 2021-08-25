@@ -455,13 +455,13 @@ private:
     /*
      * Data for tracking mean flow quantities.
      */
-    unsigned int d_flow_averaging_interval = 0;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_mean_var;
+    unsigned int d_flow_averaging_interval = 0, d_cyclic_flow_averaging_period = 0, d_num_flow_averaging_cycles = 0,
+                 d_num_flow_snapshots = 0;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > > d_U_mean_vars;
     std::string d_U_mean_coarsen_type = "CONSERVATIVE_COARSEN";
     std::string d_U_mean_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
-    int d_U_mean_current_idx = IBTK::invalid_index, d_U_mean_new_idx = IBTK::invalid_index,
-        d_U_mean_scratch_idx = IBTK::invalid_index;
+    std::vector<int> d_U_mean_current_idxs, d_U_mean_new_idxs, d_U_mean_scratch_idxs;
 };
 } // namespace IBAMR
 

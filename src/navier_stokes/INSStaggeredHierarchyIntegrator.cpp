@@ -550,10 +550,40 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     }
     d_P_bc_coef = new INSStaggeredPressureBcCoef(this, d_bc_coefs, d_traction_bc_type);
 
-    // Check to see whether to track mean flow quantities and turbulent kinetic
-    // energy.
+    // Check to see whether to track mean flow quantities, and determine the number of distinct flow snapshots to
+    // retain.
     if (input_db->keyExists("flow_averaging_interval"))
         d_flow_averaging_interval = input_db->getInteger("flow_averaging_interval");
+    if (input_db->keyExists("cyclic_flow_averaging_period"))
+    {
+        d_cyclic_flow_averaging_period = input_db->getInteger("cyclic_flow_averaging_period");
+        if (!input_db->keyExists("flow_averaging_interval"))
+        {
+            d_flow_averaging_interval = 1;
+        }
+    }
+    if (input_db->keyExists("num_flow_averaging_cycles"))
+        d_num_flow_averaging_cycles = input_db->getInteger("num_flow_averaging_cycles");
+    else
+        d_num_flow_averaging_cycles = std::numeric_limits<unsigned int>::max();
+
+    if (d_flow_averaging_interval)
+    {
+        if (d_cyclic_flow_averaging_period)
+        {
+            d_num_flow_snapshots = d_cyclic_flow_averaging_period / d_flow_averaging_interval;
+        }
+        else
+        {
+            d_num_flow_snapshots = 1;
+        }
+    }
+    if (d_num_flow_averaging_cycles)
+    {
+        plog << "   switching to cycle averages after " << d_num_flow_averaging_cycles << " cycles\n"
+             << "   flow_averaging_interval = " << d_flow_averaging_interval << "\n"
+             << "   cyclic_flow_averaging_period = " << d_cyclic_flow_averaging_period << "\n";
+    }
 
     // Get coarsen and refine operator types.
     if (input_db->keyExists("N_coarsen_type")) d_N_coarsen_type = input_db->getString("N_coarsen_type");
@@ -583,9 +613,13 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     d_F_div_var = new SideVariable<NDIM, double>(d_object_name + "::F_div");
     d_EE_var = new CellVariable<NDIM, double>(d_object_name + "::EE", NDIM * NDIM);
 
-    if (d_flow_averaging_interval)
+    if (d_num_flow_snapshots)
     {
-        d_U_mean_var = new SideVariable<NDIM, double>(d_object_name + "::U_mean");
+        d_U_mean_vars.resize(d_num_flow_snapshots);
+        for (unsigned int k = 0; k < d_num_flow_snapshots; ++k)
+        {
+            d_U_mean_vars[k] = new SideVariable<NDIM, double>(d_object_name + "::U_mean_" + std::to_string(k));
+        }
     }
     return;
 } // INSStaggeredHierarchyIntegrator
@@ -924,14 +958,16 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
         d_F_div_idx = -1;
     }
 
-    // Register variables for tracking mean flow quantities and turbulent kinetic
-    // energy.
-    if (d_U_mean_var)
+    // Register variables for tracking mean flow quantities.
+    d_U_mean_current_idxs.resize(d_num_flow_snapshots, IBTK::invalid_index);
+    d_U_mean_new_idxs.resize(d_num_flow_snapshots, IBTK::invalid_index);
+    d_U_mean_scratch_idxs.resize(d_num_flow_snapshots, IBTK::invalid_index);
+    for (unsigned int k = 0; k < d_num_flow_snapshots; ++k)
     {
-        registerVariable(d_U_mean_current_idx,
-                         d_U_mean_new_idx,
-                         d_U_mean_scratch_idx,
-                         d_U_mean_var,
+        registerVariable(d_U_mean_current_idxs[k],
+                         d_U_mean_new_idxs[k],
+                         d_U_mean_scratch_idxs[k],
+                         d_U_mean_vars[k],
                          side_ghosts,
                          d_U_mean_coarsen_type,
                          d_U_mean_refine_type);
@@ -1056,10 +1092,14 @@ INSStaggeredHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy
 
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
 
-    // Initialize mean quantities.
-    if (d_flow_averaging_interval && initial_time)
+    // Initialize mean quantities to zero except the snapshot for the initial time, which we grab here.
+    if (d_num_flow_snapshots && initial_time)
     {
-        d_hier_sc_data_ops->copyData(d_U_mean_current_idx, d_U_current_idx);
+        d_hier_sc_data_ops->copyData(d_U_mean_current_idxs[0], d_U_current_idx);
+        for (unsigned int k = 1; k < d_num_flow_snapshots; ++k)
+        {
+            d_hier_sc_data_ops->setToScalar(d_U_mean_current_idxs[k], 0.0);
+        }
     }
 
     // When necessary, initialize the value of the advection velocity registered
@@ -1108,70 +1148,150 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
         level->allocatePatchData(d_new_data, new_time);
     }
 
-    // Setup the operators and solvers.
-    reinitializeOperatorsAndSolvers(current_time, new_time);
+    // Determine if we should be looking up mean flow data from snapshots determined over previous cycles.
+    const bool use_mean_flow_data =
+        (d_cyclic_flow_averaging_period > 0) &&
+        (current_time >= (d_num_flow_averaging_cycles * d_cyclic_flow_averaging_period * d_dt_init + getStartTime()));
 
-    // Allocate solver vectors.
-    d_U_rhs_vec->allocateVectorData(current_time);
-    d_U_rhs_vec->setToScalar(0.0);
-    d_P_rhs_vec->allocateVectorData(current_time);
-    d_P_rhs_vec->setToScalar(0.0);
-    if (!d_creeping_flow)
+    if (!use_mean_flow_data)
     {
-        d_U_adv_vec->allocateVectorData(current_time);
-        d_U_adv_vec->setToScalar(0.0);
-        d_N_vec->allocateVectorData(current_time);
-        d_N_vec->setToScalar(0.0);
+        // Setup the operators and solvers.
+        reinitializeOperatorsAndSolvers(current_time, new_time);
+
+        // Allocate solver vectors.
+        d_U_rhs_vec->allocateVectorData(current_time);
+        d_U_rhs_vec->setToScalar(0.0);
+        d_P_rhs_vec->allocateVectorData(current_time);
+        d_P_rhs_vec->setToScalar(0.0);
+        if (!d_creeping_flow)
+        {
+            d_U_adv_vec->allocateVectorData(current_time);
+            d_U_adv_vec->setToScalar(0.0);
+            d_N_vec->allocateVectorData(current_time);
+            d_N_vec->setToScalar(0.0);
+        }
+
+        // Cache BC data.
+        d_bc_helper->cacheBcCoefData(d_bc_coefs, new_time, d_hierarchy);
+
+        // Initialize the right-hand side terms.
+        const double rho = d_problem_coefs.getRho();
+        const double mu = d_problem_coefs.getMu();
+        const double lambda = d_problem_coefs.getLambda();
+        double K_rhs = 0.0;
+        switch (d_viscous_time_stepping_type)
+        {
+        case BACKWARD_EULER:
+            K_rhs = 0.0;
+            break;
+        case FORWARD_EULER:
+            K_rhs = 1.0;
+            break;
+        case TRAPEZOIDAL_RULE:
+            K_rhs = 0.5;
+            break;
+        default:
+            TBOX_ERROR("this statment should not be reached");
+        }
+        PoissonSpecifications U_rhs_problem_coefs(d_object_name + "::U_rhs_problem_coefs");
+        U_rhs_problem_coefs.setCConstant((rho / dt) - K_rhs * lambda);
+        U_rhs_problem_coefs.setDConstant(+K_rhs * mu);
+        const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
+        const Pointer<SideVariable<NDIM, double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
+        d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
+        StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs,
+                                                                  /*P_bc_coef*/ nullptr,
+                                                                  d_U_scratch_idx,
+                                                                  /*P_data_idx*/ -1,
+                                                                  /*homogeneous_bc*/ false);
+        d_U_bdry_bc_fill_op->fillData(current_time);
+        StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
+                                                                  /*P_bc_coef*/ nullptr);
+        d_hier_math_ops->laplace(
+            U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var, d_no_fill_op, current_time);
+        d_hier_sc_data_ops->copyData(d_U_src_idx,
+                                     d_U_scratch_idx,
+                                     /*interior_only*/ false);
+
+        // Set the initial guess.
+        d_hier_sc_data_ops->copyData(d_U_new_idx, d_U_current_idx);
+        d_hier_cc_data_ops->copyData(d_P_new_idx, d_P_current_idx);
+
+        // Set up inhomogeneous BCs.
+        d_stokes_solver->setHomogeneousBc(false);
+
+        // Account for the convective acceleration term.
+        TimeSteppingType convective_time_stepping_type = d_convective_time_stepping_type;
+        if (getIntegratorStep() == 0 && is_multistep_time_stepping_type(d_convective_time_stepping_type))
+        {
+            convective_time_stepping_type = d_init_convective_time_stepping_type;
+        }
+        if (!d_creeping_flow)
+        {
+            const int U_adv_idx = d_U_adv_vec->getComponentDescriptorIndex(0);
+            d_hier_sc_data_ops->copyData(U_adv_idx, d_U_current_idx);
+            for (int ln = finest_ln; ln > coarsest_ln; --ln)
+            {
+                Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
+                Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+                Pointer<CoarsenOperator<NDIM> > coarsen_op =
+                    grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
+                coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
+                coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
+                getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]->coarsenData();
+                getCoarsenAlgorithm(d_object_name + "::CONVECTIVE_OP")
+                    ->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
+            }
+            d_convective_op->setAdvectionVelocity(d_U_adv_vec->getComponentDescriptorIndex(0));
+            d_convective_op->setSolutionTime(current_time);
+            d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
+            const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
+            d_hier_sc_data_ops->copyData(d_N_old_new_idx, N_idx);
+            if (convective_time_stepping_type == FORWARD_EULER)
+            {
+                d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0),
+                                         -1.0 * rho,
+                                         N_idx,
+                                         d_rhs_vec->getComponentDescriptorIndex(0));
+            }
+            else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
+            {
+                d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0),
+                                         -0.5 * rho,
+                                         N_idx,
+                                         d_rhs_vec->getComponentDescriptorIndex(0));
+            }
+        }
     }
-
-    // Cache BC data.
-    d_bc_helper->cacheBcCoefData(d_bc_coefs, new_time, d_hierarchy);
-
-    // Initialize the right-hand side terms.
-    const double rho = d_problem_coefs.getRho();
-    const double mu = d_problem_coefs.getMu();
-    const double lambda = d_problem_coefs.getLambda();
-    double K_rhs = 0.0;
-    switch (d_viscous_time_stepping_type)
+    else
     {
-    case BACKWARD_EULER:
-        K_rhs = 0.0;
-        break;
-    case FORWARD_EULER:
-        K_rhs = 1.0;
-        break;
-    case TRAPEZOIDAL_RULE:
-        K_rhs = 0.5;
-        break;
-    default:
-        TBOX_ERROR("this statment should not be reached");
+        const unsigned int k_current =
+            (static_cast<unsigned int>(current_time / d_dt_init) % d_cyclic_flow_averaging_period) /
+            d_flow_averaging_interval;
+        const double weight_current = (fmod(current_time, d_cyclic_flow_averaging_period * d_dt_init) -
+                                       k_current * d_flow_averaging_interval * d_dt_init) /
+                                      (d_flow_averaging_interval * d_dt_init);
+        d_hier_sc_data_ops->linearSum(d_U_current_idx,
+                                      1.0 - weight_current,
+                                      d_U_mean_current_idxs[k_current],
+                                      weight_current,
+                                      d_U_mean_current_idxs[(k_current + 1) % d_cyclic_flow_averaging_period]);
+
+        const unsigned int k_new = (static_cast<unsigned int>(new_time / d_dt_init) % d_cyclic_flow_averaging_period) /
+                                   d_flow_averaging_interval;
+        const double weight_new = (fmod(new_time, d_cyclic_flow_averaging_period * d_dt_init) -
+                                   k_new * d_flow_averaging_interval * d_dt_init) /
+                                  (d_flow_averaging_interval * d_dt_init);
+        d_hier_sc_data_ops->linearSum(d_U_new_idx,
+                                      1.0 - weight_new,
+                                      d_U_mean_current_idxs[k_new],
+                                      weight_new,
+                                      d_U_mean_current_idxs[(k_new + 1) % d_cyclic_flow_averaging_period]);
+
+        d_hier_sc_data_ops->setToScalar(d_F_current_idx, 0.0);
+        d_hier_sc_data_ops->setToScalar(d_F_scratch_idx, 0.0);
+        d_hier_sc_data_ops->setToScalar(d_F_new_idx, 0.0);
     }
-    PoissonSpecifications U_rhs_problem_coefs(d_object_name + "::U_rhs_problem_coefs");
-    U_rhs_problem_coefs.setCConstant((rho / dt) - K_rhs * lambda);
-    U_rhs_problem_coefs.setDConstant(+K_rhs * mu);
-    const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
-    const Pointer<SideVariable<NDIM, double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
-    d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs,
-                                                              /*P_bc_coef*/ nullptr,
-                                                              d_U_scratch_idx,
-                                                              /*P_data_idx*/ -1,
-                                                              /*homogeneous_bc*/ false);
-    d_U_bdry_bc_fill_op->fillData(current_time);
-    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
-                                                              /*P_bc_coef*/ nullptr);
-    d_hier_math_ops->laplace(
-        U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var, d_no_fill_op, current_time);
-    d_hier_sc_data_ops->copyData(d_U_src_idx,
-                                 d_U_scratch_idx,
-                                 /*interior_only*/ false);
-
-    // Set the initial guess.
-    d_hier_sc_data_ops->copyData(d_U_new_idx, d_U_current_idx);
-    d_hier_cc_data_ops->copyData(d_P_new_idx, d_P_current_idx);
-
-    // Set up inhomogeneous BCs.
-    d_stokes_solver->setHomogeneousBc(false);
 
     // Initialize any registered advection-diffusion solver.
     if (d_adv_diff_hier_integrator)
@@ -1212,52 +1332,11 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
         }
     }
 
-    // Account for the convective acceleration term.
-    TimeSteppingType convective_time_stepping_type = d_convective_time_stepping_type;
-    if (getIntegratorStep() == 0 && is_multistep_time_stepping_type(d_convective_time_stepping_type))
+    // Ensure mean flow quantities are propagated to the next time step (even if they are not updated in this time
+    // step).
+    for (unsigned int k = 0; k < d_num_flow_snapshots; ++k)
     {
-        convective_time_stepping_type = d_init_convective_time_stepping_type;
-    }
-    if (!d_creeping_flow)
-    {
-        const int U_adv_idx = d_U_adv_vec->getComponentDescriptorIndex(0);
-        d_hier_sc_data_ops->copyData(U_adv_idx, d_U_current_idx);
-        for (int ln = finest_ln; ln > coarsest_ln; --ln)
-        {
-            Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
-            Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-            Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
-            coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
-            coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
-            getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]->coarsenData();
-            getCoarsenAlgorithm(d_object_name + "::CONVECTIVE_OP")
-                ->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
-        }
-        d_convective_op->setAdvectionVelocity(d_U_adv_vec->getComponentDescriptorIndex(0));
-        d_convective_op->setSolutionTime(current_time);
-        d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
-        const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
-        d_hier_sc_data_ops->copyData(d_N_old_new_idx, N_idx);
-        if (convective_time_stepping_type == FORWARD_EULER)
-        {
-            d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0),
-                                     -1.0 * rho,
-                                     N_idx,
-                                     d_rhs_vec->getComponentDescriptorIndex(0));
-        }
-        else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
-        {
-            d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0),
-                                     -0.5 * rho,
-                                     N_idx,
-                                     d_rhs_vec->getComponentDescriptorIndex(0));
-        }
-    }
-
-    // Initialize mean flow quantities and turbulent kinetic energy.
-    if (d_flow_averaging_interval)
-    {
-        d_hier_cc_data_ops->copyData(d_U_mean_new_idx, d_U_mean_current_idx);
+        d_hier_sc_data_ops->copyData(d_U_mean_new_idxs[k], d_U_mean_current_idxs[k]);
     }
 
     // Execute any registered callbacks.
@@ -1290,23 +1369,30 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
         d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
     }
 
-    // Setup the solution and right-hand-side vectors.
-    setupSolverVectors(d_sol_vec, d_rhs_vec, current_time, new_time, cycle_num);
+    // Determine if we should be looking up mean flow data from snapshots determined over previous cycles.
+    const bool use_mean_flow_data =
+        (d_cyclic_flow_averaging_period > 0) &&
+        (current_time >= (d_num_flow_averaging_cycles * d_cyclic_flow_averaging_period * d_dt_init + getStartTime()));
 
-    // Solve for u(n+1), p(n+1/2).
-    d_stokes_solver->solveSystem(*d_sol_vec, *d_rhs_vec);
-    if (d_enable_logging && d_enable_logging_solver_iterations)
-        plog << d_object_name
-             << "::integrateHierarchy(): stokes solve number of iterations = " << d_stokes_solver->getNumIterations()
-             << "\n";
-    if (d_enable_logging)
-        plog << d_object_name
-             << "::integrateHierarchy(): stokes solve residual norm        = " << d_stokes_solver->getResidualNorm()
-             << "\n";
-    if (d_explicitly_remove_nullspace) removeNullSpace(d_sol_vec);
+    if (!use_mean_flow_data)
+    {
+        // Setup the solution and right-hand-side vectors.
+        setupSolverVectors(d_sol_vec, d_rhs_vec, current_time, new_time, cycle_num);
 
-    // Reset the solution and right-hand-side vectors.
-    resetSolverVectors(d_sol_vec, d_rhs_vec, current_time, new_time, cycle_num);
+        // Solve for u(n+1), p(n+1/2).
+        d_stokes_solver->solveSystem(*d_sol_vec, *d_rhs_vec);
+        if (d_enable_logging && d_enable_logging_solver_iterations)
+            plog << d_object_name << "::integrateHierarchy(): stokes solve number of iterations = "
+                 << d_stokes_solver->getNumIterations() << "\n";
+        if (d_enable_logging)
+            plog << d_object_name
+                 << "::integrateHierarchy(): stokes solve residual norm        = " << d_stokes_solver->getResidualNorm()
+                 << "\n";
+        if (d_explicitly_remove_nullspace) removeNullSpace(d_sol_vec);
+
+        // Reset the solution and right-hand-side vectors.
+        resetSolverVectors(d_sol_vec, d_rhs_vec, current_time, new_time, cycle_num);
+    }
 
     // Update the state variables of any linked advection-diffusion solver.
     if (d_adv_diff_hier_integrator)
@@ -1433,22 +1519,48 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
             current_time, new_time, skip_synchronize_new_state_data, adv_diff_num_cycles);
     }
 
-    // Update mean quantities.
-    //
-    // NOTE: The time step indexing is a little funny here.  We are computing
-    // new quantities associated with the time step at the end of the current
-    // interval, and so we shift the step index by 1.
-    const int new_time_step = getIntegratorStep() + 1;
-    if (d_flow_averaging_interval && (new_time_step % d_flow_averaging_interval == 0))
-    {
-        // N is the number of samples.  Currently we always capture the value
-        // at the initial time, which is why N is shifted by 1.
-        const int N = 1 + new_time_step / d_flow_averaging_interval;
+    // Determine if we should be looking up mean flow data from snapshots determined over previous cycles.
+    const bool use_mean_flow_data =
+        (d_cyclic_flow_averaging_period > 0) &&
+        (current_time >= (d_num_flow_averaging_cycles * d_cyclic_flow_averaging_period * d_dt_init + getStartTime()));
 
-        // u_mean := ((N-1) / N) u_mean + (1/N) u
-        const double alpha = (N - 1.0) / N;
-        const double beta = 1.0 / N;
-        d_hier_sc_data_ops->linearSum(d_U_mean_new_idx, alpha, d_U_mean_current_idx, beta, d_U_new_idx);
+    if (!use_mean_flow_data)
+    {
+        // Update mean quantities associated with the end of the time step.
+        const unsigned int new_time_step = getIntegratorStep() + 1;
+        if (d_flow_averaging_interval && (new_time_step % d_flow_averaging_interval == 0))
+        {
+            // Check whether the time step size has changed.
+            if (!MathUtilities<double>::equalEps(dt, d_dt_init))
+            {
+                TBOX_ERROR("flow averaging requires using constant time step sizes\n");
+            }
+
+            // Determine the flow snapshot to update.
+            const unsigned int k = (d_cyclic_flow_averaging_period > 0) ?
+                                       (new_time_step % d_cyclic_flow_averaging_period) / d_flow_averaging_interval :
+                                       0;
+
+            // N is the total number of samples associated with the snapshot (once we include the new flow field data
+            // here).
+            //
+            // NOTE: We capture the value at the initial time during initialization.
+            const unsigned int N =
+                1 + new_time_step / ((d_cyclic_flow_averaging_period > 0) ? d_cyclic_flow_averaging_period :
+                                                                            d_flow_averaging_interval);
+
+            // u_mean := ((N-1) / N) u_mean + (1/N) u = u_mean + (1/N) (u - u_mean)
+            const double weight = 1.0 / N;
+            d_hier_sc_data_ops->axpy(d_U_mean_new_idxs[k], +weight, d_U_new_idx, d_U_mean_current_idxs[k]);
+            d_hier_sc_data_ops->axpy(d_U_mean_new_idxs[k], -weight, d_U_mean_current_idxs[k], d_U_mean_new_idxs[k]);
+
+            // Determine the change in the mean value.
+            d_hier_sc_data_ops->subtract(d_U_mean_scratch_idxs[k], d_U_mean_new_idxs[k], d_U_mean_current_idxs[k]);
+            plog << "L^2 norm of the change in U_mean = "
+                 << d_hier_sc_data_ops->L2Norm(d_U_mean_scratch_idxs[k],
+                                               d_hier_math_ops->getSideWeightPatchDescriptorIndex())
+                 << "\n";
+        }
     }
 
     // Execute any registered callbacks.
