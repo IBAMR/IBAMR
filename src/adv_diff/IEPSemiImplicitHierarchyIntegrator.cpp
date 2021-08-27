@@ -580,6 +580,10 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
     d_M_var = new CellVariable<NDIM, double>(d_object_name + "::mass_conservation");
     registerVariable(d_M_idx, d_M_var, no_ghosts, getCurrentContext());
 
+    // computing magnitude of mass conservation equation pointwise
+    d_updated_rho_var = new CellVariable<NDIM, double>(d_object_name + "::updated_rho");
+    registerVariable(d_updated_rho_cc_idx, d_updated_rho_var, no_ghosts, getCurrentContext());
+
     // Register variables for plotting.
     if (d_visit_writer)
     {

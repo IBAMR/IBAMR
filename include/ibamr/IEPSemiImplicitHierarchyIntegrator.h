@@ -551,6 +551,7 @@ private:
     bool d_rho_output, d_Cp_output;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Cp_var, d_rho_var;
+    int d_rho_current_idx = IBTK::invalid_index;
 
     std::vector<ResetFluidPropertiesFcnPtr> d_reset_rho_fcns, d_reset_Cp_fcns, d_reset_kappa_fcns;
     std::vector<void*> d_reset_rho_fcns_ctx, d_reset_Cp_fcns_ctx, d_reset_kappa_fcns_ctx;
@@ -593,7 +594,8 @@ private:
     bool d_solve_energy = false, d_solve_mass_conservation = true;
 
     // Variables for chemical potential.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_chemical_potential_var, d_M_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_chemical_potential_var, d_M_var,
+        d_updated_rho_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_lf_var;
     int d_chemical_potential_idx, d_grad_lf_idx, d_H_sc_idx, d_M_idx;
 
