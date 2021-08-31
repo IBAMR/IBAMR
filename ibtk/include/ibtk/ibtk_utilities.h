@@ -272,6 +272,17 @@ discontinuous_heaviside(const double& phi)
 }
 
 /*!
+ * Discontinuous heaviside function.
+ */
+inline double
+hyperbolic_tangent_heaviside(const double& phi, const double& alpha)
+{
+    double Hphi = 1.0 / 2.0 * (1.0 + tanh(phi / (std::sqrt(2.0) * alpha)));
+
+    return Hphi;
+}
+
+/*!
  * Eigen types have special alignment requirements and require a specific
  * memory allocator. This is a convenience type alias for a
  * <code>std::vector</code> with the correct allocator.

@@ -2073,7 +2073,8 @@ IEPSemiImplicitHierarchyIntegrator::computeHeavisideFunction(int H_idx,
                 const double phi = (*phi_data)(ci);
 
                 if (MathUtilities<double>::equalEps(integrator_time, current_time) && Q_var->getName() == "ls_var")
-                    (*H_data)(ci) = IBTK::smooth_heaviside(phi, alpha);
+                    //                     (*H_data)(ci) = IBTK::smooth_heaviside(phi, alpha);
+                    (*H_data)(ci) = IBTK::hyperbolic_tangent_heaviside(phi, d_eta_lf);
                 else
                     (*H_data)(ci) = phi;
             }
