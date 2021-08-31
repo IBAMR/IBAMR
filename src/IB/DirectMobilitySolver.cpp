@@ -41,6 +41,8 @@
 #include "petscviewer.h"
 #include "petscviewertypes.h"
 
+#include <Eigen/Eigenvalues>
+
 #include <algorithm>
 #include <cmath>
 #include <map>
@@ -79,29 +81,6 @@ extern "C"
                 double* b,
                 const int& ldb,
                 int& info);
-
-    // LAPACK function to do SVD factorization.
-    void dsyevr_(const char* jobz,
-                 const char* range,
-                 const char* uplo,
-                 const int& n,
-                 double* a,
-                 const int& lda,
-                 const double& vl,
-                 const double& vu,
-                 const int& il,
-                 const int& iu,
-                 const double& abstol,
-                 int& m,
-                 double* w,
-                 double* z,
-                 const int& ldz,
-                 int* isuppz,
-                 double* work,
-                 const int& lwork,
-                 int* iwork,
-                 const int& liwork,
-                 int& info);
 }
 
 namespace IBAMR
@@ -680,118 +659,62 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
     }
     else if (inv_type == LAPACK_SVD)
     {
-        // Locals.
-        int il = 0, iu = 0, m = 0, lwork, liwork, iwkopt = 0;
-        double abstol, vl = 0.0, vu = 0.0, wkopt = 0.0;
-
-        // Local arrays.
-        std::vector<int> isuppz(2 * mat_size);
-        std::vector<double> w(mat_size);
-        std::vector<double> z(mat_size * mat_size);
-
-        abstol = -1.0; // Negative abstol means using the default value.
-        lwork = -1;    // Query and allocate the optimal workspace.
-        liwork = -1;
-
-        // Initiate eigenvalue problem solve.
-        dsyevr_((char*)"V",
-                (char*)"A",
-                (char*)"L",
-                mat_size,
-                mat_data,
-                mat_size,
-                vl,
-                vu,
-                il,
-                iu,
-                abstol,
-                m,
-                &w[0],
-                &z[0],
-                mat_size,
-                &isuppz[0],
-                &wkopt,
-                lwork,
-                &iwkopt,
-                liwork,
-                err);
-        if (err)
+        // Use the symmetric eigenvalue decomposition as a stand-in for the SVD.
+        // In particular, since A = V D V^T, where V is the matrix of eigenvectors
+        // and D is the matrix of eigenvalues, we can factorize A as
+        //
+        //   A = V sqrt(D) sqrt(D) V^T
+        //     = V sqrt(D) (V sqrt(D))^T
+        //
+        // and instead store A <- V sqrt(D)
+        using MatrixType = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
+        Eigen::Map<MatrixType> mat_view(mat_data, Eigen::Index(mat_size), Eigen::Index(mat_size));
+        // For compatibility with the old code, we copy the lower triangle into
+        // the upper triangle, even if they aren't actually equal
+        for (int i = 0; i < mat_size; ++i)
         {
-            TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(). "
-                       << err_msg << " matrix factorization "
-                       << "failed for matrix handle " << mat_name << " with error code " << err
-                       << " using LAPACK SVD at first stage." << std::endl);
+            for (int j = i + 1; j < mat_size; ++j)
+            {
+                mat_view(i, j) = mat_view(j, i);
+            }
         }
-
-        lwork = static_cast<int>(wkopt);
-        std::vector<double> work(lwork);
-        liwork = iwkopt;
-        std::vector<int> iwork(liwork);
-
-        // Finalize eigenvalue problem solve.
-        dsyevr_((char*)"V",
-                (char*)"A",
-                (char*)"L",
-                mat_size,
-                mat_data,
-                mat_size,
-                vl,
-                vu,
-                il,
-                iu,
-                abstol,
-                m,
-                &w[0],
-                &z[0],
-                mat_size,
-                &isuppz[0],
-                &work[0],
-                lwork,
-                &iwork[0],
-                liwork,
-                err);
-        if (err)
-        {
-            TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(). "
-                       << err_msg << " matrix factorization "
-                       << "failed for matrix handle " << mat_name << " with error code " << err
-                       << " using LAPACK SVD at second stage." << std::endl);
-        }
-
+        Eigen::SelfAdjointEigenSolver<MatrixType> eigensolver(mat_view);
+        Eigen::Matrix<double, Eigen::Dynamic, 1> eigenvalues = eigensolver.eigenvalues();
+        const MatrixType eigenvectors = eigensolver.eigenvectors();
         // Make negative eigenvalues to be equal to min eigen value from
         // input option
         int counter = 0, counter_zero = 0;
         for (int i = 0; i < mat_size; ++i)
         {
-            if (w[i] < d_svd_eps)
+            if (eigenvalues[i] < d_svd_eps)
             {
-                w[i] = d_svd_replace_value;
+                eigenvalues[i] = d_svd_replace_value;
                 counter++;
             }
         }
         for (int i = 0; i < mat_size; ++i)
         {
-            if (MathUtilities<double>::equalEps(w[i], 0.0))
+            if (MathUtilities<double>::equalEps(eigenvalues[i], 0.0))
             {
                 counter_zero++;
             }
 
             for (int j = 0; j < mat_size; ++j)
             {
-                if (MathUtilities<double>::equalEps(w[j], 0.0))
+                if (MathUtilities<double>::equalEps(eigenvalues[j], 0.0))
                 {
-                    mat_data[j * mat_size + i] = 0.0;
+                    mat_view(i, j) = 0.0;
                 }
                 else
                 {
-                    mat_data[j * mat_size + i] = z[j * mat_size + i] / std::sqrt(w[j]);
+                    mat_view(i, j) = eigenvectors(i, j) / std::sqrt(eigenvalues[j]);
                 }
             }
         }
 
         plog << "DirectMobilityMatrix::factorizeDenseMatrix(): For " << err_msg << " matrix: " << counter
              << " eigenvalues for dense matrix with handle " << mat_name
-             << "have been changed. Number of zero eigenvalues placed are " << counter_zero << std::endl;
+             << " have been changed. Number of zero eigenvalues placed are " << counter_zero << std::endl;
     }
     else
     {
