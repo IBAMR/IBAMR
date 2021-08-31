@@ -280,12 +280,6 @@ private:
     void setMatrixCoefficients_nonaligned();
     void setupHypreSolver();
     bool solveSystem(int x_idx, int b_idx);
-    void copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
-                     SAMRAI::pdat::CellData<NDIM, double>& src_data,
-                     const SAMRAI::hier::Box<NDIM>& box);
-    void copyFromHypre(SAMRAI::pdat::CellData<NDIM, double>& dst_data,
-                       const std::vector<HYPRE_StructVector>& vectors,
-                       const SAMRAI::hier::Box<NDIM>& box);
     void destroyHypreSolver();
     void deallocateHypreData();
 

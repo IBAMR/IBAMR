@@ -174,11 +174,6 @@ private:
     KrylovFreeBodyMobilitySolver& operator=(const KrylovFreeBodyMobilitySolver& that) = delete;
 
     /*!
-     * \brief Report the KSPConvergedReason.
-     */
-    void reportKSPConvergedReason(const KSPConvergedReason& reason, std::ostream& os) const;
-
-    /*!
      * \brief Routine to setup KSP object.
      */
     void initializeKSP();

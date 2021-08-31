@@ -284,11 +284,6 @@ private:
     CIBSaddlePointSolver& operator=(const CIBSaddlePointSolver& that) = delete;
 
     /*!
-     * \brief Report the KSPConvergedReason.
-     */
-    void reportKSPConvergedReason(const KSPConvergedReason& reason, std::ostream& os) const;
-
-    /*!
      * \brief Get options from input file.
      */
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);

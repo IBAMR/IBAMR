@@ -261,6 +261,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/refine_ops/CartSideDoubleRT0Refine.cpp \
 	../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp \
 	../src/refine_ops/LMarkerRefine.cpp \
+	../src/solvers/solver_utilities.cpp \
 	../src/solvers/impls/BGaussSeidelPreconditioner.cpp \
 	../src/solvers/impls/BJacobiPreconditioner.cpp \
 	../src/solvers/impls/CCLaplaceOperator.cpp \
@@ -439,6 +440,7 @@ am__objects_3 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/refine_ops/libIBTK2d_a-CartSideDoubleRT0Refine.$(OBJEXT) \
 	../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.$(OBJEXT) \
 	../src/refine_ops/libIBTK2d_a-LMarkerRefine.$(OBJEXT) \
+	../src/solvers/libIBTK2d_a-solver_utilities.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-BGaussSeidelPreconditioner.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-BJacobiPreconditioner.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-CCLaplaceOperator.$(OBJEXT) \
@@ -587,6 +589,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/refine_ops/CartSideDoubleRT0Refine.cpp \
 	../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp \
 	../src/refine_ops/LMarkerRefine.cpp \
+	../src/solvers/solver_utilities.cpp \
 	../src/solvers/impls/BGaussSeidelPreconditioner.cpp \
 	../src/solvers/impls/BJacobiPreconditioner.cpp \
 	../src/solvers/impls/CCLaplaceOperator.cpp \
@@ -765,6 +768,7 @@ am__objects_5 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/refine_ops/libIBTK3d_a-CartSideDoubleRT0Refine.$(OBJEXT) \
 	../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.$(OBJEXT) \
 	../src/refine_ops/libIBTK3d_a-LMarkerRefine.$(OBJEXT) \
+	../src/solvers/libIBTK3d_a-solver_utilities.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-BGaussSeidelPreconditioner.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-BJacobiPreconditioner.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-CCLaplaceOperator.$(OBJEXT) \
@@ -1002,6 +1006,8 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Refine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po \
+	../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Po \
+	../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BJacobiPreconditioner.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCLaplaceOperator.Po \
@@ -1720,6 +1726,7 @@ DIM_DEPENDENT_SOURCES =  \
 	../src/refine_ops/CartSideDoubleRT0Refine.cpp \
 	../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp \
 	../src/refine_ops/LMarkerRefine.cpp \
+	../src/solvers/solver_utilities.cpp \
 	../src/solvers/impls/BGaussSeidelPreconditioner.cpp \
 	../src/solvers/impls/BJacobiPreconditioner.cpp \
 	../src/solvers/impls/CCLaplaceOperator.cpp \
@@ -2137,6 +2144,15 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/refine_ops/libIBTK2d_a-LMarkerRefine.$(OBJEXT):  \
 	../src/refine_ops/$(am__dirstamp) \
 	../src/refine_ops/$(DEPDIR)/$(am__dirstamp)
+../src/solvers/$(am__dirstamp):
+	@$(MKDIR_P) ../src/solvers
+	@: > ../src/solvers/$(am__dirstamp)
+../src/solvers/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ../src/solvers/$(DEPDIR)
+	@: > ../src/solvers/$(DEPDIR)/$(am__dirstamp)
+../src/solvers/libIBTK2d_a-solver_utilities.$(OBJEXT):  \
+	../src/solvers/$(am__dirstamp) \
+	../src/solvers/$(DEPDIR)/$(am__dirstamp)
 ../src/solvers/impls/$(am__dirstamp):
 	@$(MKDIR_P) ../src/solvers/impls
 	@: > ../src/solvers/impls/$(am__dirstamp)
@@ -2679,6 +2695,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/refine_ops/libIBTK3d_a-LMarkerRefine.$(OBJEXT):  \
 	../src/refine_ops/$(am__dirstamp) \
 	../src/refine_ops/$(DEPDIR)/$(am__dirstamp)
+../src/solvers/libIBTK3d_a-solver_utilities.$(OBJEXT):  \
+	../src/solvers/$(am__dirstamp) \
+	../src/solvers/$(DEPDIR)/$(am__dirstamp)
 ../src/solvers/impls/libIBTK3d_a-BGaussSeidelPreconditioner.$(OBJEXT):  \
 	../src/solvers/impls/$(am__dirstamp) \
 	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
@@ -3036,6 +3055,7 @@ mostlyclean-compile:
 	-rm -f ../src/lagrangian/*.$(OBJEXT)
 	-rm -f ../src/math/*.$(OBJEXT)
 	-rm -f ../src/refine_ops/*.$(OBJEXT)
+	-rm -f ../src/solvers/*.$(OBJEXT)
 	-rm -f ../src/solvers/impls/*.$(OBJEXT)
 	-rm -f ../src/solvers/interfaces/*.$(OBJEXT)
 	-rm -f ../src/solvers/wrappers/*.$(OBJEXT)
@@ -3162,6 +3182,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Refine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BJacobiPreconditioner.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCLaplaceOperator.Po@am__quote@ # am--include-marker
@@ -4004,6 +4026,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/refine_ops/LMarkerRefine.cpp' object='../src/refine_ops/libIBTK2d_a-LMarkerRefine.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/refine_ops/libIBTK2d_a-LMarkerRefine.obj `if test -f '../src/refine_ops/LMarkerRefine.cpp'; then $(CYGPATH_W) '../src/refine_ops/LMarkerRefine.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/refine_ops/LMarkerRefine.cpp'; fi`
+
+../src/solvers/libIBTK2d_a-solver_utilities.o: ../src/solvers/solver_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/libIBTK2d_a-solver_utilities.o -MD -MP -MF ../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Tpo -c -o ../src/solvers/libIBTK2d_a-solver_utilities.o `test -f '../src/solvers/solver_utilities.cpp' || echo '$(srcdir)/'`../src/solvers/solver_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Tpo ../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/solver_utilities.cpp' object='../src/solvers/libIBTK2d_a-solver_utilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/libIBTK2d_a-solver_utilities.o `test -f '../src/solvers/solver_utilities.cpp' || echo '$(srcdir)/'`../src/solvers/solver_utilities.cpp
+
+../src/solvers/libIBTK2d_a-solver_utilities.obj: ../src/solvers/solver_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/libIBTK2d_a-solver_utilities.obj -MD -MP -MF ../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Tpo -c -o ../src/solvers/libIBTK2d_a-solver_utilities.obj `if test -f '../src/solvers/solver_utilities.cpp'; then $(CYGPATH_W) '../src/solvers/solver_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/solver_utilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Tpo ../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/solver_utilities.cpp' object='../src/solvers/libIBTK2d_a-solver_utilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/libIBTK2d_a-solver_utilities.obj `if test -f '../src/solvers/solver_utilities.cpp'; then $(CYGPATH_W) '../src/solvers/solver_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/solver_utilities.cpp'; fi`
 
 ../src/solvers/impls/libIBTK2d_a-BGaussSeidelPreconditioner.o: ../src/solvers/impls/BGaussSeidelPreconditioner.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK2d_a-BGaussSeidelPreconditioner.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Tpo -c -o ../src/solvers/impls/libIBTK2d_a-BGaussSeidelPreconditioner.o `test -f '../src/solvers/impls/BGaussSeidelPreconditioner.cpp' || echo '$(srcdir)/'`../src/solvers/impls/BGaussSeidelPreconditioner.cpp
@@ -5937,6 +5973,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/refine_ops/libIBTK3d_a-LMarkerRefine.obj `if test -f '../src/refine_ops/LMarkerRefine.cpp'; then $(CYGPATH_W) '../src/refine_ops/LMarkerRefine.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/refine_ops/LMarkerRefine.cpp'; fi`
 
+../src/solvers/libIBTK3d_a-solver_utilities.o: ../src/solvers/solver_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/libIBTK3d_a-solver_utilities.o -MD -MP -MF ../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Tpo -c -o ../src/solvers/libIBTK3d_a-solver_utilities.o `test -f '../src/solvers/solver_utilities.cpp' || echo '$(srcdir)/'`../src/solvers/solver_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Tpo ../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/solver_utilities.cpp' object='../src/solvers/libIBTK3d_a-solver_utilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/libIBTK3d_a-solver_utilities.o `test -f '../src/solvers/solver_utilities.cpp' || echo '$(srcdir)/'`../src/solvers/solver_utilities.cpp
+
+../src/solvers/libIBTK3d_a-solver_utilities.obj: ../src/solvers/solver_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/libIBTK3d_a-solver_utilities.obj -MD -MP -MF ../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Tpo -c -o ../src/solvers/libIBTK3d_a-solver_utilities.obj `if test -f '../src/solvers/solver_utilities.cpp'; then $(CYGPATH_W) '../src/solvers/solver_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/solver_utilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Tpo ../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/solver_utilities.cpp' object='../src/solvers/libIBTK3d_a-solver_utilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/libIBTK3d_a-solver_utilities.obj `if test -f '../src/solvers/solver_utilities.cpp'; then $(CYGPATH_W) '../src/solvers/solver_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/solver_utilities.cpp'; fi`
+
 ../src/solvers/impls/libIBTK3d_a-BGaussSeidelPreconditioner.o: ../src/solvers/impls/BGaussSeidelPreconditioner.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK3d_a-BGaussSeidelPreconditioner.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-BGaussSeidelPreconditioner.Tpo -c -o ../src/solvers/impls/libIBTK3d_a-BGaussSeidelPreconditioner.o `test -f '../src/solvers/impls/BGaussSeidelPreconditioner.cpp' || echo '$(srcdir)/'`../src/solvers/impls/BGaussSeidelPreconditioner.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-BGaussSeidelPreconditioner.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-BGaussSeidelPreconditioner.Po
@@ -7397,6 +7447,8 @@ distclean-generic:
 	-rm -f ../src/math/$(am__dirstamp)
 	-rm -f ../src/refine_ops/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ../src/refine_ops/$(am__dirstamp)
+	-rm -f ../src/solvers/$(DEPDIR)/$(am__dirstamp)
+	-rm -f ../src/solvers/$(am__dirstamp)
 	-rm -f ../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ../src/solvers/impls/$(am__dirstamp)
 	-rm -f ../src/solvers/interfaces/$(DEPDIR)/$(am__dirstamp)
@@ -7548,6 +7600,8 @@ distclean: distclean-am
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Refine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po
+	-rm -f ../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Po
+	-rm -f ../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BJacobiPreconditioner.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCLaplaceOperator.Po
@@ -7879,6 +7933,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Refine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po
+	-rm -f ../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Po
+	-rm -f ../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BJacobiPreconditioner.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCLaplaceOperator.Po
