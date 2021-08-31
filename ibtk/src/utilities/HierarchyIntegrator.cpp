@@ -84,6 +84,10 @@ namespace
 {
 // Version of HierarchyIntegrator restart file data.
 static const int HIERARCHY_INTEGRATOR_VERSION = 1;
+// Timers.
+static Timer* t_regrid_hierarchy;
+static Timer* t_advance_hierarchy;
+static Timer* t_apply_gradient_detector;
 } // namespace
 
 const std::string HierarchyIntegrator::SYNCH_CURRENT_DATA_ALG = "SYNCH_CURRENT_DATA";
@@ -94,6 +98,11 @@ const std::string HierarchyIntegrator::SYNCH_NEW_DATA_ALG = "SYNCH_NEW_DATA";
 HierarchyIntegrator::HierarchyIntegrator(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
     : d_object_name(std::move(object_name))
 {
+    auto set_timer = [&](const char* name) { return tbox::TimerManager::getManager()->getTimer(name); };
+    IBTK_DO_ONCE(t_apply_gradient_detector = set_timer("IBTK::HierarchyIntegrator::applyGradientDetector()");
+                 t_advance_hierarchy = set_timer("IBTK::HierarchyIntegrator::advanceHierarchy()");
+                 t_regrid_hierarchy = set_timer("IBTK::HierarchyIntegrator::regridHierarchy()"););
+
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_object_name.empty());
 #endif
@@ -224,6 +233,7 @@ HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hie
 void
 HierarchyIntegrator::advanceHierarchy(double dt)
 {
+    IBTK_TIMER_START(t_advance_hierarchy);
     const double dt_min = getMinimumTimeStepSize();
     const double dt_max = getMaximumTimeStepSize();
     if (dt < dt_min || dt > dt_max)
@@ -325,6 +335,7 @@ HierarchyIntegrator::advanceHierarchy(double dt)
 
     // Reset the regrid indicator.
     d_at_regrid_time_step = false;
+    IBTK_TIMER_STOP(t_advance_hierarchy);
     return;
 } // advanceHierarchy
 
@@ -386,6 +397,7 @@ HierarchyIntegrator::resetIntegratorToPreadvanceState()
 void
 HierarchyIntegrator::regridHierarchy()
 {
+    IBTK_TIMER_START(t_regrid_hierarchy);
     const int coarsest_ln = 0;
 
     if (d_parent_integrator != nullptr)
@@ -461,6 +473,7 @@ HierarchyIntegrator::regridHierarchy()
 
     // Synchronize the state data on the patch hierarchy.
     synchronizeHierarchyData(CURRENT_DATA);
+    IBTK_TIMER_STOP(t_regrid_hierarchy);
     return;
 } // regridHierarchy
 
@@ -940,6 +953,7 @@ HierarchyIntegrator::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM
                                            const bool initial_time,
                                            const bool uses_richardson_extrapolation_too)
 {
+    IBTK_TIMER_START(t_apply_gradient_detector);
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -970,6 +984,7 @@ HierarchyIntegrator::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM
         child_integrator->applyGradientDetector(
             hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     }
+    IBTK_TIMER_STOP(t_apply_gradient_detector);
     return;
 } // applyGradientDetector
 
