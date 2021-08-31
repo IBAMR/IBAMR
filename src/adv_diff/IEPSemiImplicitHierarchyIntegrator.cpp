@@ -2073,8 +2073,8 @@ IEPSemiImplicitHierarchyIntegrator::computeHeavisideFunction(int H_idx,
                 const double phi = (*phi_data)(ci);
 
                 if (MathUtilities<double>::equalEps(integrator_time, current_time) && Q_var->getName() == "ls_var")
-                    //                     (*H_data)(ci) = IBTK::smooth_heaviside(phi, alpha);
-                    (*H_data)(ci) = IBTK::hyperbolic_tangent_heaviside(phi, d_eta_lf);
+                    (*H_data)(ci) = IBTK::smooth_heaviside(phi, alpha);
+                //                    (*H_data)(ci) = IBTK::hyperbolic_tangent_heaviside(phi, d_eta_lf);
                 else
                     (*H_data)(ci) = phi;
             }
@@ -2089,6 +2089,7 @@ IEPSemiImplicitHierarchyIntegrator::computeDoubleWellPotential(int g_firstder_id
                                                                int g_secondder_idx,
                                                                const int liquid_fraction_idx)
 {
+    const bool use_convex_splitting = true;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
@@ -2107,10 +2108,22 @@ IEPSemiImplicitHierarchyIntegrator::computeDoubleWellPotential(int g_firstder_id
             {
                 CellIndex<NDIM> ci(it());
                 const double lf = (*lf_data)(ci);
-                (*g_firstder_data)(ci) = 2.0 * (lf - 1.0) * lf * (2.0 * lf - 1.0);
-                (*g_secondder_data)(ci) = 12.0 * lf * lf - 12.0 * lf + 2.0;
-                //(*g_firstder_data)(ci) = 0.0;
-                // (*g_secondder_data)(ci) = 0.0;
+                if (use_convex_splitting)
+                {
+                    if (lf < 0.0)
+                        (*g_firstder_data)(ci) = 2.0 * lf;
+                    else if (lf > 1.0)
+                        (*g_firstder_data)(ci) = 2.0 * (lf - 1.0);
+                    else
+                        (*g_firstder_data)(ci) = 2.0 * (lf - 1.0) * lf * (2.0 * lf - 1.0);
+
+                    (*g_secondder_data)(ci) = 2.0;
+                }
+                else
+                {
+                    (*g_firstder_data)(ci) = 2.0 * (lf - 1.0) * lf * (2.0 * lf - 1.0);
+                    (*g_secondder_data)(ci) = 12.0 * lf * lf - 12.0 * lf + 2.0;
+                }
             }
         }
     }
