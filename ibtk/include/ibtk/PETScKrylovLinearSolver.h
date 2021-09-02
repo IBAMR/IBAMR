@@ -333,11 +333,6 @@ private:
     void common_ctor();
 
     /*!
-     * \brief Report the KSPConvergedReason.
-     */
-    void reportKSPConvergedReason(const KSPConvergedReason& reason, std::ostream& os) const;
-
-    /*!
      * \brief Reset the KSP wrapped by this solver class.
      */
     void resetWrappedKSP(KSP& petsc_ksp);

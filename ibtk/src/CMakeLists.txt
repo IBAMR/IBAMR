@@ -115,6 +115,7 @@ SET(CXX_SRC
   refine_ops/CartSideDoubleRT0Refine.cpp
 
   # solvers
+  solvers/solver_utilities.cpp
   solvers/interfaces/FACPreconditionerStrategy.cpp
   solvers/interfaces/LinearOperator.cpp
   solvers/interfaces/JacobianOperator.cpp

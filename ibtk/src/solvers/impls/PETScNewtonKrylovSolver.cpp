@@ -26,6 +26,7 @@
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/PETScSNESFunctionGOWrapper.h"
 #include "ibtk/PETScSNESJacobianJOWrapper.h"
+#include "ibtk/solver_utilities.h"
 
 #include "Box.h"
 #include "MultiblockDataTranslator.h"
@@ -224,7 +225,7 @@ PETScNewtonKrylovSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVe
     ierr = SNESGetConvergedReason(d_petsc_snes, &reason);
     IBTK_CHKERRQ(ierr);
     const bool converged = (static_cast<int>(reason) > 0);
-    if (d_enable_logging) reportSNESConvergedReason(reason, plog);
+    if (d_enable_logging) reportPETScSNESConvergedReason(d_object_name, reason, plog);
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -433,66 +434,6 @@ PETScNewtonKrylovSolver::common_ctor()
                      TimerManager::getManager()->getTimer("IBTK::PETScNewtonKrylovSolver::initializeOperatorState()");
                  t_deallocate_solver_state =
                      TimerManager::getManager()->getTimer("IBTK::PETScNewtonKrylovSolver::deallocateOperatorState()"););
-}
-
-void
-PETScNewtonKrylovSolver::reportSNESConvergedReason(const SNESConvergedReason& reason, std::ostream& os) const
-{
-    switch (static_cast<int>(reason))
-    {
-    case SNES_CONVERGED_FNORM_ABS:
-        os << d_object_name << ": converged: |F| less than specified absolute tolerance.\n";
-        break;
-    case SNES_CONVERGED_FNORM_RELATIVE:
-        os << d_object_name << ": converged: |F| less than specified relative tolerance.\n";
-        break;
-    case SNES_CONVERGED_SNORM_RELATIVE:
-        os << d_object_name << ": converged: step size less than specified relative tolerance.\n";
-        break;
-    case SNES_CONVERGED_ITS:
-        os << d_object_name << ": converged: maximum number of iterations reached.\n";
-        break;
-#if PETSC_VERSION_LT(3, 12, 0)
-    case SNES_CONVERGED_TR_DELTA:
-        os << d_object_name << ": converged: trust-region delta.\n";
-        break;
-#endif
-    case SNES_DIVERGED_FUNCTION_DOMAIN:
-        os << d_object_name << ": diverged: new x location passed to the function is not in the function domain.\n";
-        break;
-    case SNES_DIVERGED_FUNCTION_COUNT:
-        os << d_object_name << ": diverged: exceeded maximum number of function evaluations.\n";
-        break;
-    case SNES_DIVERGED_LINEAR_SOLVE:
-        os << d_object_name << ": diverged: the linear solve failed.\n";
-        break;
-    case SNES_DIVERGED_FNORM_NAN:
-        os << d_object_name << ": diverged: |F| is NaN.\n";
-        break;
-    case SNES_DIVERGED_MAX_IT:
-        os << d_object_name << ": diverged: exceeded maximum number of iterations.\n";
-        break;
-    case SNES_DIVERGED_LINE_SEARCH:
-        os << d_object_name << ": diverged: line-search failure.\n";
-        break;
-    case SNES_DIVERGED_INNER:
-        os << d_object_name << ": diverged: inner solve failed.\n";
-        break;
-    case SNES_DIVERGED_LOCAL_MIN:
-        os << d_object_name << ": diverged: attained non-zero local minimum.\n";
-        break;
-#if PETSC_VERSION_GE(3, 12, 0)
-    case SNES_DIVERGED_TR_DELTA:
-        os << d_object_name << ": diverged: trust-region delta.\n";
-        break;
-#endif
-    case SNES_CONVERGED_ITERATING:
-        os << d_object_name << ": iterating.\n";
-        break;
-    default:
-        os << d_object_name << ": unknown completion code " << static_cast<int>(reason) << " reported.\n";
-        break;
-    }
 }
 
 void

@@ -32,6 +32,7 @@
 #include "ibtk/PoissonSolver.h"
 #include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/ibtk_utilities.h"
+#include "ibtk/solver_utilities.h"
 
 #include "ArrayData.h"
 #include "CellVariable.h"
@@ -442,7 +443,7 @@ KrylovMobilitySolver::solveSystem(Vec x, Vec b)
     KSPConvergedReason reason;
     KSPGetConvergedReason(d_petsc_ksp, &reason);
     const bool converged = (static_cast<int>(reason) > 0);
-    if (d_enable_logging) reportKSPConvergedReason(reason, plog);
+    if (d_enable_logging) reportPETScKSPConvergedReason(d_object_name, reason, plog);
 
     // Deallocate the solver, when necessary.
     d_petsc_x = nullptr;
@@ -729,62 +730,6 @@ KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
         p_stokes_linear_solver->initializeSolverState(sol_vec, rhs_vec);
     }
 } // initializeStokesSolver
-
-void
-KrylovMobilitySolver::reportKSPConvergedReason(const KSPConvergedReason& reason, std::ostream& os) const
-{
-    switch (static_cast<int>(reason))
-    {
-    case KSP_CONVERGED_RTOL:
-        os << d_object_name
-           << ": converged: |Ax-b| <= rtol*|b| --- residual norm is less than specified relative tolerance.\n";
-        break;
-    case KSP_CONVERGED_ATOL:
-        os << d_object_name
-           << ": converged: |Ax-b| <= atol --- residual norm is less than specified absolute tolerance.\n";
-        break;
-    case KSP_CONVERGED_ITS:
-        os << d_object_name << ": converged: maximum number of iterations reached.\n";
-        break;
-    case KSP_CONVERGED_STEP_LENGTH:
-        os << d_object_name << ": converged: step size less than specified tolerance.\n";
-        break;
-    case KSP_DIVERGED_NULL:
-        os << d_object_name << ": diverged: null.\n";
-        break;
-    case KSP_DIVERGED_ITS:
-        os << d_object_name
-           << ": diverged: reached maximum number of iterations before any convergence criteria were satisfied.\n";
-        break;
-    case KSP_DIVERGED_DTOL:
-        os << d_object_name
-           << ": diverged: |Ax-b| >= dtol*|b| --- residual is greater than specified divergence tolerance.\n";
-        break;
-    case KSP_DIVERGED_BREAKDOWN:
-        os << d_object_name << ": diverged: breakdown in the Krylov method.\n";
-        break;
-    case KSP_DIVERGED_BREAKDOWN_BICG:
-        os << d_object_name << ": diverged: breakdown in the bi-congugate gradient method.\n";
-        break;
-    case KSP_DIVERGED_NONSYMMETRIC:
-        os << d_object_name
-           << ": diverged: it appears the operator or preconditioner is not symmetric, but this "
-              "Krylov method (KSPCG, KSPMINRES, KSPCR) requires symmetry\n";
-        break;
-    case KSP_DIVERGED_INDEFINITE_PC:
-        os << d_object_name
-           << ": diverged: it appears the preconditioner is indefinite (has both positive and "
-              "negative eigenvalues), but this Krylov method (KSPCG) requires it to be positive "
-              "definite.\n";
-        break;
-    case KSP_CONVERGED_ITERATING:
-        os << d_object_name << ": iterating: KSPSolve() is still running.\n";
-        break;
-    default:
-        os << d_object_name << ": unknown completion code " << static_cast<int>(reason) << " reported.\n";
-        break;
-    }
-} // reportKSPConvergedReason
 
 void
 KrylovMobilitySolver::initializeKSP()

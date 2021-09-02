@@ -316,11 +316,6 @@ private:
     void common_ctor();
 
     /*!
-     * \brief Report the SNESConvergedReason.
-     */
-    void reportSNESConvergedReason(const SNESConvergedReason& reason, std::ostream& os) const;
-
-    /*!
      * \brief Reset the SNES wrapped by this solver class.
      */
     void resetWrappedSNES(SNES& petsc_snes);

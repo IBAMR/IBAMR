@@ -17,6 +17,7 @@
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/PoissonUtilities.h"
 #include "ibtk/SCPoissonHypreLevelSolver.h"
+#include "ibtk/solver_utilities.h"
 
 #include "BoundaryBox.h"
 #include "Box.h"
@@ -65,16 +66,6 @@ static Timer* t_solve_system;
 static Timer* t_solve_system_hypre;
 static Timer* t_initialize_solver_state;
 static Timer* t_deallocate_solver_state;
-
-// HYPRE can use 64bit indices, but SAMRAI IntVectors are always 32 - add
-// a helper conversion function
-std::array<HYPRE_Int, NDIM>
-hypre_array(const Index<NDIM>& index)
-{
-    std::array<HYPRE_Int, NDIM> result;
-    for (unsigned int d = 0; d < NDIM; ++d) result[d] = index[d];
-    return result;
-}
 
 // hypre solver options.
 enum HypreSStructRelaxType
@@ -825,49 +816,6 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 
     return (d_current_residual_norm <= d_rel_residual_tol || d_current_residual_norm <= d_abs_residual_tol);
 } // solveSystem
-
-void
-SCPoissonHypreLevelSolver::copyToHypre(HYPRE_SStructVector vector,
-                                       SideData<NDIM, double>& src_data,
-                                       const Box<NDIM>& box)
-{
-    const bool copy_data = src_data.getGhostBox() != box;
-    std::unique_ptr<SideData<NDIM, double> > src_data_box(copy_data ? new SideData<NDIM, double>(box, 1, 0) : nullptr);
-    SideData<NDIM, double>& hypre_data = copy_data ? *src_data_box : src_data;
-    if (copy_data) hypre_data.copyOnBox(src_data, box);
-    for (int var = 0; var < NVARS; ++var)
-    {
-        const unsigned int axis = var;
-        auto lower = hypre_array(box.lower());
-        lower[axis] -= 1;
-        auto upper = hypre_array(box.upper());
-        HYPRE_SStructVectorSetBoxValues(vector, PART, lower.data(), upper.data(), var, hypre_data.getPointer(axis));
-    }
-    return;
-} // copyToHypre
-
-void
-SCPoissonHypreLevelSolver::copyFromHypre(SideData<NDIM, double>& dst_data,
-                                         HYPRE_SStructVector vector,
-                                         const Box<NDIM>& box)
-{
-    const bool copy_data = dst_data.getGhostBox() != box;
-    std::unique_ptr<SideData<NDIM, double> > dst_data_box(copy_data ? new SideData<NDIM, double>(box, 1, 0) : nullptr);
-    SideData<NDIM, double>& hypre_data = copy_data ? *dst_data_box : dst_data;
-    for (int var = 0; var < NVARS; ++var)
-    {
-        const unsigned int axis = var;
-        auto lower = hypre_array(box.lower());
-        lower[axis] -= 1;
-        auto upper = hypre_array(box.upper());
-        HYPRE_SStructVectorGetBoxValues(vector, PART, lower.data(), upper.data(), var, hypre_data.getPointer(axis));
-    }
-    if (copy_data)
-    {
-        dst_data.copyOnBox(hypre_data, box);
-    }
-    return;
-} // copyFromHypre
 
 void
 SCPoissonHypreLevelSolver::destroyHypreSolver()

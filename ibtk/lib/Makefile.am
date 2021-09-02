@@ -104,6 +104,7 @@ DIM_DEPENDENT_SOURCES = \
 ../src/refine_ops/CartSideDoubleRT0Refine.cpp \
 ../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp \
 ../src/refine_ops/LMarkerRefine.cpp \
+../src/solvers/solver_utilities.cpp \
 ../src/solvers/impls/BGaussSeidelPreconditioner.cpp \
 ../src/solvers/impls/BJacobiPreconditioner.cpp \
 ../src/solvers/impls/CCLaplaceOperator.cpp \

@@ -227,11 +227,6 @@ private:
                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs_vec);
 
     /*!
-     * \brief Report the KSPConvergedReason.
-     */
-    void reportKSPConvergedReason(const KSPConvergedReason& reason, std::ostream& os) const;
-
-    /*!
      * \brief Routine to setup KSP object.
      */
     void initializeKSP();
