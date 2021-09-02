@@ -631,8 +631,6 @@ private:
 
     /*!
      * Pre and post fluid solve call back functions and contexts.
-     *
-     * TODO: Update these to use std::function.
      */
     std::vector<void (*)(const double, const double, const int, void*)> d_prefluidsolve_callback_fns,
         d_postfluidsolve_callback_fns;
