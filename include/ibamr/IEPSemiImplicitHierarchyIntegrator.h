@@ -409,7 +409,7 @@ private:
     /*
      * \brief Compute source term of liquid fraction equation.
      */
-    void computeLiquidFractionSourceTerm(int F_scratch_idx);
+    void computeLiquidFractionSourceTerm(int F_scratch_idx, const double dt);
 
     /*
      * \brief Compute source term of liquid fraction equation.
@@ -546,7 +546,8 @@ private:
         d_T_temp_rhs_var;
     int d_lf_temp_rhs_idx = IBTK::invalid_index, d_T_temp_rhs_idx = IBTK::invalid_index,
         d_lf_C_idx = IBTK::invalid_index, d_T_C_idx = IBTK::invalid_index;
-    double d_M_lf, d_lambda_lf, d_eta_lf;
+    double d_M_lf, d_lambda_lf, d_eta_lf, d_free_parameter = 1.0, d_eps = 1.0e-8, d_beta = 1.0;
+    bool d_apply_brinkman = true, d_add_diffusion = false;
 
     bool d_rho_output, d_Cp_output;
 

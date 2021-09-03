@@ -724,10 +724,21 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
         const double integrator_time = current_time;
         computeHeavisideFunction(d_H_current_idx, Q_var, ls_current_idx, current_time, new_time, integrator_time);
     }
+    // d_hier_cc_data_ops->multiply(lf_current_idx, lf_current_idx, d_H_current_idx);
     computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, d_lf_current_idx);
 
-    //    d_hier_cc_data_ops->scale(d_lf_C_idx, 1.0 / dt, d_H_current_idx);
-    d_hier_cc_data_ops->setToScalar(d_lf_C_idx, 1.0 / dt);
+    if (!d_apply_brinkman)
+    {
+        d_hier_cc_data_ops->scale(d_lf_C_idx, 1.0 / dt, d_H_current_idx);
+        // d_hier_cc_data_ops->setToScalar(d_lf_C_idx, 1.0 / dt);
+    }
+    else
+    {
+        // C coef including Brinkman force
+        d_hier_cc_data_ops->scale(d_lf_C_idx, (1.0 - d_beta) / dt, d_H_current_idx);
+        d_hier_cc_data_ops->addScalar(d_lf_C_idx, d_lf_C_idx, d_beta / dt);
+    }
+
     d_hier_cc_data_ops->multiply(d_C_rhs_scratch_idx, d_g_secondder_idx, d_H_current_idx);
     d_hier_cc_data_ops->scale(d_C_rhs_scratch_idx, d_M_lf * d_lambda_lf / std::pow(d_eta_lf, 2.0), d_C_rhs_scratch_idx);
     d_hier_cc_data_ops->add(d_lf_C_idx, d_C_rhs_scratch_idx, d_lf_C_idx);
@@ -744,7 +755,15 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
 
     interpolateCCHeaviside(lf_diff_coef_current_idx, d_H_scratch_idx);
 
-    d_hier_sc_data_ops->scale(lf_diff_coef_current_idx, d_M_lf * d_lambda_lf, lf_diff_coef_current_idx);
+    if (!d_add_diffusion)
+        d_hier_sc_data_ops->scale(lf_diff_coef_current_idx, d_M_lf * d_lambda_lf, lf_diff_coef_current_idx);
+    else
+    {
+        // Diffusion coefficient : (M*lambda + free_parameter)*H + eps
+        d_hier_sc_data_ops->scale(
+            lf_diff_coef_current_idx, d_M_lf * d_lambda_lf + d_free_parameter, lf_diff_coef_current_idx);
+        d_hier_sc_data_ops->addScalar(lf_diff_coef_current_idx, lf_diff_coef_current_idx, d_eps);
+    }
 
     d_hier_sc_data_ops->scale(lf_diff_coef_scratch_idx, -alpha, lf_diff_coef_current_idx);
     lf_solver_spec.setDPatchDataId(lf_diff_coef_scratch_idx);
@@ -1139,8 +1158,14 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
     // update C coefficients.
     if (cycle_num > 0) computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, d_lf_new_idx);
 
-    //    d_hier_cc_data_ops->scale(d_lf_C_idx, 1.0 / dt, d_H_new_idx);
-    d_hier_cc_data_ops->setToScalar(d_lf_C_idx, 1.0 / dt);
+    if (!d_apply_brinkman) d_hier_cc_data_ops->scale(d_lf_C_idx, 1.0 / dt, d_H_new_idx);
+    //    d_hier_cc_data_ops->setToScalar(d_lf_C_idx, 1.0 / dt);
+    else
+    {
+        // C coef including Brinkman force
+        d_hier_cc_data_ops->scale(d_lf_C_idx, (1.0 - d_beta) / dt, d_H_new_idx);
+        d_hier_cc_data_ops->addScalar(d_lf_C_idx, d_lf_C_idx, d_beta / dt);
+    }
     d_hier_cc_data_ops->multiply(d_C_rhs_scratch_idx, d_g_secondder_idx, d_H_new_idx);
     d_hier_cc_data_ops->scale(d_C_rhs_scratch_idx, d_M_lf * d_lambda_lf / std::pow(d_eta_lf, 2.0), d_C_rhs_scratch_idx);
     d_hier_cc_data_ops->add(d_lf_C_idx, d_C_rhs_scratch_idx, d_lf_C_idx);
@@ -1180,10 +1205,18 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
     //                            d_no_fill_op,
     //                            d_integrator_time);
 
-    d_hier_sc_data_ops->scale(lf_diff_coef_new_idx, d_M_lf * d_lambda_lf, lf_diff_coef_new_idx);
+    if (!d_add_diffusion)
+        d_hier_sc_data_ops->scale(lf_diff_coef_new_idx, d_M_lf * d_lambda_lf, lf_diff_coef_new_idx);
+    else
+    {
+        // Diffusion coefficient : (M*lambda + free_parameter)*H + eps
+        d_hier_sc_data_ops->scale(lf_diff_coef_new_idx, d_M_lf * d_lambda_lf + d_free_parameter, lf_diff_coef_new_idx);
+        d_hier_sc_data_ops->addScalar(lf_diff_coef_new_idx, lf_diff_coef_new_idx, d_eps);
+    }
     d_hier_sc_data_ops->scale(lf_diff_coef_scratch_idx, -alpha, lf_diff_coef_new_idx);
     std::cout << "L2 norm of lf_diff_coef_scratch_idx\t" << d_hier_sc_data_ops->L2Norm(lf_diff_coef_scratch_idx)
               << std::endl;
+
     if (cycle_num > 0)
     {
         // Update the advection velocity for lf.
@@ -1284,7 +1317,7 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
     if (d_lf_F_var)
     {
         computeInterpolationFunction(d_p_firstder_idx, d_lf_new_idx, d_T_new_idx);
-        computeLiquidFractionSourceTerm(lf_F_scratch_idx);
+        computeLiquidFractionSourceTerm(lf_F_scratch_idx, dt);
 
         if (d_lf_u_var)
         {
@@ -2072,11 +2105,10 @@ IEPSemiImplicitHierarchyIntegrator::computeHeavisideFunction(int H_idx,
                 CellIndex<NDIM> ci(it());
                 const double phi = (*phi_data)(ci);
 
-                if (MathUtilities<double>::equalEps(integrator_time, current_time) && Q_var->getName() == "ls_var")
-                    (*H_data)(ci) = IBTK::smooth_heaviside(phi, alpha);
-                //                    (*H_data)(ci) = IBTK::hyperbolic_tangent_heaviside(phi, d_eta_lf);
-                else
+                if (Q_var->getName() == "heaviside_var")
+                {
                     (*H_data)(ci) = phi;
+                }
             }
         }
     }
@@ -2218,7 +2250,7 @@ IEPSemiImplicitHierarchyIntegrator::interpolateCCHeaviside(int lf_diff_coef_idx,
 } // interpolateCCHeaviside
 
 void
-IEPSemiImplicitHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratch_idx)
+IEPSemiImplicitHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratch_idx, const double dt)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2232,6 +2264,7 @@ IEPSemiImplicitHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratc
             const Box<NDIM>& patch_box = patch->getBox();
 
             Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(d_lf_new_idx);
+            Pointer<CellData<NDIM, double> > lf_cur_data = patch->getPatchData(d_lf_current_idx);
             Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(d_T_new_idx);
             Pointer<CellData<NDIM, double> > p_firstder_data = patch->getPatchData(d_p_firstder_idx);
             Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(d_H_new_idx);
@@ -2247,6 +2280,9 @@ IEPSemiImplicitHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratc
                            (d_T_ref - (*T_data)(ci)) / d_T_ref;
                 (*F_data)(ci) = F - (d_M_lf * d_lambda_lf * (*H_data)(ci) / std::pow(d_eta_lf, 2.0) *
                                      ((*g_firstder_data)(ci) - ((*g_secondder_data)(ci) * (*lf_data)(ci))));
+
+                // Brinkman force
+                if (d_apply_brinkman) (*F_data)(ci) += d_beta / dt * (1.0 - (*H_data)(ci)) * (*lf_cur_data)(ci);
             }
         }
     }
@@ -2676,6 +2712,12 @@ IEPSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> input_db, boo
         if (input_db->keyExists("T_convective_time_stepping_type"))
             d_T_convective_time_stepping_type =
                 string_to_enum<TimeSteppingType>(input_db->getString("T_convective_time_stepping_type"));
+
+        if (input_db->keyExists("free_parameter")) d_free_parameter = input_db->getDouble("free_parameter");
+        if (input_db->keyExists("eps")) d_eps = input_db->getDouble("eps");
+        if (input_db->keyExists("beta")) d_beta = input_db->getDouble("beta");
+        if (input_db->keyExists("apply_brinkman")) d_apply_brinkman = input_db->getBool("apply_brinkman");
+        if (input_db->keyExists("add_diffusion")) d_add_diffusion = input_db->getBool("add_diffusion");
     }
 }
 
