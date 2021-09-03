@@ -749,24 +749,7 @@ DirectMobilitySolver::computeSolution(Mat& mat, const MobilityMatrixInverseType&
     }
     else if (inv_type == LAPACK_SVD)
     {
-        std::vector<double> temp(mat_size);
-        for (int i = 0; i < mat_size; ++i)
-        {
-            temp[i] = 0.0;
-            for (int j = 0; j < mat_size; ++j)
-            {
-                temp[i] += mat_data[i * mat_size + j] * rhs[j];
-            }
-        }
-
-        for (int i = 0; i < mat_size; ++i)
-        {
-            rhs[i] = 0.0;
-            for (int j = 0; j < mat_size; ++j)
-            {
-                rhs[i] += mat_data[j * mat_size + i] * temp[j];
-            }
-        }
+        rhs_view = mat_view * mat_view.transpose() * rhs_view;
     }
     else
     {
