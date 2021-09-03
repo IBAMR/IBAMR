@@ -56,5 +56,5 @@ elseif ("$ENV{GITHUB_EVENT_NAME}" STREQUAL "push")
   # Put all branch tests in a track named the same as the branch.
   # Currently, only master is tested, but eventually branch names
   # such as "release-0.9" may exist and should have their own tracks.
-  string(REGEX_REPLACE "refs\\/heads\\/" "" ctest_track "$ENV{GITHUB_REF}")
+  string(REGEX REPLACE "refs\\/heads\\/" "" ctest_track "$ENV{GITHUB_REF}")
 endif ()
