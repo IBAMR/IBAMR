@@ -152,6 +152,10 @@ main(int argc, char* argv[])
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "CIB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
+        // some variants of this test use the SVD, some don't
+        const auto inverse_type = IBAMR::string_to_enum<IBAMR::MobilityMatrixInverseType>(
+            input_db->getStringWithDefault("mobility_inverse_type", "LAPACK_SVD"));
+
         // Read default Petsc options
         if (input_db->keyExists("petsc_options_file"))
         {
@@ -316,13 +320,13 @@ main(int argc, char* argv[])
             CIBSolver->getSaddlePointSolver()->getCIBMobilitySolver()->getMobilitySolvers(NULL, &direct_solvers, NULL);
 
             direct_solvers->registerMobilityMat(
-                mat_name1, prototype_structs1, EMPIRICAL, std::make_pair(LAPACK_SVD, LAPACK_SVD), 0);
+                mat_name1, prototype_structs1, EMPIRICAL, std::make_pair(inverse_type, inverse_type), 0);
             direct_solvers->registerStructIDsWithMobilityMat(mat_name1, struct_ids1);
 
             int next_proc = 0;
             if (IBTK_MPI::getNodes() > 1) next_proc = 1;
             direct_solvers->registerMobilityMat(
-                mat_name2, prototype_structs2, EMPIRICAL, std::make_pair(LAPACK_SVD, LAPACK_SVD), next_proc);
+                mat_name2, prototype_structs2, EMPIRICAL, std::make_pair(inverse_type, inverse_type), next_proc);
             direct_solvers->registerStructIDsWithMobilityMat(mat_name2, struct_ids2);
         }
         navier_stokes_integrator->setStokesSolverNeedsInit();

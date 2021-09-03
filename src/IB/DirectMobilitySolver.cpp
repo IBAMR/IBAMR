@@ -41,6 +41,7 @@
 #include "petscviewer.h"
 #include "petscviewertypes.h"
 
+#include <Eigen/Cholesky>
 #include <Eigen/Eigenvalues>
 
 #include <algorithm>
@@ -65,19 +66,6 @@ extern "C"
                 const double* a,
                 const int& lda,
                 const int* ipiv,
-                double* b,
-                const int& ldb,
-                int& info);
-
-    // LAPACK function to do Cholesky factorization.
-    int dpotrf_(const char* uplo, const int& n, double* a, const int& lda, int& info);
-
-    // LAPACK function to find solution using Cholesky factorization.
-    int dpotrs_(const char* uplo,
-                const int& n,
-                const int& nrhs,
-                const double* a,
-                const int& lda,
                 double* b,
                 const int& ldb,
                 int& info);
@@ -634,20 +622,36 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
                                            const std::string& mat_name,
                                            const std::string& err_msg)
 {
-    int err = 0;
+    using MatrixType = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
+    // Older versions of Eigen don't make Eigen::Index publicly available
+#if EIGEN_VERSION_AT_LEAST(3, 3, 0)
+    using IndexType = Eigen::Index;
+#else
+    using IndexType = typename MatrixType::Index;
+#endif
+    Eigen::Map<MatrixType> mat_view(mat_data, IndexType(mat_size), IndexType(mat_size));
+
+    if (inv_type != LAPACK_LU)
+    {
+        // For compatibility with the old code, we copy the lower triangle into
+        // the upper triangle, even if they aren't actually equal
+        for (int i = 0; i < mat_size; ++i)
+        {
+            for (int j = i + 1; j < mat_size; ++j)
+            {
+                mat_view(i, j) = mat_view(j, i);
+            }
+        }
+    }
+
     if (inv_type == LAPACK_CHOLESKY)
     {
-        dpotrf_((char*)"L", mat_size, mat_data, mat_size, err);
-        if (err)
-        {
-            TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(). " << err_msg << " matrix factorization "
-                                                                        << " failed for matrix handle " << mat_name
-                                                                        << " with error code " << err
-                                                                        << " using LAPACK CHOLESKY." << std::endl);
-        }
+        Eigen::LLT<MatrixType> cholesky_factorization(mat_view);
+        mat_view = cholesky_factorization.matrixL();
     }
     else if (inv_type == LAPACK_LU)
     {
+        int err = 0;
         dgetrf_(mat_size, mat_size, mat_data, mat_size, ipiv, err);
         if (err)
         {
@@ -667,23 +671,6 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
         //     = V sqrt(D) (V sqrt(D))^T
         //
         // and instead store A <- V sqrt(D)
-        using MatrixType = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
-        // Older versions of Eigen don't make Eigen::Index publicly available
-#if EIGEN_VERSION_AT_LEAST(3, 3, 0)
-        using IndexType = Eigen::Index;
-#else
-        using IndexType = typename MatrixType::Index;
-#endif
-        Eigen::Map<MatrixType> mat_view(mat_data, IndexType(mat_size), IndexType(mat_size));
-        // For compatibility with the old code, we copy the lower triangle into
-        // the upper triangle, even if they aren't actually equal
-        for (int i = 0; i < mat_size; ++i)
-        {
-            for (int j = i + 1; j < mat_size; ++j)
-            {
-                mat_view(i, j) = mat_view(j, i);
-            }
-        }
         Eigen::SelfAdjointEigenSolver<MatrixType> eigensolver(mat_view);
         Eigen::Matrix<double, Eigen::Dynamic, 1> eigenvalues = eigensolver.eigenvalues();
         const MatrixType eigenvectors = eigensolver.eigenvectors();
@@ -735,20 +722,20 @@ void
 DirectMobilitySolver::computeSolution(Mat& mat, const MobilityMatrixInverseType& inv_type, int* ipiv, double* rhs)
 {
     // Get pointer to matrix.
-    int mat_size;
+    int mat_size = 0;
     double* mat_data = nullptr;
     MatGetSize(mat, &mat_size, nullptr);
     MatDenseGetArray(mat, &mat_data);
+    using MatrixType = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
+    Eigen::Map<MatrixType> mat_view(mat_data, Eigen::Index(mat_size), Eigen::Index(mat_size));
+    using VectorType = Eigen::Matrix<double, Eigen::Dynamic, 1>;
+    Eigen::Map<VectorType> rhs_view(rhs, Eigen::Index(mat_size), Eigen::Index(1));
 
     int err = 0;
     if (inv_type == LAPACK_CHOLESKY)
     {
-        dpotrs_((char*)"L", mat_size, 1, mat_data, mat_size, rhs, mat_size, err);
-        if (err)
-        {
-            TBOX_ERROR("DirectMobilitySolver::computeSolution(). Solution failed using "
-                       << "LAPACK CHOLESKY with error code " << err << std::endl);
-        }
+        rhs_view = mat_view.triangularView<Eigen::Lower>().solve(rhs_view);
+        rhs_view = mat_view.triangularView<Eigen::Lower>().transpose().solve(rhs_view);
     }
     else if (inv_type == LAPACK_LU)
     {
