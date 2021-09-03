@@ -43,6 +43,7 @@
 
 #include <Eigen/Cholesky>
 #include <Eigen/Eigenvalues>
+#include <Eigen/LU>
 
 #include <algorithm>
 #include <cmath>
@@ -53,23 +54,6 @@
 #include <vector>
 
 #include "ibamr/app_namespaces.h" // IWYU pragma: keep
-
-extern "C"
-{
-    // LAPACK function to do LU factorization.
-    int dgetrf_(const int& n1, const int& n2, double* a, const int& lda, int* ipiv, int& info);
-
-    // LAPACK function to find soultion using the LU factorization.
-    int dgetrs_(const char* trans,
-                const int& n,
-                const int& nrhs,
-                const double* a,
-                const int& lda,
-                const int* ipiv,
-                double* b,
-                const int& ldb,
-                int& info);
-}
 
 namespace IBAMR
 {
@@ -651,15 +635,11 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
     }
     else if (inv_type == LAPACK_LU)
     {
-        int err = 0;
-        dgetrf_(mat_size, mat_size, mat_data, mat_size, ipiv, err);
-        if (err)
-        {
-            TBOX_ERROR("DirectMobilityMatrix::factorizeDenseMatrix(). "
-                       << err_msg << " matrix factorization "
-                       << "failed for matrix handle " << mat_name << " with error code " << err << " using LAPACK LU."
-                       << std::endl);
-        }
+        Eigen::PartialPivLU<MatrixType> plu_factorization(mat_view);
+        mat_view = plu_factorization.matrixLU();
+        const auto& indices = plu_factorization.permutationP().indices();
+        TBOX_ASSERT(indices.rows() * indices.cols() == mat_size);
+        std::copy_n(indices.data(), mat_size, ipiv);
     }
     else if (inv_type == LAPACK_SVD)
     {
@@ -739,13 +719,14 @@ DirectMobilitySolver::computeSolution(Mat& mat, const MobilityMatrixInverseType&
     }
     else if (inv_type == LAPACK_LU)
     {
-        dgetrs_((char*)"N", mat_size, 1, mat_data, mat_size, ipiv, rhs, mat_size, err);
-
-        if (err)
-        {
-            TBOX_ERROR("DirectMobilitySolver::computeSolution(). Solution failed using "
-                       << "LAPACK LU with error code " << err << std::endl);
-        }
+        // A    = P L U
+        // A^-1 = U^-1 L^-1 P^-1
+        using IndicesType = Eigen::Matrix<int, Eigen::Dynamic, 1>;
+        Eigen::Map<IndicesType> indices(ipiv, mat_size);
+        PermutationWrapper<decltype(indices)> permutation(indices);
+        rhs_view = permutation.transpose() * rhs_view;
+        rhs_view = mat_view.triangularView<Eigen::UnitLower>().solve(rhs_view);
+        rhs_view = mat_view.triangularView<Eigen::Upper>().solve(rhs_view);
     }
     else if (inv_type == LAPACK_SVD)
     {
