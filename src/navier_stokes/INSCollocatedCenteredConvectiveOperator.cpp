@@ -71,17 +71,17 @@ class RobinBcCoefStrategy;
 #if (NDIM == 2)
 #define ADVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(advect_derivative2d, ADVECT_DERIVATIVE2D)
 #define ADVECT_FLUX_FC IBAMR_FC_FUNC_(advect_flux2d, ADVECT_FLUX2D)
-#define C_TO_F_CWISE_INTERP_2ND_FC IBAMR_FC_FUNC_(ctofcwiseinterp2nd2d, CTOFINTERP2ND2D)
-#define F_TO_C_DIV_FC IBAMR_FC_FUNC_(ftocdiv2d, FTOCDIV2D)
-#define F_TO_C_DIV_ADD_FC IBAMR_FC_FUNC_(ftocdivadd2d, FTOCDIVADD2D)
+#define C_TO_F_CWISE_INTERP_2ND_FC IBAMR_FC_FUNC(ctofcwiseinterp2nd2d, CTOFINTERP2ND2D)
+#define F_TO_C_DIV_FC IBAMR_FC_FUNC(ftocdiv2d, FTOCDIV2D)
+#define F_TO_C_DIV_ADD_FC IBAMR_FC_FUNC(ftocdivadd2d, FTOCDIVADD2D)
 #endif
 
 #if (NDIM == 3)
 #define ADVECT_DERIVATIVE_FC IBAMR_FC_FUNC_(advect_derivative3d, ADVECT_DERIVATIVE3D)
 #define ADVECT_FLUX_FC IBAMR_FC_FUNC_(advect_flux3d, ADVECT_FLUX3D)
-#define C_TO_F_CWISE_INTERP_2ND_FC IBAMR_FC_FUNC_(ctofcwiseinterp2nd3d, CTOFINTERP2ND3D)
-#define F_TO_C_DIV_FC IBAMR_FC_FUNC_(ftocdiv3d, FTOCDIV3D)
-#define F_TO_C_DIV_ADD_FC IBAMR_FC_FUNC_(ftocdivadd3d, FTOCDIVADD3D)
+#define C_TO_F_CWISE_INTERP_2ND_FC IBAMR_FC_FUNC(ctofcwiseinterp2nd3d, CTOFINTERP2ND3D)
+#define F_TO_C_DIV_FC IBAMR_FC_FUNC(ftocdiv3d, FTOCDIV3D)
+#define F_TO_C_DIV_ADD_FC IBAMR_FC_FUNC(ftocdivadd3d, FTOCDIVADD3D)
 #endif
 
 extern "C"
