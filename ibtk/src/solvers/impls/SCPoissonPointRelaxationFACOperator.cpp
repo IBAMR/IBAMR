@@ -75,14 +75,14 @@
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define SMOOTH_GS_CONST_DC_FC IBTK_FC_FUNC(smooth_gs_const_dc_2d, SMOOTH_GS_CONST_DC_2D)
-#define SMOOTH_GS_RB_CONST_DC_FC IBTK_FC_FUNC(smooth_gs_rb_const_dc_2d, SMOOTH_GS_RB_CONST_DC_2D)
+#define SMOOTH_GS_CONST_DC_FC IBTK_FC_FUNC_(smooth_gs_const_dc_2d, SMOOTH_GS_CONST_DC_2D)
+#define SMOOTH_GS_RB_CONST_DC_FC IBTK_FC_FUNC_(smooth_gs_rb_const_dc_2d, SMOOTH_GS_RB_CONST_DC_2D)
 #define GS_SMOOTH_MASK_FC IBTK_FC_FUNC(gssmoothmask2d, GSSMOOTHMASK2D)
 #define RB_GS_SMOOTH_MASK_FC IBTK_FC_FUNC(rbgssmoothmask2d, RBGSSMOOTHMASK2D)
 #endif
 #if (NDIM == 3)
-#define SMOOTH_GS_CONST_DC_FC IBTK_FC_FUNC(smooth_gs_const_dc_3d, SMOOTH_GS_CONST_DC_3D)
-#define SMOOTH_GS_RB_CONST_DC_FC IBTK_FC_FUNC(smooth_gs_rb_const_dc_3d, SMOOTH_GS_RB_CONST_DC_3D)
+#define SMOOTH_GS_CONST_DC_FC IBTK_FC_FUNC_(smooth_gs_const_dc_3d, SMOOTH_GS_CONST_DC_3D)
+#define SMOOTH_GS_RB_CONST_DC_FC IBTK_FC_FUNC_(smooth_gs_rb_const_dc_3d, SMOOTH_GS_RB_CONST_DC_3D)
 #define GS_SMOOTH_MASK_FC IBTK_FC_FUNC(gssmoothmask3d, GSSMOOTHMASK3D)
 #define RB_GS_SMOOTH_MASK_FC IBTK_FC_FUNC(rbgssmoothmask3d, RBGSSMOOTHMASK3D)
 #endif
