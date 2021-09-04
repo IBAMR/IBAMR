@@ -63,10 +63,17 @@ class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
 
+#if (NDIM == 2)
+#define ADV_DIFF_WP_CONVECTIVE_OP_FC IBAMR_FC_FUNC_(adv_diff_wp_convective_op2d, ADV_DIFF_WP_CONVECTIVE_OP2D)
+#endif
+#if (NDIM == 3)
+#define ADV_DIFF_WP_CONVECTIVE_OP_FC IBAMR_FC_FUNC_(adv_diff_wp_convective_op3d, ADV_DIFF_WP_CONVECTIVE_OP3D)
+#endif
+
 extern "C"
 {
 #if (NDIM == 2)
-    void adv_diff_wp_convective_op2d_(const double*,
+    void ADV_DIFF_WP_CONVECTIVE_OP_FC(const double*,
                                       const int&,
                                       const double*,
                                       const double*,
@@ -82,7 +89,7 @@ extern "C"
                                       const int&);
 #endif
 #if (NDIM == 3)
-    void adv_diff_wp_convective_op3d_(const double* q_data,
+    void ADV_DIFF_WP_CONVECTIVE_OP_FC(const double* q_data,
                                       const int& q_gcw,
                                       const double* u_data_0,
                                       const double* u_data_1,
@@ -215,7 +222,7 @@ AdvDiffWavePropConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
             const IntVector<NDIM> Y_data_gcw = Y_data->getGhostCellWidth();
 #if (NDIM == 2)
             // COMPUTE CONVECTIVE OPERATOR HERE
-            adv_diff_wp_convective_op2d_(Q_data_scr->getPointer(),
+            ADV_DIFF_WP_CONVECTIVE_OP_FC(Q_data_scr->getPointer(),
                                          Q_data_scr_gcw.max(),
                                          U_data->getPointer(0),
                                          U_data->getPointer(1),
@@ -232,7 +239,7 @@ AdvDiffWavePropConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
 
 #endif
 #if (NDIM == 3)
-            adv_diff_wp_convective_op3d_(Q_data_scr->getPointer(),
+            ADV_DIFF_WP_CONVECTIVE_OP_FC(Q_data_scr->getPointer(),
                                          Q_data_scr_gcw.max(),
                                          U_data->getPointer(0),
                                          U_data->getPointer(1),
