@@ -668,7 +668,13 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
         //
         // and instead store A <- V sqrt(D)
         using MatrixType = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
-        Eigen::Map<MatrixType> mat_view(mat_data, Eigen::Index(mat_size), Eigen::Index(mat_size));
+        // Older versions of Eigen don't make Eigen::Index publicly available
+#if EIGEN_VERSION_AT_LEAST(3, 3, 0)
+        using IndexType = Eigen::Index;
+#else
+        using IndexType = typename MatrixType::Index;
+#endif
+        Eigen::Map<MatrixType> mat_view(mat_data, IndexType(mat_size), IndexType(mat_size));
         // For compatibility with the old code, we copy the lower triangle into
         // the upper triangle, even if they aren't actually equal
         for (int i = 0; i < mat_size; ++i)
