@@ -58,10 +58,20 @@ class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
 
+#if (NDIM == 2)
+#define ADV_DIFF_WP_CONVECTIVE_OP_FC IBAMR_FC_FUNC_(adv_diff_wp_convective_op2d, ADV_DIFF_WP_CONVECTIVE_OP2D)
+#define NAVIER_STOKES_INTERP_COMPS_FC IBAMR_FC_FUNC_(navier_stokes_interp_comps2d, NAVIER_STOKES_INTERP_COMPS2D)
+#endif
+#if (NDIM == 3)
+#define ADV_DIFF_WP_CONVECTIVE_OP_FC IBAMR_FC_FUNC_(adv_diff_wp_convective_op3d, ADV_DIFF_WP_CONVECTIVE_OP3D)
+#define NAVIER_STOKES_INTERP_COMPS_FC IBAMR_FC_FUNC_(navier_stokes_interp_comps3d, NAVIER_STOKES_INTERP_COMPS3D)
+#endif
+
 extern "C"
 {
 #if (NDIM == 2)
-    void adv_diff_wp_convective_op2d_(const double*,
+    // TODO mangle names
+    void ADV_DIFF_WP_CONVECTIVE_OP_FC(const double*,
                                       const int&,
                                       const double*,
                                       const double*,
@@ -75,7 +85,7 @@ extern "C"
                                       const int&,
                                       const double*,
                                       const int&);
-    void navier_stokes_interp_comps2d_(const int&,
+    void NAVIER_STOKES_INTERP_COMPS_FC(const int&,
                                        const int&,
                                        const int&,
                                        const int&,
@@ -101,7 +111,7 @@ extern "C"
                                        double*);
 #endif
 #if (NDIM == 3)
-    void adv_diff_wp_convective_op3d_(const double* q_data,
+    void ADV_DIFF_WP_CONVECTIVE_OP_FC(const double* q_data,
                                       const int& q_gcw,
                                       const double* u_data_0,
                                       const double* u_data_1,
@@ -119,7 +129,7 @@ extern "C"
                                       const double* dx,
                                       const int& k);
 
-    void navier_stokes_interp_comps3d_(const int&,
+    void NAVIER_STOKES_INTERP_COMPS_FC(const int&,
                                        const int&,
                                        const int&,
                                        const int&,
@@ -293,7 +303,7 @@ INSStaggeredWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx,
                 U_adv_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, IntVector<NDIM>(1));
             }
 #if (NDIM == 2)
-            navier_stokes_interp_comps2d_(patch_lower(0),
+            NAVIER_STOKES_INTERP_COMPS_FC(patch_lower(0),
                                           patch_upper(0),
                                           patch_lower(1),
                                           patch_upper(1),
@@ -319,7 +329,7 @@ INSStaggeredWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx,
                                           U_adv_data[1]->getPointer(1));
 #endif
 #if (NDIM == 3)
-            navier_stokes_interp_comps3d_(patch_lower(0),
+            NAVIER_STOKES_INTERP_COMPS_FC(patch_lower(0),
                                           patch_upper(0),
                                           patch_lower(1),
                                           patch_upper(1),
@@ -372,7 +382,7 @@ INSStaggeredWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx,
             for (int axis = 0; axis < NDIM; ++axis)
             {
 #if (NDIM == 2)
-                adv_diff_wp_convective_op2d_(U_data->getPointer(axis),
+                ADV_DIFF_WP_CONVECTIVE_OP_FC(U_data->getPointer(axis),
                                              U_gcw.max(),
                                              U_adv_data[axis]->getPointer(0),
                                              U_adv_data[axis]->getPointer(1),
@@ -388,7 +398,7 @@ INSStaggeredWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx,
                                              d_k);
 #endif
 #if (NDIM == 3)
-                adv_diff_wp_convective_op3d_(U_data->getPointer(axis),
+                ADV_DIFF_WP_CONVECTIVE_OP_FC(U_data->getPointer(axis),
                                              U_gcw.max(),
                                              U_adv_data[axis]->getPointer(0),
                                              U_adv_data[axis]->getPointer(1),

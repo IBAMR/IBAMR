@@ -59,17 +59,17 @@ class RobinBcCoefStrategy;
 
 // FORTRAN ROUTINES
 #if (NDIM == 2)
-#define MOLLIFY_IB_4_FC IBAMR_FC_FUNC(mollify_ib_4_2d, MOLLIFY_IB_4_2D)
-#define SC_NORMAL_FC IBAMR_FC_FUNC(sc_normal_2d, SC_NORMAL_2D)
-#define CC_CURVATURE_FC IBAMR_FC_FUNC(cc_curvature_2d, CC_CURVATURE_2D)
-#define SC_SURFACE_TENSION_FORCE_FC IBAMR_FC_FUNC(sc_surface_tension_force_2d, SC_SURFACE_TENSION_FORCE_2D)
+#define MOLLIFY_IB_4_FC IBAMR_FC_FUNC_(mollify_ib_4_2d, MOLLIFY_IB_4_2D)
+#define SC_NORMAL_FC IBAMR_FC_FUNC_(sc_normal_2d, SC_NORMAL_2D)
+#define CC_CURVATURE_FC IBAMR_FC_FUNC_(cc_curvature_2d, CC_CURVATURE_2D)
+#define SC_SURFACE_TENSION_FORCE_FC IBAMR_FC_FUNC_(sc_surface_tension_force_2d, SC_SURFACE_TENSION_FORCE_2D)
 #endif
 
 #if (NDIM == 3)
-#define MOLLIFY_IB_4_FC IBAMR_FC_FUNC(mollify_ib_4_3d, MOLLIFY_IB_4_3D)
-#define SC_NORMAL_FC IBAMR_FC_FUNC(sc_normal_3d, SC_NORMAL_3D)
-#define CC_CURVATURE_FC IBAMR_FC_FUNC(cc_curvature_3d, CC_CURVATURE_3D)
-#define SC_SURFACE_TENSION_FORCE_FC IBAMR_FC_FUNC(sc_surface_tension_force_3d, SC_SURFACE_TENSION_FORCE_3D)
+#define MOLLIFY_IB_4_FC IBAMR_FC_FUNC_(mollify_ib_4_3d, MOLLIFY_IB_4_3D)
+#define SC_NORMAL_FC IBAMR_FC_FUNC_(sc_normal_3d, SC_NORMAL_3D)
+#define CC_CURVATURE_FC IBAMR_FC_FUNC_(cc_curvature_3d, CC_CURVATURE_3D)
+#define SC_SURFACE_TENSION_FORCE_FC IBAMR_FC_FUNC_(sc_surface_tension_force_3d, SC_SURFACE_TENSION_FORCE_3D)
 #endif
 
 extern "C"

@@ -48,10 +48,21 @@ class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
 
+#if (NDIM == 2)
+#define UPPER_CONVECTIVE_OP_FC IBAMR_FC_FUNC_(upper_convective_op2d, UPPER_CONVECTIVE_OP2D)
+#define SQRT_UPPER_CONVECTIVE_OP_FC IBAMR_FC_FUNC_(sqrt_upper_convective_op2d, SQRT_UPPER_CONVECTIVE_OP2D)
+#define LOG_UPPER_CONVECTIVE_OP_FC IBAMR_FC_FUNC_(log_upper_convective_op2d, LOG_UPPER_CONVECTIVE_OP2D)
+#endif
+#if (NDIM == 3)
+#define UPPER_CONVECTIVE_OP_FC IBAMR_FC_FUNC_(upper_convective_op3d, UPPER_CONVECTIVE_OP3D)
+#define SQRT_UPPER_CONVECTIVE_OP_FC IBAMR_FC_FUNC_(sqrt_upper_convective_op3d, SQRT_UPPER_CONVECTIVE_OP3D)
+#define LOG_UPPER_CONVECTIVE_OP_FC IBAMR_FC_FUNC_(log_upper_convective_op3d, LOG_UPPER_CONVECTIVE_OP3D)
+#endif
+
 extern "C"
 {
 #if (NDIM == 2)
-    void upper_convective_op2d_(const double*,
+    void UPPER_CONVECTIVE_OP_FC(const double*,
                                 const double*,
                                 const double*,
                                 const int&,
@@ -67,7 +78,7 @@ extern "C"
                                 const int&,
                                 const int&,
                                 const int&);
-    void sqrt_upper_convective_op2d_(const double*,
+    void SQRT_UPPER_CONVECTIVE_OP_FC(const double*,
                                      const double*,
                                      const double*,
                                      const int&,
@@ -83,7 +94,7 @@ extern "C"
                                      const int&,
                                      const int&,
                                      const int&);
-    void log_upper_convective_op2d_(const double*,
+    void LOG_UPPER_CONVECTIVE_OP_FC(const double*,
                                     const double*,
                                     const double*,
                                     const int&,
@@ -101,7 +112,7 @@ extern "C"
                                     const int&);
 #endif
 #if (NDIM == 3)
-    void upper_convective_op3d_(const double*,
+    void UPPER_CONVECTIVE_OP_FC(const double*,
                                 const double*,
                                 const double*,
                                 const double*,
@@ -120,7 +131,7 @@ extern "C"
                                 const int&,
                                 const int&,
                                 const int&);
-    void sqrt_upper_convective_op3d_(const double*,
+    void SQRT_UPPER_CONVECTIVE_OP_FC(const double*,
                                      const double*,
                                      const double*,
                                      const double*,
@@ -139,7 +150,7 @@ extern "C"
                                      const int&,
                                      const int&,
                                      const int&);
-    void log_upper_convective_op3d_(const double*,
+    void LOG_UPPER_CONVECTIVE_OP_FC(const double*,
                                     const double*,
                                     const double*,
                                     const double*,
@@ -291,7 +302,7 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
             {
             case SQUARE_ROOT:
 #if (NDIM == 2)
-                sqrt_upper_convective_op2d_(dx,
+                SQRT_UPPER_CONVECTIVE_OP_FC(dx,
                                             u_data->getPointer(0),
                                             u_data->getPointer(1),
                                             u_data_gcw.max(),
@@ -309,7 +320,7 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
                                             patch_upper(1));
 #endif
 #if (NDIM == 3)
-                sqrt_upper_convective_op3d_(dx,
+                SQRT_UPPER_CONVECTIVE_OP_FC(dx,
                                             u_data->getPointer(0),
                                             u_data->getPointer(1),
                                             u_data->getPointer(2),
@@ -332,7 +343,7 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
                 break;
             case LOGARITHM:
 #if (NDIM == 2)
-                log_upper_convective_op2d_(dx,
+                LOG_UPPER_CONVECTIVE_OP_FC(dx,
                                            u_data->getPointer(0),
                                            u_data->getPointer(1),
                                            u_data_gcw.max(),
@@ -350,7 +361,7 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
                                            patch_upper(1));
 #endif
 #if (NDIM == 3)
-                log_upper_convective_op3d_(dx,
+                LOG_UPPER_CONVECTIVE_OP_FC(dx,
                                            u_data->getPointer(0),
                                            u_data->getPointer(1),
                                            u_data->getPointer(2),
@@ -373,7 +384,7 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
                 break;
             case STANDARD:
 #if (NDIM == 2)
-                upper_convective_op2d_(dx,
+                UPPER_CONVECTIVE_OP_FC(dx,
                                        u_data->getPointer(0),
                                        u_data->getPointer(1),
                                        u_data_gcw.max(),
@@ -391,7 +402,7 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
                                        patch_upper(1));
 #endif
 #if (NDIM == 3)
-                upper_convective_op3d_(dx,
+                UPPER_CONVECTIVE_OP_FC(dx,
                                        u_data->getPointer(0),
                                        u_data->getPointer(1),
                                        u_data->getPointer(2),
