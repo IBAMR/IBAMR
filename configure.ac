@@ -195,7 +195,11 @@ AC_CONFIG_FILES([
   examples/IBPD/explicit/ex0/Makefile
   examples/IBPD/explicit/ex1/Makefile
   examples/IBPD/explicit/ex2/Makefile
-  examples/IBPD/explicit/ex3/Makefile
+  examples/IBPD/explicit/Compressed_block/Makefile
+  examples/IBPD/explicit/Cooks_membrane/Makefile
+  examples/IBPD/explicit/Elastic_band/Makefile
+  examples/IBPD/explicit/Turek_hron/Makefile
+  examples/IBPD/explicit/Torsion/Makefile
   examples/IMP/Makefile
   examples/IMP/explicit/Makefile
   examples/IMP/explicit/ex0/Makefile

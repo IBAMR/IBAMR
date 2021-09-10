@@ -13,7 +13,7 @@
 
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = ex0 ex1 ex2 ex3
+SUBDIRS = ex0 ex1 ex2 Compressed_block Cooks_membrane Elastic_band Turek_hron Torsion
 
 COMPLETE_EXAMPLES = $(SUBDIRS)
 INCOMPLETE_EXAMPLES =
