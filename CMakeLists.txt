@@ -568,37 +568,32 @@ boost support or an external boost library.")
       ENDIF()
     ENDIF()
 
+    # Use slightly different error messages for bundled and non-bundled Eigen
     IF(EXISTS ${LIBMESH_ROOT}/include/Eigen)
       IF("${EIGEN3_ROOT}" STREQUAL "${LIBMESH_ROOT}/include/Eigen")
         # OK
+      ELSEIF(${IBAMR_USE_BUNDLED_EIGEN3})
+        MESSAGE(FATAL_ERROR "\
+libMesh appears to have been compiled with a bundled copy of Eigen3 (i.e., the \
+directory ${LIBMESH_ROOT}/include/Eigen exists) but IBAMR was configured to \
+use its own bundled copy of Eigen3. IBAMR does not support using multiple copies \
+of Eigen3. To fix this, we recommend deleting the current libMesh installation, \
+recompiling libMesh without Eigen support, and then reinstalling libMesh. IBAMR \
+does not support using libMesh's bundled copy of Eigen3 since that version is \
+not installed with Eigen's CMake configuration files. If you need to use Eigen \
+with libMesh then you will need to use an external installation for both \
+libMesh and IBAMR.")
       ELSE()
-        # If this happens then the provided version of Eigen3 appears to not
-        # match the one libMesh has: we don't support this. Verify it's not an
-        # odd coincidence before bailing out.
-        CHECK_CXX_SOURCE_COMPILES(
-          "
-          #include <libmesh/libmesh_config.h>
-          #ifdef LIBMESH_HAVE_EIGEN
-          // OK
-          #else
-          #error
-          #endif
-          int main() {}
-          "
-          LIBMESH_WITH_EIGEN
-          )
-        IF(${LIBMESH_WITH_EIGEN})
-          MESSAGE(FATAL_ERROR "\
+        MESSAGE(FATAL_ERROR "\
 libMesh appears to have been compiled with a bundled copy of Eigen3 (i.e., the \
 directory ${LIBMESH_ROOT}/include/Eigen exists) and this version of Eigen is \
-different from the one provided via via EIGEN3_ROOT = ${EIGEN3_ROOT}: i.e., \
+different from the one provided to CMake via EIGEN3_ROOT = ${EIGEN3_ROOT}: i.e., \
 there are two versions of Eigen3 in the configuration path, which is not \
 supported. To fix this, delete the current libMesh installation, recompile \
 libMesh without Eigen, and reinstall libMesh. If you aren't sure what to do, \
 the best option is to ensure that libMesh is compiled without support for \
 Eigen and then let IBAMR either detect an Eigen installation or use its own \
 bundled copy.")
-        ENDIF()
       ENDIF()
     ENDIF()
 
