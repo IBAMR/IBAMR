@@ -21,6 +21,34 @@
 #include <utility>
 #include <vector>
 
+// Headers for basic PETSc functions
+#include <petscsys.h>
+
+// Headers for basic SAMRAI objects
+#include <BergerRigoutsos.h>
+#include <CartesianGridGeometry.h>
+#include <LoadBalancer.h>
+#include <StandardTagAndInitialize.h>
+
+// Headers for application-specific algorithm/data structure objects
+#include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IBPDForceGen.h>
+#include <ibamr/IBPDMethod.h>
+#include <ibamr/IBStandardInitializer.h>
+#include <ibamr/INSCollocatedHierarchyIntegrator.h>
+#include <ibamr/INSStaggeredHierarchyIntegrator.h>
+
+#include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
+#include <ibtk/LData.h>
+#include <ibtk/LDataManager.h>
+#include <ibtk/muParserCartGridFunction.h>
+#include <ibtk/muParserRobinBcCoefs.h>
+
+// Set up application namespace declarations
+#include <ibamr/app_namespaces.h>
+
 using Edge = std::pair<int, int>;
 using EdgeProp = std::pair<double, double>;
 struct EdgeComp : public std::binary_function<Edge, Edge, bool>
@@ -44,12 +72,13 @@ sort_edge(Edge& e)
 }
 
 int
-main(int /*argc*/, char** /*argv*/)
+main(int argc, char* argv[])
 {
     // Problem parameters
 
-    const int ndivx = 17; // num points in x direction.
-    const int ndivy = 9;  // num points in y direction.
+    const int M = 16;
+    const int ndivx = M + 1; // num points in x direction.
+    const int ndivy = M / 2 + 1;  // num points in y direction.
     const int nbnd = 0;
     const int totnode = (ndivx + 2 * nbnd) * (ndivy + 2 * nbnd);
 
@@ -59,7 +88,8 @@ main(int /*argc*/, char** /*argv*/)
     const double dx = length / (ndivx - 1); // spacing between material points in x direction
     const double dy = width / (ndivy - 1);  // spacing between material points in y direction
 
-    const double delta = 2.015 * dx;      // horizon
+    const double horizon = 2.015;
+    const double delta = horizon * dx;      // horizon
     const double thick = dx;         // thickness of the plate
     const double area = dx * dx;     // cross-sectional area
     const double vol = area * thick; // volume of a material point

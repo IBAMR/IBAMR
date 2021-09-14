@@ -48,8 +48,12 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const string& data_dump_dirname);
 
 // material parameters
-static const int nx = 17;                                                   // number of grids in x
-static const int ny = 9;                                                   // number of grids in y
+static int M_temp;                                                            // Number of grids 
+static double Horizon_size_temp;                                      // Horizon delta
+static double Poisson_ratio_temp;                                       // Poisson ratio
+
+static const int nx = M_temp + 1;                                             // number of grids in x
+static const int ny = int(double(M_temp)/2.0) + 1;                                          // number of grids in y
 
 // compressed block
 static const double x_begin = 10.0;
@@ -61,16 +65,18 @@ static const double y_begin = 15.0;
 static const double y_end = 25.0;
 
 static const double DX = (x_end - x_begin) / double(nx-1);               // material grid size (cm)
-static const double horizon = 2.015 * DX;
-static const double P = 0.49995;                                         // Poisson's ratio
+
+static const double horizon = Horizon_size_temp * DX;                         // Horizon size
+static const double P = Poisson_ratio_temp;                                   // Poisson's ratio
+
 static const double G = 80.194;                                          // shear modulus
 // static const double E = 2.0 * G * (1.0 + P);                          // Young's modulus
 // static const double L = E * P / ((1. + P) * (1. - 2. * P));           // lame parameter
 // static const double G = E / (2. * (1. + P));                          // shear modulus
 static const double K_bulk = 2.0 * G * (1.0 + P) / (3. * (1. - 2.*P) );  // bulk modulus
-static const double appres = 200.0;                                        // External loading
+static const double appres = 200.0;                                      // External loading
 
-static const double T_load = 0.0;                                            // time when the full load is appplied
+static const double T_load = 100.0;                                            // time when the full load is appplied
 static const double MFAC = 2.0;
 static const double DX0 = DX / MFAC;
 static const double CFL_MAX = 0.2;                                       // maximum CFL number
@@ -79,7 +85,7 @@ static const double DT = .025*CFL_MAX*DX0/U_MAX;
 static const double Max_force_indi = T_load / DT;
 static double indi = 1.0;
 
-static double damping = 4.0097;
+static double damping = 2.00485;
 
 double
 my_inf_fcn(double R0, double /*delta*/)
@@ -173,11 +179,12 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
     const double tr_cc = CC.trace();
     const double J = std::abs(F0.determinant());
     // const double Jsquare = pow(J,2.0);
-    const double Jp = pow(J,-2.0/3.0);
+    const double J_cbrt_inv = 1.0 / cbrt(J);
+    const double Jp = J_cbrt_inv * J_cbrt_inv;
     // PK1 = G * (F0 - tr_cc*FF_inv_trans/2.)/J + K * (Jsquare - 1./Jsquare)*FF_inv_trans/4.;
     // PK1 = G * Jp * (F0 - tr_cc * FF_inv_trans / 3.0) + K * (Jsquare - 1./Jsquare)*FF_inv_trans/4.;
     // PK1 = G * Jp * (F0 - tr_cc * FF_inv_trans / 3.0) + K_n * J * log(J) * FF_inv_trans;
-    PK1 = G * Jp * (F0 - tr_cc * FF_inv_trans / 3.0) + K_bulk * log(J) * FF_inv_trans;
+    PK1 = G * Jp * (F0 - tr_cc / 3.0 * FF_inv_trans) + K_bulk * log(J) * FF_inv_trans;
 
     return;
 } // my_PK1_fcn
@@ -235,7 +242,7 @@ my_force_damage_fcn(const double /*horizon*/,
     #endif
     F_mastr += fail * vol_frac * vol_slave * (trac + 2.0 * pen_trac);
     F_slave += -fail * vol_frac * vol_mastr * (trac + 2.0 * pen_trac);
-
+    
     // // zero energy mode
     // double horizon = 2.015 * DX;
     // const double C_hg = 0.0;
@@ -624,6 +631,9 @@ main(int argc, char* argv[])
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
+        M_temp = input_db->getInteger("M");
+        Horizon_size_temp = input_db->getDouble("HORIZON_SIZE");
+        Poisson_ratio_temp = input_db->getDouble("POISSON_RATIO");
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();

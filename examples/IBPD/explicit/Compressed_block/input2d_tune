@@ -9,10 +9,14 @@ L_Y = 40.0
 L_D = 20.0 // longest side
 U_MAX = 5.0
 
+// model parameters
+POISSON_RATIO = NU_TEMP
+HORIZON_SIZE = HORIZON_TEMP
+
 // grid spacing parameters
 MAX_LEVELS = 1                                    // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                    // refinement ratio between levels
-M = 16						                             // number of nodes per edge of Lagrangian mesh
+M = M_TEMP						                             // number of nodes per edge of Lagrangian mesh
 MFAC = 0.5	                                         // ratio of Lagrangian mesh width to Cartesian mesh width of the rectangular
 REF_FACTOR = (REF_RATIO^(MAX_LEVELS - 1))
 N = ceil(M * MFAC * L_X / L_D /REF_FACTOR)        // actual    number of grid cells on coarsest grid level
@@ -39,7 +43,7 @@ PressureInitialConditions {
 DELTA_FUNCTION      = "IB_4"
 // DT                  = 1.0e-4                   // maximum timestep size
 START_TIME          = 0.0e0                    // initial simulation time
-// END_TIME            = DT                    // final simulation time
+END_TIME            = 500.0                    // final simulation time
 GROW_DT             = 2.0e0                    // growth factor for timesteps
 NUM_CYCLES          = 1                        // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE  = "ADAMS_BASHFORTH"        // convective time stepping type
@@ -49,7 +53,7 @@ NORMALIZE_PRESSURE  = FALSE                    // whether to explicitly force th
 CFL_MAX             = 0.2                      // maximum CFL number
 DT                  = .025*CFL_MAX*DX/U_MAX    // maximum timestep size
 // DT                  = 1.0e-4                   // maximum timestep size
-END_TIME            = DT                     // final simulation time
+// END_TIME            = DT                     // final simulation time
 ERROR_ON_DT_CHANGE  = FALSE                    // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = FALSE                    // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 1                        // size of tag buffer used by grid generation algorithm
@@ -62,9 +66,6 @@ OUTPUT_OMEGA        = TRUE
 OUTPUT_DIV_U        = TRUE
 ENABLE_LOGGING      = TRUE
 
-// model parameters
-POISSON_RATIO = 0.4
-HORIZON_SIZE = 2.015
 
 VelocityBcCoefs_0 {
    acoef_function_0 = "1.0"
@@ -127,10 +128,10 @@ IBPDMethod {
 
 IBStandardInitializer {
    max_levels      = MAX_LEVELS
-   structure_names = "sheet2d"
+   structure_names = "SHEET2D_TEMP"
    posn_shift = 0.0 , 0.0 
 
-   sheet2d {
+   SHEET2D_TEMP {
       level_number = MAX_LEVELS - 1
    }
 }
