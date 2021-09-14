@@ -48,12 +48,17 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const string& data_dump_dirname);
 
 // material parameters
-static int M_temp;                                                            // Number of grids 
-static double Horizon_size_temp;                                      // Horizon delta
-static double Poisson_ratio_temp;                                       // Poisson ratio
-
-static const int nx = M_temp + 1;                                             // number of grids in x
-static const int ny = int(double(M_temp)/2.0) + 1;                                          // number of grids in y
+static int M_temp;
+static double Horizon_size_temp;
+static double Poisson_ratio_temp;
+static double horizon;
+static double P;
+static double DX;
+static double DX0;
+static double G;
+static double K_bulk;
+static double Max_force_indi;
+static double Damping;
 
 // compressed block
 static const double x_begin = 10.0;
@@ -64,28 +69,8 @@ static const double x_end = 30.0;
 static const double y_begin = 15.0;
 static const double y_end = 25.0;
 
-static const double DX = (x_end - x_begin) / double(nx-1);               // material grid size (cm)
-
-static const double horizon = Horizon_size_temp * DX;                         // Horizon size
-static const double P = Poisson_ratio_temp;                                   // Poisson's ratio
-
-static const double G = 80.194;                                          // shear modulus
-// static const double E = 2.0 * G * (1.0 + P);                          // Young's modulus
-// static const double L = E * P / ((1. + P) * (1. - 2. * P));           // lame parameter
-// static const double G = E / (2. * (1. + P));                          // shear modulus
-static const double K_bulk = 2.0 * G * (1.0 + P) / (3. * (1. - 2.*P) );  // bulk modulus
 static const double appres = 200.0;                                      // External loading
-
-static const double T_load = 100.0;                                            // time when the full load is appplied
-static const double MFAC = 2.0;
-static const double DX0 = DX / MFAC;
-static const double CFL_MAX = 0.2;                                       // maximum CFL number
-static const double U_MAX = 5.0;
-static const double DT = .025*CFL_MAX*DX0/U_MAX;
-static const double Max_force_indi = T_load / DT;
 static double indi = 1.0;
-
-static double damping = 2.00485;
 
 double
 my_inf_fcn(double R0, double /*delta*/)
@@ -320,7 +305,7 @@ my_surface_force_func(const Eigen::Map<const IBTK::Vector>& X,
         }
     }
 
-    if (lag_idx == (nx*ny -1))
+    if (lag_idx == ((M_temp + 1) * (int(double(M_temp)/2.0) + 1) -1))
     {
         indi += 1.0;
     }
@@ -337,7 +322,7 @@ my_target_point_force_fcn(const Eigen::Map<const IBTK::Vector>& X,
                           Eigen::Map<IBTK::Vector>& F)
 {
     // F += K * (X_target - X) - E * U;
-    F += - damping * U;
+    F += - Damping * U;
 
     my_surface_force_func(X, X_target, U, lag_idx, F);
 
@@ -634,6 +619,16 @@ main(int argc, char* argv[])
         M_temp = input_db->getInteger("M");
         Horizon_size_temp = input_db->getDouble("HORIZON_SIZE");
         Poisson_ratio_temp = input_db->getDouble("POISSON_RATIO");
+        G = input_db->getDouble("SHEAR_MOD");
+        K_bulk = input_db->getDouble("BULK_MOD");
+        Damping = input_db->getDouble("DAMPING");
+        DX0 = input_db->getDouble("DX");
+        static const double d_dt = input_db->getDouble("DT");
+        Max_force_indi = (input_db->getDouble("LOAD_TIME")) / d_dt;
+        DX = (x_end - x_begin) / double(M_temp);
+        horizon = Horizon_size_temp * DX;
+        P = Poisson_ratio_temp;
+
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();

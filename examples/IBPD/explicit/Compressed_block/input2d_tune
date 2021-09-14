@@ -12,6 +12,9 @@ U_MAX = 5.0
 // model parameters
 POISSON_RATIO = NU_TEMP
 HORIZON_SIZE = HORIZON_TEMP
+SHEAR_MOD = 80.194
+BULK_MOD = 2*SHEAR_MOD * (1 + POISSON_RATIO) / 3.0 / (1.0 - 2*POISSON_RATIO)
+DAMPING = 0.05 * SHEAR_MOD
 
 // grid spacing parameters
 MAX_LEVELS = 1                                    // maximum number of levels in locally refined grid
@@ -41,8 +44,8 @@ PressureInitialConditions {
 
 // solver parameters
 DELTA_FUNCTION      = "IB_4"
-// DT                  = 1.0e-4                   // maximum timestep size
 START_TIME          = 0.0e0                    // initial simulation time
+LOAD_TIME           = 100.0                    // load time
 END_TIME            = 500.0                    // final simulation time
 GROW_DT             = 2.0e0                    // growth factor for timesteps
 NUM_CYCLES          = 1                        // number of cycles of fixed-point iteration
@@ -52,8 +55,6 @@ CONVECTIVE_FORM     = "ADVECTIVE"              // how to compute the convective 
 NORMALIZE_PRESSURE  = FALSE                    // whether to explicitly force the pressure to have mean zero
 CFL_MAX             = 0.2                      // maximum CFL number
 DT                  = .025*CFL_MAX*DX/U_MAX    // maximum timestep size
-// DT                  = 1.0e-4                   // maximum timestep size
-// END_TIME            = DT                     // final simulation time
 ERROR_ON_DT_CHANGE  = FALSE                    // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = FALSE                    // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 1                        // size of tag buffer used by grid generation algorithm
