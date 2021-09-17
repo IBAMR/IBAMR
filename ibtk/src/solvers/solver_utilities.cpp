@@ -15,6 +15,8 @@
 
 #include "ibtk/solver_utilities.h"
 
+#include <memory>
+
 namespace IBTK
 {
 void
