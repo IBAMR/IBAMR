@@ -168,6 +168,22 @@ public:
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
 
+    /*!
+     * \brief Function to Mask surface tension force to act only on specific phases.
+     */
+    using MaskSurfaceTensionForcePtr = void (*)(int F_idx,
+                                                SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                int cycle_num,
+                                                double time,
+                                                double current_time,
+                                                double new_time,
+                                                void* ctx);
+
+    /*!
+     * \brief Register function to limit surface tension force.
+     */
+    void registerSurfaceTensionForceMasking(MaskSurfaceTensionForcePtr callback, void* ctx);
+
     //\}
 
 private:
@@ -250,6 +266,9 @@ private:
     int d_C_idx, d_phi_idx;
     std::string d_kernel_fcn;
     double d_sigma, d_num_interface_cells;
+
+    std::vector<MaskSurfaceTensionForcePtr> d_mask_surface_tension_force;
+    std::vector<void*> d_mask_surface_tension_force_ctx;
 };
 } // namespace IBAMR
 

@@ -330,6 +330,22 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     CartGridFunction::setDataOnPatchHierarchy(
         data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
 
+    // Limit the surface tension force if necessary.
+    const double apply_time = data_time;
+    const double current_time = data_time;
+    const double new_time = data_time;
+    HierarchyMathOps* hier_math_ops = new HierarchyMathOps("HierarchyMathOps", hierarchy);
+    for (unsigned k = 0; k < d_mask_surface_tension_force.size(); ++k)
+    {
+        d_mask_surface_tension_force[k](data_idx,
+                                        hier_math_ops,
+                                        -1 /*cycle_num*/,
+                                        apply_time,
+                                        current_time,
+                                        new_time,
+                                        d_mask_surface_tension_force_ctx[k]);
+    }
+
     // Deallocate and remove scratch/smooth phi.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -368,6 +384,15 @@ SurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
     if (f_sc_data) setDataOnPatchSide(f_sc_data, patch, data_time, initial_time, level);
     return;
 } // setDataOnPatch
+
+void
+SurfaceTensionForceFunction::registerSurfaceTensionForceMasking(MaskSurfaceTensionForcePtr callback, void* ctx)
+{
+    d_mask_surface_tension_force.push_back(callback);
+    d_mask_surface_tension_force_ctx.push_back(ctx);
+
+    return;
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

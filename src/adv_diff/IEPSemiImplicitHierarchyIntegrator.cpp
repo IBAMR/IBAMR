@@ -2312,8 +2312,11 @@ IEPSemiImplicitHierarchyIntegrator::computeTemperatureSourceTerm(int F_scratch_i
             {
                 CellIndex<NDIM> ci(it());
 
-                (*F_data)(ci) = -d_rho_liquid * d_latent_heat *
-                                (((*lf_new_data)(ci)) - ((*H_current_data)(ci) * (*lf_current_data)(ci))) / dt;
+                (*F_data)(ci) =
+                    -d_rho_liquid * d_latent_heat *
+                    (((*H_new_data)(ci) * (*lf_new_data)(ci)) - ((*H_current_data)(ci) * (*lf_current_data)(ci))) / dt;
+                //                if (d_apply_brinkman) (*F_data)(ci) -= d_beta/dt * (1.0 - (*H_new_data)(ci)) *
+                //                ((*lf_new_data)(ci) - (*lf_current_data)(ci));
             }
         }
     }
