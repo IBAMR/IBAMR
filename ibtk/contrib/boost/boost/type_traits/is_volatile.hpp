@@ -21,11 +21,12 @@
 #ifndef BOOST_TT_IS_VOLATILE_HPP_INCLUDED
 #define BOOST_TT_IS_VOLATILE_HPP_INCLUDED
 
+#include <cstddef> // size_t
 #include <boost/type_traits/integral_constant.hpp>
 
 namespace boost {
 
-#if defined( __CODEGEARC__ )
+#if defined( BOOST_CODEGEARC )
 
    template <class T>
    struct is_volatile : public integral_constant<bool, __is_volatile(T)> {};
@@ -35,7 +36,7 @@ namespace boost {
    template <class T>
    struct is_volatile : public false_type {};
    template <class T> struct is_volatile<T volatile> : public true_type{};
-   template <class T, size_t N> struct is_volatile<T volatile[N]> : public true_type{};
+   template <class T, std::size_t N> struct is_volatile<T volatile[N]> : public true_type{};
    template <class T> struct is_volatile<T volatile[]> : public true_type{};
 
 #endif
