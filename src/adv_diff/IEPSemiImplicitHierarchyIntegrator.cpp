@@ -75,10 +75,12 @@
 // FORTRAN ROUTINES
 #if (NDIM == 2)
 #define C_TO_S_CWISE_INTERP_FC IBTK_FC_FUNC(ctoscwiseinterp2nd2d, CTOSCWISEINTERP2ND2D)
+#define C_TO_S_CWISE_HARMONIC_INTERP_FC IBTK_FC_FUNC(ctoscwiseharmonicinterp2nd2d, CTOSCWISEARMONICINTERP2ND2D)
 #endif // if (NDIM == 2)
 
 #if (NDIM == 3)
 #define C_TO_S_CWISE_INTERP_FC IBTK_FC_FUNC(ctoscwiseinterp2nd3d, CTOSCWISEINTERP2ND3D)
+#define C_TO_S_CWISE_HARMONIC_INTERP_FC IBTK_FC_FUNC(ctoscwiseharmonicinterp2nd3d, CTOSCWISEHARMONICINTERP2ND3D)
 #endif // if (NDIM == 3)
 
 extern "C"
@@ -99,6 +101,25 @@ extern "C"
                                 ,
                                 const int& ilower2,
                                 const int& iupper2
+#endif
+    );
+
+    void C_TO_S_CWISE_HARMONIC_INTERP_FC(double* u0,
+                                         double* u1,
+#if (NDIM == 3)
+                                         double* u2,
+#endif
+                                         const int& u_gcw,
+                                         const double* V,
+                                         const int& V_gcw,
+                                         const int& ilower0,
+                                         const int& iupper0,
+                                         const int& ilower1,
+                                         const int& iupper1
+#if (NDIM == 3)
+                                         ,
+                                         const int& ilower2,
+                                         const int& iupper2
 #endif
     );
 }
@@ -2225,22 +2246,40 @@ IEPSemiImplicitHierarchyIntegrator::interpolateCCHeaviside(int lf_diff_coef_idx,
             Pointer<SideData<NDIM, double> > diff_coef_data = patch->getPatchData(lf_diff_coef_idx);
             Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
 
-            C_TO_S_CWISE_INTERP_FC(diff_coef_data->getPointer(0),
-                                   diff_coef_data->getPointer(1),
+            //            C_TO_S_CWISE_INTERP_FC(diff_coef_data->getPointer(0),
+            //                                   diff_coef_data->getPointer(1),
+            //#if (NDIM == 3)
+            //                                   diff_coef_data->getPointer(2),
+            //#endif
+            //                                   diff_coef_data->getGhostCellWidth().max(),
+            //                                   H_data->getPointer(),
+            //                                   H_data->getGhostCellWidth().max(),
+            //                                   patch_box.lower(0),
+            //                                   patch_box.upper(0),
+            //                                   patch_box.lower(1),
+            //                                   patch_box.upper(1)
+            //#if (NDIM == 3)
+            //                                       ,
+            //                                   patch_box.lower(2),
+            //                                   patch_box.upper(2)
+            //#endif
+            //            );
+            C_TO_S_CWISE_HARMONIC_INTERP_FC(diff_coef_data->getPointer(0),
+                                            diff_coef_data->getPointer(1),
 #if (NDIM == 3)
-                                   diff_coef_data->getPointer(2),
+                                            diff_coef_data->getPointer(2),
 #endif
-                                   diff_coef_data->getGhostCellWidth().max(),
-                                   H_data->getPointer(),
-                                   H_data->getGhostCellWidth().max(),
-                                   patch_box.lower(0),
-                                   patch_box.upper(0),
-                                   patch_box.lower(1),
-                                   patch_box.upper(1)
+                                            diff_coef_data->getGhostCellWidth().max(),
+                                            H_data->getPointer(),
+                                            H_data->getGhostCellWidth().max(),
+                                            patch_box.lower(0),
+                                            patch_box.upper(0),
+                                            patch_box.lower(1),
+                                            patch_box.upper(1)
 #if (NDIM == 3)
-                                       ,
-                                   patch_box.lower(2),
-                                   patch_box.upper(2)
+                                                ,
+                                            patch_box.lower(2),
+                                            patch_box.upper(2)
 #endif
             );
         }

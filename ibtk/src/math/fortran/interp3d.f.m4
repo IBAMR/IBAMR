@@ -774,3 +774,97 @@ c     Compute the edge centered interpolation of V
 c
       return
       end
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the face centered normal vector field (u0,u1,u2) from the
+c     cell centered scalar field V using harmonic averaging.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ctofcwiseharmonicinterp2nd3d(
+     &     u0,u1,u2,u_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER u_gcw,V_gcw
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+
+      REAL V(CELL3d(ilower,iupper,V_gcw))
+c
+c     Output.
+c
+      REAL u0(FACE3d0(ilower,iupper,u_gcw))
+      REAL u1(FACE3d1(ilower,iupper,u_gcw))
+      REAL u2(FACE3d2(ilower,iupper,u_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      REAL nmr,dmr
+c
+c     Compute the face centered vector field (u0,u1,u2) from the cell
+c     centered scalar field V.
+c
+C       do i2 = ilower2,iupper2
+C          do i1 = ilower1,iupper1
+C             do i0 = ilower0,iupper0+1
+C                u0(i0,i1,i2) = 0.5d0*(V(i0-1,i1,i2)+V(i0,i1,i2))
+C             enddo
+C          enddo
+C       enddo
+C       do i0 = ilower0,iupper0
+C          do i2 = ilower2,iupper2
+C             do i1 = ilower1,iupper1+1
+C                u1(i1,i2,i0) = 0.5d0*(V(i0,i1-1,i2)+V(i0,i1,i2))
+C             enddo
+C          enddo
+C       enddo
+C       do i1 = ilower1,iupper1
+C          do i0 = ilower0,iupper0
+C             do i2 = ilower2,iupper2+1
+C                u2(i2,i0,i1) = 0.5d0*(V(i0,i1,i2-1)+V(i0,i1,i2))
+C             enddo
+C          enddo
+C       enddo
+
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0+1
+               nmr = 2.d0*V(i0-1,i1,i2)*V(i0,i1,i2)
+               dmr = V(i0-1,i1,i2)+V(i0,i1,i2) + 1E-3
+               u0(i0,i1,i2) = nmr/dmr
+            enddo
+         enddo
+      enddo
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1+1
+            do i0 = ilower0,iupper0
+               nmr = 2.d0*V(i0,i1-1,i2)*V(i0,i1,i2)
+               dmr = V(i0,i1-1,i2)+V(i0,i1,i2) + 1E-3
+               u1(i0,i1,i2) = nmr/dmr
+            enddo
+         enddo
+      enddo
+      do i2 = ilower2,iupper2+1
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+               nmr = 2*V(i0,i1,i2-1)*V(i0,i1,i2)
+               dmr = V(i0,i1,i2-1)+V(i0,i1,i2) + 1E-3
+               u2(i0,i1,i2) = nmr/dmr
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
