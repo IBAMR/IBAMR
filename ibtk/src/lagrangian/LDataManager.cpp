@@ -1417,7 +1417,7 @@ LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int finest
             IntVector<NDIM> periodic_offset;
             for (int d = 0; d < NDIM; ++d)
             {
-                periodic_offset[d] = boost::math::round(periodic_displacement[d] / level_dx[d]);
+                periodic_offset[d] = static_cast<int>(std::round(periodic_displacement[d] / level_dx[d]));
             }
             if (periodic_offset != IntVector<NDIM>(0))
             {
