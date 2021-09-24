@@ -8,6 +8,10 @@
 
 #include <boost/config.hpp>
 
+// IBAMR patch: make sure we are not using boost::shared_ptr since we do not
+// bundle those headers
+#define BOOST_EXCEPTION_MINI_BOOST
+
 #ifdef BOOST_EXCEPTION_MINI_BOOST
 #include  <memory>
 namespace boost { namespace exception_detail { using std::shared_ptr; } }
