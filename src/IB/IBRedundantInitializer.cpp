@@ -53,7 +53,6 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include <boost/math/special_functions/round.hpp>
 #include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
@@ -977,7 +976,7 @@ IBRedundantInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
             IntVector<NDIM> periodic_offset;
             for (int d = 0; d < NDIM; ++d)
             {
-                periodic_offset[d] = boost::math::round(periodic_displacement[d] / patch_dx[d]);
+                periodic_offset[d] = static_cast<int>(std::round(periodic_displacement[d] / patch_dx[d]));
             }
 
             // Ensure that all points are initially within the computational

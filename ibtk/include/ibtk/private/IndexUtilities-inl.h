@@ -22,10 +22,6 @@
 
 #include "ibtk/IndexUtilities.h"
 
-IBTK_DISABLE_EXTRA_WARNINGS
-#include <boost/math/special_functions/round.hpp>
-IBTK_ENABLE_EXTRA_WARNINGS
-
 #include <cmath>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
