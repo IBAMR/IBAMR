@@ -168,11 +168,6 @@ CFINSForcing::~CFINSForcing()
         if ((d_divW_idx_draw > -1) && level->checkAllocated(d_divW_idx_draw))
             level->deallocatePatchData(d_divW_idx_draw);
     }
-    // Delete boundary conditions
-    for (auto& bc_coef : d_conc_bc_coefs)
-    {
-        delete bc_coef;
-    }
     return;
 } // Destructor
 
@@ -256,13 +251,14 @@ CFINSForcing::commonConstructor(const Pointer<Database> input_db,
         {
             const std::string bc_coefs_name = "c_bc_coef_" + std::to_string(d);
             const std::string bc_coefs_db_name = "ExtraStressBoundaryConditions_" + std::to_string(d);
-            d_conc_bc_coefs[d] =
-                new muParserRobinBcCoefs(bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geom);
+            d_conc_bc_coefs[d].reset(
+                new muParserRobinBcCoefs(bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geom));
+            d_conc_bc_coefs_ptrs.push_back(d_conc_bc_coefs[d].get());
         }
-        d_adv_diff_integrator->setPhysicalBcCoefs(d_W_cc_var, d_conc_bc_coefs);
+        d_adv_diff_integrator->setPhysicalBcCoefs(d_W_cc_var, d_conc_bc_coefs_ptrs);
     }
     d_convec_oper = new CFUpperConvectiveOperator(
-        "ComplexFluidConvectiveOperator", d_W_cc_var, input_db, d_convec_oper_type, d_conc_bc_coefs, vel_bcs);
+        "ComplexFluidConvectiveOperator", d_W_cc_var, input_db, d_convec_oper_type, d_conc_bc_coefs_ptrs, vel_bcs);
     d_adv_diff_integrator->setConvectiveOperator(d_W_cc_var, d_convec_oper);
 
     // Register relaxation function
@@ -349,7 +345,7 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
                                                                  "CONSERVATIVE_COARSEN",
                                                                  "LINEAR",
                                                                  false,
-                                                                 d_conc_bc_coefs,
+                                                                 d_conc_bc_coefs_ptrs,
                                                                  NULL,
                                                                  d_interp_type);
     HierarchyGhostCellInterpolation ghost_fill_op;

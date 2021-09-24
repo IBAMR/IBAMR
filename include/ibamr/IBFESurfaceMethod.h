@@ -567,7 +567,12 @@ protected:
      */
     std::vector<libMesh::MeshBase*> d_meshes;
     int d_max_level_number = IBTK::invalid_level_number;
-    std::vector<libMesh::EquationSystems*> d_equation_systems;
+
+    /*!
+     * EquationSystems objects, one per part. These contain the actual matrices
+     * and solution vectors for each relevant libMesh system.
+     */
+    std::vector<std::unique_ptr<libMesh::EquationSystems> > d_equation_systems;
 
     /// FEData objects provide key FE data management.
     std::vector<std::shared_ptr<IBTK::FEData> > d_fe_data;

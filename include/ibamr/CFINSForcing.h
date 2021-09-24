@@ -303,7 +303,17 @@ private:
     SAMRAI::tbox::Pointer<AdvDiffSemiImplicitHierarchyIntegrator> d_adv_diff_integrator;
     SAMRAI::tbox::Pointer<CFUpperConvectiveOperator> d_convec_oper;
     std::string d_convec_oper_type;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_conc_bc_coefs;
+
+    /**
+     * Boundary conditions.
+     */
+    std::vector<std::unique_ptr<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > > d_conc_bc_coefs;
+
+    /**
+     * Pointers to the previous objects (required by some APIs).
+     */
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_conc_bc_coefs_ptrs;
+
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
 
     // Logging parameters

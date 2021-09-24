@@ -200,10 +200,6 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
 
 IBFESurfaceMethod::~IBFESurfaceMethod()
 {
-    for (unsigned int part = 0; part < d_num_parts; ++part)
-    {
-        delete d_equation_systems[part];
-    }
     if (d_registered_for_restart)
     {
         RestartManager::getManager()->unregisterRestartItem(d_object_name);
@@ -1076,8 +1072,8 @@ IBFESurfaceMethod::initializeFEEquationSystems()
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Create FE equation systems objects and corresponding variables.
-        d_equation_systems[part] = new EquationSystems(*d_meshes[part]);
-        EquationSystems* equation_systems = d_equation_systems[part];
+        d_equation_systems[part].reset(new EquationSystems(*d_meshes[part]));
+        EquationSystems* equation_systems = d_equation_systems[part].get();
         if (from_restart)
         {
             const std::string& file_name = libmesh_restart_file_name(
@@ -1182,7 +1178,7 @@ IBFESurfaceMethod::initializeFEData()
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Initialize FE equation systems.
-        EquationSystems* equation_systems = d_equation_systems[part];
+        EquationSystems* equation_systems = d_equation_systems[part].get();
         if (from_restart)
         {
             equation_systems->reinit();

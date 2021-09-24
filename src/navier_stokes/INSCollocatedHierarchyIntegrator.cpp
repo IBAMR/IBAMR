@@ -1729,7 +1729,7 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
                                                        DATA_COARSEN_TYPE,
                                                        d_bdry_extrap_type,
                                                        CONSISTENT_TYPE_2_BDRY,
-                                                       d_Phi_bc_coef);
+                                                       d_Phi_bc_coef.get());
     d_Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
 
@@ -2116,7 +2116,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
         U_star_bc_coef->setSolutionTime(new_time);
         U_star_bc_coef->setTimeInterval(current_time, new_time);
     }
-    auto Phi_bc_coef = dynamic_cast<INSProjectionBcCoef*>(d_Phi_bc_coef);
+    auto Phi_bc_coef = dynamic_cast<INSProjectionBcCoef*>(d_Phi_bc_coef.get());
     Phi_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     Phi_bc_coef->setSolutionTime(0.5 * (current_time + new_time));
     Phi_bc_coef->setTimeInterval(current_time, new_time);
@@ -2162,7 +2162,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
     if (d_pressure_solver)
     {
         d_pressure_solver->setPoissonSpecifications(P_problem_coefs);
-        d_pressure_solver->setPhysicalBcCoef(d_Phi_bc_coef);
+        d_pressure_solver->setPhysicalBcCoef(d_Phi_bc_coef.get());
         d_pressure_solver->setSolutionTime(half_time);
         d_pressure_solver->setTimeInterval(current_time, new_time);
         auto p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
