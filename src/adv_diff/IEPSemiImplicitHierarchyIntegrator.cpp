@@ -1072,7 +1072,7 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
         d_hier_cc_data_ops->copyData(d_T_diff_coef_cc_scratch_idx, d_T_diff_coef_cc_current_idx);
         d_k_bdry_bc_fill_op->fillData(current_time);
 
-        interpolateCCToSC(T_diff_coef_current_idx, d_T_diff_coef_cc_scratch_idx);
+        interpolateCCToSCHarmonic(T_diff_coef_current_idx, d_T_diff_coef_cc_scratch_idx);
 
         d_hier_sc_data_ops->scale(T_diff_coef_scratch_idx, -alpha, T_diff_coef_current_idx);
         T_solver_spec.setDPatchDataId(T_diff_coef_scratch_idx);
@@ -1583,7 +1583,7 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         d_hier_cc_data_ops->copyData(d_T_diff_coef_cc_scratch_idx, d_T_diff_coef_cc_new_idx);
         d_k_bdry_bc_fill_op->fillData(new_time);
 
-        interpolateCCToSC(T_diff_coef_new_idx, d_T_diff_coef_cc_scratch_idx);
+        interpolateCCToSCHarmonic(T_diff_coef_new_idx, d_T_diff_coef_cc_scratch_idx);
 
         d_hier_sc_data_ops->scale(T_diff_coef_scratch_idx, -alpha, T_diff_coef_new_idx);
         std::cout << "L2 norm of T_diff_coef_scratch_idx\t" << d_hier_sc_data_ops->L2Norm(T_diff_coef_scratch_idx)
@@ -2324,6 +2324,48 @@ IEPSemiImplicitHierarchyIntegrator::interpolateCCToSC(int sc_idx, const int cc_i
 
     return;
 } // interpolateCCTOSC
+
+void
+IEPSemiImplicitHierarchyIntegrator::interpolateCCToSCHarmonic(int sc_idx, const int cc_idx)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+
+            Pointer<SideData<NDIM, double> > sc_data = patch->getPatchData(sc_idx);
+            Pointer<CellData<NDIM, double> > cc_data = patch->getPatchData(cc_idx);
+
+            // Use this only k var
+            C_TO_S_CWISE_HARMONIC_INTERP_FC(sc_data->getPointer(0),
+                                            sc_data->getPointer(1),
+#if (NDIM == 3)
+                                            sc_data->getPointer(2),
+#endif
+                                            sc_data->getGhostCellWidth().max(),
+                                            cc_data->getPointer(),
+                                            cc_data->getGhostCellWidth().max(),
+                                            patch_box.lower(0),
+                                            patch_box.upper(0),
+                                            patch_box.lower(1),
+                                            patch_box.upper(1)
+#if (NDIM == 3)
+                                                ,
+                                            patch_box.lower(2),
+                                            patch_box.upper(2)
+#endif
+            );
+        }
+    }
+
+    return;
+} // interpolateCCTOSCHarmonic
 
 void
 IEPSemiImplicitHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratch_idx, const double dt)

@@ -421,6 +421,11 @@ private:
      */
     void interpolateCCToSC(int sc_idx, const int cc_idx);
 
+    /*
+     * \brief Interpolate the cell-centered heaviside function to side-centered.
+     */
+    void interpolateCCToSCHarmonic(int sc_idx, const int cc_idx);
+
     /*!
      * Read input values from a given database.
      */
