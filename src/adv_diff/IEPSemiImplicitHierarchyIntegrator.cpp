@@ -372,6 +372,15 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE");
 
+    if (d_T_diffusion_coef_cc_var)
+        registerVariable(d_T_diff_coef_cc_current_idx,
+                         d_T_diff_coef_cc_new_idx,
+                         d_T_diff_coef_cc_scratch_idx,
+                         d_T_diffusion_coef_cc_var,
+                         cell_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE");
+
     int lf_u_current_idx, lf_u_scratch_idx, lf_u_new_idx;
     if (d_lf_u_var)
         registerVariable(lf_u_current_idx,
@@ -774,7 +783,7 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
     d_hier_cc_data_ops->copyData(d_H_scratch_idx, d_H_current_idx);
     d_H_bdry_bc_fill_op->fillData(current_time);
 
-    interpolateCCHeaviside(lf_diff_coef_current_idx, d_H_scratch_idx);
+    interpolateCCToSC(lf_diff_coef_current_idx, d_H_scratch_idx);
 
     if (!d_add_diffusion)
         d_hier_sc_data_ops->scale(lf_diff_coef_current_idx, d_M_lf * d_lambda_lf, lf_diff_coef_current_idx);
@@ -1039,8 +1048,8 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
         std::cout << "L2 norm of d_T_temp_rhs_idx\t" << d_hier_cc_data_ops->L2Norm(d_T_temp_rhs_idx) << std::endl;
         for (unsigned k = 0; k < d_reset_kappa_fcns.size(); ++k)
         {
-            d_reset_kappa_fcns[k](T_diff_coef_current_idx,
-                                  d_T_diffusion_coef_var,
+            d_reset_kappa_fcns[k](d_T_diff_coef_cc_current_idx,
+                                  d_T_diffusion_coef_cc_var,
                                   d_hier_math_ops,
                                   -1 /*cycle_num*/,
                                   apply_time,
@@ -1058,6 +1067,12 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
                                     d_integrator_time,
                                     synch_cf_interface);
         }
+
+        // Interpolate the cell-centered diffusion coef to side-centered.
+        d_hier_cc_data_ops->copyData(d_T_diff_coef_cc_scratch_idx, d_T_diff_coef_cc_current_idx);
+        d_k_bdry_bc_fill_op->fillData(current_time);
+
+        interpolateCCToSC(T_diff_coef_current_idx, d_T_diff_coef_cc_scratch_idx);
 
         d_hier_sc_data_ops->scale(T_diff_coef_scratch_idx, -alpha, T_diff_coef_current_idx);
         T_solver_spec.setDPatchDataId(T_diff_coef_scratch_idx);
@@ -1216,7 +1231,7 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
     d_hier_cc_data_ops->copyData(d_H_scratch_idx, d_H_new_idx);
     d_H_bdry_bc_fill_op->fillData(new_time);
 
-    interpolateCCHeaviside(lf_diff_coef_new_idx, d_H_scratch_idx);
+    interpolateCCToSC(lf_diff_coef_new_idx, d_H_scratch_idx);
     d_hier_sc_data_ops->copyData(d_H_sc_idx, lf_diff_coef_new_idx);
     //    d_hier_math_ops->interp(lf_diff_coef_new_idx,
     //                            d_lf_diffusion_coef_var,
@@ -1544,8 +1559,8 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         apply_time = new_time;
         for (unsigned k = 0; k < d_reset_kappa_fcns.size(); ++k)
         {
-            d_reset_kappa_fcns[k](T_diff_coef_new_idx,
-                                  d_T_diffusion_coef_var,
+            d_reset_kappa_fcns[k](d_T_diff_coef_cc_new_idx,
+                                  d_T_diffusion_coef_cc_var,
                                   d_hier_math_ops,
                                   -1 /*cycle_num*/,
                                   apply_time,
@@ -1563,6 +1578,12 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
                                     d_integrator_time,
                                     synch_cf_interface);
         }
+
+        // Interpolate the cell-centered diffusion coef to side-centered.
+        d_hier_cc_data_ops->copyData(d_T_diff_coef_cc_scratch_idx, d_T_diff_coef_cc_new_idx);
+        d_k_bdry_bc_fill_op->fillData(new_time);
+
+        interpolateCCToSC(T_diff_coef_new_idx, d_T_diff_coef_cc_scratch_idx);
 
         d_hier_sc_data_ops->scale(T_diff_coef_scratch_idx, -alpha, T_diff_coef_new_idx);
         std::cout << "L2 norm of T_diff_coef_scratch_idx\t" << d_hier_sc_data_ops->L2Norm(T_diff_coef_scratch_idx)
@@ -1714,6 +1735,17 @@ IEPSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_H_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_H_bdry_bc_fill_op->initializeOperatorState(H_bc_component, d_hierarchy);
 
+    d_T_diff_coef_cc_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_cc_var, getScratchContext());
+    InterpolationTransactionComponent k_bc_component(d_T_diff_coef_cc_scratch_idx,
+                                                     DATA_REFINE_TYPE,
+                                                     USE_CF_INTERPOLATION,
+                                                     DATA_COARSEN_TYPE,
+                                                     BDRY_EXTRAP_TYPE,
+                                                     CONSISTENT_TYPE_2_BDRY,
+                                                     d_lf_bc_coef); // liquid fraction boundary condition is used.
+    d_k_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    d_k_bdry_bc_fill_op->initializeOperatorState(k_bc_component, d_hierarchy);
+
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
 
     // Reset the solution and rhs vectors.
@@ -1809,6 +1841,8 @@ IEPSemiImplicitHierarchyIntegrator::registerTemperatureVariable(Pointer<CellVari
     Pointer<CellVariable<NDIM, double> > T_F_var = new CellVariable<NDIM, double>(T_var->getName() + "::F", T_depth);
     Pointer<SideVariable<NDIM, double> > T_diff_coef_var =
         new SideVariable<NDIM, double>(T_var->getName() + "::diff_coef", T_depth);
+    Pointer<CellVariable<NDIM, double> > T_diff_coef_cc_var =
+        new CellVariable<NDIM, double>(T_var->getName() + "::diff_coef_cc", T_depth);
 
     // Set default values.
     d_T_u_var = nullptr;
@@ -1820,6 +1854,7 @@ IEPSemiImplicitHierarchyIntegrator::registerTemperatureVariable(Pointer<CellVari
     if (d_T_convective_op_type.empty()) d_T_convective_op_type = d_default_convective_op_type;
     d_T_convective_op_input_db = d_default_convective_op_input_db;
     d_T_diffusion_coef_var = T_diff_coef_var;
+    d_T_diffusion_coef_cc_var = T_diff_coef_cc_var;
     d_T_init = nullptr;
     d_T_F_fcn = nullptr;
     d_T_bc_coef = nullptr;
@@ -2230,7 +2265,7 @@ IEPSemiImplicitHierarchyIntegrator::computeInterpolationFunction(int p_firstder_
 } // computeInterpolationFunction
 
 void
-IEPSemiImplicitHierarchyIntegrator::interpolateCCHeaviside(int lf_diff_coef_idx, const int H_idx)
+IEPSemiImplicitHierarchyIntegrator::interpolateCCToSC(int sc_idx, const int cc_idx)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2243,50 +2278,52 @@ IEPSemiImplicitHierarchyIntegrator::interpolateCCHeaviside(int lf_diff_coef_idx,
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
 
-            Pointer<SideData<NDIM, double> > diff_coef_data = patch->getPatchData(lf_diff_coef_idx);
-            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
+            Pointer<SideData<NDIM, double> > sc_data = patch->getPatchData(sc_idx);
+            Pointer<CellData<NDIM, double> > cc_data = patch->getPatchData(cc_idx);
 
-            //            C_TO_S_CWISE_INTERP_FC(diff_coef_data->getPointer(0),
-            //                                   diff_coef_data->getPointer(1),
-            //#if (NDIM == 3)
-            //                                   diff_coef_data->getPointer(2),
-            //#endif
-            //                                   diff_coef_data->getGhostCellWidth().max(),
-            //                                   H_data->getPointer(),
-            //                                   H_data->getGhostCellWidth().max(),
-            //                                   patch_box.lower(0),
-            //                                   patch_box.upper(0),
-            //                                   patch_box.lower(1),
-            //                                   patch_box.upper(1)
-            //#if (NDIM == 3)
-            //                                       ,
-            //                                   patch_box.lower(2),
-            //                                   patch_box.upper(2)
-            //#endif
-            //            );
-            C_TO_S_CWISE_HARMONIC_INTERP_FC(diff_coef_data->getPointer(0),
-                                            diff_coef_data->getPointer(1),
+            C_TO_S_CWISE_INTERP_FC(sc_data->getPointer(0),
+                                   sc_data->getPointer(1),
 #if (NDIM == 3)
-                                            diff_coef_data->getPointer(2),
+                                   sc_data->getPointer(2),
 #endif
-                                            diff_coef_data->getGhostCellWidth().max(),
-                                            H_data->getPointer(),
-                                            H_data->getGhostCellWidth().max(),
-                                            patch_box.lower(0),
-                                            patch_box.upper(0),
-                                            patch_box.lower(1),
-                                            patch_box.upper(1)
+                                   sc_data->getGhostCellWidth().max(),
+                                   cc_data->getPointer(),
+                                   cc_data->getGhostCellWidth().max(),
+                                   patch_box.lower(0),
+                                   patch_box.upper(0),
+                                   patch_box.lower(1),
+                                   patch_box.upper(1)
 #if (NDIM == 3)
-                                                ,
-                                            patch_box.lower(2),
-                                            patch_box.upper(2)
+                                       ,
+                                   patch_box.lower(2),
+                                   patch_box.upper(2)
 #endif
             );
+
+            // Use this only k var
+            //            C_TO_S_CWISE_HARMONIC_INTERP_FC(diff_coef_data->getPointer(0),
+            //                                            diff_coef_data->getPointer(1),
+            //#if (NDIM == 3)
+            //                                            diff_coef_data->getPointer(2),
+            //#endif
+            //                                            diff_coef_data->getGhostCellWidth().max(),
+            //                                            H_data->getPointer(),
+            //                                            H_data->getGhostCellWidth().max(),
+            //                                            patch_box.lower(0),
+            //                                            patch_box.upper(0),
+            //                                            patch_box.lower(1),
+            //                                            patch_box.upper(1)
+            //#if (NDIM == 3)
+            //                                                ,
+            //                                            patch_box.lower(2),
+            //                                            patch_box.upper(2)
+            //#endif
+            //            );
         }
     }
 
     return;
-} // interpolateCCHeaviside
+} // interpolateCCTOSC
 
 void
 IEPSemiImplicitHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratch_idx, const double dt)

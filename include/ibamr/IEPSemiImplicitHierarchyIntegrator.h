@@ -419,7 +419,7 @@ private:
     /*
      * \brief Interpolate the cell-centered heaviside function to side-centered.
      */
-    void interpolateCCHeaviside(int lf_diff_coef_idx, const int H_idx);
+    void interpolateCCToSC(int sc_idx, const int cc_idx);
 
     /*!
      * Read input values from a given database.
@@ -500,13 +500,17 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_lf_diffusion_coef_var,
         d_lf_diffusion_coef_rhs_var, d_T_diffusion_coef_var, d_T_diffusion_coef_rhs_var;
 
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_diffusion_coef_cc_var;
+    int d_T_diff_coef_cc_current_idx = IBTK::invalid_index, d_T_diff_coef_cc_new_idx = IBTK::invalid_index,
+        d_T_diff_coef_cc_scratch_idx = IBTK::invalid_index;
+
     bool d_output_ls = false, d_output_H = false, d_output_lf = false, d_output_T = false;
 
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_lf_F_init, d_T_F_init;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_lf_bc_coef = nullptr;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_H_bc_coef = nullptr;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_T_bc_coef = nullptr;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_H_bdry_bc_fill_op;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_H_bdry_bc_fill_op, d_k_bdry_bc_fill_op;
 
     /*!
      * Advection velocity variables.

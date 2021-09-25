@@ -849,7 +849,7 @@ C       enddo
          do i1 = ilower1,iupper1+1
             do i0 = ilower0,iupper0
                nmr = 2.d0*V(i0,i1-1,i2)*V(i0,i1,i2)
-               dmr = V(i0,i1-1,i2)+V(i0,i1,i2) + 1E-3
+               dmr = V(i0,i1-1,i2)+V(i0,i1,i2)
                u1(i0,i1,i2) = nmr/dmr
             enddo
          enddo
