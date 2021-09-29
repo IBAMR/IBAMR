@@ -477,6 +477,11 @@ private:
     void boundLiquidFraction(int lf_new_idx);
 
     /*!
+     * Diagonal preconditioning for temperature equation.
+     */
+    void diagonalPreconditioningTemperatureEquation(int Q_idx, const int P_idx);
+
+    /*!
      * Additional variables required.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;

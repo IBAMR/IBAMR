@@ -1072,7 +1072,7 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
         d_hier_cc_data_ops->copyData(d_T_diff_coef_cc_scratch_idx, d_T_diff_coef_cc_current_idx);
         d_k_bdry_bc_fill_op->fillData(current_time);
 
-        interpolateCCToSCHarmonic(T_diff_coef_current_idx, d_T_diff_coef_cc_scratch_idx);
+        interpolateCCToSC(T_diff_coef_current_idx, d_T_diff_coef_cc_scratch_idx);
 
         d_hier_sc_data_ops->scale(T_diff_coef_scratch_idx, -alpha, T_diff_coef_current_idx);
         T_solver_spec.setDPatchDataId(T_diff_coef_scratch_idx);
@@ -1533,7 +1533,8 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         const double lambda = 0.0;
         d_hier_cc_data_ops->multiply(d_C_new_idx, rho_new_idx, Cp_new_idx);
         d_hier_cc_data_ops->scale(d_C_new_idx, 1.0 / dt, d_C_new_idx);
-        d_hier_cc_data_ops->copyData(d_T_C_idx, d_C_new_idx);
+        //        d_hier_cc_data_ops->copyData(d_T_C_idx, d_C_new_idx);
+        d_hier_cc_data_ops->setToScalar(d_T_C_idx, 1.0);
         std::cout << "L2 norm of d_T_C_idx\t" << d_hier_cc_data_ops->L2Norm(d_T_C_idx) << std::endl;
 
         // Setup the problem coefficients for the linear solve
@@ -1567,6 +1568,8 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
                                   current_time,
                                   new_time,
                                   d_reset_kappa_fcns_ctx[k]);
+            // for diffusion term
+            diagonalPreconditioningTemperatureEquation(d_T_diff_coef_cc_new_idx, d_C_new_idx);
 
             // for plotting purpose.
             static const bool synch_cf_interface = true;
@@ -1583,7 +1586,7 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         d_hier_cc_data_ops->copyData(d_T_diff_coef_cc_scratch_idx, d_T_diff_coef_cc_new_idx);
         d_k_bdry_bc_fill_op->fillData(new_time);
 
-        interpolateCCToSCHarmonic(T_diff_coef_new_idx, d_T_diff_coef_cc_scratch_idx);
+        interpolateCCToSC(T_diff_coef_new_idx, d_T_diff_coef_cc_scratch_idx);
 
         d_hier_sc_data_ops->scale(T_diff_coef_scratch_idx, -alpha, T_diff_coef_new_idx);
         std::cout << "L2 norm of T_diff_coef_scratch_idx\t" << d_hier_sc_data_ops->L2Norm(T_diff_coef_scratch_idx)
@@ -1595,6 +1598,7 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         // Account for the convective acceleration term N_full.
         if (d_lf_u_var)
         {
+            //            diagonalPreconditioningTemperatureEquation(T_N_scratch_idx, d_C_new_idx);
             d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, T_N_scratch_idx, T_rhs_scratch_idx);
 
             // Add div (u H lf).
@@ -1621,6 +1625,7 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
             //            d_hier_cc_data_ops->L2Norm(T_rhs_scratch_idx)
             //                      << std::endl;
         }
+        diagonalPreconditioningTemperatureEquation(T_rhs_scratch_idx, d_C_new_idx);
 
         // Solve for T(n+1).
         Pointer<PoissonSolver> T_solver = d_T_solver;
@@ -2708,6 +2713,35 @@ IEPSemiImplicitHierarchyIntegrator::boundLiquidFraction(int lf_new_idx)
             }
         }
     }
+    return;
+} // boundLiquidFraction
+
+void
+IEPSemiImplicitHierarchyIntegrator::diagonalPreconditioningTemperatureEquation(int Q_idx, const int P_idx)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    //    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    //    {
+    //        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+    //        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    //        {
+    //            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+    //            const Box<NDIM>& patch_box = patch->getBox();
+    //            Pointer<CellData<NDIM, double> > P_data = patch->getPatchData(P_idx);
+    //            Pointer<CellData<NDIM, double> > Q_data = patch->getPatchData(Q_idx);
+    //
+    //            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+    //            {
+    //                CellIndex<NDIM> ci(it());
+    //
+    //                (*Q_data)(ci) /= (*P_data)(ci);
+    //            }
+    //        }
+    //    }
+    d_hier_cc_data_ops->divide(Q_idx, Q_idx, P_idx);
     return;
 } // boundLiquidFraction
 
