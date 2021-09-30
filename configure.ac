@@ -97,7 +97,7 @@ echo "=================================="
 echo "Configuring required package Boost"
 echo "=================================="
 AC_MSG_NOTICE([first check for a system Boost library; if not found, revert to bundled Boost library])
-BOOST_REQUIRE([1.57.0],[
+BOOST_REQUIRE([1.66.0],[
   AC_MSG_WARN([could not find system Boost library, using bundled Boost library])
   USING_BUNDLED_BOOST=yes])
 

@@ -177,7 +177,7 @@ IF(${IBAMR_FORCE_BUNDLED_BOOST})
 ELSE()
   # set up the root with the proper package name too
   SET(Boost_ROOT ${BOOST_ROOT})
-  FIND_PACKAGE(Boost 1.57 QUIET)
+  FIND_PACKAGE(Boost 1.66 QUIET)
   IF(${Boost_FOUND})
     SET(IBAMR_USE_BUNDLED_BOOST FALSE)
   ELSE()

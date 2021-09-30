@@ -1627,7 +1627,7 @@ Optional Packages:
                           resides to PATH
   --with-dot=PATH         manually set directory where the Graphviz dot
                           executable resides to PATH
-  --with-boost=DIR        prefix of Boost 1.57.0 [guess]
+  --with-boost=DIR        prefix of Boost 1.66.0 [guess]
   --with-libmesh=PATH     location of optional libMesh installation
   --with-libmesh-method=METHOD
                           libMesh compile mode options include opt, devel,
@@ -23484,7 +23484,7 @@ echo "=================================="
 $as_echo "$as_me: first check for a system Boost library; if not found, revert to bundled Boost library" >&6;}
 echo "$as_me: this is boost.m4 serial 26" >&5
 boost_save_IFS=$IFS
-boost_version_req=1.57.0
+boost_version_req=1.66.0
 IFS=.
 set x $boost_version_req 0 0 0
 IFS=$boost_save_IFS
@@ -24270,7 +24270,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 $as_echo "${LIBMESH_HAVE_BOOST}" >&6; }
 
   if test -e "$LIBMESH_DIR/include/boost/"; then
-      if test -e "$LIBMESH_DIR/include/boost/multi_array.hpp"; then
+      if test -e "$LIBMESH_DIR/include/boost/multi_array.hpp" -a -e "$LIBMESH_DIR/include/boost/math/quadrature/gauss_kronrod.hpp"; then
           # ok: perhaps libMesh is installed in /usr/
           :
       else
