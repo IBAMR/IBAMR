@@ -19,7 +19,7 @@ ADD_CUSTOM_TARGET(tests ALL)
 # 2. all input and output files in these source directories are symlinked into
 #    their corresponding build directories.
 SET(TEST_DIRECTORIES CIB ConstraintIB IB IBFE IBTK adv_diff advect coarsen
-  complex_fluids fe_mechanics interpolate level_set multiphase_flow
+  complex_fluids external fe_mechanics interpolate level_set multiphase_flow
   navier_stokes physical_boundary refine spread vc_navier_stokes wave_tank)
 
 FOREACH(_dir ${TEST_DIRECTORIES})
@@ -104,7 +104,7 @@ SETUP_3D(adv_diff adv_diff_convec_opers.cpp)
 SETUP_2D(advect advect_01.cpp)
 SETUP_3D(advect advect_01.cpp)
 
-#coarsen:
+# coarsen:
 SETUP_2D(coarsen rt0_coarsen_01.cpp)
 SETUP_3D(coarsen rt0_coarsen_01.cpp)
 
@@ -115,6 +115,9 @@ SETUP_2D(complex_fluids cf_forcing_op_01.cpp)
 
 SETUP_3D(complex_fluids cf_relaxation_op_01.cpp)
 SETUP_3D(complex_fluids cf_forcing_op_01.cpp)
+
+# external:
+SETUP(external eelgenerator3d.cpp IBAMR2d)
 
 # fe_mechanics:
 IF(${IBAMR_HAVE_LIBMESH})
