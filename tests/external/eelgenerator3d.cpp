@@ -160,15 +160,9 @@ main()
         const double depth = immersedBodyWidthHeight[i - 1].second;
         const double s = (i - 1) * dx;
 
-        auto f_x = [&](const double x)
-        {
-            return xPosition(x, input);
-        };
+        auto f_x = [&](const double x) { return xPosition(x, input); };
 
-        auto f_y = [&](const double y)
-        {
-            return yPosition(y, input);
-        };
+        auto f_y = [&](const double y) { return yPosition(y, input); };
 
         namespace bmq = boost::math::quadrature;
         const double xbase = bmq::gauss_kronrod<double, 15>::integrate(f_x, 0.0, s, 15, 1e-12, nullptr);
