@@ -124,7 +124,7 @@ FOREACH(_root ${_required_roots})
   ENDIF()
 ENDFOREACH()
 
-SET(_optional_roots "GSL_ROOT" "LIBMESH_ROOT" "NUMDIFF_ROOT" "SILO_ROOT" "ZLIB_ROOT")
+SET(_optional_roots "LIBMESH_ROOT" "NUMDIFF_ROOT" "SILO_ROOT" "ZLIB_ROOT")
 FOREACH(_root ${_optional_roots})
   IF("${${_root}}" STREQUAL "")
     MESSAGE(STATUS "${_root} was not provided to CMake: since this is an \
@@ -711,18 +711,6 @@ of SILO_ROOT and rerun CMake.")
   ENDIF()
 ELSE()
   MESSAGE(STATUS "SILO_ROOT was not specified so IBAMR will be configured without it.")
-ENDIF()
-
-MESSAGE(STATUS "")
-SET(IBAMR_HAVE_GSL FALSE)
-IF(NOT "${GSL_ROOT}" STREQUAL "")
-  MESSAGE(STATUS "Setting up GSL")
-  # GSL has not yet been updated to the modern convention so help it
-  SET(GSL_ROOT_DIR GSL_ROOT)
-  FIND_PACKAGE(GSL)
-  IF(GSL_FOUND)
-    SET(IBAMR_HAVE_GSL TRUE)
-  ENDIF()
 ENDIF()
 
 # ---------------------------------------------------------------------------- #
