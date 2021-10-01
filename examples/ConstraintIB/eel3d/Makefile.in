@@ -87,9 +87,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@GSL_ENABLED_TRUE@EXTRA_PROGRAMS = $(am__EXEEXT_3)
-@GSL_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_1 = main3d eelgenerator3d
-@GSL_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_2 = $(EXAMPLES)
+EXTRA_PROGRAMS = $(am__EXEEXT_3)
+@SAMRAI3D_ENABLED_TRUE@am__append_1 = main3d eelgenerator3d
+@SAMRAI3D_ENABLED_TRUE@am__append_2 = $(EXAMPLES)
 subdir = examples/ConstraintIB/eel3d
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -100,7 +100,6 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
 	$(top_srcdir)/m4/check_builtins.m4 \
 	$(top_srcdir)/m4/configure_boost.m4 \
 	$(top_srcdir)/m4/configure_eigen.m4 \
-	$(top_srcdir)/m4/configure_gsl.m4 \
 	$(top_srcdir)/m4/configure_hdf5.m4 \
 	$(top_srcdir)/m4/configure_hypre.m4 \
 	$(top_srcdir)/m4/configure_libmesh.m4 \
@@ -121,18 +120,13 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-@GSL_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_1 =  \
-@GSL_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	main3d$(EXEEXT) \
-@GSL_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	eelgenerator3d$(EXEEXT)
-@GSL_ENABLED_TRUE@am__EXEEXT_2 = $(am__EXEEXT_1)
-@GSL_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_3 =  \
-@GSL_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	$(am__EXEEXT_2)
-am__eelgenerator3d_SOURCES_DIST = eelgenerator3d.cpp
-@GSL_ENABLED_TRUE@am_eelgenerator3d_OBJECTS =  \
-@GSL_ENABLED_TRUE@	eelgenerator3d-eelgenerator3d.$(OBJEXT)
+@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_1 = main3d$(EXEEXT) \
+@SAMRAI3D_ENABLED_TRUE@	eelgenerator3d$(EXEEXT)
+am__EXEEXT_2 = $(am__EXEEXT_1)
+@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_3 = $(am__EXEEXT_2)
+am_eelgenerator3d_OBJECTS = eelgenerator3d-eelgenerator3d.$(OBJEXT)
 eelgenerator3d_OBJECTS = $(am_eelgenerator3d_OBJECTS)
-@GSL_ENABLED_TRUE@eelgenerator3d_DEPENDENCIES = $(IBAMR3d_LIBS) \
-@GSL_ENABLED_TRUE@	$(IBAMR_LIBS)
+eelgenerator3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -141,13 +135,11 @@ eelgenerator3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(eelgenerator3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am__main3d_SOURCES_DIST = IBEELKinematics3d.cpp example.cpp
-@GSL_ENABLED_TRUE@am__objects_1 = main3d-example.$(OBJEXT)
-@GSL_ENABLED_TRUE@am_main3d_OBJECTS =  \
-@GSL_ENABLED_TRUE@	main3d-IBEELKinematics3d.$(OBJEXT) \
-@GSL_ENABLED_TRUE@	$(am__objects_1)
+am__objects_1 = main3d-example.$(OBJEXT)
+am_main3d_OBJECTS = main3d-IBEELKinematics3d.$(OBJEXT) \
+	$(am__objects_1)
 main3d_OBJECTS = $(am_main3d_OBJECTS)
-@GSL_ENABLED_TRUE@main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 main3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main3d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
@@ -189,8 +181,7 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(eelgenerator3d_SOURCES) $(main3d_SOURCES)
-DIST_SOURCES = $(am__eelgenerator3d_SOURCES_DIST) \
-	$(am__main3d_SOURCES_DIST)
+DIST_SOURCES = $(eelgenerator3d_SOURCES) $(main3d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -259,8 +250,6 @@ FGREP = @FGREP@
 FLIBS = @FLIBS@
 GREP = @GREP@
 HAVE_CXX11 = @HAVE_CXX11@
-HAVE_LIBGSL = @HAVE_LIBGSL@
-HAVE_LIBGSLCBLAS = @HAVE_LIBGSLCBLAS@
 HAVE_LIBMESH_DBG = @HAVE_LIBMESH_DBG@
 HAVE_LIBMESH_DEVEL = @HAVE_LIBMESH_DEVEL@
 HAVE_LIBMESH_OPROF = @HAVE_LIBMESH_OPROF@
@@ -293,10 +282,6 @@ INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LD = @LD@
 LDFLAGS = @LDFLAGS@
-LIBGSL = @LIBGSL@
-LIBGSLCBLAS = @LIBGSLCBLAS@
-LIBGSLCBLAS_PREFIX = @LIBGSLCBLAS_PREFIX@
-LIBGSL_PREFIX = @LIBGSL_PREFIX@
 LIBMESH_CONFIG = @LIBMESH_CONFIG@
 LIBMESH_DBG = @LIBMESH_DBG@
 LIBMESH_DBG_PREFIX = @LIBMESH_DBG_PREFIX@
@@ -353,8 +338,6 @@ LIBSAMRAI_PREFIX = @LIBSAMRAI_PREFIX@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
 LN_S = @LN_S@
-LTLIBGSL = @LTLIBGSL@
-LTLIBGSLCBLAS = @LTLIBGSLCBLAS@
 LTLIBMESH_DBG = @LTLIBMESH_DBG@
 LTLIBMESH_DEVEL = @LTLIBMESH_DEVEL@
 LTLIBMESH_OPROF = @LTLIBMESH_OPROF@
@@ -484,15 +467,15 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-@GSL_ENABLED_TRUE@EXAMPLE_DRIVER = example.cpp
-@GSL_ENABLED_TRUE@EXTRA_DIST = input3d eelgenerator3d.cpp
-@GSL_ENABLED_TRUE@EXAMPLES = $(am__append_1)
-@GSL_ENABLED_TRUE@main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-@GSL_ENABLED_TRUE@main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-@GSL_ENABLED_TRUE@main3d_SOURCES = IBEELKinematics3d.cpp $(EXAMPLE_DRIVER)
-@GSL_ENABLED_TRUE@eelgenerator3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-@GSL_ENABLED_TRUE@eelgenerator3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-@GSL_ENABLED_TRUE@eelgenerator3d_SOURCES = eelgenerator3d.cpp
+EXAMPLE_DRIVER = example.cpp
+EXTRA_DIST = input3d eelgenerator3d.cpp
+EXAMPLES = $(am__append_1)
+main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+main3d_SOURCES = IBEELKinematics3d.cpp $(EXAMPLE_DRIVER)
+eelgenerator3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+eelgenerator3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+eelgenerator3d_SOURCES = eelgenerator3d.cpp
 all: all-am
 
 .SUFFIXES:
@@ -744,7 +727,6 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
-@GSL_ENABLED_FALSE@clean-local:
 clean: clean-am
 
 clean-am: clean-generic clean-libtool clean-local mostlyclean-am
@@ -841,24 +823,18 @@ uninstall-am:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DCURRENT_SRCDIR=$(srcdir) \
 		-DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
-@GSL_ENABLED_TRUE@examples: $(EXAMPLES)
-@GSL_ENABLED_TRUE@	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-@GSL_ENABLED_TRUE@	  cp -f $(srcdir)/input3d $(PWD) ; \
-@GSL_ENABLED_TRUE@	  cp -f $(srcdir)/eel3d.vertex $(PWD) ; \
-@GSL_ENABLED_TRUE@	fi ;
+examples: $(EXAMPLES)
+	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
+	  cp -f $(srcdir)/input3d $(PWD) ; \
+	  cp -f $(srcdir)/eel3d.vertex $(PWD) ; \
+	fi ;
 
-@GSL_ENABLED_TRUE@clean-local:
-@GSL_ENABLED_TRUE@	rm -f $(EXTRA_PROGRAMS)
-@GSL_ENABLED_TRUE@	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-@GSL_ENABLED_TRUE@	  rm -f $(builddir)/input3d ; \
-@GSL_ENABLED_TRUE@	  rm -f $(builddir)/eel3d.vertex ;\
-@GSL_ENABLED_TRUE@	fi ;
-
-@GSL_ENABLED_FALSE@examples:
-@GSL_ENABLED_FALSE@	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-@GSL_ENABLED_FALSE@	@echo " This example needs GNU Scientific Library.                          "
-@GSL_ENABLED_FALSE@	@echo " Configure IBAMR with additional options --enable-gsl --with-gsl=path"
-@GSL_ENABLED_FALSE@	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+clean-local:
+	rm -f $(EXTRA_PROGRAMS)
+	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
+	  rm -f $(builddir)/input3d ; \
+	  rm -f $(builddir)/eel3d.vertex ;\
+	fi ;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
