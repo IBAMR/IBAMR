@@ -477,11 +477,6 @@ private:
     void boundLiquidFraction(int lf_new_idx);
 
     /*!
-     * Diagonal preconditioning for temperature equation.
-     */
-    void diagonalPreconditioningTemperatureEquation(int Q_idx, const int P_idx);
-
-    /*!
      * Additional variables required.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
@@ -580,7 +575,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_H_var;
     int d_H_scratch_idx = IBTK::invalid_index, d_H_current_idx = IBTK::invalid_index, d_H_new_idx = IBTK::invalid_index;
 
-    double d_rho_liquid, d_T_ref, d_latent_heat;
+    double d_rho_liquid, d_T_ref, d_latent_heat, d_latent_heat_temp;
 
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_bc_coef;
 
@@ -641,6 +636,14 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_lf_N_var;
     int d_T_lf_N_scratch_idx;
+
+    /*
+     * Variable to indicate the type of interpolation to be done for k.
+     */
+    IBTK::VCInterpType d_k_vc_interp_type = IBTK::VC_AVERAGE_INTERP;
+
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_lf_brinkman_db;
+    double d_lf_b = 0.0;
 };
 } // namespace IBAMR
 

@@ -519,20 +519,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
         }
     }
 
-    // shynchronize H with levelset
-    //    int ls_current_idx = -1, H_current_idx = -1;
-    //    for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit)
-    //    {
-    //        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
-    //        if (Q_var->getName() == "ls_var") ls_current_idx = var_db->mapVariableAndContextToIndex(Q_var,
-    //        getCurrentContext()); if (Q_var->getName() == "heaviside_var")
-    //        {
-    //            H_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
-    //            computeHeaviside(H_current_idx, ls_current_idx);
-    //        }
-    //
-    //    }
-
     // Setup the operators and solvers and compute the right-hand-side terms.
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
