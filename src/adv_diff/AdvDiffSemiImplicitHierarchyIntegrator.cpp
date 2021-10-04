@@ -971,8 +971,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::computeHeaviside(int H_current_idx, cons
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-    std::cout << "max norm of ls \t " << d_hier_cc_data_ops->maxNorm(ls_current_idx, wgt_cc_idx) << "max norm of H \t "
-              << d_hier_cc_data_ops->maxNorm(H_current_idx, wgt_cc_idx) << std::endl;
     for (const auto& Q_var : d_Q_var)
     {
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)

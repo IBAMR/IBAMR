@@ -572,8 +572,9 @@ private:
         d_C_rhs_scratch_idx = IBTK::invalid_index, d_rho_vec_cc_current_idx = IBTK::invalid_index,
         d_rho_vec_cc_scratch_idx = IBTK::invalid_index, d_rho_vec_cc_new_idx = IBTK::invalid_index;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_H_var;
-    int d_H_scratch_idx = IBTK::invalid_index, d_H_current_idx = IBTK::invalid_index, d_H_new_idx = IBTK::invalid_index;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_H_var, d_H_pre_var;
+    int d_H_scratch_idx = IBTK::invalid_index, d_H_current_idx = IBTK::invalid_index, d_H_new_idx = IBTK::invalid_index,
+        d_H_pre_idx = IBTK::invalid_index;
 
     double d_rho_liquid, d_T_ref, d_latent_heat, d_latent_heat_temp;
 
