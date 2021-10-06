@@ -191,6 +191,11 @@ private:
      * Constant added to avoid zero division.
      */
     double d_ed = 1e-3;
+
+    /*!
+     * Penalty limiter.
+     */
+    double d_penalty_limiter = 1.0;
 };
 
 } // namespace IBAMR

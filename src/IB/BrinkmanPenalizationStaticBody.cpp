@@ -175,7 +175,7 @@ BrinkmanPenalizationStaticBody::computeBrinkmanVelocity(int u_idx, double time, 
 
                 //                const double Hphi = phi; // IBTK::smooth_heaviside(phi, alpha);
                 const double alpha_s = H * (1.0 - liquid_fraction);
-                const double penalty = (*rho_data)(s_i) / dt;
+                const double penalty = d_penalty_limiter * (*rho_data)(s_i) / dt;
                 d_ed = 1e-1;
                 const double solid_velocity = 0.0;
 
@@ -272,7 +272,7 @@ BrinkmanPenalizationStaticBody::demarcateBrinkmanZone(int u_idx, double time, in
                 //                    std::cout << "value of alpha_s\t" << alpha_s << "\tat locations\t" << s_i
                 //                    <<std::endl;
 
-                const double penalty = (*rho_data)(s_i) / dt;
+                const double penalty = d_penalty_limiter * (*rho_data)(s_i) / dt;
                 d_ed = 1e-1;
                 (*u_data)(s_i) = penalty * alpha_s * alpha_s / (std::pow(1.0 - alpha_s, 3.0) + d_ed);
             }
@@ -310,6 +310,10 @@ BrinkmanPenalizationStaticBody::getFromInput(Pointer<Database> input_db, bool is
         d_num_interface_cells = input_db->getDouble("num_interface_cells");
     }
 
+    if (input_db->keyExists("penalty_limiter"))
+    {
+        d_penalty_limiter = input_db->getDouble("penalty_limiter");
+    }
     return;
 } // getFromInput
 
