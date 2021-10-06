@@ -2775,7 +2775,7 @@ IEPSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> input_db, boo
         if (!d_T_precond_db) d_T_precond_db = new MemoryDatabase("T_precond_db");
 
         if (input_db->keyExists("latent_heat")) d_latent_heat = input_db->getDouble("latent_heat");
-        if (input_db->keyExists("latent_heat_temp")) d_latent_heat = input_db->getDouble("latent_heat_temp");
+        if (input_db->keyExists("latent_heat_temp")) d_latent_heat_temp = input_db->getDouble("latent_heat_temp");
         if (input_db->keyExists("rho_liquid")) d_rho_liquid = input_db->getDouble("rho_liquid");
         if (input_db->keyExists("T_ref")) d_T_ref = input_db->getDouble("T_ref");
 

@@ -62,7 +62,7 @@ namespace IBAMR
 {
 /////////////////////////////// PUBLIC //////////////////////////////////////
 BrinkmanPenalizationStaticBody::BrinkmanPenalizationStaticBody(std::string object_name,
-                                                               Pointer<CellVariable<NDIM, double> > ls_solid_var,
+                                                               Pointer<CellVariable<NDIM, double> > H_var,
                                                                Pointer<CellVariable<NDIM, double> > lf_var,
                                                                Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
                                                                Pointer<INSVCStaggeredHierarchyIntegrator> fluid_solver,
@@ -71,7 +71,7 @@ BrinkmanPenalizationStaticBody::BrinkmanPenalizationStaticBody(std::string objec
     : BrinkmanPenalizationStrategy(std::move(object_name), register_for_restart),
       d_adv_diff_solver(adv_diff_solver),
       d_fluid_solver(fluid_solver),
-      d_ls_solid_var(ls_solid_var),
+      d_H_var(H_var),
       d_lf_var(lf_var)
 {
     // Initialize object with data read from the input and restart databases.
@@ -106,11 +106,10 @@ BrinkmanPenalizationStaticBody::computeBrinkmanVelocity(int u_idx, double time, 
     // Get the interpolated density variable
     const int rho_ins_idx = d_fluid_solver->getLinearOperatorRhoPatchDataIndex();
 
-    // Ghost fill the level set values.
+    // Ghost fill the heaviside and liquid fraction values.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
-    const int ls_scratch_idx =
-        var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
+    const int H_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getNewContext());
+    const int H_scratch_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getScratchContext());
 
     const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getNewContext());
     const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getScratchContext());
@@ -121,14 +120,14 @@ BrinkmanPenalizationStaticBody::computeBrinkmanVelocity(int u_idx, double time, 
 
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> phi_transaction_comps(2);
-    phi_transaction_comps[0] = InterpolationTransactionComponent(ls_scratch_idx,
-                                                                 ls_solid_idx,
+    phi_transaction_comps[0] = InterpolationTransactionComponent(H_scratch_idx,
+                                                                 H_idx,
                                                                  "CONSERVATIVE_LINEAR_REFINE",
                                                                  false,
                                                                  "CONSERVATIVE_COARSEN",
                                                                  "LINEAR",
                                                                  false,
-                                                                 d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var));
+                                                                 d_adv_diff_solver->getPhysicalBcCoefs(d_H_var));
 
     // Using levelset bc for liquid fraction.
     phi_transaction_comps[1] = InterpolationTransactionComponent(lf_scratch_idx,
@@ -138,7 +137,7 @@ BrinkmanPenalizationStaticBody::computeBrinkmanVelocity(int u_idx, double time, 
                                                                  "CONSERVATIVE_COARSEN",
                                                                  "LINEAR",
                                                                  false,
-                                                                 d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var));
+                                                                 d_adv_diff_solver->getPhysicalBcCoefs(d_H_var));
 
     Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
@@ -155,11 +154,10 @@ BrinkmanPenalizationStaticBody::computeBrinkmanVelocity(int u_idx, double time, 
         for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
         const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-        Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_scratch_idx);
+        Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_scratch_idx);
         Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_scratch_idx);
         Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
         Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_ins_idx);
-        TBOX_ASSERT((ls_data->getGhostCellWidth()).min() >= 1);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -167,16 +165,16 @@ BrinkmanPenalizationStaticBody::computeBrinkmanVelocity(int u_idx, double time, 
             {
                 SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
 
-                const double phi_lower = (*ls_data)(s_i.toCell(0));
-                const double phi_upper = (*ls_data)(s_i.toCell(1));
-                const double phi = 0.5 * (phi_lower + phi_upper);
+                const double H_lower = (*H_data)(s_i.toCell(0));
+                const double H_upper = (*H_data)(s_i.toCell(1));
+                const double H = 0.5 * (H_lower + H_upper);
 
                 const double lf_lower = (*lf_data)(s_i.toCell(0));
                 const double lf_upper = (*lf_data)(s_i.toCell(1));
                 const double liquid_fraction = 0.5 * (lf_lower + lf_upper);
 
-                const double Hphi = phi; // IBTK::smooth_heaviside(phi, alpha);
-                const double alpha_s = Hphi * (1.0 - liquid_fraction);
+                //                const double Hphi = phi; // IBTK::smooth_heaviside(phi, alpha);
+                const double alpha_s = H * (1.0 - liquid_fraction);
                 const double penalty = (*rho_data)(s_i) / dt;
                 d_ed = 1e-1;
                 const double solid_velocity = 0.0;
@@ -204,9 +202,8 @@ BrinkmanPenalizationStaticBody::demarcateBrinkmanZone(int u_idx, double time, in
     const int rho_ins_idx = d_fluid_solver->getLinearOperatorRhoPatchDataIndex();
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
-    const int ls_scratch_idx =
-        var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
+    const int H_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getNewContext());
+    const int H_scratch_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getScratchContext());
 
     const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getNewContext());
     const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getScratchContext());
@@ -216,14 +213,14 @@ BrinkmanPenalizationStaticBody::demarcateBrinkmanZone(int u_idx, double time, in
     // Ghost fill the level set values.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> phi_transaction_comps(2);
-    phi_transaction_comps[0] = InterpolationTransactionComponent(ls_scratch_idx,
-                                                                 ls_solid_idx,
+    phi_transaction_comps[0] = InterpolationTransactionComponent(H_scratch_idx,
+                                                                 H_idx,
                                                                  "CONSERVATIVE_LINEAR_REFINE",
                                                                  false,
                                                                  "CONSERVATIVE_COARSEN",
                                                                  "LINEAR",
                                                                  false,
-                                                                 d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var));
+                                                                 d_adv_diff_solver->getPhysicalBcCoefs(d_H_var));
 
     // Using levelset bc for liquid fraction.
     phi_transaction_comps[1] = InterpolationTransactionComponent(lf_scratch_idx,
@@ -233,7 +230,7 @@ BrinkmanPenalizationStaticBody::demarcateBrinkmanZone(int u_idx, double time, in
                                                                  "CONSERVATIVE_COARSEN",
                                                                  "LINEAR",
                                                                  false,
-                                                                 d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var));
+                                                                 d_adv_diff_solver->getPhysicalBcCoefs(d_H_var));
 
     Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
@@ -251,7 +248,7 @@ BrinkmanPenalizationStaticBody::demarcateBrinkmanZone(int u_idx, double time, in
         for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
         const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-        Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_scratch_idx);
+        Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_scratch_idx);
         Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_scratch_idx);
         Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
         Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_ins_idx);
@@ -262,16 +259,16 @@ BrinkmanPenalizationStaticBody::demarcateBrinkmanZone(int u_idx, double time, in
             {
                 SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
 
-                const double phi_lower = (*ls_data)(s_i.toCell(0));
-                const double phi_upper = (*ls_data)(s_i.toCell(1));
-                const double phi = 0.5 * (phi_lower + phi_upper);
+                const double H_lower = (*H_data)(s_i.toCell(0));
+                const double H_upper = (*H_data)(s_i.toCell(1));
+                const double H = 0.5 * (H_lower + H_upper);
 
                 const double lf_lower = (*lf_data)(s_i.toCell(0));
                 const double lf_upper = (*lf_data)(s_i.toCell(1));
                 const double liquid_fraction = 0.5 * (lf_lower + lf_upper);
 
-                const double Hphi = phi; // IBTK::smooth_heaviside(phi, alpha);
-                const double alpha_s = Hphi * (1.0 - liquid_fraction);
+                //                const double Hphi = phi; // IBTK::smooth_heaviside(phi, alpha);
+                const double alpha_s = H * (1.0 - liquid_fraction);
                 //                    std::cout << "value of alpha_s\t" << alpha_s << "\tat locations\t" << s_i
                 //                    <<std::endl;
 
@@ -292,30 +289,12 @@ BrinkmanPenalizationStaticBody::postprocessComputeBrinkmanPenalization(double cu
 {
     BrinkmanPenalizationStrategy::postprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
 
-    //    d_trans_vel_current = d_trans_vel_new;
-    //    d_rot_vel_current = d_rot_vel_new;
-    //    d_center_of_mass_current = d_center_of_mass_new;
-    //    d_quaternion_current = d_quaternion_new;
-
     return;
 } // postprocessComputeBrinkmanPenalization
 
 void
 BrinkmanPenalizationStaticBody::putToDatabase(Pointer<Database> db)
 {
-    //    std::string U = "U", W = "W", C0 = "C0", C = "C", J0 = "J0", Q = "Q", M = "M";
-    //
-    //    double Q_coeffs[4] = {
-    //        d_quaternion_current.w(), d_quaternion_current.x(), d_quaternion_current.y(), d_quaternion_current.z()
-    //    };
-    //
-    //    db->putDoubleArray(U, &d_trans_vel_current[0], 3);
-    //    db->putDoubleArray(W, &d_rot_vel_current[0], 3);
-    //    db->putDoubleArray(C0, &d_center_of_mass_initial[0], 3);
-    //    db->putDoubleArray(C, &d_center_of_mass_current[0], 3);
-    //    db->putDoubleArray(J0, &d_inertia_tensor_initial(0, 0), 9);
-    //    db->putDoubleArray(Q, &Q_coeffs[0], 4);
-    //    db->putDouble(M, d_mass);
 
     return;
 } // postprocessComputeBrinkmanVelocity
@@ -325,29 +304,6 @@ BrinkmanPenalizationStaticBody::putToDatabase(Pointer<Database> db)
 void
 BrinkmanPenalizationStaticBody::getFromInput(Pointer<Database> input_db, bool is_from_restart)
 {
-    //    if (!is_from_restart && input_db->keyExists("init_quaternion"))
-    //    {
-    //        double Q_coeffs[4];
-    //        input_db->getDoubleArray("init_quaternion", Q_coeffs, 4);
-    //
-    //        d_quaternion_current.w() = Q_coeffs[0];
-    //        d_quaternion_current.x() = Q_coeffs[1];
-    //        d_quaternion_current.y() = Q_coeffs[2];
-    //        d_quaternion_current.z() = Q_coeffs[3];
-    //
-    //        d_quaternion_current.normalize();
-    //        d_quaternion_new = d_quaternion_current;
-    //    }
-    //
-    //    if (input_db->keyExists("chi"))
-    //    {
-    //        d_chi = input_db->getDouble("chi");
-    //    }
-    //
-    //    if (input_db->keyExists("contour_level"))
-    //    {
-    //        d_contour_level = input_db->getDouble("contour_level");
-    //    }
 
     if (input_db->keyExists("num_interface_cells"))
     {
@@ -360,36 +316,6 @@ BrinkmanPenalizationStaticBody::getFromInput(Pointer<Database> input_db, bool is
 void
 BrinkmanPenalizationStaticBody::getFromRestart()
 {
-    //    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    //    Pointer<Database> db;
-    //    if (restart_db->isDatabase(d_object_name))
-    //    {
-    //        db = restart_db->getDatabase(d_object_name);
-    //    }
-    //    else
-    //    {
-    //        TBOX_ERROR(
-    //            "BrinkmanPenalizationStaticBody::getFromRestart(): "
-    //            "Restart database corresponding to "
-    //            << d_object_name << " not found in restart file." << std::endl);
-    //    }
-    //
-    //    std::string U = "U", W = "W", C0 = "C0", C = "C", J0 = "J0", Q = "Q", M = "M";
-    //
-    //    double Q_coeffs[4];
-    //    db->getDoubleArray(U, &d_trans_vel_current[0], 3);
-    //    db->getDoubleArray(W, &d_rot_vel_current[0], 3);
-    //    db->getDoubleArray(C0, &d_center_of_mass_initial[0], 3);
-    //    db->getDoubleArray(C, &d_center_of_mass_current[0], 3);
-    //    db->getDoubleArray(J0, &d_inertia_tensor_initial(0, 0), 9);
-    //    db->getDoubleArray(Q, &Q_coeffs[0], 4);
-    //    d_mass = db->getDouble(M);
-    //
-    //    d_quaternion_current.w() = Q_coeffs[0];
-    //    d_quaternion_current.x() = Q_coeffs[1];
-    //    d_quaternion_current.y() = Q_coeffs[2];
-    //    d_quaternion_current.z() = Q_coeffs[3];
-    //    d_quaternion_current.normalize();
 
     return;
 } // getFromRestart
