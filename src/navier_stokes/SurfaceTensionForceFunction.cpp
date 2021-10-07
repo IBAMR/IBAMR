@@ -422,18 +422,20 @@ SurfaceTensionForceFunction::convertToHeaviside(int phi_idx,
             {
                 CellIndex<NDIM> ci(it());
                 const double phi = (*phi_data)(ci);
-                if (phi <= -eps)
-                {
-                    (*phi_data)(ci) = 0.0;
-                }
-                else if (phi >= eps)
-                {
-                    (*phi_data)(ci) = 1.0;
-                }
-                else
-                {
-                    (*phi_data)(ci) = 0.5 + 0.5 * phi / eps + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / eps);
-                }
+                //                if (phi <= -eps)
+                //                {
+                //                    (*phi_data)(ci) = 0.0;
+                //                }
+                //                else if (phi >= eps)
+                //                {
+                //                    (*phi_data)(ci) = 1.0;
+                //                }
+                //                else
+                //                {
+                //                    (*phi_data)(ci) = 0.5 + 0.5 * phi / eps + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi
+                //                    / eps);
+                //                }
+                (*phi_data)(ci) = IBTK::discontinuous_heaviside(phi);
             }
         }
     }
