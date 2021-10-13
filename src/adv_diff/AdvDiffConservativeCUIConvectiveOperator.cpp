@@ -916,6 +916,7 @@ AdvDiffConservativeCUIConvectiveOperator::setHeavisideBoundaryConditions(RobinBc
     //    for (unsigned int d = 0; d < NDIM; ++d) d_H_bc_coefs[d] = H_bc_coef;
     return;
 } // setMassDensityBoundaryConditions
+
 void
 AdvDiffConservativeCUIConvectiveOperator::setHeavisideVariable(Pointer<Variable<NDIM> > H_var)
 {

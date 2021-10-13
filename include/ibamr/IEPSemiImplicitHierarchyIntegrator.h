@@ -20,6 +20,7 @@
 
 #include <ibamr/config.h>
 
+#include "ibamr/AdvDiffConservativeMassTransportQuantityIntegrator.h"
 #include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
 #include "ibamr/MassIntegrator.h"
 #include "ibamr/ibamr_enums.h"
@@ -27,7 +28,6 @@
 
 #include "ibtk/LaplaceOperator.h"
 
-#include "AdvDiffConservativeMassTransportQuantityIntegrator.h"
 #include "HierarchyFaceDataOpsReal.h"
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
@@ -77,25 +77,8 @@ namespace IBAMR
 {
 /*!
  * \brief Class IEPSemiImplicitHierarchyIntegrator manages the spatial
- * discretization and time integration of scalar- and vector-valued quantities
- * whose dynamics are governed by the energy equation with phase-change.
- *
- * Each quantity \f$ Q \f$ managed by the integrator may have a unique diffusion
- * coefficient \f$ \kappa \f$ and damping coefficient \f$ \lambda \f$, and may
- * optionally have a forcing term \f$ F \f$.  Additionally, a different
- * advection velocity may be used with each quantity registered with the
- * integrator.
- *
- * This hierarchy integrator advances all levels of the patch hierarchy
- * synchronously in time.  In particular, subcycling in time is \em not
- * performed.
- *
- * Various options are available for the spatial and temporal discretizations.
- *
- * \see HierarchyIntegrator
- * \see SAMRAI::mesh::StandardTagAndInitStrategy
- * \see SAMRAI::algs::TimeRefinementIntegrator
- * \see SAMRAI::algs::TimeRefinementLevelStrategy
+ * discretization and time integration of the Allen-Cahn and energy equation with phase-change.
+ * write more description about mass equation and consistency later.
  */
 class IEPSemiImplicitHierarchyIntegrator : public AdvDiffSemiImplicitHierarchyIntegrator
 {
@@ -162,7 +145,7 @@ public:
                                  const bool output_rho = false);
 
     /*!
-     * \brief Function to reset fluid density or viscosity if they are
+     * \brief Function to reset fluid density, specific heat and conductivity if they are
      * maintained by this integrator.
      */
     using ResetFluidPropertiesFcnPtr = void (*)(int property_idx,
@@ -180,35 +163,27 @@ public:
     void registerResetFluidDensityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
 
     /*!
-     * \brief Register function to reset fluid viscosity.
+     * \brief Register function to reset specific heat.
      */
     void registerResetSpecificHeatFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
 
     /*!
-     * \brief Register function to reset fluid viscosity.
+     * \brief Register function to reset thermal conductivity.
      */
     void registerResetDiffusionCoefficientFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
 
     /*!
-     * Register INSVCStaggeredHierarchyIntegrator class which will be
-     * used to get the variables maintained by this hierarchy integrator.
-     */
-    //    void registerINSVCStaggeredHierarchyIntegrator(
-    //        SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator> ins_hier_integrator);
-
-    /*!
-     * \brief Get the liquid fraction variable that is being manintained by an advection-diffusion integrator.
+     * \brief Get the liquid fraction variable that is being manintained by this integrator.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getLiquidFractionVariable() const;
 
-    /*!
-     * \brief Get the liquid fraction variable that is being manintained by an advection-diffusion integrator.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getHeavisideVariable() const;
+    //    /*!
+    //     * \brief Get the heaviside variable that is being manintained by an advection-diffusion integrator.
+    //     */
+    //    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getHeavisideVariable() const;
 
     /*
-     * \brief Register boundary condition for the density field, if maintained by an advection-diffusion
-     * integrator.
+     * \brief Register boundary condition for the liquid fraction.
      */
 
     void registerLiquidFractionBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* fl_bc_coef);
@@ -219,19 +194,18 @@ public:
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getLiquidFractionBoundaryConditions() const;
 
     /*!
-     * \brief Register liquid fraction variable.
+     * \brief Register liquid fraction variable \f$ \varphi \f$.
      */
     void registerLiquidFractionVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
                                         const bool output_lf_var = true);
 
     /*!
-     * \brief Register liquid fraction variable.
+     * \brief set Heaviside variable.
      */
-    void registerHeavisideVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var,
-                                   const bool output_H_var = true);
+    void setHeavisideVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var);
 
     /*!
-     * \brief Register Temperature variable.
+     * \brief Register Temperature variable \f$ T \f$.
      */
     void registerTemperatureVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var,
                                      const bool output_T_var = true);
@@ -245,59 +219,60 @@ public:
                                            int finest_level) override;
 
     /*!
-     * Set a grid function to provide initial conditions for \f$ k \f$ variable, that has
+     * Set a grid function to provide initial conditions for \f$ \varphi \f$ variable, that has
      * been registered with the hierarchy integrator.
      */
     void
     setInitialConditionsLiquidFractionEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
                                                SAMRAI::tbox::Pointer<IBTK::CartGridFunction> lf_init);
     /*!
-     * Set a grid function to provide initial conditions for  \f$ \omega \f$ variable,
+     * Set a grid function to provide initial conditions for  \f$ T \f$ variable,
      * that has been registered with the hierarchy integrator.
      */
     void setInitialConditionsTemperatureEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var,
                                                  SAMRAI::tbox::Pointer<IBTK::CartGridFunction> T_init);
 
     /*!
-     * Set a grid function to provide initial conditions for  \f$ \omega \f$ variable,
+     * Set a grid function to provide initial conditions for  \f$ \rho \f$ variable,
      * that has been registered with the hierarchy integrator.
      */
     void setDensityInitialCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > rho_var,
                                     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> rho_init);
 
     /*!
-     * Set an object to provide boundary conditions for  \f$ k \f$ variable,
+     * Set an object to provide boundary conditions for  \f$ \varphi \f$ variable,
      * that has been registered with the hierarchy integrator.
      */
     void
     setPhysicalBcCoefLiquidFractionEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
                                             SAMRAI::solv::RobinBcCoefStrategy<NDIM>* lf_bc_coef);
 
-    /*!
-     * Set an object to provide boundary conditions for  \f$ k \f$ variable,
-     * that has been registered with the hierarchy integrator.
-     */
-    void setPhysicalBcCoefHeavisideEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var,
-                                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* H_bc_coef);
+    //    /*!
+    //     * Set an object to provide boundary conditions for  \f$ H \f$ variable,
+    //     * that has been registered with the hierarchy integrator.
+    //     */
+    //    void setPhysicalBcCoefHeavisideEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >
+    //    H_var,
+    //                                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* H_bc_coef);
 
     /*!
-     * Return a \f$ k \f$ boundary condition object.
+     * Return a \f$ \varphi \f$ boundary condition object.
      */
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getPhysicalBcCoefLiquidFractionEquation();
 
     /*!
-     * Set an object to provide boundary conditions for \f$ \omega \f$ variable,
+     * Set an object to provide boundary conditions for \f$ T \f$ variable,
      * that has been registered with the hierarchy integrator.
      */
     void setPhysicalBcCoefTemperatureEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var,
                                               SAMRAI::solv::RobinBcCoefStrategy<NDIM>* T_bc_coef);
     /*!
-     * Return a \f$ \omega \f$ boundary condition object.
+     * Return a \f$ T \f$ boundary condition object.
      */
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getPhysicalBcCoefTemperatureEquation();
 
     /*!
-     * Get the convective operator being used by this solver class for \f$ lf \f$ variable.
+     * Get the convective operator being used by this solver class for \f$ \varphi \f$ variable.
      *
      * If the convective operator has not already been constructed, then this
      * function will initialize a default convective operator.
@@ -325,7 +300,8 @@ public:
     int getUpdatedDensityIndex();
 
     /*
-     * \brief Supply boundary conditions for the cell-centered density field, which is maintained by this integrator
+     * \brief Supply boundary conditions for the cell-centered density field, which is maintained by
+     * AdvDiffConservativeMassTransportQuantityIntegrator.
      */
     void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& rho_cc_bc_coefs);
 
@@ -337,7 +313,8 @@ public:
     void registerMassDensitySourceTerm(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> S_fcn);
 
     /*!
-     * Set the face-centered advection velocity to be used with a cell-centered liquid fraction variable.
+     * Set the face-centered advection velocity to be used with a cell-centered liquid fraction variable
+     *\f$ \varphi \f$.
      *
      * \note The specified advection velocity must have been already registered
      * with the hierarchy integrator.
@@ -346,7 +323,7 @@ public:
     setAdvectionVelocityLiquidFractionEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
                                                SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var);
     /*!
-     * Set the face-centered advection velocity to be used with a cell-centered \f$ \omega \f$.
+     * Set the face-centered advection velocity to be used with a cell-centered \f$ T \f$.
      * variable.
      *
      * \note The specified advection velocity must have been already registered
@@ -385,16 +362,6 @@ private:
     IEPSemiImplicitHierarchyIntegrator& operator=(const AdvDiffSemiImplicitHierarchyIntegrator& that) = delete;
 
     /*!
-     * \brief Compute and store the Heaviside function value on the cell-centers.
-     */
-    void computeHeavisideFunction(int H_idx,
-                                  SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                                  const int phi_idx,
-                                  const double current_time,
-                                  const double new_time,
-                                  const double integrator_time);
-
-    /*!
      * \brief Compute and store the double-well potential on the cell-centers based on the
      * liquid fraction value.
      */
@@ -417,12 +384,12 @@ private:
     void computeTemperatureSourceTerm(int F_scratch_idx, const double dt);
 
     /*
-     * \brief Interpolate the cell-centered heaviside function to side-centered.
+     * \brief Interpolate the cell-centered heaviside function to side-centered using simple averaging.
      */
     void interpolateCCToSC(int sc_idx, const int cc_idx);
 
     /*
-     * \brief Interpolate the cell-centered heaviside function to side-centered.
+     * \brief Interpolate the cell-centered heaviside function to side-centered using harmonic averaging.
      */
     void interpolateCCToSCHarmonic(int sc_idx, const int cc_idx);
 
@@ -432,25 +399,25 @@ private:
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, bool is_from_restart);
 
     /*!
-     * Get the solver for the \f$ k \f$ equation.
+     * Get the solver for the \f$ \varphi \f$ equation.
      */
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
     getHelmholtzSolverLiquidFractionEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var);
 
     /*!
-     * Get the solver for the \f$ \omega \f$ equation.
+     * Get the solver for the \f$ T \f$ equation.
      */
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
     getHelmholtzSolverTemperatureEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var);
 
     /*!
-     * Get the operator to use to evaluate the right-hand side of the \f$ k \f$ equation.
+     * Get the operator to use to evaluate the right-hand side of the \f$ \varphi \f$ equation.
      */
     SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> getHelmholtzRHSOperatorLiquidFractionEquation(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var);
 
     /*!
-     * Get the operator to use to evaluate the right-hand side of the \f$ \omega \f$ equation.
+     * Get the operator to use to evaluate the right-hand side of the \f$ T \f$ equation.
      */
     SAMRAI::tbox::Pointer<IBTK::LaplaceOperator>
     getHelmholtzRHSOperatorTemperatureEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var);
@@ -461,160 +428,127 @@ private:
      */
     void computeChemicalPotential(int chemical_potential_idx, const int H_new_idx, const double new_time);
 
-    /*!
-     * Compute LHS of AC equation.
-     */
-    void computeLHSOfLiquidFractionEquation(int lf_lhs_idx,
-                                            const int lf_N_scratch_idx,
-                                            const double dt,
-                                            const int cycle_num,
-                                            const double new_time,
-                                            const double current_time,
-                                            const double half_time);
-    /*!
-     * Compute LHS of AC equation.
-     */
-    void boundLiquidFraction(int lf_new_idx);
+    //    /*!
+    //     * Compute LHS of AC equation.
+    //     */
+    //    void computeLHSOfLiquidFractionEquation(int lf_lhs_idx,
+    //                                            const int lf_N_scratch_idx,
+    //                                            const double dt,
+    //                                            const int cycle_num,
+    //                                            const double new_time,
+    //                                            const double current_time,
+    //                                            const double half_time);
+    //    /*!
+    //     * Compute LHS of AC equation.
+    //     */
+    //    void boundLiquidFraction(int lf_new_idx);
 
     /*!
-     * Additional variables required.
+     * Solver variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_var;
-
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_pre_var;
-
-    int d_ls_scratch_idx = IBTK::invalid_index, d_ls_current_idx = IBTK::invalid_index,
-        d_ls_new_idx = IBTK::invalid_index;
-    int d_lf_scratch_idx = IBTK::invalid_index, d_lf_current_idx = IBTK::invalid_index,
-        d_lf_new_idx = IBTK::invalid_index, d_lf_pre_idx = IBTK::invalid_index;
-    int d_T_scratch_idx = IBTK::invalid_index, d_T_current_idx = IBTK::invalid_index, d_T_new_idx = IBTK::invalid_index;
-
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_ls_init, d_lf_init, d_T_init, d_rho_init;
-
-    /*!
-     * Source function variables.
-     */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_F_var, d_T_F_var;
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_lf_F_fcn, d_T_F_fcn;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_lf_diffusion_coef_var,
+        d_lf_diffusion_coef_rhs_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_T_diffusion_coef_var, d_T_diffusion_coef_rhs_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_diffusion_coef_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_div_u_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_H_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_lf_u_var, d_T_u_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_N_var, d_T_N_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_N_old_var, d_T_N_old_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_rhs_var, d_T_rhs_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_C_var, d_lf_temp_rhs_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_C_var, d_T_temp_rhs_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Cp_var, d_rho_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_C_var, d_rho_vec_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_H_var, d_H_pre_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_D_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_g_firstder_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_g_secondder_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_p_firstder_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_chemical_potential_var, d_M_var,
+        d_updated_rho_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_lf_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_U_old_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_cp_old_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_old_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_lhs_var, d_lf_lhs_N_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_lf_N_var;
 
     /*!
-     * Diffusion coefficient data
+     * Objects to set initial condition for \f$ \varphi \f$, \f$ T \f$ and \f$ \rho \f$.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_lf_diffusion_coef_var,
-        d_lf_diffusion_coef_rhs_var, d_T_diffusion_coef_var, d_T_diffusion_coef_rhs_var;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_lf_init, d_T_init, d_rho_init;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_diffusion_coef_cc_var;
-    int d_T_diff_coef_cc_current_idx = IBTK::invalid_index, d_T_diff_coef_cc_new_idx = IBTK::invalid_index,
-        d_T_diff_coef_cc_scratch_idx = IBTK::invalid_index;
-
-    bool d_output_ls = false, d_output_H = false, d_output_lf = false, d_output_T = false;
-
+    /*!
+     * Source functions.
+     */
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_lf_F_fcn, d_T_F_fcn;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_lf_F_init, d_T_F_init;
+
+    bool d_output_ls = false, d_output_lf = false, d_output_T = false;
+
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_lf_bc_coef = nullptr;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_H_bc_coef = nullptr;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_T_bc_coef = nullptr;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_H_bdry_bc_fill_op, d_k_bdry_bc_fill_op;
 
     /*!
      * Advection velocity variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_div_u_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_H_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_lf_u_var, d_T_u_var;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_lf_u_fcn, d_T_u_fcn;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_N_var, d_T_N_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_N_old_var, d_T_N_old_var;
+    ConvectiveDifferencingType d_lf_convective_difference_form = d_default_convective_difference_form;
+    ConvectiveDifferencingType d_T_convective_difference_form = d_default_convective_difference_form;
 
-    ConvectiveDifferencingType d_lf_convective_difference_form, d_T_convective_difference_form;
-    std::string d_lf_convective_op_type, d_T_convective_op_type;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_lf_convective_op_input_db, d_T_convective_op_input_db;
-    SAMRAI::tbox::Pointer<ConvectiveOperator> d_lf_convective_op, d_T_convective_op;
-    bool d_lf_convective_op_needs_init, d_T_convective_op_needs_init;
+    std::string d_lf_convective_op_type = d_default_convective_op_type;
+    std::string d_T_convective_op_type = d_default_convective_op_type;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_lf_convective_op_input_db = d_default_convective_op_input_db;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_T_convective_op_input_db = d_default_convective_op_input_db;
+    SAMRAI::tbox::Pointer<ConvectiveOperator> d_lf_convective_op = nullptr, d_T_convective_op = nullptr;
+    bool d_lf_convective_op_needs_init = false, d_T_convective_op_needs_init = false;
 
     /*!
      * Solvers and related data.
      */
     std::string d_lf_solver_type, d_lf_precond_type, d_T_solver_type, d_T_precond_type;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_lf_solver_db, d_lf_precond_db, d_T_solver_db, d_T_precond_db;
-    SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> d_lf_rhs_op, d_T_rhs_op;
-    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_lf_solver, d_T_solver;
+    SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> d_lf_rhs_op = nullptr, d_T_rhs_op = nullptr;
+    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_lf_solver = nullptr, d_T_solver = nullptr;
     bool d_lf_solver_needs_init, d_T_solver_needs_init, d_lf_rhs_op_needs_init, d_T_rhs_op_needs_init;
 
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_lf_sol, d_lf_rhs, d_T_sol, d_T_rhs;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_rhs_var, d_T_rhs_var;
+    TimeSteppingType d_lf_diffusion_time_stepping_type = d_default_diffusion_time_stepping_type;
+    TimeSteppingType d_lf_convective_time_stepping_type = d_default_convective_time_stepping_type;
+    TimeSteppingType d_lf_init_convective_time_stepping_type = d_default_convective_time_stepping_type;
+    TimeSteppingType d_T_diffusion_time_stepping_type = d_default_diffusion_time_stepping_type;
+    TimeSteppingType d_T_convective_time_stepping_type = d_default_convective_time_stepping_type;
+    TimeSteppingType d_T_init_convective_time_stepping_type = d_default_convective_time_stepping_type;
 
-    TimeSteppingType d_lf_diffusion_time_stepping_type, d_lf_convective_time_stepping_type,
-        d_lf_init_convective_time_stepping_type, d_T_diffusion_time_stepping_type, d_T_convective_time_stepping_type,
-        d_T_init_convective_time_stepping_type;
-
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_C_var, d_T_C_var, d_lf_temp_rhs_var,
-        d_T_temp_rhs_var;
-    int d_lf_temp_rhs_idx = IBTK::invalid_index, d_T_temp_rhs_idx = IBTK::invalid_index,
-        d_lf_C_idx = IBTK::invalid_index, d_T_C_idx = IBTK::invalid_index;
-    double d_M_lf, d_lambda_lf, d_eta_lf, d_free_parameter = 1.0, d_eps = 1.0e-8, d_beta = 1.0;
     bool d_apply_brinkman = true, d_add_diffusion = false;
 
     bool d_rho_output, d_Cp_output;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Cp_var, d_rho_var;
-    int d_rho_current_idx = IBTK::invalid_index;
-
     std::vector<ResetFluidPropertiesFcnPtr> d_reset_rho_fcns, d_reset_Cp_fcns, d_reset_kappa_fcns;
     std::vector<void*> d_reset_rho_fcns_ctx, d_reset_Cp_fcns_ctx, d_reset_kappa_fcns_ctx;
-
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_C_var, d_rho_vec_cc_var;
-
-    int d_C_scratch_idx = IBTK::invalid_index, d_C_current_idx = IBTK::invalid_index, d_C_new_idx = IBTK::invalid_index,
-        d_C_rhs_scratch_idx = IBTK::invalid_index, d_rho_vec_cc_current_idx = IBTK::invalid_index,
-        d_rho_vec_cc_scratch_idx = IBTK::invalid_index, d_rho_vec_cc_new_idx = IBTK::invalid_index;
-
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_H_var, d_H_pre_var;
-    int d_H_scratch_idx = IBTK::invalid_index, d_H_current_idx = IBTK::invalid_index, d_H_new_idx = IBTK::invalid_index,
-        d_H_pre_idx = IBTK::invalid_index;
-
-    double d_rho_liquid, d_T_ref, d_latent_heat, d_latent_heat_temp;
 
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_bc_coef;
 
     /*!
-     * Additional variables for phase change.
+     * Boolean to identify whether phase change is involved.
      */
     bool d_phase_change = false;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_dh_var;
-    int d_dh_scratch_idx = IBTK::invalid_index;
-
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_D_cc_var;
-    int d_D_cc_scratch_idx = IBTK::invalid_index, d_D_cc_current_idx = IBTK::invalid_index,
-        d_D_cc_new_idx = IBTK::invalid_index;
-
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_g_firstder_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_g_secondder_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_p_firstder_var;
-
-    int d_g_firstder_idx = IBTK::invalid_index, d_g_secondder_idx = IBTK::invalid_index,
-        d_p_firstder_idx = IBTK::invalid_index;
-
-    // Number of interface cells to compute the Heaviside function
-    double d_num_interface_cells = 2.0;
+    //    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_dh_var;
+    //    int d_dh_scratch_idx = IBTK::invalid_index;
 
     bool d_solve_energy = false, d_solve_mass_conservation = true;
 
-    // Variables for chemical potential.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_chemical_potential_var, d_M_var,
-        d_updated_rho_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_lf_var;
-    int d_chemical_potential_idx, d_grad_lf_idx, d_H_sc_idx, d_M_idx;
-
-    // Patch data index to store updated density
-    int d_updated_rho_cc_idx = IBTK::invalid_index;
-
     /*
-     * Conservative density and transport quantity integrator.
+     * Conservative mass and transport quantity integrator.
      */
     SAMRAI::tbox::Pointer<IBAMR::MassIntegrator> d_rho_p_integrator;
 
@@ -623,28 +557,74 @@ private:
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_U_old_var;
-    int d_U_old_current_idx, d_U_old_new_idx, d_U_old_scratch_idx;
-
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_cp_old_var;
-    int d_cp_old_current_idx, d_cp_old_new_idx, d_cp_old_scratch_idx;
-
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_old_var;
-    int d_T_old_current_idx, d_T_old_new_idx, d_T_old_scratch_idx;
-
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_lhs_var, d_lf_lhs_N_var;
-    int d_lf_lhs_idx, d_lf_lhs_N_scratch_idx;
-
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_lf_N_var;
-    int d_T_lf_N_scratch_idx;
-
-    /*
-     * Variable to indicate the type of interpolation to be done for k.
-     */
-    IBTK::VCInterpType d_k_vc_interp_type = IBTK::VC_AVERAGE_INTERP;
-
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_lf_brinkman_db;
     double d_lf_b = 0.0;
+
+    /*!
+     * Patch data descriptor indices for all "state" variables managed by the
+     * integrator.
+     *
+     * State variables have three contexts: current, scratch, and new.
+     */
+    int d_ls_scratch_idx = IBTK::invalid_index, d_ls_current_idx = IBTK::invalid_index,
+        d_ls_new_idx = IBTK::invalid_index;
+    int d_lf_scratch_idx = IBTK::invalid_index, d_lf_current_idx = IBTK::invalid_index,
+        d_lf_new_idx = IBTK::invalid_index, d_lf_pre_idx = IBTK::invalid_index;
+    int d_T_scratch_idx = IBTK::invalid_index, d_T_current_idx = IBTK::invalid_index, d_T_new_idx = IBTK::invalid_index;
+    int d_T_diff_coef_cc_current_idx = IBTK::invalid_index, d_T_diff_coef_cc_new_idx = IBTK::invalid_index,
+        d_T_diff_coef_cc_scratch_idx = IBTK::invalid_index;
+    int d_C_scratch_idx = IBTK::invalid_index, d_C_current_idx = IBTK::invalid_index, d_C_new_idx = IBTK::invalid_index;
+    int d_H_scratch_idx = IBTK::invalid_index, d_H_current_idx = IBTK::invalid_index, d_H_new_idx = IBTK::invalid_index;
+    int d_U_old_current_idx = IBTK::invalid_index, d_U_old_new_idx = IBTK::invalid_index,
+        d_U_old_scratch_idx = IBTK::invalid_index;
+    int d_cp_old_current_idx = IBTK::invalid_index, d_cp_old_new_idx = IBTK::invalid_index,
+        d_cp_old_scratch_idx = IBTK::invalid_index;
+    int d_T_old_current_idx = IBTK::invalid_index, d_T_old_new_idx = IBTK::invalid_index,
+        d_T_old_scratch_idx = IBTK::invalid_index;
+    int d_D_cc_scratch_idx = IBTK::invalid_index, d_D_cc_current_idx = IBTK::invalid_index,
+        d_D_cc_new_idx = IBTK::invalid_index;
+
+    /*!
+     * Patch data descriptor indices for all "scratch" variables managed by the
+     * integrator.
+     *
+     * Scratch variables have only one context: scratch.
+     */
+    int d_lf_temp_rhs_idx = IBTK::invalid_index, d_T_temp_rhs_idx = IBTK::invalid_index,
+        d_lf_C_idx = IBTK::invalid_index, d_T_C_idx = IBTK::invalid_index;
+    int d_C_rhs_scratch_idx = IBTK::invalid_index;
+    int d_H_pre_idx = IBTK::invalid_index;
+    int d_g_firstder_idx = IBTK::invalid_index, d_g_secondder_idx = IBTK::invalid_index,
+        d_p_firstder_idx = IBTK::invalid_index;
+    int d_chemical_potential_idx = IBTK::invalid_index, d_grad_lf_idx = IBTK::invalid_index,
+        d_H_sc_idx = IBTK::invalid_index, d_M_idx = IBTK::invalid_index;
+    int d_updated_rho_cc_idx = IBTK::invalid_index;
+    int d_T_lf_N_scratch_idx = IBTK::invalid_index;
+
+    /*!
+     * Allen-Cahn equation parameters.
+     */
+    double d_M_lf, d_lambda_lf, d_eta_lf;
+
+    /*!
+     * Parameter related to Brinkman term in Allen-Cahn equation.
+     */
+    double d_beta = 1.0;
+
+    /*!
+     * Parameters related to additional diffusion term in Allen-Cahn equation.
+     */
+    double d_free_parameter = 1.0, d_eps = 1.0e-8;
+
+    /*!
+     * Energy equation parameters.
+     */
+    double d_rho_liquid, d_T_melt, d_latent_heat, d_latent_heat_temp;
+
+    /*!
+     * Variable to indicate the type of interpolation to be done for conductivity.
+     */
+    IBTK::VCInterpType d_k_vc_interp_type = IBTK::VC_AVERAGE_INTERP;
 };
 } // namespace IBAMR
 
