@@ -27,9 +27,13 @@ IF(NOT @IBAMR_USE_BUNDLED_BOOST@)
   # libraries that *do* link against boost libraries
   GET_TARGET_PROPERTY(_boost_definitions Boost::headers
     INTERFACE_COMPILE_DEFINITIONS)
-  LIST(REMOVE_ITEM _boost_definitions "BOOST_ALL_NO_LIB")
-  SET_TARGET_PROPERTIES(Boost::headers PROPERTIES INTERFACE_COMPILE_DEFINITIONS
-    "${_boost_definitions}")
+  # Deal with both cases of _boost_definitions not being found
+  IF(NOT "${_boost_definitions}" STREQUAL "_boost_definitions-NOTFOUND" AND
+     NOT "${_boost_definitions}" STREQUAL "")
+    LIST(REMOVE_ITEM _boost_definitions "BOOST_ALL_NO_LIB")
+    SET_TARGET_PROPERTIES(Boost::headers PROPERTIES INTERFACE_COMPILE_DEFINITIONS
+      "${_boost_definitions}")
+  ENDIF()
 ENDIF()
 
 IF(NOT @IBAMR_USE_BUNDLED_EIGEN3@)
