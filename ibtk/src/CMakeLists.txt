@@ -124,6 +124,7 @@ SET(CXX_SRC
   solvers/interfaces/KrylovLinearSolver.cpp
   solvers/interfaces/NewtonKrylovSolver.cpp
   solvers/interfaces/LinearSolver.cpp
+  solvers/interfaces/PETScLinearAugmentedOperator.cpp
   solvers/wrappers/PETScSNESFunctionGOWrapper.cpp
   solvers/wrappers/PETScSAMRAIVectorReal.cpp
   solvers/wrappers/PETScMatLOWrapper.cpp
@@ -159,6 +160,7 @@ SET(CXX_SRC
   solvers/impls/SCPoissonHypreLevelSolver.cpp
   solvers/impls/PETScKrylovPoissonSolver.cpp
   solvers/impls/CCPoissonPointRelaxationFACOperator.cpp
+  solvers/impls/PETScAugmentedKrylovLinearSolver.cpp
 
   # utilities
   utilities/RefinePatchStrategySet.cpp
