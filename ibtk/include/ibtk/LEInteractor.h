@@ -95,6 +95,12 @@ public:
     static int getStencilSize(const std::string& kernel_fcn);
 
     /*!
+     * \brief Return whether or not the provided string corresponds to a known
+     * kernel function.
+     */
+    static bool isKnownKernel(const std::string& kernel_fcn);
+
+    /*!
      * \brief Returns the minimum ghost width size corresponding to the
      * specified kernel function.
      *
