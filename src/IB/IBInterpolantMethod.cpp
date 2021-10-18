@@ -1024,6 +1024,8 @@ IBInterpolantMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
             d_ghosts = static_cast<int>(std::ceil(db->getDouble("min_ghost_cell_width")));
         }
     }
+    TBOX_ASSERT(LEInteractor::isKnownKernel(d_interp_kernel_fcn));
+    TBOX_ASSERT(LEInteractor::isKnownKernel(d_spread_kernel_fcn));
     if (db->keyExists("error_if_points_leave_domain"))
         d_error_if_points_leave_domain = db->getBool("error_if_points_leave_domain");
     if (db->keyExists("do_log"))
@@ -1060,6 +1062,8 @@ IBInterpolantMethod::getFromRestart()
         d_spread_kernel_fcn = db->getString("d_spread_kernel_fcn");
     else if (db->keyExists("d_spread_delta_fcn"))
         d_spread_kernel_fcn = db->getString("d_spread_delta_fcn");
+    TBOX_ASSERT(LEInteractor::isKnownKernel(d_interp_kernel_fcn));
+    TBOX_ASSERT(LEInteractor::isKnownKernel(d_spread_kernel_fcn));
     db->getIntegerArray("d_ghosts", d_ghosts, NDIM);
 
     for (unsigned int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)

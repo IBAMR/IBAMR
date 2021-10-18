@@ -1243,7 +1243,9 @@ IBFEMethod::setInterpSpec(const FEDataManager::InterpSpec& interp_spec, const un
 {
     TBOX_ASSERT(!d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_meshes.size());
+    TBOX_ASSERT(LEInteractor::isKnownKernel(interp_spec.kernel_fcn));
     d_interp_spec[part] = interp_spec;
+
     return;
 }
 
@@ -1252,6 +1254,7 @@ IBFEMethod::setSpreadSpec(const FEDataManager::SpreadSpec& spread_spec, const un
 {
     TBOX_ASSERT(!d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_meshes.size());
+    TBOX_ASSERT(LEInteractor::isKnownKernel(spread_spec.kernel_fcn));
     d_spread_spec[part] = spread_spec;
     return;
 }
@@ -2920,6 +2923,10 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
         d_default_spread_spec.kernel_fcn = db->getString("spread_kernel_fcn");
     else if (db->isString("IB_kernel_fcn"))
         d_default_spread_spec.kernel_fcn = db->getString("IB_kernel_fcn");
+
+    // Validate the kernel choices.
+    TBOX_ASSERT(LEInteractor::isKnownKernel(d_default_interp_spec.kernel_fcn));
+    TBOX_ASSERT(LEInteractor::isKnownKernel(d_default_spread_spec.kernel_fcn));
 
     if (db->isBool("spread_use_nodal_quadrature"))
         d_default_spread_spec.use_nodal_quadrature = db->getBool("spread_use_nodal_quadrature");

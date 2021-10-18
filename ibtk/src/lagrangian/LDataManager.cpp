@@ -176,6 +176,9 @@ LDataManager::getManager(const std::string& name,
                          const IntVector<NDIM>& min_ghost_width,
                          bool register_for_restart)
 {
+    // Validate the kernel choices.
+    TBOX_ASSERT(LEInteractor::isKnownKernel(default_interp_kernel_fcn));
+    TBOX_ASSERT(LEInteractor::isKnownKernel(default_spread_kernel_fcn));
     if (s_data_manager_instances.find(name) == s_data_manager_instances.end())
     {
         const IntVector<NDIM> ghost_width = IntVector<NDIM>::max(
@@ -410,6 +413,9 @@ LDataManager::spread(const int f_data_idx,
                      const int finest_ln_in)
 {
     IBTK_TIMER_START(t_spread);
+#ifndef NDEBUG
+    TBOX_ASSERT(LEInteractor::isKnownKernel(spread_kernel_fcn));
+#endif
 
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);

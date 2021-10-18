@@ -2836,6 +2836,10 @@ FEDataManager::FEDataManager(std::string object_name,
 {
     TBOX_ASSERT(!d_object_name.empty());
 
+    // Validate the kernel choices.
+    TBOX_ASSERT(LEInteractor::isKnownKernel(d_default_interp_spec.kernel_fcn));
+    TBOX_ASSERT(LEInteractor::isKnownKernel(d_default_spread_spec.kernel_fcn));
+
     if (d_registered_for_restart)
     {
         RestartManager::getManager()->registerRestartItem(d_object_name, this);

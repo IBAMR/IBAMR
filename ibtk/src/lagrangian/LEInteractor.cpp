@@ -1440,14 +1440,6 @@ LEInteractor::isKnownKernel(const std::string& kernel_fcn)
 int
 LEInteractor::getStencilSize(const std::string& kernel_fcn)
 {
-    // Some IBAMR applications want to call this function *a lot*, e.g., ideally
-    // we would call this on every element in a finite element mesh instead of
-    // batching with huge temporary arrays. Hence doing all these string
-    // comparisons can get surprisingly expensive. Chop them up first with a
-    // switch statement.
-    //
-    // For readability, the old and not hacky version is included at the end of
-    // the function.
     switch (string_to_kernel(kernel_fcn))
     {
     case BSPLINE_3:
