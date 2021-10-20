@@ -34,6 +34,7 @@
 #include "tbox/Pointer.h"
 
 #include "libmesh/boundary_mesh.h"
+#include "libmesh/dof_map.h"
 #include "libmesh/node.h"
 
 #include <string>
@@ -110,6 +111,11 @@ public:
         return (d_pt - x).norm();
     }
 
+    double dist(const UPoint& pt) const
+    {
+        return (d_pt - pt.getVec()).norm();
+    }
+
     double operator()(const size_t i) const
     {
         return d_pt(i);
@@ -122,8 +128,7 @@ public:
 
     friend std::ostream& operator<<(std::ostream& out, const UPoint& pt)
     {
-        out << "   location: " << pt.d_pt << "\n";
-        out << "   is node : " << (pt.isNode() ? "yes" : "no") << "\n";
+        out << "   location: " << pt.d_pt.transpose() << "\n";
         if (pt.isNode())
             out << "   node id: " << pt.d_node->id() << "\n";
         else if (!pt.isEmpty())
@@ -156,6 +161,11 @@ public:
         return d_idx;
     }
 
+    const VectorNd& getVec() const
+    {
+        return d_pt;
+    }
+
 private:
     IBTK::VectorNd d_pt;
     libMesh::Node* d_node = nullptr;
@@ -176,7 +186,10 @@ public:
      * \brief Constructor for class LaplaceOperator initializes the operator
      * coefficients and boundary conditions to default values.
      */
-    CartLaplaceOperator(const std::string& object_name, libMesh::BoundaryMesh* bdry_mesh, double dist_to_bdry);
+    CartLaplaceOperator(const std::string& object_name,
+                        libMesh::BoundaryMesh* bdry_mesh,
+                        const libMesh::DofMap* dof_map,
+                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Destructor.
@@ -297,12 +310,11 @@ private:
 
     double formRBFDer();
 
-    using PETScLinearAugmentedOperator::d_homogeneous_bc;
-    using PETScLinearAugmentedOperator::d_is_initialized;
-    using PETScLinearAugmentedOperator::d_object_name;
-    using PETScLinearAugmentedOperator::d_solution_time;
+    double getSolVal(const UPoint& pt, const SAMRAI::pdat::CellData<NDIM, double>& Q_data) const;
+    void setSolVal(double q, const UPoint& pt, SAMRAI::pdat::CellData<NDIM, double>& Q_data) const;
 
     static unsigned int s_num_ghost_cells;
+    double d_eps = std::numeric_limits<double>::quiet_NaN();
 
     // Operator parameters.
     int d_ncomp = 0;
@@ -329,6 +341,7 @@ private:
     std::vector<std::vector<std::vector<UPoint> > > d_pair_pt_vec;
 
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    const libMesh::DofMap* d_dof_map = nullptr;
 };
 } // namespace IBTK
 

@@ -15,6 +15,7 @@
 
 #include "ibtk/CellNoCornersFillPattern.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/ibtk_utilities.h"
 
@@ -25,6 +26,8 @@
 #include "SAMRAIVectorReal.h"
 #include "VariableFillPattern.h"
 #include "tbox/Timer.h"
+
+#include <Eigen/Dense>
 
 #include <algorithm>
 #include <string>
@@ -63,18 +66,21 @@ static Timer* t_apply;
 static Timer* t_initialize_operator_state;
 static Timer* t_deallocate_operator_state;
 
-static unsigned int num_pts = 10;
+static unsigned int interp_size = 10; // 2 * (NDIM + 1) + 1;
+
 } // namespace
 
-unsigned int CartLaplaceOperator::s_num_ghost_cells = 2;
-
+unsigned int CartLaplaceOperator::s_num_ghost_cells = 3;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CartLaplaceOperator::CartLaplaceOperator(const std::string& object_name,
                                          BoundaryMesh* bdry_mesh,
-                                         const double dist_to_bdry)
-    : PETScLinearAugmentedOperator(object_name, false), d_mesh(bdry_mesh), d_dist_to_bdry(dist_to_bdry)
+                                         const DofMap* dof_map,
+                                         Pointer<Database> input_db)
+    : PETScLinearAugmentedOperator(object_name, false), d_mesh(bdry_mesh), d_dof_map(dof_map)
 {
+    d_dist_to_bdry = input_db->getDouble("dist_to_bdry");
+    d_eps = input_db->getDouble("eps");
     // Setup Timers.
     IBTK_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBTK::LaplaceOperator::apply()");
                  t_initialize_operator_state =
@@ -114,12 +120,14 @@ CartLaplaceOperator::setupBeforeApply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIV
         const unsigned int x_depth = x_factory->getDefaultDepth();
         const unsigned int y_depth = y_factory->getDefaultDepth();
         TBOX_ASSERT(x_depth == y_depth);
+#if (0)
         if (x_depth != d_bc_coefs.size() || y_depth != d_bc_coefs.size())
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
                                      << "  each vector component must have data depth == " << d_bc_coefs.size() << "\n"
                                      << "  since d_bc_coefs.size() == " << d_bc_coefs.size() << std::endl);
         }
+#endif
     }
 #endif
 
@@ -133,9 +141,7 @@ CartLaplaceOperator::setupBeforeApply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIV
                                                       USE_CF_INTERPOLATION,
                                                       DATA_COARSEN_TYPE,
                                                       BDRY_EXTRAP_TYPE,
-                                                      CONSISTENT_TYPE_2_BDRY,
-                                                      d_bc_coefs,
-                                                      d_fill_pattern);
+                                                      CONSISTENT_TYPE_2_BDRY);
         transaction_comps.push_back(x_component);
     }
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
@@ -190,6 +196,8 @@ CartLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
         }
     }
 
+    applyToLagDOFs(x.getComponentDescriptorIndex(0), y.getComponentDescriptorIndex(0));
+
     IBTK_TIMER_STOP(t_apply);
     return;
 } // apply
@@ -242,8 +250,7 @@ CartLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double
                                                     USE_CF_INTERPOLATION,
                                                     DATA_COARSEN_TYPE,
                                                     BDRY_EXTRAP_TYPE,
-                                                    CONSISTENT_TYPE_2_BDRY,
-                                                    d_bc_coefs);
+                                                    CONSISTENT_TYPE_2_BDRY);
         d_transaction_comps.push_back(component);
     }
 
@@ -253,6 +260,10 @@ CartLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double
 
     // Sort Lag DOFs
     sortLagDOFsToCells();
+
+    // Clone Lag Vector
+    int ierr = VecDuplicate(d_aug_x_vec, &d_aug_b_vec);
+    IBTK_CHKERRQ(ierr);
 
     // Indicate the operator is initialized.
     d_is_initialized = true;
@@ -322,25 +333,91 @@ CartLaplaceOperator::applyToLagDOFs(const int x_idx, const int y_idx)
     // Assume structure is on finest level
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_hierarchy->getFinestLevelNumber());
     unsigned int patch_num = 0;
-    auto rbf = [](const double r) -> double { return r * r * r; };
+    //    auto rbf = [](const double r) -> double { return r * r * r; };
+    //    auto lap_rbf = [](const double r) -> double {return 9.0 * r;};
+    auto rbf = [](const double r) -> double { return r * r * r * r * r; };
+    auto lap_rbf = [](const double r) -> double { return 25.0 * r * r * r; };
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_num)
     {
+        if (d_base_pt_vec[patch_num].size() == 0) continue;
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         // First loop through Cartesian grid cells.
         const Box<NDIM>& box = patch->getBox();
         Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(d_ls_idx);
         Pointer<CellData<NDIM, double> > x_data = patch->getPatchData(x_idx);
         Pointer<CellData<NDIM, double> > y_data = patch->getPatchData(y_idx);
+        // Note Lagrangian data are located in d_aug_(x|b)_vec
 
-        for (CellIterator<NDIM> ci(box); ci; ci++)
+        // All data have been sorted. We need to loop through d_base_pt_vec.
+        for (size_t idx = 0; idx < d_base_pt_vec[patch_num].size(); ++idx)
         {
-            const CellIndex<NDIM>& idx = ci();
-            const double ls = (*ls_data)(idx);
-            if (ls > 0.0 || std::abs(ls) > d_dist_to_bdry) continue;
-            // We are on an index that needs RBF treatment.
-            // We need to collect points near this one
-            // Using LINEAR polynomials with r^3, so we need 5 points
-            int poly_size = NDIM + 1;
+            const UPoint& pt = d_base_pt_vec[patch_num][idx];
+            const std::vector<UPoint>& pt_vec = d_pair_pt_vec[patch_num][idx];
+            // Note if we use a KNN search, interp_size is fixed.
+            const int interp_size = pt_vec.size();
+            // Add quadratic polynomials?
+            const int poly_size = NDIM + 1 + NDIM + 1;
+#define DEBUGGING 1
+#if (DEBUGGING)
+            plog << "On point \n" << pt << "\n";
+            plog << "Forming interpolant with " << interp_size << " points and " << poly_size << " polynomials\n";
+#endif
+            MatrixXd A(MatrixXd::Zero(interp_size, interp_size));
+            MatrixXd B(MatrixXd::Zero(interp_size, poly_size));
+            VectorXd U(VectorXd::Zero(interp_size + poly_size));
+            for (size_t i = 0; i < interp_size; ++i)
+            {
+#if (DEBUGGING)
+                plog << "pt " << i << ": \n" << pt_vec[i] << "\n";
+#endif
+                for (size_t j = 0; j < interp_size; ++j)
+                {
+                    A(i, j) = rbf(pt_vec[i].dist(pt_vec[j]));
+                }
+                B(i, 0) = 1.0;
+                for (int d = 0; d < NDIM; ++d) B(i, d + 1) = pt_vec[i](d);
+                // Add quadratic polynomials?
+                B(i, NDIM + 1) = pt_vec[i](0) * pt_vec[i](0);
+                B(i, NDIM + 2) = pt_vec[i](1) * pt_vec[i](0);
+                B(i, NDIM + 3) = pt_vec[i](1) * pt_vec[i](1);
+                // Determine rhs
+                U(i) = lap_rbf(pt.dist(pt_vec[i]));
+            }
+            // Add quadratic polynomials?
+            U(interp_size + NDIM + 1) = 2;
+            U(interp_size + NDIM + 3) = 2;
+            MatrixXd final_mat(MatrixXd::Zero(interp_size + poly_size, interp_size + poly_size));
+            final_mat.block(0, 0, interp_size, interp_size) = A;
+            final_mat.block(0, interp_size, interp_size, poly_size) = B;
+            final_mat.block(interp_size, 0, poly_size, interp_size) = B.transpose();
+
+            VectorXd x = final_mat.fullPivHouseholderQr().solve(U);
+#if (DEBUGGING)
+            plog << "After assembly, A is:\n " << A << "\n";
+            plog << "B is: \n" << B << "\n";
+            plog << "U is : \n" << U << "\n";
+            plog << "final mat: \n" << final_mat << "\n";
+            plog << "final mat det: " << final_mat.determinant() << "\n";
+            plog << "Residual: \n" << final_mat * x - U << "\n";
+            plog << "Solution is : \n" << x << "\n";
+#endif
+            // Now evaluate FD stencil)
+            double val = 0.0;
+            VectorXd weights = x.block(0, 0, interp_size, 1);
+            for (size_t i = 0; i < interp_size; ++i)
+            {
+                double w = weights[i];
+#if (DEBUGGING)
+                plog << "Solution value at point " << i << " is " << getSolVal(pt_vec[i], *x_data) << "\n";
+                plog << "Weight at point         " << i << " is " << w << "\n";
+#endif
+                val += w * getSolVal(pt_vec[i], *x_data);
+            }
+            // Now insert val into results
+            setSolVal(val, pt, *y_data);
+#if (DEBUGGING)
+            plog << "\n";
+#endif
         }
     }
 }
@@ -348,6 +425,16 @@ CartLaplaceOperator::applyToLagDOFs(const int x_idx, const int y_idx)
 void
 CartLaplaceOperator::sortLagDOFsToCells()
 {
+    // Fill ghost cells for level set.
+    using ITC = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    std::vector<ITC> ghost_cell_comps;
+    ghost_cell_comps.push_back(ITC(
+        d_ls_idx, DATA_REFINE_TYPE, USE_CF_INTERPOLATION, DATA_COARSEN_TYPE, BDRY_EXTRAP_TYPE, CONSISTENT_TYPE_2_BDRY));
+    HierarchyGhostCellInterpolation ghost_cell_fill;
+    ghost_cell_fill.initializeOperatorState(ghost_cell_comps, d_hierarchy);
+    ghost_cell_fill.fillData(0.0);
+
+    // Clear old data structures.
     d_idx_node_vec.clear();
     d_idx_node_ghost_vec.clear();
     d_base_pt_vec.clear();
@@ -372,6 +459,7 @@ CartLaplaceOperator::sortLagDOFsToCells()
         const CellIndex<NDIM>& idx =
             IndexUtilities::getCellIndex(node_pt, d_hierarchy->getGridGeometry(), level->getRatio());
         // Sort nodes into patches
+        // We also need ghost nodes to include in our KD tree
         unsigned int patch_num = 0;
         for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_num)
         {
@@ -389,8 +477,8 @@ CartLaplaceOperator::sortLagDOFsToCells()
     unsigned int patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_num)
     {
-        if (d_idx_node_vec[patch_num].size() == 0) continue;
         // We are on a patch that has points. We need to form a KD tree.
+        // TODO: Need to determine when we need to use RBFs
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(d_ls_idx);
 
@@ -398,12 +486,12 @@ CartLaplaceOperator::sortLagDOFsToCells()
         const double* const dx = pgeom->getDx();
         // First start by collecting all points into a vector
         std::vector<UPoint> pts;
-        for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
+        for (CellIterator<NDIM> ci(ls_data->getGhostBox()); ci; ci++)
         {
             const CellIndex<NDIM>& idx = ci();
-            if ((*ls_data)(idx) < 0.0) pts.push_back(UPoint(patch, idx));
+            if ((*ls_data)(idx) < -d_eps) pts.push_back(UPoint(patch, idx));
         }
-        // Now the points in d_idx_node_vec
+        // Now add in the points in d_idx_node_vec
         for (const auto& node : d_idx_node_ghost_vec[patch_num]) pts.push_back(UPoint(patch, node));
 
         // Now create KD tree
@@ -415,13 +503,23 @@ CartLaplaceOperator::sortLagDOFsToCells()
         {
             const CellIndex<NDIM>& idx = ci();
             const double ls = (*ls_data)(idx);
-            if (ls < 0.0 && std::abs(ls) < d_dist_to_bdry)
+            if (ls < -d_eps && std::abs(ls) < d_dist_to_bdry)
             {
                 std::vector<int> idx_vec;
                 std::vector<double> distance_vec;
                 d_base_pt_vec[patch_num].push_back(UPoint(patch, idx));
                 d_pair_pt_vec[patch_num].push_back({});
-                tree.knnSearch(UPoint(patch, idx), num_pts, idx_vec, distance_vec);
+#if (0)
+                // Use KNN search.
+                tree.knnSearch(UPoint(patch, idx), interp_size, idx_vec, distance_vec);
+#else
+                // Use a bounding box search
+                VectorNd bbox;
+                bbox(0) = 2.0 * dx[0];
+                bbox(1) = 2.0 * dx[1];
+                tree.cuboid_query(UPoint(patch, idx), bbox, idx_vec, distance_vec);
+#endif
+                // Add these points to the vector
                 for (const auto& idx_in_pts : idx_vec) d_pair_pt_vec[patch_num][i].push_back(pts[idx_in_pts]);
                 ++i;
             }
@@ -433,10 +531,60 @@ CartLaplaceOperator::sortLagDOFsToCells()
             std::vector<double> distance_vec;
             d_base_pt_vec[patch_num].push_back(UPoint(patch, node));
             d_pair_pt_vec[patch_num].push_back({});
-            tree.knnSearch(UPoint(patch, node), num_pts, idx_vec, distance_vec);
+            tree.knnSearch(UPoint(patch, node), interp_size, idx_vec, distance_vec);
+            // Add these points to the vector
             for (const auto& idx_in_pts : idx_vec) d_pair_pt_vec[patch_num][i].push_back(pts[idx_in_pts]);
             ++i;
         }
+    }
+}
+
+double
+CartLaplaceOperator::getSolVal(const UPoint& pt, const CellData<NDIM, double>& Q_data) const
+{
+    double val = 0.0;
+    if (pt.isNode())
+    {
+        // We're on a node. Need to grab value from augmented vec
+        std::vector<unsigned int> dof_indices;
+        d_dof_map->dof_indices(pt.getNode(), dof_indices);
+        auto idxs = reinterpret_cast<PetscInt*>(dof_indices.data());
+        int ierr = VecGetValues(d_aug_x_vec, 1, idxs, &val);
+        IBTK_CHKERRQ(ierr);
+    }
+#ifndef NDEBUG
+    else if (pt.isEmpty())
+    {
+        TBOX_ERROR("Point should not be empty");
+    }
+#endif
+    else
+    {
+        val = Q_data(pt.getIndex());
+    }
+    return val;
+}
+
+void
+CartLaplaceOperator::setSolVal(const double val, const UPoint& pt, CellData<NDIM, double>& Q_data) const
+{
+    if (pt.isNode())
+    {
+        // We're on a node. Need to grab value from augmented vec
+        std::vector<unsigned int> dof_indices;
+        d_dof_map->dof_indices(pt.getNode(), dof_indices);
+        int ierr = VecSetValue(d_aug_b_vec, dof_indices[0], val, INSERT_VALUES);
+        IBTK_CHKERRQ(ierr);
+    }
+#ifndef NDEBUG
+    else if (pt.isEmpty())
+    {
+        TBOX_ERROR("Point should not be empty");
+    }
+#endif
+    else
+    {
+        Q_data(pt.getIndex()) = val;
     }
 }
 //////////////////////////////////////////////////////////////////////////////
