@@ -173,7 +173,6 @@ BrinkmanPenalizationStaticBody::computeBrinkmanVelocity(int u_idx, double time, 
                 const double lf_upper = (*lf_data)(s_i.toCell(1));
                 const double liquid_fraction = 0.5 * (lf_lower + lf_upper);
 
-                //                const double Hphi = phi; // IBTK::smooth_heaviside(phi, alpha);
                 const double alpha_s = H * (1.0 - liquid_fraction);
                 const double penalty = d_penalty_limiter * (*rho_data)(s_i) / dt;
                 d_ed = 1e-1;

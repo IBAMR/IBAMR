@@ -290,6 +290,12 @@ public:
     getConvectiveOperatorTemperatureEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var);
 
     /*!
+     * Supply an IBTK::CartGridFunction object to specify the value of a
+     * particular source term for temperature equation.
+     */
+    void setTemperatureSourceTermFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
+
+    /*!
      * Get the chemical potential patch data index.
      */
     int getChemicalPotentialIndex();

@@ -367,24 +367,22 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
                          d_T_init);
 
     int lf_F_current_idx, lf_F_scratch_idx, lf_F_new_idx;
-    if (d_lf_F_var)
-        registerVariable(lf_F_current_idx,
-                         lf_F_new_idx,
-                         lf_F_scratch_idx,
-                         d_lf_F_var,
-                         cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE");
+    registerVariable(lf_F_current_idx,
+                     lf_F_new_idx,
+                     lf_F_scratch_idx,
+                     d_lf_F_var,
+                     cell_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE");
 
     int T_F_current_idx, T_F_scratch_idx, T_F_new_idx;
-    if (d_T_F_var)
-        registerVariable(T_F_current_idx,
-                         T_F_new_idx,
-                         T_F_scratch_idx,
-                         d_T_F_var,
-                         cell_ghosts,
-                         "CONSERVATIVE_COARSEN",
-                         "CONSERVATIVE_LINEAR_REFINE");
+    registerVariable(T_F_current_idx,
+                     T_F_new_idx,
+                     T_F_scratch_idx,
+                     d_T_F_var,
+                     cell_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE");
 
     int lf_diff_coef_current_idx, lf_diff_coef_scratch_idx, lf_diff_coef_new_idx;
     if (d_lf_diffusion_coef_var)
@@ -1344,31 +1342,28 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
     const int lf_F_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_F_var, getScratchContext());
     const int lf_F_new_idx = var_db->mapVariableAndContextToIndex(d_lf_F_var, getNewContext());
 
-    if (d_lf_F_var)
+    computeInterpolationFunction(d_p_firstder_idx, d_lf_new_idx, d_T_new_idx);
+    computeLiquidFractionSourceTerm(lf_F_scratch_idx, dt);
+
+    if (d_lf_u_var)
     {
-        computeInterpolationFunction(d_p_firstder_idx, d_lf_new_idx, d_T_new_idx);
-        computeLiquidFractionSourceTerm(lf_F_scratch_idx, dt);
+        int div_u_scratch_idx = var_db->mapVariableAndContextToIndex(d_div_u_var, getScratchContext());
+        const int lf_u_new_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getNewContext());
+        d_hier_math_ops->div(div_u_scratch_idx,
+                             d_div_u_var,
+                             1.0,
+                             lf_u_new_idx,
+                             d_lf_u_var,
+                             d_no_fill_op,
+                             d_integrator_time,
+                             /*synch_cf_bdry*/ false);
 
-        if (d_lf_u_var)
-        {
-            int div_u_scratch_idx = var_db->mapVariableAndContextToIndex(d_div_u_var, getScratchContext());
-            const int lf_u_new_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getNewContext());
-            d_hier_math_ops->div(div_u_scratch_idx,
-                                 d_div_u_var,
-                                 1.0,
-                                 lf_u_new_idx,
-                                 d_lf_u_var,
-                                 d_no_fill_op,
-                                 d_integrator_time,
-                                 /*synch_cf_bdry*/ false);
-
-            d_hier_cc_data_ops->multiply(lf_H_scratch_idx, lf_new_idx, H_new_idx);
-            d_hier_cc_data_ops->multiply(div_u_scratch_idx, lf_H_scratch_idx, div_u_scratch_idx);
-            d_hier_cc_data_ops->axpy(lf_F_scratch_idx, +1.0, div_u_scratch_idx, lf_F_scratch_idx);
-            std::cout << "L2 norm of div_u_scratch_idx\t" << d_hier_cc_data_ops->L2Norm(div_u_scratch_idx) << std::endl;
-        }
-        d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, +1.0, lf_F_scratch_idx, lf_rhs_scratch_idx);
+        d_hier_cc_data_ops->multiply(lf_H_scratch_idx, lf_new_idx, H_new_idx);
+        d_hier_cc_data_ops->multiply(div_u_scratch_idx, lf_H_scratch_idx, div_u_scratch_idx);
+        d_hier_cc_data_ops->axpy(lf_F_scratch_idx, +1.0, div_u_scratch_idx, lf_F_scratch_idx);
+        std::cout << "L2 norm of div_u_scratch_idx\t" << d_hier_cc_data_ops->L2Norm(div_u_scratch_idx) << std::endl;
     }
+    d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, +1.0, lf_F_scratch_idx, lf_rhs_scratch_idx);
 
     // This will be used while computing chemical potential.
     d_hier_cc_data_ops->copyData(d_lf_pre_idx, lf_new_idx);
@@ -1637,15 +1632,16 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         // Account for forcing terms.
         const int T_F_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_F_var, getScratchContext());
         const int T_F_new_idx = var_db->mapVariableAndContextToIndex(d_T_F_var, getNewContext());
-
-        if (d_T_F_var)
+        if (d_T_F_fcn)
         {
-            computeTemperatureSourceTerm(T_F_scratch_idx, dt);
-            d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +1.0, T_F_scratch_idx, T_rhs_scratch_idx);
-            //            std::cout << "L2 norm of T_rhs_scratch_idx after F\t" <<
-            //            d_hier_cc_data_ops->L2Norm(T_rhs_scratch_idx)
-            //                      << std::endl;
+            d_T_F_fcn->setDataOnPatchHierarchy(T_F_scratch_idx, d_T_F_var, d_hierarchy, half_time);
         }
+        else
+            d_hier_cc_data_ops->setToScalar(T_F_scratch_idx, 0.0);
+
+        // Add Allen-Cahn advection term.
+        computeTemperatureSourceTerm(T_F_scratch_idx, dt);
+        d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +1.0, T_F_scratch_idx, T_rhs_scratch_idx);
 
         // Solve for T(n+1).
         T_solver->solveSystem(*d_T_sol, *d_T_rhs);
@@ -2074,6 +2070,13 @@ IEPSemiImplicitHierarchyIntegrator::getConvectiveOperatorTemperatureEquation(Poi
     return d_T_convective_op;
 } // getConvectiveOperatorTemperatureEquation
 
+void
+IEPSemiImplicitHierarchyIntegrator::setTemperatureSourceTermFunction(Pointer<IBTK::CartGridFunction> T_F_fcn)
+{
+    d_T_F_fcn = T_F_fcn;
+    return;
+} // setTemperatureSourceTermFunction
+
 int
 IEPSemiImplicitHierarchyIntegrator::getChemicalPotentialIndex()
 {
@@ -2351,7 +2354,8 @@ IEPSemiImplicitHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratc
                                      ((*g_firstder_data)(ci) - ((*g_secondder_data)(ci) * (*lf_data)(ci))));
 
                 // Brinkman force
-                if (d_apply_brinkman) (*F_data)(ci) += d_beta / dt * (1.0 - (*H_data)(ci)) * d_lf_b;
+                //                if (d_apply_brinkman) (*F_data)(ci) += d_beta / dt * (1.0 - (*H_data)(ci)) * d_lf_b;
+                if (d_apply_brinkman) (*F_data)(ci) += d_beta / dt * (1.0 - (*H_data)(ci)) * (*lf_cur_data)(ci);
             }
         }
     }
@@ -2383,11 +2387,9 @@ IEPSemiImplicitHierarchyIntegrator::computeTemperatureSourceTerm(int F_scratch_i
             {
                 CellIndex<NDIM> ci(it());
 
-                (*F_data)(ci) =
+                (*F_data)(ci) +=
                     -d_rho_liquid * d_latent_heat_temp *
                     (((*H_new_data)(ci) * (*lf_new_data)(ci)) - ((*H_current_data)(ci) * (*lf_current_data)(ci))) / dt;
-                //                if (d_apply_brinkman) (*F_data)(ci) -= d_beta/dt * (1.0 - (*H_new_data)(ci)) *
-                //                ((*lf_new_data)(ci) - (*lf_current_data)(ci));
             }
         }
     }
