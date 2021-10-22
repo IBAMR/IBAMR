@@ -19,26 +19,14 @@ ACLOCAL_AMFLAGS = -I m4
 ## Standard make targets.
 lib: all
 examples: lib
-	@(cd examples && $(MAKE) $(AM_MAKEFLAGS) $@) || exit 1;
+	cd $@ && $(MAKE) $(AM_MAKEFLAGS) $@
 
 MPIEXEC = @MPIEXEC@
 NUMDIFF = @NUMDIFF@
 # attest uses parameters set in attest.conf; said parameters are overridden by
 # command line arguments. Use configuration info to set up the path to mpirun:
-attest.conf:
-	@printf "# attest default configuration file\n" > attest.conf-tmp
-	@printf "[attest]\n" >> attest.conf-tmp
-	@printf "jobs = 1\n" >> attest.conf-tmp
-	@printf "keep_work_directories = False\n"  >> attest.conf-tmp
-	@printf "mpiexec = ${MPIEXEC}\n" >> attest.conf-tmp
-	@printf "numdiff = ${NUMDIFF}\n" >> attest.conf-tmp
-	@printf "show_only = False\n" >> attest.conf-tmp
-	@printf "test_directory = /tests/\n" >> attest.conf-tmp
-	@printf "test_timeout = 600\n" >> attest.conf-tmp
-	@printf "include_regex = .*\n" >> attest.conf-tmp
-	@printf "exclude_regex = ^$$\n" >> attest.conf-tmp
-	@printf "verbose = False\n" >> attest.conf-tmp
-	@mv attest.conf-tmp attest.conf
+attest.conf: $(abs_builddir)/tests/attest.conf
+	ln -f -s ./tests/attest.conf $(abs_builddir)
 
 tests: lib attest.conf
 	ln -f -s $(top_srcdir)/attest $(abs_builddir)

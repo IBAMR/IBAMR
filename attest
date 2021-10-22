@@ -32,9 +32,6 @@ import threading
 # We rely on subprocess.run, which is new in 3.5
 assert sys.version_info >= (3, 5)
 
-INCLUDE_REGEX_DEFAULT = '.*'
-EXCLUDE_REGEX_DEFAULT = '^$'
-
 
 def interrupt_handler(sig, frame):
     """Small interrupt handler to catch SIGINT.
@@ -391,14 +388,6 @@ def main():
     os.environ['OMP_NUM_THREADS'] = "1"
     os.environ['OMP_THREAD_LIMIT'] = "1"
     config_file = configparser.ConfigParser()
-    config_file['attest'] = {'jobs': '1',
-                             'keep_work_directories': 'False',
-                             'mpiexec': 'mpiexec',
-                             'numdiff': 'numdiff',
-                             'show_only': 'False',
-                             'test_directory': '/tests/',
-                             'include_regex': INCLUDE_REGEX_DEFAULT,
-                             'exclude_regex': EXCLUDE_REGEX_DEFAULT}
     config_file.read('attest.conf')
     conf = config_file['attest']  # shorthand
 

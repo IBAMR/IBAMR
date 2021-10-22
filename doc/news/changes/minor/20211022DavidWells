@@ -1,0 +1,5 @@
+Fixed: The autotools build system now correctly treats tests/attest.conf.in as a
+configured file. This gets around a problem where this file could get out of date
+and become invalid when attest was updated but this file was not.
+<br>
+(David Wells, 2021/10/22)
