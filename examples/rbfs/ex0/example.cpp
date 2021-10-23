@@ -26,6 +26,7 @@
 #include "libmesh/boundary_mesh.h"
 #include "libmesh/elem.h"
 #include "libmesh/enum_elem_type.h"
+#include "libmesh/exact_solution.h"
 #include "libmesh/exodusII_io.h"
 #include "libmesh/explicit_system.h"
 #include "libmesh/mesh.h"
@@ -33,6 +34,7 @@
 #include "libmesh/mesh_modification.h"
 #include "libmesh/node.h"
 #include "libmesh/petsc_vector.h"
+#include "libmesh/point.h"
 #include "libmesh/utility.h"
 
 #include <petscsys.h>
@@ -56,6 +58,19 @@ fillInitial(const VectorNd& x)
     return std::sin(M_PI * x(0)) * std::sin(M_PI * x(1));
 #else
     return std::sin(M_PI * x(0)) * std::sin(M_PI * x(1)) * std::sin(M_PI * x(2));
+#endif
+}
+
+double
+exactSol(const libMesh::Point& p,
+         const Parameters& /*Parameters*/,
+         const std::string& /*sys_name*/,
+         const std::string& /*unknown_name*/)
+{
+#if (NDIM == 2)
+    return -2.0 * M_PI * M_PI * std::sin(M_PI * p(0)) * std::sin(M_PI * p(1));
+#else
+    return -3.0 * M_PI * M_PI * std::sin(M_PI * x(0)) * std::sin(M_PI * x(1)) * std::sin(M_PI * x(2));
 #endif
 }
 
@@ -137,6 +152,8 @@ main(int argc, char* argv[])
         const int x_idx = var_db->registerVariableAndContext(x_var, ctx, IntVector<NDIM>(3));
         const int b_idx = var_db->registerVariableAndContext(b_var, ctx, IntVector<NDIM>(3));
         const int e_idx = var_db->registerVariableAndContext(e_var, ctx, IntVector<NDIM>(3));
+        const int masked_e_idx =
+            var_db->registerVariableAndContext(e_var, var_db->getContext("mask"), IntVector<NDIM>(0));
         const int ls_idx = var_db->registerVariableAndContext(ls_var, ctx, IntVector<NDIM>(3));
 
         // Register variables for plotting.
@@ -146,6 +163,7 @@ main(int argc, char* argv[])
         visit_data_writer->registerPlotQuantity(x_var->getName(), "SCALAR", x_idx);
         visit_data_writer->registerPlotQuantity(b_var->getName(), "SCALAR", b_idx);
         visit_data_writer->registerPlotQuantity(e_var->getName(), "SCALAR", e_idx);
+        visit_data_writer->registerPlotQuantity("masked e", "SCALAR", masked_e_idx);
         visit_data_writer->registerPlotQuantity(ls_var->getName(), "SCALAR", ls_idx);
 
         // Initialize the AMR patch hierarchy.
@@ -168,6 +186,7 @@ main(int argc, char* argv[])
             level->allocatePatchData(x_idx, 0.0);
             level->allocatePatchData(b_idx, 0.0);
             level->allocatePatchData(e_idx, 0.0);
+            level->allocatePatchData(masked_e_idx, 0.0);
             level->allocatePatchData(ls_idx, 0.0);
         }
 
@@ -195,7 +214,25 @@ main(int argc, char* argv[])
 
         x_fcn.setDataOnPatchHierarchy(x_idx, x_var, patch_hierarchy, 0.0);
         b_fcn.setDataOnPatchHierarchy(e_idx, e_var, patch_hierarchy, 0.0);
+        b_fcn.setDataOnPatchHierarchy(masked_e_idx, e_var, patch_hierarchy, 0.0);
         ls_fcn.setDataOnPatchHierarchy(ls_idx, ls_var, patch_hierarchy, 0.0);
+
+        {
+            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
+            double eps = app_initializer->getComponentDatabase("LaplaceOperator")->getDouble("eps");
+            // Mask the error
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_idx);
+                Pointer<CellData<NDIM, double> > mask_data = patch->getPatchData(masked_e_idx);
+                for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
+                {
+                    const CellIndex<NDIM>& idx = ci();
+                    (*mask_data)(idx) = (*mask_data)(idx) * ((*ls_data)(idx) < -eps ? 1.0 : 0.0);
+                }
+            }
+        }
 
         // Set up the finite element mesh
         // Note we use this to create "augmented" dofs.
@@ -320,7 +357,39 @@ main(int argc, char* argv[])
              << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(e_idx, wgt_idx) << "\n"
              << "  L2-norm:  " << hier_cc_data_ops.L2Norm(e_idx, wgt_idx) << "\n"
              << "  max-norm: " << hier_cc_data_ops.maxNorm(e_idx, wgt_idx) << "\n";
+        pout << std::setprecision(10) << hier_cc_data_ops.L1Norm(e_idx, wgt_idx) << " "
+             << hier_cc_data_ops.L2Norm(e_idx, wgt_idx) << " " << hier_cc_data_ops.maxNorm(e_idx, wgt_idx) << "\n";
 
+        {
+            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
+            double eps = app_initializer->getComponentDatabase("LaplaceOperator")->getDouble("eps");
+            // Mask the error
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_idx);
+                Pointer<CellData<NDIM, double> > mask_data = patch->getPatchData(masked_e_idx);
+                Pointer<CellData<NDIM, double> > e_data = patch->getPatchData(e_idx);
+                for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
+                {
+                    const CellIndex<NDIM>& idx = ci();
+                    (*mask_data)(idx) = (*e_data)(idx) * ((*ls_data)(idx) < -eps ? 1.0 : 0.0);
+                }
+            }
+        }
+
+        ExactSolution error_estimator(bdry_eq_sys);
+        error_estimator.attach_exact_value(exactSol);
+        error_estimator.compute_error("Q", "Q");
+        double Q_error[3];
+        Q_error[0] = error_estimator.l1_error("Q", "Q");
+        Q_error[1] = error_estimator.l2_error("Q", "Q");
+        Q_error[2] = error_estimator.l_inf_error("Q", "Q");
+        pout << "Structure errors:\n"
+             << "  L1-norm:  " << Q_error[0] << "\n"
+             << "  L2-norm:  " << Q_error[1] << "\n"
+             << "  max-norm: " << Q_error[2] << "\n";
+        pout << std::setprecision(10) << Q_error[0] << " " << Q_error[1] << " " << Q_error[2] << "\n";
         visit_data_writer->writePlotData(patch_hierarchy, 1, 0.0);
         vol_io->write_timestep(vol_dirname, vol_eq_sys, 2, 0.0);
         bdry_io->write_timestep(bdry_dirname, bdry_eq_sys, 2, 0.0);

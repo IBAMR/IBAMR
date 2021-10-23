@@ -44,38 +44,6 @@
 
 namespace IBTK
 {
-struct IndexList
-{
-public:
-    IndexList(const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> >& patch, const SAMRAI::pdat::CellIndex<NDIM>& idx)
-        : d_idx(idx), d_patch(patch)
-    {
-        const SAMRAI::hier::Box<NDIM>& box = patch->getBox();
-        const SAMRAI::hier::Index<NDIM>& idx_low = box.lower();
-        const SAMRAI::hier::Index<NDIM>& idx_up = box.upper();
-        int num_x = idx_up(0) - idx_low(0) + 1;
-        d_global_idx = idx(0) - idx_low(0) + num_x * (idx(1) - idx_low(1) + 1);
-#if (NDIM == 3)
-        int num_y = idx_up(1) - idx_low(1) + 1;
-        d_global_idx += num_x * num_y * (idx(2) - idx_low(2));
-#endif
-    }
-
-    bool operator<(const IndexList& b) const
-    {
-        bool less_than_b = false;
-        if (d_patch->getPatchNumber() < b.d_patch->getPatchNumber())
-            less_than_b = true;
-        else if (b.d_patch->getPatchNumber() == d_patch->getPatchNumber() && d_global_idx < b.d_global_idx)
-        {
-            less_than_b = true;
-        }
-        return less_than_b;
-    }
-    int d_global_idx = -1;
-    SAMRAI::pdat::CellIndex<NDIM> d_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > d_patch;
-};
 
 struct UPoint
 {

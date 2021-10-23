@@ -66,7 +66,7 @@ static Timer* t_apply;
 static Timer* t_initialize_operator_state;
 static Timer* t_deallocate_operator_state;
 
-static unsigned int interp_size = 10; // 2 * (NDIM + 1) + 1;
+static unsigned int interp_size = 22; // 2 * (NDIM + 1) + 1;
 
 } // namespace
 
@@ -335,12 +335,14 @@ CartLaplaceOperator::applyToLagDOFs(const int x_idx, const int y_idx)
     unsigned int patch_num = 0;
     //    auto rbf = [](const double r) -> double { return r * r * r; };
     //    auto lap_rbf = [](const double r) -> double {return 9.0 * r;};
-    auto rbf = [](const double r) -> double { return r * r * r * r * r; };
+    auto rbf = [](const double r) -> double { return r * r * r * r * r + 2.0e-10; };
     auto lap_rbf = [](const double r) -> double { return 25.0 * r * r * r; };
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_num)
     {
         if (d_base_pt_vec[patch_num].size() == 0) continue;
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        const double* const dx = pgeom->getDx();
         // First loop through Cartesian grid cells.
         const Box<NDIM>& box = patch->getBox();
         Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(d_ls_idx);
@@ -355,8 +357,8 @@ CartLaplaceOperator::applyToLagDOFs(const int x_idx, const int y_idx)
             const std::vector<UPoint>& pt_vec = d_pair_pt_vec[patch_num][idx];
             // Note if we use a KNN search, interp_size is fixed.
             const int interp_size = pt_vec.size();
-            // Add quadratic polynomials?
-            const int poly_size = NDIM + 1 + NDIM + 1;
+            // Up to cubic polynomials
+            const int poly_size = NDIM + 1 + NDIM + 1 + NDIM * NDIM;
 #define DEBUGGING 1
 #if (DEBUGGING)
             plog << "On point \n" << pt << "\n";
@@ -365,27 +367,38 @@ CartLaplaceOperator::applyToLagDOFs(const int x_idx, const int y_idx)
             MatrixXd A(MatrixXd::Zero(interp_size, interp_size));
             MatrixXd B(MatrixXd::Zero(interp_size, poly_size));
             VectorXd U(VectorXd::Zero(interp_size + poly_size));
+            VectorNd pt0 = pt.getVec();
+            for (int d = 0; d < NDIM; ++d) pt0[d] = pt0[d] / dx[d];
             for (size_t i = 0; i < interp_size; ++i)
             {
-#if (DEBUGGING)
-                plog << "pt " << i << ": \n" << pt_vec[i] << "\n";
-#endif
+                VectorNd pti = pt_vec[i].getVec();
+                for (int d = 0; d < NDIM; ++d) pti[d] = pti[d] / dx[d];
                 for (size_t j = 0; j < interp_size; ++j)
                 {
-                    A(i, j) = rbf(pt_vec[i].dist(pt_vec[j]));
+                    VectorNd ptj = pt_vec[j].getVec();
+                    for (int d = 0; d < NDIM; ++d) ptj[d] = ptj[d] / dx[d];
+                    A(i, j) = rbf((pti - ptj).norm());
                 }
+                // TODO: B is just a Vandermonde matrix. Write a function to set this up given arbitrary polynomial
+                // degree.
                 B(i, 0) = 1.0;
-                for (int d = 0; d < NDIM; ++d) B(i, d + 1) = pt_vec[i](d);
-                // Add quadratic polynomials?
-                B(i, NDIM + 1) = pt_vec[i](0) * pt_vec[i](0);
-                B(i, NDIM + 2) = pt_vec[i](1) * pt_vec[i](0);
-                B(i, NDIM + 3) = pt_vec[i](1) * pt_vec[i](1);
+                VectorNd diff = pti - pt0;
+                for (int d = 0; d < NDIM; ++d) B(i, d + 1) = diff(d);
+                // Add quadratic polynomials
+                B(i, NDIM + 1) = diff(0) * diff(0);
+                B(i, NDIM + 2) = diff(1) * diff(0);
+                B(i, NDIM + 3) = diff(1) * diff(1);
+                // Cubic
+                B(i, NDIM + 4) = diff(0) * diff(0) * diff(0);
+                B(i, NDIM + 5) = diff(1) * diff(0) * diff(0);
+                B(i, NDIM + 6) = diff(1) * diff(1) * diff(0);
+                B(i, NDIM + 7) = diff(1) * diff(1) * diff(1);
                 // Determine rhs
-                U(i) = lap_rbf(pt.dist(pt_vec[i]));
+                U(i) = lap_rbf((pt0 - pti).norm());
             }
-            // Add quadratic polynomials?
-            U(interp_size + NDIM + 1) = 2;
-            U(interp_size + NDIM + 3) = 2;
+            // Add quadratic polynomials
+            U(interp_size + NDIM + 1) = 2.0;
+            U(interp_size + NDIM + 3) = 2.0;
             MatrixXd final_mat(MatrixXd::Zero(interp_size + poly_size, interp_size + poly_size));
             final_mat.block(0, 0, interp_size, interp_size) = A;
             final_mat.block(0, interp_size, interp_size, poly_size) = B;
@@ -411,7 +424,7 @@ CartLaplaceOperator::applyToLagDOFs(const int x_idx, const int y_idx)
                 plog << "Solution value at point " << i << " is " << getSolVal(pt_vec[i], *x_data) << "\n";
                 plog << "Weight at point         " << i << " is " << w << "\n";
 #endif
-                val += w * getSolVal(pt_vec[i], *x_data);
+                val += w * getSolVal(pt_vec[i], *x_data) / (dx[0] * dx[1]);
             }
             // Now insert val into results
             setSolVal(val, pt, *y_data);
@@ -509,7 +522,7 @@ CartLaplaceOperator::sortLagDOFsToCells()
                 std::vector<double> distance_vec;
                 d_base_pt_vec[patch_num].push_back(UPoint(patch, idx));
                 d_pair_pt_vec[patch_num].push_back({});
-#if (0)
+#if (1)
                 // Use KNN search.
                 tree.knnSearch(UPoint(patch, idx), interp_size, idx_vec, distance_vec);
 #else
