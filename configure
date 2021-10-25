@@ -4195,6 +4195,7 @@ $as_echo "$ac_res" >&6; }
 
                                                 if test "x$enablecxx11" = "xyes"; then :
 
+                CXX_VERSION_FLAG="$switch"
                 CXXFLAGS="$CXXFLAGS $switch"
                 CXXFLAGS_OPT="$CXXFLAGS_OPT $switch"
                 CXXFLAGS_DEVEL="$CXXFLAGS_DEVEL $switch"
@@ -4266,6 +4267,7 @@ $as_echo "$ac_res" >&6; }
 
                                                 if test "x$enablecxx11" = "xyes"; then :
 
+                CXX_VERSION_FLAG="$switch"
                 CXXFLAGS="$CXXFLAGS $switch"
                 CXXFLAGS_OPT="$CXXFLAGS_OPT $switch"
                 CXXFLAGS_DEVEL="$CXXFLAGS_DEVEL $switch"
@@ -27145,6 +27147,10 @@ else
   USING_BUNDLED_BOOST=no
 fi
 CPPFLAGS="$BOOST_CPPFLAGS $CPPFLAGS"
+
+# boost will try to find nonexistent headers if we don't specify the correct
+# language version
+CPPFLAGS="$CXX_VERSION_FLAG $CPPFLAGS"
 
 ac_fn_cxx_check_header_mongrel "$LINENO" "boost/multi_array.hpp" "ac_cv_header_boost_multi_array_hpp" "$ac_includes_default"
 if test "x$ac_cv_header_boost_multi_array_hpp" = xyes; then :
