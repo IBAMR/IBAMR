@@ -11,7 +11,7 @@
 #endif
 
 #include <boost/config.hpp>
-#include <boost/predef.h>
+#include <boost/predef/architecture/x86.h>
 #include <boost/cstdint.hpp> // for boost::uintmax_t
 #include <boost/detail/workaround.hpp>
 #include <boost/type_traits/is_integral.hpp>
@@ -28,12 +28,12 @@
 
 #include <boost/math/tools/user.hpp>
 
-#if (defined(__CYGWIN__) || defined(__FreeBSD__) || defined(__NetBSD__) \
+#if (defined(__CYGWIN__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__EMSCRIPTEN__)\
    || (defined(__hppa) && !defined(__OpenBSD__)) || (defined(__NO_LONG_DOUBLE_MATH) && (DBL_MANT_DIG != LDBL_MANT_DIG))) \
    && !defined(BOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS)
 #  define BOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS
 #endif
-#if BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x582))
+#if BOOST_WORKAROUND(BOOST_BORLANDC, BOOST_TESTED_AT(0x582))
 //
 // Borland post 5.8.2 uses Dinkumware's std C lib which
 // doesn't have true long double precision.  Earlier
@@ -46,7 +46,7 @@
 #endif
 #ifdef __IBMCPP__
 //
-// For reasons I don't unserstand, the tests with IMB's compiler all
+// For reasons I don't understand, the tests with IMB's compiler all
 // pass at long double precision, but fail with real_concept, those tests
 // are disabled for now.  (JM 2012).
 #  define BOOST_MATH_NO_REAL_CONCEPT_TESTS
@@ -67,6 +67,13 @@
 //
 // Darwin's rather strange "double double" is rather hard to
 // support, it should be possible given enough effort though...
+//
+#  define BOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS
+#endif
+#if !defined(BOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS) && (LDBL_MANT_DIG == 106) && (LDBL_MIN_EXP > DBL_MIN_EXP)
+//
+// Generic catch all case for gcc's "double-double" long double type.
+// We do not support this as it's not even remotely IEEE conforming:
 //
 #  define BOOST_MATH_NO_LONG_DOUBLE_MATH_FUNCTIONS
 #endif
@@ -184,10 +191,20 @@
 //
 #ifdef BOOST_MSVC
 #  define BOOST_MATH_POLY_METHOD 2
+#if BOOST_MSVC <= 1900
 #  define BOOST_MATH_RATIONAL_METHOD 1
+#else
+#  define BOOST_MATH_RATIONAL_METHOD 2
+#endif
+#if BOOST_MSVC > 1900
+#  define BOOST_MATH_INT_TABLE_TYPE(RT, IT) RT
+#  define BOOST_MATH_INT_VALUE_SUFFIX(RV, SUF) RV##.0L
+#endif
+
 #elif defined(BOOST_INTEL)
 #  define BOOST_MATH_POLY_METHOD 2
 #  define BOOST_MATH_RATIONAL_METHOD 1
+
 #elif defined(__GNUC__)
 #if __GNUC__ < 4
 #  define BOOST_MATH_POLY_METHOD 3
@@ -196,8 +213,18 @@
 #  define BOOST_MATH_INT_VALUE_SUFFIX(RV, SUF) RV##.0L
 #else
 #  define BOOST_MATH_POLY_METHOD 3
-#  define BOOST_MATH_RATIONAL_METHOD 1
+#  define BOOST_MATH_RATIONAL_METHOD 3
 #endif
+
+#elif defined(__clang__)
+
+#if __clang__ > 6
+#  define BOOST_MATH_POLY_METHOD 3
+#  define BOOST_MATH_RATIONAL_METHOD 3
+#  define BOOST_MATH_INT_TABLE_TYPE(RT, IT) RT
+#  define BOOST_MATH_INT_VALUE_SUFFIX(RV, SUF) RV##.0L
+#endif
+
 #endif
 
 #if defined(BOOST_NO_LONG_LONG) && !defined(BOOST_MATH_INT_TABLE_TYPE)
@@ -209,7 +236,7 @@
 // constexpr support, early GCC implementations can't cope so disable
 // constexpr for them:
 //
-#if !defined(__clang) && defined(__GNUC__)
+#if !defined(__clang__) && defined(__GNUC__)
 #if (__GNUC__ * 100 + __GNUC_MINOR__) < 490
 #  define BOOST_MATH_DISABLE_CONSTEXPR
 #endif
@@ -263,18 +290,6 @@
 #endif
 #ifndef BOOST_MATH_INT_VALUE_SUFFIX
 #  define BOOST_MATH_INT_VALUE_SUFFIX(RV, SUF) RV##SUF
-#endif
-//
-// Test whether to support __float128, if we don't have quadmath.h then this can't currently work:
-//
-#ifndef BOOST_MATH_USE_FLOAT128
-#ifdef __has_include
-#if ! __has_include("quadmath.h")
-#define BOOST_MATH_DISABLE_FLOAT128
-#endif
-#elif !defined(BOOST_ARCH_X86)
-#define BOOST_MATH_DISABLE_FLOAT128
-#endif
 #endif
 //
 // And then the actual configuration:
@@ -454,8 +469,35 @@ namespace boost{ namespace math{
 
 #endif
 
-#endif // BOOST_MATH_TOOLS_CONFIG_HPP
+//
+// Thread local storage:
+//
+#if !defined(BOOST_NO_CXX11_THREAD_LOCAL) && !defined(BOOST_INTEL)
+#  define BOOST_MATH_THREAD_LOCAL thread_local
+#else
+#  define BOOST_MATH_THREAD_LOCAL
+#endif
+//
+// Some mingw flavours have issues with thread_local and types with non-trivial destructors
+// See https://sourceforge.net/p/mingw-w64/bugs/527/
+//
+#if !defined(BOOST_NO_CXX11_THREAD_LOCAL) && (defined(__MINGW32__) || defined(__MINGW64__)) && !defined(_REENTRANT) && !defined(__clang__)
+#  define BOOST_MATH_NO_THREAD_LOCAL_WITH_NON_TRIVIAL_TYPES
+#endif
 
+
+//
+// Can we have constexpr tables?
+//
+#if (!defined(BOOST_NO_CXX11_HDR_ARRAY) && !defined(BOOST_NO_CXX14_CONSTEXPR)) || BOOST_WORKAROUND(BOOST_MSVC, >= 1910)
+#define BOOST_MATH_HAVE_CONSTEXPR_TABLES
+#define BOOST_MATH_CONSTEXPR_TABLE_FUNCTION constexpr
+#else
+#define BOOST_MATH_CONSTEXPR_TABLE_FUNCTION
+#endif
+
+
+#endif // BOOST_MATH_TOOLS_CONFIG_HPP
 
 
 
