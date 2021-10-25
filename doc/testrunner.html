@@ -18,9 +18,10 @@ parallel and, when requested, use multiple MPI processes for each test.
 The test runner, <code>attest</code>, requires Python 3.5 or newer and
 numdiff. The variables <code>MPIEXEC</code> and <code>NUMDIFF</code> must be
 provided to the <code>configure</code> script (they can also be added later to
-the <code>attest.conf</code> file) so that the test runner can run tests that
-use MPI and also compare output against known output files while accounting for
-roundoff errors. This can be done by, e.g., running configure with
+the <code>attest.conf</code> file, but this will be overwritten by a subsequent
+configure run) so that the test runner can run tests that use MPI and also
+compare output against known output files while accounting for roundoff errors.
+This can be done by, e.g., running configure with
 <pre>
   ./configure \
   MPIEXEC=$HOME/sfw/mpi/bin/mpiexec \

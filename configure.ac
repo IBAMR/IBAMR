@@ -135,8 +135,15 @@ if test "$LIBMESH_ENABLED" = yes; then
     fi
 fi
 
+# old version:
 AC_SUBST(MPIEXEC)
 AC_SUBST(NUMDIFF)
+
+# for compatibility with CMake, define new versions
+MPIEXEC_EXECUTABLE="$MPIEXEC"
+NUMDIFF_EXECUTABLE="$NUMDIFF"
+AC_SUBST(MPIEXEC_EXECUTABLE)
+AC_SUBST(NUMDIFF_EXECUTABLE)
 
 ###########################################################################
 # Output files.
@@ -261,6 +268,7 @@ AC_CONFIG_FILES([
   src/navier_stokes/fortran/Makefile
   src/utilities/Makefile
   src/wave_generation/Makefile
+  tests/attest.conf
   tests/Makefile
   tests/adv_diff/Makefile
   tests/advect/Makefile
