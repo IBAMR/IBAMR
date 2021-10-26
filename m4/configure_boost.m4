@@ -35,6 +35,9 @@ else
   USING_BUNDLED_BOOST=no
 fi
 CPPFLAGS_PREPEND($BOOST_CPPFLAGS)
+# boost will try to find nonexistent headers if we don't specify the correct
+# language version
+CPPFLAGS_PREPEND($CXX_VERSION_FLAG)
 AC_CHECK_HEADER([boost/multi_array.hpp],,AC_MSG_ERROR([cannot find working boost/multi_array.hpp]))
 AC_CHECK_HEADER([boost/math/special_functions/round.hpp],,AC_MSG_ERROR([cannot find working boost/math/special_functions/round.hpp]))
 AC_CHECK_HEADER([boost/math/tools/roots.hpp],,AC_MSG_ERROR([cannot find working boost/math/tools/roots.hpp]))

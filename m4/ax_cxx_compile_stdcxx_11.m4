@@ -103,6 +103,7 @@ AC_DEFUN([AX_CXX_COMPILE_STDCXX_11], [dnl
         dnl the flags if the user has enabled C++11.
         AS_IF([test "x$enablecxx11" = "xyes"],
               [
+                CXX_VERSION_FLAG="$switch"
                 CXXFLAGS="$CXXFLAGS $switch"
                 CXXFLAGS_OPT="$CXXFLAGS_OPT $switch"
                 CXXFLAGS_DEVEL="$CXXFLAGS_DEVEL $switch"
@@ -139,6 +140,7 @@ AC_DEFUN([AX_CXX_COMPILE_STDCXX_11], [dnl
         dnl the flags if the user has enabled C++11.
         AS_IF([test "x$enablecxx11" = "xyes"],
               [
+                CXX_VERSION_FLAG="$switch"
                 CXXFLAGS="$CXXFLAGS $switch"
                 CXXFLAGS_OPT="$CXXFLAGS_OPT $switch"
                 CXXFLAGS_DEVEL="$CXXFLAGS_DEVEL $switch"
