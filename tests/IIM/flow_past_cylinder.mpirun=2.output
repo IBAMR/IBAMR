@@ -1,0 +1,481 @@
+
+IIMethod: mesh part 0 is using FIRST order LAGRANGE finite elements.
+
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 4 4 4 4 4 4 4
+Warning in file ``../../../source/IBAMR/ibtk/lib/../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp'' at line 135
+WARNING MESSAGE: 
+CartSideDoubleCubicCoarsen::coarsen():
+  cubic coarsening requires a refinement ratio of 4 or larger.
+  reverting to weighted averaging.
+
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
+Warning in file ``../../../source/IBAMR/ibtk/lib/../src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp'' at line 127
+WARNING MESSAGE: 
+CartCellDoubleCubicCoarsen::coarsen():
+  cubic coarsening requires a refinement ratio of 4 or larger.
+  reverting to weighted averaging.
+
+Input database:
+input_db {
+   Re                            = 200                      // input used
+   MU                            = 0.005                    // input used
+   RHO                           = 1                        // input used
+   U_MAX                         = 2                        // input not used
+   L                             = 60                       // input used
+   R                             = 0.5                      // input used
+   MAX_LEVELS                    = 8                        // input used
+   REF_RATIO                     = 2                        // input used
+   N                             = 32                       // input used
+   NFINEST                       = 4096                     // input used
+   DX0                           = 1.875                    // input not used
+   DX                            = 0.0146484                // input used
+   MFAC                          = 2                        // input used
+   ELEM_TYPE                     = "TRI3"                   // input used
+   PK1_DEV_QUAD_ORDER            = "SEVENTH"                // input not used
+   PK1_DIL_QUAD_ORDER            = "FIFTH"                  // input not used
+   USE_BOUNDARY_MESH             = TRUE                     // input not used
+   IB_DELTA_FUNCTION             = "IB_3"                   // input used
+   SPLIT_FORCES                  = TRUE                     // input used
+   USE_PRESSURE_JUMP_CONDITIONS  = TRUE                     // input used
+   USE_VELOCITY_JUMP_CONDITIONS  = TRUE                     // input used
+   COMPUTE_FLUID_TRACTION        = TRUE                     // input used
+   USE_POINTWISE_JUMP_IMPOSITION = TRUE                     // input used
+   USE_CONSISTENT_MASS_MATRIX    = TRUE                     // input used
+   WSS_CALC_WIDTH                = 1.05                     // input used
+   P_CALC_WIDTH                  = 1.5                      // input used
+   IB_POINT_DENSITY              = 4                        // input used
+   SOLVER_TYPE                   = "STAGGERED"              // input used
+   CFL_MAX                       = 0.2                      // input used
+   DT                            = 0.000732422              // input used
+   START_TIME                    = 0                        // input used
+   END_TIME                      = 0.00732422               // input used
+   GROW_DT                       = 2                        // input used
+   CONVECTIVE_TS_TYPE            = "ADAMS_BASHFORTH"        // input used
+   CONVECTIVE_OP_TYPE            = "STABILIZED_PPM"         // input used
+   CONVECTIVE_FORM               = "ADVECTIVE"              // input used
+   NORMALIZE_PRESSURE            = FALSE                    // input used
+   ERROR_ON_DT_CHANGE            = TRUE                     // input used
+   VORTICITY_TAGGING             = TRUE                     // input used
+   TAG_BUFFER                    = 4                        // input used
+   REGRID_CFL_INTERVAL           = 0.5                      // input used
+   OUTPUT_U                      = TRUE                     // input used
+   OUTPUT_P                      = TRUE                     // input used
+   OUTPUT_F                      = TRUE                     // input used
+   OUTPUT_OMEGA                  = TRUE                     // input used
+   OUTPUT_DIV_U                  = TRUE                     // input used
+   ENABLE_LOGGING                = TRUE                     // input used
+   KAPPA_S                       = 466.034                  // input used
+   ETA_S                         = 0.477867                 // input used
+   PROJECTION_METHOD_TYPE        = "PRESSURE_UPDATE"        // input used
+   SECOND_ORDER_PRESSURE_UPDATE  = TRUE                     // input used
+   VelocityBcCoefs_0 {
+      t_half           = 0.5                                // input used
+      tau              = 0.25                               // input used
+      acoef_function_0 = "1.0"                              // input used
+      acoef_function_1 = "0.0"                              // input used
+      acoef_function_2 = "0.0"                              // input used
+      acoef_function_3 = "0.0"                              // input used
+      bcoef_function_0 = "0.0"                              // input used
+      bcoef_function_1 = "1.0"                              // input used
+      bcoef_function_2 = "1.0"                              // input used
+      bcoef_function_3 = "1.0"                              // input used
+      gcoef_function_0 = "(tanh(t/2-t_half/tau)+tanh(t_half/tau))/(1+tanh(t_half/tau))" // input used
+      gcoef_function_1 = "0.0"                              // input used
+      gcoef_function_2 = "0.0"                              // input used
+      gcoef_function_3 = "0.0"                              // input used
+   }
+   VelocityBcCoefs_1 {
+      L                = 60                                 // input used
+      acoef_function_0 = "1.0"                              // input used
+      acoef_function_1 = "0.0"                              // input used
+      acoef_function_2 = "1.0"                              // input used
+      acoef_function_3 = "1.0"                              // input used
+      bcoef_function_0 = "0.0"                              // input used
+      bcoef_function_1 = "1.0"                              // input used
+      bcoef_function_2 = "0.0"                              // input used
+      bcoef_function_3 = "0.0"                              // input used
+      gcoef_function_0 = "cos(pi*X_1/L)*exp(-2.0*t)"        // input used
+      gcoef_function_1 = "0.0"                              // input used
+      gcoef_function_2 = "0.0"                              // input used
+      gcoef_function_3 = "0.0"                              // input used
+   }
+   IBHierarchyIntegrator {
+      start_time                       = 0                  // input used
+      end_time                         = 0.00732422         // input used
+      grow_dt                          = 2                  // input used
+      regrid_cfl_interval              = 0.5                // input used
+      dt_max                           = 0.000732422        // input used
+      error_on_dt_change               = TRUE               // input used
+      enable_logging                   = TRUE               // input used
+      enable_logging_solver_iterations = FALSE              // input used
+   }
+   IIMethod {
+      IB_delta_fcn                     = "IB_3"             // input used
+      split_forces                     = TRUE               // input not used
+      use_pressure_jump_conditions     = TRUE               // input used
+      use_velocity_jump_conditions     = TRUE               // input used
+      use_consistent_mass_matrix       = TRUE               // input used
+      IB_point_density                 = 4                  // input used
+      p_calc_width                     = 1.5                // input used
+      wss_calc_width                   = 1.05               // input used
+      compute_fluid_traction           = TRUE               // input used
+      use_pointwise_jump_imposition    = TRUE               // input not used
+      enable_logging_solver_iterations = FALSE              // input not used
+      min_ghost_cell_width             = 6                  // input used
+   }
+   INSCollocatedHierarchyIntegrator {
+      mu                               = 0.005              // input not used
+      rho                              = 1                  // input not used
+      start_time                       = 0                  // input not used
+      end_time                         = 0.00732422         // input not used
+      grow_dt                          = 2                  // input not used
+      convective_time_stepping_type    = "ADAMS_BASHFORTH"  // input not used
+      convective_op_type               = "STABILIZED_PPM"   // input not used
+      convective_difference_form       = "ADVECTIVE"        // input not used
+      normalize_pressure               = FALSE              // input not used
+      cfl                              = 0.2                // input not used
+      dt_max                           = 0.000732422        // input not used
+      using_vorticity_tagging          = TRUE               // input not used
+      vorticity_abs_thresh             = 0.125, 0.25, 0.5, 1, 2 // input not used
+      tag_buffer                       = 4                  // input not used
+      output_U                         = TRUE               // input not used
+      output_P                         = TRUE               // input not used
+      output_F                         = TRUE               // input not used
+      output_Omega                     = TRUE               // input not used
+      output_Div_U                     = TRUE               // input not used
+      enable_logging                   = TRUE               // input not used
+      projection_method_type           = "PRESSURE_UPDATE"  // input not used
+      use_2nd_order_pressure_update    = TRUE               // input not used
+      enable_logging_solver_iterations = FALSE              // input not used
+   }
+   INSStaggeredHierarchyIntegrator {
+      mu                               = 0.005              // input used
+      rho                              = 1                  // input used
+      start_time                       = 0                  // input used
+      end_time                         = 0.00732422         // input used
+      grow_dt                          = 2                  // input used
+      convective_time_stepping_type    = "ADAMS_BASHFORTH"  // input used
+      convective_op_type               = "STABILIZED_PPM"   // input used
+      convective_difference_form       = "ADVECTIVE"        // input used
+      normalize_pressure               = FALSE              // input used
+      cfl                              = 0.2                // input used
+      dt_max                           = 0.000732422        // input used
+      using_vorticity_tagging          = TRUE               // input used
+      vorticity_abs_thresh             = 0.125, 0.25, 0.5, 1, 2 // input used
+      tag_buffer                       = 4                  // input used
+      output_U                         = TRUE               // input used
+      output_P                         = TRUE               // input used
+      output_F                         = TRUE               // input used
+      output_Omega                     = TRUE               // input used
+      output_Div_U                     = TRUE               // input used
+      enable_logging                   = TRUE               // input used
+      enable_logging_solver_iterations = FALSE              // input used
+   }
+   Main {
+      solver_type                 = "STAGGERED"             // input used
+      log_file_name               = "output"                // input used
+      log_all_nodes               = FALSE                   // input used
+      viz_writer                  = "VisIt", "ExodusII"     // input used
+      viz_dump_interval           = -1                      // input used
+      viz_dump_dirname            = "viz_IIM_2d"            // input used
+      visit_number_procs_per_file = 1                       // input used
+      restart_dump_interval       = 0                       // input used
+      restart_dump_dirname        = "restart_IIM2d"         // input used
+      data_dump_interval          = 0                       // input used
+      data_dump_dirname           = "hier_data_IIM2d"       // input used
+      timer_dump_interval         = 0                       // input used
+   }
+   CartesianGeometry {
+      domain_boxes       = [(0,0),(31,31)]                  // input used
+      x_lo               = -15, -30                         // input used
+      x_up               = 45, 30                           // input used
+      periodic_dimension = 0, 0                             // input used
+   }
+   GriddingAlgorithm {
+      max_levels                = 8                         // input used
+      efficiency_tolerance      = 0.8                       // input used
+      combine_efficiency        = 0.8                       // input used
+      check_nonrefined_tags     = 'w'                       // from default
+      check_overlapping_patches = 'i'                       // from default
+      extend_tags_to_bdry       = FALSE                     // from default
+      ratio_to_coarser {
+         level_1 = 2, 2                                     // input used
+         level_2 = 2, 2                                     // input used
+         level_3 = 2, 2                                     // input used
+         level_4 = 2, 2                                     // input used
+         level_5 = 2, 2                                     // input used
+         level_6 = 2, 2                                     // input used
+         level_7 = 2, 2                                     // input used
+      }
+      largest_patch_size {
+         level_0 = 512, 512                                 // input used
+      }
+      smallest_patch_size {
+         level_0 = 8, 8                                     // input used
+      }
+   }
+   StandardTagAndInitialize {
+      tagging_method = "GRADIENT_DETECTOR"                  // input used
+   }
+   LoadBalancer {
+      bin_pack_method                      = "SPATIAL"      // input used
+      max_workload_factor                  = 1              // input used
+      ignore_level_box_union_is_single_box = FALSE          // from default
+   }
+   TimerManager {
+      print_exclusive      = FALSE                          // input used
+      print_total          = TRUE                           // input used
+      print_threshold      = 0.1                            // input used
+      timer_list           = "IBAMR::*::*", "IBTK::*::*", "*::*::*" // input used
+      print_processor      = TRUE                           // from default
+      print_max            = FALSE                          // from default
+      print_summed         = FALSE                          // from default
+      print_user           = FALSE                          // from default
+      print_sys            = FALSE                          // from default
+      print_wall           = TRUE                           // from default
+      print_percentage     = TRUE                           // from default
+      print_concurrent     = FALSE                          // from default
+      print_timer_overhead = FALSE                          // from default
+   }
+}
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 0
+Simulation time is 0
+IBHierarchyIntegrator::advanceHierarchy(): time interval = [0,0.000732422], dt = 0.000732422
+IBHierarchyIntegrator::advanceHierarchy(): regridding prior to timestep 0
+IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
+IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
+IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
+IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
+IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.24919e-07
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.29115e-07
+IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 6.59199e-07
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 6.59199e-07
+IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 0
+Simulation time is 0.000732422
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 1
+Simulation time is 0.000732422
+IBHierarchyIntegrator::advanceHierarchy(): time interval = [0.000732422,0.00146484], dt = 0.000732422
+IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
+IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.19025e-08
+IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 1.31956e-06
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 1.97876e-06
+IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 1
+Simulation time is 0.00146484
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 2
+Simulation time is 0.00146484
+IBHierarchyIntegrator::advanceHierarchy(): time interval = [0.00146484,0.00219727], dt = 0.000732422
+IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
+IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.20862e-08
+IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 1.98176e-06
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 3.96052e-06
+IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 2
+Simulation time is 0.00219727
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 3
+Simulation time is 0.00219727
+IBHierarchyIntegrator::advanceHierarchy(): time interval = [0.00219727,0.00292969], dt = 0.000732422
+IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
+IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.32754e-05
+IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 2.64623e-06
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 6.60675e-06
+IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 3
+Simulation time is 0.00292969
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 4
+Simulation time is 0.00292969
+IBHierarchyIntegrator::advanceHierarchy(): time interval = [0.00292969,0.00366211], dt = 0.000732422
+IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
+IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.33299e-05
+IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 3.31268e-06
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 9.91942e-06
+IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 4
+Simulation time is 0.00366211
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 5
+Simulation time is 0.00366211
+IBHierarchyIntegrator::advanceHierarchy(): time interval = [0.00366211,0.00439453], dt = 0.000732422
+IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
+IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.33098e-05
+IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 3.98157e-06
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 1.3901e-05
+IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 5
+Simulation time is 0.00439453
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 6
+Simulation time is 0.00439453
+IBHierarchyIntegrator::advanceHierarchy(): time interval = [0.00439453,0.00512695], dt = 0.000732422
+IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
+IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.33235e-05
+IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 4.65319e-06
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 1.85542e-05
+IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 6
+Simulation time is 0.00512695
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 7
+Simulation time is 0.00512695
+IBHierarchyIntegrator::advanceHierarchy(): time interval = [0.00512695,0.00585938], dt = 0.000732422
+IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
+IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.33408e-05
+IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 5.32767e-06
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 2.38819e-05
+IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 7
+Simulation time is 0.00585938
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 8
+Simulation time is 0.00585938
+IBHierarchyIntegrator::advanceHierarchy(): time interval = [0.00585938,0.0065918], dt = 0.000732422
+IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
+IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.33574e-05
+IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 6.00513e-06
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 2.9887e-05
+IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 8
+Simulation time is 0.0065918
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 9
+Simulation time is 0.0065918
+IBHierarchyIntegrator::advanceHierarchy(): time interval = [0.0065918,0.00732422], dt = 0.000732422
+IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
+IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.33739e-05
+IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 6.68568e-06
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 3.65727e-05
+IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
+IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
+
+At end       of timestep # 9
+Simulation time is 0.00732422
++++++++++++++++++++++++++++++++++++++++++++++++++++
+

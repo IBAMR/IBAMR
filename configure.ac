@@ -287,6 +287,7 @@ AC_CONFIG_FILES([
   tests/fe_mechanics/Makefile
   tests/IB/Makefile
   tests/IBFE/Makefile
+  tests/IIM/Makefile
   tests/IBTK/Makefile
   tests/interpolate/Makefile
   tests/level_set/Makefile
