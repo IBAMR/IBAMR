@@ -16,10 +16,10 @@
 #ifndef included_IBTK_MPI_inc
 #define included_IBTK_MPI_inc
 
-#include "ibtk/IBTK_MPI.h"
+#include <ibtk/config.h>
+#include <ibtk/IBTK_MPI.h>
 
 namespace IBTK
-#include <ibtk/config.h>
 {
 template <typename T>
 inline T
