@@ -23,7 +23,7 @@ namespace IBTK
 {
 template <typename T>
 inline T
-IBTK_MPI::minReduction(T x, int* rank_of_min, IBTK_MPI::comm communicator)
+IBTK_MPI::minReduction(T x, int* rank_of_min, MPI_Comm communicator)
 {
     minReduction(&x, 1, rank_of_min, communicator);
     return x;
@@ -31,7 +31,7 @@ IBTK_MPI::minReduction(T x, int* rank_of_min, IBTK_MPI::comm communicator)
 
 template <typename T>
 inline void
-IBTK_MPI::minReduction(T* x, const int n, int* rank_of_min, IBTK_MPI::comm communicator)
+IBTK_MPI::minReduction(T* x, const int n, int* rank_of_min, MPI_Comm communicator)
 {
     if (n == 0) return;
     if (rank_of_min == nullptr)
@@ -46,7 +46,7 @@ IBTK_MPI::minReduction(T* x, const int n, int* rank_of_min, IBTK_MPI::comm commu
 
 template <typename T>
 inline T
-IBTK_MPI::maxReduction(T x, int* rank_of_max, IBTK_MPI::comm communicator)
+IBTK_MPI::maxReduction(T x, int* rank_of_max, MPI_Comm communicator)
 {
     maxReduction(&x, 1, rank_of_max, communicator);
     return x;
@@ -54,7 +54,7 @@ IBTK_MPI::maxReduction(T x, int* rank_of_max, IBTK_MPI::comm communicator)
 
 template <typename T>
 inline void
-IBTK_MPI::maxReduction(T* x, const int n, int* rank_of_max, IBTK_MPI::comm communicator)
+IBTK_MPI::maxReduction(T* x, const int n, int* rank_of_max, MPI_Comm communicator)
 {
     if (n == 0) return;
     if (rank_of_max == nullptr)
@@ -69,7 +69,7 @@ IBTK_MPI::maxReduction(T* x, const int n, int* rank_of_max, IBTK_MPI::comm commu
 
 template <typename T>
 inline T
-IBTK_MPI::sumReduction(T x, IBTK_MPI::comm communicator)
+IBTK_MPI::sumReduction(T x, MPI_Comm communicator)
 {
     // This check is useful since it occurs earlier than the mpi_type_id() base
     // case failure (and it has a clearer error message)
@@ -82,7 +82,7 @@ IBTK_MPI::sumReduction(T x, IBTK_MPI::comm communicator)
 
 template <typename T>
 inline void
-IBTK_MPI::sumReduction(T* x, const int n, IBTK_MPI::comm communicator)
+IBTK_MPI::sumReduction(T* x, const int n, MPI_Comm communicator)
 {
     if (n == 0 || getNodes(communicator) < 2) return;
     MPI_Allreduce(MPI_IN_PLACE, x, n, mpi_type_id(x[0]), MPI_SUM, communicator);
@@ -90,7 +90,7 @@ IBTK_MPI::sumReduction(T* x, const int n, IBTK_MPI::comm communicator)
 
 template <typename T>
 inline T
-IBTK_MPI::bcast(const T x, const int root, IBTK_MPI::comm communicator)
+IBTK_MPI::bcast(const T x, const int root, MPI_Comm communicator)
 {
     int size = 1;
     T temp_copy = x;
@@ -100,7 +100,7 @@ IBTK_MPI::bcast(const T x, const int root, IBTK_MPI::comm communicator)
 
 template <typename T>
 inline void
-IBTK_MPI::bcast(T* x, int& length, const int root, IBTK_MPI::comm communicator)
+IBTK_MPI::bcast(T* x, int& length, const int root, MPI_Comm communicator)
 {
     if (getNodes(communicator) > 1)
     {
@@ -115,7 +115,7 @@ IBTK_MPI::send(const T* buf,
                const int receiving_proc_number,
                const bool send_length,
                int tag,
-               IBTK_MPI::comm communicator)
+               MPI_Comm communicator)
 {
     tag = (tag >= 0) ? tag : 0;
     int size = length;
@@ -133,7 +133,7 @@ IBTK_MPI::recv(T* buf,
                const int sending_proc_number,
                const bool get_length,
                int tag,
-               IBTK_MPI::comm communicator)
+               MPI_Comm communicator)
 {
     MPI_Status status;
     tag = (tag >= 0) ? tag : 0;
@@ -146,7 +146,7 @@ IBTK_MPI::recv(T* buf,
 
 template <typename T>
 inline void
-IBTK_MPI::allGather(const T* x_in, int size_in, T* x_out, int size_out, IBTK_MPI::comm communicator)
+IBTK_MPI::allGather(const T* x_in, int size_in, T* x_out, int size_out, MPI_Comm communicator)
 {
     std::vector<int> rcounts, disps;
     allGatherSetup(size_in, size_out, rcounts, disps, communicator);
@@ -157,7 +157,7 @@ IBTK_MPI::allGather(const T* x_in, int size_in, T* x_out, int size_out, IBTK_MPI
 
 template <typename T>
 inline void
-IBTK_MPI::allGather(T x_in, T* x_out, IBTK_MPI::comm communicator)
+IBTK_MPI::allGather(T x_in, T* x_out, MPI_Comm communicator)
 {
     MPI_Allgather(&x_in, 1, mpi_type_id(x_in), x_out, 1, mpi_type_id(x_in), communicator);
 } // allGather
@@ -165,7 +165,7 @@ IBTK_MPI::allGather(T x_in, T* x_out, IBTK_MPI::comm communicator)
 //////////////////////////////////////  PRIVATE  ///////////////////////////////////////////////////
 template <typename T>
 inline void
-IBTK_MPI::minMaxReduction(T* x, const int n, int* rank, MPI_Op op, IBTK_MPI::comm communicator)
+IBTK_MPI::minMaxReduction(T* x, const int n, int* rank, MPI_Op op, MPI_Comm communicator)
 {
     std::vector<std::pair<T, int> > recv(n);
     std::vector<std::pair<T, int> > send(n);

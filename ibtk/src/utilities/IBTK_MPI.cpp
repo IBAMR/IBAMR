@@ -24,21 +24,21 @@
 
 namespace IBTK
 {
-IBTK_MPI::comm IBTK_MPI::s_communicator = MPI_COMM_WORLD;
+MPI_Comm IBTK_MPI::s_communicator = MPI_COMM_WORLD;
 
 void
-IBTK_MPI::setCommunicator(IBTK_MPI::comm communicator)
+IBTK_MPI::setCommunicator(MPI_Comm communicator)
 {
     s_communicator = communicator;
 } // setCommunicator
 
-IBTK_MPI::comm
+MPI_Comm
 IBTK_MPI::getCommunicator()
 {
     return (s_communicator);
 } // getCommunicator
 
-IBTK_MPI::comm
+MPI_Comm
 IBTK_MPI::getSAMRAIWorld()
 {
 #if SAMRAI_VERSION_MAJOR == 2
@@ -49,7 +49,7 @@ IBTK_MPI::getSAMRAIWorld()
 }
 
 int
-IBTK_MPI::getNodes(IBTK_MPI::comm communicator)
+IBTK_MPI::getNodes(MPI_Comm communicator)
 {
     int nodes = 1;
     MPI_Comm_size(communicator, &nodes);
@@ -57,7 +57,7 @@ IBTK_MPI::getNodes(IBTK_MPI::comm communicator)
 } // getNodes
 
 int
-IBTK_MPI::getRank(IBTK_MPI::comm communicator)
+IBTK_MPI::getRank(MPI_Comm communicator)
 {
     int node = 0;
     MPI_Comm_rank(communicator, &node);
@@ -65,17 +65,17 @@ IBTK_MPI::getRank(IBTK_MPI::comm communicator)
 } // getRank
 
 void
-IBTK_MPI::barrier(IBTK_MPI::comm communicator)
+IBTK_MPI::barrier(MPI_Comm communicator)
 {
     (void)MPI_Barrier(communicator);
 } // barrier
 
 void
-IBTK_MPI::allToOneSumReduction(int* x, const int n, const int root, IBTK_MPI::comm communicator)
+IBTK_MPI::allToOneSumReduction(int* x, const int n, const int root, MPI_Comm communicator)
 {
     if (getNodes(communicator) > 1)
     {
-        if (IBTK_MPI::getRank() == root)
+        if (IBTK_MPI::getRank(communicator) == root)
             MPI_Reduce(MPI_IN_PLACE, x, n, MPI_INT, MPI_SUM, root, communicator);
         else
             MPI_Reduce(x, x, n, MPI_INT, MPI_SUM, root, communicator);
@@ -83,16 +83,13 @@ IBTK_MPI::allToOneSumReduction(int* x, const int n, const int root, IBTK_MPI::co
 } // allToOneSumReduction
 
 void
-IBTK_MPI::sendBytes(const void* buf,
-                    const int number_bytes,
-                    const int receiving_proc_number,
-                    IBTK_MPI::comm communicator)
+IBTK_MPI::sendBytes(const void* buf, const int number_bytes, const int receiving_proc_number, MPI_Comm communicator)
 {
     MPI_Send((void*)buf, number_bytes, MPI_BYTE, receiving_proc_number, 0, communicator);
 } // sendBytes
 
 int
-IBTK_MPI::recvBytes(void* buf, int number_bytes, IBTK_MPI::comm communicator)
+IBTK_MPI::recvBytes(void* buf, int number_bytes, MPI_Comm communicator)
 {
     int rval = 0;
     MPI_Status status;
@@ -109,7 +106,7 @@ IBTK_MPI::allGatherSetup(int size_in,
                          int size_out,
                          std::vector<int>& rcounts,
                          std::vector<int>& disps,
-                         IBTK_MPI::comm communicator)
+                         MPI_Comm communicator)
 {
     int np = getNodes(communicator);
     rcounts.resize(np);
