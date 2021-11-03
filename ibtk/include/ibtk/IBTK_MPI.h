@@ -20,14 +20,11 @@
 
 #include <ibtk/config.h>
 
-#include "SAMRAI_config.h"
-#include "tbox/Utilities.h"
-
-#include <mpi.h>
-
 #include <type_traits>
 #include <utility>
 #include <vector>
+
+#include <mpi.h>
 
 namespace IBTK
 {
@@ -317,6 +314,6 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-#include "ibtk/private/IBTK_MPI-inl.h" // IWYU pragma: keep
+#include <ibtk/private/IBTK_MPI-inl.h> // IWYU pragma: keep
 
 #endif

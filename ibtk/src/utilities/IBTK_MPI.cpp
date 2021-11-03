@@ -16,7 +16,6 @@
 #include <ibtk/IBTK_MPI.h>
 
 #include <tbox/SAMRAI_MPI.h>
-#include <tbox/Utilities.h>
 
 #include <ostream>
 #include <string>
