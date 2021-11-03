@@ -170,7 +170,7 @@ struct IBTK_MPI
      * contributes an array of values and element-wise sum is returned in the same array.
      */
     template <typename T>
-    static T sumReduction(T, MPI_Comm commiunicator = getCommunicator());
+    static T sumReduction(T, MPI_Comm communicator = getCommunicator());
     template <typename T>
     static void sumReduction(T* x, const int n = 1, MPI_Comm communicator = getCommunicator());
     //@}
