@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2019 by the IBAMR developers
+// Copyright (c) 2014 - 2021 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -11,10 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-//////////////////////////////////// INCLUDES ////////////////////////////////////////////
-
-#include "gsl/gsl_integration.h"
-#include "gsl/gsl_linalg.h"
+#include <boost/math/quadrature/gauss_kronrod.hpp>
 
 #include <cassert>
 #include <cmath>
@@ -148,15 +145,6 @@ main()
     input[5] = t;
     input[6] = time_period;
 
-    gsl_function Fx, Fy;
-    Fx.function = xPosition;
-    Fx.params = input;
-    Fy.function = yPosition;
-    Fy.params = input;
-
-    double ybase, xbase, errory, errorx;
-    size_t nevalsy, nevalsx;
-
     // Find the deformed shape. Rotate the shape about center of mass.
     std::vector<std::vector<double> > shape_new(3);
     for (int i = 1; i <= bodyNs; ++i)
@@ -167,8 +155,13 @@ main()
         const double depth = immersedBodyWidthHeight[i - 1].second;
         const double s = (i - 1) * dx;
 
-        gsl_integration_qng(&Fx, 0, s, 1e-8, 0.0, &xbase, &errorx, &nevalsx);
-        gsl_integration_qng(&Fy, 0, s, 1e-8, 0.0, &ybase, &errory, &nevalsy);
+        auto f_x = [&](const double x) { return xPosition(x, input); };
+
+        auto f_y = [&](const double y) { return yPosition(y, input); };
+
+        namespace bmq = boost::math::quadrature;
+        const double xbase = bmq::gauss_kronrod<double, 15>::integrate(f_x, 0.0, s, 15, 1e-12, nullptr);
+        const double ybase = bmq::gauss_kronrod<double, 15>::integrate(f_y, 0.0, s, 15, 1e-12, nullptr);
 
         if (numPtsInSection && numPtsInHeight)
         {

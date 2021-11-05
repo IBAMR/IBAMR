@@ -97,7 +97,7 @@ echo "=================================="
 echo "Configuring required package Boost"
 echo "=================================="
 AC_MSG_NOTICE([first check for a system Boost library; if not found, revert to bundled Boost library])
-BOOST_REQUIRE([1.57.0],[
+BOOST_REQUIRE([1.66.0],[
   AC_MSG_WARN([could not find system Boost library, using bundled Boost library])
   USING_BUNDLED_BOOST=yes])
 
@@ -110,7 +110,6 @@ CONFIGURE_PETSC
 # Configure other libraries that are not themselves dependencies:
 CONFIGURE_BOOST("$ABSOLUTE_SRCDIR/ibtk/contrib/boost","\$(abs_top_builddir)/ibtk/contrib/boost")
 CONFIGURE_EIGEN("$ABSOLUTE_SRCDIR/ibtk/contrib/eigen","\$(abs_top_builddir)/ibtk/contrib/eigen")
-CONFIGURE_GSL
 CONFIGURE_HDF5
 CONFIGURE_HYPRE
 CONFIGURE_MUPARSER("$ABSOLUTE_SRCDIR/ibtk/contrib/muparser","\$(abs_top_builddir)/ibtk/contrib/muparser")

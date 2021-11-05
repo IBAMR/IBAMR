@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2014 - 2019 by the IBAMR developers
+## Copyright (c) 2014 - 2021 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -13,8 +13,6 @@
 
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-
-if GSL_ENABLED
 
 ## Dimension-dependent testers
 EXAMPLE_DRIVER = example.cpp
@@ -50,12 +48,3 @@ clean-local:
 	  rm -f $(builddir)/input3d ; \
 	  rm -f $(builddir)/eel3d.vertex ;\
 	fi ;
-
-else
-examples:
-	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-	@echo " This example needs GNU Scientific Library.                          "
-	@echo " Configure IBAMR with additional options --enable-gsl --with-gsl=path"
-	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-endif
-

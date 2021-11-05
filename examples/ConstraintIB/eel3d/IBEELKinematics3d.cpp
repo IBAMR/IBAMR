@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2020 by the IBAMR developers
+// Copyright (c) 2014 - 2021 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -18,12 +18,10 @@
 #include "CartesianPatchGeometry.h"
 #include "IBEELKinematics3d.h"
 #include "PatchLevel.h"
-#include "gsl/gsl_integration.h"
-#include "gsl/gsl_linalg.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/Utilities.h"
 
-#include "muParser.h"
+#include <boost/math/quadrature/gauss_kronrod.hpp>
 
 #include <cmath>
 #include <iostream>
@@ -335,13 +333,6 @@ IBEELKinematics3d::setEelSpecificVelocity(const double time,
     int lag_idx = 0;
 
     double input[7];
-    double dydt, dxdt, errory, errorx;
-    size_t nevalsy, nevalsx;
-    gsl_function Fx, Fy;
-    Fx.function = xVelocity;
-    Fx.params = input;
-    Fy.function = yVelocity;
-    Fy.params = input;
 
     input[0] = d_interp_coefs[0];
     input[1] = d_interp_coefs[1];
@@ -362,8 +353,13 @@ IBEELKinematics3d::setEelSpecificVelocity(const double time,
             const double depth = d_IBWidthHeight[i - 1].second;
             const double S = (i - 1) * d_mesh_width[0];
 
-            gsl_integration_qng(&Fx, 0, S, 1e-8, 0.0, &dxdt, &errorx, &nevalsx);
-            gsl_integration_qng(&Fy, 0, S, 1e-8, 0.0, &dydt, &errory, &nevalsy);
+            auto f_x = [&](const double x) { return xVelocity(x, input); };
+
+            auto f_y = [&](const double y) { return yVelocity(y, input); };
+
+            namespace bmq = boost::math::quadrature;
+            const double dxdt = bmq::gauss_kronrod<double, 15>::integrate(f_x, 0.0, S, 15, 1e-12, nullptr);
+            const double dydt = bmq::gauss_kronrod<double, 15>::integrate(f_y, 0.0, S, 15, 1e-12, nullptr);
 
             vec_vel[0] = dxdt * (std::cos(angleFromHorizontal)) + dydt * (-std::sin(angleFromHorizontal));
             vec_vel[1] = dydt * (std::cos(angleFromHorizontal)) + dxdt * (std::sin(angleFromHorizontal));
@@ -438,15 +434,6 @@ IBEELKinematics3d::setShape(const double time, const std::vector<double>& increm
         input[5] = d_new_time;
         input[6] = d_time_period;
 
-        gsl_function Fx, Fy;
-        Fx.function = xPosition;
-        Fx.params = input;
-        Fy.function = yPosition;
-        Fy.params = input;
-
-        double ybase, xbase, errory, errorx;
-        size_t nevalsy, nevalsx;
-
         // Find the deformed shape. Rotate the shape about center of mass.
         std::vector<double> shape_new(NDIM);
         int lag_idx = -1;
@@ -461,8 +448,13 @@ IBEELKinematics3d::setShape(const double time, const std::vector<double>& increm
                 const double depth = d_IBWidthHeight[i - 1].second;
                 const double S = (i - 1) * d_mesh_width[0];
 
-                gsl_integration_qng(&Fx, 0, S, 1e-8, 0.0, &xbase, &errorx, &nevalsx);
-                gsl_integration_qng(&Fy, 0, S, 1e-8, 0.0, &ybase, &errory, &nevalsy);
+                auto f_x = [&](const double x) { return xPosition(x, input); };
+
+                auto f_y = [&](const double y) { return yPosition(y, input); };
+
+                namespace bmq = boost::math::quadrature;
+                const double xbase = bmq::gauss_kronrod<double, 15>::integrate(f_x, 0.0, S, 15, 1e-12, nullptr);
+                const double ybase = bmq::gauss_kronrod<double, 15>::integrate(f_y, 0.0, S, 15, 1e-12, nullptr);
 
                 // Fill the middle line first.
                 for (int k = -NumPtsInHeight; k <= NumPtsInHeight; ++k)

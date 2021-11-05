@@ -201,7 +201,7 @@ dnl: "''
 dnl Older versions of libMesh do not define LIBMESH_HAVE_EXTERNAL_BOOST so we check manually
 dnl to see if a sufficient version of boost is bundled or not
   if test -e "$LIBMESH_DIR/include/boost/"; then
-      if test -e "$LIBMESH_DIR/include/boost/multi_array.hpp"; then
+      if test -e "$LIBMESH_DIR/include/boost/multi_array.hpp" -a -e "$LIBMESH_DIR/include/boost/math/quadrature/gauss_kronrod.hpp"; then
           # ok: perhaps libMesh is installed in /usr/
           :
       else

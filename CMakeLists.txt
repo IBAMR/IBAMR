@@ -124,7 +124,7 @@ FOREACH(_root ${_required_roots})
   ENDIF()
 ENDFOREACH()
 
-SET(_optional_roots "GSL_ROOT" "LIBMESH_ROOT" "NUMDIFF_ROOT" "SILO_ROOT" "ZLIB_ROOT")
+SET(_optional_roots "LIBMESH_ROOT" "NUMDIFF_ROOT" "SILO_ROOT" "ZLIB_ROOT")
 FOREACH(_root ${_optional_roots})
   IF("${${_root}}" STREQUAL "")
     MESSAGE(STATUS "${_root} was not provided to CMake: since this is an \
@@ -172,12 +172,18 @@ MESSAGE(STATUS "MPI_C_LIBRARIES: ${MPI_C_LIBRARIES}")
 #
 MESSAGE(STATUS "")
 MESSAGE(STATUS "Setting up Boost")
+# In case we want to depend on boost later on - define an interface library that
+# will resolve to the correct (bundled or external) boost. This makes it easy
+# to set things up that depend on boost but not IBAMR.
+ADD_LIBRARY(BOOST_INTERFACE INTERFACE)
+SET_PROPERTY(TARGET BOOST_INTERFACE PROPERTY CXX_STANDARD 11)
+TARGET_COMPILE_FEATURES(BOOST_INTERFACE INTERFACE cxx_std_11)
 IF(${IBAMR_FORCE_BUNDLED_BOOST})
   SET(IBAMR_USE_BUNDLED_BOOST TRUE)
 ELSE()
   # set up the root with the proper package name too
   SET(Boost_ROOT ${BOOST_ROOT})
-  FIND_PACKAGE(Boost 1.57 QUIET)
+  FIND_PACKAGE(Boost 1.66 QUIET)
   IF(${Boost_FOUND})
     SET(IBAMR_USE_BUNDLED_BOOST FALSE)
   ELSE()
@@ -186,6 +192,7 @@ ELSE()
 ENDIF()
 IF(NOT ${IBAMR_USE_BUNDLED_BOOST})
   MESSAGE(STATUS "Found external boost ${Boost_VERSION} at ${Boost_INCLUDE_DIRS}")
+  TARGET_LINK_LIBRARIES(BOOST_INTERFACE INTERFACE Boost::headers)
 ELSE()
   MESSAGE(STATUS "Setting up boost as a bundled dependency")
   ADD_LIBRARY(BUNDLED_BOOST INTERFACE)
@@ -195,6 +202,9 @@ ELSE()
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/contrib/boost>)
   INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/boost DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib)
   INSTALL(TARGETS BUNDLED_BOOST EXPORT IBAMRTargets)
+  # The bundled version doesn't compile anything so always set the no-lib mode
+  SET_TARGET_PROPERTIES(BUNDLED_BOOST PROPERTIES INTERFACE_COMPILE_DEFINITIONS "BOOST_ALL_NO_LIB")
+  TARGET_LINK_LIBRARIES(BOOST_INTERFACE INTERFACE BUNDLED_BOOST)
 ENDIF()
 
 #
@@ -701,18 +711,6 @@ of SILO_ROOT and rerun CMake.")
   ENDIF()
 ELSE()
   MESSAGE(STATUS "SILO_ROOT was not specified so IBAMR will be configured without it.")
-ENDIF()
-
-MESSAGE(STATUS "")
-SET(IBAMR_HAVE_GSL FALSE)
-IF(NOT "${GSL_ROOT}" STREQUAL "")
-  MESSAGE(STATUS "Setting up GSL")
-  # GSL has not yet been updated to the modern convention so help it
-  SET(GSL_ROOT_DIR GSL_ROOT)
-  FIND_PACKAGE(GSL)
-  IF(GSL_FOUND)
-    SET(IBAMR_HAVE_GSL TRUE)
-  ENDIF()
 ENDIF()
 
 # ---------------------------------------------------------------------------- #

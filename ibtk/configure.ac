@@ -83,7 +83,7 @@ echo "=================================="
 echo "Configuring required package Boost"
 echo "=================================="
 AC_MSG_NOTICE([first check for a system Boost library; if not found, revert to bundled Boost library])
-BOOST_REQUIRE([1.57.0],[
+BOOST_REQUIRE([1.66.0],[
   AC_MSG_WARN([could not find system Boost library, using bundled Boost library])
   USING_BUNDLED_BOOST=yes])
 
@@ -98,7 +98,6 @@ CONFIGURE_BOOST("$ABSOLUTE_SRCDIR/contrib/boost","\$(abs_top_builddir)/contrib/b
 CONFIGURE_EIGEN("$ABSOLUTE_SRCDIR/contrib/eigen","\$(abs_top_builddir)/contrib/eigen")
 CONFIGURE_HDF5
 CONFIGURE_HYPRE
-CONFIGURE_GSL
 CONFIGURE_MUPARSER("$ABSOLUTE_SRCDIR/contrib/muparser","\$(abs_top_builddir)/contrib/muparser")
 # configure dependencies of dependencies:
 CONFIGURE_SILO
