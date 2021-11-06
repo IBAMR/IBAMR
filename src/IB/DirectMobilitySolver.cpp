@@ -707,9 +707,15 @@ DirectMobilitySolver::computeSolution(Mat& mat, const MobilityMatrixInverseType&
     MatGetSize(mat, &mat_size, nullptr);
     MatDenseGetArray(mat, &mat_data);
     using MatrixType = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
-    Eigen::Map<MatrixType> mat_view(mat_data, Eigen::Index(mat_size), Eigen::Index(mat_size));
+    // Older versions of Eigen don't make Eigen::Index publicly available
+#if EIGEN_VERSION_AT_LEAST(3, 3, 0)
+    using IndexType = Eigen::Index;
+#else
+    using IndexType = typename MatrixType::Index;
+#endif
+    Eigen::Map<MatrixType> mat_view(mat_data, IndexType(mat_size), IndexType(mat_size));
     using VectorType = Eigen::Matrix<double, Eigen::Dynamic, 1>;
-    Eigen::Map<VectorType> rhs_view(rhs, Eigen::Index(mat_size), Eigen::Index(1));
+    Eigen::Map<VectorType> rhs_view(rhs, IndexType(mat_size), IndexType(1));
 
     int err = 0;
     if (inv_type == LAPACK_CHOLESKY)
