@@ -717,7 +717,6 @@ DirectMobilitySolver::computeSolution(Mat& mat, const MobilityMatrixInverseType&
     using VectorType = Eigen::Matrix<double, Eigen::Dynamic, 1>;
     Eigen::Map<VectorType> rhs_view(rhs, IndexType(mat_size), IndexType(1));
 
-    int err = 0;
     if (inv_type == LAPACK_CHOLESKY)
     {
         rhs_view = mat_view.triangularView<Eigen::Lower>().solve(rhs_view);
