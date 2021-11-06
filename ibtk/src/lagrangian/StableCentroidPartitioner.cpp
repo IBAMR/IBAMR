@@ -21,6 +21,7 @@
 #include <libmesh/elem.h>
 #include <libmesh/id_types.h>
 #include <libmesh/libmesh_config.h>
+#include <libmesh/libmesh_version.h>
 #include <libmesh/mesh_base.h>
 #include <libmesh/point.h>
 
@@ -50,7 +51,7 @@ StableCentroidPartitioner::_do_partition(MeshBase& mesh, const unsigned int n)
 {
     // We assume every cell is on every processor: this function is only in
     // libMesh 1.2.0 and newer
-#if 1 < LIBMESH_MINOR_VERSION
+#if !LIBMESH_VERSION_LESS_THAN(1, 2, 0)
     TBOX_ASSERT(mesh.is_replicated());
 #endif
     // only implemented when we use SAMRAI's partitioning
@@ -60,7 +61,11 @@ StableCentroidPartitioner::_do_partition(MeshBase& mesh, const unsigned int n)
     auto el_end = mesh.elements_end();
     for (auto it = mesh.elements_begin(); it != el_end; ++it)
     {
+#if LIBMESH_VERSION_LESS_THAN(1, 7, 0)
         const libMesh::Point centroid = (*it)->centroid();
+#else
+        const libMesh::Point centroid = (*it)->vertex_average();
+#endif
 
         std::array<float, LIBMESH_DIM> rounded_centroid = { 0.0f };
         for (unsigned int d = 0; d < LIBMESH_DIM; ++d)
