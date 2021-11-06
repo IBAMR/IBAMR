@@ -11,6 +11,6 @@
 ##
 ## ---------------------------------------------------------------------
 
-FOREACH(_dir ex0)
+FOREACH(_dir ex0 ex1)
   ADD_SUBDIRECTORY(${_dir})
 ENDFOREACH()

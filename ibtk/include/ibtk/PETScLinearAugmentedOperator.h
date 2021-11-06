@@ -43,7 +43,7 @@ namespace IBTK
  * \brief Class PETScLinearAugmentedOperator provides an abstract interface for the specification of linear operators to
  * compute \f$y = Ax\f$ and \f$z=Ax+y\f$ where \f$x \f$ contains both Eulerian degrees of freedom and extra "augmented"
  * degrees of freedom. When used with PETScAugmentedKrylovLinearSolver, d_aug_x_vec is set before any call to a linear
- * operator function. Implementations should fill appropriate data in d_aug_b_vec.
+ * operator function. Implementations should fill appropriate data in d_aug_y_vec.
  *
  * \see PETScAugmentedKyrlovLinearSolver
  */
@@ -73,7 +73,7 @@ public:
     /*!
      * \brief Set the augmented RHS vec.
      *
-     * This function is used to modify the vector for boundary conditions. The modified vector is stored in d_aug_b_vec.
+     * This function is used to modify the vector for boundary conditions. The modified vector is stored in d_aug_y_vec.
      */
     virtual void setAugmentedRhsForBcs(Vec& aug_y);
 
@@ -109,7 +109,7 @@ public:
 
     //\}
 protected:
-    Vec d_aug_x_vec = nullptr, d_aug_b_vec = nullptr;
+    Vec d_aug_x_vec = nullptr, d_aug_y_vec = nullptr, d_aug_rhs_y_vec = nullptr;
 
 private:
     /*!

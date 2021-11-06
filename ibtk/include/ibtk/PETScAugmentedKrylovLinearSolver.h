@@ -124,15 +124,13 @@ public:
      */
     //\{
     /*!
-     * \brief Set the augmented matrix. Note that the matrix should be set up to take a nested Vec containing Eulerian
-     * dofs and augmented dofs, and return the action on the augmented DOFs.
+     * \brief Set the augmented RHS vector. This vector sets up the data structure used to populate the solution.
      */
     void setAugmentedRHS(const Vec& vec);
-
     /*!
-     * \brief Set the augmented vector. Note that the Vec sets up the internal data structures.
+     * \brief Set the initial guess vector. If this is not set, a zero solution is used.
      */
-    void setAugmentedVec(const Vec& vec);
+    void setInitialGuess(const Vec& vec);
     //\}
 
     /*!
@@ -145,8 +143,9 @@ public:
      */
     const KSP& getPETScKSP() const;
 
-    const Mat& getAugmentedMat() const;
-
+    /*!
+     * \brief Get the augmented solution vector.
+     */
     const Vec& getAugmentedVec() const;
     //\}
 
@@ -157,6 +156,8 @@ public:
 
     /*!
      * \brief Set the linear operator used when solving \f$Ax=b\f$.
+     *
+     * \note The operator must be an implementation of PETScLinearAugmentedOperator.
      */
     void setOperator(SAMRAI::tbox::Pointer<LinearOperator> A) override;
 
@@ -374,7 +375,7 @@ private:
 
     // Data structures for augmented DOFs
     // Note the Mat takes in a nested vec and returns an Augmented vector.
-    Vec d_aug_vec, d_aug_x, d_aug_b;
+    Vec d_aug_vec = nullptr, d_aug_x = nullptr, d_aug_b = nullptr;
 
     std::string d_options_prefix;
 

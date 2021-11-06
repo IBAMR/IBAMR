@@ -136,11 +136,9 @@ PETScAugmentedKrylovLinearSolver::setAugmentedRHS(const Vec& vec)
 }
 
 void
-PETScAugmentedKrylovLinearSolver::setAugmentedVec(const Vec& vec)
+PETScAugmentedKrylovLinearSolver::setInitialGuess(const Vec& vec)
 {
     d_aug_vec = vec;
-    int ierr = VecCopy(d_aug_vec, d_aug_x);
-    IBTK_CHKERRQ(ierr);
 }
 
 const KSP&
@@ -152,7 +150,7 @@ PETScAugmentedKrylovLinearSolver::getPETScKSP() const
 const Vec&
 PETScAugmentedKrylovLinearSolver::getAugmentedVec() const
 {
-    return d_aug_vec;
+    return d_aug_x;
 }
 
 void
@@ -164,7 +162,6 @@ PETScAugmentedKrylovLinearSolver::setOperator(Pointer<LinearOperator> A)
         TBOX_ERROR(d_object_name + "::setOperator: The linear operator must be a PETScLinearAugmentedOperator\n");
 #endif
     KrylovLinearSolver::setOperator(A);
-    resetKSPOperators();
     return;
 } // setOperator
 
@@ -210,15 +207,18 @@ PETScAugmentedKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
     A_op->setHomogeneousBc(d_homogeneous_bc);
     A_op->setAugmentedRhsForBcs(d_aug_b);
     A_op->modifyRhsForBcs(*d_b);
-    d_aug_b = A_op->getAugmentedVec();
     d_A->setHomogeneousBc(true);
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_eul_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
     PETScSAMRAIVectorReal::replaceSAMRAIVector(d_eul_b, d_b);
     // Create nested vec
+    ierr = VecCopy(d_aug_vec, d_aug_x);
+    IBTK_CHKERRQ(ierr);
     Vec petsc_b, petsc_x;
     std::array<Vec, 2> b_blocks = { d_eul_b, d_aug_b }, x_blocks = { d_eul_x, d_aug_x };
-    VecCreateNest(d_petsc_comm, /*num nested blocks*/ 2, nullptr, b_blocks.data(), &petsc_b);
-    VecCreateNest(d_petsc_comm, /*num nested blocks*/ 2, nullptr, x_blocks.data(), &petsc_x);
+    ierr = VecCreateNest(d_petsc_comm, /*num nested blocks*/ 2, nullptr, b_blocks.data(), &petsc_b);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecCreateNest(d_petsc_comm, /*num nested blocks*/ 2, nullptr, x_blocks.data(), &petsc_x);
+    IBTK_CHKERRQ(ierr);
     ierr = KSPSolve(d_petsc_ksp, petsc_b, petsc_x);
     IBTK_CHKERRQ(ierr);
     A_op->setHomogeneousBc(d_homogeneous_bc);
@@ -236,7 +236,7 @@ PETScAugmentedKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
     ierr = KSPGetConvergedReason(d_petsc_ksp, &reason);
     IBTK_CHKERRQ(ierr);
     const bool converged = (static_cast<int>(reason) > 0);
-    if (d_enable_logging) reportPETScKSPConvergedReason(d_object_name, reason, plog);
+    reportPETScKSPConvergedReason(d_object_name, reason, plog);
 
     // Deallocate the solver, when necessary.
     if (deallocate_after_solve) deallocateSolverState();
@@ -312,18 +312,45 @@ PETScAugmentedKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<N
     IBTK_CHKERRQ(ierr);
     resetKSPOptions();
 
+    // Set PC type to be none for KSP
+    PC petsc_pc;
+    ierr = KSPGetPC(d_petsc_ksp, &petsc_pc);
+    IBTK_CHKERRQ(ierr);
+    ierr = PCSetType(petsc_pc, PCNONE);
+    IBTK_CHKERRQ(ierr);
+
     // Setup solution and rhs vectors.
     d_x = x.cloneVector(x.getName());
-    d_petsc_x = PETScSAMRAIVectorReal::createPETScVector(d_x, d_petsc_comm);
+    d_eul_x = PETScSAMRAIVectorReal::createPETScVector(d_x, d_petsc_comm);
 
     d_b = b.cloneVector(b.getName());
-    d_petsc_b = PETScSAMRAIVectorReal::createPETScVector(d_b, d_petsc_comm);
+    d_eul_b = PETScSAMRAIVectorReal::createPETScVector(d_b, d_petsc_comm);
+
+    // Setup augmented solution
+    if (d_aug_vec)
+    {
+        ierr = VecDuplicate(d_aug_vec, &d_aug_x);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecCopy(d_aug_vec, d_aug_x);
+        IBTK_CHKERRQ(ierr);
+    }
+    else
+    {
+        ierr = VecDuplicate(d_aug_b, &d_aug_x);
+        IBTK_CHKERRQ(ierr);
+        // Setup zero initial guess
+        ierr = VecZeroEntries(d_aug_x);
+        IBTK_CHKERRQ(ierr);
+    }
 
     // Allocate scratch data.
     d_b->allocateVectorData();
 
     // Initialize the linear operator and preconditioner objects.
-    if (d_A) d_A->initializeOperatorState(*d_x, *d_b);
+    // Before we initialize, we need to set up augmented vector
+    Pointer<PETScLinearAugmentedOperator> A_aug = d_A;
+    A_aug->setAugmentedVec(d_aug_x);
+    d_A->initializeOperatorState(*d_x, *d_b);
     resetKSPOperators();
 
     if (d_pc_solver) d_pc_solver->initializeSolverState(*d_x, *d_b);
@@ -464,8 +491,17 @@ PETScAugmentedKrylovLinearSolver::resetKSPOperators()
     }
     if (!d_petsc_mat)
     {
-        ierr = MatCreateShell(
-            d_petsc_comm, 1, 1, PETSC_DETERMINE, PETSC_DETERMINE, static_cast<void*>(this), &d_petsc_mat);
+        // Note we need the augmented vectors set at this point
+        int aug_size;
+        ierr = VecGetLocalSize(d_aug_b, &aug_size);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatCreateShell(d_petsc_comm,
+                              aug_size + 1,
+                              aug_size + 1,
+                              PETSC_DETERMINE,
+                              PETSC_DETERMINE,
+                              static_cast<void*>(this),
+                              &d_petsc_mat);
         IBTK_CHKERRQ(ierr);
     }
     ierr = MatShellSetOperation(
@@ -522,6 +558,7 @@ PETScAugmentedKrylovLinearSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
     // Pull out the two blocks
     // First element : Eulerian Vec
     // Second element: Augmented Vec
+
     std::array<Vec, 2> x_vecs, y_vecs;
     for (unsigned int i = 0; i < 2; ++i)
     {
@@ -536,9 +573,11 @@ PETScAugmentedKrylovLinearSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
     PETScSAMRAIVectorReal::getSAMRAIVector(y_vecs[0], &samrai_y);
     A_op->setAugmentedVec(x_vecs[1]);
     A_op->apply(*samrai_x, *samrai_y);
-    y_vecs[1] = A_op->getAugmentedVec();
-    PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(x, &samrai_x);
-    PETScSAMRAIVectorReal::restoreSAMRAIVector(y, &samrai_y);
+    const Vec& temp_y_vec = A_op->getAugmentedVec();
+    ierr = VecCopy(temp_y_vec, y_vecs[1]);
+    IBTK_CHKERRQ(ierr);
+    PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(x_vecs[0], &samrai_x);
+    PETScSAMRAIVectorReal::restoreSAMRAIVector(y_vecs[0], &samrai_y);
 
     PetscFunctionReturn(0);
 } // MatVecMult_SAMRAI

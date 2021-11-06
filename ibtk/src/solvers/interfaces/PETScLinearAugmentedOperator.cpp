@@ -61,18 +61,18 @@ PETScLinearAugmentedOperator::setAugmentedVec(const Vec& vec)
 const Vec&
 PETScLinearAugmentedOperator::getAugmentedVec() const
 {
-    return d_aug_b_vec;
+    return d_aug_y_vec;
 }
 
 /*!
  * \brief Set the augmented RHS vec.
  *
- * This function is used to modify the vector for boundary conditions. The modified vector is stored in d_aug_b_vec.
+ * This function is used to modify the vector for boundary conditions. The modified vector is stored in d_aug_y_vec.
  */
 void
 PETScLinearAugmentedOperator::setAugmentedRhsForBcs(Vec& aug_y)
 {
-    d_aug_x_vec = aug_y;
+    d_aug_rhs_y_vec = aug_y;
 }
 
 void
@@ -89,26 +89,27 @@ PETScLinearAugmentedOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
     b->allocateVectorData();
     x->setToScalar(0.0);
     // Prepare copies for augmented data.
-    Vec temp_x_copy, temp_b_copy;
-    int ierr = VecCopy(temp_x_copy, d_aug_x_vec);
+    Vec temp_x_copy;
+
+    int ierr = VecDuplicate(d_aug_x_vec, &temp_x_copy);
     IBTK_CHKERRQ(ierr);
-    ierr = VecCopy(temp_b_copy, d_aug_b_vec);
+    ierr = VecCopy(d_aug_x_vec, temp_x_copy);
     IBTK_CHKERRQ(ierr);
-    ierr = VecScale(d_aug_x_vec, 0.0);
+    ierr = VecZeroEntries(d_aug_x_vec);
     IBTK_CHKERRQ(ierr);
-    // Apply the operator. Note that apply() also works on d_aug_x_vec and d_aug_b_vec.
+    // Apply the operator. Note that apply() also works on d_aug_x_vec and d_aug_y_vec.
     apply(*x, *b);
     // Now subtract y from the result.
     y.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false), b);
-    // And subtract d_aug_b_vec from temp_x_copy.
-    ierr = VecAYPX(d_aug_b_vec, -1.0, temp_b_copy);
+    // And subtract d_aug_y_vec from temp_y_copy.
+    ierr = VecAXPY(d_aug_rhs_y_vec, -1.0, d_aug_y_vec);
     IBTK_CHKERRQ(ierr);
     // Now reset and free the vectors
     x->freeVectorComponents();
     b->freeVectorComponents();
     ierr = VecCopy(temp_x_copy, d_aug_x_vec);
     IBTK_CHKERRQ(ierr);
-    ierr = VecDestroy(&temp_b_copy);
+    ierr = VecDestroy(&temp_x_copy);
     IBTK_CHKERRQ(ierr);
     return;
 } // modifyRhsForBcs
