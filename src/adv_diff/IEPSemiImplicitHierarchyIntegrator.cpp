@@ -2216,11 +2216,11 @@ IEPSemiImplicitHierarchyIntegrator::computeInterpolationFunction(int p_firstder_
                 const double lf = (*lf_data)(ci);
                 const double T = (*T_data)(ci);
 
-                if (lf == 1.0 && T <= d_T_melt)
+                if (MathUtilities<double>::equalEps(lf, 1.0) && T <= d_T_melt)
                 {
                     (*p_firstder_data)(ci) = 1.0;
                 }
-                else if (lf == 0.0 && T >= d_T_melt)
+                else if (MathUtilities<double>::equalEps(lf, 0.0) && T >= d_T_melt)
                 {
                     (*p_firstder_data)(ci) = 1.0;
                 }
