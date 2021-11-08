@@ -159,6 +159,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp \
 ../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp \
 ../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp \
+../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp \
 ../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp \
 ../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp \
 ../src/navier_stokes/SpongeLayerForceFunction.cpp \
@@ -308,6 +309,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 ../include/ibamr/KrylovMobilitySolver.h \
 ../include/ibamr/LSInitStrategy.h \
+../include/ibamr/MarangoniSurfaceTensionForceFunction.h \
 ../include/ibamr/MassIntegrator.h \
 ../include/ibamr/MobilityFunctions.h \
 ../include/ibamr/NonbondedForceEvaluator.h \
