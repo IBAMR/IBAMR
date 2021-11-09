@@ -557,6 +557,9 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
     //        var_db->registerVariableAndContext(d_chemical_potential_var, getCurrentContext(), cell_ghosts);
     registerVariable(d_chemical_potential_idx, d_chemical_potential_var, no_ghosts, getCurrentContext());
 
+    d_lf_diffusion_var = new CellVariable<NDIM, double>("liquid_fraction_diffusion_var");
+    registerVariable(d_lf_diffusion_idx, d_lf_diffusion_var, no_ghosts, getCurrentContext());
+
     if (d_visit_writer && d_solve_mass_conservation)
     {
         d_visit_writer->registerPlotQuantity("zeta", "SCALAR", d_chemical_potential_idx);
@@ -569,7 +572,14 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
     d_grad_lf_idx =
         var_db->registerVariableAndContext(d_grad_lf_var, var_db->getContext(d_object_name + "grad_lf::SCRATCH"));
 
-    d_H_sc_idx = var_db->registerVariableAndContext(d_grad_lf_var, var_db->getContext(d_object_name + "H_sc::SCRATCH"));
+    d_grad_H_var = new SideVariable<NDIM, double>(d_object_name + "::grad_H");
+    d_grad_H_idx =
+        var_db->registerVariableAndContext(d_grad_H_var, var_db->getContext(d_object_name + "grad_H::SCRATCH"));
+
+    d_H_sc_idx = var_db->registerVariableAndContext(d_grad_H_var, var_db->getContext(d_object_name + "H_sc::SCRATCH"));
+
+    d_lf_sc_idx =
+        var_db->registerVariableAndContext(d_grad_lf_var, var_db->getContext(d_object_name + "lf_sc::SCRATCH"));
 
     if (d_visit_writer)
     {
@@ -695,6 +705,8 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
         if (!level->checkAllocated(d_lf_pre_idx)) level->allocatePatchData(d_lf_pre_idx, current_time);
         if (!level->checkAllocated(d_grad_lf_idx)) level->allocatePatchData(d_grad_lf_idx, current_time);
         if (!level->checkAllocated(d_H_sc_idx)) level->allocatePatchData(d_H_sc_idx, current_time);
+        if (!level->checkAllocated(d_grad_H_idx)) level->allocatePatchData(d_grad_H_idx, current_time);
+        if (!level->checkAllocated(d_lf_sc_idx)) level->allocatePatchData(d_lf_sc_idx, current_time);
         if (!level->checkAllocated(d_H_pre_idx)) level->allocatePatchData(d_H_pre_idx, current_time);
     }
 
@@ -1343,7 +1355,7 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
     const int lf_F_new_idx = var_db->mapVariableAndContextToIndex(d_lf_F_var, getNewContext());
 
     computeInterpolationFunction(d_p_firstder_idx, d_lf_new_idx, d_T_new_idx);
-    computeLiquidFractionSourceTerm(lf_F_scratch_idx, dt);
+    computeLiquidFractionSourceTerm(lf_F_scratch_idx, dt, new_time);
 
     if (d_lf_u_var)
     {
@@ -1713,6 +1725,8 @@ IEPSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
         level->deallocatePatchData(d_lf_pre_idx);
         level->deallocatePatchData(d_grad_lf_idx);
         level->deallocatePatchData(d_H_sc_idx);
+        level->deallocatePatchData(d_grad_H_idx);
+        level->deallocatePatchData(d_lf_sc_idx);
         level->deallocatePatchData(d_H_pre_idx);
     }
 
@@ -2321,12 +2335,57 @@ IEPSemiImplicitHierarchyIntegrator::interpolateCCToSCHarmonic(int sc_idx, const 
 } // interpolateCCTOSCHarmonic
 
 void
-IEPSemiImplicitHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratch_idx, const double dt)
+IEPSemiImplicitHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratch_idx,
+                                                                    const double dt,
+                                                                    const double new_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getNewContext());
+    int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getScratchContext());
     int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
+    int H_scratch_idx = var_db->mapVariableAndContextToIndex(d_H_var, getScratchContext());
+
+    // Filling ghost cells for heaviside and liquid fraction.
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> transaction_comps(2);
+    transaction_comps[0] = InterpolationTransactionComponent(lf_scratch_idx,
+                                                             lf_new_idx,
+                                                             "CONSERVATIVE_LINEAR_REFINE",
+                                                             false,
+                                                             "CONSERVATIVE_COARSEN",
+                                                             "LINEAR",
+                                                             false,
+                                                             d_lf_bc_coef);
+
+    transaction_comps[1] = InterpolationTransactionComponent(H_scratch_idx,
+                                                             H_new_idx,
+                                                             "CONSERVATIVE_LINEAR_REFINE",
+                                                             false,
+                                                             "CONSERVATIVE_COARSEN",
+                                                             "LINEAR",
+                                                             false,
+                                                             d_lf_bc_coef);
+
+    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    hier_bdry_fill->initializeOperatorState(transaction_comps, d_hierarchy);
+    hier_bdry_fill->fillData(new_time);
+
+    // perform gradient of heaviside.
+    d_hier_math_ops->grad(d_grad_H_idx, d_grad_H_var, true, 1.0, H_scratch_idx, d_H_var, nullptr, new_time);
+
+    // compute lf*D*grad_H.
+    d_hier_sc_data_ops->scale(d_grad_H_idx, d_H_diffusion_coefficient, d_grad_H_idx);
+
+    interpolateCCToSC(d_lf_sc_idx, lf_scratch_idx);
+    d_hier_sc_data_ops->multiply(d_grad_H_idx, d_lf_sc_idx, d_grad_H_idx);
+
+    // compute div(lf*D*grad_H).
+    d_hier_math_ops->div(
+        d_lf_diffusion_idx, d_lf_diffusion_var, 1.0, d_grad_H_idx, d_grad_H_var, nullptr, new_time, false);
+
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -2343,6 +2402,7 @@ IEPSemiImplicitHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratc
             Pointer<CellData<NDIM, double> > F_data = patch->getPatchData(F_scratch_idx);
             Pointer<CellData<NDIM, double> > g_firstder_data = patch->getPatchData(d_g_firstder_idx);
             Pointer<CellData<NDIM, double> > g_secondder_data = patch->getPatchData(d_g_secondder_idx);
+            Pointer<CellData<NDIM, double> > lf_diffusion_data = patch->getPatchData(d_lf_diffusion_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
@@ -2350,8 +2410,10 @@ IEPSemiImplicitHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratc
 
                 double F = -d_M_lf * d_rho_liquid * d_latent_heat * (*H_data)(ci) * (*p_firstder_data)(ci) *
                            (d_T_melt - (*T_data)(ci)) / d_T_melt;
-                (*F_data)(ci) = F - (d_M_lf * d_lambda_lf * (*H_data)(ci) / std::pow(d_eta_lf, 2.0) *
-                                     ((*g_firstder_data)(ci) - ((*g_secondder_data)(ci) * (*lf_data)(ci))));
+                (*F_data)(ci) = F -
+                                (d_M_lf * d_lambda_lf * (*H_data)(ci) / std::pow(d_eta_lf, 2.0) *
+                                 ((*g_firstder_data)(ci) - ((*g_secondder_data)(ci) * (*lf_data)(ci)))) +
+                                (*lf_diffusion_data)(ci);
 
                 // Brinkman force
                 //                if (d_apply_brinkman) (*F_data)(ci) += d_beta / dt * (1.0 - (*H_data)(ci)) * d_lf_b;
@@ -2793,6 +2855,8 @@ IEPSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> input_db, boo
         if (input_db->keyExists("free_parameter")) d_free_parameter = input_db->getDouble("free_parameter");
         if (input_db->keyExists("eps")) d_eps = input_db->getDouble("eps");
         if (input_db->keyExists("beta")) d_beta = input_db->getDouble("beta");
+        if (input_db->keyExists("H_diffusion_coefficient"))
+            d_H_diffusion_coefficient = input_db->getDouble("H_diffusion_coefficient");
         if (input_db->keyExists("apply_brinkman")) d_apply_brinkman = input_db->getBool("apply_brinkman");
         if (input_db->keyExists("lf_brinkman_db"))
         {

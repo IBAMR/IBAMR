@@ -382,7 +382,7 @@ private:
     /*
      * \brief Compute source term of liquid fraction equation.
      */
-    void computeLiquidFractionSourceTerm(int F_scratch_idx, const double dt);
+    void computeLiquidFractionSourceTerm(int F_scratch_idx, const double dt, const double new_time);
 
     /*
      * \brief Compute source term of liquid fraction equation.
@@ -476,8 +476,9 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_g_secondder_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_p_firstder_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_chemical_potential_var, d_M_var,
-        d_updated_rho_var;
+        d_updated_rho_var, d_lf_diffusion_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_lf_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_H_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_U_old_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_cp_old_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_old_var;
@@ -534,7 +535,7 @@ private:
     TimeSteppingType d_T_convective_time_stepping_type = d_default_convective_time_stepping_type;
     TimeSteppingType d_T_init_convective_time_stepping_type = d_default_convective_time_stepping_type;
 
-    bool d_apply_brinkman = true, d_add_diffusion = false;
+    bool d_apply_brinkman = false, d_add_diffusion = false;
 
     bool d_rho_output, d_Cp_output;
 
@@ -603,7 +604,8 @@ private:
     int d_g_firstder_idx = IBTK::invalid_index, d_g_secondder_idx = IBTK::invalid_index,
         d_p_firstder_idx = IBTK::invalid_index;
     int d_chemical_potential_idx = IBTK::invalid_index, d_grad_lf_idx = IBTK::invalid_index,
-        d_H_sc_idx = IBTK::invalid_index, d_M_idx = IBTK::invalid_index;
+        d_lf_sc_idx = IBTK::invalid_index, d_grad_H_idx = IBTK::invalid_index, d_H_sc_idx = IBTK::invalid_index,
+        d_M_idx = IBTK::invalid_index, d_lf_diffusion_idx = IBTK::invalid_index;
     int d_updated_rho_cc_idx = IBTK::invalid_index;
     int d_T_lf_N_scratch_idx = IBTK::invalid_index;
 
@@ -620,7 +622,7 @@ private:
     /*!
      * Parameters related to additional diffusion term in Allen-Cahn equation.
      */
-    double d_free_parameter = 1.0, d_eps = 1.0e-8;
+    double d_free_parameter = 1.0, d_eps = 1.0e-8, d_H_diffusion_coefficient = 1e-5;
 
     /*!
      * Energy equation parameters.
