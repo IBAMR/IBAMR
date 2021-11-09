@@ -210,15 +210,15 @@ ENDIF()
 
 
 # IIM:
-IF(IBAMR_HAVE_LIBMESH)
+IF(${IBAMR_HAVE_LIBMESH})
 
-  SETUP_2D(IIM poiseuille_flow.cpp)
-  SETUP_2D(IIM taylor_couette_2d.cpp)
-  SETUP_2D(IIM flow_past_cylinder.cpp)
+  SETUP(IIM poiseuille_flow.cpp IBAMR2d)
+  SETUP(IIM taylor_couette_2d.cpp IBAMR2d)
+  SETUP(IIM flow_past_cylinder.cpp IBAMR2d)
 
-  SETUP_3D(IIM hagen_poiseuille_flow.cpp)
-  SETUP_3D(IIM taylor_couette_3d.cpp)
-  SETUP_3D(IIM flow_past_sphere.cpp)
+  SETUP(IIM hagen_poiseuille_flow.cpp IBAMR3d)
+  SETUP(IIM taylor_couette_3d.cpp IBAMR3d)
+  SETUP(IIM flow_past_sphere.cpp IBAMR3d)
 ENDIF()
 
 # IBTK:
