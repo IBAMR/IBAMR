@@ -4,10 +4,11 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // SAMRAI INCLUDES
+#include <tbox/Utilities.h>
+
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
 #include <SideData.h>
-#include <tbox/Utilities.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -15,18 +16,19 @@
 
 namespace
 {
-inline double smooth_kernel(const double r)
+inline double
+smooth_kernel(const double r)
 {
     return std::abs(r) < 1.0 ? 0.5 * (cos(M_PI * r) + 1.0) : 0.0;
 } // smooth_kernel
-}
+} // namespace
 
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
 hagen_poiseuille_FeedbackForcer::hagen_poiseuille_FeedbackForcer(const double height,
-                               const double diameter,
-                               const INSHierarchyIntegrator* fluid_solver,
-                               const Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+                                                                 const double diameter,
+                                                                 const INSHierarchyIntegrator* fluid_solver,
+                                                                 const Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
     : d_H(height), d_D(diameter), d_fluid_solver(fluid_solver), d_patch_hierarchy(patch_hierarchy)
 {
     // intentionally blank
@@ -39,17 +41,19 @@ hagen_poiseuille_FeedbackForcer::~hagen_poiseuille_FeedbackForcer()
     return;
 } // ~hagen_poiseuille_FeedbackForcer
 
-bool hagen_poiseuille_FeedbackForcer::isTimeDependent() const
+bool
+hagen_poiseuille_FeedbackForcer::isTimeDependent() const
 {
     return true;
 } // isTimeDependent
 
-void hagen_poiseuille_FeedbackForcer::setDataOnPatch(const int data_idx,
-                                                     Pointer<hier::Variable<NDIM> > /*var*/,
-                                    Pointer<Patch<NDIM> > patch,
-                                    const double /*data_time*/,
-                                    const bool initial_time,
-                                    Pointer<PatchLevel<NDIM> > /*patch_level*/)
+void
+hagen_poiseuille_FeedbackForcer::setDataOnPatch(const int data_idx,
+                                                Pointer<hier::Variable<NDIM> > /*var*/,
+                                                Pointer<Patch<NDIM> > patch,
+                                                const double /*data_time*/,
+                                                const bool initial_time,
+                                                Pointer<PatchLevel<NDIM> > /*patch_level*/)
 {
     Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
@@ -124,7 +128,7 @@ void hagen_poiseuille_FeedbackForcer::setDataOnPatch(const int data_idx,
                     {
                         const double H = d_H;
                         const double D = d_D;
-                        if ((X[1] > 0.5*H - 0.5 * D) && (X[1] < 0.5 * H + 0.5 * D))
+                        if ((X[1] > 0.5 * H - 0.5 * D) && (X[1] < 0.5 * H + 0.5 * D))
                         {
                             fac = 0.0;
                         }

@@ -13,8 +13,9 @@
 #include <ibamr/INSHierarchyIntegrator.h>
 
 // NAMESPACE
-#include <ibamr/app_namespaces.h>
 #include "ibtk/ibtk_utilities.h"
+
+#include <ibamr/app_namespaces.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -30,9 +31,9 @@ public:
      * \brief Constructor
      */
     hagen_poiseuille_FeedbackForcer(const double height,
-                   const double diameter,
-                   const INSHierarchyIntegrator* fluid_solver,
-                   Pointer<PatchHierarchy<NDIM> > patch_hierarchy);
+                                    const double diameter,
+                                    const INSHierarchyIntegrator* fluid_solver,
+                                    Pointer<PatchHierarchy<NDIM> > patch_hierarchy);
 
     /*!
      * \brief Destructor.

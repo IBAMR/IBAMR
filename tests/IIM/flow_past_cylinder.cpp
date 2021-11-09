@@ -1,6 +1,6 @@
 //  2018-2021, created by  Ebrahim (Amin) Kolahdouz
 // Flow past a stationary cylinders
-// See Sec. 4.4 of "An immersed interface method for discrete surfaces" 
+// See Sec. 4.4 of "An immersed interface method for discrete surfaces"
 //  by Ebrahim M. Kolahdouz et al., Journal of Computational Physics 400 (2020) 108854
 
 // Headers for basic SAMRAI objects
@@ -10,6 +10,11 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for basic libMesh objects
+#include "libmesh/face_tri3_subdivision.h"
+#include "libmesh/mesh_modification.h"
+#include "libmesh/mesh_refinement.h"
+#include "libmesh/mesh_subdivision_support.h"
+#include "libmesh/mesh_tools.h"
 #include <libmesh/boundary_info.h>
 #include <libmesh/boundary_mesh.h>
 #include <libmesh/equation_systems.h>
@@ -17,26 +22,22 @@
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
 #include <libmesh/mesh_triangle_interface.h>
-#include "libmesh/mesh_refinement.h"
-#include "libmesh/mesh_modification.h"
-#include "libmesh/mesh_tools.h"
-
-#include "libmesh/face_tri3_subdivision.h"
-#include "libmesh/mesh_subdivision_support.h"
 
 // Headers for application-specific algorithm/data structure objects
-#include <boost/multi_array.hpp>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IIMethod.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+
 #include <ibtk/AppInitializer.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/LEInteractor.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
-#include <ibtk/IBTKInit.h>
-#include <ibtk/IBTK_MPI.h>
+
+#include <boost/multi_array.hpp>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -110,7 +111,7 @@ tether_force_function(VectorValue<double>& F,
     }
     return;
 } // tether_force_function
-}
+} // namespace ModelData
 using namespace ModelData;
 
 // Function prototypes
@@ -141,8 +142,8 @@ main(int argc, char* argv[])
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
-    
-     PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-10");
+
+    PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-10");
     PetscOptionsSetValue(nullptr, "-stokes_ksp_atol", "1e-10");
 
     { // cleanup dynamically allocated objects prior to shutdown
@@ -242,20 +243,20 @@ main(int argc, char* argv[])
 
         bool use_boundary_mesh = true;
         Mesh& mesh = use_boundary_mesh ? boundary_mesh : solid_mesh;
-        
-        //MeshRefinement mesh_refinement (mesh);
-        //mesh_refinement.uniformly_refine (3);
-        //MeshTools::Modification::flatten (mesh);
+
+        // MeshRefinement mesh_refinement (mesh);
+        // mesh_refinement.uniformly_refine (3);
+        // MeshTools::Modification::flatten (mesh);
 
         kappa_s = input_db->getDouble("KAPPA_S");
         eta_s = input_db->getDouble("ETA_S");
-        
+
         mesh.print_info();
-        
-       // MeshTools::Subdivision::prepare_subdivision_mesh (mesh, false);
-        
+
+        // MeshTools::Subdivision::prepare_subdivision_mesh (mesh, false);
+
         // Print information about the subdivision mesh to the screen.
-       // mesh.print_info();
+        // mesh.print_info();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -281,9 +282,9 @@ main(int argc, char* argv[])
         }
         Pointer<IIMethod> ib_method_ops =
             new IIMethod("IIMethod",
-                           app_initializer->getComponentDatabase("IIMethod"),
-                           &mesh,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+                         app_initializer->getComponentDatabase("IIMethod"),
+                         &mesh,
+                         app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
@@ -305,7 +306,6 @@ main(int argc, char* argv[])
                                         error_detector,
                                         box_generator,
                                         load_balancer);
-                                        
 
         // Configure the IBFE solver.
         ib_method_ops->initializeFEEquationSystems();
@@ -407,8 +407,6 @@ main(int argc, char* argv[])
         // Open streams to save lift and drag coefficients and the norms of the
         // velocity.
 
-        
-
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -423,8 +421,7 @@ main(int argc, char* argv[])
             pout << "Simulation time is " << loop_time << "\n";
 
             dt = time_integrator->getMaximumTimeStepSize();
-            
-             
+
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
@@ -434,7 +431,6 @@ main(int argc, char* argv[])
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
 
-           
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
             // processing.
@@ -463,17 +459,16 @@ main(int argc, char* argv[])
             {
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
-            }           
+            }
         }
-        
-		 postprocess_data(patch_hierarchy,
-				  navier_stokes_integrator,
-				  mesh,
-				 equation_systems,
-				  iteration_num,
-				 loop_time,
-				  postproc_data_dump_dirname);
 
+        postprocess_data(patch_hierarchy,
+                         navier_stokes_integrator,
+                         mesh,
+                         equation_systems,
+                         iteration_num,
+                         loop_time,
+                         postproc_data_dump_dirname);
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
@@ -494,27 +489,25 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                  const double loop_time,
                  const string& /*data_dump_dirname*/)
 {
-
     const unsigned int dim = mesh.mesh_dimension();
     double F_integral[NDIM];
     double T_integral[NDIM];
     for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
     for (unsigned int d = 0; d < NDIM; ++d) T_integral[d] = 0.0;
 
-
     System& x_system = equation_systems->get_system(IIMethod::COORDS_SYSTEM_NAME);
     System& U_system = equation_systems->get_system(IIMethod::VELOCITY_SYSTEM_NAME);
     System& TAU_system = equation_systems->get_system<System>(IIMethod::TAU_OUT_SYSTEM_NAME);
-    
+
     NumericVector<double>* TAU_vec = TAU_system.solution.get();
     NumericVector<double>* TAU_ghost_vec = TAU_system.current_local_solution.get();
     TAU_vec->localize(*TAU_ghost_vec);
     DofMap& TAU_dof_map = TAU_system.get_dof_map();
     std::vector<std::vector<unsigned int> > TAU_dof_indices(NDIM);
     std::unique_ptr<FEBase> fe(FEBase::build(dim, TAU_dof_map.variable_type(0)));
-    
-     NumericVector<double>& X0_vec = x_system.get_vector("INITIAL_COORDINATES");
-    
+
+    NumericVector<double>& X0_vec = x_system.get_vector("INITIAL_COORDINATES");
+
     NumericVector<double>* x_vec = x_system.solution.get();
     NumericVector<double>* x_ghost_vec = x_system.current_local_solution.get();
     x_vec->localize(*x_ghost_vec);
@@ -530,7 +523,6 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     const vector<vector<double> >& phi = fe->get_phi();
     const vector<vector<VectorValue<double> > >& dphi = fe->get_dphi();
 
-
     std::vector<double> U_qp_vec(NDIM);
     std::vector<const std::vector<double>*> var_data(1);
     var_data[0] = &U_qp_vec;
@@ -539,7 +531,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
 
     TensorValue<double> FF_qp;
     boost::multi_array<double, 2> x_node, U_node, TAU_node, X0_node;
-    VectorValue<double> F_qp, U_qp, x_qp, W_qp, TAU_qp,N,n, X;
+    VectorValue<double> F_qp, U_qp, x_qp, W_qp, TAU_qp, N, n, X;
 
     const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
     const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
@@ -556,12 +548,11 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         get_values_for_interpolation(TAU_node, *TAU_ghost_vec, TAU_dof_indices);
         get_values_for_interpolation(U_node, *U_ghost_vec, dof_indices);
         get_values_for_interpolation(X0_node, X0_vec, dof_indices);
-        
 
         const unsigned int n_qp = qrule->n_points();
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
-			 interpolate(X, qp, X0_node, phi);
+            interpolate(X, qp, X0_node, phi);
             interpolate(x_qp, qp, x_node, phi);
             jacobian(FF_qp, qp, x_node, dphi);
             interpolate(U_qp, qp, U_node, phi);
@@ -570,25 +561,24 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
             {
                 U_qp_vec[d] = U_qp(d);
             }
-			tether_force_function(F_qp, n, N, FF_qp, x_qp, X, elem, 0, var_data, grad_var_data, loop_time, force_fcn_ctx);
+            tether_force_function(
+                F_qp, n, N, FF_qp, x_qp, X, elem, 0, var_data, grad_var_data, loop_time, force_fcn_ctx);
             for (int d = 0; d < NDIM; ++d)
             {
-                F_integral[d] +=  F_qp(d) * JxW[qp];
-				T_integral[d] += TAU_qp(d) * JxW[qp];
+                F_integral[d] += F_qp(d) * JxW[qp];
+                T_integral[d] += TAU_qp(d) * JxW[qp];
             }
-                
         }
-    
     }
     IBTK_MPI::sumReduction(F_integral, NDIM);
     IBTK_MPI::sumReduction(T_integral, NDIM);
 
-
     static const double D = 1.0;
 
-    pout << " Force components: " << 2.0 * -F_integral[0] / (0.25 * D * D * M_PI) << "\t" << 2.0 * -F_integral[1] / (0.25 * D * D * M_PI) << "\n";
-    pout << " Traction components: " << 2.0 * T_integral[0] / (0.25 * D * D * M_PI) << "\t" << 2.0 * T_integral[1] / (0.25 * D * D * M_PI) << "\n";
- 
+    pout << " Force components: " << 2.0 * -F_integral[0] / (0.25 * D * D * M_PI) << "\t"
+         << 2.0 * -F_integral[1] / (0.25 * D * D * M_PI) << "\n";
+    pout << " Traction components: " << 2.0 * T_integral[0] / (0.25 * D * D * M_PI) << "\t"
+         << 2.0 * T_integral[1] / (0.25 * D * D * M_PI) << "\n";
 
     return;
 } // postprocess_data
