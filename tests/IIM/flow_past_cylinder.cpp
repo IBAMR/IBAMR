@@ -158,6 +158,10 @@ main(int argc, char* argv[])
     PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-10");
     PetscOptionsSetValue(nullptr, "-stokes_ksp_atol", "1e-10");
 
+    // suppress warnings caused by using a refinement ratio of 4 and not
+    // setting up coarsening correctly
+    SAMRAI::tbox::Logger::getInstance()->setWarning(false);
+
     { // cleanup dynamically allocated objects prior to shutdown
 
         // Parse command line options, set some standard options from the input

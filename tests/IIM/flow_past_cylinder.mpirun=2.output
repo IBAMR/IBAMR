@@ -2,21 +2,9 @@
 IIMethod: mesh part 0 is using FIRST order LAGRANGE finite elements.
 
 IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 4 4 4 4 4 4 4
-Warning in file ``../../../source/IBAMR/ibtk/lib/../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp'' at line 135
-WARNING MESSAGE: 
-CartSideDoubleCubicCoarsen::coarsen():
-  cubic coarsening requires a refinement ratio of 4 or larger.
-  reverting to weighted averaging.
-
 INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field
 INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
-Warning in file ``../../../source/IBAMR/ibtk/lib/../src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp'' at line 127
-WARNING MESSAGE: 
-CartCellDoubleCubicCoarsen::coarsen():
-  cubic coarsening requires a refinement ratio of 4 or larger.
-  reverting to weighted averaging.
-
 Input database:
 input_db {
    Re                            = 200                      // input used
