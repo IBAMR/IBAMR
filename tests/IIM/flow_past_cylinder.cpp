@@ -398,10 +398,6 @@ main(int argc, char* argv[])
         // Deallocate initialization objects.
         app_initializer.setNull();
 
-        // Print the input database contents to the log file.
-        plog << "Input database:\n";
-        input_db->printClassData(plog);
-
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();

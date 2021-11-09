@@ -389,10 +389,6 @@ main(int argc, char* argv[])
         y_loc_min = input_db->getDoubleWithDefault("Y_LOC_MIN", 0);
         y_loc_max = input_db->getDoubleWithDefault("Y_LOC_MAX", H);
 
-        // Print the input database contents to the log file.
-        plog << "Input database:\n";
-        input_db->printClassData(plog);
-
         // Write out initial visualization data.
         EquationSystems* lower_equation_systems = ib_method_ops->getFEDataManager(0)->getEquationSystems();
         EquationSystems* upper_equation_systems = ib_method_ops->getFEDataManager(1)->getEquationSystems();

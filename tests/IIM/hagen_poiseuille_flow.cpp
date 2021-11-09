@@ -397,10 +397,6 @@ main(int argc, char* argv[])
         y_loc_max = input_db->getDoubleWithDefault("Y_LOC_MAX", L);
         z_loc_max = input_db->getDoubleWithDefault("Z_LOC_MAX", L);
 
-        // Print the input database contents to the log file.
-        plog << "Input database:\n";
-        input_db->printClassData(plog);
-
         // Write out initial visualization data.
         EquationSystems* equation_systems_thin = ib_method_ops->getFEDataManager(0)->getEquationSystems();
         int iteration_num = time_integrator->getIntegratorStep();
