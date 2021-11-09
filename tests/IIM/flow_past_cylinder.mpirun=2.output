@@ -479,3 +479,5 @@ At end       of timestep # 9
 Simulation time is 0.00732422
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
+ Force components: 0.00167517	-2.35394e-05
+ Traction components: 0.0392394	-0.000551658
