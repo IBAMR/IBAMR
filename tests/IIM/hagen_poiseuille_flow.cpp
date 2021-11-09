@@ -1,3 +1,16 @@
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2018 - 2021 by the IBAMR developers
+// All rights reserved.
+//
+// This file is part of IBAMR.
+//
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
+//
+// ---------------------------------------------------------------------
+
 //  2018-2021, created by  Amin Kolahdouz
 // 3D Hagen–Poiseuille flow in a pipe
 // See Sec. 4.1.2 of "An immersed interface method for discrete surfaces"

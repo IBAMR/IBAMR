@@ -1,19 +1,20 @@
-// Filename: hagen_poiseuille_FeedbackForcer.h
-// Created on 08 Sep 2007 by Boyce Griffith
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2018 - 2021 by the IBAMR developers
+// All rights reserved.
+//
+// This file is part of IBAMR.
+//
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
+//
+// ---------------------------------------------------------------------
 
-#ifndef included_FeedbackForcer
-#define included_FeedbackForcer
+#ifndef included_hagen_poiseuille_FeedbackForcer
+#define included_hagen_poiseuille_FeedbackForcer
 
-/////////////////////////////// INCLUDES /////////////////////////////////////
-
-// PETSC INCLUDES
-#include <petscsys.h>
-
-// IBAMR INCLUDES
 #include <ibamr/INSHierarchyIntegrator.h>
-
-// NAMESPACE
-#include "ibtk/ibtk_utilities.h"
 
 #include <ibamr/app_namespaces.h>
 
@@ -97,10 +98,4 @@ private:
     Pointer<PatchHierarchy<NDIM> > d_patch_hierarchy;
 };
 
-/////////////////////////////// INLINE ///////////////////////////////////////
-
-//#include <FeedbackForcer.I>
-
-//////////////////////////////////////////////////////////////////////////////
-
-#endif //#ifndef included_FeedbackForcer
+#endif //#ifndef included_hagen_poiseuille_FeedbackForcer

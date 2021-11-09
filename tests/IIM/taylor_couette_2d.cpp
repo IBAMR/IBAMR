@@ -1,4 +1,16 @@
-//  2016-2021, created by  Ebrahim (Amin) Kolahdouz
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2016 - 2021 by the IBAMR developers
+// All rights reserved.
+//
+// This file is part of IBAMR.
+//
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
+//
+// ---------------------------------------------------------------------
+
 // Taylor Couette flow (2D)
 // See Sec. 4.2 of "An immersed interface method for discrete surfaces"
 //  by Ebrahim M. Kolahdouz et al., Journal of Computational Physics 400 (2020) 108854
