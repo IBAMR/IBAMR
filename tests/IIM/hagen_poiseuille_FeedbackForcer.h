@@ -54,7 +54,7 @@ public:
      * \brief Set data on the specified patch interior.
      */
     void setDataOnPatch(int data_idx,
-                        Pointer<Variable<NDIM> > var,
+                        Pointer<hier::Variable<NDIM> > var,
                         Pointer<Patch<NDIM> > patch,
                         double data_time,
                         bool initial_time = false,

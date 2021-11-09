@@ -8,22 +8,11 @@
 // This code was tested against the commit 57fb379454ea3f8f50c476f10226cb6b520a11a0
 // which is currently on branch iim-1 at https://github.com/drwells/IBAMR
 
-// Config files
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
-#include <SAMRAI_config.h>
-
-// Headers for basic PETSc functions
-#include <petscsys.h>
-
-// Application-specific includes.
-
 // Headers for basic SAMRAI objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
-#include <hagen_poiseuille_FeedbackForcer.h>
 
 // Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
@@ -37,7 +26,6 @@
 #include <libmesh/mesh_generation.h>
 #include <libmesh/face_quad4.h>
 #include <libmesh/face_quad.h>
-// Headers for application-specific algorithm/data structure objects
 
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IIMethod.h>
@@ -52,6 +40,10 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 #include <ibamr/StaggeredStokesOpenBoundaryStabilizer.h>
+
+// Headers for application-specific algorithm/data structure objects
+#include "hagen_poiseuille_FeedbackForcer.h"
+#include "hagen_poiseuille_FeedbackForcer.cpp"
 
 
 namespace ModelData
@@ -232,7 +224,8 @@ int main(int argc, char* argv[])
 
 		Mesh cylinder_mesh_thin(init.comm(), NDIM-1);
           
-        cylinder_mesh_thin.boundary_info->clear_boundary_node_ids();
+        BoundaryInfo& boundary_info = cylinder_mesh_thin.get_boundary_info();
+        boundary_info.clear_boundary_node_ids();
         const unsigned int  NXi_elem = ceil(L/ds);
         const unsigned int NRi_elem = ceil(M_PI*D/ds);
         int node_id = 0;
@@ -284,8 +277,7 @@ int main(int argc, char* argv[])
                 const bool at_mesh_bdry = !elem->neighbor_ptr(side);
                 if (at_mesh_bdry)
                 {
-                    BoundaryInfo* boundary_info_cylinder = cylinder_mesh_thin.boundary_info.get();
-                    boundary_info_cylinder->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID);
+                    boundary_info.add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID);
                 }
             }
         }
@@ -397,7 +389,7 @@ int main(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        UniquePtr<ExodusII_IO> exodus_io_thin(uses_exodus ? new ExodusII_IO(cylinder_mesh_thin) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io_thin(uses_exodus ? new ExodusII_IO(cylinder_mesh_thin) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
@@ -811,8 +803,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     const DofMap& dof_map = x_system.get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
 
-    UniquePtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
-    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
+    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
     fe->attach_quadrature_rule(qrule.get());
     const vector<double>& JxW = fe->get_JxW();
     const vector<libMesh::Point>& q_point = fe->get_xyz();
@@ -895,7 +887,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         WSS_vec->localize(*WSS_ghost_vec);
         DofMap& WSS_dof_map = WSS_system.get_dof_map();
         std::vector<std::vector<unsigned int> > WSS_dof_indices(NDIM);
-        UniquePtr<FEBase> fe(FEBase::build(dim, WSS_dof_map.variable_type(0)));
+        std::unique_ptr<FEBase> fe(FEBase::build(dim, WSS_dof_map.variable_type(0)));
         boost::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
         
         
@@ -1193,9 +1185,9 @@ void compute_flow_rate(const double dt,
                     const bool is_lower = side == 0;
                     if (pgeom->getTouchesRegularBoundary(axis, side))
                     {
-                       // const double rsrc = d_rsrc[side];
-						//
-                        Vector n;
+                        // const double rsrc = d_rsrc[side];
+                        //
+                        IBTK::VectorNd n;
                         for (int d = 0; d < NDIM; ++d)
                         {
                             n[d] = axis == d ? (is_lower ? -1.0 : +1.0) : 0.0;

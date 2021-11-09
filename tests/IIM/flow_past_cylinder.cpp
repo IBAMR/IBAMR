@@ -3,14 +3,6 @@
 // See Sec. 4.4 of "An immersed interface method for discrete surfaces" 
 //  by Ebrahim M. Kolahdouz et al., Journal of Computational Physics 400 (2020) 108854
 
-// Config files
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
-#include <SAMRAI_config.h>
-
-// Headers for basic PETSc functions
-#include <petscsys.h>
-
 // Headers for basic SAMRAI objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
@@ -244,7 +236,8 @@ main(int argc, char* argv[])
         solid_mesh.prepare_for_use();
 
         BoundaryMesh boundary_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension() - 1);
-        solid_mesh.boundary_info->sync(boundary_mesh);
+        BoundaryInfo& boundary_info = solid_mesh.get_boundary_info();
+        boundary_info.sync(boundary_mesh);
         boundary_mesh.prepare_for_use();
 
         bool use_boundary_mesh = true;
@@ -380,7 +373,7 @@ main(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        UniquePtr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
@@ -518,7 +511,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     TAU_vec->localize(*TAU_ghost_vec);
     DofMap& TAU_dof_map = TAU_system.get_dof_map();
     std::vector<std::vector<unsigned int> > TAU_dof_indices(NDIM);
-    UniquePtr<FEBase> fe(FEBase::build(dim, TAU_dof_map.variable_type(0)));
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, TAU_dof_map.variable_type(0)));
     
      NumericVector<double>& X0_vec = x_system.get_vector("INITIAL_COORDINATES");
     
@@ -531,7 +524,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     const DofMap& dof_map = x_system.get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
 
-    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
+    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
     fe->attach_quadrature_rule(qrule.get());
     const vector<double>& JxW = fe->get_JxW();
     const vector<vector<double> >& phi = fe->get_phi();

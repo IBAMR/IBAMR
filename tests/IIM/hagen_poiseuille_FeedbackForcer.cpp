@@ -1,19 +1,7 @@
 // Filename: hagen_poiseuille_FeedbackForcer.cpp
 // Created by IBAMR developers - 2015-2021
 
-#include "hagen_poiseuille_FeedbackForcer.h"
-
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-#ifndef included_IBAMR_config
-#include <IBAMR_config.h>
-#define included_IBAMR_config
-#endif
-
-#ifndef included_SAMRAI_config
-#include <SAMRAI_config.h>
-#define included_SAMRAI_config
-#endif
 
 // SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
@@ -57,7 +45,7 @@ bool hagen_poiseuille_FeedbackForcer::isTimeDependent() const
 } // isTimeDependent
 
 void hagen_poiseuille_FeedbackForcer::setDataOnPatch(const int data_idx,
-                                    Pointer<Variable<NDIM> > /*var*/,
+                                                     Pointer<hier::Variable<NDIM> > /*var*/,
                                     Pointer<Patch<NDIM> > patch,
                                     const double /*data_time*/,
                                     const bool initial_time,

@@ -8,17 +8,6 @@
 // This code was tested against the commit 57fb379454ea3f8f50c476f10226cb6b520a11a0
 // which is currently on branch iim-1 at https://github.com/drwells/IBAMR
 
-// Config files
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
-#include <SAMRAI_config.h>
-
-// Headers for basic PETSc functions
-#include <petscsys.h>
-#include <petscmath.h>
-#include <math.h>
-#include <stdio.h>
-
 // Headers for basic SAMRAI objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
@@ -249,7 +238,8 @@ main(int argc, char* argv[])
         mesh_interior.prepare_for_use();
 
         BoundaryMesh boundary_mesh_interior(mesh_interior.comm(), mesh_interior.mesh_dimension() - 1);
-        mesh_interior.boundary_info->sync(boundary_mesh_interior);
+        BoundaryInfo& boundary_info = mesh_interior.get_boundary_info();
+        boundary_info.sync(boundary_mesh_interior);
         boundary_mesh_interior.prepare_for_use();
 
         bool use_boundary_mesh = true;
@@ -361,7 +351,7 @@ main(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        UniquePtr<ExodusII_IO> inner_exodus_io(uses_exodus ? new ExodusII_IO(inner_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> inner_exodus_io(uses_exodus ? new ExodusII_IO(inner_mesh) : NULL);
 
 
         // Initialize hierarchy configuration and data on all patches.
@@ -868,8 +858,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     const DofMap& dof_map = x_system.get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
 
-    UniquePtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
-    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
+    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
     fe->attach_quadrature_rule(qrule.get());
     const vector<double>& JxW = fe->get_JxW();
     const vector<libMesh::Point>& q_point = fe->get_xyz();
@@ -952,7 +942,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         WSS_vec->localize(*WSS_ghost_vec);
         DofMap& WSS_dof_map = WSS_system.get_dof_map();
         std::vector<std::vector<unsigned int> > WSS_dof_indices(NDIM);
-        UniquePtr<FEBase> fe(FEBase::build(dim, WSS_dof_map.variable_type(0)));
+        std::unique_ptr<FEBase> fe(FEBase::build(dim, WSS_dof_map.variable_type(0)));
         
         
         
