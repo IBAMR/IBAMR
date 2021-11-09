@@ -864,10 +864,14 @@ int main(int argc, char **argv)
 #
 # libMesh:
 #
-IBAMR_CHECK_COMPILATION_WITH_MPI(LIBMESH
-  "\
+IF(${IBAMR_HAVE_LIBMESH})
+  IBAMR_CHECK_COMPILATION_WITH_MPI(LIBMESH
+    "\
 #include <mpi.h>
 #include <petscsys.h>
+
+#include <libmesh/libmesh_config.h>
+
 // This test is a little different: since libMesh may use C++11 C++14, or C++17,
 // but we but have not yet configured that flag yet, we instead use libMesh's
 // petsc dependency to check that we have the same MPI version.
@@ -876,8 +880,9 @@ int main(int argc, char **argv)
     PetscInitialize(&argc, &argv, NULL, NULL);
     PetscFinalize();
 }"
-  "${LIBMESH_LIBRARIES}"
-  "${LIBMESH_INCLUDE_DIRS}")
+    "${LIBMESH_LIBRARIES}"
+    "${LIBMESH_INCLUDE_DIRS}")
+ENDIF()
 
 # ---------------------------------------------------------------------------- #
 #                       4: IBAMR-specific configuration                        #
