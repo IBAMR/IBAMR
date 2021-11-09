@@ -43,7 +43,7 @@ static double kappa_s = 1.0e6;
 static double eta_s = 0.0;
 void
 tether_force_function(VectorValue<double>& F,
-                      const VectorValue<double>& n,
+                      const VectorValue<double>& /*n*/,
                       const VectorValue<double>& /*N*/,
                       const TensorValue<double>& /*FF*/,
                       const libMesh::Point& x,
@@ -112,10 +112,6 @@ main(int argc, char* argv[])
         const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
         const bool uses_exodus = dump_viz_data && !app_initializer->getExodusIIFilename().empty();
         const string exodus_filename = app_initializer->getExodusIIFilename();
-
-        const bool dump_restart_data = app_initializer->dumpRestartData();
-        const int restart_dump_interval = app_initializer->getRestartDumpInterval();
-        const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
 
         const bool dump_postproc_data = app_initializer->dumpPostProcessingData();
         const int postproc_data_dump_interval = app_initializer->getPostProcessingDataDumpInterval();

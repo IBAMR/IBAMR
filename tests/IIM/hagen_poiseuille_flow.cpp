@@ -615,8 +615,8 @@ int main(int argc, char* argv[])
 
 void compute_velocity_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                               const int u_idx,
-                              const double data_time,
-                              const string& data_dump_dirname)
+                              const double /*data_time*/,
+                              const string& /*data_dump_dirname*/)
 {
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -1024,8 +1024,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
 
 void compute_pressure_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                               const int p_idx,
-                              const double data_time,
-                              const string& data_dump_dirname)
+                              const double /*data_time*/,
+                              const string& /*data_dump_dirname*/)
 {
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -1146,7 +1146,7 @@ void compute_pressure_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 } // compute_pressure_profile
 
 
-void compute_flow_rate(const double dt,
+void compute_flow_rate(const double /*dt*/,
                        const Pointer<PatchHierarchy<NDIM> > hierarchy,
                        const int U_idx,
                        const double loop_time,

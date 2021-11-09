@@ -64,14 +64,14 @@ static double BB = 0.0;
 static double shift = 0.0;
 void
 tether_force_function_inner(VectorValue<double>& F,
-                      const VectorValue<double>& n,
+                      const VectorValue<double>& /*n*/,
                       const VectorValue<double>& /*N*/,
                       const TensorValue<double>& /*FF*/,
                       const libMesh::Point& x,
                       const libMesh::Point& X,
                       Elem* const /*elem*/,
                       const unsigned short /*side*/,
-                      const vector<const vector<double>*>& var_data,
+                      const vector<const vector<double>*>& /*var_data*/,
                       const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
                       double time,
                       void* /*ctx*/)
@@ -521,7 +521,6 @@ main(int argc, char* argv[])
         hier_math_ops.setPatchHierarchy(patch_hierarchy);
         hier_math_ops.resetLevels(coarsest_ln, finest_ln);
         const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
-        const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
             HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
             hier_sc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
             pout << std::setprecision(16) << "Error in the Eulerian u at time " << loop_time << ":\n"
@@ -570,8 +569,8 @@ main(int argc, char* argv[])
 
 void velocity_convergence(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                               const int u_idx,
-                              const double data_time,
-                              const string& data_dump_dirname)
+                              const double /*data_time*/,
+                              const string& /*data_dump_dirname*/)
 {
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -714,8 +713,8 @@ void velocity_convergence(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 
 void pressure_convergence(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                               const int p_idx,
-                              const double data_time,
-                              const string& data_dump_dirname)
+                              const double /*data_time*/,
+                              const string& /*data_dump_dirname*/)
 {
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -1009,8 +1008,6 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
 					
 					double ex_wss[NDIM];
                     double ex_U[NDIM];
-                    double WSS_length;
-					WSS_length = sqrt(WSS_qp(0)*WSS_qp(0) + WSS_qp(1)*WSS_qp(1));
 					ex_U[0] =(-x_qp(1)/sqrt(x_qp(0)*x_qp(0) + x_qp(1)*x_qp(1))) * R1*OMEGA1;
 					ex_U[1] = (x_qp(0)/sqrt(x_qp(0)*x_qp(0) + x_qp(1)*x_qp(1))) * R1*OMEGA1;
 

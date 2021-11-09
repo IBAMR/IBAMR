@@ -91,7 +91,7 @@ static double ds = 0.0;
 static double R = 0.0;
 void
 tether_force_function(VectorValue<double>& F,
-                      const VectorValue<double>& n,
+                      const VectorValue<double>& /*n*/,
                       const VectorValue<double>& /*N*/,
                       const TensorValue<double>& /*FF*/,
                       const libMesh::Point& x,

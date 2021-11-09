@@ -537,8 +537,8 @@ main(int argc, char* argv[])
 
 void velocity_convergence(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                               const int u_idx,
-                              const double data_time,
-                              const string& data_dump_dirname)
+                              const double /*data_time*/,
+                              const string& /*data_dump_dirname*/)
 {
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -671,8 +671,8 @@ void velocity_convergence(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 
 void pressure_convergence(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                               const int p_idx,
-                              const double data_time,
-                              const string& data_dump_dirname)
+                              const double /*data_time*/,
+                              const string& /*data_dump_dirname*/)
 {
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -925,7 +925,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
 
 		
 		VectorValue<double> U_qp, WSS_qp;
-        double  P_o_qp,P_j_qp,P_i_qp;
+        double  P_o_qp,P_j_qp;
         VectorValue<double> tau1, tau2;
         int qp_tot = 0;
         boost::multi_array<double, 2> U_node, WSS_node;
@@ -963,7 +963,6 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                 interpolate(WSS_qp, qp, WSS_node, phi);
                  interpolate(P_o_qp, qp, P_o_node, phi);
                   interpolate(P_j_qp, qp, P_j_node, phi);
-                  P_i_qp = -(P_j_qp - P_o_qp);
 
 
                 for (unsigned int k = 0; k < NDIM - 1; ++k)

@@ -90,7 +90,8 @@ private:
      */
     hagen_poiseuille_FeedbackForcer& operator=(const hagen_poiseuille_FeedbackForcer& that);
 
-    const double d_D, d_H;
+    const double d_H;
+    const double d_D;
     const INSHierarchyIntegrator* const d_fluid_solver;
     Pointer<PatchHierarchy<NDIM> > d_patch_hierarchy;
 };
