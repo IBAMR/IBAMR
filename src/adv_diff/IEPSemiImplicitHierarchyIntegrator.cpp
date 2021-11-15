@@ -788,15 +788,16 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
 
     interpolateCCToSC(lf_diff_coef_current_idx, H_scratch_idx);
 
-    if (!d_add_diffusion)
-        d_hier_sc_data_ops->scale(lf_diff_coef_current_idx, d_M_lf * d_lambda_lf, lf_diff_coef_current_idx);
-    else
-    {
-        // Diffusion coefficient : (M*lambda + free_parameter)*H + eps
-        d_hier_sc_data_ops->scale(
-            lf_diff_coef_current_idx, d_M_lf * d_lambda_lf + d_free_parameter, lf_diff_coef_current_idx);
-        d_hier_sc_data_ops->addScalar(lf_diff_coef_current_idx, lf_diff_coef_current_idx, d_eps);
-    }
+    //    if (!d_add_diffusion)
+    //        d_hier_sc_data_ops->scale(lf_diff_coef_current_idx, d_M_lf * d_lambda_lf, lf_diff_coef_current_idx);
+    //    else
+    //    {
+    //        // Diffusion coefficient : (M*lambda + free_parameter)*H + eps
+    //        d_hier_sc_data_ops->scale(
+    //            lf_diff_coef_current_idx, d_M_lf * d_lambda_lf + d_free_parameter, lf_diff_coef_current_idx);
+    //        d_hier_sc_data_ops->addScalar(lf_diff_coef_current_idx, lf_diff_coef_current_idx, d_eps);
+    //    }
+    d_hier_sc_data_ops->scale(lf_diff_coef_current_idx, d_M_lf * d_lambda_lf, lf_diff_coef_current_idx);
 
     d_hier_sc_data_ops->scale(lf_diff_coef_rhs_scratch_idx, (1.0 - alpha), lf_diff_coef_current_idx);
     lf_rhs_op_spec.setDPatchDataId(lf_diff_coef_rhs_scratch_idx);
@@ -1223,14 +1224,15 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
     //                            d_no_fill_op,
     //                            d_integrator_time);
 
-    if (!d_add_diffusion)
-        d_hier_sc_data_ops->scale(lf_diff_coef_new_idx, d_M_lf * d_lambda_lf, lf_diff_coef_new_idx);
-    else
-    {
-        // Diffusion coefficient : (M*lambda + free_parameter)*H + eps
-        d_hier_sc_data_ops->scale(lf_diff_coef_new_idx, d_M_lf * d_lambda_lf + d_free_parameter, lf_diff_coef_new_idx);
-        d_hier_sc_data_ops->addScalar(lf_diff_coef_new_idx, lf_diff_coef_new_idx, d_eps);
-    }
+    //    if (!d_add_diffusion)
+    //        d_hier_sc_data_ops->scale(lf_diff_coef_new_idx, d_M_lf * d_lambda_lf, lf_diff_coef_new_idx);
+    //    else
+    //    {
+    //        // Diffusion coefficient : (M*lambda + free_parameter)*H + eps
+    //        d_hier_sc_data_ops->scale(lf_diff_coef_new_idx, d_M_lf * d_lambda_lf + d_free_parameter,
+    //        lf_diff_coef_new_idx); d_hier_sc_data_ops->addScalar(lf_diff_coef_new_idx, lf_diff_coef_new_idx, d_eps);
+    //    }
+    d_hier_sc_data_ops->scale(lf_diff_coef_new_idx, d_M_lf * d_lambda_lf, lf_diff_coef_new_idx);
 
     d_hier_sc_data_ops->scale(lf_diff_coef_scratch_idx, -alpha, lf_diff_coef_new_idx);
     std::cout << "L2 norm of lf_diff_coef_scratch_idx\t" << d_hier_sc_data_ops->L2Norm(lf_diff_coef_scratch_idx)
@@ -2416,8 +2418,9 @@ IEPSemiImplicitHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratc
                                 (*lf_diffusion_data)(ci);
 
                 // Brinkman force
-                //                if (d_apply_brinkman) (*F_data)(ci) += d_beta / dt * (1.0 - (*H_data)(ci)) * d_lf_b;
-                if (d_apply_brinkman) (*F_data)(ci) += d_beta / dt * (1.0 - (*H_data)(ci)) * (*lf_cur_data)(ci);
+                if (d_apply_brinkman) (*F_data)(ci) += d_beta / dt * (1.0 - (*H_data)(ci)) * d_lf_b;
+                //                if (d_apply_brinkman) (*F_data)(ci) += d_beta / dt * (1.0 - (*H_data)(ci)) *
+                //                (*lf_cur_data)(ci);
             }
         }
     }
@@ -2444,6 +2447,7 @@ IEPSemiImplicitHierarchyIntegrator::computeTemperatureSourceTerm(int F_scratch_i
             Pointer<CellData<NDIM, double> > lf_current_data = patch->getPatchData(d_lf_current_idx);
             Pointer<CellData<NDIM, double> > H_current_data = patch->getPatchData(H_current_idx);
             Pointer<CellData<NDIM, double> > F_data = patch->getPatchData(F_scratch_idx);
+            Pointer<CellData<NDIM, double> > lf_diffusion_data = patch->getPatchData(d_lf_diffusion_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
@@ -2451,7 +2455,9 @@ IEPSemiImplicitHierarchyIntegrator::computeTemperatureSourceTerm(int F_scratch_i
 
                 (*F_data)(ci) +=
                     -d_rho_liquid * d_latent_heat_temp *
-                    (((*H_new_data)(ci) * (*lf_new_data)(ci)) - ((*H_current_data)(ci) * (*lf_current_data)(ci))) / dt;
+                    ((((*H_new_data)(ci) * (*lf_new_data)(ci)) - ((*H_current_data)(ci) * (*lf_current_data)(ci))) /
+                         dt -
+                     (*lf_diffusion_data)(ci));
             }
         }
     }
