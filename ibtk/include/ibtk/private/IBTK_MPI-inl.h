@@ -71,6 +71,11 @@ template <typename T>
 inline T
 IBTK_MPI::sumReduction(T x, IBTK_MPI::comm communicator)
 {
+    // This check is useful since it occurs earlier than the mpi_type_id() base
+    // case failure (and it has a clearer error message)
+    static_assert(!std::is_pointer<T>::value,
+                  "This function cannot be instantiated for pointer types "
+                  "since it does not make sense to sum pointers.");
     sumReduction(&x, 1, communicator);
     return x;
 } // sumReduction
