@@ -703,6 +703,19 @@ IF(NOT "${SILO_ROOT}" STREQUAL "")
 
     # Silo depends on zlib
     FIND_PACKAGE(ZLIB REQUIRED)
+
+    ADD_LIBRARY(SILO INTERFACE)
+    TARGET_INCLUDE_DIRECTORIES(
+      SILO
+      INTERFACE ${SILO_INCLUDE_DIRS})
+    TARGET_LINK_LIBRARIES(
+      SILO
+      INTERFACE
+      ${SILO_LIBRARIES})
+    TARGET_LINK_LIBRARIES(
+      SILO
+      INTERFACE
+      ZLIB::ZLIB)
   ELSE()
     MESSAGE(FATAL_ERROR "\
 Silo (an optional dependency) was specified with SILO_ROOT=${SILO_ROOT} but a \
@@ -1009,10 +1022,7 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   ENDIF()
   # Silo is underlinked and depends on HDF5, so do it first:
   IF(${IBAMR_HAVE_SILO})
-    TARGET_LINK_LIBRARIES(${target_library} PRIVATE "${SILO_LIBRARIES}")
-    TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${SILO_INCLUDE_DIRS}")
-    # Silo is statically linked so we need to export its zlib dependency
-    TARGET_LINK_LIBRARIES(${target_library} PUBLIC ZLIB::ZLIB)
+    TARGET_LINK_LIBRARIES(${target_library} PRIVATE SILO)
   ENDIF()
   # SAMRAI is also underlinked and depends on HDF5:
   TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC ${SAMRAI_INCLUDE_DIRS})

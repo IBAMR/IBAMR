@@ -235,8 +235,8 @@ ENDIF()
 TARGET_SOURCES(IBAMR2d PRIVATE ${FORTRAN_GENERATED_SRC2D} ${CXX_SRC})
 TARGET_SOURCES(IBAMR3d PRIVATE ${FORTRAN_GENERATED_SRC3D} ${CXX_SRC})
 
-TARGET_LINK_LIBRARIES(IBAMR2d PUBLIC IBAMRHeaders IBTKHeaders)
-TARGET_LINK_LIBRARIES(IBAMR3d PUBLIC IBAMRHeaders IBTKHeaders)
+TARGET_LINK_LIBRARIES(IBAMR2d PUBLIC IBAMRHeaders)
+TARGET_LINK_LIBRARIES(IBAMR3d PUBLIC IBAMRHeaders)
 
 # Since libIBAMR and libIBTK have the same dependencies (and libIBAMR always
 # depends on libIBTK), satisfy the dependencies (and NDIM definition) for
@@ -248,6 +248,15 @@ TARGET_LINK_LIBRARIES(IBAMR3d PUBLIC IBAMRHeaders IBTKHeaders)
 # any SAMRAI symbols in libIBTK rather than adding them to libIBAMR).
 TARGET_LINK_LIBRARIES(IBAMR2d PUBLIC IBTK2d)
 TARGET_LINK_LIBRARIES(IBAMR3d PUBLIC IBTK3d)
+
+# We want to always make SILO a private dependency - hence it is the only thing
+# we need to explicitly link IBAMR2d and IBAMR3d against since other
+# dependencies are public and thus transitively covered by IBTK2d and IBTK3d.
+# This is last so that IBTK is preferred for linking.
+IF(${IBAMR_HAVE_SILO})
+  TARGET_LINK_LIBRARIES(IBAMR2d PRIVATE SILO)
+  TARGET_LINK_LIBRARIES(IBAMR3d PRIVATE SILO)
+ENDIF()
 
 INSTALL(TARGETS IBAMR2d EXPORT IBAMRTargets COMPONENT library)
 INSTALL(TARGETS IBAMR3d EXPORT IBAMRTargets COMPONENT library)
