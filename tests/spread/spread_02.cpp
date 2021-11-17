@@ -129,7 +129,11 @@ main(int argc, char** argv)
             MeshBase::element_iterator el_end = mesh.active_elements_end();
             for (MeshBase::element_iterator el = mesh.active_elements_begin(); el != el_end; ++el)
             {
-                const auto centroid = (*el)->centroid();
+#if LIBMESH_VERSION_LESS_THAN(1, 7, 0)
+                const libMesh::Point centroid = (*el)->centroid();
+#else
+                const libMesh::Point centroid = (*el)->vertex_average();
+#endif
                 if (centroid(0) < 0.5)
                 {
                     (*el)->subdomain_id() = 2;

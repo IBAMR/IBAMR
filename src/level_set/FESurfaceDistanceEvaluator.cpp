@@ -54,6 +54,7 @@
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
+#include <libmesh/libmesh_version.h>
 
 #include <algorithm>
 #include <array>
@@ -1395,7 +1396,11 @@ FESurfaceDistanceEvaluator::collectNeighboringPatchElements(int level_number)
             }
 
             // First check the centroids.
-            const libMesh::Point& c = elem->centroid();
+#if LIBMESH_VERSION_LESS_THAN(1, 7, 0)
+            const libMesh::Point c = elem->centroid();
+#else
+            const libMesh::Point c = elem->vertex_average();
+#endif
 
             bool centroid_in_patch = true;
             for (unsigned int d = 0; d < NDIM; ++d)

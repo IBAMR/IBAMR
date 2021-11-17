@@ -183,7 +183,11 @@ main(int argc, char** argv)
             for (auto elem_iter = mesh.active_elements_begin(); elem_iter != mesh.active_elements_end(); ++elem_iter)
             {
                 Elem* elem = *elem_iter;
-                const auto centroid = elem->centroid();
+#if LIBMESH_VERSION_LESS_THAN(1, 7, 0)
+                const libMesh::Point centroid = elem->centroid();
+#else
+                const libMesh::Point centroid = elem->vertex_average();
+#endif
 #if NDIM == 2
                 if (centroid(1) > 0.0)
                     elem->subdomain_id() = 1;
