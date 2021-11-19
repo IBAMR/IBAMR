@@ -1,11 +1,11 @@
 #ifndef included_KDTree
 #define included_KDTree
-#include "MyHeaps.h" // priority queues
 
 #include <math.h> // fabs operation
 
 #include <cfloat> // max floating point number
 #include <memory>
+#include <queue>
 #include <stack>
 #include <vector> // point datatype
 
@@ -59,7 +59,7 @@ public:
     void leaves_of_node(int nodeIdx, std::vector<int>& indexes);
     int closest_point(const Point& p);
     void closest_point(const Point& p, int& idx, double& dist);
-    void knnSearch(const Point& Xq, int k, std::vector<int>& idxs, std::vector<double>& distances);
+    void knnSearch(const Point& Xq, unsigned int k, std::vector<int>& idxs, std::vector<double>& distances);
 
     void
     ball_query(const Point& point, const double radius, std::vector<int>& idxsInRange, std::vector<double>& distances);
@@ -116,10 +116,10 @@ private:
                                  // vector<Node*> nodesPtrs;  ///< Tree node pointers, size ?x?
     std::vector<std::shared_ptr<Node> > d_nodesPtrs;
 
-    int d_k = -1;                    ///< number of records to search for
+    unsigned int d_k = std::numeric_limits<unsigned int>::max(); ///< number of records to search for
     IBTK::VectorNd d_Bmin;           ///< bounding box lower bound
     IBTK::VectorNd d_Bmax;           ///< bounding box upper bound
-    MaxHeap<double> d_pq;            ///< <key,idx> = <distance, node idx>
+    std::priority_queue<std::pair<double, int>, std::vector<std::pair<double, int> > > d_pq;
     bool d_terminate_search = false; ///< true if k points have been found
 };
 } // namespace tree

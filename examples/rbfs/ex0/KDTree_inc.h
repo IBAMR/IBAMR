@@ -44,16 +44,27 @@ KDTree<Point>::KDTree(std::vector<Point> points) : d_npoints(points.size()), d_p
 
     // Invoke heap sort generating indexing vectors
     // sorter[dim][i]: in dimension dim, which is the i-th smallest point?
-    std::vector<MinHeap<double> > heaps(NDIM, d_npoints);
+    std::vector<std::priority_queue<std::pair<double, int>,
+                                    std::vector<std::pair<double, int> >,
+                                    std::greater<std::pair<double, int> > > >
+        heaps(NDIM);
     for (int dIdx = 0; dIdx < NDIM; dIdx++)
     {
         for (int pIdx = 0; pIdx < d_npoints; pIdx++)
         {
-            heaps[dIdx].push(d_points[pIdx][dIdx], pIdx);
+            heaps[dIdx].push(std::make_pair(d_points[pIdx][dIdx], pIdx));
         }
     }
     std::vector<std::vector<int> > sorter(NDIM, std::vector<int>(d_npoints, 0));
-    for (int dIdx = 0; dIdx < NDIM; dIdx++) heaps[dIdx].heapsort(sorter[dIdx]);
+    for (int dIdx = 0; dIdx < NDIM; ++dIdx)
+    {
+        int i = 0;
+        while (!heaps[dIdx].empty())
+        {
+            sorter[dIdx][i++] = heaps[dIdx].top().second;
+            heaps[dIdx].pop();
+        }
+    }
 
     build_recursively(sorter, sidehelper, 0);
 }
@@ -245,7 +256,7 @@ KDTree<Point>::print_tree(int index /*=0*/, int level /*=0*/) const
  */
 template <class Point>
 void
-KDTree<Point>::knnSearch(const Point& Xq, int k, std::vector<int>& idxs, std::vector<double>& distances)
+KDTree<Point>::knnSearch(const Point& Xq, unsigned int k, std::vector<int>& idxs, std::vector<double>& distances)
 {
     idxs.clear();
     distances.clear();
@@ -262,8 +273,9 @@ KDTree<Point>::knnSearch(const Point& Xq, int k, std::vector<int>& idxs, std::ve
 
     // scan the created pq and extract the first "k" elements
     // pop the remaining
-    int N = d_pq.size();
-    for (int i = 0; i < N; i++)
+    unsigned int N = d_pq.size();
+    TBOX_ASSERT(N >= k);
+    for (unsigned int i = 0; i < N; i++)
     {
         std::pair<double, int> topel = d_pq.top();
         d_pq.pop();
@@ -322,10 +334,10 @@ KDTree<Point>::knn_search(const Point& Xq, int nodeIdx /*=0*/, int dim /*=0*/)
         if (d_pq.size() == d_k && d_pq.top().first > distance)
         {
             d_pq.pop();                     // remove farther record
-            d_pq.push(distance, node.pIdx); // push new one
+            d_pq.push(std::make_pair(distance, node.pIdx)); // push new one
         }
         else if (d_pq.size() < d_k)
-            d_pq.push(distance, node.pIdx);
+            d_pq.push(std::make_pair(distance, node.pIdx));
 
         return;
     }
