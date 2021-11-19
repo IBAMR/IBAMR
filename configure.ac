@@ -244,6 +244,8 @@ AC_CONFIG_FILES([
   examples/navier_stokes/ex4/Makefile
   examples/navier_stokes/ex5/Makefile
   examples/navier_stokes/ex6/Makefile
+  examples/rbfs/Makefile
+  examples/rbfs/ex0/Makefile
   examples/vc_navier_stokes/Makefile
   examples/vc_navier_stokes/ex0/Makefile
   examples/vc_navier_stokes/ex1/Makefile

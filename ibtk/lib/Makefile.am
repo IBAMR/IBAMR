@@ -119,9 +119,11 @@ DIM_DEPENDENT_SOURCES = \
 ../src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.cpp \
 ../src/solvers/impls/LaplaceOperator.cpp \
 ../src/solvers/impls/NewtonKrylovSolverManager.cpp \
+../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp \
 ../src/solvers/impls/PETScKrylovLinearSolver.cpp \
 ../src/solvers/impls/PETScKrylovPoissonSolver.cpp \
 ../src/solvers/impls/PETScLevelSolver.cpp \
+../src/solvers/imples/PETScLinearAugmentedOperator.cpp \
 ../src/solvers/impls/PETScMFFDJacobianOperator.cpp \
 ../src/solvers/impls/PETScNewtonKrylovSolver.cpp \
 ../src/solvers/impls/PoissonFACPreconditioner.cpp \

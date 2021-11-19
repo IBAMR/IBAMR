@@ -275,9 +275,11 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.cpp \
 	../src/solvers/impls/LaplaceOperator.cpp \
 	../src/solvers/impls/NewtonKrylovSolverManager.cpp \
+	../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp \
 	../src/solvers/impls/PETScKrylovLinearSolver.cpp \
 	../src/solvers/impls/PETScKrylovPoissonSolver.cpp \
 	../src/solvers/impls/PETScLevelSolver.cpp \
+	../src/solvers/imples/PETScLinearAugmentedOperator.cpp \
 	../src/solvers/impls/PETScMFFDJacobianOperator.cpp \
 	../src/solvers/impls/PETScNewtonKrylovSolver.cpp \
 	../src/solvers/impls/PoissonFACPreconditioner.cpp \
@@ -454,9 +456,11 @@ am__objects_3 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/solvers/impls/libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-LaplaceOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-NewtonKrylovSolverManager.$(OBJEXT) \
+	../src/solvers/impls/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-PETScKrylovLinearSolver.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-PETScKrylovPoissonSolver.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-PETScLevelSolver.$(OBJEXT) \
+	../src/solvers/imples/libIBTK2d_a-PETScLinearAugmentedOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-PETScMFFDJacobianOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-PETScNewtonKrylovSolver.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-PoissonFACPreconditioner.$(OBJEXT) \
@@ -603,9 +607,11 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.cpp \
 	../src/solvers/impls/LaplaceOperator.cpp \
 	../src/solvers/impls/NewtonKrylovSolverManager.cpp \
+	../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp \
 	../src/solvers/impls/PETScKrylovLinearSolver.cpp \
 	../src/solvers/impls/PETScKrylovPoissonSolver.cpp \
 	../src/solvers/impls/PETScLevelSolver.cpp \
+	../src/solvers/imples/PETScLinearAugmentedOperator.cpp \
 	../src/solvers/impls/PETScMFFDJacobianOperator.cpp \
 	../src/solvers/impls/PETScNewtonKrylovSolver.cpp \
 	../src/solvers/impls/PoissonFACPreconditioner.cpp \
@@ -782,9 +788,11 @@ am__objects_5 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/solvers/impls/libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-LaplaceOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-NewtonKrylovSolverManager.$(OBJEXT) \
+	../src/solvers/impls/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-PETScKrylovLinearSolver.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-PETScKrylovPoissonSolver.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-PETScLevelSolver.$(OBJEXT) \
+	../src/solvers/imples/libIBTK3d_a-PETScLinearAugmentedOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-PETScMFFDJacobianOperator.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-PETScNewtonKrylovSolver.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-PoissonFACPreconditioner.$(OBJEXT) \
@@ -1007,6 +1015,8 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po \
 	../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Po \
 	../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Po \
+	../src/solvers/imples/$(DEPDIR)/libIBTK2d_a-PETScLinearAugmentedOperator.Po \
+	../src/solvers/imples/$(DEPDIR)/libIBTK3d_a-PETScLinearAugmentedOperator.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BJacobiPreconditioner.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCLaplaceOperator.Po \
@@ -1021,6 +1031,7 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-LaplaceOperator.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-NewtonKrylovSolverManager.Po \
+	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScKrylovLinearSolver.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScKrylovPoissonSolver.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScLevelSolver.Po \
@@ -1051,6 +1062,7 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-LaplaceOperator.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-NewtonKrylovSolverManager.Po \
+	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScKrylovLinearSolver.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScKrylovPoissonSolver.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScLevelSolver.Po \
@@ -1732,9 +1744,11 @@ DIM_DEPENDENT_SOURCES =  \
 	../src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.cpp \
 	../src/solvers/impls/LaplaceOperator.cpp \
 	../src/solvers/impls/NewtonKrylovSolverManager.cpp \
+	../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp \
 	../src/solvers/impls/PETScKrylovLinearSolver.cpp \
 	../src/solvers/impls/PETScKrylovPoissonSolver.cpp \
 	../src/solvers/impls/PETScLevelSolver.cpp \
+	../src/solvers/imples/PETScLinearAugmentedOperator.cpp \
 	../src/solvers/impls/PETScMFFDJacobianOperator.cpp \
 	../src/solvers/impls/PETScNewtonKrylovSolver.cpp \
 	../src/solvers/impls/PoissonFACPreconditioner.cpp \
@@ -2192,6 +2206,9 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/solvers/impls/libIBTK2d_a-NewtonKrylovSolverManager.$(OBJEXT):  \
 	../src/solvers/impls/$(am__dirstamp) \
 	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
+../src/solvers/impls/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.$(OBJEXT):  \
+	../src/solvers/impls/$(am__dirstamp) \
+	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
 ../src/solvers/impls/libIBTK2d_a-PETScKrylovLinearSolver.$(OBJEXT):  \
 	../src/solvers/impls/$(am__dirstamp) \
 	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
@@ -2201,6 +2218,15 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 ../src/solvers/impls/libIBTK2d_a-PETScLevelSolver.$(OBJEXT):  \
 	../src/solvers/impls/$(am__dirstamp) \
 	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
+../src/solvers/imples/$(am__dirstamp):
+	@$(MKDIR_P) ../src/solvers/imples
+	@: > ../src/solvers/imples/$(am__dirstamp)
+../src/solvers/imples/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ../src/solvers/imples/$(DEPDIR)
+	@: > ../src/solvers/imples/$(DEPDIR)/$(am__dirstamp)
+../src/solvers/imples/libIBTK2d_a-PETScLinearAugmentedOperator.$(OBJEXT):  \
+	../src/solvers/imples/$(am__dirstamp) \
+	../src/solvers/imples/$(DEPDIR)/$(am__dirstamp)
 ../src/solvers/impls/libIBTK2d_a-PETScMFFDJacobianOperator.$(OBJEXT):  \
 	../src/solvers/impls/$(am__dirstamp) \
 	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
@@ -2731,6 +2757,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/solvers/impls/libIBTK3d_a-NewtonKrylovSolverManager.$(OBJEXT):  \
 	../src/solvers/impls/$(am__dirstamp) \
 	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
+../src/solvers/impls/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.$(OBJEXT):  \
+	../src/solvers/impls/$(am__dirstamp) \
+	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
 ../src/solvers/impls/libIBTK3d_a-PETScKrylovLinearSolver.$(OBJEXT):  \
 	../src/solvers/impls/$(am__dirstamp) \
 	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
@@ -2740,6 +2769,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/solvers/impls/libIBTK3d_a-PETScLevelSolver.$(OBJEXT):  \
 	../src/solvers/impls/$(am__dirstamp) \
 	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
+../src/solvers/imples/libIBTK3d_a-PETScLinearAugmentedOperator.$(OBJEXT):  \
+	../src/solvers/imples/$(am__dirstamp) \
+	../src/solvers/imples/$(DEPDIR)/$(am__dirstamp)
 ../src/solvers/impls/libIBTK3d_a-PETScMFFDJacobianOperator.$(OBJEXT):  \
 	../src/solvers/impls/$(am__dirstamp) \
 	../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
@@ -3047,6 +3079,7 @@ mostlyclean-compile:
 	-rm -f ../src/math/*.$(OBJEXT)
 	-rm -f ../src/refine_ops/*.$(OBJEXT)
 	-rm -f ../src/solvers/*.$(OBJEXT)
+	-rm -f ../src/solvers/imples/*.$(OBJEXT)
 	-rm -f ../src/solvers/impls/*.$(OBJEXT)
 	-rm -f ../src/solvers/interfaces/*.$(OBJEXT)
 	-rm -f ../src/solvers/wrappers/*.$(OBJEXT)
@@ -3175,6 +3208,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/imples/$(DEPDIR)/libIBTK2d_a-PETScLinearAugmentedOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/imples/$(DEPDIR)/libIBTK3d_a-PETScLinearAugmentedOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BJacobiPreconditioner.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCLaplaceOperator.Po@am__quote@ # am--include-marker
@@ -3189,6 +3224,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-LaplaceOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-NewtonKrylovSolverManager.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScKrylovLinearSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScKrylovPoissonSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScLevelSolver.Po@am__quote@ # am--include-marker
@@ -3219,6 +3255,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-LaplaceOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-NewtonKrylovSolverManager.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScKrylovLinearSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScKrylovPoissonSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScLevelSolver.Po@am__quote@ # am--include-marker
@@ -4228,6 +4265,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK2d_a-NewtonKrylovSolverManager.obj `if test -f '../src/solvers/impls/NewtonKrylovSolverManager.cpp'; then $(CYGPATH_W) '../src/solvers/impls/NewtonKrylovSolverManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/NewtonKrylovSolverManager.cpp'; fi`
 
+../src/solvers/impls/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.o: ../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.Tpo -c -o ../src/solvers/impls/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.o `test -f '../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp' || echo '$(srcdir)/'`../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp' object='../src/solvers/impls/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.o `test -f '../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp' || echo '$(srcdir)/'`../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp
+
+../src/solvers/impls/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.obj: ../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.obj -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.Tpo -c -o ../src/solvers/impls/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.obj `if test -f '../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp'; then $(CYGPATH_W) '../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp' object='../src/solvers/impls/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.obj `if test -f '../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp'; then $(CYGPATH_W) '../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp'; fi`
+
 ../src/solvers/impls/libIBTK2d_a-PETScKrylovLinearSolver.o: ../src/solvers/impls/PETScKrylovLinearSolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK2d_a-PETScKrylovLinearSolver.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScKrylovLinearSolver.Tpo -c -o ../src/solvers/impls/libIBTK2d_a-PETScKrylovLinearSolver.o `test -f '../src/solvers/impls/PETScKrylovLinearSolver.cpp' || echo '$(srcdir)/'`../src/solvers/impls/PETScKrylovLinearSolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScKrylovLinearSolver.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScKrylovLinearSolver.Po
@@ -4269,6 +4320,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/PETScLevelSolver.cpp' object='../src/solvers/impls/libIBTK2d_a-PETScLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK2d_a-PETScLevelSolver.obj `if test -f '../src/solvers/impls/PETScLevelSolver.cpp'; then $(CYGPATH_W) '../src/solvers/impls/PETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/PETScLevelSolver.cpp'; fi`
+
+../src/solvers/imples/libIBTK2d_a-PETScLinearAugmentedOperator.o: ../src/solvers/imples/PETScLinearAugmentedOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/imples/libIBTK2d_a-PETScLinearAugmentedOperator.o -MD -MP -MF ../src/solvers/imples/$(DEPDIR)/libIBTK2d_a-PETScLinearAugmentedOperator.Tpo -c -o ../src/solvers/imples/libIBTK2d_a-PETScLinearAugmentedOperator.o `test -f '../src/solvers/imples/PETScLinearAugmentedOperator.cpp' || echo '$(srcdir)/'`../src/solvers/imples/PETScLinearAugmentedOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/imples/$(DEPDIR)/libIBTK2d_a-PETScLinearAugmentedOperator.Tpo ../src/solvers/imples/$(DEPDIR)/libIBTK2d_a-PETScLinearAugmentedOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/imples/PETScLinearAugmentedOperator.cpp' object='../src/solvers/imples/libIBTK2d_a-PETScLinearAugmentedOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/imples/libIBTK2d_a-PETScLinearAugmentedOperator.o `test -f '../src/solvers/imples/PETScLinearAugmentedOperator.cpp' || echo '$(srcdir)/'`../src/solvers/imples/PETScLinearAugmentedOperator.cpp
+
+../src/solvers/imples/libIBTK2d_a-PETScLinearAugmentedOperator.obj: ../src/solvers/imples/PETScLinearAugmentedOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/imples/libIBTK2d_a-PETScLinearAugmentedOperator.obj -MD -MP -MF ../src/solvers/imples/$(DEPDIR)/libIBTK2d_a-PETScLinearAugmentedOperator.Tpo -c -o ../src/solvers/imples/libIBTK2d_a-PETScLinearAugmentedOperator.obj `if test -f '../src/solvers/imples/PETScLinearAugmentedOperator.cpp'; then $(CYGPATH_W) '../src/solvers/imples/PETScLinearAugmentedOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/imples/PETScLinearAugmentedOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/imples/$(DEPDIR)/libIBTK2d_a-PETScLinearAugmentedOperator.Tpo ../src/solvers/imples/$(DEPDIR)/libIBTK2d_a-PETScLinearAugmentedOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/imples/PETScLinearAugmentedOperator.cpp' object='../src/solvers/imples/libIBTK2d_a-PETScLinearAugmentedOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/imples/libIBTK2d_a-PETScLinearAugmentedOperator.obj `if test -f '../src/solvers/imples/PETScLinearAugmentedOperator.cpp'; then $(CYGPATH_W) '../src/solvers/imples/PETScLinearAugmentedOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/imples/PETScLinearAugmentedOperator.cpp'; fi`
 
 ../src/solvers/impls/libIBTK2d_a-PETScMFFDJacobianOperator.o: ../src/solvers/impls/PETScMFFDJacobianOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK2d_a-PETScMFFDJacobianOperator.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScMFFDJacobianOperator.Tpo -c -o ../src/solvers/impls/libIBTK2d_a-PETScMFFDJacobianOperator.o `test -f '../src/solvers/impls/PETScMFFDJacobianOperator.cpp' || echo '$(srcdir)/'`../src/solvers/impls/PETScMFFDJacobianOperator.cpp
@@ -6174,6 +6239,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK3d_a-NewtonKrylovSolverManager.obj `if test -f '../src/solvers/impls/NewtonKrylovSolverManager.cpp'; then $(CYGPATH_W) '../src/solvers/impls/NewtonKrylovSolverManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/NewtonKrylovSolverManager.cpp'; fi`
 
+../src/solvers/impls/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.o: ../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.Tpo -c -o ../src/solvers/impls/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.o `test -f '../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp' || echo '$(srcdir)/'`../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp' object='../src/solvers/impls/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.o `test -f '../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp' || echo '$(srcdir)/'`../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp
+
+../src/solvers/impls/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.obj: ../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.obj -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.Tpo -c -o ../src/solvers/impls/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.obj `if test -f '../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp'; then $(CYGPATH_W) '../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp' object='../src/solvers/impls/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.obj `if test -f '../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp'; then $(CYGPATH_W) '../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/PETScAugmentedKryloyLinearSolver.cpp'; fi`
+
 ../src/solvers/impls/libIBTK3d_a-PETScKrylovLinearSolver.o: ../src/solvers/impls/PETScKrylovLinearSolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK3d_a-PETScKrylovLinearSolver.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScKrylovLinearSolver.Tpo -c -o ../src/solvers/impls/libIBTK3d_a-PETScKrylovLinearSolver.o `test -f '../src/solvers/impls/PETScKrylovLinearSolver.cpp' || echo '$(srcdir)/'`../src/solvers/impls/PETScKrylovLinearSolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScKrylovLinearSolver.Tpo ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScKrylovLinearSolver.Po
@@ -6215,6 +6294,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/impls/PETScLevelSolver.cpp' object='../src/solvers/impls/libIBTK3d_a-PETScLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/impls/libIBTK3d_a-PETScLevelSolver.obj `if test -f '../src/solvers/impls/PETScLevelSolver.cpp'; then $(CYGPATH_W) '../src/solvers/impls/PETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/impls/PETScLevelSolver.cpp'; fi`
+
+../src/solvers/imples/libIBTK3d_a-PETScLinearAugmentedOperator.o: ../src/solvers/imples/PETScLinearAugmentedOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/imples/libIBTK3d_a-PETScLinearAugmentedOperator.o -MD -MP -MF ../src/solvers/imples/$(DEPDIR)/libIBTK3d_a-PETScLinearAugmentedOperator.Tpo -c -o ../src/solvers/imples/libIBTK3d_a-PETScLinearAugmentedOperator.o `test -f '../src/solvers/imples/PETScLinearAugmentedOperator.cpp' || echo '$(srcdir)/'`../src/solvers/imples/PETScLinearAugmentedOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/imples/$(DEPDIR)/libIBTK3d_a-PETScLinearAugmentedOperator.Tpo ../src/solvers/imples/$(DEPDIR)/libIBTK3d_a-PETScLinearAugmentedOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/imples/PETScLinearAugmentedOperator.cpp' object='../src/solvers/imples/libIBTK3d_a-PETScLinearAugmentedOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/imples/libIBTK3d_a-PETScLinearAugmentedOperator.o `test -f '../src/solvers/imples/PETScLinearAugmentedOperator.cpp' || echo '$(srcdir)/'`../src/solvers/imples/PETScLinearAugmentedOperator.cpp
+
+../src/solvers/imples/libIBTK3d_a-PETScLinearAugmentedOperator.obj: ../src/solvers/imples/PETScLinearAugmentedOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/imples/libIBTK3d_a-PETScLinearAugmentedOperator.obj -MD -MP -MF ../src/solvers/imples/$(DEPDIR)/libIBTK3d_a-PETScLinearAugmentedOperator.Tpo -c -o ../src/solvers/imples/libIBTK3d_a-PETScLinearAugmentedOperator.obj `if test -f '../src/solvers/imples/PETScLinearAugmentedOperator.cpp'; then $(CYGPATH_W) '../src/solvers/imples/PETScLinearAugmentedOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/imples/PETScLinearAugmentedOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/solvers/imples/$(DEPDIR)/libIBTK3d_a-PETScLinearAugmentedOperator.Tpo ../src/solvers/imples/$(DEPDIR)/libIBTK3d_a-PETScLinearAugmentedOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/solvers/imples/PETScLinearAugmentedOperator.cpp' object='../src/solvers/imples/libIBTK3d_a-PETScLinearAugmentedOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/solvers/imples/libIBTK3d_a-PETScLinearAugmentedOperator.obj `if test -f '../src/solvers/imples/PETScLinearAugmentedOperator.cpp'; then $(CYGPATH_W) '../src/solvers/imples/PETScLinearAugmentedOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/solvers/imples/PETScLinearAugmentedOperator.cpp'; fi`
 
 ../src/solvers/impls/libIBTK3d_a-PETScMFFDJacobianOperator.o: ../src/solvers/impls/PETScMFFDJacobianOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/impls/libIBTK3d_a-PETScMFFDJacobianOperator.o -MD -MP -MF ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScMFFDJacobianOperator.Tpo -c -o ../src/solvers/impls/libIBTK3d_a-PETScMFFDJacobianOperator.o `test -f '../src/solvers/impls/PETScMFFDJacobianOperator.cpp' || echo '$(srcdir)/'`../src/solvers/impls/PETScMFFDJacobianOperator.cpp
@@ -7440,6 +7533,8 @@ distclean-generic:
 	-rm -f ../src/refine_ops/$(am__dirstamp)
 	-rm -f ../src/solvers/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ../src/solvers/$(am__dirstamp)
+	-rm -f ../src/solvers/imples/$(DEPDIR)/$(am__dirstamp)
+	-rm -f ../src/solvers/imples/$(am__dirstamp)
 	-rm -f ../src/solvers/impls/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ../src/solvers/impls/$(am__dirstamp)
 	-rm -f ../src/solvers/interfaces/$(DEPDIR)/$(am__dirstamp)
@@ -7593,6 +7688,8 @@ distclean: distclean-am
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po
 	-rm -f ../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Po
 	-rm -f ../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Po
+	-rm -f ../src/solvers/imples/$(DEPDIR)/libIBTK2d_a-PETScLinearAugmentedOperator.Po
+	-rm -f ../src/solvers/imples/$(DEPDIR)/libIBTK3d_a-PETScLinearAugmentedOperator.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BJacobiPreconditioner.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCLaplaceOperator.Po
@@ -7607,6 +7704,7 @@ distclean: distclean-am
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-LaplaceOperator.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-NewtonKrylovSolverManager.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScKrylovLinearSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScKrylovPoissonSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScLevelSolver.Po
@@ -7637,6 +7735,7 @@ distclean: distclean-am
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-LaplaceOperator.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-NewtonKrylovSolverManager.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScKrylovLinearSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScKrylovPoissonSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScLevelSolver.Po
@@ -7926,6 +8025,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po
 	-rm -f ../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Po
 	-rm -f ../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Po
+	-rm -f ../src/solvers/imples/$(DEPDIR)/libIBTK2d_a-PETScLinearAugmentedOperator.Po
+	-rm -f ../src/solvers/imples/$(DEPDIR)/libIBTK3d_a-PETScLinearAugmentedOperator.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BJacobiPreconditioner.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-CCLaplaceOperator.Po
@@ -7940,6 +8041,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-KrylovLinearSolverPoissonSolverInterface.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-LaplaceOperator.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-NewtonKrylovSolverManager.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScAugmentedKryloyLinearSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScKrylovLinearSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScKrylovPoissonSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-PETScLevelSolver.Po
@@ -7970,6 +8072,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-KrylovLinearSolverPoissonSolverInterface.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-LaplaceOperator.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-NewtonKrylovSolverManager.Po
+	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScAugmentedKryloyLinearSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScKrylovLinearSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScKrylovPoissonSolver.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK3d_a-PETScLevelSolver.Po
