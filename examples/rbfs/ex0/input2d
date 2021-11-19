@@ -1,17 +1,34 @@
 RADIUS = 1
-N = 64*4
+N = 64
 L = 4.0
 DX = L  / N
 MFAC = 1.0
 ELEM_TYPE = "TRI3"
 XCOM = 0.0
 YCOM = 0.0
-u {
+D = 1.0
+DT = 0.5 * 4.0 / 256
+C = 1.0 / DT
+
+LaplaceOperator {
+ dist_to_bdry = 4.0 * DX
+ eps = 0.25 * DX
+ C = C
+ D = D
+}
+
+solver {
+
+}
+
+Q {
    function = "sin(PI*X_0)*sin(PI*X_1)"
 }
 
-f {
-   function = "-2.0 * PI*PI * sin(PI*X_0)*sin(PI*X_1)"
+B {
+   c = C
+   d = D
+   function = "(c + 2.0 * d * PI * PI) * sin(PI * X_0) * sin(PI * X_1)"
 }
 
 ls {
@@ -19,29 +36,6 @@ ls {
    xcom = XCOM
    ycom = YCOM
    function = "r - sqrt((X_0-xcom)*(X_0-xcom) + (X_1-ycom)*(X_1-ycom))"
-}
-
-solver_type = "PETSC_KRYLOV_SOLVER"
-solver_db {
-   // intentionally blank
-}
-
-precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-precond_db {
-   num_pre_sweeps  = 0
-   num_post_sweeps = 3
-   prolongation_method = "LINEAR_REFINE"
-   restriction_method  = "CONSERVATIVE_COARSEN"
-   coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
-   coarse_solver_rel_residual_tol = 1.0e-12
-   coarse_solver_abs_residual_tol = 1.0e-50
-   coarse_solver_max_iterations = 1
-   coarse_solver_db {
-      solver_type          = "PFMG"
-      num_pre_relax_steps  = 0
-      num_post_relax_steps = 3
-      enable_logging       = FALSE
-   }
 }
 
 Main {
@@ -90,11 +84,6 @@ GriddingAlgorithm {
 StandardTagAndInitialize {
    tagging_method = "REFINE_BOXES"
    RefineBoxes {
-//    level_0 = [( N/4 , 0 ),( 3*N/4 - 1 , N - 1 )]
-//    level_0 = [( 0 , N/4 ),( N - 1 , 3*N/4 - 1 )]
-//    level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , 3*N/4 - 1 )]
-//    level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
-//    level_0 = [( N/4 , N/4 ),( N/2 - 1 , 3*N/4 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )]
       level_0 = [( N/4 , N/4 ),( N/2 - 1 , N/2 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
    }
 }

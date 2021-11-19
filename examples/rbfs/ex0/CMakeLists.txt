@@ -13,9 +13,9 @@
 
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "rbfs-ex0-2d"
+    "rbfs-ex1-2d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/rbfs/ex0"
+    "${CMAKE_BINARY_DIR}/examples/rbfs/ex1"
   OUTPUT_NAME
     main2d
   EXAMPLE_GROUP
@@ -30,9 +30,9 @@ IBAMR_ADD_EXAMPLE(
 
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "rbfs-ex0-3d"
+    "rbfs-ex1-3d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/rbfs/ex0"
+    "${CMAKE_BINARY_DIR}/examples/rbfs/ex1"
   OUTPUT_NAME
     main3d
   EXAMPLE_GROUP

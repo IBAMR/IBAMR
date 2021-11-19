@@ -81,6 +81,8 @@ CartLaplaceOperator::CartLaplaceOperator(const std::string& object_name,
 {
     d_dist_to_bdry = input_db->getDouble("dist_to_bdry");
     d_eps = input_db->getDouble("eps");
+    d_C = input_db->getDouble("C");
+    d_D = input_db->getDouble("D");
     // Setup Timers.
     IBTK_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBTK::LaplaceOperator::apply()");
                  t_initialize_operator_state =
@@ -151,13 +153,23 @@ CartLaplaceOperator::setupBeforeApply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIV
 }
 
 void
+CartLaplaceOperator::fillBdryConds()
+{
+    // For this case, we having the boundary points be degrees of freedom (despite using Dirichlet bcs)
+    // The action of this operator should be the identity
+    int ierr = VecCopy(d_aug_x_vec, d_aug_y_vec);
+    IBTK_CHKERRQ(ierr);
+}
+
+void
 CartLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
     IBTK_TIMER_START(t_apply);
 
     setupBeforeApply(x, y);
+    fillBdryConds();
     // Compute the action of the operator.
-    for (unsigned int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -181,15 +193,19 @@ CartLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
                     if (ls_val < 0.0 && std::abs(ls_val) >= d_dist_to_bdry)
                     {
                         // We want to use finite differences.
-                        double diff = 0.0;
+                        double lap = 0.0;
                         for (int dir = 0; dir < NDIM; ++dir)
                         {
                             IntVector<NDIM> dirs(0);
                             dirs(dir) = 1;
-                            diff += ((*x_data)(idx + dirs) - 2.0 * (*x_data)(idx) + (*x_data)(idx - dirs)) /
-                                    (dx[dir] * dx[dir]);
+                            lap += ((*x_data)(idx + dirs) - 2.0 * (*x_data)(idx) + (*x_data)(idx - dirs)) /
+                                   (dx[dir] * dx[dir]);
                         }
-                        (*y_data)(idx) = diff;
+                        (*y_data)(idx) = d_C * (*x_data)(idx)-d_D * lap;
+                    }
+                    else
+                    {
+                        (*y_data)(idx) = (*x_data)(idx);
                     }
                 }
             }
@@ -197,7 +213,6 @@ CartLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
     }
 
     applyToLagDOFs(x.getComponentDescriptorIndex(0), y.getComponentDescriptorIndex(0));
-
     IBTK_TIMER_STOP(t_apply);
     return;
 } // apply
@@ -260,9 +275,11 @@ CartLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double
 
     // Sort Lag DOFs
     sortLagDOFsToCells();
+    // Now find FD weights
+    findRBFFDWeights();
 
     // Clone Lag Vector
-    int ierr = VecDuplicate(d_aug_x_vec, &d_aug_b_vec);
+    int ierr = VecDuplicate(d_aug_x_vec, &d_aug_y_vec);
     IBTK_CHKERRQ(ierr);
 
     // Indicate the operator is initialized.
@@ -333,10 +350,6 @@ CartLaplaceOperator::applyToLagDOFs(const int x_idx, const int y_idx)
     // Assume structure is on finest level
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_hierarchy->getFinestLevelNumber());
     unsigned int patch_num = 0;
-    //    auto rbf = [](const double r) -> double { return r * r * r; };
-    //    auto lap_rbf = [](const double r) -> double {return 9.0 * r;};
-    auto rbf = [](const double r) -> double { return r * r * r * r * r + 2.0e-10; };
-    auto lap_rbf = [](const double r) -> double { return 25.0 * r * r * r; };
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_num)
     {
         if (d_base_pt_vec[patch_num].size() == 0) continue;
@@ -344,95 +357,39 @@ CartLaplaceOperator::applyToLagDOFs(const int x_idx, const int y_idx)
         Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
         // First loop through Cartesian grid cells.
-        const Box<NDIM>& box = patch->getBox();
-        Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(d_ls_idx);
         Pointer<CellData<NDIM, double> > x_data = patch->getPatchData(x_idx);
         Pointer<CellData<NDIM, double> > y_data = patch->getPatchData(y_idx);
         // Note Lagrangian data are located in d_aug_(x|b)_vec
 
-        // All data have been sorted. We need to loop through d_base_pt_vec.
+        // All data and weights should be found. We need to loop through d_base_pt_vec and apply FD stencil
         for (size_t idx = 0; idx < d_base_pt_vec[patch_num].size(); ++idx)
         {
             const UPoint& pt = d_base_pt_vec[patch_num][idx];
+            if (pt.isNode())
+            {
+                // We've already set boundary conditions
+                continue;
+            }
             const std::vector<UPoint>& pt_vec = d_pair_pt_vec[patch_num][idx];
+            const std::vector<double>& weight_vec = d_pt_weight_vec[patch_num][idx];
             // Note if we use a KNN search, interp_size is fixed.
             const int interp_size = pt_vec.size();
-            // Up to cubic polynomials
-            const int poly_size = NDIM + 1 + NDIM + 1 + NDIM * NDIM;
-#define DEBUGGING 1
-#if (DEBUGGING)
-            plog << "On point \n" << pt << "\n";
-            plog << "Forming interpolant with " << interp_size << " points and " << poly_size << " polynomials\n";
-#endif
-            MatrixXd A(MatrixXd::Zero(interp_size, interp_size));
-            MatrixXd B(MatrixXd::Zero(interp_size, poly_size));
-            VectorXd U(VectorXd::Zero(interp_size + poly_size));
-            VectorNd pt0 = pt.getVec();
-            for (int d = 0; d < NDIM; ++d) pt0[d] = pt0[d] / dx[d];
-            for (size_t i = 0; i < interp_size; ++i)
+            double lap = 0.0;
+            for (int i = 0; i < interp_size; ++i)
             {
-                VectorNd pti = pt_vec[i].getVec();
-                for (int d = 0; d < NDIM; ++d) pti[d] = pti[d] / dx[d];
-                for (size_t j = 0; j < interp_size; ++j)
-                {
-                    VectorNd ptj = pt_vec[j].getVec();
-                    for (int d = 0; d < NDIM; ++d) ptj[d] = ptj[d] / dx[d];
-                    A(i, j) = rbf((pti - ptj).norm());
-                }
-                // TODO: B is just a Vandermonde matrix. Write a function to set this up given arbitrary polynomial
-                // degree.
-                B(i, 0) = 1.0;
-                VectorNd diff = pti - pt0;
-                for (int d = 0; d < NDIM; ++d) B(i, d + 1) = diff(d);
-                // Add quadratic polynomials
-                B(i, NDIM + 1) = diff(0) * diff(0);
-                B(i, NDIM + 2) = diff(1) * diff(0);
-                B(i, NDIM + 3) = diff(1) * diff(1);
-                // Cubic
-                B(i, NDIM + 4) = diff(0) * diff(0) * diff(0);
-                B(i, NDIM + 5) = diff(1) * diff(0) * diff(0);
-                B(i, NDIM + 6) = diff(1) * diff(1) * diff(0);
-                B(i, NDIM + 7) = diff(1) * diff(1) * diff(1);
-                // Determine rhs
-                U(i) = lap_rbf((pt0 - pti).norm());
+                double w = weight_vec[i];
+                lap += w * getSolVal(pt_vec[i], *x_data, d_aug_x_vec) / (dx[0] * dx[1]);
             }
-            // Add quadratic polynomials
-            U(interp_size + NDIM + 1) = 2.0;
-            U(interp_size + NDIM + 3) = 2.0;
-            MatrixXd final_mat(MatrixXd::Zero(interp_size + poly_size, interp_size + poly_size));
-            final_mat.block(0, 0, interp_size, interp_size) = A;
-            final_mat.block(0, interp_size, interp_size, poly_size) = B;
-            final_mat.block(interp_size, 0, poly_size, interp_size) = B.transpose();
-
-            VectorXd x = final_mat.fullPivHouseholderQr().solve(U);
-#if (DEBUGGING)
-            plog << "After assembly, A is:\n " << A << "\n";
-            plog << "B is: \n" << B << "\n";
-            plog << "U is : \n" << U << "\n";
-            plog << "final mat: \n" << final_mat << "\n";
-            plog << "final mat det: " << final_mat.determinant() << "\n";
-            plog << "Residual: \n" << final_mat * x - U << "\n";
-            plog << "Solution is : \n" << x << "\n";
-#endif
-            // Now evaluate FD stencil)
-            double val = 0.0;
-            VectorXd weights = x.block(0, 0, interp_size, 1);
-            for (size_t i = 0; i < interp_size; ++i)
-            {
-                double w = weights[i];
-#if (DEBUGGING)
-                plog << "Solution value at point " << i << " is " << getSolVal(pt_vec[i], *x_data) << "\n";
-                plog << "Weight at point         " << i << " is " << w << "\n";
-#endif
-                val += w * getSolVal(pt_vec[i], *x_data) / (dx[0] * dx[1]);
-            }
+            double val = d_C * getSolVal(pt, *x_data, d_aug_x_vec) - d_D * lap;
             // Now insert val into results
-            setSolVal(val, pt, *y_data);
-#if (DEBUGGING)
-            plog << "\n";
-#endif
+            setSolVal(val, pt, *y_data, d_aug_y_vec);
         }
     }
+    // We've set values, so we need to assemble the vector
+    int ierr = VecAssemblyBegin(d_aug_y_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecAssemblyEnd(d_aug_y_vec);
+    IBTK_CHKERRQ(ierr);
 }
 
 void
@@ -495,8 +452,6 @@ CartLaplaceOperator::sortLagDOFsToCells()
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
         Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(d_ls_idx);
 
-        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-        const double* const dx = pgeom->getDx();
         // First start by collecting all points into a vector
         std::vector<UPoint> pts;
         for (CellIterator<NDIM> ci(ls_data->getGhostBox()); ci; ci++)
@@ -552,8 +507,88 @@ CartLaplaceOperator::sortLagDOFsToCells()
     }
 }
 
+void
+CartLaplaceOperator::findRBFFDWeights()
+{
+    d_pt_weight_vec.clear();
+    d_pt_weight_vec.resize(d_base_pt_vec.size());
+    auto rbf = [](const double r) -> double { return r * r * r * r * r + 2.0e-10; };
+    auto lap_rbf = [](const double r) -> double { return 25.0 * r * r * r; };
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(d_hierarchy->getFinestLevelNumber());
+    unsigned int patch_num = 0;
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++patch_num)
+    {
+        if (d_base_pt_vec[patch_num].size() == 0) continue;
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        const double* const dx = pgeom->getDx();
+        // First loop through Cartesian grid cells.
+        Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(d_ls_idx);
+        // Note Lagrangian data are located in d_aug_(x|b)_vec
+
+        // All data have been sorted. We need to loop through d_base_pt_vec.
+        d_pt_weight_vec[patch_num].resize(d_base_pt_vec[patch_num].size());
+        for (size_t idx = 0; idx < d_base_pt_vec[patch_num].size(); ++idx)
+        {
+            const UPoint& pt = d_base_pt_vec[patch_num][idx];
+            const std::vector<UPoint>& pt_vec = d_pair_pt_vec[patch_num][idx];
+            // Note if we use a KNN search, interp_size is fixed.
+            const int interp_size = pt_vec.size();
+            // Up to cubic polynomials
+            const int poly_size = NDIM + 1 + NDIM + 1 + NDIM * NDIM;
+            MatrixXd A(MatrixXd::Zero(interp_size, interp_size));
+            MatrixXd B(MatrixXd::Zero(interp_size, poly_size));
+            VectorXd U(VectorXd::Zero(interp_size + poly_size));
+            VectorNd pt0 = pt.getVec();
+            for (int d = 0; d < NDIM; ++d) pt0[d] = pt0[d] / dx[d];
+            for (int i = 0; i < interp_size; ++i)
+            {
+                VectorNd pti = pt_vec[i].getVec();
+                for (int d = 0; d < NDIM; ++d) pti[d] = pti[d] / dx[d];
+                for (int j = 0; j < interp_size; ++j)
+                {
+                    VectorNd ptj = pt_vec[j].getVec();
+                    for (int d = 0; d < NDIM; ++d) ptj[d] = ptj[d] / dx[d];
+                    A(i, j) = rbf((pti - ptj).norm());
+                }
+                // TODO: B is just a Vandermonde matrix. Write a function to set this up given arbitrary polynomial
+                // degree.
+                B(i, 0) = 1.0;
+                VectorNd diff = pti - pt0;
+                for (int d = 0; d < NDIM; ++d) B(i, d + 1) = diff(d);
+                // Add quadratic polynomials
+                B(i, NDIM + 1) = diff(0) * diff(0);
+                B(i, NDIM + 2) = diff(1) * diff(0);
+                B(i, NDIM + 3) = diff(1) * diff(1);
+                // Cubic
+                B(i, NDIM + 4) = diff(0) * diff(0) * diff(0);
+                B(i, NDIM + 5) = diff(1) * diff(0) * diff(0);
+                B(i, NDIM + 6) = diff(1) * diff(1) * diff(0);
+                B(i, NDIM + 7) = diff(1) * diff(1) * diff(1);
+                // Determine rhs
+                U(i) = lap_rbf((pt0 - pti).norm());
+            }
+            // Add quadratic polynomials
+            U(interp_size + NDIM + 1) = 2.0;
+            U(interp_size + NDIM + 3) = 2.0;
+            MatrixXd final_mat(MatrixXd::Zero(interp_size + poly_size, interp_size + poly_size));
+            final_mat.block(0, 0, interp_size, interp_size) = A;
+            final_mat.block(0, interp_size, interp_size, poly_size) = B;
+            final_mat.block(interp_size, 0, poly_size, interp_size) = B.transpose();
+
+            VectorXd x = final_mat.fullPivHouseholderQr().solve(U);
+            // Now evaluate FD stencil)
+            VectorXd weights = x.block(0, 0, interp_size, 1);
+            for (int i = 0; i < interp_size; ++i)
+            {
+                d_pt_weight_vec[patch_num][idx].push_back(weights(i));
+            }
+        }
+    }
+}
+
 double
-CartLaplaceOperator::getSolVal(const UPoint& pt, const CellData<NDIM, double>& Q_data) const
+CartLaplaceOperator::getSolVal(const UPoint& pt, const CellData<NDIM, double>& Q_data, Vec& vec) const
 {
     double val = 0.0;
     if (pt.isNode())
@@ -562,7 +597,7 @@ CartLaplaceOperator::getSolVal(const UPoint& pt, const CellData<NDIM, double>& Q
         std::vector<unsigned int> dof_indices;
         d_dof_map->dof_indices(pt.getNode(), dof_indices);
         auto idxs = reinterpret_cast<PetscInt*>(dof_indices.data());
-        int ierr = VecGetValues(d_aug_x_vec, 1, idxs, &val);
+        int ierr = VecGetValues(vec, 1, idxs, &val);
         IBTK_CHKERRQ(ierr);
     }
 #ifndef NDEBUG
@@ -579,14 +614,14 @@ CartLaplaceOperator::getSolVal(const UPoint& pt, const CellData<NDIM, double>& Q
 }
 
 void
-CartLaplaceOperator::setSolVal(const double val, const UPoint& pt, CellData<NDIM, double>& Q_data) const
+CartLaplaceOperator::setSolVal(const double val, const UPoint& pt, CellData<NDIM, double>& Q_data, Vec& vec) const
 {
     if (pt.isNode())
     {
         // We're on a node. Need to grab value from augmented vec
         std::vector<unsigned int> dof_indices;
         d_dof_map->dof_indices(pt.getNode(), dof_indices);
-        int ierr = VecSetValue(d_aug_b_vec, dof_indices[0], val, INSERT_VALUES);
+        int ierr = VecSetValue(vec, dof_indices[0], val, INSERT_VALUES);
         IBTK_CHKERRQ(ierr);
     }
 #ifndef NDEBUG

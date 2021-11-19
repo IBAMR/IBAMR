@@ -44,7 +44,6 @@
 
 namespace IBTK
 {
-
 struct UPoint
 {
 public:
@@ -174,6 +173,7 @@ public:
 
     void setupBeforeApply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                           SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    void fillBdryConds();
 
     /*!
      * \name Linear operator functionality.
@@ -240,10 +240,16 @@ public:
      * Debugging functions
      */
     void sortLagDOFsToCells();
+    void findRBFFDWeights();
     void printPtMap(std::ostream& os);
     inline void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy)
     {
         d_hierarchy = patch_hierarchy;
+    }
+
+    inline void registerBdryCond(std::function<double(const IBTK::VectorNd&)> fcn)
+    {
+        d_bdry_cond = fcn;
     }
 
 private:
@@ -276,10 +282,8 @@ private:
 
     void applyToLagDOFs(int x_idx, int y_idx);
 
-    double formRBFDer();
-
-    double getSolVal(const UPoint& pt, const SAMRAI::pdat::CellData<NDIM, double>& Q_data) const;
-    void setSolVal(double q, const UPoint& pt, SAMRAI::pdat::CellData<NDIM, double>& Q_data) const;
+    double getSolVal(const UPoint& pt, const SAMRAI::pdat::CellData<NDIM, double>& Q_data, Vec& vec) const;
+    void setSolVal(double q, const UPoint& pt, SAMRAI::pdat::CellData<NDIM, double>& Q_data, Vec& vec) const;
 
     static unsigned int s_num_ghost_cells;
     double d_eps = std::numeric_limits<double>::quiet_NaN();
@@ -307,9 +311,15 @@ private:
     std::vector<std::vector<libMesh::Node*> > d_idx_node_vec, d_idx_node_ghost_vec;
     std::vector<std::vector<UPoint> > d_base_pt_vec;
     std::vector<std::vector<std::vector<UPoint> > > d_pair_pt_vec;
+    std::vector<std::vector<std::vector<double> > > d_pt_weight_vec;
 
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
     const libMesh::DofMap* d_dof_map = nullptr;
+
+    double d_C = std::numeric_limits<double>::quiet_NaN();
+    double d_D = std::numeric_limits<double>::quiet_NaN();
+
+    std::function<double(const IBTK::VectorNd&)> d_bdry_cond;
 };
 } // namespace IBTK
 
