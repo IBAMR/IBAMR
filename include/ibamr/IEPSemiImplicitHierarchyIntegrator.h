@@ -339,6 +339,26 @@ public:
     setAdvectionVelocityTemperatureEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var,
                                             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var);
 
+    /*!
+     * \brief Function to reset the liquid fraction (fl) if they are
+     * maintained by this integrator.
+     */
+    using ResetLiquidFractionFcnPtr = void (*)(int lf_idx,
+                                               int lf_inverse_idx,
+                                               int dlf_dT_idx,
+                                               int T_idx,
+                                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                               int cycle_num,
+                                               double time,
+                                               double current_time,
+                                               double new_time,
+                                               void* ctx);
+
+    /*!
+     * \brief Register function to reset fluid viscosity.
+     */
+    void registerResetLiquidFractionFcn(ResetLiquidFractionFcnPtr callback, void* ctx);
+
 private:
     /*!
      * \brief Default constructor.
@@ -434,6 +454,12 @@ private:
      */
     void computeChemicalPotential(int chemical_potential_idx, const int H_new_idx, const double new_time);
 
+    /*!
+     * Compute the material derivative of liquid fraction
+     */
+    void
+    computeMaterialDerivativeOfLiquidFraction(int lf_material_derivative_idx, const double dt, const double new_time);
+
     //    /*!
     //     * Compute LHS of AC equation.
     //     */
@@ -468,6 +494,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_rhs_var, d_T_rhs_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_C_var, d_lf_temp_rhs_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_C_var, d_T_temp_rhs_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_temp_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Cp_var, d_rho_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_C_var, d_rho_vec_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_H_var, d_H_pre_var;
@@ -477,6 +504,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_p_firstder_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_chemical_potential_var, d_M_var,
         d_updated_rho_var, d_lf_diffusion_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_material_derivative_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_lf_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_H_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_U_old_var;
@@ -484,6 +512,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_old_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_lhs_var, d_lf_lhs_N_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_lf_N_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_inverse_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_dlf_dT_var;
 
     /*!
      * Objects to set initial condition for \f$ \varphi \f$, \f$ T \f$ and \f$ \rho \f$.
@@ -542,6 +572,9 @@ private:
     std::vector<ResetFluidPropertiesFcnPtr> d_reset_rho_fcns, d_reset_Cp_fcns, d_reset_kappa_fcns;
     std::vector<void*> d_reset_rho_fcns_ctx, d_reset_Cp_fcns_ctx, d_reset_kappa_fcns_ctx;
 
+    std::vector<ResetLiquidFractionFcnPtr> d_reset_liquid_fraction_fcns;
+    std::vector<void*> d_reset_liquid_fraction_fcns_ctx;
+
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_bc_coef;
 
     /*!
@@ -590,6 +623,8 @@ private:
         d_T_old_scratch_idx = IBTK::invalid_index;
     int d_D_cc_scratch_idx = IBTK::invalid_index, d_D_cc_current_idx = IBTK::invalid_index,
         d_D_cc_new_idx = IBTK::invalid_index;
+    int d_dlf_dT_scratch_idx = IBTK::invalid_index, d_dlf_dT_current_idx = IBTK::invalid_index,
+        d_dlf_dT_new_idx = IBTK::invalid_index;
 
     /*!
      * Patch data descriptor indices for all "scratch" variables managed by the
@@ -598,7 +633,7 @@ private:
      * Scratch variables have only one context: scratch.
      */
     int d_lf_temp_rhs_idx = IBTK::invalid_index, d_T_temp_rhs_idx = IBTK::invalid_index,
-        d_lf_C_idx = IBTK::invalid_index, d_T_C_idx = IBTK::invalid_index;
+        d_T_temp_idx = IBTK::invalid_index, d_lf_C_idx = IBTK::invalid_index, d_T_C_idx = IBTK::invalid_index;
     int d_C_rhs_scratch_idx = IBTK::invalid_index;
     int d_H_pre_idx = IBTK::invalid_index;
     int d_g_firstder_idx = IBTK::invalid_index, d_g_secondder_idx = IBTK::invalid_index,
@@ -608,6 +643,8 @@ private:
         d_M_idx = IBTK::invalid_index, d_lf_diffusion_idx = IBTK::invalid_index;
     int d_updated_rho_cc_idx = IBTK::invalid_index;
     int d_T_lf_N_scratch_idx = IBTK::invalid_index;
+    int d_lf_inverse_scratch_idx = IBTK::invalid_index;
+    int d_lf_material_derivative_idx = IBTK::invalid_index;
 
     /*!
      * Allen-Cahn equation parameters.
