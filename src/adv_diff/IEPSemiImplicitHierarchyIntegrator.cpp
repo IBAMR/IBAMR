@@ -788,6 +788,11 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
 
     interpolateCCToSC(lf_diff_coef_current_idx, H_scratch_idx);
 
+    // I want to have diffusion coefficient of H+epsilon. One way is before interpolating
+    // to sc you can have H_epsilon. Other way is interpolate H_cc to H_sc and add epsilon.
+    // I am doing second way.
+    d_hier_sc_data_ops->addScalar(lf_diff_coef_current_idx, lf_diff_coef_current_idx, d_eps);
+
     //    if (!d_add_diffusion)
     //        d_hier_sc_data_ops->scale(lf_diff_coef_current_idx, d_M_lf * d_lambda_lf, lf_diff_coef_current_idx);
     //    else
@@ -1215,6 +1220,12 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
     d_H_bdry_bc_fill_op->fillData(new_time);
 
     interpolateCCToSC(lf_diff_coef_new_idx, H_scratch_idx);
+
+    // I want to have diffusion coefficient of H+epsilon. One way is before interpolating
+    // to sc you can have H_epsilon. Other way is interpolate H_cc to H_sc and add epsilon.
+    // I am doing second way.
+    d_hier_sc_data_ops->addScalar(lf_diff_coef_new_idx, lf_diff_coef_new_idx, d_eps);
+
     d_hier_sc_data_ops->copyData(d_H_sc_idx, lf_diff_coef_new_idx);
     //    d_hier_math_ops->interp(lf_diff_coef_new_idx,
     //                            d_lf_diffusion_coef_var,
@@ -2412,10 +2423,9 @@ IEPSemiImplicitHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratc
 
                 double F = -d_M_lf * d_rho_liquid * d_latent_heat * (*H_data)(ci) * (*p_firstder_data)(ci) *
                            (d_T_melt - (*T_data)(ci)) / d_T_melt;
-                (*F_data)(ci) = F -
-                                (d_M_lf * d_lambda_lf * (*H_data)(ci) / std::pow(d_eta_lf, 2.0) *
-                                 ((*g_firstder_data)(ci) - ((*g_secondder_data)(ci) * (*lf_data)(ci)))) +
-                                (*lf_diffusion_data)(ci);
+                (*F_data)(ci) = F - (d_M_lf * d_lambda_lf * (*H_data)(ci) / std::pow(d_eta_lf, 2.0) *
+                                     ((*g_firstder_data)(ci) - ((*g_secondder_data)(ci) * (*lf_data)(ci)))); //+
+                // (*lf_diffusion_data)(ci);
 
                 // Brinkman force
                 if (d_apply_brinkman) (*F_data)(ci) += d_beta / dt * (1.0 - (*H_data)(ci)) * d_lf_b;
@@ -2456,8 +2466,8 @@ IEPSemiImplicitHierarchyIntegrator::computeTemperatureSourceTerm(int F_scratch_i
                 (*F_data)(ci) +=
                     -d_rho_liquid * d_latent_heat_temp *
                     ((((*H_new_data)(ci) * (*lf_new_data)(ci)) - ((*H_current_data)(ci) * (*lf_current_data)(ci))) /
-                         dt -
-                     (*lf_diffusion_data)(ci));
+                     dt); // -
+                          //                     (*lf_diffusion_data)(ci));
             }
         }
     }
