@@ -7,19 +7,20 @@ RHO = 1.0
 L = 1.0
 
 SHEAR_MOD = 200.0
+HORIZON_SIZE = 3.015
 POISSON_RATIO = 0.49
 BULK_MOD = 2.0 * SHEAR_MOD * (1.0 + POISSON_RATIO) / 3.0 / (1.0 - 2.0 * POISSON_RATIO)
-ETA = 1.0
+DAMPING = 0.0
 
 // grid spacing parameters
 MAX_LEVELS = 1                                 // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                 // refinement ratio between levels
-N = 100                                        // actual    number of grid cells on coarsest grid level
+M = 80
+MFAC = 0.75
+N = MFAC * M                                         // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
 DX0 = L/N                                      // mesh width on coarsest grid level
 DX  = L/NFINEST                                // mesh width on finest   grid level
-EFAC = 2.0
-MFAC = 0.5 * EFAC                              // ratio of Lagrangian mesh width to Cartesian mesh width
 
 // problem parameters
 SMOOTH_CASE = FALSE
@@ -46,7 +47,7 @@ CONVECTIVE_OP_TYPE  = "PPM"                    // convective differencing discre
 CONVECTIVE_FORM     = "ADVECTIVE"              // how to compute the convective terms
 NORMALIZE_PRESSURE  = FALSE                    // whether to explicitly force the pressure to have mean zero
 CFL_MAX             = 0.3                      // maximum CFL number
-DT                  = 1.0e-3*DX                // maximum timestep size // .025*CFL_MAX*DX    //
+DT                  = 1.0e-4*DX                // maximum timestep size // .025*CFL_MAX*DX    //
 ERROR_ON_DT_CHANGE  = TRUE                     // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = FALSE                    // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 1                        // size of tag buffer used by grid generation algorithm
@@ -75,8 +76,8 @@ VelocityBcCoefs_0 {
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = "-20.0" // "t < load_time ? -H_MAG*sin(pi/2*t/load_time) : -H_MAG"
-   gcoef_function_1 = "20.0" // "t < load_time ? H_MAG*sin(pi/2*t/load_time) : H_MAG"
+   gcoef_function_0 = "t < load_time ? -H_MAG*sin(pi/2*t/load_time) : -H_MAG"
+   gcoef_function_1 = "t < load_time ? H_MAG*sin(pi/2*t/load_time) : H_MAG"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
 }
@@ -113,8 +114,8 @@ IBHierarchyIntegrator {
 }
 
 IBPDForceGen {
-    horizon        = 3.015
-    ds             = 1.0/100.0
+    horizon        = HORIZON_SIZE
+    ds             = MFAC * DX
 }
 
 IBPDMethod {
@@ -124,10 +125,10 @@ IBPDMethod {
 
 IBStandardInitializer {
    max_levels      = MAX_LEVELS
-   structure_names = "failed_sheet2d"
+   structure_names = "failed_band2d"
    posn_shift = 0.0 , 0.0 
 
-   failed_sheet2d {
+   failed_band2d {
       level_number = MAX_LEVELS - 1
    }
 }

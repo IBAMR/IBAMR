@@ -126,6 +126,8 @@ my_vol_frac_fcn(double R0, double /*horizon*/, double /*delta*/)
 
 } // my_vol_frac_fcn
 
+static double sigma_VM;
+static double jacobian;
 void
 my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
            const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& FF,
@@ -155,7 +157,7 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
     // const double J = std::abs(FF.determinant());
     // mat_type FF_trans = FF.transpose();
     // mat_type FF_inv_trans = FF_trans.inverse();
-    // PK1 = G * FF + K * log(J)*FF_inv_trans;
+    // PK1 = G * FF + K * log(J) * FF_inv_trans;
 
     // stabilized neo-hookean model
     mat_type CC = F0.transpose()*F0;
@@ -163,13 +165,18 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
     mat_type FF_inv_trans = FF_trans.inverse();
     const double tr_cc = CC.trace();
     const double J = std::abs(F0.determinant());
-    // const double Jsquare = pow(J,2.0);
     const double J_cbrt_inv = 1.0 / cbrt(J);
     const double Jp = J_cbrt_inv * J_cbrt_inv;
-    // PK1 = G * (F0 - tr_cc*FF_inv_trans/2.)/J + K * (Jsquare - 1./Jsquare)*FF_inv_trans/4.;
-    // PK1 = G * Jp * (F0 - tr_cc * FF_inv_trans / 3.0) + K * (Jsquare - 1./Jsquare)*FF_inv_trans/4.;
-    // PK1 = G * Jp * (F0 - tr_cc * FF_inv_trans / 3.0) + K_n * J * log(J) * FF_inv_trans;
     PK1 = G * Jp * (F0 - tr_cc / 3.0 * FF_inv_trans) + K_bulk * log(J) * FF_inv_trans;
+
+    // Computing Von Mises stress at each point
+    mat_type sigma = 1.0 / J * PK1 * FF_trans;
+    mat_type sigma_sq = sigma * sigma;
+    const double tr_sig = sigma.trace();
+    const double tr_sig_sq = sigma_sq.trace();
+    sigma_VM = 1.0 / 2.0 * (tr_sig_sq - tr_sig * tr_sig / 3.0);
+
+    jacobian = J;
 
     return;
 } // my_PK1_fcn
@@ -255,10 +262,15 @@ my_force_damage_fcn(const double /*horizon*/,
 
     // Compute damage.
     Eigen::Vector4d D;
-    D(0) = vol_slave * vol_frac * fail;
-    D(1) = vol_slave * vol_frac;
-    D(2) = vol_mastr * vol_frac * fail;
-    D(3) = vol_mastr * vol_frac;
+    // D(0) = vol_slave * vol_frac * fail;
+    // D(1) = vol_slave * vol_frac;
+    // D(2) = vol_mastr * vol_frac * fail;
+    // D(3) = vol_mastr * vol_frac;
+
+    D(0) = std::abs(FF_mastr.determinant());
+    D(1) = 1.0;
+    D(2) = std::abs(FF_mastr.determinant());
+    D(3) = 1.0;
 
     return D;
     

@@ -47,28 +47,26 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const double loop_time,
                  const string& data_dump_dirname);
 
-// material parameters
-static const int nx = 97;                                                   // number of grids in x
-static const int ny = 17;                                                    // number of grids in y
-static const int nz = 17;                                                    // number of grids in z
+static const int nx = 49;
+static const int ny = 9;
+static const int nz = 9;
+
+static int M_temp;
+static double Horizon_size_temp;
+static double Poisson_ratio_temp;
+static double horizon;
+static double P;
+static double DX;
+static double DX0;
+static double k1;
+static double k2;
+static double K_bulk;
+static double Max_force_indi;
 
 // 3d beam
 static const double x_begin = -3.0;                                         // left end of the beam
 static const double x_end = 3.0;                                            // right end of the beam
 
-static const double DX = (x_end - x_begin) / double(nx-1);                  // material grid size (cm)
-static const double horizon = 2.015 * DX;                                   // horizon size
-static const double P = 0.4;                                                // numerical Poisson's ratio 0.45 0.49
-static const double k1 = 9000.0;                                            // Mooney Rivlin parameters
-static const double k2 = 9000.0;
-static const double k3 = 2.0 * (k1 + k2);
-static const double K_bulk = 2.0 * k3 * (1.0 + P) / (3. * (1. - 2.*P) );    // numerical bulk modulus
-
-static const double T_load = 2.0;                                               // time when the full load is appplied
-static const double MFAC = 2.0;
-static const double DX0 = DX * MFAC;
-static const double DT = 1.0e-4 * DX0;
-static const double Max_force_indi = T_load / DT;
 static double indi = 1.0;
 
 double
@@ -185,13 +183,13 @@ my_force_damage_fcn(const double /*horizon*/,
     my_PK1_fcn(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
 
     // Compute PD force.
-    const double penalty_fac = 0.0*18.0*K_bulk/(M_PI * pow(horizon,4.0));
-    vec_type pen_trac = penalty_fac * W * ((X_slave - X0_slave) - (X_mastr - X0_mastr));
+    // const double penalty_fac = 0.0*18.0*K_bulk/(M_PI * pow(horizon,4.0));
+    // vec_type pen_trac = penalty_fac * W * ((X_slave - X0_slave) - (X_mastr - X0_mastr));
     // vec_type pen_trac = penalty_fac * stretch * (X0_slave - X0_mastr) / R0;
     vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
 
-    F_mastr += fail * vol_frac * vol_slave * (trac + 2.0 * pen_trac);
-    F_slave += -fail * vol_frac * vol_mastr * (trac + 2.0 * pen_trac);
+    F_mastr += fail * vol_frac * vol_slave * (trac);
+    F_slave += -fail * vol_frac * vol_mastr * (trac);
 
     // Compute damage.
     Eigen::Vector4d D;
@@ -400,6 +398,20 @@ main(int argc, char* argv[])
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
+
+        M_temp = input_db->getInteger("M");
+        Horizon_size_temp = input_db->getDouble("HORIZON_SIZE");
+        Poisson_ratio_temp = input_db->getDouble("POISSON_RATIO");
+        k1 = input_db->getDouble("K1");
+        k2 = input_db->getDouble("K2");
+        K_bulk = input_db->getDouble("BULK_MOD");
+        DX0 = input_db->getDouble("DX");
+        static const double d_dt = input_db->getDouble("DT");
+        Max_force_indi = (input_db->getDouble("LOAD_TIME")) / d_dt;
+        DX = (x_end - x_begin) / double(6.0 * M_temp);
+        horizon = Horizon_size_temp * DX;
+        P = Poisson_ratio_temp;
+
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();

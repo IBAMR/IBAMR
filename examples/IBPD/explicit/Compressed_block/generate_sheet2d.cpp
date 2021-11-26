@@ -76,7 +76,7 @@ main(int argc, char* argv[])
 {
     // Problem parameters
 
-    const int M = 16;
+    const int M = 32;
     const int ndivx = M + 1; // num points in x direction.
     const int ndivy = M / 2 + 1;  // num points in y direction.
     const int nbnd = 0;

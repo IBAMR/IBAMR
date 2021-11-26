@@ -87,9 +87,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2)
-@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d sheet2d_generator failed_sheet2d_generator
-@SAMRAI3D_ENABLED_TRUE@am__append_2 = main3d membrane3d_generator
+EXTRA_PROGRAMS = $(am__EXEEXT_1)
+@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d sheet2d_generator
 subdir = examples/IBPD/explicit/Cooks_membrane
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -122,43 +121,17 @@ CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 @SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT) \
-@SAMRAI2D_ENABLED_TRUE@	sheet2d_generator$(EXEEXT) \
-@SAMRAI2D_ENABLED_TRUE@	failed_sheet2d_generator$(EXEEXT)
-@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_2 = main3d$(EXEEXT) \
-@SAMRAI3D_ENABLED_TRUE@	membrane3d_generator$(EXEEXT)
-am_failed_sheet2d_generator_OBJECTS =  \
-	failed_sheet2d_generator-generate_sheet2d_failure.$(OBJEXT)
-failed_sheet2d_generator_OBJECTS =  \
-	$(am_failed_sheet2d_generator_OBJECTS)
-failed_sheet2d_generator_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@SAMRAI2D_ENABLED_TRUE@	sheet2d_generator$(EXEEXT)
+am_main2d_OBJECTS = main2d-main.$(OBJEXT)
+main2d_OBJECTS = $(am_main2d_OBJECTS)
+main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-failed_sheet2d_generator_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
-	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
-	$(failed_sheet2d_generator_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
-am_main2d_OBJECTS = main2d-main.$(OBJEXT)
-main2d_OBJECTS = $(am_main2d_OBJECTS)
-main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_main3d_OBJECTS = main3d-main.$(OBJEXT)
-main3d_OBJECTS = $(am_main3d_OBJECTS)
-main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-main3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main3d_CXXFLAGS) \
-	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_membrane3d_generator_OBJECTS =  \
-	membrane3d_generator-generate_membrane3d.$(OBJEXT)
-membrane3d_generator_OBJECTS = $(am_membrane3d_generator_OBJECTS)
-membrane3d_generator_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-membrane3d_generator_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
-	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
-	$(membrane3d_generator_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
 am_sheet2d_generator_OBJECTS =  \
 	sheet2d_generator-generate_sheet2d.$(OBJEXT)
 sheet2d_generator_OBJECTS = $(am_sheet2d_generator_OBJECTS)
@@ -182,9 +155,7 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/failed_sheet2d_generator-generate_sheet2d_failure.Po \
-	./$(DEPDIR)/main2d-main.Po ./$(DEPDIR)/main3d-main.Po \
-	./$(DEPDIR)/membrane3d_generator-generate_membrane3d.Po \
+am__depfiles_remade = ./$(DEPDIR)/main2d-main.Po \
 	./$(DEPDIR)/sheet2d_generator-generate_sheet2d.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -205,9 +176,7 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-DIST_SOURCES = $(failed_sheet2d_generator_SOURCES) $(main2d_SOURCES) \
-	$(main3d_SOURCES) $(membrane3d_generator_SOURCES) \
-	$(sheet2d_generator_SOURCES)
+DIST_SOURCES = $(main2d_SOURCES) $(sheet2d_generator_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -499,25 +468,15 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-SOURCES = main.cpp generate_sheet2d.cpp generate_sheet2d_failure.cpp generate_membrane3d.cpp
-EXTRA_DIST = input2d input2d_failure input3d read_file_ibamr2d.m \
-	read_file_ibamr3d.m generate_sheet2d.cpp \
-	generate_sheet2d_failure.cpp generate_membrane3d.cpp
+SOURCES = main.cpp generate_sheet2d.cpp
+EXTRA_DIST = input2d input2d_tune read_file_ibamr2d.m automate.sh \
+	run_IPD_comparisons.sh generate_sheet2d.cpp
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = main.cpp
-main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-main3d_SOURCES = main.cpp
 sheet2d_generator_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 sheet2d_generator_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 sheet2d_generator_SOURCES = generate_sheet2d.cpp
-failed_sheet2d_generator_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-failed_sheet2d_generator_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-failed_sheet2d_generator_SOURCES = generate_sheet2d_failure.cpp
-membrane3d_generator_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-membrane3d_generator_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-membrane3d_generator_SOURCES = generate_membrane3d.cpp
 all: all-am
 
 .SUFFIXES:
@@ -553,21 +512,9 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
-failed_sheet2d_generator$(EXEEXT): $(failed_sheet2d_generator_OBJECTS) $(failed_sheet2d_generator_DEPENDENCIES) $(EXTRA_failed_sheet2d_generator_DEPENDENCIES) 
-	@rm -f failed_sheet2d_generator$(EXEEXT)
-	$(AM_V_CXXLD)$(failed_sheet2d_generator_LINK) $(failed_sheet2d_generator_OBJECTS) $(failed_sheet2d_generator_LDADD) $(LIBS)
-
 main2d$(EXEEXT): $(main2d_OBJECTS) $(main2d_DEPENDENCIES) $(EXTRA_main2d_DEPENDENCIES) 
 	@rm -f main2d$(EXEEXT)
 	$(AM_V_CXXLD)$(main2d_LINK) $(main2d_OBJECTS) $(main2d_LDADD) $(LIBS)
-
-main3d$(EXEEXT): $(main3d_OBJECTS) $(main3d_DEPENDENCIES) $(EXTRA_main3d_DEPENDENCIES) 
-	@rm -f main3d$(EXEEXT)
-	$(AM_V_CXXLD)$(main3d_LINK) $(main3d_OBJECTS) $(main3d_LDADD) $(LIBS)
-
-membrane3d_generator$(EXEEXT): $(membrane3d_generator_OBJECTS) $(membrane3d_generator_DEPENDENCIES) $(EXTRA_membrane3d_generator_DEPENDENCIES) 
-	@rm -f membrane3d_generator$(EXEEXT)
-	$(AM_V_CXXLD)$(membrane3d_generator_LINK) $(membrane3d_generator_OBJECTS) $(membrane3d_generator_LDADD) $(LIBS)
 
 sheet2d_generator$(EXEEXT): $(sheet2d_generator_OBJECTS) $(sheet2d_generator_DEPENDENCIES) $(EXTRA_sheet2d_generator_DEPENDENCIES) 
 	@rm -f sheet2d_generator$(EXEEXT)
@@ -579,10 +526,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/failed_sheet2d_generator-generate_sheet2d_failure.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-main.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-main.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/membrane3d_generator-generate_membrane3d.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sheet2d_generator-generate_sheet2d.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -615,20 +559,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
 
-failed_sheet2d_generator-generate_sheet2d_failure.o: generate_sheet2d_failure.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(failed_sheet2d_generator_CXXFLAGS) $(CXXFLAGS) -MT failed_sheet2d_generator-generate_sheet2d_failure.o -MD -MP -MF $(DEPDIR)/failed_sheet2d_generator-generate_sheet2d_failure.Tpo -c -o failed_sheet2d_generator-generate_sheet2d_failure.o `test -f 'generate_sheet2d_failure.cpp' || echo '$(srcdir)/'`generate_sheet2d_failure.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/failed_sheet2d_generator-generate_sheet2d_failure.Tpo $(DEPDIR)/failed_sheet2d_generator-generate_sheet2d_failure.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='generate_sheet2d_failure.cpp' object='failed_sheet2d_generator-generate_sheet2d_failure.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(failed_sheet2d_generator_CXXFLAGS) $(CXXFLAGS) -c -o failed_sheet2d_generator-generate_sheet2d_failure.o `test -f 'generate_sheet2d_failure.cpp' || echo '$(srcdir)/'`generate_sheet2d_failure.cpp
-
-failed_sheet2d_generator-generate_sheet2d_failure.obj: generate_sheet2d_failure.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(failed_sheet2d_generator_CXXFLAGS) $(CXXFLAGS) -MT failed_sheet2d_generator-generate_sheet2d_failure.obj -MD -MP -MF $(DEPDIR)/failed_sheet2d_generator-generate_sheet2d_failure.Tpo -c -o failed_sheet2d_generator-generate_sheet2d_failure.obj `if test -f 'generate_sheet2d_failure.cpp'; then $(CYGPATH_W) 'generate_sheet2d_failure.cpp'; else $(CYGPATH_W) '$(srcdir)/generate_sheet2d_failure.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/failed_sheet2d_generator-generate_sheet2d_failure.Tpo $(DEPDIR)/failed_sheet2d_generator-generate_sheet2d_failure.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='generate_sheet2d_failure.cpp' object='failed_sheet2d_generator-generate_sheet2d_failure.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(failed_sheet2d_generator_CXXFLAGS) $(CXXFLAGS) -c -o failed_sheet2d_generator-generate_sheet2d_failure.obj `if test -f 'generate_sheet2d_failure.cpp'; then $(CYGPATH_W) 'generate_sheet2d_failure.cpp'; else $(CYGPATH_W) '$(srcdir)/generate_sheet2d_failure.cpp'; fi`
-
 main2d-main.o: main.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-main.o -MD -MP -MF $(DEPDIR)/main2d-main.Tpo -c -o main2d-main.o `test -f 'main.cpp' || echo '$(srcdir)/'`main.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-main.Tpo $(DEPDIR)/main2d-main.Po
@@ -642,34 +572,6 @@ main2d-main.obj: main.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='main.cpp' object='main2d-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-main.obj `if test -f 'main.cpp'; then $(CYGPATH_W) 'main.cpp'; else $(CYGPATH_W) '$(srcdir)/main.cpp'; fi`
-
-main3d-main.o: main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-main.o -MD -MP -MF $(DEPDIR)/main3d-main.Tpo -c -o main3d-main.o `test -f 'main.cpp' || echo '$(srcdir)/'`main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-main.Tpo $(DEPDIR)/main3d-main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='main.cpp' object='main3d-main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-main.o `test -f 'main.cpp' || echo '$(srcdir)/'`main.cpp
-
-main3d-main.obj: main.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-main.obj -MD -MP -MF $(DEPDIR)/main3d-main.Tpo -c -o main3d-main.obj `if test -f 'main.cpp'; then $(CYGPATH_W) 'main.cpp'; else $(CYGPATH_W) '$(srcdir)/main.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-main.Tpo $(DEPDIR)/main3d-main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='main.cpp' object='main3d-main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-main.obj `if test -f 'main.cpp'; then $(CYGPATH_W) 'main.cpp'; else $(CYGPATH_W) '$(srcdir)/main.cpp'; fi`
-
-membrane3d_generator-generate_membrane3d.o: generate_membrane3d.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(membrane3d_generator_CXXFLAGS) $(CXXFLAGS) -MT membrane3d_generator-generate_membrane3d.o -MD -MP -MF $(DEPDIR)/membrane3d_generator-generate_membrane3d.Tpo -c -o membrane3d_generator-generate_membrane3d.o `test -f 'generate_membrane3d.cpp' || echo '$(srcdir)/'`generate_membrane3d.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/membrane3d_generator-generate_membrane3d.Tpo $(DEPDIR)/membrane3d_generator-generate_membrane3d.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='generate_membrane3d.cpp' object='membrane3d_generator-generate_membrane3d.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(membrane3d_generator_CXXFLAGS) $(CXXFLAGS) -c -o membrane3d_generator-generate_membrane3d.o `test -f 'generate_membrane3d.cpp' || echo '$(srcdir)/'`generate_membrane3d.cpp
-
-membrane3d_generator-generate_membrane3d.obj: generate_membrane3d.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(membrane3d_generator_CXXFLAGS) $(CXXFLAGS) -MT membrane3d_generator-generate_membrane3d.obj -MD -MP -MF $(DEPDIR)/membrane3d_generator-generate_membrane3d.Tpo -c -o membrane3d_generator-generate_membrane3d.obj `if test -f 'generate_membrane3d.cpp'; then $(CYGPATH_W) 'generate_membrane3d.cpp'; else $(CYGPATH_W) '$(srcdir)/generate_membrane3d.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/membrane3d_generator-generate_membrane3d.Tpo $(DEPDIR)/membrane3d_generator-generate_membrane3d.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='generate_membrane3d.cpp' object='membrane3d_generator-generate_membrane3d.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(membrane3d_generator_CXXFLAGS) $(CXXFLAGS) -c -o membrane3d_generator-generate_membrane3d.obj `if test -f 'generate_membrane3d.cpp'; then $(CYGPATH_W) 'generate_membrane3d.cpp'; else $(CYGPATH_W) '$(srcdir)/generate_membrane3d.cpp'; fi`
 
 sheet2d_generator-generate_sheet2d.o: generate_sheet2d.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sheet2d_generator_CXXFLAGS) $(CXXFLAGS) -MT sheet2d_generator-generate_sheet2d.o -MD -MP -MF $(DEPDIR)/sheet2d_generator-generate_sheet2d.Tpo -c -o sheet2d_generator-generate_sheet2d.o `test -f 'generate_sheet2d.cpp' || echo '$(srcdir)/'`generate_sheet2d.cpp
@@ -816,10 +718,7 @@ clean: clean-am
 clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/failed_sheet2d_generator-generate_sheet2d_failure.Po
-	-rm -f ./$(DEPDIR)/main2d-main.Po
-	-rm -f ./$(DEPDIR)/main3d-main.Po
-	-rm -f ./$(DEPDIR)/membrane3d_generator-generate_membrane3d.Po
+		-rm -f ./$(DEPDIR)/main2d-main.Po
 	-rm -f ./$(DEPDIR)/sheet2d_generator-generate_sheet2d.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -866,10 +765,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/failed_sheet2d_generator-generate_sheet2d_failure.Po
-	-rm -f ./$(DEPDIR)/main2d-main.Po
-	-rm -f ./$(DEPDIR)/main3d-main.Po
-	-rm -f ./$(DEPDIR)/membrane3d_generator-generate_membrane3d.Po
+		-rm -f ./$(DEPDIR)/main2d-main.Po
 	-rm -f ./$(DEPDIR)/sheet2d_generator-generate_sheet2d.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
@@ -914,26 +810,22 @@ uninstall-am:
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input2d $(PWD) ; \
-	  cp -f $(srcdir)/input2d_failure $(PWD) ; \
+	  cp -f $(srcdir)/input2d_tune $(PWD) ; \
 	  cp -f $(srcdir)/generate_sheet2d.cpp $(PWD) ; \
-	  cp -f $(srcdir)/generate_sheet2d_failure.cpp $(PWD) ; \
 	  cp -f $(srcdir)/read_file_ibamr2d.m $(PWD) ; \
-	  cp -f $(srcdir)/input3d $(PWD) ; \
-	  cp -f $(srcdir)/generate_membrane3d.cpp $(PWD) ; \
-	  cp -f $(srcdir)/read_file_ibamr3d.m $(PWD) ; \
+	  cp -f $(srcdir)/automate.sh $(PWD) ; \
+	  cp -f $(srcdir)/run_IPD_comparisons.sh $(PWD) ; \
 	fi ;
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input2d ; \
-	  rm -f $(builddir)/input2d_failure ; \
+	  rm -f $(builddir)/input2d_tune ; \
 	  rm -f $(builddir)/generate_sheet2d.cpp ; \
-	  rm -f $(builddir)/generate_sheet2d_failure.cpp ; \
 	  rm -f $(builddir)/read_file_ibamr2d.m ; \
-	  rm -f $(builddir)/input3d ; \
-	  rm -f $(builddir)/generate_membrane3d.cpp ; \
-	  rm -f $(builddir)/read_file_ibamr3d.m ; \
+	  rm -f $(builddir)/automate.sh ; \
+	  rm -f $(builddir)/run_IPD_comparisons.sh ; \
 	fi ;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

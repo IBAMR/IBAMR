@@ -12,7 +12,7 @@ U_MAX = 5.0
 // grid spacing parameters
 MAX_LEVELS = 1                                    // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                    // refinement ratio between levels
-M = 16						                             // number of nodes per edge of Lagrangian mesh
+M = 32						                             // number of nodes per edge of Lagrangian mesh
 MFAC = 0.5	                                         // ratio of Lagrangian mesh width to Cartesian mesh width of the rectangular
 REF_FACTOR = (REF_RATIO^(MAX_LEVELS - 1))
 N = ceil(M * MFAC * L_X / L_D /REF_FACTOR)        // actual    number of grid cells on coarsest grid level
@@ -61,10 +61,10 @@ OUTPUT_DIV_U        = TRUE
 ENABLE_LOGGING      = TRUE
 
 // model parameters
-POISSON_RATIO = 0.4
+POISSON_RATIO = -1.0
 HORIZON_SIZE = 2.015
 SHEAR_MOD = 80.194
-BULK_MOD = 2*SHEAR_MOD * (1 + POISSON_RATIO) / 3.0 / (1.0 - 2*POISSON_RATIO)
+BULK_MOD = 2.0 * SHEAR_MOD * (1.0 + POISSON_RATIO) / 3.0 / (1.0 - 2.0 * POISSON_RATIO)
 DAMPING = 0.05 * SHEAR_MOD
 
 VelocityBcCoefs_0 {

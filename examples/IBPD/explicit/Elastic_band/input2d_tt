@@ -1,22 +1,26 @@
+// constants
+PI = 3.14159265358979
+
 // physical parameters
-MU  = 1.0e-2
+MU  = 0.01
 RHO = 1.0
-K = 1.0
 L = 1.0
 
 SHEAR_MOD = 200.0
-POISSON_RATIO = 0.4
+POISSON_RATIO = NU_TEMP
+HORIZON_SIZE = HORIZON_TEMP
 BULK_MOD = 2.0 * SHEAR_MOD * (1.0 + POISSON_RATIO) / 3.0 / (1.0 - 2.0 * POISSON_RATIO)
-E = .5 * SHEAR_MOD
+DAMPING = 0.1
 
 // grid spacing parameters
 MAX_LEVELS = 1                                 // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                 // refinement ratio between levels
-N = 50                                        // actual    number of grid cells on coarsest grid level
+M = M_TEMP
+MFAC = 0.5
+N = MFAC * M                                         // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
 DX0 = L/N                                      // mesh width on coarsest grid level
 DX  = L/NFINEST                                // mesh width on finest   grid level
-
 
 // problem parameters
 SMOOTH_CASE = FALSE
@@ -31,33 +35,36 @@ PressureInitialConditions {
 }
 
 // solver parameters
-DELTA_FUNCTION             = "BSPLINE_6"       // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
-START_TIME                 = 0.0e0             // initial simulation time
-END_TIME                   = 50.0              // final simulation time
-LOAD_TIME		            = 0.1 * END_TIME	  // time when load is fully applied
-GROW_DT                    = 2.0e0             // growth factor for timesteps
-NUM_CYCLES                 = 1                 // number of cycles of fixed-point iteration
-CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH" // convective time stepping type
-CONVECTIVE_OP_TYPE         = "PPM"             // convective differencing discretization type
-CONVECTIVE_FORM            = "ADVECTIVE"       // how to compute the convective terms
-NORMALIZE_PRESSURE         = FALSE             // whether to explicitly force the pressure to have mean zero
-CFL_MAX                    = 0.2               // maximum CFL number
-DT                         = 1.0e-3*DX         //  maximum timestep size
-ERROR_ON_DT_CHANGE         = FALSE             // whether to emit an error message if the time step size changes
-VORTICITY_TAGGING          = FALSE             // whether to tag cells for refinement based on vorticity thresholds
-TAG_BUFFER                 = 1                 // size of tag buffer used by grid generation algorithm
-REGRID_CFL_INTERVAL        = 0.5               // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
-OUTPUT_U                   = TRUE
-OUTPUT_P                   = TRUE
-OUTPUT_F                   = TRUE
-OUTPUT_OMEGA               = TRUE
-OUTPUT_DIV_U               = TRUE
-ENABLE_LOGGING             = TRUE
-LOAD_TIME          	      = 5.0
+DELTA_FUNCTION      = "IB_4"
+SOLVER_TYPE         = "STAGGERED"              // the fluid solver to use (STAGGERED or COLLOCATED)
+START_TIME          = 0.0e0                    // initial simulation time
+END_TIME            = 1.0                     // final simulation time
+LOAD_TIME		     = 0.0           	        // time when load is fully applied
+GROW_DT             = 2.0e0                    // growth factor for timesteps
+NUM_CYCLES          = 1                        // number of cycles of fixed-point iteration
+CONVECTIVE_TS_TYPE  = "ADAMS_BASHFORTH"        // convective time stepping type
+CONVECTIVE_OP_TYPE  = "PPM"                    // convective differencing discretization type
+CONVECTIVE_FORM     = "ADVECTIVE"              // how to compute the convective terms
+NORMALIZE_PRESSURE  = FALSE                    // whether to explicitly force the pressure to have mean zero
+CFL_MAX             = 0.3                      // maximum CFL number
+DT                  = 1.0e-4*DX                // maximum timestep size // .025*CFL_MAX*DX    //
+ERROR_ON_DT_CHANGE  = TRUE                     // whether to emit an error message if the time step size changes
+VORTICITY_TAGGING   = FALSE                    // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER          = 1                        // size of tag buffer used by grid generation algorithm
+// REGRID_INTERVAL     = 10000000
+REGRID_CFL_INTERVAL = 1.0e15                   // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+OUTPUT_U            = TRUE
+OUTPUT_P            = TRUE
+OUTPUT_F            = TRUE
+OUTPUT_OMEGA        = TRUE
+OUTPUT_DIV_U        = TRUE
+ENABLE_LOGGING      = TRUE
+
+USE_VOLUMETRIC_TERM = TRUE
 
 VelocityBcCoefs_0 {
    load_time = LOAD_TIME
-   H_MAG = 5.0
+   H_MAG = 10.0
 
    acoef_function_0 = "0.0"
    acoef_function_1 = "0.0"
@@ -92,9 +99,23 @@ VelocityBcCoefs_1 {
    gcoef_function_3 = "0.0"
 }
 
+
+IBHierarchyIntegrator {
+   start_time          = START_TIME
+   end_time            = END_TIME
+   grow_dt             = GROW_DT
+   num_cycles          = NUM_CYCLES
+//   regrid_interval     = REGRID_INTERVAL
+   regrid_cfl_interval = REGRID_CFL_INTERVAL
+   dt_max              = DT
+   error_on_dt_change  = ERROR_ON_DT_CHANGE
+//   tag_buffer          = TAG_BUFFER
+   enable_logging      = ENABLE_LOGGING
+}
+
 IBPDForceGen {
-   horizon        = 1.015
-   ds             = 1.0/100.0
+    horizon        = HORIZON_SIZE
+    ds             = MFAC * DX
 }
 
 IBPDMethod {
@@ -104,23 +125,12 @@ IBPDMethod {
 
 IBStandardInitializer {
    max_levels      = MAX_LEVELS
-   structure_names = "sheet2d"
-   posn_shift = 0.0 , 0.0
+   structure_names = "BAND2D_TEMP"
+   posn_shift = 0.0 , 0.0 
 
-   sheet2d {
-     level_number = MAX_LEVELS - 1
+   BAND2D_TEMP {
+      level_number = MAX_LEVELS - 1
    }
-}
-
-IBHierarchyIntegrator {
-   start_time          = START_TIME
-   end_time            = END_TIME
-   grow_dt             = GROW_DT
-   num_cycles          = NUM_CYCLES
-   regrid_cfl_interval = REGRID_CFL_INTERVAL
-   dt_max              = DT
-   error_on_dt_change  = ERROR_ON_DT_CHANGE
-   enable_logging      = ENABLE_LOGGING
 }
 
 INSStaggeredHierarchyIntegrator {
@@ -147,14 +157,13 @@ INSStaggeredHierarchyIntegrator {
 }
 
 Main {
-
 // log file parameters
    log_file_name               = "IB2d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt","Silo"
-   viz_dump_interval           = 50 
+   viz_dump_interval           = 1000
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
@@ -180,11 +189,11 @@ CartesianGeometry {
 GriddingAlgorithm {
    max_levels = MAX_LEVELS
    ratio_to_coarser {
-      level_1 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_2 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_3 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_4 = REF_RATIO,REF_RATIO,REF_RATIO
-      level_5 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_1 = REF_RATIO,REF_RATIO, REF_RATIO
+      level_2 = REF_RATIO,REF_RATIO, REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO, REF_RATIO
+      level_4 = REF_RATIO,REF_RATIO, REF_RATIO
+      level_5 = REF_RATIO,REF_RATIO, REF_RATIO
    }
    largest_patch_size {
       level_0 = 512,512  // all finer levels will use same values as level_0

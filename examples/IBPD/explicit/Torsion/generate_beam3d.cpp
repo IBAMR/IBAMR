@@ -20,6 +20,7 @@
 #include <set>
 #include <utility>
 #include <vector>
+#include <sstream>
 
 using Edge = std::pair<int, int>;
 using EdgeProp = std::pair<double, double>;
@@ -43,15 +44,23 @@ sort_edge(Edge& e)
     return;
 }
 
+std::string to_string_with_precision(const double a_value, const int n = 3)
+{
+    std::ostringstream out;
+    out.precision(n);
+    out << std::fixed << a_value;
+    return out.str();
+}
+
 int
 main(int /*argc*/, char** /*argv*/)
 {
     // Problem parameters
 
-    const int ndivx = 97; // num points in x direction.
-    const int ndivy = 17;  // num points in y direction.
+    const int ndivx = 49;// num points in x direction.
+    const int ndivy = 9;  // num points in y direction.
     const int nbnd = 0;
-    const int ndivz = 17; // num layers in z direction.
+    const int ndivz = 9; // num layers in z direction.
     const int totnode = (ndivx + 2 * nbnd) * (ndivy + 2 * nbnd) * ndivz;
 
     // 3d beam
@@ -67,7 +76,7 @@ main(int /*argc*/, char** /*argv*/)
     const double area = dx * dx;            // cross-sectional area
     const double vol = area * thick;        // volume of a material point
 
-    const double scr0 = 3.1;               // critical stretch
+    const double scr0 = 30.0;               // critical stretch
 
     // Initialize vertices
     double coord[totnode][3];

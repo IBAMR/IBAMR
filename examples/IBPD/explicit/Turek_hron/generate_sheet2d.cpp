@@ -46,21 +46,21 @@ sort_edge(Edge& e)
 int
 main(int /*argc*/, char** /*argv*/)
 {
-    const int N = 128;
+    const int N = 32;
     const double H = 0.41;
 
     const double dx = H / (double)N;
     const double dy = dx;
-    const double MFAC = 2.0;
+    const double MFAC = 1.0;
     const double ds = MFAC * dx;
 
-    const double r = 0.05;               // radius of the cylinder (cm)
-    const double length = 8.0 * r;      // total length of the plate (cm)
-    const double height = 0.4 * r;      // total width of the plate (cm)
+    const double r = 0.05;               // radius of the cylinder (m)
+    const double length = 7.0 * r;      // total length of the plate (m)
+    const double height = 0.4 * r;      // total width of the plate (m)
     const double x_c = 0.2;
     const double y_c = 0.2;
 
-    const int ndivx = ceil(length / ds);
+    const int ndivx = ceil(length / ds)+1;
     const int ndivy = ceil(height / ds);
     const int totnode = ndivx * ndivy;
 

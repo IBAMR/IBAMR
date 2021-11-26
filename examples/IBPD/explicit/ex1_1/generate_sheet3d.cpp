@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2016 - 2019 by the IBAMR developers
+// Copyright (c) 2016 - 2020 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -47,62 +47,64 @@ int
 main(int /*argc*/, char** /*argv*/)
 {
     // Problem parameters
+    const double R = 0.3;
+    const double w = 0.3;
+    const double x_c = 0.2;
+    const double y_c = 0.2;
+    const double z_c = 0.5;
 
-    const int ndivx = 102; // num points in x direction.
-    const int ndivy = 51;  // num points in y direction.
-    const int totnode = ndivx * ndivy;
+    const int N = 128;
+    const double dx = 1.0 / (double)N;
+    const double MFAC = 1.0;
+    const double ds = MFAC * dx;
 
-    const double length = 1.01;              // total length of the plate (m)
-    const double width = 0.5;               // total width of the plate (m)
+    const int n_x = ceil(R / ds);
+    const int n_y = ceil(w / ds);
+    const int n_z = 1;
+    const int totnode = n_x * n_y * n_z;
 
-    const double dx = length / (ndivx - 1); // spacing between material points in x direction
-    const double dy = width / (ndivy - 1);  // spacing between material points in y direction
-    const double delta = 2.015 * dx; // 3.015 * dx;      // horizon
-    const double thick = dx;         // thickness of the plate
-    const double area = dx * dx;     // cross-sectional area
-    const double vol = area * thick; // volume of a material point
-
-    const double scr0 = 3.1; // critical stretch
+    const double area = ds * ds;  // cross-sectional area
+    const double vol = area * ds; // volume of a material point
+    const double delta = 2.015 * ds;
+    const double scr0 = 50 * ds; // critical stretch.
+    
+    std::cout << "------------------------------- " << "\n";
+    std::cout << "total number of nodes = " << totnode << "\n";
+    std::cout << "------------------------------- " << "\n";
 
     // Initialize vertices
-
-    double coord[totnode][2];
+    std::vector<std::vector<double> > coord(totnode, std::vector<double>(3));
     int nnum = -1;
-
-    // Material points of the plate region
-    for (int i = 0; i <= (ndivx - 1); ++i)
+    double x, y, z;
+    // Material points in the region.
+    for (int k = -n_z / 2; k <= n_z / 2; ++k)
     {
-        for (int j = 0; j <= (ndivy - 1); ++j)
+        for (int j = 0; j <= (n_y - 1); ++j)
         {
-            nnum += 1;
-            // 2d plane sheet
-            coord[nnum][0] = i * dx;
-            coord[nnum][1] = j * dy;
+            for (int i = 0; i <= (n_x - 1); ++i)
+            {
+                nnum += 1;
+                x = i * ds;
+                y = j * ds;
+                z = 0.0;
+
+                coord[nnum][0] = x + x_c;
+                coord[nnum][1] = y + y_c;
+                coord[nnum][2] = z + z_c;
+            }
         }
     }
 
-    std::cout << "\n~~~~~~~~~~~~~~~~~~~~~~~~~\n";
-    std::cout << "static const int left_begin = " << 0 << ";" << std::endl;
-    std::cout << "static const int left_end = " << ndivy - 1 << ";" << std::endl;
-    std::cout << "static const int right_begin = " << totnode - ndivy << ";" << std::endl;
-    std::cout << "static const int right_end = " << totnode - 1 << ";" << std::endl;
-    std::cout << "\n~~~~~~~~~~~~~~~~~~~~~~~~~\n";
-
-    const int n_y_crack = 20;
-    const double y_crack_begin = 0.0;
-    const double y_crack_end = n_y_crack * dy;
-    const double x_crack = (double(ndivx)+1.0)/2.0*dx;
-
-
     // Initialize springs
     // Determination of material points inside the horizon of each material point
-    int numfam[totnode] = { 0 };
+    std::vector<int> numfam(totnode, 0);
     std::map<Edge, EdgeProp, EdgeComp> mesh;
     for (int i = 0; i < totnode; ++i)
     {
         for (int j = 0; j < totnode; ++j)
         {
-            const double idist = sqrt(pow((coord[j][0] - coord[i][0]), 2) + pow((coord[j][1] - coord[i][1]), 2));
+            const double idist = sqrt(pow((coord[j][0] - coord[i][0]), 2) + pow((coord[j][1] - coord[i][1]), 2) +
+                                      pow((coord[j][2] - coord[i][2]), 2));
             if (i != j)
             {
                 if (idist <= delta)
@@ -113,24 +115,6 @@ main(int /*argc*/, char** /*argv*/)
 
                     // Determine initial failure of the bond.
                     double fail = 1.0;
-                    const int lag_small = e.first;
-                    const int lag_big = e.second;
-
-                    if (((coord[lag_small][0] < x_crack && coord[lag_big][0] > x_crack) &&
-                         (coord[lag_big][1] >= y_crack_begin && coord[lag_big][1] <= y_crack_end)) ||
-                        ((coord[lag_small][0] < x_crack && coord[lag_big][0] > x_crack) &&
-                         (coord[lag_big][1] >= width - y_crack_end && coord[lag_big][1] <= width - y_crack_begin)))
-                    {
-                        fail = 0.0;
-                    }
-                    if (((coord[lag_big][0] < x_crack && coord[lag_small][0] > x_crack) &&
-                         (coord[lag_small][1] >= y_crack_begin && coord[lag_small][1] <= y_crack_end)) ||
-                        ((coord[lag_big][0] < x_crack && coord[lag_small][0] > x_crack) &&
-                         (coord[lag_small][1] >= width - y_crack_end && coord[lag_small][1] <= width - y_crack_begin)))
-                    {
-                        fail = 0.0;
-                    }
-
                     EdgeProp prop = std::make_pair(idist, fail);
                     mesh[e] = prop;
                 }
@@ -141,7 +125,7 @@ main(int /*argc*/, char** /*argv*/)
 
     // Step 1:  Write out the vertex information
     std::fstream vertex_stream;
-    vertex_stream.open("failed_membrane2d.vertex", std::fstream::out);
+    vertex_stream.open("sheet3d.vertex", std::fstream::out);
     vertex_stream.setf(std::ios_base::scientific);
     vertex_stream.precision(12);
 
@@ -151,14 +135,14 @@ main(int /*argc*/, char** /*argv*/)
     // remaining lines are the initial coordinates of each vertex
     for (int i = 0; i < totnode; ++i)
     {
-        vertex_stream << coord[i][0] << "\t" << coord[i][1] << "\n";
+        vertex_stream << coord[i][0] << "\t" << coord[i][1] << "\t" << coord[i][2] << "\n";
     }
     vertex_stream.close();
 
     // Step 2: Write out the link information (including connectivity and
     // material parameters).
     std::fstream spring_stream;
-    spring_stream.open("failed_membrane2d.spring", std::fstream::out);
+    spring_stream.open("sheet3d.spring", std::fstream::out);
     spring_stream.setf(std::ios_base::scientific);
     spring_stream.precision(12);
 

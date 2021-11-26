@@ -49,9 +49,9 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 
 // material parameters
 static const double H = 0.41;
-static const int N = 128;
-static const double MFAC = 2.0;
-static const double DX = MFAC * H / (double)N;                               // material grid size (cm)
+static const int N = 32;
+static const double MFAC = 1.0;
+static const double DX = MFAC * H / (double)N;                               // material grid size (m)
 static const double horizon = 2.015 * DX;
 
 static const double x_begin = 0.25;
@@ -59,7 +59,8 @@ static const double x_begin = 0.25;
 static const double P = 0.4;                                                 // Poisson's ratio 0.45 0.49
 static const double G = 2.0e6;                                               // shear modulus
 static const double K_bulk = 2.0 * G * (1.0 + P) / (3. * (1. - 2.*P) );      // bulk modulus
-static const double E = 0.0;                                                 // damping parameter
+
+static const double damping = 0.0;                                           // damping parameter
 
 double
 my_inf_fcn(double R0, double /*delta*/)
@@ -129,9 +130,10 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
     mat_type FF_inv_trans = FF_trans.inverse();
     const double tr_cc = CC.trace();
     const double J = std::abs(FF.determinant());
-    const double Jp = pow(J,-2.0/3.0);
+    const double J_cbrt_inv = 1.0 / cbrt(J);
+    const double Jp = J_cbrt_inv * J_cbrt_inv;
 
-    PK1 = G * Jp * (FF - tr_cc  / 3.0 * FF_inv_trans) + K_bulk * log(J) * FF_inv_trans;
+    PK1 = G * Jp * (FF - tr_cc  / 3.0 * FF_inv_trans) + K_bulk * J * log(J) * FF_inv_trans;
 
     return;
 } // my_PK1_fcn
@@ -242,7 +244,7 @@ my_target_point_force_fcn(const Eigen::Map<const IBTK::Vector>& X,
                           int lag_idx,
                           Eigen::Map<IBTK::Vector>& F)
 {
-    F += - E * U;
+    F += - damping * U;
 
     my_surface_force_func(X, X_target, U, lag_idx, F);
 

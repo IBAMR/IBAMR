@@ -18,30 +18,17 @@ SMOOTH_CASE = FALSE
 VelocityInitialConditions {
    function_0 = "0.0"
    function_1 = "0.0"
+   function_2 = "0.0"
 }
 
 PressureInitialConditions {
-   R = 0.25
-   w = 0.0625
-   mu = 1.0
-
-   PI = 3.14159265358979
-   p0_smooth = (mu*PI/(3*w))*(R^2 - (R+w)^3/R)
-   p0_sharp = mu*PI*R
-
    function = "0.0"
-
-// smooth case
-// function = "if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R,(p0_smooth + (mu/R)),if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w,(p0_smooth + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))),p0_smooth))"
-
-// sharp case
-   //function = "if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R,(p0_sharp - mu/(R+w)),if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w,(p0_sharp + (mu/w)*R/(R+w)),p0_sharp)) + if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R,(p0_smooth + (mu/R)),if(sqrt((X0-0.5)^2 + (X1-0.5)^2) < R+w,(p0_smooth + (mu/w)*(1/R)*(R+w-sqrt((X0-0.5)^2 + (X1-0.5)^2))),p0_smooth))"
 }
 
 // solver parameters
 DELTA_FUNCTION             = "IB_4"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
 START_TIME                 = 0.0e0             // initial simulation time
-END_TIME                   = 10.0               // final simulation time
+END_TIME                   = 4.0               // final simulation time
 GROW_DT                    = 2.0e0             // growth factor for timesteps
 NUM_CYCLES                 = 1                 // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH" // convective time stepping type
@@ -67,16 +54,22 @@ VelocityBcCoefs_0 {
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
 }
 
 VelocityBcCoefs_1 {
@@ -84,21 +77,50 @@ VelocityBcCoefs_1 {
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
+}
+
+VelocityBcCoefs_2 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
 }
 
 IBPDForceGen {
    horizon        = 2.015
-   ds             = 1.0/100.0
+   ds             = 1.0/128.0
 }
 
 IBPDMethod {
@@ -108,12 +130,11 @@ IBPDMethod {
 
 IBStandardInitializer {
    max_levels      = MAX_LEVELS
-   structure_names = "sheet2d"
-   posn_shift = 0.0 , 0.0
+   structure_names = "sheet3d"
+   posn_shift = 0.0 , 0.0, 0.0
 
-   sheet2d {
-     level_number         = MAX_LEVELS - 1
-     enable_target_points = TRUE
+   sheet3d {
+     level_number = MAX_LEVELS - 1
    }
 }
 
@@ -154,32 +175,32 @@ INSStaggeredHierarchyIntegrator {
 Main {
 
 // log file parameters
-   log_file_name               = "IB2d.log"
+   log_file_name               = "IB3d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt","Silo"
-   viz_dump_interval           = 1 //int(END_TIME/(50*DT))
-   viz_dump_dirname            = "viz_IB2d"
+   viz_dump_interval           = 25 
+   viz_dump_dirname            = "viz_IB3d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
    restart_dump_interval       = 0
-   restart_dump_dirname        = "restart_IB2d"
+   restart_dump_dirname        = "restart_IB3d"
 
 // hierarchy data dump parameters
    data_dump_interval          = 0
-   data_dump_dirname           = "hier_data_IB2d"
+   data_dump_dirname           = "hier_data_IB3d"
 
 // timer dump parameters
    timer_dump_interval         = 0
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0),(N - 1,N - 1) ]
-   x_lo = 0,0
-   x_up = L,L
-   periodic_dimension = 1,0
+   domain_boxes = [ (0,0,0),(N - 1,N - 1, 7 ) ]
+   x_lo = 0,0, 0.5 - 2.1/N
+   x_up = L,L, 0.5 + 2.1/N
+   periodic_dimension = 1,1,1
 }
 
 GriddingAlgorithm {
@@ -192,10 +213,10 @@ GriddingAlgorithm {
       level_5 = REF_RATIO,REF_RATIO,REF_RATIO
    }
    largest_patch_size {
-      level_0 = 512,512  // all finer levels will use same values as level_0
+      level_0 = 512,512,512  // all finer levels will use same values as level_0
    }
    smallest_patch_size {
-      level_0 =   8,  8  // all finer levels will use same values as level_0
+      level_0 =   8,  8, 8  // all finer levels will use same values as level_0
    }
    efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
    combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box

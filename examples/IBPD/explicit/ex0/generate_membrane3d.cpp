@@ -48,19 +48,29 @@ main(int /*argc*/, char** /*argv*/)
 {
     // Problem parameters
 
-    const int ndivx = 101; // num points in x direction.
-    const int ndivy = 51;  // num points in y direction.
+    const int ndivx = 49; // num points in x direction.
+    const int ndivy = 45;  // num points in y direction.
     const int nbnd = 0;
-    const int ndivz = 1; // num layers in z direction.
+    const int ndivz = 5; // num layers in z direction.
     const int totnode = (ndivx + 2 * nbnd) * (ndivy + 2 * nbnd) * ndivz;
 
-    const double length = 1.0;              // total length of the plate (m)
-    const double width = 0.5;               // total width of the plate (m)
+    //  // 2d plate
+    // const double length = 0.2;              // total length of the plate (m)
+    // const double width = 0.1;               // total width of the plate (m)
+    // const double dx = length / (ndivx - 1); // spacing between material points in x direction
+    // const double dy = width / (ndivy - 1);  // spacing between material points in y direction
 
-    const double dx = length / (ndivx - 1); // spacing between material points in x direction
-    const double dy = width / (ndivy - 1);  // spacing between material points in y direction
+    // Cook's membrane
+    const double LW = 0.48;              // length of the membrane (m)
+    const double LH = 0.44;              // left height of the membrane(m)
+    const double LHL = 0.16;             // right heigh of the membrane(m)
+    const double LTD = 0.16;             //
+    const double dx = LW / (ndivx - 1); // spacing between material points in x direction
+    const double dy = LH / (ndivy - 1);  // spacing between material points in y direction
+    const double dyy = LHL/(ndivy - 1); //
+
     const double dz = dx;
-    const double delta = 2.015 * dx; // 3.015 * dx;      // horizon
+    const double delta = 3.015 * dx; // 3.015 * dx;      // horizon
     const double thick = dx;         // thickness of the plate
     const double area = dx * dx;     // cross-sectional area
     const double vol = area * thick; // volume of a material point
@@ -79,15 +89,15 @@ main(int /*argc*/, char** /*argv*/)
             for (int j = 0; j <= (ndivy - 1); ++j)
             {
                 nnum += 1;
-                // 3d plane sheet
-                coord[nnum][0] = i * dx;
-                coord[nnum][1] = j * dy;
-                coord[nnum][2] = k * dz;
+                // // 3d plane sheet
+                // coord[nnum][0] = i * dx;
+                // coord[nnum][1] = j * dy;
+                // coord[nnum][2] = k * dz;
 
                 //3d Cook's membreane
-                // coord[nnum][0] = i * dx;
-                // coord[nnum][1] = (j * (dyy-dy) +width + width2 - width1 )/(ndivx - 1)*i + dy*j;
-                // coord[nnum][2] = k * dz;
+                coord[nnum][0] = i * dx;
+                coord[nnum][1] = (j * (dyy-dy) +LH + LTD - LHL )/(ndivx - 1)*i + dy*j;
+                coord[nnum][2] = k * dz;
             }
         }
     }

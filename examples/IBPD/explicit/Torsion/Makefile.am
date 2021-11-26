@@ -16,7 +16,7 @@ include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
 SOURCES = main.cpp  generate_beam3d.cpp
-EXTRA_DIST  = input3d read_file_ibamr3d.m
+EXTRA_DIST  = input3d input3d_tune read_file_ibamr3d.m automate.sh run_IPD_comparisons.sh
 EXTRA_DIST += generate_beam3d.cpp
 
 EXTRA_PROGRAMS =
@@ -35,14 +35,20 @@ beam3d_generator_SOURCES = generate_beam3d.cpp
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input3d $(PWD) ; \
+	  cp -f $(srcdir)/input3d_tune $(PWD) ; \
 	  cp -f $(srcdir)/generate_beam3d.cpp $(PWD) ; \
 	  cp -f $(srcdir)/read_file_ibamr3d.m $(PWD) ; \
+	  cp -f $(srcdir)/automate.sh $(PWD) ; \
+	  cp -f $(srcdir)/run_IPD_comparisons.sh $(PWD) ; \
 	fi ;
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input3d ; \
+	  rm -f $(builddir)/input3d_tune ; \
 	  rm -f $(builddir)/generate_beam3d.cpp ; \
 	  rm -f $(builddir)/read_file_ibamr3d.m ; \
+	  rm -f $(builddir)/automate.sh ; \
+	  rm -f $(builddir)/run_IPD_comparisons.sh ; \
 	fi ;

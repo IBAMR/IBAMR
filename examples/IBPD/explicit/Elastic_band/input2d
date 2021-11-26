@@ -7,19 +7,20 @@ RHO = 1.0
 L = 1.0
 
 SHEAR_MOD = 200.0
-POISSON_RATIO = 0.49995
+POISSON_RATIO = 0.4
+HORIZON_SIZE = 3.015
 BULK_MOD = 2.0 * SHEAR_MOD * (1.0 + POISSON_RATIO) / 3.0 / (1.0 - 2.0 * POISSON_RATIO)
-ETA = 1.0
+DAMPING = 0.0
 
 // grid spacing parameters
 MAX_LEVELS = 1                                 // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                 // refinement ratio between levels
-N = 40                                         // actual    number of grid cells on coarsest grid level
+M = 40
+MFAC = 0.5
+N = MFAC * M                                         // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
 DX0 = L/N                                      // mesh width on coarsest grid level
 DX  = L/NFINEST                                // mesh width on finest   grid level
-EFAC = 1.0
-MFAC = 0.5 * EFAC                              // ratio of Lagrangian mesh width to Cartesian mesh width
 
 // problem parameters
 SMOOTH_CASE = FALSE
@@ -37,8 +38,8 @@ PressureInitialConditions {
 DELTA_FUNCTION      = "IB_4"
 SOLVER_TYPE         = "STAGGERED"              // the fluid solver to use (STAGGERED or COLLOCATED)
 START_TIME          = 0.0e0                    // initial simulation time
-END_TIME            = 10.0                     // final simulation time
-LOAD_TIME		     = 5.0           	        // time when load is fully applied
+END_TIME            = 1.0                     // final simulation time
+LOAD_TIME		     = 0.0e0           	        // time when load is fully applied
 GROW_DT             = 2.0e0                    // growth factor for timesteps
 NUM_CYCLES          = 1                        // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE  = "ADAMS_BASHFORTH"        // convective time stepping type
@@ -63,7 +64,7 @@ USE_VOLUMETRIC_TERM = TRUE
 
 VelocityBcCoefs_0 {
    load_time = LOAD_TIME
-   H_MAG = 10.0
+   H_MAG = 30.0
 
    acoef_function_0 = "0.0"
    acoef_function_1 = "0.0"
@@ -75,8 +76,8 @@ VelocityBcCoefs_0 {
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = "-10.0" // "t < load_time ? -H_MAG*sin(pi/2*t/load_time) : -H_MAG"
-   gcoef_function_1 = "10.0" // "t < load_time ? H_MAG*sin(pi/2*t/load_time) : H_MAG"
+   gcoef_function_0 = "t < load_time ? -H_MAG*sin(pi/2*t/load_time) : -H_MAG"
+   gcoef_function_1 = "t < load_time ? H_MAG*sin(pi/2*t/load_time) : H_MAG"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
 }
@@ -113,8 +114,8 @@ IBHierarchyIntegrator {
 }
 
 IBPDForceGen {
-    horizon        = 2.015
-    ds             = 1.0/50.0
+    horizon        = HORIZON_SIZE
+    ds             = MFAC * DX
 }
 
 IBPDMethod {
@@ -124,10 +125,10 @@ IBPDMethod {
 
 IBStandardInitializer {
    max_levels      = MAX_LEVELS
-   structure_names = "sheet2d"
+   structure_names = "band2d"
    posn_shift = 0.0 , 0.0 
 
-   sheet2d {
+   band2d {
       level_number = MAX_LEVELS - 1
    }
 }

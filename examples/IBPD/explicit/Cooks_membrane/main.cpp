@@ -48,8 +48,17 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const string& data_dump_dirname);
 
 // material parameters
-static const int nx = 25;                                                   // number of grids in x
-static const int ny = 23;                                                   // number of grids in y
+static int M_temp;
+static double Horizon_size_temp;
+static double Poisson_ratio_temp;
+static double horizon;
+static double P;
+static double DX;
+static double G;
+static double K_bulk;
+static double Max_force_indi;
+static double Damping;
+static int totnode;
 
 // cook's membrane
 static const double x_begin = 0.0;
@@ -59,27 +68,10 @@ static const double y_left_end = 4.4;
 static const double y_right_begin = 4.4;
 static const double y_right_end = 6.0;
 
-static const double dy = (y_left_end - y_left_begin) / double(ny-1);
-static const double dyy = (y_right_end - y_right_begin) / double(ny-1);
+// static const int nx = 13;
+// static const int ny = 12;
 
-static const double DX = (x_end - x_begin) / double(nx-1);                  // material grid size (cm)
-static const double horizon = 2.015 * DX;                                   // horizon size
-static const double P = 0.4;                                                // Poisson's ratio 0.45 0.49
-static const double G = 83.3333;                                             // shear modulus
-// static const double E = 2.0 * G * (1.0 + P);                             // Young's modulus
-// static const double L = E * P / ((1. + P) * (1. - 2. * P));              // lame parameter
-// static const double G = E / (2. * (1. + P));                             // shear modulus
-static const double K_bulk = 2.0 * G * (1.0 + P) / (3. * (1. - 2.*P) );     // bulk modulus
 static const double appres = 6.25;                                          // External loading
-// static const double ETA = 0.05 * G;                                         // numerical damping
-
-static const double Tf = 20.0;
-// static const double MFAC = 2.0;
-static const double DX0 = 10.0 / 32.0;
-static const double CFL_MAX = 0.2;                      // maximum CFL number
-static const double U_MAX = 5.0;
-static const double DT = .025*CFL_MAX*DX0/U_MAX;
-static const double Max_force_indi = Tf / DT;
 static double indi = 1.0;
 
 double
@@ -116,7 +108,6 @@ my_inf_fcn(double R0, double /*delta*/)
 double
 my_vol_frac_fcn(double R0, double /*horizon*/, double /*delta*/)
 {
-    // double horizon = 2.015 * DX;
     double delta = DX;
     double vol_frac;
     if (R0 <= (horizon - delta))
@@ -231,16 +222,19 @@ my_force_damage_fcn(const double /*horizon*/,
         trac(2) = 0.0;
     #endif
 
-    double vol_mastr_indi = (X0_mastr(0) - 2.0) / DX;
-    double vol_slave_indi = (X0_slave(0) - 2.0) / DX;
-    double length_mastr = double(ny-1) * (dyy - dy) * vol_mastr_indi / double(nx-1) + dy * double(ny-1);
-    double length_slave = double(ny-1) * (dyy - dy) * vol_slave_indi / double(nx-1) + dy * double(ny-1);
+    // static const double dy = (y_left_end - y_left_begin) / double(ny-1);
+    // static const double dyy = (y_right_end - y_right_begin) / double(ny-1);
 
-    const double modi_vol_mastr = vol_mastr / DX * (length_mastr / double(ny -1));
-    const double modi_vol_slave = vol_slave / DX * (length_slave / double(ny -1));
+    // double vol_mastr_indi = (X0_mastr(0) - 2.0) / DX;
+    // double vol_slave_indi = (X0_slave(0) - 2.0) / DX;
+    // double length_mastr = double(ny-1) * (dyy - dy) * vol_mastr_indi / double(nx-1) + dy * double(ny-1);
+    // double length_slave = double(ny-1) * (dyy - dy) * vol_slave_indi / double(nx-1) + dy * double(ny-1);
 
-    F_mastr += fail * vol_frac * modi_vol_slave * trac;
-    F_slave += -fail * vol_frac * modi_vol_mastr * trac;
+    // const double modi_vol_mastr = vol_mastr / DX * (length_mastr / double(ny -1));
+    // const double modi_vol_slave = vol_slave / DX * (length_slave / double(ny -1));
+
+    F_mastr += fail * vol_frac * vol_slave * trac;
+    F_slave += -fail * vol_frac * vol_mastr * trac;
 
     // // zero energy mode
     // const double C_hg = 0.0;
@@ -260,10 +254,15 @@ my_force_damage_fcn(const double /*horizon*/,
 
     // Compute damage.
     Eigen::Vector4d D;
-    D(0) = vol_slave * vol_frac * fail;
-    D(1) = vol_slave * vol_frac;
-    D(2) = vol_mastr * vol_frac * fail;
-    D(3) = vol_mastr * vol_frac;
+    // D(0) = vol_slave * vol_frac * fail;
+    // D(1) = vol_slave * vol_frac;
+    // D(2) = vol_mastr * vol_frac * fail;
+    // D(3) = vol_mastr * vol_frac;
+
+    D(0) = std::abs(FF_mastr.determinant());
+    D(1) = 1.0;
+    D(2) = std::abs(FF_mastr.determinant());
+    D(3) = 1.0;
 
     return D;
     
@@ -278,7 +277,7 @@ my_surface_force_func(const Eigen::Map<const IBTK::Vector>& X,
 {
     //X_target is the material variable, X is the spatial variable
     static double kappa = 4.0e5;
-    
+    // static double ddx = 1.6 / 4.4 * DX;
     // cook's membrane
     if (X_target(0) <= x_begin+2.0)
     {
@@ -288,15 +287,15 @@ my_surface_force_func(const Eigen::Map<const IBTK::Vector>& X,
     {   
         if (indi < Max_force_indi)
         {
-          F(1) += appres * 1.6 * indi / Max_force_indi;
+          F(1) += appres / DX * indi / Max_force_indi;
         }
         else
         {
-          F(1) += appres * 1.6;
+          F(1) += appres / DX;
         }
     }
 
-    if (lag_idx == (nx*ny -1))
+    if (lag_idx == totnode - 1)
     {
         indi += 1.0;
     }
@@ -312,17 +311,7 @@ my_target_point_force_fcn(const Eigen::Map<const IBTK::Vector>& X,
                           int lag_idx,
                           Eigen::Map<IBTK::Vector>& F)
 {
-    // F += K * (X_target - X) - E * U;
-    // F += - ETA * U;
-    if (X_target(0) <= x_begin+2.0)
-    {
-        F(1) = 0.0;
-        F(2) = 0.0;
-    }
-    else if (X_target(0) == x_end+2.0)
-    {   
-        F += - ETA * U;
-    }
+    F += - Damping * U;
 
     my_surface_force_func(X, X_target, U, lag_idx, F);
 
@@ -467,6 +456,35 @@ main(int argc, char* argv[])
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
+
+        M_temp = input_db->getInteger("M");
+        totnode = (M_temp + 1) * (M_temp / 2 + 1);
+        Horizon_size_temp = input_db->getDouble("HORIZON_SIZE");
+        Poisson_ratio_temp = input_db->getDouble("POISSON_RATIO");
+        G = input_db->getDouble("SHEAR_MOD");
+        K_bulk = input_db->getDouble("BULK_MOD");
+        Damping = input_db->getDouble("DAMPING");
+        static const double d_dt = input_db->getDouble("DT");
+        Max_force_indi = (input_db->getDouble("LOAD_TIME")) / d_dt;
+        DX = (x_end - x_begin) / double(M_temp);
+        horizon = Horizon_size_temp * DX;
+        P = Poisson_ratio_temp;
+        // if (M_temp == 12)
+        // {
+        //     totnode = 100;
+        // }
+        // else if (M_temp == 24)
+        // {
+        //     totnode = 380;
+        // }
+        // else if (M_temp == 48)
+        // {
+        //     totnode = 1480;
+        // }
+        // else if (M_temp == 96)
+        // {
+        //     totnode = 5840;
+        // }
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();

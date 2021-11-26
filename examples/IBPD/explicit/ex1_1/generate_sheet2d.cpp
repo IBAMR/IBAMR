@@ -47,12 +47,12 @@ int
 main(int /*argc*/, char** /*argv*/)
 {
     // Problem parameters
-    const double R = 0.1;
-    const double w = 0.5;
-    const double x_c = 0.45;
-    const double y_c = 0.0;
+    const double R = 0.3;
+    const double w = 0.3;
+    const double x_c = 0.2;
+    const double y_c = 0.2;
 
-    const int N = 100;
+    const int N = 128;
     const double dx = 1.0 / (double)N;
     const double MFAC = 1.0;
     const double ds = MFAC * dx;
@@ -64,30 +64,28 @@ main(int /*argc*/, char** /*argv*/)
     const double area = ds * ds;  // cross-sectional area
     const double vol = area * ds; // volume of a material point
     const double delta = 2.015 * ds;
-    const double scr0 = 0.2; // critical stretch.
-
-    std::cout << "Total number of nodes = " << totnode << "\n";
+    const double scr0 = 50 * ds; // critical stretch.
+    
+    std::cout << "------------------------------- " << "\n";
+    std::cout << "total number of nodes = " << totnode << "\n";
+    std::cout << "------------------------------- " << "\n";
 
     // Initialize vertices
     std::vector<std::vector<double> > coord(totnode, std::vector<double>(2));
-    std::vector<std::vector<double> > coord_ref(totnode, std::vector<double>(2));
-
     int nnum = -1;
     double x, y;
     // Material points in the region.
-        for (int j = 0; j < n_y; ++j)
+
+        for (int j = 0; j <= (n_y - 1); ++j)
         {
-            for (int i = 0; i <n_x; ++i)
+            for (int i = 0; i <= (n_x - 1); ++i)
             {
                 nnum += 1;
                 x = i * ds;
                 y = j * ds;
 
-                coord_ref[nnum][0] = x;
-                coord_ref[nnum][1] = y;
-
-                coord[nnum][0] = x + x_c;
-                coord[nnum][1] = y + y_c;
+                coord[nnum][0] = x + x_c; // shift in x-direction
+                coord[nnum][1] = y + y_c; // shift in y-direction
             }
         }
 
@@ -163,6 +161,4 @@ main(int /*argc*/, char** /*argv*/)
                       << vol_master << " " << vol_slave << " " << fail << " " << scr0 << "\n";
     }
     spring_stream.close();
-
-    return 0;
 }

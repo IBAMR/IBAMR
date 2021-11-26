@@ -56,29 +56,36 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 
 static const int nx = 33;
 static const int ny = 17;
-#if (NDIM == 2)
-    static const int bottom_begin = 0;
-    static const int bottom_center = (nx + 1)/2;
-    static const int bottom_end = nx -1;
-    static const int top_begin = nx*ny - (nx-1)*3/4;
-    static const int top_end = nx*ny - 1 - (nx-1)/4;
-#endif
 #if (NDIM == 3)
     static const int nz = 1;
+    // static const int left_begin = 0;
+    // static const int left_end = ny*nz - 1;
+    // static const int right_begin = ny * nz * nx - ny*nz;
+    // static const int right_end = ny * nz * nx - 1;
     static const int bottom_begin = 0;
-    static const int bottom_center = (nx*nz + 1)/2;
-    static const int bottom_end = nx*nz -1;
-    static const int top_begin = nx*ny*nz - (nx-1)*3/4*nz;
-    static const int top_end = nx*ny*nz - 1 - (nx-1)/4*nz;
+    static const int bottom_center = (nx-1)/2*nz;
+    static const int bottom_end = nx*nz - 1;
+    static const int top_begin = nx*ny*nz - nx*nz + (nx-1)/4*nz;
+    static const int top_end = nx*ny*nz - nx*nz + (nx-1)*3/4*nz;
+#endif
+#if (NDIM == 2)
+    // static const int left_begin = 0;
+    // static const int left_end = nx - 1;
+    // static const int right_begin = nx*ny - nx;
+    // static const int right_end = nx*ny - 1;
+    static const int bottom_begin = 0;
+    static const int bottom_center = (nx-1)/2;
+    static const int bottom_end = nx - 1;
+    static const int top_begin = nx*ny - nx + (nx-1)/4;
+    static const int top_end = nx*ny - nx + (nx-1)*3/4;
 #endif
 
-static const double dens = 1.0;             // Material density
-static const double DX = 1.0 / 1.6;         // Lattice (material grid) spacing
-static const double horizon = 2.015 * DX;   // Peridynamic horizon
-static const double G = 80.194;             // Shear modulus (dyn / cm^2)
-static const double P = 0.49995;            // Poisson's ratio
-static const double K = 1.e4;               // Bulk modulus
-static const double appres = 200;            // External loading
+static const double dens = 1.0;                                         // Material density
+static const double DX = 1.0 / 1.6;                                     // Lattice (material grid) spacing
+static const double horizon = 2.015 * DX;                               // Peridynamic horizon
+static const double G = 80.194;                                         // Shear modulus (dyn / cm^2)
+static const double P = 0.49995;                                        // Poisson's ratio
+static const double K = 2.0 * G * (1.0 + P) / (3. * (1. - 2.*P) );      // bulk modulus
 
 double
 sheet_inf_fcn(double R0, double /*delta*/)
@@ -273,7 +280,7 @@ sheet_force_damage_fcn(const double /*horizon*/,
 
     // PD forcd + extra spring force to control the hourglass instability
     double horizon = 2.015 * DX;
-    const double C_hg = 0.15;
+    const double C_hg = 0.015;
     const double penalty_fac = C_hg*18.0*K/(M_PI * pow(horizon,4.0));
 
     vec_type hourglass_vec_slave, hourglass_vec_mastr;
@@ -333,13 +340,6 @@ public:
 
                 double* U_current = &U_current_data_array[local_idx][0];
 
-                // #if (lag_idx >= bottom_begin && lag_idx <= bottom_end)
-                // U_current[1] = 0.0;
-                // #endif
-                // #if (lag_idx == bottom_center)
-                // U_current[0] = 0.0;
-                // #endif
-
                 #if (NDIM == 3)
                 U_current[2] = 0.0; // z-motion is constrained
                 #endif
@@ -349,58 +349,165 @@ public:
         return;
     } // preprocessIntegrateData
 
-    void midpointStep(const double current_time, const double new_time) override
+    void forwardEulerStep(const double current_time, const double new_time) override
     {
-        IBPDMethod::midpointStep(current_time, new_time);
-
+        const double dt = new_time - current_time;
         const int coarsest_ln = 0;
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-            Pointer<LData> X_0_data = d_l_data_manager->getLData("X0_unshifted", ln);
-            Pointer<LData> X_new_data = d_X_new_data[ln];
-            Pointer<LData> U_new_data = d_U_new_data[ln];
+            Pointer<LData> X_0_data = d_l_data_manager->getLData("X0", ln);
+            Pointer<LData> X_current_data = d_X_current_data[ln];
+            Pointer<LData> X_half_data = d_X_half_data[ln];
+            Pointer<LData> U_current_data = d_U_current_data[ln];
 
             boost::multi_array_ref<double, 2>& X_0_data_array = *X_0_data->getLocalFormVecArray();
-            boost::multi_array_ref<double, 2>& X_new_data_array = *X_new_data->getLocalFormVecArray();
-            boost::multi_array_ref<double, 2>& U_new_data_array = *U_new_data->getLocalFormVecArray();
+            boost::multi_array_ref<double, 2>& X_current_data_array = *X_current_data->getLocalFormVecArray();
+            boost::multi_array_ref<double, 2>& X_half_data_array = *X_half_data->getLocalFormVecArray();
+            boost::multi_array_ref<double, 2>& U_current_data_array = *U_current_data->getLocalFormVecArray();
 
             const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
             for (const auto& node : local_nodes)
             {
                 const int local_idx = node->getLocalPETScIndex();
-                const int lag_idx = node->getLagrangianIndex();
 
-                double* U_new = &U_new_data_array[local_idx][0];
+                const double* U_current = &U_current_data_array[local_idx][0];
+                const double* X_current = &X_current_data_array[local_idx][0];
                 const double* X_0 = &X_0_data_array[local_idx][0];
+                double* X_half = &X_half_data_array[local_idx][0];
+
+                  for (int d = 0; d < NDIM; ++d)
+                    {
+                      if (d == 2)
+                        {
+                          X_half[d] = X_current[d];
+                        }
+                      else
+                        {
+                          X_half[d] = X_current[d] + 0.5 * dt * (U_current[d]);
+                        }
+                    }
+
+            }
+
+            X_current_data->restoreArrays();
+            X_half_data->restoreArrays();
+            U_current_data->restoreArrays();
+        }
+        return;
+    } // forwardEulerStep
+
+    void midpointStep(const double current_time, const double new_time) override
+    {
+        static const double cn = 0.05*G;
+        const double dt = new_time - current_time;
+        const int coarsest_ln = 0;
+        const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
+
+            Pointer<LData> X_0_data = d_l_data_manager->getLData("X0", ln);
+            Pointer<LData> X_current_data = d_X_current_data[ln];
+            Pointer<LData> X_new_data = d_X_new_data[ln];
+            Pointer<LData> U_current_data = d_U_current_data[ln];
+            Pointer<LData> U_new_data = d_U_new_data[ln];
+            Pointer<LData> F_half_data = d_F_half_data[ln];
+
+            boost::multi_array_ref<double, 2>& X_0_data_array = *X_0_data->getLocalFormVecArray();
+            boost::multi_array_ref<double, 2>& X_current_data_array = *X_current_data->getLocalFormVecArray();
+            boost::multi_array_ref<double, 2>& X_new_data_array = *X_new_data->getLocalFormVecArray();
+            boost::multi_array_ref<double, 2>& U_current_data_array = *U_current_data->getLocalFormVecArray();
+            boost::multi_array_ref<double, 2>& U_new_data_array = *U_new_data->getLocalFormVecArray();
+            boost::multi_array_ref<double, 2>& F_half_data_array = *F_half_data->getLocalFormVecArray();
+
+            const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+            const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
+            for (const auto& node : local_nodes)
+            {
+                const int lag_idx = node->getLagrangianIndex();
+                const int local_idx = node->getLocalPETScIndex();
+
+                const double* U_current = &U_current_data_array[local_idx][0];
+                double* U_new = &U_new_data_array[local_idx][0];
+
+                const double* X_0 = &X_0_data_array[local_idx][0];
+                const double* X_current = &X_current_data_array[local_idx][0];
                 double* X_new = &X_new_data_array[local_idx][0];
+                double* F_half = &F_half_data_array[local_idx][0];
 
-                // #if (lag_idx >= bottom_begin && lag_idx <= bottom_end)
-                // U_new[1] = 0.0;
-                // X_new[1] = X_0[1];
-                // #endif
-                // #if (lag_idx == bottom_center)
-                // U_new[0] = 0.0;
-                // X_new[0] = X_0[0];
-                // #endif
-
-                #if (NDIM == 3)
-                U_new[2] = 0.0; // z-motion is constrained
-                X_new[2] = X_0[2];
-                #endif
+                if (lag_idx >= bottom_begin && lag_idx <= bottom_end)
+                {   
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                      if (d == 2)
+                      {
+                        U_new[d] = 0.0;
+                        X_new[d] = X_current[d];
+                      }
+                      else if (d == 1)
+                      {
+                        U_new[d] = 0.0;
+                        X_new[d] = X_current[d];
+                      }
+                      else
+                      {
+                          U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * F_half[d];
+                          X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
+                      }
+                    }
+                }
+                else
+                {
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                      if (d == 2)
+                      {
+                        U_new[d] = 0.0;
+                        X_new[d] = X_current[d];
+                      }
+                      else
+                      {
+                        U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * F_half[d];
+                        X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
+                      }
+                    }
+                }
             }
 
             X_0_data->restoreArrays();
+            X_current_data->restoreArrays();
             X_new_data->restoreArrays();
+            F_half_data->restoreArrays();
+            U_current_data->restoreArrays();
             U_new_data->restoreArrays();
         }
 
         return;
 
     } // midpointStep
+
+    void spreadForce(const int /*f_data_idx*/,
+                     RobinPhysBdryPatchStrategy* /*f_phys_bdry_op*/,
+                     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+                     const double /*data_time*/) override
+    {
+        return;
+    } // spreadForce
+
+    void interpolateVelocity(const int /*u_data_idx*/,
+                             const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
+                             const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+                             const double /*data_time*/) override
+    {
+        return;
+    } // interpolateVelocity
+
 };
 
 /*******************************************************************************

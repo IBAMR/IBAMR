@@ -47,21 +47,21 @@ int
 main(int /*argc*/, char** /*argv*/)
 {
     // Problem parameters
-    const int ndivx = 11;           // num points in x direction.
-    const int ndivy = 100;           // num points in x direction.
+    const double Horizon_size = 3.015;
+    const int ndivx = 9;           // num points in x direction.
+    const int ndivy = 10 * (ndivx - 1);           // num points in x direction.
     const int totnode = ndivx * ndivy;
 
     const double length = 0.1;      // total length of the plate (cm)
-    const double height = 0.99;      // total width of the plate (cm)
-    const double x_c = 0.95;
-    const double y_c = 0.005;
-
     const double dx = length / (ndivx - 1);
-    const double dy = height / (ndivy - 1);
+    const double dy = dx;
+    const double height = 1.0;      // total width of the plate (cm)
+    const double x_c = 0.95;
+    const double y_c = dy/2;
 
     const double area = dx * dy;  // cross-sectional area
     const double vol = area * dx; // volume of a material point
-    const double delta = 3.015 * dx;
+    const double delta = Horizon_size * dx;
     const double scr0 = 3.1; // critical stretch.
 
     const double x_crack_begin = x_c + length / 2.0;
@@ -122,12 +122,21 @@ main(int /*argc*/, char** /*argv*/)
                         {
                             fail = 0.0;
                         }
+                        if ((coord[lag_small][0] >= x_crack_begin) && (coord[lag_small][1] > y_crack && coord[lag_big][1] < y_crack))
+                        {
+                            fail = 0.0;
+                        }
                     }
                     else
                     {
-                        const double x_intersection = (y_crack - coord[lag_small][1]) * (coord[lag_small][0] - coord[lag_big][0]) / (coord[lag_small][1] - coord[lag_big][1]) + coord[lag_small][0];
+                        // const double x_intersection = (y_crack - coord[lag_small][1]) * (coord[lag_small][0] - coord[lag_big][0]) / (coord[lag_small][1] - coord[lag_big][1]) + coord[lag_small][0];
+                        const double x_intersection = (y_crack - (coord[lag_small][1] * coord[lag_big][0] - coord[lag_big][1] * coord[lag_small][0]) / (coord[lag_big][0] - coord[lag_small][0])) * (coord[lag_big][0] - coord[lag_small][0]) / (coord[lag_big][1] - coord[lag_small][1]);
 
                         if ((coord[lag_small][1] < y_crack && coord[lag_big][1] > y_crack) &&(x_crack_begin <= x_intersection && x_intersection <= x_crack_end))
+                        {
+                            fail = 0.0;
+                        }
+                        if ((coord[lag_small][1] > y_crack && coord[lag_big][1] < y_crack) &&(x_crack_begin <= x_intersection && x_intersection <= x_crack_end))
                         {
                             fail = 0.0;
                         }
@@ -143,7 +152,7 @@ main(int /*argc*/, char** /*argv*/)
 
     // Step 1:  Write out the vertex information
     std::fstream vertex_stream;
-    vertex_stream.open("failed_sheet2d.vertex", std::fstream::out);
+    vertex_stream.open("failed_band2d.vertex", std::fstream::out);
     vertex_stream.setf(std::ios_base::scientific);
     vertex_stream.precision(12);
 
@@ -160,7 +169,7 @@ main(int /*argc*/, char** /*argv*/)
     // Step 2: Write out the link information (including connectivity and
     // material parameters).
     std::fstream spring_stream;
-    spring_stream.open("failed_sheet2d.spring", std::fstream::out);
+    spring_stream.open("failed_band2d.spring", std::fstream::out);
     spring_stream.setf(std::ios_base::scientific);
     spring_stream.precision(12);
 

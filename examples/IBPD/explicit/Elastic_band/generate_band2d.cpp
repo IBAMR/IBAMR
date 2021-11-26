@@ -20,6 +20,7 @@
 #include <set>
 #include <utility>
 #include <vector>
+#include <sstream>
 
 using Edge = std::pair<int, int>;
 using EdgeProp = std::pair<double, double>;
@@ -43,26 +44,34 @@ sort_edge(Edge& e)
     return;
 }
 
+std::string to_string_with_precision(const double a_value, const int n = 3)
+{
+    std::ostringstream out;
+    out.precision(n);
+    out << std::fixed << a_value;
+    return out.str();
+}
+
 int
 main(int /*argc*/, char** /*argv*/)
 {
     // Problem parameters
-    const int ndivx = 9;           // num points in x direction.
-    const int ndivy = 80;           // num points in x direction.
+    const double Horizon_size = 3.015;
+    const int ndivx = 5;           // num points in x direction.
+    const int ndivy = 10 * (ndivx - 1);           // num points in x direction.
     const int totnode = ndivx * ndivy;
 
     const double length = 0.1;      // total length of the plate (cm)
-    const double height = 0.9875;      // total width of the plate (cm)
-    const double x_c = 0.95;
-    const double y_c = 0.005;
-
     const double dx = length / (ndivx - 1);
-    const double dy = height / (ndivy - 1);
+    const double dy = dx;
+    const double height = 1.0;      // total width of the plate (cm)
+    const double x_c = 0.95;
+    const double y_c = dy/2;
 
     const double area = dx * dy;  // cross-sectional area
     const double vol = area * dx; // volume of a material point
-    const double delta = 2.015 * dx;
-    const double scr0 = 30.0; // critical stretch.
+    const double delta = Horizon_size * dx;
+    const double scr0 = 3.1; // critical stretch.
     
     std::cout << "------------------------------- " << "\n";
     std::cout << "nx = " << ndivx << "\n";
@@ -119,7 +128,7 @@ main(int /*argc*/, char** /*argv*/)
 
     // Step 1:  Write out the vertex information
     std::fstream vertex_stream;
-    vertex_stream.open("sheet2d.vertex", std::fstream::out);
+    vertex_stream.open("band2d.vertex", std::fstream::out);
     vertex_stream.setf(std::ios_base::scientific);
     vertex_stream.precision(12);
 
@@ -136,7 +145,7 @@ main(int /*argc*/, char** /*argv*/)
     // Step 2: Write out the link information (including connectivity and
     // material parameters).
     std::fstream spring_stream;
-    spring_stream.open("sheet2d.spring", std::fstream::out);
+    spring_stream.open("band2d.spring", std::fstream::out);
     spring_stream.setf(std::ios_base::scientific);
     spring_stream.precision(12);
 

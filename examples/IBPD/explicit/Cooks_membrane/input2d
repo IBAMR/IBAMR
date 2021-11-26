@@ -8,26 +8,27 @@ RHO   = 1.0
 MU    = 1.0e-2
 L_X = 10.0 // 40.0
 L_Y = 10.0 // 40.0
-L_D = 20.0 // longest side
+L_lag = 4.8                                         // shortest edge of cooks membrane
 U_MAX = 5.0
 
 // model parameters
-appres = 6.25
-G      = 83.333
-P      = 0.4
-K_Bulk = 2.0*G*(1.0+P)/3.0/(1.0 - 2.0*P)
-E      = 0.05 * G
+HORIZON_SIZE    = 2.015
+POISSON_RATIO   = -1.0
+APPRES          = 6.25
+YOUNGS_MOD      = 250
+SHEAR_MOD       = YOUNGS_MOD / 2.0 / (.5 + 1.0)
+BULK_MOD        = 2.0 * SHEAR_MOD * (1.0 + POISSON_RATIO) / 3.0 / (1.0 - 2.0 * POISSON_RATIO)
+DAMPING         = 0.05 * SHEAR_MOD
 
 // grid spacing parameters
-MAX_LEVELS = 1                                    // maximum number of levels in locally refined grid
-REF_RATIO  = 2                                    // refinement ratio between levels
-M = 32						                          // number of nodes per edge of Lagrangian mesh
-MFAC = 1	                                         // ratio of Lagrangian mesh width to Cartesian mesh width of the rectangular
-REF_FACTOR = (REF_RATIO^(MAX_LEVELS - 1))
-N = ceil(M * MFAC * L_X / L_D /REF_FACTOR)        // actual    number of grid cells on coarsest grid level
-NFINEST = REF_FACTOR*N      		                 // effective number of grid cells on finest   grid level
-DX0 = L_X/N                                       // mesh width on coarsest grid level
-DX  = L_X/NFINEST                                 // mesh width on finest   grid level
+MAX_LEVELS = 1                                     // maximum number of levels in locally refined grid
+REF_RATIO  = 2                                     // refinement ratio between levels
+M = 24					                              // number of nodes per edge of Lagrangian mesh
+MFAC = 0.5                                         // ratio of Lagrangian mesh width to Cartesian mesh width of the rectangular
+N = ceil(M * MFAC * L_X / L_lag)                   // actual    number of grid cells on coarsest grid level
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N           // effective number of grid cells on finest   grid level
+DX0 = L_X/N                                        // mesh width on coarsest grid level
+DX  = L_X/NFINEST                                  // mesh width on finest   grid level
 N_X = N
 N_Y = N_X * (L_Y / L_X)
 
@@ -48,6 +49,7 @@ PressureInitialConditions {
 DELTA_FUNCTION      = "IB_4"
 // DT                  = 1.0e-4                   // maximum timestep size
 START_TIME          = 0.0e0                    // initial simulation time
+LOAD_TIME           = 0.0                      // time when the full load is applied
 END_TIME            = 50.0                     // final simulation time
 GROW_DT             = 2.0e0                    // growth factor for timesteps
 NUM_CYCLES          = 1                        // number of cycles of fixed-point iteration
@@ -121,8 +123,8 @@ IBHierarchyIntegrator {
 }
 
 IBPDForceGen {
-    ds             = 1.0/5.0
-    horizon        = 2.015 * ds
+    ds             = MFAC * DX
+    horizon        = HORIZON_SIZE
 }
 
 IBPDMethod {
@@ -171,7 +173,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","Silo"
-   viz_dump_interval           = 100
+   viz_dump_interval           = 2000
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 

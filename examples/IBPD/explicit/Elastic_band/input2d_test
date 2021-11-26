@@ -124,10 +124,10 @@ IBPDMethod {
 
 IBStandardInitializer {
    max_levels      = MAX_LEVELS
-   structure_names = "sheet2d"
+   structure_names = "band2d"
    posn_shift = 0.0 , 0.0 
 
-   sheet2d {
+   band2d {
       level_number = MAX_LEVELS - 1
    }
 }

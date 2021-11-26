@@ -13,30 +13,30 @@
 
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "IBPD-ex3-2d"
+    "IBPD-ex1-3d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/ex3"
+    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/ex1"
   OUTPUT_NAME
-    main2d
+    main3d
   EXAMPLE_GROUP
     examples-IBPD
   SOURCES
     main.cpp
   LINK_TARGETS
-    IBAMR2d
+    IBAMR3d
   INPUT_FILES
-    input2d
+    input3d
   )
 
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "IBPD-ex3-generate-sheet2d"
+    "IBPD-ex1-generate-sheet3d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/ex3"
+    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/ex1"
   OUTPUT_NAME
-    sheet2d_generator
+    sheet3d_generator
   EXAMPLE_GROUP
     examples-IBPD
   SOURCES
-    generate_sheet2d.cpp
+    generate_sheet3d.cpp
   )

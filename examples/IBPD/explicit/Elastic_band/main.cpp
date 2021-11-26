@@ -48,16 +48,16 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const string& data_dump_dirname);
 
 // material parameters
-static const double DX = 1.0 / 80.0;                                       // material grid size (cm)
-static const double horizon = 2.015 * DX;
+static double DX;                                              // material grid size (cm)
+static double Horizon_size_temp;
+static double horizon;
 
 static const double y_begin = 0.1;
 static const double y_end = 0.9;
 
-static const double P = 0.4;                                                // Poisson's ratio 0.45 0.49
-static const double G = 200.0;                                               // shear modulus
-static const double K_bulk = 2.0 * G * (1.0 + P) / (3. * (1. - 2.*P) );      // bulk modulus
-static const double E = 0.0;                                                 // damping parameter
+static double G;                                               // shear modulus
+static double K_bulk;                                          // bulk modulus
+static double Damping;                                         // damping parameter
 
 double
 my_inf_fcn(double R0, double /*delta*/)
@@ -127,9 +127,10 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
     mat_type FF_inv_trans = FF_trans.inverse();
     const double tr_cc = CC.trace();
     const double J = std::abs(FF.determinant());
-    const double Jp = pow(J,-2.0/3.0);
+    const double J_cbrt_inv = 1.0 / cbrt(J);
+    const double Jp = J_cbrt_inv * J_cbrt_inv;
 
-    PK1 = G * Jp * (FF - tr_cc * FF_inv_trans / 3.0) + K_bulk * log(J) * FF_inv_trans;
+    PK1 = G * Jp * (FF - tr_cc / 3.0 * FF_inv_trans) + K_bulk * log(J) * FF_inv_trans;
 
     return;
 } // my_PK1_fcn
@@ -202,7 +203,7 @@ my_surface_force_func(const Eigen::Map<const IBTK::Vector>& X,
                           Eigen::Map<IBTK::Vector>& F)
 {
     //X_target is the material variable, X is the spatial variable
-    static double kappa = 1.0e6;
+    static double kappa = 1.0e7;
     
     // cook's membrane
     if (X_target(1) <= y_begin || X_target(1) >= y_end)
@@ -210,7 +211,6 @@ my_surface_force_func(const Eigen::Map<const IBTK::Vector>& X,
         F += kappa * (X_target - X);
     }
     
-
     return;
 } // my_surface_force_func
 
@@ -223,7 +223,7 @@ my_target_point_force_fcn(const Eigen::Map<const IBTK::Vector>& X,
                           int lag_idx,
                           Eigen::Map<IBTK::Vector>& F)
 {
-    F += - E * U;
+    F += - Damping * U;
 
     my_surface_force_func(X, X_target, U, lag_idx, F);
 
@@ -254,7 +254,93 @@ public:
     } // MyIBPDMethod
 
     ~MyIBPDMethod() = default;
+    void postprocessIntegrateData(double current_time, double new_time, int num_cycles) override
+    {
+        const int struct_ln = d_hierarchy->getFinestLevelNumber();
+        const int step_no = d_ib_solver->getIntegratorStep() + 1;
 
+        if (step_no % 1000 == 0)
+        {
+            Pointer<LData> D_LData = d_l_data_manager->getLData("damage", struct_ln);
+            Vec D_petsc_vec_parallel = D_LData->getVec();
+            Vec D_lag_vec_parallel = nullptr;
+            Vec D_lag_vec_seq = nullptr;
+            VecDuplicate(D_petsc_vec_parallel, &D_lag_vec_parallel);
+            d_l_data_manager->scatterPETScToLagrangian(D_petsc_vec_parallel, D_lag_vec_parallel, struct_ln);
+            d_l_data_manager->scatterToZero(D_lag_vec_parallel, D_lag_vec_seq);
+
+            Pointer<LData> X0_LData = d_l_data_manager->getLData("X0", struct_ln);
+            Vec X0_petsc_vec_parallel = X0_LData->getVec();
+            Vec X0_lag_vec_parallel = nullptr;
+            Vec X0_lag_vec_seq = nullptr;
+            VecDuplicate(X0_petsc_vec_parallel, &X0_lag_vec_parallel);
+            d_l_data_manager->scatterPETScToLagrangian(X0_petsc_vec_parallel, X0_lag_vec_parallel, struct_ln);
+            d_l_data_manager->scatterToZero(X0_lag_vec_parallel, X0_lag_vec_seq);
+
+            Pointer<LData> X_LData = d_X_new_data[struct_ln];
+            Vec X_petsc_vec_parallel = X_LData->getVec();
+            Vec X_lag_vec_parallel = nullptr;
+            Vec X_lag_vec_seq = nullptr;
+            VecDuplicate(X_petsc_vec_parallel, &X_lag_vec_parallel);
+            d_l_data_manager->scatterPETScToLagrangian(X_petsc_vec_parallel, X_lag_vec_parallel, struct_ln);
+            d_l_data_manager->scatterToZero(X_lag_vec_parallel, X_lag_vec_seq);
+
+            if (IBTK_MPI::getRank() == 0)
+            {
+                const PetscScalar* D;
+                VecGetArrayRead(D_lag_vec_seq, &D);
+                int counter_D = -1;
+
+                const PetscScalar* X0;
+                VecGetArrayRead(X0_lag_vec_seq, &X0);
+                int counter_X0 = -1;
+
+                const PetscScalar* X;
+                VecGetArrayRead(X_lag_vec_seq, &X);
+                int counter_X = -1;
+
+                std::fstream D_stream;
+                std::ostringstream D_sstream;
+                D_sstream << "./data/D_" << step_no << "_" << new_time;
+                D_stream.open(D_sstream.str().c_str(), std::fstream::out);
+
+                int ib_pts;
+                VecGetSize(D_lag_vec_seq, &ib_pts);
+                for (int i = 0; i < ib_pts; ++i)
+                {
+                    const double X0_0 = X0[++counter_X0];
+                    const double X0_1 = X0[++counter_X0];
+                    #if (NDIM == 3)
+                        const double X0_2 = X0[++counter_X0];
+                        (void)X0_2;
+                    #endif
+                    const double X_0 = X[++counter_X];
+                    const double X_1 = X[++counter_X];
+                    #if (NDIM == 3)
+                    const double X_2 = X[++counter_X];
+                    (void)X_2;
+                    #endif
+                    const double dmg = D[++counter_D];
+                    D_stream << X0_0 << "\t" << X0_1 << "\t" << X_0 - X0_0 << "\t" << X_1 - X0_1 << "\t" << dmg
+                             << std::endl;
+                }
+
+                VecRestoreArrayRead(D_lag_vec_seq, &D);
+                VecRestoreArrayRead(X0_lag_vec_seq, &X0);
+                VecRestoreArrayRead(X_lag_vec_seq, &X);
+            }
+            VecDestroy(&D_lag_vec_parallel);
+            VecDestroy(&D_lag_vec_seq);
+            VecDestroy(&X0_lag_vec_parallel);
+            VecDestroy(&X0_lag_vec_seq);
+            VecDestroy(&X_lag_vec_parallel);
+            VecDestroy(&X_lag_vec_seq);
+        }
+
+        IBPDMethod::postprocessIntegrateData(current_time, new_time, num_cycles);
+
+        return;
+    }
 };
 
 /*******************************************************************************
@@ -281,6 +367,15 @@ main(int argc, char* argv[])
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
+
+        Horizon_size_temp = input_db->getDouble("HORIZON_SIZE");
+        G = input_db->getDouble("SHEAR_MOD");
+        K_bulk = input_db->getDouble("BULK_MOD");
+        Damping = input_db->getDouble("DAMPING");
+        static const double DX0 = input_db->getDouble("DX");
+        static const double Mfac = input_db->getDouble("MFAC");
+        DX = Mfac * DX0;
+        horizon = Horizon_size_temp * DX;
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();

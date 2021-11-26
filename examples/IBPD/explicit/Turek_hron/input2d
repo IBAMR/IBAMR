@@ -12,6 +12,8 @@ U_MAX = 5.0             // (estimated) maximum velocity (m/s)
 D     = 0.1             // cylinder diameter (m)
 RE    = U_BAR*D*RHO/MU  // Reynolds number
 
+// model parameters
+HORIZON_SIZE = 2.015
 SHEAR_MOD = 2.0e6
 POISSON_RATIO = 0.4
 BULK_MOD = 2.0 * SHEAR_MOD * (1.0 + POISSON_RATIO) / 3.0 / (1.0 - 2.0 * POISSON_RATIO)
@@ -20,11 +22,11 @@ ETA = 1.0
 // grid spacing parameters
 MAX_LEVELS = 3                                 // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                 // refinement ratio between levels
-N = 32                                         // actual    number of grid cells on coarsest grid level
+N = 8                                         // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
 DX0 = H/N                                      // mesh width on coarsest grid level
 DX  = H/NFINEST                                // mesh width on finest   grid level
-MFAC = 2.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
+MFAC = 1.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
 
 // problem parameters
 SMOOTH_CASE = FALSE
@@ -43,15 +45,15 @@ DELTA_FUNCTION      = "BSPLINE_3"
 SOLVER_TYPE         = "STAGGERED"              // the fluid solver to use (STAGGERED or COLLOCATED)
 START_TIME          = 0.0e0                    // initial simulation time
 END_TIME            = 15.0                     // final simulation time
-LOAD_TIME		     = 0.0           	        // time when load is fully applied
+LOAD_TIME		     = 2.0           	        // time when load is fully applied
 GROW_DT             = 2.0e0                    // growth factor for timesteps
 NUM_CYCLES          = 1                        // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE  = "ADAMS_BASHFORTH"        // convective time stepping type
 CONVECTIVE_OP_TYPE  = "PPM"                    // convective differencing discretization type
 CONVECTIVE_FORM     = "ADVECTIVE"              // how to compute the convective terms
 NORMALIZE_PRESSURE  = FALSE                    // whether to explicitly force the pressure to have mean zero
-CFL_MAX             = 0.3                      // maximum CFL number
-DT                  = 3.0e-6                // maximum timestep size // .025*CFL_MAX*DX    //
+CFL_MAX             = 0.2                      // maximum CFL number
+DT                  = 5.0e-5*DX              // maximum timestep size // .025*CFL_MAX*DX    //
 ERROR_ON_DT_CHANGE  = TRUE                     // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = TRUE                    // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 1                        // size of tag buffer used by grid generation algorithm
@@ -81,7 +83,7 @@ VelocityBcCoefs_0 {
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
-   gcoef_function_0 = "1.5*U_bar*X1*(H-X1)/((H/2)^2)*(t < 2.0 ? 0.5*(1.0-cos(0.5*pi*t)) : 1.0)" // gcoef_function_0 = "1.5*U_bar*X1*(H-X1)/((H/2)^2)*(t < 2.0 ? 0.5*(1.0-cos(0.5*pi*t)) : 1.0)"
+   gcoef_function_0 = "1.5*U_bar*X1*(H-X1)/((H/2)^2)*(t < 2.0 ? 0.5*(1.0-cos(0.5*pi*t)) : 1.0)"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
@@ -119,8 +121,8 @@ IBHierarchyIntegrator {
 }
 
 IBPDForceGen {
-    horizon        = 2.015
-    ds             = 1.0/50.0
+    horizon        = HORIZON_SIZE
+    ds             = MFAC * DX
 }
 
 IBPDMethod {
@@ -151,7 +153,7 @@ INSStaggeredHierarchyIntegrator {
    cfl                           = CFL_MAX
    dt_max                        = DT
    using_vorticity_tagging       = VORTICITY_TAGGING
-   vorticity_rel_thresh          = 0.25,0.125
+   vorticity_rel_thresh          = 0.01
    tag_buffer                    = TAG_BUFFER
    output_U                      = OUTPUT_U
    output_P                      = OUTPUT_P
@@ -168,7 +170,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","Silo"
-   viz_dump_interval           = 500
+   viz_dump_interval           = 100
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 

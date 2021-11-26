@@ -5,19 +5,27 @@ PI = 3.14159265358979
 L_X   = 9.0                                        // width  of computational domain (units in cm)
 L_Y   = 9.0                                        // height of computational domain
 L_Z   = 9.0
-L_lag = 6.0                                         //height of beam (inits in cm)
+L_lag = 1.0                                         //height of beam (inits in cm)
 RHO   = 1.0
 MU    = 4.0e-2					    //viscosity of water in centipoise or cP (cgs units)
 U_MAX = 5.0
 
+// model parameters
+POISSON_RATIO = 0.4
+HORIZON_SIZE = 2.015
+K1 = 9.0e3
+K2 = 9.0e3
+C = 2.0 * (K1 + K2)
+BULK_MOD = 2.0 * C * (1.0 + POISSON_RATIO) / 3.0 / (1.0 - 2.0 * POISSON_RATIO)
+
 // grid spacing parameters
-MAX_LEVELS = 3                                     // maximum number of levels in locally refined grid
+MAX_LEVELS = 2                                     // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                     // refinement ratio between levels
 REFINE_FACTOR = REF_RATIO^(MAX_LEVELS - 1)
-M = 72					           // number of nodes per edge of Lagrangian mesh
-MFAC = 2                                   	   // ratio of Lagrangian mesh width to Cartesian mesh width
-N = 18						   // actual    number of grid cells on coarsest grid level
-NFINEST = REFINE_FACTOR * N           		   // effective number of grid cells on finest   grid level
+M = 8					                              // number of nodes per edge of Lagrangian mesh
+MFAC = 0.5                                   	   // ratio of Lagrangian mesh width to Cartesian mesh width
+N = ceil(M * MFAC * L_X / L_lag / REFINE_FACTOR)			// actual    number of grid cells on coarsest grid level
+NFINEST = REFINE_FACTOR * N           		         // effective number of grid cells on finest   grid level
 DX0 = L_X/N                                        // mesh width on coarsest grid level
 DX  = L_X/NFINEST                                  // mesh width on finest   grid level
 
@@ -28,6 +36,7 @@ N_Z = N_X * (L_Z / L_X)
 // solver parameters
 DELTA_FUNCTION      = "IB_4"
 START_TIME          = 0.0e0                    // initial simulation time
+LOAD_TIME           = 2.0
 END_TIME            = 5.0                      // final simulation time
 GROW_DT             = 2.0e0                    // growth factor for timesteps
 NUM_CYCLES          = 1                        // number of cycles of fixed-point iteration
@@ -36,7 +45,7 @@ CONVECTIVE_OP_TYPE  = "PPM"                    // convective differencing discre
 CONVECTIVE_FORM     = "ADVECTIVE"              // how to compute the convective terms
 NORMALIZE_PRESSURE  = TRUE                     // whether to explicitly force the pressure to have mean zero
 CFL_MAX             = 0.2                      // maximum CFL number
-DT                  = 5.0e-5 * DX              // maximum timestep size
+DT                  = 1.0e-4 * DX              // maximum timestep size
 ERROR_ON_DT_CHANGE  = FALSE                    // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = TRUE                     // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 1                        // size of tag buffer used by grid generation algorithm
@@ -193,7 +202,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","Silo"
-   viz_dump_interval           = 100
+   viz_dump_interval           = 1000
    viz_dump_dirname            = "viz_IB3d"
    visit_number_procs_per_file = 1
 
