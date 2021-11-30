@@ -1,5 +1,11 @@
 /* config/IBTK_config.h.tmp.in.  Generated from configure.ac by autoheader.  */
 
+/* Warn that this file is deprecated. */
+#ifndef IBTK_SKIP_CONFIG_DEPRECATION_WARNINGS
+#pragma message("This file has been deprecated: use ibtk/config.h instead")
+#endif
+
+
 /* Define to dummy `main' function (if any) required to link to the Fortran
    libraries. */
 #undef FC_DUMMY_MAIN

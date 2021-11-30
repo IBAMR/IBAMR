@@ -18,7 +18,10 @@
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
 
+// Skip warnings about IBAMR_config.h when we include it from this header
+#define IBAMR_SKIP_CONFIG_DEPRECATION_WARNINGS
 #include <IBAMR_config.h>
+#undef IBAMR_SKIP_CONFIG_DEPRECATION_WARNINGS
 
 // Ultimately, all IBAMR macros will be aliases of the IBTK macros
 #include <ibtk/config.h>
