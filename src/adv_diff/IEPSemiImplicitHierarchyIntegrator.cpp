@@ -2243,18 +2243,36 @@ IEPSemiImplicitHierarchyIntegrator::computeInterpolationFunction(int p_firstder_
                 const double lf = (*lf_data)(ci);
                 const double T = (*T_data)(ci);
 
-                if (MathUtilities<double>::equalEps(lf, 1.0) && T <= d_T_melt)
+                //                if (MathUtilities<double>::equalEps(lf, 1.0) && T <= d_T_melt)
+                //                {
+                //                    (*p_firstder_data)(ci) = 1.0;
+                //                }
+                //                else if (MathUtilities<double>::equalEps(lf, 0.0) && T >= d_T_melt)
+                //                {
+                //                    (*p_firstder_data)(ci) = 1.0;
+                //                }
+                //                else
+                //                {
+                //                    (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0)
+                //                    + 30.0 * lf * lf;
+                //                }
+
+                // Ziyang's profile
+                (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
+
+                // Li's profile
+                (*p_firstder_data)(ci) = 6.0 * lf - 6.0 * std::pow(lf, 2.0);
+
+                if (lf >= 1.0 - 1e-10 && T <= d_T_melt)
                 {
                     (*p_firstder_data)(ci) = 1.0;
                 }
-                else if (MathUtilities<double>::equalEps(lf, 0.0) && T >= d_T_melt)
+
+                if (lf <= 1e-10 && T >= d_T_melt)
                 {
                     (*p_firstder_data)(ci) = 1.0;
                 }
-                else
-                {
-                    (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
-                }
+
                 // (*p_firstder_data)(ci) = 0.0;
                 // std::cout << "p' value is\t" << (*p_firstder_data)(ci) <<  std::endl;
             }
