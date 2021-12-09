@@ -2376,14 +2376,22 @@ IEPSemiImplicitHierarchyIntegrator::computeInterpolationFunction(int p_firstder_
                 //                else
                 //                    (*p_firstder_data)(ci) = 2.0 - 2.0*lf;
                 //
-                //                // lf and 1-lf
-                //                if(lf <= 0.0358589525337265)
-                //                    (*p_firstder_data)(ci) = lf;
-                //                else if(lf > 0.0358589525337265 && lf <= 0.964141047466262)
-                //                    (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0)
-                //                    + 30.0 * lf * lf;
-                //                else
-                //                    (*p_firstder_data)(ci) = 1.0 - lf;
+                // lf and 1-lf
+                /*                if(lf <= 0.0358589525337265)
+                                    (*p_firstder_data)(ci) = lf;
+                                else if(lf > 0.0358589525337265 && lf <= 0.964141047466262)
+                                    (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0)
+                                    + 30.0 * lf * lf;
+                                else
+                                    (*p_firstder_data)(ci) = 1.0 - lf;*/
+
+                //                // 0.5*lf and 0.5-0.5*lf
+                if (lf <= 0.017257145471902)
+                    (*p_firstder_data)(ci) = lf;
+                else if (lf > 0.017257145471902 && lf <= 0.982742854528096)
+                    (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
+                else
+                    (*p_firstder_data)(ci) = 1.0 - lf;
 
                 if (lf >= 1.0 - 1e-10 && T <= d_T_melt)
                 {
