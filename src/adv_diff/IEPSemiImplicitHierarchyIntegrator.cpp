@@ -2347,7 +2347,43 @@ IEPSemiImplicitHierarchyIntegrator::computeInterpolationFunction(int p_firstder_
                 (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
 
                 // Li's profile
-                (*p_firstder_data)(ci) = 6.0 * lf - 6.0 * std::pow(lf, 2.0);
+                //                (*p_firstder_data)(ci) = 6.0 * lf - 6.0 * std::pow(lf, 2.0);
+
+                // Hybrid profile
+                // 3lf and 3-3lf
+                if (lf <= 0.133048682404023)
+                    (*p_firstder_data)(ci) = 3.0 * lf;
+                else if (lf > 0.133048682404023 && lf <= 0.866951317595975)
+                    (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
+                else
+                    (*p_firstder_data)(ci) = 3.0 - 3.0 * lf;
+
+                //                // 4lf and 4-4lf
+                //                if(lf <= 0.218078018145755)
+                //                    (*p_firstder_data)(ci) = 4.0*lf;
+                //                else if(lf > 0.218078018145755 && lf <= 0.781921981854249)
+                //                    (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0)
+                //                    + 30.0 * lf * lf;
+                //                else
+                //                    (*p_firstder_data)(ci) = 4.0 - 4.0*lf;
+                //
+                //                // 2lf and 2-2lf
+                //                if(lf <= 0.0785105470229893)
+                //                    (*p_firstder_data)(ci) = 2.0*lf;
+                //                else if(lf > 0.0785105470229893 && lf <= 0.921489452977004)
+                //                    (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0)
+                //                    + 30.0 * lf * lf;
+                //                else
+                //                    (*p_firstder_data)(ci) = 2.0 - 2.0*lf;
+                //
+                //                // lf and 1-lf
+                //                if(lf <= 0.0358589525337265)
+                //                    (*p_firstder_data)(ci) = lf;
+                //                else if(lf > 0.0358589525337265 && lf <= 0.964141047466262)
+                //                    (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0)
+                //                    + 30.0 * lf * lf;
+                //                else
+                //                    (*p_firstder_data)(ci) = 1.0 - lf;
 
                 if (lf >= 1.0 - 1e-10 && T <= d_T_melt)
                 {
