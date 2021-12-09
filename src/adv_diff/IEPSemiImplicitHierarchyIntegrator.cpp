@@ -24,7 +24,6 @@
 #include "ibamr/ibamr_utilities.h"
 
 #include "ibtk/CCLaplaceOperator.h"
-#include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/LaplaceOperator.h"
@@ -149,6 +148,9 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 namespace
 {
+// Version of INSHierarchyIntegrator restart file data.
+static const int IEP_HIERARCHY_INTEGRATOR_VERSION = 4;
+
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
 static const int SIDEG = 1;
@@ -184,7 +186,7 @@ IEPSemiImplicitHierarchyIntegrator::IEPSemiImplicitHierarchyIntegrator(const std
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
-
+    if (from_restart) getFromRestart();
     getFromInput(input_db, from_restart);
 
     if (!(d_lf_convective_difference_form == CONSERVATIVE && d_T_convective_difference_form == CONSERVATIVE))
@@ -213,6 +215,34 @@ IEPSemiImplicitHierarchyIntegrator::IEPSemiImplicitHierarchyIntegrator(const std
                                  << " current implementation supports only\n"
                                  << " CUI and PPM convective limiters for energy equation\n");
     }
+
+    if (input_db->keyExists("lf_solver_type"))
+    {
+        d_lf_solver_type = input_db->getString("lf_solver_type");
+        if (input_db->keyExists("lf_solver_db")) d_lf_solver_db = input_db->getDatabase("lf_solver_db");
+    }
+    if (!d_lf_solver_db) d_lf_solver_db = new MemoryDatabase("lf_solver_db");
+
+    if (input_db->keyExists("lf_precond_type"))
+    {
+        d_lf_precond_type = input_db->getString("lf_precond_type");
+        if (input_db->keyExists("lf_precond_db")) d_lf_precond_db = input_db->getDatabase("lf_precond_db");
+    }
+    if (!d_lf_precond_db) d_lf_precond_db = new MemoryDatabase("lf_precond_db");
+
+    if (input_db->keyExists("T_solver_type"))
+    {
+        d_T_solver_type = input_db->getString("T_solver_type");
+        if (input_db->keyExists("T_solver_db")) d_T_solver_db = input_db->getDatabase("T_solver_db");
+    }
+    if (!d_T_solver_db) d_T_solver_db = new MemoryDatabase("T_solver_db");
+
+    if (input_db->keyExists("T_precond_type"))
+    {
+        d_T_precond_type = input_db->getString("T_precond_type");
+        if (input_db->keyExists("T_precond_db")) d_T_precond_db = input_db->getDatabase("T_precond_db");
+    }
+    if (!d_T_precond_db) d_T_precond_db = new MemoryDatabase("T_precond_db");
 
     // Get the interpolation type for the material properties
     if (input_db->keyExists("vc_interpolation_type"))
@@ -541,7 +571,8 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
     d_g_secondder_idx = var_db->registerVariableAndContext(d_g_secondder_var, getCurrentContext());
 
     d_p_firstder_var = new CellVariable<NDIM, double>("p_firstder_var");
-    d_p_firstder_idx = var_db->registerVariableAndContext(d_p_firstder_var, getCurrentContext());
+    registerVariable(d_p_firstder_idx, d_p_firstder_var, no_ghosts, getCurrentContext());
+    // d_p_firstder_idx = var_db->registerVariableAndContext(d_p_firstder_var, getCurrentContext());
 
     d_D_cc_var = new CellVariable<NDIM, double>("D_cc", NDIM);
     registerVariable(d_D_cc_current_idx,
@@ -563,6 +594,7 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
     if (d_visit_writer && d_solve_mass_conservation)
     {
         d_visit_writer->registerPlotQuantity("zeta", "SCALAR", d_chemical_potential_idx);
+        d_visit_writer->registerPlotQuantity("p_prime", "SCALAR", d_p_firstder_idx);
     }
 
     d_lf_pre_var = new CellVariable<NDIM, double>("lf_pre_var");
@@ -701,7 +733,8 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
         if (!level->checkAllocated(d_g_firstder_idx))
             level->allocatePatchData(d_g_firstder_idx, current_time); // should this be new time?
         if (!level->checkAllocated(d_g_secondder_idx)) level->allocatePatchData(d_g_secondder_idx, current_time);
-        if (!level->checkAllocated(d_p_firstder_idx)) level->allocatePatchData(d_p_firstder_idx, current_time);
+        //        if (!level->checkAllocated(d_p_firstder_idx)) level->allocatePatchData(d_p_firstder_idx,
+        //        current_time);
         if (!level->checkAllocated(d_lf_pre_idx)) level->allocatePatchData(d_lf_pre_idx, current_time);
         if (!level->checkAllocated(d_grad_lf_idx)) level->allocatePatchData(d_grad_lf_idx, current_time);
         if (!level->checkAllocated(d_H_sc_idx)) level->allocatePatchData(d_H_sc_idx, current_time);
@@ -1733,7 +1766,7 @@ IEPSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
         level->deallocatePatchData(d_T_temp_rhs_idx);
         level->deallocatePatchData(d_g_firstder_idx);
         level->deallocatePatchData(d_g_secondder_idx);
-        level->deallocatePatchData(d_p_firstder_idx);
+        //        level->deallocatePatchData(d_p_firstder_idx);
         //        level->deallocatePatchData(d_chemical_potential_idx);
         level->deallocatePatchData(d_lf_pre_idx);
         level->deallocatePatchData(d_grad_lf_idx);
@@ -2169,6 +2202,59 @@ IEPSemiImplicitHierarchyIntegrator::setAdvectionVelocityTemperatureEquation(Poin
 
     return;
 } // setAdvectionVelocityTemperatureEquation
+
+void
+IEPSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+{
+    db->putInteger("IEP_HIERARCHY_INTEGRATOR_VERSION", IEP_HIERARCHY_INTEGRATOR_VERSION);
+    db->putString("d_lf_diffusion_time_stepping_type",
+                  enum_to_string<TimeSteppingType>(d_lf_diffusion_time_stepping_type));
+    db->putString("d_lf_convective_time_stepping_type",
+                  enum_to_string<TimeSteppingType>(d_lf_convective_time_stepping_type));
+    db->putString("d_lf_init_convective_time_stepping_type",
+                  enum_to_string<TimeSteppingType>(d_lf_init_convective_time_stepping_type));
+    db->putString("d_lf_convective_difference_form",
+                  enum_to_string<ConvectiveDifferencingType>(d_lf_convective_difference_form));
+    db->putString("d_lf_convective_op_type", d_lf_convective_op_type);
+    d_lf_convective_op_input_db = db->putDatabase("d_lf_convective_op_db"); // I am not sure whether this is correct.
+
+    db->putString("d_T_diffusion_time_stepping_type",
+                  enum_to_string<TimeSteppingType>(d_T_diffusion_time_stepping_type));
+    db->putString("d_T_convective_time_stepping_type",
+                  enum_to_string<TimeSteppingType>(d_T_convective_time_stepping_type));
+    db->putString("d_T_init_convective_time_stepping_type",
+                  enum_to_string<TimeSteppingType>(d_T_init_convective_time_stepping_type));
+    db->putString("d_T_convective_difference_form",
+                  enum_to_string<ConvectiveDifferencingType>(d_T_convective_difference_form));
+    db->putString("d_T_convective_op_type", d_T_convective_op_type);
+    d_T_convective_op_input_db = db->putDatabase("d_T_convective_op_db"); // I am not sure whether this is correct.
+
+    db->putDouble("d_latent_heat", d_latent_heat);
+    db->putDouble("d_latent_heat_temp", d_latent_heat_temp);
+    db->putDouble("d_rho_liquid", d_rho_liquid);
+    db->putDouble("d_T_melt", d_T_melt);
+
+    db->putDouble("d_M_lf", d_M_lf);
+    db->putDouble("d_lambda_lf", d_lambda_lf);
+    db->putDouble("d_eta_lf", d_eta_lf);
+    db->putBool("d_solve_energy", d_solve_energy);
+    db->putBool("d_solve_mass_conservation", d_solve_mass_conservation);
+
+    db->putDouble("d_free_parameter", d_free_parameter);
+    db->putDouble("d_eps", d_eps);
+    db->putDouble("d_beta", d_beta);
+    db->putDouble("d_H_diffusion_coefficient", d_H_diffusion_coefficient);
+    db->putBool("d_apply_brinkman", d_apply_brinkman);
+    if (d_apply_brinkman)
+    {
+        d_lf_brinkman_db = db->putDatabase("d_lf_brinkman_db"); // I am not sure whether this is correct.
+        d_lf_brinkman_db->putDouble("d_lf_b", d_lf_b);
+    }
+    db->putBool("d_add_diffusion", d_add_diffusion);
+
+    AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(db);
+    return;
+} // putToDatabaseSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -2773,38 +2859,6 @@ IEPSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> input_db, boo
     // Read in data members from input database.
     if (!is_from_restart)
     {
-        d_lf_solver_type = CCPoissonSolverManager::UNDEFINED;
-        d_lf_precond_type = CCPoissonSolverManager::UNDEFINED;
-        if (input_db->keyExists("lf_solver_type"))
-        {
-            d_lf_solver_type = input_db->getString("lf_solver_type");
-            if (input_db->keyExists("lf_solver_db")) d_lf_solver_db = input_db->getDatabase("lf_solver_db");
-        }
-        if (!d_lf_solver_db) d_lf_solver_db = new MemoryDatabase("lf_solver_db");
-
-        if (input_db->keyExists("lf_precond_type"))
-        {
-            d_lf_precond_type = input_db->getString("lf_precond_type");
-            if (input_db->keyExists("lf_precond_db")) d_lf_precond_db = input_db->getDatabase("lf_precond_db");
-        }
-        if (!d_lf_precond_db) d_lf_precond_db = new MemoryDatabase("lf_precond_db");
-
-        d_T_solver_type = CCPoissonSolverManager::UNDEFINED;
-        d_T_precond_type = CCPoissonSolverManager::UNDEFINED;
-        if (input_db->keyExists("T_solver_type"))
-        {
-            d_T_solver_type = input_db->getString("T_solver_type");
-            if (input_db->keyExists("T_solver_db")) d_T_solver_db = input_db->getDatabase("T_solver_db");
-        }
-        if (!d_T_solver_db) d_T_solver_db = new MemoryDatabase("T_solver_db");
-
-        if (input_db->keyExists("T_precond_type"))
-        {
-            d_T_precond_type = input_db->getString("T_precond_type");
-            if (input_db->keyExists("T_precond_db")) d_T_precond_db = input_db->getDatabase("T_precond_db");
-        }
-        if (!d_T_precond_db) d_T_precond_db = new MemoryDatabase("T_precond_db");
-
         d_latent_heat = input_db->getDouble("latent_heat");
         d_latent_heat_temp = input_db->getDouble("latent_heat_temp");
         d_rho_liquid = input_db->getDouble("rho_liquid");
@@ -2892,7 +2946,7 @@ IEPSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> input_db, boo
         if (input_db->keyExists("H_diffusion_coefficient"))
             d_H_diffusion_coefficient = input_db->getDouble("H_diffusion_coefficient");
         if (input_db->keyExists("apply_brinkman")) d_apply_brinkman = input_db->getBool("apply_brinkman");
-        if (input_db->keyExists("lf_brinkman_db"))
+        if (d_apply_brinkman)
         {
             d_lf_brinkman_db = input_db->getDatabase("lf_brinkman_db");
             //        if (d_brinkman_db) d_brinkman_type = d_brinkman_db->getString("brinkman_type");
@@ -2900,6 +2954,72 @@ IEPSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> input_db, boo
         }
         if (input_db->keyExists("add_diffusion")) d_add_diffusion = input_db->getBool("add_diffusion");
     }
+}
+
+void
+IEPSemiImplicitHierarchyIntegrator::getFromRestart()
+{
+    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    Pointer<Database> db;
+    if (restart_db->isDatabase(d_object_name))
+    {
+        db = restart_db->getDatabase(d_object_name);
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
+                                 << " not found in restart file." << std::endl);
+    }
+    int ver = db->getInteger("IEP_HIERARCHY_INTEGRATOR_VERSION");
+    if (ver != IEP_HIERARCHY_INTEGRATOR_VERSION)
+    {
+        TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
+    }
+
+    d_lf_diffusion_time_stepping_type =
+        string_to_enum<TimeSteppingType>(db->getString("d_lf_diffusion_time_stepping_type"));
+    d_lf_convective_time_stepping_type =
+        string_to_enum<TimeSteppingType>(db->getString("d_lf_convective_time_stepping_type"));
+    d_lf_init_convective_time_stepping_type =
+        string_to_enum<TimeSteppingType>(db->getString("d_lf_init_convective_time_stepping_type"));
+    d_lf_convective_difference_form =
+        string_to_enum<ConvectiveDifferencingType>(db->getString("d_lf_convective_difference_form"));
+    d_lf_convective_op_type = db->getString("d_lf_convective_op_type");
+    d_lf_convective_op_input_db = db->getDatabase("d_lf_convective_op_db");
+
+    d_T_diffusion_time_stepping_type =
+        string_to_enum<TimeSteppingType>(db->getString("d_T_diffusion_time_stepping_type"));
+    d_T_convective_time_stepping_type =
+        string_to_enum<TimeSteppingType>(db->getString("d_T_convective_time_stepping_type"));
+    d_T_init_convective_time_stepping_type =
+        string_to_enum<TimeSteppingType>(db->getString("d_T_init_convective_time_stepping_type"));
+    d_T_convective_difference_form =
+        string_to_enum<ConvectiveDifferencingType>(db->getString("d_T_convective_difference_form"));
+    d_T_convective_op_type = db->getString("d_T_convective_op_type");
+    d_T_convective_op_input_db = db->getDatabase("d_T_convective_op_db");
+
+    d_latent_heat = db->getDouble("d_latent_heat");
+    d_latent_heat_temp = db->getDouble("d_latent_heat_temp");
+    d_rho_liquid = db->getDouble("d_rho_liquid");
+    d_T_melt = db->getDouble("d_T_melt");
+
+    d_M_lf = db->getDouble("d_M_lf");
+    d_lambda_lf = db->getDouble("d_lambda_lf");
+    d_eta_lf = db->getDouble("d_eta_lf");
+    d_solve_energy = db->getBool("d_solve_energy");
+    d_solve_mass_conservation = db->getBool("d_solve_mass_conservation");
+
+    d_free_parameter = db->getDouble("d_free_parameter");
+    d_eps = db->getDouble("d_eps");
+    d_beta = db->getDouble("d_beta");
+    d_H_diffusion_coefficient = db->getDouble("d_H_diffusion_coefficient");
+    d_apply_brinkman = db->getBool("d_apply_brinkman");
+    if (d_apply_brinkman)
+    {
+        d_lf_brinkman_db = db->getDatabase("d_lf_brinkman_db");
+        d_lf_b = d_lf_brinkman_db->getDouble("d_lf_b");
+    }
+    d_add_diffusion = db->getBool("d_add_diffusion");
 }
 
 //////////////////////////////////////////////////////////////////////////////

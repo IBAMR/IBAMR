@@ -26,6 +26,7 @@
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 
+#include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/LaplaceOperator.h"
 
 #include "HierarchyFaceDataOpsReal.h"
@@ -339,6 +340,11 @@ public:
     setAdvectionVelocityTemperatureEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var,
                                             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var);
 
+    /*!
+     * Write out specialized object state to the given database.
+     */
+    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+
 private:
     /*!
      * \brief Default constructor.
@@ -403,6 +409,12 @@ private:
      * Read input values from a given database.
      */
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, bool is_from_restart);
+
+    /*!
+     * Read object state from the restart file and initialize class data
+     * members.
+     */
+    void getFromRestart();
 
     /*!
      * Get the solver for the \f$ \varphi \f$ equation.
@@ -520,7 +532,10 @@ private:
     /*!
      * Solvers and related data.
      */
-    std::string d_lf_solver_type, d_lf_precond_type, d_T_solver_type, d_T_precond_type;
+    std::string d_lf_solver_type = IBTK::CCPoissonSolverManager::UNDEFINED,
+                d_lf_precond_type = IBTK::CCPoissonSolverManager::UNDEFINED,
+                d_T_solver_type = IBTK::CCPoissonSolverManager::UNDEFINED,
+                d_T_precond_type = IBTK::CCPoissonSolverManager::UNDEFINED;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_lf_solver_db, d_lf_precond_db, d_T_solver_db, d_T_precond_db;
     SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> d_lf_rhs_op = nullptr, d_T_rhs_op = nullptr;
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_lf_solver = nullptr, d_T_solver = nullptr;
