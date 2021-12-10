@@ -648,6 +648,11 @@ private:
      * Variable to indicate the type of interpolation to be done for conductivity.
      */
     IBTK::VCInterpType d_k_vc_interp_type = IBTK::VC_AVERAGE_INTERP;
+
+    /*!
+     * String to identify the profile that we want to use for interpolation function p'.
+     */
+    std::string d_interpolation_function_profile = "LINEAR_1";
 };
 } // namespace IBAMR
 

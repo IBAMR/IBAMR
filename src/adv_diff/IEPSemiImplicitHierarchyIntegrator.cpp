@@ -2251,6 +2251,7 @@ IEPSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> d
         d_lf_brinkman_db->putDouble("d_lf_b", d_lf_b);
     }
     db->putBool("d_add_diffusion", d_add_diffusion);
+    db->putString("d_interpolation_function_profile", d_interpolation_function_profile);
 
     AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(db);
     return;
@@ -2329,69 +2330,71 @@ IEPSemiImplicitHierarchyIntegrator::computeInterpolationFunction(int p_firstder_
                 const double lf = (*lf_data)(ci);
                 const double T = (*T_data)(ci);
 
-                //                if (MathUtilities<double>::equalEps(lf, 1.0) && T <= d_T_melt)
-                //                {
-                //                    (*p_firstder_data)(ci) = 1.0;
-                //                }
-                //                else if (MathUtilities<double>::equalEps(lf, 0.0) && T >= d_T_melt)
-                //                {
-                //                    (*p_firstder_data)(ci) = 1.0;
-                //                }
-                //                else
-                //                {
-                //                    (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0)
-                //                    + 30.0 * lf * lf;
-                //                }
-
-                // Ziyang's profile
-                (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
-
-                // Li's profile
-                //                (*p_firstder_data)(ci) = 6.0 * lf - 6.0 * std::pow(lf, 2.0);
-
-                // Hybrid profile
-                // 3lf and 3-3lf
-                if (lf <= 0.133048682404023)
-                    (*p_firstder_data)(ci) = 3.0 * lf;
-                else if (lf > 0.133048682404023 && lf <= 0.866951317595975)
+                if (d_interpolation_function_profile == "QUARTIC")
+                {
+                    // Ziyang's profile
                     (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
+                }
+                else if (d_interpolation_function_profile == "QUADRATIC")
+                {
+                    // Li's profile
+                    (*p_firstder_data)(ci) = 6.0 * lf - 6.0 * std::pow(lf, 2.0);
+                }
+                else if (d_interpolation_function_profile == "LINEAR_3")
+                {
+                    // Hybrid profile
+                    // 3lf and 3-3lf
+                    if (lf <= 0.133048682404023)
+                        (*p_firstder_data)(ci) = 3.0 * lf;
+                    else if (lf > 0.133048682404023 && lf <= 0.866951317595975)
+                        (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
+                    else
+                        (*p_firstder_data)(ci) = 3.0 - 3.0 * lf;
+                }
+                else if (d_interpolation_function_profile == "LINEAR_4")
+                {
+                    // 4lf and 4-4lf
+                    if (lf <= 0.218078018145755)
+                        (*p_firstder_data)(ci) = 4.0 * lf;
+                    else if (lf > 0.218078018145755 && lf <= 0.781921981854249)
+                        (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
+                    else
+                        (*p_firstder_data)(ci) = 4.0 - 4.0 * lf;
+                }
+                else if (d_interpolation_function_profile == "LINEAR_2")
+                {
+                    // 2lf and 2-2lf
+                    if (lf <= 0.0785105470229893)
+                        (*p_firstder_data)(ci) = 2.0 * lf;
+                    else if (lf > 0.0785105470229893 && lf <= 0.921489452977004)
+                        (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
+                    else
+                        (*p_firstder_data)(ci) = 2.0 - 2.0 * lf;
+                }
+                else if (d_interpolation_function_profile == "LINEAR_1")
+                {
+                    // lf and 1-lf
+                    if (lf <= 0.0358589525337265)
+                        (*p_firstder_data)(ci) = lf;
+                    else if (lf > 0.0358589525337265 && lf <= 0.964141047466262)
+                        (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
+                    else
+                        (*p_firstder_data)(ci) = 1.0 - lf;
+                }
+                else if (d_interpolation_function_profile == "LINEAR_0.5")
+                {
+                    // 0.5*lf and 0.5-0.5*lf
+                    if (lf <= 0.017257145471902)
+                        (*p_firstder_data)(ci) = 0.5 * lf;
+                    else if (lf > 0.017257145471902 && lf <= 0.982742854528096)
+                        (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
+                    else
+                        (*p_firstder_data)(ci) = 0.5 - 0.5 * lf;
+                }
                 else
-                    (*p_firstder_data)(ci) = 3.0 - 3.0 * lf;
-
-                //                // 4lf and 4-4lf
-                //                if(lf <= 0.218078018145755)
-                //                    (*p_firstder_data)(ci) = 4.0*lf;
-                //                else if(lf > 0.218078018145755 && lf <= 0.781921981854249)
-                //                    (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0)
-                //                    + 30.0 * lf * lf;
-                //                else
-                //                    (*p_firstder_data)(ci) = 4.0 - 4.0*lf;
-                //
-                //                // 2lf and 2-2lf
-                //                if(lf <= 0.0785105470229893)
-                //                    (*p_firstder_data)(ci) = 2.0*lf;
-                //                else if(lf > 0.0785105470229893 && lf <= 0.921489452977004)
-                //                    (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0)
-                //                    + 30.0 * lf * lf;
-                //                else
-                //                    (*p_firstder_data)(ci) = 2.0 - 2.0*lf;
-                //
-                // lf and 1-lf
-                /*                if(lf <= 0.0358589525337265)
-                                    (*p_firstder_data)(ci) = lf;
-                                else if(lf > 0.0358589525337265 && lf <= 0.964141047466262)
-                                    (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0)
-                                    + 30.0 * lf * lf;
-                                else
-                                    (*p_firstder_data)(ci) = 1.0 - lf;*/
-
-                //                // 0.5*lf and 0.5-0.5*lf
-                if (lf <= 0.017257145471902)
-                    (*p_firstder_data)(ci) = lf;
-                else if (lf > 0.017257145471902 && lf <= 0.982742854528096)
-                    (*p_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
-                else
-                    (*p_firstder_data)(ci) = 1.0 - lf;
+                    TBOX_ERROR(
+                        "Interpolation function valid options are: LINEAR_0.5, LINEAR_1, LINEAR_2, LINEAR_3, LINEAR_4, "
+                        "QUADRATIC, QUARTIC");
 
                 if (lf >= 1.0 - 1e-10 && T <= d_T_melt)
                 {
@@ -2997,6 +3000,8 @@ IEPSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> input_db, boo
             d_lf_b = d_lf_brinkman_db->getDouble("lf_b");
         }
         if (input_db->keyExists("add_diffusion")) d_add_diffusion = input_db->getBool("add_diffusion");
+        if (input_db->keyExists("interpolation_function_profile"))
+            d_interpolation_function_profile = input_db->getString("interpolation_function_profile");
     }
 }
 
@@ -3064,6 +3069,7 @@ IEPSemiImplicitHierarchyIntegrator::getFromRestart()
         d_lf_b = d_lf_brinkman_db->getDouble("d_lf_b");
     }
     d_add_diffusion = db->getBool("d_add_diffusion");
+    d_interpolation_function_profile = db->getString("interpolation_function_profile");
 }
 
 //////////////////////////////////////////////////////////////////////////////
