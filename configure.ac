@@ -83,6 +83,13 @@ AC_DEFINE_UNQUOTED(VERSION_MAJOR, $ibamr_version_major, [Major version of IBAMR.
 AC_DEFINE_UNQUOTED(VERSION_MINOR, $ibamr_version_minor, [Minor version of IBAMR.])
 AC_DEFINE_UNQUOTED(VERSION_SUBMINOR, $ibamr_version_subminor, [Subminor version of IBAMR.])
 
+dnl We have to use a funny name for the key to guarantee that this is at the top.
+AH_VERBATIM(A_INCLUDE_MACRO_HEADER, [/* Warn that this file is deprecated. */
+#ifndef IBAMR_SKIP_CONFIG_DEPRECATION_WARNINGS
+#pragma message("This file has been deprecated: use ibamr/config.h instead")
+#endif
+])
+
 dnl We have to use a funny name for the key to guarantee that it comes after
 dnl all constant definitions.
 AH_VERBATIM(Z_INCLUDE_MACRO_HEADER, [/* Include the new configuration file. */

@@ -124,6 +124,14 @@ fi
 ###########################################################################
 # Additional header configuration.
 ###########################################################################
+
+dnl We have to use a funny name for the key to guarantee that this is at the top.
+AH_VERBATIM(A_INCLUDE_MACRO_HEADER, [/* Warn that this file is deprecated. */
+#ifndef IBTK_SKIP_CONFIG_DEPRECATION_WARNINGS
+#pragma message("This file has been deprecated: use ibtk/config.h instead")
+#endif
+])
+
 dnl We have to use a funny name for the key to guarantee that it comes after
 dnl all constant definitions.
 AH_VERBATIM(Z_INCLUDE_MACRO_HEADER, [/* Include the new configuration file. */

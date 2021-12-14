@@ -18,7 +18,10 @@
 
 ///////////////////////////// INCLUDES ///////////////////////////////////
 
+// Skip warnings about IBTK_config.h when we include it from this header
+#define IBTK_SKIP_CONFIG_DEPRECATION_WARNINGS
 #include <IBTK_config.h>
+#undef IBTK_SKIP_CONFIG_DEPRECATION_WARNINGS
 
 // This header is a stub defined to keep the CMake and autotools build systems
 // compatible. As such, headers are included in an odd order to keep things
