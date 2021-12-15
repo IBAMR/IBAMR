@@ -165,8 +165,10 @@ main()
         auto f_y = [&](const double y) { return yPosition(y, input); };
 
         namespace bmq = boost::math::quadrature;
-        const double xbase = bmq::gauss_kronrod<double, 15>::integrate(f_x, 0.0, s, 15, 1e-12, nullptr);
-        const double ybase = bmq::gauss_kronrod<double, 15>::integrate(f_y, 0.0, s, 15, 1e-12, nullptr);
+        const double xbase =
+            s == 0.0 ? 0.0 : bmq::gauss_kronrod<double, 15>::integrate(f_x, 0.0, s, 15, 1e-12, nullptr);
+        const double ybase =
+            s == 0.0 ? 0.0 : bmq::gauss_kronrod<double, 15>::integrate(f_y, 0.0, s, 15, 1e-12, nullptr);
 
         if (numPtsInSection && numPtsInHeight)
         {

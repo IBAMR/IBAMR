@@ -358,8 +358,10 @@ IBEELKinematics3d::setEelSpecificVelocity(const double time,
             auto f_y = [&](const double y) { return yVelocity(y, input); };
 
             namespace bmq = boost::math::quadrature;
-            const double dxdt = bmq::gauss_kronrod<double, 15>::integrate(f_x, 0.0, S, 15, 1e-12, nullptr);
-            const double dydt = bmq::gauss_kronrod<double, 15>::integrate(f_y, 0.0, S, 15, 1e-12, nullptr);
+            const double dxdt =
+                S == 0.0 ? 0.0 : bmq::gauss_kronrod<double, 15>::integrate(f_x, 0.0, S, 15, 1e-12, nullptr);
+            const double dydt =
+                S == 0.0 ? 0.0 : bmq::gauss_kronrod<double, 15>::integrate(f_y, 0.0, S, 15, 1e-12, nullptr);
 
             vec_vel[0] = dxdt * (std::cos(angleFromHorizontal)) + dydt * (-std::sin(angleFromHorizontal));
             vec_vel[1] = dydt * (std::cos(angleFromHorizontal)) + dxdt * (std::sin(angleFromHorizontal));
@@ -453,8 +455,10 @@ IBEELKinematics3d::setShape(const double time, const std::vector<double>& increm
                 auto f_y = [&](const double y) { return yPosition(y, input); };
 
                 namespace bmq = boost::math::quadrature;
-                const double xbase = bmq::gauss_kronrod<double, 15>::integrate(f_x, 0.0, S, 15, 1e-12, nullptr);
-                const double ybase = bmq::gauss_kronrod<double, 15>::integrate(f_y, 0.0, S, 15, 1e-12, nullptr);
+                const double xbase =
+                    S == 0.0 ? 0.0 : bmq::gauss_kronrod<double, 15>::integrate(f_x, 0.0, S, 15, 1e-12, nullptr);
+                const double ybase =
+                    S == 0.0 ? 0.0 : bmq::gauss_kronrod<double, 15>::integrate(f_y, 0.0, S, 15, 1e-12, nullptr);
 
                 // Fill the middle line first.
                 for (int k = -NumPtsInHeight; k <= NumPtsInHeight; ++k)
