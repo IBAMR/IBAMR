@@ -73,7 +73,6 @@ void
 reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*cycle_num*/, void* ctx)
 {
     SolidLevelSetResetter* resetter = static_cast<SolidLevelSetResetter*>(ctx);
-    resetter->ib_interp_ops->copyEulerianDataToIntegrator(new_time);
 
     // Get the new centroid of the body
     const double dt = new_time - current_time;
@@ -491,8 +490,6 @@ main(int argc, char* argv[])
         ib_initializer->setStructureNamesOnLevel(max_finest_ln, struct_list_vec);
         ib_initializer->registerInitStructureFunction(generate_interp_mesh);
         ib_interpolant_method_ops->registerLInitStrategy(ib_initializer);
-        ib_interpolant_method_ops->registerVariableAndHierarchyIntegrator(
-            ls_name_solid, /*depth*/ 1, phi_var_solid, adv_diff_integrator);
 
         // Configure the Brinkman penalization object to do the rigid body dynamics.
         Pointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd =
