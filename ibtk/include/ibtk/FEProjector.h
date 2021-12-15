@@ -24,6 +24,9 @@
 
 #include <ibtk/FischerGuess.h>
 
+#include <tbox/Pointer.h>
+#include <tbox/Timer.h>
+
 #include <libmesh/equation_systems.h>
 #include <libmesh/petsc_linear_solver.h>
 #include <libmesh/petsc_matrix.h>
@@ -196,6 +199,14 @@ protected:
     std::map<std::string, FischerGuess> d_initial_guesses;
 
 private:
+    /*!
+     * Pointers for system-specific solver timers.
+     *
+     * SAMRAI stores timers in a single unsorted array. To keep timer lookups
+     * quick we cache the pointers here.
+     */
+    std::map<std::string, SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> > d_linear_solve_system_timers;
+
     /*!
      * Whether or not to log data to the screen: see
      * FEProjector::setLoggingEnabled() and

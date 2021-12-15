@@ -674,7 +674,14 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
                                  const double tol,
                                  const unsigned int max_its)
 {
-    IBTK_TIMER_START(t_compute_L2_projection);
+    tbox::Pointer<tbox::Timer>& system_timer = d_linear_solve_system_timers[system_name];
+    if (system_timer.isNull())
+    {
+        system_timer =
+            TimerManager::getManager()->getTimer("IBTK::FEProjector::computeL2Projection()[" + system_name + "]");
+        TBOX_ASSERT(system_timer);
+    }
+    IBTK_TIMER_START(system_timer);
 
     int ierr;
     bool converged = false;
@@ -730,7 +737,7 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
     if (close_U) U_vec.close();
     system.get_dof_map().enforce_constraints_exactly(system, &U_vec);
 
-    IBTK_TIMER_STOP(t_compute_L2_projection);
+    IBTK_TIMER_STOP(system_timer);
     return converged;
 }
 
