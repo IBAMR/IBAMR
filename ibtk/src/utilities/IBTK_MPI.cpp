@@ -48,51 +48,51 @@ IBTK_MPI::getSAMRAIWorld()
 }
 
 int
-IBTK_MPI::getNodes(MPI_Comm communicator)
+IBTK_MPI::getNodes()
 {
     int nodes = 1;
-    MPI_Comm_size(communicator, &nodes);
+    MPI_Comm_size(IBTK_MPI::getCommunicator(), &nodes);
     return nodes;
 } // getNodes
 
 int
-IBTK_MPI::getRank(MPI_Comm communicator)
+IBTK_MPI::getRank()
 {
     int node = 0;
-    MPI_Comm_rank(communicator, &node);
+    MPI_Comm_rank(IBTK_MPI::getCommunicator(), &node);
     return node;
 } // getRank
 
 void
-IBTK_MPI::barrier(MPI_Comm communicator)
+IBTK_MPI::barrier()
 {
-    (void)MPI_Barrier(communicator);
+    (void)MPI_Barrier(IBTK_MPI::getCommunicator());
 } // barrier
 
 void
-IBTK_MPI::allToOneSumReduction(int* x, const int n, const int root, MPI_Comm communicator)
+IBTK_MPI::allToOneSumReduction(int* x, const int n, const int root)
 {
-    if (getNodes(communicator) > 1)
+    if (getNodes() > 1)
     {
-        if (IBTK_MPI::getRank(communicator) == root)
-            MPI_Reduce(MPI_IN_PLACE, x, n, MPI_INT, MPI_SUM, root, communicator);
+        if (IBTK_MPI::getRank() == root)
+            MPI_Reduce(MPI_IN_PLACE, x, n, MPI_INT, MPI_SUM, root, IBTK_MPI::getCommunicator());
         else
-            MPI_Reduce(x, x, n, MPI_INT, MPI_SUM, root, communicator);
+            MPI_Reduce(x, x, n, MPI_INT, MPI_SUM, root, IBTK_MPI::getCommunicator());
     }
 } // allToOneSumReduction
 
 void
-IBTK_MPI::sendBytes(const void* buf, const int number_bytes, const int receiving_proc_number, MPI_Comm communicator)
+IBTK_MPI::sendBytes(const void* buf, const int number_bytes, const int receiving_proc_number)
 {
-    MPI_Send((void*)buf, number_bytes, MPI_BYTE, receiving_proc_number, 0, communicator);
+    MPI_Send((void*)buf, number_bytes, MPI_BYTE, receiving_proc_number, 0, IBTK_MPI::getCommunicator());
 } // sendBytes
 
 int
-IBTK_MPI::recvBytes(void* buf, int number_bytes, MPI_Comm communicator)
+IBTK_MPI::recvBytes(void* buf, int number_bytes)
 {
     int rval = 0;
     MPI_Status status;
-    MPI_Recv(buf, number_bytes, MPI_BYTE, MPI_ANY_SOURCE, MPI_ANY_TAG, communicator, &status);
+    MPI_Recv(buf, number_bytes, MPI_BYTE, MPI_ANY_SOURCE, MPI_ANY_TAG, IBTK_MPI::getCommunicator(), &status);
 
     rval = status.MPI_SOURCE;
     return rval;
@@ -101,18 +101,14 @@ IBTK_MPI::recvBytes(void* buf, int number_bytes, MPI_Comm communicator)
 //////////////////////////////////////  PRIVATE  ///////////////////////////////////////////////////
 
 void
-IBTK_MPI::allGatherSetup(int size_in,
-                         int size_out,
-                         std::vector<int>& rcounts,
-                         std::vector<int>& disps,
-                         MPI_Comm communicator)
+IBTK_MPI::allGatherSetup(int size_in, int size_out, std::vector<int>& rcounts, std::vector<int>& disps)
 {
-    int np = getNodes(communicator);
+    int np = getNodes();
     rcounts.resize(np);
     disps.resize(np);
 
     /* figure out where where each processor's input will be placed */
-    allGather(size_in, rcounts.data(), communicator);
+    allGather(size_in, rcounts.data());
 
     disps[0] = 0;
     for (int p = 1; p < np; ++p)

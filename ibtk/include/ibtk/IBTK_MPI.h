@@ -20,11 +20,11 @@
 
 #include <ibtk/config.h>
 
+#include <mpi.h>
+
 #include <type_traits>
 #include <utility>
 #include <vector>
-
-#include <mpi.h>
 
 namespace IBTK
 {
@@ -122,17 +122,17 @@ struct IBTK_MPI
      * Return the processor rank (identifier) from 0 through the number of
      * processors minus one.
      */
-    static int getRank(MPI_Comm communicator = getCommunicator());
+    static int getRank();
 
     /**
      * Return the number of processors (nodes).
      */
-    static int getNodes(MPI_Comm communicator = getCommunicator());
+    static int getNodes();
 
     /**
      * Perform a global barrier across all processors.
      */
-    static void barrier(MPI_Comm communicator = getCommunicator());
+    static void barrier();
 
     //@{
     /**
@@ -141,10 +141,9 @@ struct IBTK_MPI
      * null, the rank of which processor the min is located is stored in the array.
      */
     template <typename T>
-    static T minReduction(T x, int* rank_of_min = nullptr, MPI_Comm communicator = getCommunicator());
+    static T minReduction(T x, int* rank_of_min = nullptr);
     template <typename T>
-    static void
-    minReduction(T* x, const int n = 1, int* rank_of_min = nullptr, MPI_Comm communicator = getCommunicator());
+    static void minReduction(T* x, const int n = 1, int* rank_of_min = nullptr);
 
     //@}
 
@@ -155,10 +154,9 @@ struct IBTK_MPI
      * null, the rank of which processor the max is located is stored in the array.
      */
     template <typename T>
-    static T maxReduction(T x, int* rank_of_min = nullptr, MPI_Comm communicator = getCommunicator());
+    static T maxReduction(T x, int* rank_of_min = nullptr);
     template <typename T>
-    static void
-    maxReduction(T* x, const int n = 1, int* rank_of_min = nullptr, MPI_Comm communicator = getCommunicator());
+    static void maxReduction(T* x, const int n = 1, int* rank_of_min = nullptr);
     //@}
 
     //@{
@@ -167,17 +165,16 @@ struct IBTK_MPI
      * contributes an array of values and element-wise sum is returned in the same array.
      */
     template <typename T>
-    static T sumReduction(T, MPI_Comm communicator = getCommunicator());
+    static T sumReduction(T);
     template <typename T>
-    static void sumReduction(T* x, const int n = 1, MPI_Comm communicator = getCommunicator());
+    static void sumReduction(T* x, const int n = 1);
     //@}
 
     /**
      * Perform an all-to-one sum reduction on an integer array.
      * The final result is only available on the root processor.
      */
-    static void
-    allToOneSumReduction(int* x, const int n, const int root = 0, MPI_Comm communicator = getCommunicator());
+    static void allToOneSumReduction(int* x, const int n, const int root = 0);
 
     //@{
     /**
@@ -186,9 +183,9 @@ struct IBTK_MPI
      * are treated as const.
      */
     template <typename T>
-    static T bcast(const T x, const int root, MPI_Comm communicator = getCommunicator());
+    static T bcast(const T x, const int root);
     template <typename T>
-    static void bcast(T* x, int& length, const int root, MPI_Comm communicator = getCommunicator());
+    static void bcast(T* x, int& length, const int root);
     //@}
 
     /*!
@@ -210,12 +207,8 @@ struct IBTK_MPI
      * to be sent with this message.  Default tag is 0.
      */
     template <typename T>
-    static void send(const T* buf,
-                     const int length,
-                     const int receiving_proc_number,
-                     const bool send_length = true,
-                     int tag = 0,
-                     MPI_Comm communicator = getCommunicator());
+    static void
+    send(const T* buf, const int length, const int receiving_proc_number, const bool send_length = true, int tag = 0);
 
     /*!
      * @brief This function sends an MPI message with an array of bytes
@@ -227,10 +220,7 @@ struct IBTK_MPI
      * @param number_bytes Integer number of bytes to send.
      * @param receiving_proc_number Receiving processor number.
      */
-    static void sendBytes(const void* buf,
-                          const int number_bytes,
-                          const int receiving_proc_number,
-                          MPI_Comm communicator = getCommunicator());
+    static void sendBytes(const void* buf, const int number_bytes, const int receiving_proc_number);
 
     /*!
      * @brief This function receives an MPI message with an array of
@@ -243,7 +233,7 @@ struct IBTK_MPI
      * @param buf Void pointer to a buffer of size number_bytes bytes.
      * @param number_bytes Integer number specifing size of buf in bytes.
      */
-    static int recvBytes(void* buf, int number_bytes, MPI_Comm communicator = getCommunicator());
+    static int recvBytes(void* buf, int number_bytes);
 
     /*!
      * @brief This function receives an MPI message with an array from another processer.
@@ -266,12 +256,7 @@ struct IBTK_MPI
      * tag is 0.
      */
     template <typename T>
-    static void recv(T* buf,
-                     int& length,
-                     const int sending_proc_number,
-                     const bool get_length = true,
-                     int tag = -1,
-                     MPI_Comm communicator = getCommunicator());
+    static void recv(T* buf, int& length, const int sending_proc_number, const bool get_length = true, int tag = -1);
 
     //@{
     /**
@@ -287,10 +272,9 @@ struct IBTK_MPI
      * then allocate the x_out array.
      */
     template <typename T>
-    static void
-    allGather(const T* x_in, int size_in, T* x_out, int size_out, MPI_Comm communicator = getCommunicator());
+    static void allGather(const T* x_in, int size_in, T* x_out, int size_out);
     template <typename T>
-    static void allGather(T x_in, T* x_out, MPI_Comm communicator = getCommunicator());
+    static void allGather(T x_in, T* x_out);
 
     //@}
 
@@ -298,14 +282,10 @@ private:
     /**
      * Performs common functions needed by some of the allToAll methods.
      */
-    static void allGatherSetup(int size_in,
-                               int size_out,
-                               std::vector<int>& rcounts,
-                               std::vector<int>& disps,
-                               MPI_Comm communicator = getCommunicator());
+    static void allGatherSetup(int size_in, int size_out, std::vector<int>& rcounts, std::vector<int>& disps);
 
     template <typename T>
-    static void minMaxReduction(T* x, const int n, int* rank, MPI_Op op, MPI_Comm communicator);
+    static void minMaxReduction(T* x, const int n, int* rank, MPI_Op op);
 
     static MPI_Comm s_communicator;
 };
