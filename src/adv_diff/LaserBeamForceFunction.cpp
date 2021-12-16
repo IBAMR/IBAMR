@@ -86,6 +86,7 @@ LaserBeamForceFunction::LaserBeamForceFunction(const std::string& object_name,
 {
     // Set some default values
     d_ts_type = MIDPOINT_RULE;
+    d_grad_H_var = new CellVariable<NDIM, double>(d_object_name + "::grad_H_var", NDIM);
 
     if (input_db)
     {
@@ -134,7 +135,6 @@ LaserBeamForceFunction::setDataOnPatchHierarchy(const int data_idx,
 
     d_H_scratch_idx =
         var_db->registerVariableAndContext(H_cc_var, var_db->getContext(d_object_name + "::H"), cell_ghosts);
-    d_grad_H_var = new CellVariable<NDIM, double>(d_object_name + "::grad_H_var", NDIM);
     d_grad_H_scratch_idx =
         var_db->registerVariableAndContext(d_grad_H_var, var_db->getContext(d_object_name + "::grad_H"), no_ghosts);
 
