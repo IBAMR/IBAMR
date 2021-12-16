@@ -2926,43 +2926,56 @@ IIMethod::initializeFEEquationSystems()
         }
         else
         {
-            auto& X_system = equation_systems->add_system<System>(COORDS_SYSTEM_NAME);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                X_system.add_variable("X_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
-            }
-            X_system.add_vector("INITIAL_COORDINATES", /*projections*/ true, GHOSTED);
+            // vector FE systems:
+            std::vector<std::string> vector_system_names
+                {COORDS_SYSTEM_NAME, COORD_MAPPING_SYSTEM_NAME,
+                 VELOCITY_SYSTEM_NAME, NORMAL_VELOCITY_SYSTEM_NAME,
+                 TANGENTIAL_VELOCITY_SYSTEM_NAME, FORCE_SYSTEM_NAME};
+            std::vector<std::string> vector_variable_prefixes {"X", "dX", "U", "U_n", "U_t", "F"};
+            std::vector<libMesh::FEFamily> vector_fe_family(vector_system_names.size(), d_fe_family[part]);
 
-            auto& dX_system = equation_systems->add_system<System>(COORD_MAPPING_SYSTEM_NAME);
-            for (unsigned int d = 0; d < NDIM; ++d)
+            if (d_use_velocity_jump_conditions)
             {
-                dX_system.add_variable("dX_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
+                const auto jump_family = d_use_discon_elem_for_jumps[part] ? d_velocity_jump_fe_family : d_fe_family[part];
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    vector_system_names.push_back(VELOCITY_JUMP_SYSTEM_NAME[d]);
+                    vector_variable_prefixes.push_back("DU_jump_" + std::to_string(d));
+                    vector_fe_family.push_back(jump_family);
+                }
+
+                vector_system_names.push_back(WSS_IN_SYSTEM_NAME);
+                vector_variable_prefixes.push_back("WSS_in");
+                vector_fe_family.push_back(jump_family);
+
+                vector_system_names.push_back(WSS_OUT_SYSTEM_NAME);
+                vector_variable_prefixes.push_back("WSS_out");
+                vector_fe_family.push_back(jump_family);
+
+                if (d_use_pressure_jump_conditions)
+                {
+                    vector_system_names.push_back(TAU_IN_SYSTEM_NAME);
+                    vector_variable_prefixes.push_back("TAU_IN");
+                    vector_fe_family.push_back(jump_family);
+
+                    vector_system_names.push_back(TAU_OUT_SYSTEM_NAME);
+                    vector_variable_prefixes.push_back("TAU_OUT");
+                    vector_fe_family.push_back(jump_family);
+                }
             }
 
-            auto& U_system = equation_systems->add_system<System>(VELOCITY_SYSTEM_NAME);
-            for (unsigned int d = 0; d < NDIM; ++d)
+            for (std::size_t i = 0; i < vector_system_names.size(); ++i)
             {
-                U_system.add_variable("U_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
+                auto &system = equation_systems->add_system<System>(vector_system_names[i]);
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    system.add_variable(vector_variable_prefixes[i] + "_" + std::to_string(d), d_fe_order[part], vector_fe_family[i]);
+                }
             }
 
-            auto& U_n_system = equation_systems->add_system<System>(NORMAL_VELOCITY_SYSTEM_NAME);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                U_n_system.add_variable("U_n_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
-            }
+            equation_systems->get_system(COORDS_SYSTEM_NAME).add_vector("INITIAL_COORDINATES", /*projections*/ true, GHOSTED);
 
-            auto& U_t_system = equation_systems->add_system<System>(TANGENTIAL_VELOCITY_SYSTEM_NAME);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                U_t_system.add_variable("U_t_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
-            }
-
-            auto& F_system = equation_systems->add_system<System>(FORCE_SYSTEM_NAME);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                F_system.add_variable("F_" + std::to_string(d), d_fe_order[part], d_fe_family[part]);
-            }
-
+            // scalar FE systems:
             if (d_use_pressure_jump_conditions)
             {
                 System& P_jump_system = equation_systems->add_system<System>(PRESSURE_JUMP_SYSTEM_NAME);
@@ -2979,86 +2992,6 @@ IIMethod::initializeFEEquationSystems()
                     P_jump_system.add_variable("P_jump_", d_fe_order[part], d_fe_family[part]);
                     P_in_system.add_variable("P_in_", d_fe_order[part], d_fe_family[part]);
                     P_out_system.add_variable("P_out_", d_fe_order[part], d_fe_family[part]);
-                }
-            }
-
-            if (d_use_velocity_jump_conditions)
-            {
-                std::array<System*, NDIM> DU_jump_system;
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    DU_jump_system[d] = &equation_systems->add_system<System>(VELOCITY_JUMP_SYSTEM_NAME[d]);
-                    for (unsigned int i = 0; i < NDIM; ++i)
-                    {
-                        const std::string system_name = "DU_jump_" + std::to_string(d) + "_" + std::to_string(i);
-                        if (d_use_discon_elem_for_jumps[part])
-                        {
-                            DU_jump_system[d]->add_variable(system_name, d_fe_order[part], d_velocity_jump_fe_family);
-                        }
-                        else
-                        {
-                            DU_jump_system[d]->add_variable(system_name, d_fe_order[part], d_fe_family[part]);
-                        }
-                    }
-                }
-
-                System& WSS_in_system = equation_systems->add_system<System>(WSS_IN_SYSTEM_NAME);
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    const std::string system_name = "WSS_in_" + std::to_string(d);
-                    if (d_use_discon_elem_for_jumps[part])
-                    {
-                        WSS_in_system.add_variable(system_name, d_fe_order[part], d_wss_fe_family);
-                    }
-                    else
-                    {
-                        WSS_in_system.add_variable(system_name, d_fe_order[part], d_fe_family[part]);
-                    }
-                }
-
-                System& WSS_out_system = equation_systems->add_system<System>(WSS_OUT_SYSTEM_NAME);
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    const std::string system_name = "WSS_out_" + std::to_string(d);
-                    if (d_use_discon_elem_for_jumps[part])
-                    {
-                        WSS_out_system.add_variable(system_name, d_fe_order[part], d_wss_fe_family);
-                    }
-                    else
-                    {
-                        WSS_out_system.add_variable(system_name, d_fe_order[part], d_fe_family[part]);
-                    }
-                }
-            }
-
-            if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions)
-            {
-                auto& TAU_in_system = equation_systems->add_system<System>(TAU_IN_SYSTEM_NAME);
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    std::string system_name = "TAU_IN_" + std::to_string(d);
-                    if (d_use_discon_elem_for_jumps[part])
-                    {
-                        TAU_in_system.add_variable(system_name, d_fe_order[part], d_tau_fe_family);
-                    }
-                    else
-                    {
-                        TAU_in_system.add_variable(system_name, d_fe_order[part], d_fe_family[part]);
-                    }
-                }
-
-                auto& TAU_out_system = equation_systems->add_system<System>(TAU_OUT_SYSTEM_NAME);
-                for (unsigned int d = 0; d < NDIM; ++d)
-                {
-                    std::string system_name = "TAU_OUT_" + std::to_string(d);
-                    if (d_use_discon_elem_for_jumps[part])
-                    {
-                        TAU_out_system.add_variable(system_name, d_fe_order[part], d_tau_fe_family);
-                    }
-                    else
-                    {
-                        TAU_out_system.add_variable(system_name, d_fe_order[part], d_fe_family[part]);
-                    }
                 }
             }
 
