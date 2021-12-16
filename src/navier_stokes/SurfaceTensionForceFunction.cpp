@@ -244,6 +244,8 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     TBOX_ASSERT(hierarchy);
 #endif
 
+    d_hier_math_ops = new HierarchyMathOps("HierarchyMathOps", hierarchy);
+
     // Get the newest patch data index for the level set variable
     Pointer<CellVariable<NDIM, double> > phi_cc_var = d_ls_var;
 #if !defined(NDEBUG)
@@ -334,11 +336,10 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     const double apply_time = data_time;
     const double current_time = data_time;
     const double new_time = data_time;
-    HierarchyMathOps* hier_math_ops = new HierarchyMathOps("HierarchyMathOps", hierarchy);
     for (unsigned k = 0; k < d_mask_surface_tension_force.size(); ++k)
     {
         d_mask_surface_tension_force[k](data_idx,
-                                        hier_math_ops,
+                                        d_hier_math_ops,
                                         -1 /*cycle_num*/,
                                         apply_time,
                                         current_time,
@@ -390,6 +391,16 @@ SurfaceTensionForceFunction::registerSurfaceTensionForceMasking(MaskSurfaceTensi
 {
     d_mask_surface_tension_force.push_back(callback);
     d_mask_surface_tension_force_ctx.push_back(ctx);
+
+    return;
+}
+
+void
+SurfaceTensionForceFunction::registerSurfaceTensionCoefficientFunction(ComputeSurfaceTensionCoefficientPtr callback,
+                                                                       void* ctx)
+{
+    d_compute_surface_tension_coef.push_back(callback);
+    d_compute_surface_tension_coef_ctx.push_back(ctx);
 
     return;
 }
@@ -517,7 +528,7 @@ SurfaceTensionForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double> >
 void
 SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> > F_data,
                                                 Pointer<Patch<NDIM> > patch,
-                                                const double /*data_time*/,
+                                                const double data_time,
                                                 const bool /*initial_time*/,
                                                 Pointer<PatchLevel<NDIM> > /*level*/)
 {
@@ -641,6 +652,22 @@ SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> >
                                 patch_box.upper(2),
 #endif
                                 d_sigma);
+
+    // Compute variable surface tension coefficient sigma(T).
+    const double apply_time = data_time;
+    const double current_time = data_time;
+    const double new_time = data_time;
+    for (unsigned k = 0; k < d_compute_surface_tension_coef.size(); ++k)
+    {
+        d_compute_surface_tension_coef[k](F_data,
+                                          patch,
+                                          d_hier_math_ops,
+                                          -1 /*cycle_num*/,
+                                          apply_time,
+                                          current_time,
+                                          new_time,
+                                          d_compute_surface_tension_coef_ctx[k]);
+    }
 
     return;
 } // setDataOnPatchSide

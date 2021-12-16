@@ -552,7 +552,6 @@ c
       deltaH0=-1.66E8
       deltaHi = 0.5d0
       dsigma_dT0 = -5E-4
-      REAL T_sc
 c
       do i1 = ilower1, iupper1
          do i0 = ilower0, iupper0 + 1

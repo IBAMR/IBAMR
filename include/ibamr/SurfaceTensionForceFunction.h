@@ -184,6 +184,24 @@ public:
      */
     void registerSurfaceTensionForceMasking(MaskSurfaceTensionForcePtr callback, void* ctx);
 
+    /*!
+     * \brief Function to compute the surface tension  coefficient as a function of temperature.
+     */
+    using ComputeSurfaceTensionCoefficientPtr =
+        void (*)(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > F_data,
+                 SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                 SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                 int cycle_num,
+                 double time,
+                 double current_time,
+                 double new_time,
+                 void* ctx);
+
+    /*!
+     * \brief Register function to compute the variable surface tension coefficient.
+     */
+    void registerSurfaceTensionCoefficientFunction(ComputeSurfaceTensionCoefficientPtr callback, void* ctx);
+
     //\}
 protected:
     /*!
@@ -200,6 +218,10 @@ protected:
 
     std::vector<MaskSurfaceTensionForcePtr> d_mask_surface_tension_force;
     std::vector<void*> d_mask_surface_tension_force_ctx;
+
+    std::vector<ComputeSurfaceTensionCoefficientPtr> d_compute_surface_tension_coef;
+    std::vector<void*> d_compute_surface_tension_coef_ctx;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
 
 private:
     /*!

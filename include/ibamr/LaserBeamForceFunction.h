@@ -37,6 +37,12 @@
 // IBAMR INCLUDES
 #include <ibamr/app_namespaces.h>
 
+namespace IBTK
+{
+class HierarchyMathOps; // surface tension, IEP class do not have this line. But here the compiler errors out without
+                        // this line. Why?
+}
+
 namespace IBAMR
 {
 class AdvDiffHierarchyIntegrator;

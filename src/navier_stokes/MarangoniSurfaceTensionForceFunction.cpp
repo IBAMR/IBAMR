@@ -390,7 +390,6 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx
         hierarchy->getPatchLevel(ln)->deallocatePatchData(d_T_idx);
     }
     var_db->removePatchDataIndex(d_T_idx);
-
     return;
 } // setDataOnPatchHierarchy
 
