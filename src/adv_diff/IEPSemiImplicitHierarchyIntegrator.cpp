@@ -2149,6 +2149,14 @@ IEPSemiImplicitHierarchyIntegrator::getUpdatedDensityIndex()
     return d_updated_rho_cc_idx;
 } // getUpdatedDensityIndex
 
+int
+IEPSemiImplicitHierarchyIntegrator::getUpdatedSpecificHeatIndex()
+{
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    int Cp_new_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getNewContext());
+    return Cp_new_idx;
+} // getUpdatedSpecificHeatIndex
+
 void
 IEPSemiImplicitHierarchyIntegrator::registerMassDensityBoundaryConditions(RobinBcCoefStrategy<NDIM>*& rho_bc_coef)
 {
@@ -3069,7 +3077,7 @@ IEPSemiImplicitHierarchyIntegrator::getFromRestart()
         d_lf_b = d_lf_brinkman_db->getDouble("d_lf_b");
     }
     d_add_diffusion = db->getBool("d_add_diffusion");
-    d_interpolation_function_profile = db->getString("interpolation_function_profile");
+    d_interpolation_function_profile = db->getString("d_interpolation_function_profile");
 }
 
 //////////////////////////////////////////////////////////////////////////////

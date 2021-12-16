@@ -61,6 +61,8 @@ class RobinBcCoefStrategy;
 #if (NDIM == 2)
 #define SC_NORMAL_FC IBAMR_FC_FUNC(sc_normal_2d, SC_NORMAL_2D)
 #define SC_MARANGONI_FORCE_FC IBAMR_FC_FUNC(sc_marangoni_force_2d, SC_MARANGONI_FORCE_2D)
+#define SC_VARIABLE_COEF_MARANGONI_FORCE_FC                                                                            \
+    IBAMR_FC_FUNC(sc_variable_coef_marangoni_force_2d, SC_VARIABLE_COEF_MARANGONI_FORCE_2D)
 #define CC_CURVATURE_FC IBAMR_FC_FUNC(cc_curvature_2d, CC_CURVATURE_2D)
 #define SC_TEMPERATURE_SURFACE_TENSION_FORCE_FC                                                                        \
     IBAMR_FC_FUNC(sc_temperature_surface_tension_force_2d, SC_TEMPERATURE_SURFACE_TENSION_FORCE_2D)
@@ -69,6 +71,8 @@ class RobinBcCoefStrategy;
 #if (NDIM == 3)
 #define SC_NORMAL_FC IBAMR_FC_FUNC(sc_normal_3d, SC_NORMAL_3D)
 #define SC_MARANGONI_FORCE_FC IBAMR_FC_FUNC(sc_marangoni_force_3d, SC_MARANGONI_FORCE_3D)
+#define SC_VARIABLE_COEF_MARANGONI_FORCE_FC                                                                            \
+    IBAMR_FC_FUNC(sc_variable_coef_marangoni_force_3d, SC_VARIABLE_COEF_MARANGONI_FORCE_3D)
 #define CC_CURVATURE_FC IBAMR_FC_FUNC(cc_curvature_3d, CC_CURVATURE_3D)
 #define SC_TEMPERATURE_SURFACE_TENSION_FORCE_FC                                                                        \
     IBAMR_FC_FUNC(sc_temperature_surface_tension_force_3d, SC_TEMPERATURE_SURFACE_TENSION_FORCE_3D)
@@ -160,6 +164,66 @@ extern "C"
 #endif
                                const double& marangoni_coefficient);
 
+    void SC_VARIABLE_COEF_MARANGONI_FORCE_FC(double* F0,
+                                             double* F1,
+#if (NDIM == 3)
+                                             double* F2,
+#endif
+                                             const int& F_gcw,
+                                             double* gradT00,
+                                             double* gradT01,
+#if (NDIM == 3)
+                                             double* gradT02,
+#endif
+                                             double* gradT10,
+                                             double* gradT11,
+#if (NDIM == 3)
+                                             double* gradT12,
+                                             double* gradT20,
+                                             double* gradT21,
+                                             double* gradT22,
+#endif
+                                             const int& gradT_gcw,
+                                             double* N00,
+                                             double* N01,
+#if (NDIM == 3)
+                                             double* N02,
+#endif
+                                             double* N10,
+                                             double* N11,
+#if (NDIM == 3)
+                                             double* N12,
+                                             double* N20,
+                                             double* N21,
+                                             double* N22,
+#endif
+                                             const int& N_gcw,
+                                             double* gradC00,
+                                             double* gradC01,
+#if (NDIM == 3)
+                                             double* gradC02,
+#endif
+                                             double* gradC10,
+                                             double* gradC11,
+#if (NDIM == 3)
+                                             double* gradC12,
+                                             double* gradC20,
+                                             double* gradC21,
+                                             double* gradC22,
+#endif
+                                             const int& gradC_gcw,
+                                             const double* T,
+                                             const int& T_gcw,
+                                             const int& ilower0,
+                                             const int& iupper0,
+                                             const int& ilower1,
+                                             const int& iupper1,
+#if (NDIM == 3)
+                                             const int& ilower2,
+                                             const int& iupper2,
+#endif
+                                             const double& marangoni_coefficient);
+
     void CC_CURVATURE_FC(double* K,
                          const int& K_gcw,
                          const double* N00,
@@ -224,10 +288,12 @@ MarangoniSurfaceTensionForceFunction::MarangoniSurfaceTensionForceFunction(const
                                                                            const Pointer<Database> input_db,
                                                                            AdvDiffHierarchyIntegrator* adv_diff_solver,
                                                                            Pointer<Variable<NDIM> > level_set_var,
-                                                                           Pointer<Variable<NDIM> > T_var)
+                                                                           Pointer<Variable<NDIM> > T_var,
+                                                                           RobinBcCoefStrategy<NDIM>*& T_bc_coef)
     : SurfaceTensionForceFunction(object_name, input_db, adv_diff_solver, level_set_var)
 {
     d_T_var = T_var;
+    d_T_bc_coef = T_bc_coef;
     if (input_db)
     {
         d_marangoni_coefficient_1 = input_db->getDouble("marangoni_coefficient_1");
@@ -306,10 +372,10 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx
     }
 
     // Fill ghost cells
-    RobinBcCoefStrategy<NDIM>* T_bc_coef = (d_adv_diff_solver->getPhysicalBcCoefs(T_var)).front();
+    //    RobinBcCoefStrategy<NDIM>* T_bc_coef = iep_hier_integrator->getPhysicalBcCoefTemperatureEquation();
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent T_transaction(
-        d_T_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, T_bc_coef);
+        d_T_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, d_T_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> T_fill_op = new HierarchyGhostCellInterpolation();
     T_fill_op->initializeOperatorState(T_transaction, hierarchy, coarsest_ln, finest_ln);
 
@@ -475,63 +541,123 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, 
                  dx);
 
     // Compute F = marangoni_coefficient_1*(grad T |grad C| - (grad T dot grad \phi) grad C).
-    SC_MARANGONI_FORCE_FC(F_data->getPointer(0),
-                          F_data->getPointer(1),
+    //    SC_MARANGONI_FORCE_FC(F_data->getPointer(0),
+    //                          F_data->getPointer(1),
+    //#if (NDIM == 3)
+    //                          F_data->getPointer(2),
+    //#endif
+    //                          F_data->getGhostCellWidth().max(),
+    //                          grad_T.getPointer(0, 0),
+    //                          grad_T.getPointer(0, 1),
+    //#if (NDIM == 3)
+    //                          grad_T.getPointer(0, 2),
+    //#endif
+    //                          grad_T.getPointer(1, 0),
+    //                          grad_T.getPointer(1, 1),
+    //#if (NDIM == 3)
+    //                          grad_T.getPointer(1, 2),
+    //                          grad_T.getPointer(2, 0),
+    //                          grad_T.getPointer(2, 1),
+    //                          grad_T.getPointer(2, 2),
+    //#endif
+    //                          grad_T.getGhostCellWidth().max(),
+    //                          N.getPointer(0, 0),
+    //                          N.getPointer(0, 1),
+    //#if (NDIM == 3)
+    //                          N.getPointer(0, 2),
+    //#endif
+    //                          N.getPointer(1, 0),
+    //                          N.getPointer(1, 1),
+    //#if (NDIM == 3)
+    //                          N.getPointer(1, 2),
+    //                          N.getPointer(2, 0),
+    //                          N.getPointer(2, 1),
+    //                          N.getPointer(2, 2),
+    //#endif
+    //                          N.getGhostCellWidth().max(),
+    //                          grad_C.getPointer(0, 0),
+    //                          grad_C.getPointer(0, 1),
+    //#if (NDIM == 3)
+    //                          grad_C.getPointer(0, 2),
+    //#endif
+    //                          grad_C.getPointer(1, 0),
+    //                          grad_C.getPointer(1, 1),
+    //#if (NDIM == 3)
+    //                          grad_C.getPointer(1, 2),
+    //                          grad_C.getPointer(2, 0),
+    //                          grad_C.getPointer(2, 1),
+    //                          grad_C.getPointer(2, 2),
+    //#endif
+    //                          grad_C.getGhostCellWidth().max(),
+    //                          patch_box.lower(0),
+    //                          patch_box.upper(0),
+    //                          patch_box.lower(1),
+    //                          patch_box.upper(1),
+    //#if (NDIM == 3)
+    //                          patch_box.lower(2),
+    //                          patch_box.upper(2),
+    //#endif
+    //                          d_marangoni_coefficient_1);
+
+    SC_VARIABLE_COEF_MARANGONI_FORCE_FC(F_data->getPointer(0),
+                                        F_data->getPointer(1),
 #if (NDIM == 3)
-                          F_data->getPointer(2),
+                                        F_data->getPointer(2),
 #endif
-                          F_data->getGhostCellWidth().max(),
-                          grad_T.getPointer(0, 0),
-                          grad_T.getPointer(0, 1),
+                                        F_data->getGhostCellWidth().max(),
+                                        grad_T.getPointer(0, 0),
+                                        grad_T.getPointer(0, 1),
 #if (NDIM == 3)
-                          grad_T.getPointer(0, 2),
+                                        grad_T.getPointer(0, 2),
 #endif
-                          grad_T.getPointer(1, 0),
-                          grad_T.getPointer(1, 1),
+                                        grad_T.getPointer(1, 0),
+                                        grad_T.getPointer(1, 1),
 #if (NDIM == 3)
-                          grad_T.getPointer(1, 2),
-                          grad_T.getPointer(2, 0),
-                          grad_T.getPointer(2, 1),
-                          grad_T.getPointer(2, 2),
+                                        grad_T.getPointer(1, 2),
+                                        grad_T.getPointer(2, 0),
+                                        grad_T.getPointer(2, 1),
+                                        grad_T.getPointer(2, 2),
 #endif
-                          grad_T.getGhostCellWidth().max(),
-                          N.getPointer(0, 0),
-                          N.getPointer(0, 1),
+                                        grad_T.getGhostCellWidth().max(),
+                                        N.getPointer(0, 0),
+                                        N.getPointer(0, 1),
 #if (NDIM == 3)
-                          N.getPointer(0, 2),
+                                        N.getPointer(0, 2),
 #endif
-                          N.getPointer(1, 0),
-                          N.getPointer(1, 1),
+                                        N.getPointer(1, 0),
+                                        N.getPointer(1, 1),
 #if (NDIM == 3)
-                          N.getPointer(1, 2),
-                          N.getPointer(2, 0),
-                          N.getPointer(2, 1),
-                          N.getPointer(2, 2),
+                                        N.getPointer(1, 2),
+                                        N.getPointer(2, 0),
+                                        N.getPointer(2, 1),
+                                        N.getPointer(2, 2),
 #endif
-                          N.getGhostCellWidth().max(),
-                          grad_C.getPointer(0, 0),
-                          grad_C.getPointer(0, 1),
+                                        N.getGhostCellWidth().max(),
+                                        grad_C.getPointer(0, 0),
+                                        grad_C.getPointer(0, 1),
 #if (NDIM == 3)
-                          grad_C.getPointer(0, 2),
+                                        grad_C.getPointer(0, 2),
 #endif
-                          grad_C.getPointer(1, 0),
-                          grad_C.getPointer(1, 1),
+                                        grad_C.getPointer(1, 0),
+                                        grad_C.getPointer(1, 1),
 #if (NDIM == 3)
-                          grad_C.getPointer(1, 2),
-                          grad_C.getPointer(2, 0),
-                          grad_C.getPointer(2, 1),
-                          grad_C.getPointer(2, 2),
+                                        grad_C.getPointer(1, 2),
+                                        grad_C.getPointer(2, 0),
+                                        grad_C.getPointer(2, 1),
+                                        grad_C.getPointer(2, 2),
 #endif
-                          grad_C.getGhostCellWidth().max(),
-                          patch_box.lower(0),
-                          patch_box.upper(0),
-                          patch_box.lower(1),
-                          patch_box.upper(1),
+                                        grad_C.getGhostCellWidth().max(),
+                                        T_data->getPointer(),
+                                        T_data->getGhostCellWidth().max(),
+                                        patch_box.lower(0),
+                                        patch_box.upper(0),
+                                        patch_box.lower(1),
+                                        patch_box.upper(1),
 #if (NDIM == 3)
-                          patch_box.lower(2),
-                          patch_box.upper(2),
+                                        patch_box.lower(2),
+                                        patch_box.upper(2),
 #endif
-                          d_marangoni_coefficient_1);
+                                        d_marangoni_coefficient_1);
 
     // Add marangoni_coefficient_2*(T-T0)*kappa*grad C
     // First find the cell centered curvature.

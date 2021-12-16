@@ -120,6 +120,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/adv_diff/AdvDiffWavePropConvectiveOperator.cpp \
 ../src/adv_diff/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.cpp \
 ../src/adv_diff/IEPSemiImplicitHierarchyIntegrator.cpp \
+../src/adv_diff/LaserBeamForceFunction.cpp \
 ../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 ../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 ../src/complex_fluids/CFUpperConvectiveOperator.cpp \
@@ -308,6 +309,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 ../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 ../include/ibamr/KrylovMobilitySolver.h \
+../include/ibamr/LaserBeamForceFunction.h \
 ../include/ibamr/LSInitStrategy.h \
 ../include/ibamr/MarangoniSurfaceTensionForceFunction.h \
 ../include/ibamr/MassIntegrator.h \

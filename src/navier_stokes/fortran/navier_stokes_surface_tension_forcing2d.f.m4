@@ -486,6 +486,104 @@ c
       enddo
       return
       end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute variable coef Marangoni force
+c     marangoni_coef is a function of T based on the work of Sahoo 1988
+c     F = marangoni_coef(grad T |grad C| - (grad T dot grad \phi)grad C)
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine sc_variable_coef_marangoni_force_2d(
+     &     F0,F1,F_gcw,
+     &     gradT00,gradT01,
+     &     gradT10,gradT11,
+     &     gradT_gcw,
+     &     N00,N01,
+     &     N10,N11,
+     &     N_gcw,
+     &     gradC00,gradC01,
+     &     gradC10,gradC11,
+     &     gradC_gcw,
+     &     T,T_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     marangoni_coefficient)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER F_gcw,gradT_gcw,N_gcw,gradC_gcw,T_gcw
+c
+c     Input/Output.
+c
+      REAL F0(SIDE2d0(ilower,iupper,F_gcw))
+      REAL F1(SIDE2d1(ilower,iupper,F_gcw))
+      REAL gradT00(SIDE2d0(ilower,iupper,gradT_gcw))
+      REAL gradT01(SIDE2d0(ilower,iupper,gradT_gcw))
+      REAL gradT10(SIDE2d1(ilower,iupper,gradT_gcw))
+      REAL gradT11(SIDE2d1(ilower,iupper,gradT_gcw))
+      REAL N00(SIDE2d0(ilower,iupper,N_gcw))
+      REAL N01(SIDE2d0(ilower,iupper,N_gcw))
+      REAL N10(SIDE2d1(ilower,iupper,N_gcw))
+      REAL N11(SIDE2d1(ilower,iupper,N_gcw))
+      REAL gradC00(SIDE2d0(ilower,iupper,gradC_gcw))
+      REAL gradC01(SIDE2d0(ilower,iupper,gradC_gcw))
+      REAL gradC10(SIDE2d1(ilower,iupper,gradC_gcw))
+      REAL gradC11(SIDE2d1(ilower,iupper,gradC_gcw))
+      REAL T(CELL2d(ilower,iupper,T_gcw))
+c
+      REAL marangoni_coefficient
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL gradC_mag
+      REAL gradT_dot_gradphi
+      REAL R,ai,gamma_s,ki,deltaH0,deltaHi,K,dsigma_dT0
+      REAL T_sc
+      R=8314
+      ai=0.015
+      gamma_s=1.3E-8
+      ki=3.18E-3
+      deltaH0=-1.66E8
+      deltaHi = 0.5d0
+      dsigma_dT0 = -5E-4
+      REAL T_sc
+c
+      do i1 = ilower1, iupper1
+         do i0 = ilower0, iupper0 + 1
+            T_sc = 0.5d0*(T(i0-1,i1)+T(i0,i1))
+            K = ki*EXP(-deltaH0/(R*T_sc))
+            marangoni_coefficient = dsigma_dT0-R*gamma_s*log(1+K*ai)
+     &       - K*ai*gamma_s*(deltaH0 - deltaHi)/(T_sc*(1+K*ai))
+            gradC_mag = sqrt(gradC00(i0,i1)**2+gradC01(i0,i1)**2)
+            gradT_dot_gradphi = gradT00(i0,i1)*N00(i0,i1) +
+     &                          gradT01(i0,i1)*N01(i0,i1)
+            F0(i0,i1) = F0(i0,i1)+marangoni_coefficient*(gradT00(i0,i1)
+     &                *gradC_mag-gradT_dot_gradphi*gradC00(i0,i1))
+         enddo
+      enddo
+c
+      do i1 = ilower1, iupper1 + 1
+         do i0 = ilower0, iupper0
+            T_sc = 0.5d0*(T(i0,i1-1)+T(i0,i1))
+            K = ki*EXP(-deltaH0/(R*T_sc))
+            marangoni_coefficient = dsigma_dT0-R*gamma_s*log(1+K*ai)
+     &       - K*ai*gamma_s*(deltaH0 - deltaHi)/(T_sc*(1+K*ai))
+            gradC_mag = sqrt(gradC10(i0,i1)**2+gradC11(i0,i1)**2)
+            gradT_dot_gradphi = gradT10(i0,i1)*N10(i0,i1) +
+     &                          gradT11(i0,i1)*N11(i0,i1)
+            F1(i0,i1) = F1(i0,i1)+marangoni_coefficient*(gradT11(i0,i1)
+     &                *gradC_mag-gradT_dot_gradphi*gradC11(i0,i1))
+         enddo
+      enddo
+      return
+      end
+
 
 
 

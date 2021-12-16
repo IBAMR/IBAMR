@@ -306,6 +306,11 @@ public:
      */
     int getUpdatedDensityIndex();
 
+    /*!
+     * Get the updated specific heat patch data index.
+     */
+    int getUpdatedSpecificHeatIndex();
+
     /*
      * \brief Supply boundary conditions for the cell-centered density field, which is maintained by
      * AdvDiffConservativeMassTransportQuantityIntegrator.
