@@ -11,14 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-// Config files
-#include <IBAMR_config.h>
-#include <IBTK_config.h>
-#include <SAMRAI_config.h>
-
-// Headers for basic PETSc functions
-#include <petscsys.h>
-
 // Headers for basic SAMRAI objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
