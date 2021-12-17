@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2021 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2019 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -19,39 +19,37 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/BrinkmanPenalizationRigidBodyDynamics.h>
-#include <ibamr/IBFEMethod.h>
 #include <ibamr/IBInterpolantHierarchyIntegrator.h>
 #include <ibamr/IBInterpolantMethod.h>
 #include <ibamr/IBLevelSetMethod.h>
 #include <ibamr/IBRedundantInitializer.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+#include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
+#include <ibamr/RelaxationLSMethod.h>
+#include <ibamr/SurfaceTensionForceFunction.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
 #include <ibtk/HierarchyMathOps.h>
-#include <ibtk/IBTKInit.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
 #include <ibamr/app_namespaces.h>
 
 // Application specific includes.
-#include "SetFluidSolidDensity.h"
-#include "SetFluidSolidViscosity.h"
+#include "FlowGravityForcing.h"
+#include "GravityForcing.h"
+#include "LSLocateGasInterface.h"
+#include "LevelSetInitialCondition.h"
+#include "SetFluidGasSolidDensity.h"
+#include "SetFluidGasSolidViscosity.h"
+#include "SetLSProperties.h"
 #include "TagLSRefinementCells.h"
 
-// Struct to maintain the properties of the circular interface
-struct CircularInterface
-{
-    Eigen::Vector3d X0;
-    double R;
-    double rho_solid;
-    double Uinf;
-    double freq;
-};
 CircularInterface circle;
 
 // Struct to reset solid level set
@@ -129,14 +127,13 @@ generate_interp_mesh(const unsigned int& /*strct_num*/,
 } // generate_interp_mesh
 
 void
-imposed_kinematics(double data_time, int /*cycle_num*/, Eigen::Vector3d& U_com, Eigen::Vector3d& W_com, void* /*ctx*/)
+imposed_kinematics(double /*data_time*/,
+                   int /*cycle_num*/,
+                   Eigen::Vector3d& U_com,
+                   Eigen::Vector3d& W_com,
+                   void* /*ctx*/)
 {
-    double Uinf = circle.Uinf;
-    double freq = circle.freq;
-
     U_com.setZero();
-    U_com[0] = Uinf * std::cos(2 * M_PI * freq * data_time);
-
     W_com.setZero();
     return;
 } // imposed_kinematics
@@ -145,6 +142,7 @@ void
 external_force_torque(double /*data_time*/, int /*cycle_num*/, Eigen::Vector3d& F, Eigen::Vector3d& T, void* /*ctx*/)
 {
     F.setZero();
+    F[1] = circle.rho_solid * M_PI * std::pow(circle.R, 2) * circle.g_y;
     T.setZero();
     return;
 } // imposed_kinematics
@@ -164,7 +162,10 @@ int
 main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    PetscInitialize(&argc, &argv, NULL, NULL);
+    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
+    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
+    SAMRAIManager::startup();
 
     // Increase maximum patch data component indices
     SAMRAIManager::setMaxNumberPatchDataEntries(2500);
@@ -208,8 +209,6 @@ main(int argc, char* argv[])
 #if (NDIM == 3)
         circle.X0[2] = input_db->getDouble("ZCOM");
 #endif
-        circle.Uinf = input_db->getDouble("UINF");
-        circle.freq = input_db->getDouble("FREQ");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -223,14 +222,12 @@ main(int argc, char* argv[])
         Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
             "AdvDiffSemiImplicitHierarchyIntegrator",
             app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
-
         navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
 
-        Pointer<IBStrategy> ibfe_method_ops = nullptr;
         Pointer<IBInterpolantMethod> ib_interpolant_method_ops = new IBInterpolantMethod(
             "IBInterpolantMethod", app_initializer->getComponentDatabase("IBInterpolantMethod"));
         Pointer<IBLevelSetMethod> ib_level_set_method_ops =
-            new IBLevelSetMethod(ib_interpolant_method_ops, ibfe_method_ops);
+            new IBLevelSetMethod(ib_interpolant_method_ops, /*ibfe_method_ops*/ nullptr);
 
         Pointer<IBHierarchyIntegrator> time_integrator = new IBInterpolantHierarchyIntegrator(
             "IBInterpolantHierarchyIntegrator",
@@ -260,18 +257,43 @@ main(int argc, char* argv[])
         const string& ls_name_solid = "level_set_solid";
         Pointer<CellVariable<NDIM, double> > phi_var_solid = new CellVariable<NDIM, double>(ls_name_solid);
 
+        // Create level sets for gas/liquid interface.
+        const double fluid_height = input_db->getDouble("GAS_LS_INIT");
+        const string& ls_name_gas = "level_set_gas";
+        Pointer<CellVariable<NDIM, double> > phi_var_gas = new CellVariable<NDIM, double>(ls_name_gas);
+        Pointer<RelaxationLSMethod> level_set_gas_ops =
+            new RelaxationLSMethod(ls_name_gas, app_initializer->getComponentDatabase("LevelSet_Gas"));
+        LSLocateGasInterface* ptr_LSLocateGasInterface =
+            new LSLocateGasInterface("LSLocateGasInterface", adv_diff_integrator, phi_var_gas, fluid_height);
+        level_set_gas_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateGasInterfaceCallbackFunction,
+                                                                    static_cast<void*>(ptr_LSLocateGasInterface));
+
         // Register the level sets with advection diffusion integrator.
         adv_diff_integrator->registerTransportedQuantity(phi_var_solid);
         adv_diff_integrator->setDiffusionCoefficient(phi_var_solid, 0.0);
         adv_diff_integrator->setAdvectionVelocity(phi_var_solid,
                                                   navier_stokes_integrator->getAdvectionVelocityVariable());
 
-        // Solid level set initial conditions
-        Pointer<CartGridFunction> phi_solid_init = new muParserCartGridFunction(
-            "phi_solid_init", app_initializer->getComponentDatabase("SolidLevelSetInitialCondition"), grid_geometry);
+        adv_diff_integrator->registerTransportedQuantity(phi_var_gas);
+        adv_diff_integrator->setDiffusionCoefficient(phi_var_gas, 0.0);
+        adv_diff_integrator->setAdvectionVelocity(phi_var_gas,
+                                                  navier_stokes_integrator->getAdvectionVelocityVariable());
 
+        // Register the reinitialization functions for the level set variables
+        SetLSProperties* ptr_setSetLSProperties = new SetLSProperties("SetLSProperties", level_set_gas_ops);
+        adv_diff_integrator->registerResetFunction(
+            phi_var_gas, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_setSetLSProperties));
+
+        // Solid level set initial conditions
+        Pointer<CartGridFunction> phi_solid_init = new LevelSetInitialCondition("solid_ls_init", circle);
         adv_diff_integrator->setInitialConditions(phi_var_solid, phi_solid_init);
 
+        // Gas level set initial conditions
+        Pointer<CartGridFunction> phi_gas_init = new muParserCartGridFunction(
+            "phi_gas_init", app_initializer->getComponentDatabase("GasLevelSetInitialCondition"), grid_geometry);
+        adv_diff_integrator->setInitialConditions(phi_var_gas, phi_gas_init);
+
+        // Reset solid geometry
         SolidLevelSetResetter solid_level_set_resetter;
         solid_level_set_resetter.ib_interp_ops = ib_interpolant_method_ops;
         solid_level_set_resetter.adv_diff_integrator = adv_diff_integrator;
@@ -279,11 +301,9 @@ main(int argc, char* argv[])
         adv_diff_integrator->registerIntegrateHierarchyCallback(&reset_solid_level_set_callback_fcn,
                                                                 static_cast<void*>(&solid_level_set_resetter));
 
+        // Setup the advected and diffused fluid quantities.
         Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
-        Pointer<hier::Variable<NDIM> > rho_var;
-
-        rho_var = new SideVariable<NDIM, double>("rho");
-
+        Pointer<hier::Variable<NDIM> > rho_var = new SideVariable<NDIM, double>("rho");
         navier_stokes_integrator->registerMassDensityVariable(rho_var);
         navier_stokes_integrator->registerViscosityVariable(mu_var);
 
@@ -291,40 +311,57 @@ main(int argc, char* argv[])
         const int ls_reinit_interval = input_db->getInteger("LS_REINIT_INTERVAL");
         const double rho_fluid = input_db->getDouble("RHO_F");
         const double rho_solid = input_db->getDouble("RHO_S");
+        const double rho_gas = input_db->getDouble("RHO_G");
         const int num_solid_interface_cells = input_db->getDouble("NUM_SOLID_INTERFACE_CELLS");
+        const int num_gas_interface_cells = input_db->getDouble("NUM_GAS_INTERFACE_CELLS");
         circle.rho_solid = rho_solid;
-        SetFluidSolidDensity* ptr_setFluidSolidDensity = new SetFluidSolidDensity("SetFluidSolidDensity",
-                                                                                  adv_diff_integrator,
-                                                                                  phi_var_solid,
-                                                                                  rho_fluid,
-                                                                                  rho_solid,
-                                                                                  ls_reinit_interval,
-                                                                                  num_solid_interface_cells);
-        navier_stokes_integrator->registerResetFluidDensityFcn(&callSetFluidSolidDensityCallbackFunction,
-                                                               static_cast<void*>(ptr_setFluidSolidDensity));
+        SetFluidGasSolidDensity* ptr_setFluidGasSolidDensity = new SetFluidGasSolidDensity("SetFluidGasSolidDensity",
+                                                                                           adv_diff_integrator,
+                                                                                           phi_var_solid,
+                                                                                           phi_var_gas,
+                                                                                           rho_fluid,
+                                                                                           rho_gas,
+                                                                                           rho_solid,
+                                                                                           ls_reinit_interval,
+                                                                                           num_solid_interface_cells,
+                                                                                           num_gas_interface_cells);
+        navier_stokes_integrator->registerResetFluidDensityFcn(&callSetFluidGasSolidDensityCallbackFunction,
+                                                               static_cast<void*>(ptr_setFluidGasSolidDensity));
 
         const double mu_fluid = input_db->getDouble("MU_F");
+        const double mu_gas = input_db->getDouble("MU_G");
         const double mu_solid = input_db->getDoubleWithDefault("MU_S", std::numeric_limits<double>::quiet_NaN());
         const bool set_mu_solid = input_db->getBool("SET_MU_S");
-        SetFluidSolidViscosity* ptr_setFluidSolidViscosity = new SetFluidSolidViscosity("SetFluidSolidViscosity",
-                                                                                        adv_diff_integrator,
-                                                                                        phi_var_solid,
-                                                                                        mu_fluid,
-                                                                                        mu_solid,
-                                                                                        ls_reinit_interval,
-                                                                                        num_solid_interface_cells,
-                                                                                        set_mu_solid);
-        navier_stokes_integrator->registerResetFluidViscosityFcn(&callSetFluidSolidViscosityCallbackFunction,
-                                                                 static_cast<void*>(ptr_setFluidSolidViscosity));
+        SetFluidGasSolidViscosity* ptr_setFluidGasSolidViscosity =
+            new SetFluidGasSolidViscosity("SetFluidGasSolidViscosity",
+                                          adv_diff_integrator,
+                                          phi_var_solid,
+                                          phi_var_gas,
+                                          mu_fluid,
+                                          mu_gas,
+                                          mu_solid,
+                                          ls_reinit_interval,
+                                          num_solid_interface_cells,
+                                          num_gas_interface_cells,
+                                          set_mu_solid);
+        navier_stokes_integrator->registerResetFluidViscosityFcn(&callSetFluidGasSolidViscosityCallbackFunction,
+                                                                 static_cast<void*>(ptr_setFluidGasSolidViscosity));
 
         // Register callback function for tagging refined cells for level set data
         const double tag_value = input_db->getDouble("LS_TAG_VALUE");
         const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
+        TagLSRefinementCells ls_gas_tagger;
+        ls_gas_tagger.d_ls_var = phi_var_gas;
+        ls_gas_tagger.d_tag_value = tag_value;
+        ls_gas_tagger.d_tag_abs_thresh = tag_thresh;
+        ls_gas_tagger.d_adv_diff_solver = adv_diff_integrator;
         TagLSRefinementCells ls_solid_tagger;
         ls_solid_tagger.d_ls_var = phi_var_solid;
         ls_solid_tagger.d_tag_value = tag_value;
         ls_solid_tagger.d_tag_abs_thresh = tag_thresh;
         ls_solid_tagger.d_adv_diff_solver = adv_diff_integrator;
+        time_integrator->registerApplyGradientDetectorCallback(&callTagGasLSRefinementCellsCallbackFunction,
+                                                               static_cast<void*>(&ls_gas_tagger));
         time_integrator->registerApplyGradientDetectorCallback(&callTagSolidLSRefinementCellsCallbackFunction,
                                                                static_cast<void*>(&ls_solid_tagger));
 
@@ -393,13 +430,50 @@ main(int argc, char* argv[])
             phi_bc_coef = new muParserRobinBcCoefs(
                 "phi_bc_coef", app_initializer->getComponentDatabase("PhiBcCoefs"), grid_geometry);
         }
+        adv_diff_integrator->setPhysicalBcCoef(phi_var_gas, phi_bc_coef);
         adv_diff_integrator->setPhysicalBcCoef(phi_var_solid, phi_bc_coef);
+
+        // LS reinit boundary conditions, which is set to be the same as the BCs
+        // for advection
+        RobinBcCoefStrategy<NDIM>* ls_reinit_bcs = phi_bc_coef;
+        level_set_gas_ops->registerPhysicalBoundaryCondition(ls_reinit_bcs);
+
+        // Body forces.
+        std::vector<double> grav_const(NDIM);
+        input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
+        circle.g_y = grav_const[1];
+        Pointer<CartGridFunction> grav_force;
+        const string grav_type = input_db->getString("GRAV_TYPE");
+        if (grav_type == "FULL")
+        {
+            grav_force = new GravityForcing("GravityForcing", navier_stokes_integrator, grav_const);
+        }
+        else if (grav_type == "FLOW")
+        {
+            grav_force = new FlowGravityForcing("FlowGravityForcing",
+                                                app_initializer->getComponentDatabase("FlowGravityForcing"),
+                                                adv_diff_integrator,
+                                                phi_var_gas,
+                                                grav_const);
+        }
+
+        Pointer<SurfaceTensionForceFunction> surface_tension_force =
+            new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
+                                            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
+                                            adv_diff_integrator,
+                                            phi_var_gas);
+
+        Pointer<CartGridFunctionSet> eul_forces = new CartGridFunctionSet("eulerian_forces");
+        eul_forces->addFunction(grav_force);
+        eul_forces->addFunction(surface_tension_force);
+        time_integrator->registerBodyForceFunction(eul_forces);
 
         // Configure the IBInterpolant solver.
         Pointer<IBRedundantInitializer> ib_initializer = new IBRedundantInitializer(
             "IBRedundantInitializer", app_initializer->getComponentDatabase("IBRedundantInitializer"));
         std::vector<std::string> struct_list_vec(1, "InterpolationMesh");
-        ib_initializer->setStructureNamesOnLevel(input_db->getInteger("MAX_LEVELS") - 1, struct_list_vec);
+        int max_finest_ln = input_db->getInteger("MAX_LEVELS") - 1;
+        ib_initializer->setStructureNamesOnLevel(max_finest_ln, struct_list_vec);
         ib_initializer->registerInitStructureFunction(generate_interp_mesh);
         ib_interpolant_method_ops->registerLInitStrategy(ib_initializer);
 
@@ -412,14 +486,13 @@ main(int argc, char* argv[])
                                                       app_initializer->getComponentDatabase("BrinkmanPenalization"),
                                                       /*register_for_restart*/ true);
         FreeRigidDOFVector free_dofs;
-        free_dofs << 0, 0, 0;
-        Eigen::Vector3d U_i(circle.Uinf, 0.0, 0.0);
-        Eigen::Vector3d W_i = Eigen::Vector3d::Zero();
+        free_dofs << 0, 1, 0;
+        Eigen::Vector3d U_i = Eigen::Vector3d::Zero();
         const double mass = rho_solid * M_PI * std::pow(circle.R, 2);
         bp_rbd->setSolveRigidBodyVelocity(free_dofs);
         bp_rbd->registerKinematicsFunction(&imposed_kinematics);
         bp_rbd->registerExternalForceTorqueFunction(&external_force_torque);
-        bp_rbd->setInitialConditions(circle.X0, U_i, W_i, mass);
+        bp_rbd->setInitialConditions(circle.X0, U_i, U_i, mass);
         navier_stokes_integrator->registerBrinkmanPenalizationStrategy(bp_rbd);
         solid_level_set_resetter.bp_rbd = bp_rbd;
 
@@ -449,11 +522,6 @@ main(int argc, char* argv[])
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
 
-        if (!RestartManager::getManager()->isFromRestart())
-        {
-            navier_stokes_integrator->initializeCompositeHierarchyData(loop_time, /*initial_time*/ true);
-        }
-
         if (dump_viz_data)
         {
             pout << "\n\nWriting visualization files...\n\n";
@@ -466,11 +534,10 @@ main(int argc, char* argv[])
         }
 
         // Open streams to save position and velocity of the structure.
-        ofstream rbd_stream, ft_stream;
+        ofstream rbd_stream;
         if (SAMRAI_MPI::getRank() == 0)
         {
             rbd_stream.open("rbd.curve", ios_base::out | ios_base::app);
-            ft_stream.open("hydro_force_torque.curve", ios_base::out | std::ios_base::app);
         }
 
         // Main time step loop.
@@ -527,14 +594,6 @@ main(int argc, char* argv[])
                 rbd_stream.precision(12);
                 rbd_stream.setf(ios::fixed, ios::floatfield);
                 rbd_stream << loop_time << "\t" << rbd_posn[1] << "\t" << rbd_trans_vel[1] << std::endl;
-
-                Eigen::Vector3d hydro_force_pressure, hydro_force_viscous, hydro_torque_pressure, hydro_torque_viscous;
-                bp_rbd->getHydrodynamicForceTorque(
-                    hydro_force_pressure, hydro_force_viscous, hydro_torque_pressure, hydro_torque_viscous);
-                ft_stream.precision(12);
-                ft_stream.setf(ios::fixed, ios::floatfield);
-                ft_stream << loop_time << "\t" << hydro_force_viscous[0] << "\t"
-                          << "\t" << hydro_force_pressure[0] << std::endl;
             }
         }
 
@@ -542,13 +601,12 @@ main(int argc, char* argv[])
         if (SAMRAI_MPI::getRank() == 0)
         {
             rbd_stream.close();
-            ft_stream.close();
         }
 
         // Delete dumb pointers.
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-        delete ptr_setFluidSolidDensity;
-        delete ptr_setFluidSolidViscosity;
+        delete ptr_setFluidGasSolidDensity;
+        delete ptr_setFluidGasSolidViscosity;
         delete rho_bc_coef;
         delete mu_bc_coef;
         delete phi_bc_coef;
@@ -556,4 +614,5 @@ main(int argc, char* argv[])
     } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
+    PetscFinalize();
 } // main

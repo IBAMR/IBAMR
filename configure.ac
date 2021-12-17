@@ -204,6 +204,7 @@ AC_CONFIG_FILES([
   examples/IBLevelSet/Makefile
   examples/IBLevelSet/ex0/Makefile
   examples/IBLevelSet/ex1/Makefile
+  examples/IBLevelSet/ex2/Makefile
   examples/IMP/Makefile
   examples/IMP/explicit/Makefile
   examples/IMP/explicit/ex0/Makefile
