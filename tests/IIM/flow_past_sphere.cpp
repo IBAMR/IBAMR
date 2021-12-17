@@ -123,6 +123,12 @@ main(int argc, char* argv[])
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
+        const bool dump_restart_data = app_initializer->dumpRestartData();
+        const int restart_dump_interval = app_initializer->getRestartDumpInterval();
+        const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
+        const string restart_read_dirname = app_initializer->getRestartReadDirectory();
+        const int restart_restore_num = app_initializer->getRestartRestoreNumber();
+
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
@@ -228,7 +234,10 @@ main(int argc, char* argv[])
             new IIMethod("IIMethod",
                          app_initializer->getComponentDatabase("IIMethod"),
                          &mesh,
-                         app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+                         app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+                         true,
+                         restart_read_dirname,
+                         restart_restore_num);
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
@@ -394,6 +403,12 @@ main(int argc, char* argv[])
             {
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
+            }
+
+            if (dump_restart_data && (iteration_num % restart_dump_interval == 0))
+            {
+                RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
+                ib_method_ops->writeFEDataToRestartFile(restart_dump_dirname, iteration_num);
             }
         }
 

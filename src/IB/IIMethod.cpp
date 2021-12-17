@@ -128,7 +128,7 @@ namespace IBAMR
 namespace
 {
 // Version of IIMethod restart file data.
-static const int IBFE_METHOD_VERSION = 2;
+static const int IIM_VERSION = 3;
 
 std::string
 libmesh_restart_file_name(const std::string& restart_dump_dirname,
@@ -3260,14 +3260,7 @@ IIMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarch
 void
 IIMethod::putToDatabase(Pointer<Database> db)
 {
-    db->putInteger("IBFE_METHOD_VERSION", IBFE_METHOD_VERSION);
-    db->putInteger("d_num_parts", d_num_parts);
-    db->putIntegerArray("d_ghosts", d_ghosts, NDIM);
-    db->putBool("d_use_velocity_jump_conditions", d_use_velocity_jump_conditions);
-    db->putBool("d_use_pressure_jump_conditions", d_use_pressure_jump_conditions);
-    db->putBool("d_compute_fluid_traction", d_compute_fluid_traction);
-    db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
-    db->putBool("d_use_direct_forcing", d_use_direct_forcing);
+    db->putInteger("IIM_VERSION", IIM_VERSION);
     return;
 } // putToDatabase
 
@@ -4353,20 +4346,11 @@ IIMethod::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
                                  << " not found in restart file." << std::endl);
     }
-    int ver = db->getInteger("IBFE_METHOD_VERSION");
-    if (ver != IBFE_METHOD_VERSION)
+    int ver = db->getInteger("IIM_VERSION");
+    if (ver != IIM_VERSION)
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
-    db->getIntegerArray("d_ghosts", d_ghosts, NDIM);
-    d_use_pressure_jump_conditions = db->getBool("d_use_pressure_jump_conditions");
-    d_use_velocity_jump_conditions = db->getBool("d_use_velocity_jump_conditions");
-    d_compute_fluid_traction = db->getBool("d_compute_fluid_traction");
-    d_use_consistent_mass_matrix = db->getBool("d_use_consistent_mass_matrix");
-    d_use_direct_forcing = db->getBool("d_use_direct_forcing");
-    d_exterior_calc_coef = db->getDouble("exterior_calc_coef");
-    d_p_calc_width = db->getDouble("p_calc_width");
-    d_wss_calc_width = db->getDouble("wss_calc_width");
     return;
 } // getFromRestart
 
