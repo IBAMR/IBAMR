@@ -15,7 +15,6 @@ DX0 = L/N                                        // mesh width on coarsest grid 
 DX  = L/NFINEST                                  // mesh width on finest   grid level
 MFAC = 2.0                                       // ratio of Lagrangian mesh width to Cartesian mesh width
 ELEM_TYPE = "TRI3"                               // type of element to use for structure discretization
-USE_BOUNDARY_MESH = TRUE
 
 // solver parameters
 IB_DELTA_FUNCTION            = "IB_3"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
@@ -29,7 +28,7 @@ USE_CONSISTENT_MASS_MATRIX   = TRUE              // whether to use a consistent 
 IB_POINT_DENSITY             = 4.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                  = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)
 CFL_MAX                      = 0.1               // maximum CFL number
-DT                           = CFL_MAX*DX        // maximum timestep size
+DT                           = CFL_MAX*DX/U_MAX  // maximum timestep size
 START_TIME                   = 0.0e0             // initial simulation time
 END_TIME                     = 100               // final simulation time
 GROW_DT                      = 2.0e0             // growth factor for timesteps
@@ -108,7 +107,7 @@ IBHierarchyIntegrator {
    enable_logging      = ENABLE_LOGGING
 }
 
-IBFESurfaceMethod {
+IIMethod {
    IB_delta_fcn                 = IB_DELTA_FUNCTION
    split_forces                 = SPLIT_FORCES
    use_pressure_jump_conditions = USE_PRESSURE_JUMP_CONDITIONS

@@ -13,13 +13,13 @@
 
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "IBFE-ex12-2d"
+    "IIM-ex0-2d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/IBFE/explicit/ex12"
+    "${CMAKE_BINARY_DIR}/examples/IIM/ex0"
   OUTPUT_NAME
     main2d
   EXAMPLE_GROUP
-    examples-IBFE
+    examples-IIM
   SOURCES
     example.cpp
   REQUIRES
@@ -34,13 +34,13 @@ IBAMR_ADD_EXAMPLE(
 
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "IBFE-ex12-3d"
+    "IIM-ex0-3d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/IBFE/explicit/ex12"
+    "${CMAKE_BINARY_DIR}/examples/IIM/ex0"
   OUTPUT_NAME
     main3d
   EXAMPLE_GROUP
-    examples-IBFE
+    examples-IIM
   SOURCES
     example.cpp
   REQUIRES

@@ -15,7 +15,6 @@ DX0 = L/N                                        // mesh width on coarsest grid 
 DX  = L/NFINEST                                  // mesh width on finest   grid level
 MFAC = 2.0                                       // ratio of Lagrangian mesh width to Cartesian mesh width
 ELEM_TYPE = "HEX8"                               // type of element to use for structure discretization
-USE_BOUNDARY_MESH = TRUE
 
 // solver parameters
 IB_DELTA_FUNCTION            = "IB_3"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
@@ -147,12 +146,11 @@ IBHierarchyIntegrator {
    enable_logging      = ENABLE_LOGGING
 }
 
-IBFESurfaceMethod {
+IIMethod {
    IB_delta_fcn                 = IB_DELTA_FUNCTION
    split_forces                 = SPLIT_FORCES
    use_pressure_jump_conditions = USE_PRESSURE_JUMP_CONDITIONS
    use_velocity_jump_conditions = USE_VELOCITY_JUMP_CONDITIONS
-   use_l2_lagrange_family       = USE_L2_LAGRANGE_FAMILY
    use_consistent_mass_matrix   = USE_CONSISTENT_MASS_MATRIX
    IB_point_density             = IB_POINT_DENSITY
    p_calc_width                 = P_CALC_WIDTH

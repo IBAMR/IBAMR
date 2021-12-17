@@ -201,11 +201,11 @@ AC_CONFIG_FILES([
   examples/IBFE/explicit/ex9/Makefile
   examples/IBFE/explicit/ex10/Makefile
   examples/IBFE/explicit/ex11/Makefile
-  examples/IBFE/explicit/ex12/Makefile
   examples/IBLevelSet/Makefile
   examples/IBLevelSet/ex0/Makefile
   examples/IBLevelSet/ex1/Makefile
   examples/IBLevelSet/ex2/Makefile
+  examples/IIM/ex0/Makefile
   examples/IMP/Makefile
   examples/IMP/explicit/Makefile
   examples/IMP/explicit/ex0/Makefile

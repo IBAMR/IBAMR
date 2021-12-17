@@ -92,7 +92,7 @@ EXTRA_PROGRAMS = $(am__EXEEXT_4) $(am__EXEEXT_5)
 @LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_2 = $(EXAMPLES) 
 @LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_3 = main3d 
 @LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_4 = $(EXAMPLES) 
-subdir = examples/IBFE/explicit/ex12
+subdir = examples/IIM/ex0
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
 	$(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
@@ -212,7 +212,8 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 am__DIST_COMMON = $(srcdir)/Makefile.in \
-	$(top_srcdir)/config/Make-rules $(top_srcdir)/config/depcomp
+	$(top_srcdir)/config/Make-rules $(top_srcdir)/config/depcomp \
+	README
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -494,9 +495,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/IBFE/explicit/ex12/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/IIM/ex0/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign examples/IBFE/explicit/ex12/Makefile
+	  $(AUTOMAKE) --foreign examples/IIM/ex0/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
