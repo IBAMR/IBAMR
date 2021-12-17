@@ -32,7 +32,7 @@ callTagGasLSRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy<NDI
                                             const int level_number,
                                             const double /*error_data_time*/,
                                             const int tag_index,
-                                            const bool initial_time,
+                                            const bool /*initial_time*/,
                                             const bool /*uses_richardson_extrapolation_too*/,
                                             void* ctx)
 {
@@ -77,7 +77,7 @@ callTagSolidLSRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy<N
                                               const int level_number,
                                               const double /*error_data_time*/,
                                               const int tag_index,
-                                              const bool initial_time,
+                                              const bool /*initial_time*/,
                                               const bool /*uses_richardson_extrapolation_too*/,
                                               void* ctx)
 {

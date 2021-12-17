@@ -147,11 +147,6 @@ external_force_torque(double /*data_time*/, int /*cycle_num*/, Eigen::Vector3d& 
     return;
 } // imposed_kinematics
 
-static double shift_x, shift_y;
-#if (NDIM == 3)
-static double shift_z;
-#endif
-
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
  * be given on the command line.  For non-restarted case, command line is:     *
@@ -477,7 +472,6 @@ main(int argc, char* argv[])
         Pointer<IBRedundantInitializer> ib_initializer = new IBRedundantInitializer(
             "IBRedundantInitializer", app_initializer->getComponentDatabase("IBRedundantInitializer"));
         std::vector<std::string> struct_list_vec(1, "InterpolationMesh");
-        int coarsest_ln = 0;
         int max_finest_ln = input_db->getInteger("MAX_LEVELS") - 1;
         ib_initializer->setStructureNamesOnLevel(max_finest_ln, struct_list_vec);
         ib_initializer->registerInitStructureFunction(generate_interp_mesh);
