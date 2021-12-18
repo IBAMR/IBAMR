@@ -207,29 +207,6 @@ ADV_DIFF_CONVECTIVE_TS_TYPE = "ADAMS_BASHFORTH"
 ADV_DIFF_CONVECTIVE_OP_TYPE = "PPM"
 ADV_DIFF_CONVECTIVE_FORM    = "CONSERVATIVE"
 
-IBInterpolantHierarchyIntegrator {
-   start_time            = START_TIME
-   end_time              = END_TIME
-   grow_dt               = GROW_DT
-   max_integrator_steps  = MAX_INTEGRATOR_STEPS
-   regrid_cfl_interval   = REGRID_CFL_INTERVAL
-   
-   dt_max             = DT_MAX 
-   num_cycles         = NUM_INS_CYCLES
-   delta_fcn          = DELTA_FUNCTION
-   enable_logging     = ENABLE_LOGGING
-   error_on_dt_change = ERROR_ON_DT_CHANGE
-}
-
-IBInterpolantMethod {
-    delta_fcn      = DELTA_FUNCTION
-    enable_logging = ENABLE_LOGGING
-}
-
-IBRedundantInitializer {
-    max_levels      = MAX_LEVELS
-}
-
 BrinkmanPenalization {
     chi = CHI
 }
@@ -355,7 +332,7 @@ Main {
    log_all_nodes    = FALSE
 
 // visualization dump parameters
-   viz_writer            = "VisIt","Silo"
+   viz_writer            = "VisIt"
    viz_dump_interval     = 50    //zero to turn off
    viz_dump_dirname      = "viz_cylinder2d"
    visit_number_procs_per_file = 1
