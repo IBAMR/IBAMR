@@ -1466,8 +1466,8 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
     // To use same H used in advection of H in the convective term.
     d_hier_cc_data_ops->copyData(d_H_pre_idx, H_new_idx);
 
-    // Compute chemical potential using lf^n+1.
-    computeChemicalPotential(d_chemical_potential_idx, d_H_sc_idx, new_time);
+    // Bound the updated liquid fraction.
+    boundLiquidFraction(lf_new_idx);
 
     if (d_solve_energy)
     {
@@ -1717,6 +1717,9 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
             pout << d_object_name << ":" << d_T_var->getName()
                  << "::integrateHierarchy():WARNING: linear solver iterations == max iterations\n";
         }
+
+        // Compute chemical potential using lf^n+1.
+        computeChemicalPotential(d_chemical_potential_idx, d_H_sc_idx, new_time);
 
         // Reset the right-hand side vector.
         if (d_lf_u_var)
@@ -2674,8 +2677,8 @@ IEPSemiImplicitHierarchyIntegrator::computeChemicalPotential(int chemical_potent
 
     // update p' and g'.
     // Directly using p' calculated using var_phi^n+1,m and g'.
-    // computeInterpolationFunction(d_p_firstder_idx, lf_new_idx, T_new_idx);
-    // computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, lf_new_idx);
+    computeInterpolationFunction(d_p_firstder_idx, lf_new_idx, T_new_idx);
+    computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, lf_new_idx);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -2700,8 +2703,13 @@ IEPSemiImplicitHierarchyIntegrator::computeChemicalPotential(int chemical_potent
                 double F = d_rho_liquid * d_latent_heat * (*H_data)(ci) * (*p_firstder_data)(ci) *
                            (d_T_melt - (*T_data)(ci)) / d_T_melt;
 
-                double g_first_der_linear =
-                    (*g_firstder_data)(ci) + (*g_secondder_data)(ci) * ((*lf_data)(ci) - (*lf_pre_data)(ci));
+                // g' is linearized while solving AC eqn. But in continuity eqn, it is computed based on
+                // varphi^n+1,m+1.
+                const double g_first_der_linear = (*g_firstder_data)(ci);
+
+                //                double g_first_der_linear =
+                //                    (*g_firstder_data)(ci) + (*g_secondder_data)(ci) * ((*lf_data)(ci) -
+                //                    (*lf_pre_data)(ci));
 
                 (*chemical_potential_data)(ci) =
                     -d_lambda_lf * (*chemical_potential_data)(ci) +
@@ -2875,35 +2883,35 @@ IEPSemiImplicitHierarchyIntegrator::computeChemicalPotential(int chemical_potent
 //    return;
 //} // computeLHSOfLiquidFractionEquation
 
-// void
-// IEPSemiImplicitHierarchyIntegrator::boundLiquidFraction(int lf_new_idx)
-//{
-//    const int coarsest_ln = 0;
-//    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-//    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-//
-//    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-//    {
-//        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-//        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-//        {
-//            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-//            const Box<NDIM>& patch_box = patch->getBox();
-//            Pointer<CellData<NDIM, double> > lf_new_data = patch->getPatchData(lf_new_idx);
-//
-//            for (Box<NDIM>::Iterator it(patch_box); it; it++)
-//            {
-//                CellIndex<NDIM> ci(it());
-//
-//                if ((*lf_new_data)(ci) > 1.0)
-//                    (*lf_new_data)(ci) = 1.0;
-//                else if ((*lf_new_data)(ci) < 0.0)
-//                    (*lf_new_data)(ci) = 0.0;
-//            }
-//        }
-//    }
-//    return;
-//} // boundLiquidFraction
+void
+IEPSemiImplicitHierarchyIntegrator::boundLiquidFraction(int lf_new_idx)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double> > lf_new_data = patch->getPatchData(lf_new_idx);
+
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                CellIndex<NDIM> ci(it());
+
+                if ((*lf_new_data)(ci) > 1.0)
+                    (*lf_new_data)(ci) = 1.0;
+                else if ((*lf_new_data)(ci) < 0.0)
+                    (*lf_new_data)(ci) = 0.0;
+            }
+        }
+    }
+    return;
+} // boundLiquidFraction
 
 void
 IEPSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_from_restart)

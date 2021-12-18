@@ -461,10 +461,10 @@ private:
     //                                            const double new_time,
     //                                            const double current_time,
     //                                            const double half_time);
-    //    /*!
-    //     * Compute LHS of AC equation.
-    //     */
-    //    void boundLiquidFraction(int lf_new_idx);
+    /*!
+     * Compute LHS of AC equation.
+     */
+    void boundLiquidFraction(int lf_new_idx);
 
     /*!
      * Solver variables.
