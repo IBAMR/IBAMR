@@ -1,0 +1,1 @@
+Example showing coupling of IBLevelSet and IBFE methods. Here a rigid rod moves with a prescribed velocity and an elastic structure responds to rod's motion. 
