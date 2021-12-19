@@ -557,7 +557,7 @@ c
          do i0 = ilower0, iupper0 + 1
             T_sc = 0.5d0*(T(i0-1,i1)+T(i0,i1))
             K = ki*EXP(-deltaH0/(R*T_sc))
-            marangoni_coefficient = dsigma_dT0-R*gamma_s*log(1+K*ai)
+            marangoni_coefficient = dsigma_dT0-R*gamma_s*LOG(1+K*ai)
      &       - K*ai*gamma_s*(deltaH0 - deltaHi)/(T_sc*(1+K*ai))
             gradC_mag = sqrt(gradC00(i0,i1)**2+gradC01(i0,i1)**2)
             gradT_dot_gradphi = gradT00(i0,i1)*N00(i0,i1) +
@@ -571,7 +571,7 @@ c
          do i0 = ilower0, iupper0
             T_sc = 0.5d0*(T(i0,i1-1)+T(i0,i1))
             K = ki*EXP(-deltaH0/(R*T_sc))
-            marangoni_coefficient = dsigma_dT0-R*gamma_s*log(1+K*ai)
+            marangoni_coefficient = dsigma_dT0-R*gamma_s*LOG(1+K*ai)
      &       - K*ai*gamma_s*(deltaH0 - deltaHi)/(T_sc*(1+K*ai))
             gradC_mag = sqrt(gradC10(i0,i1)**2+gradC11(i0,i1)**2)
             gradT_dot_gradphi = gradT10(i0,i1)*N10(i0,i1) +

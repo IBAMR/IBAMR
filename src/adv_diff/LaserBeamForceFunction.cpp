@@ -85,7 +85,7 @@ LaserBeamForceFunction::LaserBeamForceFunction(const std::string& object_name,
       d_cp_gas(cp_gas)
 {
     // Set some default values
-    d_ts_type = MIDPOINT_RULE;
+    d_ts_type = BACKWARD_EULER;
     d_grad_H_var = new CellVariable<NDIM, double>(d_object_name + "::grad_H_var", NDIM);
 
     if (input_db)
