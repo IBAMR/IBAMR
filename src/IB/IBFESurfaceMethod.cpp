@@ -1038,6 +1038,7 @@ IBFESurfaceMethod::setInterpSpec(const FEDataManager::InterpSpec& interp_spec, c
 {
     TBOX_ASSERT(!d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_num_parts);
+    TBOX_ASSERT(LEInteractor::isKnownKernel(interp_spec.kernel_fcn));
     d_interp_spec[part] = interp_spec;
     return;
 }
@@ -1047,6 +1048,7 @@ IBFESurfaceMethod::setSpreadSpec(const FEDataManager::SpreadSpec& spread_spec, c
 {
     TBOX_ASSERT(!d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_num_parts);
+    TBOX_ASSERT(LEInteractor::isKnownKernel(spread_spec.kernel_fcn));
     d_spread_spec[part] = spread_spec;
     return;
 }
@@ -2038,6 +2040,10 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_default_spread_spec.kernel_fcn = db->getString("spread_kernel_fcn");
     else if (db->isString("IB_kernel_fcn"))
         d_default_spread_spec.kernel_fcn = db->getString("IB_kernel_fcn");
+
+    // Validate the kernel choices.
+    TBOX_ASSERT(LEInteractor::isKnownKernel(d_default_interp_spec.kernel_fcn));
+    TBOX_ASSERT(LEInteractor::isKnownKernel(d_default_spread_spec.kernel_fcn));
 
     if (db->isString("spread_quad_type"))
         d_default_spread_spec.quad_type = Utility::string_to_enum<QuadratureType>(db->getString("spread_quad_type"));

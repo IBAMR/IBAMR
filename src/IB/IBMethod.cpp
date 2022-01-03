@@ -2027,6 +2027,8 @@ IBMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
         if (db->isBool("normalize_source_strength"))
             d_normalize_source_strength = db->getBool("normalize_source_strength");
     }
+    TBOX_ASSERT(LEInteractor::isKnownKernel(d_interp_kernel_fcn));
+    TBOX_ASSERT(LEInteractor::isKnownKernel(d_spread_kernel_fcn));
     if (db->keyExists("error_if_points_leave_domain"))
         d_error_if_points_leave_domain = db->getBool("error_if_points_leave_domain");
     if (db->keyExists("force_jac_mffd")) d_force_jac_mffd = db->getBool("force_jac_mffd");
@@ -2064,6 +2066,8 @@ IBMethod::getFromRestart()
         d_spread_kernel_fcn = db->getString("d_spread_kernel_fcn");
     else if (db->keyExists("d_spread_delta_fcn"))
         d_spread_kernel_fcn = db->getString("d_spread_delta_fcn");
+    TBOX_ASSERT(LEInteractor::isKnownKernel(d_interp_kernel_fcn));
+    TBOX_ASSERT(LEInteractor::isKnownKernel(d_spread_kernel_fcn));
     db->getIntegerArray("d_ghosts", d_ghosts, NDIM);
     if (db->keyExists("instrument_names"))
     {

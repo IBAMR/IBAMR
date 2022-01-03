@@ -1311,6 +1311,102 @@ spread_data(const int stencil_sz,
     }
 #endif
 } // spread_data
+
+// For internal use - convert to an enumeration. This may make it into the
+// public interface one day but for backwards compatibility we accept only
+// strings for now.
+enum KernelType
+{
+    BSPLINE_3,
+    BSPLINE_4,
+    BSPLINE_5,
+    BSPLINE_6,
+    DISCONTINUOUS_LINEAR,
+    PIECEWISE_CONSTANT,
+    PIECEWISE_LINEAR,
+    PIECEWISE_CUBIC,
+    IB_3,
+    IB_4,
+    IB_4_W8,
+    IB_5,
+    IB_6,
+    USER_DEFINED,
+    INVALID
+};
+
+KernelType
+string_to_kernel(const std::string& kernel_fcn)
+{
+    // Some IBAMR applications want to call this function *a lot*, e.g., ideally
+    // we would call this on every element in a finite element mesh instead of
+    // batching with huge temporary arrays. Hence doing all these string
+    // comparisons can get surprisingly expensive. Chop them up first with a
+    // switch statement.
+#ifndef NDEBUG
+    if (!LEInteractor::isKnownKernel(kernel_fcn))
+    {
+        TBOX_ERROR("Unknown kernel function " << kernel_fcn << std::endl);
+        return INVALID;
+    }
+#endif
+    switch (kernel_fcn.front())
+    {
+    // BSPLINE family
+    case 'B':
+    {
+        switch (kernel_fcn.back())
+        {
+        case '3':
+            return BSPLINE_3;
+        case '4':
+            return BSPLINE_4;
+        case '5':
+            return BSPLINE_5;
+        case '6':
+            return BSPLINE_6;
+        }
+    }
+    // DISCONTINUOUS family
+    case 'D':
+    {
+        return DISCONTINUOUS_LINEAR;
+    }
+    // PIECEWISE family
+    case 'P':
+    {
+        switch (kernel_fcn[11])
+        {
+        case 'O':
+            return PIECEWISE_CONSTANT;
+        case 'I':
+            return PIECEWISE_LINEAR;
+        case 'U':
+            return PIECEWISE_CUBIC;
+        }
+    }
+    // classic IB family
+    case 'I':
+    {
+        switch (kernel_fcn[3])
+        {
+        case '3':
+            return IB_3;
+        case '4':
+            return kernel_fcn.size() == 4 ? IB_4 : IB_4_W8;
+        case '5':
+            return IB_5;
+        case '6':
+            return IB_6;
+        }
+    }
+    // user defined
+    case 'U':
+        return USER_DEFINED;
+    }
+
+    TBOX_ERROR("Unknown kernel function " << kernel_fcn << std::endl);
+    return INVALID;
+}
 } // namespace
 
 double (*LEInteractor::s_kernel_fcn)(double r) = &ib4_kernel_fcn;
@@ -1331,25 +1427,55 @@ LEInteractor::printClassData(std::ostream& os)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+bool
+LEInteractor::isKnownKernel(const std::string& kernel_fcn)
+{
+    return kernel_fcn == "BSPLINE_3" || kernel_fcn == "BSPLINE_4" || kernel_fcn == "BSPLINE_5" ||
+           kernel_fcn == "BSPLINE_6" || kernel_fcn == "DISCONTINUOUS_LINEAR" || kernel_fcn == "PIECEWISE_CONSTANT" ||
+           kernel_fcn == "PIECEWISE_LINEAR" || kernel_fcn == "PIECEWISE_CUBIC" || kernel_fcn == "IB_3" ||
+           kernel_fcn == "IB_4" || kernel_fcn == "IB_4_W8" || kernel_fcn == "IB_5" || kernel_fcn == "IB_6" ||
+           kernel_fcn == "USER_DEFINED";
+}
+
 int
 LEInteractor::getStencilSize(const std::string& kernel_fcn)
 {
-    if (kernel_fcn == "PIECEWISE_CONSTANT") return 1;
-    if (kernel_fcn == "DISCONTINUOUS_LINEAR") return 2;
-    if (kernel_fcn == "PIECEWISE_LINEAR") return 2;
-    if (kernel_fcn == "PIECEWISE_CUBIC") return 4;
-    if (kernel_fcn == "IB_3") return 4;
-    if (kernel_fcn == "IB_4") return 4;
-    if (kernel_fcn == "IB_4_W8") return 8;
-    if (kernel_fcn == "IB_5") return 6;
-    if (kernel_fcn == "IB_6") return 6;
-    if (kernel_fcn == "BSPLINE_3") return 4;
-    if (kernel_fcn == "BSPLINE_4") return 4;
-    if (kernel_fcn == "BSPLINE_5") return 6;
-    if (kernel_fcn == "BSPLINE_6") return 6;
-    if (kernel_fcn == "USER_DEFINED") return s_kernel_fcn_stencil_size;
-    TBOX_ERROR("LEInteractor::getStencilSize()\n"
-               << "  Unknown kernel function " << kernel_fcn << std::endl);
+    switch (string_to_kernel(kernel_fcn))
+    {
+    case BSPLINE_3:
+        return 4;
+    case BSPLINE_4:
+        return 4;
+    case BSPLINE_5:
+        return 6;
+    case BSPLINE_6:
+        return 6;
+    case DISCONTINUOUS_LINEAR:
+        return 2;
+    case PIECEWISE_CONSTANT:
+        return 1;
+    case PIECEWISE_LINEAR:
+        return 2;
+    case PIECEWISE_CUBIC:
+        return 4;
+    case IB_3:
+        return 4;
+    case IB_4:
+        return 4;
+    case IB_4_W8:
+        return 8;
+    case IB_5:
+        return 6;
+    case IB_6:
+        return 6;
+    case USER_DEFINED:
+        return s_kernel_fcn_stencil_size;
+    case INVALID:
+    default:
+        TBOX_ERROR("LEInteractor::getStencilSize()\n"
+                   << "  Unknown kernel function " << kernel_fcn << std::endl);
+    }
+
     return -1;
 }
 
@@ -3713,7 +3839,9 @@ LEInteractor::interpolate(double* const Q_data,
     const int local_indices_size = static_cast<int>(local_indices.size());
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
-    if (interp_fcn == "PIECEWISE_CONSTANT")
+    switch (string_to_kernel(interp_fcn))
+    {
+    case PIECEWISE_CONSTANT:
     {
         LAGRANGIAN_PIECEWISE_CONSTANT_INTERP_FC(dx,
                                                 x_lower,
@@ -3744,8 +3872,9 @@ LEInteractor::interpolate(double* const Q_data,
                                                 local_indices_size,
                                                 X_data,
                                                 Q_data);
+        break;
     }
-    else if (interp_fcn == "DISCONTINUOUS_LINEAR")
+    case DISCONTINUOUS_LINEAR:
     {
         LAGRANGIAN_DISCONTINUOUS_LINEAR_INTERP_FC(dx,
                                                   x_lower,
@@ -3777,8 +3906,9 @@ LEInteractor::interpolate(double* const Q_data,
                                                   local_indices_size,
                                                   X_data,
                                                   Q_data);
+        break;
     }
-    else if (interp_fcn == "PIECEWISE_LINEAR")
+    case PIECEWISE_LINEAR:
     {
         LAGRANGIAN_PIECEWISE_LINEAR_INTERP_FC(dx,
                                               x_lower,
@@ -3809,8 +3939,9 @@ LEInteractor::interpolate(double* const Q_data,
                                               local_indices_size,
                                               X_data,
                                               Q_data);
+        break;
     }
-    else if (interp_fcn == "PIECEWISE_CUBIC")
+    case PIECEWISE_CUBIC:
     {
         LAGRANGIAN_PIECEWISE_CUBIC_INTERP_FC(dx,
                                              x_lower,
@@ -3841,8 +3972,9 @@ LEInteractor::interpolate(double* const Q_data,
                                              local_indices_size,
                                              X_data,
                                              Q_data);
+        break;
     }
-    else if (interp_fcn == "IB_3")
+    case IB_3:
     {
         LAGRANGIAN_IB_3_INTERP_FC(dx,
                                   x_lower,
@@ -3873,8 +4005,9 @@ LEInteractor::interpolate(double* const Q_data,
                                   local_indices_size,
                                   X_data,
                                   Q_data);
+        break;
     }
-    else if (interp_fcn == "IB_4")
+    case IB_4:
     {
         LAGRANGIAN_IB_4_INTERP_FC(dx,
                                   x_lower,
@@ -3905,8 +4038,9 @@ LEInteractor::interpolate(double* const Q_data,
                                   local_indices_size,
                                   X_data,
                                   Q_data);
+        break;
     }
-    else if (interp_fcn == "IB_4_W8")
+    case IB_4_W8:
     {
         LAGRANGIAN_IB_4_W8_INTERP_FC(dx,
                                      x_lower,
@@ -3937,8 +4071,9 @@ LEInteractor::interpolate(double* const Q_data,
                                      local_indices_size,
                                      X_data,
                                      Q_data);
+        break;
     }
-    else if (interp_fcn == "IB_5")
+    case IB_5:
     {
         LAGRANGIAN_IB_5_INTERP_FC(dx,
                                   x_lower,
@@ -3969,8 +4104,9 @@ LEInteractor::interpolate(double* const Q_data,
                                   local_indices_size,
                                   X_data,
                                   Q_data);
+        break;
     }
-    else if (interp_fcn == "IB_6")
+    case IB_6:
     {
         LAGRANGIAN_IB_6_INTERP_FC(dx,
                                   x_lower,
@@ -4001,8 +4137,9 @@ LEInteractor::interpolate(double* const Q_data,
                                   local_indices_size,
                                   X_data,
                                   Q_data);
+        break;
     }
-    else if (interp_fcn == "BSPLINE_3")
+    case BSPLINE_3:
     {
         LAGRANGIAN_BSPLINE_3_INTERP_FC(dx,
                                        x_lower,
@@ -4033,8 +4170,9 @@ LEInteractor::interpolate(double* const Q_data,
                                        local_indices_size,
                                        X_data,
                                        Q_data);
+        break;
     }
-    else if (interp_fcn == "BSPLINE_4")
+    case BSPLINE_4:
     {
         LAGRANGIAN_BSPLINE_4_INTERP_FC(dx,
                                        x_lower,
@@ -4065,8 +4203,9 @@ LEInteractor::interpolate(double* const Q_data,
                                        local_indices_size,
                                        X_data,
                                        Q_data);
+        break;
     }
-    else if (interp_fcn == "BSPLINE_5")
+    case BSPLINE_5:
     {
         LAGRANGIAN_BSPLINE_5_INTERP_FC(dx,
                                        x_lower,
@@ -4097,8 +4236,9 @@ LEInteractor::interpolate(double* const Q_data,
                                        local_indices_size,
                                        X_data,
                                        Q_data);
+        break;
     }
-    else if (interp_fcn == "BSPLINE_6")
+    case BSPLINE_6:
     {
         LAGRANGIAN_BSPLINE_6_INTERP_FC(dx,
                                        x_lower,
@@ -4129,8 +4269,9 @@ LEInteractor::interpolate(double* const Q_data,
                                        local_indices_size,
                                        X_data,
                                        Q_data);
+        break;
     }
-    else if (interp_fcn == "USER_DEFINED")
+    case USER_DEFINED:
     {
         userDefinedInterpolate(Q_data,
                                Q_depth,
@@ -4145,9 +4286,10 @@ LEInteractor::interpolate(double* const Q_data,
                                &local_indices[0],
                                &periodic_shifts[0],
                                local_indices_size);
+        break;
     }
-    else
-    {
+    case INVALID:
+    default:
         TBOX_ERROR("LEInteractor::interpolate()\n"
                    << "  Unknown interpolation kernel function " << interp_fcn << std::endl);
     }
@@ -4193,7 +4335,9 @@ LEInteractor::spread(double* const q_data,
     const int local_indices_size = static_cast<int>(local_indices.size());
     const IntVector<NDIM>& ilower = q_data_box.lower();
     const IntVector<NDIM>& iupper = q_data_box.upper();
-    if (spread_fcn == "PIECEWISE_CONSTANT")
+    switch (string_to_kernel(spread_fcn))
+    {
+    case PIECEWISE_CONSTANT:
     {
         LAGRANGIAN_PIECEWISE_CONSTANT_SPREAD_FC(dx,
                                                 x_lower,
@@ -4224,8 +4368,9 @@ LEInteractor::spread(double* const q_data,
                                                 q_gcw(2),
 #endif
                                                 q_data);
+        break;
     }
-    else if (spread_fcn == "DISCONTINUOUS_LINEAR")
+    case DISCONTINUOUS_LINEAR:
     {
         LAGRANGIAN_DISCONTINUOUS_LINEAR_SPREAD_FC(dx,
                                                   x_lower,
@@ -4257,8 +4402,9 @@ LEInteractor::spread(double* const q_data,
                                                   q_gcw(2),
 #endif
                                                   q_data);
+        break;
     }
-    else if (spread_fcn == "PIECEWISE_LINEAR")
+    case PIECEWISE_LINEAR:
     {
         LAGRANGIAN_PIECEWISE_LINEAR_SPREAD_FC(dx,
                                               x_lower,
@@ -4289,8 +4435,9 @@ LEInteractor::spread(double* const q_data,
                                               q_gcw(2),
 #endif
                                               q_data);
+        break;
     }
-    else if (spread_fcn == "PIECEWISE_CUBIC")
+    case PIECEWISE_CUBIC:
     {
         LAGRANGIAN_PIECEWISE_CUBIC_SPREAD_FC(dx,
                                              x_lower,
@@ -4321,8 +4468,9 @@ LEInteractor::spread(double* const q_data,
                                              q_gcw(2),
 #endif
                                              q_data);
+        break;
     }
-    else if (spread_fcn == "IB_3")
+    case IB_3:
     {
         LAGRANGIAN_IB_3_SPREAD_FC(dx,
                                   x_lower,
@@ -4353,8 +4501,9 @@ LEInteractor::spread(double* const q_data,
                                   q_gcw(2),
 #endif
                                   q_data);
+        break;
     }
-    else if (spread_fcn == "IB_4")
+    case IB_4:
     {
         LAGRANGIAN_IB_4_SPREAD_FC(dx,
                                   x_lower,
@@ -4385,8 +4534,9 @@ LEInteractor::spread(double* const q_data,
                                   q_gcw(2),
 #endif
                                   q_data);
+        break;
     }
-    else if (spread_fcn == "IB_4_W8")
+    case IB_4_W8:
     {
         LAGRANGIAN_IB_4_W8_SPREAD_FC(dx,
                                      x_lower,
@@ -4417,8 +4567,9 @@ LEInteractor::spread(double* const q_data,
                                      q_gcw(2),
 #endif
                                      q_data);
+        break;
     }
-    else if (spread_fcn == "IB_5")
+    case IB_5:
     {
         LAGRANGIAN_IB_5_SPREAD_FC(dx,
                                   x_lower,
@@ -4449,8 +4600,9 @@ LEInteractor::spread(double* const q_data,
                                   q_gcw(2),
 #endif
                                   q_data);
+        break;
     }
-    else if (spread_fcn == "IB_6")
+    case IB_6:
     {
         LAGRANGIAN_IB_6_SPREAD_FC(dx,
                                   x_lower,
@@ -4481,8 +4633,9 @@ LEInteractor::spread(double* const q_data,
                                   q_gcw(2),
 #endif
                                   q_data);
+        break;
     }
-    else if (spread_fcn == "BSPLINE_3")
+    case BSPLINE_3:
     {
         LAGRANGIAN_BSPLINE_3_SPREAD_FC(dx,
                                        x_lower,
@@ -4513,8 +4666,9 @@ LEInteractor::spread(double* const q_data,
                                        q_gcw(2),
 #endif
                                        q_data);
+        break;
     }
-    else if (spread_fcn == "BSPLINE_4")
+    case BSPLINE_4:
     {
         LAGRANGIAN_BSPLINE_4_SPREAD_FC(dx,
                                        x_lower,
@@ -4545,8 +4699,9 @@ LEInteractor::spread(double* const q_data,
                                        q_gcw(2),
 #endif
                                        q_data);
+        break;
     }
-    else if (spread_fcn == "BSPLINE_5")
+    case BSPLINE_5:
     {
         LAGRANGIAN_BSPLINE_5_SPREAD_FC(dx,
                                        x_lower,
@@ -4577,8 +4732,9 @@ LEInteractor::spread(double* const q_data,
                                        q_gcw(2),
 #endif
                                        q_data);
+        break;
     }
-    else if (spread_fcn == "BSPLINE_6")
+    case BSPLINE_6:
     {
         LAGRANGIAN_BSPLINE_6_SPREAD_FC(dx,
                                        x_lower,
@@ -4609,8 +4765,9 @@ LEInteractor::spread(double* const q_data,
                                        q_gcw(2),
 #endif
                                        q_data);
+        break;
     }
-    else if (spread_fcn == "USER_DEFINED")
+    case USER_DEFINED:
     {
         userDefinedSpread(q_data,
                           q_data_box,
@@ -4625,11 +4782,14 @@ LEInteractor::spread(double* const q_data,
                           &local_indices[0],
                           &periodic_shifts[0],
                           local_indices_size);
+        break;
     }
-    else
+    case INVALID:
+    default:
     {
         TBOX_ERROR("LEInteractor::spread()\n"
                    << "  Unknown spreading kernel function " << spread_fcn << std::endl);
+    }
     }
     return;
 }
