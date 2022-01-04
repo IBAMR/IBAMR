@@ -16,6 +16,8 @@
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/ParallelSet.h"
 
+#include <tbox/Utilities.h>
+
 #include <set>
 #include <vector>
 

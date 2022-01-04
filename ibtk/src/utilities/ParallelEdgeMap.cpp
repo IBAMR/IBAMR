@@ -16,6 +16,8 @@
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/ParallelEdgeMap.h"
 
+#include <tbox/Utilities.h>
+
 #include <algorithm>
 #include <map>
 #include <vector>
