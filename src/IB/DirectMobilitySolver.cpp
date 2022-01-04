@@ -667,14 +667,14 @@ DirectMobilitySolver::factorizeDenseMatrix(double* mat_data,
         }
         for (int i = 0; i < mat_size; ++i)
         {
-            if (MathUtilities<double>::equalEps(eigenvalues[i], 0.0))
+            if (IBTK::abs_equal_eps(eigenvalues[i], 0.0))
             {
                 counter_zero++;
             }
 
             for (int j = 0; j < mat_size; ++j)
             {
-                if (MathUtilities<double>::equalEps(eigenvalues[j], 0.0))
+                if (IBTK::abs_equal_eps(eigenvalues[j], 0.0))
                 {
                     mat_view(i, j) = 0.0;
                 }

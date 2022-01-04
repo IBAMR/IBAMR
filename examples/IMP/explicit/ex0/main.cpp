@@ -65,11 +65,11 @@ PK1_stress_function(TensorValue<double>& PP,
     const TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
     const TensorValue<double> CC = FF.transpose() * FF;
     PP = 2.0 * c1_s * FF;
-    if (!MathUtilities<double>::equalEps(p0_s, 0.0))
+    if (!IBTK::abs_equal_eps(p0_s, 0.0))
     {
         PP -= 2.0 * p0_s * FF_inv_trans;
     }
-    if (!MathUtilities<double>::equalEps(beta_s, 0.0))
+    if (!IBTK::abs_equal_eps(beta_s, 0.0))
     {
         PP += beta_s * log(CC.det()) * FF_inv_trans;
     }
@@ -301,7 +301,7 @@ main(int argc, char* argv[])
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
-        while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
+        while (!IBTK::rel_equal_eps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();

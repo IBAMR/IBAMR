@@ -115,11 +115,10 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
                         const double gamma = homogeneous_bc && !extended_bc_coef ? 0.0 : (*gcoef_data)(i, 0);
 #if !defined(NDEBUG)
                         const double& beta = (*bcoef_data)(i, 0);
-                        TBOX_ASSERT(MathUtilities<double>::equalEps(alpha + beta, 1.0));
-                        TBOX_ASSERT(MathUtilities<double>::equalEps(alpha, 1.0) ||
-                                    MathUtilities<double>::equalEps(beta, 1.0));
+                        TBOX_ASSERT(IBTK::rel_equal_eps(alpha + beta, 1.0));
+                        TBOX_ASSERT(IBTK::rel_equal_eps(alpha, 1.0) || IBTK::rel_equal_eps(beta, 1.0));
 #endif
-                        if (MathUtilities<double>::equalEps(alpha, 1.0))
+                        if (IBTK::rel_equal_eps(alpha, 1.0))
                             (*u_data)(SideIndex<NDIM>(i, bdry_normal_axis, SideIndex<NDIM>::Lower)) = gamma;
                     }
                 }

@@ -283,7 +283,7 @@ KnifeFishKinematics::setKinematicsVelocity(const double new_time,
 {
     d_new_time = new_time;
     // fill current velocity at new time
-    if (!MathUtilities<double>::equalEps(0.0, d_new_time)) setKnifefishSpecificVelocity(d_new_time);
+    if (!IBTK::abs_equal_eps(0.0, d_new_time)) setKnifefishSpecificVelocity(d_new_time);
 
     d_current_time = d_new_time;
 

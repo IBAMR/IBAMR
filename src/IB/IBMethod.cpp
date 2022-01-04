@@ -334,7 +334,7 @@ IBMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double start_time = d_ib_solver->getStartTime();
-    const bool initial_time = MathUtilities<double>::equalEps(current_time, start_time);
+    const bool initial_time = IBTK::rel_equal_eps(current_time, start_time);
 
     if (d_ib_force_fcn)
     {
@@ -688,7 +688,7 @@ IBMethod::interpolateVelocity(const int u_data_idx,
                            /*coarsest_ln*/ 0,
                            /*finest_ln*/ d_hierarchy->getFinestLevelNumber());
 
-    if (!MathUtilities<double>::equalEps(data_time, d_half_time))
+    if (!IBTK::rel_equal_eps(data_time, d_half_time))
     {
         std::vector<Pointer<LData> >* U_half_data;
         getVelocityData(&U_half_data, d_half_time);
@@ -1712,17 +1712,17 @@ IBMethod::putToDatabase(Pointer<Database> db)
 void
 IBMethod::getPositionData(std::vector<Pointer<LData> >** X_data, bool** X_needs_ghost_fill, double data_time)
 {
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         *X_data = &d_X_current_data;
         *X_needs_ghost_fill = &d_X_current_needs_ghost_fill;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+    else if (IBTK::rel_equal_eps(data_time, d_half_time))
     {
         *X_data = &d_X_half_data;
         *X_needs_ghost_fill = &d_X_half_needs_ghost_fill;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (IBTK::rel_equal_eps(data_time, d_new_time))
     {
         *X_data = &d_X_new_data;
         *X_needs_ghost_fill = &d_X_new_needs_ghost_fill;
@@ -1760,17 +1760,17 @@ IBMethod::getLECouplingPositionData(std::vector<Pointer<LData> >** X_LE_data,
         return;
     }
 
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         *X_LE_data = &d_X_current_data;
         *X_LE_needs_ghost_fill = &d_X_current_needs_ghost_fill;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+    else if (IBTK::rel_equal_eps(data_time, d_half_time))
     {
         *X_LE_data = &d_X_LE_half_data;
         *X_LE_needs_ghost_fill = &d_X_LE_half_needs_ghost_fill;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (IBTK::rel_equal_eps(data_time, d_new_time))
     {
         *X_LE_data = &d_X_LE_new_data;
         *X_LE_needs_ghost_fill = &d_X_LE_new_needs_ghost_fill;
@@ -1781,15 +1781,15 @@ IBMethod::getLECouplingPositionData(std::vector<Pointer<LData> >** X_LE_data,
 void
 IBMethod::getVelocityData(std::vector<Pointer<LData> >** U_data, double data_time)
 {
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         *U_data = &d_U_current_data;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+    else if (IBTK::rel_equal_eps(data_time, d_half_time))
     {
         *U_data = &d_U_half_data;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (IBTK::rel_equal_eps(data_time, d_new_time))
     {
         *U_data = &d_U_new_data;
     }
@@ -1818,17 +1818,17 @@ IBMethod::getForceData(std::vector<Pointer<LData> >** F_data, bool** F_needs_gho
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         *F_data = &d_F_current_data;
         *F_needs_ghost_fill = &d_F_current_needs_ghost_fill;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+    else if (IBTK::rel_equal_eps(data_time, d_half_time))
     {
         *F_data = &d_F_half_data;
         *F_needs_ghost_fill = &d_F_half_needs_ghost_fill;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (IBTK::rel_equal_eps(data_time, d_new_time))
     {
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {

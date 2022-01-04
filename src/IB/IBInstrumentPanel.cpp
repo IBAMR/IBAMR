@@ -936,7 +936,7 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                                  << std::endl);
     }
 
-    if (!MathUtilities<double>::equalEps(data_time, d_instrument_read_time))
+    if (!IBTK::rel_equal_eps(data_time, d_instrument_read_time))
     {
         TBOX_ERROR(d_object_name << "::readInstrumentData():\n"
                                  << "  data read time: " << data_time

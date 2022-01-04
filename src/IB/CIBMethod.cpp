@@ -636,7 +636,7 @@ CIBMethod::interpolateVelocity(const int u_data_idx,
     if (d_lag_velvec_is_initialized)
     {
 #if !defined(NDEBUG)
-        TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+        TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_half_time));
 #endif
         std::vector<Pointer<LData> >*U_half_data, *X_half_data;
         bool* X_half_needs_ghost_fill;
@@ -661,7 +661,7 @@ CIBMethod::spreadForce(
     if (d_constraint_force_is_initialized)
     {
 #if !defined(NDEBUG)
-        TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+        TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_half_time));
 #endif
         if (f_phys_bdry_op == nullptr)
         {
@@ -965,7 +965,7 @@ void
 CIBMethod::setConstraintForce(Vec L, const double data_time, const double scale)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_half_time));
 #else
     NULL_USE(data_time);
 #endif
@@ -989,8 +989,7 @@ void
 CIBMethod::getConstraintForce(Vec* L, const double data_time)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_current_time) ||
-                MathUtilities<double>::equalEps(data_time, d_new_time));
+    TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_current_time) || IBTK::rel_equal_eps(data_time, d_new_time));
 #else
     NULL_USE(data_time);
 #endif
@@ -1006,8 +1005,7 @@ void
 CIBMethod::getFreeRigidVelocities(Vec* U, const double data_time)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_current_time) ||
-                MathUtilities<double>::equalEps(data_time, d_new_time));
+    TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_current_time) || IBTK::rel_equal_eps(data_time, d_new_time));
 #endif
 
     CIBStrategy::getFreeRigidVelocities(U, data_time);
@@ -1019,8 +1017,7 @@ void
 CIBMethod::getNetExternalForceTorque(Vec* F, const double data_time)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_current_time) ||
-                MathUtilities<double>::equalEps(data_time, d_new_time));
+    TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_current_time) || IBTK::rel_equal_eps(data_time, d_new_time));
 #endif
 
     CIBStrategy::getNetExternalForceTorque(F, data_time);
@@ -1085,7 +1082,7 @@ void
 CIBMethod::setInterpolatedVelocityVector(Vec /*V*/, const double data_time)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_half_time));
 #else
     NULL_USE(data_time);
 #endif
@@ -1098,7 +1095,7 @@ void
 CIBMethod::getInterpolatedVelocity(Vec V, const double data_time, const double scale)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_half_time));
 #else
     NULL_USE(data_time);
 #endif
@@ -1953,7 +1950,7 @@ CIBMethod::setRegularizationWeight(const int level_number)
                 const double& weight = reg_weight[lag_idx - lag_idx_range.first];
 
                 // For zero weight we do not use any regularization
-                if (!MathUtilities<double>::equalEps(weight, 0.0))
+                if (!IBTK::abs_equal_eps(weight, 0.0))
                 {
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {

@@ -123,7 +123,7 @@ IBInterpolantHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
     d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
     // At initial time interpolate Q.
-    bool initial_time = MathUtilities<double>::equalEps(current_time, 0.0);
+    bool initial_time = IBTK::abs_equal_eps(current_time, 0.0);
     if (initial_time) d_ib_interpolant_method_ops->interpolateQ();
 
     // Execute any registered callbacks.

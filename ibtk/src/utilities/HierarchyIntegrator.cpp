@@ -261,7 +261,7 @@ HierarchyIntegrator::advanceHierarchy(double dt)
         TBOX_ERROR(d_object_name << "::advanceHierarchy():\n"
                                  << "  at time = " << d_integrator_time << ": time step size dt = " << dt << ".\n");
     }
-    else if (current_time == new_time || MathUtilities<double>::equalEps(current_time, new_time))
+    else if (current_time == new_time || IBTK::rel_equal_eps(current_time, new_time))
     {
         TBOX_ERROR(d_object_name << "::advanceHierarchy():\n"
                                  << "  at time = " << d_integrator_time << ": time step size dt = " << dt
@@ -442,7 +442,7 @@ HierarchyIntegrator::regridHierarchy()
 
     const double new_volume = check_volume_change ? d_hier_math_ops->getVolumeOfPhysicalDomain() : 0.0;
 
-    if (check_volume_change && !MathUtilities<double>::equalEps(old_volume, new_volume))
+    if (check_volume_change && !IBTK::rel_equal_eps(old_volume, new_volume))
     {
         TBOX_WARNING(
             d_object_name << "::regridHierarchy():\n"
@@ -522,7 +522,7 @@ bool
 HierarchyIntegrator::stepsRemaining() const
 {
     return ((d_integrator_step < d_max_integrator_steps) && (d_integrator_time < d_end_time) &&
-            !MathUtilities<double>::equalEps(d_integrator_time, d_end_time));
+            !IBTK::rel_equal_eps(d_integrator_time, d_end_time));
 } // stepsRemaining
 
 void
@@ -647,7 +647,7 @@ HierarchyIntegrator::integrateHierarchy(const double current_time, const double 
 {
     ++d_current_cycle_num;
 #if !defined(NDEBUG)
-    TBOX_ASSERT(MathUtilities<double>::equalEps(d_current_dt, new_time - current_time));
+    TBOX_ASSERT(IBTK::abs_equal_eps(d_current_dt, new_time - current_time));
     TBOX_ASSERT(d_current_cycle_num == cycle_num);
     TBOX_ASSERT(d_current_cycle_num < d_current_num_cycles);
 #else
@@ -663,7 +663,7 @@ HierarchyIntegrator::skipCycle(const double current_time, const double new_time,
 {
     ++d_current_cycle_num;
 #if !defined(NDEBUG)
-    TBOX_ASSERT(MathUtilities<double>::equalEps(d_current_dt, new_time - current_time));
+    TBOX_ASSERT(IBTK::abs_equal_eps(d_current_dt, new_time - current_time));
     TBOX_ASSERT(d_current_cycle_num == cycle_num);
     TBOX_ASSERT(d_current_cycle_num < d_current_num_cycles);
 #else
@@ -681,7 +681,7 @@ HierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
                                                    const int num_cycles)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(MathUtilities<double>::equalEps(d_current_dt, new_time - current_time));
+    TBOX_ASSERT(IBTK::abs_equal_eps(d_current_dt, new_time - current_time));
     TBOX_ASSERT(num_cycles == d_current_num_cycles);
     TBOX_ASSERT(d_current_cycle_num + 1 == d_current_num_cycles);
 #else
@@ -1213,7 +1213,7 @@ double
 HierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
     double dt = d_dt_max;
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
+    const bool initial_time = IBTK::rel_equal_eps(d_integrator_time, d_start_time);
     if (initial_time)
     {
         dt = std::min(d_dt_init, d_dt_max);
@@ -1322,7 +1322,7 @@ HierarchyIntegrator::atRegridPointSpecialized() const
         // By default, always regrid before integrating the first time step.
         //
         // Subsequently, regrid according to the regrid interval.
-        const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
+        const bool initial_time = IBTK::abs_equal_eps(d_integrator_time, d_start_time);
         return initial_time ||
                ((d_integrator_step > 0) && (d_regrid_interval != 0) && (d_integrator_step % d_regrid_interval == 0));
     }

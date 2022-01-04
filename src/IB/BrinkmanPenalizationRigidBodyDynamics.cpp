@@ -71,7 +71,7 @@ set_rotation_matrix(const Eigen::Vector3d& rot_vel,
                     const double dt)
 {
     const double norm = rot_vel.norm();
-    if (!MathUtilities<double>::equalEps(norm, 0.0))
+    if (!IBTK::abs_equal_eps(norm, 0.0))
     {
         Eigen::Vector3d rot_axis = rot_vel / norm;
         Eigen::Quaterniond q(Eigen::AngleAxisd(norm * dt, rot_axis));
@@ -205,7 +205,7 @@ void
 BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double time, int cycle_num)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(MathUtilities<double>::equalEps(time, d_new_time));
+    TBOX_ASSERT(IBTK::rel_equal_eps(time, d_new_time));
 #endif
 
     const double hydro_compute_time = cycle_num > 0 ? time : d_current_time;
@@ -357,7 +357,7 @@ void
 BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double time, int /*cycle_num*/)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(MathUtilities<double>::equalEps(time, d_new_time));
+    TBOX_ASSERT(IBTK::rel_equal_eps(time, d_new_time));
 #else
     NULL_USE(time);
 #endif

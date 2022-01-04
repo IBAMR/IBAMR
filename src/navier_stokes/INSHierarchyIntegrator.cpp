@@ -383,7 +383,7 @@ int
 INSHierarchyIntegrator::getNumberOfCycles() const
 {
     int num_cycles = d_num_cycles;
-    if (!d_creeping_flow && MathUtilities<double>::equalEps(d_integrator_time, d_start_time) &&
+    if (!d_creeping_flow && IBTK::abs_equal_eps(d_integrator_time, d_start_time) &&
         is_multistep_time_stepping_type(d_convective_time_stepping_type) &&
         d_init_convective_time_stepping_type != FORWARD_EULER)
     {

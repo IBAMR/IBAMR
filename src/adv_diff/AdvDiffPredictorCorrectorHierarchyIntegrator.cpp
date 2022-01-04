@@ -293,7 +293,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
     const double half_time = current_time + 0.5 * dt;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
+    const bool initial_time = IBTK::rel_equal_eps(d_integrator_time, d_start_time);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Check to make sure that the number of cycles is what we expect it to be.
@@ -450,7 +450,7 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
 
     // Indicate that all linear solvers need to be reinitialized if the current
     // timestep size is different from the previous one.
-    if (cycle_num == 0 && (initial_time || !MathUtilities<double>::equalEps(dt, d_dt_previous[0])))
+    if (cycle_num == 0 && (initial_time || !IBTK::rel_equal_eps(dt, d_dt_previous[0])))
     {
         std::fill(d_helmholtz_solvers_need_init.begin(), d_helmholtz_solvers_need_init.end(), true);
         d_coarsest_reset_ln = 0;
@@ -664,7 +664,7 @@ double
 AdvDiffPredictorCorrectorHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
     double dt = HierarchyIntegrator::getMaximumTimeStepSizeSpecialized();
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
+    const bool initial_time = IBTK::rel_equal_eps(d_integrator_time, d_start_time);
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);

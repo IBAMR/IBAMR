@@ -111,7 +111,7 @@ set_rotation_matrix(const Eigen::Vector3d& rot_vel,
                     const double dt)
 {
     const double norm = rot_vel.norm();
-    if (!MathUtilities<double>::equalEps(norm, 0.0))
+    if (!IBTK::abs_equal_eps(norm, 0.0))
     {
         Eigen::Vector3d rot_axis = rot_vel / norm;
         Eigen::Quaterniond q(Eigen::AngleAxisd(norm * dt, rot_axis));
@@ -435,7 +435,7 @@ IBFEDirectForcingKinematics::computeLagrangianForce(PetscVector<double>& F_petsc
                                                     PetscVector<double>& U_petsc,
                                                     const double data_time)
 {
-    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_half_time));
 
     bool all_imposed_dofs = true;
     for (int k = 0; k < s_max_free_dofs; ++k)

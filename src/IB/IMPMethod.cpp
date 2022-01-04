@@ -517,7 +517,7 @@ IMPMethod::interpolateVelocity(const int u_data_idx,
         (*Grad_U_data)[ln]->restoreArrays();
         (*X_data)[ln]->restoreArrays();
     }
-    d_U_half_needs_reinit = !MathUtilities<double>::equalEps(data_time, d_half_time);
+    d_U_half_needs_reinit = !IBTK::rel_equal_eps(data_time, d_half_time);
     return;
 } // interpolateVelocity
 
@@ -1085,12 +1085,12 @@ IMPMethod::getPositionData(std::vector<Pointer<LData> >** X_data, bool** X_needs
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         *X_data = &d_X_current_data;
         *X_needs_ghost_fill = &d_X_current_needs_ghost_fill;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+    else if (IBTK::rel_equal_eps(data_time, d_half_time))
     {
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
@@ -1110,7 +1110,7 @@ IMPMethod::getPositionData(std::vector<Pointer<LData> >** X_data, bool** X_needs
         *X_data = &d_X_half_data;
         *X_needs_ghost_fill = &d_X_half_needs_ghost_fill;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (IBTK::rel_equal_eps(data_time, d_new_time))
     {
         *X_data = &d_X_new_data;
         *X_needs_ghost_fill = &d_X_new_needs_ghost_fill;
@@ -1125,12 +1125,12 @@ IMPMethod::getVelocityData(std::vector<Pointer<LData> >** U_data,
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         *U_data = &d_U_current_data;
         *Grad_U_data = &d_Grad_U_current_data;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+    else if (IBTK::rel_equal_eps(data_time, d_half_time))
     {
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
@@ -1151,7 +1151,7 @@ IMPMethod::getVelocityData(std::vector<Pointer<LData> >** U_data,
         *U_data = &d_U_half_data;
         *Grad_U_data = &d_Grad_U_half_data;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (IBTK::rel_equal_eps(data_time, d_new_time))
     {
         *U_data = &d_U_new_data;
         *Grad_U_data = &d_Grad_U_new_data;
@@ -1162,15 +1162,15 @@ IMPMethod::getVelocityData(std::vector<Pointer<LData> >** U_data,
 void
 IMPMethod::getDeformationGradientData(std::vector<Pointer<LData> >** F_data, double data_time)
 {
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         *F_data = &d_F_current_data;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+    else if (IBTK::rel_equal_eps(data_time, d_half_time))
     {
         *F_data = &d_F_half_data;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (IBTK::rel_equal_eps(data_time, d_new_time))
     {
         *F_data = &d_F_new_data;
     }

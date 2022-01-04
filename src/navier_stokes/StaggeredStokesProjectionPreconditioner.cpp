@@ -159,7 +159,7 @@ StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, doub
     // Determine whether we are solving a steady-state problem.
     const bool steady_state =
         d_U_problem_coefs.cIsZero() ||
-        (d_U_problem_coefs.cIsConstant() && MathUtilities<double>::equalEps(d_U_problem_coefs.getCConstant(), 0.0));
+        (d_U_problem_coefs.cIsConstant() && IBTK::abs_equal_eps(d_U_problem_coefs.getCConstant(), 0.0));
 
     // Get the vector components.
     const int F_U_idx = b.getComponentDescriptorIndex(0);

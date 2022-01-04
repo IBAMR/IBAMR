@@ -30,6 +30,7 @@
 #include <ibtk/CartCellRobinPhysBdryOp.h>
 #include <ibtk/CartExtrapPhysBdryOp.h>
 #include <ibtk/IBTKInit.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include <LocationIndexRobinBcCoefs.h>
 
@@ -239,7 +240,7 @@ main(int argc, char* argv[])
                         }
                         auto fcn = fcnMap[extrap_type];
                         double val = fcn(x.data());
-                        if (!MathUtilities<double>::equalEps(val, (*c_data)(i)))
+                        if (!IBTK::rel_equal_eps(val, (*c_data)(i)))
                         {
                             warning = true;
                             pout << "warning: value at location " << i << " is not correct\n";
@@ -260,7 +261,7 @@ main(int argc, char* argv[])
                             }
                             auto fcn = fcnMap[extrap_type];
                             double val = fcn(x.data());
-                            if (!MathUtilities<double>::equalEps(val, (*s_data)(i)))
+                            if (!IBTK::rel_equal_eps(val, (*s_data)(i)))
                             {
                                 warning = true;
                                 pout << "warning: value at location " << i << " is not correct\n";
@@ -282,7 +283,7 @@ main(int argc, char* argv[])
                             }
                             auto fcn = fcnMap[extrap_type];
                             double val = fcn(x.data());
-                            if (!MathUtilities<double>::equalEps(val, (*f_data)(i)))
+                            if (!IBTK::rel_equal_eps(val, (*f_data)(i)))
                             {
                                 warning = true;
                                 pout << "warning: value at location " << i << " is not correct\n";
@@ -302,7 +303,7 @@ main(int argc, char* argv[])
                         }
                         auto fcn = fcnMap[extrap_type];
                         double val = fcn(x.data());
-                        if (!MathUtilities<double>::equalEps(val, (*n_data)(i)))
+                        if (!IBTK::rel_equal_eps(val, (*n_data)(i)))
                         {
                             warning = true;
                             pout << "warning: value at location " << i << " is not correct\n";

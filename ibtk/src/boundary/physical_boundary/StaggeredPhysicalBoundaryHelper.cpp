@@ -15,6 +15,7 @@
 
 #include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/StaggeredPhysicalBoundaryHelper.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "ArrayData.h"
 #include "BoundaryBox.h"
@@ -251,12 +252,10 @@ StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<RobinBcCoefSt
                         const double& alpha = (*acoef_data)(i, 0);
                         const double& beta = (*bcoef_data)(i, 0);
 #if !defined(NDEBUG)
-                        TBOX_ASSERT(MathUtilities<double>::equalEps(alpha + beta, 1.0));
-                        TBOX_ASSERT(MathUtilities<double>::equalEps(alpha, 1.0) ||
-                                    MathUtilities<double>::equalEps(beta, 1.0));
+                        TBOX_ASSERT(IBTK::rel_equal_eps(alpha + beta, 1.0));
+                        TBOX_ASSERT(IBTK::rel_equal_eps(alpha, 1.0) || IBTK::rel_equal_eps(beta, 1.0));
 #endif
-                        bdry_locs_data(i, 0) = MathUtilities<double>::equalEps(alpha, 1.0) &&
-                                               (beta == 0.0 || MathUtilities<double>::equalEps(beta, 0.0));
+                        bdry_locs_data(i, 0) = IBTK::rel_equal_eps(alpha, 1.0) && IBTK::abs_equal_eps(beta, 0.0);
                     }
                 }
             }

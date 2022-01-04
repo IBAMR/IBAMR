@@ -85,11 +85,11 @@ SetFluidGasSolidDensity::setDensityPatchData(int rho_idx,
 
     int ls_solid_idx = -1;
     int ls_gas_idx = -1;
-    if (MathUtilities<double>::equalEps(time, current_time))
+    if (IBTK::rel_equal_eps(time, current_time))
     {
         ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getCurrentContext());
     }
-    else if (MathUtilities<double>::equalEps(time, new_time))
+    else if (IBTK::rel_equal_eps(time, new_time))
     {
         ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
     }
@@ -98,11 +98,11 @@ SetFluidGasSolidDensity::setDensityPatchData(int rho_idx,
         TBOX_ERROR("This statement should not be reached");
     }
 
-    if (MathUtilities<double>::equalEps(time, current_time))
+    if (IBTK::rel_equal_eps(time, current_time))
     {
         ls_gas_idx = var_db->mapVariableAndContextToIndex(d_ls_gas_var, d_adv_diff_solver->getCurrentContext());
     }
-    else if (MathUtilities<double>::equalEps(time, new_time))
+    else if (IBTK::rel_equal_eps(time, new_time))
     {
         ls_gas_idx = var_db->mapVariableAndContextToIndex(d_ls_gas_var, d_adv_diff_solver->getNewContext());
     }

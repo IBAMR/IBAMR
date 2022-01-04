@@ -515,7 +515,7 @@ StaggeredStokesBlockFactorizationPreconditioner::solvePressureSubsystem(SAMRAIVe
     // in which K depends on the form of the time stepping scheme.
     const bool steady_state =
         d_U_problem_coefs.cIsZero() ||
-        (d_U_problem_coefs.cIsConstant() && MathUtilities<double>::equalEps(d_U_problem_coefs.getCConstant(), 0.0));
+        (d_U_problem_coefs.cIsConstant() && IBTK::abs_equal_eps(d_U_problem_coefs.getCConstant(), 0.0));
     if (steady_state)
     {
         d_pressure_data_ops->scale(P_idx, d_U_problem_coefs.getDConstant(), F_P_idx);

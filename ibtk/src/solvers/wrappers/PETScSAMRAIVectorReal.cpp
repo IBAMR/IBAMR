@@ -438,11 +438,11 @@ PETScSAMRAIVectorReal::VecAXPY_SAMRAI(Vec y, PetscScalar alpha, Vec x)
     IBTK_TIMER_START(t_vec_axpy);
     PSVR_CHECK2(x, y);
     static const bool interior_only = false;
-    if (MathUtilities<double>::equalEps(alpha, 1.0))
+    if (IBTK::rel_equal_eps(alpha, 1.0))
     {
         PSVR_CAST2(y)->add(PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
     }
-    else if (MathUtilities<double>::equalEps(alpha, -1.0))
+    else if (IBTK::rel_equal_eps(alpha, -1.0))
     {
         PSVR_CAST2(y)->subtract(PSVR_CAST2(y), PSVR_CAST2(x), interior_only);
     }
@@ -462,15 +462,15 @@ PETScSAMRAIVectorReal::VecAXPBY_SAMRAI(Vec y, PetscScalar alpha, PetscScalar bet
     IBTK_TIMER_START(t_vec_axpby);
     PSVR_CHECK2(x, y);
     static const bool interior_only = false;
-    if (MathUtilities<double>::equalEps(alpha, 1.0) && MathUtilities<double>::equalEps(beta, 1.0))
+    if (IBTK::rel_equal_eps(alpha, 1.0) && IBTK::rel_equal_eps(beta, 1.0))
     {
         PSVR_CAST2(y)->add(PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
     }
-    else if (MathUtilities<double>::equalEps(beta, 1.0))
+    else if (IBTK::rel_equal_eps(beta, 1.0))
     {
         PSVR_CAST2(y)->axpy(alpha, PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
     }
-    else if (MathUtilities<double>::equalEps(alpha, 1.0))
+    else if (IBTK::rel_equal_eps(alpha, 1.0))
     {
         PSVR_CAST2(y)->axpy(beta, PSVR_CAST2(y), PSVR_CAST2(x), interior_only);
     }
@@ -493,11 +493,11 @@ PETScSAMRAIVectorReal::VecMAXPY_SAMRAI(Vec y, PetscInt nv, const PetscScalar* al
     static const bool interior_only = false;
     for (PetscInt i = 0; i < nv; ++i)
     {
-        if (MathUtilities<double>::equalEps(alpha[i], 1.0))
+        if (IBTK::rel_equal_eps(alpha[i], 1.0))
         {
             PSVR_CAST2(y)->add(PSVR_CAST2(x[i]), PSVR_CAST2(y), interior_only);
         }
-        else if (MathUtilities<double>::equalEps(alpha[i], -1.0))
+        else if (IBTK::rel_equal_eps(alpha[i], -1.0))
         {
             PSVR_CAST2(y)->subtract(PSVR_CAST2(y), PSVR_CAST2(x[i]), interior_only);
         }
@@ -518,11 +518,11 @@ PETScSAMRAIVectorReal::VecAYPX_SAMRAI(Vec y, const PetscScalar alpha, Vec x)
     IBTK_TIMER_START(t_vec_aypx);
     PSVR_CHECK2(x, y);
     static const bool interior_only = false;
-    if (MathUtilities<double>::equalEps(alpha, 1.0))
+    if (IBTK::rel_equal_eps(alpha, 1.0))
     {
         PSVR_CAST2(y)->add(PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
     }
-    else if (MathUtilities<double>::equalEps(alpha, -1.0))
+    else if (IBTK::rel_equal_eps(alpha, -1.0))
     {
         PSVR_CAST2(y)->subtract(PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
     }
@@ -542,11 +542,11 @@ PETScSAMRAIVectorReal::VecWAXPY_SAMRAI(Vec w, PetscScalar alpha, Vec x, Vec y)
     IBTK_TIMER_START(t_vec_waxpy);
     PSVR_CHECK3(w, x, y);
     static const bool interior_only = false;
-    if (MathUtilities<double>::equalEps(alpha, 1.0))
+    if (IBTK::rel_equal_eps(alpha, 1.0))
     {
         PSVR_CAST2(w)->add(PSVR_CAST2(x), PSVR_CAST2(y), interior_only);
     }
-    else if (MathUtilities<double>::equalEps(alpha, -1.0))
+    else if (IBTK::rel_equal_eps(alpha, -1.0))
     {
         PSVR_CAST2(w)->subtract(PSVR_CAST2(y), PSVR_CAST2(x), interior_only);
     }

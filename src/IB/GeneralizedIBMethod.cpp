@@ -178,7 +178,7 @@ GeneralizedIBMethod::preprocessIntegrateData(double current_time, double new_tim
     {
         if (d_ib_force_and_torque_fcn_needs_init)
         {
-            const bool initial_time = MathUtilities<double>::equalEps(current_time, start_time);
+            const bool initial_time = IBTK::rel_equal_eps(current_time, start_time);
             resetLagrangianForceAndTorqueFunction(current_time, initial_time);
             d_ib_force_and_torque_fcn_needs_init = false;
         }
@@ -252,18 +252,18 @@ GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
 
     // Interpolate the angular velocities.
     std::vector<Pointer<LData> >* W_data = nullptr;
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         W_data = &d_W_current_data;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+    else if (IBTK::rel_equal_eps(data_time, d_half_time))
     {
         TBOX_ERROR(d_object_name << "::interpolateVelocity():\n"
                                  << "  time-stepping type MIDPOINT_RULE not supported by "
                                     "class GeneralizedIBMethod;\n"
                                  << "  use TRAPEZOIDAL_RULE instead.\n");
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (IBTK::rel_equal_eps(data_time, d_new_time))
     {
         W_data = &d_W_new_data;
     }
@@ -442,7 +442,7 @@ GeneralizedIBMethod::computeLagrangianForce(const double data_time)
     std::vector<Pointer<LData> >* N_data = nullptr;
     std::vector<Pointer<LData> >* X_data = nullptr;
     std::vector<Pointer<LData> >* D_data = nullptr;
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         d_F_current_needs_ghost_fill = true;
         d_N_current_needs_ghost_fill = true;
@@ -451,14 +451,14 @@ GeneralizedIBMethod::computeLagrangianForce(const double data_time)
         X_data = &d_X_current_data;
         D_data = &d_D_current_data;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+    else if (IBTK::rel_equal_eps(data_time, d_half_time))
     {
         TBOX_ERROR(d_object_name << "::computeLagrangianForce():\n"
                                  << "  time-stepping type MIDPOINT_RULE not supported by "
                                     "class GeneralizedIBMethod;\n"
                                  << "  use TRAPEZOIDAL_RULE instead.\n");
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (IBTK::rel_equal_eps(data_time, d_new_time))
     {
         d_F_new_needs_ghost_fill = true;
         d_N_new_needs_ghost_fill = true;
@@ -499,19 +499,19 @@ GeneralizedIBMethod::spreadForce(const int f_data_idx,
 
     std::vector<Pointer<LData> >* N_data = nullptr;
     bool* N_needs_ghost_fill = nullptr;
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         N_data = &d_N_current_data;
         N_needs_ghost_fill = &d_N_current_needs_ghost_fill;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+    else if (IBTK::rel_equal_eps(data_time, d_half_time))
     {
         TBOX_ERROR(d_object_name << "::spreadForce():\n"
                                  << "  time-stepping type MIDPOINT_RULE not supported by "
                                     "class GeneralizedIBMethod;\n"
                                  << "  use TRAPEZOIDAL_RULE instead.\n");
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (IBTK::rel_equal_eps(data_time, d_new_time))
     {
         N_data = &d_N_new_data;
         N_needs_ghost_fill = &d_N_new_needs_ghost_fill;

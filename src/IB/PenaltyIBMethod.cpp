@@ -278,7 +278,7 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
 
     double max_displacement = 0.0;
 
-    if (MathUtilities<double>::equalEps(data_time, d_current_time))
+    if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
@@ -302,7 +302,7 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
         }
         d_F_current_needs_ghost_fill = true;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+    else if (IBTK::rel_equal_eps(data_time, d_half_time))
     {
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
@@ -330,7 +330,7 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
         }
         d_F_half_needs_ghost_fill = true;
     }
-    else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+    else if (IBTK::rel_equal_eps(data_time, d_new_time))
     {
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {

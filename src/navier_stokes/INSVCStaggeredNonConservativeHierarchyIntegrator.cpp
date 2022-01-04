@@ -751,7 +751,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
     {
         d_hier_sc_data_ops->resetLevels(ln, ln);
         const double A_scale = d_A_scale[ln];
-        if (!MathUtilities<double>::equalEps(A_scale, 1.0))
+        if (!IBTK::rel_equal_eps(A_scale, 1.0))
         {
             d_hier_sc_data_ops->scale(d_rhs_vec->getComponentDescriptorIndex(0),
                                       A_scale,
@@ -769,7 +769,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
     {
         d_hier_sc_data_ops->resetLevels(ln, ln);
         const double A_scale = d_A_scale[ln];
-        if (!MathUtilities<double>::equalEps(A_scale, 1.0))
+        if (!IBTK::rel_equal_eps(A_scale, 1.0))
         {
             d_hier_sc_data_ops->scale(d_rhs_vec->getComponentDescriptorIndex(0),
                                       1.0 / A_scale,
@@ -1246,8 +1246,8 @@ void
 INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const double current_time,
                                                                             const double new_time)
 {
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     const double dt = new_time - current_time;
+    const bool initial_time = IBTK::rel_equal_eps(d_integrator_time, d_start_time);
     const double half_time = current_time + 0.5 * dt;
     const double rho = d_rho_is_const ? d_problem_coefs.getRho() : -1.0;
     const double mu = d_mu_is_const ? d_problem_coefs.getMu() : -1.0;
@@ -1295,7 +1295,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
         {
             d_hier_sc_data_ops->scale(d_velocity_C_idx, A_scale / dt, d_rho_interp_idx, /*interior_only*/ true);
 
-            if (!MathUtilities<double>::equalEps(lambda, 0.0))
+            if (!IBTK::rel_equal_eps(lambda, 0.0))
             {
                 d_hier_sc_data_ops->addScalar(d_velocity_C_idx,
                                               d_velocity_C_idx,
@@ -1372,7 +1372,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
 
     // Ensure that solver components are appropriately reinitialized at the
     // correct intervals or when the time step size changes.
-    const bool dt_change = initial_time || !MathUtilities<double>::equalEps(dt, d_dt_previous[0]);
+    const bool dt_change = initial_time || !IBTK::rel_equal_eps(dt, d_dt_previous[0]);
     const bool precond_reinit = d_integrator_step % d_precond_reinit_interval == 0;
     if (precond_reinit)
     {
@@ -1387,8 +1387,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
     }
 
     // Setup subdomain solvers.
-    const bool has_velocity_nullspace =
-        d_normalize_velocity && (d_rho_is_const && MathUtilities<double>::equalEps(rho, 0.0));
+    const bool has_velocity_nullspace = d_normalize_velocity && (d_rho_is_const && IBTK::abs_equal_eps(rho, 0.0));
     const bool has_pressure_nullspace = d_normalize_pressure;
 
     if (d_velocity_solver)
@@ -1682,7 +1681,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
     {
         d_hier_cc_data_ops->resetLevels(ln, ln);
         const double A_scale = d_A_scale[ln];
-        if (!MathUtilities<double>::equalEps(A_scale, 1.0))
+        if (!IBTK::rel_equal_eps(A_scale, 1.0))
         {
             d_hier_cc_data_ops->scale(sol_vec->getComponentDescriptorIndex(1),
                                       A_scale,
@@ -1739,7 +1738,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::resetSolverVectors(
     {
         d_hier_cc_data_ops->resetLevels(ln, ln);
         const double A_scale = d_A_scale[ln];
-        if (!MathUtilities<double>::equalEps(A_scale, 1.0))
+        if (!IBTK::rel_equal_eps(A_scale, 1.0))
         {
             d_hier_cc_data_ops->scale(d_P_new_idx,
                                       1.0 / A_scale,

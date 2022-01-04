@@ -405,7 +405,7 @@ IBEELKinematics::setEelSpecificVelocity(const double time,
             {
                 radius_circular_path = CUT_OFF_RADIUS;
             }
-            else if (MathUtilities<double>::equalEps(MathUtilities<double>::Abs(angle_bw_target_vision), 0.0))
+            else if (IBTK::abs_equal_eps(MathUtilities<double>::Abs(angle_bw_target_vision), 0.0))
             {
                 radius_circular_path = __INFINITY;
             }

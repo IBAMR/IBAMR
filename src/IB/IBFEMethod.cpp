@@ -1084,7 +1084,7 @@ void
 IBFEMethod::computeLagrangianFluidSource(double data_time)
 {
     IBAMR_TIMER_START(t_compute_lagrangian_fluid_source);
-    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_half_time));
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         if (!d_lag_body_source_part[part]) continue;
@@ -1190,7 +1190,7 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
     IBAMR_TIMER_START(t_spread_fluid_source);
     std::vector<PetscVector<double>*> X_IB_ghost_vecs = d_X_IB_vecs->getIBGhosted("tmp");
     std::vector<PetscVector<double>*> Q_IB_ghost_vecs = d_Q_IB_vecs->getIBGhosted("tmp");
-    TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_half_time));
     batch_vec_copy({ d_X_vecs->get("half"), d_Q_vecs->get("half") }, { X_IB_ghost_vecs, Q_IB_ghost_vecs });
     batch_vec_ghost_update({ X_IB_ghost_vecs, Q_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 

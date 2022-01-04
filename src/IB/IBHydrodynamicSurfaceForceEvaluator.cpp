@@ -209,11 +209,11 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
                                                                     double new_time)
 {
     bool use_current_ctx = false, use_new_ctx = false;
-    if (MathUtilities<double>::equalEps(time, current_time))
+    if (IBTK::rel_equal_eps(time, current_time))
     {
         use_current_ctx = true;
     }
-    else if (MathUtilities<double>::equalEps(time, new_time))
+    else if (IBTK::rel_equal_eps(time, new_time))
     {
         use_new_ctx = true;
     }

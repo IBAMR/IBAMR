@@ -188,10 +188,10 @@ OscillatingCylinderKinematics::setKinematicsVelocity(
 {
     d_new_time = new_time;
     // fill current velocity at new time
-    if (!MathUtilities<double>::equalEps(0.0, d_new_time)) setOscillatingCylinderSpecificVelocity(d_new_time);
+    if (!IBTK::abs_equal_eps(0.0, d_new_time)) setOscillatingCylinderSpecificVelocity(d_new_time);
 
     // swap current and new velocity
-    if (MathUtilities<double>::equalEps(0.0, d_new_time))
+    if (IBTK::abs_equal_eps(0.0, d_new_time))
         d_new_kinematics_vel = d_current_kinematics_vel;
     else
         d_new_kinematics_vel.swap(d_current_kinematics_vel);

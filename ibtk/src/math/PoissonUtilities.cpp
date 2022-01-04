@@ -676,7 +676,7 @@ PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coeff
                 else
                 {
 #if !defined(NDEBUG)
-                    TBOX_ASSERT(!MathUtilities<double>::equalEps(b, 0.0));
+                    TBOX_ASSERT(!IBTK::abs_equal_eps(b, 0.0));
 #endif
                     if (is_lower)
                     {
@@ -1191,7 +1191,7 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
                 else
                 {
 #if !defined(NDEBUG)
-                    TBOX_ASSERT(!MathUtilities<double>::equalEps(b, 0.0));
+                    TBOX_ASSERT(!IBTK::abs_equal_eps(b, 0.0));
 #endif
                     if (is_lower)
                     {
@@ -1543,7 +1543,7 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
                 if (b != 0.0)
                 {
 #if !defined(NDEBUG)
-                    TBOX_ASSERT(!MathUtilities<double>::equalEps(b, 0.0));
+                    TBOX_ASSERT(!IBTK::abs_equal_eps(b, 0.0));
 #endif
                     rhs_data(i_s_bdry) += (D / h) * (-2.0 * g) / b;
                 }
@@ -1926,7 +1926,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
                 if (b != 0.0)
                 {
 #if !defined(NDEBUG)
-                    TBOX_ASSERT(!MathUtilities<double>::equalEps(b, 0.0));
+                    TBOX_ASSERT(!IBTK::abs_equal_eps(b, 0.0));
 #endif
                     rhs_data(i_s_bdry) += (2.0 * alpha) * (D / h) * (-2.0 * g) / b;
                 }

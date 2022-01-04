@@ -31,6 +31,7 @@
 #include <ibtk/CartExtrapPhysBdryOp.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include <LocationIndexRobinBcCoefs.h>
 
@@ -146,7 +147,7 @@ main(int argc, char* argv[])
                         val += 4 * (d + 1) * (d + 1) * i(d);
                     }
 
-                    if (!MathUtilities<double>::equalEps(val, (*data)(i)))
+                    if (!IBTK::rel_equal_eps(val, (*data)(i)))
                     {
                         warning = true;
                         pout << "warning: value at location " << i << " is not correct\n";
@@ -212,7 +213,7 @@ main(int argc, char* argv[])
                     }
                     double val = 2.0 * X[NDIM - 1] + shift;
 
-                    if (!MathUtilities<double>::equalEps(val, (*data)(i)))
+                    if (!IBTK::rel_equal_eps(val, (*data)(i)))
                     {
                         warning = true;
                         pout << "warning: value at location " << i << " is not correct\n";
@@ -256,7 +257,7 @@ main(int argc, char* argv[])
                     }
                     double val = 2.0 * X[NDIM - 1] + shift;
 
-                    if (!MathUtilities<double>::equalEps(val, (*data)(i)))
+                    if (!IBTK::rel_equal_eps(val, (*data)(i)))
                     {
                         warning = true;
                         pout << "warning: value at location " << i << " is not correct\n";
