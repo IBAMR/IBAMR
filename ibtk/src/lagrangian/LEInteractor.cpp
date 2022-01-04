@@ -1365,6 +1365,7 @@ string_to_kernel(const std::string& kernel_fcn)
         case '6':
             return BSPLINE_6;
         }
+        break;
     }
     // DISCONTINUOUS family
     case 'D':
@@ -1383,6 +1384,7 @@ string_to_kernel(const std::string& kernel_fcn)
         case 'U':
             return PIECEWISE_CUBIC;
         }
+        break;
     }
     // classic IB family
     case 'I':
@@ -1398,6 +1400,7 @@ string_to_kernel(const std::string& kernel_fcn)
         case '6':
             return IB_6;
         }
+        break;
     }
     // user defined
     case 'U':
