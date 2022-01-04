@@ -190,7 +190,8 @@ BoxPartitioner::_do_partition(MeshBase& mesh, const unsigned int n)
     }
     std::vector<libMesh::Point> node_positions(mesh.parallel_n_nodes());
     std::size_t node_n = 0;
-    for (auto node_it = mesh.nodes_begin(); node_it != mesh.nodes_end(); ++node_it)
+    const auto node_end = mesh.nodes_end();
+    for (auto node_it = mesh.nodes_begin(); node_it != node_end; ++node_it)
     {
         const Node* const node = *node_it;
         TBOX_ASSERT(node->id() == node_n);
