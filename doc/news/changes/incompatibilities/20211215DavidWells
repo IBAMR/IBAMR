@@ -1,0 +1,6 @@
+Changed: IBTK_MPI's unused MPI type aliases have been removed.
+Additionally, the optional communicator arguments have been removed.
+This change was necessary to prevent a type conversion error that caused
+compilation issues with versions of MPI that use unsigned int for MPI_Comm.
+<br>
+(David Wells, 2021/12/15)
