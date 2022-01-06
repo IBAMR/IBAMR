@@ -11,24 +11,22 @@
 ##
 ## ---------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.8)
-
-include("${CMAKE_CURRENT_LIST_DIR}/github_ci.cmake")
+INCLUDE("${CMAKE_CURRENT_LIST_DIR}/github_ci.cmake")
 
 # Read the files from the build directory.
-ctest_read_custom_files("${CTEST_BINARY_DIRECTORY}")
+CTEST_READ_CUSTOM_FILES("${CTEST_BINARY_DIRECTORY}")
 # Uncomment the line below and all ctest_submit_multi lines
 # if CTestConfig.cmake defines `drop_sites`.
 # include("${CMAKE_CURRENT_LIST_DIR}/ctest_submit_multi.cmake")
 
 # Pick up from where the configure left off.
-ctest_start(APPEND)
+CTEST_START(APPEND)
 
-include(ProcessorCount)
+INCLUDE(ProcessorCount)
 ProcessorCount(nproc)
 
-include("${CMAKE_CURRENT_LIST_DIR}/ctest_exclusions.cmake")
-ctest_test(
+INCLUDE("${CMAKE_CURRENT_LIST_DIR}/ctest_exclusions.cmake")
+CTEST_TEST(
   PARALLEL_LEVEL "${nproc}"
   RETURN_VALUE test_result
   EXCLUDE "${test_exclusions}")
@@ -43,9 +41,8 @@ ctest_test(
 # endif()
 
 # ctest_submit_multi(PARTS Test)
-ctest_submit(PARTS Test)
+CTEST_SUBMIT(PARTS Test)
 
-if (test_result)
-  message(FATAL_ERROR
-    "Failed to test")
-endif ()
+IF (test_result)
+  MESSAGE(FATAL_ERROR "Failed to test")
+ENDIF ()
