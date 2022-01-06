@@ -29,11 +29,11 @@ IF (CTEST_CMAKE_GENERATOR STREQUAL "Unix Makefiles")
   ProcessorCount(nproc)
 ENDIF ()
 
-ctest_build(
+CTEST_BUILD(
   NUMBER_WARNINGS num_warnings
-  RETURN_VALUE build_result)
-# ctest_submit_multi(PARTS Build)
-ctest_submit(PARTS Build)
+  RETURN_VALUE build_result
+  TARGET tests
+  )
 
 CTEST_SUBMIT(PARTS Build)
 
