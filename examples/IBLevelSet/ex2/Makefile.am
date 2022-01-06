@@ -39,7 +39,7 @@ examples: $(EXAMPLES)
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input[2]d ; 
+	  rm -f $(builddir)/input[2]d ; \
 	fi ;
 
 
