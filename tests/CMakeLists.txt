@@ -11,7 +11,7 @@
 ##
 ## ---------------------------------------------------------------------
 
-ADD_CUSTOM_TARGET(tests ALL)
+ADD_CUSTOM_TARGET(tests)
 
 # We use the list of test directories in two ways:
 # 1. each test is added to a target tests-dir so that, e.g., 'make tests-IBFE'
@@ -297,18 +297,18 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/tests/attest.conf.in
   ${CMAKE_BINARY_DIR}/attest.conf)
 
 # For the time being, run `attest` as if it were a single test.
-set(disabled_tests)
-list(APPEND disabled_tests "mpirun=[3-9]")
-list(APPEND disabled_tests "explicit_ex1_2d.mpirun=4.input")
-list(APPEND disabled_tests "explicit_ex2_3d.nodal_quadrature.input")
-list(APPEND disabled_tests "explicit_ex4_3d.mpirun=4.input")
-list(APPEND disabled_tests "explicit_ex5_3d.mpirun=2.input")
-list(APPEND disabled_tests "explicit_ex8_2d.input")
-list(APPEND disabled_tests "explicit_ex8_2d.scratch_hier.input")
-list(APPEND disabled_tests "free_falling_cyl_cib|cib_plate")
-list(APPEND disabled_tests "nwt_cylinder|rotating_barge|cib_double_shell")
-list(JOIN disabled_tests "|" disabled_test_regex)
-add_test(
+SET(disabled_tests)
+LIST(APPEND disabled_tests "mpirun=[3-9]")
+LIST(APPEND disabled_tests "explicit_ex1_2d.mpirun=4.input")
+LIST(APPEND disabled_tests "explicit_ex2_3d.nodal_quadrature.input")
+LIST(APPEND disabled_tests "explicit_ex4_3d.mpirun=4.input")
+LIST(APPEND disabled_tests "explicit_ex5_3d.mpirun=2.input")
+LIST(APPEND disabled_tests "explicit_ex8_2d.input")
+LIST(APPEND disabled_tests "explicit_ex8_2d.scratch_hier.input")
+LIST(APPEND disabled_tests "free_falling_cyl_cib|cib_plate")
+LIST(APPEND disabled_tests "nwt_cylinder|rotating_barge|cib_double_shell")
+LIST(JOIN disabled_tests "|" disabled_test_regex)
+ADD_TEST(
   NAME autotests
   COMMAND "${CMAKE_SOURCE_DIR}/attest"
     "-j4"
@@ -316,8 +316,7 @@ add_test(
     "--test-timeout=120"
      -E
      "${disabled_test_regex}"
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-)
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 set_tests_properties(autotests
   PROPERTIES
     ENVIRONMENT "PYTHONUNBUFFERED=yes"

@@ -27,7 +27,7 @@ MESSAGE(STATUS "This is CMake ${CMAKE_VERSION}")
 MESSAGE(STATUS "")
 INCLUDE(GNUInstallDirs)
 INCLUDE(CMakePackageConfigHelpers)
-include(CTest)
+INCLUDE(CTest)
 
 # Version info:
 FILE(STRINGS "${CMAKE_SOURCE_DIR}/VERSION" _version LIMIT_COUNT 1)
@@ -36,7 +36,6 @@ STRING(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_MINOR "${_version
 STRING(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+).*" "\\1" IBTK_VERSION_SUBMINOR "${_version}")
 SET(IBTK_VERSION ${IBTK_VERSION_MAJOR}.${IBTK_VERSION_MINOR}.${IBTK_VERSION_SUBMINOR})
 SET(IBAMR_VERSION ${IBTK_VERSION})
-SET(IBAMR_DEPENDENCY_LINK_ARGUMENTS "")
 
 # Build tests?
 option(IBAMR_ENABLE_TESTING "Should tests be compiled and configured to run with ctest?" ON)

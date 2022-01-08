@@ -11,35 +11,34 @@
 ##
 ## ---------------------------------------------------------------------
 
-include("${CMAKE_CURRENT_LIST_DIR}/github_ci.cmake")
+INCLUDE("${CMAKE_CURRENT_LIST_DIR}/github_ci.cmake")
 
-set(cmake_args
+SET(cmake_args
   -C "${CMAKE_CURRENT_LIST_DIR}/configure_$ENV{CMAKE_CONFIGURATION}.cmake"
 )
 
 # Create an entry in CDash.
-ctest_start(Experimental TRACK "${ctest_track}")
+CTEST_START(Experimental TRACK "${ctest_track}")
 
 # Gather update information.
-find_package(Git)
-set(CTEST_UPDATE_VERSION_ONLY ON)
-set(CTEST_UPDATE_COMMAND "${GIT_EXECUTABLE}")
-ctest_update()
+FIND_PACKAGE(Git)
+SET(CTEST_UPDATE_VERSION_ONLY ON)
+SET(CTEST_UPDATE_COMMAND "${GIT_EXECUTABLE}")
+CTEST_UPDATE()
 
 # Configure the project.
-ctest_configure(
+CTEST_CONFIGURE(
   OPTIONS "${cmake_args}"
   RETURN_VALUE configure_result
 )
 
 # Read the files from the build directory.
-ctest_read_custom_files("${CTEST_BINARY_DIRECTORY}")
+CTEST_READ_CUSTOM_FILES("${CTEST_BINARY_DIRECTORY}")
 
 # We can now submit because we've configured. This is idiomatic.
-ctest_submit(PARTS Update)
-ctest_submit(PARTS Configure)
+CTEST_SUBMIT(PARTS Update)
+CTEST_SUBMIT(PARTS Configure)
 
-if (configure_result)
-  message(FATAL_ERROR
-    "Failed to configure ${configure_result}")
-endif ()
+IF (configure_result)
+  MESSAGE(FATAL_ERROR "Failed to configure ${configure_result}")
+ENDIF ()
