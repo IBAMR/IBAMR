@@ -15,7 +15,6 @@ DX0 = L/N                                        // mesh width on coarsest grid 
 DX  = L/NFINEST                                  // mesh width on finest   grid level
 MFAC = 2.0                                       // ratio of Lagrangian mesh width to Cartesian mesh width
 ELEM_TYPE = "TRI3"                               // type of element to use for structure discretization
-USE_BOUNDARY_MESH = TRUE
 
 // solver parameters
 IB_DELTA_FUNCTION            = "IB_3"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction

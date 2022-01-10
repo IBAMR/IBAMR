@@ -27,7 +27,7 @@ IBAMR_ADD_EXAMPLE(
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES
-    input2d input2d.iim
+    input2d.iim
   EXTRA_FILES
     compute_St.m
     )
@@ -48,7 +48,7 @@ IBAMR_ADD_EXAMPLE(
   LINK_TARGETS
     IBAMR3d
   INPUT_FILES
-    input3d input3d.iim
+    input3d.iim
   EXTRA_FILES
     compute_St.m
     )
