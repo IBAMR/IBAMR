@@ -544,7 +544,6 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     }
     const unsigned int dim = mesh.mesh_dimension();
     double F_integral[NDIM];
-    double F_int = 0.0;
 
     for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
 
@@ -612,7 +611,6 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
             }
             tether_force_function(
                 F, n, N, FF, x, q_point[qp], elem, 0, var_data, grad_var_data, loop_time, force_fcn_ctx);
-            F_int += F(0) * JxW[qp];
             for (int d = 0; d < NDIM; ++d)
             {
                 F_integral[d] += F(d) * JxW[qp];
