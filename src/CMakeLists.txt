@@ -223,6 +223,7 @@ IF(${IBAMR_HAVE_LIBMESH})
     # IB/IBFEPatchRecoveryPostProcessor.cpp
     IB/IBFEPostProcessor.cpp
     IB/IBFESurfaceMethod.cpp
+    IB/IIMethod.cpp
     IB/IMPInitializer.cpp
     IB/IMPMethod.cpp
     IB/MaterialPointSpec.cpp

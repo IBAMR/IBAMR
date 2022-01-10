@@ -199,6 +199,7 @@ if LIBMESH_ENABLED
   ../src/IB/IBFEMethod.cpp \
   ../src/IB/IBFEPostProcessor.cpp \
   ../src/IB/IBFESurfaceMethod.cpp \
+  ../src/IB/IIMethod.cpp \
   ../src/IB/IMPInitializer.cpp \
   ../src/IB/IMPMethod.cpp \
   ../src/IB/MaterialPointSpec.cpp \
@@ -346,6 +347,7 @@ if LIBMESH_ENABLED
   ../include/ibamr/IBFEMethod.h \
   ../include/ibamr/IBFEPostProcessor.h \
   ../include/ibamr/IBFESurfaceMethod.h \
+  ../include/ibamr/IIMethod.h \
   ../include/ibamr/IMPInitializer.h \
   ../include/ibamr/IMPMethod.h \
   ../include/ibamr/MaterialPointSpec.h \

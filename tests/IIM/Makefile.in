@@ -87,10 +87,12 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = $(am__EXEEXT_3)
-@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
-@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_2 = $(EXAMPLES)
-subdir = examples/IBLevelSet/ex1
+EXTRA_PROGRAMS = $(am__EXEEXT_1)
+@LIBMESH_ENABLED_TRUE@am__append_1 = poiseuille_flow hagen_poiseuille_flow \
+@LIBMESH_ENABLED_TRUE@taylor_couette_2d taylor_couette_3d flow_past_cylinder \
+@LIBMESH_ENABLED_TRUE@flow_past_sphere
+
+subdir = tests/IIM
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
 	$(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
@@ -120,25 +122,70 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 =  \
-@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	main2d$(EXEEXT)
-am__EXEEXT_2 = $(am__EXEEXT_1)
-@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_3 =  \
-@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	$(am__EXEEXT_2)
-am__objects_1 = main2d-example.$(OBJEXT) \
-	main2d-SetFluidSolidDensity.$(OBJEXT) \
-	main2d-SetFluidSolidViscosity.$(OBJEXT) \
-	main2d-TagLSRefinementCells.$(OBJEXT)
-am_main2d_OBJECTS = $(am__objects_1)
-main2d_OBJECTS = $(am_main2d_OBJECTS)
-main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@am__EXEEXT_1 = poiseuille_flow$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	hagen_poiseuille_flow$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	taylor_couette_2d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	taylor_couette_3d$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	flow_past_cylinder$(EXEEXT) \
+@LIBMESH_ENABLED_TRUE@	flow_past_sphere$(EXEEXT)
+am__flow_past_cylinder_SOURCES_DIST = flow_past_cylinder.cpp
+@LIBMESH_ENABLED_TRUE@am_flow_past_cylinder_OBJECTS = flow_past_cylinder-flow_past_cylinder.$(OBJEXT)
+flow_past_cylinder_OBJECTS = $(am_flow_past_cylinder_OBJECTS)
+@LIBMESH_ENABLED_TRUE@flow_past_cylinder_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-main2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main2d_CXXFLAGS) \
-	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+flow_past_cylinder_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(flow_past_cylinder_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__flow_past_sphere_SOURCES_DIST = flow_past_sphere.cpp
+@LIBMESH_ENABLED_TRUE@am_flow_past_sphere_OBJECTS = flow_past_sphere-flow_past_sphere.$(OBJEXT)
+flow_past_sphere_OBJECTS = $(am_flow_past_sphere_OBJECTS)
+@LIBMESH_ENABLED_TRUE@flow_past_sphere_DEPENDENCIES = $(IBAMR3d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
+flow_past_sphere_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(flow_past_sphere_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__hagen_poiseuille_flow_SOURCES_DIST = hagen_poiseuille_flow.cpp
+@LIBMESH_ENABLED_TRUE@am_hagen_poiseuille_flow_OBJECTS = hagen_poiseuille_flow-hagen_poiseuille_flow.$(OBJEXT)
+hagen_poiseuille_flow_OBJECTS = $(am_hagen_poiseuille_flow_OBJECTS)
+@LIBMESH_ENABLED_TRUE@hagen_poiseuille_flow_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
+hagen_poiseuille_flow_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(hagen_poiseuille_flow_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__poiseuille_flow_SOURCES_DIST = poiseuille_flow.cpp
+@LIBMESH_ENABLED_TRUE@am_poiseuille_flow_OBJECTS = poiseuille_flow-poiseuille_flow.$(OBJEXT)
+poiseuille_flow_OBJECTS = $(am_poiseuille_flow_OBJECTS)
+@LIBMESH_ENABLED_TRUE@poiseuille_flow_DEPENDENCIES = $(IBAMR2d_LIBS) \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR_LIBS)
+poiseuille_flow_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(poiseuille_flow_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__taylor_couette_2d_SOURCES_DIST = taylor_couette_2d.cpp
+@LIBMESH_ENABLED_TRUE@am_taylor_couette_2d_OBJECTS = taylor_couette_2d-taylor_couette_2d.$(OBJEXT)
+taylor_couette_2d_OBJECTS = $(am_taylor_couette_2d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@taylor_couette_2d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR2d_LIBS) $(IBAMR_LIBS)
+taylor_couette_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(taylor_couette_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am__taylor_couette_3d_SOURCES_DIST = taylor_couette_3d.cpp
+@LIBMESH_ENABLED_TRUE@am_taylor_couette_3d_OBJECTS = taylor_couette_3d-taylor_couette_3d.$(OBJEXT)
+taylor_couette_3d_OBJECTS = $(am_taylor_couette_3d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@taylor_couette_3d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
+taylor_couette_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(taylor_couette_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -154,10 +201,13 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/main2d-SetFluidSolidDensity.Po \
-	./$(DEPDIR)/main2d-SetFluidSolidViscosity.Po \
-	./$(DEPDIR)/main2d-TagLSRefinementCells.Po \
-	./$(DEPDIR)/main2d-example.Po
+am__depfiles_remade =  \
+	./$(DEPDIR)/flow_past_cylinder-flow_past_cylinder.Po \
+	./$(DEPDIR)/flow_past_sphere-flow_past_sphere.Po \
+	./$(DEPDIR)/hagen_poiseuille_flow-hagen_poiseuille_flow.Po \
+	./$(DEPDIR)/poiseuille_flow-poiseuille_flow.Po \
+	./$(DEPDIR)/taylor_couette_2d-taylor_couette_2d.Po \
+	./$(DEPDIR)/taylor_couette_3d-taylor_couette_3d.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -177,26 +227,15 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_CFLAGS) $(CFLAGS)
-AM_V_CC = $(am__v_CC_@AM_V@)
-am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
-am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 = 
-CCLD = $(CC)
-LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-AM_V_CCLD = $(am__v_CCLD_@AM_V@)
-am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
-am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 = 
-SOURCES = $(main2d_SOURCES)
-DIST_SOURCES = $(main2d_SOURCES)
+SOURCES = $(flow_past_cylinder_SOURCES) $(flow_past_sphere_SOURCES) \
+	$(hagen_poiseuille_flow_SOURCES) $(poiseuille_flow_SOURCES) \
+	$(taylor_couette_2d_SOURCES) $(taylor_couette_3d_SOURCES)
+DIST_SOURCES = $(am__flow_past_cylinder_SOURCES_DIST) \
+	$(am__flow_past_sphere_SOURCES_DIST) \
+	$(am__hagen_poiseuille_flow_SOURCES_DIST) \
+	$(am__poiseuille_flow_SOURCES_DIST) \
+	$(am__taylor_couette_2d_SOURCES_DIST) \
+	$(am__taylor_couette_3d_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -222,8 +261,7 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 am__DIST_COMMON = $(srcdir)/Makefile.in \
-	$(top_srcdir)/config/Make-rules $(top_srcdir)/config/depcomp \
-	README
+	$(top_srcdir)/config/Make-rules $(top_srcdir)/config/depcomp
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -483,12 +521,24 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXAMPLE_DRIVER = example.cpp SetFluidSolidDensity.cpp SetFluidSolidDensity.h SetFluidSolidViscosity.cpp SetFluidSolidViscosity.h TagLSRefinementCells.cpp TagLSRefinementCells.h
-EXTRA_DIST = input2d
-EXAMPLES = $(am__append_1)
-main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-main2d_SOURCES = $(EXAMPLE_DRIVER)
+@LIBMESH_ENABLED_TRUE@poiseuille_flow_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@poiseuille_flow_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@poiseuille_flow_SOURCES = poiseuille_flow.cpp
+@LIBMESH_ENABLED_TRUE@hagen_poiseuille_flow_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@hagen_poiseuille_flow_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@hagen_poiseuille_flow_SOURCES = hagen_poiseuille_flow.cpp
+@LIBMESH_ENABLED_TRUE@taylor_couette_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@taylor_couette_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@taylor_couette_2d_SOURCES = taylor_couette_2d.cpp
+@LIBMESH_ENABLED_TRUE@taylor_couette_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@taylor_couette_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@taylor_couette_3d_SOURCES = taylor_couette_3d.cpp
+@LIBMESH_ENABLED_TRUE@flow_past_cylinder_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+@LIBMESH_ENABLED_TRUE@flow_past_cylinder_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@flow_past_cylinder_SOURCES = flow_past_cylinder.cpp
+@LIBMESH_ENABLED_TRUE@flow_past_sphere_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@flow_past_sphere_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@flow_past_sphere_SOURCES = flow_past_sphere.cpp
 all: all-am
 
 .SUFFIXES:
@@ -502,9 +552,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/IBLevelSet/ex1/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign tests/IIM/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign examples/IBLevelSet/ex1/Makefile
+	  $(AUTOMAKE) --foreign tests/IIM/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -524,9 +574,29 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
-main2d$(EXEEXT): $(main2d_OBJECTS) $(main2d_DEPENDENCIES) $(EXTRA_main2d_DEPENDENCIES) 
-	@rm -f main2d$(EXEEXT)
-	$(AM_V_CXXLD)$(main2d_LINK) $(main2d_OBJECTS) $(main2d_LDADD) $(LIBS)
+flow_past_cylinder$(EXEEXT): $(flow_past_cylinder_OBJECTS) $(flow_past_cylinder_DEPENDENCIES) $(EXTRA_flow_past_cylinder_DEPENDENCIES) 
+	@rm -f flow_past_cylinder$(EXEEXT)
+	$(AM_V_CXXLD)$(flow_past_cylinder_LINK) $(flow_past_cylinder_OBJECTS) $(flow_past_cylinder_LDADD) $(LIBS)
+
+flow_past_sphere$(EXEEXT): $(flow_past_sphere_OBJECTS) $(flow_past_sphere_DEPENDENCIES) $(EXTRA_flow_past_sphere_DEPENDENCIES) 
+	@rm -f flow_past_sphere$(EXEEXT)
+	$(AM_V_CXXLD)$(flow_past_sphere_LINK) $(flow_past_sphere_OBJECTS) $(flow_past_sphere_LDADD) $(LIBS)
+
+hagen_poiseuille_flow$(EXEEXT): $(hagen_poiseuille_flow_OBJECTS) $(hagen_poiseuille_flow_DEPENDENCIES) $(EXTRA_hagen_poiseuille_flow_DEPENDENCIES) 
+	@rm -f hagen_poiseuille_flow$(EXEEXT)
+	$(AM_V_CXXLD)$(hagen_poiseuille_flow_LINK) $(hagen_poiseuille_flow_OBJECTS) $(hagen_poiseuille_flow_LDADD) $(LIBS)
+
+poiseuille_flow$(EXEEXT): $(poiseuille_flow_OBJECTS) $(poiseuille_flow_DEPENDENCIES) $(EXTRA_poiseuille_flow_DEPENDENCIES) 
+	@rm -f poiseuille_flow$(EXEEXT)
+	$(AM_V_CXXLD)$(poiseuille_flow_LINK) $(poiseuille_flow_OBJECTS) $(poiseuille_flow_LDADD) $(LIBS)
+
+taylor_couette_2d$(EXEEXT): $(taylor_couette_2d_OBJECTS) $(taylor_couette_2d_DEPENDENCIES) $(EXTRA_taylor_couette_2d_DEPENDENCIES) 
+	@rm -f taylor_couette_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(taylor_couette_2d_LINK) $(taylor_couette_2d_OBJECTS) $(taylor_couette_2d_LDADD) $(LIBS)
+
+taylor_couette_3d$(EXEEXT): $(taylor_couette_3d_OBJECTS) $(taylor_couette_3d_DEPENDENCIES) $(EXTRA_taylor_couette_3d_DEPENDENCIES) 
+	@rm -f taylor_couette_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(taylor_couette_3d_LINK) $(taylor_couette_3d_OBJECTS) $(taylor_couette_3d_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -534,10 +604,12 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidSolidDensity.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidSolidViscosity.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-TagLSRefinementCells.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-example.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/flow_past_cylinder-flow_past_cylinder.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/flow_past_sphere-flow_past_sphere.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hagen_poiseuille_flow-hagen_poiseuille_flow.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poiseuille_flow-poiseuille_flow.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/taylor_couette_2d-taylor_couette_2d.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/taylor_couette_3d-taylor_couette_3d.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -569,61 +641,89 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
 
-main2d-example.o: example.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-example.o -MD -MP -MF $(DEPDIR)/main2d-example.Tpo -c -o main2d-example.o `test -f 'example.cpp' || echo '$(srcdir)/'`example.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-example.Tpo $(DEPDIR)/main2d-example.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='example.cpp' object='main2d-example.o' libtool=no @AMDEPBACKSLASH@
+flow_past_cylinder-flow_past_cylinder.o: flow_past_cylinder.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(flow_past_cylinder_CXXFLAGS) $(CXXFLAGS) -MT flow_past_cylinder-flow_past_cylinder.o -MD -MP -MF $(DEPDIR)/flow_past_cylinder-flow_past_cylinder.Tpo -c -o flow_past_cylinder-flow_past_cylinder.o `test -f 'flow_past_cylinder.cpp' || echo '$(srcdir)/'`flow_past_cylinder.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/flow_past_cylinder-flow_past_cylinder.Tpo $(DEPDIR)/flow_past_cylinder-flow_past_cylinder.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='flow_past_cylinder.cpp' object='flow_past_cylinder-flow_past_cylinder.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-example.o `test -f 'example.cpp' || echo '$(srcdir)/'`example.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(flow_past_cylinder_CXXFLAGS) $(CXXFLAGS) -c -o flow_past_cylinder-flow_past_cylinder.o `test -f 'flow_past_cylinder.cpp' || echo '$(srcdir)/'`flow_past_cylinder.cpp
 
-main2d-example.obj: example.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-example.obj -MD -MP -MF $(DEPDIR)/main2d-example.Tpo -c -o main2d-example.obj `if test -f 'example.cpp'; then $(CYGPATH_W) 'example.cpp'; else $(CYGPATH_W) '$(srcdir)/example.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-example.Tpo $(DEPDIR)/main2d-example.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='example.cpp' object='main2d-example.obj' libtool=no @AMDEPBACKSLASH@
+flow_past_cylinder-flow_past_cylinder.obj: flow_past_cylinder.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(flow_past_cylinder_CXXFLAGS) $(CXXFLAGS) -MT flow_past_cylinder-flow_past_cylinder.obj -MD -MP -MF $(DEPDIR)/flow_past_cylinder-flow_past_cylinder.Tpo -c -o flow_past_cylinder-flow_past_cylinder.obj `if test -f 'flow_past_cylinder.cpp'; then $(CYGPATH_W) 'flow_past_cylinder.cpp'; else $(CYGPATH_W) '$(srcdir)/flow_past_cylinder.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/flow_past_cylinder-flow_past_cylinder.Tpo $(DEPDIR)/flow_past_cylinder-flow_past_cylinder.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='flow_past_cylinder.cpp' object='flow_past_cylinder-flow_past_cylinder.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-example.obj `if test -f 'example.cpp'; then $(CYGPATH_W) 'example.cpp'; else $(CYGPATH_W) '$(srcdir)/example.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(flow_past_cylinder_CXXFLAGS) $(CXXFLAGS) -c -o flow_past_cylinder-flow_past_cylinder.obj `if test -f 'flow_past_cylinder.cpp'; then $(CYGPATH_W) 'flow_past_cylinder.cpp'; else $(CYGPATH_W) '$(srcdir)/flow_past_cylinder.cpp'; fi`
 
-main2d-SetFluidSolidDensity.o: SetFluidSolidDensity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-SetFluidSolidDensity.o -MD -MP -MF $(DEPDIR)/main2d-SetFluidSolidDensity.Tpo -c -o main2d-SetFluidSolidDensity.o `test -f 'SetFluidSolidDensity.cpp' || echo '$(srcdir)/'`SetFluidSolidDensity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-SetFluidSolidDensity.Tpo $(DEPDIR)/main2d-SetFluidSolidDensity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidSolidDensity.cpp' object='main2d-SetFluidSolidDensity.o' libtool=no @AMDEPBACKSLASH@
+flow_past_sphere-flow_past_sphere.o: flow_past_sphere.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(flow_past_sphere_CXXFLAGS) $(CXXFLAGS) -MT flow_past_sphere-flow_past_sphere.o -MD -MP -MF $(DEPDIR)/flow_past_sphere-flow_past_sphere.Tpo -c -o flow_past_sphere-flow_past_sphere.o `test -f 'flow_past_sphere.cpp' || echo '$(srcdir)/'`flow_past_sphere.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/flow_past_sphere-flow_past_sphere.Tpo $(DEPDIR)/flow_past_sphere-flow_past_sphere.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='flow_past_sphere.cpp' object='flow_past_sphere-flow_past_sphere.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetFluidSolidDensity.o `test -f 'SetFluidSolidDensity.cpp' || echo '$(srcdir)/'`SetFluidSolidDensity.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(flow_past_sphere_CXXFLAGS) $(CXXFLAGS) -c -o flow_past_sphere-flow_past_sphere.o `test -f 'flow_past_sphere.cpp' || echo '$(srcdir)/'`flow_past_sphere.cpp
 
-main2d-SetFluidSolidDensity.obj: SetFluidSolidDensity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-SetFluidSolidDensity.obj -MD -MP -MF $(DEPDIR)/main2d-SetFluidSolidDensity.Tpo -c -o main2d-SetFluidSolidDensity.obj `if test -f 'SetFluidSolidDensity.cpp'; then $(CYGPATH_W) 'SetFluidSolidDensity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidSolidDensity.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-SetFluidSolidDensity.Tpo $(DEPDIR)/main2d-SetFluidSolidDensity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidSolidDensity.cpp' object='main2d-SetFluidSolidDensity.obj' libtool=no @AMDEPBACKSLASH@
+flow_past_sphere-flow_past_sphere.obj: flow_past_sphere.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(flow_past_sphere_CXXFLAGS) $(CXXFLAGS) -MT flow_past_sphere-flow_past_sphere.obj -MD -MP -MF $(DEPDIR)/flow_past_sphere-flow_past_sphere.Tpo -c -o flow_past_sphere-flow_past_sphere.obj `if test -f 'flow_past_sphere.cpp'; then $(CYGPATH_W) 'flow_past_sphere.cpp'; else $(CYGPATH_W) '$(srcdir)/flow_past_sphere.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/flow_past_sphere-flow_past_sphere.Tpo $(DEPDIR)/flow_past_sphere-flow_past_sphere.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='flow_past_sphere.cpp' object='flow_past_sphere-flow_past_sphere.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetFluidSolidDensity.obj `if test -f 'SetFluidSolidDensity.cpp'; then $(CYGPATH_W) 'SetFluidSolidDensity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidSolidDensity.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(flow_past_sphere_CXXFLAGS) $(CXXFLAGS) -c -o flow_past_sphere-flow_past_sphere.obj `if test -f 'flow_past_sphere.cpp'; then $(CYGPATH_W) 'flow_past_sphere.cpp'; else $(CYGPATH_W) '$(srcdir)/flow_past_sphere.cpp'; fi`
 
-main2d-SetFluidSolidViscosity.o: SetFluidSolidViscosity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-SetFluidSolidViscosity.o -MD -MP -MF $(DEPDIR)/main2d-SetFluidSolidViscosity.Tpo -c -o main2d-SetFluidSolidViscosity.o `test -f 'SetFluidSolidViscosity.cpp' || echo '$(srcdir)/'`SetFluidSolidViscosity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-SetFluidSolidViscosity.Tpo $(DEPDIR)/main2d-SetFluidSolidViscosity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidSolidViscosity.cpp' object='main2d-SetFluidSolidViscosity.o' libtool=no @AMDEPBACKSLASH@
+hagen_poiseuille_flow-hagen_poiseuille_flow.o: hagen_poiseuille_flow.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hagen_poiseuille_flow_CXXFLAGS) $(CXXFLAGS) -MT hagen_poiseuille_flow-hagen_poiseuille_flow.o -MD -MP -MF $(DEPDIR)/hagen_poiseuille_flow-hagen_poiseuille_flow.Tpo -c -o hagen_poiseuille_flow-hagen_poiseuille_flow.o `test -f 'hagen_poiseuille_flow.cpp' || echo '$(srcdir)/'`hagen_poiseuille_flow.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/hagen_poiseuille_flow-hagen_poiseuille_flow.Tpo $(DEPDIR)/hagen_poiseuille_flow-hagen_poiseuille_flow.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hagen_poiseuille_flow.cpp' object='hagen_poiseuille_flow-hagen_poiseuille_flow.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetFluidSolidViscosity.o `test -f 'SetFluidSolidViscosity.cpp' || echo '$(srcdir)/'`SetFluidSolidViscosity.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hagen_poiseuille_flow_CXXFLAGS) $(CXXFLAGS) -c -o hagen_poiseuille_flow-hagen_poiseuille_flow.o `test -f 'hagen_poiseuille_flow.cpp' || echo '$(srcdir)/'`hagen_poiseuille_flow.cpp
 
-main2d-SetFluidSolidViscosity.obj: SetFluidSolidViscosity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-SetFluidSolidViscosity.obj -MD -MP -MF $(DEPDIR)/main2d-SetFluidSolidViscosity.Tpo -c -o main2d-SetFluidSolidViscosity.obj `if test -f 'SetFluidSolidViscosity.cpp'; then $(CYGPATH_W) 'SetFluidSolidViscosity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidSolidViscosity.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-SetFluidSolidViscosity.Tpo $(DEPDIR)/main2d-SetFluidSolidViscosity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidSolidViscosity.cpp' object='main2d-SetFluidSolidViscosity.obj' libtool=no @AMDEPBACKSLASH@
+hagen_poiseuille_flow-hagen_poiseuille_flow.obj: hagen_poiseuille_flow.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hagen_poiseuille_flow_CXXFLAGS) $(CXXFLAGS) -MT hagen_poiseuille_flow-hagen_poiseuille_flow.obj -MD -MP -MF $(DEPDIR)/hagen_poiseuille_flow-hagen_poiseuille_flow.Tpo -c -o hagen_poiseuille_flow-hagen_poiseuille_flow.obj `if test -f 'hagen_poiseuille_flow.cpp'; then $(CYGPATH_W) 'hagen_poiseuille_flow.cpp'; else $(CYGPATH_W) '$(srcdir)/hagen_poiseuille_flow.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/hagen_poiseuille_flow-hagen_poiseuille_flow.Tpo $(DEPDIR)/hagen_poiseuille_flow-hagen_poiseuille_flow.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hagen_poiseuille_flow.cpp' object='hagen_poiseuille_flow-hagen_poiseuille_flow.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetFluidSolidViscosity.obj `if test -f 'SetFluidSolidViscosity.cpp'; then $(CYGPATH_W) 'SetFluidSolidViscosity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidSolidViscosity.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hagen_poiseuille_flow_CXXFLAGS) $(CXXFLAGS) -c -o hagen_poiseuille_flow-hagen_poiseuille_flow.obj `if test -f 'hagen_poiseuille_flow.cpp'; then $(CYGPATH_W) 'hagen_poiseuille_flow.cpp'; else $(CYGPATH_W) '$(srcdir)/hagen_poiseuille_flow.cpp'; fi`
 
-main2d-TagLSRefinementCells.o: TagLSRefinementCells.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-TagLSRefinementCells.o -MD -MP -MF $(DEPDIR)/main2d-TagLSRefinementCells.Tpo -c -o main2d-TagLSRefinementCells.o `test -f 'TagLSRefinementCells.cpp' || echo '$(srcdir)/'`TagLSRefinementCells.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-TagLSRefinementCells.Tpo $(DEPDIR)/main2d-TagLSRefinementCells.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagLSRefinementCells.cpp' object='main2d-TagLSRefinementCells.o' libtool=no @AMDEPBACKSLASH@
+poiseuille_flow-poiseuille_flow.o: poiseuille_flow.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(poiseuille_flow_CXXFLAGS) $(CXXFLAGS) -MT poiseuille_flow-poiseuille_flow.o -MD -MP -MF $(DEPDIR)/poiseuille_flow-poiseuille_flow.Tpo -c -o poiseuille_flow-poiseuille_flow.o `test -f 'poiseuille_flow.cpp' || echo '$(srcdir)/'`poiseuille_flow.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/poiseuille_flow-poiseuille_flow.Tpo $(DEPDIR)/poiseuille_flow-poiseuille_flow.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='poiseuille_flow.cpp' object='poiseuille_flow-poiseuille_flow.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-TagLSRefinementCells.o `test -f 'TagLSRefinementCells.cpp' || echo '$(srcdir)/'`TagLSRefinementCells.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(poiseuille_flow_CXXFLAGS) $(CXXFLAGS) -c -o poiseuille_flow-poiseuille_flow.o `test -f 'poiseuille_flow.cpp' || echo '$(srcdir)/'`poiseuille_flow.cpp
 
-main2d-TagLSRefinementCells.obj: TagLSRefinementCells.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-TagLSRefinementCells.obj -MD -MP -MF $(DEPDIR)/main2d-TagLSRefinementCells.Tpo -c -o main2d-TagLSRefinementCells.obj `if test -f 'TagLSRefinementCells.cpp'; then $(CYGPATH_W) 'TagLSRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagLSRefinementCells.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-TagLSRefinementCells.Tpo $(DEPDIR)/main2d-TagLSRefinementCells.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagLSRefinementCells.cpp' object='main2d-TagLSRefinementCells.obj' libtool=no @AMDEPBACKSLASH@
+poiseuille_flow-poiseuille_flow.obj: poiseuille_flow.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(poiseuille_flow_CXXFLAGS) $(CXXFLAGS) -MT poiseuille_flow-poiseuille_flow.obj -MD -MP -MF $(DEPDIR)/poiseuille_flow-poiseuille_flow.Tpo -c -o poiseuille_flow-poiseuille_flow.obj `if test -f 'poiseuille_flow.cpp'; then $(CYGPATH_W) 'poiseuille_flow.cpp'; else $(CYGPATH_W) '$(srcdir)/poiseuille_flow.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/poiseuille_flow-poiseuille_flow.Tpo $(DEPDIR)/poiseuille_flow-poiseuille_flow.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='poiseuille_flow.cpp' object='poiseuille_flow-poiseuille_flow.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-TagLSRefinementCells.obj `if test -f 'TagLSRefinementCells.cpp'; then $(CYGPATH_W) 'TagLSRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagLSRefinementCells.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(poiseuille_flow_CXXFLAGS) $(CXXFLAGS) -c -o poiseuille_flow-poiseuille_flow.obj `if test -f 'poiseuille_flow.cpp'; then $(CYGPATH_W) 'poiseuille_flow.cpp'; else $(CYGPATH_W) '$(srcdir)/poiseuille_flow.cpp'; fi`
+
+taylor_couette_2d-taylor_couette_2d.o: taylor_couette_2d.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(taylor_couette_2d_CXXFLAGS) $(CXXFLAGS) -MT taylor_couette_2d-taylor_couette_2d.o -MD -MP -MF $(DEPDIR)/taylor_couette_2d-taylor_couette_2d.Tpo -c -o taylor_couette_2d-taylor_couette_2d.o `test -f 'taylor_couette_2d.cpp' || echo '$(srcdir)/'`taylor_couette_2d.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/taylor_couette_2d-taylor_couette_2d.Tpo $(DEPDIR)/taylor_couette_2d-taylor_couette_2d.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='taylor_couette_2d.cpp' object='taylor_couette_2d-taylor_couette_2d.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(taylor_couette_2d_CXXFLAGS) $(CXXFLAGS) -c -o taylor_couette_2d-taylor_couette_2d.o `test -f 'taylor_couette_2d.cpp' || echo '$(srcdir)/'`taylor_couette_2d.cpp
+
+taylor_couette_2d-taylor_couette_2d.obj: taylor_couette_2d.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(taylor_couette_2d_CXXFLAGS) $(CXXFLAGS) -MT taylor_couette_2d-taylor_couette_2d.obj -MD -MP -MF $(DEPDIR)/taylor_couette_2d-taylor_couette_2d.Tpo -c -o taylor_couette_2d-taylor_couette_2d.obj `if test -f 'taylor_couette_2d.cpp'; then $(CYGPATH_W) 'taylor_couette_2d.cpp'; else $(CYGPATH_W) '$(srcdir)/taylor_couette_2d.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/taylor_couette_2d-taylor_couette_2d.Tpo $(DEPDIR)/taylor_couette_2d-taylor_couette_2d.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='taylor_couette_2d.cpp' object='taylor_couette_2d-taylor_couette_2d.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(taylor_couette_2d_CXXFLAGS) $(CXXFLAGS) -c -o taylor_couette_2d-taylor_couette_2d.obj `if test -f 'taylor_couette_2d.cpp'; then $(CYGPATH_W) 'taylor_couette_2d.cpp'; else $(CYGPATH_W) '$(srcdir)/taylor_couette_2d.cpp'; fi`
+
+taylor_couette_3d-taylor_couette_3d.o: taylor_couette_3d.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(taylor_couette_3d_CXXFLAGS) $(CXXFLAGS) -MT taylor_couette_3d-taylor_couette_3d.o -MD -MP -MF $(DEPDIR)/taylor_couette_3d-taylor_couette_3d.Tpo -c -o taylor_couette_3d-taylor_couette_3d.o `test -f 'taylor_couette_3d.cpp' || echo '$(srcdir)/'`taylor_couette_3d.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/taylor_couette_3d-taylor_couette_3d.Tpo $(DEPDIR)/taylor_couette_3d-taylor_couette_3d.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='taylor_couette_3d.cpp' object='taylor_couette_3d-taylor_couette_3d.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(taylor_couette_3d_CXXFLAGS) $(CXXFLAGS) -c -o taylor_couette_3d-taylor_couette_3d.o `test -f 'taylor_couette_3d.cpp' || echo '$(srcdir)/'`taylor_couette_3d.cpp
+
+taylor_couette_3d-taylor_couette_3d.obj: taylor_couette_3d.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(taylor_couette_3d_CXXFLAGS) $(CXXFLAGS) -MT taylor_couette_3d-taylor_couette_3d.obj -MD -MP -MF $(DEPDIR)/taylor_couette_3d-taylor_couette_3d.Tpo -c -o taylor_couette_3d-taylor_couette_3d.obj `if test -f 'taylor_couette_3d.cpp'; then $(CYGPATH_W) 'taylor_couette_3d.cpp'; else $(CYGPATH_W) '$(srcdir)/taylor_couette_3d.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/taylor_couette_3d-taylor_couette_3d.Tpo $(DEPDIR)/taylor_couette_3d-taylor_couette_3d.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='taylor_couette_3d.cpp' object='taylor_couette_3d-taylor_couette_3d.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(taylor_couette_3d_CXXFLAGS) $(CXXFLAGS) -c -o taylor_couette_3d-taylor_couette_3d.obj `if test -f 'taylor_couette_3d.cpp'; then $(CYGPATH_W) 'taylor_couette_3d.cpp'; else $(CYGPATH_W) '$(srcdir)/taylor_couette_3d.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -753,13 +853,15 @@ maintainer-clean-generic:
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 clean: clean-am
 
-clean-am: clean-generic clean-libtool clean-local mostlyclean-am
+clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/main2d-SetFluidSolidDensity.Po
-	-rm -f ./$(DEPDIR)/main2d-SetFluidSolidViscosity.Po
-	-rm -f ./$(DEPDIR)/main2d-TagLSRefinementCells.Po
-	-rm -f ./$(DEPDIR)/main2d-example.Po
+		-rm -f ./$(DEPDIR)/flow_past_cylinder-flow_past_cylinder.Po
+	-rm -f ./$(DEPDIR)/flow_past_sphere-flow_past_sphere.Po
+	-rm -f ./$(DEPDIR)/hagen_poiseuille_flow-hagen_poiseuille_flow.Po
+	-rm -f ./$(DEPDIR)/poiseuille_flow-poiseuille_flow.Po
+	-rm -f ./$(DEPDIR)/taylor_couette_2d-taylor_couette_2d.Po
+	-rm -f ./$(DEPDIR)/taylor_couette_3d-taylor_couette_3d.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -805,10 +907,12 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/main2d-SetFluidSolidDensity.Po
-	-rm -f ./$(DEPDIR)/main2d-SetFluidSolidViscosity.Po
-	-rm -f ./$(DEPDIR)/main2d-TagLSRefinementCells.Po
-	-rm -f ./$(DEPDIR)/main2d-example.Po
+		-rm -f ./$(DEPDIR)/flow_past_cylinder-flow_past_cylinder.Po
+	-rm -f ./$(DEPDIR)/flow_past_sphere-flow_past_sphere.Po
+	-rm -f ./$(DEPDIR)/hagen_poiseuille_flow-hagen_poiseuille_flow.Po
+	-rm -f ./$(DEPDIR)/poiseuille_flow-poiseuille_flow.Po
+	-rm -f ./$(DEPDIR)/taylor_couette_2d-taylor_couette_2d.Po
+	-rm -f ./$(DEPDIR)/taylor_couette_3d-taylor_couette_3d.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -830,8 +934,8 @@ uninstall-am:
 .MAKE: install-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am am--depfiles check check-am clean \
-	clean-generic clean-libtool clean-local cscopelist-am ctags \
-	ctags-am distclean distclean-compile distclean-generic \
+	clean-generic clean-libtool cscopelist-am ctags ctags-am \
+	distclean distclean-compile distclean-generic \
 	distclean-libtool distclean-tags distdir dvi dvi-am html \
 	html-am info info-am install install-am install-data \
 	install-data-am install-dvi install-dvi-am install-exec \
@@ -849,16 +953,12 @@ uninstall-am:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DCURRENT_SRCDIR=$(srcdir) \
 		-DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
-examples: $(EXAMPLES)
+tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input[2]d* $(PWD) ; \
+	  ln -f -s $(srcdir)/*input $(PWD) ; \
+	  ln -f -s $(srcdir)/*output $(PWD) ; \
 	fi ;
-
-clean-local:
-	rm -f $(EXTRA_PROGRAMS)
-	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input[2]d ; \
-	fi ;
+.PHONY: tests
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -20,7 +20,7 @@ all:
 	  $(MAKE) examples ; \
 	fi ;
 
-COMPLETE_EXAMPLES = CIB ConstraintIB IB IBFE IBLevelSet adv_diff advect fe_mechanics navier_stokes level_set multiphase_flow vc_navier_stokes wave_tank
+COMPLETE_EXAMPLES = CIB ConstraintIB IB IBFE IBLevelSet IIM adv_diff advect fe_mechanics navier_stokes level_set multiphase_flow vc_navier_stokes wave_tank
 # Not all examples can be compiled at the present time
 INCOMPLETE_EXAMPLES = IMP
 .PHONY: examples $(COMPLETE_EXAMPLES)

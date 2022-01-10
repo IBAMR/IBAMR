@@ -1,0 +1,293 @@
+// physical parameters
+Re = 100.0
+MU  = 1.0/Re
+RHO = 1.0
+L   = 4.0
+U_MAX = 2.0
+// grid spacing parameters
+MAX_LEVELS = 1                                      // maximum number of levels in locally refined grid
+REF_RATIO  = 1                                      // refinement ratio between levels
+N =128	                                        // actual    number of grid cells on coarsest grid level
+FAC = 1.0
+//SHIFT1 = -2.802674913495818  //N=32
+//SHIFT1 = -2.831419340910775   ////N=64
+SHIFT1 = -2.839675405995053   //N=128
+//SHIFT1 = -2.840806693056077   //N=256
+//SHIFT1 = 0.0 //-8061.534913657692 // IB
+
+
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N            // effective number of grid cells on finest   grid level
+DX0 = L/N                                           // mesh width on coarsest grid level
+DX  = L/NFINEST                                     // mesh width on finest   grid level
+MFAC = 2.0                                          // ratio of Lagrangian mesh width to Cartesian mesh width
+ELEM_TYPE = "TRI3"                                  // type of element to use for structure discretization
+elem_order = "FIRST"   
+R1 = 0.5
+R2 = 6.0
+B = 0.0
+OMEGA1 =  2.0
+OMEGA2 = -2.0
+
+CREEPING_FLOW       	   = FALSE
+
+
+// solver parameters
+// solver parameters
+IB_DELTA_FUNCTION          = "IB_3"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
+SPLIT_FORCES               = TRUE             // whether to split interior and boundary forces
+USE_PRESSURE_JUMP_CONDITIONS        = TRUE             // whether to impose pressure jumps at fluid-structure interfaces
+USE_VELOCITY_JUMP_CONDITIONS = TRUE
+WSS_CALC_WIDTH = 1.05
+P_CALC_WIDTH = 1.3
+USE_CONSISTENT_MASS_MATRIX = TRUE                   // whether to use a consistent or lumped mass matrix
+NORMALIZE_PRESSURE_JUMP = TRUE
+IB_POINT_DENSITY           = 4                    // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
+START_TIME                 = 0.0e0                  // initial simulation time
+CFL_MAX                    = 0.2                   // maximum CFL number
+DT                         = 0.5*CFL_MAX*DX // maximum timestep size
+END_TIME                   = 10 * DT                   // final simulation time
+GROW_DT                    = 2.0e0                  // growth factor for timesteps
+NUM_CYCLES                 = 1                      // number of cycles of fixed-point iteration
+CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH"      // convective time stepping type
+CONVECTIVE_OP_TYPE         = "STABILIZED_PPM"                  // convective differencing discretization type
+CONVECTIVE_FORM            = "ADVECTIVE"            // how to compute the convective terms
+NORMALIZE_PRESSURE         = TRUE                 // whether to explicitly force the pressure to have mean zero
+ERROR_ON_DT_CHANGE         = TRUE                   // whether to emit an error message if the time step size changes
+VORTICITY_TAGGING          = TRUE                   // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER                 = 1                      // size of tag buffer used by grid generation algorithm
+REGRID_CFL_INTERVAL        = 0.5                    // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+OUTPUT_U                   = TRUE
+OUTPUT_P                   = TRUE
+OUTPUT_F                   = TRUE
+OUTPUT_OMEGA               = TRUE
+OUTPUT_DIV_U               = TRUE
+ENABLE_LOGGING             = TRUE
+
+YC = 0.0
+XC = 0.0
+
+KAPPA_S = 0.002/DT^2 //10000 //0.00001*DX/DT^2 //2.5*DX/DT^2
+ETA_S =0.0/DT
+
+// exact solution function expressions
+// wss= (2.0*R1*R1*R2*R2*MU*OMEGA1)/(R2*R2 - R1*R1)
+
+
+//P = "0.0"
+EXPLICITLY_REMOVE_NULLSPACE = TRUE
+
+AA = (OMEGA2*R2*R2 - OMEGA1*R1*R1)/(R2*R2 - R1*R1)
+BB = (OMEGA1 - OMEGA2)*R1*R1*R2*R2/(R2*R2 - R1*R1)
+
+SHIFT = SHIFT1 - 0.5*OMEGA1*OMEGA1*0.5*0.5*(DX*DX+DX*DX)
+
+U = "(sqrt(X0*X0 + X1*X1)< R1 ? -omega1*X1 : (sqrt(X0*X0 + X1*X1)> R2 ? 0.0 : -X1*(AA + BB/(X0*X0 + X1*X1))))"
+V = "(sqrt(X0*X0 + X1*X1)< R1 ? omega1*X0 : (sqrt(X0*X0 + X1*X1)> R2 ? 0.0 : X0*(AA + BB/(X0*X0 + X1*X1))))"
+P = "(sqrt(X0*X0 + X1*X1)< R1 ? 0.5*omega1*omega1*(X0*X0 + X1*X1)  + shift : 0.5*AA*AA*(X0*X0 + X1*X1) - 0.5*BB*BB/(X0*X0 + X1*X1) + AA*BB*log(X0*X0 + X1*X1) + 0.5*omega1*omega1*(R1*R1) -(0.5*AA*AA*(R1*R1) - 0.5*BB*BB/(R1*R1) + AA*BB*log(R1*R1))    + shift )"
+
+VelocityBcCoefs_0 {
+    
+    MU = MU
+
+    R1 = R1
+    R2 = R2
+    omega1 = OMEGA1
+    omega2 = OMEGA2
+    
+    xc = XC
+    yc = YC
+    AA = AA
+    BB = BB
+   shift = SHIFT
+    acoef_function_0 = "1.0"
+    acoef_function_1 = "1.0"
+    acoef_function_2 = "1.0"
+    acoef_function_3 = "1.0"
+
+    bcoef_function_0 = "0.0" 
+    bcoef_function_1 = "0.0" 
+    bcoef_function_2 = "0.0"
+    bcoef_function_3 = "0.0"
+
+    gcoef_function_0 ="-X1*(AA + BB/(X0*X0 + X1*X1))" 
+    gcoef_function_1 ="-X1*(AA + BB/(X0*X0 + X1*X1))"
+    gcoef_function_2 ="-X1*(AA + BB/(X0*X0 + X1*X1))"  
+    gcoef_function_3 ="-X1*(AA + BB/(X0*X0 + X1*X1))" 
+}
+
+VelocityBcCoefs_1 {
+
+    R1 = R1
+    R2 = R2
+    omega1 = OMEGA1
+    omega2 = OMEGA2
+    MU = MU 
+    AA = AA
+    BB = BB
+    xc = XC
+    yc = YC
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = "X0*(AA + BB/(X0*X0 + X1*X1))"   
+   gcoef_function_1 = "X0*(AA + BB/(X0*X0 + X1*X1))" 
+   gcoef_function_2 = "X0*(AA + BB/(X0*X0 + X1*X1))"  
+   gcoef_function_3 = "X0*(AA + BB/(X0*X0 + X1*X1))"  
+}
+
+
+VelocityInitialConditions{
+
+ R1 = R1
+ R2 = R2
+ omega1 = OMEGA1
+ omega2 = OMEGA2
+     xc = XC
+    yc = YC
+    AA = AA
+    BB = BB
+ function_0 = U
+ function_1 = V
+}
+
+
+PressureInitialConditions {
+    AA =  AA
+    BB = BB
+    R1 = R1
+    R2 = R2
+    omega1 = OMEGA1
+    omega2 = OMEGA2
+    shift = SHIFT
+   function = P
+}
+
+
+
+
+IBHierarchyIntegrator {
+   start_time          = START_TIME
+   end_time            = END_TIME
+   grow_dt             = GROW_DT
+   num_cycles          = NUM_CYCLES
+   regrid_cfl_interval = REGRID_CFL_INTERVAL
+   dt_max              = DT
+   error_on_dt_change  = ERROR_ON_DT_CHANGE
+   enable_logging      = ENABLE_LOGGING
+   enable_logging_solver_iterations = FALSE
+}
+
+IIMethod {
+   IB_delta_fcn                = IB_DELTA_FUNCTION
+   split_forces                = SPLIT_FORCES
+   use_pressure_jump_conditions   = USE_PRESSURE_JUMP_CONDITIONS
+   use_velocity_jump_conditions   = USE_VELOCITY_JUMP_CONDITIONS
+   use_consistent_mass_matrix  = USE_CONSISTENT_MASS_MATRIX
+   IB_point_density            = IB_POINT_DENSITY
+   wss_calc_width		= WSS_CALC_WIDTH
+   p_calc_width               = P_CALC_WIDTH
+   min_ghost_cell_width = 6
+   normalize_pressure_jump = NORMALIZE_PRESSURE_JUMP
+   enable_logging_solver_iterations = FALSE
+}
+
+
+INSStaggeredHierarchyIntegrator {
+   mu                            = MU
+   rho                           = RHO
+   start_time                    = START_TIME
+   end_time                      = END_TIME
+   creeping_flow                 = CREEPING_FLOW
+   grow_dt                       = GROW_DT
+   convective_time_stepping_type = CONVECTIVE_TS_TYPE
+   convective_op_type            = CONVECTIVE_OP_TYPE
+   convective_difference_form    = CONVECTIVE_FORM
+   normalize_pressure            = NORMALIZE_PRESSURE
+   cfl                           = CFL_MAX
+   dt_max                        = DT
+   using_vorticity_tagging       = VORTICITY_TAGGING
+   vorticity_rel_thresh          = 0.01
+   tag_buffer                    = TAG_BUFFER
+   output_U                      = OUTPUT_U
+   output_P                      = OUTPUT_P
+   output_F                      = OUTPUT_F
+   output_Omega                  = OUTPUT_OMEGA
+   output_Div_U                  = OUTPUT_DIV_U
+   enable_logging                = ENABLE_LOGGING
+   enable_logging_solver_iterations = FALSE
+}
+
+Main {
+
+
+// log file parameters
+   log_file_name               = "output"
+   log_all_nodes               = FALSE
+
+// visualization dump parameters
+   viz_writer                  = "VisIt","ExodusII"
+   viz_dump_interval           = -1
+   viz_dump_dirname            = "viz_IIM_2D"
+   visit_number_procs_per_file = 1
+
+// restart dump parameters
+   restart_dump_interval       = 0
+   restart_dump_dirname        = "restart_IIM2d"
+
+// hierarchy data dump parameters
+   data_dump_interval          = 0
+   data_dump_dirname           = "hier_data_IIM2d"
+
+// timer dump parameters
+   timer_dump_interval         = 0
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = -L/2,-L/2
+   x_up = L/2,L/2
+   periodic_dimension = 0,0
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = REF_RATIO,REF_RATIO
+      level_2 = REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO
+      level_4 = REF_RATIO,REF_RATIO
+      level_5 = REF_RATIO,REF_RATIO
+   }
+   largest_patch_size {
+      level_0 = N,N  // all finer levels will use same values as level_0
+   }
+   smallest_patch_size {
+      level_0 = N,  N  // all finer levels will use same values as level_0
+   }
+   efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total     = TRUE
+   print_threshold = 0.1
+   timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
+}

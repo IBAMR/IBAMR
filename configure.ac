@@ -205,6 +205,7 @@ AC_CONFIG_FILES([
   examples/IBLevelSet/ex0/Makefile
   examples/IBLevelSet/ex1/Makefile
   examples/IBLevelSet/ex2/Makefile
+  examples/IIM/ex0/Makefile
   examples/IMP/Makefile
   examples/IMP/explicit/Makefile
   examples/IMP/explicit/ex0/Makefile
@@ -286,6 +287,7 @@ AC_CONFIG_FILES([
   tests/fe_mechanics/Makefile
   tests/IB/Makefile
   tests/IBFE/Makefile
+  tests/IIM/Makefile
   tests/IBTK/Makefile
   tests/interpolate/Makefile
   tests/level_set/Makefile

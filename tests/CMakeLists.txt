@@ -18,7 +18,7 @@ ADD_CUSTOM_TARGET(tests)
 #    only compiles the IBFE tests.
 # 2. all input and output files in these source directories are symlinked into
 #    their corresponding build directories.
-SET(TEST_DIRECTORIES CIB ConstraintIB IB IBFE IBTK adv_diff advect coarsen
+SET(TEST_DIRECTORIES CIB ConstraintIB IB IBFE IIM IBTK adv_diff advect coarsen
   complex_fluids external fe_mechanics interpolate level_set multiphase_flow
   navier_stokes physical_boundary refine spread vc_navier_stokes wave_tank)
 
@@ -206,6 +206,19 @@ IF(${IBAMR_HAVE_LIBMESH})
   SETUP_3D(IBFE ib_partitioning_02.cpp)
   SETUP_3D(IBFE interpolate_velocity_01.cpp)
   SETUP_3D(IBFE zero_exterior_values.cpp)
+ENDIF()
+
+
+# IIM:
+IF(${IBAMR_HAVE_LIBMESH})
+
+  SETUP(IIM poiseuille_flow.cpp IBAMR2d)
+  SETUP(IIM taylor_couette_2d.cpp IBAMR2d)
+  SETUP(IIM flow_past_cylinder.cpp IBAMR2d)
+
+  SETUP(IIM hagen_poiseuille_flow.cpp IBAMR3d)
+  SETUP(IIM taylor_couette_3d.cpp IBAMR3d)
+  SETUP(IIM flow_past_sphere.cpp IBAMR3d)
 ENDIF()
 
 # IBTK:

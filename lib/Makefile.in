@@ -101,6 +101,7 @@ host_triplet = @host@
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFEMethod.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFEPostProcessor.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IBFESurfaceMethod.cpp \
+@LIBMESH_ENABLED_TRUE@  ../src/IB/IIMethod.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IMPInitializer.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/IMPMethod.cpp \
 @LIBMESH_ENABLED_TRUE@  ../src/IB/MaterialPointSpec.cpp \
@@ -117,6 +118,7 @@ host_triplet = @host@
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEMethod.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFEPostProcessor.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IBFESurfaceMethod.h \
+@LIBMESH_ENABLED_TRUE@  ../include/ibamr/IIMethod.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IMPInitializer.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/IMPMethod.h \
 @LIBMESH_ENABLED_TRUE@  ../include/ibamr/MaterialPointSpec.h \
@@ -333,8 +335,9 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/IBFEDirectForcingKinematics.cpp \
 	../src/IB/IBFEInstrumentPanel.cpp ../src/IB/IBFEMethod.cpp \
 	../src/IB/IBFEPostProcessor.cpp \
-	../src/IB/IBFESurfaceMethod.cpp ../src/IB/IMPInitializer.cpp \
-	../src/IB/IMPMethod.cpp ../src/IB/MaterialPointSpec.cpp \
+	../src/IB/IBFESurfaceMethod.cpp ../src/IB/IIMethod.cpp \
+	../src/IB/IMPInitializer.cpp ../src/IB/IMPMethod.cpp \
+	../src/IB/MaterialPointSpec.cpp \
 	../src/IB/MaterialPointSpecFactory.cpp \
 	../src/level_set/FESurfaceDistanceEvaluator.cpp \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
@@ -365,6 +368,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFEMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFEPostProcessor.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IBFESurfaceMethod.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IIMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IMPInitializer.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-IMPMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR2d_a-MaterialPointSpec.$(OBJEXT) \
@@ -675,8 +679,9 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/IBFEDirectForcingKinematics.cpp \
 	../src/IB/IBFEInstrumentPanel.cpp ../src/IB/IBFEMethod.cpp \
 	../src/IB/IBFEPostProcessor.cpp \
-	../src/IB/IBFESurfaceMethod.cpp ../src/IB/IMPInitializer.cpp \
-	../src/IB/IMPMethod.cpp ../src/IB/MaterialPointSpec.cpp \
+	../src/IB/IBFESurfaceMethod.cpp ../src/IB/IIMethod.cpp \
+	../src/IB/IMPInitializer.cpp ../src/IB/IMPMethod.cpp \
+	../src/IB/MaterialPointSpec.cpp \
 	../src/IB/MaterialPointSpecFactory.cpp \
 	../src/level_set/FESurfaceDistanceEvaluator.cpp \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
@@ -707,6 +712,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFEMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFEPostProcessor.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IBFESurfaceMethod.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IIMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IMPInitializer.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-IMPMethod.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/IB/libIBAMR3d_a-MaterialPointSpec.$(OBJEXT) \
@@ -949,6 +955,7 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBStrategySet.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBTargetPointForceSpec.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IBTargetPointForceSpecFactory.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-IIMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IMPInitializer.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-IMPMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.Po \
@@ -1018,6 +1025,7 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBStrategySet.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBTargetPointForceSpec.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IBTargetPointForceSpecFactory.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-IIMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IMPInitializer.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-IMPMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.Po \
@@ -1401,7 +1409,8 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/IBFEMethod.h \
 	../include/ibamr/IBFEPostProcessor.h \
 	../include/ibamr/IBFESurfaceMethod.h \
-	../include/ibamr/IMPInitializer.h ../include/ibamr/IMPMethod.h \
+	../include/ibamr/IIMethod.h ../include/ibamr/IMPInitializer.h \
+	../include/ibamr/IMPMethod.h \
 	../include/ibamr/MaterialPointSpec.h \
 	../include/ibamr/private/MaterialPointSpec-inl.h
 HEADERS = $(pkg_include_HEADERS)
@@ -2506,6 +2515,8 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IBFESurfaceMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-IIMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
+	../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IMPInitializer.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-IMPMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
@@ -2994,6 +3005,8 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IBFESurfaceMethod.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-IIMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
+	../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IMPInitializer.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-IMPMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
@@ -3149,6 +3162,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBStrategySet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBTargetPointForceSpec.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IBTargetPointForceSpecFactory.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IIMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IMPInitializer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-IMPMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.Po@am__quote@ # am--include-marker
@@ -3218,6 +3232,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBStrategySet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBTargetPointForceSpec.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IBTargetPointForceSpecFactory.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IIMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IMPInitializer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-IMPMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.Po@am__quote@ # am--include-marker
@@ -5517,6 +5532,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IBFESurfaceMethod.obj `if test -f '../src/IB/IBFESurfaceMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBFESurfaceMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFESurfaceMethod.cpp'; fi`
 
+../src/IB/libIBAMR2d_a-IIMethod.o: ../src/IB/IIMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IIMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IIMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-IIMethod.o `test -f '../src/IB/IIMethod.cpp' || echo '$(srcdir)/'`../src/IB/IIMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IIMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IIMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IIMethod.cpp' object='../src/IB/libIBAMR2d_a-IIMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IIMethod.o `test -f '../src/IB/IIMethod.cpp' || echo '$(srcdir)/'`../src/IB/IIMethod.cpp
+
+../src/IB/libIBAMR2d_a-IIMethod.obj: ../src/IB/IIMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IIMethod.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IIMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-IIMethod.obj `if test -f '../src/IB/IIMethod.cpp'; then $(CYGPATH_W) '../src/IB/IIMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IIMethod.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IIMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IIMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IIMethod.cpp' object='../src/IB/libIBAMR2d_a-IIMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-IIMethod.obj `if test -f '../src/IB/IIMethod.cpp'; then $(CYGPATH_W) '../src/IB/IIMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IIMethod.cpp'; fi`
+
 ../src/IB/libIBAMR2d_a-IMPInitializer.o: ../src/IB/IMPInitializer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-IMPInitializer.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-IMPInitializer.Tpo -c -o ../src/IB/libIBAMR2d_a-IMPInitializer.o `test -f '../src/IB/IMPInitializer.cpp' || echo '$(srcdir)/'`../src/IB/IMPInitializer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-IMPInitializer.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-IMPInitializer.Po
@@ -7673,6 +7702,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IBFESurfaceMethod.obj `if test -f '../src/IB/IBFESurfaceMethod.cpp'; then $(CYGPATH_W) '../src/IB/IBFESurfaceMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IBFESurfaceMethod.cpp'; fi`
 
+../src/IB/libIBAMR3d_a-IIMethod.o: ../src/IB/IIMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IIMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IIMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-IIMethod.o `test -f '../src/IB/IIMethod.cpp' || echo '$(srcdir)/'`../src/IB/IIMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IIMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IIMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IIMethod.cpp' object='../src/IB/libIBAMR3d_a-IIMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IIMethod.o `test -f '../src/IB/IIMethod.cpp' || echo '$(srcdir)/'`../src/IB/IIMethod.cpp
+
+../src/IB/libIBAMR3d_a-IIMethod.obj: ../src/IB/IIMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IIMethod.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IIMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-IIMethod.obj `if test -f '../src/IB/IIMethod.cpp'; then $(CYGPATH_W) '../src/IB/IIMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IIMethod.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IIMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IIMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/IIMethod.cpp' object='../src/IB/libIBAMR3d_a-IIMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-IIMethod.obj `if test -f '../src/IB/IIMethod.cpp'; then $(CYGPATH_W) '../src/IB/IIMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/IIMethod.cpp'; fi`
+
 ../src/IB/libIBAMR3d_a-IMPInitializer.o: ../src/IB/IMPInitializer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-IMPInitializer.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-IMPInitializer.Tpo -c -o ../src/IB/libIBAMR3d_a-IMPInitializer.o `test -f '../src/IB/IMPInitializer.cpp' || echo '$(srcdir)/'`../src/IB/IMPInitializer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-IMPInitializer.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-IMPInitializer.Po
@@ -7994,6 +8037,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBStrategySet.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBTargetPointForceSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBTargetPointForceSpecFactory.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IIMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IMPInitializer.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IMPMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.Po
@@ -8063,6 +8107,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBStrategySet.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBTargetPointForceSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBTargetPointForceSpecFactory.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IIMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IMPInitializer.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IMPMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.Po
@@ -8348,6 +8393,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBStrategySet.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBTargetPointForceSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IBTargetPointForceSpecFactory.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IIMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IMPInitializer.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-IMPMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-KrylovFreeBodyMobilitySolver.Po
@@ -8417,6 +8463,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBStrategySet.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBTargetPointForceSpec.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IBTargetPointForceSpecFactory.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IIMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IMPInitializer.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-IMPMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-KrylovFreeBodyMobilitySolver.Po
