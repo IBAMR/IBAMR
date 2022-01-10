@@ -11,9 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-// Filename: SetFluidGasSolidViscosity.cpp
-// Created on Dec 14, 2017 by Nishant Nangia
-
 #include <ibtk/HierarchyMathOps.h>
 
 #include "SetFluidGasSolidViscosity.h"

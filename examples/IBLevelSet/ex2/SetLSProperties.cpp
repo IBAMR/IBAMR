@@ -11,9 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-// Filename: SetLSProperties.cpp
-// Created on Dec 17, 2017 by Nishant Nangia
-
 #include <ibtk/HierarchyMathOps.h>
 
 #include "SetLSProperties.h"

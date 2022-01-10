@@ -11,9 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-// Filename LSLocateGasInterface.cpp
-// Created on Nov 15, 2017 by Nishant Nangia
-
 #include <ibtk/HierarchyMathOps.h>
 
 #include "LSLocateGasInterface.h"
