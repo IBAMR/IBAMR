@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2019 by the IBAMR developers
+// Copyright (c) 2019 - 2022 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -11,10 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-// Filename: TagLSRefinementCells.cpp
-// Created on Dec 28, 2017 by Nishant Nangia
-
-// APPLICATION INCLUDES
 #include "TagLSRefinementCells.h"
 
 #include <CartesianGridGeometry.h>
@@ -22,8 +18,6 @@
 #include <fstream>
 
 #include <ibamr/app_namespaces.h>
-
-// C++ INCLUDES
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 

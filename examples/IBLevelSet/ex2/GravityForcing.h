@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2019 by the IBAMR developers
+// Copyright (c) 2019 - 2022 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -16,7 +16,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 
 #include <ibamr/app_namespaces.h>

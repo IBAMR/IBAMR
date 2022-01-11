@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2019 by the IBAMR developers
+// Copyright (c) 2019 - 2022 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -10,9 +10,6 @@
 // COPYRIGHT at the top level directory of IBAMR.
 //
 // ---------------------------------------------------------------------
-
-// Filename: SetFluidGasSolidViscosity.h
-// Created on Dec 14, 2017 by Nishant Nangia
 
 /////////////////////// INCLUDE GUARD ////////////////////////////////////
 

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2018 - 2018 by the IBAMR developers
+// Copyright (c) 2018 - 2022 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -16,7 +16,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
 #include <ibamr/app_namespaces.h>
