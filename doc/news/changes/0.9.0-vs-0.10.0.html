@@ -1,0 +1,65 @@
+<h2>Incompatibilities</h2>
+<ol>
+<li>
+Changed: IBTK_MPI's unused MPI type aliases have been removed.
+Additionally, the optional communicator arguments have been removed.
+This change was necessary to prevent a type conversion error that caused
+compilation issues with versions of MPI that use unsigned int for MPI_Comm.
+<br>
+(David Wells, 2021/12/15)
+</li>
+</ol>
+
+<h2>Major Changes</h2>
+<ol>
+<li>
+New: Implementation of the Immersed Interface Method (IIM) in IBAMR.
+<br>
+(Amin Kolahdouz and David Wells, 2021/12/17)
+</li>
+</ol>
+
+<h2>Minor Changes</h2>
+<ol>
+<li>
+Improved: IBAMR no longer depends on LAPACK.
+<br>
+(David Wells, 2021/09/03)
+</li>
+<li>
+Changed: The eel3d example no longer depends on GSL.
+<br>
+(David Wells, 2021/10/01)
+</li>
+<li>
+Improved: Classes inheriting from IBStrategy now check, in their constructors,
+that they are using supported kernels instead of the internal functions checking
+kernel names every time they are called. This greatly improves performance for
+applications that call the spread or interpolate functions in loops (e.g., over
+elements).
+<br>
+(David Wells, 2021/10/18)
+</li>
+<li>
+Fixed: The autotools build system now correctly treats tests/attest.conf.in as a
+configured file. This gets around a problem where this file could get out of date
+and become invalid when attest was updated but this file was not.
+<br>
+(David Wells, 2021/10/22)
+</li>
+<li>
+Added a fully Eulerian version of examples/IBLevelSet/ex0 (a half-buoyant cylinder impacting air-water interface) in examples/IBLevelSet/ex2.
+<br>
+(Amneet Bhalla, 2021/10/22)
+</li>
+<li>
+Improved: IBTK::FEProjector now logs solve times for each libMesh system.
+<br>
+(David Wells, 2021/12/15)
+</li>
+<li>
+Fixed: IBAMR now uses appropriate comparisons that respect finite precision.
+<br>
+(Aaron Barrett, 2021/12/23)
+</li>
+</ol>
