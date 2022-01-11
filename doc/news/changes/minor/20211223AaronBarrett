@@ -1,3 +1,0 @@
-Fixed: IBAMR now uses appropriate comparisons that respect finite precision.
-<br>
-(Aaron Barrett, 2021/12/23)
