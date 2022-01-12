@@ -1600,14 +1600,6 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
 
         const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
 
-        const double* const dx = pgeom->getDx();
-
-        double diag_dis = 0.0;
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            diag_dis += dx[d] * dx[d];
-        }
-
         unsigned int n_qp_patch = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
