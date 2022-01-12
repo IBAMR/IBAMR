@@ -435,8 +435,8 @@ void setup_system_vectors(libMesh::EquationSystems* equation_systems,
  *   the normal way.</li>
  *   <li>If @p from_restart is true then the vector stored in the System
  *   corresponding to the given name is overwritten and has its type changed
- *   from PARALLEL to GHOSTED. This works around a bug in libMesh where vectors
- *   are always serialized as PARALLEL.</li>
+ *   from PARALLEL to GHOSTED. This works around a bug in libMesh versions prior
+ *   to 1.7.0 where vectors are always serialized as PARALLEL.</li>
  * </ol>
  */
 void setup_system_vector(libMesh::System& system, const std::string& vector_name, const bool from_restart);
