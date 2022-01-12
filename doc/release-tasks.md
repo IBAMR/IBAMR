@@ -90,8 +90,9 @@ grep -L 'by the IBAMR developers' -R ./include/ ./ibtk/include/ ./src/ \
 
 ## creating the release
 
-- [ ] Collate the changelog entries on `master`. At the current time this is
-  done manually. Open a PR for this on GitHub: only proceed once it is merged.
+- [ ] Collate the changelog entries on `master` with
+  `scripts/maintenance/generate-changes.sh`. Open a PR for this on GitHub: only
+  proceed once it is merged.
 - [ ] Create a new branch `IBAMR-X.Y` locally off of master and increment the
   version in `VERSION` correctly. Push to GitHub without a PR:
 ```
