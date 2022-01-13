@@ -11,6 +11,12 @@
 //
 // ---------------------------------------------------------------------
 
+// Config files
+#include <SAMRAI_config.h>
+
+// Headers for basic PETSc functions
+#include <petscsys.h>
+
 // Headers for basic SAMRAI objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
@@ -18,43 +24,61 @@
 #include <LocationIndexRobinBcCoefs.h>
 #include <StandardTagAndInitialize.h>
 
+// Headers for basic libMesh objects
+#include <libmesh/boundary_mesh.h>
+#include <libmesh/equation_systems.h>
+#include <libmesh/exodusII_io.h>
+#include <libmesh/matlab_io.h>
+#include <libmesh/mesh.h>
+#include <libmesh/mesh_generation.h>
+#include <libmesh/mesh_modification.h>
+#include <libmesh/mesh_triangle_interface.h>
+
 // Headers for application-specific algorithm/data structure objects
-#include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/BrinkmanPenalizationRigidBodyDynamics.h>
-#include <ibamr/IBInterpolantHierarchyIntegrator.h>
-#include <ibamr/IBInterpolantMethod.h>
-#include <ibamr/IBLevelSetMethod.h>
-#include <ibamr/IBRedundantInitializer.h>
+#include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IBFEMethod.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
-#include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
-#include <ibamr/RelaxationLSMethod.h>
-#include <ibamr/SurfaceTensionForceFunction.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
 #include <ibtk/HierarchyMathOps.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
 #include <ibamr/app_namespaces.h>
 
 // Application specific includes.
-#include "FlowGravityForcing.h"
-#include "GravityForcing.h"
-#include "LSLocateGasInterface.h"
 #include "LevelSetInitialCondition.h"
-#include "SetFluidGasSolidDensity.h"
-#include "SetFluidGasSolidViscosity.h"
-#include "SetLSProperties.h"
+#include "SetFluidSolidDensity.h"
+#include "SetFluidSolidViscosity.h"
 #include "TagLSRefinementCells.h"
 
+// Struct to maintain the properties of the circular interface
+struct CircularInterface
+{
+    Eigen::Vector2d X0;
+    double R;
+};
+
 CircularInterface circle;
+RectangularInterface rectangle;
 
 // Struct to reset solid level set
 struct SolidLevelSetResetter
 {
+    SolidLevelSetResetter(Pointer<AdvDiffHierarchyIntegrator> integrator,
+                          Pointer<CellVariable<NDIM, double> > var,
+                          Pointer<BrinkmanPenalizationRigidBodyDynamics> bp)
+        : adv_diff_integrator(integrator), ls_solid_var(var), bp_rbd(bp)
+    {
+        return;
+    }
+
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator;
     Pointer<CellVariable<NDIM, double> > ls_solid_var;
     Pointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd;
@@ -69,6 +93,7 @@ reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*c
     const double dt = new_time - current_time;
     Eigen::Vector3d XCOM_current = resetter->bp_rbd->getCurrentCOMPosn();
     Eigen::Vector3d XCOM_new = XCOM_current + dt * (resetter->bp_rbd->getNewCOMTransVelocity());
+    IBTK::VectorNd origin(XCOM_new[0], XCOM_new[1]);
 
     // Set a large value away from the solid body.
     Pointer<PatchHierarchy<NDIM> > patch_hier = resetter->adv_diff_integrator->getPatchHierarchy();
@@ -94,19 +119,19 @@ reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*c
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 const hier::Index<NDIM>& ci = it();
-                Eigen::Vector3d coord = Eigen::Vector3d::Zero();
+                IBTK::VectorNd coord = IBTK::VectorNd::Zero();
                 for (int d = 0; d < NDIM; ++d)
                 {
                     coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
                 }
-                const double distance =
-                    std::sqrt(std::pow((coord[0] - XCOM_new(0)), 2.0) + std::pow((coord[1] - XCOM_new(1)), 2.0)
-#if (NDIM == 3)
-                              + std::pow((coord[2] - XCOM_new(2)), 2.0)
-#endif
-                                  ) -
-                    circle.R;
 
+                const IBTK::VectorNd p = coord - origin;
+                const IBTK::VectorNd& b = rectangle.S;
+                IBTK::VectorNd d = p.cwiseAbs() - b;
+                const double mm = std::max(d[0], d[1]);
+                d[0] = std::max(d[0], 0.0);
+                d[1] = std::max(d[1], 0.0);
+                const double distance = (d.norm() + std::min(0.0, mm));
                 (*ls_solid_data)(ci) = distance;
             }
         }
@@ -116,6 +141,15 @@ reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*c
 }
 
 void
+generate_interp_mesh(const unsigned int& /*strct_num*/,
+                     const int& /*ln*/,
+                     int& /*num_vertices*/,
+                     std::vector<IBTK::Point>& /*vertex_posn*/)
+{
+    return;
+} // generate_interp_mesh
+
+void
 imposed_kinematics(double /*data_time*/,
                    int /*cycle_num*/,
                    Eigen::Vector3d& U_com,
@@ -123,6 +157,7 @@ imposed_kinematics(double /*data_time*/,
                    void* /*ctx*/)
 {
     U_com.setZero();
+    U_com[1] = 1.0;
     W_com.setZero();
     return;
 } // imposed_kinematics
@@ -131,10 +166,48 @@ void
 external_force_torque(double /*data_time*/, int /*cycle_num*/, Eigen::Vector3d& F, Eigen::Vector3d& T, void* /*ctx*/)
 {
     F.setZero();
-    F[1] = circle.rho_solid * M_PI * std::pow(circle.R, 2) * circle.g_y;
     T.setZero();
     return;
 } // imposed_kinematics
+
+// IBFE Elasticity model data.
+namespace ModelData
+{
+// Problem parameters.
+static const double mu = 10.0; // Elastic modulus
+
+// Stress tensor functions.
+void
+PK1_dev_stress_function(TensorValue<double>& PP,
+                        const TensorValue<double>& FF,
+                        const libMesh::Point& /*X*/,
+                        const libMesh::Point& /*s*/,
+                        Elem* const /*elem*/,
+                        const std::vector<const std::vector<double>*>& /*var_data*/,
+                        const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
+                        double /*time*/,
+                        void* /*ctx*/)
+{
+    PP = mu * FF;
+    return;
+} // PK1_dev_stress_function
+
+void
+PK1_dil_stress_function(TensorValue<double>& PP,
+                        const TensorValue<double>& FF,
+                        const libMesh::Point& /*X*/,
+                        const libMesh::Point& /*s*/,
+                        Elem* const /*elem*/,
+                        const std::vector<const std::vector<double>*>& /*var_data*/,
+                        const std::vector<const std::vector<VectorValue<double> >*>& /*grad_var_data*/,
+                        double /*time*/,
+                        void* /*ctx*/)
+{
+    PP = -mu * tensor_inverse_transpose(FF, NDIM);
+    return;
+} // PK1_dil_stress_function
+} // namespace ModelData
+using namespace ModelData;
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -150,11 +223,9 @@ external_force_torque(double /*data_time*/, int /*cycle_num*/, Eigen::Vector3d& 
 int
 main(int argc, char* argv[])
 {
-    // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
-    SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
-    SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
-    SAMRAIManager::startup();
+    // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
+    IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
+    const LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     // Increase maximum patch data component indices
     SAMRAIManager::setMaxNumberPatchDataEntries(2500);
@@ -171,6 +242,17 @@ main(int argc, char* argv[])
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
         const bool uses_visit = dump_viz_data && !app_initializer->getVisItDataWriter().isNull();
+#ifdef LIBMESH_HAVE_EXODUS_API
+        const bool uses_exodus = dump_viz_data && !app_initializer->getExodusIIFilename().empty();
+#else
+        const bool uses_exodus = false;
+        if (!app_initializer->getExodusIIFilename().empty())
+        {
+            plog << "WARNING: libMesh was compiled without Exodus support, so no "
+                 << "Exodus output will be written in this program.\n";
+        }
+#endif
+        const string exodus_filename = app_initializer->getExodusIIFilename();
 
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
@@ -191,13 +273,84 @@ main(int argc, char* argv[])
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
-        // Setup solid information
+        // Setup disk information
         circle.R = input_db->getDouble("R");
-        circle.X0[0] = input_db->getDouble("XCOM");
-        circle.X0[1] = input_db->getDouble("YCOM");
-#if (NDIM == 3)
-        circle.X0[2] = input_db->getDouble("ZCOM");
+        circle.X0[0] = input_db->getDouble("XCOM_DISK");
+        circle.X0[1] = input_db->getDouble("YCOM_DISK");
+
+        // Set up rectangle information
+        rectangle.S[0] = 0.5 * input_db->getDouble("WIDTH_RECTANGLE");
+        rectangle.S[1] = 0.5 * input_db->getDouble("HEIGHT_RECTANGLE");
+        rectangle.X0[0] = input_db->getDouble("XCOM_RECTANGLE");
+        rectangle.X0[1] = input_db->getDouble("YCOM_RECTANGLE");
+
+        // Create a simple FE mesh.
+        Mesh solid_mesh(init.comm(), NDIM);
+
+        // Create mesh based upon input file
+        const double dx = input_db->getDouble("DX");
+        const double ds = input_db->getDouble("MFAC") * dx;
+        string elem_type = input_db->getString("ELEM_TYPE");
+
+        if (input_db->keyExists("XDA_FILENAME"))
+        {
+            TBOX_ASSERT(elem_type == "TRI3" || elem_type == "TRI6");
+
+            std::string filename = input_db->getString("XDA_FILENAME");
+            MatlabIO distmesh(solid_mesh);
+            distmesh.read(filename);
+
+            if (elem_type == "TRI6") solid_mesh.all_second_order();
+        }
+        else if (input_db->keyExists("GMSH_FILENAME"))
+        {
+            TBOX_ASSERT(elem_type == "TRI3" || elem_type == "TRI6");
+
+            std::string filename = input_db->getString("GMSH_FILENAME");
+            solid_mesh.read(filename);
+
+            if (elem_type == "TRI6") solid_mesh.all_second_order();
+        }
+        else if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
+        {
+#ifdef LIBMESH_HAVE_TRIANGLE
+            const int num_circum_nodes = ceil(2.0 * M_PI * circle.R / ds);
+            for (int k = 0; k < num_circum_nodes; ++k)
+            {
+                const double theta = 2.0 * M_PI * static_cast<double>(k) / static_cast<double>(num_circum_nodes);
+                solid_mesh.add_point(libMesh::Point(circle.R * cos(theta), circle.R * sin(theta)));
+            }
+            TriangleInterface triangle(solid_mesh);
+            triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
+            triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
+            triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
+            triangle.insert_extra_points() = true;
+            triangle.smooth_after_generating() = true;
+            triangle.triangulate();
+#else
+            TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
+                       << "       but Triangle is required for TRI3 or TRI6 elements.\n");
 #endif
+        }
+        else
+        {
+            // NOTE: number of segments along boundary is 4*2^r.
+            const double num_circum_segments = 2.0 * M_PI * circle.R / ds;
+            const int r = log2(0.25 * num_circum_segments);
+            MeshTools::Generation::build_sphere(solid_mesh, circle.R, r, Utility::string_to_enum<ElemType>(elem_type));
+        }
+
+        // Translate the mesh to a new location.
+        // This can also be achieved by libMesh's canned routine MeshTools::Modification::translate().
+        for (MeshBase::node_iterator it = solid_mesh.nodes_begin(); it != solid_mesh.nodes_end(); ++it)
+        {
+            Node* n = *it;
+            libMesh::Point& x = *n;
+            x(0) += circle.X0[0];
+            x(1) += circle.X0[1];
+        }
+        solid_mesh.prepare_for_use();
+        Mesh& mesh = solid_mesh;
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -213,14 +366,26 @@ main(int argc, char* argv[])
             app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
         navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
 
-        // Cartesian grid geometry and AMR algorithm objects
+        Pointer<IBFEMethod> ibfe_method_ops =
+            new IBFEMethod("IBFEMethod",
+                           app_initializer->getComponentDatabase("IBFEMethod"),
+                           &mesh,
+                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+                           /*register_for_restart*/ true);
+
+        Pointer<IBHierarchyIntegrator> time_integrator =
+            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                              ibfe_method_ops,
+                                              navier_stokes_integrator);
+
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
 
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               navier_stokes_integrator,
+                                               time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
@@ -236,46 +401,17 @@ main(int argc, char* argv[])
         const string& ls_name_solid = "level_set_solid";
         Pointer<CellVariable<NDIM, double> > phi_var_solid = new CellVariable<NDIM, double>(ls_name_solid);
 
-        // Create level sets for gas/liquid interface.
-        const double fluid_height = input_db->getDouble("GAS_LS_INIT");
-        const string& ls_name_gas = "level_set_gas";
-        Pointer<CellVariable<NDIM, double> > phi_var_gas = new CellVariable<NDIM, double>(ls_name_gas);
-        Pointer<RelaxationLSMethod> level_set_gas_ops =
-            new RelaxationLSMethod(ls_name_gas, app_initializer->getComponentDatabase("LevelSet_Gas"));
-        LSLocateGasInterface* ptr_LSLocateGasInterface =
-            new LSLocateGasInterface("LSLocateGasInterface", adv_diff_integrator, phi_var_gas, fluid_height);
-        level_set_gas_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateGasInterfaceCallbackFunction,
-                                                                    static_cast<void*>(ptr_LSLocateGasInterface));
-
         // Register the level sets with advection diffusion integrator.
         adv_diff_integrator->registerTransportedQuantity(phi_var_solid);
         adv_diff_integrator->setDiffusionCoefficient(phi_var_solid, 0.0);
         adv_diff_integrator->setAdvectionVelocity(phi_var_solid,
                                                   navier_stokes_integrator->getAdvectionVelocityVariable());
 
-        adv_diff_integrator->registerTransportedQuantity(phi_var_gas);
-        adv_diff_integrator->setDiffusionCoefficient(phi_var_gas, 0.0);
-        adv_diff_integrator->setAdvectionVelocity(phi_var_gas,
-                                                  navier_stokes_integrator->getAdvectionVelocityVariable());
-
-        // Register the reinitialization functions for the level set variables
-        SetLSProperties* ptr_setSetLSProperties = new SetLSProperties("SetLSProperties", level_set_gas_ops);
-        adv_diff_integrator->registerResetFunction(
-            phi_var_gas, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_setSetLSProperties));
-
-        // Solid level set initial conditions
-        Pointer<CartGridFunction> phi_solid_init = new LevelSetInitialCondition("solid_ls_init", circle);
+        // Solid level set initial condition
+        Pointer<CartGridFunction> phi_solid_init = new LevelSetInitialCondition("phi_solid_init", rectangle);
         adv_diff_integrator->setInitialConditions(phi_var_solid, phi_solid_init);
 
-        // Gas level set initial conditions
-        Pointer<CartGridFunction> phi_gas_init = new muParserCartGridFunction(
-            "phi_gas_init", app_initializer->getComponentDatabase("GasLevelSetInitialCondition"), grid_geometry);
-        adv_diff_integrator->setInitialConditions(phi_var_gas, phi_gas_init);
-
-        // Reset solid geometry
-        SolidLevelSetResetter solid_level_set_resetter;
-        solid_level_set_resetter.adv_diff_integrator = adv_diff_integrator;
-        solid_level_set_resetter.ls_solid_var = phi_var_solid;
+        SolidLevelSetResetter solid_level_set_resetter(adv_diff_integrator, phi_var_solid, /*bp_rbd*/ nullptr);
         adv_diff_integrator->registerIntegrateHierarchyCallback(&reset_solid_level_set_callback_fcn,
                                                                 static_cast<void*>(&solid_level_set_resetter));
 
@@ -286,62 +422,23 @@ main(int argc, char* argv[])
         navier_stokes_integrator->registerViscosityVariable(mu_var);
 
         // Array for input into callback function
-        const int ls_reinit_interval = input_db->getInteger("LS_REINIT_INTERVAL");
         const double rho_fluid = input_db->getDouble("RHO_F");
-        const double rho_solid = input_db->getDouble("RHO_S");
-        const double rho_gas = input_db->getDouble("RHO_G");
-        const int num_solid_interface_cells = input_db->getDouble("NUM_SOLID_INTERFACE_CELLS");
-        const int num_gas_interface_cells = input_db->getDouble("NUM_GAS_INTERFACE_CELLS");
-        circle.rho_solid = rho_solid;
-        SetFluidGasSolidDensity* ptr_setFluidGasSolidDensity = new SetFluidGasSolidDensity("SetFluidGasSolidDensity",
-                                                                                           adv_diff_integrator,
-                                                                                           phi_var_solid,
-                                                                                           phi_var_gas,
-                                                                                           rho_fluid,
-                                                                                           rho_gas,
-                                                                                           rho_solid,
-                                                                                           ls_reinit_interval,
-                                                                                           num_solid_interface_cells,
-                                                                                           num_gas_interface_cells);
-        navier_stokes_integrator->registerResetFluidDensityFcn(&callSetFluidGasSolidDensityCallbackFunction,
-                                                               static_cast<void*>(ptr_setFluidGasSolidDensity));
+        SetFluidSolidDensity* ptr_setFluidSolidDensity = new SetFluidSolidDensity("SetFluidSolidDensity", rho_fluid);
+        navier_stokes_integrator->registerResetFluidDensityFcn(&callSetFluidSolidDensityCallbackFunction,
+                                                               static_cast<void*>(ptr_setFluidSolidDensity));
 
         const double mu_fluid = input_db->getDouble("MU_F");
-        const double mu_gas = input_db->getDouble("MU_G");
-        const double mu_solid = input_db->getDoubleWithDefault("MU_S", std::numeric_limits<double>::quiet_NaN());
-        const bool set_mu_solid = input_db->getBool("SET_MU_S");
-        SetFluidGasSolidViscosity* ptr_setFluidGasSolidViscosity =
-            new SetFluidGasSolidViscosity("SetFluidGasSolidViscosity",
-                                          adv_diff_integrator,
-                                          phi_var_solid,
-                                          phi_var_gas,
-                                          mu_fluid,
-                                          mu_gas,
-                                          mu_solid,
-                                          ls_reinit_interval,
-                                          num_solid_interface_cells,
-                                          num_gas_interface_cells,
-                                          set_mu_solid);
-        navier_stokes_integrator->registerResetFluidViscosityFcn(&callSetFluidGasSolidViscosityCallbackFunction,
-                                                                 static_cast<void*>(ptr_setFluidGasSolidViscosity));
+        SetFluidSolidViscosity* ptr_setFluidSolidViscosity =
+            new SetFluidSolidViscosity("SetFluidSolidViscosity", mu_fluid);
+        navier_stokes_integrator->registerResetFluidViscosityFcn(&callSetFluidSolidViscosityCallbackFunction,
+                                                                 static_cast<void*>(ptr_setFluidSolidViscosity));
 
         // Register callback function for tagging refined cells for level set data
         const double tag_value = input_db->getDouble("LS_TAG_VALUE");
         const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
-        TagLSRefinementCells ls_gas_tagger;
-        ls_gas_tagger.d_ls_var = phi_var_gas;
-        ls_gas_tagger.d_tag_value = tag_value;
-        ls_gas_tagger.d_tag_abs_thresh = tag_thresh;
-        ls_gas_tagger.d_adv_diff_solver = adv_diff_integrator;
-        TagLSRefinementCells ls_solid_tagger;
-        ls_solid_tagger.d_ls_var = phi_var_solid;
-        ls_solid_tagger.d_tag_value = tag_value;
-        ls_solid_tagger.d_tag_abs_thresh = tag_thresh;
-        ls_solid_tagger.d_adv_diff_solver = adv_diff_integrator;
-        navier_stokes_integrator->registerApplyGradientDetectorCallback(&callTagGasLSRefinementCellsCallbackFunction,
-                                                                        static_cast<void*>(&ls_gas_tagger));
-        navier_stokes_integrator->registerApplyGradientDetectorCallback(&callTagSolidLSRefinementCellsCallbackFunction,
-                                                                        static_cast<void*>(&ls_solid_tagger));
+        TagLSRefinementCells ls_tagger(adv_diff_integrator, phi_var_solid, tag_value, tag_thresh);
+        time_integrator->registerApplyGradientDetectorCallback(&callTagSolidLSRefinementCellsCallbackFunction,
+                                                               static_cast<void*>(&ls_tagger));
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -408,45 +505,21 @@ main(int argc, char* argv[])
             phi_bc_coef = new muParserRobinBcCoefs(
                 "phi_bc_coef", app_initializer->getComponentDatabase("PhiBcCoefs"), grid_geometry);
         }
-        adv_diff_integrator->setPhysicalBcCoef(phi_var_gas, phi_bc_coef);
         adv_diff_integrator->setPhysicalBcCoef(phi_var_solid, phi_bc_coef);
 
-        // LS reinit boundary conditions, which is set to be the same as the BCs
-        // for advection
-        RobinBcCoefStrategy<NDIM>* ls_reinit_bcs = phi_bc_coef;
-        level_set_gas_ops->registerPhysicalBoundaryCondition(ls_reinit_bcs);
+        // Configure the IBFE solver.
+        ibfe_method_ops->initializeFEEquationSystems();
+        EquationSystems* equation_systems = ibfe_method_ops->getFEDataManager(/*part*/ 0)->getEquationSystems();
+        IBFEMethod::PK1StressFcnData PK1_dev_stress_data(PK1_dev_stress_function);
+        IBFEMethod::PK1StressFcnData PK1_dil_stress_data(PK1_dil_stress_function);
+        PK1_dev_stress_data.quad_order =
+            Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DEV_QUAD_ORDER", "THIRD"));
+        PK1_dil_stress_data.quad_order =
+            Utility::string_to_enum<libMeshEnums::Order>(input_db->getStringWithDefault("PK1_DIL_QUAD_ORDER", "FIRST"));
+        ibfe_method_ops->registerPK1StressFunction(PK1_dev_stress_data);
+        ibfe_method_ops->registerPK1StressFunction(PK1_dil_stress_data);
 
-        // Body forces.
-        std::vector<double> grav_const(NDIM);
-        input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
-        circle.g_y = grav_const[1];
-        Pointer<CartGridFunction> grav_force;
-        const string grav_type = input_db->getString("GRAV_TYPE");
-        if (grav_type == "FULL")
-        {
-            grav_force = new GravityForcing("GravityForcing", navier_stokes_integrator, grav_const);
-        }
-        else if (grav_type == "FLOW")
-        {
-            grav_force = new FlowGravityForcing("FlowGravityForcing",
-                                                app_initializer->getComponentDatabase("FlowGravityForcing"),
-                                                adv_diff_integrator,
-                                                phi_var_gas,
-                                                grav_const);
-        }
-
-        Pointer<SurfaceTensionForceFunction> surface_tension_force =
-            new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
-                                            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
-                                            adv_diff_integrator,
-                                            phi_var_gas);
-
-        Pointer<CartGridFunctionSet> eul_forces = new CartGridFunctionSet("eulerian_forces");
-        eul_forces->addFunction(grav_force);
-        eul_forces->addFunction(surface_tension_force);
-        navier_stokes_integrator->registerBodyForceFunction(eul_forces);
-
-        // Configure the Brinkman penalization object to do the rigid body dynamics.
+        // Configure the Brinkman penalization object to do the rigid body dynamics of the rectangle.
         Pointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd =
             new BrinkmanPenalizationRigidBodyDynamics("Brinkman Body",
                                                       phi_var_solid,
@@ -455,13 +528,13 @@ main(int argc, char* argv[])
                                                       app_initializer->getComponentDatabase("BrinkmanPenalization"),
                                                       /*register_for_restart*/ true);
         FreeRigidDOFVector free_dofs;
-        free_dofs << 0, 1, 0;
+        free_dofs << 0, 0, 0;
         Eigen::Vector3d U_i = Eigen::Vector3d::Zero();
-        const double mass = rho_solid * M_PI * std::pow(circle.R, 2);
+        const double mass = 4 * rho_fluid * rectangle.S[0] * rectangle.S[1];
         bp_rbd->setSolveRigidBodyVelocity(free_dofs);
         bp_rbd->registerKinematicsFunction(&imposed_kinematics);
         bp_rbd->registerExternalForceTorqueFunction(&external_force_torque);
-        bp_rbd->setInitialConditions(circle.X0, U_i, U_i, mass);
+        bp_rbd->setInitialConditions(Eigen::Vector3d(rectangle.X0[0], rectangle.X0[1], 0.0), U_i, U_i, mass);
         navier_stokes_integrator->registerBrinkmanPenalizationStrategy(bp_rbd);
         solid_level_set_resetter.bp_rbd = bp_rbd;
 
@@ -469,11 +542,13 @@ main(int argc, char* argv[])
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
-            navier_stokes_integrator->registerVisItDataWriter(visit_data_writer);
+            time_integrator->registerVisItDataWriter(visit_data_writer);
         }
+        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
-        navier_stokes_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
+        ibfe_method_ops->initializeFEData();
+        time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
         app_initializer.setNull();
@@ -483,42 +558,47 @@ main(int argc, char* argv[])
         input_db->printClassData(plog);
 
         // Write out initial visualization data.
-        int iteration_num = navier_stokes_integrator->getIntegratorStep();
-        double loop_time = navier_stokes_integrator->getIntegratorTime();
+        int iteration_num = time_integrator->getIntegratorStep();
+        double loop_time = time_integrator->getIntegratorTime();
 
         if (dump_viz_data)
         {
             pout << "\n\nWriting visualization files...\n\n";
             if (uses_visit)
             {
-                navier_stokes_integrator->setupPlotData();
+                time_integrator->setupPlotData();
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+            }
+            if (uses_exodus)
+            {
+                exodus_io->write_timestep(
+                    exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
             }
         }
 
         // Open streams to save position and velocity of the structure.
         ofstream rbd_stream;
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             rbd_stream.open("rbd.curve", ios_base::out | ios_base::app);
         }
 
         // Main time step loop.
-        double loop_time_end = navier_stokes_integrator->getEndTime();
+        double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
-        while (!IBTK::rel_equal_eps(loop_time, loop_time_end) && navier_stokes_integrator->stepsRemaining())
+        while (!MathUtilities<double>::equalEps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
-            iteration_num = navier_stokes_integrator->getIntegratorStep();
-            loop_time = navier_stokes_integrator->getIntegratorTime();
+            iteration_num = time_integrator->getIntegratorStep();
+            loop_time = time_integrator->getIntegratorTime();
 
             pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "At beginning of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
 
-            dt = navier_stokes_integrator->getMaximumTimeStepSize();
+            dt = time_integrator->getMaximumTimeStepSize();
             pout << "Advancing hierarchy with timestep size dt = " << dt << "\n";
-            navier_stokes_integrator->advanceHierarchy(dt);
+            time_integrator->advanceHierarchy(dt);
             loop_time += dt;
 
             pout << "\n";
@@ -530,12 +610,18 @@ main(int argc, char* argv[])
             // At specified intervals, write visualization and restart files,
             // and print out timer data.
             iteration_num += 1;
-            const bool last_step = !navier_stokes_integrator->stepsRemaining();
+            const bool last_step = !time_integrator->stepsRemaining();
             if (dump_viz_data && uses_visit && (iteration_num % viz_dump_interval == 0 || last_step))
             {
                 pout << "Writing visualization files...\n\n";
-                navier_stokes_integrator->setupPlotData();
+                time_integrator->setupPlotData();
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+
+                if (uses_exodus)
+                {
+                    exodus_io->write_timestep(
+                        exodus_filename, *equation_systems, iteration_num / viz_dump_interval + 1, loop_time);
+                }
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
             {
@@ -548,7 +634,7 @@ main(int argc, char* argv[])
                 TimerManager::getManager()->print(plog);
             }
 
-            if (SAMRAI_MPI::getRank() == 0)
+            if (IBTK_MPI::getRank() == 0)
             {
                 const Eigen::Vector3d& rbd_posn = bp_rbd->getCurrentCOMPosn();
                 const Eigen::Vector3d& rbd_trans_vel = bp_rbd->getCurrentCOMTransVelocity();
@@ -560,21 +646,18 @@ main(int argc, char* argv[])
         }
 
         // Close the logging streams.
-        if (SAMRAI_MPI::getRank() == 0)
+        if (IBTK_MPI::getRank() == 0)
         {
             rbd_stream.close();
         }
 
         // Delete dumb pointers.
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-        delete ptr_setFluidGasSolidDensity;
-        delete ptr_setFluidGasSolidViscosity;
+        delete ptr_setFluidSolidDensity;
+        delete ptr_setFluidSolidViscosity;
         delete rho_bc_coef;
         delete mu_bc_coef;
         delete phi_bc_coef;
 
     } // cleanup dynamically allocated objects prior to shutdown
-
-    SAMRAIManager::shutdown();
-    PetscFinalize();
 } // main

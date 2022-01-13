@@ -1,53 +1,46 @@
 // physical parameters
-R  = 0.5
-Re = 100.0
-MU = 2.0*R/Re
-RHO = 1.0
-UINF = 1.0
-FREQ = 0.2
-RHO_F = RHO
-RHO_S = RHO
-MU_F  = MU
-SET_MU_S = TRUE
-MU_S  = MU
+Re    = 200
+RHO_F = 1
+R     = 0.5
+D     = 2*R
+U     = 1
+MU_F  = RHO_F*D*U/Re
 
-// Solid and gas level set parameters
-XCOM        = 0.0
-YCOM        = 0.0
+// Domain size
+LENGTH_DOMAIN  = 15*D
+HEIGHT_DOMAIN  = 15*D
+
+// Rectangle and disk parameters
+XCOM_DISK   = LENGTH_DOMAIN/2.0
+YCOM_DISK   = HEIGHT_DOMAIN/2.0 + 0.8*D
+
+WIDTH_RECTANGLE   = 0.2*D
+HEIGHT_RECTANGLE  = 2*D
+XCOM_RECTANGLE    = LENGTH_DOMAIN/2.0
+YCOM_RECTANGLE    = HEIGHT_DOMAIN/2.0 - 0.8*D
+
 
 // grid spacing parameters
-MAX_LEVELS = 5        // maximum number of levels in locally refined grid
-REF_RATIO  = 4        // refinement ratio between levels
-REF_RATIO_FINEST = 4  // refinement ratio for the finest level.
-
-LENGTH = 16.0
-HEIGHT = 8.0
-Nx = 62                                  // coarsest grid spacing
-Ny = 31
-NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx // finest   grid spacing
-H_COARSEST       = LENGTH/Nx
-
-NUM_SOLID_INTERFACE_CELLS = 2.0
+MAX_LEVELS       = 2
+REF_RATIO        = 2
+REF_RATIO_FINEST = 2
+N                = 110
+NFINEST          = (REF_RATIO^(MAX_LEVELS - 1))*N
+H_COARSEST       = LENGTH_DOMAIN/N
+H                = LENGTH_DOMAIN/NFINEST
 
 // Level set option parameters
-LS_REINIT_INTERVAL    = 1
 LS_TAG_VALUE          = 0.0
 LS_TAG_ABS_THRESH     = 2*H_COARSEST
+
 
 VelocityInitialConditions {
    function_0 = "0.0"
    function_1 = "0.0"
 }
 
-SolidLevelSetInitialCondition {
-   xcom = XCOM
-   ycom = YCOM
-   r    = R
-   function = "sqrt((X_0 - xcom)^2 + (X_1 - ycom)^2) - r"
-}
 
 VelocityBcCoefs_0 {
-
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
@@ -132,19 +125,24 @@ PhiBcCoefs {
    gcoef_function_3 = "0.0"
 }
 
+
 // Simulation Parameters
-START_TIME           = 0.0e0
-END_TIME             = 26.0e0
-GROW_DT              = 2.0e0
-MAX_INTEGRATOR_STEPS = 10000000000
-CFL_MAX              = 0.3
-NUM_INS_CYCLES       = 1
-CONVECTIVE_FORM      = "CONSERVATIVE"
+DELTA_FUNCTION       = "IB_4"
+START_TIME           =   0.0e0
+END_TIME             =   10.0e0
+GROW_DT              =   2.0e0
+MAX_INTEGRATOR_STEPS =   10000000
+CFL_MAX              =   0.3   
+NUM_INS_CYCLES       =   1
+NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "PPM"
+CONVECTIVE_FORM                     = "CONSERVATIVE"
+INIT_CONVECTIVE_TS_TYPE             = "FORWARD_EULER"
+CONVECTIVE_TS_TYPE                  = "FORWARD_EULER"
 NORMALIZE_PRESSURE   = TRUE
 VORTICITY_TAGGING    = TRUE
 TAG_BUFFER           = 2
-REGRID_INTERVAL      = 10
-DT_MAX               = 0.0005
+REGRID_CFL_INTERVAL  = 0.2
+DT_MAX               = 1e-3
 OUTPUT_U             = TRUE
 OUTPUT_P             = TRUE
 OUTPUT_F             = TRUE
@@ -157,21 +155,58 @@ MU_IS_CONST          = FALSE
 ERROR_ON_DT_CHANGE   = FALSE
 
 // Application
-CHI = RHO_S/DT_MAX
+CHI = RHO_F/DT_MAX
 PRECOND_REINIT_INTERVAL      = 1
 VC_INTERPOLATION_TYPE        = "VC_HARMONIC_INTERP"
 DENSITY_CONVECTIVE_LIMITER   = "CUI"
 VELOCITY_CONVECTIVE_LIMITER  = "CUI"
 DENSITY_TS                   = "SSPRK3"
-OPERATOR_SCALE_FACTORS       = 1.0
+OPERATOR_SCALE_FACTORS       =   1.0  
 EXPLICITLY_REMOVE_NULLSPACE  = FALSE
 ENABLE_LOGGING               = TRUE
+
+// IBFEMethod parameters
+DX                                 = H
+MFAC                               = 2.0
+ELEM_TYPE                          = "TRI3"
+SPLIT_FORCES                       = TRUE
+USE_JUMP_CONDITIONS                = FALSE
+USE_CONSISTENT_MASS_MATRIX         = TRUE
+USE_IB_DELTA_FUNCTIONS             = TRUE
+IB_POINT_DENSITY                   = 2.0
+PK1_DEV_QUAD_ORDER                 = "FIFTH"
+PK1_DIL_QUAD_ORDER                 = "THIRD"
+
 
 // AdvDiff solver parameters
 ADV_DIFF_NUM_CYCLES         = 1
 ADV_DIFF_CONVECTIVE_TS_TYPE = "ADAMS_BASHFORTH"
 ADV_DIFF_CONVECTIVE_OP_TYPE = "PPM"
 ADV_DIFF_CONVECTIVE_FORM    = "CONSERVATIVE"
+
+IBHierarchyIntegrator {
+   start_time            = START_TIME
+   end_time              = END_TIME
+   grow_dt               = GROW_DT
+   max_integrator_steps  = MAX_INTEGRATOR_STEPS
+   regrid_cfl_interval   = REGRID_CFL_INTERVAL
+   
+   dt_max             = DT_MAX 
+   num_cycles         = NUM_INS_CYCLES
+   delta_fcn          = DELTA_FUNCTION
+   enable_logging     = ENABLE_LOGGING
+   error_on_dt_change = ERROR_ON_DT_CHANGE
+}
+
+IBFEMethod {
+    use_IB_spread_operator      = USE_IB_DELTA_FUNCTIONS
+    use_IB_interp_operator      = USE_IB_DELTA_FUNCTIONS
+    IB_delta_fcn                = DELTA_FUNCTION
+    split_forces                = SPLIT_FORCES
+    use_jump_conditions         = USE_JUMP_CONDITIONS
+    use_consistent_mass_matrix  = USE_CONSISTENT_MASS_MATRIX
+    IB_point_density            = IB_POINT_DENSITY
+}
 
 BrinkmanPenalization {
     chi = CHI
@@ -188,7 +223,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
    using_vorticity_tagging    = VORTICITY_TAGGING
    vorticity_rel_thresh       = 0.25
    tag_buffer                 = TAG_BUFFER
-   regrid_interval            = REGRID_INTERVAL
+   regrid_cfl_interval        = REGRID_CFL_INTERVAL
    output_U                   = OUTPUT_U
    output_P                   = OUTPUT_P
    output_F                   = OUTPUT_F
@@ -199,7 +234,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
    rho_is_const               = RHO_IS_CONST
    mu_is_const                = MU_IS_CONST
    precond_reinit_interval    = PRECOND_REINIT_INTERVAL
-   operator_scale_factors     = OPERATOR_SCALE_FACTORS
+   operator_scale_factors     = OPERATOR_SCALE_FACTORS 
    vc_interpolation_type      = VC_INTERPOLATION_TYPE
    enable_logging             = ENABLE_LOGGING
    max_integrator_steps       = MAX_INTEGRATOR_STEPS
@@ -230,7 +265,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
    }
     pressure_solver_type = "PETSC_KRYLOV_SOLVER"
     pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-    pressure_solver_db
+    pressure_solver_db 
     {
       ksp_type = "richardson"
       max_iterations = 1
@@ -242,14 +277,13 @@ INSVCStaggeredConservativeHierarchyIntegrator {
       num_post_sweeps = 3
       prolongation_method = "LINEAR_REFINE"
       restriction_method  = "CONSERVATIVE_COARSEN"
-      coarse_solver_type = "HYPRE_LEVEL_SOLVER"
+      coarse_solver_type = "PETSC_LEVEL_SOLVER"
       coarse_solver_rel_residual_tol = 1.0e-12
       coarse_solver_abs_residual_tol = 1.0e-50
-      coarse_solver_max_iterations = 1
+      coarse_solver_max_iterations = 100
       coarse_solver_db {
-         solver_type          = "PFMG"
-         num_pre_relax_steps  = 0
-         num_post_relax_steps = 3
+         ksp_type = "gmres"
+         pc_type = "jacobi"
       }
     }
     mass_momentum_integrator_db {
@@ -257,7 +291,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
       velocity_convective_limiter = VELOCITY_CONVECTIVE_LIMITER
       density_convective_limiter = DENSITY_CONVECTIVE_LIMITER
     }
-
+   
 }
 
 AdvDiffSemiImplicitHierarchyIntegrator {
@@ -274,107 +308,72 @@ AdvDiffSemiImplicitHierarchyIntegrator {
    enable_logging                = ENABLE_LOGGING
 }
 
+
 Main {
 
+
 // log file parameters
-   log_file_name    = "IBLevelSet_OscillatingCylinder2d.log"
+   log_file_name    = "IB2d.log"
    log_all_nodes    = FALSE
 
 // visualization dump parameters
-   viz_writer            = "VisIt"
-   viz_dump_interval       = 2500            //zero to turn off
-   viz_dump_dirname      = "viz_cylinder2d"
+   viz_writer            = "VisIt","ExodusII","Silo"
+   viz_dump_interval     = 50    //zero to turn off
+   viz_dump_dirname      = "viz_2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_interval      = 0                 // zero to turn off
+   restart_interval      = 100
    restart_write_dirname = "restart_IB2d"
 
 // hierarchy data dump parameters
-   hier_dump_interval = 0                    // zero to turn off
+   hier_dump_interval = 0
    hier_dump_dirname  = "hier_data_IB2d"
 
 // timer dump parameters
-   timer_dump_interval   = 0                 // zero to turn off
+   timer_dump_interval   = 1
 
 // post processor parameters
-   postprocess_interval = 0                  // zero to turn off
+   postprocess_interval = 0
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0) , (Nx - 1 , Ny - 1) ]
-   x_lo         = -LENGTH, -HEIGHT         // lower end of computational domain.
-   x_up         =  LENGTH, HEIGHT          // upper end of computational domain.
+   domain_boxes = [ (0,0) , (N - 1, 3*N/5 - 1) ]
+   x_lo         =   0.0,   0.0
+   x_up         =   LENGTH_DOMAIN, HEIGHT_DOMAIN
    periodic_dimension = 1, 1
 }
 
 GriddingAlgorithm {
-   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
-   coalesce_boxes = TRUE
-
    max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
    ratio_to_coarser {
       level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
-      level_2 = REF_RATIO, REF_RATIO
-      level_3 = REF_RATIO_FINEST,REF_RATIO_FINEST
-      level_4 = REF_RATIO_FINEST,REF_RATIO_FINEST
-      level_5 = REF_RATIO_FINEST,REF_RATIO_FINEST
+      level_2 = REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO
+      level_4 = REF_RATIO,REF_RATIO
+      level_5 = REF_RATIO,REF_RATIO
+      level_6 = REF_RATIO,REF_RATIO
+      level_7 = REF_RATIO,REF_RATIO
    }
 
    largest_patch_size {
-      level_0 =512,512  // largest patch allowed in hierarchy
-                        // all finer levels will use same values as level_0...
+      level_0 = 2048, 2048 // largest patch allowed in hierarchy
+                          // all finer levels will use same values as level_0...
    }
 
    smallest_patch_size {
-      level_0 = 8, 8 // smallest patch allowed in hierarchy
-                     // all finer levels will use same values as level_0...
+      level_0 =  8, 8 // smallest patch allowed in hierarchy
+                            // all finer levels will use same values as level_0...
    }
 
-   efficiency_tolerance   = 0.85e0    // min % of tag cells in new patch level
-   combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller
+   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
+   efficiency_tolerance   = 0.80e0    // min % of tag cells in new patch level
+   combine_efficiency     = 0.80e0    // chop box if sum of volumes of smaller
                                       // boxes < efficiency * vol of large box
 }
 
-Nx_lower1 = int( (LENGTH/2 - 3.6)/H_COARSEST )
-Ny_lower1 = int( (HEIGHT/2 - 2.5)/H_COARSEST )
-
-Nx_upper1 = int( (LENGTH/2 + 3.4)/H_COARSEST )
-Ny_upper1 = int( (HEIGHT/2 + 2.5)/H_COARSEST )
-
-Nx_lower2 = int( (LENGTH/2 - 2.8)/H_COARSEST )
-Ny_lower2 = int( (HEIGHT/2 - 1.7)/H_COARSEST )
-
-Nx_upper2 = int( (LENGTH/2 + 2.7)/H_COARSEST )
-Ny_upper2 = int( (HEIGHT/2 + 1.7)/H_COARSEST )
-
-Nx_lower3 = int( (LENGTH/2 - 2.3)/H_COARSEST )
-Ny_lower3 = int( (HEIGHT/2 - 1.4)/H_COARSEST )
-
-Nx_upper3 = int( (LENGTH/2 + 2.3)/H_COARSEST )
-Ny_upper3 = int( (HEIGHT/2 + 1.4)/H_COARSEST )
-
-Nx_lower4 = int( (LENGTH/2 - 1.8)/H_COARSEST )
-Ny_lower4 = int( (HEIGHT/2 - 1.0)/H_COARSEST )
-
-Nx_upper4 = int( (LENGTH/2 + 1.8)/H_COARSEST )
-Ny_upper4 = int( (HEIGHT/2 + 1.0)/H_COARSEST )
-
-Nx_lower5 = int( (LENGTH/2 - 1.2)/H_COARSEST )
-Ny_lower5 = int( (HEIGHT/2 - 0.6)/H_COARSEST )
-
-Nx_upper5 = int( (LENGTH/2 + 1.2)/H_COARSEST )
-Ny_upper5 = int( (HEIGHT/2 + 0.5)/H_COARSEST )
-
 StandardTagAndInitialize {
-   tagging_method = "REFINE_BOXES"
-   RefineBoxes {
-      level_0 = [( Nx_lower1 , Ny_lower1 ),( Nx_upper1 , Ny_upper1 )]
-      level_1 = [( REF_RATIO*Nx_lower2 , REF_RATIO*Ny_lower2 ),( REF_RATIO*Nx_upper2 , REF_RATIO*Ny_upper2 )]
-      level_2 = [( REF_RATIO^2*Nx_lower3 , REF_RATIO^2*Ny_lower3 ),( REF_RATIO^2*Nx_upper3 , REF_RATIO^2*Ny_upper3 )]
-      level_3 = [( REF_RATIO^3*Nx_lower4 , REF_RATIO^3*Ny_lower4 ),( REF_RATIO^3*Nx_upper4 , REF_RATIO^3*Ny_upper4 )]
-      level_4 = [( REF_RATIO^4*Nx_lower5 , REF_RATIO^4*Ny_lower5 ),( REF_RATIO^4*Nx_upper5 , REF_RATIO^4*Ny_upper5 )]
-   }
+   tagging_method = "GRADIENT_DETECTOR"
 }
 
 LoadBalancer {

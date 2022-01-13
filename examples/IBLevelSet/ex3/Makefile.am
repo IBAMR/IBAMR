@@ -15,14 +15,15 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-EXAMPLE_DRIVER = example.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidDensity.h SetFluidGasSolidViscosity.cpp SetFluidGasSolidViscosity.h LSLocateGasInterface.cpp LSLocateGasInterface.h  TagLSRefinementCells.cpp TagLSRefinementCells.h SetLSProperties.cpp SetLSProperties.h GravityForcing.cpp GravityForcing.h FlowGravityForcing.cpp FlowGravityForcing.h LevelSetInitialCondition.h LevelSetInitialCondition.cpp
-EXTRA_DIST     = input2d 
+EXAMPLE_DRIVER = LevelSetInitialCondition.cpp LevelSetInitialCondition.h SetFluidSolidDensity.cpp SetFluidSolidDensity.h SetFluidSolidViscosity.cpp  SetFluidSolidViscosity.h example.cpp TagLSRefinementCells.cpp TagLSRefinementCells.h
 
 EXAMPLES =
 EXTRA_PROGRAMS =
+if LIBMESH_ENABLED
 if SAMRAI2D_ENABLED
 EXAMPLES += main2d
 EXTRA_PROGRAMS += $(EXAMPLES)
+endif
 endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -41,5 +42,3 @@ clean-local:
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input[2]d ; \
 	fi ;
-
-

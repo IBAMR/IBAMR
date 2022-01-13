@@ -54,7 +54,7 @@ SetFluidGasSolidDensity::SetFluidGasSolidDensity(const std::string& object_name,
                                                  const double rho_fluid,
                                                  const double rho_gas,
                                                  const double rho_solid,
-                                                 const int ls_reinit_interval,
+                                                 const int /*ls_reinit_interval*/,
                                                  const double num_solid_interface_cells,
                                                  const double num_gas_interface_cells)
     : d_object_name(object_name),
