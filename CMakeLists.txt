@@ -1106,6 +1106,15 @@ INSTALL(TARGETS IBAMRHeaders EXPORT IBAMRTargets)
 # ---------------------------------------------------------------------------- #
 
 #
+# Work around some pedantic compiler warnings coming from SAMRAI.
+#
+IF(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND
+    CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "8.0")
+  STRING(APPEND CMAKE_CXX_FLAGS " -Wno-undefined-var-template")
+  STRING(APPEND CMAKE_CXX_FLAGS " -Wno-unneeded-internal-declaration")
+ENDIF()
+
+#
 # Set up specific targets for executables and libraries that want to link to
 # IBAMR. As noted above, we have to do this since SAMRAI might not be compiled
 # with -fPIC: i.e., if we added SAMRAI as a link dependency to libIBTK and
