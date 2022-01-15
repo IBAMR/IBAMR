@@ -766,7 +766,11 @@ using a different version of MPI than the one supplied to IBAMR.")
 
   FIND_PROGRAM(_ldd "ldd")
   FIND_PROGRAM(_readlink "readlink")
-  IF(NOT "${_ldd}" STREQUAL "_ldd-NOTFOUND" AND NOT "${_readlink}" STREQUAL "_readlink-NOTFOUND")
+  IF(NOT "${_ldd}" STREQUAL "_ldd-NOTFOUND"
+      AND NOT "${_readlink}" STREQUAL "_readlink-NOTFOUND"
+      # if we are using the MPI compiler wrappers these aren't populated and we
+      # cannot perform this check - things should blow up later, though
+      AND NOT "${MPI_C_LIBRARIES}" STREQUAL "")
     MESSAGE(STATUS "\
 Verifying that ${_dependency_name} and IBAMR use the same MPI implementation")
     FOREACH(_lib ${_dependency_libraries})
