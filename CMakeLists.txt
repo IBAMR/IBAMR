@@ -766,7 +766,11 @@ using a different version of MPI than the one supplied to IBAMR.")
 
   FIND_PROGRAM(_ldd "ldd")
   FIND_PROGRAM(_readlink "readlink")
-  IF(NOT "${_ldd}" STREQUAL "_ldd-NOTFOUND" AND NOT "${_readlink}" STREQUAL "_readlink-NOTFOUND")
+  IF(NOT "${_ldd}" STREQUAL "_ldd-NOTFOUND"
+      AND NOT "${_readlink}" STREQUAL "_readlink-NOTFOUND"
+      # if we are using the MPI compiler wrappers these aren't populated and we
+      # cannot perform this check - things should blow up later, though
+      AND NOT "${MPI_C_LIBRARIES}" STREQUAL "")
     MESSAGE(STATUS "\
 Verifying that ${_dependency_name} and IBAMR use the same MPI implementation")
     FOREACH(_lib ${_dependency_libraries})
@@ -1104,6 +1108,15 @@ INSTALL(TARGETS IBAMRHeaders EXPORT IBAMRTargets)
 # ---------------------------------------------------------------------------- #
 #                               5: Define targets                              #
 # ---------------------------------------------------------------------------- #
+
+#
+# Work around some pedantic compiler warnings coming from SAMRAI.
+#
+IF(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND
+    CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "8.0")
+  STRING(APPEND CMAKE_CXX_FLAGS " -Wno-undefined-var-template")
+  STRING(APPEND CMAKE_CXX_FLAGS " -Wno-unneeded-internal-declaration")
+ENDIF()
 
 #
 # Set up specific targets for executables and libraries that want to link to
