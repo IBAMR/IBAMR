@@ -47,12 +47,10 @@ SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/")
 SET(IBAMR_DIMENSIONS "2" "3")
 
 # Start building up RPATH:
-SET(CMAKE_MACOSX_RPATH 1)
 SET(CMAKE_BUILD_RPATH "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
 SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-SET(CMAKE_MACOSX_RPATH TRUE)
 
 # determine some details about the current Fortran compiler:
 INCLUDE(FortranCInterface)
@@ -403,21 +401,32 @@ PETSC_DIR/PETSC_ARCH (i.e., PETSC_ROOT must be set to the complete path to the \
 PETSc installation).")
   ENDIF()
 
-  # We do not yet support PETSc with 64-bit integers
-  #
   # TODO - we can use REQUIRED in FIND_FILE in CMake 3.18 and newer
   FIND_FILE(PETSC_CONF_FILE petscconf.h HINTS ${PETSC_ROOT}
     PATH_SUFFIXES petsc include include/petsc)
   IF(${PETSC_VARIABLES_FILE} STREQUAL "PETSC_CONF_FILE-NOTFOUND")
     MESSAGE(FATAL_ERROR "unable to find the petscconf.h configuration file")
-  ELSE()
-    FILE(STRINGS ${PETSC_CONF_FILE} _petsc_have_64bit_indices REGEX
-      "^ *# *define.*PETSC_USE_64BIT_INDICES *1")
-    IF(NOT ${_petsc_have_64bit_indices} STREQUAL "")
-      MESSAGE(FATAL_ERROR "IBAMR does not support using 64 bit indices with \
+  ENDIF()
+  # We do not yet support PETSc with 64-bit integers
+  FILE(STRINGS ${PETSC_CONF_FILE} _petsc_have_64bit_indices REGEX
+    "^ *# *define.*PETSC_USE_64BIT_INDICES *1")
+  IF(NOT ${_petsc_have_64bit_indices} STREQUAL "")
+    MESSAGE(FATAL_ERROR "IBAMR does not support using 64 bit indices with \
 PETSc at this time. Please recompile PETSc (and any dependencies, such as   \
 libMesh, it may have) to NOT use 64 bit indices.")
-    ENDIF()
+  ENDIF()
+  # Work around a (likely) CMake bug: on macOS with new versions of CMake
+  # (confirmed with 3.20 and 3.22) the generated cmake_install.cmake scripts add
+  # and remove rpaths for HYPRE when it is installed in the same place as PETSc,
+  # which causes install_name_tool to fail. Work around it by linking against
+  # hypre implicitly in that case.
+  FILE(STRINGS ${PETSC_CONF_FILE} _petsc_have_hypre_string REGEX
+    "^ *# *define.*PETSC_HAVE_HYPRE *1")
+  IF(NOT ${_petsc_have_hypre_string} STREQUAL "")
+    MESSAGE(STATUS "Detected PETSc with HYPRE")
+    SET(PETSC_HAVE_HYPRE TRUE)
+  ELSE()
+    SET(PETSC_HAVE_HYPRE FALSE)
   ENDIF()
 
   STRING(REGEX REPLACE "^PETSC_CC_INCLUDES =(.*)" "\\1" _petsc_raw_includes ${_petsc_raw_includes})
@@ -1041,7 +1050,10 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${HDF5_LIBRARIES}")
   TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${HDF5_INCLUDE_DIRS}")
   # Hypre:
-  TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${HYPRE_LIBRARIES}")
+  # See the note under PETSc for why we do this
+  IF (NOT ${PETSC_HAVE_HYPRE})
+    TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${HYPRE_LIBRARIES}")
+  ENDIF()
   TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${HYPRE_INCLUDE_DIRS}")
   # Boost (we only need headers):
   IF(${IBAMR_USE_BUNDLED_BOOST})
