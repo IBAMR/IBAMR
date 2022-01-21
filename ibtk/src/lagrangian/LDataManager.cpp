@@ -2112,6 +2112,17 @@ LDataManager::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > hiera
     // coarser levels to finer levels.
     if (initial_time)
     {
+        // We require that all points are initially inside the computational domain.
+        const bool data_in_domain = d_lag_init->getIsAllLagrangianDataInDomain(hierarchy);
+
+        if (!data_in_domain)
+        {
+            TBOX_ERROR("LDataManager::initializeLevelData()"
+                       << "\n"
+                       << "  At the initial time step, all Lagrangian data must be inside the domain."
+                       << "\n");
+        }
+
         // Resize some arrays.
         d_level_contains_lag_data.resize(level_number + 1);
         d_strct_name_to_strct_id_map.resize(level_number + 1);
