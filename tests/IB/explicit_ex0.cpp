@@ -46,6 +46,8 @@
 
 #include <ibamr/app_namespaces.h>
 
+#include "../tests.h"
+
 int finest_ln;
 std::array<int, NDIM> N;
 SAMRAI::tbox::Array<std::string> struct_list;
@@ -53,6 +55,8 @@ SAMRAI::tbox::Array<int> num_node;
 SAMRAI::tbox::Array<double> ds;
 int num_node_circum, num_node_radial;
 double dr;
+bool put_structure_outside_domain = false;
+
 void
 generate_structure(const unsigned int& strct_num,
                    const int& ln,
@@ -70,6 +74,8 @@ generate_structure(const unsigned int& strct_num,
     double R = sqrt(A / M_PI);      // Radius of disc with equivalent area as ellipse
     double perim = 2 * M_PI * R;    // Perimenter of equivalent disc
     double dx = 1.0 / static_cast<double>(N[0]);
+    double x_center = put_structure_outside_domain ? 1.0 : 0.5;
+    double y_center = 0.5;
     if (struct_list[strct_num].compare("curve2d") == 0)
     {
         //         double sdf = perim/(1.0/(3.0*64.0))/4.0;
@@ -83,11 +89,11 @@ generate_structure(const unsigned int& strct_num,
         vertex_posn.resize(num_vertices);
         for (std::vector<IBTK::Point>::iterator it = vertex_posn.begin(); it != vertex_posn.end(); ++it)
         {
-            Point& X = *it;
+            IBTK::Point& X = *it;
             int num = std::distance(vertex_posn.begin(), it);
             double theta = 2.0 * M_PI * num / num_vertices;
-            X(0) = 0.5 + alpha * std::cos(theta);
-            X(1) = 0.5 + beta * std::sin(theta);
+            X(0) = x_center + alpha * std::cos(theta);
+            X(1) = y_center + beta * std::sin(theta);
         }
     }
     else if (struct_list[strct_num].compare("shell2d") == 0)
@@ -107,8 +113,8 @@ generate_structure(const unsigned int& strct_num,
                 IBTK::Point& X = vertex_posn[num_node_radial * k + l];
                 double theta = 2.0 * M_PI * l / num_node_circum;
                 double r = k * w / (num_node_radial - 1);
-                X(0) = 0.5 + (alpha + r) * std::cos(theta);
-                X(1) = 0.5 + (beta + r) * std::sin(theta);
+                X(0) = x_center + (alpha + r) * std::cos(theta);
+                X(1) = y_center + (beta + r) * std::sin(theta);
             }
         }
     }
@@ -129,8 +135,8 @@ generate_structure(const unsigned int& strct_num,
                 IBTK::Point& X = vertex_posn[num_node_radial * k + l];
                 double theta = 2.0 * M_PI * l / num_node_circum;
                 double r = k * w / (num_node_radial - 1);
-                X(0) = 0.5 + (alpha + r) * std::cos(theta);
-                X(1) = 0.5 + (beta + r) * std::sin(theta);
+                X(0) = x_center + (alpha + r) * std::cos(theta);
+                X(1) = y_center + (beta + r) * std::sin(theta);
             }
         }
     }
@@ -236,6 +242,11 @@ main(int argc, char* argv[])
     SAMRAI::tbox::Logger::getInstance()->setWarning(false);
 #endif
 
+    // Since this is a test we do not want to print file names or line numbers
+    // to output files:
+    Pointer<Logger::Appender> abort_append(new TestAppender());
+    Logger::getInstance()->setAbortAppender(abort_append);
+
     { // cleanup dynamically allocated objects prior to shutdown
         // prevent a warning about timer initializations
         TimerManager::createManager(nullptr);
@@ -245,6 +256,10 @@ main(int argc, char* argv[])
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
+
+        // For testing purposes: make sure we fail correctly when the structure
+        // is not in the domain
+        put_structure_outside_domain = input_db->getBoolWithDefault("put_structure_outside_domain", false);
 
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
@@ -372,14 +387,14 @@ main(int argc, char* argv[])
         // Setup data used to determine the accuracy of the computed solution.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-        const Pointer<Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
-        const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
+        const auto u_var = navier_stokes_integrator->getVelocityVariable();
+        const auto u_ctx = navier_stokes_integrator->getCurrentContext();
 
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
         const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
 
-        const Pointer<Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
-        const Pointer<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
+        const auto p_var = navier_stokes_integrator->getPressureVariable();
+        const auto p_ctx = navier_stokes_integrator->getCurrentContext();
 
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
         const int p_cloned_idx = var_db->registerClonedPatchDataIndex(p_var, p_idx);
