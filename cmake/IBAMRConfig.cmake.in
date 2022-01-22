@@ -16,6 +16,11 @@
 # own targets.
 @PACKAGE_INIT@
 
+# Don't set compiler flags, but save them
+SET(IBAMR_C_FLAGS "@CMAKE_C_FLAGS@")
+SET(IBAMR_CXX_FLAGS "@CMAKE_CXX_FLAGS@")
+SET(IBAMR_Fortran_FLAGS "@CMAKE_Fortran_FLAGS@")
+
 SET(MPI_ROOT "@MPI_ROOT@")
 FIND_PACKAGE(MPI REQUIRED)
 
