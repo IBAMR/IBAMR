@@ -969,10 +969,10 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
 
         if (d_solve_mass_conservation)
         {
-            const int lf_u_current_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getCurrentContext());
+            const int T_u_current_idx = var_db->mapVariableAndContextToIndex(d_T_u_var, getCurrentContext());
 
             // Keep track of the time-lagged velocity, specific heat and temperature.
-            d_hier_fc_data_ops->copyData(d_U_old_new_idx, lf_u_current_idx);
+            d_hier_fc_data_ops->copyData(d_U_old_new_idx, T_u_current_idx);
             d_hier_cc_data_ops->copyData(d_cp_old_new_idx, Cp_current_idx);
             d_hier_cc_data_ops->copyData(d_T_old_new_idx, T_current_idx);
 
@@ -1003,7 +1003,7 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
             if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
             {
                 d_rho_p_integrator->setFluidVelocityPatchDataIndices(
-                    /*old*/ -1, /*current*/ lf_u_current_idx, /*new*/ -1);
+                    /*old*/ -1, /*current*/ T_u_current_idx, /*new*/ -1);
                 rho_p_cc_integrator->setSpecificHeatPatchDataIndices(
                     /*old*/ -1, /*current*/ Cp_current_idx, /*new*/ -1);
                 rho_p_cc_integrator->setTemperaturePatchDataIndices(
@@ -1012,7 +1012,7 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
             else
             {
                 d_rho_p_integrator->setFluidVelocityPatchDataIndices(
-                    /*old*/ d_U_old_current_idx, /*current*/ lf_u_current_idx, /*new*/ -1);
+                    /*old*/ d_U_old_current_idx, /*current*/ T_u_current_idx, /*new*/ -1);
                 rho_p_cc_integrator->setSpecificHeatPatchDataIndices(
                     /*old*/ d_cp_old_current_idx, /*current*/ Cp_current_idx, /*new*/ -1);
                 rho_p_cc_integrator->setTemperaturePatchDataIndices(
@@ -1301,17 +1301,20 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
     lf_solver->initializeSolverState(*d_lf_sol, *d_lf_rhs);
     d_lf_solver_needs_init = false;
 
-    if (cycle_num > 0)
+    if (d_lf_u_var)
     {
-        // Update the advection velocity for lf.
-        const int lf_u_current_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getCurrentContext());
-        const int lf_u_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getScratchContext());
-        const int lf_u_new_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getNewContext());
-        if (d_lf_u_fcn)
+        if (cycle_num > 0)
         {
-            d_lf_u_fcn->setDataOnPatchHierarchy(lf_u_new_idx, d_lf_u_var, d_hierarchy, new_time);
+            // Update the advection velocity for lf.
+            const int lf_u_current_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getCurrentContext());
+            const int lf_u_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getScratchContext());
+            const int lf_u_new_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getNewContext());
+            if (d_lf_u_fcn)
+            {
+                d_lf_u_fcn->setDataOnPatchHierarchy(lf_u_new_idx, d_lf_u_var, d_hierarchy, new_time);
+            }
+            d_hier_fc_data_ops->linearSum(lf_u_scratch_idx, 0.5, lf_u_current_idx, 0.5, lf_u_new_idx);
         }
-        d_hier_fc_data_ops->linearSum(lf_u_scratch_idx, 0.5, lf_u_current_idx, 0.5, lf_u_new_idx);
     }
     std::cout << "L2 norm of lf_rhs_scratch_idx before convective term\t"
               << d_hier_cc_data_ops->L2Norm(lf_rhs_scratch_idx) << std::endl;
@@ -1529,14 +1532,14 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
             // Always set to current because we want to update rho^{n} to rho^{n+1}
             d_rho_p_integrator->setDensityPatchDataIndex(rho_current_idx);
 
-            const int lf_u_current_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getCurrentContext());
-            const int lf_u_new_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getNewContext());
+            const int T_u_current_idx = var_db->mapVariableAndContextToIndex(d_T_u_var, getCurrentContext());
+            const int T_u_new_idx = var_db->mapVariableAndContextToIndex(d_T_u_var, getNewContext());
 
             // Set the velocities used to update the density
             if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
             {
                 d_rho_p_integrator->setFluidVelocityPatchDataIndices(
-                    /*old*/ -1, /*current*/ lf_u_current_idx, /*new*/ lf_u_new_idx);
+                    /*old*/ -1, /*current*/ T_u_current_idx, /*new*/ T_u_new_idx);
                 rho_p_cc_integrator->setSpecificHeatPatchDataIndices(
                     /*old*/ -1, /*current*/ Cp_current_idx, /*new*/ Cp_new_idx);
                 rho_p_cc_integrator->setTemperaturePatchDataIndices(
@@ -1546,8 +1549,8 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
             {
                 d_rho_p_integrator->setFluidVelocityPatchDataIndices(
                     /*old*/ d_U_old_current_idx,
-                    /*current*/ lf_u_current_idx,
-                    /*new*/ lf_u_new_idx);
+                    /*current*/ T_u_current_idx,
+                    /*new*/ T_u_new_idx);
                 rho_p_cc_integrator->setSpecificHeatPatchDataIndices(
                     /*old*/ d_cp_old_current_idx,
                     /*current*/ Cp_current_idx,
@@ -1669,12 +1672,14 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         T_solver->initializeSolverState(*d_T_sol, *d_T_rhs);
         d_T_solver_needs_init = true;
 
-        // Account for the convective acceleration term N_full.
+        if (d_T_var)
+        {
+            // Account for the convective acceleration term N_full.
+            d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, T_N_scratch_idx, T_rhs_scratch_idx);
+        }
+
         if (d_lf_u_var)
         {
-            // Add convective contribution.
-            d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, T_N_scratch_idx, T_rhs_scratch_idx);
-
             // Add div (u H lf).
             d_hier_cc_data_ops->scale(d_T_lf_N_scratch_idx, d_rho_liquid * d_latent_heat_temp, lf_N_scratch_idx);
             if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
@@ -1697,7 +1702,7 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         else
             d_hier_cc_data_ops->setToScalar(T_F_scratch_idx, 0.0);
 
-        // Add Allen-Cahn advection term.
+        // Add Allen-Cahn temporal term.
         computeTemperatureSourceTerm(T_F_scratch_idx, dt);
         d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +1.0, T_F_scratch_idx, T_rhs_scratch_idx);
 
@@ -1722,10 +1727,10 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         computeChemicalPotential(d_chemical_potential_idx, d_H_sc_idx, new_time);
 
         // Reset the right-hand side vector.
+        if (d_T_u_var) d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +1.0, T_N_scratch_idx, T_rhs_scratch_idx);
+
         if (d_lf_u_var)
         {
-            d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +1.0, T_N_scratch_idx, T_rhs_scratch_idx);
-            //
             if (d_lf_convective_time_stepping_type == ADAMS_BASHFORTH ||
                 d_lf_convective_time_stepping_type == MIDPOINT_RULE)
             {
