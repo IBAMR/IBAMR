@@ -67,6 +67,8 @@ GitHub.
   examples can compile and link.
 - [ ] Check that everything works on macOS where dependencies are installed with
   HomeBrew.
+- [ ] Double check that all examples compile cleanly with both autotools and
+  CMake.
 - [ ] In general, run the test suite on as many platforms and configurations as
   possible to weed out problems.
 
