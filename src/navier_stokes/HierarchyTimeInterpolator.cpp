@@ -15,7 +15,7 @@
 
 #include "ibamr/config.h"
 
-#include "ibamr/INSStaggeredMeanFlowCalculator.h"
+#include "ibamr/HierarchyTimeInterpolator.h"
 
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
@@ -48,21 +48,21 @@ map_to_period(const double t_start, const double t_end, double time)
     return time;
 }
 
-INSStaggeredMeanFlowCalculator::INSStaggeredMeanFlowCalculator(std::string object_name,
-                                                               Pointer<Database> input_db,
-                                                               Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+HierarchyTimeInterpolator::INSStaggeredMeanFlowCalculator(std::string object_name,
+                                                          Pointer<Database> input_db,
+                                                          Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
     : d_object_name(std::move(object_name)), d_hierarchy(patch_hierarchy)
 {
     // blank for now
 }
 
-INSStaggeredMeanFlowCalculator::~INSStaggeredMeanFlowCalculator()
+HierarchyTimeInterpolator::~INSStaggeredMeanFlowCalculator()
 {
     clearSnapshots();
 }
 
 void
-INSStaggeredMeanFlowCalculator::clearSnapshots()
+HierarchyTimeInterpolator::clearSnapshots()
 {
     // Clear the map.
     d_idx_time_map.clear();
@@ -80,9 +80,9 @@ INSStaggeredMeanFlowCalculator::clearSnapshots()
 }
 
 void
-INSStaggeredMeanFlowCalculator::setVelocitySnapshot(const int u_idx,
-                                                    const double time,
-                                                    Pointer<PatchHierarchy<NDIM> > hierarchy)
+HierarchyTimeInterpolator::setVelocitySnapshot(const int u_idx,
+                                               const double time,
+                                               Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
     // Ensure we aren't over-storing
     if (d_num_snapshots_stored >= d_max_snapshots)
@@ -113,9 +113,7 @@ INSStaggeredMeanFlowCalculator::setVelocitySnapshot(const int u_idx,
 }
 
 void
-INSStaggeredMeanFlowCalculator::fillVelocityAtTime(const int u_idx,
-                                                   double time,
-                                                   Pointer<PatchHierarchy<NDIM> > hierarchy)
+HierarchyTimeInterpolator::fillVelocityAtTime(const int u_idx, double time, Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
     // This currently only works with a single patch hierarchy
     TBOX_ASSERT(d_hierarchy == hierarchy);
@@ -138,14 +136,14 @@ INSStaggeredMeanFlowCalculator::fillVelocityAtTime(const int u_idx,
 }
 
 IBTK::VectorNd
-INSStaggeredMeanFlowCalculator::computeTimeAvgVelocity()
+HierarchyTimeInterpolator::computeTimeAvgVelocity()
 {
     // blank for now
     return IBTK::VectorNd::Zero();
 }
 
 double
-INSStaggeredMeanFlowCalculator::computeTKE()
+HierarchyTimeInterpolator::computeTKE()
 {
     // blank for now
     return 0.0;

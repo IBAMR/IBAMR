@@ -13,8 +13,8 @@
 
 /////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
-#ifndef included_IBAMR_INSStaggeredMeanFlowCalculator
-#define included_IBAMR_INSStaggeredMeanFlowCalculator
+#ifndef included_IBAMR_HierarchyTimeInterpolator
+#define included_IBAMR_HierarchyTimeInterpolator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -37,26 +37,26 @@
 namespace IBAMR
 {
 /*!
- * \brief Class INSStaggeredMeanFlowCalculator provides a method of storing flow snapshots to compute flow statistics
+ * \brief Class HierarchyTimeInterpolator provides a method of storing flow snapshots to compute flow statistics
  * over periodic intervals. This class can also be used to determine intermediate velocity fields when at a periodic
  * steady state.
  */
-class INSStaggeredMeanFlowCalculator
+class HierarchyTimeInterpolator
 {
 public:
     /*!
-     * The constructor for class INSStaggeredMeanFlowCalculator sets some
+     * The constructor for class HierarchyTimeInterpolator sets some
      * default values, reads in configuration information from input databases, and registers some variable/context
      * pairs with the VariableDatabase.
      */
-    INSStaggeredMeanFlowCalculator(std::string object_name,
-                                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+    HierarchyTimeInterpolator(std::string object_name,
+                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
 
     /*!
-     * \brief The destructor for class INSStaggeredMeanFlowCalculator deallocates patch data as needed.
+     * \brief The destructor for class HierarchyTimeInterpolator deallocates patch data as needed.
      */
-    ~INSStaggeredMeanFlowCalculator();
+    ~HierarchyTimeInterpolator();
 
     /*!
      * Clear the snapshots stored in this object. This deallocates all patch indices stored by this object.
@@ -85,13 +85,13 @@ public:
      * Compute the time averaged velocity over the snapshots stored in this class. We use a trapezoidal rule to compute
      * the integral.
      */
-    IBTK::VectorNd computeTimeAvgVelocity();
+    void computeTimeAvgVelocity(int avg_idx);
 
     /*!
      * Compute the turbulence kinetic energy over the snapshots stored in this class. We use a trapezoidal rule to
      * compute the integral.
      */
-    double computeTKE();
+    void computeTKE(int tke_idx);
 
 private:
     /*!
@@ -99,7 +99,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    INSStaggeredMeanFlowCalculator() = delete;
+    HierarchyTimeInterpolator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -108,7 +108,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    INSStaggeredMeanFlowCalculator(const INSStaggeredMeanFlowCalculator& from) = delete;
+    HierarchyTimeInterpolator(const HierarchyTimeInterpolator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -119,7 +119,7 @@ private:
      *
      * \return A reference to this object.
      */
-    INSStaggeredMeanFlowCalculator& operator=(const INSStaggeredMeanFlowCalculator& that) = delete;
+    HierarchyTimeInterpolator& operator=(const HierarchyTimeInterpolator& that) = delete;
 
     std::string d_object_name;
 
@@ -161,4 +161,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_INSStaggeredHierarchyIntegrator
+#endif //#ifndef included_IBAMR_HierarchyTimeInterpolator
