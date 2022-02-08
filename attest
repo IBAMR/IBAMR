@@ -131,22 +131,16 @@ def n_mpi_processes(input_file):
 
 
 def expect_error(input_file):
-    """Determine if a test is expected to raise an error. Defaults to true.
+    """Determine if a test is expected to raise an error. Defaults to False.
     """
-    mpirun_index = input_file.find("expect_error")
-    if mpirun_index != -1:
-        next_equals_index = input_file.find('=', mpirun_index)
-        next_dot_index = input_file.find('.', mpirun_index)
+    error_index = input_file.find("expect_error")
+    if error_index != -1:
+        next_equals_index = input_file.find('=', error_index)
+        next_dot_index = input_file.find('.', error_index)
         assert next_equals_index < next_dot_index
 
         value = input_file[next_equals_index + 1:next_dot_index].lower()
-        if value == "true":
-            return True
-        elif value == "false":
-            return False
-        else:
-            raise ValueError("Could not convert the given string <" + value
-                             + "> to a boolean.")
+        return string_to_boolean(value)
 
     return False
 
