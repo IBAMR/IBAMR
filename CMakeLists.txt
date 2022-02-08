@@ -179,8 +179,6 @@ MESSAGE(STATUS "Setting up Boost")
 # will resolve to the correct (bundled or external) boost. This makes it easy
 # to set things up that depend on boost but not IBAMR.
 ADD_LIBRARY(BOOST_INTERFACE INTERFACE)
-SET_PROPERTY(TARGET BOOST_INTERFACE PROPERTY CXX_STANDARD 11)
-TARGET_COMPILE_FEATURES(BOOST_INTERFACE INTERFACE cxx_std_11)
 IF(${IBAMR_FORCE_BUNDLED_BOOST})
   SET(IBAMR_USE_BUNDLED_BOOST TRUE)
 ELSE()
