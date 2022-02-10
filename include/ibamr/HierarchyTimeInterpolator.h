@@ -13,15 +13,14 @@
 
 /////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
-#ifndef included_IBAMR_HierarchyTimeInterpolator
-#define included_IBAMR_HierarchyTimeInterpolator
+#ifndef included_IBAMR_INSStaggeredMeanFlowCalculator
+#define included_IBAMR_INSStaggeredMeanFlowCalculator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibamr/config.h>
 
-#include "ibamr/INSStaggeredHierarchyIntegrator.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
+#include <ibamr/SnapshotCache.h>
 
 #include "CellVariable.h"
 #include "IntVector.h"
@@ -37,20 +36,30 @@
 namespace IBAMR
 {
 /*!
- * \brief Class HierarchyTimeInterpolator provides a method of storing flow snapshots to compute flow statistics
- * over periodic intervals. This class can also be used to determine intermediate velocity fields when at a periodic
- * steady state.
+ * \brief Class HierarchyTimeInterpolator provides a method of determining and storing average fields over periodic
+ * intervals. This class can also be used to determine intermediate velocity fields when at a periodic steady state.
  */
 class HierarchyTimeInterpolator
 {
 public:
     /*!
-     * The constructor for class HierarchyTimeInterpolator sets some
-     * default values, reads in configuration information from input databases, and registers some variable/context
-     * pairs with the VariableDatabase.
+     * The constructor for class HierarchyTimeInterpolator sets some default values and determines data centering. The
+     * expected period and number of snapshots must be set in the input database. This class assumes the snapshots will
+     * be taken at equidistant points along the periodic interval.
      */
     HierarchyTimeInterpolator(std::string object_name,
                               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                              SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+
+    /*!
+     * The constructor for class HierarchyTimeInterpolator sets some default values and determines data centering. In
+     * this constructor, the times at which snapshots are taken are set, as well as the period length.
+     */
+    HierarchyTimeInterpolator(std::string object_name,
+                              std::set<double> snapshot_time_points,
+                              double period,
+                              SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
 
     /*!
@@ -59,39 +68,53 @@ public:
     ~HierarchyTimeInterpolator();
 
     /*!
-     * Clear the snapshots stored in this object. This deallocates all patch indices stored by this object.
+     * Clear the snapshots taken with this class.
      */
     void clearSnapshots();
 
     /*!
-     * Create a velocity snapshot. The data from this patch index is copied into an array of indices controlled by this
-     * object. A mapping between the time point and the patch index is stored. This causes an error if more snapshots
-     * are created than initially allocated. If you want to overwrite the snapshot, you should clear the data first.
-     * Data is not allocated in this class until this function is called.
+     * Fill a patch index at a particular time point. This will perform a time interpolation of the snapshots stored in
+     * the SnapshotCache object. Note if there is only one snapshot (i.e. the period is 0 and we are assumed to be at a
+     * steady state), a copy will be performed
      */
     void
-    setVelocitySnapshot(int u_idx, double time, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    fillSnapshotAtTime(int u_idx, double time, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
-     * Fill a velocity at a particular time point. We first find the two snapshots closest to the provided time values.
-     * We then linearly interpolate in time the velocity and fill in the provided patch index. If no snapshots of the
-     * velocity have occured, this emits an error. This assumes the flow is periodic, and that the period has been
-     * correctly set up in the input file.
+     * Update the time averaged snapshot. The update is computed through the relation
+     * ``` u_avg = u_avg + 1/N * (u - u_avg)```
+     * in which N is the number of updates to the snapshot. If this the first update after clearMean() is called, we
+     * simply copy data.
+     *
+     * This function returns true if the snapshot is at a steady state, or that ||u - u_avg|| < threshold.
      */
-    void
-    fillVelocityAtTime(int u_idx, double time, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    bool updateTimeAveragedSnapshot(int u_idx,
+                                    double time,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
-     * Compute the time averaged velocity over the snapshots stored in this class. We use a trapezoidal rule to compute
-     * the integral.
+     * Return true if all the tracked mean fields are at a steady state.
      */
-    void computeTimeAvgVelocity(int avg_idx);
+    bool isAtPeriodicSteadyState();
 
     /*!
-     * Compute the turbulence kinetic energy over the snapshots stored in this class. We use a trapezoidal rule to
-     * compute the integral.
+     * Return the time points this class is storing.
      */
-    void computeTKE(int tke_idx);
+    const std::set<double>& getSnapshotTimePts()
+    {
+        return d_snapshot_time_pts;
+    }
+
+    /*!
+     * Returns true if a flow snapshot is being stored within the specified tolerance.
+     */
+    bool timePtIsStored(double time, double tol);
+
+    /*!
+     * Returns the index of the snapshot, if that time point is stored. Otherwise returns -1 (the largest unsigned
+     * integer).
+     */
+    unsigned int getTimePtIndex(double time, double tol);
 
 private:
     /*!
@@ -123,40 +146,35 @@ private:
 
     std::string d_object_name;
 
-    /*!
-     * Note we store one patch hierarchy, which assumes all velocity data is stored on the same hierarchy.
-     * Realistically, each snapshot also comes with a snapshot of the hierarchy. One solution is to project each
-     * velocity at each regrid step. This can be expensive and potentially do a lot of unecessary regrids. An
-     * alternative is store snapshots of the patch hierarchy, and project the velocity as needed.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-
     /*
      * Data for tracking mean flow quantities.
      */
-    unsigned int d_averaging_interval = 0, d_averaging_period = 0, d_num_averaging_cycles = 0, d_max_snapshots = 0,
-                 d_num_snapshots_stored = 0;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > > d_snapshot_vars;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_ctx;
-    std::string d_snapshot_coarsen_type = "CONSERVATIVE_COARSEN";
-    std::string d_snapshot_refine_type = "CONSERVATIVE_LINEAR_REFINE";
-    std::vector<int> d_snapshot_idxs;
+    unsigned int d_num_averaging_cycles = 0;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_scratch_var;
+    int d_scratch_idx;
+    std::string d_u_mean_coarsen_type = "CONSERVATIVE_COARSEN";
+    std::string d_u_mean_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
     /*
      * Interval to keep flow quantities
      */
     double d_t_start = std::numeric_limits<double>::quiet_NaN(), d_t_end = std::numeric_limits<double>::quiet_NaN(),
-           d_t_period = std::numeric_limits<double>::quiet_NaN();
+           d_t_period = std::numeric_limits<double>::quiet_NaN(),
+           d_periodic_thresh = std::numeric_limits<double>::quiet_NaN();
 
     /*
-     * Map between time point and corresponding snapshot index.
-     *
-     * NOTE: this is potentially problematic, as due to finite precision we can have trouble finding keys.
+     * Map between time point index and the number of updates. We use this value to update average snapshots.
      */
-    std::map<double, int> d_idx_time_map;
+    std::map<int, unsigned int> d_idx_num_updates_map;
 
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
+    /*
+     * Set of time points that snapshots are determined. These values are between d_t_start and d_t_end.
+     */
+    std::set<double> d_snapshot_time_pts;
+
+    std::unique_ptr<SnapshotCache> d_hier_time_interpolator;
 };
+
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
