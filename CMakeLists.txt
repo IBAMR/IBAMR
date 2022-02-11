@@ -156,6 +156,35 @@ ENDIF()
 #
 MESSAGE(STATUS "")
 MESSAGE(STATUS "Setting up MPI")
+# CMake's MPI detection fails when a user specifies CMAKE_C_COMPILER=mpicc et
+# al pointing to a custom installation of MPI when there is a system copy
+# available too. Try to detect this and set MPI_ROOT correctly.
+#
+# Only continue if we are potentially using an MPI compiler wrapper
+IF(NOT "${CMAKE_CXX_COMPILER}" STREQUAL "")
+  GET_FILENAME_COMPONENT(_compiler_name ${CMAKE_CXX_COMPILER} NAME)
+  # -show works on all MPI compiler wrappers I am aware of
+  EXECUTE_PROCESS(COMMAND ${CMAKE_CXX_COMPILER} "-show"
+    OUTPUT_VARIABLE _show_output RESULT_VARIABLE _show_return_code
+    ERROR_VARIABLE _show_error)
+  IF("${_show_return_code}" STREQUAL "0")
+    MESSAGE(STATUS "CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} is an MPI wrapper with -show output\n\n${_show_output}")
+    STRING(FIND "${_show_output}" "-lmpi" _lmpi_index)
+    IF(NOT "${_lmpi_index}" STREQUAL "-1")
+      # It looks like we have a compiler wrapper: overide MPI_ROOT
+      IF(NOT "${MPI_ROOT}" STREQUAL "")
+        MESSAGE(FATAL_ERROR "If MPI compiler wrappers are used then MPI_ROOT must not be set.")
+      ENDIF()
+      GET_FILENAME_COMPONENT(_compiler_directory ${CMAKE_CXX_COMPILER} DIRECTORY)
+      SET(MPI_ROOT "${_compiler_directory}/../")
+      MESSAGE(STATUS "Using MPI compiler wrapper to set MPI_ROOT=${MPI_ROOT}")
+    ELSE()
+      MESSAGE(STATUS "CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} is not an MPI compiler wrapper")
+    ENDIF()
+  ELSE()
+    MESSAGE(STATUS "CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} is not an MPI compiler wrapper")
+  ENDIF()
+ENDIF()
 FIND_PACKAGE(MPI REQUIRED)
 # If we are using the compiler wrappers then CMake may not set MPI_C_LIBRARIES -
 # if its empty then try to add something in anyway
