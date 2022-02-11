@@ -113,7 +113,7 @@ seconds.
 
 ### Working with modules
 If you are on a cluster then you may want to use compilers and an MPI
-implementation which are not installed in standard locations, but are managed
+implementation that are not installed in standard locations, but are managed
 with the module system. CMake requires that non-default compilers be explicitly
 provided. Here's an example:
 
