@@ -19,6 +19,9 @@
 // IBAMR INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+
 #include <ibamr/app_namespaces.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
