@@ -130,6 +130,7 @@ SET(CXX_SRC
   navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp
   navier_stokes/StaggeredStokesSolver.cpp
   navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp
+  navier_stokes/SnapshotCache.cpp
 
   # IB
   IB/IBInstrumentPanel.cpp
