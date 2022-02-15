@@ -16,7 +16,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
 #include <Eigen/Core>

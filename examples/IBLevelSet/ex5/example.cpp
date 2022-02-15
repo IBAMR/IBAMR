@@ -34,9 +34,8 @@
 #include <Eigen/Geometry>
 
 #include <ibamr/app_namespaces.h>
-//#include <Eigen/src/Geometry/Quaternion.h>
 
-// Applic<ation specific includes.
+// Application specific includes.
 #include "LevelSetInitialCondition.h"
 #include "SetFluidSolidDensity.h"
 #include "SetFluidSolidViscosity.h"
