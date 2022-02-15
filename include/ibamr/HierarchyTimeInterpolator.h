@@ -13,8 +13,8 @@
 
 /////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
-#ifndef included_IBAMR_INSStaggeredMeanFlowCalculator
-#define included_IBAMR_INSStaggeredMeanFlowCalculator
+#ifndef included_IBAMR_HierarchyInterpolator
+#define included_IBAMR_HierarchyInterpolator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
