@@ -366,7 +366,6 @@ main(int argc, char* argv[])
         }
         adv_diff_integrator->setPhysicalBcCoef(phi_var_solid, phi_bc_coef);
 
-
         // Configure the Brinkman penalization object to do the rigid body dynamics.
         Pointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd =
             new BrinkmanPenalizationRigidBodyDynamics("Brinkman Body",

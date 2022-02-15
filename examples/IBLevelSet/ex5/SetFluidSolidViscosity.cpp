@@ -55,9 +55,9 @@ SetFluidSolidViscosity::setViscosityPatchData(int mu_idx,
                                               Pointer<Variable<NDIM> > mu_var,
                                               Pointer<HierarchyMathOps> hier_math_ops,
                                               const int /*cycle_num*/,
-                                              const double time,
-                                              const double current_time,
-                                              const double new_time)
+                                              const double /*time*/,
+                                              const double /*current_time*/,
+                                              const double /*new_time*/)
 {
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
