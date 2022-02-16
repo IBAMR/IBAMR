@@ -164,12 +164,12 @@ HierarchyTimeInterpolator<VariableType>::updateTimeAveragedSnapshot(const int u_
     {
         time = map_to_period(d_t_start, d_t_end, time);
     }
-    int idx = getTimePtIndex(time, tol);
+    time = getTimePt(time, tol);
     // If this is the first snapshot, record it.
-    if (d_idx_num_updates_map[idx] == 0)
+    if (d_idx_num_updates_map[time] == 0)
     {
         d_snapshot_cache->setSnapshot(u_idx, time, hierarchy);
-        d_idx_steady_state_map[idx] = false;
+        d_idx_steady_state_map[time] = false;
         return false;
     }
     // Otherwise, we need to update the mean.
@@ -179,7 +179,7 @@ HierarchyTimeInterpolator<VariableType>::updateTimeAveragedSnapshot(const int u_
     // The mean is updated via
     // u_avg = u_avg + (1/N)*(u - u_avg)
     // Note first mean is already calculated, so we increment steady state idx.
-    const int N = ++d_idx_num_updates_map[idx];
+    const int N = ++d_idx_num_updates_map[time];
     const double weight = 1.0 / static_cast<double>(N);
     d_hier_data_ops->linearSum(d_scratch_idx, weight, u_idx, 1.0 - weight, d_scratch_idx);
     // Update snapshot
@@ -192,7 +192,7 @@ HierarchyTimeInterpolator<VariableType>::updateTimeAveragedSnapshot(const int u_
     deallocate_patch_data(d_scratch_idx, hierarchy, 0, hierarchy->getFinestLevelNumber());
     if (L2_norm <= d_periodic_thresh)
     {
-        d_idx_steady_state_map[idx] = true;
+        d_idx_steady_state_map[time] = true;
         return true;
     }
     return false;
@@ -230,6 +230,20 @@ HierarchyTimeInterpolator<VariableType>::fillSnapshotAtTime(const int u_idx,
     deallocate_patch_data(d_scratch_idx, hierarchy, 0, hierarchy->getFinestLevelNumber());
 }
 
+template <class VariableType>
+double
+HierarchyTimeInterpolator<VariableType>::getTimePt(const double time, const double tol)
+{
+    double t_low = *(d_snapshot_time_pts.lower_bound(time));
+    double t_up = *(d_snapshot_time_pts.upper_bound(time));
+    if (std::abs(t_low - time) < tol)
+        return t_low;
+    else if (std::abs(t_up - time) < tol)
+        return t_up;
+    else
+        TBOX_ERROR("Time point is not within the given tolerance!");
+    return 0.0;
+}
 // Instantiate the viable templates
 template class HierarchyTimeInterpolator<SAMRAI::pdat::CellVariable<NDIM, double> >;
 template class HierarchyTimeInterpolator<SAMRAI::pdat::SideVariable<NDIM, double> >;

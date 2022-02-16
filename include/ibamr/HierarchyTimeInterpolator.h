@@ -140,15 +140,10 @@ public:
     }
 
     /*!
-     * Returns true if a flow snapshot is being stored within the specified tolerance.
-     */
-    bool timePtIsStored(double time, double tol);
-
-    /*!
      * Returns the index of the snapshot, if that time point is stored. Otherwise returns -1 (the largest unsigned
      * integer).
      */
-    int getTimePtIndex(double time, double tol);
+    double getTimePt(double time, double tol);
 
 private:
     /*!
@@ -202,14 +197,20 @@ private:
            d_periodic_thresh = std::numeric_limits<double>::quiet_NaN();
 
     /*
-     * Map between time point index and the number of updates. We use this value to update average snapshots.
+     * Map between time point and the number of updates. We use this value to update average snapshots.
+     *
+     * Note we have to be careful when retrieving values from this map. Values should ONLY be retrieved and stored using
+     * the values stored in d_snapshot_time_pts.
      */
-    std::map<int, unsigned int> d_idx_num_updates_map;
+    std::map<double, unsigned int> d_idx_num_updates_map;
 
     /*
-     * Map between time point index and whether it's at a steady state.
+     * Map between time point and whether it's at a steady state.
+     *
+     * Note we have to be careful when retrieving values from this map. Values should ONLY be retrieved and stored using
+     * the values stored in d_snapshot_time_pts.
      */
-    std::map<int, bool> d_idx_steady_state_map;
+    std::map<double, bool> d_idx_steady_state_map;
 
     /*
      * Set of time points that snapshots are determined. These values are between d_t_start and d_t_end.
