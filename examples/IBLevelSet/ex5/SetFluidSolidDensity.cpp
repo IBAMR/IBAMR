@@ -13,11 +13,12 @@
 
 #include <ibtk/HierarchyMathOps.h>
 
-#include "SetFluidSolidDensity.h"
-
 #include <CartesianGridGeometry.h>
 
 #include <ibamr/app_namespaces.h>
+
+// Application includes
+#include "SetFluidSolidDensity.h"
 
 /////////////////////////////// STATIC ///////////////////////////////////////
 
@@ -56,9 +57,9 @@ SetFluidSolidDensity::setDensityPatchData(int rho_idx,
                                           Pointer<Variable<NDIM> > rho_var,
                                           Pointer<HierarchyMathOps> hier_math_ops,
                                           const int /*cycle_num*/,
-                                          const double time,
-                                          const double current_time,
-                                          const double new_time)
+                                          const double /*time*/,
+                                          const double /*current_time*/,
+                                          const double /*new_time*/)
 {
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
