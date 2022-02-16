@@ -131,6 +131,7 @@ SET(CXX_SRC
   navier_stokes/StaggeredStokesSolver.cpp
   navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp
   navier_stokes/SnapshotCache.cpp
+  navier_stokes/HierarchyTimeInterpolator.cpp
 
   # IB
   IB/IBInstrumentPanel.cpp

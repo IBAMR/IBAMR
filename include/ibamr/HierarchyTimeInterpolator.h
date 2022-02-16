@@ -22,7 +22,10 @@
 
 #include <ibamr/SnapshotCache.h>
 
+#include <ibtk/ibtk_utilities.h>
+
 #include "CellVariable.h"
+#include "HierarchySideDataOpsReal.h"
 #include "IntVector.h"
 #include "SideVariable.h"
 #include "tbox/Database.h"
@@ -38,7 +41,11 @@ namespace IBAMR
 /*!
  * \brief Class HierarchyTimeInterpolator provides a method of determining and storing average fields over periodic
  * intervals. This class can also be used to determine intermediate velocity fields when at a periodic steady state.
+ *
+ * This class is templated over VariableType, which should be one of the SAMRAI variable types. This currently supports
+ * double data at face centerings cell, face, side, edge, and node.
  */
+template <class VariableType>
 class HierarchyTimeInterpolator
 {
 public:
@@ -49,18 +56,18 @@ public:
      */
     HierarchyTimeInterpolator(std::string object_name,
                               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                              SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
 
     /*!
      * The constructor for class HierarchyTimeInterpolator sets some default values and determines data centering. In
      * this constructor, the times at which snapshots are taken are set, as well as the period length.
      */
     HierarchyTimeInterpolator(std::string object_name,
+                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                               std::set<double> snapshot_time_points,
-                              double period,
-                              SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+                              double t_start,
+                              double t_end,
+                              int depth = 1);
 
     /*!
      * \brief The destructor for class HierarchyTimeInterpolator deallocates patch data as needed.
@@ -77,30 +84,57 @@ public:
      * the SnapshotCache object. Note if there is only one snapshot (i.e. the period is 0 and we are assumed to be at a
      * steady state), a copy will be performed
      */
-    void
-    fillSnapshotAtTime(int u_idx, double time, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    inline void
+    fillSnapshotAtTime(int u_idx, double time, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy)
+    {
+        return fillSnapshotAtTime(u_idx, time, hierarchy, d_mean_refine_type);
+    }
+    void fillSnapshotAtTime(int u_idx,
+                            double time,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                            const std::string& mean_refine_type);
 
     /*!
      * Update the time averaged snapshot. The update is computed through the relation
      * ``` u_avg = u_avg + 1/N * (u - u_avg)```
-     * in which N is the number of updates to the snapshot. If this the first update after clearMean() is called, we
-     * simply copy data.
+     * in which N is the number of updates to the snapshot. If this the first update after clearSnapshots() is called,
+     * we simply copy data.
      *
-     * This function returns true if the snapshot is at a steady state, or that ||u - u_avg|| < threshold.
+     * This function returns true if the snapshot is at a steady state, or that ||u - u_avg|| < threshold. Note that a
+     * weight patch index should be supplied to compute the norm.
      */
+    inline bool updateTimeAveragedSnapshot(int u_idx,
+                                           double time,
+                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                           const int wgt_idx = IBTK::invalid_index,
+                                           double tol = 1.0e-8)
+    {
+        return updateTimeAveragedSnapshot(u_idx, time, hierarchy, d_mean_refine_type, wgt_idx, tol);
+    }
     bool updateTimeAveragedSnapshot(int u_idx,
                                     double time,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                    const std::string& mean_refine_type,
+                                    const int wgt_idx = IBTK::invalid_index,
+                                    double tol = 1.0e-8);
 
     /*!
      * Return true if all the tracked mean fields are at a steady state.
      */
-    bool isAtPeriodicSteadyState();
+    inline bool isAtPeriodicSteadyState()
+    {
+        bool steady_state = true;
+        for (const auto& idx_steady_state : d_idx_steady_state_map)
+        {
+            steady_state = steady_state && idx_steady_state.second;
+        }
+        return steady_state;
+    }
 
     /*!
      * Return the time points this class is storing.
      */
-    const std::set<double>& getSnapshotTimePts()
+    inline const std::set<double>& getSnapshotTimePts()
     {
         return d_snapshot_time_pts;
     }
@@ -114,9 +148,14 @@ public:
      * Returns the index of the snapshot, if that time point is stored. Otherwise returns -1 (the largest unsigned
      * integer).
      */
-    unsigned int getTimePtIndex(double time, double tol);
+    int getTimePtIndex(double time, double tol);
 
 private:
+    /*!
+     * \brief Registers a scratch variable with the variable database. This data is allocated and deallocated as needed.
+     */
+    void commonConstructor(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
     /*!
      * \brief Default constructor.
      *
@@ -150,10 +189,10 @@ private:
      * Data for tracking mean flow quantities.
      */
     unsigned int d_num_averaging_cycles = 0;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_scratch_var;
-    int d_scratch_idx;
-    std::string d_u_mean_coarsen_type = "CONSERVATIVE_COARSEN";
-    std::string d_u_mean_refine_type = "CONSERVATIVE_LINEAR_REFINE";
+    SAMRAI::tbox::Pointer<VariableType> d_scratch_var;
+    int d_scratch_idx = IBTK::invalid_index;
+    int d_depth = 1;
+    std::string d_mean_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
     /*
      * Interval to keep flow quantities
@@ -168,11 +207,18 @@ private:
     std::map<int, unsigned int> d_idx_num_updates_map;
 
     /*
+     * Map between time point index and whether it's at a steady state.
+     */
+    std::map<int, bool> d_idx_steady_state_map;
+
+    /*
      * Set of time points that snapshots are determined. These values are between d_t_start and d_t_end.
      */
     std::set<double> d_snapshot_time_pts;
 
-    std::unique_ptr<SnapshotCache> d_hier_time_interpolator;
+    std::unique_ptr<SnapshotCache<VariableType> > d_snapshot_cache;
+
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > d_hier_data_ops;
 };
 
 } // namespace IBAMR

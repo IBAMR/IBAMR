@@ -169,13 +169,6 @@ private:
      */
     std::map<int, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > > d_snapshot_hierarchies;
 };
-
-// Instantiate the viable templates
-template class SnapshotCache<SAMRAI::pdat::CellVariable<NDIM, double> >;
-template class SnapshotCache<SAMRAI::pdat::SideVariable<NDIM, double> >;
-template class SnapshotCache<SAMRAI::pdat::NodeVariable<NDIM, double> >;
-template class SnapshotCache<SAMRAI::pdat::EdgeVariable<NDIM, double> >;
-template class SnapshotCache<SAMRAI::pdat::FaceVariable<NDIM, double> >;
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////

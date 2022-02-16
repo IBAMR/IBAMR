@@ -30,31 +30,6 @@
 
 namespace IBAMR
 {
-double
-map_to_period(const double t_start, const double t_end, double time)
-{
-    const double period = t_end - t_start;
-#ifndef NDEBUG
-    // We only deal with positive period lengths.
-    TBOX_ASSERT(period > 0.0);
-#endif
-
-    while (time < t_end)
-    {
-        // Subtract period until we're less than t_end.
-        time -= period;
-    }
-    while (time > t_start)
-    {
-        // Add period until we're greater than t_start
-        time += period;
-    }
-#ifndef NDEBUG
-    TBOX_ASSERT(time <= t_end && time >= t_start);
-#endif
-    return time;
-}
-
 template <class VariableType>
 SnapshotCache<VariableType>::SnapshotCache(std::string object_name, Pointer<Database> input_db)
     : d_object_name(std::move(object_name))
@@ -66,6 +41,7 @@ SnapshotCache<VariableType>::SnapshotCache(std::string object_name, Pointer<Data
     {
         d_snapshot_refine_type = input_db->getStringWithDefault("refine_type", d_snapshot_refine_type);
         if (input_db->keyExists("gcw")) input_db->getIntegerArray("gcw", &d_gcw[0], NDIM);
+        d_depth = input_db->getIntegerWithDefault("depth", d_depth);
     }
 }
 
@@ -242,6 +218,12 @@ SnapshotCache<VariableType>::fillSnapshot(const int u_idx,
     d_snapshot_hierarchies[d_snapshot_idxs[d_num_snapshots_stored]] = snapshot_hierarchy;
 }
 
+// Instantiate the viable templates
+template class SnapshotCache<SAMRAI::pdat::CellVariable<NDIM, double> >;
+template class SnapshotCache<SAMRAI::pdat::SideVariable<NDIM, double> >;
+template class SnapshotCache<SAMRAI::pdat::NodeVariable<NDIM, double> >;
+template class SnapshotCache<SAMRAI::pdat::EdgeVariable<NDIM, double> >;
+template class SnapshotCache<SAMRAI::pdat::FaceVariable<NDIM, double> >;
 //////////////////////////////////////////////////////////////////////////////
 
 } // namespace IBAMR
