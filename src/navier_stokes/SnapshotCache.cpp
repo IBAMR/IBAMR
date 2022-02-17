@@ -59,18 +59,18 @@ SnapshotCache<VariableType>::clearSnapshots()
     d_idx_time_map.clear();
     auto var_db = VariableDatabase<NDIM>::getDatabase();
     // Deallocate all patch data.
-    for (size_t i = 0; i <= d_snapshot_vars.size(); ++i)
+    for (const auto& idx : d_snapshot_idxs)
     {
-        const Pointer<PatchHierarchy<NDIM> >& hierarchy = d_snapshot_hierarchies[i];
+        const Pointer<PatchHierarchy<NDIM> >& hierarchy = d_snapshot_hierarchies[idx];
         int coarsest_ln = 0;
         int finest_ln = hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            if (level->checkAllocated(d_snapshot_idxs[i])) level->deallocatePatchData(d_snapshot_idxs[i]);
+            if (level->checkAllocated(idx)) level->deallocatePatchData(idx);
         }
         // Delete variable from variable database
-        var_db->removePatchDataIndex(d_snapshot_idxs[i]);
+        var_db->removePatchDataIndex(idx);
     }
 
     // Clear snapshots
@@ -93,7 +93,7 @@ SnapshotCache<VariableType>::setSnapshot(const int u_idx,
     auto var_db = VariableDatabase<NDIM>::getDatabase();
     int snapshot_idx = var_db->registerVariableAndContext(snapshot_var, d_ctx, d_gcw);
     d_snapshot_idxs.push_back(snapshot_idx);
-    d_snapshot_vars[d_snapshot_idxs[d_num_snapshots_stored]] = snapshot_var;
+    d_snapshot_vars[snapshot_idx] = snapshot_var;
 
     // Now fill in snapshot
     fillSnapshot(u_idx, current_hierarchy, snapshot_idx, time);
@@ -173,13 +173,24 @@ SnapshotCache<VariableType>::getSnapshot(const int u_idx,
         Pointer<PatchLevel<NDIM> > cur_level = current_hierarchy->getPatchLevel(ln);
         Pointer<PatchLevel<NDIM> > snp_level = snapshot_hierarchy->getPatchLevel(ln);
 
+        // RefineSchedule requires that patch data be stored at the same points.
+        // We reset the snapshot patch data time to that of the current time.
+        double allocated_time =
+            cur_level->getPatch(*PatchLevel<NDIM>::Iterator(cur_level))->getPatchData(u_idx)->getTime();
+        for (PatchLevel<NDIM>::Iterator p(snp_level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = snp_level->getPatch(p());
+            Pointer<PatchData<NDIM> > data = patch->getPatchData(snapshot_idx);
+            data->setTime(allocated_time);
+        }
+
         Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = current_hierarchy->getGridGeometry();
         Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(snapshot_var, snapshot_refine_type);
         refine_alg->registerRefine(u_idx, snapshot_idx, snapshot_idx, refine_op);
         Pointer<RefineSchedule<NDIM> > schedule = refine_alg->createSchedule(cur_level, snp_level);
 
-        schedule->fillData(time);
+        schedule->fillData(allocated_time);
     }
 }
 
@@ -201,7 +212,7 @@ SnapshotCache<VariableType>::fillSnapshot(const int u_idx,
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > snapshot_level = snapshot_hierarchy->getPatchLevel(ln);
-        if (!snapshot_level->checkAllocated(snapshot_idx)) snapshot_level->allocatePatchData(snapshot_idx);
+        if (!snapshot_level->checkAllocated(snapshot_idx)) snapshot_level->allocatePatchData(snapshot_idx, time);
         // We've allocated data, now copy it
         // Note these levels should cover the same space, so we shouldn't need to have a refine operator.
         Pointer<PatchLevel<NDIM> > old_level = hierarchy->getPatchLevel(ln);
@@ -214,8 +225,8 @@ SnapshotCache<VariableType>::fillSnapshot(const int u_idx,
     }
 
     // Store the index, time, hierarchy, and variable.
-    d_idx_time_map[d_snapshot_idxs[d_num_snapshots_stored]] = time;
-    d_snapshot_hierarchies[d_snapshot_idxs[d_num_snapshots_stored]] = snapshot_hierarchy;
+    d_idx_time_map[snapshot_idx] = time;
+    d_snapshot_hierarchies[snapshot_idx] = snapshot_hierarchy;
 }
 
 // Instantiate the viable templates
