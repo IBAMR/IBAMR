@@ -13,12 +13,12 @@
 
 /////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
-#ifndef included_IBAMR_SnapshotCache
-#define included_IBAMR_SnapshotCache
+#ifndef included_IBTK_SnapshotCache
+#define included_IBTK_SnapshotCache
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ibamr/config.h>
+#include <ibtk/config.h>
 
 #include "CellVariable.h"
 #include "EdgeVariable.h"
@@ -38,7 +38,7 @@
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
-namespace IBAMR
+namespace IBTK
 {
 /*!
  * \brief Class SnapshotCache provides a method of storing snapshots. This class can also be used to determine
@@ -169,8 +169,8 @@ private:
      */
     std::map<int, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > > d_snapshot_hierarchies;
 };
-} // namespace IBAMR
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_SnapshotCache
+#endif //#ifndef included_IBTK_SnapshotCache

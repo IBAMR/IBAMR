@@ -13,9 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/config.h"
-
-#include "ibamr/SnapshotCache.h"
+#include "ibtk/SnapshotCache.h"
 
 #include "CartesianGridGeometry.h"
 #include "RefineAlgorithm.h"
@@ -24,11 +22,11 @@
 
 #include <algorithm>
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-namespace IBAMR
+namespace IBTK
 {
 template <class VariableType>
 SnapshotCache<VariableType>::SnapshotCache(std::string object_name, Pointer<Database> input_db)
@@ -177,6 +175,8 @@ SnapshotCache<VariableType>::getSnapshot(const int u_idx,
         // We reset the snapshot patch data time to that of the current time.
         double allocated_time =
             cur_level->getPatch(*PatchLevel<NDIM>::Iterator(cur_level))->getPatchData(u_idx)->getTime();
+        // Note we need scratch allocated on the current hierarchy. Use the snapshot for that.
+        cur_level->allocatePatchData(snapshot_idx, allocated_time);
         for (PatchLevel<NDIM>::Iterator p(snp_level); p; p++)
         {
             Pointer<Patch<NDIM> > patch = snp_level->getPatch(p());
@@ -184,13 +184,20 @@ SnapshotCache<VariableType>::getSnapshot(const int u_idx,
             data->setTime(allocated_time);
         }
 
+        // Now copy the data.
         Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
         Pointer<CartesianGridGeometry<NDIM> > grid_geom = current_hierarchy->getGridGeometry();
         Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(snapshot_var, snapshot_refine_type);
         refine_alg->registerRefine(u_idx, snapshot_idx, snapshot_idx, refine_op);
-        Pointer<RefineSchedule<NDIM> > schedule = refine_alg->createSchedule(cur_level, snp_level);
-
+        Pointer<RefineSchedule<NDIM> > schedule =
+            refine_alg->createSchedule(cur_level, snp_level, ln - 1, current_hierarchy);
         schedule->fillData(allocated_time);
+    }
+
+    for (int ln = 0; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = current_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(snapshot_idx);
     }
 }
 
@@ -216,12 +223,14 @@ SnapshotCache<VariableType>::fillSnapshot(const int u_idx,
         // We've allocated data, now copy it
         // Note these levels should cover the same space, so we shouldn't need to have a refine operator.
         Pointer<PatchLevel<NDIM> > old_level = hierarchy->getPatchLevel(ln);
-        Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
-        Pointer<RefineOperator<NDIM> > refine_op = nullptr;
-        refine_alg->registerRefine(snapshot_idx, u_idx, u_idx, refine_op);
-        Pointer<RefineSchedule<NDIM> > schedule = refine_alg->createSchedule(snapshot_level, old_level);
-
-        schedule->fillData(time);
+        {
+            // First fill in from the snapshot hierarchy
+            Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
+            Pointer<RefineOperator<NDIM> > refine_op = nullptr;
+            refine_alg->registerRefine(snapshot_idx, u_idx, u_idx, refine_op);
+            Pointer<RefineSchedule<NDIM> > schedule = refine_alg->createSchedule(snapshot_level, old_level);
+            schedule->fillData(time);
+        }
     }
 
     // Store the index, time, hierarchy, and variable.
@@ -237,6 +246,6 @@ template class SnapshotCache<SAMRAI::pdat::EdgeVariable<NDIM, double> >;
 template class SnapshotCache<SAMRAI::pdat::FaceVariable<NDIM, double> >;
 //////////////////////////////////////////////////////////////////////////////
 
-} // namespace IBAMR
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

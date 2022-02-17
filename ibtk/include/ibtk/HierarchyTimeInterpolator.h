@@ -13,15 +13,12 @@
 
 /////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
-#ifndef included_IBAMR_HierarchyInterpolator
-#define included_IBAMR_HierarchyInterpolator
+#ifndef included_IBTK_HierarchyInterpolator
+#define included_IBTK_HierarchyInterpolator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ibamr/config.h>
-
-#include <ibamr/SnapshotCache.h>
-
+#include <ibtk/SnapshotCache.h>
 #include <ibtk/ibtk_utilities.h>
 
 #include "CellVariable.h"
@@ -36,7 +33,7 @@
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
-namespace IBAMR
+namespace IBTK
 {
 /*!
  * \brief Class HierarchyTimeInterpolator provides a method of determining and storing average fields over periodic
@@ -222,8 +219,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > d_hier_data_ops;
 };
 
-} // namespace IBAMR
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_HierarchyTimeInterpolator
+#endif //#ifndef included_IBTK_HierarchyTimeInterpolator

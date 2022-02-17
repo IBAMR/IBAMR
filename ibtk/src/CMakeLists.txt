@@ -173,6 +173,7 @@ SET(CXX_SRC
   utilities/ParallelSet.cpp
   utilities/FaceDataSynchronization.cpp
   utilities/HierarchyIntegrator.cpp
+  utilities/HierarchyTimeInterpolator.cpp
   utilities/MergingLoadBalancer.cpp
   utilities/CopyToRootSchedule.cpp
   utilities/AppInitializer.cpp
@@ -188,6 +189,7 @@ SET(CXX_SRC
   utilities/NodeDataSynchronization.cpp
   utilities/ParallelMap.cpp
   utilities/SideNoCornersFillPattern.cpp
+  utilities/SnapshotCache.cpp
   utilities/box_utilities.cpp
   utilities/Streamable.cpp
   utilities/CopyToRootTransaction.cpp

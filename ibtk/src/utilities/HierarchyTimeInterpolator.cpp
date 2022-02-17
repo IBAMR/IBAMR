@@ -12,18 +12,15 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include "ibamr/config.h"
-
-#include "ibamr/HierarchyTimeInterpolator.h"
+#include "ibtk/HierarchyTimeInterpolator.h"
 
 #include "HierarchyDataOpsManager.h"
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include "ibtk/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
-namespace IBAMR
+namespace IBTK
 {
 double
 map_to_period(const double t_start, const double t_end, double time)
@@ -232,7 +229,8 @@ HierarchyTimeInterpolator<VariableType>::fillSnapshotAtTime(const int u_idx,
     // We have the upper and lower indices, now we can interpolate in time.
     // Wrap time point if we have to.
     t_up = it_up == d_snapshot_time_pts.end() ? *(d_snapshot_time_pts.begin()) + d_t_period : *it_up;
-    d_hier_data_ops->linearSum(u_idx, (time - t_low) / d_t_period, u_idx, -(time - t_up) / d_t_period, d_scratch_idx);
+    d_hier_data_ops->linearSum(
+        u_idx, (time - t_low) / (t_up - t_low), u_idx, -(time - t_up) / (t_up - t_low), d_scratch_idx);
     deallocate_patch_data(d_scratch_idx, hierarchy, 0, hierarchy->getFinestLevelNumber());
 }
 
@@ -260,6 +258,6 @@ template class HierarchyTimeInterpolator<SAMRAI::pdat::EdgeVariable<NDIM, double
 template class HierarchyTimeInterpolator<SAMRAI::pdat::FaceVariable<NDIM, double> >;
 //////////////////////////////////////////////////////////////////////////////
 
-} // namespace IBAMR
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

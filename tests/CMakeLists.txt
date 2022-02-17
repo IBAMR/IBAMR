@@ -224,6 +224,7 @@ ENDIF()
 # IBTK:
 SETUP(IBTK equal_eps.cpp IBAMR2d)
 SETUP(IBTK hierarchy_callbacks.cpp IBAMR2d)
+SETUP(IBTK hierarchy_time_interpolation_01.cpp IBAMR2d)
 SETUP(IBTK ibtk_init.cpp IBAMR2d)
 SETUP(IBTK ibtk_mpi.cpp IBAMR2d)
 SETUP(IBTK ldata_01.cpp IBAMR2d)
