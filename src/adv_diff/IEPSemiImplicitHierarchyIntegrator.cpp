@@ -1350,7 +1350,7 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
                     const int lf_u_new_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getNewContext());
                     d_lf_convective_op->setAdvectionVelocity(lf_u_new_idx);
                     d_hier_cc_data_ops->copyData(lf_scratch_idx, lf_new_idx);
-                    d_hier_cc_data_ops->copyData(H_scratch_idx, H_new_idx);
+                    d_hier_cc_data_ops->copyData(H_scratch_idx, d_H_pre_idx); // Note H_pre_idx is used here.
                     d_lf_convective_op->setSolutionTime(new_time);
                     d_lf_convective_op->applyConvectiveOperator(lf_scratch_idx, H_scratch_idx, lf_N_scratch_idx);
                 }
@@ -1435,6 +1435,10 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
                                             d_reset_liquid_fraction_fcns_ctx[k]);
         }
 
+        // Bounding (overshoot/undershoot) is a part of Voller's algorithm. Should I do it?
+        boundLiquidFraction(lf_new_idx);
+
+        // To be used in continuity equation.
         computeMaterialDerivativeOfLiquidFraction(d_lf_material_derivative_idx, dt, new_time);
 
         // Reset the right-hand side vector.
@@ -1863,6 +1867,12 @@ IEPSemiImplicitHierarchyIntegrator::getChemicalPotentialIndex()
 {
     return d_chemical_potential_idx;
 } // getChemicalPotentialIndex
+
+int
+IEPSemiImplicitHierarchyIntegrator::getLiquidFractionMaterialDerivativeIndex()
+{
+    return d_lf_material_derivative_idx;
+} // getLiquidFractionMaterialDerivativeIndex
 
 int
 IEPSemiImplicitHierarchyIntegrator::getUpdatedDensityIndex()
@@ -2333,11 +2343,13 @@ IEPSemiImplicitHierarchyIntegrator::computeMaterialDerivativeOfLiquidFraction(in
     int lf_current_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getCurrentContext());
     int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getScratchContext());
     int lf_N_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_N_var, getScratchContext());
+    int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
 
     // compute (varphi^n+1 - varphi^n) / dt.
     d_hier_cc_data_ops->subtract(lf_material_derivative_idx, lf_new_idx, lf_current_idx);
     d_hier_cc_data_ops->scale(lf_material_derivative_idx, dt, lf_material_derivative_idx);
 
+    // new time level lf is used. This is different than how energy equation convective term is treated.
     if (d_lf_u_var)
     {
         if (getIntegratorStep() == 0 && is_multistep_time_stepping_type(d_lf_convective_time_stepping_type))
@@ -2355,8 +2367,10 @@ IEPSemiImplicitHierarchyIntegrator::computeMaterialDerivativeOfLiquidFraction(in
         d_hier_cc_data_ops->add(lf_material_derivative_idx, lf_material_derivative_idx, lf_N_scratch_idx);
     }
 
+    // Multiply H with Dvarphi/Dt
+    d_hier_cc_data_ops->multiply(lf_material_derivative_idx, lf_material_derivative_idx, H_new_idx);
     return;
-} // computeChemicalPotential
+} // computeMaterialDerivativeOfLiquidFraction
 
 // void
 // IEPSemiImplicitHierarchyIntegrator::computeLHSOfLiquidFractionEquation(int lf_lhs_idx,
@@ -2520,35 +2534,35 @@ IEPSemiImplicitHierarchyIntegrator::computeMaterialDerivativeOfLiquidFraction(in
 //    return;
 //} // computeLHSOfLiquidFractionEquation
 
-// void
-// IEPSemiImplicitHierarchyIntegrator::boundLiquidFraction(int lf_new_idx)
-//{
-//    const int coarsest_ln = 0;
-//    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-//    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-//
-//    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-//    {
-//        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-//        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-//        {
-//            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-//            const Box<NDIM>& patch_box = patch->getBox();
-//            Pointer<CellData<NDIM, double> > lf_new_data = patch->getPatchData(lf_new_idx);
-//
-//            for (Box<NDIM>::Iterator it(patch_box); it; it++)
-//            {
-//                CellIndex<NDIM> ci(it());
-//
-//                if ((*lf_new_data)(ci) > 1.0)
-//                    (*lf_new_data)(ci) = 1.0;
-//                else if ((*lf_new_data)(ci) < 0.0)
-//                    (*lf_new_data)(ci) = 0.0;
-//            }
-//        }
-//    }
-//    return;
-//} // boundLiquidFraction
+void
+IEPSemiImplicitHierarchyIntegrator::boundLiquidFraction(int lf_new_idx)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double> > lf_new_data = patch->getPatchData(lf_new_idx);
+
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                CellIndex<NDIM> ci(it());
+
+                if ((*lf_new_data)(ci) > 1.0)
+                    (*lf_new_data)(ci) = 1.0;
+                else if ((*lf_new_data)(ci) < 0.0)
+                    (*lf_new_data)(ci) = 0.0;
+            }
+        }
+    }
+    return;
+} // boundLiquidFraction
 
 void
 IEPSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_from_restart)

@@ -301,6 +301,11 @@ public:
     int getChemicalPotentialIndex();
 
     /*!
+     * Get the liquid fraction material derivative patch data index.
+     */
+    int getLiquidFractionMaterialDerivativeIndex();
+
+    /*!
      * Get the updated density patch data index.
      */
     int getUpdatedDensityIndex();
@@ -470,10 +475,11 @@ private:
     //                                            const double new_time,
     //                                            const double current_time,
     //                                            const double half_time);
-    //    /*!
-    //     * Compute LHS of AC equation.
-    //     */
-    //    void boundLiquidFraction(int lf_new_idx);
+
+    /*!
+     * Bound liquid fraction.
+     */
+    void boundLiquidFraction(int lf_new_idx);
 
     /*!
      * Solver variables.
