@@ -1,0 +1,5 @@
+Improved: IBAMR::IBRedundantInitializer (and, through it, IBAMR::IBMethod) now
+works with points initially placed on top physical boundaries. Previously points
+could only be placed on boundaries which happened to be the lower ones.
+<br>
+(David Wells, 2022/03/07)

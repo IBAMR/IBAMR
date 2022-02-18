@@ -53,6 +53,7 @@ std::array<int, NDIM> N;
 SAMRAI::tbox::Array<std::string> struct_list;
 SAMRAI::tbox::Array<int> num_node;
 SAMRAI::tbox::Array<double> ds;
+SAMRAI::tbox::Array<double> struct_shift;
 int num_node_circum, num_node_radial;
 double dr;
 bool put_structure_outside_domain = false;
@@ -85,6 +86,12 @@ generate_structure(const unsigned int& strct_num,
         ds[strct_num] = dx / 2.0;
         num_vertices = num_node[strct_num];
         vertex_posn.resize(0);
+        IBTK::Point shift;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            shift[d] = struct_shift[d];
+        }
+
         for (int num = 0; num < num_node[strct_num]; ++num)
         {
             // bottom side
@@ -107,6 +114,7 @@ generate_structure(const unsigned int& strct_num,
             {
                 vertex_posn.emplace_back(0.0, 0.5 - (num + 3 - 3 * nodes_per_side) * dx / 2.0);
             }
+            vertex_posn.back() += shift;
         }
     }
     else if (struct_list[strct_num].compare("curve2d") == 0)
@@ -293,6 +301,7 @@ main(int argc, char* argv[])
         const bool dump_viz_data = app_initializer->dumpVizData();
         const int viz_dump_interval = app_initializer->getVizDumpInterval();
         const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
+        const int error_dump_interval = input_db->getIntegerWithDefault("error_dump_interval", 1);
 
         // For testing purposes: make sure we fail correctly when the structure
         // is not in the domain
@@ -354,6 +363,15 @@ main(int argc, char* argv[])
         struct_list.resizeArray(input_db->getArraySize("STRUCTURE_LIST"));
         //         input_db->getStringArray("STRUCTURE_LIST", struct_list, input_db->getArraySize("STRUCTURE_LIST"));
         struct_list = input_db->getStringArray("STRUCTURE_LIST");
+        struct_shift.resizeArray(NDIM);
+        for (int i = 0; i < NDIM; ++i)
+        {
+            struct_shift[i] = 0.0;
+        }
+        if (input_db->keyExists("STRUCTURE_SHIFT"))
+        {
+            struct_shift = input_db->getDoubleArray("STRUCTURE_SHIFT");
+        }
         std::vector<std::string> struct_list_vec(struct_list.getSize());
         for (int i = 0; i < struct_list.size(); ++i) struct_list_vec[i] = struct_list[i];
         ds.resizeArray(struct_list.size());
@@ -516,48 +534,51 @@ main(int argc, char* argv[])
             const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
             const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
-            Pointer<CellVariable<NDIM, double> > u_cc_var = u_var;
-            if (u_cc_var)
+            if (iteration_num % error_dump_interval == 0)
             {
+                Pointer<CellVariable<NDIM, double> > u_cc_var = u_var;
+                if (u_cc_var)
+                {
+                    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+                    hier_cc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
+                    pout << "Error in u at time " << loop_time << ":\n"
+                         << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx)
+                         << "\n"
+                         << "  L2-norm:  " << hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx) << "\n"
+                         << "  max-norm: " << hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx) << "\n";
+
+                    u_err[0] = hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx);
+                    u_err[1] = hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx);
+                    u_err[2] = hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx);
+                }
+
+                Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
+                if (u_sc_var)
+                {
+                    HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+                    hier_sc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
+                    pout << "Error in u at time " << loop_time << ":\n"
+                         << "  L1-norm:  " << std::setprecision(10) << hier_sc_data_ops.L1Norm(u_cloned_idx, wgt_sc_idx)
+                         << "\n"
+                         << "  L2-norm:  " << hier_sc_data_ops.L2Norm(u_cloned_idx, wgt_sc_idx) << "\n"
+                         << "  max-norm: " << hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx) << "\n";
+
+                    u_err[0] = hier_sc_data_ops.L1Norm(u_cloned_idx, wgt_sc_idx);
+                    u_err[1] = hier_sc_data_ops.L2Norm(u_cloned_idx, wgt_sc_idx);
+                    u_err[2] = hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx);
+                }
+
                 HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-                hier_cc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
-                pout << "Error in u at time " << loop_time << ":\n"
-                     << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx)
-                     << "\n"
-                     << "  L2-norm:  " << hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx) << "\n"
-                     << "  max-norm: " << hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx) << "\n";
+                hier_cc_data_ops.subtract(p_cloned_idx, p_idx, p_cloned_idx);
+                pout << "Error in p at time " << loop_time - 0.5 * dt << ":\n"
+                     << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(p_cloned_idx, wgt_cc_idx) << "\n"
+                     << "  L2-norm:  " << hier_cc_data_ops.L2Norm(p_cloned_idx, wgt_cc_idx) << "\n"
+                     << "  max-norm: " << hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx) << "\n\n";
 
-                u_err[0] = hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx);
-                u_err[1] = hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx);
-                u_err[2] = hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx);
+                p_err[0] = hier_cc_data_ops.L1Norm(p_cloned_idx, wgt_cc_idx);
+                p_err[1] = hier_cc_data_ops.L2Norm(p_cloned_idx, wgt_cc_idx);
+                p_err[2] = hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx);
             }
-
-            Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
-            if (u_sc_var)
-            {
-                HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-                hier_sc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
-                pout << "Error in u at time " << loop_time << ":\n"
-                     << "  L1-norm:  " << std::setprecision(10) << hier_sc_data_ops.L1Norm(u_cloned_idx, wgt_sc_idx)
-                     << "\n"
-                     << "  L2-norm:  " << hier_sc_data_ops.L2Norm(u_cloned_idx, wgt_sc_idx) << "\n"
-                     << "  max-norm: " << hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx) << "\n";
-
-                u_err[0] = hier_sc_data_ops.L1Norm(u_cloned_idx, wgt_sc_idx);
-                u_err[1] = hier_sc_data_ops.L2Norm(u_cloned_idx, wgt_sc_idx);
-                u_err[2] = hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx);
-            }
-
-            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-            hier_cc_data_ops.subtract(p_cloned_idx, p_idx, p_cloned_idx);
-            pout << "Error in p at time " << loop_time - 0.5 * dt << ":\n"
-                 << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(p_cloned_idx, wgt_cc_idx) << "\n"
-                 << "  L2-norm:  " << hier_cc_data_ops.L2Norm(p_cloned_idx, wgt_cc_idx) << "\n"
-                 << "  max-norm: " << hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx) << "\n\n";
-
-            p_err[0] = hier_cc_data_ops.L1Norm(p_cloned_idx, wgt_cc_idx);
-            p_err[1] = hier_cc_data_ops.L2Norm(p_cloned_idx, wgt_cc_idx);
-            p_err[2] = hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx);
         }
 
         // Cleanup Eulerian boundary condition specification objects (when

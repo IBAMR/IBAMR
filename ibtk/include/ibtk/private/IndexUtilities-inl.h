@@ -190,6 +190,25 @@ IndexUtilities::getCellIndex(const DoubleArray& X,
     return getCellIndex(X, grid_geom->getXLower(), grid_geom->getXUpper(), dx, domain_box.lower(), domain_box.upper());
 } // getCellIndex
 
+template <class DoubleArray>
+inline SAMRAI::hier::Index<NDIM>
+IndexUtilities::getAssignedCellIndex(const DoubleArray& X,
+                                     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
+                                     const SAMRAI::hier::IntVector<NDIM>& ratio)
+{
+    auto idx = getCellIndex(X, grid_geom, ratio);
+    const auto periodic_shift = grid_geom->getPeriodicShift();
+    for (int d = 0; d < NDIM; ++d)
+    {
+        // We don't shift things on periodic boundaries - the caller should have already shifted them
+        if (!periodic_shift(d) && X[d] == grid_geom->getXUpper()[d])
+        {
+            idx(d) -= 1;
+        }
+    }
+    return idx;
+}
+
 inline int
 IndexUtilities::mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
                                   const SAMRAI::hier::Index<NDIM>& domain_lower,
