@@ -76,7 +76,40 @@ generate_structure(const unsigned int& strct_num,
     double dx = 1.0 / static_cast<double>(N[0]);
     double x_center = put_structure_outside_domain ? 1.0 : 0.5;
     double y_center = 0.5;
-    if (struct_list[strct_num].compare("curve2d") == 0)
+    if (struct_list[strct_num].compare("quartersquare2d") == 0)
+    {
+        TBOX_ASSERT(N[0] >= 2);
+        // N cells per side -> N + 1 nodes per side, including duplicated corners
+        const auto nodes_per_side = N[0] + 1;
+        num_node[strct_num] = static_cast<int>(4 * nodes_per_side - 4);
+        ds[strct_num] = dx / 2.0;
+        num_vertices = num_node[strct_num];
+        vertex_posn.resize(0);
+        for (int num = 0; num < num_node[strct_num]; ++num)
+        {
+            // bottom side
+            if (num < nodes_per_side)
+            {
+                vertex_posn.emplace_back(num * dx / 2.0, 0.0);
+            }
+            // right side
+            else if (num < 2 * nodes_per_side - 1)
+            {
+                vertex_posn.emplace_back(0.5, (num + 1 - nodes_per_side) * dx / 2.0);
+            }
+            // top side
+            else if (num < 3 * nodes_per_side - 2)
+            {
+                vertex_posn.emplace_back(0.5 - (num + 2 - 2 * nodes_per_side) * dx / 2.0, 0.5);
+            }
+            // left side
+            else
+            {
+                vertex_posn.emplace_back(0.0, 0.5 - (num + 3 - 3 * nodes_per_side) * dx / 2.0);
+            }
+        }
+    }
+    else if (struct_list[strct_num].compare("curve2d") == 0)
     {
         //         double sdf = perim/(1.0/(3.0*64.0))/4.0;
         //         double aa = ceil(sdf);
@@ -153,7 +186,7 @@ generate_springs(
 {
     if (ln != finest_ln) return;
     double K = 1.0;
-    if (struct_list[strct_num].compare("curve2d") == 0)
+    if (struct_list[strct_num].compare("curve2d") == 0 || struct_list[strct_num].compare("quartersquare2d") == 0)
     {
         for (int k = 0; k < num_node[strct_num]; ++k)
         {
