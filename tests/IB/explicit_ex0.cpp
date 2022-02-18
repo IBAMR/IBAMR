@@ -257,6 +257,10 @@ main(int argc, char* argv[])
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
+        const bool dump_viz_data = app_initializer->dumpVizData();
+        const int viz_dump_interval = app_initializer->getVizDumpInterval();
+        const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
+
         // For testing purposes: make sure we fail correctly when the structure
         // is not in the domain
         put_structure_outside_domain = input_db->getBoolWithDefault("put_structure_outside_domain", false);
@@ -373,6 +377,16 @@ main(int argc, char* argv[])
             time_integrator->registerBodyForceFunction(f_fcn);
         }
 
+        // Set up visualization plot file writers.
+        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
+        if (uses_visit)
+        {
+            ib_initializer->registerLSiloDataWriter(silo_data_writer);
+            time_integrator->registerVisItDataWriter(visit_data_writer);
+            ib_method_ops->registerLSiloDataWriter(silo_data_writer);
+        }
+
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
@@ -410,6 +424,13 @@ main(int argc, char* argv[])
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
+        if (dump_viz_data && uses_visit)
+        {
+            pout << "\n\nWriting visualization files...\n\n";
+            time_integrator->setupPlotData();
+            visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+            silo_data_writer->writePlotData(iteration_num, loop_time);
+        }
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
@@ -429,6 +450,14 @@ main(int argc, char* argv[])
             // print out timer data, and store hierarchy data for post
             // processing.
             iteration_num += 1;
+            const bool last_step = !time_integrator->stepsRemaining();
+            if (dump_viz_data && uses_visit && (iteration_num % viz_dump_interval == 0 || last_step))
+            {
+                pout << "\nWriting visualization files...\n\n";
+                time_integrator->setupPlotData();
+                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+                silo_data_writer->writePlotData(iteration_num, loop_time);
+            }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0))
             {
                 pout << "\nWriting restart files...\n\n";
