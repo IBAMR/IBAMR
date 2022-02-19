@@ -1,0 +1,78 @@
+register_for_restart = TRUE
+
+fcn {
+   function = "sin(2*PI*(X_0-0.1234))*sin(2*PI*(X_1-0.1234))*sin(2*PI*t)"
+}
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2d"
+   visit_number_procs_per_file = 1
+
+   restart_write_interval = 1
+   restart_dump_dirname = "restart"
+}
+
+N = 64
+t_start = 0.0
+t_end = 1.0
+num_snaps = 10
+
+CartesianGeometry {
+   domain_boxes       = [(0, 0), (N - 1, N - 1)]
+   x_lo               = 0, 0
+   x_up               = 1, 1
+   periodic_dimension = 1, 1
+}
+
+GriddingAlgorithm {
+   max_levels = 3                 // Maximum number of levels in hierarchy.
+
+   ratio_to_coarser {
+      level_1 = 4, 4              // vector ratio to next coarser level
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512          // largest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 =   4,   4          // smallest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   efficiency_tolerance = 0.999  // min % of tag cells in new patch level
+   combine_efficiency   = 0.999  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
+
+   coalesce_boxes = TRUE
+}
+
+OldStandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(N/4 ,N/4), (N/2 - 1, N/2 - 1)],
+                [(N/2, N/4), (N - 1,   N/2 - 1)],
+                [(N/4, N/2), (N/2 - 1, 3*N/4 - 1)]
+      level_1 = [( 5*N/4 , 5*N/4 ), (15*N/4 - 1, 7*N/4 - 1 )]
+   }
+}
+
+NewStandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [(N/4, N/4), (N/2 - 1, N/2 - 1)],
+                [(N/2, N/4), (N - 1, N/2 - 1)],
+                [(N/4, N/2), (N/2 - 1, 3*N/4 - 1)]
+      level_1 = [( 5*N/4, 5*N/4 ), (15*N/4 - 1, 7*N/4 - 1)]
+   }
+}
+
+LoadBalancer {
+   type = "MERGING"
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 0.5
+}

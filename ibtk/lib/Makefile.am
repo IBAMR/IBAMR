@@ -180,6 +180,8 @@ DIM_DEPENDENT_SOURCES = \
 ../src/utilities/SideDataSynchronization.cpp \
 ../src/utilities/SideNoCornersFillPattern.cpp \
 ../src/utilities/SideSynchCopyFillPattern.cpp \
+../src/utilities/SnapshotCache.cpp \
+../src/utilities/snapshot_utilities.cpp \
 ../src/utilities/StandardTagAndInitStrategySet.cpp \
 ../src/utilities/Streamable.cpp \
 ../src/utilities/StreamableManager.cpp \
@@ -336,6 +338,8 @@ pkg_include_HEADERS += \
 ../include/ibtk/SideDataSynchronization.h \
 ../include/ibtk/SideNoCornersFillPattern.h \
 ../include/ibtk/SideSynchCopyFillPattern.h \
+../include/ibtk/SnapshotCache.h \
+../include/ibtk/snapshot_utilities.h \
 ../include/ibtk/StaggeredPhysicalBoundaryHelper.h \
 ../include/ibtk/StandardTagAndInitStrategySet.h \
 ../include/ibtk/Streamable.h \
