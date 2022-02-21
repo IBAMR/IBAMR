@@ -96,7 +96,7 @@ The CMake build system will attempt to find these with default search paths and
 also in the directory provided by `PKG_ROOT` (i.e., for Boost, the build system
 will search in `BOOST_ROOT`).
 
-IBAMR's optional dependencies are Silo (which depends on zlib) and libMesh.
+IBAMR's optional dependencies are Silo and libMesh.
 These are only searched for if a directory path is provided (i.e., by passing
 `-DSILO_ROOT=/usr/`). libMesh also requires that the caller pass
 `LIBMESH_METHOD` to CMake to indicate which libMesh variant we should use (e.g.,

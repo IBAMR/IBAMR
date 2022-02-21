@@ -1,0 +1,3 @@
+Changed: IBAMR's CMake build system now lets HDF5 resolve the zlib dependency.
+<br>
+(David Wells, 2022/02/21)
