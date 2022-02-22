@@ -21,11 +21,13 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-IBLevelSet
   SOURCES
-    LevelSetInitialCondition.cpp  
-    SetFluidSolidDensity.cpp      
-    SetFluidSolidViscosity.cpp    
-    TagLSRefinementCells.cpp      
+    LevelSetInitialCondition.cpp
+    SetFluidSolidDensity.cpp
+    SetFluidSolidViscosity.cpp
+    TagLSRefinementCells.cpp
     example.cpp
+  REQUIRES
+    IBAMR_HAVE_LIBMESH
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES
