@@ -74,10 +74,14 @@ MACRO(IBAMR_ADD_EXAMPLE)
       "${EX_OUTPUT_NAME}")
     TARGET_INCLUDE_DIRECTORIES("${EX_TARGET_NAME}" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 
-    IF("${EX_LINK_TARGETS}" STREQUAL "")
-      # If we have no target link libraries we need to set up the C++ standard ourselves
+    # If we have no target link libraries or rely on just boost (which is
+    # header-only and, until CMake 3.20 or later, we cannot set a C++ standard
+    # on) we need to set up the C++ standard ourselves
+    IF("${EX_LINK_TARGETS}" STREQUAL "" OR
+       "${EX_LINK_TARGETS}" STREQUAL "BOOST_INTERFACE")
       TARGET_COMPILE_FEATURES("${EX_TARGET_NAME}" PUBLIC cxx_std_11)
-    ELSE()
+    ENDIF()
+    IF(NOT "${EX_LINK_TARGETS}" STREQUAL "")
       TARGET_LINK_LIBRARIES("${EX_TARGET_NAME}" PRIVATE ${EX_LINK_TARGETS})
     ENDIF()
     ADD_DEPENDENCIES("${EX_EXAMPLE_GROUP}" "${EX_TARGET_NAME}")
