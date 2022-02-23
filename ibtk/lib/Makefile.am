@@ -160,6 +160,7 @@ DIM_DEPENDENT_SOURCES = \
 ../src/utilities/FaceDataSynchronization.cpp \
 ../src/utilities/FaceSynchCopyFillPattern.cpp \
 ../src/utilities/FixedSizedStream.cpp \
+../src/utilities/HierarchyAveragedDataManager.cpp \
 ../src/utilities/HierarchyIntegrator.cpp \
 ../src/utilities/IBTK_MPI.cpp \
 ../src/utilities/IBTKInit.cpp \
