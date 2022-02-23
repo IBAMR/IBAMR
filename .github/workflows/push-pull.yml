@@ -23,6 +23,7 @@ on:
       - master
 
 jobs:
+  # build IBAMR with CMake and run tests
   build_ibamr:
     runs-on: ubuntu-latest
     name: Build IBAMR and run tests
@@ -83,15 +84,21 @@ jobs:
       - name: Configure IBAMR
         id: configure
         # run: ${{ LAUNCHER }} ctest -V -S .github/cmake/ctest_configure.cmake
-        run: bash -c "ctest -V -S .github/cmake/ctest_configure.cmake"
-      - name: Build IBAMR
+        run: |
+          bash -c "ctest -VV -S .github/cmake/ctest_configure.cmake"
+          sccache --show-stats
+      - name: Compile IBAMR
         id: build
         # run: ${{ LAUNCHER }} ctest -V -S .github/cmake/ctest_build.cmake
-        run: bash -c "ctest -V -S .github/cmake/ctest_build.cmake"
+        run: |
+          bash -c "ctest -VV -S .github/cmake/ctest_build.cmake"
+          sccache --show-stats
       - name: Test IBAMR
         id: test
         # run: ${{ LAUNCHER }} ctest --output-on-failure -V -S .github/cmake/ctest_test.cmake
-        run: bash -c "ctest --output-on-failure -V -S .github/cmake/ctest_test.cmake"
+        run: |
+          bash -c "ctest --output-on-failure -VV -S .github/cmake/ctest_test.cmake"
+          sccache --show-stats
 
   # build IBAMR with autotools
   build_ibamr_autotools:
