@@ -44,18 +44,6 @@ jobs:
       # testing and preventing merging).
       CTEST_NO_WARNINGS_ALLOWED: true
 
-      # On some platforms, this is used to select a different toolset.
-      # For example, uncomment the line below on Centos 7 to use a
-      # newer GCC (assumes the proper toolset packages are installed).
-      #LAUNCHER: scl enable devtoolset-7 --
-
-      # Set the build type (this currently has no effect).
-      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html
-      # CMAKE_BUILD_TYPE: Release
-
-      # Set the cmake generator (build system) to use.
-      # See https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html
-      # CMAKE_GENERATOR: Ninja
       CMAKE_GENERATOR: Unix Makefiles
     steps:
       - name: Checkout Source
@@ -80,13 +68,11 @@ jobs:
         run: sccache --start-server
       - name: Configure IBAMR
         id: configure
-        # run: ${{ LAUNCHER }} ctest -V -S .github/cmake/ctest_configure.cmake
         run: |
           bash -c "ctest -VV -S .github/cmake/ctest_configure.cmake"
           sccache --show-stats
       - name: Compile IBAMR
         id: build
-        # run: ${{ LAUNCHER }} ctest -V -S .github/cmake/ctest_build.cmake
         run: |
           bash -c "ctest -VV -S .github/cmake/ctest_build.cmake"
           sccache --show-stats
