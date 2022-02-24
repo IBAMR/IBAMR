@@ -61,16 +61,13 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v2
         id: git
-      - name: Filesystem Prep
-        run: mkdir -p /sccache
-        id: fs
       - name: Populate sccache
         uses: actions/cache@v2
         env:
           cache-name: sccache
         id: cache
         with:
-          path: /sccache
+          path: ~/.cache/sccache
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ github.ref }}-${{ hashFiles('include/ibamr/config.h','ibtk/include/ibtk/config.h.in') }}
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-${{ github.ref }}-
