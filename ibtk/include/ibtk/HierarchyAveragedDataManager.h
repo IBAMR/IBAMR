@@ -25,6 +25,7 @@
 #include "HierarchySideDataOpsReal.h"
 #include "IntVector.h"
 #include "SideVariable.h"
+#include "VisItDataWriter.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
@@ -53,7 +54,8 @@ public:
      */
     HierarchyAveragedDataManager(std::string object_name,
                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 const std::string& dir_dump_name);
 
     /*!
      * The constructor for class HierarchyTimeInterpolator sets some default values and determines data centering. In
@@ -64,6 +66,7 @@ public:
                                  std::set<double> snapshot_time_points,
                                  double t_start,
                                  double t_end,
+                                 const std::string& dir_dump_name,
                                  int depth = 1);
 
     /*!
@@ -210,6 +213,12 @@ private:
     std::unique_ptr<SnapshotCache<VariableType> > d_snapshot_cache;
 
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > d_hier_data_ops;
+
+    // Drawing stuff
+    std::unique_ptr<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_data_writer;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_visit_var;
+    int d_visit_idx = IBTK::invalid_index;
+    int d_visit_ts = 0;
 };
 
 } // namespace IBTK

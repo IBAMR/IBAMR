@@ -13,6 +13,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include "ibtk/HierarchyAveragedDataManager.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include "ibtk/HierarchyMathOps.h"
 
 #include "HierarchyDataOpsManager.h"
 
@@ -95,9 +97,11 @@ deallocate_patch_data(const int idx,
 template <class VariableType>
 HierarchyAveragedDataManager<VariableType>::HierarchyAveragedDataManager(std::string object_name,
                                                                          Pointer<Database> input_db,
-                                                                         Pointer<PatchHierarchy<NDIM> > hierarchy)
+                                                                         Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                                         const std::string& dir_dump_name)
     : d_object_name(std::move(object_name)),
-      d_snapshot_cache(new SnapshotCache<VariableType>(d_object_name + "::SnapshotCache", input_db))
+      d_snapshot_cache(new SnapshotCache<VariableType>(d_object_name + "::SnapshotCache", input_db)),
+      d_visit_data_writer(new VisItDataWriter<NDIM>(d_object_name + "::VisitWriter", dir_dump_name))
 {
     // Get depth
     d_depth = input_db->getIntegerWithDefault("depth", d_depth);
@@ -122,6 +126,7 @@ HierarchyAveragedDataManager<VariableType>::HierarchyAveragedDataManager(std::st
                                                                          std::set<double> snapshot_time_points,
                                                                          const double t_start,
                                                                          const double t_end,
+                                                                         const std::string& dir_dump_name,
                                                                          const int depth)
     : d_object_name(std::move(object_name)),
       d_depth(depth),
@@ -129,7 +134,8 @@ HierarchyAveragedDataManager<VariableType>::HierarchyAveragedDataManager(std::st
       d_t_end(t_end),
       d_t_period(t_end - t_start),
       d_snapshot_time_pts(std::move(snapshot_time_points)),
-      d_snapshot_cache(new SnapshotCache<VariableType>(d_object_name + "::SnapshotCache", nullptr))
+      d_snapshot_cache(new SnapshotCache<VariableType>(d_object_name + "::SnapshotCache", nullptr)),
+      d_visit_data_writer(new VisItDataWriter<NDIM>(d_object_name + "::VisitWriter", dir_dump_name))
 {
     commonConstructor(nullptr, hierarchy);
 }
@@ -148,6 +154,10 @@ HierarchyAveragedDataManager<VariableType>::commonConstructor(Pointer<Database> 
     // Create the hierarchy data ops
     auto hier_math_ops = HierarchyDataOpsManager<NDIM>::getManager();
     d_hier_data_ops = hier_math_ops->getOperationsDouble(d_scratch_var, hierarchy);
+
+    d_visit_var = new CellVariable<NDIM, double>(d_object_name + "::VisitVar", NDIM);
+    d_visit_idx = var_db->registerVariableAndContext(d_visit_var, var_db->getContext(d_object_name + "::ctx"), 1);
+    d_visit_data_writer->registerPlotQuantity("U", "VECTOR", d_visit_idx);
 }
 
 template <class VariableType>
@@ -189,11 +199,13 @@ HierarchyAveragedDataManager<VariableType>::updateTimeAveragedSnapshot(const int
     // If this is the first snapshot, record it.
     if (d_idx_num_updates_map[time] == 0)
     {
+        pout << "First recorded snapshot\n";
         d_snapshot_cache->setSnapshot(u_idx, time, hierarchy);
         d_idx_steady_state_map[time] = false;
         d_idx_num_updates_map[time] = 1;
         return false;
     }
+    pout << "Updating mean\n";
     // Otherwise, we need to update the mean.
     // Fill the scratch index with the current mean
     allocate_patch_data(d_scratch_idx, time, hierarchy, 0, hierarchy->getFinestLevelNumber());
@@ -214,6 +226,24 @@ HierarchyAveragedDataManager<VariableType>::updateTimeAveragedSnapshot(const int
     plog << "At time " << time << ", the L^2 norm of the change in u_mean is " << L1_norm << "\n";
     plog << "At time " << time << ", the L^1 norm of the change in u_mean is " << L2_norm << "\n";
     plog << "At time " << time << ", the max norm of the change in u_mean is " << max_norm << "\n";
+
+    // Draw current means.
+    pout << "Printing out averaged data\n";
+    allocate_patch_data(d_visit_idx, time, hierarchy, 0, hierarchy->getFinestLevelNumber());
+    // Copy data to visit index
+    Pointer<HierarchyGhostCellInterpolation> ghost_fill = new HierarchyGhostCellInterpolation();
+    using ITC = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    std::vector<ITC> itc = { ITC(
+        d_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR") };
+    ghost_fill->initializeOperatorState(itc, hierarchy);
+    HierarchyMathOps hier_math_ops("HierarchyMathOps", hierarchy);
+    hier_math_ops.resetLevels(0, hierarchy->getFinestLevelNumber());
+    hier_math_ops.setPatchHierarchy(hierarchy);
+    Pointer<SideVariable<NDIM, double> > side_var = d_scratch_var;
+    if (side_var) hier_math_ops.interp(d_visit_idx, d_visit_var, d_scratch_idx, side_var, ghost_fill, time, false);
+    d_visit_data_writer->writePlotData(hierarchy, d_visit_ts++, time);
+    deallocate_patch_data(d_visit_idx, hierarchy, 0, hierarchy->getFinestLevelNumber());
+
     deallocate_patch_data(d_scratch_idx, hierarchy, 0, hierarchy->getFinestLevelNumber());
     if (L2_norm <= d_periodic_thresh)
     {
