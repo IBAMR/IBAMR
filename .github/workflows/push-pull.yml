@@ -103,6 +103,14 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v2
         id: git
+      - name: Create keys
+        id: keys
+        run: |
+          echo "::set-output name=key1::$(( ${{ github.run_number }} - 1))"
+          echo "::set-output name=key2::$(( ${{ github.run_number }} - 2))"
+          echo "::set-output name=key3::$(( ${{ github.run_number }} - 3))"
+          echo "::set-output name=key4::$(( ${{ github.run_number }} - 4))"
+          echo "::set-output name=key5::$(( ${{ github.run_number }} - 5))"
       - name: Populate sccache
         uses: actions/cache@v2
         env:
@@ -110,13 +118,15 @@ jobs:
         id: cache
         with:
           path: ~/.cache/sccache
-          key: ${{ runner.os }}-build-autotools-${{ env.cache-name }}-${{ github.ref }}-${{ hashFiles('include/ibamr/config.h','ibtk/include/ibtk/config.h.in') }}
+          # The same note on picking keys above applies here.
+          key: ${{ runner.os }}-build-autotools-${{ github.run_number }}
           restore-keys: |
-            ${{ runner.os }}-build-autotools-${{ env.cache-name }}-${{ github.ref }}-
-            ${{ runner.os }}-build-autotools-${{ env.cache-name }}-refs/heads/master-
-            ${{ runner.os }}-build-autotools-${{ env.cache-name }}-
+            ${{ runner.os }}-build-autotools-${{ steps.keys.outputs.key1 }}
+            ${{ runner.os }}-build-autotools-${{ steps.keys.outputs.key2 }}
+            ${{ runner.os }}-build-autotools-${{ steps.keys.outputs.key3 }}
+            ${{ runner.os }}-build-autotools-${{ steps.keys.outputs.key4 }}
+            ${{ runner.os }}-build-autotools-${{ steps.keys.outputs.key5 }}
             ${{ runner.os }}-build-autotools-
-            ${{ runner.os }}-
       - name: Start sccache server
         id: cache-server
         run: sccache --start-server
