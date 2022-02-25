@@ -101,6 +101,79 @@ jobs:
           bash -c "ctest --output-on-failure -VV -S .github/cmake/ctest_test.cmake"
           sccache --show-stats
 
+  # build IBAMR with CMake, no libMesh, and run tests
+  build_ibamr_no_libmesh:
+    runs-on: ubuntu-latest
+    name: Build IBAMR and run tests (no libMesh)
+    container:
+      image: 'docker://dcthomp/ibamr:0.9-build-deps'
+    env:
+      CMAKE_CONFIGURATION: fedora33_no_libmesh
+
+      # If this variable is set, cause any build warnings to
+      # be treated as an error (causing the build to fail before
+      # testing and preventing merging).
+      CTEST_NO_WARNINGS_ALLOWED: true
+
+      CMAKE_GENERATOR: Unix Makefiles
+    steps:
+      - name: Generate id that is probably unique
+        id: generate_id
+        run:  echo "::set-output name=id::$RANDOM"
+      - name: Checkout Source
+        uses: actions/checkout@v2
+        id: git
+      - name: Create keys
+        id: keys
+        run: |
+          echo "::set-output name=key1::$(( ${{ github.run_number }} - 1))"
+          echo "::set-output name=key2::$(( ${{ github.run_number }} - 2))"
+          echo "::set-output name=key3::$(( ${{ github.run_number }} - 3))"
+          echo "::set-output name=key4::$(( ${{ github.run_number }} - 4))"
+          echo "::set-output name=key5::$(( ${{ github.run_number }} - 5))"
+      - name: Populate sccache
+        uses: actions/cache@v2
+        env:
+          cache-name: sccache
+        id: cache
+        with:
+          path: ~/.cache/sccache
+          # 1 of 2: We don't want to ever restore this cache so pick a very unique name
+          key: ${{ runner.os }}-build-no-libmesh-${{ steps.generate_id.outputs.id }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ steps.keys.outputs.key1 }}
+            ${{ runner.os }}-build-${{ steps.keys.outputs.key2 }}
+            ${{ runner.os }}-build-${{ steps.keys.outputs.key3 }}
+            ${{ runner.os }}-build-${{ steps.keys.outputs.key4 }}
+            ${{ runner.os }}-build-${{ steps.keys.outputs.key5 }}
+            ${{ runner.os }}-build-
+      - name: Start sccache server
+        id: cache-server
+        run: sccache --start-server
+      - name: Configure IBAMR
+        id: configure
+        run: |
+          bash -c "ctest -VV -S .github/cmake/ctest_configure.cmake"
+          sccache --show-stats
+      - name: Compile IBAMR
+        id: build
+        run: |
+          bash -c "ctest -VV -S .github/cmake/ctest_build.cmake"
+          sccache --show-stats
+      - name: Test IBAMR
+        id: test
+        run: |
+          bash -c "ctest --output-on-failure -VV -S .github/cmake/ctest_test.cmake"
+      - name: Compile IBAMR examples
+        id: examples
+        run: |
+          cd /build/ibamr
+          make -j2 examples
+          # 2 of 2: we have to upload something, might as well make it empty
+          rm -rf ~/.cache/sccache
+          mkdir -p ~/.cache/sccache
+          sccache --show-stats
+
   # build IBAMR with autotools
   build_ibamr_autotools:
     runs-on: ubuntu-latest
