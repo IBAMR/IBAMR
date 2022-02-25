@@ -125,7 +125,7 @@ FOREACH(_root ${_required_roots})
   ENDIF()
 ENDFOREACH()
 
-SET(_optional_roots "LIBMESH_ROOT" "NUMDIFF_ROOT" "SILO_ROOT" "ZLIB_ROOT")
+SET(_optional_roots "LIBMESH_ROOT" "NUMDIFF_ROOT" "SILO_ROOT")
 FOREACH(_root ${_optional_roots})
   IF("${${_root}}" STREQUAL "")
     MESSAGE(STATUS "${_root} was not provided to CMake: since this is an \
@@ -740,9 +740,6 @@ IF(NOT "${SILO_ROOT}" STREQUAL "")
     MESSAGE(STATUS "SILO_LIBRARIES: ${SILO_LIBRARIES}")
     SET(IBAMR_HAVE_SILO TRUE)
 
-    # Silo depends on zlib
-    FIND_PACKAGE(ZLIB REQUIRED)
-
     ADD_LIBRARY(SILO INTERFACE)
     TARGET_INCLUDE_DIRECTORIES(
       SILO
@@ -751,10 +748,6 @@ IF(NOT "${SILO_ROOT}" STREQUAL "")
       SILO
       INTERFACE
       ${SILO_LIBRARIES})
-    TARGET_LINK_LIBRARIES(
-      SILO
-      INTERFACE
-      ZLIB::ZLIB)
   ELSE()
     MESSAGE(FATAL_ERROR "\
 Silo (an optional dependency) was specified with SILO_ROOT=${SILO_ROOT} but a \
