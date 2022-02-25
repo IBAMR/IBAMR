@@ -17,11 +17,16 @@ SET(IBAMR_ENABLE_TESTING "ON" CACHE BOOL "")
 
 INCLUDE("${CMAKE_CURRENT_LIST_DIR}/configure_sccache.cmake")
 
+SET(CMAKE_C_COMPILER "/usr/lib64/mpich/bin/mpicc" CACHE STRING "C Compiler")
+SET(CMAKE_CXX_COMPILER "/usr/lib64/mpich/bin/mpic++" CACHE STRING "C++ Compiler")
+SET(CMAKE_Fortran_COMPILER "/usr/lib64/mpich/bin/mpifort" CACHE STRING "Fortran Compiler")
+
 SET(CMAKE_C_FLAGS "-O1" CACHE STRING "C flags")
 SET(CMAKE_CXX_FLAGS "-O1" CACHE STRING "C++ flags")
 SET(CMAKE_Fortran_FLAGS "-O3" CACHE STRING "Fortran flags")
 SET(CMAKE_INSTALL_PREFIX "/ibamr" CACHE PATH "Install destination")
 SET(SAMRAI_ROOT "/samrai" CACHE PATH "Location of SAMRAI")
-SET(PETSC_ROOT "/petsc/x86_64" CACHE PATH "Location of PETSc")
-SET(HYPRE_ROOT "/petsc/x86_64" CACHE PATH "Location of Hypre")
+SET(PETSC_ROOT "/petsc/" CACHE PATH "Location of PETSc")
+SET(HDF5_ROOT "$ENV{HDF5_DIR}" CACHE PATH "Location of HDF5 binaries")
+SET(HYPRE_ROOT "/petsc/" CACHE PATH "Location of Hypre")
 SET(NUMDIFF_ROOT "/numdiff" CACHE PATH "Location of numdiff")
