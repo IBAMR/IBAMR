@@ -127,8 +127,6 @@ public:
     /*!
      * Register the IBHierarchyIntegrator object that is using this strategy
      * class.
-     *
-     * An empty default implementation is provided.
      */
     virtual void registerIBHierarchyIntegrator(IBHierarchyIntegrator* ib_solver);
 
