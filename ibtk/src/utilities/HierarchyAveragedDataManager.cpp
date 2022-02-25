@@ -155,9 +155,12 @@ HierarchyAveragedDataManager<VariableType>::commonConstructor(Pointer<Database> 
     auto hier_math_ops = HierarchyDataOpsManager<NDIM>::getManager();
     d_hier_data_ops = hier_math_ops->getOperationsDouble(d_scratch_var, hierarchy);
 
-    d_visit_var = new CellVariable<NDIM, double>(d_object_name + "::VisitVar", NDIM);
-    d_visit_idx = var_db->registerVariableAndContext(d_visit_var, var_db->getContext(d_object_name + "::ctx"), 1);
-    d_visit_data_writer->registerPlotQuantity("U", "VECTOR", d_visit_idx);
+    d_mean_var = new CellVariable<NDIM, double>(d_object_name + "::MeanVar", NDIM);
+    d_dev_var = new CellVariable<NDIM, double>(d_object_name + "::DevVar", NDIM);
+    d_mean_idx = var_db->registerVariableAndContext(d_mean_var, var_db->getContext(d_object_name + "::ctx"), 1);
+    d_dev_idx = var_db->registerVariableAndContext(d_dev_var, var_db->getContext(d_object_name + "::ctx"), 1);
+    d_visit_data_writer->registerPlotQuantity("mean_flow_field", "VECTOR", d_mean_idx);
+    d_visit_data_writer->registerPlotQuantity("deviation", "VECTOR", d_dev_idx);
 }
 
 template <class VariableType>
@@ -221,7 +224,8 @@ HierarchyAveragedDataManager<VariableType>::updateTimeAveragedSnapshot(const int
 
     // Draw current means.
     pout << "Printing out averaged data\n";
-    allocate_patch_data(d_visit_idx, time, hierarchy, 0, hierarchy->getFinestLevelNumber());
+    allocate_patch_data(d_mean_idx, time, hierarchy, 0, hierarchy->getFinestLevelNumber());
+    allocate_patch_data(d_dev_idx, time, hierarchy, 0, hierarchy->getFinestLevelNumber());
     // Copy data to visit index
     Pointer<HierarchyGhostCellInterpolation> ghost_fill = new HierarchyGhostCellInterpolation();
     using ITC = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -232,9 +236,7 @@ HierarchyAveragedDataManager<VariableType>::updateTimeAveragedSnapshot(const int
     hier_math_ops.resetLevels(0, hierarchy->getFinestLevelNumber());
     hier_math_ops.setPatchHierarchy(hierarchy);
     Pointer<SideVariable<NDIM, double> > side_var = d_scratch_var;
-    if (side_var) hier_math_ops.interp(d_visit_idx, d_visit_var, d_scratch_idx, side_var, ghost_fill, time, false);
-    d_visit_data_writer->writePlotData(hierarchy, d_visit_ts++, time);
-    deallocate_patch_data(d_visit_idx, hierarchy, 0, hierarchy->getFinestLevelNumber());
+    if (side_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, side_var, ghost_fill, time, false);
 
     // Determine if we are at a steady state
     d_hier_data_ops->linearSum(d_scratch_idx, 1.0 / (N + 1.0), u_idx, -1.0 / (N + 1.0), d_scratch_idx);
@@ -245,6 +247,10 @@ HierarchyAveragedDataManager<VariableType>::updateTimeAveragedSnapshot(const int
     plog << "At time " << time << ", the L^1 norm of the change in u_mean is " << L2_norm << "\n";
     plog << "At time " << time << ", the max norm of the change in u_mean is " << max_norm << "\n";
 
+    if (side_var) hier_math_ops.interp(d_dev_idx, d_dev_var, d_scratch_idx, side_var, ghost_fill, time, false);
+    d_visit_data_writer->writePlotData(hierarchy, d_visit_ts++, time);
+    deallocate_patch_data(d_mean_idx, hierarchy, 0, hierarchy->getFinestLevelNumber());
+    deallocate_patch_data(d_dev_idx, hierarchy, 0, hierarchy->getFinestLevelNumber());
     deallocate_patch_data(d_scratch_idx, hierarchy, 0, hierarchy->getFinestLevelNumber());
     if (L2_norm <= d_periodic_thresh)
     {

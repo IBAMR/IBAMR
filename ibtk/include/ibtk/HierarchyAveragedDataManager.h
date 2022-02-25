@@ -216,8 +216,10 @@ private:
 
     // Drawing stuff
     std::unique_ptr<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_data_writer;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_visit_var;
-    int d_visit_idx = IBTK::invalid_index;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_mean_var;
+    int d_mean_idx = IBTK::invalid_index;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_dev_var;
+    int d_dev_idx = IBTK::invalid_index;
     int d_visit_ts = 0;
 };
 
