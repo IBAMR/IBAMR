@@ -218,14 +218,6 @@ HierarchyAveragedDataManager<VariableType>::updateTimeAveragedSnapshot(const int
     d_hier_data_ops->linearSum(d_scratch_idx, 1.0 / (N + 1.0), u_idx, N / (N + 1.0), d_scratch_idx);
     // Update snapshot
     d_snapshot_cache->updateSnapshot(d_scratch_idx, time, hierarchy, tol);
-    // Determine if we are at a steady state
-    d_hier_data_ops->linearSum(d_scratch_idx, 1.0 / (N + 1.0), u_idx, -1.0 / (N + 1.0), d_scratch_idx);
-    const double L1_norm = d_hier_data_ops->L1Norm(d_scratch_idx, wgt_idx);
-    const double L2_norm = d_hier_data_ops->L2Norm(d_scratch_idx, wgt_idx);
-    const double max_norm = d_hier_data_ops->maxNorm(d_scratch_idx, wgt_idx);
-    plog << "At time " << time << ", the L^2 norm of the change in u_mean is " << L1_norm << "\n";
-    plog << "At time " << time << ", the L^1 norm of the change in u_mean is " << L2_norm << "\n";
-    plog << "At time " << time << ", the max norm of the change in u_mean is " << max_norm << "\n";
 
     // Draw current means.
     pout << "Printing out averaged data\n";
@@ -243,6 +235,15 @@ HierarchyAveragedDataManager<VariableType>::updateTimeAveragedSnapshot(const int
     if (side_var) hier_math_ops.interp(d_visit_idx, d_visit_var, d_scratch_idx, side_var, ghost_fill, time, false);
     d_visit_data_writer->writePlotData(hierarchy, d_visit_ts++, time);
     deallocate_patch_data(d_visit_idx, hierarchy, 0, hierarchy->getFinestLevelNumber());
+
+    // Determine if we are at a steady state
+    d_hier_data_ops->linearSum(d_scratch_idx, 1.0 / (N + 1.0), u_idx, -1.0 / (N + 1.0), d_scratch_idx);
+    const double L1_norm = d_hier_data_ops->L1Norm(d_scratch_idx, wgt_idx);
+    const double L2_norm = d_hier_data_ops->L2Norm(d_scratch_idx, wgt_idx);
+    const double max_norm = d_hier_data_ops->maxNorm(d_scratch_idx, wgt_idx);
+    plog << "At time " << time << ", the L^2 norm of the change in u_mean is " << L1_norm << "\n";
+    plog << "At time " << time << ", the L^1 norm of the change in u_mean is " << L2_norm << "\n";
+    plog << "At time " << time << ", the max norm of the change in u_mean is " << max_norm << "\n";
 
     deallocate_patch_data(d_scratch_idx, hierarchy, 0, hierarchy->getFinestLevelNumber());
     if (L2_norm <= d_periodic_thresh)
