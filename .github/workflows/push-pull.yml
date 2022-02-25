@@ -92,3 +92,75 @@ jobs:
         id: test
         # run: ${{ LAUNCHER }} ctest --output-on-failure -V -S .github/cmake/ctest_test.cmake
         run: bash -c "ctest --output-on-failure -V -S .github/cmake/ctest_test.cmake"
+
+  # build IBAMR with autotools
+  build_ibamr_autotools:
+    runs-on: ubuntu-latest
+    name: Build IBAMR (autotools)
+    container:
+      image: 'docker://dcthomp/ibamr:0.9-build-deps'
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v2
+        id: git
+      - name: Create keys
+        id: keys
+        run: |
+          echo "::set-output name=key1::$(( ${{ github.run_number }} - 1))"
+          echo "::set-output name=key2::$(( ${{ github.run_number }} - 2))"
+          echo "::set-output name=key3::$(( ${{ github.run_number }} - 3))"
+          echo "::set-output name=key4::$(( ${{ github.run_number }} - 4))"
+          echo "::set-output name=key5::$(( ${{ github.run_number }} - 5))"
+      - name: Populate sccache
+        uses: actions/cache@v2
+        env:
+          cache-name: sccache
+        id: cache
+        with:
+          path: ~/.cache/sccache
+          # The same note on picking keys above applies here.
+          key: ${{ runner.os }}-build-autotools-${{ github.run_number }}
+          restore-keys: |
+            ${{ runner.os }}-build-autotools-${{ steps.keys.outputs.key1 }}
+            ${{ runner.os }}-build-autotools-${{ steps.keys.outputs.key2 }}
+            ${{ runner.os }}-build-autotools-${{ steps.keys.outputs.key3 }}
+            ${{ runner.os }}-build-autotools-${{ steps.keys.outputs.key4 }}
+            ${{ runner.os }}-build-autotools-${{ steps.keys.outputs.key5 }}
+            ${{ runner.os }}-build-autotools-
+      - name: Start sccache server
+        id: cache-server
+        run: sccache --start-server
+      - name: Configure IBAMR (autotools)
+        id: configure
+        run: |
+          source /etc/profile.d/modules.sh
+          module load mpi
+          export CC="sccache $(which mpicc)"
+          export CXX="sccache $(which mpic++)"
+          # we are just compiling things so go for speed
+          export CFLAGS="-O0"
+          export CXXFLAGS="-O0"
+          export FFLAGS="-O0"
+          mkdir build
+          cd build
+          ../configure PETSC_DIR=/petsc/x86_64 --with-samrai=/samrai \
+          --enable-libmesh --with-libmesh=/libmesh --with-libmesh-method=opt
+          sccache --show-stats
+      - name: archive
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: autotools-config.log
+          path: build/config.log
+      - name: Compile IBAMR (autotools)
+        id: build
+        run: |
+          source /etc/profile.d/modules.sh
+          module load mpi
+          export CC="sccache $(which mpicc)"
+          export CXX="sccache $(which mpic++)"
+          echo "CC=${CC}"
+          echo "CXX=${CXX}"
+          cd build
+          make -j 2 tests examples
+          sccache --show-stats
