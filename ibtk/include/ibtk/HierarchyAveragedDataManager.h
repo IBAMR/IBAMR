@@ -85,8 +85,8 @@ public:
      * in which N is the number of updates to the snapshot. If this the first update after clearSnapshots() is called,
      * we simply copy data.
      *
-     * This function returns true if the snapshot is at a steady state, or that ||u - u_avg|| < threshold. Note that a
-     * weight patch index should be supplied to compute the norm.
+     * This function returns true if the snapshot is at a steady state, or that 1/N*||u - u_avg|| < threshold. Note that
+     * a weight patch index should be supplied to accurately compute the norm.
      */
     inline bool updateTimeAveragedSnapshot(int u_idx,
                                            double time,
