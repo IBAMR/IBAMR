@@ -352,6 +352,7 @@ public:
                                                int lf_inverse_idx,
                                                int dlf_dT_idx,
                                                int T_idx,
+                                               int H_idx,
                                                SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                int cycle_num,
                                                double time,

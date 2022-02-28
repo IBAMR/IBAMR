@@ -796,6 +796,7 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
                                             d_lf_inverse_scratch_idx,
                                             d_dlf_dT_scratch_idx,
                                             T_current_idx,
+                                            H_current_idx,
                                             d_hier_math_ops,
                                             -1 /*cycle_num*/,
                                             apply_time,
@@ -1427,6 +1428,7 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
                                             d_lf_inverse_scratch_idx,
                                             d_dlf_dT_scratch_idx,
                                             T_new_idx,
+                                            H_new_idx,
                                             d_hier_math_ops,
                                             -1 /*cycle_num*/,
                                             apply_time,
@@ -2242,7 +2244,7 @@ IEPSemiImplicitHierarchyIntegrator::computeTemperatureSourceTerm(int F_scratch_i
                 (*F_data)(ci) +=
                     -d_rho_liquid * d_latent_heat_temp / dt *
                     ((((*H_new_data)(ci) * (*lf_new_data)(ci)) - ((*H_current_data)(ci) * (*lf_current_data)(ci))) -
-                     (*d_dlf_dT_data)(ci) * (*lf_inverse_data)(ci));
+                     (*H_new_data)(ci) * (*d_dlf_dT_data)(ci) * (*lf_inverse_data)(ci));
             }
         }
     }
