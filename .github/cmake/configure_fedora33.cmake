@@ -11,4 +11,9 @@
 ##
 ## ---------------------------------------------------------------------
 
+SET(CMAKE_C_COMPILER "/usr/lib64/mpich/bin/mpicc" CACHE STRING "C Compiler")
+SET(CMAKE_CXX_COMPILER "/usr/lib64/mpich/bin/mpic++" CACHE STRING "C++ Compiler")
+SET(CMAKE_Fortran_COMPILER "/usr/lib64/mpich/bin/mpifort" CACHE STRING "Fortran Compiler")
+SET(HDF5_ROOT "$ENV{HDF5_DIR}" CACHE PATH "Location of HDF5 binaries")
+
 INCLUDE("${CMAKE_CURRENT_LIST_DIR}/configure_common.cmake")

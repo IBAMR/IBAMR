@@ -23,14 +23,6 @@ SET(CTEST_SITE "github-ci")
 SET(CTEST_SOURCE_DIRECTORY "$ENV{GITHUB_WORKSPACE}")
 SET(CTEST_BINARY_DIRECTORY "/build/ibamr")
 
-# On fedora, MPI must be loaded using environment modules:
-IF("$ENV{CMAKE_CONFIGURATION}" MATCHES "fedora")
-  FIND_PACKAGE(EnvModules REQUIRED)
-  ENV_MODULE(purge)
-  ENV_MODULE(load modules)
-  ENV_MODULE(load mpi)
-endif()
-
 # Default to Release builds.
 IF(NOT "$ENV{CMAKE_BUILD_TYPE}" STREQUAL "")
   SET(CTEST_BUILD_CONFIGURATION "$ENV{CMAKE_BUILD_TYPE}")
