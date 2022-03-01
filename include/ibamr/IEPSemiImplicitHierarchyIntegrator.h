@@ -281,6 +281,15 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var);
 
     /*!
+     * Get the non-conservative convective operator being used by this solver class for \f$ \varphi \f$ variable.
+     *
+     * If the convective operator has not already been constructed, then this
+     * function will initialize a default convective operator.
+     */
+    SAMRAI::tbox::Pointer<ConvectiveOperator> getNonConservativeConvectiveOperatorLiquidFractionEquation(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var);
+
+    /*!
      * Get the convective operator being used by this solver class for \f$ T \f$ variable.
      *
      * If the convective operator has not already been constructed, then this
@@ -555,6 +564,17 @@ private:
     bool d_lf_convective_op_needs_init = false, d_T_convective_op_needs_init = false;
 
     /*!
+     * Non-conservative convective operator
+     */
+    std::string d_lf_nonconser_convective_op_type = d_default_convective_op_type;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_lf_nonconser_convective_op_input_db =
+        d_default_convective_op_input_db;
+    SAMRAI::tbox::Pointer<ConvectiveOperator> d_lf_nonconser_convective_op = nullptr;
+    bool d_lf_nonconser_convective_op_needs_init = false;
+
+    ConvectiveDifferencingType d_lf_nonconser_convective_difference_form = ADVECTIVE;
+
+    /*!
      * Solvers and related data.
      */
     std::string d_lf_solver_type, d_lf_precond_type, d_T_solver_type, d_T_precond_type;
@@ -671,7 +691,7 @@ private:
     /*!
      * Energy equation parameters.
      */
-    double d_rho_liquid, d_T_melt, d_latent_heat, d_latent_heat_temp;
+    double d_rho_liquid, d_T_melt, d_latent_heat, d_latent_heat_temp, d_liquidus_temperature, d_solidus_temperature;
 
     /*!
      * Variable to indicate the type of interpolation to be done for conductivity.
