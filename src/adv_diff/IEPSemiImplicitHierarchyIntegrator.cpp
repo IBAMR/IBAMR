@@ -568,7 +568,8 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
 
     if (d_visit_writer && d_solve_mass_conservation)
     {
-        d_visit_writer->registerPlotQuantity("zeta", "SCALAR", d_chemical_potential_idx);
+        d_visit_writer->registerPlotQuantity("zeta", "SCALAR", d_lf_material_derivative_idx); // In enthalpy porosity
+                                                                                              // zeta = H* D\varphi/Dt
     }
 
     d_lf_pre_var = new CellVariable<NDIM, double>(d_object_name + "::lf_pre_var");
