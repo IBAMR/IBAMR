@@ -281,13 +281,14 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var);
 
     /*!
-     * Get the non-conservative convective operator being used by this solver class for \f$ \varphi \f$ variable.
+     * Get the non-conservative convective operator being used by this solver class.
      *
      * If the convective operator has not already been constructed, then this
      * function will initialize a default convective operator.
      */
-    SAMRAI::tbox::Pointer<ConvectiveOperator> getNonConservativeConvectiveOperatorLiquidFractionEquation(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var);
+    SAMRAI::tbox::Pointer<ConvectiveOperator>
+    getNonConservativeConvectiveOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                                         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* Q_bc_coefs);
 
     /*!
      * Get the convective operator being used by this solver class for \f$ T \f$ variable.
@@ -566,13 +567,12 @@ private:
     /*!
      * Non-conservative convective operator
      */
-    std::string d_lf_nonconser_convective_op_type = d_default_convective_op_type;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_lf_nonconser_convective_op_input_db =
-        d_default_convective_op_input_db;
-    SAMRAI::tbox::Pointer<ConvectiveOperator> d_lf_nonconser_convective_op = nullptr;
-    bool d_lf_nonconser_convective_op_needs_init = false;
-
-    ConvectiveDifferencingType d_lf_nonconser_convective_difference_form = ADVECTIVE;
+    std::string d_nonconser_convective_op_type = d_default_convective_op_type;
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_nonconser_convective_op_input_db = d_default_convective_op_input_db;
+    SAMRAI::tbox::Pointer<ConvectiveOperator> d_nonconser_convective_op = nullptr;
+    bool d_nonconser_convective_op_needs_init = false;
+    ConvectiveDifferencingType d_nonconser_convective_difference_form = ADVECTIVE;
+    bool d_compute_T_material_derivative = false;
 
     /*!
      * Solvers and related data.

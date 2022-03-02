@@ -606,7 +606,7 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
 
     // Setup the convective operator.
     d_lf_convective_op = getConvectiveOperatorLiquidFractionEquation(d_lf_var);
-    d_lf_nonconser_convective_op = getNonConservativeConvectiveOperatorLiquidFractionEquation(d_lf_var);
+    d_nonconser_convective_op = getNonConservativeConvectiveOperator(d_lf_var, d_lf_bc_coef);
     Pointer<AdvDiffConservativeCUIConvectiveOperator> lf_conser_convective_op = d_lf_convective_op;
     lf_conser_convective_op->setHeavisideVariable(d_H_var);
     // std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef = getPhysicalBcCoefs(d_H_var);
@@ -828,10 +828,10 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
                 d_lf_convective_op_needs_init = false;
             }
 
-            if (d_lf_nonconser_convective_op_needs_init)
+            if (d_nonconser_convective_op_needs_init)
             {
-                d_lf_nonconser_convective_op->initializeOperatorState(*d_lf_sol, *d_lf_rhs);
-                d_lf_nonconser_convective_op_needs_init = false;
+                d_nonconser_convective_op->initializeOperatorState(*d_lf_sol, *d_lf_rhs);
+                d_nonconser_convective_op_needs_init = false;
             }
             const int lf_u_current_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getCurrentContext());
             //        const int wgt_fc_idx = d_hier_math_ops->getFaceWeightPatchDescriptorIndex();
@@ -1590,7 +1590,7 @@ IEPSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_T_solver_needs_init = true;
 
     d_lf_convective_op_needs_init = true;
-    d_lf_nonconser_convective_op_needs_init = true;
+    d_nonconser_convective_op_needs_init = true;
     d_T_convective_op_needs_init = true;
     if (d_solve_mass_conservation)
     {
@@ -1845,27 +1845,29 @@ IEPSemiImplicitHierarchyIntegrator::getConvectiveOperatorLiquidFractionEquation(
 } // getConvectiveOperatorLiquidFractionEquation
 
 Pointer<ConvectiveOperator>
-IEPSemiImplicitHierarchyIntegrator::getNonConservativeConvectiveOperatorLiquidFractionEquation(
-    Pointer<CellVariable<NDIM, double> > lf_var)
+IEPSemiImplicitHierarchyIntegrator::getNonConservativeConvectiveOperator(
+    Pointer<CellVariable<NDIM, double> > Q_var,
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* Q_bc_coefs)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(d_lf_var);
+    TBOX_ASSERT(Q_var);
 #endif
-    if (!d_lf_nonconser_convective_op)
+    if (!d_nonconser_convective_op)
     {
-        std::vector<RobinBcCoefStrategy<NDIM>*> lf_bc_coefs(1, d_lf_bc_coef);
-        AdvDiffConvectiveOperatorManager* lf_convective_op_manager = AdvDiffConvectiveOperatorManager::getManager();
-        d_lf_nonconser_convective_op =
-            lf_convective_op_manager->allocateOperator("CUI",
-                                                       d_object_name + "::lfConvectiveOperator",
-                                                       d_lf_var,
-                                                       d_lf_nonconser_convective_op_input_db,
-                                                       d_lf_nonconser_convective_difference_form,
-                                                       lf_bc_coefs);
-        d_lf_nonconser_convective_op_needs_init = true;
+        std::vector<RobinBcCoefStrategy<NDIM>*> Q_bc_coef(1, Q_bc_coefs);
+        AdvDiffConvectiveOperatorManager* nonconser_convective_op_manager =
+            AdvDiffConvectiveOperatorManager::getManager();
+        d_nonconser_convective_op =
+            nonconser_convective_op_manager->allocateOperator("CUI",
+                                                              d_object_name + "::lfConvectiveOperator",
+                                                              Q_var,
+                                                              d_nonconser_convective_op_input_db,
+                                                              d_nonconser_convective_difference_form,
+                                                              Q_bc_coef);
+        d_nonconser_convective_op_needs_init = true;
     }
-    return d_lf_nonconser_convective_op;
-} // getNonConservativeConvectiveOperatorLiquidFractionEquation
+    return d_nonconser_convective_op;
+} // getNonConservativeConvectiveOperator
 
 Pointer<ConvectiveOperator>
 IEPSemiImplicitHierarchyIntegrator::getConvectiveOperatorTemperatureEquation(Pointer<CellVariable<NDIM, double> > T_var)
@@ -2380,72 +2382,71 @@ IEPSemiImplicitHierarchyIntegrator::computeMaterialDerivativeOfLiquidFraction(in
     int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, getNewContext());
     int T_current_idx = var_db->mapVariableAndContextToIndex(d_T_var, getCurrentContext());
     int T_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_var, getScratchContext());
+    int T_N_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_N_var, getScratchContext());
 
-    // compute (varphi^n+1 - varphi^n) / dt.
-    d_hier_cc_data_ops->subtract(lf_material_derivative_idx, lf_new_idx, lf_current_idx);
-    d_hier_cc_data_ops->scale(lf_material_derivative_idx, dt, lf_material_derivative_idx);
-
-    // new time level lf is used. This is different than how energy equation convective term is treated.
-    if (d_lf_u_var)
+    if (d_compute_T_material_derivative)
     {
-        const int lf_u_new_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getNewContext());
-        d_lf_nonconser_convective_op->setAdvectionVelocity(lf_u_new_idx);
-        d_hier_cc_data_ops->copyData(lf_scratch_idx, lf_new_idx);
-        d_lf_nonconser_convective_op->setSolutionTime(new_time);
-        d_lf_nonconser_convective_op->applyConvectiveOperator(lf_scratch_idx, lf_N_scratch_idx);
+        // compute (T^n+1 - T^n) / dt.
+        d_hier_cc_data_ops->subtract(lf_material_derivative_idx, T_new_idx, T_current_idx);
+        d_hier_cc_data_ops->scale(lf_material_derivative_idx, dt, lf_material_derivative_idx);
 
-        // add u.grad varphi.
-        d_hier_cc_data_ops->add(lf_material_derivative_idx, lf_material_derivative_idx, lf_N_scratch_idx);
+        // new time level T is used. This is different than how energy equation convective term is treated. Also lf
+        //        and T convective op are conservative. We need non-conservative.
+        if (d_T_u_var) // default the code uses
+        {
+            const int T_u_new_idx = var_db->mapVariableAndContextToIndex(d_T_u_var, getNewContext());
+            d_nonconser_convective_op->setAdvectionVelocity(T_u_new_idx);
+            d_hier_cc_data_ops->copyData(T_scratch_idx, T_new_idx);
+            d_nonconser_convective_op->setSolutionTime(new_time);
+            d_nonconser_convective_op->applyConvectiveOperator(T_scratch_idx, T_N_scratch_idx);
+
+            // add u.grad T.
+            d_hier_cc_data_ops->add(lf_material_derivative_idx, lf_material_derivative_idx, T_N_scratch_idx);
+        }
+
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Box<NDIM>& patch_box = patch->getBox();
+
+                Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_new_idx);
+                Pointer<CellData<NDIM, double> > lf_material_derivative_data =
+                    patch->getPatchData(lf_material_derivative_idx);
+                for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                {
+                    CellIndex<NDIM> ci(it());
+                    const double T = (*T_data)(ci);
+
+                    if (T <= d_liquidus_temperature && T >= d_solidus_temperature)
+                        (*lf_material_derivative_data)(ci) *= 1.0 / (d_liquidus_temperature - d_solidus_temperature);
+                    else
+                        (*lf_material_derivative_data)(ci) = 0.0;
+                }
+            }
+        }
     }
+    else
+    {
+        // compute (varphi^n+1 - varphi^n) / dt.
+        d_hier_cc_data_ops->subtract(lf_material_derivative_idx, lf_new_idx, lf_current_idx);
+        d_hier_cc_data_ops->scale(lf_material_derivative_idx, dt, lf_material_derivative_idx);
 
-    //    // compute (T^n+1 - T^n) / dt.
-    //    d_hier_cc_data_ops->subtract(lf_material_derivative_idx, T_new_idx, T_current_idx);
-    //    d_hier_cc_data_ops->scale(lf_material_derivative_idx, dt, lf_material_derivative_idx);
-    //
-    //    // new time level T is used. This is different than how energy equation convective term is treated. Also lf
-    //    and T convective op are conservative. We need non-conservative. if (d_T_u_var) // default the code uses
-    //    d_lf_u_var.
-    //    {
-    //        if (getIntegratorStep() == 0 && is_multistep_time_stepping_type(d_lf_convective_time_stepping_type))
-    //        {
-    //            d_T_convective_time_stepping_type = d_T_init_convective_time_stepping_type;
-    //        }
-    //
-    //        const int T_u_new_idx = var_db->mapVariableAndContextToIndex(d_T_u_var, getNewContext());
-    //        d_T_convective_op->setAdvectionVelocity(T_u_new_idx);
-    //        d_hier_cc_data_ops->copyData(T_scratch_idx, T_new_idx);
-    //        d_T_convective_op->setSolutionTime(new_time);
-    //        d_T_convective_op->applyConvectiveOperator(T_scratch_idx, T_N_scratch_idx);
-    //
-    //        // add u.grad T.
-    //        d_hier_cc_data_ops->add(lf_material_derivative_idx, lf_material_derivative_idx, T_N_scratch_idx);
-    //    }
-    //
-    //    const int coarsest_ln = 0;
-    //    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    //
-    //    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    //    {
-    //        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-    //        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-    //        {
-    //            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-    //            const Box<NDIM>& patch_box = patch->getBox();
-    //
-    //            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_new_idx);
-    //            Pointer<CellData<NDIM, double> > lf_material_derivative_data =
-    //            patch->getPatchData(lf_material_derivative_idx); for (Box<NDIM>::Iterator it(patch_box); it; it++)
-    //            {
-    //                CellIndex<NDIM> ci(it());
-    //                const double T = (*T_data)(ci);
-    //
-    //                if (T <= d_liquidus_temperature && T >= d_solidus_temperature)
-    //                    (*lf_material_derivative_data)(ci) *= 1.0/(d_liquidus_temperature - d_solidus_temperature);
-    //                else
-    //                    (*lf_material_derivative_data)(ci) = 0.0;
-    //            }
-    //        }
-    //    }
+        // new time level lf is used. This is different than how energy equation convective term is treated.
+        if (d_lf_u_var)
+        {
+            const int lf_u_new_idx = var_db->mapVariableAndContextToIndex(d_lf_u_var, getNewContext());
+            d_nonconser_convective_op->setAdvectionVelocity(lf_u_new_idx);
+            d_hier_cc_data_ops->copyData(lf_scratch_idx, lf_new_idx);
+            d_nonconser_convective_op->setSolutionTime(new_time);
+            d_nonconser_convective_op->applyConvectiveOperator(lf_scratch_idx, lf_N_scratch_idx);
+
+            // add u.grad varphi.
+            d_hier_cc_data_ops->add(lf_material_derivative_idx, lf_material_derivative_idx, lf_N_scratch_idx);
+        }
+    }
 
     // Multiply H with Dvarphi/Dt
     d_hier_cc_data_ops->multiply(lf_material_derivative_idx, lf_material_derivative_idx, H_new_idx);
@@ -2782,6 +2783,8 @@ IEPSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> input_db, boo
 
         d_liquidus_temperature = input_db->getDouble("liquidus_temperature");
         d_solidus_temperature = input_db->getDouble("solidus_temperature");
+        if (input_db->keyExists("compute_T_material_derivative"))
+            d_compute_T_material_derivative = input_db->getBool("compute_T_material_derivative");
     }
 }
 
