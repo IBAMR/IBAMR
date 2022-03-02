@@ -22,9 +22,9 @@ namespace boost{ namespace math{
 namespace tools{
 
 template <class T>
-constexpr int digits(BOOST_MATH_EXPLICIT_TEMPLATE_TYPE(T)) noexcept;
+BOOST_MATH_CONSTEXPR int digits(BOOST_MATH_EXPLICIT_TEMPLATE_TYPE_SPEC(T)) BOOST_NOEXCEPT;
 template <class T>
-constexpr T epsilon(BOOST_MATH_EXPLICIT_TEMPLATE_TYPE(T)) noexcept(std::is_floating_point<T>::value);
+BOOST_MATH_CONSTEXPR T epsilon(BOOST_MATH_EXPLICIT_TEMPLATE_TYPE_SPEC(T)) BOOST_MATH_NOEXCEPT(T);
 
 }
 
@@ -793,7 +793,7 @@ struct precision<BOOST_MATH_FLOAT128_TYPE, Policy>
 namespace detail{
 
 template <class T, class Policy>
-inline constexpr int digits_imp(std::true_type const&) noexcept
+inline BOOST_MATH_CONSTEXPR int digits_imp(std::true_type const&) noexcept
 {
    static_assert( std::numeric_limits<T>::is_specialized, "std::numeric_limits<T>::is_specialized");
    typedef typename boost::math::policies::precision<T, Policy>::type p_t;
@@ -801,7 +801,7 @@ inline constexpr int digits_imp(std::true_type const&) noexcept
 }
 
 template <class T, class Policy>
-inline constexpr int digits_imp(std::false_type const&) noexcept
+inline BOOST_MATH_CONSTEXPR int digits_imp(std::false_type const&) noexcept
 {
    return tools::digits<T>();
 }
@@ -809,7 +809,7 @@ inline constexpr int digits_imp(std::false_type const&) noexcept
 } // namespace detail
 
 template <class T, class Policy>
-inline constexpr int digits(BOOST_MATH_EXPLICIT_TEMPLATE_TYPE(T)) noexcept
+inline BOOST_MATH_CONSTEXPR int digits(BOOST_MATH_EXPLICIT_TEMPLATE_TYPE(T)) noexcept
 {
    typedef std::integral_constant<bool, std::numeric_limits<T>::is_specialized > tag_type;
    return detail::digits_imp<T, Policy>(tag_type());
@@ -848,7 +848,7 @@ struct series_factor_calc
 template <class T, class Digits>
 struct series_factor_calc<T, Digits, std::true_type, std::true_type>
 {
-   static constexpr T get() noexcept(std::is_floating_point<T>::value)
+   static BOOST_MATH_CONSTEXPR T get() noexcept(std::is_floating_point<T>::value)
    {
       return boost::math::tools::epsilon<T>();
    }
@@ -856,7 +856,7 @@ struct series_factor_calc<T, Digits, std::true_type, std::true_type>
 template <class T, class Digits>
 struct series_factor_calc<T, Digits, std::true_type, std::false_type>
 {
-   static constexpr T get() noexcept(std::is_floating_point<T>::value)
+   static BOOST_MATH_CONSTEXPR T get() noexcept(std::is_floating_point<T>::value)
    {
       return 1 / static_cast<T>(static_cast<std::uintmax_t>(1u) << (Digits::value - 1));
    }
@@ -864,14 +864,14 @@ struct series_factor_calc<T, Digits, std::true_type, std::false_type>
 template <class T, class Digits>
 struct series_factor_calc<T, Digits, std::false_type, std::true_type>
 {
-   static constexpr T get() noexcept(std::is_floating_point<T>::value)
+   static BOOST_MATH_CONSTEXPR T get() noexcept(std::is_floating_point<T>::value)
    {
       return boost::math::tools::epsilon<T>();
    }
 };
 
 template <class T, class Policy>
-inline constexpr T get_epsilon_imp(std::true_type const&) noexcept(std::is_floating_point<T>::value)
+inline BOOST_MATH_CONSTEXPR T get_epsilon_imp(std::true_type const&) noexcept(std::is_floating_point<T>::value)
 {
    static_assert(std::numeric_limits<T>::is_specialized, "std::numeric_limits<T>::is_specialized");
    static_assert(std::numeric_limits<T>::radix == 2, "std::numeric_limits<T>::radix == 2");
@@ -883,7 +883,7 @@ inline constexpr T get_epsilon_imp(std::true_type const&) noexcept(std::is_float
 }
 
 template <class T, class Policy>
-inline constexpr T get_epsilon_imp(std::false_type const&) noexcept(std::is_floating_point<T>::value)
+inline BOOST_MATH_CONSTEXPR T get_epsilon_imp(std::false_type const&) noexcept(std::is_floating_point<T>::value)
 {
    return tools::epsilon<T>();
 }
@@ -891,7 +891,7 @@ inline constexpr T get_epsilon_imp(std::false_type const&) noexcept(std::is_floa
 } // namespace detail
 
 template <class T, class Policy>
-inline constexpr T get_epsilon(BOOST_MATH_EXPLICIT_TEMPLATE_TYPE(T)) noexcept(std::is_floating_point<T>::value)
+inline BOOST_MATH_CONSTEXPR T get_epsilon(BOOST_MATH_EXPLICIT_TEMPLATE_TYPE(T)) noexcept(std::is_floating_point<T>::value)
 {
    typedef std::integral_constant<bool, (std::numeric_limits<T>::is_specialized && (std::numeric_limits<T>::radix == 2)) > tag_type;
    return detail::get_epsilon_imp<T, Policy>(tag_type());
