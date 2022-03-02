@@ -277,3 +277,58 @@ jobs:
           cd build
           make -j 2 tests examples
           sccache --show-stats
+
+  # build IBAMR with CMake and run tests with our oldest dependencies on CENTOS 7
+  build_ibamr_centos:
+    runs-on: ubuntu-latest
+    name: Build IBAMR and run tests (CENTOS 7)
+    container:
+      image: 'docker://wellsd2/ibamr:ibamr-0.10-oldest-bundled-deps'
+    env:
+      CMAKE_CONFIGURATION: centos7
+      CTEST_NO_WARNINGS_ALLOWED: true
+      CCACHE_MAXSIZE: 1G
+      CMAKE_GENERATOR: Unix Makefiles
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v2
+        id: git
+      - name: Create keys
+        id: keys
+        run: |
+          echo "::set-output name=key1::$(( ${{ github.run_number }} - 1))"
+          echo "::set-output name=key2::$(( ${{ github.run_number }} - 2))"
+          echo "::set-output name=key3::$(( ${{ github.run_number }} - 3))"
+          echo "::set-output name=key4::$(( ${{ github.run_number }} - 4))"
+          echo "::set-output name=key5::$(( ${{ github.run_number }} - 5))"
+      - name: Populate ccache
+        uses: actions/cache@v2
+        env:
+          cache-name: ccache
+        id: cache
+        with:
+          path: ~/.ccache/
+          key: ${{ runner.os }}-build-centos-cmake-${{ github.run_number }}
+          restore-keys: |
+            ${{ runner.os }}-build-centos-cmake-${{ steps.keys.outputs.key1 }}
+            ${{ runner.os }}-build-centos-cmake-${{ steps.keys.outputs.key2 }}
+            ${{ runner.os }}-build-centos-cmake-${{ steps.keys.outputs.key3 }}
+            ${{ runner.os }}-build-centos-cmake-${{ steps.keys.outputs.key4 }}
+            ${{ runner.os }}-build-centos-cmake-${{ steps.keys.outputs.key5 }}
+            ${{ runner.os }}-build-centos-cmake-
+      - name: Configure IBAMR
+        id: configure
+        run: |
+          # Don't bother with MPI/HDF5 paths and just let module handle it
+          bash -c "source /etc/profile.d/modules.sh && module load mpi && ctest3 -VV -S .github/cmake/ctest_configure.cmake"
+          ccache --show-stats
+      - name: Compile IBAMR
+        id: build
+        run: |
+          bash -c "ctest3 -VV -S .github/cmake/ctest_build.cmake"
+          ccache --show-stats
+      - name: Test IBAMR
+        id: test
+        run: |
+          bash -c "ctest3 --output-on-failure -VV -S .github/cmake/ctest_test.cmake"
+          ccache --show-stats
