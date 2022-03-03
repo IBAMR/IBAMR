@@ -1,0 +1,87 @@
+D = 1.0
+C = 1.0
+
+u {
+   function_0 = "1.0 + cos(2*PI*X_1) + sin(2*PI*X_2)"
+   function_1 = "1.0 + sin(2*PI*X_0) + cos(2*PI*X_2)"
+   function_2 = "1.0 + cos(2*PI*X_0) + sin(2*PI*X_1)"
+}
+
+p {
+   function = "cos(2*PI*X_1)*sin(2*PI*X_2) + sin(2*PI*X_0)*cos(2*PI*X_2) + cos(2*PI*X_0)*sin(2*PI*X_1)"
+}
+
+f_u {
+   c = C
+   d = D
+   function_0 = "c + (c - 4.0*d*PI*PI)*(cos(2.0*PI*X_1)+sin(2*PI*X_2)) + 2.0*PI*cos(2.0*PI*X_0)*cos(2.0*PI*X_2) - 2.0*PI*sin(2.0*PI*X_0)*sin(2.0*PI*X_1)"
+   function_1 = "c + (c - 4.0*d*PI*PI)*(cos(2.0*PI*X_2)+sin(2*PI*X_0)) + 2.0*PI*cos(2.0*PI*X_0)*cos(2.0*PI*X_1) - 2.0*PI*sin(2.0*PI*X_1)*sin(2.0*PI*X_2)"
+   function_2 = "c + (c - 4.0*d*PI*PI)*(cos(2.0*PI*X_0)+sin(2*PI*X_1)) + 2.0*PI*cos(2.0*PI*X_1)*cos(2.0*PI*X_2) - 2.0*PI*sin(2.0*PI*X_0)*sin(2.0*PI*X_2)"
+}
+
+f_p {
+   function = "0.0"
+}
+
+Main {
+// log file parameters
+   log_file_name = "output"
+   log_all_nodes = FALSE
+
+// visualization dump parameters
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz3d"
+   visit_number_procs_per_file = 1
+
+// timer dump parameters
+   timer_enabled = TRUE
+}
+
+N = 32
+
+CartesianGeometry {
+   domain_boxes       = [(0,0,0), (N - 1,N - 1,N - 1)]
+   x_lo               = 0, 0, 0      // lower end of computational domain.
+   x_up               = 1, 1, 1      // upper end of computational domain.
+   periodic_dimension = 1, 1, 1  
+}
+
+GriddingAlgorithm {
+   max_levels = 1                 // Maximum number of levels in hierarchy.
+
+   ratio_to_coarser {
+      level_1 = 4, 4, 4              // vector ratio to next coarser level
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512, 512          // largest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 =   4, 4, 4          // smallest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   efficiency_tolerance = 0.70e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller
+                                  // boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 1.0
+   timer_list = "IBTK::*::*"
+}
