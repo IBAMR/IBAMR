@@ -228,6 +228,9 @@ main(int argc, char* argv[])
     std::array<double, 3> u_err;
     std::array<double, 3> p_err;
 
+    // use relatively strict tolerances to get consistent results in parallel
+    PetscOptionsSetValue(nullptr, "-stokes_ksp_rtol", "1e-14");
+
 #ifndef IBTK_HAVE_SILO
     // Suppress warnings caused by running without silo
     SAMRAI::tbox::Logger::getInstance()->setWarning(false);
