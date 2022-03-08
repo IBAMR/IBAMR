@@ -2912,7 +2912,7 @@ IEPSemiImplicitHierarchyIntegrator::getFromRestart()
 
     d_liquidus_temperature = db->getDouble("d_liquidus_temperature");
     d_solidus_temperature = db->getDouble("d_solidus_temperature");
-    d_compute_T_material_derivative = db->getDouble("d_compute_T_material_derivative");
+    d_compute_T_material_derivative = db->getBool("d_compute_T_material_derivative");
 }
 
 //////////////////////////////////////////////////////////////////////////////
