@@ -153,26 +153,22 @@ IBRedundantInitializer::getIsAllLagrangianDataInDomain(const Pointer<PatchHierar
     Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
+    const IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift();
 
     for (unsigned int vertex_level_number = 0; vertex_level_number < d_num_vertex.size(); ++vertex_level_number)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(vertex_level_number);
-        const IntVector<NDIM>& ratio = level->getRatio();
-        const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(ratio);
-
         for (int j = 0; j < int(d_num_vertex[vertex_level_number].size()); ++j)
         {
             for (int k = 0; k < d_num_vertex[vertex_level_number][j]; ++k)
             {
-                // Points that are inside the domain with periodicity are OK -
-                // exclude points that are truly outside.
+                // Points that are outside the domain in a periodic direction
+                // are OK: only check non-periodic directions.
                 std::pair<int, int> point_index(j, k);
-                const Point& X = getShiftedVertexPosn(
-                    point_index, vertex_level_number, domain_x_lower, domain_x_upper, periodic_shift);
+                const Point& X = getVertexPosn(point_index, vertex_level_number);
 
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    if ((X[d] < domain_x_lower[d]) || (domain_x_upper[d] < X[d]))
+                    if (!periodic_shift(d) && (X[d] < domain_x_lower[d]) || (domain_x_upper[d] < X[d]))
                     {
                         return false;
                     }
