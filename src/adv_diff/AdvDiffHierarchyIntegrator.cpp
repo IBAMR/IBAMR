@@ -1142,7 +1142,29 @@ AdvDiffHierarchyIntegrator::registerVariables()
         const int Q_depth = Q_factory->getDefaultDepth();
         const bool Q_data_output = d_Q_output[Q_var];
         if (d_visit_writer && Q_data_output)
-            d_visit_writer->registerPlotQuantity(Q_var->getName(), Q_depth == 1 ? "SCALAR" : "VECTOR", Q_current_idx);
+        {
+            switch (Q_depth)
+            {
+            case 1:
+                // Scalar
+                d_visit_writer->registerPlotQuantity(Q_var->getName(), "SCALAR", Q_current_idx);
+                break;
+            case NDIM:
+                // Vector
+                d_visit_writer->registerPlotQuantity(Q_var->getName(), "VECTOR", Q_current_idx);
+                break;
+            case (NDIM * NDIM):
+                // Tensor
+                d_visit_writer->registerPlotQuantity(Q_var->getName(), "TENSOR", Q_current_idx);
+                break;
+            default:
+                // Plot components separately
+                for (int d = 0; d < Q_depth; ++d)
+                    d_visit_writer->registerPlotQuantity(
+                        Q_var->getName() + "_" + std::to_string(d), "SCALAR", Q_current_idx, d);
+                break;
+            }
+        }
     }
     for (const auto& F_var : d_F_var)
     {
@@ -1159,7 +1181,29 @@ AdvDiffHierarchyIntegrator::registerVariables()
         const int F_depth = F_factory->getDefaultDepth();
         const bool F_data_output = d_F_output[F_var];
         if (d_visit_writer && F_data_output)
-            d_visit_writer->registerPlotQuantity(F_var->getName(), F_depth == 1 ? "SCALAR" : "VECTOR", F_current_idx);
+        {
+            switch (F_depth)
+            {
+            case 1:
+                // Scalar
+                d_visit_writer->registerPlotQuantity(F_var->getName(), "SCALAR", F_current_idx);
+                break;
+            case NDIM:
+                // Vector
+                d_visit_writer->registerPlotQuantity(F_var->getName(), "VECTOR", F_current_idx);
+                break;
+            case (NDIM * NDIM):
+                // Tensor
+                d_visit_writer->registerPlotQuantity(F_var->getName(), "TENSOR", F_current_idx);
+                break;
+            default:
+                // Plot components separately
+                for (int d = 0; d < F_depth; ++d)
+                    d_visit_writer->registerPlotQuantity(
+                        F_var->getName() + "_" + std::to_string(d), "SCALAR", F_current_idx, d);
+                break;
+            }
+        }
     }
     for (const auto& D_var : d_diffusion_coef_var)
     {
