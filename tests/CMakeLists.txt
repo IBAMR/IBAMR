@@ -318,14 +318,11 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/tests/attest.conf.in
 # For the time being, run `attest` as if it were a single test.
 SET(disabled_tests)
 LIST(APPEND disabled_tests "mpirun=[3-9]")
-LIST(APPEND disabled_tests "explicit_ex1_2d.mpirun=4.input")
 LIST(APPEND disabled_tests "explicit_ex2_3d.nodal_quadrature.input")
-LIST(APPEND disabled_tests "explicit_ex4_3d.mpirun=4.input")
 LIST(APPEND disabled_tests "explicit_ex5_3d.mpirun=2.input")
 LIST(APPEND disabled_tests "explicit_ex8_2d.input")
 LIST(APPEND disabled_tests "explicit_ex8_2d.scratch_hier.input")
-LIST(APPEND disabled_tests "free_falling_cyl_cib|cib_plate")
-LIST(APPEND disabled_tests "nwt_cylinder|rotating_barge|cib_double_shell")
+LIST(APPEND disabled_tests "nwt_cylinder")
 LIST(JOIN disabled_tests "|" disabled_test_regex)
 ADD_TEST(
   NAME autotests
