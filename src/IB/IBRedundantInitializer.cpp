@@ -147,6 +147,43 @@ IBRedundantInitializer::getLevelHasLagrangianData(const int level_number, const 
     return !d_num_vertex[level_number].empty();
 } // getLevelHasLagrangianData
 
+bool
+IBRedundantInitializer::getIsAllLagrangianDataInDomain(const Pointer<PatchHierarchy<NDIM> > hierarchy) const
+{
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    const double* const domain_x_lower = grid_geom->getXLower();
+    const double* const domain_x_upper = grid_geom->getXUpper();
+
+    for (unsigned int vertex_level_number = 0; vertex_level_number < d_num_vertex.size(); ++vertex_level_number)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(vertex_level_number);
+        const IntVector<NDIM>& ratio = level->getRatio();
+        const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift(ratio);
+
+        for (int j = 0; j < int(d_num_vertex[vertex_level_number].size()); ++j)
+        {
+            for (int k = 0; k < d_num_vertex[vertex_level_number][j]; ++k)
+            {
+                // Points that are inside the domain with periodicity are OK -
+                // exclude points that are truly outside.
+                std::pair<int, int> point_index(j, k);
+                const Point& X = getShiftedVertexPosn(
+                    point_index, vertex_level_number, domain_x_lower, domain_x_upper, periodic_shift);
+
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    if ((X[d] < domain_x_lower[d]) || (domain_x_upper[d] < X[d]))
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
 unsigned int
 IBRedundantInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                                            const int level_number,
@@ -992,7 +1029,7 @@ IBRedundantInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                                              << std::endl);
                 }
 
-                if (!periodic_shift[d] && X[d] >= domain_x_upper[d])
+                if (!periodic_shift[d] && X[d] > domain_x_upper[d])
                 {
                     TBOX_ERROR(d_object_name << "::initializeDataOnPatchLevel():\n"
                                              << "  encountered node above upper physical boundary\n"
@@ -1010,7 +1047,7 @@ IBRedundantInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
 
             // Get the index of the cell in which the present vertex is
             // initially located.
-            const CellIndex<NDIM> idx = IndexUtilities::getCellIndex(X, grid_geom, ratio);
+            const CellIndex<NDIM> idx = IndexUtilities::getAssignedCellIndex(X, grid_geom, ratio);
 
             // Initialize the specification objects associated with the present
             // vertex.
@@ -1204,7 +1241,7 @@ IBRedundantInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarch
 
                 // Get the index of the cell in which the present vertex is
                 // initially located.
-                const CellIndex<NDIM> i = IndexUtilities::getCellIndex(X, grid_geom, ratio);
+                const CellIndex<NDIM> i = IndexUtilities::getAssignedCellIndex(X, grid_geom, ratio);
 
                 // Tag the cell for refinement.
                 if (patch_box.contains(i)) (*tag_data)(i) = 1;
@@ -1347,6 +1384,13 @@ IBRedundantInitializer::getPatchVerticesAtLevel(std::vector<std::pair<int, int> 
                                                 const int vertex_level_number) const
 {
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    const Pointer<PatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+    bool patch_on_upper_physical_boundary = false;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        patch_on_upper_physical_boundary =
+            patch_on_upper_physical_boundary || patch_geom->getTouchesRegularBoundary(d, 1);
+    }
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
 #if !defined(NDEBUG)
@@ -1370,8 +1414,11 @@ IBRedundantInitializer::getPatchVerticesAtLevel(std::vector<std::pair<int, int> 
             std::pair<int, int> point_index(j, k);
             const Point& X =
                 getShiftedVertexPosn(point_index, vertex_level_number, domain_x_lower, domain_x_upper, periodic_shift);
-            const CellIndex<NDIM> idx = IndexUtilities::getCellIndex(X, grid_geom, ratio);
-            if (patch_box.contains(idx)) patch_vertices.push_back(point_index);
+            CellIndex<NDIM> idx = IndexUtilities::getAssignedCellIndex(X, grid_geom, ratio);
+            if (patch_box.contains(idx))
+            {
+                patch_vertices.push_back(point_index);
+            }
         }
     }
     return;

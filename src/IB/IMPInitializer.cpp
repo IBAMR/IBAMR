@@ -250,6 +250,48 @@ IMPInitializer::getLevelHasLagrangianData(const int level_number, const bool /*c
     return !d_meshes[level_number].empty();
 } // getLevelHasLagrangianData
 
+bool
+IMPInitializer::getIsAllLagrangianDataInDomain(const Pointer<PatchHierarchy<NDIM> > hierarchy) const
+{
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    const double* const grid_x_lower = grid_geom->getXLower();
+    const double* const grid_x_upper = grid_geom->getXUpper();
+
+    int point_outside = 0;
+    for (unsigned int ln = 0; ln < d_num_vertex.size(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            std::vector<std::pair<int, int> > patch_vertices; // TODO do we need this call?
+            getPatchVertices(patch_vertices, patch, ln, false);
+            for (const auto& point_idx : patch_vertices)
+            {
+                // Get the coordinates of the present vertex.
+                const libMesh::Point& X = getVertexPosn(point_idx, ln);
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    if (X(d) < grid_x_lower[d])
+                    {
+                        point_outside = 1;
+                    }
+                    if (X(d) > grid_x_upper[d])
+                    {
+                        point_outside = 1;
+                    }
+                }
+            }
+        }
+    }
+
+    // MPI versions older than 2.2 don't have MPI_C_BOOL so just play it safe
+    // and use ints
+    const int result = IBTK_MPI::maxReduction(point_outside);
+
+    return result == 0;
+}
+
 unsigned int
 IMPInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                                    const int level_number,
@@ -578,7 +620,8 @@ IMPInitializer::getVertexPosn(const std::pair<int, int>& point_index, const int 
     return d_vertex_posn[level_number][point_index.first][point_index.second];
 } // getVertexPosn
 
-void IMPInitializer::getFromInput(Pointer<Database> /*db*/)
+void
+IMPInitializer::getFromInput(Pointer<Database> /*db*/)
 {
     return;
 } // getFromInput

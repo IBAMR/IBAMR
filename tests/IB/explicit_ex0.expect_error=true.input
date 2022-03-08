@@ -1,3 +1,6 @@
+// test configuration
+put_structure_outside_domain = TRUE
+
 // constants
 PI = 3.14159265358979
 
@@ -18,7 +21,7 @@ DX_FINEST = L/NFINEST
 DELTA_FUNCTION      = "IB_4"
 SOLVER_TYPE         = "STAGGERED"              // the fluid solver to use (STAGGERED or COLLOCATED)
 START_TIME          = 0.0e0                    // initial simulation time
-END_TIME            = 0.01                     // final simulation time
+END_TIME            = 0.1                      // final simulation time
 GROW_DT             = 2.0e0                    // growth factor for timesteps
 NUM_CYCLES          = 1                        // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE  = "ADAMS_BASHFORTH"        // convective time stepping type
@@ -169,14 +172,14 @@ Main {
    log_all_nodes               = FALSE
 
 // visualization dump parameters
-   // viz_writer                  = "VisIt","Silo"
+   viz_writer                  = "VisIt","Silo"
    viz_dump_interval           = int(END_TIME/(3*DT))
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 0
-   restart_dump_dirname        = "restart_IB2d"
+   restart_dump_interval       = 10
+   restart_dump_dirname        = "restart"
 
 // hierarchy data dump parameters
    data_dump_interval          = int(END_TIME/(100*DT))
@@ -190,7 +193,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0),(N - 1,N - 1) ]
    x_lo = 0,0
    x_up = L,L
-   periodic_dimension = 1,1
+   periodic_dimension = 0,1
 }
 
 GriddingAlgorithm {

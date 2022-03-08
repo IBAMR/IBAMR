@@ -113,10 +113,11 @@ public:
      * to the extents of the supplied Cartesian grid patch geometry and
      * patch box.
      *
-     * \note Because of round-off error in floating point, this routine
-     * cannot guarantee that the same spatial location X is assigned the
-     * same cell index for different patches.  To obtain a unique index,
-     * use the globalized version.
+     * \note Because of round-off error in floating point, this routine cannot
+     * guarantee that the same spatial location X is assigned the same cell
+     * index for different patches. To obtain a unique index, use the globalized
+     * version (i.e., the one that uses a SAMRAI::geom::CartesianGridGeometry)
+     * instead.
      *
      * \see SAMRAI::geom::CartesianPatchGeometry
      */
@@ -138,6 +139,25 @@ public:
     getCellIndex(const DoubleArray& X,
                  const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
                  const SAMRAI::hier::IntVector<NDIM>& ratio);
+
+    /*!
+     * \return The cell index corresponding to location \p X relative to the
+     * corner of the computational domain specified by the grid geometry object.
+     * Unlike getCellIndex(), this function assigns points on upper boundaries
+     * to the cells inside the domain (instead of in the ghost region) which
+     * makes it more suitable for partitioning purposes.
+     *
+     * This function does not shift points on periodic domains. It is up to the
+     * caller to correctly shift @p X with respect to periodicity before calling
+     * this function.
+     *
+     * \see SAMRAI::geom::CartesianGridGeometry
+     */
+    template <class DoubleArray>
+    static SAMRAI::hier::Index<NDIM>
+    getAssignedCellIndex(const DoubleArray& X,
+                         const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
+                         const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
      * \return The spatial coordinate of the given side center.

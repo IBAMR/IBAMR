@@ -46,13 +46,18 @@
 
 #include <ibamr/app_namespaces.h>
 
+#include "../tests.h"
+
 int finest_ln;
 std::array<int, NDIM> N;
 SAMRAI::tbox::Array<std::string> struct_list;
 SAMRAI::tbox::Array<int> num_node;
 SAMRAI::tbox::Array<double> ds;
+SAMRAI::tbox::Array<double> struct_shift;
 int num_node_circum, num_node_radial;
 double dr;
+bool put_structure_outside_domain = false;
+
 void
 generate_structure(const unsigned int& strct_num,
                    const int& ln,
@@ -70,7 +75,49 @@ generate_structure(const unsigned int& strct_num,
     double R = sqrt(A / M_PI);      // Radius of disc with equivalent area as ellipse
     double perim = 2 * M_PI * R;    // Perimenter of equivalent disc
     double dx = 1.0 / static_cast<double>(N[0]);
-    if (struct_list[strct_num].compare("curve2d") == 0)
+    double x_center = put_structure_outside_domain ? 1.0 : 0.5;
+    double y_center = 0.5;
+    if (struct_list[strct_num].compare("quartersquare2d") == 0)
+    {
+        TBOX_ASSERT(N[0] >= 2);
+        // N cells per side -> N + 1 nodes per side, including duplicated corners
+        const auto nodes_per_side = N[0] + 1;
+        num_node[strct_num] = static_cast<int>(4 * nodes_per_side - 4);
+        ds[strct_num] = dx / 2.0;
+        num_vertices = num_node[strct_num];
+        vertex_posn.resize(0);
+        IBTK::Point shift;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            shift[d] = struct_shift[d];
+        }
+
+        for (int num = 0; num < num_node[strct_num]; ++num)
+        {
+            // bottom side
+            if (num < nodes_per_side)
+            {
+                vertex_posn.emplace_back(num * dx / 2.0, 0.0);
+            }
+            // right side
+            else if (num < 2 * nodes_per_side - 1)
+            {
+                vertex_posn.emplace_back(0.5, (num + 1 - nodes_per_side) * dx / 2.0);
+            }
+            // top side
+            else if (num < 3 * nodes_per_side - 2)
+            {
+                vertex_posn.emplace_back(0.5 - (num + 2 - 2 * nodes_per_side) * dx / 2.0, 0.5);
+            }
+            // left side
+            else
+            {
+                vertex_posn.emplace_back(0.0, 0.5 - (num + 3 - 3 * nodes_per_side) * dx / 2.0);
+            }
+            vertex_posn.back() += shift;
+        }
+    }
+    else if (struct_list[strct_num].compare("curve2d") == 0)
     {
         //         double sdf = perim/(1.0/(3.0*64.0))/4.0;
         //         double aa = ceil(sdf);
@@ -83,11 +130,11 @@ generate_structure(const unsigned int& strct_num,
         vertex_posn.resize(num_vertices);
         for (std::vector<IBTK::Point>::iterator it = vertex_posn.begin(); it != vertex_posn.end(); ++it)
         {
-            Point& X = *it;
+            IBTK::Point& X = *it;
             int num = std::distance(vertex_posn.begin(), it);
             double theta = 2.0 * M_PI * num / num_vertices;
-            X(0) = 0.5 + alpha * std::cos(theta);
-            X(1) = 0.5 + beta * std::sin(theta);
+            X(0) = x_center + alpha * std::cos(theta);
+            X(1) = y_center + beta * std::sin(theta);
         }
     }
     else if (struct_list[strct_num].compare("shell2d") == 0)
@@ -107,8 +154,8 @@ generate_structure(const unsigned int& strct_num,
                 IBTK::Point& X = vertex_posn[num_node_radial * k + l];
                 double theta = 2.0 * M_PI * l / num_node_circum;
                 double r = k * w / (num_node_radial - 1);
-                X(0) = 0.5 + (alpha + r) * std::cos(theta);
-                X(1) = 0.5 + (beta + r) * std::sin(theta);
+                X(0) = x_center + (alpha + r) * std::cos(theta);
+                X(1) = y_center + (beta + r) * std::sin(theta);
             }
         }
     }
@@ -129,8 +176,8 @@ generate_structure(const unsigned int& strct_num,
                 IBTK::Point& X = vertex_posn[num_node_radial * k + l];
                 double theta = 2.0 * M_PI * l / num_node_circum;
                 double r = k * w / (num_node_radial - 1);
-                X(0) = 0.5 + (alpha + r) * std::cos(theta);
-                X(1) = 0.5 + (beta + r) * std::sin(theta);
+                X(0) = x_center + (alpha + r) * std::cos(theta);
+                X(1) = y_center + (beta + r) * std::sin(theta);
             }
         }
     }
@@ -147,7 +194,7 @@ generate_springs(
 {
     if (ln != finest_ln) return;
     double K = 1.0;
-    if (struct_list[strct_num].compare("curve2d") == 0)
+    if (struct_list[strct_num].compare("curve2d") == 0 || struct_list[strct_num].compare("quartersquare2d") == 0)
     {
         for (int k = 0; k < num_node[strct_num]; ++k)
         {
@@ -228,10 +275,18 @@ main(int argc, char* argv[])
     std::array<double, 3> u_err;
     std::array<double, 3> p_err;
 
+    // use relatively strict tolerances to get consistent results in parallel
+    PetscOptionsSetValue(nullptr, "-stokes_ksp_rtol", "1e-14");
+
 #ifndef IBTK_HAVE_SILO
     // Suppress warnings caused by running without silo
     SAMRAI::tbox::Logger::getInstance()->setWarning(false);
 #endif
+
+    // Since this is a test we do not want to print file names or line numbers
+    // to output files:
+    Pointer<Logger::Appender> abort_append(new TestAppender());
+    Logger::getInstance()->setAbortAppender(abort_append);
 
     { // cleanup dynamically allocated objects prior to shutdown
         // prevent a warning about timer initializations
@@ -242,6 +297,15 @@ main(int argc, char* argv[])
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
+
+        const bool dump_viz_data = app_initializer->dumpVizData();
+        const int viz_dump_interval = app_initializer->getVizDumpInterval();
+        const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
+        const int error_dump_interval = input_db->getIntegerWithDefault("error_dump_interval", 1);
+
+        // For testing purposes: make sure we fail correctly when the structure
+        // is not in the domain
+        put_structure_outside_domain = input_db->getBoolWithDefault("put_structure_outside_domain", false);
 
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
@@ -299,6 +363,15 @@ main(int argc, char* argv[])
         struct_list.resizeArray(input_db->getArraySize("STRUCTURE_LIST"));
         //         input_db->getStringArray("STRUCTURE_LIST", struct_list, input_db->getArraySize("STRUCTURE_LIST"));
         struct_list = input_db->getStringArray("STRUCTURE_LIST");
+        struct_shift.resizeArray(NDIM);
+        for (int i = 0; i < NDIM; ++i)
+        {
+            struct_shift[i] = 0.0;
+        }
+        if (input_db->keyExists("STRUCTURE_SHIFT"))
+        {
+            struct_shift = input_db->getDoubleArray("STRUCTURE_SHIFT");
+        }
         std::vector<std::string> struct_list_vec(struct_list.getSize());
         for (int i = 0; i < struct_list.size(); ++i) struct_list_vec[i] = struct_list[i];
         ds.resizeArray(struct_list.size());
@@ -355,6 +428,16 @@ main(int argc, char* argv[])
             time_integrator->registerBodyForceFunction(f_fcn);
         }
 
+        // Set up visualization plot file writers.
+        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
+        if (uses_visit)
+        {
+            ib_initializer->registerLSiloDataWriter(silo_data_writer);
+            time_integrator->registerVisItDataWriter(visit_data_writer);
+            ib_method_ops->registerLSiloDataWriter(silo_data_writer);
+        }
+
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
@@ -369,14 +452,14 @@ main(int argc, char* argv[])
         // Setup data used to determine the accuracy of the computed solution.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-        const Pointer<Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
-        const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
+        const auto u_var = navier_stokes_integrator->getVelocityVariable();
+        const auto u_ctx = navier_stokes_integrator->getCurrentContext();
 
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
         const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
 
-        const Pointer<Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
-        const Pointer<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
+        const auto p_var = navier_stokes_integrator->getPressureVariable();
+        const auto p_ctx = navier_stokes_integrator->getCurrentContext();
 
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
         const int p_cloned_idx = var_db->registerClonedPatchDataIndex(p_var, p_idx);
@@ -392,6 +475,13 @@ main(int argc, char* argv[])
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
+        if (dump_viz_data && uses_visit)
+        {
+            pout << "\n\nWriting visualization files...\n\n";
+            time_integrator->setupPlotData();
+            visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+            silo_data_writer->writePlotData(iteration_num, loop_time);
+        }
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
@@ -411,6 +501,14 @@ main(int argc, char* argv[])
             // print out timer data, and store hierarchy data for post
             // processing.
             iteration_num += 1;
+            const bool last_step = !time_integrator->stepsRemaining();
+            if (dump_viz_data && uses_visit && (iteration_num % viz_dump_interval == 0 || last_step))
+            {
+                pout << "\nWriting visualization files...\n\n";
+                time_integrator->setupPlotData();
+                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
+                silo_data_writer->writePlotData(iteration_num, loop_time);
+            }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0))
             {
                 pout << "\nWriting restart files...\n\n";
@@ -436,48 +534,51 @@ main(int argc, char* argv[])
             const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
             const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
-            Pointer<CellVariable<NDIM, double> > u_cc_var = u_var;
-            if (u_cc_var)
+            if (iteration_num % error_dump_interval == 0)
             {
+                Pointer<CellVariable<NDIM, double> > u_cc_var = u_var;
+                if (u_cc_var)
+                {
+                    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+                    hier_cc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
+                    pout << "Error in u at time " << loop_time << ":\n"
+                         << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx)
+                         << "\n"
+                         << "  L2-norm:  " << hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx) << "\n"
+                         << "  max-norm: " << hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx) << "\n";
+
+                    u_err[0] = hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx);
+                    u_err[1] = hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx);
+                    u_err[2] = hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx);
+                }
+
+                Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
+                if (u_sc_var)
+                {
+                    HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+                    hier_sc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
+                    pout << "Error in u at time " << loop_time << ":\n"
+                         << "  L1-norm:  " << std::setprecision(10) << hier_sc_data_ops.L1Norm(u_cloned_idx, wgt_sc_idx)
+                         << "\n"
+                         << "  L2-norm:  " << hier_sc_data_ops.L2Norm(u_cloned_idx, wgt_sc_idx) << "\n"
+                         << "  max-norm: " << hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx) << "\n";
+
+                    u_err[0] = hier_sc_data_ops.L1Norm(u_cloned_idx, wgt_sc_idx);
+                    u_err[1] = hier_sc_data_ops.L2Norm(u_cloned_idx, wgt_sc_idx);
+                    u_err[2] = hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx);
+                }
+
                 HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-                hier_cc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
-                pout << "Error in u at time " << loop_time << ":\n"
-                     << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx)
-                     << "\n"
-                     << "  L2-norm:  " << hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx) << "\n"
-                     << "  max-norm: " << hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx) << "\n";
+                hier_cc_data_ops.subtract(p_cloned_idx, p_idx, p_cloned_idx);
+                pout << "Error in p at time " << loop_time - 0.5 * dt << ":\n"
+                     << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(p_cloned_idx, wgt_cc_idx) << "\n"
+                     << "  L2-norm:  " << hier_cc_data_ops.L2Norm(p_cloned_idx, wgt_cc_idx) << "\n"
+                     << "  max-norm: " << hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx) << "\n\n";
 
-                u_err[0] = hier_cc_data_ops.L1Norm(u_cloned_idx, wgt_cc_idx);
-                u_err[1] = hier_cc_data_ops.L2Norm(u_cloned_idx, wgt_cc_idx);
-                u_err[2] = hier_cc_data_ops.maxNorm(u_cloned_idx, wgt_cc_idx);
+                p_err[0] = hier_cc_data_ops.L1Norm(p_cloned_idx, wgt_cc_idx);
+                p_err[1] = hier_cc_data_ops.L2Norm(p_cloned_idx, wgt_cc_idx);
+                p_err[2] = hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx);
             }
-
-            Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
-            if (u_sc_var)
-            {
-                HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-                hier_sc_data_ops.subtract(u_cloned_idx, u_idx, u_cloned_idx);
-                pout << "Error in u at time " << loop_time << ":\n"
-                     << "  L1-norm:  " << std::setprecision(10) << hier_sc_data_ops.L1Norm(u_cloned_idx, wgt_sc_idx)
-                     << "\n"
-                     << "  L2-norm:  " << hier_sc_data_ops.L2Norm(u_cloned_idx, wgt_sc_idx) << "\n"
-                     << "  max-norm: " << hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx) << "\n";
-
-                u_err[0] = hier_sc_data_ops.L1Norm(u_cloned_idx, wgt_sc_idx);
-                u_err[1] = hier_sc_data_ops.L2Norm(u_cloned_idx, wgt_sc_idx);
-                u_err[2] = hier_sc_data_ops.maxNorm(u_cloned_idx, wgt_sc_idx);
-            }
-
-            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-            hier_cc_data_ops.subtract(p_cloned_idx, p_idx, p_cloned_idx);
-            pout << "Error in p at time " << loop_time - 0.5 * dt << ":\n"
-                 << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(p_cloned_idx, wgt_cc_idx) << "\n"
-                 << "  L2-norm:  " << hier_cc_data_ops.L2Norm(p_cloned_idx, wgt_cc_idx) << "\n"
-                 << "  max-norm: " << hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx) << "\n\n";
-
-            p_err[0] = hier_cc_data_ops.L1Norm(p_cloned_idx, wgt_cc_idx);
-            p_err[1] = hier_cc_data_ops.L2Norm(p_cloned_idx, wgt_cc_idx);
-            p_err[2] = hier_cc_data_ops.maxNorm(p_cloned_idx, wgt_cc_idx);
         }
 
         // Cleanup Eulerian boundary condition specification objects (when

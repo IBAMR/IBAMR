@@ -1,3 +1,8 @@
+// Test that we handle points placed on physical boundaries correctly. Puts the
+// square in the top right instead of bottom left.
+error_dump_interval = 10
+
+
 // constants
 PI = 3.14159265358979
 
@@ -18,7 +23,7 @@ DX_FINEST = L/NFINEST
 DELTA_FUNCTION      = "IB_4"
 SOLVER_TYPE         = "STAGGERED"              // the fluid solver to use (STAGGERED or COLLOCATED)
 START_TIME          = 0.0e0                    // initial simulation time
-END_TIME            = 0.01                     // final simulation time
+END_TIME            = 0.1                      // final simulation time
 GROW_DT             = 2.0e0                    // growth factor for timesteps
 NUM_CYCLES          = 1                        // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE  = "ADAMS_BASHFORTH"        // convective time stepping type
@@ -38,7 +43,8 @@ OUTPUT_OMEGA        = TRUE
 OUTPUT_DIV_U        = TRUE
 ENABLE_LOGGING      = TRUE
 
-STRUCTURE_LIST = "curve2d"
+STRUCTURE_LIST = "quartersquare2d"
+STRUCTURE_SHIFT = 0.5, 0.5
 
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
@@ -169,8 +175,8 @@ Main {
    log_all_nodes               = FALSE
 
 // visualization dump parameters
-   // viz_writer                  = "VisIt","Silo"
-   viz_dump_interval           = int(END_TIME/(3*DT))
+   viz_writer                  = "VisIt","Silo"
+   viz_dump_interval           = 1
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
@@ -190,7 +196,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0),(N - 1,N - 1) ]
    x_lo = 0,0
    x_up = L,L
-   periodic_dimension = 1,1
+   periodic_dimension = 0,0
 }
 
 GriddingAlgorithm {

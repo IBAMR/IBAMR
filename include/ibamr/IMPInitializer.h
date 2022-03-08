@@ -105,6 +105,13 @@ public:
     bool getLevelHasLagrangianData(int level_number, bool can_be_refined) const override;
 
     /*!
+     * \return A boolean value indicating whether or not all Lagrangian data is
+     * within the computational domain specified by the patch hierarchy.
+     */
+    bool
+    getIsAllLagrangianDataInDomain(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy) const override;
+
+    /*!
      * \return Determine the number of global nodes on the patch level.
      *
      * \return The number of global nodes on the specified level.

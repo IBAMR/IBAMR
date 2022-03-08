@@ -1,0 +1,6 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+Program abort called with error message
+
+    LDataManager::initializeLevelData()
+  At the initial time step, all Lagrangian data must be inside the domain.
+

@@ -1,0 +1,2374 @@
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
+IBRedundantInitializer:  Deallocating initialization data.
+
+
+Writing visualization files...
+
+At beginning of timestep # 0
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.4934e-15
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.10703e-13
+
+Writing visualization files...
+
+At beginning of timestep # 1
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.00504e-13
+
+Writing visualization files...
+
+At beginning of timestep # 2
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.06795e-13
+
+Writing visualization files...
+
+At beginning of timestep # 3
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.09681e-13
+
+Writing visualization files...
+
+At beginning of timestep # 4
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.11138e-13
+
+Writing visualization files...
+
+At beginning of timestep # 5
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.05827e-13
+
+Writing visualization files...
+
+At beginning of timestep # 6
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.11458e-13
+
+Writing visualization files...
+
+At beginning of timestep # 7
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 4.03044e-14
+
+Writing visualization files...
+
+At beginning of timestep # 8
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.10938e-13
+
+Writing visualization files...
+
+At beginning of timestep # 9
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.10152e-13
+
+Writing visualization files...
+
+Error in u at time 0.0025:
+  L1-norm:  0.01594840785
+  L2-norm:  0.05500957259
+  max-norm: 0.9224377793
+Error in p at time 0.002375:
+  L1-norm:  1.304767342
+  L2-norm:  1.825327382
+  max-norm: 10.93670475
+
+At beginning of timestep # 10
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.09574e-13
+
+Writing visualization files...
+
+At beginning of timestep # 11
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.08827e-13
+
+Writing visualization files...
+
+At beginning of timestep # 12
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.07943e-13
+
+Writing visualization files...
+
+At beginning of timestep # 13
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.06968e-13
+
+Writing visualization files...
+
+At beginning of timestep # 14
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.0591e-13
+
+Writing visualization files...
+
+At beginning of timestep # 15
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.04769e-13
+
+Writing visualization files...
+
+At beginning of timestep # 16
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.03583e-13
+
+Writing visualization files...
+
+At beginning of timestep # 17
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.0235e-13
+
+Writing visualization files...
+
+At beginning of timestep # 18
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.01104e-13
+
+Writing visualization files...
+
+At beginning of timestep # 19
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.97558e-14
+
+Writing visualization files...
+
+Error in u at time 0.005:
+  L1-norm:  0.03042343494
+  L2-norm:  0.09765249835
+  max-norm: 1.640712436
+Error in p at time 0.004875:
+  L1-norm:  1.308002525
+  L2-norm:  1.831305557
+  max-norm: 11.34763545
+
+At beginning of timestep # 20
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.85569e-14
+
+Writing visualization files...
+
+At beginning of timestep # 21
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.19996e-12
+
+Writing visualization files...
+
+At beginning of timestep # 22
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.22589e-12
+
+Writing visualization files...
+
+At beginning of timestep # 23
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.20103e-12
+
+Writing visualization files...
+
+At beginning of timestep # 24
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.17945e-12
+
+Writing visualization files...
+
+At beginning of timestep # 25
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.15978e-12
+
+Writing visualization files...
+
+At beginning of timestep # 26
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.16002e-12
+
+Writing visualization files...
+
+At beginning of timestep # 27
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.15375e-12
+
+Writing visualization files...
+
+At beginning of timestep # 28
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.10208e-12
+
+Writing visualization files...
+
+At beginning of timestep # 29
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.08705e-12
+
+Writing visualization files...
+
+Error in u at time 0.0075:
+  L1-norm:  0.04335943334
+  L2-norm:  0.1273163203
+  max-norm: 2.111766213
+Error in p at time 0.007375:
+  L1-norm:  1.315474278
+  L2-norm:  1.845421764
+  max-norm: 10.56505994
+
+At beginning of timestep # 30
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.09518e-12
+
+Writing visualization files...
+
+At beginning of timestep # 31
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.02096e-12
+
+Writing visualization files...
+
+At beginning of timestep # 32
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.0207e-12
+
+Writing visualization files...
+
+At beginning of timestep # 33
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.00346e-12
+
+Writing visualization files...
+
+At beginning of timestep # 34
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.97118e-12
+
+Writing visualization files...
+
+At beginning of timestep # 35
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.36013e-12
+
+Writing visualization files...
+
+At beginning of timestep # 36
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.92452e-12
+
+Writing visualization files...
+
+At beginning of timestep # 37
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.87285e-12
+
+Writing visualization files...
+
+At beginning of timestep # 38
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.85032e-12
+
+Writing visualization files...
+
+At beginning of timestep # 39
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.82301e-12
+
+Writing visualization files...
+
+Error in u at time 0.01:
+  L1-norm:  0.05485881146
+  L2-norm:  0.1459606006
+  max-norm: 2.293473733
+Error in p at time 0.009875:
+  L1-norm:  1.323732787
+  L2-norm:  1.859855802
+  max-norm: 9.725533071
+
+At beginning of timestep # 40
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.79825e-12
+
+Writing visualization files...
+
+At beginning of timestep # 41
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.75501e-12
+
+Writing visualization files...
+
+At beginning of timestep # 42
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.73358e-12
+
+Writing visualization files...
+
+At beginning of timestep # 43
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.74818e-12
+
+Writing visualization files...
+
+At beginning of timestep # 44
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.71327e-12
+
+Writing visualization files...
+
+At beginning of timestep # 45
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.69412e-12
+
+Writing visualization files...
+
+At beginning of timestep # 46
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.68345e-12
+
+Writing visualization files...
+
+At beginning of timestep # 47
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.67801e-12
+
+Writing visualization files...
+
+At beginning of timestep # 48
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.67269e-12
+
+Writing visualization files...
+
+At beginning of timestep # 49
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.66459e-12
+
+Writing visualization files...
+
+Error in u at time 0.0125:
+  L1-norm:  0.0655981624
+  L2-norm:  0.1573096373
+  max-norm: 2.203532836
+Error in p at time 0.012375:
+  L1-norm:  1.330119633
+  L2-norm:  1.869488288
+  max-norm: 8.526904738
+
+At beginning of timestep # 50
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.65126e-12
+
+Writing visualization files...
+
+At beginning of timestep # 51
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.65312e-12
+
+Writing visualization files...
+
+At beginning of timestep # 52
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.65022e-12
+
+Writing visualization files...
+
+At beginning of timestep # 53
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.64464e-12
+
+Writing visualization files...
+
+At beginning of timestep # 54
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.81538e-13
+
+Writing visualization files...
+
+At beginning of timestep # 55
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.41869e-13
+
+Writing visualization files...
+
+At beginning of timestep # 56
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.42172e-13
+
+Writing visualization files...
+
+At beginning of timestep # 57
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.43162e-13
+
+Writing visualization files...
+
+At beginning of timestep # 58
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.43309e-13
+
+Writing visualization files...
+
+At beginning of timestep # 59
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.7264e-12
+
+Writing visualization files...
+
+Error in u at time 0.015:
+  L1-norm:  0.07615670414
+  L2-norm:  0.1652217855
+  max-norm: 1.963848283
+Error in p at time 0.014875:
+  L1-norm:  1.333496134
+  L2-norm:  1.873716708
+  max-norm: 8.453189899
+
+At beginning of timestep # 60
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.69294e-12
+
+Writing visualization files...
+
+At beginning of timestep # 61
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.68281e-12
+
+Writing visualization files...
+
+At beginning of timestep # 62
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.70431e-12
+
+Writing visualization files...
+
+At beginning of timestep # 63
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.72078e-12
+
+Writing visualization files...
+
+At beginning of timestep # 64
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.6898e-12
+
+Writing visualization files...
+
+At beginning of timestep # 65
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.73794e-12
+
+Writing visualization files...
+
+At beginning of timestep # 66
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.73345e-12
+
+Writing visualization files...
+
+At beginning of timestep # 67
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.79127e-12
+
+Writing visualization files...
+
+At beginning of timestep # 68
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.77231e-12
+
+Writing visualization files...
+
+At beginning of timestep # 69
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.68595e-12
+
+Writing visualization files...
+
+Error in u at time 0.0175:
+  L1-norm:  0.08633982344
+  L2-norm:  0.1723840478
+  max-norm: 1.67880028
+Error in p at time 0.017375:
+  L1-norm:  1.336319907
+  L2-norm:  1.877777653
+  max-norm: 8.380356739
+
+At beginning of timestep # 70
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.00339e-12
+
+Writing visualization files...
+
+At beginning of timestep # 71
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.83901e-12
+
+Writing visualization files...
+
+At beginning of timestep # 72
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.80679e-12
+
+Writing visualization files...
+
+At beginning of timestep # 73
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.70735e-12
+
+Writing visualization files...
+
+At beginning of timestep # 74
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.90909e-12
+
+Writing visualization files...
+
+At beginning of timestep # 75
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.64667e-12
+
+Writing visualization files...
+
+At beginning of timestep # 76
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.77189e-12
+
+Writing visualization files...
+
+At beginning of timestep # 77
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.84325e-12
+
+Writing visualization files...
+
+At beginning of timestep # 78
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.86005e-12
+
+Writing visualization files...
+
+At beginning of timestep # 79
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.5714e-13
+
+Writing visualization files...
+
+Error in u at time 0.02:
+  L1-norm:  0.09591665467
+  L2-norm:  0.1799278791
+  max-norm: 1.442289898
+Error in p at time 0.019875:
+  L1-norm:  1.339542434
+  L2-norm:  1.882204609
+  max-norm: 8.305069338
+
+At beginning of timestep # 80
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.65115e-12
+
+Writing visualization files...
+
+At beginning of timestep # 81
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.85114e-12
+
+Writing visualization files...
+
+At beginning of timestep # 82
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.83891e-12
+
+Writing visualization files...
+
+At beginning of timestep # 83
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.82702e-12
+
+Writing visualization files...
+
+At beginning of timestep # 84
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.84188e-12
+
+Writing visualization files...
+
+At beginning of timestep # 85
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.75731e-12
+
+Writing visualization files...
+
+At beginning of timestep # 86
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.82241e-12
+
+Writing visualization files...
+
+At beginning of timestep # 87
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.81165e-12
+
+Writing visualization files...
+
+At beginning of timestep # 88
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.80252e-12
+
+Writing visualization files...
+
+At beginning of timestep # 89
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.79705e-12
+
+Writing visualization files...
+
+Error in u at time 0.0225:
+  L1-norm:  0.1049001548
+  L2-norm:  0.1875626045
+  max-norm: 1.473491746
+Error in p at time 0.022375:
+  L1-norm:  1.343315675
+  L2-norm:  1.888292958
+  max-norm: 8.155239063
+
+At beginning of timestep # 90
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.80897e-12
+
+Writing visualization files...
+
+At beginning of timestep # 91
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.78721e-12
+
+Writing visualization files...
+
+At beginning of timestep # 92
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.79096e-12
+
+Writing visualization files...
+
+At beginning of timestep # 93
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.03728e-12
+
+Writing visualization files...
+
+At beginning of timestep # 94
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.84836e-12
+
+Writing visualization files...
+
+At beginning of timestep # 95
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.79611e-12
+
+Writing visualization files...
+
+At beginning of timestep # 96
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.82604e-12
+
+Writing visualization files...
+
+At beginning of timestep # 97
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.77087e-12
+
+Writing visualization files...
+
+At beginning of timestep # 98
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.77453e-12
+
+Writing visualization files...
+
+At beginning of timestep # 99
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.81485e-12
+
+Writing visualization files...
+
+Error in u at time 0.025:
+  L1-norm:  0.1134650768
+  L2-norm:  0.1947089887
+  max-norm: 1.42489576
+Error in p at time 0.024875:
+  L1-norm:  1.347297683
+  L2-norm:  1.892532428
+  max-norm: 8.070592355
+
+At beginning of timestep # 100
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.76236e-12
+
+Writing visualization files...
+
+At beginning of timestep # 101
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.78171e-12
+
+Writing visualization files...
+
+At beginning of timestep # 102
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.7539e-12
+
+Writing visualization files...
+
+At beginning of timestep # 103
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.78327e-12
+
+Writing visualization files...
+
+At beginning of timestep # 104
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.77649e-12
+
+Writing visualization files...
+
+At beginning of timestep # 105
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.77381e-12
+
+Writing visualization files...
+
+At beginning of timestep # 106
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.80417e-12
+
+Writing visualization files...
+
+At beginning of timestep # 107
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.7454e-12
+
+Writing visualization files...
+
+At beginning of timestep # 108
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.75544e-12
+
+Writing visualization files...
+
+At beginning of timestep # 109
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.7572e-12
+
+Writing visualization files...
+
+Error in u at time 0.0275:
+  L1-norm:  0.1216868452
+  L2-norm:  0.2010345985
+  max-norm: 1.328249243
+Error in p at time 0.027375:
+  L1-norm:  1.351997125
+  L2-norm:  1.897174775
+  max-norm: 7.973396673
+
+At beginning of timestep # 110
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.72704e-12
+
+Writing visualization files...
+
+At beginning of timestep # 111
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.7098e-12
+
+Writing visualization files...
+
+At beginning of timestep # 112
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.69219e-12
+
+Writing visualization files...
+
+At beginning of timestep # 113
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.62333e-12
+
+Writing visualization files...
+
+At beginning of timestep # 114
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.69962e-12
+
+Writing visualization files...
+
+At beginning of timestep # 115
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.66847e-12
+
+Writing visualization files...
+
+At beginning of timestep # 116
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.59203e-12
+
+Writing visualization files...
+
+At beginning of timestep # 117
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.68262e-12
+
+Writing visualization files...
+
+At beginning of timestep # 118
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.57318e-12
+
+Writing visualization files...
+
+At beginning of timestep # 119
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.64564e-12
+
+Writing visualization files...
+
+Error in u at time 0.03:
+  L1-norm:  0.1295690657
+  L2-norm:  0.2066462457
+  max-norm: 1.254598703
+Error in p at time 0.029875:
+  L1-norm:  1.356286209
+  L2-norm:  1.899781262
+  max-norm: 7.870124803
+
+At beginning of timestep # 120
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.60388e-12
+
+Writing visualization files...
+
+At beginning of timestep # 121
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.60138e-12
+
+Writing visualization files...
+
+At beginning of timestep # 122
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.58366e-12
+
+Writing visualization files...
+
+At beginning of timestep # 123
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.56626e-12
+
+Writing visualization files...
+
+At beginning of timestep # 124
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.55549e-12
+
+Writing visualization files...
+
+At beginning of timestep # 125
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.53954e-12
+
+Writing visualization files...
+
+At beginning of timestep # 126
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.52714e-12
+
+Writing visualization files...
+
+At beginning of timestep # 127
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.51841e-12
+
+Writing visualization files...
+
+At beginning of timestep # 128
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.52131e-12
+
+Writing visualization files...
+
+At beginning of timestep # 129
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.49245e-12
+
+Writing visualization files...
+
+Error in u at time 0.0325:
+  L1-norm:  0.1370447049
+  L2-norm:  0.2118885453
+  max-norm: 1.215978918
+Error in p at time 0.032375:
+  L1-norm:  1.360161826
+  L2-norm:  1.902787928
+  max-norm: 7.78809835
+
+At beginning of timestep # 130
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.48e-12
+
+Writing visualization files...
+
+At beginning of timestep # 131
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.46513e-12
+
+Writing visualization files...
+
+At beginning of timestep # 132
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.4558e-12
+
+Writing visualization files...
+
+At beginning of timestep # 133
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.45968e-12
+
+Writing visualization files...
+
+At beginning of timestep # 134
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.45493e-12
+
+Writing visualization files...
+
+At beginning of timestep # 135
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.44189e-12
+
+Writing visualization files...
+
+At beginning of timestep # 136
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.4029e-12
+
+Writing visualization files...
+
+At beginning of timestep # 137
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.39858e-12
+
+Writing visualization files...
+
+At beginning of timestep # 138
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.33642e-12
+
+Writing visualization files...
+
+At beginning of timestep # 139
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.42347e-12
+
+Writing visualization files...
+
+Error in u at time 0.035:
+  L1-norm:  0.1443843624
+  L2-norm:  0.2169889782
+  max-norm: 1.222051751
+Error in p at time 0.034875:
+  L1-norm:  1.363584652
+  L2-norm:  1.905299202
+  max-norm: 7.438017813
+
+At beginning of timestep # 140
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.3886e-12
+
+Writing visualization files...
+
+At beginning of timestep # 141
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.36733e-12
+
+Writing visualization files...
+
+At beginning of timestep # 142
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.31053e-12
+
+Writing visualization files...
+
+At beginning of timestep # 143
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.3837e-12
+
+Writing visualization files...
+
+At beginning of timestep # 144
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.37773e-12
+
+Writing visualization files...
+
+At beginning of timestep # 145
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.36879e-12
+
+Writing visualization files...
+
+At beginning of timestep # 146
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.39796e-12
+
+Writing visualization files...
+
+At beginning of timestep # 147
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.38667e-12
+
+Writing visualization files...
+
+At beginning of timestep # 148
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.39242e-12
+
+Writing visualization files...
+
+At beginning of timestep # 149
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.38379e-12
+
+Writing visualization files...
+
+Error in u at time 0.0375:
+  L1-norm:  0.1512296811
+  L2-norm:  0.2219708172
+  max-norm: 1.185684006
+Error in p at time 0.037375:
+  L1-norm:  1.36668241
+  L2-norm:  1.907978785
+  max-norm: 7.422744809
+
+At beginning of timestep # 150
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.38654e-12
+
+Writing visualization files...
+
+At beginning of timestep # 151
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.36521e-12
+
+Writing visualization files...
+
+At beginning of timestep # 152
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.3654e-12
+
+Writing visualization files...
+
+At beginning of timestep # 153
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.36046e-12
+
+Writing visualization files...
+
+At beginning of timestep # 154
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.34169e-12
+
+Writing visualization files...
+
+At beginning of timestep # 155
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.36176e-12
+
+Writing visualization files...
+
+At beginning of timestep # 156
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.34152e-12
+
+Writing visualization files...
+
+At beginning of timestep # 157
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.33615e-12
+
+Writing visualization files...
+
+At beginning of timestep # 158
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.3355e-12
+
+Writing visualization files...
+
+At beginning of timestep # 159
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.31584e-12
+
+Writing visualization files...
+
+Error in u at time 0.04:
+  L1-norm:  0.1579573367
+  L2-norm:  0.2267644797
+  max-norm: 1.150976787
+Error in p at time 0.039875:
+  L1-norm:  1.369701066
+  L2-norm:  1.910791777
+  max-norm: 7.16071293
+
+At beginning of timestep # 160
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.2654e-12
+
+Writing visualization files...
+
+At beginning of timestep # 161
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.33521e-12
+
+Writing visualization files...
+
+At beginning of timestep # 162
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.30478e-12
+
+Writing visualization files...
+
+At beginning of timestep # 163
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.30705e-12
+
+Writing visualization files...
+
+At beginning of timestep # 164
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.29551e-12
+
+Writing visualization files...
+
+At beginning of timestep # 165
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.31745e-12
+
+Writing visualization files...
+
+At beginning of timestep # 166
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.33849e-12
+
+Writing visualization files...
+
+At beginning of timestep # 167
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.30221e-12
+
+Writing visualization files...
+
+At beginning of timestep # 168
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.30468e-12
+
+Writing visualization files...
+
+At beginning of timestep # 169
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.29526e-12
+
+Writing visualization files...
+
+Error in u at time 0.0425:
+  L1-norm:  0.1643616382
+  L2-norm:  0.2312356913
+  max-norm: 1.108535136
+Error in p at time 0.042375:
+  L1-norm:  1.372394379
+  L2-norm:  1.912813241
+  max-norm: 6.957552949
+
+At beginning of timestep # 170
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.29103e-12
+
+Writing visualization files...
+
+At beginning of timestep # 171
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.26802e-12
+
+Writing visualization files...
+
+At beginning of timestep # 172
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.26356e-12
+
+Writing visualization files...
+
+At beginning of timestep # 173
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.26594e-12
+
+Writing visualization files...
+
+At beginning of timestep # 174
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.26991e-12
+
+Writing visualization files...
+
+At beginning of timestep # 175
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.19143e-12
+
+Writing visualization files...
+
+At beginning of timestep # 176
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.31106e-12
+
+Writing visualization files...
+
+At beginning of timestep # 177
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.22224e-12
+
+Writing visualization files...
+
+At beginning of timestep # 178
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.24968e-12
+
+Writing visualization files...
+
+At beginning of timestep # 179
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.25343e-12
+
+Writing visualization files...
+
+Error in u at time 0.045:
+  L1-norm:  0.170587911
+  L2-norm:  0.2353420308
+  max-norm: 1.089729714
+Error in p at time 0.044875:
+  L1-norm:  1.37468706
+  L2-norm:  1.914551138
+  max-norm: 6.835319303
+
+At beginning of timestep # 180
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.58355e-12
+
+Writing visualization files...
+
+At beginning of timestep # 181
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.25523e-12
+
+Writing visualization files...
+
+At beginning of timestep # 182
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.21547e-12
+
+Writing visualization files...
+
+At beginning of timestep # 183
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.20556e-12
+
+Writing visualization files...
+
+At beginning of timestep # 184
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.19023e-12
+
+Writing visualization files...
+
+At beginning of timestep # 185
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.21644e-12
+
+Writing visualization files...
+
+At beginning of timestep # 186
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.50688e-12
+
+Writing visualization files...
+
+At beginning of timestep # 187
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.20945e-12
+
+Writing visualization files...
+
+At beginning of timestep # 188
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.19395e-12
+
+Writing visualization files...
+
+At beginning of timestep # 189
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.18981e-12
+
+Writing visualization files...
+
+Error in u at time 0.0475:
+  L1-norm:  0.1765701353
+  L2-norm:  0.2391380354
+  max-norm: 1.056316055
+Error in p at time 0.047375:
+  L1-norm:  1.376485095
+  L2-norm:  1.915755834
+  max-norm: 6.807181136
+
+At beginning of timestep # 190
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.19322e-12
+
+Writing visualization files...
+
+At beginning of timestep # 191
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.84902e-12
+
+Writing visualization files...
+
+At beginning of timestep # 192
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.87009e-12
+
+Writing visualization files...
+
+At beginning of timestep # 193
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.22629e-12
+
+Writing visualization files...
+
+At beginning of timestep # 194
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.78544e-12
+
+Writing visualization files...
+
+At beginning of timestep # 195
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.17703e-12
+
+Writing visualization files...
+
+At beginning of timestep # 196
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.86105e-12
+
+Writing visualization files...
+
+At beginning of timestep # 197
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.77086e-12
+
+Writing visualization files...
+
+At beginning of timestep # 198
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.46506e-12
+
+Writing visualization files...
+
+At beginning of timestep # 199
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.21471e-12
+
+Writing visualization files...
+
+Error in u at time 0.05:
+  L1-norm:  0.1822869917
+  L2-norm:  0.2427429205
+  max-norm: 1.034074028
+Error in p at time 0.049875:
+  L1-norm:  1.377868754
+  L2-norm:  1.917070952
+  max-norm: 6.740803233
+
+At beginning of timestep # 200
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.42874e-12
+
+Writing visualization files...
+
+At beginning of timestep # 201
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.47767e-12
+
+Writing visualization files...
+
+At beginning of timestep # 202
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.75951e-12
+
+Writing visualization files...
+
+At beginning of timestep # 203
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.05908e-12
+
+Writing visualization files...
+
+At beginning of timestep # 204
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.8339e-12
+
+Writing visualization files...
+
+At beginning of timestep # 205
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.74127e-12
+
+Writing visualization files...
+
+At beginning of timestep # 206
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.72102e-12
+
+Writing visualization files...
+
+At beginning of timestep # 207
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.21374e-12
+
+Writing visualization files...
+
+At beginning of timestep # 208
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.37233e-12
+
+Writing visualization files...
+
+At beginning of timestep # 209
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.01731e-12
+
+Writing visualization files...
+
+Error in u at time 0.0525:
+  L1-norm:  0.1876852171
+  L2-norm:  0.2462522412
+  max-norm: 1.004418134
+Error in p at time 0.052375:
+  L1-norm:  1.378820498
+  L2-norm:  1.917593162
+  max-norm: 6.721498775
+
+At beginning of timestep # 210
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.29955e-12
+
+Writing visualization files...
+
+At beginning of timestep # 211
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.24694e-12
+
+Writing visualization files...
+
+At beginning of timestep # 212
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.0882e-12
+
+Writing visualization files...
+
+At beginning of timestep # 213
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.29827e-12
+
+Writing visualization files...
+
+At beginning of timestep # 214
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.5706e-12
+
+Writing visualization files...
+
+At beginning of timestep # 215
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.29316e-12
+
+Writing visualization files...
+
+At beginning of timestep # 216
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.3494e-12
+
+Writing visualization files...
+
+At beginning of timestep # 217
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.28923e-12
+
+Writing visualization files...
+
+At beginning of timestep # 218
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.34917e-12
+
+Writing visualization files...
+
+At beginning of timestep # 219
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.59655e-12
+
+Writing visualization files...
+
+Error in u at time 0.055:
+  L1-norm:  0.1929452041
+  L2-norm:  0.2496822525
+  max-norm: 0.98299693
+Error in p at time 0.054875:
+  L1-norm:  1.379486153
+  L2-norm:  1.918218833
+  max-norm: 6.599504083
+
+At beginning of timestep # 220
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.37015e-12
+
+Writing visualization files...
+
+At beginning of timestep # 221
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.35961e-12
+
+Writing visualization files...
+
+At beginning of timestep # 222
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.62935e-12
+
+Writing visualization files...
+
+At beginning of timestep # 223
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.29279e-12
+
+Writing visualization files...
+
+At beginning of timestep # 224
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.23997e-12
+
+Writing visualization files...
+
+At beginning of timestep # 225
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.63803e-13
+
+Writing visualization files...
+
+At beginning of timestep # 226
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.6891e-12
+
+Writing visualization files...
+
+At beginning of timestep # 227
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.37714e-12
+
+Writing visualization files...
+
+At beginning of timestep # 228
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.30165e-12
+
+Writing visualization files...
+
+At beginning of timestep # 229
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.28039e-12
+
+Writing visualization files...
+
+Error in u at time 0.0575:
+  L1-norm:  0.197859442
+  L2-norm:  0.2530054171
+  max-norm: 0.980045514
+Error in p at time 0.057375:
+  L1-norm:  1.379960989
+  L2-norm:  1.918684381
+  max-norm: 6.591392886
+
+At beginning of timestep # 230
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.25919e-12
+
+Writing visualization files...
+
+At beginning of timestep # 231
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.24002e-12
+
+Writing visualization files...
+
+At beginning of timestep # 232
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.77312e-13
+
+Writing visualization files...
+
+At beginning of timestep # 233
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.25379e-12
+
+Writing visualization files...
+
+At beginning of timestep # 234
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.04294e-12
+
+Writing visualization files...
+
+At beginning of timestep # 235
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.0348e-12
+
+Writing visualization files...
+
+At beginning of timestep # 236
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.05433e-12
+
+Writing visualization files...
+
+At beginning of timestep # 237
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.03265e-12
+
+Writing visualization files...
+
+At beginning of timestep # 238
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.05319e-12
+
+Writing visualization files...
+
+At beginning of timestep # 239
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.00029e-12
+
+Writing visualization files...
+
+Error in u at time 0.06:
+  L1-norm:  0.2025753135
+  L2-norm:  0.256172318
+  max-norm: 0.9631504299
+Error in p at time 0.059875:
+  L1-norm:  1.38003677
+  L2-norm:  1.918834104
+  max-norm: 6.475463171
+
+At beginning of timestep # 240
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.04176e-12
+
+Writing visualization files...
+
+At beginning of timestep # 241
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.04225e-12
+
+Writing visualization files...
+
+At beginning of timestep # 242
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.02731e-12
+
+Writing visualization files...
+
+At beginning of timestep # 243
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.98531e-13
+
+Writing visualization files...
+
+At beginning of timestep # 244
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.03848e-12
+
+Writing visualization files...
+
+At beginning of timestep # 245
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.03407e-12
+
+Writing visualization files...
+
+At beginning of timestep # 246
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.02662e-12
+
+Writing visualization files...
+
+At beginning of timestep # 247
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.04012e-12
+
+Writing visualization files...
+
+At beginning of timestep # 248
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.01664e-12
+
+Writing visualization files...
+
+At beginning of timestep # 249
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.75202e-13
+
+Writing visualization files...
+
+Error in u at time 0.0625:
+  L1-norm:  0.2071183316
+  L2-norm:  0.259155097
+  max-norm: 0.9602115395
+Error in p at time 0.062375:
+  L1-norm:  1.379740134
+  L2-norm:  1.918451842
+  max-norm: 6.389209228
+
+At beginning of timestep # 250
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.1119e-12
+
+Writing visualization files...
+
+At beginning of timestep # 251
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.0313e-12
+
+Writing visualization files...
+
+At beginning of timestep # 252
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.03858e-12
+
+Writing visualization files...
+
+At beginning of timestep # 253
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.05248e-12
+
+Writing visualization files...
+
+At beginning of timestep # 254
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.02716e-12
+
+Writing visualization files...
+
+At beginning of timestep # 255
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.04934e-12
+
+Writing visualization files...
+
+At beginning of timestep # 256
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.70578e-13
+
+Writing visualization files...
+
+At beginning of timestep # 257
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.06126e-12
+
+Writing visualization files...
+
+At beginning of timestep # 258
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.02391e-12
+
+Writing visualization files...
+
+At beginning of timestep # 259
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.01041e-12
+
+Writing visualization files...
+
+Error in u at time 0.065:
+  L1-norm:  0.211380907
+  L2-norm:  0.2619649012
+  max-norm: 0.9385920206
+Error in p at time 0.064875:
+  L1-norm:  1.379181867
+  L2-norm:  1.91816503
+  max-norm: 6.312543204
+
+At beginning of timestep # 260
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.00967e-12
+
+Writing visualization files...
+
+At beginning of timestep # 261
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.96397e-13
+
+Writing visualization files...
+
+At beginning of timestep # 262
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.00677e-12
+
+Writing visualization files...
+
+At beginning of timestep # 263
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.80023e-13
+
+Writing visualization files...
+
+At beginning of timestep # 264
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.00784e-12
+
+Writing visualization files...
+
+At beginning of timestep # 265
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.8032e-13
+
+Writing visualization files...
+
+At beginning of timestep # 266
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.85507e-13
+
+Writing visualization files...
+
+At beginning of timestep # 267
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.77331e-13
+
+Writing visualization files...
+
+At beginning of timestep # 268
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.71032e-13
+
+Writing visualization files...
+
+At beginning of timestep # 269
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.80704e-13
+
+Writing visualization files...
+
+Error in u at time 0.0675:
+  L1-norm:  0.2154775452
+  L2-norm:  0.2646138301
+  max-norm: 0.926846996
+Error in p at time 0.067375:
+  L1-norm:  1.378451944
+  L2-norm:  1.91749382
+  max-norm: 6.165571408
+
+At beginning of timestep # 270
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.4439e-13
+
+Writing visualization files...
+
+At beginning of timestep # 271
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.47697e-13
+
+Writing visualization files...
+
+At beginning of timestep # 272
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.40243e-13
+
+Writing visualization files...
+
+At beginning of timestep # 273
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.67883e-13
+
+Writing visualization files...
+
+At beginning of timestep # 274
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.23142e-13
+
+Writing visualization files...
+
+At beginning of timestep # 275
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.11834e-13
+
+Writing visualization files...
+
+At beginning of timestep # 276
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.59307e-13
+
+Writing visualization files...
+
+At beginning of timestep # 277
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.55854e-13
+
+Writing visualization files...
+
+At beginning of timestep # 278
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.51677e-13
+
+Writing visualization files...
+
+At beginning of timestep # 279
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.46574e-13
+
+Writing visualization files...
+
+Error in u at time 0.07:
+  L1-norm:  0.2194093265
+  L2-norm:  0.2670895615
+  max-norm: 0.9225181598
+Error in p at time 0.069875:
+  L1-norm:  1.377765004
+  L2-norm:  1.916556172
+  max-norm: 6.089251336
+
+At beginning of timestep # 280
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.65041e-13
+
+Writing visualization files...
+
+At beginning of timestep # 281
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.44732e-13
+
+Writing visualization files...
+
+At beginning of timestep # 282
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.70549e-13
+
+Writing visualization files...
+
+At beginning of timestep # 283
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.56957e-13
+
+Writing visualization files...
+
+At beginning of timestep # 284
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.19984e-13
+
+Writing visualization files...
+
+At beginning of timestep # 285
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.24601e-13
+
+Writing visualization files...
+
+At beginning of timestep # 286
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.04625e-13
+
+Writing visualization files...
+
+At beginning of timestep # 287
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.85704e-13
+
+Writing visualization files...
+
+At beginning of timestep # 288
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.06414e-13
+
+Writing visualization files...
+
+At beginning of timestep # 289
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.99528e-13
+
+Writing visualization files...
+
+Error in u at time 0.0725:
+  L1-norm:  0.2231100007
+  L2-norm:  0.2693806512
+  max-norm: 0.9418283095
+Error in p at time 0.072375:
+  L1-norm:  1.37723544
+  L2-norm:  1.915439944
+  max-norm: 5.983671516
+
+At beginning of timestep # 290
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.96743e-13
+
+Writing visualization files...
+
+At beginning of timestep # 291
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.71196e-13
+
+Writing visualization files...
+
+At beginning of timestep # 292
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.00743e-13
+
+Writing visualization files...
+
+At beginning of timestep # 293
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.11399e-13
+
+Writing visualization files...
+
+At beginning of timestep # 294
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.85437e-13
+
+Writing visualization files...
+
+At beginning of timestep # 295
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.89909e-13
+
+Writing visualization files...
+
+At beginning of timestep # 296
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.00377e-13
+
+Writing visualization files...
+
+At beginning of timestep # 297
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.00862e-13
+
+Writing visualization files...
+
+At beginning of timestep # 298
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.04162e-13
+
+Writing visualization files...
+
+At beginning of timestep # 299
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.90656e-13
+
+Writing visualization files...
+
+Error in u at time 0.075:
+  L1-norm:  0.2266436309
+  L2-norm:  0.2714671443
+  max-norm: 0.9382357342
+Error in p at time 0.074875:
+  L1-norm:  1.376970993
+  L2-norm:  1.914106225
+  max-norm: 5.836261332
+
+At beginning of timestep # 300
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.97517e-13
+
+Writing visualization files...
+
+At beginning of timestep # 301
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.28142e-13
+
+Writing visualization files...
+
+At beginning of timestep # 302
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.92796e-13
+
+Writing visualization files...
+
+At beginning of timestep # 303
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.9372e-13
+
+Writing visualization files...
+
+At beginning of timestep # 304
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.95194e-13
+
+Writing visualization files...
+
+At beginning of timestep # 305
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.02883e-13
+
+Writing visualization files...
+
+At beginning of timestep # 306
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.04705e-13
+
+Writing visualization files...
+
+At beginning of timestep # 307
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.99654e-13
+
+Writing visualization files...
+
+At beginning of timestep # 308
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.94269e-13
+
+Writing visualization files...
+
+At beginning of timestep # 309
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.12047e-13
+
+Writing visualization files...
+
+Error in u at time 0.0775:
+  L1-norm:  0.2300491816
+  L2-norm:  0.2733414196
+  max-norm: 0.9536853532
+Error in p at time 0.077375:
+  L1-norm:  1.376615784
+  L2-norm:  1.912567451
+  max-norm: 5.738553299
+
+At beginning of timestep # 310
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.53968e-13
+
+Writing visualization files...
+
+At beginning of timestep # 311
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.3622e-13
+
+Writing visualization files...
+
+At beginning of timestep # 312
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.24887e-13
+
+Writing visualization files...
+
+At beginning of timestep # 313
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.99674e-13
+
+Writing visualization files...
+
+At beginning of timestep # 314
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.00562e-13
+
+Writing visualization files...
+
+At beginning of timestep # 315
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.27246e-13
+
+Writing visualization files...
+
+At beginning of timestep # 316
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.20578e-13
+
+Writing visualization files...
+
+At beginning of timestep # 317
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.19318e-13
+
+Writing visualization files...
+
+At beginning of timestep # 318
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.22399e-13
+
+Writing visualization files...
+
+At beginning of timestep # 319
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.21527e-13
+
+Writing visualization files...
+
+Error in u at time 0.08:
+  L1-norm:  0.2332225683
+  L2-norm:  0.2750010889
+  max-norm: 0.9464694873
+Error in p at time 0.079875:
+  L1-norm:  1.376197835
+  L2-norm:  1.910644132
+  max-norm: 5.642594586
+
+At beginning of timestep # 320
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 8.86138e-13
+
+Writing visualization files...
+
+At beginning of timestep # 321
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.27455e-13
+
+Writing visualization files...
+
+At beginning of timestep # 322
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.5611e-13
+
+Writing visualization files...
+
+At beginning of timestep # 323
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.37983e-13
+
+Writing visualization files...
+
+At beginning of timestep # 324
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.34566e-13
+
+Writing visualization files...
+
+At beginning of timestep # 325
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.40751e-13
+
+Writing visualization files...
+
+At beginning of timestep # 326
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.42505e-13
+
+Writing visualization files...
+
+At beginning of timestep # 327
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.45861e-13
+
+Writing visualization files...
+
+At beginning of timestep # 328
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.57256e-13
+
+Writing visualization files...
+
+At beginning of timestep # 329
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.61365e-13
+
+Writing visualization files...
+
+Error in u at time 0.0825:
+  L1-norm:  0.2362007191
+  L2-norm:  0.2764448365
+  max-norm: 0.9585897283
+Error in p at time 0.082375:
+  L1-norm:  1.375595092
+  L2-norm:  1.908445374
+  max-norm: 5.617692204
+
+At beginning of timestep # 330
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.95475e-13
+
+Writing visualization files...
+
+At beginning of timestep # 331
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.01117e-12
+
+Writing visualization files...
+
+At beginning of timestep # 332
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.00261e-12
+
+Writing visualization files...
+
+At beginning of timestep # 333
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.95277e-13
+
+Writing visualization files...
+
+At beginning of timestep # 334
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.02587e-12
+
+Writing visualization files...
+
+At beginning of timestep # 335
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.01619e-12
+
+Writing visualization files...
+
+At beginning of timestep # 336
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.02359e-12
+
+Writing visualization files...
+
+At beginning of timestep # 337
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.04128e-12
+
+Writing visualization files...
+
+At beginning of timestep # 338
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.04334e-12
+
+Writing visualization files...
+
+At beginning of timestep # 339
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.04496e-12
+
+Writing visualization files...
+
+Error in u at time 0.085:
+  L1-norm:  0.2390495815
+  L2-norm:  0.2776765004
+  max-norm: 0.9471982486
+Error in p at time 0.084875:
+  L1-norm:  1.374894848
+  L2-norm:  1.905970305
+  max-norm: 5.573862155
+
+At beginning of timestep # 340
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.04157e-12
+
+Writing visualization files...
+
+At beginning of timestep # 341
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.06069e-12
+
+Writing visualization files...
+
+At beginning of timestep # 342
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.00243e-12
+
+Writing visualization files...
+
+At beginning of timestep # 343
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.06788e-12
+
+Writing visualization files...
+
+At beginning of timestep # 344
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.07758e-12
+
+Writing visualization files...
+
+At beginning of timestep # 345
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.07918e-12
+
+Writing visualization files...
+
+At beginning of timestep # 346
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.08562e-12
+
+Writing visualization files...
+
+At beginning of timestep # 347
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.10023e-12
+
+Writing visualization files...
+
+At beginning of timestep # 348
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.10098e-12
+
+Writing visualization files...
+
+At beginning of timestep # 349
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.26929e-12
+
+Writing visualization files...
+
+Error in u at time 0.0875:
+  L1-norm:  0.2416931783
+  L2-norm:  0.2786952654
+  max-norm: 0.9566582872
+Error in p at time 0.087375:
+  L1-norm:  1.373764134
+  L2-norm:  1.903025046
+  max-norm: 5.564425659
+
+At beginning of timestep # 350
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.09791e-12
+
+Writing visualization files...
+
+At beginning of timestep # 351
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.12176e-12
+
+Writing visualization files...
+
+At beginning of timestep # 352
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.28441e-12
+
+Writing visualization files...
+
+At beginning of timestep # 353
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.27482e-12
+
+Writing visualization files...
+
+At beginning of timestep # 354
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.28173e-12
+
+Writing visualization files...
+
+At beginning of timestep # 355
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.28669e-12
+
+Writing visualization files...
+
+At beginning of timestep # 356
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.28833e-12
+
+Writing visualization files...
+
+At beginning of timestep # 357
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.30719e-12
+
+Writing visualization files...
+
+At beginning of timestep # 358
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.3088e-12
+
+Writing visualization files...
+
+At beginning of timestep # 359
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.30716e-12
+
+Writing visualization files...
+
+Error in u at time 0.09:
+  L1-norm:  0.2441489553
+  L2-norm:  0.2795030647
+  max-norm: 0.9406959255
+Error in p at time 0.089875:
+  L1-norm:  1.372463998
+  L2-norm:  1.899755708
+  max-norm: 5.518394361
+
+At beginning of timestep # 360
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.30869e-12
+
+Writing visualization files...
+
+At beginning of timestep # 361
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.30202e-12
+
+Writing visualization files...
+
+At beginning of timestep # 362
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.37321e-12
+
+Writing visualization files...
+
+At beginning of timestep # 363
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.33292e-12
+
+Writing visualization files...
+
+At beginning of timestep # 364
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.3655e-12
+
+Writing visualization files...
+
+At beginning of timestep # 365
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.34066e-12
+
+Writing visualization files...
+
+At beginning of timestep # 366
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.35014e-12
+
+Writing visualization files...
+
+At beginning of timestep # 367
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.35145e-12
+
+Writing visualization files...
+
+At beginning of timestep # 368
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.36855e-12
+
+Writing visualization files...
+
+At beginning of timestep # 369
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.37346e-12
+
+Writing visualization files...
+
+Error in u at time 0.0925:
+  L1-norm:  0.246375778
+  L2-norm:  0.2801035796
+  max-norm: 0.9480228785
+Error in p at time 0.092375:
+  L1-norm:  1.370937241
+  L2-norm:  1.896343627
+  max-norm: 5.452529148
+
+At beginning of timestep # 370
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.34708e-12
+
+Writing visualization files...
+
+At beginning of timestep # 371
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.31646e-12
+
+Writing visualization files...
+
+At beginning of timestep # 372
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.30763e-12
+
+Writing visualization files...
+
+At beginning of timestep # 373
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.30067e-12
+
+Writing visualization files...
+
+At beginning of timestep # 374
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.31276e-12
+
+Writing visualization files...
+
+At beginning of timestep # 375
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.36337e-12
+
+Writing visualization files...
+
+At beginning of timestep # 376
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.29808e-12
+
+Writing visualization files...
+
+At beginning of timestep # 377
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.30856e-12
+
+Writing visualization files...
+
+At beginning of timestep # 378
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.31096e-12
+
+Writing visualization files...
+
+At beginning of timestep # 379
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.30177e-12
+
+Writing visualization files...
+
+Error in u at time 0.095:
+  L1-norm:  0.248360085
+  L2-norm:  0.2804968752
+  max-norm: 0.9265912888
+Error in p at time 0.094875:
+  L1-norm:  1.369191738
+  L2-norm:  1.892843135
+  max-norm: 5.376121081
+
+At beginning of timestep # 380
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.30823e-12
+
+Writing visualization files...
+
+At beginning of timestep # 381
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.29985e-12
+
+Writing visualization files...
+
+At beginning of timestep # 382
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.05765e-13
+
+Writing visualization files...
+
+At beginning of timestep # 383
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.1284e-13
+
+Writing visualization files...
+
+At beginning of timestep # 384
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.16896e-13
+
+Writing visualization files...
+
+At beginning of timestep # 385
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.09768e-13
+
+Writing visualization files...
+
+At beginning of timestep # 386
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.13504e-13
+
+Writing visualization files...
+
+At beginning of timestep # 387
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.14713e-13
+
+Writing visualization files...
+
+At beginning of timestep # 388
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.15559e-13
+
+Writing visualization files...
+
+At beginning of timestep # 389
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.20568e-13
+
+Writing visualization files...
+
+Error in u at time 0.0975:
+  L1-norm:  0.2502169174
+  L2-norm:  0.2806849823
+  max-norm: 0.9323120793
+Error in p at time 0.097375:
+  L1-norm:  1.367470459
+  L2-norm:  1.889507981
+  max-norm: 5.295410393
+
+At beginning of timestep # 390
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.19621e-13
+
+Writing visualization files...
+
+At beginning of timestep # 391
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.22745e-13
+
+Writing visualization files...
+
+At beginning of timestep # 392
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.22733e-13
+
+Writing visualization files...
+
+At beginning of timestep # 393
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.18459e-13
+
+Writing visualization files...
+
+At beginning of timestep # 394
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.28479e-13
+
+Writing visualization files...
+
+At beginning of timestep # 395
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.22907e-13
+
+Writing visualization files...
+
+At beginning of timestep # 396
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.26616e-13
+
+Writing visualization files...
+
+At beginning of timestep # 397
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.36211e-13
+
+Writing visualization files...
+
+At beginning of timestep # 398
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.57017e-12
+
+Writing visualization files...
+
+At beginning of timestep # 399
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.31039e-13
+
+Writing visualization files...
+
+Error in u at time 0.1:
+  L1-norm:  0.2518118024
+  L2-norm:  0.2806805269
+  max-norm: 0.9096711464
+Error in p at time 0.099875:
+  L1-norm:  1.365610845
+  L2-norm:  1.886586156
+  max-norm: 5.213410262
+

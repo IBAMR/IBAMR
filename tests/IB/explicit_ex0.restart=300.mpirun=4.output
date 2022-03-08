@@ -5,1132 +5,1132 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing co
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.76494e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.73539e-14
 Error in u at time 0.07525:
-  L1-norm:  0.003032587691
-  L2-norm:  0.003657322861
-  max-norm: 0.02023482515
+  L1-norm:  0.0030326163
+  L2-norm:  0.003657343422
+  max-norm: 0.02023482787
 Error in p at time 0.075125:
-  L1-norm:  0.06100132727
-  L2-norm:  0.2526544998
-  max-norm: 1.920946671
+  L1-norm:  0.0610013279
+  L2-norm:  0.2526545029
+  max-norm: 1.920946591
 
 At beginning of timestep # 301
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.76659e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.74363e-14
 Error in u at time 0.0755:
-  L1-norm:  0.003039241169
-  L2-norm:  0.003662748015
-  max-norm: 0.02023972214
+  L1-norm:  0.003039269762
+  L2-norm:  0.003662768623
+  max-norm: 0.02023972513
 Error in p at time 0.075375:
-  L1-norm:  0.06100023523
-  L2-norm:  0.2526550182
-  max-norm: 1.920899105
+  L1-norm:  0.06100023581
+  L2-norm:  0.2526550213
+  max-norm: 1.920899026
 
 At beginning of timestep # 302
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.76814e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.75133e-14
 Error in u at time 0.07575:
-  L1-norm:  0.00304584308
-  L2-norm:  0.003668144102
-  max-norm: 0.02024436312
+  L1-norm:  0.003045871656
+  L2-norm:  0.003668164757
+  max-norm: 0.02024436639
 Error in p at time 0.075625:
-  L1-norm:  0.06099914033
-  L2-norm:  0.2526555287
-  max-norm: 1.920852478
+  L1-norm:  0.06099914086
+  L2-norm:  0.2526555318
+  max-norm: 1.9208524
 
 At beginning of timestep # 303
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.7696e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.7583e-14
 Error in u at time 0.076:
-  L1-norm:  0.003052427603
-  L2-norm:  0.003673511763
-  max-norm: 0.02024876469
+  L1-norm:  0.00305245629
+  L2-norm:  0.003673532465
+  max-norm: 0.02024876825
 Error in p at time 0.075875:
-  L1-norm:  0.06099804216
-  L2-norm:  0.2526560314
-  max-norm: 1.920806802
+  L1-norm:  0.06099804262
+  L2-norm:  0.2526560345
+  max-norm: 1.920806724
 
 At beginning of timestep # 304
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.77086e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.7649e-14
 Error in u at time 0.07625:
-  L1-norm:  0.003059015695
-  L2-norm:  0.003678851583
-  max-norm: 0.02025291438
+  L1-norm:  0.003059044366
+  L2-norm:  0.003678872332
+  max-norm: 0.0202529182
 Error in p at time 0.076125:
-  L1-norm:  0.06099694122
-  L2-norm:  0.2526565254
-  max-norm: 1.920762076
+  L1-norm:  0.06099694169
+  L2-norm:  0.2526565285
+  max-norm: 1.920761999
 
 At beginning of timestep # 305
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.77205e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.77127e-14
 Error in u at time 0.0765:
-  L1-norm:  0.003065552788
-  L2-norm:  0.003684164127
-  max-norm: 0.02025682133
+  L1-norm:  0.003065581444
+  L2-norm:  0.003684184925
+  max-norm: 0.02025682543
 Error in p at time 0.076375:
-  L1-norm:  0.06099583768
-  L2-norm:  0.2526570124
-  max-norm: 1.920718423
+  L1-norm:  0.06099583806
+  L2-norm:  0.2526570156
+  max-norm: 1.920718347
 
 At beginning of timestep # 306
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.77295e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.77709e-14
 Error in u at time 0.07675:
-  L1-norm:  0.003072118283
-  L2-norm:  0.003689449984
-  max-norm: 0.02026048972
+  L1-norm:  0.003072147097
+  L2-norm:  0.003689470829
+  max-norm: 0.02026049411
 Error in p at time 0.076625:
-  L1-norm:  0.06099473276
-  L2-norm:  0.2526574916
-  max-norm: 1.920675667
+  L1-norm:  0.0609947331
+  L2-norm:  0.2526574947
+  max-norm: 1.920675589
 
 At beginning of timestep # 307
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.77378e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.78249e-14
 Error in u at time 0.077:
-  L1-norm:  0.003078669662
-  L2-norm:  0.00369470974
-  max-norm: 0.02026392394
+  L1-norm:  0.003078698667
+  L2-norm:  0.003694730633
+  max-norm: 0.0202639286
 Error in p at time 0.076875:
-  L1-norm:  0.06099362541
-  L2-norm:  0.2526579627
-  max-norm: 1.920633917
+  L1-norm:  0.06099362571
+  L2-norm:  0.2526579659
+  max-norm: 1.920633843
 
 At beginning of timestep # 308
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.77441e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.78757e-14
 Error in u at time 0.07725:
-  L1-norm:  0.00308526289
-  L2-norm:  0.003699943973
-  max-norm: 0.02026712841
+  L1-norm:  0.003085291879
+  L2-norm:  0.003699964913
+  max-norm: 0.02026713336
 Error in p at time 0.077125:
-  L1-norm:  0.06099251648
-  L2-norm:  0.2526584258
-  max-norm: 1.920593208
+  L1-norm:  0.06099251673
+  L2-norm:  0.252658429
+  max-norm: 1.920593134
 
 At beginning of timestep # 309
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.77485e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.79234e-14
 
 Writing restart files...
 
 Error in u at time 0.0775:
-  L1-norm:  0.003091806391
-  L2-norm:  0.003705153253
-  max-norm: 0.02027010752
+  L1-norm:  0.003091835364
+  L2-norm:  0.003705174242
+  max-norm: 0.02027011276
 Error in p at time 0.077375:
-  L1-norm:  0.06099140592
-  L2-norm:  0.252658881
-  max-norm: 1.920553521
+  L1-norm:  0.06099140613
+  L2-norm:  0.2526588842
+  max-norm: 1.920553448
 
 At beginning of timestep # 310
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.77538e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.79681e-14
 Error in u at time 0.07775:
-  L1-norm:  0.003098299743
-  L2-norm:  0.003710337614
-  max-norm: 0.0202728638
+  L1-norm:  0.003098328699
+  L2-norm:  0.003710358651
+  max-norm: 0.02027286928
 Error in p at time 0.077625:
-  L1-norm:  0.06099026656
-  L2-norm:  0.2526592915
-  max-norm: 1.920514572
+  L1-norm:  0.06099026666
+  L2-norm:  0.2526592946
+  max-norm: 1.9205145
 
 At beginning of timestep # 311
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.77519e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.80103e-14
 Error in u at time 0.078:
-  L1-norm:  0.003104743841
-  L2-norm:  0.003715498326
-  max-norm: 0.02027540414
+  L1-norm:  0.00310477278
+  L2-norm:  0.003715519411
+  max-norm: 0.02027540995
 Error in p at time 0.077875:
-  L1-norm:  0.06098916314
-  L2-norm:  0.2526597431
-  max-norm: 1.920477088
+  L1-norm:  0.06098916333
+  L2-norm:  0.2526597464
+  max-norm: 1.920477017
 
 At beginning of timestep # 312
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.77507e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.805e-14
 Error in u at time 0.07825:
-  L1-norm:  0.003111138636
-  L2-norm:  0.00372063576
-  max-norm: 0.02027773303
+  L1-norm:  0.003111167558
+  L2-norm:  0.003720656894
+  max-norm: 0.02027773866
 Error in p at time 0.078125:
-  L1-norm:  0.06098804958
-  L2-norm:  0.2526601749
-  max-norm: 1.920440559
+  L1-norm:  0.06098804962
+  L2-norm:  0.2526601781
+  max-norm: 1.920440488
 
 At beginning of timestep # 313
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.7747e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.80878e-14
 Error in u at time 0.0785:
-  L1-norm:  0.003117484296
-  L2-norm:  0.003725750458
-  max-norm: 0.02027985496
+  L1-norm:  0.0031175132
+  L2-norm:  0.00372577164
+  max-norm: 0.02027985988
 Error in p at time 0.078375:
-  L1-norm:  0.06098693559
-  L2-norm:  0.2526605992
-  max-norm: 1.9204051
+  L1-norm:  0.06098693561
+  L2-norm:  0.2526606025
+  max-norm: 1.92040503
 
 At beginning of timestep # 314
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.7741e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.81232e-14
 Error in u at time 0.07875:
-  L1-norm:  0.003123780986
-  L2-norm:  0.003730842956
-  max-norm: 0.02028177392
+  L1-norm:  0.003123809871
+  L2-norm:  0.003730864186
+  max-norm: 0.02028177815
 Error in p at time 0.078625:
-  L1-norm:  0.06098582043
-  L2-norm:  0.2526610148
-  max-norm: 1.920370718
+  L1-norm:  0.0609858204
+  L2-norm:  0.252661018
+  max-norm: 1.92037065
 
 At beginning of timestep # 315
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.77326e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.81568e-14
 Error in u at time 0.079:
-  L1-norm:  0.003130034459
-  L2-norm:  0.003735913771
-  max-norm: 0.02028349448
+  L1-norm:  0.003130063396
+  L2-norm:  0.003735935048
+  max-norm: 0.02028349804
 Error in p at time 0.078875:
-  L1-norm:  0.0609847053
-  L2-norm:  0.2526614225
-  max-norm: 1.92033741
+  L1-norm:  0.06098470522
+  L2-norm:  0.2526614257
+  max-norm: 1.920337343
 
 At beginning of timestep # 316
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.7722e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.81885e-14
 Error in u at time 0.07925:
-  L1-norm:  0.00313624434
-  L2-norm:  0.003740963421
-  max-norm: 0.02028502108
+  L1-norm:  0.003136273257
+  L2-norm:  0.003740984747
+  max-norm: 0.02028502398
 Error in p at time 0.079125:
-  L1-norm:  0.06098358988
-  L2-norm:  0.2526618224
-  max-norm: 1.920305223
+  L1-norm:  0.06098358975
+  L2-norm:  0.2526618256
+  max-norm: 1.920305157
 
 At beginning of timestep # 317
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.77088e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.82182e-14
 Error in u at time 0.0795:
-  L1-norm:  0.003142405858
-  L2-norm:  0.003745992419
-  max-norm: 0.02028635827
+  L1-norm:  0.003142434754
+  L2-norm:  0.003746013793
+  max-norm: 0.02028636053
 Error in p at time 0.079375:
-  L1-norm:  0.0609824744
-  L2-norm:  0.2526622135
-  max-norm: 1.920274137
+  L1-norm:  0.06098247423
+  L2-norm:  0.2526622168
+  max-norm: 1.920274072
 
 At beginning of timestep # 318
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.76916e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.82454e-14
 Error in u at time 0.07975:
-  L1-norm:  0.003148548595
-  L2-norm:  0.003751001261
-  max-norm: 0.02028751066
+  L1-norm:  0.003148577908
+  L2-norm:  0.003751022683
+  max-norm: 0.02028751231
 Error in p at time 0.079625:
-  L1-norm:  0.06098135247
-  L2-norm:  0.2526625974
-  max-norm: 1.920244071
+  L1-norm:  0.06098135224
+  L2-norm:  0.2526626007
+  max-norm: 1.920244008
 
 At beginning of timestep # 319
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.76749e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.82729e-14
 
 Writing restart files...
 
 Error in u at time 0.08:
-  L1-norm:  0.003154725624
-  L2-norm:  0.003755990427
-  max-norm: 0.0202884827
+  L1-norm:  0.003154754915
+  L2-norm:  0.003756011897
+  max-norm: 0.02028848374
 Error in p at time 0.079875:
-  L1-norm:  0.06098023972
-  L2-norm:  0.2526629724
-  max-norm: 1.920215251
+  L1-norm:  0.06098023947
+  L2-norm:  0.2526629757
+  max-norm: 1.920215189
 
 At beginning of timestep # 320
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.76536e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.82974e-14
 Error in u at time 0.08025:
-  L1-norm:  0.003160855591
-  L2-norm:  0.003760960426
-  max-norm: 0.02028927914
+  L1-norm:  0.00316088486
+  L2-norm:  0.003760981943
+  max-norm: 0.02028927959
 Error in p at time 0.080125:
-  L1-norm:  0.06097912474
-  L2-norm:  0.2526633387
-  max-norm: 1.920187528
+  L1-norm:  0.06097912443
+  L2-norm:  0.2526633419
+  max-norm: 1.920187467
 
 At beginning of timestep # 321
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.76294e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.83206e-14
 Error in u at time 0.0805:
-  L1-norm:  0.003166938547
-  L2-norm:  0.003765911626
-  max-norm: 0.02028990412
+  L1-norm:  0.003166967793
+  L2-norm:  0.003765933191
+  max-norm: 0.02028990401
 Error in p at time 0.080375:
-  L1-norm:  0.06097800626
-  L2-norm:  0.2526636862
-  max-norm: 1.920160193
+  L1-norm:  0.0609780059
+  L2-norm:  0.2526636894
+  max-norm: 1.920160132
 
 At beginning of timestep # 322
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.76037e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.83419e-14
 Error in u at time 0.08075:
-  L1-norm:  0.003172974805
-  L2-norm:  0.003770844554
-  max-norm: 0.0202903624
+  L1-norm:  0.003173004028
+  L2-norm:  0.003770866166
+  max-norm: 0.02029036175
 Error in p at time 0.080625:
-  L1-norm:  0.06097689458
-  L2-norm:  0.2526640406
-  max-norm: 1.920134965
+  L1-norm:  0.06097689418
+  L2-norm:  0.2526640439
+  max-norm: 1.920134909
 
 At beginning of timestep # 323
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.75745e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.83616e-14
 Error in u at time 0.081:
-  L1-norm:  0.003179001813
-  L2-norm:  0.003775759635
-  max-norm: 0.02029065844
+  L1-norm:  0.003179031262
+  L2-norm:  0.003775781294
+  max-norm: 0.02029065726
 Error in p at time 0.080875:
-  L1-norm:  0.06097578249
-  L2-norm:  0.2526643832
-  max-norm: 1.920110649
+  L1-norm:  0.06097578204
+  L2-norm:  0.2526643865
+  max-norm: 1.920110592
 
 At beginning of timestep # 324
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.75426e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.83796e-14
 Error in u at time 0.08125:
-  L1-norm:  0.003185057141
-  L2-norm:  0.003780657293
-  max-norm: 0.02029079671
+  L1-norm:  0.003185086659
+  L2-norm:  0.003780679
+  max-norm: 0.02029079502
 Error in p at time 0.081125:
-  L1-norm:  0.06097467153
-  L2-norm:  0.2526647177
-  max-norm: 1.92008748
+  L1-norm:  0.06097467103
+  L2-norm:  0.252664721
+  max-norm: 1.920087425
 
 At beginning of timestep # 325
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.75079e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.83958e-14
 Error in u at time 0.0815:
-  L1-norm:  0.003191079239
-  L2-norm:  0.003785537901
-  max-norm: 0.02029078138
+  L1-norm:  0.003191108732
+  L2-norm:  0.003785559654
+  max-norm: 0.02029077921
 Error in p at time 0.081375:
-  L1-norm:  0.06097356136
-  L2-norm:  0.252665044
-  max-norm: 1.920065459
+  L1-norm:  0.06097356082
+  L2-norm:  0.2526650473
+  max-norm: 1.920065405
 
 At beginning of timestep # 326
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.74701e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.84103e-14
 Error in u at time 0.08175:
-  L1-norm:  0.003197059882
-  L2-norm:  0.003790401879
-  max-norm: 0.02029061704
+  L1-norm:  0.003197089815
+  L2-norm:  0.003790423679
+  max-norm: 0.0202906144
 Error in p at time 0.081625:
-  L1-norm:  0.06097245294
-  L2-norm:  0.2526653622
-  max-norm: 1.920044602
+  L1-norm:  0.06097245235
+  L2-norm:  0.2526653655
+  max-norm: 1.92004455
 
 At beginning of timestep # 327
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.74294e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.84229e-14
 Error in u at time 0.082:
-  L1-norm:  0.003203100853
-  L2-norm:  0.003795249624
-  max-norm: 0.02029030813
+  L1-norm:  0.003203130759
+  L2-norm:  0.00379527147
+  max-norm: 0.02029030505
 Error in p at time 0.081875:
-  L1-norm:  0.06097145864
-  L2-norm:  0.2526656723
-  max-norm: 1.920024911
+  L1-norm:  0.06097145811
+  L2-norm:  0.2526656755
+  max-norm: 1.92002486
 
 At beginning of timestep # 328
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.73858e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.84337e-14
 Error in u at time 0.08225:
-  L1-norm:  0.003209187363
-  L2-norm:  0.003800081516
-  max-norm: 0.0202898591
+  L1-norm:  0.003209217475
+  L2-norm:  0.003800103408
+  max-norm: 0.02028985559
 Error in p at time 0.082125:
-  L1-norm:  0.0609705422
-  L2-norm:  0.2526659729
-  max-norm: 1.920006388
+  L1-norm:  0.06097054162
+  L2-norm:  0.2526659761
+  max-norm: 1.920006339
 
 At beginning of timestep # 329
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.7339e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.84423e-14
 
 Writing restart files...
 
 Error in u at time 0.0825:
-  L1-norm:  0.003215237691
-  L2-norm:  0.003804897922
-  max-norm: 0.02028927438
+  L1-norm:  0.003215267775
+  L2-norm:  0.00380491986
+  max-norm: 0.02028927046
 Error in p at time 0.082375:
-  L1-norm:  0.06096962288
-  L2-norm:  0.2526662674
-  max-norm: 1.91998904
+  L1-norm:  0.06096962225
+  L2-norm:  0.2526662707
+  max-norm: 1.919988992
 
 At beginning of timestep # 330
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.72892e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.84491e-14
 Error in u at time 0.08275:
-  L1-norm:  0.003221242664
-  L2-norm:  0.003809699199
-  max-norm: 0.02028855837
+  L1-norm:  0.00322127272
+  L2-norm:  0.003809721183
+  max-norm: 0.02028855406
 Error in p at time 0.082625:
-  L1-norm:  0.06096869978
-  L2-norm:  0.2526665534
-  max-norm: 1.919972867
+  L1-norm:  0.0609686991
+  L2-norm:  0.2526665566
+  max-norm: 1.919972821
 
 At beginning of timestep # 331
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.72364e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.84538e-14
 Error in u at time 0.083:
-  L1-norm:  0.003227300389
-  L2-norm:  0.003814485683
-  max-norm: 0.0202877155
+  L1-norm:  0.003227330683
+  L2-norm:  0.003814507713
+  max-norm: 0.02028771082
 Error in p at time 0.082875:
-  L1-norm:  0.06096782318
-  L2-norm:  0.2526668302
-  max-norm: 1.919957874
+  L1-norm:  0.06096782273
+  L2-norm:  0.2526668334
+  max-norm: 1.919957831
 
 At beginning of timestep # 332
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.71802e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.84564e-14
 Error in u at time 0.08325:
-  L1-norm:  0.003233350203
-  L2-norm:  0.003819257712
-  max-norm: 0.02028675011
+  L1-norm:  0.003233380468
+  L2-norm:  0.003819279786
+  max-norm: 0.02028674508
 Error in p at time 0.083125:
-  L1-norm:  0.06096698421
-  L2-norm:  0.2526671003
-  max-norm: 1.919944058
+  L1-norm:  0.06096698371
+  L2-norm:  0.2526671035
+  max-norm: 1.919944016
 
 At beginning of timestep # 333
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.7121e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.84567e-14
 Error in u at time 0.0835:
-  L1-norm:  0.003239429138
-  L2-norm:  0.003824015598
-  max-norm: 0.02028566655
+  L1-norm:  0.003239459841
+  L2-norm:  0.003824037717
+  max-norm: 0.02028566119
 Error in p at time 0.083375:
-  L1-norm:  0.06096614187
-  L2-norm:  0.252667362
-  max-norm: 1.919931425
+  L1-norm:  0.06096614133
+  L2-norm:  0.2526673652
+  max-norm: 1.919931385
 
 At beginning of timestep # 334
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.70585e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.84549e-14
 Error in u at time 0.08375:
-  L1-norm:  0.003245555148
-  L2-norm:  0.003828759645
-  max-norm: 0.02028446916
+  L1-norm:  0.003245585821
+  L2-norm:  0.003828781809
+  max-norm: 0.02028446348
 Error in p at time 0.083625:
-  L1-norm:  0.0609652964
-  L2-norm:  0.2526676157
-  max-norm: 1.919919974
+  L1-norm:  0.06096529581
+  L2-norm:  0.2526676188
+  max-norm: 1.919919936
 
 At beginning of timestep # 335
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.69934e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.84507e-14
 Error in u at time 0.084:
-  L1-norm:  0.003251637386
-  L2-norm:  0.003833490178
-  max-norm: 0.02028316181
+  L1-norm:  0.003251668027
+  L2-norm:  0.003833512386
+  max-norm: 0.02028315584
 Error in p at time 0.083875:
-  L1-norm:  0.0609644479
-  L2-norm:  0.2526678607
-  max-norm: 1.919909772
+  L1-norm:  0.06096444726
+  L2-norm:  0.2526678638
+  max-norm: 1.919909736
 
 At beginning of timestep # 336
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.69239e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.8445e-14
 Error in u at time 0.08425:
-  L1-norm:  0.003257675904
-  L2-norm:  0.003838207439
-  max-norm: 0.02028174944
+  L1-norm:  0.003257706512
+  L2-norm:  0.003838229691
+  max-norm: 0.0202817432
 Error in p at time 0.084125:
-  L1-norm:  0.06096359592
-  L2-norm:  0.2526680975
-  max-norm: 1.91990067
+  L1-norm:  0.06096359524
+  L2-norm:  0.2526681007
+  max-norm: 1.919900637
 
 At beginning of timestep # 337
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.68523e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.84354e-14
 Error in u at time 0.0845:
-  L1-norm:  0.003263670946
-  L2-norm:  0.003842911688
-  max-norm: 0.02028023604
+  L1-norm:  0.00326370152
+  L2-norm:  0.003842933983
+  max-norm: 0.02028022954
 Error in p at time 0.084375:
-  L1-norm:  0.0609627884
-  L2-norm:  0.2526683272
-  max-norm: 1.919892775
+  L1-norm:  0.06096278787
+  L2-norm:  0.2526683303
+  max-norm: 1.919892743
 
 At beginning of timestep # 338
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.67761e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.84239e-14
 Error in u at time 0.08475:
-  L1-norm:  0.003269622788
-  L2-norm:  0.003847603219
-  max-norm: 0.02027862583
+  L1-norm:  0.003269653328
+  L2-norm:  0.003847625557
+  max-norm: 0.0202786191
 Error in p at time 0.084625:
-  L1-norm:  0.0609620623
-  L2-norm:  0.2526685479
-  max-norm: 1.919886086
+  L1-norm:  0.06096206172
+  L2-norm:  0.252668551
+  max-norm: 1.919886057
 
 At beginning of timestep # 339
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.66978e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.84084e-14
 
 Writing restart files...
 
 Error in u at time 0.085:
-  L1-norm:  0.003275531727
-  L2-norm:  0.003852282364
-  max-norm: 0.02027692319
+  L1-norm:  0.003275562231
+  L2-norm:  0.003852304744
+  max-norm: 0.02027691625
 Error in p at time 0.084875:
-  L1-norm:  0.06096134089
-  L2-norm:  0.2526687573
-  max-norm: 1.919880336
+  L1-norm:  0.06096134026
+  L2-norm:  0.2526687604
+  max-norm: 1.919880305
 
 At beginning of timestep # 340
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.66162e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.83934e-14
 Error in u at time 0.08525:
-  L1-norm:  0.003281397786
-  L2-norm:  0.003856949142
-  max-norm: 0.0202751321
+  L1-norm:  0.003281428254
+  L2-norm:  0.003856971565
+  max-norm: 0.02027512496
 Error in p at time 0.085125:
-  L1-norm:  0.06096061451
-  L2-norm:  0.252668964
-  max-norm: 1.919876044
+  L1-norm:  0.06096061386
+  L2-norm:  0.2526689671
+  max-norm: 1.919876021
 
 At beginning of timestep # 341
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.65308e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.83736e-14
 Error in u at time 0.0855:
-  L1-norm:  0.00328722572
-  L2-norm:  0.003861603819
-  max-norm: 0.02027325674
+  L1-norm:  0.00328725635
+  L2-norm:  0.003861626284
+  max-norm: 0.02027324941
 Error in p at time 0.085375:
-  L1-norm:  0.06095988609
-  L2-norm:  0.2526691614
-  max-norm: 1.919872875
+  L1-norm:  0.06095988539
+  L2-norm:  0.2526691644
+  max-norm: 1.919872851
 
 At beginning of timestep # 342
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.64422e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.83516e-14
 Error in u at time 0.08575:
-  L1-norm:  0.003293027746
-  L2-norm:  0.003866246589
-  max-norm: 0.0202713012
+  L1-norm:  0.003293058338
+  L2-norm:  0.003866269095
+  max-norm: 0.02027129372
 Error in p at time 0.085625:
-  L1-norm:  0.06095915532
-  L2-norm:  0.2526693504
-  max-norm: 1.919870884
+  L1-norm:  0.06095915457
+  L2-norm:  0.2526693535
+  max-norm: 1.919870863
 
 At beginning of timestep # 343
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.63497e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.83267e-14
 Error in u at time 0.086:
-  L1-norm:  0.003298788107
-  L2-norm:  0.003870877866
-  max-norm: 0.02026925666
+  L1-norm:  0.003298818661
+  L2-norm:  0.003870900413
+  max-norm: 0.02026924904
 Error in p at time 0.085875:
-  L1-norm:  0.06095842689
-  L2-norm:  0.2526695488
-  max-norm: 1.919870291
+  L1-norm:  0.06095842612
+  L2-norm:  0.2526695519
+  max-norm: 1.919870271
 
 At beginning of timestep # 344
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.62542e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.82982e-14
 Error in u at time 0.08625:
-  L1-norm:  0.003304506586
-  L2-norm:  0.003875497506
-  max-norm: 0.02026714542
+  L1-norm:  0.0033045371
+  L2-norm:  0.003875520094
+  max-norm: 0.02026713769
 Error in p at time 0.086125:
-  L1-norm:  0.06095769035
-  L2-norm:  0.2526697161
-  max-norm: 1.919870577
+  L1-norm:  0.06095768951
+  L2-norm:  0.2526697191
+  max-norm: 1.919870561
 
 At beginning of timestep # 345
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.61558e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.82688e-14
 Error in u at time 0.0865:
-  L1-norm:  0.003310183609
-  L2-norm:  0.003880105782
-  max-norm: 0.02026496694
+  L1-norm:  0.003310214083
+  L2-norm:  0.00388012841
+  max-norm: 0.0202649591
 Error in p at time 0.086375:
-  L1-norm:  0.06095695966
-  L2-norm:  0.2526698852
-  max-norm: 1.919872274
+  L1-norm:  0.060956959
+  L2-norm:  0.2526698882
+  max-norm: 1.91987226
 
 At beginning of timestep # 346
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.60538e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.82341e-14
 Error in u at time 0.08675:
-  L1-norm:  0.003315832455
-  L2-norm:  0.003884702786
-  max-norm: 0.02026272493
+  L1-norm:  0.003315863057
+  L2-norm:  0.003884725453
+  max-norm: 0.02026271701
 Error in p at time 0.086625:
-  L1-norm:  0.06095632255
-  L2-norm:  0.2526700409
-  max-norm: 1.919874928
+  L1-norm:  0.06095632194
+  L2-norm:  0.2526700439
+  max-norm: 1.919874915
 
 At beginning of timestep # 347
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.59487e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.81983e-14
 Error in u at time 0.087:
-  L1-norm:  0.003321445237
-  L2-norm:  0.003889288588
-  max-norm: 0.02026042318
+  L1-norm:  0.003321475798
+  L2-norm:  0.003889311295
+  max-norm: 0.02026041521
 Error in p at time 0.086875:
-  L1-norm:  0.06095571913
-  L2-norm:  0.2526701871
-  max-norm: 1.919878787
+  L1-norm:  0.06095571849
+  L2-norm:  0.25267019
+  max-norm: 1.919878777
 
 At beginning of timestep # 348
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.58401e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.81586e-14
 Error in u at time 0.08725:
-  L1-norm:  0.003327020449
-  L2-norm:  0.003893863404
-  max-norm: 0.0202580658
+  L1-norm:  0.003327051217
+  L2-norm:  0.003893886149
+  max-norm: 0.02025805777
 Error in p at time 0.087125:
-  L1-norm:  0.06095511503
-  L2-norm:  0.2526703289
-  max-norm: 1.919883832
+  L1-norm:  0.06095511436
+  L2-norm:  0.2526703318
+  max-norm: 1.919883824
 
 At beginning of timestep # 349
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.57282e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.8116e-14
 
 Writing restart files...
 
 Error in u at time 0.0875:
-  L1-norm:  0.003332655344
-  L2-norm:  0.003898427309
-  max-norm: 0.02025565659
+  L1-norm:  0.00333268607
+  L2-norm:  0.003898450092
+  max-norm: 0.02025564853
 Error in p at time 0.087375:
-  L1-norm:  0.06095450828
-  L2-norm:  0.2526704627
-  max-norm: 1.919890018
+  L1-norm:  0.06095450757
+  L2-norm:  0.2526704656
+  max-norm: 1.919890012
 
 At beginning of timestep # 350
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.56144e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.80724e-14
 Error in u at time 0.08775:
-  L1-norm:  0.003338259719
-  L2-norm:  0.003902980606
-  max-norm: 0.02025319792
+  L1-norm:  0.003338290462
+  L2-norm:  0.003903003426
+  max-norm: 0.02025318985
 Error in p at time 0.087625:
-  L1-norm:  0.06095391624
-  L2-norm:  0.2526705951
-  max-norm: 1.919897915
+  L1-norm:  0.06095391552
+  L2-norm:  0.2526705979
+  max-norm: 1.919897913
 
 At beginning of timestep # 351
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.54944e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.80207e-14
 Error in u at time 0.088:
-  L1-norm:  0.003343832095
-  L2-norm:  0.00390752309
-  max-norm: 0.02025069535
+  L1-norm:  0.003343862795
+  L2-norm:  0.003907545947
+  max-norm: 0.02025068728
 Error in p at time 0.087875:
-  L1-norm:  0.06095330195
-  L2-norm:  0.2526707106
-  max-norm: 1.919906249
+  L1-norm:  0.06095330116
+  L2-norm:  0.2526707134
+  max-norm: 1.919906247
 
 At beginning of timestep # 352
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.5373e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.79699e-14
 Error in u at time 0.08825:
-  L1-norm:  0.003349364471
-  L2-norm:  0.003912054901
-  max-norm: 0.02024815213
+  L1-norm:  0.003349395126
+  L2-norm:  0.003912077795
+  max-norm: 0.02024814409
 Error in p at time 0.088125:
-  L1-norm:  0.06095269105
-  L2-norm:  0.2526708204
-  max-norm: 1.919915906
+  L1-norm:  0.06095269025
+  L2-norm:  0.2526708232
+  max-norm: 1.919915908
 
 At beginning of timestep # 353
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.52477e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.7915e-14
 Error in u at time 0.0885:
-  L1-norm:  0.003354857089
-  L2-norm:  0.003916576101
-  max-norm: 0.02024557197
+  L1-norm:  0.003354887698
+  L2-norm:  0.00391659903
+  max-norm: 0.02024556397
 Error in p at time 0.088375:
-  L1-norm:  0.06095207978
-  L2-norm:  0.2526709225
-  max-norm: 1.91992667
+  L1-norm:  0.06095207894
+  L2-norm:  0.2526709253
+  max-norm: 1.919926674
 
 At beginning of timestep # 354
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.51196e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.78571e-14
 Error in u at time 0.08875:
-  L1-norm:  0.003360310152
-  L2-norm:  0.003921086723
-  max-norm: 0.02024295847
+  L1-norm:  0.003360340715
+  L2-norm:  0.003921109687
+  max-norm: 0.02024295053
 Error in p at time 0.088625:
-  L1-norm:  0.06095149824
-  L2-norm:  0.2526710168
-  max-norm: 1.919938622
+  L1-norm:  0.06095149767
+  L2-norm:  0.2526710196
+  max-norm: 1.919938629
 
 At beginning of timestep # 355
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.49878e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.77957e-14
 Error in u at time 0.089:
-  L1-norm:  0.00336577544
-  L2-norm:  0.003925586796
-  max-norm: 0.02024031525
+  L1-norm:  0.003365805943
+  L2-norm:  0.003925609794
+  max-norm: 0.02024030739
 Error in p at time 0.088875:
-  L1-norm:  0.0609509781
-  L2-norm:  0.2526711036
-  max-norm: 1.919951696
+  L1-norm:  0.0609509775
+  L2-norm:  0.2526711063
+  max-norm: 1.919951704
 
 At beginning of timestep # 356
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.48537e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.77318e-14
 Error in u at time 0.08925:
-  L1-norm:  0.003371327006
-  L2-norm:  0.003930076258
-  max-norm: 0.0202376455
+  L1-norm:  0.003371357464
+  L2-norm:  0.00393009929
+  max-norm: 0.02023763772
 Error in p at time 0.089125:
-  L1-norm:  0.0609504559
-  L2-norm:  0.2526711835
-  max-norm: 1.919965862
+  L1-norm:  0.06095045527
+  L2-norm:  0.2526711862
+  max-norm: 1.919965873
 
 At beginning of timestep # 357
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.47148e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.7664e-14
 Error in u at time 0.0895:
-  L1-norm:  0.003376973024
-  L2-norm:  0.003934555233
-  max-norm: 0.02023495318
+  L1-norm:  0.003377004089
+  L2-norm:  0.003934578298
+  max-norm: 0.02023494551
 Error in p at time 0.089375:
-  L1-norm:  0.06094993279
-  L2-norm:  0.2526712543
-  max-norm: 1.919981192
+  L1-norm:  0.06094993214
+  L2-norm:  0.2526712569
+  max-norm: 1.919981206
 
 At beginning of timestep # 358
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.45737e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.75932e-14
 Error in u at time 0.08975:
-  L1-norm:  0.003382618762
-  L2-norm:  0.003939023666
-  max-norm: 0.02023224165
+  L1-norm:  0.003382649782
+  L2-norm:  0.003939046764
+  max-norm: 0.02023223411
 Error in p at time 0.089625:
-  L1-norm:  0.06094940745
-  L2-norm:  0.2526713173
-  max-norm: 1.919997626
+  L1-norm:  0.06094940677
+  L2-norm:  0.2526713199
+  max-norm: 1.919997643
 
 At beginning of timestep # 359
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.44291e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.7519e-14
 
 Writing restart files...
 
 Error in u at time 0.09:
-  L1-norm:  0.003388224805
-  L2-norm:  0.003943481572
-  max-norm: 0.02022951436
+  L1-norm:  0.003388255778
+  L2-norm:  0.003943504702
+  max-norm: 0.02022950696
 Error in p at time 0.089875:
-  L1-norm:  0.06094888087
-  L2-norm:  0.2526713732
-  max-norm: 1.920015171
+  L1-norm:  0.06094888016
+  L2-norm:  0.2526713758
+  max-norm: 1.92001519
 
 At beginning of timestep # 360
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.42814e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.74417e-14
 Error in u at time 0.09025:
-  L1-norm:  0.00339391225
-  L2-norm:  0.00394792892
-  max-norm: 0.02022677468
+  L1-norm:  0.003393943601
+  L2-norm:  0.003947952081
+  max-norm: 0.02022676744
 Error in p at time 0.090125:
-  L1-norm:  0.06094835253
-  L2-norm:  0.2526714214
-  max-norm: 1.920033817
+  L1-norm:  0.06094835179
+  L2-norm:  0.252671424
+  max-norm: 1.920033839
 
 At beginning of timestep # 361
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.41306e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.73607e-14
 Error in u at time 0.0905:
-  L1-norm:  0.003399660105
-  L2-norm:  0.00395236577
-  max-norm: 0.02022402619
+  L1-norm:  0.003399691409
+  L2-norm:  0.003952388961
+  max-norm: 0.02022401912
 Error in p at time 0.090375:
-  L1-norm:  0.06094781988
-  L2-norm:  0.2526714629
-  max-norm: 1.920053632
+  L1-norm:  0.06094781911
+  L2-norm:  0.2526714655
+  max-norm: 1.920053656
 
 At beginning of timestep # 362
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.39763e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.72771e-14
 Error in u at time 0.09075:
-  L1-norm:  0.003405367894
-  L2-norm:  0.003956791936
-  max-norm: 0.02022127185
+  L1-norm:  0.003405399149
+  L2-norm:  0.003956815157
+  max-norm: 0.02022126497
 Error in p at time 0.090625:
-  L1-norm:  0.06094731327
-  L2-norm:  0.2526714958
-  max-norm: 1.920074439
+  L1-norm:  0.06094731278
+  L2-norm:  0.2526714983
+  max-norm: 1.920074465
 
 At beginning of timestep # 363
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.38193e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.719e-14
 Error in u at time 0.091:
-  L1-norm:  0.003411099448
-  L2-norm:  0.003961207399
-  max-norm: 0.02021851499
+  L1-norm:  0.003411130961
+  L2-norm:  0.003961230648
+  max-norm: 0.02021850831
 Error in p at time 0.090875:
-  L1-norm:  0.06094687967
-  L2-norm:  0.2526715216
-  max-norm: 1.920096353
+  L1-norm:  0.06094687915
+  L2-norm:  0.2526715241
+  max-norm: 1.92009638
 
 At beginning of timestep # 364
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.3659e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.70995e-14
 Error in u at time 0.09125:
-  L1-norm:  0.003416917851
-  L2-norm:  0.003965612093
-  max-norm: 0.02021575883
+  L1-norm:  0.003416949535
+  L2-norm:  0.003965635371
+  max-norm: 0.02021575237
 Error in p at time 0.091125:
-  L1-norm:  0.06094644429
-  L2-norm:  0.2526715399
-  max-norm: 1.920119339
+  L1-norm:  0.06094644375
+  L2-norm:  0.2526715424
+  max-norm: 1.920119367
 
 At beginning of timestep # 365
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.34983e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.69976e-14
 Error in u at time 0.0915:
-  L1-norm:  0.003422708252
-  L2-norm:  0.003970006128
-  max-norm: 0.020213008
+  L1-norm:  0.003422739886
+  L2-norm:  0.003970029433
+  max-norm: 0.02021300176
 Error in p at time 0.091375:
-  L1-norm:  0.06094600605
-  L2-norm:  0.252671546
-  max-norm: 1.92014329
+  L1-norm:  0.06094600551
+  L2-norm:  0.2526715485
+  max-norm: 1.920143316
 
 At beginning of timestep # 366
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.33315e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.69072e-14
 Error in u at time 0.09175:
-  L1-norm:  0.003428458869
-  L2-norm:  0.003974389227
-  max-norm: 0.0202102639
+  L1-norm:  0.003428490453
+  L2-norm:  0.003974412558
+  max-norm: 0.02021025793
 Error in p at time 0.091625:
-  L1-norm:  0.06094564856
-  L2-norm:  0.2526715327
-  max-norm: 1.920167472
+  L1-norm:  0.06094564832
+  L2-norm:  0.2526715351
+  max-norm: 1.920167504
 
 At beginning of timestep # 367
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.31598e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.68102e-14
 Error in u at time 0.092:
-  L1-norm:  0.003434175632
-  L2-norm:  0.003978761277
-  max-norm: 0.0202075298
+  L1-norm:  0.003434207146
+  L2-norm:  0.003978784634
+  max-norm: 0.02020752409
 Error in p at time 0.091875:
-  L1-norm:  0.0609453064
-  L2-norm:  0.2526715348
-  max-norm: 1.920193936
+  L1-norm:  0.06094530623
+  L2-norm:  0.2526715371
+  max-norm: 1.920193969
 
 At beginning of timestep # 368
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.29881e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.67054e-14
 Error in u at time 0.09225:
-  L1-norm:  0.003439913635
-  L2-norm:  0.003983122198
-  max-norm: 0.02020480878
+  L1-norm:  0.003439945097
+  L2-norm:  0.00398314558
+  max-norm: 0.02020480335
 Error in p at time 0.092125:
-  L1-norm:  0.06094496169
-  L2-norm:  0.2526715235
-  max-norm: 1.920221134
+  L1-norm:  0.06094496146
+  L2-norm:  0.2526715259
+  max-norm: 1.920221165
 
 At beginning of timestep # 369
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.28129e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.65984e-14
 
 Writing restart files...
 
 Error in u at time 0.0925:
-  L1-norm:  0.00344561181
-  L2-norm:  0.00398747188
-  max-norm: 0.02020210389
+  L1-norm:  0.003445643219
+  L2-norm:  0.003987495286
+  max-norm: 0.02020209875
 Error in p at time 0.092375:
-  L1-norm:  0.06094461493
-  L2-norm:  0.2526715051
-  max-norm: 1.920249363
+  L1-norm:  0.06094461468
+  L2-norm:  0.2526715074
+  max-norm: 1.920249395
 
 At beginning of timestep # 370
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.26345e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.64891e-14
 Error in u at time 0.09275:
-  L1-norm:  0.003451305994
-  L2-norm:  0.003991810237
-  max-norm: 0.02019941826
+  L1-norm:  0.003451337523
+  L2-norm:  0.003991833666
+  max-norm: 0.02019941343
 Error in p at time 0.092625:
-  L1-norm:  0.06094426633
-  L2-norm:  0.2526714794
-  max-norm: 1.920278627
+  L1-norm:  0.06094426607
+  L2-norm:  0.2526714817
+  max-norm: 1.920278661
 
 At beginning of timestep # 371
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.24546e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.63799e-14
 Error in u at time 0.093:
-  L1-norm:  0.003456977649
-  L2-norm:  0.003996136906
-  max-norm: 0.02019675394
+  L1-norm:  0.003457009125
+  L2-norm:  0.003996160358
+  max-norm: 0.02019674943
 Error in p at time 0.092875:
-  L1-norm:  0.06094391466
-  L2-norm:  0.2526714616
-  max-norm: 1.92030891
+  L1-norm:  0.06094391437
+  L2-norm:  0.2526714638
+  max-norm: 1.920308944
 
 At beginning of timestep # 372
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.22688e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.62588e-14
 Error in u at time 0.09325:
-  L1-norm:  0.003462609779
-  L2-norm:  0.004000452054
-  max-norm: 0.0201941148
+  L1-norm:  0.0034626412
+  L2-norm:  0.004000475527
+  max-norm: 0.02019411064
 Error in p at time 0.093125:
-  L1-norm:  0.0609435622
-  L2-norm:  0.2526714169
-  max-norm: 1.920340198
+  L1-norm:  0.06094356191
+  L2-norm:  0.2526714191
+  max-norm: 1.920340234
 
 At beginning of timestep # 373
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.20826e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.6141e-14
 Error in u at time 0.0935:
-  L1-norm:  0.003468202431
-  L2-norm:  0.004004755462
-  max-norm: 0.02019150344
+  L1-norm:  0.003468233796
+  L2-norm:  0.004004778956
+  max-norm: 0.02019149963
 Error in p at time 0.093375:
-  L1-norm:  0.06094320739
-  L2-norm:  0.2526713701
-  max-norm: 1.920372492
+  L1-norm:  0.06094320707
+  L2-norm:  0.2526713723
+  max-norm: 1.920372526
 
 At beginning of timestep # 374
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.1893e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.60186e-14
 Error in u at time 0.09375:
-  L1-norm:  0.003473755712
-  L2-norm:  0.00400904698
-  max-norm: 0.0201889226
+  L1-norm:  0.003473787021
+  L2-norm:  0.004009070494
+  max-norm: 0.02018891914
 Error in p at time 0.093625:
-  L1-norm:  0.06094285055
-  L2-norm:  0.2526713164
-  max-norm: 1.920405776
+  L1-norm:  0.06094285022
+  L2-norm:  0.2526713185
+  max-norm: 1.920405811
 
 At beginning of timestep # 375
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.17008e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.58932e-14
 Error in u at time 0.094:
-  L1-norm:  0.003479269729
-  L2-norm:  0.004013326452
-  max-norm: 0.02018637499
+  L1-norm:  0.003479300981
+  L2-norm:  0.004013349985
+  max-norm: 0.02018637192
 Error in p at time 0.093875:
-  L1-norm:  0.06094249161
-  L2-norm:  0.2526712557
-  max-norm: 1.920440044
+  L1-norm:  0.06094249126
+  L2-norm:  0.2526712578
+  max-norm: 1.920440078
 
 At beginning of timestep # 376
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.15059e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.5765e-14
 Error in u at time 0.09425:
-  L1-norm:  0.003484744595
-  L2-norm:  0.00401759372
-  max-norm: 0.02018386329
+  L1-norm:  0.003484775789
+  L2-norm:  0.00401761727
+  max-norm: 0.0201838606
 Error in p at time 0.094125:
-  L1-norm:  0.06094213074
-  L2-norm:  0.2526711883
-  max-norm: 1.920475291
+  L1-norm:  0.06094213038
+  L2-norm:  0.2526711904
+  max-norm: 1.920475326
 
 At beginning of timestep # 377
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.13084e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.56336e-14
 Error in u at time 0.0945:
-  L1-norm:  0.003490201518
-  L2-norm:  0.004021848616
-  max-norm: 0.02018139013
+  L1-norm:  0.003490232779
+  L2-norm:  0.004021872184
+  max-norm: 0.02018138784
 Error in p at time 0.094375:
-  L1-norm:  0.06094176777
-  L2-norm:  0.252671114
-  max-norm: 1.920511503
+  L1-norm:  0.06094176739
+  L2-norm:  0.2526711161
+  max-norm: 1.920511538
 
 At beginning of timestep # 378
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.11082e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.54991e-14
 Error in u at time 0.09475:
-  L1-norm:  0.003495670592
-  L2-norm:  0.004026090965
-  max-norm: 0.02017895809
+  L1-norm:  0.003495701794
+  L2-norm:  0.004026114549
+  max-norm: 0.02017895622
 Error in p at time 0.094625:
-  L1-norm:  0.06094140274
-  L2-norm:  0.2526710331
-  max-norm: 1.92054867
+  L1-norm:  0.06094140234
+  L2-norm:  0.2526710351
+  max-norm: 1.920548705
 
 At beginning of timestep # 379
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.09055e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.53617e-14
 
 Writing restart files...
 
 Error in u at time 0.095:
-  L1-norm:  0.003501100433
-  L2-norm:  0.004030320585
-  max-norm: 0.02017656972
+  L1-norm:  0.003501131576
+  L2-norm:  0.004030344184
+  max-norm: 0.02017656827
 Error in p at time 0.094875:
-  L1-norm:  0.06094103564
-  L2-norm:  0.2526709454
-  max-norm: 1.920586783
+  L1-norm:  0.06094103523
+  L2-norm:  0.2526709474
+  max-norm: 1.920586818
 
 At beginning of timestep # 380
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.07003e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.52213e-14
 Error in u at time 0.09525:
-  L1-norm:  0.003506491148
-  L2-norm:  0.00403453729
-  max-norm: 0.0201742275
+  L1-norm:  0.00350652223
+  L2-norm:  0.004034560903
+  max-norm: 0.02017422649
 Error in p at time 0.095125:
-  L1-norm:  0.06094066649
-  L2-norm:  0.2526708511
-  max-norm: 1.920625833
+  L1-norm:  0.06094066606
+  L2-norm:  0.2526708531
+  max-norm: 1.920625868
 
 At beginning of timestep # 381
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.04927e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.50781e-14
 Error in u at time 0.0955:
-  L1-norm:  0.003511886618
-  L2-norm:  0.004038740888
-  max-norm: 0.02017193389
+  L1-norm:  0.003511917872
+  L2-norm:  0.004038764514
+  max-norm: 0.02017193334
 Error in p at time 0.095375:
-  L1-norm:  0.06094029529
-  L2-norm:  0.2526707503
-  max-norm: 1.92066581
+  L1-norm:  0.06094029485
+  L2-norm:  0.2526707522
+  max-norm: 1.920665846
 
 At beginning of timestep # 382
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.02826e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.4932e-14
 Error in u at time 0.09575:
-  L1-norm:  0.003517287736
-  L2-norm:  0.004042931182
-  max-norm: 0.0201696913
+  L1-norm:  0.003517318926
+  L2-norm:  0.00404295482
+  max-norm: 0.02016969121
 Error in p at time 0.095625:
-  L1-norm:  0.06093992206
-  L2-norm:  0.2526706431
-  max-norm: 1.920706707
+  L1-norm:  0.0609399216
+  L2-norm:  0.2526706449
+  max-norm: 1.920706743
 
 At beginning of timestep # 383
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.00702e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.47831e-14
 Error in u at time 0.096:
-  L1-norm:  0.003522649599
-  L2-norm:  0.004047107972
-  max-norm: 0.02016750209
+  L1-norm:  0.003522680726
+  L2-norm:  0.004047131622
+  max-norm: 0.02016750248
 Error in p at time 0.095875:
-  L1-norm:  0.06093954678
-  L2-norm:  0.2526705294
-  max-norm: 1.920748511
+  L1-norm:  0.0609395463
+  L2-norm:  0.2526705312
+  max-norm: 1.920748547
 
 At beginning of timestep # 384
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.98554e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.46316e-14
 Error in u at time 0.09625:
-  L1-norm:  0.003527972313
-  L2-norm:  0.004051271057
-  max-norm: 0.02016536859
+  L1-norm:  0.003528003375
+  L2-norm:  0.004051294716
+  max-norm: 0.02016536946
 Error in p at time 0.096125:
-  L1-norm:  0.06093916948
-  L2-norm:  0.2526704095
-  max-norm: 1.920791215
+  L1-norm:  0.06093916899
+  L2-norm:  0.2526704113
+  max-norm: 1.920791252
 
 At beginning of timestep # 385
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.96385e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.44772e-14
 Error in u at time 0.0965:
-  L1-norm:  0.003533255985
-  L2-norm:  0.004055420226
-  max-norm: 0.02016329308
+  L1-norm:  0.003533286981
+  L2-norm:  0.004055443895
+  max-norm: 0.02016329445
 Error in p at time 0.096375:
-  L1-norm:  0.06093879015
-  L2-norm:  0.2526702833
-  max-norm: 1.920834807
+  L1-norm:  0.06093878964
+  L2-norm:  0.2526702851
+  max-norm: 1.920834844
 
 At beginning of timestep # 386
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.94193e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.43202e-14
 Error in u at time 0.09675:
-  L1-norm:  0.003538500724
-  L2-norm:  0.004059555272
-  max-norm: 0.02016127786
+  L1-norm:  0.003538531654
+  L2-norm:  0.004059578948
+  max-norm: 0.02016127974
 Error in p at time 0.096625:
-  L1-norm:  0.06093849969
-  L2-norm:  0.2526701509
-  max-norm: 1.920879277
+  L1-norm:  0.06093849961
+  L2-norm:  0.2526701527
+  max-norm: 1.920879315
 
 At beginning of timestep # 387
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.91981e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.41605e-14
 Error in u at time 0.097:
-  L1-norm:  0.003543706644
-  L2-norm:  0.004063675981
-  max-norm: 0.02015932528
+  L1-norm:  0.003543737506
+  L2-norm:  0.004063699664
+  max-norm: 0.02015932768
 Error in p at time 0.096875:
-  L1-norm:  0.06093821571
-  L2-norm:  0.2526700125
-  max-norm: 1.920924616
+  L1-norm:  0.06093821563
+  L2-norm:  0.2526700142
+  max-norm: 1.920924654
 
 At beginning of timestep # 388
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.89747e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.39985e-14
 Error in u at time 0.09725:
-  L1-norm:  0.003548873858
-  L2-norm:  0.004067782136
-  max-norm: 0.02015743744
+  L1-norm:  0.003548904652
+  L2-norm:  0.004067805825
+  max-norm: 0.02015744036
 Error in p at time 0.097125:
-  L1-norm:  0.06093792966
-  L2-norm:  0.2526698679
-  max-norm: 1.920970814
+  L1-norm:  0.06093792956
+  L2-norm:  0.2526698696
+  max-norm: 1.920970852
 
 At beginning of timestep # 389
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.87494e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.38338e-14
 
 Writing restart files...
 
 Error in u at time 0.0975:
-  L1-norm:  0.003554002482
-  L2-norm:  0.004071873517
-  max-norm: 0.02015561644
+  L1-norm:  0.003554033207
+  L2-norm:  0.004071897211
+  max-norm: 0.02015561991
 Error in p at time 0.097375:
-  L1-norm:  0.06093764137
-  L2-norm:  0.2526697174
-  max-norm: 1.921017858
+  L1-norm:  0.06093764126
+  L2-norm:  0.252669719
+  max-norm: 1.921017898
 
 At beginning of timestep # 390
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.85221e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.36667e-14
 Error in u at time 0.09775:
-  L1-norm:  0.003559092635
-  L2-norm:  0.004075949901
-  max-norm: 0.02015386436
+  L1-norm:  0.00355912329
+  L2-norm:  0.004075973599
+  max-norm: 0.02015386838
 Error in p at time 0.097625:
-  L1-norm:  0.06093735093
-  L2-norm:  0.252669561
-  max-norm: 1.921065741
+  L1-norm:  0.06093735081
+  L2-norm:  0.2526695626
+  max-norm: 1.921065781
 
 At beginning of timestep # 391
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.82929e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.34973e-14
 Error in u at time 0.098:
-  L1-norm:  0.003564144437
-  L2-norm:  0.004080011065
-  max-norm: 0.02015218322
+  L1-norm:  0.003564175022
+  L2-norm:  0.004080034765
+  max-norm: 0.02015218781
 Error in p at time 0.097875:
-  L1-norm:  0.06093705836
-  L2-norm:  0.2526693989
-  max-norm: 1.921114451
+  L1-norm:  0.06093705822
+  L2-norm:  0.2526694004
+  max-norm: 1.921114492
 
 At beginning of timestep # 392
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.80619e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.33255e-14
 Error in u at time 0.09825:
-  L1-norm:  0.003569205396
-  L2-norm:  0.004084056782
-  max-norm: 0.02015057502
+  L1-norm:  0.003569236128
+  L2-norm:  0.004084080484
+  max-norm: 0.02015058018
 Error in p at time 0.098125:
-  L1-norm:  0.06093676367
-  L2-norm:  0.2526692311
-  max-norm: 1.921163978
+  L1-norm:  0.06093676352
+  L2-norm:  0.2526692326
+  max-norm: 1.921164019
 
 At beginning of timestep # 393
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.78291e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.31516e-14
 Error in u at time 0.0985:
-  L1-norm:  0.003574243897
-  L2-norm:  0.004088086826
-  max-norm: 0.02014904171
+  L1-norm:  0.003574274556
+  L2-norm:  0.004088110528
+  max-norm: 0.02014904744
 Error in p at time 0.098375:
-  L1-norm:  0.06093646688
-  L2-norm:  0.2526690577
-  max-norm: 1.921214311
+  L1-norm:  0.06093646671
+  L2-norm:  0.2526690592
+  max-norm: 1.921214353
 
 At beginning of timestep # 394
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.75947e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.29754e-14
 Error in u at time 0.09875:
-  L1-norm:  0.00357924405
-  L2-norm:  0.004092100967
-  max-norm: 0.0201475852
+  L1-norm:  0.003579274636
+  L2-norm:  0.004092124668
+  max-norm: 0.02014759153
 Error in p at time 0.098625:
-  L1-norm:  0.06093628162
-  L2-norm:  0.2526688788
-  max-norm: 1.92126544
+  L1-norm:  0.06093628168
+  L2-norm:  0.2526688803
+  max-norm: 1.921265483
 
 At beginning of timestep # 395
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.73587e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.27973e-14
 Error in u at time 0.099:
-  L1-norm:  0.003584205987
-  L2-norm:  0.004096098969
-  max-norm: 0.02014620745
+  L1-norm:  0.003584236498
+  L2-norm:  0.004096122668
+  max-norm: 0.02014621437
 Error in p at time 0.098875:
-  L1-norm:  0.06093616988
-  L2-norm:  0.2526686909
-  max-norm: 1.921317388
+  L1-norm:  0.06093616993
+  L2-norm:  0.2526686923
+  max-norm: 1.921317433
 
 At beginning of timestep # 396
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.7121e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.26166e-14
 Error in u at time 0.09925:
-  L1-norm:  0.003589129819
-  L2-norm:  0.004100080614
-  max-norm: 0.0201449102
+  L1-norm:  0.003589160254
+  L2-norm:  0.00410010431
+  max-norm: 0.02014491773
 Error in p at time 0.099125:
-  L1-norm:  0.06093606268
-  L2-norm:  0.2526685024
-  max-norm: 1.921370068
+  L1-norm:  0.06093606273
+  L2-norm:  0.2526685038
+  max-norm: 1.921370113
 
 At beginning of timestep # 397
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.6882e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.24345e-14
 Error in u at time 0.0995:
-  L1-norm:  0.003594015671
-  L2-norm:  0.00410404567
-  max-norm: 0.02014369529
+  L1-norm:  0.00359404603
+  L2-norm:  0.004104069362
+  max-norm: 0.02014370344
 Error in p at time 0.099375:
-  L1-norm:  0.06093595764
-  L2-norm:  0.2526683075
-  max-norm: 1.921423522
+  L1-norm:  0.06093595768
+  L2-norm:  0.2526683088
+  max-norm: 1.921423568
 
 At beginning of timestep # 398
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.66415e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.22505e-14
 Error in u at time 0.09975:
-  L1-norm:  0.003598863674
-  L2-norm:  0.004107993911
-  max-norm: 0.02014256448
+  L1-norm:  0.003598893956
+  L2-norm:  0.004108017597
+  max-norm: 0.02014257326
 Error in p at time 0.099625:
-  L1-norm:  0.06093585521
-  L2-norm:  0.2526681074
-  max-norm: 1.921477731
+  L1-norm:  0.06093585524
+  L2-norm:  0.2526681087
+  max-norm: 1.921477778
 
 At beginning of timestep # 399
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.63997e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.20644e-14
 
 Writing restart files...
 
 Error in u at time 0.1:
-  L1-norm:  0.003603719428
-  L2-norm:  0.004111925108
-  max-norm: 0.0201415195
+  L1-norm:  0.003603749854
+  L2-norm:  0.004111948788
+  max-norm: 0.02014152892
 Error in p at time 0.099875:
-  L1-norm:  0.06093575536
-  L2-norm:  0.2526679023
-  max-norm: 1.921532682
+  L1-norm:  0.06093575539
+  L2-norm:  0.2526679036
+  max-norm: 1.92153273
 
