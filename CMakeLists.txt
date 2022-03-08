@@ -408,6 +408,22 @@ FOREACH(_d ${IBAMR_DIMENSIONS})
   ENDFOREACH()
 ENDFOREACH()
 
+# sanity check:
+SET(CMAKE_REQUIRED_INCLUDES ${SAMRAI_INCLUDE_DIRS})
+CHECK_CXX_SOURCE_COMPILES(
+  "
+  #include <SAMRAI_config.h>
+  #ifndef HAVE_MPI
+  #error
+  #endif
+  int main() {}
+  "
+  SAMRAI_WITH_MPI)
+SET(CMAKE_REQUIRED_INCLUDES "")
+IF(NOT ${SAMRAI_WITH_MPI})
+  MESSAGE(FATAL_ERROR "IBAMR requires that SAMRAI is built with MPI support.")
+ENDIF()
+
 #
 # PETSc:
 #
