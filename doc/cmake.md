@@ -134,6 +134,7 @@ cmake -DMPI_ROOT=${MPI_HOME} \
       -DHYPRE_ROOT=${HYPRE_DIR} \
       -DHDF5_ROOT=${HDF5_DIR} \
       -DSAMRAI_ROOT=${SAMRAI_DIR} \
+      -DPETSC_ROOT=${PETSC_DIR} \
       -DCMAKE_CXX_COMPILER=$(which g++) \
       -DCMAKE_C_COMPILER=$(which gcc) \
       -DCMAKE_Fortran_COMPILER=$(which gfortran) \
