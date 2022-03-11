@@ -359,7 +359,14 @@ namespace mu
       Error(ecNAME_CONFLICT, -1, a_strName);
 
     CheckOprt(a_strName, a_Callback, a_szCharSet);
-    a_Storage[a_strName] = a_Callback;
+    // Avoid a warning about deprecated copies by removing and inserting
+    // a_Storage[a_strName] = a_Callback; // version with warnings
+    //
+    auto p = a_Storage.find(a_strName);
+    if (p != a_Storage.end())
+        a_Storage.erase(p);
+    a_Storage.emplace(a_strName, a_Callback);
+
     ReInit();
   }
 
@@ -1092,6 +1099,17 @@ namespace mu
       case  cmVARMUL:  Stack[++sidx] = *(pTok->u.Val.ptr + nOffset) * pTok->u.Val.data + pTok->u.Val.data2;
                        continue;
 
+      // These function casts cause warnings with -Wpedantic. Work around it if
+      // we have GCC or something sufficiently similar.
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma GCC diagnostic ignored "-Wpragmas"
+#pragma GCC diagnostic ignored "-Wunknown-warning-option"
+#pragma GCC diagnostic ignored "-Wunknown-warning"
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
       // Next is treatment of numeric functions
       case  cmFUNC:
             {
@@ -1169,6 +1187,11 @@ namespace mu
               return 0;
       } // switch CmdCode
     } // for all bytecode tokens
+
+    // end of warning suppression
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
     return Stack[m_nFinalResultIdx];  
   }
