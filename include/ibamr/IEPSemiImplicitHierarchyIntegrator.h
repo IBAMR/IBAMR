@@ -372,9 +372,31 @@ public:
                                                void* ctx);
 
     /*!
+     * \brief Function to reset the dF/dT if they are
+     * maintained by this integrator.
+     */
+    using ResetLiquidFractionDerivativeFcnPtr = void (*)(double& dlf_dT_data, const double lf_data, void* ctx);
+
+    /*!
+     * \brief Function to reset the dF/dT if they are
+     * maintained by this integrator.
+     */
+    using ResetLiquidFractionInverseFcnPtr = void (*)(double& lf_inverse_data, const double lf_data, void* ctx);
+
+    /*!
      * \brief Register function to reset fluid viscosity.
      */
     void registerResetLiquidFractionFcn(ResetLiquidFractionFcnPtr callback, void* ctx);
+
+    /*!
+     * \brief Register function to reset fluid viscosity.
+     */
+    void registerResetLiquidFractionDerivativeFcn(ResetLiquidFractionDerivativeFcnPtr callback, void* ctx);
+
+    /*!
+     * \brief Register function to reset fluid viscosity.
+     */
+    void registerResetLiquidFractionInverseFcn(ResetLiquidFractionInverseFcnPtr callback, void* ctx);
 
     /*!
      * Write out specialized object state to the given database.
@@ -421,25 +443,35 @@ private:
      */
     void computeInterpolationFunction(int p_firstder_idx, const int liquid_fraction_idx, const int T_idx);
 
-    /*
+    /*!
      * \brief Compute source term of liquid fraction equation.
      */
     void computeLiquidFractionSourceTerm(int F_scratch_idx, const double dt, const double new_time);
 
-    /*
+    /*!
      * \brief Compute source term of liquid fraction equation.
      */
     void computeTemperatureSourceTerm(int F_scratch_idx, const double dt);
 
-    /*
+    /*!
      * \brief Interpolate the cell-centered heaviside function to side-centered using simple averaging.
      */
     void interpolateCCToSC(int sc_idx, const int cc_idx);
 
-    /*
+    /*!
      * \brief Interpolate the cell-centered heaviside function to side-centered using harmonic averaging.
      */
     void interpolateCCToSCHarmonic(int sc_idx, const int cc_idx);
+
+    /*!
+     * \brief compute dF/dT based on liquid fraction.
+     */
+    void computeLiquidFractionDerivative(int dlf_dT_data, const int lf_idx, const int H_idx);
+
+    /*!
+     * \brief compute F inverse based on liquid fraction.
+     */
+    void computeLiquidFractionInverse(int F_inverse_data, const int lf_idx, const int H_idx);
 
     /*!
      * Read input values from a given database.
@@ -616,6 +648,12 @@ private:
 
     std::vector<ResetLiquidFractionFcnPtr> d_reset_liquid_fraction_fcns;
     std::vector<void*> d_reset_liquid_fraction_fcns_ctx;
+
+    std::vector<ResetLiquidFractionDerivativeFcnPtr> d_reset_dlf_dT_fcns;
+    std::vector<void*> d_reset_dlf_dT_fcns_ctx;
+
+    std::vector<ResetLiquidFractionInverseFcnPtr> d_reset_lf_inverse_fcns;
+    std::vector<void*> d_reset_lf_inverse_fcns_ctx;
 
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_bc_coef;
 
