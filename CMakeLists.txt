@@ -798,6 +798,11 @@ FUNCTION(IBAMR_CHECK_COMPILATION_WITH_MPI _dependency_name _src _dependency_libr
   LIST(APPEND CMAKE_REQUIRED_LIBRARIES "${MPI_C_LIBRARIES}")
   LIST(APPEND CMAKE_REQUIRED_LIBRARIES "${MPI_CXX_LIBRARIES}")
 
+  # we need to avoid -Werror here since we may get warnings from external
+  # project headers that are totally irrelevant to checking MPI versions
+  SET(_old_cxx_flags "${CMAKE_CXX_FLAGS}")
+  STRING(REPLACE "-Werror" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+
   SET(_test_name "${_dependency_name}_SAME_MPI_COMPILE_TEST")
   CHECK_CXX_SOURCE_COMPILES("${_src}" ${_test_name})
   IF(NOT "${${_test_name}}")
@@ -856,6 +861,8 @@ Please recompile ${_dependency} to link against the same version of MPI.")
     MESSAGE(STATUS "\
 Verifying that ${_dependency_name} and IBAMR use the same MPI implementation - Success")
   ENDIF()
+
+  SET(CMAKE_CXX_FLAGS ${_old_cxx_flags})
 ENDFUNCTION()
 
 #
