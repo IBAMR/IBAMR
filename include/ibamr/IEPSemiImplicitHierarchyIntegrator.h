@@ -515,6 +515,11 @@ private:
     void computeChemicalPotential(int chemical_potential_idx, const int H_new_idx, const double new_time);
 
     /*!
+     * Compute A coefficient of energy equation evaluated at T^n+1, m.
+     */
+    void computeACoefficient(const double dt, const double new_time);
+
+    /*!
      * Compute the material derivative of liquid fraction
      */
     void
@@ -535,6 +540,11 @@ private:
      * Bound liquid fraction.
      */
     void boundLiquidFraction(int lf_new_idx);
+
+    /*!
+     * Update liquid fraction.
+     */
+    void updateLiquidFraction(int lf_new_idx, const int T_new_idx);
 
     /*!
      * Solver variables.
@@ -566,7 +576,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_chemical_potential_var, d_M_var,
         d_updated_rho_var, d_lf_diffusion_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_material_derivative_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_lf_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_lf_var, d_grad_T_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_H_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_U_old_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_cp_old_var;
@@ -575,6 +585,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_lf_N_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_inverse_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_dlf_dT_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_diffusion_term_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_A_coef_var;
 
     /*!
      * Objects to set initial condition for \f$ \varphi \f$, \f$ T \f$ and \f$ \rho \f$.
@@ -725,6 +737,9 @@ private:
     int d_T_lf_N_scratch_idx = IBTK::invalid_index;
     int d_lf_inverse_scratch_idx = IBTK::invalid_index;
     int d_lf_material_derivative_idx = IBTK::invalid_index;
+    int d_grad_T_idx = IBTK::invalid_index;
+    int d_T_diffusion_term_idx = IBTK::invalid_index;
+    int d_T_A_coef_idx = IBTK::invalid_index;
 
     /*!
      * Allen-Cahn equation parameters.
