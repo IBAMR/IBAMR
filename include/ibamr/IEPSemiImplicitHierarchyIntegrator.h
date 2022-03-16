@@ -547,6 +547,11 @@ private:
     void updateLiquidFraction(int lf_new_idx, const int T_new_idx);
 
     /*!
+     * compute liquid fraction.
+     */
+    void computeLiquidFractionRelativeError(const int lf_new_idx, int lf_pre_idx);
+
+    /*!
      * Solver variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_var;
@@ -760,6 +765,11 @@ private:
      * Energy equation parameters.
      */
     double d_rho_liquid, d_T_melt, d_latent_heat, d_latent_heat_temp, d_liquidus_temperature, d_solidus_temperature;
+
+    /*!
+     * Inner iteration parameters.
+     */
+    int d_max_inner_iterations = 2, d_num_cycles;
 
     /*!
      * Variable to indicate the type of interpolation to be done for conductivity.
