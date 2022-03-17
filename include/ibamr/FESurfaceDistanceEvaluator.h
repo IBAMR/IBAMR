@@ -77,7 +77,7 @@ public:
     /*!
      * \brief Get the map maintaining triangle-cell intersection and neighbors.
      */
-    const std::map<SAMRAI::pdat::CellIndex<NDIM>, std::set<libMesh::Elem*>, IBTK::CellIndexFortranOrder>&
+    const std::map<SAMRAI::pdat::CellIndex<NDIM>, std::set<const libMesh::Elem*>, IBTK::CellIndexFortranOrder>&
     getNeighborIntersectionsMap();
 
     /*!
@@ -161,7 +161,7 @@ private:
      * its corresponding angle-weighted pseudo-normal from the surface mesh elements.
      */
     std::pair<IBTK::Vector3d, IBTK::Vector3d> getClosestPointandAngleWeightedNormal3D(const IBTK::Vector3d& P,
-                                                                                      libMesh::Elem* elem);
+                                                                                      const libMesh::Elem* elem);
 
     /*!
      * Name of this object.
@@ -201,29 +201,29 @@ private:
     /*!
      * Data to manage mapping between boundary mesh elements and grid patches.
      */
-    std::vector<std::vector<libMesh::Elem*> > d_active_neighbor_patch_bdry_elem_map;
+    std::vector<std::vector<const libMesh::Elem*> > d_active_neighbor_patch_bdry_elem_map;
 
     /*!
      * Map object keeping track of element-cell intersections as well as elements intersecting that cell
      * and its neighboring cells within the ghost cell width. Note that the elements contained in thie
      * map belong to the original solid mesh.
      */
-    std::map<SAMRAI::pdat::CellIndex<NDIM>, std::set<libMesh::Elem*>, IBTK::CellIndexFortranOrder>
+    std::map<SAMRAI::pdat::CellIndex<NDIM>, std::set<const libMesh::Elem*>, IBTK::CellIndexFortranOrder>
         d_cell_elem_neighbor_map;
 
     /*!
      * Map the node and the set of elements sharing this node.
      */
-    std::map<libMesh::Node*, std::set<libMesh::Elem*> > d_node_to_elem;
+    std::map<const libMesh::Node*, std::set<const libMesh::Elem*> > d_node_to_elem;
     /*!
      * Map the edge and the set of elements sharing this edge.
      */
-    std::map<std::pair<libMesh::Node*, libMesh::Node*>, std::set<libMesh::Elem*> > d_edge_to_elem;
+    std::map<std::pair<const libMesh::Node*, const libMesh::Node*>, std::set<const libMesh::Elem*> > d_edge_to_elem;
 
     /*!
      * Map the element and its face normal.
      */
-    std::map<libMesh::Elem*, IBTK::VectorNd> d_elem_face_normal;
+    std::map<const libMesh::Elem*, IBTK::VectorNd> d_elem_face_normal;
 
     /*!
      * Object to create a bounding box for sign update sweeping algorithm.
