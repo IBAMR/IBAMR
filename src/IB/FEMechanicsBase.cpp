@@ -586,11 +586,11 @@ FEMechanicsBase::doInitializeFEData(const bool use_present_data)
         DofMap& U_dof_map = U_system.get_dof_map();
         const unsigned int F_sys_num = F_system.number();
         const unsigned int U_sys_num = U_system.number();
-        MeshBase::const_element_iterator el_it = mesh.elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.elements_end();
+        auto el_it = mesh.elements_begin();
+        const auto el_end = mesh.elements_end();
         for (; el_it != el_end; ++el_it)
         {
-            Elem* const elem = *el_it;
+            const auto elem = *el_it;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 const bool at_mesh_bdry = !elem->neighbor_ptr(side);
@@ -689,11 +689,11 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
 
     TensorValue<double> FF;
     std::vector<libMesh::dof_id_type> dof_id_scratch;
-    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    const auto el_begin = mesh.active_local_elements_begin();
+    const auto el_end = mesh.active_local_elements_end();
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
-        Elem* const elem = *el_it;
+        const auto elem = *el_it;
         const auto& P_dof_indices = P_dof_map_cache.dof_indices(elem);
         P_rhs_e.resize(static_cast<int>(P_dof_indices[0].size()));
         fe.reinit(elem);
@@ -797,11 +797,11 @@ FEMechanicsBase::computeDynamicPressureRateOfChange(PetscVector<double>& dP_dt_v
 
     TensorValue<double> FF, FF_inv_trans, Grad_U;
     std::vector<libMesh::dof_id_type> dof_id_scratch;
-    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    const auto el_begin = mesh.active_local_elements_begin();
+    const auto el_end = mesh.active_local_elements_end();
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
-        Elem* const elem = *el_it;
+        const auto elem = *el_it;
         const auto& P_dof_indices = P_dof_map_cache.dof_indices(elem);
         dP_dt_rhs_e.resize(static_cast<int>(P_dof_indices[0].size()));
         fe.reinit(elem);
@@ -864,7 +864,9 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
 
     // Extract the mesh.
     EquationSystems& equation_systems = *d_equation_systems[part];
-    const MeshBase& mesh = equation_systems.get_mesh();
+    // We need to get Elem *s for use in e.g. PK1 function pointers so use a
+    // mutable reference even though we will never modify the mesh
+    MeshBase& mesh = equation_systems.get_mesh();
     const BoundaryInfo& boundary_info = mesh.get_boundary_info();
     const unsigned int dim = mesh.mesh_dimension();
 
@@ -962,11 +964,11 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
         // the interior elastic force density.
         TensorValue<double> PP, FF, FF_inv_trans;
         VectorValue<double> F, F_qp, n, x;
-        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        const auto el_begin = mesh.active_local_elements_begin();
+        const auto el_end = mesh.active_local_elements_end();
+        for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
-            Elem* const elem = *el_it;
+            auto elem = *el_it;
             const auto& F_dof_indices = F_dof_map_cache.dof_indices(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -1148,11 +1150,11 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
     VectorValue<double> F, F_b, F_s, F_qp, n, x;
     boost::multi_array<double, 2> X_node;
     boost::multi_array<double, 1> P_node;
-    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    const auto el_begin = mesh.active_local_elements_begin();
+    const auto el_end = mesh.active_local_elements_end();
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
-        Elem* const elem = *el_it;
+        auto elem = *el_it;
         const auto& F_dof_indices = F_dof_map_cache.dof_indices(elem);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -1536,8 +1538,8 @@ FEMechanicsBase::commonConstructor(const std::string& object_name,
         const MeshBase& mesh = *meshes[part];
         bool mesh_has_first_order_elems = false;
         bool mesh_has_second_order_elems = false;
-        MeshBase::const_element_iterator el_it = mesh.elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.elements_end();
+        auto el_it = mesh.elements_begin();
+        const auto el_end = mesh.elements_end();
         for (; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;

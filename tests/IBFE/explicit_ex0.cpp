@@ -550,11 +550,11 @@ main(int argc, char** argv)
             const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
             TensorValue<double> FF;
             boost::multi_array<double, 2> X_node;
-            const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-            const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-            for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+            const auto el_begin = mesh.active_local_elements_begin();
+            const auto el_end = mesh.active_local_elements_end();
+            for (auto el_it = el_begin; el_it != el_end; ++el_it)
             {
-                Elem* const elem = *el_it;
+                const auto elem = *el_it;
                 fe->reinit(elem);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {

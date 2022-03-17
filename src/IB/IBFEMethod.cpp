@@ -1089,7 +1089,7 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         if (!d_lag_body_source_part[part]) continue;
 
         EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
-        const MeshBase& mesh = equation_systems.get_mesh();
+        MeshBase& mesh = equation_systems.get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
 
         // Extract the FE systems and DOF maps, and setup the FE object.
@@ -1136,11 +1136,11 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         VectorValue<double> x;
         double Q;
         std::vector<libMesh::dof_id_type> dof_id_scratch;
-        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        const auto el_begin = mesh.active_local_elements_begin();
+        const auto el_end = mesh.active_local_elements_end();
+        for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
-            Elem* const elem = *el_it;
+            auto elem = *el_it;
             const auto& Q_dof_indices = Q_dof_map_cache.dof_indices(elem);
             Q_rhs_e.resize(static_cast<int>(Q_dof_indices[0].size()));
             fe.reinit(elem);
@@ -1823,7 +1823,7 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
 {
     // Extract the mesh.
     EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
-    const MeshBase& mesh = equation_systems.get_mesh();
+    MeshBase& mesh = equation_systems.get_mesh();
     const BoundaryInfo& boundary_info = mesh.get_boundary_info();
     const unsigned int dim = mesh.mesh_dimension();
 
@@ -1889,11 +1889,11 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     TensorValue<double> PP, FF, FF_trans, FF_inv_trans;
     VectorValue<double> F, F_s, F_qp, n, x;
     std::vector<libMesh::dof_id_type> dof_id_scratch;
-    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    const auto el_begin = mesh.active_local_elements_begin();
+    const auto el_end = mesh.active_local_elements_end();
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
-        Elem* const elem = *el_it;
+        auto elem = *el_it;
         bool reinit_all_data = true;
         for (unsigned int side = 0; side < elem->n_sides(); ++side)
         {

@@ -171,10 +171,10 @@ main(int argc, char* argv[])
                                             0.0,
                                             0.5,
                                             Utility::string_to_enum<ElemType>(elem_type));
-        const MeshBase::const_element_iterator end_el = mesh.elements_end();
-        for (MeshBase::const_element_iterator el = mesh.elements_begin(); el != end_el; ++el)
+        const auto end_el = mesh.elements_end();
+        for (auto el = mesh.elements_begin(); el != end_el; ++el)
         {
-            Elem* const elem = *el;
+            const auto elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 const bool at_mesh_bdry = !elem->neighbor_ptr(side);

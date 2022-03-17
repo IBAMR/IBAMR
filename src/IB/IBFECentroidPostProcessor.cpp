@@ -149,7 +149,7 @@ void
 IBFECentroidPostProcessor::reconstructVariables(double data_time)
 {
     EquationSystems* equation_systems = d_fe_data_manager->getEquationSystems();
-    const MeshBase& mesh = equation_systems->get_mesh();
+    MeshBase& mesh = equation_systems->get_mesh();
     const int dim = mesh.mesh_dimension();
     std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, NDIM, CONSTANT);
 
@@ -219,11 +219,11 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
     TensorValue<double> FF_qp, VV;
     VectorValue<double> V, x_qp;
     double v;
-    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    const auto el_begin = mesh.active_local_elements_begin();
+    const auto el_end = mesh.active_local_elements_end();
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
-        Elem* const elem = *el_it;
+        auto elem = *el_it;
         fe.reinit(elem);
         fe.collectDataForInterpolation(elem);
         fe.interpolate(elem);
