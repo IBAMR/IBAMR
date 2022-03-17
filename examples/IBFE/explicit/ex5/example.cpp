@@ -158,7 +158,7 @@ tether_force_function(VectorValue<double>& F,
 
 void
 tether_force_function(VectorValue<double>& F,
-                      const VectorValue<double>& n,
+                      const VectorValue<double>& /*n*/,
                       const VectorValue<double>& /*N*/,
                       const TensorValue<double>& /*FF*/,
                       const libMesh::Point& x,
@@ -173,10 +173,8 @@ tether_force_function(VectorValue<double>& F,
     const TetherData* const tether_data = reinterpret_cast<TetherData*>(ctx);
 
     VectorValue<double> D = X - x;
-    VectorValue<double> D_n = (D * n) * n;
     VectorValue<double> U;
     for (unsigned int d = 0; d < NDIM; ++d) U(d) = (*var_data[0])[d];
-    VectorValue<double> U_t = U - (U * n) * n;
     F = tether_data->kappa_s_surface * D - tether_data->eta_s_surface * U;
     return;
 } // tether_force_function
