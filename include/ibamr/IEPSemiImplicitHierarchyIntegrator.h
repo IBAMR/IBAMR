@@ -552,10 +552,36 @@ private:
     void computeLiquidFractionRelativeError(const int lf_new_idx, int lf_pre_idx);
 
     /*!
+     * compute enthalpy based on h-T relation.
+     */
+    void computeEnthalpyBasedOnNonLinearTemperature(int h_idx, const int T_idx, const int rho_idx, const int lf_idx);
+
+    /*!
+     * compute temperature based on h-T relation.
+     */
+    void computeTemperatureBasedOnNonLinearEnthalpy(int T_idx, const int h_idx);
+
+    /*!
+     * Update enthalpy.
+     */
+    void updateEnthalpy(int h_idx, const int T_new_idx, const int T_pre_idx);
+
+    /*!
+     * \brief compute dh/dT based on liquid fraction.
+     */
+    void computeEnthalpyDerivative(int dh_dT_data, const int T_idx, const int H_idx);
+
+    /*!
+     * Compute liquid fraction.
+     */
+    void computeLiquidFraction(int lf_idx, const int h_idx);
+
+    /*!
      * Solver variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_h_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_pre_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_F_var, d_T_F_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_lf_diffusion_coef_var,
@@ -592,6 +618,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_dlf_dT_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_diffusion_term_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_A_coef_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_pre_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_dh_dT_var;
 
     /*!
      * Objects to set initial condition for \f$ \varphi \f$, \f$ T \f$ and \f$ \rho \f$.
@@ -706,8 +734,9 @@ private:
     int d_ls_scratch_idx = IBTK::invalid_index, d_ls_current_idx = IBTK::invalid_index,
         d_ls_new_idx = IBTK::invalid_index;
     int d_lf_scratch_idx = IBTK::invalid_index, d_lf_current_idx = IBTK::invalid_index,
-        d_lf_new_idx = IBTK::invalid_index, d_lf_pre_idx = IBTK::invalid_index;
+        d_lf_new_idx = IBTK::invalid_index;
     int d_T_scratch_idx = IBTK::invalid_index, d_T_current_idx = IBTK::invalid_index, d_T_new_idx = IBTK::invalid_index;
+    int d_h_scratch_idx = IBTK::invalid_index, d_h_current_idx = IBTK::invalid_index, d_h_new_idx = IBTK::invalid_index;
     int d_T_diff_coef_cc_current_idx = IBTK::invalid_index, d_T_diff_coef_cc_new_idx = IBTK::invalid_index,
         d_T_diff_coef_cc_scratch_idx = IBTK::invalid_index;
     int d_C_scratch_idx = IBTK::invalid_index, d_C_current_idx = IBTK::invalid_index, d_C_new_idx = IBTK::invalid_index;
@@ -745,6 +774,9 @@ private:
     int d_grad_T_idx = IBTK::invalid_index;
     int d_T_diffusion_term_idx = IBTK::invalid_index;
     int d_T_A_coef_idx = IBTK::invalid_index;
+    int d_lf_pre_idx = IBTK::invalid_index;
+    int d_T_pre_idx = IBTK::invalid_index;
+    int d_dh_dT_scratch_idx = IBTK::invalid_index;
 
     /*!
      * Allen-Cahn equation parameters.
@@ -764,7 +796,8 @@ private:
     /*!
      * Energy equation parameters.
      */
-    double d_rho_liquid, d_T_melt, d_latent_heat, d_latent_heat_temp, d_liquidus_temperature, d_solidus_temperature;
+    double d_rho_liquid, d_rho_solid, d_T_melt, d_latent_heat, d_latent_heat_temp, d_liquidus_temperature,
+        d_solidus_temperature, d_cp_liquid, d_cp_solid;
 
     /*!
      * Inner iteration parameters.
