@@ -307,14 +307,14 @@ public:
     void setTemperatureSourceTermFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
 
     /*!
-     * Get the chemical potential patch data index.
-     */
-    int getChemicalPotentialIndex();
-
-    /*!
      * Get the liquid fraction material derivative patch data index.
      */
     int getLiquidFractionMaterialDerivativeIndex();
+
+    /*!
+     * Get the continuity source term patch data index.
+     */
+    int getContinuitySourceTermIndex();
 
     /*!
      * Get the updated density patch data index.
@@ -464,16 +464,6 @@ private:
     void interpolateCCToSCHarmonic(int sc_idx, const int cc_idx);
 
     /*!
-     * \brief compute dF/dT based on liquid fraction.
-     */
-    void computeLiquidFractionDerivative(int dlf_dT_data, const int lf_idx, const int H_idx);
-
-    /*!
-     * \brief compute F inverse based on liquid fraction.
-     */
-    void computeLiquidFractionInverse(int F_inverse_data, const int lf_idx, const int H_idx);
-
-    /*!
      * Read input values from a given database.
      */
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, bool is_from_restart);
@@ -509,10 +499,15 @@ private:
     getHelmholtzRHSOperatorTemperatureEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var);
 
     /*!
-     * Compute the chemical potential of the Allen-Cahn equation using updated liquid fraction value at
-     * the cell-centers.
+     * Compute the RHS of continuity equation.
      */
-    void computeChemicalPotential(int chemical_potential_idx, const int H_new_idx, const double new_time);
+    void computeContinuitySourceTerm(int div_U_F_idx,
+                                     const int T_new_idx,
+                                     const int h_new_idx,
+                                     const int rho_new_idx,
+                                     const int T_diff_coef_idx,
+                                     const int H_new_idx,
+                                     const double new_time);
 
     /*!
      * Compute A coefficient of energy equation evaluated at T^n+1, m.
@@ -542,11 +537,6 @@ private:
     void boundLiquidFraction(int lf_new_idx);
 
     /*!
-     * Update liquid fraction.
-     */
-    void updateLiquidFraction(int lf_new_idx, const int T_new_idx);
-
-    /*!
      * compute liquid fraction.
      */
     void computeLiquidFractionRelativeError(const int lf_new_idx, int lf_pre_idx);
@@ -554,12 +544,16 @@ private:
     /*!
      * compute enthalpy based on h-T relation.
      */
-    void computeEnthalpyBasedOnNonLinearTemperature(int h_idx, const int T_idx, const int rho_idx, const int lf_idx);
+    void computeEnthalpyBasedOnNonLinearTemperature(int h_idx,
+                                                    const int T_idx,
+                                                    const int rho_idx,
+                                                    const int lf_idx,
+                                                    const int H_idx);
 
     /*!
      * compute temperature based on h-T relation.
      */
-    void computeTemperatureBasedOnNonLinearEnthalpy(int T_idx, const int h_idx);
+    void computeTemperatureBasedOnNonLinearEnthalpy(int T_idx, const int h_idx, const int H_idx);
 
     /*!
      * Update enthalpy.
@@ -567,14 +561,19 @@ private:
     void updateEnthalpy(int h_idx, const int T_new_idx, const int T_pre_idx);
 
     /*!
-     * \brief compute dh/dT based on liquid fraction.
+     * \brief compute dh/dT based on temperature.
      */
     void computeEnthalpyDerivative(int dh_dT_data, const int T_idx, const int H_idx);
 
     /*!
      * Compute liquid fraction.
      */
-    void computeLiquidFraction(int lf_idx, const int h_idx);
+    void computeLiquidFraction(int lf_idx, const int h_idx, const int H_idx);
+
+    /*!
+     * \brief compute drho/dT based on temperature.
+     */
+    void computeDensityDerivative(int drho_dT_data, const int T_idx, const int H_idx);
 
     /*!
      * Solver variables.
@@ -612,6 +611,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_U_old_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_cp_old_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_old_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_h_old_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_lhs_var, d_lf_lhs_N_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_lf_N_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_inverse_var;
@@ -620,6 +620,10 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_A_coef_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_pre_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_dh_dT_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_drho_dT_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_div_U_F_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_div_U_F_deno_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_div_U_F_diff_var;
 
     /*!
      * Objects to set initial condition for \f$ \varphi \f$, \f$ T \f$ and \f$ \rho \f$.
@@ -751,6 +755,8 @@ private:
         d_D_cc_new_idx = IBTK::invalid_index;
     int d_dlf_dT_scratch_idx = IBTK::invalid_index, d_dlf_dT_current_idx = IBTK::invalid_index,
         d_dlf_dT_new_idx = IBTK::invalid_index;
+    int d_h_old_current_idx = IBTK::invalid_index, d_h_old_new_idx = IBTK::invalid_index,
+        d_h_old_scratch_idx = IBTK::invalid_index;
 
     /*!
      * Patch data descriptor indices for all "scratch" variables managed by the
@@ -777,6 +783,10 @@ private:
     int d_lf_pre_idx = IBTK::invalid_index;
     int d_T_pre_idx = IBTK::invalid_index;
     int d_dh_dT_scratch_idx = IBTK::invalid_index;
+    int d_drho_dT_scratch_idx = IBTK::invalid_index;
+    int d_div_U_F_idx = IBTK::invalid_index;
+    int d_div_U_F_deno_idx = IBTK::invalid_index;
+    int d_div_U_F_diff_idx = IBTK::invalid_index;
 
     /*!
      * Allen-Cahn equation parameters.
@@ -797,7 +807,7 @@ private:
      * Energy equation parameters.
      */
     double d_rho_liquid, d_rho_solid, d_T_melt, d_latent_heat, d_latent_heat_temp, d_liquidus_temperature,
-        d_solidus_temperature, d_cp_liquid, d_cp_solid;
+        d_solidus_temperature, d_cp_liquid, d_cp_solid, d_cp_gas;
 
     /*!
      * Inner iteration parameters.

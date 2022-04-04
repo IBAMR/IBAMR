@@ -72,7 +72,7 @@ namespace IBAMR
  * \f$ \nabla \cdot (\rho C_p u T)\f$.
  *
  * Class AdvDiffConservativeMassTransportQuantityIntegrator computes the convective
- * derivative of a cell-centered temperature field using various bounded-limiters
+ * derivative of a cell-centered transport quantity using various bounded-limiters
  * described by Patel and Natarajan.
  *
  * A cell-centered density update is provided by this class, which is used in the
@@ -137,14 +137,14 @@ public:
     //    void setCellCenteredDensityPatchDataIndex(int rho_cc_idx);
 
     /*!
-     * \brief Set the current cell-centered specific heat patch data index.
+     * \brief Set the current cell-centered material property patch data index.
      */
-    void setCellCenteredSpecificHeatPatchDataIndex(int cp_cc_idx);
+    void setCellCenteredMaterialPropertyPatchDataIndex(int gamma_cc_idx);
 
     /*!
-     * \brief Set the current cell-centered temperature patch data index.
+     * \brief Set the current cell-centered transport quantity patch data index.
      */
-    void setCellCenteredTemperaturePatchDataIndex(int T_cc_idx);
+    void setCellCenteredTransportQuantityPatchDataIndex(int Q_cc_idx);
 
     /*!
      * \brief Set the patch index to store mass conservation.
@@ -163,14 +163,14 @@ public:
     void setCellCenteredDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& rho_cc_bc_coefs);
 
     /*!
-     * \brief Set the boundary condition object for the cell-centered specific heat.
+     * \brief Set the boundary condition object for the cell-centered material property.
      */
-    void setCellCenteredSpecificHeatBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& cp_cc_bc_coefs);
+    void setCellCenteredMaterialPropertyBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& gamma_cc_bc_coefs);
 
     /*!
-     * \brief Set the boundary condition object for the cell-centered temperature.
+     * \brief Set the boundary condition object for the cell-centered transport quantity.
      */
-    void setCellCenteredTemperatureBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& T_cc_bc_coefs);
+    void setCellCenteredTransportQuantityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& Q_cc_bc_coefs);
 
     /*!
      * \brief Get the newly constructed cell-centered density patch data index.
@@ -192,26 +192,31 @@ public:
     //    void setFluidVelocityPatchDataIndices(int V_old_idx, int V_current_idx, int V_new_idx);
 
     /*!
-     * \brief Set the patch data indices corresponding to the specific heat at the previous time step
+     * \brief Set the patch data indices corresponding to the material property at the previous time step
      * to be used when computing the density update
      *
-     * \note This specific heats will be used to compute an approximation to specific heats required for computing
-     * convective derivative. cp_old_idx = n-1, cp_current_idx = n, cp_new_idx = n+1,k (after an INS cycle) If
-     * cp_old_idx or cp_new_idx are not set, then they will degenerate to cp_current automatically, for the very first
-     * simulation time step and cases where an INS cycle has not been executed, respectively.
+     * \note This material property will be used to compute an approximation to material property required for computing
+     * convective derivative. gamma_old_idx = n-1, gamma_current_idx = n, gamma_new_idx = n+1,k (after an INS cycle) If
+     * gamma_old_idx or gamma_new_idx are not set, then they will degenerate to gamma_current automatically, for the
+     * very first simulation time step and cases where an INS cycle has not been executed, respectively.
      */
-    void setSpecificHeatPatchDataIndices(int cp_old_idx, int cp_current_idx, int cp_new_idx);
+    void setMaterialPropertyPatchDataIndices(int gamma_old_idx, int gamma_current_idx, int gamma_new_idx);
 
     /*!
-     * \brief Set the patch data indices corresponding to the temperature at the previous time step
+     * \brief Set the patch data indices corresponding to the transport quantity at the previous time step
      * to be used when computing the computing derivative.
      *
-     * \note This specific heats will be used to compute an approximation to temperature required for computing
-     * convective derivative. cp_old_idx = n-1, cp_current_idx = n, cp_new_idx = n+1,k (after an INS cycle) If
-     * cp_old_idx or cp_new_idx are not set, then they will degenerate to cp_current automatically, for the very first
-     * simulation time step and cases where an INS cycle has not been executed, respectively.
+     * \note This transport quantity will be used to compute an approximation to transport quantity required for
+     * computing convective derivative. Q_old_idx = n-1, Q_current_idx = n, Q_new_idx = n+1,k (after an INS
+     * cycle) If Q_old_idx or Q_new_idx are not set, then they will degenerate to Q_current automatically, for the very
+     * first simulation time step and cases where an INS cycle has not been executed, respectively.
      */
-    void setTemperaturePatchDataIndices(int T_old_idx, int T_current_idx, int T_new_idx);
+    void setTransportQuantityPatchDataIndices(int Q_old_idx, int Q_current_idx, int Q_new_idx);
+
+    /*!
+     * \brief Set the material property variable
+     */
+    void setMaterialPropertyVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > gamma_var);
 
 private:
     /*!
@@ -255,14 +260,14 @@ private:
                                  const LimiterType& convective_limiter);
 
     /*!
-     * \brief Compute div[rho_half*cp_half*u_adv*T_adv]
+     * \brief Compute div[rho_half*gamma_half*u_adv*Q_adv]
      */
     void computeConvectiveDerivative(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > N_data,
                                      SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > P_half_data,
                                      const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > U_adv_data,
                                      const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > R_half_data,
-                                     const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > T_half_data,
-                                     const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > C_half_data,
+                                     const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > Q_half_data,
+                                     const SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > G_half_data,
                                      const SAMRAI::hier::Box<NDIM>& patch_box,
                                      const double* const dx);
 
@@ -304,16 +309,16 @@ private:
     std::string d_object_name;
 
     // Cached communications operators.
-    std::string d_temperature_bdry_extrap_type = "CONSTANT", d_specific_heat_bdry_extrap_type = "CONSTANT";
+    std::string d_transport_quantity_bdry_extrap_type = "CONSTANT", d_material_property_bdry_extrap_type = "CONSTANT";
 
-    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_cp_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_cp_bdry_fill;
-    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_T_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_T_bdry_fill;
+    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_gamma_transaction_comps;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_gamma_bdry_fill;
+    std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_Q_transaction_comps;
+    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_Q_bdry_fill;
 
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_cc_bc_coefs;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_cp_cc_bc_coefs;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_T_cc_bc_coefs;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_gamma_cc_bc_coefs;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_Q_cc_bc_coefs;
 
     // Scratch data.
     //    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_V_var;
@@ -326,20 +331,21 @@ private:
     int d_rho_cc_current_idx = IBTK::invalid_index, d_rho_cc_scratch_idx = IBTK::invalid_index,
         d_rho_cc_new_idx = IBTK::invalid_index;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_cp_cc_var;
-    int d_cp_cc_current_idx = IBTK::invalid_index, d_cp_cc_scratch_idx = IBTK::invalid_index,
-        d_cp_cc_new_idx = IBTK::invalid_index, d_cp_cc_composite_idx, d_cp_cc_old_idx = IBTK::invalid_index;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_gamma_cc_var;
+    int d_gamma_cc_current_idx = IBTK::invalid_index, d_gamma_cc_scratch_idx = IBTK::invalid_index,
+        d_gamma_cc_new_idx = IBTK::invalid_index, d_gamma_cc_composite_idx = IBTK::invalid_index,
+        d_gamma_cc_old_idx = IBTK::invalid_index;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_cc_var;
-    int d_T_cc_current_idx = IBTK::invalid_index, d_T_cc_scratch_idx = IBTK::invalid_index,
-        d_T_cc_new_idx = IBTK::invalid_index, d_T_cc_composite_idx, d_T_cc_old_idx = IBTK::invalid_index;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_cc_var;
+    int d_Q_cc_current_idx = IBTK::invalid_index, d_Q_cc_scratch_idx = IBTK::invalid_index,
+        d_Q_cc_new_idx = IBTK::invalid_index, d_Q_cc_composite_idx, d_Q_cc_old_idx = IBTK::invalid_index;
 
     // The limiter type for interpolation onto faces.
-    LimiterType d_temperature_convective_limiter = CUI;
-    LimiterType d_specific_heat_convective_limiter = CUI;
+    LimiterType d_transport_quantity_convective_limiter = CUI;
+    LimiterType d_material_property_convective_limiter = CUI;
 
     // The required number of ghost cells for the chosen interpolation.
-    int d_temperature_limiter_gcw = 1, d_specific_heat_limiter_gcw = 1;
+    int d_transport_quantity_limiter_gcw = 1, d_material_property_limiter_gcw = 1;
 
     // Source term variable and function for the mass density update.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_S_var;
