@@ -682,8 +682,8 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
         // Set various objects with conservative time integrator.
         Pointer<AdvDiffConservativeMassTransportQuantityIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
         rho_p_cc_integrator->setCellCenteredDensityBoundaryConditions(d_rho_bc_coef);
-        rho_p_cc_integrator->setCellCenteredSpecificHeatBoundaryConditions(d_rho_bc_coef);
-        rho_p_cc_integrator->setCellCenteredTemperatureBoundaryConditions(d_T_bc_coef);
+        rho_p_cc_integrator->setCellCenteredMaterialPropertyBoundaryConditions(d_rho_bc_coef);
+        rho_p_cc_integrator->setCellCenteredTransportQuantityBoundaryConditions(d_T_bc_coef);
     }
 
     // Perform hierarchy initialization operations common to all implementations
@@ -1004,18 +1004,18 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
             {
                 d_rho_p_integrator->setFluidVelocityPatchDataIndices(
                     /*old*/ -1, /*current*/ T_u_current_idx, /*new*/ -1);
-                rho_p_cc_integrator->setSpecificHeatPatchDataIndices(
+                rho_p_cc_integrator->setMaterialPropertyPatchDataIndices(
                     /*old*/ -1, /*current*/ Cp_current_idx, /*new*/ -1);
-                rho_p_cc_integrator->setTemperaturePatchDataIndices(
+                rho_p_cc_integrator->setTransportQuantityPatchDataIndices(
                     /*old*/ -1, /*current*/ T_current_idx, /*new*/ -1);
             }
             else
             {
                 d_rho_p_integrator->setFluidVelocityPatchDataIndices(
                     /*old*/ d_U_old_current_idx, /*current*/ T_u_current_idx, /*new*/ -1);
-                rho_p_cc_integrator->setSpecificHeatPatchDataIndices(
+                rho_p_cc_integrator->setMaterialPropertyPatchDataIndices(
                     /*old*/ d_cp_old_current_idx, /*current*/ Cp_current_idx, /*new*/ -1);
-                rho_p_cc_integrator->setTemperaturePatchDataIndices(
+                rho_p_cc_integrator->setTransportQuantityPatchDataIndices(
                     /*old*/ d_T_old_current_idx, /*current*/ T_current_idx, /*new*/ -1);
                 d_rho_p_integrator->setPreviousTimeStepSize(d_dt_previous[0]);
             }
@@ -1517,7 +1517,7 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
 
         Pointer<AdvDiffConservativeMassTransportQuantityIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
         // Update N_idx if necessary
-        if (cycle_num > 0)
+        if (cycle_num > 0 && d_solve_mass_conservation)
         {
             const double dt = new_time - current_time;
             const double half_time = current_time + 0.5 * dt;
@@ -1540,9 +1540,9 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
             {
                 d_rho_p_integrator->setFluidVelocityPatchDataIndices(
                     /*old*/ -1, /*current*/ T_u_current_idx, /*new*/ T_u_new_idx);
-                rho_p_cc_integrator->setSpecificHeatPatchDataIndices(
+                rho_p_cc_integrator->setMaterialPropertyPatchDataIndices(
                     /*old*/ -1, /*current*/ Cp_current_idx, /*new*/ Cp_new_idx);
-                rho_p_cc_integrator->setTemperaturePatchDataIndices(
+                rho_p_cc_integrator->setTransportQuantityPatchDataIndices(
                     /*old*/ -1, /*current*/ T_current_idx, /*new*/ T_new_idx);
             }
             else
@@ -1551,11 +1551,11 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
                     /*old*/ d_U_old_current_idx,
                     /*current*/ T_u_current_idx,
                     /*new*/ T_u_new_idx);
-                rho_p_cc_integrator->setSpecificHeatPatchDataIndices(
+                rho_p_cc_integrator->setMaterialPropertyPatchDataIndices(
                     /*old*/ d_cp_old_current_idx,
                     /*current*/ Cp_current_idx,
                     /*new*/ Cp_new_idx);
-                rho_p_cc_integrator->setTemperaturePatchDataIndices(
+                rho_p_cc_integrator->setTransportQuantityPatchDataIndices(
                     /*old*/ d_T_old_current_idx,
                     /*current*/ T_current_idx,
                     /*new*/ T_new_idx);

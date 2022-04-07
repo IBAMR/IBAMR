@@ -472,68 +472,68 @@ AdvDiffConservativeMassTransportQuantityIntegrator::AdvDiffConservativeMassTrans
     {
         if (input_db->keyExists("bdry_extrap_type"))
         {
-            d_temperature_bdry_extrap_type = input_db->getString("bdry_extrap_type");
-            d_specific_heat_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+            d_transport_quantity_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+            d_material_property_bdry_extrap_type = input_db->getString("bdry_extrap_type");
         }
-        if (input_db->keyExists("temperature_bdry_extrap_type"))
+        if (input_db->keyExists("transport_quantity_bdry_extrap_type"))
         {
-            d_temperature_bdry_extrap_type = input_db->getString("temperature_bdry_extrap_type");
+            d_transport_quantity_bdry_extrap_type = input_db->getString("transport_quantity_bdry_extrap_type");
         }
-        if (input_db->keyExists("specific_heat_bdry_extrap_type"))
+        if (input_db->keyExists("material_property_bdry_extrap_type"))
         {
-            d_specific_heat_bdry_extrap_type = input_db->getString("specific_heat_bdry_extrap_type");
+            d_material_property_bdry_extrap_type = input_db->getString("material_property_bdry_extrap_type");
         }
         if (input_db->keyExists("convective_limiter"))
         {
-            d_temperature_convective_limiter =
+            d_transport_quantity_convective_limiter =
                 IBAMR::string_to_enum<LimiterType>(input_db->getString("convective_limiter"));
-            d_specific_heat_convective_limiter =
+            d_material_property_convective_limiter =
                 IBAMR::string_to_enum<LimiterType>(input_db->getString("convective_limiter"));
         }
-        if (input_db->keyExists("temperature_convective_limiter"))
+        if (input_db->keyExists("transport_quantity_convective_limiter"))
         {
-            d_temperature_convective_limiter =
-                IBAMR::string_to_enum<LimiterType>(input_db->getString("temperature_convective_limiter"));
+            d_transport_quantity_convective_limiter =
+                IBAMR::string_to_enum<LimiterType>(input_db->getString("transport_quantity_convective_limiter"));
         }
-        if (input_db->keyExists("specific_heat_convective_limiter"))
+        if (input_db->keyExists("material_property_convective_limiter"))
         {
-            d_specific_heat_convective_limiter =
-                IBAMR::string_to_enum<LimiterType>(input_db->getString("specific_heat_convective_limiter"));
+            d_material_property_convective_limiter =
+                IBAMR::string_to_enum<LimiterType>(input_db->getString("material_property_convective_limiter"));
         }
 
     }
 
-    switch (d_temperature_convective_limiter)
+    switch (d_transport_quantity_convective_limiter)
     {
     case PPM:
-        d_temperature_limiter_gcw = GPPMG;
+        d_transport_quantity_limiter_gcw = GPPMG;
         break;
     case CUI:
-        d_temperature_limiter_gcw = GCUIG;
+        d_transport_quantity_limiter_gcw = GCUIG;
         break;
     default:
         TBOX_ERROR(
             "AdvDiffConservativeMassTransportQuantityIntegrator::"
             "AdvDiffConservativeMassTransportQuantityIntegrator():\n"
-            << "  unsupported temperature convective limiter: "
-            << IBAMR::enum_to_string<LimiterType>(d_temperature_convective_limiter) << " \n"
+            << "  unsupported transport_quantity convective limiter: "
+            << IBAMR::enum_to_string<LimiterType>(d_transport_quantity_convective_limiter) << " \n"
             << "  valid choices are: PPM, CUI\n");
     }
 
-    switch (d_specific_heat_convective_limiter)
+    switch (d_material_property_convective_limiter)
     {
     case PPM:
-        d_specific_heat_limiter_gcw = GPPMG;
+        d_material_property_limiter_gcw = GPPMG;
         break;
     case CUI:
-        d_specific_heat_limiter_gcw = GCUIG;
+        d_material_property_limiter_gcw = GCUIG;
         break;
     default:
         TBOX_ERROR(
             "AdvDiffConservativeMassTransportQuantityIntegrator::"
             "AdvDiffConservativeMassTransportQuantityIntegrator():\n"
             << "  unsupported specific heat convective limiter: "
-            << IBAMR::enum_to_string<LimiterType>(d_specific_heat_convective_limiter) << " \n"
+            << IBAMR::enum_to_string<LimiterType>(d_material_property_convective_limiter) << " \n"
             << "  valid choices are: PPM, CUI\n");
     }
 
@@ -583,48 +583,65 @@ AdvDiffConservativeMassTransportQuantityIntegrator::AdvDiffConservativeMassTrans
     TBOX_ASSERT(d_rho_new_idx >= 0);
 #endif
 
-    const std::string cp_cc_name = "AdvDiffConservativeMassTransportQuantityIntegrator::CP_CELL_CENTERED";
-    d_cp_cc_var = var_db->getVariable(cp_cc_name);
-    if (d_cp_cc_var)
-    {
-        d_cp_cc_scratch_idx =
-            var_db->mapVariableAndContextToIndex(d_cp_cc_var, var_db->getContext(cp_cc_name + "::SCRATCH"));
-        d_cp_cc_composite_idx =
-            var_db->mapVariableAndContextToIndex(d_cp_cc_var, var_db->getContext(cp_cc_name + "::COMPOSITE"));
-    }
-    else
-    {
-        d_cp_cc_var = new CellVariable<NDIM, double>(cp_cc_name);
-        d_cp_cc_scratch_idx = var_db->registerVariableAndContext(
-            d_cp_cc_var, var_db->getContext(cp_cc_name + "::SCRATCH"), IntVector<NDIM>(d_density_limiter_gcw));
-        d_cp_cc_composite_idx = var_db->registerVariableAndContext(
-            d_cp_cc_var, var_db->getContext(cp_cc_name + "::COMPOSITE"), IntVector<NDIM>(NOGHOSTS));
-    }
-#if !defined(NDEBUG)
-    TBOX_ASSERT(d_cp_cc_scratch_idx >= 0);
-    TBOX_ASSERT(d_cp_cc_composite_idx >= 0);
-#endif
+    //    const std::string gamma_cc_name = "AdvDiffConservativeMassTransportQuantityIntegrator::gamma_CELL_CENTERED";
+    //    d_gamma_cc_var = var_db->getVariable(gamma_cc_name);
+    //    if (d_gamma_cc_var)
+    //    {
+    //        d_gamma_cc_scratch_idx =
+    //            var_db->mapVariableAndContextToIndex(d_gamma_cc_var, var_db->getContext(gamma_cc_name + "::SCRATCH"));
+    //        d_gamma_cc_composite_idx =
+    //            var_db->mapVariableAndContextToIndex(d_gamma_cc_var, var_db->getContext(gamma_cc_name +
+    //            "::COMPOSITE"));
+    //    }
+    //    else
+    //    {
+    //        d_gamma_cc_var = new CellVariable<NDIM, double>(gamma_cc_name);
+    //        d_gamma_cc_scratch_idx = var_db->registerVariableAndContext(
+    //            d_gamma_cc_var, var_db->getContext(gamma_cc_name + "::SCRATCH"),
+    //            IntVector<NDIM>(d_material_property_limiter_gcw));
+    //        d_gamma_cc_composite_idx = var_db->registerVariableAndContext(
+    //            d_gamma_cc_var, var_db->getContext(gamma_cc_name + "::COMPOSITE"), IntVector<NDIM>(NOGHOSTS));
+    //    }
+    //#if !defined(NDEBUG)
+    //    TBOX_ASSERT(d_gamma_cc_scratch_idx >= 0);
+    //    TBOX_ASSERT(d_gamma_cc_composite_idx >= 0);
+    //#endif
 
-    const std::string T_cc_name = "AdvDiffConservativeMassTransportQuantityIntegrator::T_CELL_CENTERED";
-    d_T_cc_var = var_db->getVariable(T_cc_name);
-    if (d_T_cc_var)
+    //    if(d_gamma_cc_var)
+    //    {
+    //        const std::string gamma_cc_name = d_gamma_cc_var->getName();
+    //        d_gamma_cc_scratch_idx = var_db->registerVariableAndContext(
+    //            d_gamma_cc_var, var_db->getContext(gamma_cc_name + "::SCRATCH"),
+    //            IntVector<NDIM>(d_material_property_limiter_gcw));
+    //        d_gamma_cc_composite_idx = var_db->registerVariableAndContext(
+    //            d_gamma_cc_var, var_db->getContext(gamma_cc_name + "::COMPOSITE"), IntVector<NDIM>(NOGHOSTS));
+    //    }
+    //#if !defined(NDEBUG)
+    //    TBOX_ASSERT(d_gamma_cc_scratch_idx >= 0);
+    //    TBOX_ASSERT(d_gamma_cc_composite_idx >= 0);
+    //#endif
+
+    const std::string Q_cc_name = "AdvDiffConservativeMassTransportQuantityIntegrator::Q_CELL_CENTERED";
+    d_Q_cc_var = var_db->getVariable(Q_cc_name);
+    if (d_Q_cc_var)
     {
-        d_T_cc_scratch_idx =
-            var_db->mapVariableAndContextToIndex(d_T_cc_var, var_db->getContext(T_cc_name + "::SCRATCH"));
-        d_T_cc_composite_idx =
-            var_db->mapVariableAndContextToIndex(d_T_cc_var, var_db->getContext(T_cc_name + "::COMPOSITE"));
+        d_Q_cc_scratch_idx =
+            var_db->mapVariableAndContextToIndex(d_Q_cc_var, var_db->getContext(Q_cc_name + "::SCRATCH"));
+        d_Q_cc_composite_idx =
+            var_db->mapVariableAndContextToIndex(d_Q_cc_var, var_db->getContext(Q_cc_name + "::COMPOSITE"));
     }
     else
     {
-        d_T_cc_var = new CellVariable<NDIM, double>(T_cc_name);
-        d_T_cc_scratch_idx = var_db->registerVariableAndContext(
-            d_T_cc_var, var_db->getContext(T_cc_name + "::SCRATCH"), IntVector<NDIM>(d_density_limiter_gcw));
-        d_T_cc_composite_idx = var_db->registerVariableAndContext(
-            d_T_cc_var, var_db->getContext(T_cc_name + "::COMPOSITE"), IntVector<NDIM>(NOGHOSTS));
+        d_Q_cc_var = new CellVariable<NDIM, double>(Q_cc_name);
+        d_Q_cc_scratch_idx = var_db->registerVariableAndContext(
+            d_Q_cc_var, var_db->getContext(Q_cc_name + "::SCRATCH"), IntVector<NDIM>(d_transport_quantity_limiter_gcw));
+        d_Q_cc_composite_idx = var_db->registerVariableAndContext(
+            d_Q_cc_var, var_db->getContext(Q_cc_name + "::COMPOSITE"), IntVector<NDIM>(NOGHOSTS));
     }
+
 #if !defined(NDEBUG)
-    TBOX_ASSERT(d_T_cc_scratch_idx >= 0);
-    TBOX_ASSERT(d_T_cc_composite_idx >= 0);
+    TBOX_ASSERT(d_Q_cc_scratch_idx >= 0);
+    TBOX_ASSERT(d_Q_cc_composite_idx >= 0);
 #endif
 
     const std::string S_var_name = "AdvDiffConservativeMassTransportQuantityIntegrator::S";
@@ -685,12 +702,12 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
     }
 
     TBOX_ASSERT(d_rho_current_idx >= 0);
-    TBOX_ASSERT(d_cp_cc_old_idx >= 0);
-    TBOX_ASSERT(d_cp_cc_current_idx >= 0);
-    TBOX_ASSERT(d_cp_cc_new_idx >= 0);
-    TBOX_ASSERT(d_T_cc_old_idx >= 0);
-    TBOX_ASSERT(d_T_cc_current_idx >= 0);
-    TBOX_ASSERT(d_T_cc_new_idx >= 0);
+    //    TBOX_ASSERT(d_gamma_cc_old_idx >= 0);
+    //    TBOX_ASSERT(d_gamma_cc_current_idx >= 0);
+    //    TBOX_ASSERT(d_gamma_cc_new_idx >= 0);
+    TBOX_ASSERT(d_Q_cc_old_idx >= 0);
+    TBOX_ASSERT(d_Q_cc_current_idx >= 0);
+    TBOX_ASSERT(d_Q_cc_new_idx >= 0);
     TBOX_ASSERT(d_V_old_idx >= 0);
     TBOX_ASSERT(d_V_current_idx >= 0);
     TBOX_ASSERT(d_V_new_idx >= 0);
@@ -747,34 +764,19 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
                                                                  false,
                                                                  d_rho_bc_coefs);
 
-    d_hier_cc_data_ops->copyData(d_cp_cc_composite_idx,
-                                 d_cp_cc_current_idx,
+    d_hier_cc_data_ops->copyData(d_Q_cc_composite_idx,
+                                 d_Q_cc_current_idx,
                                  /*interior_only*/ true);
-
-    std::vector<InterpolationTransactionComponent> cp_transaction_comps(1);
-    std::vector<RobinBcCoefStrategy<NDIM>*> cp_cc_bc_coefs(1, d_cp_cc_bc_coefs);
-    cp_transaction_comps[0] = InterpolationTransactionComponent(d_cp_cc_scratch_idx,
-                                                                d_cp_cc_composite_idx,
-                                                                "CONSERVATIVE_LINEAR_REFINE",
-                                                                false,
-                                                                "CONSERVATIVE_COARSEN",
-                                                                d_density_bdry_extrap_type,
-                                                                false,
-                                                                cp_cc_bc_coefs);
-
-    d_hier_cc_data_ops->copyData(d_T_cc_composite_idx,
-                                 d_T_cc_current_idx,
-                                 /*interior_only*/ true);
-    std::vector<InterpolationTransactionComponent> T_transaction_comps(1);
-    std::vector<RobinBcCoefStrategy<NDIM>*> T_cc_bc_coefs(1, d_T_cc_bc_coefs);
-    T_transaction_comps[0] = InterpolationTransactionComponent(d_T_cc_scratch_idx,
-                                                               d_T_cc_composite_idx,
+    std::vector<InterpolationTransactionComponent> Q_transaction_comps(1);
+    std::vector<RobinBcCoefStrategy<NDIM>*> Q_cc_bc_coefs(1, d_Q_cc_bc_coefs);
+    Q_transaction_comps[0] = InterpolationTransactionComponent(d_Q_cc_scratch_idx,
+                                                               d_Q_cc_composite_idx,
                                                                "CONSERVATIVE_LINEAR_REFINE",
                                                                false,
                                                                "CONSERVATIVE_COARSEN",
                                                                d_density_bdry_extrap_type,
                                                                false,
-                                                               T_cc_bc_coefs);
+                                                               Q_cc_bc_coefs);
 
     double eval_time = d_current_time;
     d_hier_rho_bdry_fill->resetTransactionComponents(rho_transaction_comps);
@@ -783,15 +785,33 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
     d_hier_rho_bdry_fill->fillData(eval_time);
     d_hier_rho_bdry_fill->resetTransactionComponents(d_rho_transaction_comps);
 
-    d_hier_cp_bdry_fill->resetTransactionComponents(cp_transaction_comps);
-    d_hier_cp_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    d_hier_cp_bdry_fill->fillData(eval_time);
-    d_hier_cp_bdry_fill->resetTransactionComponents(d_cp_transaction_comps);
+    if (d_gamma_cc_var)
+    {
+        d_hier_cc_data_ops->copyData(d_gamma_cc_composite_idx,
+                                     d_gamma_cc_current_idx,
+                                     /*interior_only*/ true);
 
-    d_hier_T_bdry_fill->resetTransactionComponents(T_transaction_comps);
-    d_hier_T_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    d_hier_T_bdry_fill->fillData(eval_time);
-    d_hier_T_bdry_fill->resetTransactionComponents(d_T_transaction_comps);
+        std::vector<InterpolationTransactionComponent> gamma_transaction_comps(1);
+        std::vector<RobinBcCoefStrategy<NDIM>*> gamma_cc_bc_coefs(1, d_gamma_cc_bc_coefs);
+        gamma_transaction_comps[0] = InterpolationTransactionComponent(d_gamma_cc_scratch_idx,
+                                                                       d_gamma_cc_composite_idx,
+                                                                       "CONSERVATIVE_LINEAR_REFINE",
+                                                                       false,
+                                                                       "CONSERVATIVE_COARSEN",
+                                                                       d_density_bdry_extrap_type,
+                                                                       false,
+                                                                       gamma_cc_bc_coefs);
+
+        d_hier_gamma_bdry_fill->resetTransactionComponents(gamma_transaction_comps);
+        d_hier_gamma_bdry_fill->setHomogeneousBc(homogeneous_bc);
+        d_hier_gamma_bdry_fill->fillData(eval_time);
+        d_hier_gamma_bdry_fill->resetTransactionComponents(d_gamma_transaction_comps);
+    }
+
+    d_hier_Q_bdry_fill->resetTransactionComponents(Q_transaction_comps);
+    d_hier_Q_bdry_fill->setHomogeneousBc(homogeneous_bc);
+    d_hier_Q_bdry_fill->fillData(eval_time);
+    d_hier_Q_bdry_fill->resetTransactionComponents(d_Q_transaction_comps);
 
     // Fill ghost cells for the velocity used to compute the density update
     // Note, enforce divergence free condition on all physical boundaries to
@@ -815,7 +835,7 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
     }
 
     // Compute the convective derivative.
-        // Fill ghost cells for new density specific heat and temperature, if needed
+    // Fill ghost cells for new density specific heat and transport_quantity, if needed
     if (d_cycle_num > 0)
     {
         eval_time = d_current_time + dt / 2.0;
@@ -832,41 +852,45 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
                                                                             d_rho_bc_coefs);
 
         d_hier_cc_data_ops->linearSum(
-            d_cp_cc_scratch_idx, 0.5, d_cp_cc_new_idx, 0.5, d_cp_cc_current_idx, /*interior_only*/ true);
-        std::vector<InterpolationTransactionComponent> update_cp_transaction_comps(1);
-        update_cp_transaction_comps[0] = InterpolationTransactionComponent(d_cp_cc_scratch_idx,
-                                                                           "CONSERVATIVE_LINEAR_REFINE",
-                                                                           false,
-                                                                           "CONSERVATIVE_COARSEN",
-                                                                           d_density_bdry_extrap_type,
-                                                                           false,
-                                                                           cp_cc_bc_coefs);
-
-        d_hier_cc_data_ops->linearSum(
-            d_T_cc_scratch_idx, 0.5, d_T_cc_new_idx, 0.5, d_T_cc_current_idx, /*interior_only*/ true);
-        std::vector<InterpolationTransactionComponent> update_T_transaction_comps(1);
-        update_T_transaction_comps[0] = InterpolationTransactionComponent(d_T_cc_scratch_idx,
+            d_Q_cc_scratch_idx, 0.5, d_Q_cc_new_idx, 0.5, d_Q_cc_current_idx, /*interior_only*/ true);
+        std::vector<InterpolationTransactionComponent> update_Q_transaction_comps(1);
+        update_Q_transaction_comps[0] = InterpolationTransactionComponent(d_Q_cc_scratch_idx,
                                                                           "CONSERVATIVE_LINEAR_REFINE",
                                                                           false,
                                                                           "CONSERVATIVE_COARSEN",
                                                                           d_density_bdry_extrap_type,
                                                                           false,
-                                                                          T_cc_bc_coefs);
+                                                                          Q_cc_bc_coefs);
         //
         d_hier_rho_bdry_fill->resetTransactionComponents(rho_transaction_comps);
         d_hier_rho_bdry_fill->setHomogeneousBc(homogeneous_bc);
         d_hier_rho_bdry_fill->fillData(eval_time);
         d_hier_rho_bdry_fill->resetTransactionComponents(d_rho_transaction_comps);
 
-        d_hier_cp_bdry_fill->resetTransactionComponents(cp_transaction_comps);
-        d_hier_cp_bdry_fill->setHomogeneousBc(homogeneous_bc);
-        d_hier_cp_bdry_fill->fillData(eval_time);
-        d_hier_cp_bdry_fill->resetTransactionComponents(d_cp_transaction_comps);
+        if (d_gamma_cc_var)
+        {
+            d_hier_cc_data_ops->linearSum(
+                d_gamma_cc_scratch_idx, 0.5, d_gamma_cc_new_idx, 0.5, d_gamma_cc_current_idx, /*interior_only*/ true);
+            std::vector<InterpolationTransactionComponent> update_gamma_transaction_comps(1);
+            std::vector<RobinBcCoefStrategy<NDIM>*> gamma_cc_bc_coefs(1, d_gamma_cc_bc_coefs);
+            update_gamma_transaction_comps[0] = InterpolationTransactionComponent(d_gamma_cc_scratch_idx,
+                                                                                  "CONSERVATIVE_LINEAR_REFINE",
+                                                                                  false,
+                                                                                  "CONSERVATIVE_COARSEN",
+                                                                                  d_density_bdry_extrap_type,
+                                                                                  false,
+                                                                                  gamma_cc_bc_coefs);
+            d_hier_gamma_bdry_fill->resetTransactionComponents(
+                d_gamma_transaction_comps); // I think I should use gamma_transaction_comps here.
+            d_hier_gamma_bdry_fill->setHomogeneousBc(homogeneous_bc);
+            d_hier_gamma_bdry_fill->fillData(eval_time);
+            d_hier_gamma_bdry_fill->resetTransactionComponents(d_gamma_transaction_comps);
+        }
 
-        d_hier_T_bdry_fill->resetTransactionComponents(T_transaction_comps);
-        d_hier_T_bdry_fill->setHomogeneousBc(homogeneous_bc);
-        d_hier_T_bdry_fill->fillData(eval_time);
-        d_hier_T_bdry_fill->resetTransactionComponents(d_T_transaction_comps);
+        d_hier_Q_bdry_fill->resetTransactionComponents(Q_transaction_comps);
+        d_hier_Q_bdry_fill->setHomogeneousBc(homogeneous_bc);
+        d_hier_Q_bdry_fill->fillData(eval_time);
+        d_hier_Q_bdry_fill->resetTransactionComponents(d_Q_transaction_comps);
 
         // Compute an approximation to velocity at eval_time.
         d_hier_fc_data_ops->linearSum(
@@ -903,12 +927,9 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
             Pointer<CellData<NDIM, double> > R_pre_data = patch->getPatchData(d_rho_scratch_idx);
             Pointer<CellData<NDIM, double> > R_new_data = patch->getPatchData(d_rho_new_idx);
 
-            // Pointer<CellData<NDIM, double> > C_cur_data = patch->getPatchData(d_cp_cc_current_idx);
-            Pointer<CellData<NDIM, double> > C_pre_data = patch->getPatchData(d_cp_cc_scratch_idx);
-            Pointer<CellData<NDIM, double> > C_new_data = patch->getPatchData(d_cp_cc_new_idx);
-            // Pointer<CellData<NDIM, double> > T_cur_data = patch->getPatchData(d_T_cc_current_idx);
-            Pointer<CellData<NDIM, double> > T_pre_data = patch->getPatchData(d_T_cc_scratch_idx);
-            // Pointer<CellData<NDIM, double> > T_new_data = patch->getPatchData(d_T_cc_new_idx);
+            // Pointer<CellData<NDIM, double> > T_cur_data = patch->getPatchData(d_Q_cc_current_idx);
+            Pointer<CellData<NDIM, double> > Q_pre_data = patch->getPatchData(d_Q_cc_scratch_idx);
+            // Pointer<CellData<NDIM, double> > T_new_data = patch->getPatchData(d_Q_cc_new_idx);
 
             Pointer<CellData<NDIM, double> > R_src_data = patch->getPatchData(d_S_scratch_idx);
 
@@ -919,7 +940,7 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
             // components
             const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
             Pointer<FaceData<NDIM, double> > C_half_data = new FaceData<NDIM, double>(patch_box, 1, ghosts);
-            Pointer<FaceData<NDIM, double> > T_half_data = new FaceData<NDIM, double>(patch_box, 1, ghosts);
+            Pointer<FaceData<NDIM, double> > Q_half_data = new FaceData<NDIM, double>(patch_box, 1, ghosts);
             Pointer<FaceData<NDIM, double> > R_half_data = new FaceData<NDIM, double>(patch_box, 1, ghosts);
             Pointer<FaceData<NDIM, double> > P_half_data =
                 new FaceData<NDIM, double>(patch_box, 1, ghosts); // to store (rho*C*T)^n+half
@@ -942,25 +963,32 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
 
             // Compute the convective derivative with the penultimate density and
             // velocity, if necessary
-            std::vector<RobinBcCoefStrategy<NDIM>*> cp_cc_bc_coefs(1, d_cp_cc_bc_coefs);
+            if (d_gamma_cc_var)
+            {
+                // Pointer<CellData<NDIM, double> > C_cur_data = patch->getPatchData(d_gamma_cc_current_idx);
+                Pointer<CellData<NDIM, double> > C_pre_data = patch->getPatchData(d_gamma_cc_scratch_idx);
+                Pointer<CellData<NDIM, double> > C_new_data = patch->getPatchData(d_gamma_cc_new_idx);
 
-            // Enforce physical boundary conditions at inflow boundaries.
-            AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
-                C_pre_data,
-                V_adv_data,
-                patch,
-                cp_cc_bc_coefs,
-                d_solution_time,
-                /*inflow_boundary_only*/ d_specific_heat_bdry_extrap_type != "NONE",
-                homogeneous_bc);
+                std::vector<RobinBcCoefStrategy<NDIM>*> gamma_cc_bc_coefs(1, d_gamma_cc_bc_coefs);
 
-            interpolateCellQuantity(C_half_data,
-                                    V_adv_data,
-                                    C_pre_data,
-                                    patch_lower,
-                                    patch_upper,
-                                    patch_box,
-                                    d_specific_heat_convective_limiter);
+                // Enforce physical boundary conditions at inflow boundaries.
+                AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
+                    C_pre_data,
+                    V_adv_data,
+                    patch,
+                    gamma_cc_bc_coefs,
+                    d_solution_time,
+                    /*inflow_boundary_only*/ d_material_property_bdry_extrap_type != "NONE",
+                    homogeneous_bc);
+
+                interpolateCellQuantity(C_half_data,
+                                        V_adv_data,
+                                        C_pre_data,
+                                        patch_lower,
+                                        patch_upper,
+                                        patch_box,
+                                        d_material_property_convective_limiter);
+            }
 
             //                    // Interpolate from cell centers to cell faces.
             //                    const IntVector<NDIM>& C_half_data_gcw = C_half_data->getGhostCellWidth();
@@ -995,30 +1023,30 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
             //#endif
             //                    );
 
-            std::vector<RobinBcCoefStrategy<NDIM>*> T_cc_bc_coefs(1, d_T_cc_bc_coefs);
+            std::vector<RobinBcCoefStrategy<NDIM>*> Q_cc_bc_coefs(1, d_Q_cc_bc_coefs);
 
             // Enforce physical boundary conditions at inflow boundaries.
             AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
-                T_pre_data,
+                Q_pre_data,
                 V_adv_data,
                 patch,
-                T_cc_bc_coefs,
+                Q_cc_bc_coefs,
                 d_solution_time,
-                /*inflow_boundary_only*/ d_temperature_bdry_extrap_type != "NONE",
+                /*inflow_boundary_only*/ d_transport_quantity_bdry_extrap_type != "NONE",
                 homogeneous_bc);
 
-            interpolateCellQuantity(T_half_data,
+            interpolateCellQuantity(Q_half_data,
                                     V_adv_data,
-                                    T_pre_data,
+                                    Q_pre_data,
                                     patch_lower,
                                     patch_upper,
                                     patch_box,
-                                    d_temperature_convective_limiter);
+                                    d_transport_quantity_convective_limiter);
 
             IBAMR_TIMER_START(t_apply_convective_operator);
 
             computeConvectiveDerivative(
-                N_data, P_half_data, V_adv_data, R_half_data, T_half_data, C_half_data, patch_box, dx);
+                N_data, P_half_data, V_adv_data, R_half_data, Q_half_data, C_half_data, patch_box, dx);
 
             std::ofstream conv_data;
             conv_data.open("N_data.txt");
@@ -1040,7 +1068,13 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
             {
                 CellIndex<NDIM> ci(it());
 
-                (*N_data)(ci) -= (*C_pre_data)(ci) * (*T_pre_data)(ci) * (*M_data)(ci);
+                if (d_gamma_cc_var)
+                {
+                    Pointer<CellData<NDIM, double> > C_pre_data = patch->getPatchData(d_gamma_cc_scratch_idx);
+                    (*N_data)(ci) -= (*C_pre_data)(ci) * (*Q_pre_data)(ci) * (*M_data)(ci);
+                }
+                else
+                    (*N_data)(ci) -= (*Q_pre_data)(ci) * (*M_data)(ci);
             }
         }
     }
@@ -1107,6 +1141,22 @@ AdvDiffConservativeMassTransportQuantityIntegrator::initializeTimeIntegrator(
     d_coarsest_ln = 0;
     d_finest_ln = d_hierarchy->getFinestLevelNumber();
 
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    if (d_gamma_cc_var)
+    {
+        d_gamma_cc_scratch_idx = var_db->registerVariableAndContext(d_gamma_cc_var,
+                                                                    var_db->getContext(d_gamma_cc_var->getName()),
+                                                                    IntVector<NDIM>(d_material_property_limiter_gcw));
+        d_gamma_cc_composite_idx = var_db->registerVariableAndContext(
+            d_gamma_cc_var, var_db->getContext(d_gamma_cc_var->getName()), IntVector<NDIM>(NOGHOSTS));
+    }
+
+    //#if !defined(NDEBUG)
+    //    TBOX_ASSERT(d_gamma_cc_scratch_idx >= 0);
+    //    TBOX_ASSERT(d_gamma_cc_composite_idx >= 0);
+    //#endif
+
     // Setup the interpolation transaction information.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_rho_transaction_comps.resize(1);
@@ -1119,24 +1169,28 @@ AdvDiffConservativeMassTransportQuantityIntegrator::initializeTimeIntegrator(
                                                                    false,
                                                                    d_rho_bc_coefs);
 
-    d_cp_transaction_comps.resize(1);
-    d_cp_transaction_comps[0] = InterpolationTransactionComponent(d_cp_cc_scratch_idx,
-                                                                  d_cp_cc_composite_idx,
-                                                                  "CONSERVATIVE_LINEAR_REFINE",
-                                                                  false,
-                                                                  "CONSERVATIVE_COARSEN",
-                                                                  d_density_bdry_extrap_type,
-                                                                  false,
-                                                                  d_cp_cc_bc_coefs);
-    d_T_transaction_comps.resize(1);
-    d_T_transaction_comps[0] = InterpolationTransactionComponent(d_T_cc_scratch_idx,
-                                                                 d_T_cc_composite_idx,
+    if (d_gamma_cc_var)
+    {
+        d_gamma_transaction_comps.resize(1);
+        d_gamma_transaction_comps[0] = InterpolationTransactionComponent(d_gamma_cc_scratch_idx,
+                                                                         d_gamma_cc_composite_idx,
+                                                                         "CONSERVATIVE_LINEAR_REFINE",
+                                                                         false,
+                                                                         "CONSERVATIVE_COARSEN",
+                                                                         d_density_bdry_extrap_type,
+                                                                         false,
+                                                                         d_gamma_cc_bc_coefs);
+    }
+
+    d_Q_transaction_comps.resize(1);
+    d_Q_transaction_comps[0] = InterpolationTransactionComponent(d_Q_cc_scratch_idx,
+                                                                 d_Q_cc_composite_idx,
                                                                  "CONSERVATIVE_LINEAR_REFINE",
                                                                  false,
                                                                  "CONSERVATIVE_COARSEN",
                                                                  d_density_bdry_extrap_type,
                                                                  false,
-                                                                 d_T_cc_bc_coefs);
+                                                                 d_Q_cc_bc_coefs);
 
     //    d_v_transaction_comps.resize(1);
     //    d_v_transaction_comps[0] = InterpolationTransactionComponent(d_V_scratch_idx,
@@ -1151,10 +1205,10 @@ AdvDiffConservativeMassTransportQuantityIntegrator::initializeTimeIntegrator(
     // Initialize the interpolation operators.
     d_hier_rho_bdry_fill = new HierarchyGhostCellInterpolation();
     d_hier_rho_bdry_fill->initializeOperatorState(d_rho_transaction_comps, d_hierarchy);
-    d_hier_cp_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_cp_bdry_fill->initializeOperatorState(d_cp_transaction_comps, d_hierarchy);
-    d_hier_T_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_T_bdry_fill->initializeOperatorState(d_T_transaction_comps, d_hierarchy);
+    d_hier_gamma_bdry_fill = new HierarchyGhostCellInterpolation();
+    d_hier_gamma_bdry_fill->initializeOperatorState(d_gamma_transaction_comps, d_hierarchy);
+    d_hier_Q_bdry_fill = new HierarchyGhostCellInterpolation();
+    d_hier_Q_bdry_fill->initializeOperatorState(d_Q_transaction_comps, d_hierarchy);
 
     // Do I need this here?
     //    // Initialize the BC helper.
@@ -1177,10 +1231,13 @@ AdvDiffConservativeMassTransportQuantityIntegrator::initializeTimeIntegrator(
         if (!level->checkAllocated(d_V_composite_idx)) level->allocatePatchData(d_V_composite_idx);
         if (!level->checkAllocated(d_rho_scratch_idx)) level->allocatePatchData(d_rho_scratch_idx);
         if (!level->checkAllocated(d_rho_new_idx)) level->allocatePatchData(d_rho_new_idx);
-        if (!level->checkAllocated(d_cp_cc_scratch_idx)) level->allocatePatchData(d_cp_cc_scratch_idx);
-        if (!level->checkAllocated(d_cp_cc_composite_idx)) level->allocatePatchData(d_cp_cc_composite_idx);
-        if (!level->checkAllocated(d_T_cc_scratch_idx)) level->allocatePatchData(d_T_cc_scratch_idx);
-        if (!level->checkAllocated(d_T_cc_composite_idx)) level->allocatePatchData(d_T_cc_composite_idx);
+        if (d_gamma_cc_var)
+        {
+            if (!level->checkAllocated(d_gamma_cc_scratch_idx)) level->allocatePatchData(d_gamma_cc_scratch_idx);
+            if (!level->checkAllocated(d_gamma_cc_composite_idx)) level->allocatePatchData(d_gamma_cc_composite_idx);
+        }
+        if (!level->checkAllocated(d_Q_cc_scratch_idx)) level->allocatePatchData(d_Q_cc_scratch_idx);
+        if (!level->checkAllocated(d_Q_cc_composite_idx)) level->allocatePatchData(d_Q_cc_composite_idx);
         if (!level->checkAllocated(d_S_scratch_idx)) level->allocatePatchData(d_S_scratch_idx);
     }
 
@@ -1213,8 +1270,8 @@ AdvDiffConservativeMassTransportQuantityIntegrator::deallocateTimeIntegrator()
 
     // Deallocate the communications operators and BC helpers.
     d_hier_rho_bdry_fill.setNull();
-    d_hier_cp_bdry_fill.setNull();
-    d_hier_T_bdry_fill.setNull();
+    d_hier_gamma_bdry_fill.setNull();
+    d_hier_Q_bdry_fill.setNull();
     d_bc_helper.setNull();
 
     // Deallocate data.
@@ -1225,10 +1282,13 @@ AdvDiffConservativeMassTransportQuantityIntegrator::deallocateTimeIntegrator()
         if (level->checkAllocated(d_V_composite_idx)) level->deallocatePatchData(d_V_composite_idx);
         if (level->checkAllocated(d_rho_scratch_idx)) level->deallocatePatchData(d_rho_scratch_idx);
         if (level->checkAllocated(d_rho_new_idx)) level->deallocatePatchData(d_rho_new_idx);
-        if (level->checkAllocated(d_cp_cc_scratch_idx)) level->deallocatePatchData(d_cp_cc_scratch_idx);
-        if (level->checkAllocated(d_cp_cc_composite_idx)) level->deallocatePatchData(d_cp_cc_composite_idx);
-        if (level->checkAllocated(d_T_cc_scratch_idx)) level->deallocatePatchData(d_T_cc_scratch_idx);
-        if (level->checkAllocated(d_T_cc_composite_idx)) level->deallocatePatchData(d_T_cc_composite_idx);
+        if (d_gamma_cc_var)
+        {
+            if (level->checkAllocated(d_gamma_cc_scratch_idx)) level->deallocatePatchData(d_gamma_cc_scratch_idx);
+            if (level->checkAllocated(d_gamma_cc_composite_idx)) level->deallocatePatchData(d_gamma_cc_composite_idx);
+        }
+        if (level->checkAllocated(d_Q_cc_scratch_idx)) level->deallocatePatchData(d_Q_cc_scratch_idx);
+        if (level->checkAllocated(d_Q_cc_composite_idx)) level->deallocatePatchData(d_Q_cc_composite_idx);
         if (level->checkAllocated(d_S_scratch_idx)) level->deallocatePatchData(d_S_scratch_idx);
     }
 
@@ -1254,22 +1314,22 @@ AdvDiffConservativeMassTransportQuantityIntegrator::deallocateTimeIntegrator()
 //} // setCellCenteredDensityPatchDataIndex
 
 void
-AdvDiffConservativeMassTransportQuantityIntegrator::setCellCenteredSpecificHeatPatchDataIndex(int cp_cc_idx)
+AdvDiffConservativeMassTransportQuantityIntegrator::setCellCenteredMaterialPropertyPatchDataIndex(int gamma_cc_idx)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(cp_cc_idx >= 0);
+    TBOX_ASSERT(gamma_cc_idx >= 0);
 #endif
-    d_cp_cc_current_idx = cp_cc_idx;
-} // setCellCenteredSpecificHeatPatchDataIndex
+    d_gamma_cc_current_idx = gamma_cc_idx;
+} // setCellCenteredMaterialPropertyPatchDataIndex
 
 void
-AdvDiffConservativeMassTransportQuantityIntegrator::setCellCenteredTemperaturePatchDataIndex(int T_cc_idx)
+AdvDiffConservativeMassTransportQuantityIntegrator::setCellCenteredTransportQuantityPatchDataIndex(int Q_cc_idx)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(T_cc_idx >= 0);
+    TBOX_ASSERT(Q_cc_idx >= 0);
 #endif
-    d_T_cc_current_idx = T_cc_idx;
-} // setCellCenteredTemperaturePatchDataIndex
+    d_Q_cc_current_idx = Q_cc_idx;
+} // setCellCenteredtransport_quantityPatchDataIndex
 
 void
 AdvDiffConservativeMassTransportQuantityIntegrator::setMassConservationPatchDataIndex(int M_idx)
@@ -1300,20 +1360,20 @@ AdvDiffConservativeMassTransportQuantityIntegrator::setCellCenteredDensityBounda
 } // setCellCenteredDensityBoundaryConditions
 
 void
-AdvDiffConservativeMassTransportQuantityIntegrator::setCellCenteredSpecificHeatBoundaryConditions(
-    RobinBcCoefStrategy<NDIM>*& cp_cc_bc_coefs)
+AdvDiffConservativeMassTransportQuantityIntegrator::setCellCenteredMaterialPropertyBoundaryConditions(
+    RobinBcCoefStrategy<NDIM>*& gamma_cc_bc_coefs)
 {
-    d_cp_cc_bc_coefs = cp_cc_bc_coefs;
+    d_gamma_cc_bc_coefs = gamma_cc_bc_coefs;
     return;
-} // setCellCenteredSpecificHeatBoundaryConditions
+} // setCellCenteredMaterialPropertyBoundaryConditions
 
 void
-AdvDiffConservativeMassTransportQuantityIntegrator::setCellCenteredTemperatureBoundaryConditions(
-    RobinBcCoefStrategy<NDIM>*& T_cc_bc_coefs)
+AdvDiffConservativeMassTransportQuantityIntegrator::setCellCenteredTransportQuantityBoundaryConditions(
+    RobinBcCoefStrategy<NDIM>*& Q_cc_bc_coefs)
 {
-    d_T_cc_bc_coefs = T_cc_bc_coefs;
+    d_Q_cc_bc_coefs = Q_cc_bc_coefs;
     return;
-} // setCellCenteredTemperatureBoundaryConditions
+} // setCellCenteredtransport_quantityBoundaryConditions
 
 int
 AdvDiffConservativeMassTransportQuantityIntegrator::getUpdatedCellCenteredDensityPatchDataIndex()
@@ -1359,73 +1419,80 @@ AdvDiffConservativeMassTransportQuantityIntegrator::getUpdatedCellCenteredDensit
 //} // setFluidVelocityPatchDataIndices
 
 void
-AdvDiffConservativeMassTransportQuantityIntegrator::setSpecificHeatPatchDataIndices(int cp_old_idx,
-                                                                                    int cp_current_idx,
-                                                                                    int cp_new_idx)
+AdvDiffConservativeMassTransportQuantityIntegrator::setMaterialPropertyPatchDataIndices(int gamma_old_idx,
+                                                                                        int gamma_current_idx,
+                                                                                        int gamma_new_idx)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(cp_current_idx >= 0);
+    TBOX_ASSERT(gamma_current_idx >= 0);
 #endif
 
     // Set the old specific heat if it has been set, otherwise set to current.
-    if (cp_old_idx >= 0)
+    if (gamma_old_idx >= 0)
     {
-        d_cp_cc_old_idx = cp_old_idx;
+        d_gamma_cc_old_idx = gamma_old_idx;
     }
     else
     {
-        d_cp_cc_old_idx = cp_current_idx;
+        d_gamma_cc_old_idx = gamma_current_idx;
     }
 
     // Set the current specific heat
-    d_cp_cc_current_idx = cp_current_idx;
+    d_gamma_cc_current_idx = gamma_current_idx;
 
     // Set the new specific heat if it has been set, otherwise set to current.
-    if (cp_new_idx >= 0)
+    if (gamma_new_idx >= 0)
     {
-        d_cp_cc_new_idx = cp_new_idx;
+        d_gamma_cc_new_idx = gamma_new_idx;
     }
     else
     {
-        d_cp_cc_new_idx = cp_current_idx;
+        d_gamma_cc_new_idx = gamma_current_idx;
     }
     return;
-} // setSpecificHeatPatchDataIndices
+} // setMaterialPropertyPatchDataIndices
 
 void
-AdvDiffConservativeMassTransportQuantityIntegrator::setTemperaturePatchDataIndices(int T_old_idx,
-                                                                                   int T_current_idx,
-                                                                                   int T_new_idx)
+AdvDiffConservativeMassTransportQuantityIntegrator::setTransportQuantityPatchDataIndices(int Q_old_idx,
+                                                                                         int Q_current_idx,
+                                                                                         int Q_new_idx)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(T_current_idx >= 0);
+    TBOX_ASSERT(Q_current_idx >= 0);
 #endif
 
-    // Set the old temperature if it has been set, otherwise set to current.
-    if (T_old_idx >= 0)
+    // Set the old transport_quantity if it has been set, otherwise set to current.
+    if (Q_old_idx >= 0)
     {
-        d_T_cc_old_idx = T_old_idx;
+        d_Q_cc_old_idx = Q_old_idx;
     }
     else
     {
-        d_T_cc_old_idx = T_current_idx;
+        d_Q_cc_old_idx = Q_current_idx;
     }
 
-    // Set the current temperature
-    d_T_cc_current_idx = T_current_idx;
+    // Set the current transport_quantity
+    d_Q_cc_current_idx = Q_current_idx;
 
-    // Set the new temperature if it has been set, otherwise set to current.
-    if (T_new_idx >= 0)
+    // Set the new transport_quantity if it has been set, otherwise set to current.
+    if (Q_new_idx >= 0)
     {
-        d_T_cc_new_idx = T_new_idx;
+        d_Q_cc_new_idx = Q_new_idx;
     }
     else
     {
-        d_T_cc_new_idx = T_current_idx;
+        d_Q_cc_new_idx = Q_current_idx;
     }
     return;
-} // setTemperaturePatchDataIndices
+} // settransport_quantityPatchDataIndices
 
+void
+AdvDiffConservativeMassTransportQuantityIntegrator::setMaterialPropertyVariable(
+    Pointer<CellVariable<NDIM, double> > gamma_var)
+{
+    d_gamma_cc_var = gamma_var;
+    return;
+}
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
@@ -1576,86 +1643,91 @@ AdvDiffConservativeMassTransportQuantityIntegrator::computeConvectiveDerivative(
     Pointer<FaceData<NDIM, double> > P_half_data,
     const Pointer<FaceData<NDIM, double> > U_adv_data,
     const Pointer<FaceData<NDIM, double> > R_half_data,
-    const Pointer<FaceData<NDIM, double> > T_half_data,
-    const Pointer<FaceData<NDIM, double> > C_half_data,
+    const Pointer<FaceData<NDIM, double> > Q_half_data,
+    const Pointer<FaceData<NDIM, double> > G_half_data,
     const Box<NDIM>& patch_box,
     const double* const dx)
 {
     static const double dt = 1.0;
-    Pointer<FaceData<NDIM, double> > CT_half_data =
-        new FaceData<NDIM, double>(patch_box, 1, 1); // to store (C*T)^n+half
+    Pointer<FaceData<NDIM, double> > GQ_half_data =
+        new FaceData<NDIM, double>(patch_box, 1, 1); // to store (G*Q)^n+half
     const IntVector<NDIM>& U_adv_data_gcw = U_adv_data->getGhostCellWidth();
     const IntVector<NDIM>& P_half_data_gcw = P_half_data->getGhostCellWidth();
     const IntVector<NDIM>& R_half_data_gcw = R_half_data->getGhostCellWidth();
-    const IntVector<NDIM>& T_half_data_gcw = T_half_data->getGhostCellWidth();
-    const IntVector<NDIM>& C_half_data_gcw = C_half_data->getGhostCellWidth();
-    const IntVector<NDIM>& CT_half_data_gcw = CT_half_data->getGhostCellWidth();
+    const IntVector<NDIM>& Q_half_data_gcw = Q_half_data->getGhostCellWidth();
+    const IntVector<NDIM>& G_half_data_gcw = G_half_data->getGhostCellWidth();
+    const IntVector<NDIM>& GQ_half_data_gcw = GQ_half_data->getGhostCellWidth();
     const IntVector<NDIM>& N_data_gcw = N_data->getGhostCellWidth();
 
-    // compute CT^(n+half) = C^(n+half) * T^(n+half).
-    ADVECT_FLUX_FC(dt,
+    if (d_gamma_cc_var)
+    {
+        // compute GQ^(n+half) = G^(n+half) * Q^(n+half).
+        ADVECT_FLUX_FC(dt,
 #if (NDIM == 2)
-                   patch_box.lower(0),
-                   patch_box.upper(0),
-                   patch_box.lower(1),
-                   patch_box.upper(1),
-                   C_half_data_gcw(0),
-                   C_half_data_gcw(1),
-                   T_half_data_gcw(0),
-                   T_half_data_gcw(1),
-                   CT_half_data_gcw(0),
-                   CT_half_data_gcw(1),
-                   C_half_data->getPointer(0),
-                   C_half_data->getPointer(1),
-                   T_half_data->getPointer(0),
-                   T_half_data->getPointer(1),
-                   CT_half_data->getPointer(0),
-                   CT_half_data
-                       ->getPointer(1)
+                       patch_box.lower(0),
+                       patch_box.upper(0),
+                       patch_box.lower(1),
+                       patch_box.upper(1),
+                       G_half_data_gcw(0),
+                       G_half_data_gcw(1),
+                       Q_half_data_gcw(0),
+                       Q_half_data_gcw(1),
+                       GQ_half_data_gcw(0),
+                       GQ_half_data_gcw(1),
+                       G_half_data->getPointer(0),
+                       G_half_data->getPointer(1),
+                       Q_half_data->getPointer(0),
+                       Q_half_data->getPointer(1),
+                       GQ_half_data->getPointer(0),
+                       GQ_half_data
+                           ->getPointer(1)
 #endif
 #if (NDIM == 3)
-                           patch_box.lower(0),
-                   patch_box.upper(0),
-                   patch_box.lower(1),
-                   patch_box.upper(1),
-                   patch_box.lower(2),
-                   patch_box.upper(2),
-                   C_half_data_gcw(0),
-                   C_half_data_gcw(1),
-                   C_half_data_gcw(2),
-                   T_half_data_gcw(0),
-                   T_half_data_gcw(1),
-                   T_half_data_gcw(2),
-                   CT_half_data_gcw(0),
-                   CT_half_data_gcw(1),
-                   CT_half_data_gcw(2),
-                   C_half_data->getPointer(0),
-                   C_half_data->getPointer(1),
-                   C_half_data->getPointer(2),
-                   T_half_data->getPointer(0),
-                   T_half_data->getPointer(1),
-                   T_half_data->getPointer(2),
-                   CT_half_data->getPointer(0),
-                   CT_half_data->getPointer(1),
-                   CT_half_data->getPointer(2)
+                               patch_box.lower(0),
+                       patch_box.upper(0),
+                       patch_box.lower(1),
+                       patch_box.upper(1),
+                       patch_box.lower(2),
+                       patch_box.upper(2),
+                       G_half_data_gcw(0),
+                       G_half_data_gcw(1),
+                       G_half_data_gcw(2),
+                       Q_half_data_gcw(0),
+                       Q_half_data_gcw(1),
+                       Q_half_data_gcw(2),
+                       GQ_half_data_gcw(0),
+                       GQ_half_data_gcw(1),
+                       GQ_half_data_gcw(2),
+                       G_half_data->getPointer(0),
+                       G_half_data->getPointer(1),
+                       G_half_data->getPointer(2),
+                       Q_half_data->getPointer(0),
+                       Q_half_data->getPointer(1),
+                       Q_half_data->getPointer(2),
+                       GQ_half_data->getPointer(0),
+                       GQ_half_data->getPointer(1),
+                       GQ_half_data->getPointer(2)
 #endif
-    );
+        );
+    }
+    else
+        GQ_half_data->copy(*Q_half_data); // When gamma is not registered, copy Q_half_data into GQ_half_data
 
-    // compute RCT^(n+half) = R^(n+half) * C^(n+half) * T^(n+half).
+    // compute RGQ^(n+half) = R^(n+half) * GQ^(n+half).
     ADVECT_FLUX_FC(dt,
 #if (NDIM == 2)
                    patch_box.lower(0),
                    patch_box.upper(0),
                    patch_box.lower(1),
                    patch_box.upper(1),
-                   CT_half_data_gcw(0),
-                   CT_half_data_gcw(1),
+                   GQ_half_data_gcw(0),
+                   GQ_half_data_gcw(1),
                    R_half_data_gcw(0),
                    R_half_data_gcw(1),
                    P_half_data_gcw(0),
                    P_half_data_gcw(1),
-                   CT_half_data->getPointer(0),
-                   CT_half_data->getPointer(1),
+                   GQ_half_data->getPointer(0),
+                   GQ_half_data->getPointer(1),
                    R_half_data->getPointer(0),
                    R_half_data->getPointer(1),
                    P_half_data->getPointer(0),
@@ -1669,18 +1741,18 @@ AdvDiffConservativeMassTransportQuantityIntegrator::computeConvectiveDerivative(
                    patch_box.upper(1),
                    patch_box.lower(2),
                    patch_box.upper(2),
-                   CT_half_data_gcw(0),
-                   CT_half_data_gcw(1),
-                   CT_half_data_gcw(2),
+                   GQ_half_data_gcw(0),
+                   GQ_half_data_gcw(1),
+                   GQ_half_data_gcw(2),
                    R_half_data_gcw(0),
                    R_half_data_gcw(1),
                    R_half_data_gcw(2),
                    P_half_data_gcw(0),
                    P_half_data_gcw(1),
                    P_half_data_gcw(2),
-                   CT_half_data->getPointer(0),
-                   CT_half_data->getPointer(1),
-                   CT_half_data->getPointer(2),
+                   GQ_half_data->getPointer(0),
+                   GQ_half_data->getPointer(1),
+                   GQ_half_data->getPointer(2),
                    R_half_data->getPointer(0),
                    R_half_data->getPointer(1),
                    R_half_data->getPointer(2),
