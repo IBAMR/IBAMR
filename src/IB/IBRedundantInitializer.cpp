@@ -168,7 +168,7 @@ IBRedundantInitializer::getIsAllLagrangianDataInDomain(const Pointer<PatchHierar
 
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    if (!periodic_shift(d) && (X[d] < domain_x_lower[d]) || (domain_x_upper[d] < X[d]))
+                    if (!periodic_shift(d) && ((X[d] < domain_x_lower[d]) || (domain_x_upper[d] < X[d])))
                     {
                         return false;
                     }

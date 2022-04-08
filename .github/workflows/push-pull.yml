@@ -98,8 +98,30 @@ jobs:
           ln -s /usr/lib64/mpich/lib hdf5-shim/lib
           export HDF5_ROOT=$(pwd)/hdf5-shim
           popd
+          # If configuration fails we still want to save the output files:
+          set +e
           bash -c "ctest -VV -S .github/cmake/ctest_configure.cmake"
+          configure_status=$?
+          set -e
+          # The directory /build/ibamr is hardcoded in cmake/github_ci.cmake
+          #
+          # Archive doesn't like absolute paths to files so dump everything in ~/
+          find /build -name CMakeError.log -exec cp {} ./ \;
+          find /build -name CMakeOutput.log -exec cp {} ./ \;
           sccache --show-stats
+          exit $configure_status
+      - name: Archive CMakeError.log
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: fedora33-CMakeError.log
+          path: CMakeError.log
+      - name: Archive CMakeOutput.log
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: fedora33-CMakeOutput.log
+          path: CMakeOutput.log
       - name: Compile IBAMR
         id: build
         run: |
