@@ -1116,10 +1116,13 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
 
         PoissonSpecifications T_solver_spec(d_object_name + "::solver_spec::" + d_T_var->getName());
 
-        // inner iteration for Newton scheme.
-        for (unsigned int i = 0; i < d_max_inner_iterations; i++)
-        {
+        double lf_iteration_error = 1.0;
+        double inner_iterations = 1.0;
 
+        // inner iteration for Newton scheme.
+        while (lf_iteration_error >= d_lf_iteration_error_tolerance && inner_iterations <= d_max_inner_iterations)
+        {
+            std::cout << lf_iteration_error << "\t" << d_lf_iteration_error_tolerance << std::endl;
             // Setup the problem coefficients for the linear solve
             double alpha = 0.0;
             switch (d_T_diffusion_time_stepping_type)
@@ -1190,7 +1193,7 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
             if (d_T_u_var) d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, T_N_scratch_idx, T_rhs_scratch_idx);
 
             // To use same H used in advection of H in the convective term.
-            d_hier_cc_data_ops->copyData(d_H_pre_idx, H_new_idx);
+            d_hier_cc_data_ops->copyData(d_H_pre_idx, H_new_idx); //
 
             computeEnthalpyDerivative(d_dh_dT_scratch_idx, T_new_idx, H_new_idx);
             //            std::cout << "L2 norm of d_dh_dT_scratch_idx\t"
@@ -1316,14 +1319,14 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
 
             for (unsigned k = 0; k < d_reset_Cp_fcns.size(); ++k)
             {
-                d_reset_rho_fcns[k](Cp_new_idx,
-                                    d_Cp_var,
-                                    d_hier_math_ops,
-                                    -1 /*cycle_num*/,
-                                    apply_time,
-                                    current_time,
-                                    new_time,
-                                    d_reset_Cp_fcns_ctx[k]);
+                d_reset_Cp_fcns[k](Cp_new_idx,
+                                   d_Cp_var,
+                                   d_hier_math_ops,
+                                   -1 /*cycle_num*/,
+                                   apply_time,
+                                   current_time,
+                                   new_time,
+                                   d_reset_Cp_fcns_ctx[k]);
             }
 
             // update conductivity.
@@ -1343,6 +1346,9 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
             pout << "liquid fraction error: L2 norm:\t" << d_hier_cc_data_ops->L2Norm(d_lf_pre_idx, wgt_cc_idx) << "\n"
                  << "L1 norm: " << d_hier_cc_data_ops->L2Norm(d_lf_pre_idx, wgt_cc_idx) << "\n"
                  << "max norm: " << d_hier_cc_data_ops->maxNorm(d_lf_pre_idx, wgt_cc_idx) << "\n";
+
+            lf_iteration_error = d_hier_cc_data_ops->L2Norm(d_lf_pre_idx, wgt_cc_idx);
+            inner_iterations++;
 
             if (d_T_F_var)
             {
@@ -1931,6 +1937,7 @@ IEPSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> d
     db->putDouble("d_solidus_temperature", d_solidus_temperature);
     db->putBool("d_compute_T_material_derivative", d_compute_T_material_derivative);
     db->putInteger("d_max_inner_iterations", d_max_inner_iterations);
+    db->putDouble("d_lf_iteration_error_tolerance", d_lf_iteration_error_tolerance);
 
     AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(db);
     return;
@@ -2886,14 +2893,14 @@ IEPSemiImplicitHierarchyIntegrator::computeLiquidFraction(int lf_idx, const int 
 
                 if ((*H_data)(ci) > 0.0)
                 {
-                    if ((*h_data)(ci) >= h_s && (*h_data)(ci) <= h_l)
+                    if ((*h_data)(ci) < h_s)
+                        (*lf_data)(ci) = 0.0;
+                    else if ((*h_data)(ci) > h_l)
+                        (*lf_data)(ci) = 1.0;
+                    else
                         (*lf_data)(ci) =
                             d_rho_solid * (h_s - (*h_data)(ci)) /
                             ((d_rho_liquid - d_rho_solid) * (*h_data)(ci)-d_rho_liquid * h_l + d_rho_solid * h_s);
-                    else if ((*h_data)(ci) < h_s)
-                        (*lf_data)(ci) = 0.0;
-                    else
-                        (*lf_data)(ci) = 1.0;
                 }
                 else
                 {
@@ -3021,6 +3028,9 @@ IEPSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> input_db, boo
         //                   d_num_cycles = input_db->getInteger("num_cycles");
         if (input_db->keyExists("max_inner_iterations"))
             d_max_inner_iterations = input_db->getInteger("max_inner_iterations");
+
+        if (input_db->keyExists("lf_iteration_error_tolerance"))
+            d_lf_iteration_error_tolerance = input_db->getDouble("lf_iteration_error_tolerance");
     }
 }
 
@@ -3097,6 +3107,7 @@ IEPSemiImplicitHierarchyIntegrator::getFromRestart()
     d_solidus_temperature = db->getDouble("d_solidus_temperature");
     d_compute_T_material_derivative = db->getBool("d_compute_T_material_derivative");
     d_max_inner_iterations = db->getInteger("d_max_inner_iterations");
+    d_lf_iteration_error_tolerance = db->getDouble("d_lf_iteration_error_tolerance");
 }
 
 //////////////////////////////////////////////////////////////////////////////

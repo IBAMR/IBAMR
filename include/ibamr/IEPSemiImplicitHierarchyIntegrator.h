@@ -813,6 +813,7 @@ private:
      * Inner iteration parameters.
      */
     int d_max_inner_iterations = 2, d_num_cycles;
+    double d_lf_iteration_error_tolerance = 1e-6;
 
     /*!
      * Variable to indicate the type of interpolation to be done for conductivity.
