@@ -189,21 +189,21 @@ FENodalMapping<dim, spacedim, n_nodes>::FENodalMapping(
     // make sure dependencies are satisfied. These dependencies are only true
     // for Lagrange-type mappings.
     {
-        if (d_update_flags | FEUpdateFlags::update_JxW) d_update_flags |= update_jacobians;
+        if (d_update_flags & FEUpdateFlags::update_JxW) d_update_flags |= update_jacobians;
 
-        if (d_update_flags | FEUpdateFlags::update_jacobians) d_update_flags |= update_contravariants;
+        if (d_update_flags & FEUpdateFlags::update_jacobians) d_update_flags |= update_contravariants;
 
-        if (d_update_flags | FEUpdateFlags::update_covariants) d_update_flags |= update_contravariants;
+        if (d_update_flags & FEUpdateFlags::update_covariants) d_update_flags |= update_contravariants;
     }
 
-    if (d_update_flags | FEUpdateFlags::update_contravariants) d_contravariants.resize(this->d_quadrature_data.size());
-    if (d_update_flags | FEUpdateFlags::update_covariants) d_covariants.resize(this->d_quadrature_data.size());
+    if (d_update_flags & FEUpdateFlags::update_contravariants) d_contravariants.resize(this->d_quadrature_data.size());
+    if (d_update_flags & FEUpdateFlags::update_covariants) d_covariants.resize(this->d_quadrature_data.size());
 
-    if (d_update_flags | FEUpdateFlags::update_jacobians) d_Jacobians.resize(this->d_quadrature_data.size());
+    if (d_update_flags & FEUpdateFlags::update_jacobians) d_Jacobians.resize(this->d_quadrature_data.size());
 
-    if (d_update_flags | FEUpdateFlags::update_JxW) d_JxW.resize(this->d_quadrature_data.size());
+    if (d_update_flags & FEUpdateFlags::update_JxW) d_JxW.resize(this->d_quadrature_data.size());
 
-    if (d_update_flags | FEUpdateFlags::update_quadrature_points)
+    if (d_update_flags & FEUpdateFlags::update_quadrature_points)
         d_quadrature_points.resize(this->d_quadrature_data.size());
 }
 
@@ -334,7 +334,7 @@ FELagrangeMapping<dim, spacedim, n_nodes>::fillTransforms(const libMesh::Elem* e
         for (unsigned int j = 0; j < spacedim; ++j) xs[i][j] = p(j);
     }
 
-    for (unsigned int q = 0; q < this->d_JxW.size(); ++q)
+    for (unsigned int q = 0; q < this->d_contravariants.size(); ++q)
     {
         auto& contravariant = this->d_contravariants[q];
         contravariant.setZero();
@@ -352,7 +352,7 @@ FELagrangeMapping<dim, spacedim, n_nodes>::fillTransforms(const libMesh::Elem* e
 
     if (this->d_update_flags & FEUpdateFlags::update_covariants)
     {
-        for (unsigned int q = 0; q < this->d_JxW.size(); ++q)
+        for (unsigned int q = 0; q < this->d_contravariants.size(); ++q)
         {
             this->d_covariants[q] = getCovariant(this->d_contravariants[q]);
         }
@@ -481,7 +481,7 @@ Quad4Mapping::fillTransforms(const libMesh::Elem* elem)
     const double b_2 = 0.25 * (-p0(1) - p1(1) + p2(1) + p3(1));
     const double c_2 = 0.25 * (p0(1) - p1(1) + p2(1) - p3(1));
 
-    for (unsigned int i = 0; i < this->d_JxW.size(); i++)
+    for (unsigned int i = 0; i < this->d_contravariants.size(); i++)
     {
         // calculate Jacobians here
         const double x = d_quadrature_data.d_points[i](0);
@@ -496,7 +496,7 @@ Quad4Mapping::fillTransforms(const libMesh::Elem* elem)
 
     if (this->d_update_flags & FEUpdateFlags::update_covariants)
     {
-        for (unsigned int q = 0; q < this->d_JxW.size(); ++q)
+        for (unsigned int q = 0; q < this->d_contravariants.size(); ++q)
         {
             const auto& contravariant = this->d_contravariants[q];
             d_covariants[q] = getCovariant(contravariant);
@@ -596,7 +596,7 @@ Quad9Mapping::fillTransforms(const libMesh::Elem* elem)
         }
     }
 
-    for (unsigned int q = 0; q < this->d_JxW.size(); q++)
+    for (unsigned int q = 0; q < this->d_contravariants.size(); q++)
     {
         Eigen::Matrix<double, 2, 2>& contravariant = d_contravariants[q];
         contravariant.setZero();
@@ -619,7 +619,7 @@ Quad9Mapping::fillTransforms(const libMesh::Elem* elem)
 
     if (this->d_update_flags & FEUpdateFlags::update_covariants)
     {
-        for (unsigned int q = 0; q < this->d_JxW.size(); ++q)
+        for (unsigned int q = 0; q < this->d_contravariants.size(); ++q)
         {
             const auto& contravariant = this->d_contravariants[q];
             d_covariants[q] = getCovariant(contravariant);
