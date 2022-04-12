@@ -576,6 +576,16 @@ private:
     void computeDensityDerivative(int drho_dT_data, const int T_idx, const int H_idx);
 
     /*!
+     * \brief Mollify zeta.
+     */
+    void mollifyData(int zeta_smooth_idx,
+                     int coarsest_ln,
+                     int finest_ln,
+                     double data_time,
+                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> fill_op);
+
+    /*!
      * Solver variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_var;
@@ -787,6 +797,7 @@ private:
     int d_div_U_F_idx = IBTK::invalid_index;
     int d_div_U_F_deno_idx = IBTK::invalid_index;
     int d_div_U_F_diff_idx = IBTK::invalid_index;
+    int d_zeta_smooth_idx = IBTK::invalid_index;
 
     /*!
      * Allen-Cahn equation parameters.
@@ -814,6 +825,8 @@ private:
      */
     int d_max_inner_iterations = 2, d_num_cycles;
     double d_lf_iteration_error_tolerance = 1e-6;
+
+    std::string d_kernel_fcn = "IB_4";
 
     /*!
      * Variable to indicate the type of interpolation to be done for conductivity.

@@ -435,7 +435,7 @@ SurfaceTensionForceFunction::convertToHeaviside(int phi_idx,
                 //                    (*phi_data)(ci) = 0.5 + 0.5 * phi / eps + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi
                 //                    / eps);
                 //                }
-                (*phi_data)(ci) = IBTK::discontinuous_heaviside(phi);
+                (*phi_data)(ci) = IBTK::smooth_heaviside(phi, eps);
             }
         }
     }
