@@ -48,21 +48,21 @@ main(int /*argc*/, char** /*argv*/)
 {
     // Problem parameters
 
-    const int ndivx = 101; // num points in x direction.
+    const int ndivx = 102; // num points in x direction.
     const int ndivy = 51;  // num points in y direction.
     const int totnode = ndivx * ndivy;
 
-    const double length = 1.0;              // total length of the plate (m)
+    const double length = 1.01;              // total length of the plate (m)
     const double width = 0.5;               // total width of the plate (m)
 
     const double dx = length / (ndivx - 1); // spacing between material points in x direction
-    const double dy = width / (ndivy - 1);  // spacing between material points in y direction
-    const double delta = 2.015 * dx; // 3.015 * dx;      // horizon
+    const double dy = dx;  // spacing between material points in y direction
+    const double delta = 3.015 * dx; // 3.015 * dx;      // horizon
     const double thick = dx;         // thickness of the plate
     const double area = dx * dx;     // cross-sectional area
     const double vol = area * thick; // volume of a material point
 
-    const double scr0 = 30.0; // critical stretch
+    const double scr0 = 3.1; // critical stretch
 
     // Initialize vertices
 
@@ -88,10 +88,11 @@ main(int /*argc*/, char** /*argv*/)
     std::cout << "static const int right_end = " << totnode - 1 << ";" << std::endl;
     std::cout << "\n~~~~~~~~~~~~~~~~~~~~~~~~~\n";
 
-    const int n_y_crack = 0;
     const double y_crack_begin = 0.0;
-    const double y_crack_end = n_y_crack * dy;
-    const double x_crack = length/2.0;
+    const double y_crack_end = width * 1.5 / 4.0;
+    const double y_crack_end1 = width;
+    const double y_crack_begin1 = width * 2.5 / 4.0;
+    const double x_crack = length / 2.0;
 
 
     // Initialize springs
@@ -118,39 +119,19 @@ main(int /*argc*/, char** /*argv*/)
 
                     if (((coord[lag_small][0] < x_crack && coord[lag_big][0] > x_crack) &&
                          (coord[lag_big][1] >= y_crack_begin && coord[lag_big][1] <= y_crack_end)) ||
-                        ((coord[lag_small][0] < x_crack && coord[lag_big][0] > x_crack) &&
-                         (coord[lag_big][1] >= width - y_crack_end && coord[lag_big][1] <= width - y_crack_begin)))
+                        ((coord[lag_small][0] <  x_crack && coord[lag_big][0] > x_crack) &&
+                         (coord[lag_big][1] >= y_crack_begin1 && coord[lag_big][1] <= y_crack_end1)))
                     {
                         fail = 0.0;
                     }
-                    if (((coord[lag_big][0] < x_crack && coord[lag_small][0] > x_crack) &&
+                    if (((coord[lag_small][0] < x_crack && coord[lag_big][0] > x_crack) &&
                          (coord[lag_small][1] >= y_crack_begin && coord[lag_small][1] <= y_crack_end)) ||
-                        ((coord[lag_big][0] < x_crack && coord[lag_small][0] > x_crack) &&
-                         (coord[lag_small][1] >= width - y_crack_end && coord[lag_small][1] <= width - y_crack_begin)))
+                        ((coord[lag_small][0] <  x_crack && coord[lag_big][0] > x_crack) &&
+                         (coord[lag_small][1] >= y_crack_begin1 && coord[lag_small][1] <= y_crack_end1)))
                     {
                         fail = 0.0;
                     }
-
-                    if (((coord[lag_small][0] == -dx/2.0) && (coord[lag_big][0] > x_crack)) && ((coord[lag_small][1]<y_crack_end)&&(coord[lag_big][1]<=y_crack_end + 0.00001 + dy)))
-                    {
-                        fail = 0.0;
-                    }
-
-                    if (((coord[lag_small][0] == -dx/2.0) && (coord[lag_big][0] > x_crack)) && ((coord[lag_small][1] > (width - y_crack_end))&&(coord[lag_big][1]>= (width - y_crack_end - 0.00001 - dy))))
-                    {
-                        fail = 0.0;
-                    }
-
-                    if (((coord[lag_small][0] == dx/2.0) && (coord[lag_big][0] < x_crack)) && ((coord[lag_small][1]<y_crack_end)&&(coord[lag_big][1]<=y_crack_end + 0.00001 + dy)))
-                    {
-                        fail = 0.0;
-                    }
-
-                    if (((coord[lag_small][0] == dx/2.0) && (coord[lag_big][0] < x_crack)) && ((coord[lag_small][1] > (width - y_crack_end))&&(coord[lag_big][1]>= (width - y_crack_end - 0.00001 - dy))))
-                    {
-                        fail = 0.0;
-                    }
-
+                    
                     EdgeProp prop = std::make_pair(idist, fail);
                     mesh[e] = prop;
                 }

@@ -49,7 +49,7 @@ main(int /*argc*/, char** /*argv*/)
     // Problem parameters
 
     const int ndivx = 25; // num points in x direction.
-    const int ndivy = 23;  // num points in y direction.
+    const int ndivy = 23; // num points in y direction.
     const int nbnd = 0;
     const int totnode = (ndivx + 2 * nbnd) * (ndivy + 2 * nbnd);
 
@@ -60,17 +60,17 @@ main(int /*argc*/, char** /*argv*/)
     // const double dy = width / (ndivy - 1);  // spacing between material points in y direction
 
     // Cook's membrane
-    const double LW = 4.8;              // length of the membrane (cm)
-    const double LH = 4.4;              // left height of the membrane(cm)
-    const double LHL = 1.6;             // right heigh of the membrane(cm)
-    const double dx = LW / (ndivx - 1); // spacing between material points in x direction
-    const double dy = LH / (ndivy - 1);  // spacing between material points in y direction
-    const double dyy = LHL/(ndivy - 1); //
+    const double LW = 4.8;                // length of the membrane (cm)
+    const double LH = 4.4;                // left height of the membrane(cm)
+    const double LHL = 1.6;               // right heigh of the membrane(cm)
+    const double dx = LW / (ndivx - 1);   // spacing between material points in x direction
+    const double dy = LH / (ndivy - 1);   // spacing between material points in y direction
+    const double dyy = LHL / (ndivy - 1); //
 
-    const double delta = 2.015 * sqrt(2) * dx;      // horizon
-    const double thick = dx;         // thickness of the plate
-    const double area = dx * dx;     // cross-sectional area
-    const double vol = area * thick; // volume of a material point
+    const double delta = 2.015 * sqrt(2) * dx; // horizon
+    const double thick = dx;                   // thickness of the plate
+    const double area = dx * dx;               // cross-sectional area
+    const double vol = area * thick;           // volume of a material point
 
     const double scr0 = 30.0; // critical stretch
 
@@ -84,15 +84,14 @@ main(int /*argc*/, char** /*argv*/)
     {
         for (int j = 0; j <= (ndivy - 1); ++j)
         {
-                nnum += 1;
-                // // 2d plane sheet
-                // coord[nnum][0] = j * dx + 10.0;
-                // coord[nnum][1] = i * dy + 15.0;
+            nnum += 1;
+            // // 2d plane sheet
+            // coord[nnum][0] = j * dx + 10.0;
+            // coord[nnum][1] = i * dy + 15.0;
 
-                // 2d Cook's membrane
-                coord[nnum][0] = i * dx + 2.0;
-                coord[nnum][1] = (j * (dyy-dy) + LH) / (ndivx - 1) * i + dy * j + 1.0;
-
+            // 2d Cook's membrane
+            coord[nnum][0] = i * dx + 2.0;
+            coord[nnum][1] = (j * (dyy - dy) + LH) / (ndivx - 1) * i + dy * j + 1.0;
         }
     }
 

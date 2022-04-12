@@ -11,8 +11,8 @@ K   = L + 2.0/3.0*MU // bulk modulus
 
 // grid spacing parameters
 MAX_LEVELS = 1                                 // maximum number of levels in locally refined grid
-REF_RATIO  = 4                                 // refinement ratio between levels
-N = 4                                         // actual    number of grid cells on coarsest grid level
+REF_RATIO  = 2                                 // refinement ratio between levels
+N = 10                                         // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
 DX_FINEST = L/NFINEST
 NT        = 100000
@@ -21,7 +21,7 @@ NT        = 100000
 DELTA_FUNCTION      = "IB_4"
 DT                  = 1.0e-5                   // maximum timestep size
 START_TIME          = 0.0e0                    // initial simulation time
-END_TIME            = 2.0                   // final simulation time
+END_TIME            = 0.3                   // final simulation time
 GROW_DT             = 2.0e0                    // growth factor for timesteps
 NUM_CYCLES          = 1                        // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE  = "ADAMS_BASHFORTH"        // convective time stepping type
@@ -101,7 +101,7 @@ IBHierarchyIntegrator {
 }
 
 IBPDForceGen {
-    horizon        = 2.015
+    horizon        = 3.015
     ds             = 1.0/100.0
 }
 

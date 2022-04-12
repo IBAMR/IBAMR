@@ -47,52 +47,31 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const double loop_time,
                  const string& data_dump_dirname);
 
-// material parameters
-static const int nx = 25;                                                   // number of grids in x
-static const int ny = 23;                                                   // number of grids in y
+static const int nx = 102; 
+static const int ny = 51;
+#if (NDIM == 3)
+    static const int nz = 1;
+    static const int left_begin = 0;
+    static const int left_end = ny*nz - 1;
+    static const int right_begin = ny * nz * nx - ny*nz;
+    static const int right_end = ny * nz * nx - 1;
+#endif
+#if (NDIM == 2)
+    static const int left_begin = 0;
+    static const int left_end = ny - 1;
+    static const int right_begin = nx*ny - ny;
+    static const int right_end = nx*ny - 1;
+#endif
 
-// // compressed block
-// static const double x_begin = 10.0;
-// static const double x_begin_1 = 15.0;
-// static const double x_center = 20.0;
-// static const double x_end_1 = 25.0;
-// static const double x_end = 30.0;
-// static const double y_begin = 15.0;
-// static const double y_end = 25.0;
-
-// static const double dens = 1.0;
-// static const double DX = 1.0 / 10.0;                                     // material grid size (cm)
-// static const double P = 0.49995;                                         // Poisson's ratio
-// static const double G = 80.194;                                          // shear modulus
-// // static const double E = 2.0 * G * (1.0 + P);                          // Young's modulus
-// // static const double L = E * P / ((1. + P) * (1. - 2. * P));           // lame parameter
-// // static const double G = E / (2. * (1. + P));                          // shear modulus
-// static const double K_bulk = 2.0 * G * (1.0 + P) / (3. * (1. - 2.*P) );  // bulk modulus
-// static const double Tf = 0.0;                                            // time when the full load is appplied
-// static const double appres = 200;                                        // External loading
-
-// cook's membrane
-static const double x_begin = 0.0;
-static const double x_end = 4.8;
-static const double y_begin_left = 0.0;
-static const double y_end_left = 4.4;
-static const double y_begin_right = 4.4;
-static const double y_end_right = 6.0;
-
-static const double dens = 1.0;                                             // Material density 
-static const double DX = 1.0 / 5.0;                                        // material grid size (cm)
-static const double horizon = 2.015 * sqrt(2) * DX;
-static const double P = 0.4;                                                // Poisson's ratio 0.45 0.49
-static const double G = 83.333;                                             // shear modulus
-// static const double E = 2.0 * G * (1.0 + P);                             // Young's modulus
-// static const double L = E * P / ((1. + P) * (1. - 2. * P));              // lame parameter
-// static const double G = E / (2. * (1. + P));                             // shear modulus
-static const double K_bulk = 2.0 * G * (1.0 + P) / (3. * (1. - 2.*P) );     // bulk modulus
-static const double Tf = 0.0;                                               // time when the full load is appplied
-static const double appres = 6.25;                                          // External loading
-
-static const double Max_force_indi = 50000.0;
-static double indi = 1.0;
+static const double dens = 1100.0;
+static const double DX = 1.0 / 100.0;
+static const double horizon = 3.015 * DX;
+static const double E = 1.0e6;
+static const double P = 0.4;
+static const double L = E * P / ((1. + P) * (1. - 2. * P));
+static const double M = E / (2. * (1. + P));
+static const double K = L + 2.*M/3.;
+static const double appres = 4.0e5;
 
 // static const double dens = 0.0;
 // static const double DX = 1.0 / 10.0;
@@ -103,15 +82,13 @@ static double indi = 1.0;
 // // static const double K = L + 2.*M/3.;
 // static const double appres = 0.0;
 
-// static const double dens = 1100.0;
-// static const double DX = 1.0 / 50.0;
-// static const double E = 1.0e6;
-// static const double P = 0.4;
-// // static const double L = E * P / ((1. + P) * (1. - 2. * P));
-// // static const double M = E / (2. * (1. + P));
-// static const double G = E / (2. * (1. + P));                             // shear modulus
-// static const double K = 2.0 * G * (1.0 + P) / (3. * (1. - 2.*P) );       // bulk modulus
-// static const double appres = 1.0e5;
+// static const double dens = 7850.0;
+// static const double DX = 1.0 / 75.0;
+// static const double E = 200.0e9;
+// static const double P = 1.0 / 3.0;
+// static const double L = E * P / ((1. + P) * (1. - 2. * P));
+// static const double M = E / (2. * (1. + P));
+// static const double appres = 200.0e6;
 
 double
 my_inf_fcn(double R0, double /*delta*/)
@@ -147,7 +124,7 @@ my_inf_fcn(double R0, double /*delta*/)
 double
 my_vol_frac_fcn(double R0, double /*horizon*/, double /*delta*/)
 {
-    // double horizon = 2.015 * DX;
+    // double horizon = 3.015 * DX;
     double delta = DX;
     double vol_frac;
     if (R0 <= (horizon - delta))
@@ -180,38 +157,30 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
     Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> F0;
     F0 << FF(0), FF(1), 0.0, FF(3), FF(4), 0.0, 0.0, 0.0, 1.0;
     // F0 << FF(0), FF(1), FF(2), FF(3), FF(4), FF(5), FF(6), FF(7), FF(8);
-    // mat_type e = 0.5 * (F0.transpose() + F0) - II;
+    mat_type e = 0.5 * (F0.transpose() + F0) - II;
+    // std::cout << "FF =" << F0 << "\n"; 
     #endif
     #if (NDIM == 2)
     Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> F0;
     F0 << FF(0), FF(1), FF(2), FF(3);
-    // mat_type e = 0.5 * (FF.transpose() + FF) - II;
+    mat_type e = 0.5 * (FF.transpose() + FF) - II;
+    // std::cout << "FF =" << FF << "\n";
     #endif
 
-    // // St. Venant model
     // const double tr_e = e.trace();
     // PK1 = L * tr_e * II + 2.0 * M * e;
 
-    // // Neo-hookean model
-    // const double J = std::abs(FF.determinant());
-    // mat_type FF_trans = FF.transpose();
-    // mat_type FF_inv_trans = FF_trans.inverse();
-    // PK1 = G * FF + K * log(J)*FF_inv_trans;
-
-    // stabilized neo-hookean model
     mat_type CC = F0.transpose()*F0;
     mat_type FF_trans = F0.transpose();
     mat_type FF_inv_trans = FF_trans.inverse();
+    // tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
     const double tr_cc = CC.trace();
     const double J = std::abs(F0.determinant());
-    // const double Jsquare = pow(J,2.0);
-    const double Jp = pow(J,-2.0/3.0);
-    // PK1 = G * (F0 - tr_cc*FF_inv_trans/2.)/J + K * (Jsquare - 1./Jsquare)*FF_inv_trans/4.;
-    // PK1 = G * Jp * (F0 - tr_cc * FF_inv_trans / 3.0) + K * (Jsquare - 1./Jsquare)*FF_inv_trans/4.;
-    // PK1 = G * Jp * (F0 - tr_cc * FF_inv_trans / 3.0) + K_n * J * log(J) * FF_inv_trans;
-    PK1 = G * Jp * (F0 - tr_cc * FF_inv_trans / 3.0) + K_bulk * log(J) * FF_inv_trans;
+    const double Jsquare = pow(J,2.0);
+    PK1 = M*(F0 - tr_cc*FF_inv_trans/2.)/J + K*(Jsquare - 1./Jsquare)*FF_inv_trans/4.;
 
     return;
+
 } // my_PK1_fcn
 
 Eigen::Vector4d
@@ -257,41 +226,16 @@ my_force_damage_fcn(const double /*horizon*/,
     my_PK1_fcn(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
 
     // Compute PD force.
-    // double horizon = 2.015 * DX;
-    const double penalty_fac = 0.0*18.0*K_bulk/(M_PI * pow(horizon,4.0));
-    vec_type pen_trac = penalty_fac * W * ((X_slave - X0_slave) - (X_mastr - X0_mastr));
-    // vec_type pen_trac = penalty_fac * stretch * (X0_slave - X0_mastr) / R0;
+    const double penalty_fac = 0.0;
+    // vec_type pen_trac = penalty_fac * ((X_slave - X0_slave) - (X_mastr - X0_mastr));
+    vec_type pen_trac = penalty_fac * (X_slave - X_mastr);
     vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
-    #if (NDIM == 3)
-        trac(2) = 0.0;
-    #endif
-    F_mastr += fail * vol_frac * vol_slave * (trac + 2.0 * pen_trac);
-    F_slave += -fail * vol_frac * vol_mastr * (trac + 2.0 * pen_trac);
-
-    // // zero energy mode
-    // double horizon = 2.015 * DX;
-    // const double C_hg = 0.0;
-    // const double penalty_fac = C_hg*18.0*K_bulk/(M_PI * pow(horizon,4.0));
+    // #if (NDIM == 3)
+    //     trac(2) = 0.0;
+    // #endif
     
-    // // vec_type hourglass_vec;
-    // // hourglass_vec = X_mastr - X_slave + FF_mastr*(X0_slave - X0_mastr);
-    // // double hourglass_proj = hourglass_vec(0)*(X0_slave(0) - X0_mastr(0)) + hourglass_vec(1)*(X0_slave(1) - X0_mastr(1));
-    // // vec_type pen_trac = - penalty_fac * hourglass_proj/R0 * (X_slave - X_mastr)/R;
-    // // vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
-    // // F_mastr += fail * vol_frac * vol_slave * (trac + pen_trac);
-    // // F_slave += -fail * vol_frac * vol_mastr * (trac + pen_trac);
-
-    // vec_type hourglass_vec_slave, hourglass_vec_mastr;
-    // static const mat_type II = mat_type::Identity();
-    // hourglass_vec_mastr = -((X_slave - X_mastr) - (X0_slave - X0_mastr)) + (FF_mastr - II)*(X0_slave - X0_mastr);
-    // hourglass_vec_slave = -((X_slave - X_mastr) - (X0_slave - X0_mastr)) + (FF_slave - II)*(X0_slave - X0_mastr);
-    // double hourglass_proj_mastr = hourglass_vec_mastr(0)*(X_slave(0) - X_mastr(0)) + hourglass_vec_mastr(1)*(X_slave(1) - X_mastr(1));
-    // double hourglass_proj_slave = hourglass_vec_slave(0)*(X_slave(0) - X_mastr(0)) + hourglass_vec_slave(1)*(X_slave(1) - X_mastr(1));
-    // vec_type pen_trac_mastr = - penalty_fac * hourglass_proj_mastr/R * (X_slave - X_mastr)/R * vol_slave * vol_mastr;
-    // vec_type pen_trac_slave = - penalty_fac * hourglass_proj_slave/R * (X_slave - X_mastr)/R * vol_slave * vol_mastr;
-    // vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
-    // F_mastr += fail * vol_frac * vol_slave * (trac + pen_trac_mastr + pen_trac_slave); // add an external force
-    // F_slave += -fail * vol_frac * vol_mastr * (trac + pen_trac_mastr + pen_trac_slave);
+    F_mastr += fail * vol_frac * vol_slave * trac + pen_trac;
+    F_slave += -fail * vol_frac * vol_mastr * trac - pen_trac;
 
     // Compute damage.
     Eigen::Vector4d D;
@@ -303,89 +247,6 @@ my_force_damage_fcn(const double /*horizon*/,
     return D;
     
 } // my_force_damage_fcn
-
-void
-my_surface_force_func(const Eigen::Map<const IBTK::Vector>& X,
-                          const Eigen::Map<const IBTK::Vector>& X_target,
-                          const Eigen::Map<const IBTK::Vector>& U,
-                          int lag_idx,
-                          Eigen::Map<IBTK::Vector>& F)
-{
-    //X_target is the material variable, X is the spatial variable
-    static double kappa = 1.0e6;
-
-    // // compressed block
-    // if (X_target(1) == y_end)
-    // {
-    //     if (X_target(0) >= x_begin && X_target(0) <= x_end)
-    //     {
-    //         F(0) += kappa * (X_target(0) - X(0));
-    //         if (X_target(0) >= x_begin_1 && X_target(0) <= x_end_1)
-    //         {
-    //             if (indi < Max_force_indi)
-    //             {
-    //                 F(1) += - appres / DX * indi / Max_force_indi;
-    //             }
-    //             else
-    //             {
-    //                 F(1) += - appres / DX;
-    //             }
-    //         }
-    //     }
-    // }
-    // else if (X_target(1) == y_begin)
-    // {
-    //     if (X_target(0) >= x_begin && X_target(0) <= x_end)
-    //     {
-    //         F(1) += kappa * (X_target(1) - X(1));
-    //         if (X_target(0) == x_center)
-    //         {
-    //             F(0) += kappa * (X_target(0) - X(0));
-    //         }
-    //     }
-    // }
-
-    // cook's membrane
-    if (X_target(0) == x_begin+2.0)
-    {
-        F += kappa * (X_target - X);
-    }
-    else if (X_target(0) == x_end+2.0)
-    {   
-        double ddx = 1.6 / (ny-1);
-        if (indi < Max_force_indi)
-        {
-          F(1) += + appres / DX * indi / Max_force_indi;
-        }
-        else
-        {
-          F(1) += + appres / DX;
-        }
-    }
-
-    if (lag_idx == (nx*ny -1))
-    {
-        indi += 1.0;
-    }
-    return;
-} // my_surface_force_func
-
-void
-my_target_point_force_fcn(const Eigen::Map<const IBTK::Vector>& X,
-                          const Eigen::Map<const IBTK::Vector>& X_target,
-                          const Eigen::Map<const IBTK::Vector>& U,
-                          double K,
-                          double E,
-                          int lag_idx,
-                          Eigen::Map<IBTK::Vector>& F)
-{
-    F += K * (X_target - X) - E * U;
-    // F += - E * U;
-
-    my_surface_force_func(X, X_target, U, lag_idx, F);
-
-    return;
-} // my_target_point_force_fcn
 
 class MyIBPDMethod : public IBPDMethod
 {
@@ -412,99 +273,99 @@ public:
 
     ~MyIBPDMethod() = default;
 
-    // void preprocessIntegrateData(double current_time, double new_time, int num_cycles) override
-    // {
-    //     IBPDMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
-    //     return;
-    // } // preprocessIntegrateData
-
-    void postprocessIntegrateData(double current_time, double new_time, int num_cycles) override
+    void preprocessIntegrateData(double current_time, double new_time, int num_cycles) override
     {
-        const int struct_ln = d_hierarchy->getFinestLevelNumber();
-        const int step_no = d_ib_solver->getIntegratorStep() + 1;
-
-        if (step_no % 1000 == 0)
-        {
-            Pointer<LData> D_LData = d_l_data_manager->getLData("damage", struct_ln);
-            Vec D_petsc_vec_parallel = D_LData->getVec();
-            Vec D_lag_vec_parallel = nullptr;
-            Vec D_lag_vec_seq = nullptr;
-            VecDuplicate(D_petsc_vec_parallel, &D_lag_vec_parallel);
-            d_l_data_manager->scatterPETScToLagrangian(D_petsc_vec_parallel, D_lag_vec_parallel, struct_ln);
-            d_l_data_manager->scatterToZero(D_lag_vec_parallel, D_lag_vec_seq);
-
-            Pointer<LData> X0_LData = d_l_data_manager->getLData("X0", struct_ln);
-            Vec X0_petsc_vec_parallel = X0_LData->getVec();
-            Vec X0_lag_vec_parallel = nullptr;
-            Vec X0_lag_vec_seq = nullptr;
-            VecDuplicate(X0_petsc_vec_parallel, &X0_lag_vec_parallel);
-            d_l_data_manager->scatterPETScToLagrangian(X0_petsc_vec_parallel, X0_lag_vec_parallel, struct_ln);
-            d_l_data_manager->scatterToZero(X0_lag_vec_parallel, X0_lag_vec_seq);
-
-            Pointer<LData> X_LData = d_X_new_data[struct_ln];
-            Vec X_petsc_vec_parallel = X_LData->getVec();
-            Vec X_lag_vec_parallel = nullptr;
-            Vec X_lag_vec_seq = nullptr;
-            VecDuplicate(X_petsc_vec_parallel, &X_lag_vec_parallel);
-            d_l_data_manager->scatterPETScToLagrangian(X_petsc_vec_parallel, X_lag_vec_parallel, struct_ln);
-            d_l_data_manager->scatterToZero(X_lag_vec_parallel, X_lag_vec_seq);
-
-            if (IBTK_MPI::getRank() == 0)
-            {
-                const PetscScalar* D;
-                VecGetArrayRead(D_lag_vec_seq, &D);
-                int counter_D = -1;
-
-                const PetscScalar* X0;
-                VecGetArrayRead(X0_lag_vec_seq, &X0);
-                int counter_X0 = -1;
-
-                const PetscScalar* X;
-                VecGetArrayRead(X_lag_vec_seq, &X);
-                int counter_X = -1;
-
-                std::fstream D_stream;
-                std::ostringstream D_sstream;
-                D_sstream << "./data/D_" << step_no << "_" << new_time;
-                D_stream.open(D_sstream.str().c_str(), std::fstream::out);
-
-                int ib_pts;
-                VecGetSize(D_lag_vec_seq, &ib_pts);
-                for (int i = 0; i < ib_pts; ++i)
-                {
-                    const double X0_0 = X0[++counter_X0];
-                    const double X0_1 = X0[++counter_X0];
-                    #if (NDIM == 3)
-                        const double X0_2 = X0[++counter_X0];
-                        (void)X0_2;
-                    #endif
-                    const double X_0 = X[++counter_X];
-                    const double X_1 = X[++counter_X];
-                    #if (NDIM == 3)
-                    const double X_2 = X[++counter_X];
-                    (void)X_2;
-                    #endif
-                    const double dmg = D[++counter_D];
-                    D_stream << X0_0 << "\t" << X0_1 << "\t" << X_0 - X0_0 << "\t" << X_1 - X0_1 << "\t" << dmg
-                             << std::endl;
-                }
-
-                VecRestoreArrayRead(D_lag_vec_seq, &D);
-                VecRestoreArrayRead(X0_lag_vec_seq, &X0);
-                VecRestoreArrayRead(X_lag_vec_seq, &X);
-            }
-            VecDestroy(&D_lag_vec_parallel);
-            VecDestroy(&D_lag_vec_seq);
-            VecDestroy(&X0_lag_vec_parallel);
-            VecDestroy(&X0_lag_vec_seq);
-            VecDestroy(&X_lag_vec_parallel);
-            VecDestroy(&X_lag_vec_seq);
-        }
-
-        IBPDMethod::postprocessIntegrateData(current_time, new_time, num_cycles);
-
+        IBPDMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
         return;
-    } // postprocessIntegrateData
+    } // preprocessIntegrateData
+
+    // void postprocessIntegrateData(double current_time, double new_time, int num_cycles) override
+    // {
+    //     const int struct_ln = d_hierarchy->getFinestLevelNumber();
+    //     const int step_no = d_ib_solver->getIntegratorStep() + 1;
+
+    //     if (step_no % 1000 == 0)
+    //     {
+    //         Pointer<LData> D_LData = d_l_data_manager->getLData("damage", struct_ln);
+    //         Vec D_petsc_vec_parallel = D_LData->getVec();
+    //         Vec D_lag_vec_parallel = nullptr;
+    //         Vec D_lag_vec_seq = nullptr;
+    //         VecDuplicate(D_petsc_vec_parallel, &D_lag_vec_parallel);
+    //         d_l_data_manager->scatterPETScToLagrangian(D_petsc_vec_parallel, D_lag_vec_parallel, struct_ln);
+    //         d_l_data_manager->scatterToZero(D_lag_vec_parallel, D_lag_vec_seq);
+
+    //         Pointer<LData> X0_LData = d_l_data_manager->getLData("X0", struct_ln);
+    //         Vec X0_petsc_vec_parallel = X0_LData->getVec();
+    //         Vec X0_lag_vec_parallel = nullptr;
+    //         Vec X0_lag_vec_seq = nullptr;
+    //         VecDuplicate(X0_petsc_vec_parallel, &X0_lag_vec_parallel);
+    //         d_l_data_manager->scatterPETScToLagrangian(X0_petsc_vec_parallel, X0_lag_vec_parallel, struct_ln);
+    //         d_l_data_manager->scatterToZero(X0_lag_vec_parallel, X0_lag_vec_seq);
+
+    //         Pointer<LData> X_LData = d_X_new_data[struct_ln];
+    //         Vec X_petsc_vec_parallel = X_LData->getVec();
+    //         Vec X_lag_vec_parallel = nullptr;
+    //         Vec X_lag_vec_seq = nullptr;
+    //         VecDuplicate(X_petsc_vec_parallel, &X_lag_vec_parallel);
+    //         d_l_data_manager->scatterPETScToLagrangian(X_petsc_vec_parallel, X_lag_vec_parallel, struct_ln);
+    //         d_l_data_manager->scatterToZero(X_lag_vec_parallel, X_lag_vec_seq);
+
+    //         if (IBTK_MPI::getRank() == 0)
+    //         {
+    //             const PetscScalar* D;
+    //             VecGetArrayRead(D_lag_vec_seq, &D);
+    //             int counter_D = -1;
+
+    //             const PetscScalar* X0;
+    //             VecGetArrayRead(X0_lag_vec_seq, &X0);
+    //             int counter_X0 = -1;
+
+    //             const PetscScalar* X;
+    //             VecGetArrayRead(X_lag_vec_seq, &X);
+    //             int counter_X = -1;
+
+    //             std::fstream D_stream;
+    //             std::ostringstream D_sstream;
+    //             D_sstream << "./data/D_" << step_no << "_" << new_time;
+    //             D_stream.open(D_sstream.str().c_str(), std::fstream::out);
+
+    //             int ib_pts;
+    //             VecGetSize(D_lag_vec_seq, &ib_pts);
+    //             for (int i = 0; i < ib_pts; ++i)
+    //             {
+    //                 const double X0_0 = X0[++counter_X0];
+    //                 const double X0_1 = X0[++counter_X0];
+    //                 #if (NDIM == 3)
+    //                     const double X0_2 = X0[++counter_X0];
+    //                     (void)X0_2;
+    //                 #endif
+    //                 const double X_0 = X[++counter_X];
+    //                 const double X_1 = X[++counter_X];
+    //                 #if (NDIM == 3)
+    //                 const double X_2 = X[++counter_X];
+    //                 (void)X_2;
+    //                 #endif
+    //                 const double dmg = D[++counter_D];
+    //                 D_stream << X0_0 << "\t" << X0_1 << "\t" << X_0 - X0_0 << "\t" << X_1 - X0_1 << "\t" << dmg
+    //                          << std::endl;
+    //             }
+
+    //             VecRestoreArrayRead(D_lag_vec_seq, &D);
+    //             VecRestoreArrayRead(X0_lag_vec_seq, &X0);
+    //             VecRestoreArrayRead(X_lag_vec_seq, &X);
+    //         }
+    //         VecDestroy(&D_lag_vec_parallel);
+    //         VecDestroy(&D_lag_vec_seq);
+    //         VecDestroy(&X0_lag_vec_parallel);
+    //         VecDestroy(&X0_lag_vec_seq);
+    //         VecDestroy(&X_lag_vec_parallel);
+    //         VecDestroy(&X_lag_vec_seq);
+    //     }
+
+    //     IBPDMethod::postprocessIntegrateData(current_time, new_time, num_cycles);
+
+    //     return;
+    // } // postprocessIntegrateData
 
     void forwardEulerStep(const double current_time, const double new_time) override
     {
@@ -560,8 +421,7 @@ public:
 
     void midpointStep(const double current_time, const double new_time) override
     {
-        static const double cn = 0.05*G;
-        // static const double cn = 1.0e6;
+        static const double cn = 1e6;
 
         const double dt = new_time - current_time;
         const int coarsest_ln = 0;
@@ -577,7 +437,6 @@ public:
             Pointer<LData> U_current_data = d_U_current_data[ln];
             Pointer<LData> U_new_data = d_U_new_data[ln];
             Pointer<LData> F_half_data = d_F_half_data[ln];
-            // Pointer<LData> U_half_data = d_U_half_data[ln];
 
             boost::multi_array_ref<double, 2>& X_0_data_array = *X_0_data->getLocalFormVecArray();
             boost::multi_array_ref<double, 2>& X_current_data_array = *X_current_data->getLocalFormVecArray();
@@ -585,7 +444,6 @@ public:
             boost::multi_array_ref<double, 2>& U_current_data_array = *U_current_data->getLocalFormVecArray();
             boost::multi_array_ref<double, 2>& U_new_data_array = *U_new_data->getLocalFormVecArray();
             boost::multi_array_ref<double, 2>& F_half_data_array = *F_half_data->getLocalFormVecArray();
-            // boost::multi_array_ref<double, 2>& U_half_data_array = *U_half_data->getLocalFormVecArray();
 
             const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
@@ -601,11 +459,64 @@ public:
                 const double* X_current = &X_current_data_array[local_idx][0];
                 double* X_new = &X_new_data_array[local_idx][0];
                 double* F_half = &F_half_data_array[local_idx][0];
-                // double* U_half = &U_half_data_array[local_idx][0];
 
+                if (lag_idx >= left_begin && lag_idx <= left_end)
+                {
+                    double bforce[NDIM] = { 0.0 };
+                    if (new_time < 0.169)
+                    {
+                        bforce[0] = -appres / DX;
+                    }
                     for (int d = 0; d < NDIM; ++d)
                     {
                       if (d == 2)
+                      {
+                        U_new[d] = 0.0;
+                        X_new[d] = X_current[d];
+                      }
+                      else if (d == 1)
+                      {
+                        U_new[d] = 0.0;
+                        X_new[d] = X_current[d];
+                      }
+                      else
+                      {
+                        U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * (F_half[d] + bforce[d]);
+                        X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
+                      }
+                    }
+                }
+                else if (lag_idx >= right_begin && lag_idx <= right_end)
+                {
+                    double bforce[NDIM] = { 0.0 };
+                    if (new_time < 0.169)
+                    {
+                        bforce[0] = appres / DX;
+                    }
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                      if (d == 2)
+                      {
+                        U_new[d] = 0.0;
+                        X_new[d] = X_current[d];
+                      }
+                      else if (d == 1)
+                      {
+                        U_new[d] = 0.0;
+                        X_new[d] = X_current[d];
+                      }
+                      else
+                      {
+                        U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * (F_half[d] + bforce[d]);
+                        X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
+                      }
+                    }
+                }
+                else
+                {
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                      if (d == 1)
                       {
                         U_new[d] = 0.0;
                         X_new[d] = X_current[d];
@@ -614,9 +525,21 @@ public:
                       {
                         U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * F_half[d];
                         X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
-                        // X_new[d] = X_current[d] + 0.5 * dt * U_half[d];
                       }
                     }
+                }
+                // #if (NDIM == 3)
+                // std::cout << "F_PD =" << F_half[0] << "," << F_half[1] << "," << F_half[2]  << "\n";
+                // #endif
+                // #if (NDIM == 2)
+                // std::cout << "F_PD =" << F_half[0] << "," << F_half[1] << "\n";
+                // #endif
+
+                // if (lag_idx == 3 * 51 * 25 + 51 + 26)
+                // {
+                //     d_ss_stream << new_time << "\t" << X_0[0] << "\t" << X_0[1] << "\t" << X_new[0] << "\t" << X_new[1]
+                //                 << "\n";
+                // }
             }
 
             X_0_data->restoreArrays();
@@ -625,7 +548,6 @@ public:
             F_half_data->restoreArrays();
             U_current_data->restoreArrays();
             U_new_data->restoreArrays();
-            // U_half_data->restoreArrays();
         }
 
         return;
@@ -731,7 +653,6 @@ main(int argc, char* argv[])
         Pointer<IBPDForceGen> ib_force_fcn = new IBPDForceGen(app_initializer->getComponentDatabase("IBPDForceGen"));
         ib_force_fcn->registerBondForceSpecificationFunction(
             0, &my_PK1_fcn, &my_force_damage_fcn, &my_inf_fcn, &my_vol_frac_fcn);
-        ib_force_fcn->registerTargetPointForceFunction(&my_target_point_force_fcn);
         ib_method_ops->registerIBPDForceGen(ib_force_fcn);
 
         // Create Eulerian initial condition specification objects.  These
