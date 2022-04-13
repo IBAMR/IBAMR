@@ -52,15 +52,15 @@ main(int /*argc*/, char** /*argv*/)
     const int ndivy = 51;  // num points in y direction.
     const int totnode = ndivx * ndivy;
 
-    const double length = 1.01;              // total length of the plate (m)
+    const double length = 1.01;             // total length of the plate (m)
     const double width = 0.5;               // total width of the plate (m)
 
     const double dx = length / (ndivx - 1); // spacing between material points in x direction
-    const double dy = dx;  // spacing between material points in y direction
-    const double delta = 3.015 * dx; // 3.015 * dx;      // horizon
-    const double thick = dx;         // thickness of the plate
-    const double area = dx * dx;     // cross-sectional area
-    const double vol = area * thick; // volume of a material point
+    const double dy = dx;                   // spacing between material points in y direction
+    const double delta = 3.015 * dx;        // 3.015 * dx;      // horizon
+    const double thick = dx;                // thickness of the plate
+    const double area = dx * dx;            // cross-sectional area
+    const double vol = area * thick;        // volume of a material point
 
     const double scr0 = 3.1; // critical stretch
 
@@ -117,17 +117,28 @@ main(int /*argc*/, char** /*argv*/)
                     const int lag_small = e.first;
                     const int lag_big = e.second;
 
-                    if (((coord[lag_small][0] < x_crack && coord[lag_big][0] > x_crack) &&
-                         (coord[lag_big][1] >= y_crack_begin && coord[lag_big][1] <= y_crack_end)) ||
-                        ((coord[lag_small][0] <  x_crack && coord[lag_big][0] > x_crack) &&
-                         (coord[lag_big][1] >= y_crack_begin1 && coord[lag_big][1] <= y_crack_end1)))
+                    // if (((coord[lag_small][0] < x_crack && coord[lag_big][0] > x_crack) &&
+                    //      (coord[lag_big][1] >= y_crack_begin && coord[lag_big][1] <= y_crack_end)) ||
+                    //     ((coord[lag_small][0] <  x_crack && coord[lag_big][0] > x_crack) &&
+                    //      (coord[lag_big][1] >= y_crack_begin1 && coord[lag_big][1] <= y_crack_end1)))
+                    // {
+                    //     fail = 0.0;
+                    // }
+                    // if (((coord[lag_small][0] < x_crack && coord[lag_big][0] > x_crack) &&
+                    //      (coord[lag_small][1] >= y_crack_begin && coord[lag_small][1] <= y_crack_end)) ||
+                    //     ((coord[lag_small][0] <  x_crack && coord[lag_big][0] > x_crack) &&
+                    //      (coord[lag_small][1] >= y_crack_begin1 && coord[lag_small][1] <= y_crack_end1)))
+                    // {
+                    //     fail = 0.0;
+                    // }
+
+                    if ((coord[lag_small][0] < x_crack && coord[lag_big][0] > x_crack) &&
+                         (coord[lag_big][1] >= y_crack_begin && coord[lag_big][1] <= y_crack_end))
                     {
                         fail = 0.0;
                     }
-                    if (((coord[lag_small][0] < x_crack && coord[lag_big][0] > x_crack) &&
-                         (coord[lag_small][1] >= y_crack_begin && coord[lag_small][1] <= y_crack_end)) ||
-                        ((coord[lag_small][0] <  x_crack && coord[lag_big][0] > x_crack) &&
-                         (coord[lag_small][1] >= y_crack_begin1 && coord[lag_small][1] <= y_crack_end1)))
+                    if ((coord[lag_small][0] < x_crack && coord[lag_big][0] > x_crack) &&
+                         (coord[lag_small][1] >= y_crack_begin && coord[lag_small][1] <= y_crack_end))
                     {
                         fail = 0.0;
                     }

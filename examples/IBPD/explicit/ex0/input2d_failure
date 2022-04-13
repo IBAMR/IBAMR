@@ -19,9 +19,9 @@ NT        = 100000
 
 // solver parameters
 DELTA_FUNCTION      = "IB_4"
-DT                  = 1.0e-5                   // maximum timestep size
+DT                  = 1.0e-5                   // maximum timestep size 1.0e-4*DX
 START_TIME          = 0.0e0                    // initial simulation time
-END_TIME            = 0.3                   // final simulation time
+END_TIME            = 0.35                   // final simulation time
 GROW_DT             = 2.0e0                    // growth factor for timesteps
 NUM_CYCLES          = 1                        // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE  = "ADAMS_BASHFORTH"        // convective time stepping type
@@ -151,7 +151,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","Silo"
-   viz_dump_interval           = 200
+   viz_dump_interval           = 50
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 

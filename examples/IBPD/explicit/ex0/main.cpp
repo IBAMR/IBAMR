@@ -103,7 +103,7 @@ my_inf_fcn(double R0, double /*delta*/)
 
     double W;
 
-    double r = R0 / DX;
+    double r = 2.0 * R0 / horizon;
     if (r < 1.0)
     {
         W = C * (2.0 / 3.0 - r * r + 0.5 * r * r * r);
@@ -124,7 +124,6 @@ my_inf_fcn(double R0, double /*delta*/)
 double
 my_vol_frac_fcn(double R0, double /*horizon*/, double /*delta*/)
 {
-    // double horizon = 3.015 * DX;
     double delta = DX;
     double vol_frac;
     if (R0 <= (horizon - delta))
@@ -209,11 +208,15 @@ my_force_damage_fcn(const double /*horizon*/,
     const double& vol_slave = parameters[3];
     double& fail = parameters[4];
     const double& critical_stretch = parameters[5];
-
+    const double critical_stretch1 = critical_stretch * 1.01;
     // Estimate failure.
     const double R = (X_slave - X_mastr).norm();
     const double stretch = (R - R0) / R0;
-    if (!MathUtilities<double>::equalEps(fail, 0.0) && stretch > critical_stretch)
+    if (!MathUtilities<double>::equalEps(fail, 0.0) && stretch > critical_stretch && critical_stretch1 > stretch)
+    {
+        fail = (- stretch + critical_stretch1) / (critical_stretch1 - critical_stretch);
+    }
+    else if (!MathUtilities<double>::equalEps(fail, 0.0) && stretch > critical_stretch1)
     {
         fail = 0.0;
     }
@@ -226,6 +229,22 @@ my_force_damage_fcn(const double /*horizon*/,
     my_PK1_fcn(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
 
     // Compute PD force.
+    // const double Cg = 0.0;
+    // const double delta_4 = pow(horizon,4.0);
+    // const double penalty_fac = Cg * 18.0 * K / (M_PI * delta_4);
+
+    // vec_type hourglass_vec_slave, hourglass_vec_mastr;
+    // static const mat_type II = mat_type::Identity();
+    // hourglass_vec_mastr = -((X_slave - X_mastr) - (X0_slave - X0_mastr)) + (FF_mastr - II)*(X0_slave - X0_mastr);
+    // hourglass_vec_slave = -((X_slave - X_mastr) - (X0_slave - X0_mastr)) + (FF_slave - II)*(X0_slave - X0_mastr);
+    // double hourglass_proj_mastr = hourglass_vec_mastr(0)*(X_slave(0) - X_mastr(0)) + hourglass_vec_mastr(1)*(X_slave(1) - X_mastr(1)); 
+    // double hourglass_proj_slave = hourglass_vec_slave(0)*(X_slave(0) - X_mastr(0)) + hourglass_vec_slave(1)*(X_slave(1) - X_mastr(1)); 
+    // vec_type pen_trac_mastr = - penalty_fac * hourglass_proj_mastr/R * (X_slave - X_mastr)/R * vol_slave * vol_mastr; 
+    // vec_type pen_trac_slave = - penalty_fac * hourglass_proj_slave/R * (X_slave - X_mastr)/R * vol_slave * vol_mastr; 
+    // vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr); 
+    // F_mastr += fail * vol_frac * vol_slave * (trac + pen_trac_mastr + pen_trac_slave); // add an external force 
+    // F_slave += -fail * vol_frac * vol_mastr * (trac + pen_trac_mastr + pen_trac_slave);
+
     const double penalty_fac = 0.0;
     // vec_type pen_trac = penalty_fac * ((X_slave - X0_slave) - (X_mastr - X0_mastr));
     vec_type pen_trac = penalty_fac * (X_slave - X_mastr);
@@ -233,7 +252,7 @@ my_force_damage_fcn(const double /*horizon*/,
     // #if (NDIM == 3)
     //     trac(2) = 0.0;
     // #endif
-    
+
     F_mastr += fail * vol_frac * vol_slave * trac + pen_trac;
     F_slave += -fail * vol_frac * vol_mastr * trac - pen_trac;
 
@@ -463,7 +482,7 @@ public:
                 if (lag_idx >= left_begin && lag_idx <= left_end)
                 {
                     double bforce[NDIM] = { 0.0 };
-                    if (new_time < 0.169)
+                    if (new_time < 0.28)
                     {
                         bforce[0] = -appres / DX;
                     }
@@ -489,7 +508,7 @@ public:
                 else if (lag_idx >= right_begin && lag_idx <= right_end)
                 {
                     double bforce[NDIM] = { 0.0 };
-                    if (new_time < 0.169)
+                    if (new_time < 0.28)
                     {
                         bforce[0] = appres / DX;
                     }
@@ -516,16 +535,16 @@ public:
                 {
                     for (int d = 0; d < NDIM; ++d)
                     {
-                      if (d == 1)
-                      {
-                        U_new[d] = 0.0;
-                        X_new[d] = X_current[d];
-                      }
-                      else
-                      {
+                    //   if (d == 1)
+                    //   {
+                    //     U_new[d] = 0.0;
+                    //     X_new[d] = X_current[d];
+                    //   }
+                    //   else
+                    //   {
                         U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * F_half[d];
                         X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
-                      }
+                    //   }
                     }
                 }
                 // #if (NDIM == 3)
