@@ -75,13 +75,11 @@
 #if (NDIM == 2)
 #define C_TO_S_CWISE_INTERP_FC IBTK_FC_FUNC(ctoscwiseinterp2nd2d, CTOSCWISEINTERP2ND2D)
 #define C_TO_S_CWISE_HARMONIC_INTERP_FC IBTK_FC_FUNC(ctoscwiseharmonicinterp2nd2d, CTOSCWISEARMONICINTERP2ND2D)
-#define MOLLIFY_IB_4_FC IBAMR_FC_FUNC_(mollify_ib_4_2d, MOLLIFY_IB_4_2D)
 #endif // if (NDIM == 2)
 
 #if (NDIM == 3)
 #define C_TO_S_CWISE_INTERP_FC IBTK_FC_FUNC(ctoscwiseinterp2nd3d, CTOSCWISEINTERP2ND3D)
 #define C_TO_S_CWISE_HARMONIC_INTERP_FC IBTK_FC_FUNC(ctoscwiseharmonicinterp2nd3d, CTOSCWISEHARMONICINTERP2ND3D)
-#define MOLLIFY_IB_4_FC IBAMR_FC_FUNC_(mollify_ib_4_3d, MOLLIFY_IB_4_3D)
 #endif // if (NDIM == 3)
 
 extern "C"
@@ -124,20 +122,6 @@ extern "C"
 #endif
     );
 
-    void MOLLIFY_IB_4_FC(double* V,
-                         const int& V_gcw,
-                         const double* U,
-                         const int& U_gcw,
-                         const int& ilower0,
-                         const int& iupper0,
-                         const int& ilower1,
-                         const int& iupper1
-#if (NDIM == 3)
-                         ,
-                         const int& ilower2,
-                         const int& iupper2
-#endif
-    );
 }
 
 namespace SAMRAI
@@ -585,10 +569,6 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
     d_lf_material_derivative_var = new CellVariable<NDIM, double>(d_object_name + "::lf_material_derivative_var");
     registerVariable(d_lf_material_derivative_idx, d_lf_material_derivative_var, no_ghosts, getCurrentContext());
 
-    const int IB4_ghosts = 3;
-    d_zeta_smooth_idx = var_db->registerVariableAndContext(
-        d_lf_material_derivative_var, var_db->getContext(d_object_name + "::zeta_smooth"), IB4_ghosts);
-
     d_div_U_F_var = new CellVariable<NDIM, double>(d_object_name + "::div_U_F_var");
     registerVariable(d_div_U_F_idx, d_div_U_F_var, no_ghosts, getCurrentContext());
 
@@ -705,7 +685,7 @@ IEPSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchH
         Pointer<AdvDiffConservativeMassTransportQuantityIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
         rho_p_cc_integrator->setCellCenteredDensityBoundaryConditions(d_rho_bc_coef);
         //        rho_p_cc_integrator->setCellCenteredMaterialPropertyBoundaryConditions(d_rho_bc_coef);
-        rho_p_cc_integrator->setCellCenteredTransportQuantityBoundaryConditions(d_T_bc_coef);
+        rho_p_cc_integrator->setCellCenteredTransportQuantityBoundaryConditions(d_h_bc_coef);
     }
 
     // Perform hierarchy initialization operations common to all implementations
@@ -756,7 +736,6 @@ IEPSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double cu
             level->allocatePatchData(d_drho_dT_scratch_idx, current_time);
         if (!level->checkAllocated(d_T_pre_idx)) level->allocatePatchData(d_T_pre_idx, current_time);
         if (!level->checkAllocated(d_grad_T_idx)) level->allocatePatchData(d_grad_T_idx, current_time);
-        if (!level->checkAllocated(d_zeta_smooth_idx)) level->allocatePatchData(d_zeta_smooth_idx, current_time);
     }
 
         const int rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getCurrentContext());
@@ -1397,30 +1376,6 @@ IEPSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time
         computeContinuitySourceTerm(
             d_div_U_F_idx, T_new_idx, h_new_idx, rho_new_idx, T_diff_coef_new_idx, H_new_idx, new_time);
 
-        //        // smooth the div u source term.
-        //        d_hier_cc_data_ops->copyData(d_zeta_smooth_idx, d_div_U_F_idx);
-        //        using InterpolationTransactionComponent =
-        //        HierarchyGhostCellInterpolation::InterpolationTransactionComponent; InterpolationTransactionComponent
-        //        zeta_smooth_bc_component(d_zeta_smooth_idx,
-        //                                                         DATA_REFINE_TYPE,
-        //                                                         USE_CF_INTERPOLATION,
-        //                                                         DATA_COARSEN_TYPE,
-        //                                                         BDRY_EXTRAP_TYPE,
-        //                                                         CONSISTENT_TYPE_2_BDRY,
-        //                                                         d_lf_bc_coef); // using liquid fraction bc
-        //       Pointer<HierarchyGhostCellInterpolation> zeta_smooth_bdry_bc_fill_op = new
-        //       HierarchyGhostCellInterpolation();
-        //        zeta_smooth_bdry_bc_fill_op->initializeOperatorState(zeta_smooth_bc_component, d_hierarchy);
-        //        zeta_smooth_bdry_bc_fill_op->fillData(new_time);
-        //
-        //        const int coarsest_ln = 0;
-        //        const int finest_ln = d_hierarchy->getFinestLevelNumber();
-        //        mollifyData(d_zeta_smooth_idx, coarsest_ln, finest_ln, new_time, d_hierarchy,
-        //        zeta_smooth_bdry_bc_fill_op);
-        //
-        //        // Copy the mollified zeta to div_U_F
-        //        d_hier_cc_data_ops->copyData(d_div_U_F_idx, d_zeta_smooth_idx);
-
         // Execute any registered callbacks.
         executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
         return;
@@ -1449,7 +1404,6 @@ IEPSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double c
         level->deallocatePatchData(d_dh_dT_scratch_idx);
         level->deallocatePatchData(d_drho_dT_scratch_idx);
         level->deallocatePatchData(d_grad_T_idx);
-        level->deallocatePatchData(d_zeta_smooth_idx);
     }
 
     AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
@@ -1756,6 +1710,13 @@ IEPSemiImplicitHierarchyIntegrator::setPhysicalBcCoefTemperatureEquation(Pointer
     d_T_bc_coef = T_bc_coef;
     return;
 } // setPhysicalBcCoefTemperatureEquation
+
+void
+IEPSemiImplicitHierarchyIntegrator::setEnthalpyBcCoef(RobinBcCoefStrategy<NDIM>* h_bc_coef)
+{
+    d_h_bc_coef = h_bc_coef;
+    return;
+} // setEnthalpyBcCoef
 
 RobinBcCoefStrategy<NDIM>*
 IEPSemiImplicitHierarchyIntegrator::getPhysicalBcCoefTemperatureEquation()
@@ -2742,7 +2703,7 @@ IEPSemiImplicitHierarchyIntegrator::computeEnthalpyBasedOnNonLinearTemperature(i
             {
                 CellIndex<NDIM> ci(it());
 
-                if ((*H_data)(ci) > 0.0)
+                if ((*H_data)(ci) >= 0.5)
                 {
                     if ((*T_data)(ci) < d_solidus_temperature)
                         (*h_data)(ci) = d_cp_solid * (*T_data)(ci);
@@ -2787,7 +2748,7 @@ IEPSemiImplicitHierarchyIntegrator::computeTemperatureBasedOnNonLinearEnthalpy(i
             {
                 CellIndex<NDIM> ci(it());
 
-                if ((*H_data)(ci) > 0.0)
+                if ((*H_data)(ci) >= 0.5)
                 {
                     if ((*h_data)(ci) < h_s)
                         (*T_data)(ci) = (*h_data)(ci) / d_cp_solid;
@@ -2858,7 +2819,7 @@ IEPSemiImplicitHierarchyIntegrator::computeEnthalpyDerivative(int dh_dT_idx, con
             {
                 CellIndex<NDIM> ci(it());
 
-                if ((*H_data)(ci) > 0.0)
+                if ((*H_data)(ci) >= 0.5)
                 {
                     if ((*T_data)(ci) < d_solidus_temperature)
                         (*dh_dT_data)(ci) = d_cp_solid;
@@ -2899,7 +2860,7 @@ IEPSemiImplicitHierarchyIntegrator::computeDensityDerivative(int drho_dT_idx, co
             {
                 CellIndex<NDIM> ci(it());
 
-                if ((*H_data)(ci) > 0.0)
+                if ((*H_data)(ci) >= 0.5)
                 {
                     if ((*T_data)(ci) < d_solidus_temperature)
                         (*drho_dT_data)(ci) = 0.0;
@@ -2948,7 +2909,7 @@ IEPSemiImplicitHierarchyIntegrator::computeLiquidFraction(int lf_idx, const int 
             {
                 CellIndex<NDIM> ci(it());
 
-                if ((*H_data)(ci) > 0.0)
+                if ((*H_data)(ci) >= 0.5)
                 {
                     if ((*h_data)(ci) < h_s)
                         (*lf_data)(ci) = 0.0;
@@ -2968,63 +2929,6 @@ IEPSemiImplicitHierarchyIntegrator::computeLiquidFraction(int lf_idx, const int 
     }
     return;
 } // computeLiquidFraction
-
-void
-IEPSemiImplicitHierarchyIntegrator::mollifyData(int zeta_smooth_idx,
-                                                int coarsest_ln,
-                                                int finest_ln,
-                                                double data_time,
-                                                Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                Pointer<HierarchyGhostCellInterpolation> fill_op)
-{
-    if (d_kernel_fcn == "none") return;
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-
-            Pointer<CellData<NDIM, double> > zeta_smooth_data = patch->getPatchData(zeta_smooth_idx);
-            CellData<NDIM, double> zeta_data(patch_box, /*depth*/ 1, zeta_smooth_data->getGhostCellWidth());
-
-            zeta_data.copy(*zeta_smooth_data);
-
-            double* const V = zeta_smooth_data->getPointer(0);
-            const double* const U = zeta_data.getPointer(0);
-            const int V_gcw = (zeta_smooth_data->getGhostCellWidth()).max();
-            const int U_gcw = (zeta_data.getGhostCellWidth()).max();
-
-            if (d_kernel_fcn == "IB_4")
-            {
-                MOLLIFY_IB_4_FC(V,
-                                V_gcw,
-                                U,
-                                U_gcw,
-                                patch_box.lower(0),
-                                patch_box.upper(0),
-                                patch_box.lower(1),
-                                patch_box.upper(1)
-#if (NDIM == 3)
-                                    ,
-                                patch_box.lower(2),
-                                patch_box.upper(2)
-#endif
-                );
-            }
-            else
-            {
-                TBOX_ERROR("this statement should not be reached");
-            }
-        }
-    }
-
-    if (fill_op) fill_op->fillData(data_time);
-
-    return;
-} // mollifyData
 
 void
 IEPSemiImplicitHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_from_restart)

@@ -273,6 +273,12 @@ public:
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getPhysicalBcCoefTemperatureEquation();
 
     /*!
+     * Set an object to provide boundary conditions for \f$ h \f$ variable,
+     * that has been registered with the hierarchy integrator.
+     */
+    void setEnthalpyBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* h_bc_coef);
+
+    /*!
      * Get the convective operator being used by this solver class for \f$ \varphi \f$ variable.
      *
      * If the convective operator has not already been constructed, then this
@@ -576,16 +582,6 @@ private:
     void computeDensityDerivative(int drho_dT_data, const int T_idx, const int H_idx);
 
     /*!
-     * \brief Mollify zeta.
-     */
-    void mollifyData(int zeta_smooth_idx,
-                     int coarsest_ln,
-                     int finest_ln,
-                     double data_time,
-                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> fill_op);
-
-    /*!
      * Solver variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_var;
@@ -650,6 +646,7 @@ private:
 
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_lf_bc_coef = nullptr;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_T_bc_coef = nullptr;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_h_bc_coef = nullptr;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_H_bdry_bc_fill_op, d_k_bdry_bc_fill_op;
 
     /*!
@@ -797,7 +794,6 @@ private:
     int d_div_U_F_idx = IBTK::invalid_index;
     int d_div_U_F_deno_idx = IBTK::invalid_index;
     int d_div_U_F_diff_idx = IBTK::invalid_index;
-    int d_zeta_smooth_idx = IBTK::invalid_index;
 
     /*!
      * Allen-Cahn equation parameters.
