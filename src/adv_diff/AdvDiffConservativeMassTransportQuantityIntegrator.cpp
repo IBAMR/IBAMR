@@ -577,6 +577,8 @@ AdvDiffConservativeMassTransportQuantityIntegrator::AdvDiffConservativeMassTrans
             d_rho_var, var_db->getContext(rho_cc_name + "::SCRATCH"), IntVector<NDIM>(d_density_limiter_gcw));
         d_rho_new_idx = var_db->registerVariableAndContext(
             d_rho_var, var_db->getContext(rho_cc_name + "::NEW"), IntVector<NDIM>(NOGHOSTS));
+        d_rho_composite_idx = var_db->registerVariableAndContext(
+            d_rho_var, var_db->getContext(rho_cc_name + "::COMPOSITE"), IntVector<NDIM>(NOGHOSTS));
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_rho_scratch_idx >= 0);
@@ -754,9 +756,13 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
     // Fill ghost cells for current density
     std::vector<InterpolationTransactionComponent> rho_transaction_comps(1);
 
+    d_hier_cc_data_ops->copyData(d_rho_composite_idx,
+                                 d_rho_current_idx,
+                                 /*interior_only*/ true);
+
     std::vector<RobinBcCoefStrategy<NDIM>*> rho_cc_bc_coefs(1, d_rho_cc_bc_coefs);
     rho_transaction_comps[0] = InterpolationTransactionComponent(d_rho_scratch_idx,
-                                                                 d_rho_current_idx,
+                                                                 d_rho_composite_idx,
                                                                  "CONSERVATIVE_LINEAR_REFINE",
                                                                  false,
                                                                  "CONSERVATIVE_COARSEN",
@@ -841,9 +847,10 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
         eval_time = d_current_time + dt / 2.0;
         // compute rho^n+1/2
         d_hier_cc_data_ops->linearSum(
-            d_rho_scratch_idx, 0.5, d_rho_new_idx, 0.5, d_rho_current_idx, /*interior_only*/ true);
+            d_rho_composite_idx, 0.5, d_rho_new_idx, 0.5, d_rho_current_idx, /*interior_only*/ true);
         std::vector<InterpolationTransactionComponent> update_rho_transaction_comps(1);
         update_rho_transaction_comps[0] = InterpolationTransactionComponent(d_rho_scratch_idx,
+                                                                            d_rho_composite_idx,
                                                                             "CONSERVATIVE_LINEAR_REFINE",
                                                                             false,
                                                                             "CONSERVATIVE_COARSEN",
@@ -852,9 +859,10 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
                                                                             d_rho_bc_coefs);
 
         d_hier_cc_data_ops->linearSum(
-            d_Q_cc_scratch_idx, 0.5, d_Q_cc_new_idx, 0.5, d_Q_cc_current_idx, /*interior_only*/ true);
+            d_Q_cc_composite_idx, 0.5, d_Q_cc_new_idx, 0.5, d_Q_cc_current_idx, /*interior_only*/ true);
         std::vector<InterpolationTransactionComponent> update_Q_transaction_comps(1);
         update_Q_transaction_comps[0] = InterpolationTransactionComponent(d_Q_cc_scratch_idx,
+                                                                          d_Q_cc_composite_idx,
                                                                           "CONSERVATIVE_LINEAR_REFINE",
                                                                           false,
                                                                           "CONSERVATIVE_COARSEN",
@@ -862,7 +870,7 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
                                                                           false,
                                                                           Q_cc_bc_coefs);
         //
-        d_hier_rho_bdry_fill->resetTransactionComponents(rho_transaction_comps);
+        d_hier_rho_bdry_fill->resetTransactionComponents(update_rho_transaction_comps);
         d_hier_rho_bdry_fill->setHomogeneousBc(homogeneous_bc);
         d_hier_rho_bdry_fill->fillData(eval_time);
         d_hier_rho_bdry_fill->resetTransactionComponents(d_rho_transaction_comps);
@@ -870,24 +878,24 @@ AdvDiffConservativeMassTransportQuantityIntegrator::integrate(double dt)
         if (d_gamma_cc_var)
         {
             d_hier_cc_data_ops->linearSum(
-                d_gamma_cc_scratch_idx, 0.5, d_gamma_cc_new_idx, 0.5, d_gamma_cc_current_idx, /*interior_only*/ true);
+                d_gamma_cc_composite_idx, 0.5, d_gamma_cc_new_idx, 0.5, d_gamma_cc_current_idx, /*interior_only*/ true);
             std::vector<InterpolationTransactionComponent> update_gamma_transaction_comps(1);
             std::vector<RobinBcCoefStrategy<NDIM>*> gamma_cc_bc_coefs(1, d_gamma_cc_bc_coefs);
             update_gamma_transaction_comps[0] = InterpolationTransactionComponent(d_gamma_cc_scratch_idx,
+                                                                                  d_gamma_cc_composite_idx,
                                                                                   "CONSERVATIVE_LINEAR_REFINE",
                                                                                   false,
                                                                                   "CONSERVATIVE_COARSEN",
                                                                                   d_density_bdry_extrap_type,
                                                                                   false,
                                                                                   gamma_cc_bc_coefs);
-            d_hier_gamma_bdry_fill->resetTransactionComponents(
-                d_gamma_transaction_comps); // I think I should use gamma_transaction_comps here.
+            d_hier_gamma_bdry_fill->resetTransactionComponents(update_gamma_transaction_comps);
             d_hier_gamma_bdry_fill->setHomogeneousBc(homogeneous_bc);
             d_hier_gamma_bdry_fill->fillData(eval_time);
             d_hier_gamma_bdry_fill->resetTransactionComponents(d_gamma_transaction_comps);
         }
 
-        d_hier_Q_bdry_fill->resetTransactionComponents(Q_transaction_comps);
+        d_hier_Q_bdry_fill->resetTransactionComponents(update_Q_transaction_comps);
         d_hier_Q_bdry_fill->setHomogeneousBc(homogeneous_bc);
         d_hier_Q_bdry_fill->fillData(eval_time);
         d_hier_Q_bdry_fill->resetTransactionComponents(d_Q_transaction_comps);
@@ -1161,7 +1169,7 @@ AdvDiffConservativeMassTransportQuantityIntegrator::initializeTimeIntegrator(
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_rho_transaction_comps.resize(1);
     d_rho_transaction_comps[0] = InterpolationTransactionComponent(d_rho_scratch_idx,
-                                                                   d_rho_new_idx,
+                                                                   d_rho_composite_idx,
                                                                    "CONSERVATIVE_LINEAR_REFINE",
                                                                    false,
                                                                    "CONSERVATIVE_COARSEN",
@@ -1231,6 +1239,7 @@ AdvDiffConservativeMassTransportQuantityIntegrator::initializeTimeIntegrator(
         if (!level->checkAllocated(d_V_composite_idx)) level->allocatePatchData(d_V_composite_idx);
         if (!level->checkAllocated(d_rho_scratch_idx)) level->allocatePatchData(d_rho_scratch_idx);
         if (!level->checkAllocated(d_rho_new_idx)) level->allocatePatchData(d_rho_new_idx);
+        if (!level->checkAllocated(d_rho_composite_idx)) level->allocatePatchData(d_rho_composite_idx);
         if (d_gamma_cc_var)
         {
             if (!level->checkAllocated(d_gamma_cc_scratch_idx)) level->allocatePatchData(d_gamma_cc_scratch_idx);
@@ -1282,6 +1291,7 @@ AdvDiffConservativeMassTransportQuantityIntegrator::deallocateTimeIntegrator()
         if (level->checkAllocated(d_V_composite_idx)) level->deallocatePatchData(d_V_composite_idx);
         if (level->checkAllocated(d_rho_scratch_idx)) level->deallocatePatchData(d_rho_scratch_idx);
         if (level->checkAllocated(d_rho_new_idx)) level->deallocatePatchData(d_rho_new_idx);
+        if (level->checkAllocated(d_rho_composite_idx)) level->deallocatePatchData(d_rho_composite_idx);
         if (d_gamma_cc_var)
         {
             if (level->checkAllocated(d_gamma_cc_scratch_idx)) level->deallocatePatchData(d_gamma_cc_scratch_idx);

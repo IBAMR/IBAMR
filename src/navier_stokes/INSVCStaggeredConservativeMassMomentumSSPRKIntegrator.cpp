@@ -301,7 +301,7 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::integrate(double dt)
                                                                               d_velocity_bdry_extrap_type,
                                                                               false,
                                                                               d_u_bc_coefs);
-            d_hier_v_bdry_fill->resetTransactionComponents(v_transaction_comps);
+            d_hier_v_bdry_fill->resetTransactionComponents(v_update_transaction_comps);
             StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
                 d_u_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
             d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);

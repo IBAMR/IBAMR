@@ -224,7 +224,7 @@ protected:
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_rho_var;
     int d_rho_current_idx = IBTK::invalid_index, d_rho_scratch_idx = IBTK::invalid_index,
-        d_rho_new_idx = IBTK::invalid_index;
+        d_rho_new_idx = IBTK::invalid_index, d_rho_composite_idx = IBTK::invalid_index;
     int d_N_idx = IBTK::invalid_index;
 
     // Mathematical operators.
