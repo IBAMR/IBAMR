@@ -329,6 +329,7 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_cc_var;
     int d_rho_cc_current_idx = IBTK::invalid_index, d_rho_cc_scratch_idx = IBTK::invalid_index,
+
         d_rho_cc_new_idx = IBTK::invalid_index;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_gamma_cc_var;

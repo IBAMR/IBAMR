@@ -2922,7 +2922,7 @@ IEPSemiImplicitHierarchyIntegrator::computeLiquidFraction(int lf_idx, const int 
                 }
                 else
                 {
-                    (*lf_data)(ci) = (*H_data)(ci);
+                    (*lf_data)(ci) = 0.0; // (*H_data)(ci);
                 }
             }
         }

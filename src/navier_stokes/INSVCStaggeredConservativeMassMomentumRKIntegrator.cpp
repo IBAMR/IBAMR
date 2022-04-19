@@ -1311,7 +1311,7 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
                                                                           d_velocity_bdry_extrap_type,
                                                                           false,
                                                                           d_u_bc_coefs);
-        d_hier_v_bdry_fill->resetTransactionComponents(v_transaction_comps);
+        d_hier_v_bdry_fill->resetTransactionComponents(v_update_transaction_comps);
         StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
             d_u_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
         d_hier_v_bdry_fill->setHomogeneousBc(homogeneous_bc);
@@ -1496,7 +1496,7 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::initializeTimeIntegrator(
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_rho_transaction_comps.resize(1);
     d_rho_transaction_comps[0] = InterpolationTransactionComponent(d_rho_scratch_idx,
-                                                                   d_rho_new_idx,
+                                                                   d_rho_composite_idx,
                                                                    "CONSERVATIVE_LINEAR_REFINE",
                                                                    false,
                                                                    "CONSERVATIVE_COARSEN",
