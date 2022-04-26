@@ -254,7 +254,8 @@ void
 generate_interp_mesh(const unsigned int& /*strct_num*/,
                      const int& ln,
                      int& num_vertices,
-                     std::vector<IBTK::Point>& vertex_posn)
+                     std::vector<IBTK::Point>& vertex_posn,
+                     void* /*ctx*/)
 {
     if (ln != max_finest_ln)
     {

@@ -132,7 +132,8 @@ public:
     using InitStructureOnLevel = void (*)(const unsigned int& strct_num,
                                           const int& level_num,
                                           int& num_vertices,
-                                          std::vector<IBTK::Point>& vertex_posn);
+                                          std::vector<IBTK::Point>& vertex_posn,
+                                          void* ctx);
 
     /*!
      * Register the function to initialize a structure on a given level.
@@ -140,7 +141,7 @@ public:
      * \note A function must be registered or IBRedundantInitializer will
      * return an error.
      */
-    void registerInitStructureFunction(InitStructureOnLevel fcn);
+    void registerInitStructureFunction(InitStructureOnLevel fcn, void* ctx = nullptr);
 
     /*
      * Edge data structures.
@@ -176,12 +177,13 @@ public:
     using InitSpringDataOnLevel = void (*)(const unsigned int& strct_num,
                                            const int& level_num,
                                            std::multimap<int, Edge>& spring_map,
-                                           std::map<Edge, SpringSpec, EdgeComp>& spring_spec);
+                                           std::map<Edge, SpringSpec, EdgeComp>& spring_spec,
+                                           void* ctx);
 
     /*!
      * \brief Register a function to initialize spring data structures on a given level.
      */
-    void registerInitSpringDataFunction(InitSpringDataOnLevel fcn);
+    void registerInitSpringDataFunction(InitSpringDataOnLevel fcn, void* ctx = nullptr);
 
     /*
      * Struct for xspring specifications.
@@ -205,12 +207,13 @@ public:
     using InitXSpringDataOnLevel = void (*)(const unsigned int& strct_num,
                                             const int& level_num,
                                             std::multimap<int, Edge>& xspring_map,
-                                            std::map<Edge, XSpringSpec, EdgeComp> xspring_spec);
+                                            std::map<Edge, XSpringSpec, EdgeComp> xspring_spec,
+                                            void* ctx);
 
     /*!
      * \brief Register a function to initialize xspring data structures on a given level.
      */
-    void registerInitXSpringDataFunction(InitXSpringDataOnLevel fcn);
+    void registerInitXSpringDataFunction(InitXSpringDataOnLevel fcn, void* ctx = nullptr);
 
     /*
      * Struct for beam specifications.
@@ -233,12 +236,13 @@ public:
      */
     using InitBeamDataOnLevel = void (*)(const unsigned int& strct_num,
                                          const int& level_num,
-                                         std::multimap<int, BeamSpec>& beam_spec);
+                                         std::multimap<int, BeamSpec>& beam_spec,
+                                         void* ctx);
 
     /*!
      * \brief Register a function to initialize beam data structures on a given level.
      */
-    void registerInitBeamDataFunction(InitBeamDataOnLevel fcn);
+    void registerInitBeamDataFunction(InitBeamDataOnLevel fcn, void* ctx = nullptr);
 
     /*!
      * Struct for rod specifications.
@@ -261,12 +265,13 @@ public:
                                                const int& level_num,
                                                std::vector<std::vector<double> >& director_spec,
                                                std::multimap<int, Edge>& rod_edge_map,
-                                               std::map<Edge, RodSpec, EdgeComp>& rod_spec);
+                                               std::map<Edge, RodSpec, EdgeComp>& rod_spec,
+                                               void* ctx);
 
     /*!
      * \brief Register a funcion to initialize director and rod data structures on a given level.
      */
-    void registerInitDirectorAndRodFunction(InitDirectorAndRodOnLevel fcn);
+    void registerInitDirectorAndRodFunction(InitDirectorAndRodOnLevel fcn, void* ctx = nullptr);
 
     /*
      * Struct for massive point specifications.
@@ -285,12 +290,13 @@ public:
      */
     using InitBoundaryMassOnLevel = void (*)(const unsigned int& strct_num,
                                              const int& level_num,
-                                             std::multimap<int, BdryMassSpec>& bdry_mass_spec);
+                                             std::multimap<int, BdryMassSpec>& bdry_mass_spec,
+                                             void* ctx);
 
     /*!
      * \brief Register a function to initialize massive points on a given level.
      */
-    void registerInitBoundaryMassFunction(InitBoundaryMassOnLevel fcn);
+    void registerInitBoundaryMassFunction(InitBoundaryMassOnLevel fcn, void* ctx = nullptr);
 
     /*!
      * Struct for target point specifications.
@@ -311,12 +317,13 @@ public:
 
     using InitTargetPtOnLevel = void (*)(const unsigned int& strct_num,
                                          const int& level_num,
-                                         std::multimap<int, TargetSpec>& tg_pt_spec);
+                                         std::multimap<int, TargetSpec>& tg_pt_spec,
+                                         void* ctx);
 
     /*!
      * \brief Register a function to initialize target points on a given level.
      */
-    void registerInitTargetPtFunction(InitTargetPtOnLevel fcn);
+    void registerInitTargetPtFunction(InitTargetPtOnLevel fcn, void* ctx = nullptr);
 
     /*!
      * Struct for anchor point specifications.
@@ -335,12 +342,13 @@ public:
      */
     using InitAnchorPtOnLevel = void (*)(const unsigned int& strct_num,
                                          const int& level_num,
-                                         std::multimap<int, AnchorSpec>& anchor_pt_spec);
+                                         std::multimap<int, AnchorSpec>& anchor_pt_spec,
+                                         void* ctx);
 
     /*!
      * \brief Register a function to initialize anchor points on a given level.
      */
-    void registerInitAnchorPtFunction(InitAnchorPtOnLevel fcn);
+    void registerInitAnchorPtFunction(InitAnchorPtOnLevel fcn, void* ctx = nullptr);
 
     /*!
      * Typedef specifying the interface for initializing flow meters and pressure gauges on a given level.
@@ -352,12 +360,13 @@ public:
     using InitInstrumentationOnLevel = void (*)(const unsigned int& strct_num,
                                                 const int& level_num,
                                                 std::vector<std::string>& instrument_name,
-                                                std::map<int, std::pair<int, int> >& instrument_spec);
+                                                std::map<int, std::pair<int, int> >& instrument_spec,
+                                                void* ctx);
 
     /*!
      * \brief Register a function to initialize instrumentation data on a given level.
      */
-    void registerInitInstrumentationFunction(InitInstrumentationOnLevel fcn);
+    void registerInitInstrumentationFunction(InitInstrumentationOnLevel fcn, void* ctx = nullptr);
 
     /*
      * Typedef specifying the interface for initializing source and sink data on a given level.
@@ -371,11 +380,12 @@ public:
                                        const int& level_num,
                                        std::map<int, int>& source_spec,
                                        std::vector<std::string>& source_names,
-                                       std::vector<double>& source_radii);
+                                       std::vector<double>& source_radii,
+                                       void* ctx);
     /*!
      * \brief Register a funciton to initialize source/sink data on a given level.
      */
-    void registerInitSourceFunction(InitSourceOnLevel fcn);
+    void registerInitSourceFunction(InitSourceOnLevel fcn, void* ctx = nullptr);
 
     /*!
      * \brief Initialize the structure indexing information on the patch level.
@@ -758,15 +768,25 @@ private:
      * Functions used to initialize structures programmatically.
      */
     InitStructureOnLevel d_init_structure_on_level_fcn = nullptr;
+    void* d_init_structure_on_level_ctx = nullptr;
     InitSpringDataOnLevel d_init_spring_on_level_fcn = nullptr;
+    void* d_init_spring_on_level_ctx = nullptr;
     InitXSpringDataOnLevel d_init_xspring_on_level_fcn = nullptr;
+    void* d_init_xspring_on_level_ctx = nullptr;
     InitBeamDataOnLevel d_init_beam_on_level_fcn = nullptr;
+    void* d_init_beam_on_level_ctx = nullptr;
     InitDirectorAndRodOnLevel d_init_director_and_rod_on_level_fcn = nullptr;
+    void* d_init_director_and_rod_on_level_ctx = nullptr;
     InitBoundaryMassOnLevel d_init_boundary_mass_on_level_fcn = nullptr;
+    void* d_init_boundary_mass_on_level_ctx = nullptr;
     InitTargetPtOnLevel d_init_target_pt_on_level_fcn = nullptr;
+    void* d_init_target_pt_on_level_ctx = nullptr;
     InitAnchorPtOnLevel d_init_anchor_pt_on_level_fcn = nullptr;
+    void* d_init_anchor_pt_on_level_ctx = nullptr;
     InitInstrumentationOnLevel d_init_instrumentation_on_level_fcn = nullptr;
+    void* d_init_instrumentation_on_level_ctx = nullptr;
     InitSourceOnLevel d_init_source_on_level_fcn = nullptr;
+    void* d_init_source_on_level_ctx = nullptr;
 };
 } // namespace IBAMR
 
