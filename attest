@@ -413,7 +413,9 @@ def main():
         "in attest.conf. attest requires both numdiff and MPI execution "
         "program (i.e., mpiexec) to work correctly. The best way to specify "
         "these values is to provide them to configure, which will then use "
-        "them to write a default attest.conf file.")
+        "them to write a default attest.conf file.\n\n"
+        "attest will return 0 if it suceeded and 1 if any error (including "
+        "test failures) occurred.")
 
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('-j,--jobs', metavar='N', type=int,
@@ -620,6 +622,11 @@ def main():
 
     for failed_test_result in failed_test_outputs:
         print("   ", failed_test_result.name())
+
+    if failed_test_outputs:
+        sys.exit(1)
+    else:
+        sys.exit(0)
 
 
 if __name__ == '__main__':
