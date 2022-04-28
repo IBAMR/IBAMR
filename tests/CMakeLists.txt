@@ -323,7 +323,9 @@ LIST(APPEND disabled_tests "explicit_ex5_3d.mpirun=2.input")
 LIST(APPEND disabled_tests "explicit_ex8_2d.input")
 LIST(APPEND disabled_tests "explicit_ex8_2d.scratch_hier.input")
 LIST(APPEND disabled_tests "nwt_cylinder")
-LIST(APPEND disabled_tests "cib_")
+# the LU CIB test is fine, the others are much slower
+LIST(APPEND disabled_tests "cib_double_shell.input")
+LIST(APPEND disabled_tests "cib_double_shell.cholesky.input")
 LIST(JOIN disabled_tests "|" disabled_test_regex)
 ADD_TEST(
   NAME autotests
