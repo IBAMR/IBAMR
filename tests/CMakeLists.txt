@@ -327,8 +327,9 @@ LIST(APPEND disabled_tests "cib_")
 LIST(JOIN disabled_tests "|" disabled_test_regex)
 ADD_TEST(
   NAME autotests
+  # GitHub's Linux testers only have two cores
   COMMAND "${CMAKE_SOURCE_DIR}/attest"
-    "-j4"
+    "-j2"
     "--verbose"
     "--test-timeout=120"
      -E
