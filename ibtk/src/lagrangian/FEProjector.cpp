@@ -320,7 +320,7 @@ FEProjector::buildL2ProjectionSolver(const std::string& system_name)
         // Setup the solver.
         solver->reuse_preconditioner(true);
         solver->set_preconditioner_type(JACOBI_PRECOND);
-        solver->set_solver_type(MINRES);
+        solver->set_solver_type(CG);
         solver->init();
 
         // Store the solver, mass matrix, and configuration options.
@@ -569,7 +569,7 @@ FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, c
         // Setup the solver.
         solver->reuse_preconditioner(true);
         solver->set_preconditioner_type(JACOBI_PRECOND);
-        solver->set_solver_type(MINRES);
+        solver->set_solver_type(CG);
         solver->init();
 
         // Store the solver, mass matrix, and configuration options.

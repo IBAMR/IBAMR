@@ -155,7 +155,7 @@ main(int argc, char* argv[])
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
-    PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-10");
+    PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-16");
     PetscOptionsSetValue(nullptr, "-stokes_ksp_atol", "1e-10");
 
     // suppress warnings caused by using a refinement ratio of 4 and not

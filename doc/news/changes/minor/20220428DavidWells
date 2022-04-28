@@ -1,0 +1,4 @@
+Improved: IBTK::FEProjector now uses the conjugate gradient method instead of
+MINRES. This switch lowers finite element solver time by about 50% in 3D.
+<br>
+(David Wells, 2022/04/28)
