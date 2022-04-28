@@ -171,7 +171,6 @@ main(int argc, char** argv)
     SAMRAI::tbox::Logger::getInstance()->setWarning(false);
 
     PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-16");
-    PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-16");
     // use lower tolerances in 2D
     if (NDIM == 2)
     {
