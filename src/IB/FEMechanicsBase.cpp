@@ -84,6 +84,8 @@ namespace
 // Version of FEMechanicsBase restart file data.
 const int FE_MECHANICS_BASE_VERSION = 1;
 
+static Timer* t_assemble_interior_force_density_rhs;
+
 inline boundary_id_type
 get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
 {
@@ -858,6 +860,7 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
                                                  const double data_time,
                                                  const unsigned int part)
 {
+    IBAMR_TIMER_START(t_assemble_interior_force_density_rhs);
     const bool using_pressure = P_vec != nullptr;
 
     // Extract the mesh.
@@ -1329,6 +1332,7 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
     IBTK_CHKERRQ(ierr);
     ierr = VecGhostRestoreLocalForm(F_rhs_vec.vec(), &F_rhs_vec_local);
     IBTK_CHKERRQ(ierr);
+    IBAMR_TIMER_STOP(t_assemble_interior_force_density_rhs);
 }
 
 void
@@ -1606,6 +1610,11 @@ FEMechanicsBase::commonConstructor(const std::string& object_name,
         }
         pout << "\n";
     }
+
+    // Setup timers.
+    auto set_timer = [&](const char* name) { return TimerManager::getManager()->getTimer(name); };
+    IBAMR_DO_ONCE(t_assemble_interior_force_density_rhs =
+                      set_timer("IBAMR::FEMechanicsBase::assembleInteriorForceDensityRHS()"););
 }
 
 void
