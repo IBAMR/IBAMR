@@ -64,7 +64,8 @@ void
 generate_structure(const unsigned int& strct_num,
                    const int& ln,
                    int& num_vertices,
-                   std::vector<IBTK::Point>& vertex_posn)
+                   std::vector<IBTK::Point>& vertex_posn,
+                   void* /*ctx*/)
 {
     if (ln != finest_ln)
     {
@@ -150,7 +151,8 @@ generate_springs(
     const int& ln,
     std::multimap<int, IBRedundantInitializer::Edge>& spring_map,
     std::map<IBRedundantInitializer::Edge, IBRedundantInitializer::SpringSpec, IBRedundantInitializer::EdgeComp>&
-        spring_spec)
+        spring_spec,
+    void* /*ctx*/)
 {
     if (ln != finest_ln) return;
     double K = 1.0;

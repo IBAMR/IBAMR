@@ -51,7 +51,8 @@ void
 generate_structure(const unsigned int& struct_num,
                    const int& ln,
                    int& num_vertices,
-                   std::vector<IBTK::Point>& vertex_posn)
+                   std::vector<IBTK::Point>& vertex_posn,
+                   void* /*ctx*/)
 {
     if (ln != finest_ln)
     {

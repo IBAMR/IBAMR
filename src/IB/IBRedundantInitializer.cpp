@@ -247,72 +247,82 @@ IBRedundantInitializer::initializeStructureIndexingOnPatchLevel(
 } // initializeStructureIndexingOnPatchLevel
 
 void
-IBRedundantInitializer::registerInitStructureFunction(InitStructureOnLevel fcn)
+IBRedundantInitializer::registerInitStructureFunction(InitStructureOnLevel fcn, void* ctx)
 {
     d_init_structure_on_level_fcn = fcn;
+    d_init_structure_on_level_ctx = ctx;
     return;
 }
 
 void
-IBRedundantInitializer::registerInitSpringDataFunction(InitSpringDataOnLevel fcn)
+IBRedundantInitializer::registerInitSpringDataFunction(InitSpringDataOnLevel fcn, void* ctx)
 {
     d_init_spring_on_level_fcn = fcn;
+    d_init_spring_on_level_ctx = ctx;
     return;
 }
 
 void
-IBRedundantInitializer::registerInitXSpringDataFunction(InitXSpringDataOnLevel fcn)
+IBRedundantInitializer::registerInitXSpringDataFunction(InitXSpringDataOnLevel fcn, void* ctx)
 {
     d_init_xspring_on_level_fcn = fcn;
+    d_init_xspring_on_level_ctx = ctx;
     return;
 }
 
 void
-IBRedundantInitializer::registerInitBeamDataFunction(InitBeamDataOnLevel fcn)
+IBRedundantInitializer::registerInitBeamDataFunction(InitBeamDataOnLevel fcn, void* ctx)
 {
     d_init_beam_on_level_fcn = fcn;
+    d_init_beam_on_level_ctx = ctx;
     return;
 }
 
 void
-IBRedundantInitializer::registerInitDirectorAndRodFunction(InitDirectorAndRodOnLevel fcn)
+IBRedundantInitializer::registerInitDirectorAndRodFunction(InitDirectorAndRodOnLevel fcn, void* ctx)
 {
     d_init_director_and_rod_on_level_fcn = fcn;
+    d_init_director_and_rod_on_level_ctx = ctx;
     return;
 }
 
 void
-IBRedundantInitializer::registerInitBoundaryMassFunction(InitBoundaryMassOnLevel fcn)
+IBRedundantInitializer::registerInitBoundaryMassFunction(InitBoundaryMassOnLevel fcn, void* ctx)
 {
     d_init_boundary_mass_on_level_fcn = fcn;
+    d_init_boundary_mass_on_level_ctx = ctx;
     return;
 }
 
 void
-IBRedundantInitializer::registerInitTargetPtFunction(InitTargetPtOnLevel fcn)
+IBRedundantInitializer::registerInitTargetPtFunction(InitTargetPtOnLevel fcn, void* ctx)
 {
     d_init_target_pt_on_level_fcn = fcn;
+    d_init_target_pt_on_level_ctx = ctx;
     return;
 }
 
 void
-IBRedundantInitializer::registerInitAnchorPtFunction(InitAnchorPtOnLevel fcn)
+IBRedundantInitializer::registerInitAnchorPtFunction(InitAnchorPtOnLevel fcn, void* ctx)
 {
     d_init_anchor_pt_on_level_fcn = fcn;
+    d_init_anchor_pt_on_level_ctx = ctx;
     return;
 }
 
 void
-IBRedundantInitializer::registerInitInstrumentationFunction(InitInstrumentationOnLevel fcn)
+IBRedundantInitializer::registerInitInstrumentationFunction(InitInstrumentationOnLevel fcn, void* ctx)
 {
     d_init_instrumentation_on_level_fcn = fcn;
+    d_init_instrumentation_on_level_ctx = ctx;
     return;
 }
 
 void
-IBRedundantInitializer::registerInitSourceFunction(InitSourceOnLevel fcn)
+IBRedundantInitializer::registerInitSourceFunction(InitSourceOnLevel fcn, void* ctx)
 {
     d_init_source_on_level_fcn = fcn;
+    d_init_source_on_level_ctx = ctx;
     return;
 }
 
@@ -341,7 +351,8 @@ IBRedundantInitializer::initializeStructurePosition()
                 d_vertex_offset[ln][j] = d_vertex_offset[ln][j - 1] + d_num_vertex[ln][j - 1];
             }
 
-            d_init_structure_on_level_fcn(j, ln, d_num_vertex[ln][j], d_vertex_posn[ln][j]);
+            d_init_structure_on_level_fcn(
+                j, ln, d_num_vertex[ln][j], d_vertex_posn[ln][j], d_init_structure_on_level_ctx);
 #if !defined(NDEBUG)
             if (d_vertex_posn[ln][j].size() != std::size_t(d_num_vertex[ln][j]))
             {
@@ -378,7 +389,8 @@ IBRedundantInitializer::initializeSprings()
         {
             for (unsigned int j = 0; j < num_base_filename; ++j)
             {
-                d_init_spring_on_level_fcn(j, ln, d_spring_edge_map[ln][j], d_spring_spec_data[ln][j]);
+                d_init_spring_on_level_fcn(
+                    j, ln, d_spring_edge_map[ln][j], d_spring_spec_data[ln][j], d_init_spring_on_level_ctx);
 
                 int min_idx = 0;
                 int max_idx = d_num_vertex[ln][j];
@@ -435,7 +447,8 @@ IBRedundantInitializer::initializeXSprings()
         {
             for (unsigned int j = 0; j < num_base_filename; ++j)
             {
-                d_init_xspring_on_level_fcn(j, ln, d_xspring_edge_map[ln][j], d_xspring_spec_data[ln][j]);
+                d_init_xspring_on_level_fcn(
+                    j, ln, d_xspring_edge_map[ln][j], d_xspring_spec_data[ln][j], d_init_xspring_on_level_ctx);
                 const int min_idx = 0;
                 const int max_idx = std::accumulate(d_num_vertex[ln].begin(), d_num_vertex[ln].end(), 0);
                 for (const auto& edge_pair : d_xspring_edge_map[ln][j])
@@ -490,7 +503,7 @@ IBRedundantInitializer::initializeBeams()
         {
             for (unsigned int j = 0; j < num_base_filename; ++j)
             {
-                d_init_beam_on_level_fcn(j, ln, d_beam_spec_data[ln][j]);
+                d_init_beam_on_level_fcn(j, ln, d_beam_spec_data[ln][j], d_init_beam_on_level_ctx);
 
                 const int min_idx = 0;
                 const int max_idx = d_num_vertex[ln][j];
@@ -539,7 +552,7 @@ IBRedundantInitializer::initializeTargetPts()
         {
             for (unsigned int j = 0; j < num_base_filename; ++j)
             {
-                d_init_target_pt_on_level_fcn(j, ln, tg_pt_spec);
+                d_init_target_pt_on_level_fcn(j, ln, tg_pt_spec, d_init_target_pt_on_level_ctx);
 
                 int min_idx = 0;
                 int max_idx = d_num_vertex[ln][j];
@@ -594,8 +607,12 @@ IBRedundantInitializer::initializeDirectorAndRods()
         {
             for (unsigned int j = 0; j < num_base_filename; ++j)
             {
-                d_init_director_and_rod_on_level_fcn(
-                    j, ln, d_directors[ln][j], d_rod_edge_map[ln][j], d_rod_spec_data[ln][j]);
+                d_init_director_and_rod_on_level_fcn(j,
+                                                     ln,
+                                                     d_directors[ln][j],
+                                                     d_rod_edge_map[ln][j],
+                                                     d_rod_spec_data[ln][j],
+                                                     d_init_director_and_rod_on_level_ctx);
 
                 const int min_idx = 0;
                 const int max_idx = d_num_vertex[ln][j];
@@ -712,7 +729,7 @@ IBRedundantInitializer::initializeBoundaryMass()
             std::multimap<int, BdryMassSpec> bdry_map;
             for (unsigned int j = 0; j < num_base_filename; ++j)
             {
-                d_init_boundary_mass_on_level_fcn(j, ln, bdry_map);
+                d_init_boundary_mass_on_level_fcn(j, ln, bdry_map, d_init_boundary_mass_on_level_ctx);
                 d_bdry_mass_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
                 int min_idx = 0;
                 int max_idx = d_num_vertex[ln][j];
@@ -767,7 +784,7 @@ IBRedundantInitializer::initializeAnchorPts()
             std::multimap<int, AnchorSpec> anchor_map;
             for (unsigned int j = 0; j < num_base_filename; ++j)
             {
-                d_init_anchor_pt_on_level_fcn(j, ln, anchor_map);
+                d_init_anchor_pt_on_level_fcn(j, ln, anchor_map, d_init_anchor_pt_on_level_ctx);
                 d_anchor_spec_data[ln][j].resize(d_num_vertex[ln][j], default_spec);
                 int min_idx = 0;
                 int max_idx = d_num_vertex[ln][j];
@@ -809,7 +826,8 @@ IBRedundantInitializer::initializeInstrumentationData()
             std::vector<std::string> new_names;
             for (unsigned int j = 0; j < num_base_filename; ++j)
             {
-                d_init_instrumentation_on_level_fcn(j, ln, new_names, d_instrument_idx[ln][j]);
+                d_init_instrumentation_on_level_fcn(
+                    j, ln, new_names, d_instrument_idx[ln][j], d_init_instrumentation_on_level_ctx);
                 std::vector<bool> encountered_instrument_idx;
                 std::map<int, std::vector<bool> > encountered_node_idxs;
                 for (const auto& new_name : new_names) instrument_names.push_back(new_name);
@@ -906,7 +924,8 @@ IBRedundantInitializer::initializeSourceData()
                 const int min_idx = 0;
                 const int max_idx = d_num_vertex[ln][j];
                 int num_source;
-                d_init_source_on_level_fcn(j, ln, d_source_idx[ln][j], new_names, new_radii);
+                d_init_source_on_level_fcn(
+                    j, ln, d_source_idx[ln][j], new_names, new_radii, d_init_source_on_level_ctx);
                 if (source_names.size() != source_radii.size())
                 {
                     TBOX_ERROR(d_object_name << ":\n Invalid number of sources/sinks. Number of sources "
