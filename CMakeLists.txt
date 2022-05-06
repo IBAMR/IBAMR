@@ -265,6 +265,34 @@ ELSE()
   TARGET_LINK_LIBRARIES(BOOST_INTERFACE INTERFACE BUNDLED_BOOST)
 ENDIF()
 
+# Verify that we can compile some basic Boost headers
+SET(CMAKE_CXX_STANDARD "11")
+SET(CMAKE_REQUIRED_INCLUDES ${Boost_INCLUDE_DIRS})
+CHECK_CXX_SOURCE_COMPILES(
+  "
+  #include <boost/multi_array.hpp>
+  int main() {}
+  "
+  BOOST_WITH_MULTI_ARRAY)
+CHECK_CXX_SOURCE_COMPILES(
+  "
+  #include <boost/math/special_functions/round.hpp>
+  int main() {}
+  "
+  BOOST_WITH_ROUND)
+CHECK_CXX_SOURCE_COMPILES(
+  "
+  #include <boost/math/tools/roots.hpp>
+  int main() {}
+  "
+  BOOST_WITH_ROOTS)
+IF(NOT ${BOOST_WITH_MULTI_ARRAY} OR NOT ${BOOST_WITH_ROUND} OR NOT ${BOOST_WITH_ROUND})
+  MESSAGE(FATAL_ERROR "The provided boost installation does not include at least one required boost header.")
+ENDIF()
+
+SET(CMAKE_REQUIRED_INCLUDES "")
+UNSET(CMAKE_CXX_STANDARD)
+
 #
 # Eigen3, which may be bundled:
 #
