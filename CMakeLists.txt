@@ -202,32 +202,62 @@ MESSAGE(STATUS "MPI_C_LIBRARIES: ${MPI_C_LIBRARIES}")
 #
 MESSAGE(STATUS "")
 MESSAGE(STATUS "Setting up Boost")
-# In case we want to depend on boost later on - define an interface library that
-# will resolve to the correct (bundled or external) boost. This makes it easy
-# to set things up that depend on boost but not IBAMR.
+# Set up an interface library which either resolves to the bundled or external
+# version of boost. We may also depend on this later for things that depend just
+# on boost but not IBAMR.
 ADD_LIBRARY(BOOST_INTERFACE INTERFACE)
 IF(${IBAMR_FORCE_BUNDLED_BOOST})
   SET(IBAMR_USE_BUNDLED_BOOST TRUE)
 ELSE()
   # set up the root with the proper package name too
   SET(Boost_ROOT ${BOOST_ROOT})
-  FIND_PACKAGE(Boost 1.66 QUIET)
-  IF(${Boost_FOUND})
-    SET(IBAMR_USE_BUNDLED_BOOST FALSE)
+  # Disable default search paths if we have an explicitly provided path
+  IF("${BOOST_ROOT}" STREQUAL "")
+    SET(USER_PROVIDED_BOOST_ROOT OFF)
+    SET(Boost_NO_SYSTEM_PATHS OFF)
   ELSE()
-    SET(IBAMR_USE_BUNDLED_BOOST TRUE)
+    SET(USER_PROVIDED_BOOST_ROOT ON)
+    SET(Boost_NO_SYSTEM_PATHS ON)
+    # Modern versions of Boost install some extra files which we want to ignore
+    # since they are incompatible with Boost_NO_SYSTEM_PATHS. Disabling this has
+    # the added bonus of letting us find incomplete boost installations (e.g.,
+    # header-only installed by copy and paste)
+    #
+    # This was fixed in CMake in 3.19: see
+    # https://gitlab.kitware.com/cmake/cmake/-/issues/21200
+    IF(${CMAKE_VERSION} VERSION_LESS "3.19.0")
+      SET(Boost_NO_BOOST_CMAKE ON)
+    ENDIF()
+  ENDIF()
+
+  FIND_PACKAGE(Boost 1.66)
+
+  IF(${USER_PROVIDED_BOOST_ROOT})
+    IF(${Boost_FOUND})
+      SET(IBAMR_USE_BUNDLED_BOOST FALSE)
+    ELSE()
+      MESSAGE(FATAL_ERROR "Unable to find a valid Boost installation.")
+    ENDIF()
+  ELSE()
+    IF(${Boost_FOUND})
+      SET(IBAMR_USE_BUNDLED_BOOST FALSE)
+    ELSE()
+      SET(IBAMR_USE_BUNDLED_BOOST TRUE)
+    ENDIF()
   ENDIF()
 ENDIF()
+
+# Now that we have boost, set up the interface library to point to the correct version
 IF(NOT ${IBAMR_USE_BUNDLED_BOOST})
   MESSAGE(STATUS "Found external boost ${Boost_VERSION} at ${Boost_INCLUDE_DIRS}")
   TARGET_LINK_LIBRARIES(BOOST_INTERFACE INTERFACE Boost::headers)
 ELSE()
   MESSAGE(STATUS "Setting up boost as a bundled dependency")
   ADD_LIBRARY(BUNDLED_BOOST INTERFACE)
-  TARGET_INCLUDE_DIRECTORIES(
-    BUNDLED_BOOST
-    INTERFACE $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/contrib/boost>
+  SET(Boost_INCLUDE_DIRS
+    $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/contrib/boost>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/contrib/boost>)
+  TARGET_INCLUDE_DIRECTORIES(BUNDLED_BOOST INTERFACE ${Boost_INCLUDE_DIRS})
   INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/boost DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib)
   INSTALL(TARGETS BUNDLED_BOOST EXPORT IBAMRTargets)
   # The bundled version doesn't compile anything so always set the no-lib mode
