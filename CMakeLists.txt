@@ -956,7 +956,7 @@ MACRO(IBAMR_PROCESS_M4)
   GET_FILENAME_COMPONENT(_out_directory "${CMAKE_CURRENT_BINARY_DIR}/${arg_NAME}.f" DIRECTORY)
   FILE(MAKE_DIRECTORY ${_out_directory})
 
-  SET(_samrai_fortdir ${SAMRAI_ROOT}/include)
+  SET(_samrai_fortdir ${SAMRAI_ROOT}/include/SAMRAI/pdat/fortran/)
   SET(_current_srcdir ${_in_directory})
   SET(_top_srcdir ${CMAKE_SOURCE_DIR})
   SET(_input "${CMAKE_CURRENT_SOURCE_DIR}/${arg_NAME}.m4")
