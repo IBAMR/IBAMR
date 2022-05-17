@@ -26,10 +26,6 @@
 #include "ibtk/LSiloDataWriter.h"
 #include "ibtk/Streamable.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/private/IndexUtilities-inl.h"
-#include "ibtk/private/LData-inl.h"
-#include "ibtk/private/LNode-inl.h"
-#include "ibtk/private/LSet-inl.h"
 
 #include "Box.h"
 #include "CartesianGridGeometry.h"
