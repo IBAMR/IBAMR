@@ -47,6 +47,7 @@
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include "libmesh/elem.h"
 #include "libmesh/enum_fe_family.h"
 #include "libmesh/enum_order.h"
@@ -60,9 +61,6 @@
 #include "libmesh/type_vector.h"
 #include "libmesh/variant_filter_iterator.h"
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
-
-IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
@@ -76,6 +74,8 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <type_traits>
 #include <utility>
 #include <vector>
+
+#include "ibamr/namespaces.h"
 
 namespace IBTK
 {

@@ -26,6 +26,7 @@
 
 #include "tbox/Utilities.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include "libmesh/libmesh_config.h"
 #include "libmesh/libmesh_version.h"
 
@@ -48,7 +49,6 @@
 #include "libmesh/type_vector.h"
 #include "libmesh/vector_value.h"
 
-IBTK_DISABLE_EXTRA_WARNINGS
 #include <boost/multi_array.hpp>
 IBTK_ENABLE_EXTRA_WARNINGS
 
