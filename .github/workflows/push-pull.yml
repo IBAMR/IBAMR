@@ -354,3 +354,15 @@ jobs:
         run: |
           bash -c "ctest3 --output-on-failure -VV -S .github/cmake/ctest_test.cmake"
           ccache --show-stats
+      - name: compile a sample project without installing IBAMR
+        id: sampleproject
+        run: |
+          mkdir sample-project
+          cd sample-project
+          cp ../.github/project-template/CMakeLists.txt ./
+          cp ../.github/project-template/project.cpp ./
+          source /etc/profile.d/modules.sh
+          module load mpi
+          cmake3 -DIBAMR_ROOT=/build/ibamr .
+          make
+          ./project
