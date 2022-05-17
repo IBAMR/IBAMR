@@ -64,12 +64,11 @@
 #include "tbox/Utilities.h"
 
 #include <algorithm>
-#include <iterator>
+#include <cmath>
 #include <limits>
 #include <map>
 #include <ostream>
 #include <string>
-#include <type_traits>
 #include <utility>
 #include <vector>
 

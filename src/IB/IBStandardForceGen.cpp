@@ -48,11 +48,9 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <algorithm>
 #include <cmath>
 #include <functional>
-#include <iterator>
 #include <limits>
 #include <map>
 #include <memory>
-#include <ostream>
 #include <set>
 #include <string>
 #include <utility>
