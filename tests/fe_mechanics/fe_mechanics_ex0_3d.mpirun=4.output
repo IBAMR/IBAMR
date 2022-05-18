@@ -1,67 +1,6 @@
 
 FEMechanicsExplicitIntegrator: mesh part 0 is using FIRST order LAGRANGE finite elements.
 
-Input database:
-input_db {
-   L_X                        = 10                          // input used
-   L_Y                        = 10                          // input used
-   L_Z                        = 1                           // input used
-   L_lag                      = 6.5                         // input not used
-   U_MAX                      = 5                           // input used
-   N_X                        = 8                           // input used
-   N_Y                        = 8                           // input used
-   N_Z                        = 1                           // input used
-   DX                         = 1.25                        // input used
-   ELEM_TYPE                  = "TET4"                      // input used
-   PK1_DEV_QUAD_ORDER         = "THIRD"                     // input used
-   PK1_DIL_QUAD_ORDER         = "THIRD"                     // input used
-   USE_CONSISTENT_MASS_MATRIX = FALSE                       // input used
-   USE_STATIC_PRESSURE        = FALSE                       // input used
-   USE_DYNAMIC_PRESSURE       = FALSE                       // input used
-   LOAD_TIME                  = 0.05                        // input used
-   CFL_MAX                    = 0.2                         // input used
-   TIME_STEPPING_SCHEME       = "MODIFIED_TRAPEZOIDAL_RULE" // input used
-   DT                         = 0.0025                      // input used
-   START_TIME                 = 0                           // input not used
-   END_TIME                   = 0.02                        // input used
-   STRESS_FUNCTION            = "MODIFIED"                  // input used
-   USE_VOLUMETRIC_TERM        = TRUE                        // input used
-   YOUNGS_MOD                 = 250                         // input used
-   TRACTION_FORCE             = 6.25                        // input used
-   SHEAR_MOD                  = 83.3333                     // input used
-   POISSON_RATIO              = 0.4                         // input used
-   BULK_MOD                   = 388.889                     // input used
-   ETA                        = 2.08333                     // input used
-   SAFETY                     = 0.5                         // input used
-   KAPPA                      = 12500                       // input used
-   FEMechanicsExplicitIntegrator {
-      use_consistent_mass_matrix = FALSE                    // input used
-      libmesh_partitioner_type   = "LIBMESH_DEFAULT"        // from default
-   }
-   Main {
-      log_file_name               = "output"                // input used
-      log_all_nodes               = FALSE                   // input used
-      viz_writer                  = "ExodusII"              // input used
-      viz_dump_interval           = 2                       // input used
-      viz_dump_dirname            = "."                     // input used
-      visit_number_procs_per_file = 1                       // input not used
-   }
-   TimerManager {
-      print_exclusive      = FALSE                          // input used
-      print_total          = TRUE                           // input used
-      print_threshold      = 0.1                            // input used
-      timer_list           = "IBAMR::*::*", "IBTK::*::*", "*::*::*" // input used
-      print_processor      = TRUE                           // from default
-      print_max            = FALSE                          // from default
-      print_summed         = FALSE                          // from default
-      print_user           = FALSE                          // from default
-      print_sys            = FALSE                          // from default
-      print_wall           = TRUE                           // from default
-      print_percentage     = TRUE                           // from default
-      print_concurrent     = FALSE                          // from default
-      print_timer_overhead = FALSE                          // from default
-   }
-}
 
 
 Writing visualization files...

@@ -19,6 +19,7 @@
 
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
+#include "ibtk/FEMappingCache.h"
 #include "ibtk/FEProjector.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IBTK_MPI.h"
@@ -1494,6 +1495,54 @@ FEMechanicsBase::commonConstructor(const std::string& object_name,
     // Store the mesh pointers.
     d_meshes = meshes;
     const auto n_parts = d_meshes.size();
+
+    // Verify that the meshes don't contain any twisted elements (see the error
+    // message for an explanation). This is only checked for volumetric elements.
+    for (const libMesh::MeshBase* mesh : d_meshes)
+    {
+        if (mesh->mesh_dimension() == NDIM)
+        {
+            // The Jacobian calculation already asserts that J > 0, so we have
+            // to sidestep that by computing contravariants here (which do not
+            // have a sign check)
+            //
+            // We cannot use the provide Elem::volume() functions since some
+            // (tri3) are unsigned while others (tet4) are unsigned
+            FEMappingCache<NDIM, NDIM> mapping_cache(FEUpdateFlags::update_contravariants);
+
+            MeshBase::const_element_iterator el_it = mesh->active_local_elements_begin();
+            const MeshBase::const_element_iterator el_end = mesh->active_local_elements_end();
+            for (; el_it != el_end; ++el_it)
+            {
+                const Elem* const elem = *el_it;
+
+                quadrature_key_type key(elem->type(), libMesh::QGAUSS, libMesh::SECOND, false);
+                auto& mapping = mapping_cache[key];
+                mapping.reinit(elem);
+                const auto& contravariants = mapping.getContravariants();
+                for (const auto& contravariant : contravariants)
+                {
+                    if (contravariant.determinant() <= 0.0)
+                    {
+                        TBOX_ERROR(
+                            "IBAMR requires that the Jacobian of each element must be positive, but\n"
+                            "the present element has at least one point at which the Jacobian is\n"
+                            "either negative or zero. This is a stronger requirement than what\n"
+                            "libMesh imposes due to some additional internal assumptions about\n"
+                            "the orientation of elements inside IBAMR.\n"
+                            "\n"
+                            "Here's libMesh's available information on this element:\n"
+                            "\n"
+                            << elem->get_info()
+                            << "\n"
+                               "\n"
+                               "To get around this error, you will need to edit the problematic mesh\n"
+                               "either by hand or with a CAD program.");
+                    }
+                }
+            }
+        }
+    }
 
     // Set some default values.
     d_fe_order_position.resize(n_parts, INVALID_ORDER);

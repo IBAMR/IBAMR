@@ -25,6 +25,8 @@
 
 #include <ibamr/app_namespaces.h>
 
+#include "../tests.h"
+
 using namespace IBAMR;
 using namespace IBTK;
 using namespace libMesh;
@@ -212,6 +214,11 @@ main(int argc, char* argv[])
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAIManager::startup();
 
+    // Since this is a test we do not want to print file names or line numbers
+    // to output files:
+    Pointer<Logger::Appender> abort_append(new TestAppender());
+    Logger::getInstance()->setAbortAppender(abort_append);
+
     { // cleanup dynamically allocated objects prior to shutdown
 
         // Parse command line options, set some standard options from the input
@@ -267,6 +274,17 @@ main(int argc, char* argv[])
                                               0.0,
                                               1.0,
                                               Utility::string_to_enum<ElemType>(elem_type));
+
+            if (input_db->getBoolWithDefault("TWIST_MESH", false))
+            {
+                MeshBase::node_iterator nd = mesh.nodes_begin();
+                const MeshBase::node_iterator end_nd = mesh.nodes_end();
+                for (; nd != end_nd; ++nd)
+                {
+                    libMesh::Point s = **nd;
+                    (**nd)(0) = -1.0 * s(0) + 1.0;
+                }
+            }
 
             // Map unit square onto cook's membrane
             MeshBase::const_node_iterator nd = mesh.nodes_begin();
@@ -384,10 +402,6 @@ main(int argc, char* argv[])
 
         // Initialize solver data.
         fem_solver->initializeFEData();
-
-        // Print the input database contents to the log file.
-        plog << "Input database:\n";
-        input_db->printClassData(plog);
 
         // Write out initial visualization data.
         int iteration_num = 0;
