@@ -22,11 +22,6 @@
 #include "ibtk/LMesh.h"
 #include "ibtk/LNode.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/private/LData-inl.h"
-#include "ibtk/private/LDataManager-inl.h"
-#include "ibtk/private/LMesh-inl.h"
-#include "ibtk/private/LNode-inl.h"
-#include "ibtk/private/LNodeIndex-inl.h"
 
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"

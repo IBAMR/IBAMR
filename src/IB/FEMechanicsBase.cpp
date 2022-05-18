@@ -68,7 +68,6 @@
 #include "libmesh/variant_filter_iterator.h"
 #include "libmesh/vector_value.h"
 
-#include <iterator>
 #include <utility>
 
 #include "ibamr/namespaces.h" // IWYU pragma: keep

@@ -64,7 +64,6 @@
 #include "RefineTransactionFactory.h"
 #include "SideData.h"
 #include "SideIndex.h"
-#include "StandardTagAndInitialize.h"
 #include "Variable.h"
 #include "VariableDatabase.h"
 #include "tbox/Array.h"

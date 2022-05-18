@@ -27,11 +27,6 @@
 #include "ibtk/LNode.h"
 #include "ibtk/compiler_hints.h"
 #include "ibtk/ibtk_utilities.h"
-#include "ibtk/private/LData-inl.h"
-#include "ibtk/private/LDataManager-inl.h"
-#include "ibtk/private/LMesh-inl.h"
-#include "ibtk/private/LNode-inl.h"
-#include "ibtk/private/LNodeIndex-inl.h"
 
 #include "IntVector.h"
 #include "PatchHierarchy.h"
@@ -53,11 +48,9 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <algorithm>
 #include <cmath>
 #include <functional>
-#include <iterator>
 #include <limits>
 #include <map>
 #include <memory>
-#include <ostream>
 #include <set>
 #include <string>
 #include <utility>
