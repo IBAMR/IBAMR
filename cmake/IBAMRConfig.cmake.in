@@ -49,10 +49,8 @@ ENDIF()
 # non-bundled muParser is not handled as a package so we don't set it up again
 # here
 
-IF(@IBAMR_HAVE_SILO@)
-  SET(ZLIB_ROOT "@ZLIB_ROOT@")
-  FIND_PACKAGE(ZLIB REQUIRED)
-ENDIF()
+# Our linkage with SILO is purely internal and none of our headers include
+# silo.h so we do not handle it as an externally-facing dependency here.
 
 SET(HDF5_ROOT "@HDF5_ROOT@")
 FIND_PACKAGE(HDF5 REQUIRED)
