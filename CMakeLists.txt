@@ -160,30 +160,47 @@ MESSAGE(STATUS "Setting up MPI")
 # al pointing to a custom installation of MPI when there is a system copy
 # available too. Try to detect this and set MPI_ROOT correctly.
 #
-# Only continue if we are potentially using an MPI compiler wrapper
+# Only continue if we are potentially using an explicitly provided MPI compiler
+# wrapper
 IF(NOT "${CMAKE_CXX_COMPILER}" STREQUAL "")
-  GET_FILENAME_COMPONENT(_compiler_name ${CMAKE_CXX_COMPILER} NAME)
-  # -show works on all MPI compiler wrappers I am aware of
-  EXECUTE_PROCESS(COMMAND ${CMAKE_CXX_COMPILER} "-show"
-    OUTPUT_VARIABLE _show_output RESULT_VARIABLE _show_return_code
-    ERROR_VARIABLE _show_error)
-  IF("${_show_return_code}" STREQUAL "0")
-    MESSAGE(STATUS "CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} is an MPI wrapper with -show output\n\n${_show_output}")
-    STRING(FIND "${_show_output}" "-lmpi" _lmpi_index)
-    IF(NOT "${_lmpi_index}" STREQUAL "-1")
-      # It looks like we have a compiler wrapper: overide MPI_ROOT
-      IF(NOT "${MPI_ROOT}" STREQUAL "")
-        MESSAGE(FATAL_ERROR "If MPI compiler wrappers are used then MPI_ROOT must not be set.")
-      ENDIF()
-      GET_FILENAME_COMPONENT(_compiler_directory ${CMAKE_CXX_COMPILER} DIRECTORY)
-      SET(MPI_ROOT "${_compiler_directory}/../")
-      MESSAGE(STATUS "Using MPI compiler wrapper to set MPI_ROOT=${MPI_ROOT}")
-    ELSE()
-      MESSAGE(STATUS "CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} is not an MPI compiler wrapper")
+  # If it cannot compile a basic MPI application then it isn't an MPI compiler
+  # wrapper
+  CHECK_CXX_SOURCE_COMPILES(
+  "
+  #include <mpi.h>
+  int main(int argc, char **argv)
+  {
+    MPI_Init(&argc, &argv);
+    MPI_Finalize();
+  }
+  "
+  CXX_COMPILER_SUPPORTS_MPI)
+
+  IF(${CXX_COMPILER_SUPPORTS_MPI})
+    MESSAGE(STATUS "CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} is an MPI wrapper")
+    # It looks like we have a compiler wrapper: overide MPI_ROOT
+    IF(NOT "${MPI_ROOT}" STREQUAL "")
+      MESSAGE(FATAL_ERROR "If MPI compiler wrappers are used then MPI_ROOT must not be set.")
     ENDIF()
+    GET_FILENAME_COMPONENT(_compiler_directory ${CMAKE_CXX_COMPILER} DIRECTORY)
+    SET(MPI_ROOT "${_compiler_directory}/../")
+    MESSAGE(STATUS "Using MPI compiler wrapper to set MPI_ROOT=${MPI_ROOT}")
   ELSE()
     MESSAGE(STATUS "CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} is not an MPI compiler wrapper")
   ENDIF()
+ELSEIF((NOT $ENV{MPI_HOME} STREQUAL "") AND ("${MPI_ROOT}" STREQUAL ""))
+  # if MPI_HOME is set then we should use that instead (environment modules
+  # usually set up MPI this way)
+  SET(MPI_ROOT $ENV{MPI_HOME})
+  MESSAGE(STATUS "Using environment variable MPI_HOME=$ENV{MPI_HOME} to set MPI_ROOT=${MPI_ROOT}")
+ENDIF()
+
+# MPI_ROOT is now either set to a valid value (we want a specific MPI) or empty
+# (use default search paths) so we can proceed with setting up MPI
+IF(NOT ${MPI_ROOT} STREQUAL "")
+  # CMake wants to detect MPI with MPI_HOME, not MPI_ROOT
+  SET(MPI_HOME ${MPI_ROOT})
+  MESSAGE(STATUS "Setting up MPI at location ${MPI_ROOT}")
 ENDIF()
 FIND_PACKAGE(MPI REQUIRED)
 # If we are using the compiler wrappers then CMake may not set MPI_C_LIBRARIES -
