@@ -854,7 +854,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     // field with some functional form maintained by the INS integrator
     if (!d_mu_is_const)
     {
-        if (d_adv_diff_hier_integrator && d_mu_adv_diff_var)
+        if (d_adv_diff_hier_integrators.size() > 0 && d_mu_adv_diff_var)
         {
 #if !defined(NDEBUG)
             // AdvDiffHierarchyIntegrator should initialize and maintain the viscosity
@@ -865,7 +865,8 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
             d_mu_var = Pointer<CellVariable<NDIM, double> >(nullptr);
             // Ensure that boundary conditions are provided by the advection-diffusion
             // integrator
-            d_mu_bc_coef = (d_adv_diff_hier_integrator->getPhysicalBcCoefs(d_mu_adv_diff_var)).front();
+            d_mu_bc_coef =
+                (d_adv_diff_hier_integrators[d_mu_adv_diff_idx]->getPhysicalBcCoefs(d_mu_adv_diff_var)).front();
         }
         else if (d_mu_var)
         {
@@ -1159,11 +1160,11 @@ INSVCStaggeredHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarc
 
     // When necessary, initialize the value of the advection velocity registered
     // with a coupled advection-diffusion solver.
-    if (d_adv_diff_hier_integrator)
+    for (const auto& adv_diff_hier_integrator : d_adv_diff_hier_integrators)
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int U_adv_diff_current_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getCurrentContext());
         if (isAllocatedPatchData(U_adv_diff_current_idx))
         {
             copySideToFace(U_adv_diff_current_idx, d_U_current_idx, d_hierarchy);
@@ -1296,10 +1297,10 @@ INSVCStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double cu
     }
 
     // Deallocate any registered advection-diffusion solver.
-    if (d_adv_diff_hier_integrator)
+    for (const auto& adv_diff_hier_integrator : d_adv_diff_hier_integrators)
     {
-        const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
-        d_adv_diff_hier_integrator->postprocessIntegrateHierarchy(
+        const int adv_diff_num_cycles = adv_diff_hier_integrator->getNumberOfCycles();
+        adv_diff_hier_integrator->postprocessIntegrateHierarchy(
             current_time, new_time, skip_synchronize_new_state_data, adv_diff_num_cycles);
     }
 
@@ -1449,12 +1450,14 @@ INSVCStaggeredHierarchyIntegrator::registerViscosityBoundaryConditions(RobinBcCo
 } // registerViscosityBoundaryConditions
 
 void
-INSVCStaggeredHierarchyIntegrator::setTransportedViscosityVariable(Pointer<CellVariable<NDIM, double> > mu_adv_diff_var)
+INSVCStaggeredHierarchyIntegrator::setTransportedViscosityVariable(Pointer<CellVariable<NDIM, double> > mu_adv_diff_var,
+                                                                   unsigned int adv_diff_idx)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(d_adv_diff_hier_integrator);
+    TBOX_ASSERT(d_adv_diff_hier_integrators.size() > adv_diff_idx);
 #endif
     d_mu_adv_diff_var = mu_adv_diff_var;
+    d_mu_adv_diff_idx = adv_diff_idx;
     return;
 } // setTransportedViscosityVariable
 

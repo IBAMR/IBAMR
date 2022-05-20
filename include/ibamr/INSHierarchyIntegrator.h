@@ -458,7 +458,7 @@ protected:
      * The AdvDiffHierarchyIntegrator is used to provide time integration
      * capability for quantities transported by the fluid velocity field.
      */
-    SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
+    std::vector<SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> > d_adv_diff_hier_integrators;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_U_adv_diff_var;
 
     /*!

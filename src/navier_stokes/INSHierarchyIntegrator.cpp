@@ -102,11 +102,17 @@ INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(Pointer<AdvDiffHierar
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(adv_diff_hier_integrator);
+    // Bad things happen if the same integrator is registered twice.
+    auto pointer_compare = [adv_diff_hier_integrator](Pointer<AdvDiffHierarchyIntegrator> integrator) -> bool {
+        return adv_diff_hier_integrator.getPointer() == integrator.getPointer();
+    };
+    TBOX_ASSERT(std::find_if(d_adv_diff_hier_integrators.begin(), d_adv_diff_hier_integrators.end(), pointer_compare) ==
+                d_adv_diff_hier_integrators.end());
 #endif
-    d_adv_diff_hier_integrator = adv_diff_hier_integrator;
-    registerChildHierarchyIntegrator(d_adv_diff_hier_integrator);
-    d_adv_diff_hier_integrator->registerAdvectionVelocity(d_U_adv_diff_var);
-    d_adv_diff_hier_integrator->setAdvectionVelocityIsDivergenceFree(d_U_adv_diff_var, !d_Q_fcn);
+    d_adv_diff_hier_integrators.push_back(adv_diff_hier_integrator);
+    registerChildHierarchyIntegrator(adv_diff_hier_integrator);
+    adv_diff_hier_integrator->registerAdvectionVelocity(d_U_adv_diff_var);
+    adv_diff_hier_integrator->setAdvectionVelocityIsDivergenceFree(d_U_adv_diff_var, !d_Q_fcn);
     return;
 } // registerAdvDiffHierarchyIntegrator
 

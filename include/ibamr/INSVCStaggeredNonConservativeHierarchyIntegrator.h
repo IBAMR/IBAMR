@@ -143,9 +143,13 @@ public:
      * \brief Set the transported density variable if it is being maintained by the advection-diffusion integrator.
      *
      * \note The variable set here MUST be registered and maintained by the advection-diffusion integrator.
+     *
+     * \note If multiple advection diffusion integrators are registered, you can specify which advection diffusion
+     * integrator is used to evolve the density.
      */
-    void setTransportedMassDensityVariable(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > rho_adv_diff_var);
+    void
+    setTransportedMassDensityVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > rho_adv_diff_var,
+                                      unsigned int adv_diff_idx = 0);
 
 protected:
     /*!
@@ -281,6 +285,11 @@ private:
      * Variable to keep track of a transported density variable maintained by an advection-diffusion integrator
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_rho_adv_diff_var;
+
+    /*
+     * Index to track which advection diffusion integrator maintains the density variable.
+     */
+    unsigned int d_rho_adv_diff_idx = 0;
 };
 } // namespace IBAMR
 

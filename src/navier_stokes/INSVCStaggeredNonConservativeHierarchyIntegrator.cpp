@@ -187,7 +187,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     // field with some functional form maintained by the INS integrator
     if (!d_rho_is_const)
     {
-        if (d_adv_diff_hier_integrator && d_rho_adv_diff_var)
+        if (d_adv_diff_hier_integrators.size() > 0 && d_rho_adv_diff_var)
         {
 #if !defined(NDEBUG)
             // AdvDiffHierarchyIntegrator should initialize and maintain the
@@ -198,7 +198,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
             d_rho_var = Pointer<CellVariable<NDIM, double> >(nullptr);
             // Ensure that boundary conditions are provided by the
             // advection-diffusion integrator
-            d_rho_bc_coef = (d_adv_diff_hier_integrator->getPhysicalBcCoefs(d_rho_adv_diff_var)).front();
+            d_rho_bc_coef =
+                (d_adv_diff_hier_integrators[d_rho_adv_diff_idx]->getPhysicalBcCoefs(d_rho_adv_diff_var)).front();
         }
         else if (d_rho_var)
         {
@@ -327,10 +328,10 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         int mu_current_idx;
-        if (d_adv_diff_hier_integrator && d_mu_adv_diff_var)
+        if (d_adv_diff_hier_integrators.size() > 0 && d_mu_adv_diff_var)
         {
-            mu_current_idx = var_db->mapVariableAndContextToIndex(d_mu_adv_diff_var,
-                                                                  d_adv_diff_hier_integrator->getCurrentContext());
+            mu_current_idx = var_db->mapVariableAndContextToIndex(
+                d_mu_adv_diff_var, d_adv_diff_hier_integrators[d_mu_adv_diff_idx]->getCurrentContext());
         }
         else
         {
@@ -492,9 +493,9 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
     d_stokes_solver->setHomogeneousBc(false);
 
     // Initialize any registered advection-diffusion solver.
-    if (d_adv_diff_hier_integrator)
+    for (const auto& adv_diff_hier_integrator : d_adv_diff_hier_integrators)
     {
-        const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
+        const int adv_diff_num_cycles = adv_diff_hier_integrator->getNumberOfCycles();
         if (adv_diff_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
         {
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
@@ -510,20 +511,20 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
         }
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int U_adv_diff_current_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getCurrentContext());
         if (isAllocatedPatchData(U_adv_diff_current_idx))
         {
             INSVCStaggeredHierarchyIntegrator::copySideToFace(U_adv_diff_current_idx, d_U_current_idx, d_hierarchy);
         }
-        d_adv_diff_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, adv_diff_num_cycles);
+        adv_diff_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, adv_diff_num_cycles);
         const int U_adv_diff_scratch_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getScratchContext());
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getScratchContext());
         if (isAllocatedPatchData(U_adv_diff_scratch_idx))
         {
             d_hier_fc_data_ops->copyData(U_adv_diff_scratch_idx, U_adv_diff_current_idx);
         }
         const int U_adv_diff_new_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext());
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getNewContext());
         if (isAllocatedPatchData(U_adv_diff_new_idx))
         {
             d_hier_fc_data_ops->copyData(U_adv_diff_new_idx, U_adv_diff_current_idx);
@@ -586,9 +587,9 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
     // Update the state variables of any linked advection-diffusion solver.
     // NOTE: This also updates rho and mu if they are maintained by adv-diff
     // integrator.
-    if (d_adv_diff_hier_integrator)
+    for (const auto& adv_diff_hier_integrator : d_adv_diff_hier_integrators)
     {
-        d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+        adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
     }
 
     // Update rho and mu if they are maintained by the fluid integrator.
@@ -627,10 +628,10 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         int rho_new_idx;
-        if (d_adv_diff_hier_integrator && d_rho_adv_diff_var)
+        if (d_adv_diff_hier_integrators.size() > 0 && d_rho_adv_diff_var)
         {
-            rho_new_idx =
-                var_db->mapVariableAndContextToIndex(d_rho_adv_diff_var, d_adv_diff_hier_integrator->getNewContext());
+            rho_new_idx = var_db->mapVariableAndContextToIndex(
+                d_rho_adv_diff_var, d_adv_diff_hier_integrators[d_rho_adv_diff_idx]->getNewContext());
         }
         else
         {
@@ -685,10 +686,10 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         int mu_new_idx;
-        if (d_adv_diff_hier_integrator && d_mu_adv_diff_var)
+        if (d_adv_diff_hier_integrators.size() > 0 && d_mu_adv_diff_var)
         {
-            mu_new_idx =
-                var_db->mapVariableAndContextToIndex(d_mu_adv_diff_var, d_adv_diff_hier_integrator->getNewContext());
+            mu_new_idx = var_db->mapVariableAndContextToIndex(
+                d_mu_adv_diff_var, d_adv_diff_hier_integrators[d_mu_adv_diff_idx]->getNewContext());
         }
         else
         {
@@ -793,21 +794,21 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
     resetSolverVectors(d_sol_vec, d_rhs_vec, current_time, new_time, cycle_num);
 
     // Update the state variables of any linked advection-diffusion solver.
-    if (d_adv_diff_hier_integrator)
+    for (const auto& adv_diff_hier_integrator : d_adv_diff_hier_integrators)
     {
         // Update the advection velocities used by the advection-diffusion
         // solver.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int U_adv_diff_new_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext());
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getNewContext());
         if (isAllocatedPatchData(U_adv_diff_new_idx))
         {
             INSVCStaggeredHierarchyIntegrator::copySideToFace(U_adv_diff_new_idx, d_U_new_idx, d_hierarchy);
         }
         const int U_adv_diff_current_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getCurrentContext());
         const int U_adv_diff_scratch_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getScratchContext());
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getScratchContext());
         if (isAllocatedPatchData(U_adv_diff_scratch_idx))
         {
             d_hier_fc_data_ops->linearSum(U_adv_diff_scratch_idx, 0.5, U_adv_diff_current_idx, 0.5, U_adv_diff_new_idx);
@@ -817,7 +818,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
         // solver.
         //
         // NOTE: We already performed cycle 0 above.
-        const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
+        const int adv_diff_num_cycles = adv_diff_hier_integrator->getNumberOfCycles();
         if (d_current_num_cycles != adv_diff_num_cycles)
         {
 #if !defined(NDEBUG)
@@ -825,7 +826,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
 #endif
             for (int adv_diff_cycle_num = 1; adv_diff_cycle_num < adv_diff_num_cycles; ++adv_diff_cycle_num)
             {
-                d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, adv_diff_cycle_num);
+                adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, adv_diff_cycle_num);
             }
         }
     }
@@ -912,12 +913,14 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::registerMassDensityBoundaryCon
 
 void
 INSVCStaggeredNonConservativeHierarchyIntegrator::setTransportedMassDensityVariable(
-    Pointer<CellVariable<NDIM, double> > rho_adv_diff_var)
+    Pointer<CellVariable<NDIM, double> > rho_adv_diff_var,
+    unsigned int adv_diff_idx)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(d_adv_diff_hier_integrator);
+    TBOX_ASSERT(d_adv_diff_hier_integrators.size() > adv_diff_idx);
 #endif
     d_rho_adv_diff_var = rho_adv_diff_var;
+    d_rho_adv_diff_idx = adv_diff_idx;
     return;
 } // setTransportedMassDensityVariable
 
@@ -1049,10 +1052,10 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
 
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         int rho_current_idx;
-        if (d_adv_diff_hier_integrator && d_rho_adv_diff_var)
+        if (d_adv_diff_hier_integrators.size() > 0 && d_rho_adv_diff_var)
         {
-            rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_adv_diff_var,
-                                                                   d_adv_diff_hier_integrator->getCurrentContext());
+            rho_current_idx = var_db->mapVariableAndContextToIndex(
+                d_rho_adv_diff_var, d_adv_diff_hier_integrators[d_rho_adv_diff_idx]->getCurrentContext());
         }
         else
         {
