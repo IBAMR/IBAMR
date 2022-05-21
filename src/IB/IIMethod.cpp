@@ -2381,7 +2381,7 @@ IIMethod::computeLagrangianForce(const double data_time)
     for (unsigned part = 0; part < d_num_parts; ++part)
     {
         EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-        const MeshBase& mesh = equation_systems->get_mesh();
+        MeshBase& mesh = equation_systems->get_mesh();
         const unsigned int dim = mesh.mesh_dimension();
 
         // Setup global and elemental right-hand-side vectors.
@@ -2524,11 +2524,11 @@ IIMethod::computeLagrangianForce(const double data_time)
         VectorValue<double> F, F_b, F_s, F_qp, N, X, n, x;
         std::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
         std::vector<libMesh::dof_id_type> dof_id_scratch;
-        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        const auto el_begin = mesh.active_local_elements_begin();
+        const auto el_end = mesh.active_local_elements_end();
+        for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
-            Elem* const elem = *el_it;
+            auto elem = *el_it;
             const auto& F_dof_indices = F_dof_map_cache.dof_indices(elem);
             const auto& X_dof_indices = X_dof_map_cache.dof_indices(elem);
 
@@ -4104,11 +4104,11 @@ IIMethod::commonConstructor(const std::string& object_name,
         const MeshBase& mesh = *meshes[part];
         bool mesh_has_first_order_elems = false;
         bool mesh_has_second_order_elems = false;
-        MeshBase::const_element_iterator el_it = mesh.elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.elements_end();
+        auto el_it = mesh.elements_begin();
+        const auto el_end = mesh.elements_end();
         for (; el_it != el_end; ++el_it)
         {
-            const Elem* const elem = *el_it;
+            auto elem = *el_it;
             mesh_has_first_order_elems = mesh_has_first_order_elems || elem->default_order() == FIRST;
             mesh_has_second_order_elems = mesh_has_second_order_elems || elem->default_order() == SECOND;
         }

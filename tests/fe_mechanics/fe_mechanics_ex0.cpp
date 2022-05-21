@@ -287,8 +287,8 @@ main(int argc, char* argv[])
             }
 
             // Map unit square onto cook's membrane
-            MeshBase::const_node_iterator nd = mesh.nodes_begin();
-            const MeshBase::const_node_iterator end_nd = mesh.nodes_end();
+            auto nd = mesh.nodes_begin();
+            const auto end_nd = mesh.nodes_end();
             for (; nd != end_nd; ++nd)
             {
                 libMesh::Point s = **nd;
@@ -451,15 +451,15 @@ main(int argc, char* argv[])
             const vector<vector<VectorValue<double> > >& dphi = fe->get_dphi();
             TensorValue<double> FF;
             boost::multi_array<double, 2> X_node;
-            const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-            const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-            for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+            const auto el_begin = mesh.active_local_elements_begin();
+            const auto el_end = mesh.active_local_elements_end();
+            for (auto el_it = el_begin; el_it != el_end; ++el_it)
             {
                 elem_area = 0.0;
                 L_oo_temp = 0.0;
                 J_integral = 0.0;
 
-                Elem* const elem = *el_it;
+                const Elem* const elem = *el_it;
                 fe->reinit(elem);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {

@@ -802,11 +802,11 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     boost::multi_array<double, 2> x_node, X_node, U_node, P_o_node, P_j_node;
     VectorValue<double> F_qp, U_qp, x_qp, X_qp, N, n;
 
-    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    const auto el_begin = mesh.active_local_elements_begin();
+    const auto el_end = mesh.active_local_elements_end();
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
-        Elem* const elem = *el_it;
+        const auto elem = *el_it;
         fe->reinit(elem);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -880,11 +880,11 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         int qp_tot = 0;
         boost::multi_array<double, 2> U_node, WSS_node;
         boost::multi_array<double, 1> P_o_node, P_j_node;
-        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        const auto el_begin = mesh.active_local_elements_begin();
+        const auto el_end = mesh.active_local_elements_end();
+        for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
-            Elem* const elem = *el_it;
+            const auto elem = *el_it;
             // fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {

@@ -271,10 +271,10 @@ main(int argc, char* argv[])
             elem->set_node(3) = cylinder_mesh_thin.node_ptr(idx(NRi_elem, NRi_elem - 1, j + 1));
         }
 
-        MeshBase::const_element_iterator el_end = cylinder_mesh_thin.elements_end();
-        for (MeshBase::const_element_iterator el = cylinder_mesh_thin.elements_begin(); el != el_end; ++el)
+        const auto el_end = cylinder_mesh_thin.elements_end();
+        for (auto el = cylinder_mesh_thin.elements_begin(); el != el_end; ++el)
         {
-            Elem* const elem = *el;
+            const auto elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 const bool at_mesh_bdry = !elem->neighbor_ptr(side);
@@ -782,11 +782,11 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     boost::multi_array<double, 2> x_node, X_node, U_node;
     VectorValue<double> F_qp, U_qp, x_qp, X_qp, N, n;
 
-    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    const auto el_begin = mesh.active_local_elements_begin();
+    const auto el_end = mesh.active_local_elements_end();
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
-        Elem* const elem = *el_it;
+        const auto elem = *el_it;
         fe->reinit(elem);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -859,11 +859,11 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         double P_o_qp, P_j_qp, P_i_qp;
         boost::multi_array<double, 2> U_node, WSS_node;
         boost::multi_array<double, 1> P_o_node, P_j_node;
-        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        const auto el_begin = mesh.active_local_elements_begin();
+        const auto el_end = mesh.active_local_elements_end();
+        for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
-            Elem* const elem = *el_it;
+            const auto elem = *el_it;
             // fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {

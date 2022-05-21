@@ -269,7 +269,7 @@ FEProjector::buildL2ProjectionSolver(const std::string& system_name)
         // Reset values at Dirichlet boundaries.
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
-            Elem* const elem = *el_it;
+            const auto elem = *el_it;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 if (elem->neighbor_ptr(side)) continue;
@@ -518,7 +518,7 @@ FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, c
         // Reset values at Dirichlet boundaries.
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
-            Elem* const elem = *el_it;
+            const auto elem = *el_it;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 if (elem->neighbor_ptr(side)) continue;

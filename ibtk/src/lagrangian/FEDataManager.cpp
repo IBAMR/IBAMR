@@ -3086,7 +3086,11 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
                                           const int finest_elem_ln)
 {
     // Get the necessary FE data.
-    const MeshBase& mesh = d_fe_data->d_es->get_mesh();
+    //
+    // We once relied on libMesh not correctly implementing iterator constness
+    // correctly. Here, we don't need to change the mesh, but we use Elem *s
+    // (not const Elem *s): hence we cannot use a const MeshBase& any more.
+    MeshBase& mesh = d_fe_data->d_es->get_mesh();
     System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
 
     // Setup data structures used to assign elements to patches.
