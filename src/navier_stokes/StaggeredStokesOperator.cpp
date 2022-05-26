@@ -56,19 +56,6 @@ namespace
 static const int CELLG = 1;
 static const int SIDEG = 1;
 
-// Types of refining and coarsening to perform prior to setting coarse-fine
-// boundary and physical boundary ghost cell values.
-static const std::string DATA_REFINE_TYPE = "NONE";
-static const bool USE_CF_INTERPOLATION = true;
-static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
-
-// Type of extrapolation to use at physical boundaries.
-static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
-
-// Whether to enforce consistent interpolated values at Type 2 coarse-fine
-// interface ghost cells.
-static const bool CONSISTENT_TYPE_2_BDRY = false;
-
 // Timers.
 static Timer* t_apply;
 static Timer* t_initialize_operator_state;
@@ -77,7 +64,9 @@ static Timer* t_deallocate_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name, bool homogeneous_bc)
+StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name,
+                                                 bool homogeneous_bc,
+                                                 Pointer<Database> input_db)
     : LinearOperator(object_name, homogeneous_bc),
       d_U_problem_coefs(d_object_name + "::U_problem_coefs"),
       d_default_U_bc_coef(
@@ -102,6 +91,16 @@ StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name,
 
     // Initialize the boundary conditions objects.
     setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, d_default_U_bc_coef), d_default_P_bc_coef);
+
+    if (input_db)
+    {
+        d_refine_type = input_db->getStringWithDefault("refine_type", d_refine_type);
+        d_coarsen_type = input_db->getStringWithDefault("coarsen_type", d_coarsen_type);
+        d_bdry_extrap_type = input_db->getStringWithDefault("bdry_extrap_type", d_bdry_extrap_type);
+        d_bdry_interp_type = input_db->getStringWithDefault("bdry_interp_type", d_bdry_interp_type);
+        d_use_cf_interpolation = input_db->getBoolWithDefault("use_cf_interpolation", d_use_cf_interpolation);
+        d_consistent_type_2_bdry = input_db->getBoolWithDefault("consistent_type_2_bdry", d_consistent_type_2_bdry);
+    }
 
     // Setup Timers.
     IBAMR_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBAMR::StaggeredStokesOperator::apply()");
@@ -197,21 +196,23 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
     std::vector<InterpolationTransactionComponent> transaction_comps(2);
     transaction_comps[0] = InterpolationTransactionComponent(U_scratch_idx,
                                                              U_idx,
-                                                             DATA_REFINE_TYPE,
-                                                             USE_CF_INTERPOLATION,
-                                                             DATA_COARSEN_TYPE,
-                                                             BDRY_EXTRAP_TYPE,
-                                                             CONSISTENT_TYPE_2_BDRY,
+                                                             d_refine_type,
+                                                             d_use_cf_interpolation,
+                                                             d_coarsen_type,
+                                                             d_bdry_extrap_type,
+                                                             d_consistent_type_2_bdry,
                                                              d_U_bc_coefs,
-                                                             d_U_fill_pattern);
+                                                             d_U_fill_pattern,
+                                                             d_bdry_interp_type);
     transaction_comps[1] = InterpolationTransactionComponent(P_idx,
-                                                             DATA_REFINE_TYPE,
-                                                             USE_CF_INTERPOLATION,
-                                                             DATA_COARSEN_TYPE,
-                                                             BDRY_EXTRAP_TYPE,
-                                                             CONSISTENT_TYPE_2_BDRY,
+                                                             d_refine_type,
+                                                             d_use_cf_interpolation,
+                                                             d_coarsen_type,
+                                                             d_bdry_extrap_type,
+                                                             d_consistent_type_2_bdry,
                                                              d_P_bc_coef,
-                                                             d_P_fill_pattern);
+                                                             d_P_fill_pattern,
+                                                             d_bdry_interp_type);
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
@@ -278,21 +279,23 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
     d_transaction_comps.resize(2);
     d_transaction_comps[0] = InterpolationTransactionComponent(d_x->getComponentDescriptorIndex(0),
                                                                in.getComponentDescriptorIndex(0),
-                                                               DATA_REFINE_TYPE,
-                                                               USE_CF_INTERPOLATION,
-                                                               DATA_COARSEN_TYPE,
-                                                               BDRY_EXTRAP_TYPE,
-                                                               CONSISTENT_TYPE_2_BDRY,
+                                                               d_refine_type,
+                                                               d_use_cf_interpolation,
+                                                               d_coarsen_type,
+                                                               d_bdry_extrap_type,
+                                                               d_consistent_type_2_bdry,
                                                                d_U_bc_coefs,
-                                                               d_U_fill_pattern);
+                                                               d_U_fill_pattern,
+                                                               d_bdry_interp_type);
     d_transaction_comps[1] = InterpolationTransactionComponent(in.getComponentDescriptorIndex(1),
-                                                               DATA_REFINE_TYPE,
-                                                               USE_CF_INTERPOLATION,
-                                                               DATA_COARSEN_TYPE,
-                                                               BDRY_EXTRAP_TYPE,
-                                                               CONSISTENT_TYPE_2_BDRY,
+                                                               d_refine_type,
+                                                               d_use_cf_interpolation,
+                                                               d_coarsen_type,
+                                                               d_bdry_extrap_type,
+                                                               d_consistent_type_2_bdry,
                                                                d_P_bc_coef,
-                                                               d_P_fill_pattern);
+                                                               d_P_fill_pattern,
+                                                               d_bdry_interp_type);
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();

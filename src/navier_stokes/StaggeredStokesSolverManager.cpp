@@ -95,7 +95,7 @@ allocate_petsc_krylov_solver(const std::string& object_name,
 {
     Pointer<PETScKrylovStaggeredStokesSolver> krylov_solver =
         new PETScKrylovStaggeredStokesSolver(object_name, input_db, default_options_prefix);
-    krylov_solver->setOperator(new StaggeredStokesOperator(object_name + "::StokesOperator"));
+    krylov_solver->setOperator(new StaggeredStokesOperator(object_name + "::StokesOperator", true, input_db));
     return krylov_solver;
 } // allocate_petsc_krylov_solver
 } // namespace

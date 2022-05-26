@@ -1,0 +1,5 @@
+Improved: Can now set how ghost cells are filled in the Stokes operators. A
+consistent discrete Laplacian requires "QUADRATIC" interpolation at the
+boundaries. The default behavior for IBAMR is to use "LINEAR" interpolation.
+<br>
+(Aaron Barrett and Cole Gruninger, 2022/07/07)

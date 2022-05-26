@@ -11,8 +11,10 @@
 //
 // ---------------------------------------------------------------------
 
+#include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/PETScKrylovStaggeredStokesSolver.h>
 #include <ibamr/StaggeredStokesOperator.h>
+#include <ibamr/StaggeredStokesPhysicalBoundaryHelper.h>
 #include <ibamr/StaggeredStokesSolverManager.h>
 #include <ibamr/StokesSpecifications.h>
 
@@ -39,6 +41,8 @@
  *    executable <input file name>                                             *
  *                                                                             *
  *******************************************************************************/
+
+// The following program is used to test out whether or not the StokesOperator is performing correctly.
 int
 main(int argc, char* argv[])
 {
@@ -54,11 +58,12 @@ main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
+
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
@@ -69,11 +74,34 @@ main(int argc, char* argv[])
                                         box_generator,
                                         load_balancer);
 
+        // Setup the Boundary Conditions
+        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        if (periodic_shift.min() > 0)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                u_bc_coefs[d] = nullptr;
+            }
+        }
+        else
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                const std::string bc_coefs_name = "u_bc_coefs_" + std::to_string(d);
+                const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
+
+                u_bc_coefs[d] = new muParserRobinBcCoefs(
+                    bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
+            }
+        }
+
         // Create variables and register them with the variable database.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
 
-        // State variables: Velocity and pressure.
+        // State variables: Velocity and pressure. Need to get both cell sides and centers
+        // since we are using the MAC scheme.
         Pointer<SideVariable<NDIM, double> > u_sc_var = new SideVariable<NDIM, double>("u_sc");
         Pointer<CellVariable<NDIM, double> > p_cc_var = new CellVariable<NDIM, double>("p_cc");
 
@@ -158,19 +186,35 @@ main(int argc, char* argv[])
         const double C = input_db->getDouble("C");
         poisson_spec.setDConstant(D);
         poisson_spec.setCConstant(C);
+        if (periodic_shift.min() > 0)
+        {
+            StaggeredStokesOperator stokes_op("stokes_op", true);
 
-        // Setup the stokes operator
-        StaggeredStokesOperator stokes_op("stokes_op", true);
+            stokes_op.setVelocityPoissonSpecifications(poisson_spec);
+            stokes_op.initializeOperatorState(u_vec, f_vec);
+            // Apply the operator
+            stokes_op.apply(u_vec, f_vec);
+        }
+        else
+        {
+            Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
+            bc_helper->cacheBcCoefData(u_bc_coefs, 0.0, patch_hierarchy);
+            bc_helper->copyDataAtDirichletBoundaries(e_sc_idx, u_sc_idx);
+            // Setup the stokes operator
+            StaggeredStokesOperator stokes_op("stokes_op", false, input_db);
+            stokes_op.setPhysicalBcCoefs(u_bc_coefs, nullptr);
+            stokes_op.setVelocityPoissonSpecifications(poisson_spec);
+            stokes_op.setPhysicalBoundaryHelper(bc_helper);
+            stokes_op.initializeOperatorState(u_vec, f_vec);
 
-        stokes_op.setVelocityPoissonSpecifications(poisson_spec);
-        stokes_op.initializeOperatorState(u_vec, f_vec);
-
-        // Apply the operator
-        stokes_op.apply(u_vec, f_vec);
+            // Apply the operator
+            stokes_op.apply(u_vec, f_vec);
+        }
 
         // Compute error and print error norms.
         e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false),
                        Pointer<SAMRAIVectorReal<NDIM, double> >(&e_vec, false));
+        // print out the errors in each norm
         pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
         pout << "|e|_2  = " << e_vec.L2Norm() << "\n";
         pout << "|e|_1  = " << e_vec.L1Norm() << "\n";

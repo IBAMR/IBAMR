@@ -421,6 +421,8 @@ private:
     std::string d_N_coarsen_type = "CONSERVATIVE_COARSEN";
     std::string d_N_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
+    std::string d_U_P_bdry_interp_type = "LINEAR";
+
     /*
      * Patch data descriptor indices for all "state" variables managed by the
      * integrator.

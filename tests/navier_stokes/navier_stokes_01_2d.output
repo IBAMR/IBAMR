@@ -199,8 +199,15 @@ input_db {
       pressure_precond_type          = "POINT_RELAXATION_FAC_PRECONDITIONER" // input used
       regrid_projection_solver_type  = "PETSC_KRYLOV_SOLVER" // input used
       regrid_projection_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER" // input used
+      U_P_bdry_interp_type           = "LINEAR"             // from default
       stokes_solver_db {
-         ksp_type = "fgmres"                                // input used
+         ksp_type               = "fgmres"                  // input used
+         refine_type            = "NONE"                    // from default
+         coarsen_type           = "CUBIC_COARSEN"           // from default
+         bdry_extrap_type       = "LINEAR"                  // from default
+         bdry_interp_type       = "LINEAR"                  // from default
+         use_cf_interpolation   = TRUE                      // from default
+         consistent_type_2_bdry = FALSE                     // from default
       }
       velocity_solver_db {
          ksp_type       = "richardson"                      // input used
