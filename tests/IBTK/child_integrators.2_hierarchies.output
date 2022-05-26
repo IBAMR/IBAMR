@@ -1,38 +1,55 @@
 IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
 DummyAdvDiff: initializeLevelDataSpecialized()
+DummyAdvDiff2: initializeLevelDataSpecialized()
 DummyAdvDiff: resetHierarchyConfigurationSpecialized()
+DummyAdvDiff2: resetHierarchyConfigurationSpecialized()
 INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field
 INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
 DummyAdvDiff: synchronizeHierarchyDataSpecialized()
+DummyAdvDiff2: synchronizeHierarchyDataSpecialized()
 DummyAdvDiff: initializeCompositeHierarchyDataSpecialized()
+DummyAdvDiff2: initializeCompositeHierarchyDataSpecialized()
 DummyAdvDiff: synchronizeHierarchyDataSpecialized()
+DummyAdvDiff2: synchronizeHierarchyDataSpecialized()
 
 
 Writing visualization files...
 
 DummyAdvDiff: setupPlotDataSpecialized()
+DummyAdvDiff2: setupPlotDataSpecialized()
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 0
 Simulation time is 0
 DummyAdvDiff: getMaximumTimeStepSizeSpecialized()
+DummyAdvDiff2: getMaximumTimeStepSizeSpecialized()
 DummyAdvDiff: getMinimumTimeStepSizeSpecialized()
+DummyAdvDiff2: getMinimumTimeStepSizeSpecialized()
 DummyAdvDiff: getMaximumTimeStepSizeSpecialized()
+DummyAdvDiff2: getMaximumTimeStepSizeSpecialized()
 DummyAdvDiff: regridHierarchyBeginSpecialized()
+DummyAdvDiff2: regridHierarchyBeginSpecialized()
 DummyAdvDiff: regridHierarchyEndSpecialized()
+DummyAdvDiff2: regridHierarchyEndSpecialized()
 DummyAdvDiff: initializeCompositeHierarchyDataSpecialized()
+DummyAdvDiff2: initializeCompositeHierarchyDataSpecialized()
 DummyAdvDiff: synchronizeHierarchyDataSpecialized()
+DummyAdvDiff2: synchronizeHierarchyDataSpecialized()
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
 DummyAdvDiff: integrateHierarchy()
+DummyAdvDiff2: integrateHierarchy()
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0
 DummyAdvDiff: integrateHierarchy()
+DummyAdvDiff2: integrateHierarchy()
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0
 DummyAdvDiff: synchronizeHierarchyDataSpecialized()
+DummyAdvDiff2: synchronizeHierarchyDataSpecialized()
 DummyAdvDiff: resetTimeDependentHierarchyDataSpecialized()
+DummyAdvDiff2: resetTimeDependentHierarchyDataSpecialized()
 
 At end       of timestep # 0
 Simulation time is 0.00025
@@ -42,24 +59,34 @@ Simulation time is 0.00025
 Writing visualization files...
 
 DummyAdvDiff: setupPlotDataSpecialized()
+DummyAdvDiff2: setupPlotDataSpecialized()
 
 Writing restart files...
 
 DummyAdvDiff: putToDatabaseSpecialized()
+DummyAdvDiff2: putToDatabaseSpecialized()
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 1
 Simulation time is 0.00025
 DummyAdvDiff: getMaximumTimeStepSizeSpecialized()
+DummyAdvDiff2: getMaximumTimeStepSizeSpecialized()
 DummyAdvDiff: getMinimumTimeStepSizeSpecialized()
+DummyAdvDiff2: getMinimumTimeStepSizeSpecialized()
 DummyAdvDiff: getMaximumTimeStepSizeSpecialized()
+DummyAdvDiff2: getMaximumTimeStepSizeSpecialized()
 DummyAdvDiff: atRegridPointSpecialized()
+DummyAdvDiff2: atRegridPointSpecialized()
 DummyAdvDiff: integrateHierarchy()
+DummyAdvDiff2: integrateHierarchy()
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0
 DummyAdvDiff: integrateHierarchy()
+DummyAdvDiff2: integrateHierarchy()
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0
 DummyAdvDiff: synchronizeHierarchyDataSpecialized()
+DummyAdvDiff2: synchronizeHierarchyDataSpecialized()
 DummyAdvDiff: resetTimeDependentHierarchyDataSpecialized()
+DummyAdvDiff2: resetTimeDependentHierarchyDataSpecialized()
 
 At end       of timestep # 1
 Simulation time is 0.0005
@@ -69,8 +96,10 @@ Simulation time is 0.0005
 Writing visualization files...
 
 DummyAdvDiff: setupPlotDataSpecialized()
+DummyAdvDiff2: setupPlotDataSpecialized()
 
 Writing restart files...
 
 DummyAdvDiff: putToDatabaseSpecialized()
+DummyAdvDiff2: putToDatabaseSpecialized()
 IBRedundantInitializer:  Deallocating initialization data.
