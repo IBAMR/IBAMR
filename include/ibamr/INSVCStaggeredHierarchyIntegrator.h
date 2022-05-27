@@ -309,9 +309,13 @@ public:
      * \brief Set the transported viscosity variable if it is being maintained by the advection-diffusion integrator.
      *
      * \note The variable set here MUST be registered and maintained by the advection-diffusion integrator.
+     *
+     * \note If multiple advection diffusion integrators are registered, you can specify which advection diffusion
+     * integrator is used to evolve the viscosity.
      */
     void
-    setTransportedViscosityVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > mu_adv_diff_var);
+    setTransportedViscosityVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > mu_adv_diff_var,
+                                    unsigned int adv_diff_idx = 0);
 
     /*!
      * \brief Get the transported viscosity variable that is being manintained by an advection-diffusion integrator
@@ -712,6 +716,11 @@ protected:
      * Variable to keep track of a transported viscosity variable maintained by an advection-diffusion integrator
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_mu_adv_diff_var;
+
+    /*
+     * Index to track which advection diffusion integrator maintains the viscosity.
+     */
+    unsigned int d_mu_adv_diff_idx = 0;
 
 private:
     /*!

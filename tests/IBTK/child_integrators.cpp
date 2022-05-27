@@ -46,6 +46,7 @@ public:
 
     void integrateHierarchy(double current_time, double new_time, int cycle_num = 0) override
     {
+        plog << d_object_name << ": integrateHierarchy()\n";
         HierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
         return;
     }
@@ -188,10 +189,18 @@ main(int argc, char* argv[])
         // and, if this is a restarted run, from the restart database.
         Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator =
             new DummyAdvDiffIntegrator("DummyAdvDiff", app_initializer->getComponentDatabase("DummyAdvDiff"));
+        Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator_2;
         Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
         navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
+        bool use_second_integrator = input_db->getBoolWithDefault("USE_SECOND_INTEGRATOR", false);
+        if (use_second_integrator)
+        {
+            adv_diff_integrator_2 =
+                new DummyAdvDiffIntegrator("DummyAdvDiff2", app_initializer->getComponentDatabase("DummyAdvDiff"));
+            navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator_2);
+        }
         Pointer<IBMethod> ib_method_ops = new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
         Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",

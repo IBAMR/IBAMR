@@ -1194,11 +1194,11 @@ INSStaggeredHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy
 
     // When necessary, initialize the value of the advection velocity registered
     // with a coupled advection-diffusion solver.
-    if (d_adv_diff_hier_integrator)
+    for (const auto& adv_diff_hier_integrator : d_adv_diff_hier_integrators)
     {
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int U_adv_diff_current_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getCurrentContext());
         if (isAllocatedPatchData(U_adv_diff_current_idx))
         {
             copy_side_to_face(U_adv_diff_current_idx, d_U_current_idx, d_hierarchy);
@@ -1304,9 +1304,9 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
     d_stokes_solver->setHomogeneousBc(false);
 
     // Initialize any registered advection-diffusion solver.
-    if (d_adv_diff_hier_integrator)
+    for (const auto& adv_diff_hier_integrator : d_adv_diff_hier_integrators)
     {
-        const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
+        const int adv_diff_num_cycles = adv_diff_hier_integrator->getNumberOfCycles();
         if (adv_diff_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
         {
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
@@ -1322,20 +1322,20 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
         }
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int U_adv_diff_current_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getCurrentContext());
         if (isAllocatedPatchData(U_adv_diff_current_idx))
         {
             copy_side_to_face(U_adv_diff_current_idx, d_U_current_idx, d_hierarchy);
         }
-        d_adv_diff_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, adv_diff_num_cycles);
+        adv_diff_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, adv_diff_num_cycles);
         const int U_adv_diff_scratch_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getScratchContext());
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getScratchContext());
         if (isAllocatedPatchData(U_adv_diff_scratch_idx))
         {
             d_hier_fc_data_ops->copyData(U_adv_diff_scratch_idx, U_adv_diff_current_idx);
         }
         const int U_adv_diff_new_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext());
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getNewContext());
         if (isAllocatedPatchData(U_adv_diff_new_idx))
         {
             d_hier_fc_data_ops->copyData(U_adv_diff_new_idx, U_adv_diff_current_idx);
@@ -1418,9 +1418,9 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
     }
 
     // Update the state variables of any linked advection-diffusion solver.
-    if (d_adv_diff_hier_integrator)
+    for (const auto& adv_diff_hier_integrator : d_adv_diff_hier_integrators)
     {
-        d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
+        adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
     }
 
     // Setup the solution and right-hand-side vectors.
@@ -1442,21 +1442,21 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
     resetSolverVectors(d_sol_vec, d_rhs_vec, current_time, new_time, cycle_num);
 
     // Update the state variables of any linked advection-diffusion solver.
-    if (d_adv_diff_hier_integrator)
+    for (const auto& adv_diff_hier_integrator : d_adv_diff_hier_integrators)
     {
         // Update the advection velocities used by the advection-diffusion
         // solver.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int U_adv_diff_new_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getNewContext());
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getNewContext());
         if (isAllocatedPatchData(U_adv_diff_new_idx))
         {
             copy_side_to_face(U_adv_diff_new_idx, d_U_new_idx, d_hierarchy);
         }
         const int U_adv_diff_current_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getCurrentContext());
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getCurrentContext());
         const int U_adv_diff_scratch_idx =
-            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, d_adv_diff_hier_integrator->getScratchContext());
+            var_db->mapVariableAndContextToIndex(d_U_adv_diff_var, adv_diff_hier_integrator->getScratchContext());
         if (isAllocatedPatchData(U_adv_diff_scratch_idx))
         {
             d_hier_fc_data_ops->linearSum(U_adv_diff_scratch_idx, 0.5, U_adv_diff_current_idx, 0.5, U_adv_diff_new_idx);
@@ -1466,7 +1466,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
         // solver.
         //
         // NOTE: We already performed cycle 0 above.
-        const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
+        const int adv_diff_num_cycles = adv_diff_hier_integrator->getNumberOfCycles();
         if (d_current_num_cycles != adv_diff_num_cycles)
         {
 #if !defined(NDEBUG)
@@ -1474,7 +1474,7 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
 #endif
             for (int adv_diff_cycle_num = 1; adv_diff_cycle_num < adv_diff_num_cycles; ++adv_diff_cycle_num)
             {
-                d_adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, adv_diff_cycle_num);
+                adv_diff_hier_integrator->integrateHierarchy(current_time, new_time, adv_diff_cycle_num);
             }
         }
     }
@@ -1559,10 +1559,10 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
     }
 
     // Deallocate any registered advection-diffusion solver.
-    if (d_adv_diff_hier_integrator)
+    for (const auto& adv_diff_hier_integrator : d_adv_diff_hier_integrators)
     {
-        const int adv_diff_num_cycles = d_adv_diff_hier_integrator->getNumberOfCycles();
-        d_adv_diff_hier_integrator->postprocessIntegrateHierarchy(
+        const int adv_diff_num_cycles = adv_diff_hier_integrator->getNumberOfCycles();
+        adv_diff_hier_integrator->postprocessIntegrateHierarchy(
             current_time, new_time, skip_synchronize_new_state_data, adv_diff_num_cycles);
     }
 

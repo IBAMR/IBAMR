@@ -1,0 +1,4 @@
+Improved: Multiple advection diffusion integrators can be registered with the
+navier stokes integrator.
+<br>
+(Aaron Barrett, 2022/05/26)
