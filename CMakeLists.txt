@@ -940,6 +940,7 @@ Verifying that ${_dependency_name} and IBAMR use the same MPI implementation - S
   SET(CMAKE_CXX_FLAGS ${_old_cxx_flags})
 ENDFUNCTION()
 
+MESSAGE(STATUS "")
 #
 # PETSc:
 #
