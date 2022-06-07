@@ -38,7 +38,7 @@ SET(IBTK_VERSION ${IBTK_VERSION_MAJOR}.${IBTK_VERSION_MINOR}.${IBTK_VERSION_SUBM
 SET(IBAMR_VERSION ${IBTK_VERSION})
 
 # Build tests?
-option(IBAMR_ENABLE_TESTING "Should tests be compiled and configured to run with ctest?" ON)
+OPTION(IBAMR_ENABLE_TESTING "Should tests be compiled and configured to run with ctest?" ON)
 
 # Do we want dynamic or static linking?
 OPTION(BUILD_SHARED_LIBS "Whether or not to build shared libraries." ON)
@@ -1285,8 +1285,8 @@ INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/IBAMRConfig.cmake
 ADD_SUBDIRECTORY(ibtk)
 ADD_SUBDIRECTORY(src)
 
-if (IBAMR_ENABLE_TESTING)
-  enable_testing()
+IF(IBAMR_ENABLE_TESTING)
+  ENABLE_TESTING()
   ADD_SUBDIRECTORY(tests)
-endif()
+ENDIF()
 ADD_SUBDIRECTORY(examples)

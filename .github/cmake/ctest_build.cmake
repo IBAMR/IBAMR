@@ -29,11 +29,19 @@ IF (CTEST_CMAKE_GENERATOR STREQUAL "Unix Makefiles")
   ProcessorCount(nproc)
 ENDIF ()
 
-CTEST_BUILD(
-  NUMBER_WARNINGS num_warnings
-  RETURN_VALUE build_result
-  TARGET tests
-  )
+# Not all CI configurations actually run tests
+IF(TARGET tests)
+  CTEST_BUILD(
+    NUMBER_WARNINGS num_warnings
+    RETURN_VALUE build_result
+    TARGET tests
+    )
+ELSE()
+  CTEST_BUILD(
+    NUMBER_WARNINGS num_warnings
+    RETURN_VALUE build_result
+    )
+ENDIF()
 
 CTEST_SUBMIT(PARTS Build)
 
