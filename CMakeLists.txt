@@ -38,7 +38,7 @@ SET(IBTK_VERSION ${IBTK_VERSION_MAJOR}.${IBTK_VERSION_MINOR}.${IBTK_VERSION_SUBM
 SET(IBAMR_VERSION ${IBTK_VERSION})
 
 # Build tests?
-option(IBAMR_ENABLE_TESTING "Should tests be compiled and configured to run with ctest?" ON)
+OPTION(IBAMR_ENABLE_TESTING "Should tests be compiled and configured to run with ctest?" ON)
 
 # Do we want dynamic or static linking?
 OPTION(BUILD_SHARED_LIBS "Whether or not to build shared libraries." ON)
@@ -120,7 +120,7 @@ FOREACH(_root ${_required_roots})
     IF(NOT EXISTS ${${_root}})
       MESSAGE(FATAL_ERROR "Specified path ${_root} = ${${_root}} does not exist.")
     ELSE()
-      MESSAGE(STATUS "${_root} = ${${_root}}")
+      MESSAGE(STATUS "${_root}=${${_root}}")
     ENDIF()
   ENDIF()
 ENDFOREACH()
@@ -160,30 +160,47 @@ MESSAGE(STATUS "Setting up MPI")
 # al pointing to a custom installation of MPI when there is a system copy
 # available too. Try to detect this and set MPI_ROOT correctly.
 #
-# Only continue if we are potentially using an MPI compiler wrapper
+# Only continue if we are potentially using an explicitly provided MPI compiler
+# wrapper
 IF(NOT "${CMAKE_CXX_COMPILER}" STREQUAL "")
-  GET_FILENAME_COMPONENT(_compiler_name ${CMAKE_CXX_COMPILER} NAME)
-  # -show works on all MPI compiler wrappers I am aware of
-  EXECUTE_PROCESS(COMMAND ${CMAKE_CXX_COMPILER} "-show"
-    OUTPUT_VARIABLE _show_output RESULT_VARIABLE _show_return_code
-    ERROR_VARIABLE _show_error)
-  IF("${_show_return_code}" STREQUAL "0")
-    MESSAGE(STATUS "CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} is an MPI wrapper with -show output\n\n${_show_output}")
-    STRING(FIND "${_show_output}" "-lmpi" _lmpi_index)
-    IF(NOT "${_lmpi_index}" STREQUAL "-1")
-      # It looks like we have a compiler wrapper: overide MPI_ROOT
-      IF(NOT "${MPI_ROOT}" STREQUAL "")
-        MESSAGE(FATAL_ERROR "If MPI compiler wrappers are used then MPI_ROOT must not be set.")
-      ENDIF()
-      GET_FILENAME_COMPONENT(_compiler_directory ${CMAKE_CXX_COMPILER} DIRECTORY)
-      SET(MPI_ROOT "${_compiler_directory}/../")
-      MESSAGE(STATUS "Using MPI compiler wrapper to set MPI_ROOT=${MPI_ROOT}")
-    ELSE()
-      MESSAGE(STATUS "CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} is not an MPI compiler wrapper")
+  # If it cannot compile a basic MPI application then it isn't an MPI compiler
+  # wrapper
+  CHECK_CXX_SOURCE_COMPILES(
+  "
+  #include <mpi.h>
+  int main(int argc, char **argv)
+  {
+    MPI_Init(&argc, &argv);
+    MPI_Finalize();
+  }
+  "
+  CXX_COMPILER_SUPPORTS_MPI)
+
+  IF(${CXX_COMPILER_SUPPORTS_MPI})
+    MESSAGE(STATUS "CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} is an MPI wrapper")
+    # It looks like we have a compiler wrapper: overide MPI_ROOT
+    IF(NOT "${MPI_ROOT}" STREQUAL "")
+      MESSAGE(FATAL_ERROR "If MPI compiler wrappers are used then MPI_ROOT must not be set.")
     ENDIF()
+    GET_FILENAME_COMPONENT(_compiler_directory ${CMAKE_CXX_COMPILER} DIRECTORY)
+    SET(MPI_ROOT "${_compiler_directory}/../")
+    MESSAGE(STATUS "Using MPI compiler wrapper to set MPI_ROOT=${MPI_ROOT}")
   ELSE()
     MESSAGE(STATUS "CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} is not an MPI compiler wrapper")
   ENDIF()
+ELSEIF((NOT $ENV{MPI_HOME} STREQUAL "") AND ("${MPI_ROOT}" STREQUAL ""))
+  # if MPI_HOME is set then we should use that instead (environment modules
+  # usually set up MPI this way)
+  SET(MPI_ROOT $ENV{MPI_HOME})
+  MESSAGE(STATUS "Using environment variable MPI_HOME=$ENV{MPI_HOME} to set MPI_ROOT=${MPI_ROOT}")
+ENDIF()
+
+# MPI_ROOT is now either set to a valid value (we want a specific MPI) or empty
+# (use default search paths) so we can proceed with setting up MPI
+IF(NOT ${MPI_ROOT} STREQUAL "")
+  # CMake wants to detect MPI with MPI_HOME, not MPI_ROOT
+  SET(MPI_HOME ${MPI_ROOT})
+  MESSAGE(STATUS "Setting up MPI at location ${MPI_ROOT}")
 ENDIF()
 FIND_PACKAGE(MPI REQUIRED)
 # If we are using the compiler wrappers then CMake may not set MPI_C_LIBRARIES -
@@ -251,6 +268,31 @@ ENDIF()
 IF(NOT ${IBAMR_USE_BUNDLED_BOOST})
   MESSAGE(STATUS "Found external boost ${Boost_VERSION} at ${Boost_INCLUDE_DIRS}")
   TARGET_LINK_LIBRARIES(BOOST_INTERFACE INTERFACE Boost::headers)
+
+  # Verify that we can compile some basic Boost headers
+  SET(CMAKE_CXX_STANDARD "11")
+  SET(CMAKE_REQUIRED_INCLUDES ${Boost_INCLUDE_DIRS})
+  CHECK_CXX_SOURCE_COMPILES(
+    "
+  #include <boost/multi_array.hpp>
+  int main() {}
+  "
+    BOOST_WITH_MULTI_ARRAY)
+  CHECK_CXX_SOURCE_COMPILES(
+    "
+  #include <boost/math/special_functions/round.hpp>
+  int main() {}
+  "
+    BOOST_WITH_ROUND)
+  CHECK_CXX_SOURCE_COMPILES(
+    "
+  #include <boost/math/tools/roots.hpp>
+  int main() {}
+  "
+    BOOST_WITH_ROOTS)
+  IF(NOT ${BOOST_WITH_MULTI_ARRAY} OR NOT ${BOOST_WITH_ROUND} OR NOT ${BOOST_WITH_ROOTS})
+    MESSAGE(FATAL_ERROR "The provided boost installation does not include at least one required boost header.")
+  ENDIF()
 ELSE()
   MESSAGE(STATUS "Setting up boost as a bundled dependency")
   ADD_LIBRARY(BUNDLED_BOOST INTERFACE)
@@ -263,31 +305,6 @@ ELSE()
   # The bundled version doesn't compile anything so always set the no-lib mode
   SET_TARGET_PROPERTIES(BUNDLED_BOOST PROPERTIES INTERFACE_COMPILE_DEFINITIONS "BOOST_ALL_NO_LIB")
   TARGET_LINK_LIBRARIES(BOOST_INTERFACE INTERFACE BUNDLED_BOOST)
-ENDIF()
-
-# Verify that we can compile some basic Boost headers
-SET(CMAKE_CXX_STANDARD "11")
-SET(CMAKE_REQUIRED_INCLUDES ${Boost_INCLUDE_DIRS})
-CHECK_CXX_SOURCE_COMPILES(
-  "
-  #include <boost/multi_array.hpp>
-  int main() {}
-  "
-  BOOST_WITH_MULTI_ARRAY)
-CHECK_CXX_SOURCE_COMPILES(
-  "
-  #include <boost/math/special_functions/round.hpp>
-  int main() {}
-  "
-  BOOST_WITH_ROUND)
-CHECK_CXX_SOURCE_COMPILES(
-  "
-  #include <boost/math/tools/roots.hpp>
-  int main() {}
-  "
-  BOOST_WITH_ROOTS)
-IF(NOT ${BOOST_WITH_MULTI_ARRAY} OR NOT ${BOOST_WITH_ROUND} OR NOT ${BOOST_WITH_ROUND})
-  MESSAGE(FATAL_ERROR "The provided boost installation does not include at least one required boost header.")
 ENDIF()
 
 SET(CMAKE_REQUIRED_INCLUDES "")
@@ -923,6 +940,7 @@ Verifying that ${_dependency_name} and IBAMR use the same MPI implementation - S
   SET(CMAKE_CXX_FLAGS ${_old_cxx_flags})
 ENDFUNCTION()
 
+MESSAGE(STATUS "")
 #
 # PETSc:
 #
@@ -1268,8 +1286,8 @@ INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/cmake/IBAMRConfig.cmake
 ADD_SUBDIRECTORY(ibtk)
 ADD_SUBDIRECTORY(src)
 
-if (IBAMR_ENABLE_TESTING)
-  enable_testing()
+IF(IBAMR_ENABLE_TESTING)
+  ENABLE_TESTING()
   ADD_SUBDIRECTORY(tests)
-endif()
+ENDIF()
 ADD_SUBDIRECTORY(examples)
