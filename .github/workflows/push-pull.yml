@@ -159,9 +159,6 @@ jobs:
 
       CMAKE_GENERATOR: Unix Makefiles
     steps:
-      - name: Generate id that is probably unique
-        id: generate_id
-        run:  echo "::set-output name=id::$RANDOM"
       - name: Checkout Source
         uses: actions/checkout@v2
         id: git
@@ -180,15 +177,14 @@ jobs:
         id: cache
         with:
           path: ~/.cache/sccache
-          # 1 of 2: We don't want to ever restore this cache so pick a very unique name
-          key: ${{ runner.os }}-build-no-libmesh-${{ steps.generate_id.outputs.id }}
+          key: ${{ runner.os }}-build-cmake-no-libmesh-${{ github.run_number }}
           restore-keys: |
-            ${{ runner.os }}-build-cmake-${{ steps.keys.outputs.key1 }}
-            ${{ runner.os }}-build-cmake-${{ steps.keys.outputs.key2 }}
-            ${{ runner.os }}-build-cmake-${{ steps.keys.outputs.key3 }}
-            ${{ runner.os }}-build-cmake-${{ steps.keys.outputs.key4 }}
-            ${{ runner.os }}-build-cmake-${{ steps.keys.outputs.key5 }}
-            ${{ runner.os }}-build-cmake-
+            ${{ runner.os }}-build-cmake-no-libmesh-${{ steps.keys.outputs.key1 }}
+            ${{ runner.os }}-build-cmake-no-libmesh-${{ steps.keys.outputs.key2 }}
+            ${{ runner.os }}-build-cmake-no-libmesh-${{ steps.keys.outputs.key3 }}
+            ${{ runner.os }}-build-cmake-no-libmesh-${{ steps.keys.outputs.key4 }}
+            ${{ runner.os }}-build-cmake-no-libmesh-${{ steps.keys.outputs.key5 }}
+            ${{ runner.os }}-build-cmake-no-libmesh-
       - name: Start sccache server
         id: cache-server
         run: sccache --start-server
@@ -219,9 +215,6 @@ jobs:
         run: |
           cd /build/ibamr
           make -j2 examples
-          # 2 of 2: we have to upload something, might as well make it empty
-          rm -rf ~/.cache/sccache
-          mkdir -p ~/.cache/sccache
           sccache --show-stats
 
   # build IBAMR with autotools
