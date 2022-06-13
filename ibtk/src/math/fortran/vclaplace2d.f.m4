@@ -18,34 +18,6 @@ include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Compute the arithmetic average of four inputs
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      REAL function a_avg(a0,a1,a2,a3)
-      implicit none
-      REAL a0,a1,a2,a3
-      a_avg = 0.25d0*(a0+a1+a2+a3)
-      return
-      end
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c     Compute the harmonic average of four inputs
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      REAL function h_avg(a0,a1,a2,a3)
-      implicit none
-      REAL a0,a1,a2,a3
-      REAL dmr
-      dmr = 1.d0/a0+1.d0/a1+1.d0/a2+1.d0/a3
-      h_avg = 4.d0/dmr
-      return
-      end
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
 c     Computes (f0,f1) = alpha div mu (grad (u0,u1) + grad(u0,u1)^T) + beta (u0,u1) +
 c     gamma (v0,v1).
 c
@@ -70,11 +42,10 @@ c
      &     use_harmonic_interp)
 c
       implicit none
-
 c
 c     Functions.
 c
-      REAL a_avg, h_avg
+      REAL a_avg4, h_avg4
 c
 c     Input.
 c
@@ -123,14 +94,14 @@ c
             endif
 
             if (use_harmonic_interp .eq. 1) then
-                mu_upper = h_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_upper = h_avg4(mu(i0,i1),mu(i0+1,i1),
      &                          mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = h_avg(mu(i0,i1),mu(i0-1,i1),
+                mu_lower = h_avg4(mu(i0,i1),mu(i0-1,i1),
      &                       mu(i0,i1+1),mu(i0-1,i1+1))
             else
-                mu_upper = a_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_upper = a_avg4(mu(i0,i1),mu(i0+1,i1),
      &                          mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = a_avg(mu(i0,i1),mu(i0-1,i1),
+                mu_lower = a_avg4(mu(i0,i1),mu(i0-1,i1),
      &                       mu(i0,i1+1),mu(i0-1,i1+1))
             endif
 
@@ -157,16 +128,16 @@ c
             endif
 
             if (use_harmonic_interp .eq. 1) then
-               mu_upper = h_avg(mu(i0,i1),mu(i0+1,i1),
+               mu_upper = h_avg4(mu(i0,i1),mu(i0+1,i1),
      &                          mu(i0,i1+1),mu(i0+1,i1+1))
 
-               mu_lower = h_avg(mu(i0,i1),mu(i0+1,i1),
+               mu_lower = h_avg4(mu(i0,i1),mu(i0+1,i1),
      &                          mu(i0,i1-1),mu(i0+1,i1-1))
             else
-               mu_upper = a_avg(mu(i0,i1),mu(i0+1,i1),
+               mu_upper = a_avg4(mu(i0,i1),mu(i0+1,i1),
      &                          mu(i0,i1+1),mu(i0+1,i1+1))
 
-               mu_lower = a_avg(mu(i0,i1),mu(i0+1,i1),
+               mu_lower = a_avg4(mu(i0,i1),mu(i0+1,i1),
      &                          mu(i0,i1-1),mu(i0+1,i1-1))
             endif
 

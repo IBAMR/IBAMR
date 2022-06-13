@@ -219,6 +219,7 @@ libIBTK_a_OBJECTS = $(am_libIBTK_a_OBJECTS)
 libIBTK2d_a_AR = $(AR) $(ARFLAGS)
 libIBTK2d_a_LIBADD =
 am__libIBTK2d_a_SOURCES_DIST =  \
+	$(top_builddir)/src/utilities/fortran/averaging.f \
 	../src/boundary/HierarchyGhostCellInterpolation.cpp \
 	../src/boundary/cf_interface/CartCellDoubleLinearCFInterpolation.cpp \
 	../src/boundary/cf_interface/CartCellDoubleQuadraticCFInterpolation.cpp \
@@ -382,7 +383,9 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f \
 	$(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
 	$(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
-@LIBMESH_ENABLED_TRUE@am__objects_2 = ../src/lagrangian/libIBTK2d_a-BoxPartitioner.$(OBJEXT) \
+am__objects_2 =  \
+	$(top_builddir)/src/utilities/fortran/averaging.$(OBJEXT)
+@LIBMESH_ENABLED_TRUE@am__objects_3 = ../src/lagrangian/libIBTK2d_a-BoxPartitioner.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-StableCentroidPartitioner.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-FEDataInterpolation.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK2d_a-FEDataManager.$(OBJEXT) \
@@ -393,7 +396,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK2d_a-LibMeshSystemIBVectors.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK2d_a-LibMeshSystemVectors.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK2d_a-libmesh_utilities.$(OBJEXT)
-am__objects_3 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
+am__objects_4 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK2d_a-CartCellDoubleLinearCFInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK2d_a-CartCellDoubleQuadraticCFInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK2d_a-CartSideDoubleQuadraticCFInterpolation.$(OBJEXT) \
@@ -521,8 +524,8 @@ am__objects_3 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK2d_a-box_utilities.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-ibtk_utilities.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-muParserCartGridFunction.$(OBJEXT) \
-	$(am__objects_2)
-am_libIBTK2d_a_OBJECTS = $(am__objects_3) \
+	$(am__objects_3)
+am_libIBTK2d_a_OBJECTS = $(am__objects_2) $(am__objects_4) \
 	$(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation2d.$(OBJEXT) \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.$(OBJEXT) \
 	$(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop2d.$(OBJEXT) \
@@ -547,6 +550,7 @@ libIBTK2d_a_OBJECTS = $(am_libIBTK2d_a_OBJECTS)
 libIBTK3d_a_AR = $(AR) $(ARFLAGS)
 libIBTK3d_a_LIBADD =
 am__libIBTK3d_a_SOURCES_DIST =  \
+	$(top_builddir)/src/utilities/fortran/averaging.f \
 	../src/boundary/HierarchyGhostCellInterpolation.cpp \
 	../src/boundary/cf_interface/CartCellDoubleLinearCFInterpolation.cpp \
 	../src/boundary/cf_interface/CartCellDoubleQuadraticCFInterpolation.cpp \
@@ -710,7 +714,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	$(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f \
 	$(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \
 	$(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.f
-@LIBMESH_ENABLED_TRUE@am__objects_4 = ../src/lagrangian/libIBTK3d_a-BoxPartitioner.$(OBJEXT) \
+@LIBMESH_ENABLED_TRUE@am__objects_5 = ../src/lagrangian/libIBTK3d_a-BoxPartitioner.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-StableCentroidPartitioner.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-FEDataInterpolation.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/lagrangian/libIBTK3d_a-FEDataManager.$(OBJEXT) \
@@ -721,7 +725,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK3d_a-LibMeshSystemIBVectors.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK3d_a-LibMeshSystemVectors.$(OBJEXT) \
 @LIBMESH_ENABLED_TRUE@	../src/utilities/libIBTK3d_a-libmesh_utilities.$(OBJEXT)
-am__objects_5 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
+am__objects_6 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK3d_a-CartCellDoubleLinearCFInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK3d_a-CartCellDoubleQuadraticCFInterpolation.$(OBJEXT) \
 	../src/boundary/cf_interface/libIBTK3d_a-CartSideDoubleQuadraticCFInterpolation.$(OBJEXT) \
@@ -849,8 +853,8 @@ am__objects_5 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK3d_a-box_utilities.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-ibtk_utilities.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-muParserCartGridFunction.$(OBJEXT) \
-	$(am__objects_4)
-am_libIBTK3d_a_OBJECTS = $(am__objects_5) \
+	$(am__objects_5)
+am_libIBTK3d_a_OBJECTS = $(am__objects_2) $(am__objects_6) \
 	$(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation3d.$(OBJEXT) \
 	$(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.$(OBJEXT) \
 	$(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.$(OBJEXT) \
@@ -1525,6 +1529,7 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 lib_LIBRARIES = libIBTK.a $(am__append_1) $(am__append_2)
 libIBTK_a_SOURCES = ../src/dummy.cpp $(am__append_3)
+DIM_INDEPENDENT_SOURCES = $(top_builddir)/src/utilities/fortran/averaging.f
 pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
 	../include/ibtk/app_namespaces.h \
 	../include/ibtk/compiler_hints.h ../include/ibtk/ibtk_enums.h \
@@ -1799,7 +1804,7 @@ DIM_DEPENDENT_SOURCES =  \
 	../src/utilities/ibtk_utilities.cpp \
 	../src/utilities/muParserCartGridFunction.cpp $(am__append_4)
 libIBTK2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-libIBTK2d_a_SOURCES = $(DIM_DEPENDENT_SOURCES) \
+libIBTK2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) $(DIM_DEPENDENT_SOURCES) \
 $(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation2d.f \
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation2d.f \
 $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop2d.f \
@@ -1822,7 +1827,7 @@ $(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
 $(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
 
 libIBTK3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-libIBTK3d_a_SOURCES = $(DIM_DEPENDENT_SOURCES) \
+libIBTK3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) $(DIM_DEPENDENT_SOURCES) \
 $(top_builddir)/src/boundary/cf_interface/fortran/linearcfinterpolation3d.f \
 $(top_builddir)/src/boundary/cf_interface/fortran/quadcfinterpolation3d.f \
 $(top_builddir)/src/boundary/physical_boundary/fortran/cartphysbdryop3d.f \
@@ -1955,6 +1960,15 @@ libIBTK.a: $(libIBTK_a_OBJECTS) $(libIBTK_a_DEPENDENCIES) $(EXTRA_libIBTK_a_DEPE
 	$(AM_V_at)-rm -f libIBTK.a
 	$(AM_V_AR)$(libIBTK_a_AR) libIBTK.a $(libIBTK_a_OBJECTS) $(libIBTK_a_LIBADD)
 	$(AM_V_at)$(RANLIB) libIBTK.a
+$(top_builddir)/src/utilities/fortran/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/src/utilities/fortran
+	@: > $(top_builddir)/src/utilities/fortran/$(am__dirstamp)
+$(top_builddir)/src/utilities/fortran/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/src/utilities/fortran/$(DEPDIR)
+	@: > $(top_builddir)/src/utilities/fortran/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/utilities/fortran/averaging.$(OBJEXT):  \
+	$(top_builddir)/src/utilities/fortran/$(am__dirstamp) \
+	$(top_builddir)/src/utilities/fortran/$(DEPDIR)/$(am__dirstamp)
 ../src/boundary/$(am__dirstamp):
 	@$(MKDIR_P) ../src/boundary
 	@: > ../src/boundary/$(am__dirstamp)
@@ -3037,6 +3051,7 @@ mostlyclean-compile:
 	-rm -f $(top_builddir)/src/math/fortran/*.$(OBJEXT)
 	-rm -f $(top_builddir)/src/refine_ops/fortran/*.$(OBJEXT)
 	-rm -f $(top_builddir)/src/solvers/impls/fortran/*.$(OBJEXT)
+	-rm -f $(top_builddir)/src/utilities/fortran/*.$(OBJEXT)
 	-rm -f ../contrib/muparser/src/*.$(OBJEXT)
 	-rm -f ../src/*.$(OBJEXT)
 	-rm -f ../src/boundary/*.$(OBJEXT)
@@ -7462,6 +7477,8 @@ distclean-generic:
 	-test -z "$(top_builddir)/src/refine_ops/fortran/$(am__dirstamp)" || rm -f $(top_builddir)/src/refine_ops/fortran/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/solvers/impls/fortran/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_builddir)/src/solvers/impls/fortran/$(DEPDIR)/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/solvers/impls/fortran/$(am__dirstamp)" || rm -f $(top_builddir)/src/solvers/impls/fortran/$(am__dirstamp)
+	-test -z "$(top_builddir)/src/utilities/fortran/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_builddir)/src/utilities/fortran/$(DEPDIR)/$(am__dirstamp)
+	-test -z "$(top_builddir)/src/utilities/fortran/$(am__dirstamp)" || rm -f $(top_builddir)/src/utilities/fortran/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"

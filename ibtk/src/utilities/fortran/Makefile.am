@@ -13,4 +13,7 @@
 
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = fortran .
+
+EXTRA_DIST = averaging.f.m4
+BUILT_SOURCES = averaging.f
+CLEANFILES = ${BUILT_SOURCES}

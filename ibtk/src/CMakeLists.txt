@@ -54,6 +54,22 @@ FOREACH(_d ${IBAMR_DIMENSIONS})
   ENDFOREACH()
 ENDFOREACH()
 
+# 'base' names (without, .f.m4) for all the fortran that is
+# explicitly compiled
+SET(FORTRAN_DIM_INDEPENDENT_SRC_BASE
+  utilities/fortran/averaging
+  )
+
+FOREACH(_fortran_root_name ${FORTRAN_DIM_INDEPENDENT_SRC_BASE})
+  IBAMR_PROCESS_M4(NAME ${_fortran_root_name}.f)
+ENDFOREACH()
+
+FOREACH(_d ${IBAMR_DIMENSIONS})
+  FOREACH(_fortran_root_name ${FORTRAN_DIM_INDEPENDENT_SRC_BASE})
+     LIST(APPEND "FORTRAN_GENERATED_SRC${_d}D" "${CMAKE_CURRENT_BINARY_DIR}/${_fortran_root_name}.f")
+  ENDFOREACH()
+ENDFOREACH()
+
 #
 # set up C++:
 #

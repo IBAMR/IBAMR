@@ -744,8 +744,7 @@ c
 c
 c     Functions.
 c
-      REAL a_avg, h_avg
-
+      REAL a_avg4, h_avg4
 c
 c     Input.
 c
@@ -793,14 +792,14 @@ c
          endif
 
          if (use_harmonic_interp .eq. 1) then
-            mu_upper = h_avg(mu(i0,i1),mu(i0+1,i1),
+            mu_upper = h_avg4(mu(i0,i1),mu(i0+1,i1),
      &                       mu(i0,i1+1),mu(i0+1,i1+1))
-            mu_lower = h_avg(mu(i0,i1),mu(i0-1,i1),
+            mu_lower = h_avg4(mu(i0,i1),mu(i0-1,i1),
      &                       mu(i0,i1+1),mu(i0-1,i1+1))
          else
-            mu_upper = a_avg(mu(i0,i1),mu(i0+1,i1),
+            mu_upper = a_avg4(mu(i0,i1),mu(i0+1,i1),
      &                       mu(i0,i1+1),mu(i0+1,i1+1))
-            mu_lower = a_avg(mu(i0,i1),mu(i0-1,i1),
+            mu_lower = a_avg4(mu(i0,i1),mu(i0-1,i1),
      &                       mu(i0,i1+1),mu(i0-1,i1+1))
          endif
 
@@ -827,14 +826,14 @@ c
          endif
 
          if (use_harmonic_interp .eq. 1) then
-            mu_upper = h_avg(mu(i0,i1),mu(i0+1,i1),
+            mu_upper = h_avg4(mu(i0,i1),mu(i0+1,i1),
      &                       mu(i0,i1+1),mu(i0+1,i1+1))
-            mu_lower = h_avg(mu(i0,i1),mu(i0+1,i1),
+            mu_lower = h_avg4(mu(i0,i1),mu(i0+1,i1),
      &                       mu(i0,i1-1),mu(i0+1,i1-1))
          else
-            mu_upper = a_avg(mu(i0,i1),mu(i0+1,i1),
+            mu_upper = a_avg4(mu(i0,i1),mu(i0+1,i1),
      &                       mu(i0,i1+1),mu(i0+1,i1+1))
-            mu_lower = a_avg(mu(i0,i1),mu(i0+1,i1),
+            mu_lower = a_avg4(mu(i0,i1),mu(i0+1,i1),
      &                       mu(i0,i1-1),mu(i0+1,i1-1))
          endif
 
@@ -882,7 +881,7 @@ c
 c
 c     Functions.
 c
-      REAL a_avg, h_avg
+      REAL a_avg4, h_avg4
 c
 c     Input.
 c
@@ -934,14 +933,14 @@ c
             endif
 
             if (use_harmonic_interp .eq. 1) then
-                mu_upper = h_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_upper = h_avg4(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = h_avg(mu(i0,i1),mu(i0-1,i1),
+                mu_lower = h_avg4(mu(i0,i1),mu(i0-1,i1),
      &                       mu(i0,i1+1),mu(i0-1,i1+1))
             else
-                mu_upper = a_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_upper = a_avg4(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = a_avg(mu(i0,i1),mu(i0-1,i1),
+                mu_lower = a_avg4(mu(i0,i1),mu(i0-1,i1),
      &                       mu(i0,i1+1),mu(i0-1,i1+1))
             endif
 
@@ -973,14 +972,14 @@ c
             endif
 
             if (use_harmonic_interp .eq. 1) then
-                mu_upper = h_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_upper = h_avg4(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = h_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_lower = h_avg4(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1-1),mu(i0+1,i1-1))
             else
-                mu_upper = a_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_upper = a_avg4(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = a_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_lower = a_avg4(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1-1),mu(i0+1,i1-1))
             endif
 
@@ -1036,7 +1035,7 @@ c
 c
 c     Functions.
 c
-      REAL a_avg, h_avg
+      REAL a_avg4, h_avg4
 c
 c     Input.
 c
@@ -1088,14 +1087,14 @@ c
             endif
 
             if (use_harmonic_interp .eq. 1) then
-                mu_upper = h_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_upper = h_avg4(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = h_avg(mu(i0,i1),mu(i0-1,i1),
+                mu_lower = h_avg4(mu(i0,i1),mu(i0-1,i1),
      &                           mu(i0,i1+1),mu(i0-1,i1+1))
             else
-                mu_upper = a_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_upper = a_avg4(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = a_avg(mu(i0,i1),mu(i0-1,i1),
+                mu_lower = a_avg4(mu(i0,i1),mu(i0-1,i1),
      &                           mu(i0,i1+1),mu(i0-1,i1+1))
             endif
 
@@ -1127,14 +1126,14 @@ c
             endif
 
             if (use_harmonic_interp .eq. 1) then
-                mu_upper = h_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_upper = h_avg4(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = h_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_lower = h_avg4(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1-1),mu(i0+1,i1-1))
             else
-                mu_upper = a_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_upper = a_avg4(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = a_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_lower = a_avg4(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1-1),mu(i0+1,i1-1))
             endif
 
@@ -1189,7 +1188,7 @@ c
 c
 c     Functions.
 c
-      REAL a_avg, h_avg
+      REAL a_avg4, h_avg4
 c
 c     Input.
 c
@@ -1245,14 +1244,14 @@ c
             endif
 
             if (use_harmonic_interp .eq. 1) then
-                mu_upper = h_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_upper = h_avg4(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = h_avg(mu(i0,i1),mu(i0-1,i1),
+                mu_lower = h_avg4(mu(i0,i1),mu(i0-1,i1),
      &                           mu(i0,i1+1),mu(i0-1,i1+1))
             else
-                mu_upper = a_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_upper = a_avg4(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = a_avg(mu(i0,i1),mu(i0-1,i1),
+                mu_lower = a_avg4(mu(i0,i1),mu(i0-1,i1),
      &                       mu(i0,i1+1),mu(i0-1,i1+1))
             endif
 
@@ -1285,14 +1284,14 @@ c
             endif
 
             if (use_harmonic_interp .eq. 1) then
-                mu_upper = h_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_upper = h_avg4(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = h_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_lower = h_avg4(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1-1),mu(i0+1,i1-1))
             else
-                mu_upper = a_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_upper = a_avg4(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1+1),mu(i0+1,i1+1))
-                mu_lower = a_avg(mu(i0,i1),mu(i0+1,i1),
+                mu_lower = a_avg4(mu(i0,i1),mu(i0+1,i1),
      &                           mu(i0,i1-1),mu(i0+1,i1-1))
             endif
 

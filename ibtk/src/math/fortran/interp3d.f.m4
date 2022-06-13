@@ -634,6 +634,10 @@ c
 c
       implicit none
 c
+c     Function.
+c
+      REAL h_avg2
+c
 c     Input.
 c
       INTEGER u_gcw,V_gcw
@@ -653,7 +657,6 @@ c
 c     Local variables.
 c
       INTEGER i0,i1,i2
-      REAL nmr,dmr
 c
 c     Compute the side centered vector field (u0,u1,u2) from the cell
 c     centered vector field V.
@@ -661,27 +664,21 @@ c
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0+1
-               nmr = 2.d0*V(i0-1,i1,i2,0)*V(i0,i1,i2,0)
-               dmr = V(i0-1,i1,i2,0)+V(i0,i1,i2,0)
-               u0(i0,i1,i2) = nmr/dmr
+               u0(i0,i1,i2) = h_avg2(V(i0-1,i1,i2,0),V(i0,i1,i2,0))
             enddo
          enddo
       enddo
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1+1
             do i0 = ilower0,iupper0
-               nmr = 2.d0*V(i0,i1-1,i2,1)*V(i0,i1,i2,1)
-               dmr = V(i0,i1-1,i2,1)+V(i0,i1,i2,1)
-               u1(i0,i1,i2) = nmr/dmr
+               u1(i0,i1,i2) = h_avg2(V(i0,i1-1,i2,1),V(i0,i1,i2,1))
             enddo
          enddo
       enddo
       do i2 = ilower2,iupper2+1
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
-               nmr = 2*V(i0,i1,i2-1,2)*V(i0,i1,i2,2)
-               dmr = V(i0,i1,i2-1,2)+V(i0,i1,i2,2)
-               u2(i0,i1,i2) = nmr/dmr
+               u2(i0,i1,i2) = h_avg2(V(i0,i1,i2-1,2),V(i0,i1,i2,2))
             enddo
          enddo
       enddo
@@ -707,6 +704,10 @@ c
 c
       implicit none
 c
+c     Function.
+c
+      REAL h_avg4
+c
 c     Input.
 c
       INTEGER u_gcw,V_gcw
@@ -728,22 +729,18 @@ c     Local variables.
 c
       INTEGER i0,i1,i2
       INTEGER gcw_shift
-      REAL    nmr,dmr
 
 c     Compute the edge centered interpolation of V
       gcw_shift = 0
       if (U_ghost_interp .eq. 1) then
          gcw_shift = U_gcw
       endif
-
-      nmr = 4.d0
       
       do i2 = ilower2-gcw_shift,iupper2+gcw_shift+1
          do i1 = ilower1-gcw_shift,iupper1+gcw_shift+1
             do i0 = ilower0-gcw_shift,iupper0+gcw_shift
-               dmr = 1.d0/V(i0,i1-1,i2) + 1.d0/V(i0,i1,i2-1)  
-     &               + 1.d0/V(i0,i1,i2) + 1.d0/V(i0,i1-1,i2-1)
-               u0(i0,i1,i2) = nmr/dmr
+               u0(i0,i1,i2) = h_avg4(V(i0,i1-1,i2), V(i0,i1,i2-1),
+     &                          V(i0,i1,i2), V(i0,i1-1,i2-1))
      
             enddo
          enddo
@@ -752,9 +749,8 @@ c     Compute the edge centered interpolation of V
       do i2 = ilower2-gcw_shift,iupper2+gcw_shift+1
          do i1 = ilower1-gcw_shift,iupper1+gcw_shift
             do i0 = ilower0-gcw_shift,iupper0+gcw_shift+1
-               dmr = 1.d0/V(i0,i1,i2) + 1.d0/V(i0,i1,i2-1)  
-     &              + 1.d0/V(i0-1,i1,i2) + 1.d0/V(i0-1,i1,i2-1)
-               u1(i0,i1,i2) = nmr/dmr
+               u1(i0,i1,i2) = h_avg4(V(i0,i1,i2),V(i0,i1,i2-1),
+     &                          V(i0-1,i1,i2),V(i0-1,i1,i2-1))
 
             enddo
          enddo
@@ -763,9 +759,8 @@ c     Compute the edge centered interpolation of V
       do i2 = ilower2-gcw_shift,iupper2+gcw_shift
          do i1 = ilower1-gcw_shift,iupper1+gcw_shift+1
             do i0 = ilower0-gcw_shift,iupper0+gcw_shift+1
-               dmr = 1.d0/V(i0,i1,i2) + 1.d0/V(i0,i1-1,i2)  
-     &               + 1.d0/V(i0-1,i1,i2) + 1.d0/V(i0-1,i1-1,i2)
-               u2(i0,i1,i2) = nmr/dmr
+               u2(i0,i1,i2) = h_avg4(V(i0,i1,i2), V(i0,i1-1,i2),
+     &                          V(i0-1,i1,i2),V(i0-1,i1-1,i2))
 
             enddo
          enddo
