@@ -125,12 +125,8 @@ jobs:
       - name: Compile IBAMR
         id: build
         run: |
-          # HDF5 is installed in a weird way on Fedora - since we aren't using
-          # modules we have to intervene manually
-          mkdir -p hdf5-shim
-          ln -s /usr/include/mpich-x86_64 hdf5-shim/include
-          ln -s /usr/lib64/mpich/lib hdf5-shim/lib
-          bash -c "ctest -DHDF5_ROOT=$(pwd)/hdf5-shim -VV -S .github/cmake/ctest_build.cmake"
+          cd /build/ibamr
+          make -j2 tests
           sccache --show-stats
       - name: Test IBAMR
         id: test
@@ -208,7 +204,8 @@ jobs:
       - name: Compile IBAMR
         id: build
         run: |
-          bash -c "ctest -DHDF5_ROOT=$(pwd)/hdf5-shim -VV -S .github/cmake/ctest_build.cmake"
+          cd /build/ibamr
+          make -j2 tests
           sccache --show-stats
       - name: Test IBAMR
         id: test
@@ -297,7 +294,7 @@ jobs:
           echo "CC=${CC}"
           echo "CXX=${CXX}"
           cd build
-          make -j 2 tests examples
+          make -j2 tests examples
           sccache --show-stats
 
   # build IBAMR with CMake and run tests with our oldest dependencies on CENTOS 7
@@ -347,7 +344,8 @@ jobs:
       - name: Compile IBAMR
         id: build
         run: |
-          bash -c "ctest3 -VV -S .github/cmake/ctest_build.cmake"
+          cd /build/ibamr
+          make -j2 tests
           ccache --show-stats
       - name: Test IBAMR
         id: test
@@ -414,7 +412,8 @@ jobs:
       - name: Compile IBAMR
         id: build
         run: |
-          bash -c "ctest -VV -S .github/cmake/ctest_build.cmake"
+          cd /build/ibamr
+          make -j2
           ccache --show-stats
       - name: Install IBAMR
         id: install
