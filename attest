@@ -480,7 +480,12 @@ def main():
     # 1. set up input file list:
     unstarted_tests = []
     invalid_test_inputs = []
-    for input_file in get_input_files(parameters.test_directory):
+    input_files = list(get_input_files(parameters.test_directory))
+    if len(input_files) == 0:
+        print("attest could not find any tests in the provided test directory.")
+        sys.exit(1)
+
+    for input_file in input_files:
         path_length = len(os.path.split(input_file)[0])
         input_file_name = input_file[path_length + 1:]
         # include the directory when matching test input files:
