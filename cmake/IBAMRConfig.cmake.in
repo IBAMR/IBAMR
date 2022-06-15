@@ -11,9 +11,9 @@
 ##
 ## ---------------------------------------------------------------------
 
-# This file is a template that is populated by CMake with the actual locations
-# of external dependencies and also the file containing information on IBAMR's
-# own targets.
+# This file is a template populated by CMake with the actual locations of
+# external dependencies and also the file containing information on IBAMR's own
+# targets.
 @PACKAGE_INIT@
 
 # Don't set compiler flags, but save them
