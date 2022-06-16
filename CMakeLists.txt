@@ -202,7 +202,10 @@ IF(NOT ${MPI_ROOT} STREQUAL "")
   SET(MPI_HOME ${MPI_ROOT})
   MESSAGE(STATUS "Setting up MPI at location ${MPI_ROOT}")
 ENDIF()
-FIND_PACKAGE(MPI REQUIRED)
+# We never use Fortran with MPI so try to skip it. We also never use the
+# deprecated C++ MPI bindings, but we want things to work with mpic++, so keep
+# it around.
+FIND_PACKAGE(MPI REQUIRED COMPONENTS C CXX)
 # If we are using the compiler wrappers then CMake may not set MPI_C_LIBRARIES -
 # if its empty then try to add something in anyway
 IF("${MPI_C_LIBRARIES}" STREQUAL "")
