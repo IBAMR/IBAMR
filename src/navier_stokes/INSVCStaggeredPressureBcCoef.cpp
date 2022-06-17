@@ -327,9 +327,14 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                     }
                     else if (d_mu_interp_type == VC_HARMONIC_INTERP)
                     {
-                        mu = mu_contains_cells ?
-                                 2.0 * ((*mu_data)(i_g) * (*mu_data)(i_i)) / ((*mu_data)(i_g) + (*mu_data)(i_i)) :
-                                 -1.0e305;
+                        double mu_harmonic;
+                        if (IBTK::abs_equal_eps((*mu_data)(i_g), 0.0) || IBTK::abs_equal_eps((*mu_data)(i_i), 0.0))
+                            mu_harmonic = 0.0;
+                        else
+                            mu_harmonic =
+                                2.0 * ((*mu_data)(i_g) * (*mu_data)(i_i)) / ((*mu_data)(i_g) + (*mu_data)(i_i));
+
+                        mu = mu_contains_cells ? mu_harmonic : std::numeric_limits<double>::signaling_NaN();
                     }
                     else
                     {

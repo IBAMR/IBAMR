@@ -181,6 +181,7 @@ src/solvers/impls/fortran/Makefile
 src/solvers/interfaces/Makefile
 src/solvers/wrappers/Makefile
 src/utilities/Makefile
+src/utilities/fortran/Makefile
 contrib/Makefile
 contrib/muparser/Makefile
 contrib/muparser/src/Makefile
