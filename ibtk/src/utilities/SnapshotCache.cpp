@@ -89,7 +89,7 @@ SnapshotCache::clearSnapshots()
 }
 
 SnapshotCache::value_type
-SnapshotCache::getSnapshot(double time, double tol) const
+SnapshotCache::getSnapshot(double time, double tol)
 {
     auto it = std::find_if(d_snapshots.begin(), d_snapshots.end(), [time, tol](const value_type& t) -> bool {
         return IBTK::abs_equal_eps(t.first, time, tol);

@@ -30,7 +30,7 @@
 namespace IBTK
 {
 void
-update_snapshot(const SnapshotCache& cache,
+update_snapshot(SnapshotCache& cache,
                 int u_idx,
                 double time,
                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > current_hierarchy,
@@ -74,7 +74,7 @@ update_snapshot(const SnapshotCache& cache,
 }
 
 void
-fill_snapshot_on_hierarchy(const SnapshotCache& cache,
+fill_snapshot_on_hierarchy(SnapshotCache& cache,
                            const int u_idx,
                            const double time,
                            Pointer<PatchHierarchy<NDIM> > current_hierarchy,
@@ -130,7 +130,7 @@ fill_snapshot_on_hierarchy(const SnapshotCache& cache,
 }
 
 void
-fill_snapshot_at_time(const SnapshotCache& cache,
+fill_snapshot_at_time(SnapshotCache& cache,
                       const int u_idx,
                       double time,
                       const int scr_idx,

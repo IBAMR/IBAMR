@@ -42,7 +42,7 @@ namespace IBTK
  * Calls to this function may use a different patch index than the one used in setSnapshot(), but the underlying
  * data layout must be consistent. This data layout is specified by the variable used to construct the cache.
  */
-void update_snapshot(const SnapshotCache& cache,
+void update_snapshot(SnapshotCache& cache,
                      int u_idx,
                      double time,
                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > current_hierarchy,
@@ -59,7 +59,7 @@ void update_snapshot(const SnapshotCache& cache,
  * This function does not synchronize the data on the current hierarchy (i.e. no coarsening is performed). It
  * transfers the snapshot using the refinement operator.
  */
-void fill_snapshot_on_hierarchy(const SnapshotCache& cache,
+void fill_snapshot_on_hierarchy(SnapshotCache& cache,
                                 int u_idx,
                                 double time,
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > current_hierarchy,
@@ -81,7 +81,7 @@ void fill_snapshot_on_hierarchy(const SnapshotCache& cache,
  * last snapshot time point t_1 + period.
  */
 void
-fill_snapshot_at_time(const SnapshotCache& snapshot_cache,
+fill_snapshot_at_time(SnapshotCache& snapshot_cache,
                       int u_idx,
                       double t,
                       int scr_idx,

@@ -100,7 +100,7 @@ public:
      * Get a copy of the snapshot time and patch hierarchy pair. If a snapshot is not present within the provided
      * tolerance, a pair of NaN and nullptr is returned.
      */
-    value_type getSnapshot(double time, double tol = 1.0e-8) const;
+    value_type getSnapshot(double time, double tol = 1.0e-8);
 
     /*!
      * Get a const iterator to the first element of the snapshots. Dereferencing the iterator returns a pair of the
@@ -109,11 +109,6 @@ public:
      * \note This iterator is invalid if the number of snapshots changes.
      */
     //@{
-    inline const_iterator begin() const
-    {
-        return d_snapshots.begin();
-    }
-
     inline iterator begin()
     {
         return d_snapshots.begin();
@@ -131,17 +126,12 @@ public:
     {
         return d_snapshots.end();
     }
-
-    inline const_iterator end() const
-    {
-        return d_snapshots.end();
-    }
     //@}
 
     /*!
      * Get the number of stored snapshots.
      */
-    inline size_t getNumSnapshots() const
+    inline size_t getNumSnapshots()
     {
         return d_snapshots.size();
     }
@@ -154,7 +144,7 @@ public:
     /*!
      * Get the patch index owned by this class.
      */
-    inline int getPatchIndex() const
+    inline int getPatchIndex()
     {
         return d_snapshot_idx;
     }
@@ -162,7 +152,7 @@ public:
     /*!
      * Get the variable owned by this class.
      */
-    inline SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getVariable() const
+    inline SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getVariable()
     {
         return d_snapshot_var;
     }
