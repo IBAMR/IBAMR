@@ -21,9 +21,7 @@
 #include <ibamr/config.h>
 
 #include "tbox/PIO.h"
-
 #include "tbox/Pointer.h"
-
 /////////////////////////////// MACRO DEFINITIONS ////////////////////////////
 
 #define IBAMR_DO_ONCE(task)                                                                                            \
