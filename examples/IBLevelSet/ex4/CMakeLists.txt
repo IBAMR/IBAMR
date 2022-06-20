@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2021 - 2021 by the IBAMR developers
+## Copyright (c) 2021 - 2022 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -21,10 +21,10 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-IBLevelSet
   SOURCES
-    LevelSetInitialCondition.cpp  
-    SetFluidSolidDensity.cpp      
-    SetFluidSolidViscosity.cpp    
-    TagLSRefinementCells.cpp      
+    LevelSetInitialCondition.cpp
+    SetFluidSolidDensity.cpp
+    SetFluidSolidViscosity.cpp
+    TagLSRefinementCells.cpp
     example.cpp
   LINK_TARGETS
     IBAMR2d
