@@ -127,6 +127,15 @@ namespace IBAMR
 
 namespace
 {
+static Timer* t_preprocess_integrate_data;
+static Timer* t_postprocess_integrate_data;
+static Timer* t_interpolate_velocity;
+static Timer* t_compute_lagrangian_force;
+static Timer* t_spread_force;
+static Timer* t_add_workload_estimate;
+static Timer* t_begin_data_redistribution;
+static Timer* t_end_data_redistribution;
+static Timer* t_apply_gradient_detector;
 // Version of IIMethod restart file data.
 static const int IIM_VERSION = 3;
 
@@ -323,6 +332,7 @@ IIMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM>
 void
 IIMethod::preprocessIntegrateData(double current_time, double new_time, int /*num_cycles*/)
 {
+    IBAMR_TIMER_START(t_preprocess_integrate_data);
     d_current_time = current_time;
     d_new_time = new_time;
     d_half_time = current_time + 0.5 * (new_time - current_time);
@@ -528,12 +538,14 @@ IIMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
             *d_TAU_out_half_vecs[part] = *d_TAU_out_systems[part]->solution;
         }
     }
+    IBAMR_TIMER_STOP(t_preprocess_integrate_data);
     return;
 } // preprocessIntegrateData
 
 void
 IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/, int /*num_cycles*/)
 {
+    IBAMR_TIMER_START(t_postprocess_integrate_data);
     std::vector<std::vector<libMesh::PetscVector<double>*> > vec_collection_update = {
         d_U_new_vecs, d_X_new_vecs, d_U_n_new_vecs, d_U_t_new_vecs, d_F_half_vecs
     };
@@ -687,6 +699,7 @@ IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/,
     d_current_time = std::numeric_limits<double>::quiet_NaN();
     d_new_time = std::numeric_limits<double>::quiet_NaN();
     d_half_time = std::numeric_limits<double>::quiet_NaN();
+    IBAMR_TIMER_STOP(t_postprocess_integrate_data);
     return;
 } // postprocessIntegrateData
 
@@ -696,6 +709,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                               const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                               const double data_time)
 {
+    IBAMR_TIMER_START(t_interpolate_velocity);
     const double mu = getINSHierarchyIntegrator()->getStokesSpecifications()->getMu();
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const int coarsest_ln = 0;
@@ -1417,6 +1431,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         }
         d_X_IB_ghost_vecs[part]->close();
     }
+    IBAMR_TIMER_STOP(t_interpolate_velocity);
     return;
 } // interpolateVelocity
 
@@ -2376,6 +2391,7 @@ IIMethod::trapezoidalStep(const double current_time, const double new_time)
 void
 IIMethod::computeLagrangianForce(const double data_time)
 {
+    IBAMR_TIMER_START(t_compute_lagrangian_force);
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
     batch_vec_ghost_update(d_X_half_vecs, INSERT_VALUES, SCATTER_FORWARD);
     for (unsigned part = 0; part < d_num_parts; ++part)
@@ -2758,6 +2774,7 @@ IIMethod::computeLagrangianForce(const double data_time)
             }
         }
     }
+    IBAMR_TIMER_STOP(t_compute_lagrangian_force);
     return;
 } // computeLagrangianForce
 
@@ -2768,6 +2785,7 @@ IIMethod::spreadForce(const int f_data_idx,
                       const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
+    IBAMR_TIMER_START(t_spread_force);
 
     std::vector<std::vector<libMesh::PetscVector<double>*> > vec_collection_update = {
         d_X_IB_ghost_vecs, d_X_half_vecs, d_F_IB_ghost_vecs, d_F_half_vecs
@@ -2838,6 +2856,7 @@ IIMethod::spreadForce(const int f_data_idx,
         d_F_IB_ghost_vecs[part]->close();
         d_X_IB_ghost_vecs[part]->close();
     }
+    IBAMR_TIMER_STOP(t_spread_force);
     return;
 } // spreadForce
 
@@ -3141,23 +3160,28 @@ IIMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int w
 void
 IIMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
 {
+    IBAMR_TIMER_START(t_add_workload_estimate);
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         d_fe_data_managers[part]->addWorkloadEstimate(hierarchy, workload_data_idx);
     }
+    IBAMR_TIMER_STOP(t_add_workload_estimate);
     return;
 } // addWorkloadEstimate
 
 void IIMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                        Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
+    IBAMR_TIMER_START(t_begin_data_redistribution);
     // intentionally blank
+    IBAMR_TIMER_STOP(t_begin_data_redistribution);
     return;
 } // beginDataRedistribution
 
 void IIMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
                                      Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
+    IBAMR_TIMER_START(t_end_data_redistribution);
     if (d_is_initialized)
     {
         for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -3165,6 +3189,7 @@ void IIMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*
             d_fe_data_managers[part]->reinitElementMappings();
         }
     }
+    IBAMR_TIMER_STOP(t_end_data_redistribution);
     return;
 } // endDataRedistribution
 
@@ -3205,6 +3230,7 @@ IIMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarch
                                 bool initial_time,
                                 bool uses_richardson_extrapolation_too)
 {
+    IBAMR_TIMER_START(t_apply_gradient_detector);
     Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -3214,6 +3240,7 @@ IIMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarch
         d_fe_data_managers[part]->applyGradientDetector(
             hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
     }
+    IBAMR_TIMER_STOP(t_apply_gradient_detector);
     return;
 } // applyGradientDetector
 
@@ -4151,6 +4178,18 @@ IIMethod::commonConstructor(const std::string& object_name,
     // Set up the interaction spec objects.
     d_interp_spec.resize(d_num_parts, d_default_interp_spec);
     d_spread_spec.resize(d_num_parts, d_default_spread_spec);
+
+    // Setup timers.
+    auto set_timer = [&](const char* name) { return TimerManager::getManager()->getTimer(name); };
+    IBAMR_DO_ONCE(t_preprocess_integrate_data = set_timer("IBAMR::IIMMethod::preprocessIntegrateData()");
+                  t_postprocess_integrate_data = set_timer("IBAMR::IIMMethod::postprocessIntegrateData()");
+                  t_interpolate_velocity = set_timer("IBAMR::IIMMethod::interpolateVelocity()");
+                  t_compute_lagrangian_force = set_timer("IBAMR::IIMMethod::computeLagrangianForce()");
+                  t_spread_force = set_timer("IBAMR::IIMMethod::spreadForce()");
+                  t_add_workload_estimate = set_timer("IBAMR::IIMMethod::addWorkloadEstimate()");
+                  t_begin_data_redistribution = set_timer("IBAMR::IIMMethod::beginDataRedistribution()");
+                  t_end_data_redistribution = set_timer("IBAMR::IIMMethod::endDataRedistribution()");
+                  t_apply_gradient_detector = set_timer("IBAMR::IIMMethod::applyGradientDetector()"););
 
     return;
 } // commonConstructor
