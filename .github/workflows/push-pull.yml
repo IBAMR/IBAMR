@@ -126,7 +126,7 @@ jobs:
         id: build
         run: |
           cd /build/ibamr
-          make -j2 tests
+          make -j2 tests examples
           sccache --show-stats
       - name: Test IBAMR
         id: test
@@ -406,7 +406,7 @@ jobs:
         id: build
         run: |
           cd /build/ibamr
-          make -j2
+          make -j2 examples
           ccache --show-stats
       - name: Install IBAMR
         id: install
