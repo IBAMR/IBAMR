@@ -76,14 +76,15 @@ jobs:
           # To get around this, always make the key unique and rely on
           # restore-keys to find the highest-indexed key available. Explicitly
           # try to restore things from the most recent builds.
-          key: ${{ runner.os }}-build-cmake-${{ github.run_number }}
+          key: ${{ runner.os }}-build-cmake-libmesh-${{ github.run_number }}
           restore-keys: |
-            ${{ runner.os }}-build-cmake-${{ steps.keys.outputs.key1 }}
-            ${{ runner.os }}-build-cmake-${{ steps.keys.outputs.key2 }}
-            ${{ runner.os }}-build-cmake-${{ steps.keys.outputs.key3 }}
-            ${{ runner.os }}-build-cmake-${{ steps.keys.outputs.key4 }}
-            ${{ runner.os }}-build-cmake-${{ steps.keys.outputs.key5 }}
-            ${{ runner.os }}-build-cmake-
+            ${{ runner.os }}-build-cmake-libmesh-${{ steps.keys.outputs.key1 }}
+            ${{ runner.os }}-build-cmake-libmesh-${{ steps.keys.outputs.key2 }}
+            ${{ runner.os }}-build-cmake-libmesh-${{ steps.keys.outputs.key3 }}
+            ${{ runner.os }}-build-cmake-libmesh-${{ steps.keys.outputs.key4 }}
+            ${{ runner.os }}-build-cmake-libmesh-${{ steps.keys.outputs.key5 }}
+            ${{ runner.os }}-build-cmake-libmesh-
+            ${{ runner.os }}-build-cmake
       - name: Start sccache server
         id: cache-server
         run: sccache --start-server
