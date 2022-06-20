@@ -215,6 +215,8 @@ SET(CXX_SRC
   utilities/StreamableManager.cpp
   utilities/LMarkerUtilities.cpp
   utilities/PartitioningBox.cpp
+  utilities/SnapshotCache.cpp
+  utilities/snapshot_utilities.cpp
   )
 
 IF(IBAMR_HAVE_LIBMESH)
