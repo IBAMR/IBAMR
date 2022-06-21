@@ -1249,13 +1249,6 @@ IF(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND
   STRING(APPEND CMAKE_CXX_FLAGS " -Wno-unneeded-internal-declaration")
 ENDIF()
 
-#
-# Set up specific targets for executables and libraries that want to link to
-# IBAMR. As noted above, we have to do this since SAMRAI might not be compiled
-# with -fPIC: i.e., if we added SAMRAI as a link dependency to libIBTK and
-# libIBTK as a link dependency to libFoo, then the linker would encounter errors
-# as a result. With executables we can use the full link interface.
-#
 SET(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/ibamr/)
 
 # Set up actual files containing the export target information:
