@@ -63,7 +63,7 @@ PointMap<dim, spacedim, n_nodes>::PointMap(const libMesh::ElemType elem_type,
                                            const std::vector<libMesh::Point>& q_points)
     : d_reference_q_points(q_points)
 {
-    const int n_nodes_ = n_nodes == -1 ? get_n_nodes(elem_type) : n_nodes;
+    const int n_nodes_ = n_nodes == -1 ? static_cast<int>(get_n_nodes(elem_type)) : n_nodes;
     const auto elem_order = get_default_order(elem_type);
     d_phi.resize(n_nodes_, d_reference_q_points.size());
     for (int i = 0; i < n_nodes_; ++i)
@@ -267,7 +267,7 @@ FENodalMapping<dim, spacedim, n_nodes>::fillQuadraturePoints(const libMesh::Elem
     // mapping from the higher-order mapping, so permit elements with more
     // nodes in that code
     if (n_nodes != -1) TBOX_ASSERT(n_nodes <= static_cast<int>(elem->n_nodes()));
-    const int n_nodes_ = n_nodes == -1 ? elem->n_nodes() : n_nodes;
+    const int n_nodes_ = n_nodes == -1 ? static_cast<int>(elem->n_nodes()) : n_nodes;
     TBOX_ASSERT(n_nodes_ <= 27);
     for (int node_n = 0; node_n < n_nodes_; ++node_n)
     {
@@ -287,7 +287,7 @@ FELagrangeMapping<dim, spacedim, n_nodes>::FELagrangeMapping(
     const libMesh::ElemType element_mapping_type,
     const FEUpdateFlags update_flags)
     : FENodalMapping<dim, spacedim, n_nodes>(quad_key, element_mapping_type, update_flags),
-      d_n_nodes(n_nodes == -1 ? get_n_nodes(std::get<0>(quad_key)) : n_nodes)
+      d_n_nodes(n_nodes == -1 ? static_cast<int>(get_n_nodes(std::get<0>(quad_key))) : n_nodes)
 {
     if (n_nodes != -1) TBOX_ASSERT(d_n_nodes == n_nodes);
 #if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
