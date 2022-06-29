@@ -1,3 +1,21 @@
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2022 - 2022 by the IBAMR developers
+// All rights reserved.
+//
+// This file is part of IBAMR.
+//
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
+//
+// ---------------------------------------------------------------------
+
+#ifndef included_bcdata
+#define included_bcdata
+
+#include <tbox/Database.h>
+
 struct BcData
 {
     const double U1;
@@ -5,8 +23,6 @@ struct BcData
 
     const double t_load;
     const double tg_load;
-
-    //    static std::string inflow_data;
 
     const double wall;
     const double d_in;
@@ -17,7 +33,7 @@ struct BcData
     const double z_min;
     const double z_max;
 
-    BcData(Pointer<Database> input_db)
+    BcData(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
         : U1(input_db->getDouble("U1")),
           U2(input_db->getDouble("U2")),
           t_load(input_db->getDouble("T_LOAD")),
@@ -33,3 +49,5 @@ struct BcData
     {
     }
 };
+
+#endif
