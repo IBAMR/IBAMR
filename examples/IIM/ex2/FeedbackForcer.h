@@ -23,8 +23,9 @@
 #include <ibamr/INSHierarchyIntegrator.h>
 
 // NAMESPACE
-#include <ibamr/app_namespaces.h>
 #include "ibtk/ibtk_utilities.h"
+
+#include <ibamr/app_namespaces.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 

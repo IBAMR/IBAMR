@@ -170,7 +170,7 @@ main(int argc, char* argv[])
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
-    
+
     PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-10");
     PetscOptionsSetValue(nullptr, "-stokes_ksp_atol", "1e-10");
 

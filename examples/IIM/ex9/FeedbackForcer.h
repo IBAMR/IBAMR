@@ -11,7 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-
 #ifndef included_FeedbackForcer
 #define included_FeedbackForcer
 
@@ -24,10 +23,11 @@
 #include <ibamr/INSHierarchyIntegrator.h>
 
 // NAMESPACE
-#include <ibamr/app_namespaces.h>
 #include "ibtk/ibtk_utilities.h"
 
 #include "VelocityBcCoefs.h" //we include this because it includes "BcData.h"
+
+#include <ibamr/app_namespaces.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -44,7 +44,7 @@ public:
      */
     FeedbackForcer(const INSHierarchyIntegrator* fluid_solver,
                    Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                   const BcData &bc_data);
+                   const BcData& bc_data);
 
     /*!
      * \brief Destructor.
@@ -70,8 +70,7 @@ public:
                         Pointer<Patch<NDIM> > patch,
                         double data_time,
                         bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > patch_level =
-                        Pointer<PatchLevel<NDIM> >(NULL));
+                        Pointer<PatchLevel<NDIM> > patch_level = Pointer<PatchLevel<NDIM> >(NULL));
 
     //\}
 
