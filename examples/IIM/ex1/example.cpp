@@ -25,6 +25,10 @@
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
 #include <libmesh/mesh_triangle_interface.h>
+#include "libmesh/mesh_refinement.h"
+#include "libmesh/mesh_modification.h"
+#include "libmesh/mesh_tools.h"
+
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
@@ -52,63 +56,19 @@ namespace ModelData
 // context data pointer. Here we collect all relevant tether data in a struct:
 struct TetherData
 {
-    const double c1_s;
-    const double kappa_s_body;
-    const double eta_s_body;
     const double kappa_s_surface;
     const double eta_s_surface;
 
-    TetherData(Pointer<Database> input_db)
-        : c1_s(input_db->getDouble("C1_S")),
-          kappa_s_body(input_db->getDouble("KAPPA_S_BODY")),
-          eta_s_body(input_db->getDouble("ETA_S_BODY")),
-          kappa_s_surface(input_db->getDouble("KAPPA_S_SURFACE")),
+    TetherData(tbox::Pointer<tbox::Database> input_db)
+        : kappa_s_surface(input_db->getDouble("KAPPA_S_SURFACE")),
           eta_s_surface(input_db->getDouble("ETA_S_SURFACE"))
     {
     }
 };
+static double ds = 0.0;
+static double dx = 0.0;
 
 bool compute_fluid_traction = false;
-
-// Tether (penalty) stress function.
-void
-PK1_stress_function(TensorValue<double>& PP,
-                    const TensorValue<double>& FF,
-                    const libMesh::Point& /*x*/,
-                    const libMesh::Point& /*X*/,
-                    Elem* const /*elem*/,
-                    const vector<const vector<double>*>& /*var_data*/,
-                    const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
-                    double /*time*/,
-                    void* ctx)
-{
-    const TetherData* const tether_data = reinterpret_cast<TetherData*>(ctx);
-
-    PP = 2.0 * tether_data->c1_s * (FF - tensor_inverse_transpose(FF, NDIM));
-    return;
-} // PK1_stress_function
-
-// Tether (penalty) force functions.
-void
-tether_force_function(VectorValue<double>& F,
-                      const TensorValue<double>& /*FF*/,
-                      const libMesh::Point& x,
-                      const libMesh::Point& X,
-                      Elem* const /*elem*/,
-                      const vector<const vector<double>*>& var_data,
-                      const vector<const vector<VectorValue<double> >*>& /*grad_var_data*/,
-                      double /*time*/,
-                      void* ctx)
-{
-    const TetherData* const tether_data = reinterpret_cast<TetherData*>(ctx);
-
-    const std::vector<double>& U = *var_data[0];
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        F(d) = tether_data->kappa_s_body * (X(d) - x(d)) - tether_data->eta_s_body * U[d];
-    }
-    return;
-} // tether_force_function
 
 void
 tether_force_function(VectorValue<double>& F,
@@ -141,9 +101,9 @@ using namespace ModelData;
 static ofstream drag_F_stream, lift_F_stream, drag_TAU_stream, lift_TAU_stream, U_L1_norm_stream, U_L2_norm_stream,
     U_max_norm_stream;
 
-void postprocess_data(Pointer<Database> input_db,
-                      Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                      Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+void postprocess_data(tbox::Pointer<tbox::Database> input_db,
+                      tbox::Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                      tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       Mesh& mesh,
                       EquationSystems* equation_systems,
                       const int iteration_num,
@@ -170,7 +130,8 @@ main(int argc, char* argv[])
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
-    
+
+    // Set a tight tolerance usign with IIM for the ksp sovler
     PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-10");
     PetscOptionsSetValue(nullptr, "-stokes_ksp_atol", "1e-10");
 
@@ -179,8 +140,8 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        tbox::Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        tbox::Pointer<tbox::Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -215,56 +176,28 @@ main(int argc, char* argv[])
 
         // Create a simple FE mesh.
         Mesh solid_mesh(init.comm(), NDIM);
-        const double dx = input_db->getDouble("DX");
-        const double ds = input_db->getDouble("MFAC") * dx;
+        dx = input_db->getDouble("DX");
+        const double mfac = input_db->getDouble("MFAC");
+        ds = mfac * dx;
+        const double R_D = input_db->getDouble("R_D");
         string elem_type = input_db->getString("ELEM_TYPE");
-        const double R = input_db->getDouble("R");
-        if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
+        if (NDIM == 2)
         {
-#ifdef LIBMESH_HAVE_TRIANGLE
-            const int num_circum_nodes = ceil(2.0 * M_PI * R / ds);
-            for (int k = 0; k < num_circum_nodes; ++k)
-            {
-                const double theta = 2.0 * M_PI * static_cast<double>(k) / static_cast<double>(num_circum_nodes);
-                solid_mesh.add_point(libMesh::Point(R * cos(theta), R * sin(theta)));
-            }
-            TriangleInterface triangle(solid_mesh);
-            triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
-            triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
-            triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
-            triangle.insert_extra_points() = true;
-            triangle.smooth_after_generating() = true;
-            triangle.triangulate();
-#else
-            TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
-                       << "       but Triangle is required for TRI3 or TRI6 elements.\n");
-#endif
-        }
-        else
-        {
-            // NOTE: number of segments along boundary is 4*2^r.
-            const double num_circum_segments = 2.0 * M_PI * R / ds;
-            const int r = log2(0.25 * num_circum_segments);
-            MeshTools::Generation::build_sphere(solid_mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
-        }
-
-        // Ensure nodes on the surface are on the analytic boundary.
-        MeshBase::element_iterator el_end = solid_mesh.elements_end();
-        for (MeshBase::element_iterator el = solid_mesh.elements_begin(); el != el_end; ++el)
-        {
-            Elem* const elem = *el;
-            for (unsigned int side = 0; side < elem->n_sides(); ++side)
-            {
-                const bool at_mesh_bdry = !elem->neighbor_ptr(side);
-                if (!at_mesh_bdry) continue;
-                for (unsigned int k = 0; k < elem->n_nodes(); ++k)
-                {
-                    if (!elem->is_node_on_side(k, side)) continue;
-                    Node& n = elem->node_ref(k);
-                    n = R * n.unit();
-                }
-            }
-        }
+		   MeshTools::Generation::build_square(solid_mesh, static_cast<int>(ceil(R_D / ds)),
+												static_cast<int>(ceil(R_D / ds)), -R_D / 2.0,
+												R_D / 2.0, -R_D / 2.0, R_D / 2.0,
+												Utility::string_to_enum<ElemType>(elem_type));	
+		}
+		else
+		{
+		   MeshTools::Generation::build_cube(solid_mesh, static_cast<int>(ceil(R_D / ds)),
+												static_cast<int>(ceil(R_D / ds)), 
+												static_cast<int>(ceil(R_D / ds)), 
+												R_D / 2.0, -R_D / 2.0, -R_D / 2.0,
+												R_D / 2.0, -R_D / 2.0, R_D / 2.0,
+												Utility::string_to_enum<ElemType>(elem_type));	
+			
+		}
         solid_mesh.prepare_for_use();
 
         BoundaryMesh boundary_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension() - 1);
@@ -279,7 +212,7 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application. These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
+        tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
@@ -298,32 +231,33 @@ main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        Pointer<IBStrategy> ib_ops;
+        tbox::Pointer<IBStrategy> ib_ops;
         ib_ops = new IIMethod("IIMethod",
                               app_initializer->getComponentDatabase("IIMethod"),
                               &mesh,
                               app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        Pointer<IBHierarchyIntegrator> time_integrator =
+        tbox::Pointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        tbox::Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        tbox::Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        tbox::Pointer<StandardTagAndInitialize<NDIM> > error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        tbox::Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
+        tbox::Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        tbox::Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
                                         box_generator,
                                         load_balancer);
+          
         // Configure the IBFE solver.
         TetherData tether_data(input_db);
         void* const tether_data_ptr = reinterpret_cast<void*>(&tether_data);
@@ -332,23 +266,33 @@ main(int argc, char* argv[])
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
         vector<SystemData> sys_data(1, SystemData(IIMethod::VELOCITY_SYSTEM_NAME, vars));
-        Pointer<IIMethod> ibfe_ops = ib_ops;
+        tbox::Pointer<IIMethod> ibfe_ops = ib_ops;
+        
+        // Whether to use discontinuous basis functions with element-local support  
+        // We ask this before initializing the FE equation system                               
+        const bool USE_DISCON_ELEMS = input_db->getBool("USE_DISCON_ELEMS");
+		if (USE_DISCON_ELEMS)
+			ibfe_ops->registerDisconElemFamilyForJumps();
+			
+			
         ibfe_ops->initializeFEEquationSystems();
         equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
         IIMethod::LagSurfaceForceFcnData surface_fcn_data(tether_force_function, sys_data, tether_data_ptr);
         ibfe_ops->registerLagSurfaceForceFunction(surface_fcn_data);
 
+
+			
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
-            Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+            tbox::Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
                 "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         }
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
-            Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+            tbox::Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
         }
@@ -380,13 +324,13 @@ main(int argc, char* argv[])
         // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
         {
-            Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
+            tbox::Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        tbox::Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -530,9 +474,9 @@ main(int argc, char* argv[])
 } // main
 
 void
-postprocess_data(Pointer<Database> input_db,
-                 Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
-                 Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
+postprocess_data(tbox::Pointer<tbox::Database> input_db,
+                 tbox::Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+                 tbox::Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
                  Mesh& mesh,
                  EquationSystems* equation_systems,
                  const int /*iteration_num*/,

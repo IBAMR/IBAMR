@@ -1,0 +1,2 @@
+This example demonstrates the usage of IIMethod and discontinuous basis functions (L2 Lagrange family in libMesh) 
+with element-local support for the flow over a swimming thin airfoil.

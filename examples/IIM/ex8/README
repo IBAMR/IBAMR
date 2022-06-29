@@ -1,0 +1,2 @@
+This example demonstrates the usage of the ILE/IIM methods for the damped structural instability of a 2D reservoir.
+The one sided FSI coupling is demonstrated for the embedded fluid. 

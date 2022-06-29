@@ -1,0 +1,2 @@
+This example demonstrates the usage of the ILE-IIM methods for the vortex-induded vibration (VIV) of a circular disk.
+For more details see Sec. 4.1.2 of ``An Immersed Interface Method for Discrete Surfaces'', EM. Kolahdouz et al., JCP, 2020 (https://doi.org/10.1016/j.jcp.2019.07.052)

@@ -11,17 +11,19 @@
 ##
 ## ---------------------------------------------------------------------
 
+
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "IIM-ex0-2d"
+    "IIM-ex8-2d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/IIM/ex0"
+    "${CMAKE_BINARY_DIR}/examples/IIM/ex8"
   OUTPUT_NAME
     main2d
   EXAMPLE_GROUP
     examples-IIM
   SOURCES
     example.cpp
+    FeedbackForcer.cpp
   REQUIRES
     IBAMR_HAVE_LIBMESH
   LINK_TARGETS
@@ -29,26 +31,6 @@ IBAMR_ADD_EXAMPLE(
   INPUT_FILES
     input2d
   EXTRA_FILES
-    compute_St.m
-    )
-
-IBAMR_ADD_EXAMPLE(
-  TARGET_NAME
-    "IIM-ex0-3d"
-  OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/IIM/ex0"
-  OUTPUT_NAME
-    main3d
-  EXAMPLE_GROUP
-    examples-IIM
-  SOURCES
-    example.cpp
-  REQUIRES
-    IBAMR_HAVE_LIBMESH
-  LINK_TARGETS
-    IBAMR3d
-  INPUT_FILES
-    input3d
-  EXTRA_FILES
-    compute_St.m
+    damped_ds_0.2_QUAD9_lower_AllSides.e
+    damped_ds_0.2_QUAD9_upper_AllSides.e
     )

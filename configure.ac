@@ -210,6 +210,15 @@ AC_CONFIG_FILES([
   examples/IBLevelSet/ex5/Makefile
   examples/IIM/Makefile
   examples/IIM/ex0/Makefile
+  examples/IIM/ex1/Makefile
+  examples/IIM/ex2/Makefile
+  examples/IIM/ex3/Makefile
+  examples/IIM/ex4/Makefile
+  examples/IIM/ex5/Makefile
+  examples/IIM/ex6/Makefile
+  examples/IIM/ex7/Makefile
+  examples/IIM/ex8/Makefile
+  examples/IIM/ex9/Makefile
   examples/IMP/Makefile
   examples/IMP/explicit/Makefile
   examples/IMP/explicit/ex0/Makefile
