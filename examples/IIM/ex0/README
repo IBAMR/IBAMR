@@ -1,1 +1,2 @@
-This example demonstrates basic usage of IIMethod with a flow-past-a-cylinder example.
+This example demonstrates basic usage of IIMethod for the flow past a circular cylinder.
+For more details see Sec. 4.5 of ``An immersed interface method for discrete surfaces'' by EM Kolahdouz et al., JCP, 2020 (https://doi.org/10.1016/j.jcp.2019.07.052)

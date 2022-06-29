@@ -1,0 +1,2 @@
+This example demonstrates the usage of the ILE-IIM methods for the rigid-body/fluid-structure interaction of a falling sphere (fully unconstrained motion)
+For more details see Sec. 4.4 of ``A sharp interface Lagrangian-Eulerian method for rigid-body fluid-structure interaction'' by EM Kolahdouz et al., JCP, 2021 (https://doi.org/10.48550/arXiv.2003.12046)
