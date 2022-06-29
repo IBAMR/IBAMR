@@ -11,32 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-// Headers for basic PETSc functions
-#include <petscsys.h>
-
-// Headers for basic SAMRAI objects
-#include "tbox/MathUtilities.h"
-#include "tbox/Utilities.h"
-
-#include "Eigen/Core"
-#include "Eigen/Geometry"
-
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
-
-// Headers for basic libMesh objects
-#include <libmesh/boundary_info.h>
-#include <libmesh/boundary_mesh.h>
-#include <libmesh/equation_systems.h>
-#include <libmesh/exodusII_io.h>
-#include <libmesh/explicit_system.h>
-#include <libmesh/mesh.h>
-#include <libmesh/mesh_generation.h>
-#include <libmesh/mesh_triangle_interface.h>
-
-// Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
@@ -51,9 +25,25 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include <tbox/MathUtilities.h>
+#include <tbox/Utilities.h>
+
+#include <libmesh/boundary_info.h>
+#include <libmesh/boundary_mesh.h>
+#include <libmesh/equation_systems.h>
+#include <libmesh/exodusII_io.h>
+#include <libmesh/explicit_system.h>
+#include <libmesh/mesh.h>
+#include <libmesh/mesh_generation.h>
+#include <libmesh/mesh_triangle_interface.h>
+
 #include <boost/multi_array.hpp>
 
-// Set up application namespace declarations
+#include <BergerRigoutsos.h>
+#include <CartesianGridGeometry.h>
+#include <LoadBalancer.h>
+#include <StandardTagAndInitialize.h>
+
 #include <ibamr/app_namespaces.h>
 
 // Elasticity model data.

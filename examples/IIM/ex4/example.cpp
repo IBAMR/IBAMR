@@ -11,19 +11,15 @@
 //
 // --------------------------------------------------------------------
 
-// Headers for basic PETSc functions
-#include <petscsys.h>
+#include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IIMethod.h>
+#include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
-// Headers for basic SAMRAI objects
+#include <ibtk/AppInitializer.h>
+#include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
-
-// Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
 #include <libmesh/boundary_mesh.h>
 #include <libmesh/centroid_partitioner.h>
@@ -43,16 +39,10 @@
 #include <libmesh/parallel.h>
 #include <libmesh/quadrature.h>
 
-// Headers for application-specific algorithm/data structure objects
-#include <ibamr/IBExplicitHierarchyIntegrator.h>
-#include <ibamr/IBStrategySet.h>
-#include <ibamr/IIMethod.h>
-#include <ibamr/INSStaggeredHierarchyIntegrator.h>
-
-#include <ibtk/AppInitializer.h>
-#include <ibtk/IBTK_CHKERRQ.h>
-#include <ibtk/IndexUtilities.h>
-#include <ibtk/libmesh_utilities.h>
+#include <BergerRigoutsos.h>
+#include <CartesianGridGeometry.h>
+#include <LoadBalancer.h>
+#include <StandardTagAndInitialize.h>
 
 #include <ibamr/app_namespaces.h>
 

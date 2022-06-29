@@ -11,8 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-// Config files
-
 #include <ibamr/FEMechanicsExplicitIntegrator.h>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBStrategySet.h>
@@ -26,66 +24,32 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
-#include "tbox/MathUtilities.h"
-#include "tbox/Utilities.h"
+#include <tbox/MathUtilities.h>
+#include <tbox/Utilities.h>
 
-#include "libmesh/dense_matrix.h"
-#include "libmesh/dense_submatrix.h"
-#include "libmesh/dense_subvector.h"
-#include "libmesh/dense_vector.h"
-#include "libmesh/dirichlet_boundaries.h"
-#include "libmesh/dof_map.h"
-#include "libmesh/elem.h"
-#include "libmesh/enum_solver_package.h"
-#include "libmesh/exodusII_io.h"
-#include "libmesh/fe.h"
-#include "libmesh/getpot.h"
-#include "libmesh/gnuplot_io.h"
-#include "libmesh/libmesh.h"
-#include "libmesh/libmesh_config.h"
-#include "libmesh/linear_implicit_system.h"
-#include "libmesh/mesh_generation.h"
-#include "libmesh/mesh_refinement.h"
-#include "libmesh/numeric_vector.h"
-#include "libmesh/perf_log.h"
-#include "libmesh/petsc_linear_solver.h"
-#include "libmesh/petsc_macro.h"
-#include "libmesh/quadrature_gauss.h"
-#include "libmesh/solver_configuration.h"
-#include "libmesh/sparse_matrix.h"
-#include "libmesh/string_to_enum.h"
-#include "libmesh/uniform_refinement_estimator.h"
-#include "libmesh/zero_function.h"
 #include <libmesh/boundary_info.h>
 #include <libmesh/boundary_mesh.h>
+#include <libmesh/dense_vector.h>
+#include <libmesh/dirichlet_boundaries.h>
+#include <libmesh/dof_map.h>
+#include <libmesh/elem.h>
 #include <libmesh/equation_systems.h>
 #include <libmesh/exodusII_io.h>
-#include <libmesh/mesh.h>
+#include <libmesh/fe.h>
 #include <libmesh/mesh_function.h>
 #include <libmesh/mesh_generation.h>
-#include <libmesh/mesh_modification.h>
-#include <libmesh/mesh_tools.h>
-#include <libmesh/mesh_triangle_interface.h>
-#include <libmesh/point_locator_base.h>
-#include <libmesh/serial_mesh.h>
+#include <libmesh/mesh_refinement.h>
+#include <libmesh/numeric_vector.h>
+#include <libmesh/sparse_matrix.h>
 
 #include <boost/multi_array.hpp>
-
-#include "Eigen/Core"
-#include "Eigen/Geometry"
 
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <LoadBalancer.h>
-#include <SAMRAI_config.h>
 #include <StandardTagAndInitialize.h>
 
 #include <ibamr/app_namespaces.h>
-
-using namespace IBAMR;
-using namespace IBTK;
-using namespace libMesh;
-using namespace std;
 
 // Elasticity model data.
 namespace ModelData

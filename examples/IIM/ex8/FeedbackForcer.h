@@ -16,14 +16,10 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDES
-#include <petscsys.h>
-
-// IBAMR INCLUDES
 #include <ibamr/INSHierarchyIntegrator.h>
 
-// NAMESPACE
-#include "ibtk/ibtk_utilities.h"
+#include <Patch.h>
+#include <Variable.h>
 
 #include <ibamr/app_namespaces.h>
 

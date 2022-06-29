@@ -15,17 +15,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifndef included_IBAMR_config
-#include <IBAMR_config.h>
-#define included_IBAMR_config
-#endif
-
-#ifndef included_SAMRAI_config
-#include <SAMRAI_config.h>
-#define included_SAMRAI_config
-#endif
-
-// SAMRAI INCLUDES
 #include <tbox/Utilities.h>
 
 #include <CartesianGridGeometry.h>

@@ -11,19 +11,17 @@
 //
 // ---------------------------------------------------------------------
 
-// Headers for basic PETSc functions
-#include <petscsys.h>
+#include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IIMethod.h>
+#include <ibamr/INSCollocatedHierarchyIntegrator.h>
+#include <ibamr/INSStaggeredHierarchyIntegrator.h>
+#include <ibamr/StaggeredStokesOpenBoundaryStabilizer.h>
 
-// Application-specific includes.
+#include <ibtk/AppInitializer.h>
+#include <ibtk/IndexUtilities.h>
+#include <ibtk/muParserCartGridFunction.h>
+#include <ibtk/muParserRobinBcCoefs.h>
 
-// Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <FeedbackForcer.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
-
-// Headers for basic libMesh objects
 #include <libmesh/boundary_info.h>
 #include <libmesh/dof_map.h>
 #include <libmesh/equation_systems.h>
@@ -34,23 +32,16 @@
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_function.h>
 #include <libmesh/mesh_generation.h>
-// Headers for application-specific algorithm/data structure objects
 
-#include <ibamr/IBExplicitHierarchyIntegrator.h>
-#include <ibamr/IIMethod.h>
-#include <ibamr/INSCollocatedHierarchyIntegrator.h>
-#include <ibamr/INSStaggeredHierarchyIntegrator.h>
-#include <ibamr/SpongeLayerForceFunction.h>
-#include <ibamr/StaggeredStokesOpenBoundaryStabilizer.h>
-
-#include <ibtk/AppInitializer.h>
-#include <ibtk/IndexUtilities.h>
-#include <ibtk/ibtk_utilities.h>
-#include <ibtk/libmesh_utilities.h>
-#include <ibtk/muParserCartGridFunction.h>
-#include <ibtk/muParserRobinBcCoefs.h>
+#include <BergerRigoutsos.h>
+#include <CartesianGridGeometry.h>
+#include <LoadBalancer.h>
+#include <StandardTagAndInitialize.h>
 
 #include <ibamr/app_namespaces.h>
+
+// Application-specific includes
+#include "FeedbackForcer.h"
 
 namespace ModelData
 {

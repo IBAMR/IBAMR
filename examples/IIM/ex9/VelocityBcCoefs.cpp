@@ -11,22 +11,10 @@
 //
 // ---------------------------------------------------------------------
 
-#include "VelocityBcCoefs.h"
-//#include "BcData.h"
-
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifndef included_IBAMR_config
-#include <IBAMR_config.h>
-#define included_IBAMR_config
-#endif
+#include "VelocityBcCoefs.h"
 
-#ifndef included_SAMRAI_config
-#include <SAMRAI_config.h>
-#define included_SAMRAI_config
-#endif
-
-// SAMRAI INCLUDES
 #include <CartesianPatchGeometry.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////

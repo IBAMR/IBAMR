@@ -16,23 +16,13 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDES
-#include <petscsys.h>
-
-// VALVE TESTER INCLUDES
-//#include "CirculationModel.h"
-
-// IBTK INCLUDES
-#include <ibtk/ibtk_utilities.h>
-
-// IBAMR INCLUDES
 #include <ibamr/INSHierarchyIntegrator.h>
 
-// SAMRAI INCLUDES
-#include <RobinBcCoefStrategy.h>
+#include <ibtk/ibtk_utilities.h>
 
-// NAMESPACE
 #include "BcData.h"
+
+#include <RobinBcCoefStrategy.h>
 
 #include <ibamr/app_namespaces.h>
 

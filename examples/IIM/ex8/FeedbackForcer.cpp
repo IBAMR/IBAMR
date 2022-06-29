@@ -11,16 +11,16 @@
 //
 // ---------------------------------------------------------------------
 
-#include "FeedbackForcer.h"
-
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
 #include <tbox/Utilities.h>
 
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
 #include <SideData.h>
+
+// Application includes
+#include "FeedbackForcer.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
