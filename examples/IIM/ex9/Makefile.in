@@ -823,7 +823,6 @@ clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input* ; \
-	  rm -f $(builddir)/input* ; \
 	fi ;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
