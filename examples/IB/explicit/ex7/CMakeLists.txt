@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2014 - 2019 by the IBAMR developers
+## Copyright (c) 2020 - 2020 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -11,16 +11,21 @@
 ##
 ## ---------------------------------------------------------------------
 
-## Process this file with automake to produce Makefile.in
-include $(top_srcdir)/config/Make-rules
-SUBDIRS = ex0 ex1 ex2 ex3 ex4 ex5 ex6 ex7
-
-COMPLETE_EXAMPLES = $(SUBDIRS)
-INCOMPLETE_EXAMPLES =
-.PHONY: examples $(COMPLETE_EXAMPLES)
-examples: $(COMPLETE_EXAMPLES)
-
-$(COMPLETE_EXAMPLES):
-	cd $@ && $(MAKE) $(AM_MAKEFLAGS) examples
-
-
+IBAMR_ADD_EXAMPLE(
+  TARGET_NAME
+    "IB-ex7"
+  OUTPUT_DIRECTORY
+    "${CMAKE_BINARY_DIR}/examples/IB/explicit/ex7"
+  OUTPUT_NAME
+    main3d
+  EXAMPLE_GROUP
+    examples-IB
+  SOURCES
+    example.cpp
+  LINK_TARGETS
+    IBAMR3d
+  INPUT_FILES
+    input3d posts_128.vertex
+  EXTRA_FILES
+    generate_posts.m
+    )

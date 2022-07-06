@@ -87,11 +87,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = $(am__EXEEXT_4) $(am__EXEEXT_5)
+EXTRA_PROGRAMS = $(am__EXEEXT_3)
 @LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
 @LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_2 = $(EXAMPLES) 
-@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_3 = main3d 
-@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__append_4 = $(EXAMPLES) 
 subdir = examples/IIM/ex7
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -124,13 +122,9 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 @LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 =  \
 @LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	main2d$(EXEEXT)
-@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_2 =  \
-@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	main3d$(EXEEXT)
-am__EXEEXT_3 = $(am__EXEEXT_1) $(am__EXEEXT_2)
-@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_4 =  \
-@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	$(am__EXEEXT_3)
-@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_5 =  \
-@LIBMESH_ENABLED_TRUE@@SAMRAI3D_ENABLED_TRUE@	$(am__EXEEXT_3)
+am__EXEEXT_2 = $(am__EXEEXT_1)
+@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_3 =  \
+@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	$(am__EXEEXT_2)
 am__objects_1 = main2d-example.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
@@ -141,13 +135,6 @@ am__v_lt_0 = --silent
 am__v_lt_1 = 
 main2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main2d_CXXFLAGS) \
-	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_2 = main3d-example.$(OBJEXT)
-am_main3d_OBJECTS = $(am__objects_2)
-main3d_OBJECTS = $(am_main3d_OBJECTS)
-main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-main3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main3d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -164,8 +151,7 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/main2d-example.Po \
-	./$(DEPDIR)/main3d-example.Po
+am__depfiles_remade = ./$(DEPDIR)/main2d-example.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -185,8 +171,8 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(main2d_SOURCES) $(main3d_SOURCES)
-DIST_SOURCES = $(main2d_SOURCES) $(main3d_SOURCES)
+SOURCES = $(main2d_SOURCES)
+DIST_SOURCES = $(main2d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -475,13 +461,10 @@ pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 EXAMPLE_DRIVER = example.cpp
 EXTRA_DIST = input2d input3d
-EXAMPLES = $(am__append_1) $(am__append_3)
+EXAMPLES = $(am__append_1)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = $(EXAMPLE_DRIVER)
-main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-main3d_SOURCES = $(EXAMPLE_DRIVER)
 all: all-am
 
 .SUFFIXES:
@@ -521,10 +504,6 @@ main2d$(EXEEXT): $(main2d_OBJECTS) $(main2d_DEPENDENCIES) $(EXTRA_main2d_DEPENDE
 	@rm -f main2d$(EXEEXT)
 	$(AM_V_CXXLD)$(main2d_LINK) $(main2d_OBJECTS) $(main2d_LDADD) $(LIBS)
 
-main3d$(EXEEXT): $(main3d_OBJECTS) $(main3d_DEPENDENCIES) $(EXTRA_main3d_DEPENDENCIES) 
-	@rm -f main3d$(EXEEXT)
-	$(AM_V_CXXLD)$(main3d_LINK) $(main3d_OBJECTS) $(main3d_LDADD) $(LIBS)
-
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -532,7 +511,6 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-example.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-example.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -577,20 +555,6 @@ main2d-example.obj: example.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='example.cpp' object='main2d-example.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-example.obj `if test -f 'example.cpp'; then $(CYGPATH_W) 'example.cpp'; else $(CYGPATH_W) '$(srcdir)/example.cpp'; fi`
-
-main3d-example.o: example.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-example.o -MD -MP -MF $(DEPDIR)/main3d-example.Tpo -c -o main3d-example.o `test -f 'example.cpp' || echo '$(srcdir)/'`example.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-example.Tpo $(DEPDIR)/main3d-example.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='example.cpp' object='main3d-example.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-example.o `test -f 'example.cpp' || echo '$(srcdir)/'`example.cpp
-
-main3d-example.obj: example.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-example.obj -MD -MP -MF $(DEPDIR)/main3d-example.Tpo -c -o main3d-example.obj `if test -f 'example.cpp'; then $(CYGPATH_W) 'example.cpp'; else $(CYGPATH_W) '$(srcdir)/example.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-example.Tpo $(DEPDIR)/main3d-example.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='example.cpp' object='main3d-example.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-example.obj `if test -f 'example.cpp'; then $(CYGPATH_W) 'example.cpp'; else $(CYGPATH_W) '$(srcdir)/example.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -724,7 +688,6 @@ clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/main2d-example.Po
-	-rm -f ./$(DEPDIR)/main3d-example.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -771,7 +734,6 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/main2d-example.Po
-	-rm -f ./$(DEPDIR)/main3d-example.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
