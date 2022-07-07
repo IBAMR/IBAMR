@@ -62,8 +62,29 @@ class StaggeredStokesOperator : public IBTK::LinearOperator
 public:
     /*!
      * \brief Class constructor.
+     *
+     * The following parameters are read from the optional input database:
+     *
+     * <code>refine_type<\code>: String the specifies the refining operator for velocity and pressure, default "NONE"
+     *
+     * <code>coarsen_type<\code>: String the specifies the coarsening operator for velocity and pressure, default
+     * "CUBIC_COARSEN"
+     *
+     * <code>bdry_extrap_type<\code>: String that specifies the type of extrapolation to do at physical boundaries at
+     * which physical boundary conditions are not present, default "LINEAR"
+     *
+     * <code>bdry_interp_type<\code>: String that specifies how to fill ghost cells at physical boundaries at which
+     * physical boundary conditions are present, default "LINEAR"
+     *
+     * <code>use_cf_interpolation<\code>: Bool that specifies whether to use interpolation involving both coarse and
+     * fine components, default TRUE
+     *
+     * <code>consistent_type_2_bdry<\code>: Bool that specifies whether the "type 2" boundary should be consistently
+     * filled, default FALSE
      */
-    StaggeredStokesOperator(const std::string& object_name, bool homogeneous_bc = true);
+    StaggeredStokesOperator(const std::string& object_name,
+                            bool homogeneous_bc = true,
+                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr);
 
     /*!
      * \brief Destructor.
@@ -216,6 +237,13 @@ protected:
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b;
+
+    std::string d_refine_type = "NONE";
+    std::string d_coarsen_type = "CUBIC_COARSEN";
+    std::string d_bdry_extrap_type = "LINEAR";
+    std::string d_bdry_interp_type = "LINEAR";
+    bool d_consistent_type_2_bdry = false;
+    bool d_use_cf_interpolation = true;
 
 private:
     /*!
