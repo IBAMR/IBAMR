@@ -184,7 +184,9 @@ to your own project using standard CMake tools. You can configure your project
 PROJECT(main2d)
 CMAKE_MINIMUM_REQUIRED(VERSION 3.15.0)
 
-ADD_EXECUTABLE(main2d main.cpp)
+# List your source files here - this example has just one.
+SET(SOURCE_FILES main.cpp)
+ADD_EXECUTABLE(main2d ${SOURCE_FILES})
 
 FIND_PACKAGE(IBAMR 0.10.0 REQUIRED)
 TARGET_LINK_LIBRARIES(main2d IBAMR::IBAMR2d)
