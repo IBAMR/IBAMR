@@ -249,7 +249,7 @@ FEDataInterpolation::init()
         if (!system_vec) system_vec = system.current_local_solution.get();
 
         const std::vector<int>& vars = d_system_vars[system_idx];
-        d_system_var_fe_type_idx[system_idx].resize(vars.size(), -1);
+        d_system_var_fe_type_idx[system_idx].resize(vars.size(), std::numeric_limits<std::size_t>::max());
         for (unsigned int k = 0; k < vars.size(); ++k)
         {
             const FEType& fe_type = system_dof_map.variable_type(vars[k]);
@@ -259,7 +259,7 @@ FEDataInterpolation::init()
         }
 
         const std::vector<int>& grad_vars = d_system_grad_vars[system_idx];
-        d_system_grad_var_fe_type_idx[system_idx].resize(grad_vars.size(), -1);
+        d_system_grad_var_fe_type_idx[system_idx].resize(grad_vars.size(), std::numeric_limits<std::size_t>::max());
         for (unsigned int k = 0; k < grad_vars.size(); ++k)
         {
             const FEType& fe_type = system_dof_map.variable_type(grad_vars[k]);
