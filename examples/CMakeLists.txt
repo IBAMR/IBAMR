@@ -72,7 +72,6 @@ MACRO(IBAMR_ADD_EXAMPLE)
       "${EX_OUTPUT_DIRECTORY}"
       OUTPUT_NAME
       "${EX_OUTPUT_NAME}")
-    TARGET_INCLUDE_DIRECTORIES("${EX_TARGET_NAME}" PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
 
     # If we have no target link libraries or rely on just boost (which is
     # header-only and, until CMake 3.20 or later, we cannot set a C++ standard
