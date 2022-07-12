@@ -1,5 +1,0 @@
-Improved: IBAMR::IBMethod and IBAMR::IMPMethod now check (via IBTK::LDataManager)
-that all points are, accounting for periodicity, within the computational domain
-during initialization.
-<br>
-(David Wells, 2022/01/21)
