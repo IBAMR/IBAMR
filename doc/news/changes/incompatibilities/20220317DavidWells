@@ -1,5 +1,0 @@
-Changed: The return type of FESurfaceDistanceEvaluator::getNeighborIntersectionsMap()
-has changed to use <tt>const libMesh::Elem*</tt> values to fix a compatibility issue
-with upcoming versions of libMesh.
-<br>
-(David Wells, 2022/03/17)

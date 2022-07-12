@@ -1,0 +1,94 @@
+<h2>Incompatibilities</h2>
+<ol>
+<li>
+Changed: IBRedundantInitializer now allows for passing object states to
+functions via optional void* parameters.
+<br> (Aaron Barrett, 2022/04/26)
+</li>
+<li>
+Changed: The return type of FESurfaceDistanceEvaluator::getNeighborIntersectionsMap()
+has changed to use <tt>const libMesh::Elem*</tt> values to fix a compatibility issue
+with upcoming versions of libMesh.
+<br>
+(David Wells, 2022/03/17)
+</li>
+</ol>
+
+<h2>Major Changes</h2>
+<ol>
+<li>
+Improved: A new example, ex7, has been added to the directory <path to IBAMR>/examples/IB/explicit/. ex7 demonstrates how to track and print the Eulerian coordinates of IB points over the course of a simulation. More details can be found at <path to IBAMR>/examples/IB/explicit/ex7/README.md.
+<br>
+(Cole Gruninger, 2022/05/16)
+</li>
+<li>
+New: Added eight new tutorial programs which demonstrate various uses of
+IIMethod and its extension to ILE.
+<br>
+(Amin Kolahdouz, 2022/07/29)
+</li>
+</ol>
+
+<h2>Minor Changes</h2>
+<ol>
+<li>
+Improved: IBAMR::IBMethod and IBAMR::IMPMethod now check (via IBTK::LDataManager)
+that all points are, accounting for periodicity, within the computational domain
+during initialization.
+<br>
+(David Wells, 2022/01/21)
+</li>
+<li>
+New: Two new examples added to IBLevelSet/examples directory. The ex4 simulates the self propelling motion of a single pitching airfoil. The ex5 simulates the self propelling motion of two pitching airfoils.
+<br>
+(Kaustubh Khedkar and Amneet Bhalla, 2022/02/08)
+</li>
+<li>
+New: Added a class that can store snapshots of data during a simulation. This can be used to, among other things, compute statistics of a (periodic) steady state flow field.
+<br>
+(Aaron Barrett, 2022/02/18)
+</li>
+<li>
+Changed: IBAMR's CMake build system now lets HDF5 resolve the zlib dependency.
+<br>
+(David Wells, 2022/02/21)
+</li>
+<li>
+Improved: IBAMR::IBRedundantInitializer (and, through it, IBAMR::IBMethod) now
+works with points initially placed on top physical boundaries. Previously points
+could only be placed on boundaries which happened to be the lower ones.
+<br>
+(David Wells, 2022/03/07)
+</li>
+<li>
+Improved: The advection diffusion integrator now outputs visualization files
+correctly based on the depth of the advected variable.
+<br>
+(Aaron Barrett, 2022/03/08)
+</li>
+<li>
+Improved: IBAMR::FEMechanicsBase and IBAMR::IBFEMethod now print an error message if
+any of the elements in the provided mesh are inverted.
+<br>
+(David Wells, 2022/04/11)
+</li>
+<li>
+Improved: IBTK::FEProjector now uses the conjugate gradient method instead of
+MINRES. This switch lowers finite element solver time by about 50% in 3D.
+<br>
+(David Wells, 2022/04/28)
+</li>
+<li>
+Improved: Multiple advection diffusion integrators can be registered with the
+navier stokes integrator.
+<br>
+(Aaron Barrett, 2022/05/26)
+</li>
+<li>
+Improved: Can now set how ghost cells are filled in the Stokes operators. A
+consistent discrete Laplacian requires "QUADRATIC" interpolation at the
+boundaries. The default behavior for IBAMR is to use "LINEAR" interpolation.
+<br>
+(Aaron Barrett and Cole Gruninger, 2022/07/07)
+</li>
+</ol>

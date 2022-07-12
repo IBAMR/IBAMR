@@ -1,4 +1,0 @@
-Improved: The advection diffusion integrator now outputs visualization files
-correctly based on the depth of the advected variable.
-<br>
-(Aaron Barrett, 2022/03/08)

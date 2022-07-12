@@ -1,3 +1,0 @@
-Changed: IBRedundantInitializer now allows for passing object states to
-functions via optional void* parameters.
-<br> (Aaron Barrett, 2022/04/26)

@@ -1,3 +1,0 @@
-Improved: A new example, ex7, has been added to the directory <path to IBAMR>/examples/IB/explicit/. ex7 demonstrates how to track and print the Eulerian coordinates of IB points over the course of a simulation. More details can be found at <path to IBAMR>/examples/IB/explicit/ex7/README.md.
-<br>
-(Cole Gruninger, 2022/05/16)

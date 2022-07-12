@@ -1,3 +1,0 @@
-New: Added a class that can store snapshots of data during a simulation. This can be used to, among other things, compute statistics of a (periodic) steady state flow field.
-<br>
-(Aaron Barrett, 2022/02/18)

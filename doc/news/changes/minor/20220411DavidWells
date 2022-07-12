@@ -1,4 +1,0 @@
-Improved: IBAMR::FEMechanicsBase and IBAMR::IBFEMethod now print an error message if
-any of the elements in the provided mesh are inverted.
-<br>
-(David Wells, 2022/04/11)
