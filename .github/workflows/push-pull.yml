@@ -339,7 +339,8 @@ jobs:
         id: build
         run: |
           cd /build/ibamr
-          make -j2 tests
+          # compile examples which depend on libMesh to verify that they still work with libMesh 1.1.0
+          make -j2 tests examples-IBFE examples-IBLevelSet examples-IIM examples-IMP examples-complex_fluids examples-fe_mechanics
           ccache --show-stats
       - name: Test IBAMR
         id: test
