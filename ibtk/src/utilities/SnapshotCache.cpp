@@ -57,8 +57,7 @@ SnapshotCache::SnapshotCache(std::string object_name,
     }
 
     bool from_restart = restart_manager->isFromRestart();
-    if (from_restart)
-        getFromRestart(grid_geom);
+    if (from_restart) getFromRestart(grid_geom);
 }
 
 SnapshotCache::~SnapshotCache()

@@ -82,12 +82,11 @@ public:
      * If needed, a SAMRAI::xfer::RefinePatchStrategy object can be provided
      * for filling ghost data at physical boundaries.
      */
-    void
-    transferPrimaryToSecondary(int level_number,
-                               int primary_data_idx,
-                               int secondary_data_idx,
-                               double data_time,
-                               SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
+    void transferPrimaryToSecondary(int level_number,
+                                    int primary_data_idx,
+                                    int secondary_data_idx,
+                                    double data_time,
+                                    SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
 
     /*!
      * Transfer data from the secondary hierarchy to the primary hierarchy.
@@ -95,12 +94,11 @@ public:
      * If needed, a SAMRAI::xfer::RefinePatchStrategy object can be provided
      * for filling ghost data at physical boundaries.
      */
-    void
-    transferSecondaryToPrimary(int level_number,
-                               int primary_data_idx,
-                               int secondary_data_idx,
-                               double data_time,
-                               SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
+    void transferSecondaryToPrimary(int level_number,
+                                    int primary_data_idx,
+                                    int secondary_data_idx,
+                                    double data_time,
+                                    SAMRAI::xfer::RefinePatchStrategy<NDIM>* patch_strategy = nullptr);
 
     /*!
      * Get a copy of the pointer to the secondary scratch object.

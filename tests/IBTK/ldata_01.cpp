@@ -51,13 +51,13 @@ write_ldata_info(LData& l_data)
 
             if (l_data.getDepth() == 1)
             {
-                boost::multi_array_ref<double, 1> &local_entries = *l_data.getLocalFormArray();
+                boost::multi_array_ref<double, 1>& local_entries = *l_data.getLocalFormArray();
                 output << "local entries: ";
                 auto it = local_entries.begin();
                 for (; it != local_entries.end() - 1; ++it) output << *it << ", ";
                 output << *it << '\n';
 
-                boost::multi_array_ref<double, 1> &ghost_entries = *l_data.getGhostedLocalFormArray();
+                boost::multi_array_ref<double, 1>& ghost_entries = *l_data.getGhostedLocalFormArray();
                 output << "local ghost entries: ";
                 it = ghost_entries.begin();
                 for (; it != ghost_entries.end() - 1; ++it) output << *it << ", ";
@@ -68,7 +68,7 @@ write_ldata_info(LData& l_data)
 
             {
                 output << "with 2D vector:\n";
-                boost::multi_array_ref<double, 2> &local_entries = *l_data.getLocalFormVecArray();
+                boost::multi_array_ref<double, 2>& local_entries = *l_data.getLocalFormVecArray();
                 output << "local entries: ";
                 auto it = local_entries.begin();
                 for (; it != local_entries.end(); ++it)
@@ -82,7 +82,7 @@ write_ldata_info(LData& l_data)
                         output << '\n';
                 }
 
-                boost::multi_array_ref<double, 2> &ghost_entries = *l_data.getGhostedLocalFormVecArray();
+                boost::multi_array_ref<double, 2>& ghost_entries = *l_data.getGhostedLocalFormVecArray();
                 output << "local ghost entries: ";
                 it = ghost_entries.begin();
                 for (; it != ghost_entries.end(); ++it)
@@ -103,7 +103,7 @@ write_ldata_info(LData& l_data)
 
             if (l_data.getDepth() == 1)
             {
-                boost::multi_array_ref<double, 1> &local_entries = *l_data.getArray();
+                boost::multi_array_ref<double, 1>& local_entries = *l_data.getArray();
                 const int begin = IBTK_MPI::getRank() * 10;
                 const int end = begin + (IBTK_MPI::getRank() == 3 ? 6 : 10);
                 output << "local range: " << '[' << begin << ", " << end << ")\n";
@@ -115,7 +115,7 @@ write_ldata_info(LData& l_data)
             if (l_data.getDepth() == 2)
             {
                 output << "with 2D vector:\n" << std::flush;
-                boost::multi_array_ref<double, 2> &local_entries = *l_data.getVecArray();
+                boost::multi_array_ref<double, 2>& local_entries = *l_data.getVecArray();
                 const int begin = IBTK_MPI::getRank() * 10;
                 const int end = begin + (IBTK_MPI::getRank() == 3 ? 3 : 5);
                 output << "local range: " << '[' << begin << ", " << end << ")\n";
@@ -177,7 +177,7 @@ main(int argc, char** argv)
 
         for (int i = 0; i < IBTK_MPI::getNodes(); ++i)
         {
-            boost::multi_array_ref<double, 1> &entries = *l_data_1.getLocalFormArray();
+            boost::multi_array_ref<double, 1>& entries = *l_data_1.getLocalFormArray();
             double offset = 0.0;
             for (double& entry : entries)
             {
@@ -218,7 +218,7 @@ main(int argc, char** argv)
 
         for (int i = 0; i < IBTK_MPI::getNodes(); ++i)
         {
-            boost::multi_array_ref<double, 2> &entries = *l_data_2.getLocalFormVecArray();
+            boost::multi_array_ref<double, 2>& entries = *l_data_2.getLocalFormVecArray();
             for (unsigned int row_n = 0; row_n < entries.shape()[0]; ++row_n)
             {
                 entries[row_n][0] = row_n + 100 * rank;
