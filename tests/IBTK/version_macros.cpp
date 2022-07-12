@@ -11,15 +11,15 @@
 //
 // ---------------------------------------------------------------------
 
-#include <ibtk/config.h>
-
 #include <ibamr/config.h>
+#include <ibtk/config.h>
 
 #include <fstream>
 
 // Verify that the version check macros produce reasonable output
 
-int main()
+int
+main()
 {
     std::ofstream out("output");
 
